@@ -39,7 +39,7 @@ For detailed instructions and best practices related to the installation process
 
 ## Configuring DVCLive
 
-Once you have installed the necessary packages, the next step is to set up and configure your environment with the necessary credentials. This setup ensures a smooth integration of DVCLive into your existing workflow.
+Once you have installed the necessary packages, the next step is to set up and configure your environment with the required credentials. This setup ensures a smooth integration of DVCLive into your existing workflow.
 
 Begin by initializing a Git repository, as Git plays a crucial role in version control for both your code and DVCLive configurations.
 
@@ -62,7 +62,7 @@ Begin by initializing a Git repository, as Git plays a crucial role in version c
         git commit -m "DVC init"
         ```
 
-In these commands, ensure to replace "you@example.com" with the email address associated with your Git account, and "Your Name" with your Git account username.
+In these commands, ensure you replace "you@example.com" with the email address associated with your Git account, and "Your Name" with your Git account username.
 
 ## Usage
 

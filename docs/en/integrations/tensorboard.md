@@ -13,7 +13,7 @@ This guide covers how to use TensorBoard with YOLO11. You'll learn about various
 ## TensorBoard
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/tensorboard-overview.avif" alt="Tensorboard Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/tensorboard-overview.avif" alt="TensorBoard Overview">
 </p>
 
 [TensorBoard](https://www.tensorflow.org/tensorboard), [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)'s visualization toolkit, is essential for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) experimentation. TensorBoard features a range of visualization tools, crucial for monitoring machine learning models. These tools include tracking key metrics like loss and accuracy, visualizing model graphs, and viewing histograms of weights and biases over time. It also provides capabilities for projecting [embeddings](https://www.ultralytics.com/glossary/embeddings) to lower-dimensional spaces and displaying multimedia data.

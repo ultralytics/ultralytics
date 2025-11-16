@@ -58,13 +58,13 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Initialize object blurrer object
+        # Initialize object blurrer
         blurrer = solutions.ObjectBlurrer(
             show=True,  # display the output
-            model="yolo11n.pt",  # model for object blurring i.e. yolo11m.pt
+            model="yolo11n.pt",  # model for object blurring, e.g., yolo11m.pt
             # line_width=2,  # width of bounding box.
-            # classes=[0, 2],  # count specific classes i.e, person and car with COCO pretrained model.
-            # blur_ratio=0.5,  # adjust percentage of blur intensity, the value in range 0.1 - 1.0
+            # classes=[0, 2],  # blur specific classes, i.e., person and car with COCO pretrained model.
+            # blur_ratio=0.5,  # adjust percentage of blur intensity, value in range 0.1 - 1.0
         )
 
         # Process video
@@ -77,7 +77,7 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
             results = blurrer(im0)
 
-            # print(results")  # access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 

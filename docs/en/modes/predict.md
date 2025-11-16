@@ -34,7 +34,7 @@ In the world of [machine learning](https://www.ultralytics.com/glossary/machine-
 
 Here's why you should consider YOLO11's predict mode for your various inference needs:
 
-- **Versatility:** Capable of making inferences on images, videos, and even live streams.
+- **Versatility:** Capable of running inference on images, videos, and even live streams.
 - **Performance:** Engineered for real-time, high-speed processing without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy).
 - **Ease of Use:** Intuitive Python and CLI interfaces for rapid deployment and testing.
 - **Highly Customizable:** Various settings and parameters to tune the model's inference behavior according to your specific requirements.
@@ -45,10 +45,10 @@ YOLO11's predict mode is designed to be robust and versatile, featuring:
 
 - **Multiple Data Source Compatibility:** Whether your data is in the form of individual images, a collection of images, video files, or real-time video streams, predict mode has you covered.
 - **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method.
-- **Batch Processing:** The ability to process multiple images or video frames in a single batch, further speeding up inference time.
+- **Batch Processing:** Process multiple images or video frames in a single batch, further reducing total inference time.
 - **Integration Friendly:** Easily integrate with existing data pipelines and other software components, thanks to its flexible API.
 
-Ultralytics YOLO models return either a Python list of `Results` objects, or a memory-efficient Python generator of `Results` objects when `stream=True` is passed to the model during inference:
+Ultralytics YOLO models return either a Python list of `Results` objects or a memory-efficient generator of `Results` objects when `stream=True` is passed to the model during inference:
 
 !!! example "Predict"
 
@@ -248,7 +248,7 @@ Below are code examples for using each source type:
 
     === "CSV"
 
-        Run inference on a collection of images, URLs, videos and directories listed in a CSV file.
+        Run inference on a collection of images, URLs, videos, and directories listed in a CSV file.
         ```python
         from ultralytics import YOLO
 
@@ -280,7 +280,7 @@ Below are code examples for using each source type:
 
     === "directory"
 
-        Run inference on all images and videos in a directory. To also capture images and videos in subdirectories use a glob pattern, i.e. `path/to/dir/**/*`.
+        Run inference on all images and videos in a directory. To include assets in subdirectories, use a glob pattern such as `path/to/dir/**/*`.
         ```python
         from ultralytics import YOLO
 
@@ -350,7 +350,7 @@ Below are code examples for using each source type:
 
     === "Multi-Stream"
 
-        To handle multiple video streams simultaneously, use a `.streams` text file containing the streaming sources. The model will run batched inference where the batch size equals the number of streams. This setup enables efficient processing of multiple feeds concurrently.
+        To handle multiple video streams simultaneously, use a `.streams` text file containing one source per line. The model will run batched inference where the batch size equals the number of streams. This setup enables efficient processing of multiple feeds concurrently.
 
         ```python
         from ultralytics import YOLO

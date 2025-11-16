@@ -69,7 +69,7 @@ Results saved to runs/val/exp
 
 ## Apply Pruning to YOLOv5x (30% Sparsity)
 
-We can apply pruning to the model using the `torch_utils.prune()` command. To test a pruned model, we update `val.py` to prune YOLOv5x to 0.3 sparsity (30% of weights set to zero):
+We can apply pruning to the model using the `torch_utils.prune()` command defined in `utils/torch_utils.py`. To test a pruned model, we update `val.py` to prune YOLOv5x to 0.3 sparsity (30% of weights set to zero):
 
 <img width="894" alt="Screenshot showing code for pruning YOLOv5x to 30% sparsity" src="https://github.com/ultralytics/docs/releases/download/0/sparsity-test-yolov5x-coco.avif">
 

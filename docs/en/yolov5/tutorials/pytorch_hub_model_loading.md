@@ -147,7 +147,7 @@ In this case the model will be composed of pretrained weights **except for** the
 
 ### Force Reload
 
-If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and force a fresh download of the latest YOLOv5 version from PyTorch Hub.
+If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and force a fresh download of the latest YOLOv5 version from PyTorch Hub. Cached copies live in `~/.cache/torch/hub`; deleting that folder achieves the same effect.
 
 ```python
 model = torch.hub.load("ultralytics/yolov5", "yolov5s", force_reload=True)  # force reload

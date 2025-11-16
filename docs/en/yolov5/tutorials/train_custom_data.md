@@ -60,6 +60,8 @@ The `dataset.yaml` file structure includes:
 - `train`, `val`, `test`: Relative paths from `path` to directories containing images or text files listing image paths for training, validation, and testing sets.
 - `names`: A dictionary mapping class indices (starting from 0) to their corresponding class names.
 
+You can set `path` to either an absolute directory (e.g., `/home/user/datasets/coco128`) or a relative path such as `../datasets/coco128` when launching training from the YOLOv5 repository root.
+
 Below is the structure for `coco128.yaml` ([view on GitHub](https://github.com/ultralytics/yolov5/blob/master/data/coco128.yaml)):
 
 ```yaml

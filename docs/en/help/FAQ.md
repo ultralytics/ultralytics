@@ -14,7 +14,7 @@ This FAQ section addresses common questions and issues users might encounter whi
 
 Ultralytics is a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) AI company specializing in state-of-the-art object detection and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) models, with a focus on the YOLO (You Only Look Once) family. Their offerings include:
 
-- Open-source implementations of [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/)
+- Open-source implementations of [YOLO11](https://docs.ultralytics.com/models/yolo11/) (latest) and [YOLOv8](https://docs.ultralytics.com/models/yolov8/) (previous generation)
 - A wide range of [pre-trained models](https://docs.ultralytics.com/models/) for various computer vision tasks
 - A comprehensive [Python package](https://docs.ultralytics.com/usage/python/) for seamless integration of YOLO models into projects
 - Versatile [tools](https://docs.ultralytics.com/modes/) for training, testing, and deploying models
@@ -66,8 +66,8 @@ To train a custom YOLO model:
     from ultralytics import YOLO
 
     # Load a model
-    model = YOLO("yolov8n.yaml")  # build a new model from scratch
-    model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+    model = YOLO("yolo11n.yaml")  # build a new model from scratch
+    model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
     # Train the model
     results = model.train(data="path/to/your/data.yaml", epochs=100, imgsz=640)

@@ -167,14 +167,13 @@ class SemSegPredictor(DetectionPredictor):
         _, hm, wm = masks.shape
         mask_bgr = np.ones((hm, wm, 3), dtype=np.uint8) * 255
         if one_hot:
-            mask = masks.copy().transpose(1, 2, 0)
-            for j in range(nc):
-                r, g, b = colors[j]
-                mask_bgr[mask[:, :, j] > 114, :] = np.array([b, g, r]).astype(np.uint8)
-        else:
-            for j in range(nc):
-                r, g, b = colors[j]
-                mask_bgr[masks == j, :] = np.array([b, g, r]).astype(np.uint8)
+            mask = masks.argmax(axis=0).astype(np.uint8)
+
+        for j in range(nc):
+            r, g, b = colors[j]
+            mask_bgr[..., 0] = (mask == j).astype(np.uint8) * b
+            mask_bgr[..., 1] = (mask == j).astype(np.uint8) * g
+            mask_bgr[..., 2] = (mask == j).astype(np.uint8) * r
 
         msk = cv2.resize(mask_bgr, dsize=(w, h), interpolation=cv2.INTER_NEAREST)
 

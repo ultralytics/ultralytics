@@ -10,7 +10,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 !!! tip "New product support"
 
-    We have updated this guide with the latest [NVIDIA Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit) which delivers up to 67 TOPS of AI performance — a 1.7X improvement over its predecessor — to seamlessly run the most popular AI models.
+    We have updated this guide with the latest [NVIDIA Jetson AGX Thor Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor) which delivers up to 2070 FP4 TFLOPS of AI compute and 128 GB of memory with power configurable between 40 W and 130 W. It delivers over 7.5x higher AI compute than NVIDIA Jetson AGX Orin, with 3.5x better energy efficiency to seamlessly run the most popular AI models.
 
 <p align="center">
   <br>
@@ -27,7 +27,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 !!! note
 
-    This guide has been tested with [NVIDIA Jetson AGX Orin Developer Kit (64GB)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin) running the latest stable JetPack release of [JP6.2](https://developer.nvidia.com/embedded/jetpack-sdk-62), [NVIDIA Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit) running JetPack release of [JP6.1](https://developer.nvidia.com/embedded/jetpack-sdk-61), [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running JetPack release of [JP6.0](https://developer.nvidia.com/embedded/jetpack-sdk-60)/ JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461). It is expected to work across all the NVIDIA Jetson hardware lineup including latest and legacy.
+    This guide has been tested with [NVIDIA Jetson AGX Thor Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor) running the latest stable JetPack release of [JP7.0](https://developer.nvidia.com/embedded/jetpack/downloads), [NVIDIA Jetson AGX Orin Developer Kit (64GB)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin) running JetPack release of [JP6.2](https://developer.nvidia.com/embedded/jetpack-sdk-62), [NVIDIA Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit) running JetPack release of [JP6.1](https://developer.nvidia.com/embedded/jetpack-sdk-61), [Seeed Studio reComputer J4012](https://www.seeedstudio.com/reComputer-J4012-p-5586.html) which is based on NVIDIA Jetson Orin NX 16GB running JetPack release of [JP6.0](https://developer.nvidia.com/embedded/jetpack-sdk-60)/ JetPack release of [JP5.1.3](https://developer.nvidia.com/embedded/jetpack-sdk-513) and [Seeed Studio reComputer J1020 v2](https://www.seeedstudio.com/reComputer-J1020-v2-p-5498.html) which is based on NVIDIA Jetson Nano 4GB running JetPack release of [JP4.6.1](https://developer.nvidia.com/embedded/jetpack-sdk-461). It is expected to work across all the NVIDIA Jetson hardware lineup including latest and legacy.
 
 ## What is NVIDIA Jetson?
 
@@ -35,18 +35,18 @@ NVIDIA Jetson is a series of embedded computing boards designed to bring acceler
 
 ## NVIDIA Jetson Series Comparison
 
-[Jetson Orin](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/) is the latest iteration of the NVIDIA Jetson family based on NVIDIA Ampere architecture which brings drastically improved AI performance when compared to the previous generations. The table below compares a few of the Jetson devices in the ecosystem.
+[NVIDIA Jetson AGX Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/) is the latest iteration of the NVIDIA Jetson family based on NVIDIA Blackwell architecture which brings drastically improved AI performance when compared to the previous generations. The table below compares a few of the Jetson devices in the ecosystem.
 
-|                   | Jetson AGX Orin 64GB                                              | Jetson Orin NX 16GB                                              | Jetson Orin Nano Super                                        | Jetson AGX Xavier                                           | Jetson Xavier NX                                              | Jetson Nano                                   |
-| ----------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------- |
-| AI Performance    | 275 TOPS                                                          | 100 TOPS                                                         | 67 TOPs                                                       | 32 TOPS                                                     | 21 TOPS                                                       | 472 GFLOPS                                    |
-| GPU               | 2048-core NVIDIA Ampere architecture GPU with 64 Tensor Cores     | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores    | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU    |
-| GPU Max Frequency | 1.3 GHz                                                           | 918 MHz                                                          | 1020 MHz                                                      | 1377 MHz                                                    | 1100 MHz                                                      | 921MHz                                        |
-| CPU               | 12-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 3MB L2 + 6MB L3 | 8-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 2MB L2 + 4MB L3 | 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3 | 8-core NVIDIA Carmel Arm®v8.2 64-bit CPU 8MB L2 + 4MB L3   | 6-core NVIDIA Carmel Arm®v8.2 64-bit CPU 6MB L2 + 4MB L3     | Quad-Core Arm® Cortex®-A57 MPCore processor |
-| CPU Max Frequency | 2.2 GHz                                                           | 2.0 GHz                                                          | 1.7 GHz                                                       | 2.2 GHz                                                     | 1.9 GHz                                                       | 1.43GHz                                       |
-| Memory            | 64GB 256-bit LPDDR5 204.8GB/s                                     | 16GB 128-bit LPDDR5 102.4GB/s                                    | 8GB 128-bit LPDDR5 102 GB/s                                   | 32GB 256-bit LPDDR4x 136.5GB/s                              | 8GB 128-bit LPDDR4x 59.7GB/s                                  | 4GB 64-bit LPDDR4 25.6GB/s"                   |
+|                   | Jetson AGX Thor                                                  | Jetson AGX Orin 64GB                                              | Jetson Orin NX 16GB                                              | Jetson Orin Nano Super                                        | Jetson AGX Xavier                                           | Jetson Xavier NX                                              | Jetson Nano                                   |
+| ----------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------- |
+| AI Performance    | 2070 TFLOPS                                                      | 275 TOPS                                                          | 100 TOPS                                                         | 67 TOPS                                                       | 32 TOPS                                                     | 21 TOPS                                                       | 472 GFLOPS                                    |
+| GPU               | 2560-core NVIDIA Blackwell architecture GPU with 96 Tensor Cores | 2048-core NVIDIA Ampere architecture GPU with 64 Tensor Cores     | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores    | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU    |
+| GPU Max Frequency | 1.57 GHz                                                         | 1.3 GHz                                                           | 918 MHz                                                          | 1020 MHz                                                      | 1377 MHz                                                    | 1100 MHz                                                      | 921MHz                                        |
+| CPU               | 14-core Arm® Neoverse®-V3AE 64-bit CPU 1MB L2 + 16MB L3        | 12-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 3MB L2 + 6MB L3 | 8-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 2MB L2 + 4MB L3 | 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3 | 8-core NVIDIA Carmel Arm®v8.2 64-bit CPU 8MB L2 + 4MB L3   | 6-core NVIDIA Carmel Arm®v8.2 64-bit CPU 6MB L2 + 4MB L3     | Quad-Core Arm® Cortex®-A57 MPCore processor |
+| CPU Max Frequency | 2.6 GHz                                                          | 2.2 GHz                                                           | 2.0 GHz                                                          | 1.7 GHz                                                       | 2.2 GHz                                                     | 1.9 GHz                                                       | 1.43GHz                                       |
+| Memory            | 128GB 256-bit LPDDR5X 273GB/s                                    | 64GB 256-bit LPDDR5 204.8GB/s                                     | 16GB 128-bit LPDDR5 102.4GB/s                                    | 8GB 128-bit LPDDR5 102 GB/s                                   | 32GB 256-bit LPDDR4x 136.5GB/s                              | 8GB 128-bit LPDDR4x 59.7GB/s                                  | 4GB 64-bit LPDDR4 25.6GB/s                    |
 
-For a more detailed comparison table, please visit the **Technical Specifications** section of [official NVIDIA Jetson page](https://developer.nvidia.com/embedded/jetson-modules).
+For a more detailed comparison table, please visit the **Compare Specifications** section of [official NVIDIA Jetson page](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems).
 
 ## What is NVIDIA JetPack?
 
@@ -56,28 +56,30 @@ For a more detailed comparison table, please visit the **Technical Specification
 
 The first step after getting your hands on an NVIDIA Jetson device is to flash NVIDIA JetPack to the device. There are several different way of flashing NVIDIA Jetson devices.
 
-1. If you own an official NVIDIA Development Kit such as the Jetson Orin Nano Developer Kit, you can [download an image and prepare an SD card with JetPack for booting the device](https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit).
-2. If you own any other NVIDIA Development Kit, you can [flash JetPack to the device using SDK Manager](https://docs.nvidia.com/sdk-manager/install-with-sdkm-jetson/index.html).
-3. If you own a Seeed Studio reComputer J4012 device, you can [flash JetPack to the included SSD](https://wiki.seeedstudio.com/reComputer_J4012_Flash_Jetpack/) and if you own a Seeed Studio reComputer J1020 v2 device, you can [flash JetPack to the eMMC/ SSD](https://wiki.seeedstudio.com/reComputer_J2021_J202_Flash_Jetpack/).
-4. If you own any other third party device powered by the NVIDIA Jetson module, it is recommended to follow [command-line flashing](https://docs.nvidia.com/jetson/archives/r35.5.0/DeveloperGuide/IN/QuickStart.html).
+1. If you own an official NVIDIA Development Kit such as the Jetson AGX Thor Developer Kit, you can [download an image and prepare a bootable USB stick to flash JetPack to the included SSD](https://docs.nvidia.com/jetson/agx-thor-devkit/user-guide/latest/quick_start.html).
+2. If you own an official NVIDIA Development Kit such as the Jetson Orin Nano Developer Kit, you can [download an image and prepare an SD card with JetPack for booting the device](https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit).
+3. If you own any other NVIDIA Development Kit, you can [flash JetPack to the device using SDK Manager](https://docs.nvidia.com/sdk-manager/install-with-sdkm-jetson/index.html).
+4. If you own a Seeed Studio reComputer J4012 device, you can [flash JetPack to the included SSD](https://wiki.seeedstudio.com/reComputer_J4012_Flash_Jetpack/) and if you own a Seeed Studio reComputer J1020 v2 device, you can [flash JetPack to the eMMC/ SSD](https://wiki.seeedstudio.com/reComputer_J2021_J202_Flash_Jetpack/).
+5. If you own any other third party device powered by the NVIDIA Jetson module, it is recommended to follow [command-line flashing](https://docs.nvidia.com/jetson/archives/r35.5.0/DeveloperGuide/IN/QuickStart.html).
 
 !!! note
 
-    For methods 3 and 4 above, after flashing the system and booting the device, please enter "sudo apt update && sudo apt install nvidia-jetpack -y" on the device terminal to install all the remaining JetPack components needed.
+    For methods 1, 4 and 5 above, after flashing the system and booting the device, please enter "sudo apt update && sudo apt install nvidia-jetpack -y" on the device terminal to install all the remaining JetPack components needed.
 
 ## JetPack Support Based on Jetson Device
 
 The below table highlights NVIDIA JetPack versions supported by different NVIDIA Jetson devices.
 
-|                   | JetPack 4 | JetPack 5 | JetPack 6 |
-| ----------------- | --------- | --------- | --------- |
-| Jetson Nano       | ✅        | ❌        | ❌        |
-| Jetson TX2        | ✅        | ❌        | ❌        |
-| Jetson Xavier NX  | ✅        | ✅        | ❌        |
-| Jetson AGX Xavier | ✅        | ✅        | ❌        |
-| Jetson AGX Orin   | ❌        | ✅        | ✅        |
-| Jetson Orin NX    | ❌        | ✅        | ✅        |
-| Jetson Orin Nano  | ❌        | ✅        | ✅        |
+|                   | JetPack 4 | JetPack 5 | JetPack 6 | JetPack 7 |
+| ----------------- | --------- | --------- | --------- | --------- |
+| Jetson Nano       | ✅        | ❌        | ❌        | ❌        |
+| Jetson TX2        | ✅        | ❌        | ❌        | ❌        |
+| Jetson Xavier NX  | ✅        | ✅        | ❌        | ❌        |
+| Jetson AGX Xavier | ✅        | ✅        | ❌        | ❌        |
+| Jetson AGX Orin   | ❌        | ✅        | ✅        | ❌        |
+| Jetson Orin NX    | ❌        | ✅        | ✅        | ❌        |
+| Jetson Orin Nano  | ❌        | ✅        | ✅        | ❌        |
+| Jetson AGX Thor   | ❌        | ❌        | ❌        | ✅        |
 
 ## Quick Start with Docker
 
@@ -104,11 +106,61 @@ The fastest way to get started with Ultralytics YOLO11 on NVIDIA Jetson is to ru
     sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
+=== "JetPack 7"
+
+    Coming soon! Stay tuned!
+
 After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorrt-on-nvidia-jetson).
 
 ## Start with Native Installation
 
 For a native installation without Docker, please refer to the steps below.
+
+### Run on JetPack 7.0
+
+#### Install Ultralytics Package
+
+Here we will install Ultralytics package on the Jetson with optional dependencies so that we can export the [PyTorch](https://www.ultralytics.com/glossary/pytorch) models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the Jetson devices.
+
+1. Update packages list, install pip and upgrade to latest
+
+    ```bash
+    sudo apt update
+    sudo apt install python3-pip -y
+    pip install -U pip
+    ```
+
+2. Install `ultralytics` pip package with optional dependencies
+
+    ```bash
+    pip install ultralytics[export]
+    ```
+
+3. Reboot the device
+
+    ```bash
+    sudo reboot
+    ```
+
+#### Install PyTorch and Torchvision
+
+The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson AGX Thor which comes with JetPack 7.0 and CUDA 13. Therefore, we need to manually install them.
+
+Install `torch` and `torchvision` according to JP7.0
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
+```
+
+#### Install `onnxruntime-gpu`
+
+The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for the Jetson. So we need to manually install this package. This package is needed for some of the exports.
+
+Here we will download and install `onnxruntime-gpu 1.24.0` with `Python3.12` support.
+
+```bash
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl
+```
 
 ### Run on JetPack 6.1
 
@@ -331,13 +383,20 @@ The following Jetson devices are equipped with DLA hardware:
 
     When using DLA exports, some layers may not be supported to run on DLA and will fall back to the GPU for execution. This fallback can introduce additional latency and impact the overall inference performance. Therefore, DLA is not primarily designed to reduce inference latency compared to TensorRT running entirely on the GPU. Instead, its primary purpose is to increase throughput and improve energy efficiency.
 
-## NVIDIA Jetson Orin YOLO11 Benchmarks
+## NVIDIA Jetson YOLO11 Benchmarks
 
-YOLO11 benchmarks were run by the Ultralytics team on 10 different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN. Benchmarks were run on NVIDIA Jetson AGX Orin Developer Kit (64GB), NVIDIA Jetson Orin Nano Super Developer Kit and Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
+YOLO11 benchmarks were run by the Ultralytics team on 11 different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on NVIDIA Jetson AGX Thor Developer Kit, NVIDIA Jetson AGX Orin Developer Kit (64GB), NVIDIA Jetson Orin Nano Super Developer Kit and Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 ### Comparison Charts
 
 Even though all model exports are working with NVIDIA Jetson, we have only included **PyTorch, TorchScript, TensorRT** for the comparison chart below because, they make use of the GPU on the Jetson and are guaranteed to produce the best results. All the other exports only utilize the CPU and the performance is not as good as the above three. You can find benchmarks for all exports in the section after this chart.
+
+#### NVIDIA Jetson AGX Thor Developer Kit
+
+<figure style="text-align: center;">
+    <img src="https://github.com/ultralytics/assets/releases/download/v0.0.0/jetson-agx-thor-benchmarks-coco128.avif" alt="Jetson AGX Thor Benchmarks">
+    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.3.226</figcaption>
+</figure>
 
 #### NVIDIA Jetson AGX Orin Developer Kit (64GB)
 
@@ -362,7 +421,107 @@ Even though all model exports are working with NVIDIA Jetson, we have only inclu
 
 ### Detailed Comparison Tables
 
-The below table represents the benchmark results for five different models (YOLO11n, YOLO11s, YOLO11m, YOLO11l, YOLO11x) across ten different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for five different models (YOLO11n, YOLO11s, YOLO11m, YOLO11l, YOLO11x) across 11 different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+
+#### NVIDIA Jetson AGX Thor Developer Kit
+
+!!! tip "Performance"
+
+    === "YOLO11n"
+
+        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        |-----------------|--------|-------------------|-------------|------------------------|
+        | PyTorch         | ✅      | 5.4               | 0.5070      | 4.1                    |
+        | TorchScript     | ✅      | 10.5              | 0.5083      | 3.61                   |
+        | ONNX            | ✅      | 10.2              | 0.5076      | 4.8                    |
+        | OpenVINO        | ✅      | 10.4              | 0.5058      | 16.48                  |
+        | TensorRT (FP32) | ✅      | 12.6              | 0.5077      | 1.70                   |
+        | TensorRT (FP16) | ✅      | 7.7               | 0.5075      | 1.20                   |
+        | TensorRT (INT8) | ✅      | 6.2               | 0.4858      | 1.29                   |
+        | TF SavedModel   | ✅      | 25.7              | 0.5076      | 40.35                  |
+        | TF GraphDef     | ✅      | 10.3              | 0.5076      | 40.55                  |
+        | TF Lite         | ✅      | 10.3              | 0.5075      | 206.74                 |
+        | MNN             | ✅      | 10.1              | 0.5075      | 23.47                  |
+        | NCNN            | ✅      | 10.2              | 0.5041      | 22.05                  |
+        | ExecuTorch      | ✅      | 10.2              | 0.5075      | 34.28                  |
+
+    === "YOLO11s"
+
+        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        |-----------------|--------|-------------------|-------------|------------------------|
+        | PyTorch         | ✅      | 18.4              | 0.5770      | 6.10                  |
+        | TorchScript     | ✅      | 36.6              | 0.5783      | 5.33                   |
+        | ONNX            | ✅      | 36.3              | 0.5783      | 7.01                   |
+        | OpenVINO        | ✅      | 36.4              | 0.5809      | 33.08                  |
+        | TensorRT (FP32) | ✅      | 40.1              | 0.5784      | 2.57                   |
+        | TensorRT (FP16) | ✅      | 20.8              | 0.5796      | 1.55                   |
+        | TensorRT (INT8) | ✅      | 12.7              | 0.5514      | 1.50                   |
+        | TF SavedModel   | ✅      | 90.8              | 0.5782      | 80.55                  |
+        | TF GraphDef     | ✅      | 36.3              | 0.5782      | 80.82                  |
+        | TF Lite         | ✅      | 36.3              | 0.5782      | 615.29                 |
+        | MNN             | ✅      | 36.2              | 0.5790      | 54.12                  |
+        | NCNN            | ✅      | 36.3              | 0.5806      | 40.76                  |
+        | ExecuTorch      | ✅      | 36.2              | 0.5782      | 67.21                  |
+
+    === "YOLO11m"
+
+        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        |-----------------|--------|-------------------|-------------|------------------------|
+        | PyTorch         | ✅      | 38.8              | 0.6250      | 11.4                   |
+        | TorchScript     | ✅      | 77.3              | 0.6304      | 10.16                  |
+        | ONNX            | ✅      | 76.9              | 0.6304      | 12.35                  |
+        | OpenVINO        | ✅      | 77.1              | 0.6284      | 77.81                  |
+        | TensorRT (FP32) | ✅      | 80.7              | 0.6305      | 5.29                   |
+        | TensorRT (FP16) | ✅      | 41.3              | 0.6294      | 2.42                   |
+        | TensorRT (INT8) | ✅      | 23.7              | 0.6133      | 2.20                   |
+        | TF SavedModel   | ✅      | 192.4             | 0.6306      | 184.66                 |
+        | TF GraphDef     | ✅      | 76.9              | 0.6306      | 187.91                 |
+        | TF Lite         | ✅      | 76.9              | 0.6306      | 1845.09                |
+        | MNN             | ✅      | 76.8              | 0.6298      | 143.52                 |
+        | NCNN            | ✅      | 76.9              | 0.6308      | 95.86                  |
+        | ExecuTorch      | ✅      | 76.9              | 0.6306      | 167.94                 |
+
+    === "YOLO11l"
+
+        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        |-----------------|--------|-------------------|-------------|------------------------|
+        | PyTorch         | ✅      | 49.0              | 0.6370      | 14.0                   |
+        | TorchScript     | ✅      | 97.6              | 0.6409      | 13.77                  |
+        | ONNX            | ✅      | 97.0              | 0.6410      | 16.37                  |
+        | OpenVINO        | ✅      | 97.3              | 0.6377      | 98.86                  |
+        | TensorRT (FP32) | ✅      | 101.0             | 0.6396      | 6.71                   |
+        | TensorRT (FP16) | ✅      | 51.5              | 0.6358      | 3.26                   |
+        | TensorRT (INT8) | ✅      | 29.7              | 0.6190      | 3.21                   |
+        | TF SavedModel   | ✅      | 242.7             | 0.6409      | 246.93                 |
+        | TF GraphDef     | ✅      | 97.0              | 0.6409      | 251.84                 |
+        | TF Lite         | ✅      | 97.0              | 0.6409      | 2383.45                |
+        | MNN             | ✅      | 96.9              | 0.6361      | 176.53                 |
+        | NCNN            | ✅      | 97.0              | 0.6373      | 118.05                 |
+        | ExecuTorch      | ✅      | 97.0              | 0.6409      | 211.46                 |
+
+    === "YOLO11x"
+
+        | Format          | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        |-----------------|--------|-------------------|-------------|------------------------|
+        | PyTorch         | ✅      | 109.3             | 0.6990      | 21.70                  |
+        | TorchScript     | ✅      | 218.1             | 0.6900      | 20.99                  |
+        | ONNX            | ✅      | 217.5             | 0.6900      | 24.07                  |
+        | OpenVINO        | ✅      | 217.8             | 0.6872      | 187.33                 |
+        | TensorRT (FP32) | ✅      | 220.0             | 0.6902      | 11.70                  |
+        | TensorRT (FP16) | ✅      | 114.6             | 0.6881      | 5.10                   |
+        | TensorRT (INT8) | ✅      | 59.9              | 0.6857      | 4.53                   |
+        | TF SavedModel   | ✅      | 543.9             | 0.6900      | 489.91                 |
+        | TF GraphDef     | ✅      | 217.5             | 0.6900      | 503.21                 |
+        | TF Lite         | ✅      | 217.5             | 0.6900      | 5164.31                |
+        | MNN             | ✅      | 217.3             | 0.6905      | 350.37                 |
+        | NCNN            | ✅      | 217.5             | 0.6901      | 230.63                 |
+        | ExecuTorch      | ✅      | 217.4             | 0.6900      | 419.9                  |
+
+    Benchmarked with Ultralytics 8.3.226
+
+    !!! note
+
+        Inference time does not include pre/ post-processing.
 
 #### NVIDIA Jetson AGX Orin Developer Kit (64GB)
 

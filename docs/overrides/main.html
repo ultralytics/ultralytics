@@ -20,11 +20,10 @@
 {% endblock %}
 
 <!--Page titles-->
-{% block htmltitle %} {% if page.toc|first is defined %} {% set
-page_specific_title = page.toc.items[0].title %} {% else %} {% set
-page_specific_title = page.title | striptags %} {% endif %}
+{% block htmltitle %} {% if page.toc|first is defined %} {% set page_specific_title = page.toc.items[0].title %} {% else
+%} {% set page_specific_title = page.title | striptags %} {% endif %}
 <title>
-  {%- if page_specific_title -%} {{ page_specific_title }} - {{ config.site_name
-  }} {%- else -%} {{ config.site_name }} {%- endif -%}
+  {%- if page_specific_title -%} {{ page_specific_title }} - {{ config.site_name }} {%- else -%} {{ config.site_name }}
+  {%- endif -%}
 </title>
 {% endblock %}

@@ -142,7 +142,7 @@ extra_css:
   - stylesheets/style.css
 
 extra_javascript:
-  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.0.6/js/chat.min.js
+  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.0.7/js/chat.min.js
   - https://unpkg.com/tablesort@5.6.0/dist/tablesort.min.js
   - javascript/extra.js
   - javascript/giscus.js

@@ -284,7 +284,7 @@ class v8DetectionLoss:
 
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
-        imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=dtype)  # image size (h,w)
+        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]
 
         # Targets
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
@@ -377,9 +377,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                 # masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
                 proto = F.interpolate(proto, masks.shape[-2:], mode="bilinear", align_corners=False)
 
-            imgsz = torch.tensor(
-                batch["resized_shape"][0], device=self.device, dtype=pred_masks.dtype
-            )  # image size (h,w)
+            imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=pred_masks.dtype) * self.stride[0]
             loss[1] = self.calculate_segmentation_loss(
                 fg_mask,
                 masks,
@@ -512,7 +510,7 @@ class v8PoseLoss(v8DetectionLoss):
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 
         batch_size = pred_kpts.shape[0]
-        imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=pred_kpts.dtype)  # image size (h,w)
+        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=pred_kpts.dtype) * self.stride[0]
 
         # Pboxes
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)

@@ -3,6 +3,11 @@
 # KITTI Stereo Detection dataset by Karlsruhe Institute of Technology and Toyota Technological Institute at Chicago
 # Documentation: https://www.cvlibs.net/datasets/kitti/
 # Example usage: yolo train data=kitti-stereo.yaml
+#
+# Label format: class_id xl yl wl hl xr yr wr hr dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y
+# Where: xl,yl,wl,hl = left 2D box (normalized), xr,yr,wr,hr = right 2D box (normalized)
+#        dim_l,dim_w,dim_h = 3D dimensions, loc_x,loc_y,loc_z = 3D location, rot_y = rotation
+#        kp1-4 = 4 keypoints (corners of 2D box in normalized coordinates)
 # parent
 # ├── ultralytics
 # └── datasets
@@ -88,12 +93,12 @@ download: |
           
           # Convert label
           label_file = kitti_dir / "label_2" / f"{img_id}.txt"
+          calib_file = kitti_dir / "calib" / f"{img_id}.txt"
           if label_file.exists():
               yolo_label = output_dir / "labels" / "train" / f"{img_id}.txt"
-              convert_kitti_label_to_yolo(label_file, yolo_label, left_img)
+              convert_kitti_label_to_yolo(label_file, yolo_label, left_img, calib_file)
           
           # Copy calibration file
-          calib_file = kitti_dir / "calib" / f"{img_id}.txt"
           if calib_file.exists():
               shutil.copy2(calib_file, output_dir / "calib" / "train" / f"{img_id}.txt")
       
@@ -111,30 +116,32 @@ download: |
           
           # Convert label
           label_file = kitti_dir / "label_2" / f"{img_id}.txt"
+          calib_file = kitti_dir / "calib" / f"{img_id}.txt"
           if label_file.exists():
               yolo_label = output_dir / "labels" / "val" / f"{img_id}.txt"
-              convert_kitti_label_to_yolo(label_file, yolo_label, left_img)
+              convert_kitti_label_to_yolo(label_file, yolo_label, left_img, calib_file)
           
           # Copy calibration file
-          calib_file = kitti_dir / "calib" / f"{img_id}.txt"
           if calib_file.exists():
               shutil.copy2(calib_file, output_dir / "calib" / "val" / f"{img_id}.txt")
       
       LOGGER.info(f"Conversion complete! Train: {len(train_left)}, Val: {len(val_left)}")
   
   
-  def convert_kitti_label_to_yolo(kitti_label: Path, yolo_label: Path, img_path: Path):
-      """Convert KITTI label format to YOLO format.
+  def convert_kitti_label_to_yolo(kitti_label: Path, yolo_label: Path, img_path: Path, calib_file: Path = None):
+      """Convert KITTI label format to stereo 3D detection format.
       
       KITTI format: class truncated occluded alpha bbox_x1 bbox_y1 bbox_x2 bbox_y2 height width length x y z rotation_y
-      YOLO format: class x_center y_center width height (normalized)
+      Output format: class_id xl yl wl hl xr yr wr hr dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y
       
       Args:
           kitti_label: Path to KITTI format label file
-          yolo_label: Path to output YOLO format label file
-          img_path: Path to corresponding image (for dimensions)
+          yolo_label: Path to output label file
+          img_path: Path to corresponding left image (for dimensions)
+          calib_file: Path to calibration file (for right camera projection)
       """
       import cv2
+      import numpy as np
       
       # Read image dimensions
       img = cv2.imread(str(img_path))
@@ -143,7 +150,22 @@ download: |
           return
       img_h, img_w = img.shape[:2]
       
-      # Class mapping (KITTI to YOLO)
+      # Parse calibration file
+      P2 = None  # Left camera projection matrix
+      P3 = None  # Right camera projection matrix
+      R0_rect = None
+      
+      if calib_file and calib_file.exists():
+          with open(calib_file, "r") as f:
+              for line in f:
+                  if line.startswith("P2:"):
+                      P2 = np.array([float(x) for x in line.split()[1:]]).reshape(3, 4)
+                  elif line.startswith("P3:"):
+                      P3 = np.array([float(x) for x in line.split()[1:]]).reshape(3, 4)
+                  elif line.startswith("R0_rect:"):
+                      R0_rect = np.array([float(x) for x in line.split()[1:]]).reshape(3, 3)
+      
+      # Class mapping (KITTI to output)
       class_map = {
           "Car": 0, "Van": 1, "Truck": 2,
           "Pedestrian": 3, "Person_sitting": 4,
@@ -151,11 +173,61 @@ download: |
           "DontCare": -1  # Skip DontCare
       }
       
+      def project_3d_to_2d(x, y, z, h, w, l, rot_y, P):
+          """Project 3D box to 2D image plane.
+          
+          KITTI coordinate system (camera):
+          - x: right, y: down, z: forward
+          - Box dimensions: h (height), w (width), l (length)
+          - Box center at (x, y, z), rotated by rot_y around y-axis
+          """
+          # Compute 8 corners of 3D box in object coordinate system (centered at origin)
+          # Order: [front-left-top, front-right-top, back-right-top, back-left-top,
+          #         front-left-bottom, front-right-bottom, back-right-bottom, back-left-bottom]
+          # x: right (width)
+          # y: down (height)  
+          # z: forward (length)
+          corners_3d_obj = np.array([
+              [-w/2, w/2, w/2, -w/2, -w/2, w/2, w/2, -w/2],   # x (right)
+              [-h/2, -h/2, -h/2, -h/2, h/2, h/2, h/2, h/2],   # y (down)
+              [l/2, l/2, -l/2, -l/2, l/2, l/2, -l/2, -l/2]    # z (forward)
+          ])
+          
+          # Rotation matrix around y-axis
+          R = np.array([
+              [np.cos(rot_y), 0, np.sin(rot_y)],
+              [0, 1, 0],
+              [-np.sin(rot_y), 0, np.cos(rot_y)]
+          ])
+          
+          # Rotate corners
+          corners_3d = R @ corners_3d_obj
+          
+          # Translate to world position
+          corners_3d[0, :] += x
+          corners_3d[1, :] += y
+          corners_3d[2, :] += z
+          
+          # Apply R0_rect if available (rectification matrix)
+          if R0_rect is not None:
+              corners_3d_rect = R0_rect @ corners_3d
+          else:
+              corners_3d_rect = corners_3d
+          
+          # Homogeneous coordinates
+          corners_3d_homo = np.vstack([corners_3d_rect, np.ones((1, 8))])
+          
+          # Project to image plane
+          corners_2d = P @ corners_3d_homo
+          corners_2d = corners_2d[:2, :] / (corners_2d[2, :] + 1e-8)  # Avoid division by zero
+          
+          return corners_2d.T
+      
       yolo_lines = []
       with open(kitti_label, "r") as f:
           for line in f:
               parts = line.strip().split()
-              if not parts:
+              if not parts or len(parts) < 15:
                   continue
               
               class_name = parts[0]
@@ -167,24 +239,78 @@ download: |
               
               cls_id = class_map[class_name]
               
-              # Extract 2D bounding box (x1, y1, x2, y2)
-              x1, y1, x2, y2 = map(float, parts[4:8])
+              # Extract left 2D bounding box (x1, y1, x2, y2) - already in image coordinates
+              x1_l, y1_l, x2_l, y2_l = map(float, parts[4:8])
               
-              # Convert to YOLO format (normalized center x, center y, width, height)
-              x_center = ((x1 + x2) / 2.0) / img_w
-              y_center = ((y1 + y2) / 2.0) / img_h
-              width = (x2 - x1) / img_w
-              height = (y2 - y1) / img_h
+              # Extract 3D attributes
+              dim_h = float(parts[8])   # height
+              dim_w = float(parts[9])   # width
+              dim_l = float(parts[10])  # length
+              loc_x = float(parts[11])  # x
+              loc_y = float(parts[12])  # y
+              loc_z = float(parts[13])  # z
+              rot_y = float(parts[14]) # rotation_y
               
-              # Ensure values are in [0, 1]
-              x_center = max(0, min(1, x_center))
-              y_center = max(0, min(1, y_center))
-              width = max(0, min(1, width))
-              height = max(0, min(1, height))
+              # Normalize left 2D box
+              xl = ((x1_l + x2_l) / 2.0) / img_w
+              yl = ((y1_l + y2_l) / 2.0) / img_h
+              wl = (x2_l - x1_l) / img_w
+              hl = (y2_l - y1_l) / img_h
               
-              yolo_lines.append(f"{cls_id} {x_center:.6f} {y_center:.6f} {width:.6f} {height:.6f}\n")
+              # Project to right camera if calibration available
+              if P2 is not None and P3 is not None:
+                  try:
+                      corners_2d_right = project_3d_to_2d(loc_x, loc_y, loc_z, dim_h, dim_w, dim_l, rot_y, P3)
+                      x_coords = corners_2d_right[:, 0]
+                      y_coords = corners_2d_right[:, 1]
+                      x1_r = np.min(x_coords)
+                      y1_r = np.min(y_coords)
+                      x2_r = np.max(x_coords)
+                      y2_r = np.max(y_coords)
+                      
+                      # Normalize right 2D box
+                      xr = ((x1_r + x2_r) / 2.0) / img_w
+                      yr = ((y1_r + y2_r) / 2.0) / img_h
+                      wr = (x2_r - x1_r) / img_w
+                      hr = (y2_r - y1_r) / img_h
+                  except:
+                      # Fallback: use left box for right (with slight offset)
+                      xr, yr, wr, hr = xl - 0.01, yl, wl, hl
+              else:
+                  # Fallback: use left box for right (with slight offset)
+                  xr, yr, wr, hr = xl - 0.01, yl, wl, hl
+              
+              # Compute keypoints (4 corners of left 2D box in normalized coordinates)
+              kp1_x = x1_l / img_w  # top-left
+              kp1_y = y1_l / img_h
+              kp2_x = x2_l / img_w  # top-right
+              kp2_y = y1_l / img_h
+              kp3_x = x2_l / img_w  # bottom-right
+              kp3_y = y2_l / img_h
+              kp4_x = x1_l / img_w  # bottom-left
+              kp4_y = y2_l / img_h
+              
+              # Ensure normalized values are in [0, 1]
+              xl = max(0, min(1, xl))
+              yl = max(0, min(1, yl))
+              wl = max(0, min(1, wl))
+              hl = max(0, min(1, hl))
+              xr = max(0, min(1, xr))
+              yr = max(0, min(1, yr))
+              wr = max(0, min(1, wr))
+              hr = max(0, min(1, hr))
+              
+              # Format: class_id xl yl wl hl xr yr wr hr dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y
+              yolo_lines.append(
+                  f"{cls_id} {xl:.6f} {yl:.6f} {wl:.6f} {hl:.6f} "
+                  f"{xr:.6f} {yr:.6f} {wr:.6f} {hr:.6f} "
+                  f"{dim_l:.6f} {dim_w:.6f} {dim_h:.6f} "
+                  f"{loc_x:.6f} {loc_y:.6f} {loc_z:.6f} {rot_y:.6f} "
+                  f"{kp1_x:.6f} {kp1_y:.6f} {kp2_x:.6f} {kp2_y:.6f} "
+                  f"{kp3_x:.6f} {kp3_y:.6f} {kp4_x:.6f} {kp4_y:.6f}\n"
+              )
       
-      # Write YOLO format label
+      # Write output label
       with open(yolo_label, "w") as f:
           f.writelines(yolo_lines)
   

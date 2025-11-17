@@ -757,7 +757,7 @@ class SemanticDataset(BaseDataset):
                         "segments": segments,
                         "keypoints": keypoint,
                         "normalized": True,
-                        "bbox_format": "ltwh",
+                        "bbox_format": "xyxy",
                     }
                     x["labels"].append(label_dict)
                 if msg:

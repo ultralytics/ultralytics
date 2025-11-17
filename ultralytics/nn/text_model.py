@@ -459,5 +459,7 @@ def build_text_model(variant: str, device: torch.device = None) -> TextModel:
         return MobileCLIPTS(device)
     elif base == "mobileclip2":
         return OpenCLIP(device)
+    elif base == "mobileclip2":
+        return OpenCLIP(device)
     else:
         raise ValueError(f"Unrecognized base model: '{base}'. Supported base models: 'clip', 'mobileclip'.")

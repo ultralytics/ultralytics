@@ -61,19 +61,19 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
-    "numpy>=1.23.0",
-    "matplotlib>=3.3.0",
-    "opencv-python>=4.6.0",
-    "pillow>=7.1.2",
-    "pyyaml>=5.3.1",
-    "requests>=2.23.0",
-    "scipy>=1.4.1",
-    "torch>=1.8.0",
-    "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
-    "torchvision>=0.9.0",
-    "psutil", # system utilization
-    "polars",
-    "ultralytics-thop>=2.0.18", # FLOPs computation https://github.com/ultralytics/thop
+    "numpy>=1.23.0,<=2.3.4",
+    "matplotlib>=3.3.0,<=3.10.7",
+    "opencv-python>=4.6.0,<=4.12.0.88",
+    "pillow>=7.1.2,<=12.0.0",
+    "pyyaml>=5.3.1,<=6.0.3",
+    "requests>=2.23.0,<=2.32.5",
+    "scipy>=1.4.1,<=1.16.3",
+    "torch>=1.8.0,<=2.9.1; sys_platform != 'win32'",
+    "torch>=1.8.0,!=2.4.0,<=2.9.1; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
+    "torchvision>=0.9.0,<=0.24.1",
+    "psutil>=5.8.0,<=7.1.3",  # system utilization
+    "polars>=0.20.0,<=1.35.2",
+    "ultralytics-thop<=2.0.18", # FLOPs computation https://github.com/ultralytics/thop
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------

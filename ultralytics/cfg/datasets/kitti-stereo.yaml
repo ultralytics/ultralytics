@@ -196,38 +196,23 @@ download: |
   LOGGER.info("KITTI Stereo Dataset Download and Conversion")
   LOGGER.info("=" * 60)
   LOGGER.info("")
-  LOGGER.info("NOTE: KITTI dataset requires manual registration and download.")
-  LOGGER.info("Please follow these steps:")
-  LOGGER.info("1. Register at https://www.cvlibs.net/datasets/kitti/user_login.php")
-  LOGGER.info("2. Download the following files:")
-  LOGGER.info("   - data_object_image_2.zip (left images)")
-  LOGGER.info("   - data_object_image_3.zip (right images)")
-  LOGGER.info("   - data_object_label_2.zip (labels)")
-  LOGGER.info("   - data_object_calib.zip (calibration files)")
-  LOGGER.info("3. Extract all zip files to a temporary directory")
-  LOGGER.info("4. The extracted structure should be:")
-  LOGGER.info("   temp_dir/")
-  LOGGER.info("   ├── training/")
-  LOGGER.info("   │   ├── image_2/  (left images)")
-  LOGGER.info("   │   ├── image_3/  (right images)")
-  LOGGER.info("   │   ├── label_2/  (labels)")
-  LOGGER.info("   │   └── calib/     (calibration)")
-  LOGGER.info("   └── testing/")
-  LOGGER.info("")
-  LOGGER.info(f"5. Set KITTI_ROOT environment variable to the temp_dir path")
-  LOGGER.info("   Example: export KITTI_ROOT=/path/to/temp_dir")
-  LOGGER.info("")
-  LOGGER.info("Alternatively, you can manually specify the path:")
-  LOGGER.info("   kitti_root = Path('/path/to/kitti/extracted/directory')")
-  LOGGER.info("")
-  LOGGER.info("=" * 60)
-  LOGGER.info("")
+  
+  # KITTI dataset S3 URLs
+  kitti_urls = {
+      "image_2": "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_image_2.zip",  # left images
+      "image_3": "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_image_3.zip",  # right images
+      "label_2": "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_label_2.zip",  # labels
+      "calib": "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_calib.zip",  # calibration
+  }
   
   # Check for KITTI_ROOT environment variable or use default
   kitti_root = os.getenv("KITTI_ROOT")
   if kitti_root:
       kitti_root = Path(kitti_root)
       LOGGER.info(f"Using KITTI_ROOT: {kitti_root}")
+      if not (kitti_root / "training" / "image_2").exists():
+          LOGGER.warning(f"KITTI dataset structure not found at {kitti_root}, will download...")
+          kitti_root = None
   else:
       # Try to find KITTI dataset in common locations
       possible_paths = [
@@ -239,16 +224,27 @@ download: |
       
       kitti_root = None
       for p in possible_paths:
-          if p.exists() and (p / "training").exists():
+          if p.exists() and (p / "training" / "image_2").exists():
               kitti_root = p
               LOGGER.info(f"Found KITTI dataset at: {kitti_root}")
               break
+  
+  # Download and extract if not found
+  if kitti_root is None:
+      LOGGER.info("KITTI dataset not found. Downloading from S3...")
+      LOGGER.info("This may take a while (several GB to download)...")
       
-      if kitti_root is None:
-          LOGGER.error("KITTI dataset not found!")
-          LOGGER.error("Please set KITTI_ROOT environment variable or extract KITTI dataset manually.")
-          LOGGER.error(f"Expected structure: <kitti_root>/training/image_2/, image_3/, label_2/, calib/")
-          raise FileNotFoundError("KITTI dataset not found. Please download and extract it first.")
+      kitti_root = dir.parent / "kitti_raw"
+      kitti_root.mkdir(parents=True, exist_ok=True)
+      
+      # Download and extract each zip file directly to kitti_root
+      # Each zip extracts to training/ and testing/ directories which will merge
+      for key, url in TQDM(kitti_urls.items(), desc="Downloading KITTI files"):
+          LOGGER.info(f"Downloading {key} from {url}...")
+          # Download and extract - files will merge into training/ and testing/ directories
+          download(url, kitti_root, unzip=True, delete=True, exist_ok=True)
+      
+      LOGGER.info(f"Download and extraction complete! Dataset at: {kitti_root}")
   
   # Verify KITTI structure
   if not (kitti_root / "training" / "image_2").exists():

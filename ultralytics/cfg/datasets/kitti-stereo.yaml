@@ -1,0 +1,266 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# KITTI Stereo Detection dataset by Karlsruhe Institute of Technology and Toyota Technological Institute at Chicago
+# Documentation: https://www.cvlibs.net/datasets/kitti/
+# Example usage: yolo train data=kitti-stereo.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── kitti-stereo ← downloads here (~175 GB for full dataset)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: kitti-stereo # dataset root dir
+train: images/train/left # train images (left stereo) (relative to 'path') 
+val: images/val/left # val images (left stereo) (relative to 'path')
+
+# Stereo image pairs (optional, for stereo-based 3D detection)
+train_right: images/train/right # train images (right stereo) (relative to 'path')
+val_right: images/val/right # val images (right stereo) (relative to 'path')
+
+# Classes (same as KITTI detection)
+names:
+  0: car
+  1: van
+  2: truck
+  3: pedestrian
+  4: person_sitting
+  5: cyclist
+  6: tram
+  7: misc
+
+# Download script/URL (optional)
+download: |
+  import os
+  import shutil
+  from pathlib import Path
+  
+  from ultralytics.utils import LOGGER, TQDM
+  from ultralytics.utils.downloads import download, safe_download
+  
+  def convert_kitti_to_yolo_stereo(kitti_root: Path, output_dir: Path, split: str = "training"):
+      """Convert KITTI dataset to YOLO format with stereo support.
+      
+      Args:
+          kitti_root: Path to raw KITTI dataset root (contains 'training' and 'testing' folders)
+          output_dir: Path to output directory for converted dataset
+          split: 'training' or 'testing'
+      """
+      kitti_dir = kitti_root / split
+      if not kitti_dir.exists():
+          LOGGER.warning(f"KITTI {split} directory not found: {kitti_dir}")
+          return
+      
+      # Create output directories
+      for subset in ["train", "val"]:
+          for side in ["left", "right"]:
+              (output_dir / "images" / subset / side).mkdir(parents=True, exist_ok=True)
+          (output_dir / "labels" / subset).mkdir(parents=True, exist_ok=True)
+          (output_dir / "calib" / subset).mkdir(parents=True, exist_ok=True)
+      
+      # Get all image files
+      left_images = sorted((kitti_dir / "image_2").glob("*.png"))
+      right_images = sorted((kitti_dir / "image_3").glob("*.png"))
+      
+      if not left_images:
+          LOGGER.warning(f"No images found in {kitti_dir / 'image_2'}")
+          return
+      
+      # Split into train/val (80/20 split)
+      n_total = len(left_images)
+      n_train = int(n_total * 0.8)
+      
+      train_left = left_images[:n_train]
+      train_right = right_images[:n_train] if len(right_images) >= n_train else []
+      val_left = left_images[n_train:]
+      val_right = right_images[n_train:] if len(right_images) > n_train else []
+      
+      # Process training set
+      LOGGER.info(f"Processing {len(train_left)} training images...")
+      for i, left_img in enumerate(TQDM(train_left, desc="Converting training set")):
+          img_id = left_img.stem
+          
+          # Copy left image
+          shutil.copy2(left_img, output_dir / "images" / "train" / "left" / f"{img_id}.png")
+          
+          # Copy right image if available
+          if i < len(train_right) and train_right[i].exists():
+              shutil.copy2(train_right[i], output_dir / "images" / "train" / "right" / f"{img_id}.png")
+          
+          # Convert label
+          label_file = kitti_dir / "label_2" / f"{img_id}.txt"
+          if label_file.exists():
+              yolo_label = output_dir / "labels" / "train" / f"{img_id}.txt"
+              convert_kitti_label_to_yolo(label_file, yolo_label, left_img)
+          
+          # Copy calibration file
+          calib_file = kitti_dir / "calib" / f"{img_id}.txt"
+          if calib_file.exists():
+              shutil.copy2(calib_file, output_dir / "calib" / "train" / f"{img_id}.txt")
+      
+      # Process validation set
+      LOGGER.info(f"Processing {len(val_left)} validation images...")
+      for i, left_img in enumerate(TQDM(val_left, desc="Converting validation set")):
+          img_id = left_img.stem
+          
+          # Copy left image
+          shutil.copy2(left_img, output_dir / "images" / "val" / "left" / f"{img_id}.png")
+          
+          # Copy right image if available
+          if i < len(val_right) and val_right[i].exists():
+              shutil.copy2(val_right[i], output_dir / "images" / "val" / "right" / f"{img_id}.png")
+          
+          # Convert label
+          label_file = kitti_dir / "label_2" / f"{img_id}.txt"
+          if label_file.exists():
+              yolo_label = output_dir / "labels" / "val" / f"{img_id}.txt"
+              convert_kitti_label_to_yolo(label_file, yolo_label, left_img)
+          
+          # Copy calibration file
+          calib_file = kitti_dir / "calib" / f"{img_id}.txt"
+          if calib_file.exists():
+              shutil.copy2(calib_file, output_dir / "calib" / "val" / f"{img_id}.txt")
+      
+      LOGGER.info(f"Conversion complete! Train: {len(train_left)}, Val: {len(val_left)}")
+  
+  
+  def convert_kitti_label_to_yolo(kitti_label: Path, yolo_label: Path, img_path: Path):
+      """Convert KITTI label format to YOLO format.
+      
+      KITTI format: class truncated occluded alpha bbox_x1 bbox_y1 bbox_x2 bbox_y2 height width length x y z rotation_y
+      YOLO format: class x_center y_center width height (normalized)
+      
+      Args:
+          kitti_label: Path to KITTI format label file
+          yolo_label: Path to output YOLO format label file
+          img_path: Path to corresponding image (for dimensions)
+      """
+      import cv2
+      
+      # Read image dimensions
+      img = cv2.imread(str(img_path))
+      if img is None:
+          LOGGER.warning(f"Could not read image: {img_path}")
+          return
+      img_h, img_w = img.shape[:2]
+      
+      # Class mapping (KITTI to YOLO)
+      class_map = {
+          "Car": 0, "Van": 1, "Truck": 2,
+          "Pedestrian": 3, "Person_sitting": 4,
+          "Cyclist": 5, "Tram": 6, "Misc": 7,
+          "DontCare": -1  # Skip DontCare
+      }
+      
+      yolo_lines = []
+      with open(kitti_label, "r") as f:
+          for line in f:
+              parts = line.strip().split()
+              if not parts:
+                  continue
+              
+              class_name = parts[0]
+              if class_name == "DontCare":
+                  continue
+              
+              if class_name not in class_map:
+                  continue
+              
+              cls_id = class_map[class_name]
+              
+              # Extract 2D bounding box (x1, y1, x2, y2)
+              x1, y1, x2, y2 = map(float, parts[4:8])
+              
+              # Convert to YOLO format (normalized center x, center y, width, height)
+              x_center = ((x1 + x2) / 2.0) / img_w
+              y_center = ((y1 + y2) / 2.0) / img_h
+              width = (x2 - x1) / img_w
+              height = (y2 - y1) / img_h
+              
+              # Ensure values are in [0, 1]
+              x_center = max(0, min(1, x_center))
+              y_center = max(0, min(1, y_center))
+              width = max(0, min(1, width))
+              height = max(0, min(1, height))
+              
+              yolo_lines.append(f"{cls_id} {x_center:.6f} {y_center:.6f} {width:.6f} {height:.6f}\n")
+      
+      # Write YOLO format label
+      with open(yolo_label, "w") as f:
+          f.writelines(yolo_lines)
+  
+  
+  # Main download and conversion logic
+  dir = Path(yaml["path"])  # dataset root dir
+  
+  LOGGER.info("=" * 60)
+  LOGGER.info("KITTI Stereo Dataset Download and Conversion")
+  LOGGER.info("=" * 60)
+  LOGGER.info("")
+  LOGGER.info("NOTE: KITTI dataset requires manual registration and download.")
+  LOGGER.info("Please follow these steps:")
+  LOGGER.info("1. Register at https://www.cvlibs.net/datasets/kitti/user_login.php")
+  LOGGER.info("2. Download the following files:")
+  LOGGER.info("   - data_object_image_2.zip (left images)")
+  LOGGER.info("   - data_object_image_3.zip (right images)")
+  LOGGER.info("   - data_object_label_2.zip (labels)")
+  LOGGER.info("   - data_object_calib.zip (calibration files)")
+  LOGGER.info("3. Extract all zip files to a temporary directory")
+  LOGGER.info("4. The extracted structure should be:")
+  LOGGER.info("   temp_dir/")
+  LOGGER.info("   ├── training/")
+  LOGGER.info("   │   ├── image_2/  (left images)")
+  LOGGER.info("   │   ├── image_3/  (right images)")
+  LOGGER.info("   │   ├── label_2/  (labels)")
+  LOGGER.info("   │   └── calib/     (calibration)")
+  LOGGER.info("   └── testing/")
+  LOGGER.info("")
+  LOGGER.info(f"5. Set KITTI_ROOT environment variable to the temp_dir path")
+  LOGGER.info("   Example: export KITTI_ROOT=/path/to/temp_dir")
+  LOGGER.info("")
+  LOGGER.info("Alternatively, you can manually specify the path:")
+  LOGGER.info("   kitti_root = Path('/path/to/kitti/extracted/directory')")
+  LOGGER.info("")
+  LOGGER.info("=" * 60)
+  LOGGER.info("")
+  
+  # Check for KITTI_ROOT environment variable or use default
+  kitti_root = os.getenv("KITTI_ROOT")
+  if kitti_root:
+      kitti_root = Path(kitti_root)
+      LOGGER.info(f"Using KITTI_ROOT: {kitti_root}")
+  else:
+      # Try to find KITTI dataset in common locations
+      possible_paths = [
+          dir.parent / "kitti_raw",
+          dir.parent / "kitti",
+          Path.home() / "datasets" / "kitti",
+          Path("/data") / "kitti",
+      ]
+      
+      kitti_root = None
+      for p in possible_paths:
+          if p.exists() and (p / "training").exists():
+              kitti_root = p
+              LOGGER.info(f"Found KITTI dataset at: {kitti_root}")
+              break
+      
+      if kitti_root is None:
+          LOGGER.error("KITTI dataset not found!")
+          LOGGER.error("Please set KITTI_ROOT environment variable or extract KITTI dataset manually.")
+          LOGGER.error(f"Expected structure: <kitti_root>/training/image_2/, image_3/, label_2/, calib/")
+          raise FileNotFoundError("KITTI dataset not found. Please download and extract it first.")
+  
+  # Verify KITTI structure
+  if not (kitti_root / "training" / "image_2").exists():
+      raise FileNotFoundError(f"KITTI training images not found at {kitti_root / 'training' / 'image_2'}")
+  
+  # Convert dataset
+  LOGGER.info(f"Converting KITTI dataset from {kitti_root} to {dir}...")
+  convert_kitti_to_yolo_stereo(kitti_root, dir, split="training")
+  
+  LOGGER.info("")
+  LOGGER.info("=" * 60)
+  LOGGER.info("KITTI Stereo Dataset Conversion Complete!")
+  LOGGER.info(f"Dataset saved to: {dir}")
+  LOGGER.info("=" * 60)
+

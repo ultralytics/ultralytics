@@ -205,14 +205,90 @@ download: |
       "calib": "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_calib.zip",  # calibration
   }
   
+  def reorganize_kitti_structure(root_path: Path):
+      """Reorganize KITTI files if they were extracted to wrong locations.
+      
+      Moves files from data_object_*/training/ to training/ directory.
+      """
+      training_dir = root_path / "training"
+      training_dir.mkdir(parents=True, exist_ok=True)
+      
+      # Map of source directories to target subdirectories
+      reorganize_map = {
+          "data_object_image_2": ("training", "image_2"),
+          "data_object_image_3": ("training", "image_3"),
+          "data_object_label_2": ("training", "label_2"),
+          "data_object_calib": ("training", "calib"),
+      }
+      
+      for src_dir_name, (split, target_subdir) in reorganize_map.items():
+          src_dir = root_path / src_dir_name / split / target_subdir
+          dest_dir = training_dir / target_subdir
+          
+          if src_dir.exists():
+              if dest_dir.exists():
+                  # Merge directories if both exist
+                  LOGGER.info(f"Merging {src_dir_name}/{split}/{target_subdir} into training/{target_subdir}...")
+                  for item in src_dir.iterdir():
+                      dest_item = dest_dir / item.name
+                      if item.is_file():
+                          if not dest_item.exists():
+                              shutil.copy2(item, dest_item)
+                      elif item.is_dir():
+                          if dest_item.exists():
+                              # Recursively merge
+                              for subitem in item.rglob("*"):
+                                  rel_path = subitem.relative_to(item)
+                                  dest_subitem = dest_item / rel_path
+                                  dest_subitem.parent.mkdir(parents=True, exist_ok=True)
+                                  if subitem.is_file() and not dest_subitem.exists():
+                                      shutil.copy2(subitem, dest_subitem)
+                          else:
+                              shutil.move(str(item), str(dest_item))
+                  # Remove source directory after merging
+                  try:
+                      shutil.rmtree(src_dir.parent.parent)  # Remove the data_object_* directory
+                  except:
+                      pass
+              else:
+                  LOGGER.info(f"Moving {src_dir_name}/{split}/{target_subdir} to training/{target_subdir}...")
+                  dest_dir.parent.mkdir(parents=True, exist_ok=True)
+                  shutil.move(str(src_dir), str(dest_dir))
+                  LOGGER.info(f"Moved {target_subdir} successfully")
+                  # Try to remove parent directories if empty
+                  try:
+                      if not any((src_dir.parent.parent).iterdir()):
+                          shutil.rmtree(src_dir.parent.parent)
+                  except:
+                      pass
+  
+  def check_files_exist(root_path: Path) -> bool:
+      """Check if KITTI files are already downloaded (as zip or extracted)."""
+      # Check for zip files
+      zip_files = [
+          root_path / "data_object_image_2.zip",
+          root_path / "data_object_image_3.zip",
+          root_path / "data_object_label_2.zip",
+          root_path / "data_object_calib.zip",
+      ]
+      if all(zf.exists() for zf in zip_files):
+          return True
+      
+      # Check for extracted directories (either in correct or wrong location)
+      extracted_dirs = [
+          root_path / "training" / "image_2",
+          root_path / "data_object_image_2" / "training" / "image_2",
+      ]
+      if any(ed.exists() and list(ed.glob("*.png")) for ed in extracted_dirs):
+          return True
+      
+      return False
+  
   # Check for KITTI_ROOT environment variable or use default
   kitti_root = os.getenv("KITTI_ROOT")
   if kitti_root:
       kitti_root = Path(kitti_root)
       LOGGER.info(f"Using KITTI_ROOT: {kitti_root}")
-      if not (kitti_root / "training" / "image_2").exists():
-          LOGGER.warning(f"KITTI dataset structure not found at {kitti_root}, will download...")
-          kitti_root = None
   else:
       # Try to find KITTI dataset in common locations
       possible_paths = [
@@ -224,18 +300,37 @@ download: |
       
       kitti_root = None
       for p in possible_paths:
-          if p.exists() and (p / "training" / "image_2").exists():
-              kitti_root = p
-              LOGGER.info(f"Found KITTI dataset at: {kitti_root}")
-              break
+          if p.exists():
+              # Check if files exist (either correctly organized or need reorganization)
+              if check_files_exist(p):
+                  kitti_root = p
+                  LOGGER.info(f"Found KITTI dataset at: {kitti_root}")
+                  break
+              # Also check for correct structure
+              if (p / "training" / "image_2").exists():
+                  kitti_root = p
+                  LOGGER.info(f"Found KITTI dataset at: {kitti_root}")
+                  break
+  
+  # Set default location if not found
+  if kitti_root is None:
+      kitti_root = dir.parent / "kitti_raw"
+  
+  kitti_root.mkdir(parents=True, exist_ok=True)
+  
+  # Check if files already exist
+  files_exist = check_files_exist(kitti_root)
+  correct_structure = (kitti_root / "training" / "image_2").exists()
+  
+  if files_exist and not correct_structure:
+      LOGGER.info("Found downloaded files but in wrong structure. Reorganizing...")
+      reorganize_kitti_structure(kitti_root)
+      correct_structure = (kitti_root / "training" / "image_2").exists()
   
   # Download and extract if not found
-  if kitti_root is None:
+  if not files_exist:
       LOGGER.info("KITTI dataset not found. Downloading from S3...")
       LOGGER.info("This may take a while (several GB to download)...")
-      
-      kitti_root = dir.parent / "kitti_raw"
-      kitti_root.mkdir(parents=True, exist_ok=True)
       
       # Download and extract each zip file directly to kitti_root
       # Each zip extracts to training/ and testing/ directories which will merge
@@ -244,11 +339,17 @@ download: |
           # Download and extract - files will merge into training/ and testing/ directories
           download(url, kitti_root, unzip=True, delete=True, exist_ok=True)
       
+      # Reorganize if needed
+      if not (kitti_root / "training" / "image_2").exists():
+          reorganize_kitti_structure(kitti_root)
+      
       LOGGER.info(f"Download and extraction complete! Dataset at: {kitti_root}")
+  elif files_exist:
+      LOGGER.info(f"Using existing KITTI dataset at: {kitti_root}")
   
   # Verify KITTI structure
   if not (kitti_root / "training" / "image_2").exists():
-      raise FileNotFoundError(f"KITTI training images not found at {kitti_root / 'training' / 'image_2'}")
+      raise FileNotFoundError(f"KITTI training images not found at {kitti_root / 'training' / 'image_2'}. Please check the dataset structure.")
   
   # Convert dataset
   LOGGER.info(f"Converting KITTI dataset from {kitti_root} to {dir}...")

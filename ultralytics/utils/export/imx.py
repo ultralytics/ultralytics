@@ -28,6 +28,7 @@ MCT_CONFIG = {
             "n_layers": 257,
         },
         "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 112},
+        "segment": {"layer_names": ["sub", "mul_2", "add_14", "cat_22"], "weights_memory": 2466604.8, "n_layers": 265},
     },
     "YOLOv8": {
         "detect": {"layer_names": ["sub", "mul", "add_6", "cat_17"], "weights_memory": 2550540.8, "n_layers": 168},
@@ -37,6 +38,7 @@ MCT_CONFIG = {
             "n_layers": 187,
         },
         "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 73},
+        "segment": {"layer_names": ["sub", "mul", "add_6", "cat_18"], "weights_memory": 2580060.0, "n_layers": 195},
     },
 }
 
@@ -143,7 +145,7 @@ class NMSWrapper(torch.nn.Module):
 
     def forward(self, images):
         """Forward pass with model inference and NMS post-processing."""
-        from sony_custom_layers.pytorch import multiclass_nms_with_indices
+        from edgemdt_cl.pytorch import MulticlassNMSWithIndices
 
         # model inference
         outputs = self.model(images)
@@ -218,7 +220,7 @@ def torch2imx(
             img = img / 255.0
             yield [img]
 
-    tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
+    tpc = get_target_platform_capabilities(tpc_version="5.0", device_type="imx500")
 
     bit_cfg = mct.core.BitWidthConfig()
     mct_config = MCT_CONFIG["YOLO11" if "C2PSA" in model.__str__() else "YOLOv8"][model.task]

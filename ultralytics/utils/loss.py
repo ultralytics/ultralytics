@@ -356,18 +356,12 @@ class MultiChannelDiceLoss(nn.Module):
 
     def forward(self, pred, target):
         assert pred.size() == target.size(), "the size of predict and target must be equal."
-
         pred = torch.sigmoid(pred)
-
         intersection = (pred * target).sum(dim=(2, 3))
         union = pred.sum(dim=(2, 3)) + target.sum(dim=(2, 3))
-
         dice = (2. * intersection + self.smooth) / (union + self.smooth)
-
         dice_loss = 1. - dice
-
         dice_loss = dice_loss.mean(dim=1)
-
         if self.reduction == 'mean':
             return dice_loss.mean()
         elif self.reduction == 'sum':
@@ -382,7 +376,6 @@ class BCEDiceLoss(nn.Module):
         self.weight_bce = weight_bce
         self.weight_dice = weight_dice
         self.bce = nn.BCEWithLogitsLoss()
-        # self.fl = FocalLoss(gamma=2.0, alpha=0.25)
         self.dice = MultiChannelDiceLoss(smooth=1)
 
     def forward(self, pred, target):
@@ -390,7 +383,6 @@ class BCEDiceLoss(nn.Module):
         if tuple(target.shape[-2:]) != (mask_h, mask_w):  # downsample to the same size as pred
             target = F.interpolate(target, (mask_h, mask_w), mode="nearest")
         bce_loss = self.bce(pred, target)
-        # fl_loss = self.fl(pred, target) / (b * mask_h * mask_w)
         dice_loss = self.dice(pred, target)
         return self.weight_bce * bce_loss + self.weight_dice * dice_loss
 
@@ -403,7 +395,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         super().__init__(model, tal_topk)
         self.overlap = model.args.overlap_mask
         self.semseg_loss = model.args.semseg_loss
-        self.bcedice_loss = BCEDiceLoss(weight_bce=1, weight_dice=1)
+        self.bcedice_loss = BCEDiceLoss(weight_bce=0.5, weight_dice=0.5)
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate and return the combined loss for detection and segmentation."""
@@ -442,7 +434,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             if self.semseg_loss and pred_semseg is not None:
                 sem_masks = batch["sem_masks"].to(self.device).float()
                 loss[4] = self.bcedice_loss(pred_semseg, sem_masks)
-                loss[4] *= self.hyp.box * 0.5  # seg gain
+                loss[4] *= self.hyp.box  # seg gain
 
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:

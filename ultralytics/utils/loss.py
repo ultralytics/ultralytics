@@ -349,7 +349,7 @@ class v8DetectionLoss:
 
 
 class MultiChannelDiceLoss(nn.Module):
-    def __init__(self, smooth=1e-6, reduction='mean'):
+    def __init__(self, smooth=1e-6, reduction="mean"):
         super(MultiChannelDiceLoss, self).__init__()
         self.smooth = smooth
         self.reduction = reduction
@@ -360,13 +360,13 @@ class MultiChannelDiceLoss(nn.Module):
         pred = torch.sigmoid(pred)
         intersection = (pred * target).sum(dim=(2, 3))
         union = pred.sum(dim=(2, 3)) + target.sum(dim=(2, 3))
-        dice = (2. * intersection + self.smooth) / (union + self.smooth)
-        dice_loss = 1. - dice
+        dice = (2.0 * intersection + self.smooth) / (union + self.smooth)
+        dice_loss = 1.0 - dice
         dice_loss = dice_loss.mean(dim=1)
 
-        if self.reduction == 'mean':
+        if self.reduction == "mean":
             return dice_loss.mean()
-        elif self.reduction == 'sum':
+        elif self.reduction == "sum":
             return dice_loss.sum()
         else:
             return dice_loss
@@ -434,9 +434,10 @@ class v8SegmentationLoss(v8DetectionLoss):
             )
 
             if self.semseg_loss and pred_semseg is not None:
-                sem_masks = batch["sem_masks"].to(self.device).float()
+                # sem_masks = batch["sem_masks"].to(self.device).float()
+                sem_masks = torch.cat([sem_mask.to(self.device) for sem_mask in batch["sem_masks"]], dim=0)
                 loss[4] = self.bcedice_loss(pred_semseg, sem_masks)
-                loss[4] *= self.hyp.box # seg gain
+                loss[4] *= self.hyp.box  # seg gain
 
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:

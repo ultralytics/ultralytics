@@ -7,7 +7,7 @@ model_name: yolo11n-seg
 
 # Semantic Segmentation
 
-<img width="1024" src="https://release-assets.githubusercontent.com/github-production-release-asset/1046723287/b616d16b-d511-469a-a4e1-c28ab36bc909?sp=r&sv=2018-11-09&sr=b&spr=https&se=2025-10-28T07%3A02%3A05Z&rscd=attachment%3B+filename%3Dstuttgart02-2040x500.png&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2025-10-28T06%3A01%3A42Z&ske=2025-10-28T07%3A02%3A05Z&sks=b&skv=2018-11-09&sig=%2F8PDBV%2FWd0M0%2BpxxoAXV55%2Fn%2Bdq4els%2B57QHIKr5RWc%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc2MTYzMjA1NywibmJmIjoxNzYxNjMxNzU3LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.95gwdg58r7sfUDDxin2n4nQ4edqmwMhAJipyIMKPSAI&response-content-disposition=attachment%3B%20filename%3Dstuttgart02-2040x500.png&response-content-type=application%2Foctet-stream" alt="Semantic segmentation examples">
+<img width="1024" src="https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/docs/mosaic.png" alt="Semantic segmentation examples">
 
 [Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) is a fundamental task in the field of computer vision that aims to classify every pixel in an image, thereby achieving a precise partition of different semantic categories within a scene.
 
@@ -26,19 +26,19 @@ Unlike object detection, which only identifies the locations and categories of o
 
 !!! tip
 
-    YOLO11 Segment models use the `-seg` suffix, i.e. `yolo11n-seg.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
+    YOLO11 semseg models use the `-semseg` suffix, i.e. `yolo11n-semseg.pt` and are pretrained on [Cityscapes](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/ultralytics/cfg/datasets/CityscapesYOLO.yaml).
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11)
 
-YOLO11 pretrained Semantic Segment models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset
-, And the pretrain Semantic segment model is trained on [Cityscapse](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/CityEscapeYOLO.yaml) dataset.
+YOLO11 pretrained Semantic Segment models are shown here. Detect, Segment and Pose models are pretrained on the [Cityscapes](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/ultralytics/cfg/datasets/CityscapesYOLO.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset
+, And the pretrain Semantic segment model is trained on [Cityscapse](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/CityscapesYOLO.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 {% include "macros/yolo-seg-perf.md" %}
 
-- **IoU<sup>val</sup>** values are for single-model single-scale on [Cityscape](https://www.cityscapes-dataset.com/) dataset. <br>Reproduce by `yolo val semseg data=CityEscapeYOLO.yaml device=0`
-- **Speed** averaged over COCO val images using an NVIDIA RTX 4090. <br>Reproduce by `yolo val semseg data=CityEscapeYOLO.yaml batch=1 device=0|cpu`
+- **IoU<sup>val</sup>** values are for single-model single-scale on [Cityscapes](https://www.cityscapes-dataset.com/) dataset. <br>Reproduce by `yolo val semseg data=CityscapesYOLO.yaml device=0`
+- **Speed** averaged over COCO val images using an NVIDIA RTX 4090. <br>Reproduce by `yolo val semseg data=CityscapesYOLO.yaml batch=1 device=0|cpu`
 
 ## Train
 
@@ -57,20 +57,20 @@ Train YOLO11n-seg on the COCO8-seg dataset for 100 [epochs](https://www.ultralyt
         model = YOLO("yolo11n-semseg.yaml").load("yolo11n.pt")  # build from YAML and transfer weights
 
         # Train the model
-        results = model.train(data="CityEscapeYOLO.yaml", epochs=100, imgsz=640)
+        results = model.train(data="CityscapesYOLO.yaml", epochs=100, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo semseg train data=CityEscapeYOLO.yaml model=yolo11n-semseg.yaml epochs=100 imgsz=640
+        yolo semseg train data=CityscapesYOLO.yaml model=yolo11n-semseg.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo semseg train data=CityEscapeYOLO.yaml model=yolo11n-semseg.pt epochs=100 imgsz=640
+        yolo semseg train data=CityscapesYOLO.yaml model=yolo11n-semseg.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo semseg train data=CityEscapeYOLO.yaml model=yolo11n-semseg.yaml pretrained=yolo11n-seg.pt epochs=100 imgsz=640
+        yolo semseg train data=CityscapesYOLO.yaml model=yolo11n-semseg.yaml pretrained=yolo11n-seg.pt epochs=100 imgsz=640
         ```
 
 ### Dataset format
@@ -209,7 +209,7 @@ can easily segment them from the input image.Besides, the semantic segmentation 
 
 ### Why use YOLO11 for semantic segmentation?
 
-Ultralytics YOLO11 is a state-of-the-art model recognized for its high accuracy and real-time performance, making it ideal for semantic segmentation tasks. YOLO11 Semantic Segment models come pretrained on the [Cityscape dataset](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/ultralytics/cfg/datasets/CityEscapeYOLO.yaml), ensuring robust performance across a variety of objects. Additionally, YOLO supports training, validation, prediction, and export functionalities with seamless integration, making it highly versatile for both research and industry applications.
+Ultralytics YOLO11 is a state-of-the-art model recognized for its high accuracy and real-time performance, making it ideal for semantic segmentation tasks. YOLO11 Semantic Segment models come pretrained on the [Cityscape dataset](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/ultralytics/cfg/datasets/CityscapesYOLO.yaml), ensuring robust performance across a variety of objects. Additionally, YOLO supports training, validation, prediction, and export functionalities with seamless integration, making it highly versatile for both research and industry applications.
 
 ### How do I load and validate a pretrained YOLO semantic segmentation model?
 
@@ -257,7 +257,7 @@ Exporting a YOLO semantic segmentation model to ONNX format is simple and can be
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n-seg.pt format=onnx
+        yolo export model=yolo11n-semseg.pt format=onnx
         ```
 
 For more details on exporting to various formats, refer to the [Export](../modes/export.md) page.

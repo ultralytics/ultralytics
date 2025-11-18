@@ -348,6 +348,47 @@ class v8DetectionLoss:
         return loss * batch_size, loss_detach
 
 
+class MultiChannelDiceLoss(nn.Module):
+    def __init__(self, smooth=1e-6, reduction='mean'):
+        super(MultiChannelDiceLoss, self).__init__()
+        self.smooth = smooth
+        self.reduction = reduction
+
+    def forward(self, pred, target):
+        assert pred.size() == target.size(), "the size of predict and target must be equal."
+
+        pred = torch.sigmoid(pred)
+        intersection = (pred * target).sum(dim=(2, 3))
+        union = pred.sum(dim=(2, 3)) + target.sum(dim=(2, 3))
+        dice = (2. * intersection + self.smooth) / (union + self.smooth)
+        dice_loss = 1. - dice
+        dice_loss = dice_loss.mean(dim=1)
+
+        if self.reduction == 'mean':
+            return dice_loss.mean()
+        elif self.reduction == 'sum':
+            return dice_loss.sum()
+        else:
+            return dice_loss
+
+
+class BCEDiceLoss(nn.Module):
+    def __init__(self, weight_bce=0.5, weight_dice=0.5):
+        super(BCEDiceLoss, self).__init__()
+        self.weight_bce = weight_bce
+        self.weight_dice = weight_dice
+        self.bce = nn.BCEWithLogitsLoss()
+        self.dice = MultiChannelDiceLoss(smooth=1)
+
+    def forward(self, pred, target):
+        _, __, mask_h, mask_w = pred.shape
+        if tuple(target.shape[-2:]) != (mask_h, mask_w):  # downsample to the same size as pred
+            target = F.interpolate(target, (mask_h, mask_w), mode="nearest")
+        bce_loss = self.bce(pred, target)
+        dice_loss = self.dice(pred, target)
+        return self.weight_bce * bce_loss + self.weight_dice * dice_loss
+
+
 class v8SegmentationLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 segmentation."""
 
@@ -355,11 +396,17 @@ class v8SegmentationLoss(v8DetectionLoss):
         """Initialize the v8SegmentationLoss class with model parameters and mask overlap setting."""
         super().__init__(model, tal_topk)
         self.overlap = model.args.overlap_mask
+        self.semseg_loss = model.args.semseg_loss
+        self.bcedice_loss = BCEDiceLoss(weight_bce=0.5, weight_dice=0.5)
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = preds["mask_coefficient"].permute(0, 2, 1).contiguous(), preds["proto"]
-        loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
+        loss = torch.zeros(5 if self.semseg_loss else 4, device=self.device)  # box, seg, cls, dfl
+        if self.semseg_loss and len(proto) == 2:
+            proto, pred_semseg = proto
+        else:
+            pred_semseg = None
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]
@@ -386,9 +433,16 @@ class v8SegmentationLoss(v8DetectionLoss):
                 imgsz,
             )
 
+            if self.semseg_loss and pred_semseg is not None:
+                sem_masks = batch["sem_masks"].to(self.device).float()
+                loss[4] = self.bcedice_loss(pred_semseg, sem_masks)
+                loss[4] *= self.hyp.box # seg gain
+
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:
             loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
+            if self.semseg_loss:
+                loss[4] += (pred_semseg * 0).sum() + (sem_masks * 0).sum()
 
         loss[1] *= self.hyp.box  # seg gain
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)

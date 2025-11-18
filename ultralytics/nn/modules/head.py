@@ -15,7 +15,7 @@ from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
-from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Residual, SwiGLUFFN
+from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Residual, SwiGLUFFN, Proto26
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
@@ -355,6 +355,60 @@ class Segment(Detect):
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = self.cv4 = None
+
+
+class Segment26(Segment):
+    """
+    YOLO26 Segment head for segmentation models.
+
+    This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
+
+    Attributes:
+        nm (int): Number of masks.
+        npr (int): Number of protos.
+        proto (Proto): Prototype generation module.
+        cv4 (nn.ModuleList): Convolution layers for mask coefficients.
+
+    Methods:
+        forward: Return model outputs and mask coefficients.
+
+    Examples:
+        Create a segmentation head
+        >>> segment = Segment26(nc=80, nm=32, npr=256, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = segment(x)
+    """
+
+    def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, reg_max=16, end2end=False, ch: tuple = ()):
+        """
+        Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers.
+
+        Args:
+            nc (int): Number of classes.
+            nm (int): Number of masks.
+            npr (int): Number of protos.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, nm, npr, reg_max, end2end, ch)
+        self.proto = Proto26(ch, self.npr, self.nm, nc)  # protos
+
+    def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
+        """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
+        outputs = Detect.forward(self, x)
+        preds = outputs[1] if isinstance(outputs, tuple) else outputs
+        proto = self.proto(x)  # mask protos
+        if isinstance(preds, dict):  # training and validating during training
+            if self.end2end:
+                preds["one2many"]["proto"] = proto
+                if isinstance(proto, tuple):
+                    preds["one2one"]["proto"] = tuple(p.detach() for p in proto)
+                else:
+                    preds["one2one"]["proto"] = proto.detach()
+            else:
+                preds["proto"] = proto
+        if self.training:
+            return preds
+        return (outputs, proto) if self.export else ((outputs[0], proto), preds)
 
 
 class OBB(Detect):

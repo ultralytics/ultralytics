@@ -57,7 +57,7 @@ TASKS = frozenset({"detect", "segment", "semseg", "classify", "pose", "obb"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
-    "semseg": "CityscapeYOLO.yaml",
+    "semseg": "CityscapesYOLO.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",

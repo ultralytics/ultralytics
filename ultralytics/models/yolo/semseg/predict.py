@@ -186,7 +186,7 @@ class SemSegPredictor(DetectionPredictor):
 def predict(cfg=DEFAULT_CFG):
     """Train a YOLO segmentation model based on passed arguments."""
     model = cfg.model or "yolov11n-semseg.pt"
-    data = cfg.data or "CityscapeYOLO.yaml"  # or yolo.ClassificationDataset("mnist")
+    data = cfg.data or "CityscapesYOLO.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ""
     cfg.name = os.path.join(cfg.name, "predict")
     args = dict(model=model, data=data, device=device, name=cfg.name, task="semseg", plots=True)

@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # CityEcapse-YOLO dataset by Ultralytics
 # Documentation: https://docs.ultralytics.com/datasets/segment/CityEcapse-semseg/
-# Example usage: yolo train data=CityscapeYOLO.yaml
+# Example usage: yolo train data=CityscapesYOLO.yaml
 # parent
 # ├── ultralytics
 # └── datasets

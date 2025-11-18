@@ -2,23 +2,14 @@
 
 // Apply theme colors based on dark/light mode
 const applyTheme = (isDark) => {
-  document.body.setAttribute(
-    "data-md-color-scheme",
-    isDark ? "slate" : "default",
-  );
-  document.body.setAttribute(
-    "data-md-color-primary",
-    isDark ? "black" : "indigo",
-  );
+  document.body.setAttribute("data-md-color-scheme", isDark ? "slate" : "default");
+  document.body.setAttribute("data-md-color-primary", isDark ? "black" : "indigo");
 };
 
 // Sync widget theme with Material theme
 const syncWidgetTheme = () => {
   const isDark = document.body.getAttribute("data-md-color-scheme") === "slate";
-  document.documentElement.setAttribute(
-    "data-theme",
-    isDark ? "dark" : "light",
-  );
+  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
 };
 
 // Check and apply appropriate theme based on system/user preference
@@ -36,9 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
   syncWidgetTheme();
 
   // Watch for system theme changes
-  window
-    .matchMedia("(prefers-color-scheme: dark)")
-    .addEventListener("change", checkTheme);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", checkTheme);
 
   // Watch for theme toggle changes
   document.getElementById("__palette_1")?.addEventListener("change", (e) => {
@@ -76,11 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "Hi!",
       message:
         "I'm an AI assistant trained on documentation, guides, and other content.<br>Ask me anything about Ultralytics.",
-      examples: [
-        "What's new in SAM3?",
-        "How can I get started with YOLO?",
-        "How does Enterprise Licensing work?",
-      ],
+      examples: ["What's new in SAM3?", "How can I get started with YOLO?", "How does Enterprise Licensing work?"],
     },
     ui: {
       placeholder: "Ask anything…",
@@ -108,11 +93,9 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     headerElement.insertBefore(searchBar, searchContainer);
 
-    searchBar
-      .querySelector(".ult-search-button")
-      .addEventListener("click", () => {
-        ultralyticsChat?.toggle(true, "search");
-      });
+    searchBar.querySelector(".ult-search-button").addEventListener("click", () => {
+      ultralyticsChat?.toggle(true, "search");
+    });
   }
 
   // Keyboard shortcuts
@@ -168,9 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Update links
-    langs.forEach(
-      (lang) => (lang.link.href = location.origin + "/" + lang.code + basePath),
-    );
+    langs.forEach((lang) => (lang.link.href = location.origin + "/" + lang.code + basePath));
     if (defaultLink) {
       defaultLink.href = location.origin + basePath;
     }

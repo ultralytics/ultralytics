@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Master hyperparameter tuning for Ultralytics YOLO to optimize model performance with our comprehensive guide. Elevate your machine learning models today!.
+description: Master hyperparameter tuning for Ultralytics YOLO to optimize model performance with our comprehensive guide. Elevate your machine learning models today!
 keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optimization, genetic algorithms, learning rate, batch size, epochs
 ---
 
@@ -8,7 +8,7 @@ keywords: Ultralytics YOLO, hyperparameter tuning, machine learning, model optim
 
 ## Introduction
 
-Hyperparameter tuning is not just a one-time set-up but an iterative process aimed at optimizing the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model's performance metrics, such as accuracy, precision, and recall. In the context of Ultralytics YOLO, these hyperparameters could range from learning rate to architectural details, such as the number of layers or types of activation functions used.
+Hyperparameter tuning is not just a one-time setup but an iterative process aimed at optimizing the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model's performance metrics, such as accuracy, precision, and recall. In the context of Ultralytics YOLO, these hyperparameters could range from learning rate to architectural details, such as the number of layers or types of activation functions used.
 
 <p align="center">
   <br>
@@ -108,6 +108,10 @@ The following table lists the default search space parameters for hyperparameter
 
 Here's how to define a search space and use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLO11n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
 
+!!! warning
+
+    This example is for **demonstration** only. Hyperparameters derived from short or small-scale tuning runs are rarely optimal for real-world training. In practice, tuning should be performed under settings similar to full training — including comparable datasets, epochs, and augmentations — to ensure reliable and transferable results. Quick tuning may bias parameters toward faster convergence or short-term validation gains that do not generalize.
+
 !!! example
 
     === "Python"
@@ -137,7 +141,7 @@ Here's how to define a search space and use the `model.tune()` method to utilize
         )
         ```
 
-## Resuming An Interrupted Hyperparameter Tuning Session
+## Resuming an Interrupted Hyperparameter Tuning Session
 
 You can resume an interrupted hyperparameter tuning session by passing `resume=True`. You can optionally pass the directory `name` used under `runs/{task}` to resume. Otherwise, it would resume the last interrupted session. You also need to provide all the previous training arguments including `data`, `epochs`, `iterations` and `space`.
 

@@ -38,13 +38,14 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
       | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
         | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
     ```
+
     Update the package lists and install the nvidia-container-toolkit package:
 
     ```bash
     sudo apt-get update
     ```
 
-    Install Latest version of nvidia-container-toolkit
+    Install Latest version of nvidia-container-toolkit:
 
     ```bash
     sudo apt-get install -y nvidia-container-toolkit \
@@ -92,19 +93,18 @@ Next, install the NVIDIA Container Toolkit. The commands below are typical for D
       libnvidia-container1
     ```
 
-
     ??? info "Optional: Install specific version of nvidia-container-toolkit"
 
         Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
 
-          ```bash
-          export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
-          sudo dnf install -y \
-            nvidia-container-toolkit-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-            nvidia-container-toolkit-base-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-            libnvidia-container-tools-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-            libnvidia-container1-${NVIDIA_CONTAINER_TOOLKIT_VERSION}
-          ```
+        ```bash
+        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+        sudo dnf install -y \
+          nvidia-container-toolkit-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+          nvidia-container-toolkit-base-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+          libnvidia-container-tools-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+          libnvidia-container1-${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+        ```
 
     ```bash
     sudo nvidia-ctk runtime configure --runtime=docker

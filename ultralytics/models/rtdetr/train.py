@@ -12,12 +12,11 @@ from .val import RTDETRDataset, RTDETRValidator
 
 
 class RTDETRTrainer(DetectionTrainer):
-    """
-    Trainer class for the RT-DETR model developed by Baidu for real-time object detection.
+    """Trainer class for the RT-DETR model developed by Baidu for real-time object detection.
 
-    This class extends the DetectionTrainer class for YOLO to adapt to the specific features and architecture of RT-DETR.
-    The model leverages Vision Transformers and has capabilities like IoU-aware query selection and adaptable inference
-    speed.
+    This class extends the DetectionTrainer class for YOLO to adapt to the specific features and architecture of
+    RT-DETR. The model leverages Vision Transformers and has capabilities like IoU-aware query selection and adaptable
+    inference speed.
 
     Attributes:
         loss_names (tuple): Names of the loss components used for training.
@@ -31,20 +30,19 @@ class RTDETRTrainer(DetectionTrainer):
         build_dataset: Build and return an RT-DETR dataset for training or validation.
         get_validator: Return a DetectionValidator suitable for RT-DETR model validation.
 
-    Notes:
-        - F.grid_sample used in RT-DETR does not support the `deterministic=True` argument.
-        - AMP training can lead to NaN outputs and may produce errors during bipartite graph matching.
-
     Examples:
         >>> from ultralytics.models.rtdetr.train import RTDETRTrainer
         >>> args = dict(model="rtdetr-l.yaml", data="coco8.yaml", imgsz=640, epochs=3)
         >>> trainer = RTDETRTrainer(overrides=args)
         >>> trainer.train()
+
+    Notes:
+        - F.grid_sample used in RT-DETR does not support the `deterministic=True` argument.
+        - AMP training can lead to NaN outputs and may produce errors during bipartite graph matching.
     """
 
     def get_model(self, cfg: dict | None = None, weights: str | None = None, verbose: bool = True):
-        """
-        Initialize and return an RT-DETR model for object detection tasks.
+        """Initialize and return an RT-DETR model for object detection tasks.
 
         Args:
             cfg (dict, optional): Model configuration.
@@ -60,8 +58,7 @@ class RTDETRTrainer(DetectionTrainer):
         return model
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None):
-        """
-        Build and return an RT-DETR dataset for training or validation.
+        """Build and return an RT-DETR dataset for training or validation.
 
         Args:
             img_path (str): Path to the folder containing images.

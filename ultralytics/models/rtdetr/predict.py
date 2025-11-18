@@ -9,11 +9,10 @@ from ultralytics.utils import ops
 
 
 class RTDETRPredictor(BasePredictor):
-    """
-    RT-DETR (Real-Time Detection Transformer) Predictor extending the BasePredictor class for making predictions.
+    """RT-DETR (Real-Time Detection Transformer) Predictor extending the BasePredictor class for making predictions.
 
-    This class leverages Vision Transformers to provide real-time object detection while maintaining high accuracy.
-    It supports key features like efficient hybrid encoding and IoU-aware query selection.
+    This class leverages Vision Transformers to provide real-time object detection while maintaining high accuracy. It
+    supports key features like efficient hybrid encoding and IoU-aware query selection.
 
     Attributes:
         imgsz (int): Image size for inference (must be square and scale-filled).
@@ -34,21 +33,20 @@ class RTDETRPredictor(BasePredictor):
     """
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
+        """Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
 
-        The method filters detections based on confidence and class if specified in `self.args`. It converts
-        model predictions to Results objects containing properly scaled bounding boxes.
+        The method filters detections based on confidence and class if specified in `self.args`. It converts model
+        predictions to Results objects containing properly scaled bounding boxes.
 
         Args:
-            preds (list | tuple): List of [predictions, extra] from the model, where predictions contain
-                bounding boxes and scores.
+            preds (list | tuple): List of [predictions, extra] from the model, where predictions contain bounding boxes
+                and scores.
             img (torch.Tensor): Processed input images with shape (N, 3, H, W).
             orig_imgs (list | torch.Tensor): Original, unprocessed images.
 
         Returns:
-            results (list[Results]): A list of Results objects containing the post-processed bounding boxes,
-                confidence scores, and class labels.
+            results (list[Results]): A list of Results objects containing the post-processed bounding boxes, confidence
+                scores, and class labels.
         """
         if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
             preds = [preds, None]
@@ -75,15 +73,14 @@ class RTDETRPredictor(BasePredictor):
         return results
 
     def pre_transform(self, im):
-        """
-        Pre-transform input images before feeding them into the model for inference.
+        """Pre-transform input images before feeding them into the model for inference.
 
-        The input images are letterboxed to ensure a square aspect ratio and scale-filled. The size must be square
-        (640) and scale_filled.
+        The input images are letterboxed to ensure a square aspect ratio and scale-filled. The size must be square (640)
+        and scale_filled.
 
         Args:
-            im (list[np.ndarray]  | torch.Tensor): Input images of shape (N, 3, H, W) for tensor,
-                [(H, W, 3) x N] for list.
+            im (list[np.ndarray]  | torch.Tensor): Input images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for
+                list.
 
         Returns:
             (list): List of pre-transformed images ready for model inference.

@@ -20,7 +20,7 @@ Newly updated YOLOv8 example code is located in [this repository](https://github
 
 ### 1. Install Rust
 
-Please follow the official Rust installation guide: [https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install).
+Please follow the official Rust installation guide: [https://www.rust-lang.org/tools/install](https://rust-lang.org/tools/install/).
 
 ### 2. ONNXRuntime Linking
 

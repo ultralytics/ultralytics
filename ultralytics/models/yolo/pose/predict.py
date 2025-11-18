@@ -5,8 +5,7 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
 
 
 class PosePredictor(DetectionPredictor):
-    """
-    A class extending the DetectionPredictor class for prediction based on a pose model.
+    """A class extending the DetectionPredictor class for prediction based on a pose model.
 
     This class specializes in pose estimation, handling keypoints detection alongside standard object detection
     capabilities inherited from DetectionPredictor.
@@ -27,11 +26,10 @@ class PosePredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize PosePredictor for pose estimation tasks.
+        """Initialize PosePredictor for pose estimation tasks.
 
-        Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific
-        warnings for Apple MPS.
+        Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific warnings
+        for Apple MPS.
 
         Args:
             cfg (Any): Configuration for the predictor.
@@ -54,8 +52,7 @@ class PosePredictor(DetectionPredictor):
             )
 
     def construct_result(self, pred, img, orig_img, img_path):
-        """
-        Construct the result object from the prediction, including keypoints.
+        """Construct the result object from the prediction, including keypoints.
 
         Extends the parent class implementation by extracting keypoint data from predictions and adding them to the
         result object.

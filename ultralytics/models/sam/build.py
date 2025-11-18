@@ -11,7 +11,7 @@ from functools import partial
 import torch
 
 from ultralytics.utils.downloads import attempt_download_asset
-from ultralytics.utils.torch_utils import TORCH_1_13
+from ultralytics.utils.patches import torch_load
 
 from .modules.decoders import MaskDecoder
 from .modules.encoders import FpnNeck, Hiera, ImageEncoder, ImageEncoderViT, MemoryEncoder, PromptEncoder
@@ -127,8 +127,7 @@ def _build_sam(
     checkpoint=None,
     mobile_sam=False,
 ):
-    """
-    Build a Segment Anything Model (SAM) with specified encoder parameters.
+    """Build a Segment Anything Model (SAM) with specified encoder parameters.
 
     Args:
         encoder_embed_dim (int | list[int]): Embedding dimension for the encoder.
@@ -208,7 +207,7 @@ def _build_sam(
     if checkpoint is not None:
         checkpoint = attempt_download_asset(checkpoint)
         with open(checkpoint, "rb") as f:
-            state_dict = torch.load(f, weights_only=False) if TORCH_1_13 else torch.load(f)
+            state_dict = torch_load(f)
         sam.load_state_dict(state_dict)
     sam.eval()
     return sam
@@ -224,8 +223,7 @@ def _build_sam2(
     encoder_window_spec=[8, 4, 16, 8],
     checkpoint=None,
 ):
-    """
-    Build and return a Segment Anything Model 2 (SAM2) with specified architecture parameters.
+    """Build and return a Segment Anything Model 2 (SAM2) with specified architecture parameters.
 
     Args:
         encoder_embed_dim (int, optional): Embedding dimension for the encoder.
@@ -303,7 +301,7 @@ def _build_sam2(
     if checkpoint is not None:
         checkpoint = attempt_download_asset(checkpoint)
         with open(checkpoint, "rb") as f:
-            state_dict = (torch.load(f, weights_only=False) if TORCH_1_13 else torch.load(f))["model"]
+            state_dict = torch_load(f)["model"]
         sam2.load_state_dict(state_dict)
     sam2.eval()
     return sam2
@@ -326,8 +324,7 @@ sam_model_map = {
 
 
 def build_sam(ckpt="sam_b.pt"):
-    """
-    Build and return a Segment Anything Model (SAM) based on the provided checkpoint.
+    """Build and return a Segment Anything Model (SAM) based on the provided checkpoint.
 
     Args:
         ckpt (str | Path, optional): Path to the checkpoint file or name of a pre-defined SAM model.

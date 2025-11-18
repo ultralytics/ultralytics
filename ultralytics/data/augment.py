@@ -3094,7 +3094,7 @@ class SemSegMosaic(BaseMixTransform):
             mosaic_labels.append(labels_patch)
         final_labels = self._cat_labels(mosaic_labels)
 
-        final_labels["img"] =  cv2.resize(img3, dsize=(s * 2, s * 2), interpolation=cv2.INTER_CUBIC)
+        final_labels["img"] = cv2.resize(img3, dsize=(s * 2, s * 2), interpolation=cv2.INTER_CUBIC)
         final_labels["mask"] = cv2.resize(img3, dsize=(s * 2, s * 2), interpolation=cv2.INTER_NEAREST)
         return final_labels
 

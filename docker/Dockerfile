@@ -41,8 +41,7 @@ RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
-RUN pip install uv && \
-    uv pip install --system -e "." albumentations faster-coco-eval wandb && \
+RUN uv pip install --system -e "." albumentations faster-coco-eval wandb && \
     # Remove extra build files \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 

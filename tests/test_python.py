@@ -684,6 +684,7 @@ def test_yoloe():
         predictor=YOLOEVPSegPredictor,
         imgsz=640,
     )
+    model.export(format="onnx", imgsz=32)
 
     # Val
     model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")

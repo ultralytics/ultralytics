@@ -403,9 +403,11 @@ class v8SegmentationLoss(v8DetectionLoss):
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = preds["mask_coefficient"].permute(0, 2, 1).contiguous(), preds["proto"]
         loss = torch.zeros(5 if self.semseg_loss else 4, device=self.device)  # box, seg, cls, dfl
-        if self.semseg_loss and len(proto) == 2:
+        if len(proto) == 2:
             proto, pred_semseg = proto
         else:
+            pred_semseg = None
+        if not self.semseg_loss:
             pred_semseg = None
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.

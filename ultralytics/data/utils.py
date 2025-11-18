@@ -798,7 +798,7 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writable, cache not saved.")
 
 
-def mask2polygon(mask, downsample_ratio=1):
+def mask2polygon(mask):
     """Get polygon from mask."""
     mask_gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY) if len(mask.shape) == 3 and mask.shape[2] == 3 else mask
     _, mask_gray = cv2.threshold(mask_gray, 125, 255, cv2.THRESH_BINARY)
@@ -808,9 +808,6 @@ def mask2polygon(mask, downsample_ratio=1):
         area = cv2.contourArea(c)
         if area > 10:
             polygons.append(c[:, 0, :].astype(np.float32))
-
-    if downsample_ratio != 1:
-        polygons = polygons / downsample_ratio
 
     return polygons
 

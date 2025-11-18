@@ -433,8 +433,8 @@ class SemSegValidator(DetectionValidator):
 
 def validate(cfg=DEFAULT_CFG):
     """Train a YOLO segmentation model based on passed arguments."""
-    model = cfg.model or "yolov11n-seg.pt"
-    data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
+    model = cfg.model or "yolov11n-semseg.pt"
+    data = cfg.data or "CityscapeYOLO.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ""
     cfg.name = os.path.join(cfg.name, "val")
     # data = YAML.load(data)

@@ -145,8 +145,6 @@ class NMSWrapper(torch.nn.Module):
 
     def forward(self, images):
         """Forward pass with model inference and NMS post-processing."""
-        from edgemdt_cl.pytorch import MulticlassNMSWithIndices
-
         # model inference
         outputs = self.model(images)
         boxes, scores = outputs[0], outputs[1]

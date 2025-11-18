@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from typing import Any
 
@@ -11,7 +10,7 @@ import torch
 import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import LOGGER, NUM_THREADS, ops
+from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import SegmentMetrics, mask_iou
 
@@ -212,17 +211,78 @@ class SegmentationValidator(DetectionValidator):
             predn (dict[str, torch.Tensor]): Predictions containing bboxes, masks, confidence scores, and classes.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
-        from faster_coco_eval.core.mask import encode
 
-        def single_encode(x):
-            """Encode predicted masks as RLE and append results to jdict."""
-            rle = encode(np.asarray(x[:, :, None], order="F", dtype="uint8"))[0]
-            rle["counts"] = rle["counts"].decode("utf-8")
-            return rle
+        def to_string(counts: list[int]) -> str:
+            """Converts the RLE object into a compact string representation. Each count is delta-encoded and
+            variable-length encoded as a string.
 
-        pred_masks = np.transpose(predn["masks"], (2, 0, 1))
-        with ThreadPool(NUM_THREADS) as pool:
-            rles = pool.map(single_encode, pred_masks)
+            Args:
+                counts (list[int]): List of RLE counts.
+            """
+            result = []
+
+            for i in range(len(counts)):
+                x = int(counts[i])
+
+                # Apply delta encoding for all counts after the second entry
+                if i > 2:
+                    x -= int(counts[i - 2])
+
+                # Variable-length encode the value
+                while True:
+                    c = x & 0x1F  # Take 5 bits
+                    x >>= 5
+
+                    # If the sign bit (0x10) is set, continue if x != -1;
+                    # otherwise, continue if x != 0
+                    more = (x != -1) if (c & 0x10) else (x != 0)
+                    if more:
+                        c |= 0x20  # Set continuation bit
+                    c += 48  # Shift to ASCII
+                    result.append(chr(c))
+                    if not more:
+                        break
+
+            return "".join(result)
+
+        def multi_encode(pixels: torch.Tensor) -> list[int]:
+            """Convert multiple binary masks using Run-Length Encoding (RLE).
+
+            Args:
+                pixels (torch.Tensor): A 2D tensor where each row represents a flattened binary mask with shape [N,
+                    H*W].
+
+            Returns:
+                (list[int]): A list of RLE counts for each mask.
+            """
+            transitions = pixels[:, 1:] != pixels[:, :-1]
+            row_idx, col_idx = torch.where(transitions)
+            col_idx = col_idx + 1
+
+            # Compute run lengths
+            counts = []
+            for i in range(pixels.shape[0]):
+                positions = col_idx[row_idx == i]
+                if len(positions):
+                    count = torch.diff(positions).tolist()
+                    count.insert(0, positions[0].item())
+                    count.append(len(pixels[i]) - positions[-1].item())
+                else:
+                    count = [len(pixels[i])]
+
+                # Ensure starting with background (0) count
+                if pixels[i][0].item() == 1:
+                    count = [0, *count]
+                counts.append(count)
+
+            return counts
+
+        pred_masks = predn["masks"].transpose(2, 1).contiguous().view(len(predn["masks"]), -1)  # N, H*W
+        h, w = predn["masks"].shape[1:3]
+        counts = multi_encode(pred_masks)
+        rles = []
+        for c in counts:
+            rles.append({"size": [h, w], "counts": to_string(c)})
         super().pred_to_json(predn, pbatch)
         for i, r in enumerate(rles):
             self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
@@ -231,11 +291,9 @@ class SegmentationValidator(DetectionValidator):
         """Scales predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
-            "masks": ops.scale_image(
-                torch.as_tensor(predn["masks"], dtype=torch.uint8).permute(1, 2, 0).contiguous().cpu().numpy(),
-                pbatch["ori_shape"],
-                ratio_pad=pbatch["ratio_pad"],
-            ),
+            "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[
+                0
+            ].byte(),
         }
 
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:

@@ -305,9 +305,7 @@ jobs:
         run: uv cache prune --ci
 
   GPU:
-    # Disabled temporarily due to GPU availability issues
-    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
-    if: false
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     timeout-minutes: 60
     runs-on: gpu-latest
     steps:

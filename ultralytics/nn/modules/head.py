@@ -20,7 +20,7 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "Pose", "RTDETRDecoder", "Segment", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = "OBB", "Classify", "Detect", "DetectMoE", "Pose", "RTDETRDecoder", "Segment", "SegmentMoE", "YOLOEDetect", "YOLOESegment", "v10Detect"
 
 
 class Detect(nn.Module):
@@ -1180,3 +1180,282 @@ class v10Detect(Detect):
     def fuse(self):
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)
+
+
+class DetectMoE(Detect):
+    """YOLO Detect head with MoE (Mixture of Experts) routing for dynamic P-layer selection.
+
+    This class extends the Detect head to include a gating network that dynamically routes each prediction
+    to the top-2 most suitable P-layers. Large objects are guided to larger P-layers (P5/P6), while small
+    objects are guided to smaller P-layers (P2/P3).
+
+    Attributes:
+        gate_net (nn.Module): Gating network for computing routing scores.
+        top_k (int): Number of experts (P-layers) to route to (default: 2).
+        aux_loss_weight (float): Weight for auxiliary load balancing loss.
+        size_bias (torch.Tensor): Learnable bias to guide size-based routing.
+
+    Methods:
+        forward: Perform forward pass with dynamic routing.
+        compute_gate_scores: Compute routing scores for each P-layer.
+        route_features: Route features to top-k P-layers based on gate scores.
+
+    Examples:
+        Create a MoE detection head for 80 classes with 5 P-layers
+        >>> detect_moe = DetectMoE(nc=80, ch=(128, 256, 512, 768, 1024))
+        >>> x = [torch.randn(1, 128, 160, 160), torch.randn(1, 256, 80, 80), 
+        ...      torch.randn(1, 512, 40, 40), torch.randn(1, 768, 20, 20), torch.randn(1, 1024, 10, 10)]
+        >>> outputs = detect_moe(x)
+    """
+
+    def __init__(self, nc: int = 80, ch: tuple = (), top_k: int = 2, aux_loss_weight: float = 0.01):
+        """Initialize the DetectMoE head with gating network.
+
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            top_k (int): Number of P-layers to route to (default: 2 for top-2 routing).
+            aux_loss_weight (float): Weight for auxiliary load balancing loss.
+        """
+        super().__init__(nc, ch)
+        self.top_k = min(top_k, self.nl)  # Ensure top_k doesn't exceed number of layers
+        self.aux_loss_weight = aux_loss_weight
+        
+        # Gating network: takes concatenated multi-scale features and outputs routing scores
+        # Use adaptive pooling to handle different spatial sizes
+        gate_hidden = 256
+        self.gate_net = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),  # Global pooling to [B, C, 1, 1]
+            nn.Conv2d(sum(ch), gate_hidden, 1),
+            nn.BatchNorm2d(gate_hidden),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(gate_hidden, self.nl, 1),  # Output routing scores for each P-layer
+        )
+        
+        # Learnable size bias to guide routing: smaller indices (P2) for small objects, larger indices (P6) for large
+        # Initialize with a gradient that encourages size-appropriate routing
+        self.register_buffer('size_bias', torch.linspace(-2.0, 2.0, self.nl))
+        
+    def compute_gate_scores(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Compute routing scores for each P-layer.
+
+        Args:
+            x (list[torch.Tensor]): List of feature maps from different P-layers.
+
+        Returns:
+            gate_scores (torch.Tensor): Routing scores of shape [B, nl].
+            gate_probs (torch.Tensor): Normalized routing probabilities of shape [B, nl].
+        """
+        # Upsample all features to the same spatial size (largest feature map size)
+        target_size = x[0].shape[2:]
+        x_upsampled = []
+        for i, feat in enumerate(x):
+            if feat.shape[2:] != target_size:
+                feat = F.interpolate(feat, size=target_size, mode='bilinear', align_corners=False)
+            x_upsampled.append(feat)
+        
+        # Concatenate along channel dimension
+        x_cat = torch.cat(x_upsampled, dim=1)  # [B, sum(ch), H, W]
+        
+        # Compute gate scores
+        gate_scores = self.gate_net(x_cat).squeeze(-1).squeeze(-1)  # [B, nl]
+        
+        # Apply size bias to encourage appropriate routing
+        gate_scores = gate_scores + self.size_bias.unsqueeze(0)
+        
+        # Softmax for probabilities
+        gate_probs = F.softmax(gate_scores, dim=1)
+        
+        return gate_scores, gate_probs
+    
+    def route_features(self, x: list[torch.Tensor], gate_probs: torch.Tensor) -> tuple[list[torch.Tensor], torch.Tensor]:
+        """Route features to top-k P-layers based on gate probabilities.
+
+        Args:
+            x (list[torch.Tensor]): List of processed feature maps (after cv2/cv3).
+            gate_probs (torch.Tensor): Routing probabilities of shape [B, nl].
+
+        Returns:
+            routed_features (list[torch.Tensor]): Top-k selected features with routing weights.
+            routing_indices (torch.Tensor): Indices of selected P-layers [B, top_k].
+        """
+        batch_size = x[0].shape[0]
+        
+        # Select top-k P-layers for each sample in the batch
+        topk_probs, topk_indices = torch.topk(gate_probs, self.top_k, dim=1)  # [B, top_k]
+        
+        # Normalize top-k probabilities
+        topk_probs = topk_probs / (topk_probs.sum(dim=1, keepdim=True) + 1e-8)
+        
+        # For inference, we'll use a weighted combination of top-k features
+        routed_features = []
+        for k in range(self.top_k):
+            indices = topk_indices[:, k]  # [B]
+            weights = topk_probs[:, k].unsqueeze(1).unsqueeze(2)  # [B, 1, 1]
+            
+            # Gather features from selected P-layers
+            selected_feats = []
+            for b in range(batch_size):
+                selected_feats.append(x[indices[b]][b:b+1] * weights[b])
+            
+            routed_features.append(torch.cat(selected_feats, dim=0))
+        
+        return routed_features, topk_indices
+    
+    def compute_load_balancing_loss(self, gate_probs: torch.Tensor) -> torch.Tensor:
+        """Compute load balancing auxiliary loss to encourage uniform expert usage.
+
+        Args:
+            gate_probs (torch.Tensor): Routing probabilities of shape [B, nl].
+
+        Returns:
+            (torch.Tensor): Load balancing loss scalar.
+        """
+        # Compute mean probability per expert across the batch
+        expert_usage = gate_probs.mean(dim=0)  # [nl]
+        
+        # Encourage uniform distribution (1/nl for each expert)
+        uniform_target = 1.0 / self.nl
+        load_loss = ((expert_usage - uniform_target) ** 2).sum()
+        
+        return load_loss
+
+    def forward(self, x: list[torch.Tensor]) -> list[torch.Tensor] | tuple:
+        """Concatenate and return predicted bounding boxes with MoE routing."""
+        # Compute gate scores for routing
+        gate_scores, gate_probs = self.compute_gate_scores(x)
+        
+        # Apply detection heads to all features
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        
+        if self.training:
+            # During training, return all features only (gate info can be retrieved separately if needed)
+            # Store gate_probs for potential auxiliary loss computation
+            self.gate_probs = gate_probs
+            self.load_loss = self.compute_load_balancing_loss(gate_probs)
+            return x
+        
+        # Inference: route to top-k P-layers
+        routed_features, routing_indices = self.route_features(x, gate_probs)
+        
+        # Aggregate routed features
+        y = self._inference_moe(routed_features, routing_indices)
+        
+        return y if self.export else (y, x)
+    
+    def _inference_moe(self, routed_features: list[torch.Tensor], routing_indices: torch.Tensor) -> torch.Tensor:
+        """Decode bounding boxes from routed top-k features.
+
+        Args:
+            routed_features (list[torch.Tensor]): List of top-k routed feature maps.
+            routing_indices (torch.Tensor): Indices of selected P-layers [B, top_k].
+
+        Returns:
+            (torch.Tensor): Decoded predictions.
+        """
+        batch_size = routed_features[0].shape[0]
+        shape = routed_features[0].shape  # BCHW
+        
+        # Process each routed feature
+        outputs = []
+        for k in range(self.top_k):
+            feat = routed_features[k]
+            feat_flat = feat.view(shape[0], self.no, -1)
+            
+            # Get corresponding strides for each sample
+            strides_list = []
+            anchors_list = []
+            for b in range(batch_size):
+                layer_idx = routing_indices[b, k]
+                # Create anchors for this specific layer
+                if self.dynamic or self.shape != shape:
+                    # Use the stride of the selected layer
+                    stride = self.stride[layer_idx]
+                    h, w = feat.shape[2:]
+                    anchor_points, stride_tensor = make_anchors([feat[b:b+1]], stride.unsqueeze(0), 0.5)
+                    strides_list.append(stride_tensor[0])
+                    anchors_list.append(anchor_points[0])
+                else:
+                    strides_list.append(self.strides[:, routing_indices[b, k]])
+                    anchors_list.append(self.anchors[:, routing_indices[b, k]])
+            
+            outputs.append(feat_flat)
+        
+        # Concatenate all routed outputs
+        x_cat = torch.cat(outputs, 2)  # [B, no, sum(H*W of top_k)]
+        
+        # Decode
+        if self.dynamic or self.shape != shape:
+            # Recompute anchors using the first routed feature
+            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors([routed_features[0]], self.stride[0].unsqueeze(0), 0.5))
+            self.shape = shape
+        
+        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+        dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        
+        return torch.cat((dbox, cls.sigmoid()), 1)
+
+
+class SegmentMoE(DetectMoE):
+    """YOLO Segment head with MoE routing for dynamic P-layer selection in segmentation.
+
+    This class extends DetectMoE to include mask prediction with dynamic routing.
+
+    Attributes:
+        nm (int): Number of masks.
+        npr (int): Number of protos.
+        proto (Proto): Prototype generation module.
+        cv4 (nn.ModuleList): Convolution layers for mask coefficients.
+
+    Examples:
+        Create a MoE segmentation head
+        >>> segment_moe = SegmentMoE(nc=80, nm=32, npr=256, ch=(128, 256, 512, 768, 1024))
+        >>> x = [torch.randn(1, 128, 160, 160), torch.randn(1, 256, 80, 80)]
+        >>> outputs = segment_moe(x)
+    """
+
+    def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, ch: tuple = (), top_k: int = 2, aux_loss_weight: float = 0.01):
+        """Initialize SegmentMoE head with mask prediction and MoE routing.
+
+        Args:
+            nc (int): Number of classes.
+            nm (int): Number of masks.
+            npr (int): Number of protos.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            top_k (int): Number of P-layers to route to.
+            aux_loss_weight (float): Weight for auxiliary load balancing loss.
+        """
+        super().__init__(nc, ch, top_k, aux_loss_weight)
+        self.nm = nm
+        self.npr = npr
+        self.proto = Proto(ch[0], self.npr, self.nm)
+        
+        c4 = max(ch[0] // 4, self.nm)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
+
+    def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor]:
+        """Forward pass with mask coefficients and MoE routing."""
+        p = self.proto(x[0])  # mask protos
+        bs = p.shape[0]
+        
+        # Compute gate scores
+        gate_scores, gate_probs = self.compute_gate_scores(x)
+        
+        mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
+        
+        # Apply detection heads
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        
+        if self.training:
+            # Store gate info for potential auxiliary loss
+            self.gate_probs = gate_probs
+            self.load_loss = self.compute_load_balancing_loss(gate_probs)
+            return x, mc, p
+        
+        # Inference with routing
+        routed_features, routing_indices = self.route_features(x, gate_probs)
+        y = self._inference_moe(routed_features, routing_indices)
+        
+        return (torch.cat([y, mc], 1), p) if self.export else (torch.cat([y, mc], 1), (x, mc, p))

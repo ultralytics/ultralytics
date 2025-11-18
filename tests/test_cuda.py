@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import os
 from itertools import product
 from pathlib import Path
 
@@ -110,20 +111,15 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_train():
     """Test model training on a minimal dataset using available CUDA devices."""
-    import os
-
     device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
     # NVIDIA Jetson only has one GPU and therefore skipping checks
     if not IS_JETSON:
-        results = YOLO(MODEL).train(
-            data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15
-        )  # requires imgsz>=64
-        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
+        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15)
+        results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
-        assert (
-            (results is None) if len(DEVICES) > 1 else (results is not None)
-        )  # DDP returns None, single-GPU returns metrics
+        # Note DDP training returns None, single-GPU returns metrics
+        assert (results is None) if len(DEVICES) > 1 else (results is not None)
 
 
 @pytest.mark.slow

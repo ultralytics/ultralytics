@@ -2212,11 +2212,8 @@ class Format:
             if nl:
                 # onehot binary mask
                 sem_masks = labels["cls"].squeeze(1)[labels["masks"].long() - 1]  # 1xHxW
-                sem_masks = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2)  # 1xncxHxW
-                mask_zero = labels["masks"] == 0  # 1xHxW
-                sem_masks[mask_zero.unsqueeze(0).expand_as(sem_masks)] = 0
             else:
-                sem_masks = torch.zeros(1, self.nc, *labels["masks"].shape[-2:])
+                sem_masks = torch.zeros(1, *labels["masks"].shape[-2:])
             labels["sem_masks"] = sem_masks.float()
         if self.return_keypoint:
             labels["keypoints"] = (

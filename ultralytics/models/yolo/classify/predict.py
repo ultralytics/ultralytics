@@ -11,11 +11,10 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class ClassificationPredictor(BasePredictor):
-    """
-    A class extending the BasePredictor class for prediction based on a classification model.
+    """A class extending the BasePredictor class for prediction based on a classification model.
 
-    This predictor handles the specific requirements of classification models, including preprocessing images
-    and postprocessing predictions to generate classification results.
+    This predictor handles the specific requirements of classification models, including preprocessing images and
+    postprocessing predictions to generate classification results.
 
     Attributes:
         args (dict): Configuration arguments for the predictor.
@@ -24,20 +23,19 @@ class ClassificationPredictor(BasePredictor):
         preprocess: Convert input images to model-compatible format.
         postprocess: Process model predictions into Results objects.
 
-    Notes:
-        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
-
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.classify import ClassificationPredictor
         >>> args = dict(model="yolo11n-cls.pt", source=ASSETS)
         >>> predictor = ClassificationPredictor(overrides=args)
         >>> predictor.predict_cli()
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize the ClassificationPredictor with the specified configuration and set task to 'classify'.
+        """Initialize the ClassificationPredictor with the specified configuration and set task to 'classify'.
 
         This constructor initializes a ClassificationPredictor instance, which extends BasePredictor for classification
         tasks. It ensures the task is set to 'classify' regardless of input configuration.
@@ -72,8 +70,7 @@ class ClassificationPredictor(BasePredictor):
         return img.half() if self.model.fp16 else img.float()  # Convert uint8 to fp16/32
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Process predictions to return Results objects with classification probabilities.
+        """Process predictions to return Results objects with classification probabilities.
 
         Args:
             preds (torch.Tensor): Raw predictions from the model.

@@ -66,7 +66,7 @@ Or better yet, try it out yourself in this Colab Notebook:
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)
 
-## Log automatically
+## Log Automatically
 
 By default, Comet will log the following items:
 
@@ -167,7 +167,7 @@ env COMET_LOG_PER_CLASS_METRICS=true python train.py \
 
 If you would like to store your data using [Comet Artifacts](https://www.comet.com/docs/v2/guides/data-management/using-artifacts/#learn-more?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github), you can do so using the `upload_dataset` flag.
 
-The dataset should be organized as described in the [YOLOv5 documentation](train_custom_data.md). The dataset config `yaml` file must follow the same format as that of the `coco128.yaml` file.
+The dataset should be organized as described in the [YOLOv5 documentation](./train_custom_data.md). The dataset config `yaml` file must follow the same format as that of the `coco128.yaml` file.
 
 ```bash
 python train.py \
@@ -197,7 +197,7 @@ If you would like to use a dataset from Comet Artifacts, set the `path` variable
 
 ```yaml
 # Contents of artifact.yaml file
-path: "comet://WORKSPACE_NAME>/ARTIFACT_NAME:ARTIFACT_VERSION_OR_ALIAS"
+path: "comet://WORKSPACE_NAME/ARTIFACT_NAME:ARTIFACT_VERSION_OR_ALIAS"
 ```
 
 Then pass this file to your training script in the following way:

@@ -18,8 +18,7 @@ _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
 def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
-    """
-    Read an image from a file with multilanguage filename support.
+    """Read an image from a file with multilanguage filename support.
 
     Args:
         filename (str): Path to the file to read.
@@ -45,8 +44,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
 
 
 def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:
-    """
-    Write an image to a file with multilanguage filename support.
+    """Write an image to a file with multilanguage filename support.
 
     Args:
         filename (str): Path to the file to write.
@@ -71,15 +69,14 @@ def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> 
 
 
 def imshow(winname: str, mat: np.ndarray) -> None:
-    """
-    Display an image in the specified window with multilanguage window name support.
+    """Display an image in the specified window with multilanguage window name support.
 
     This function is a wrapper around OpenCV's imshow function that displays an image in a named window. It handles
     multilanguage window names by encoding them properly for OpenCV compatibility.
 
     Args:
-        winname (str): Name of the window where the image will be displayed. If a window with this name already
-            exists, the image will be displayed in that window.
+        winname (str): Name of the window where the image will be displayed. If a window with this name already exists,
+            the image will be displayed in that window.
         mat (np.ndarray): Image to be shown. Should be a valid numpy array representing an image.
 
     Examples:
@@ -96,8 +93,7 @@ _torch_save = torch.save
 
 
 def torch_load(*args, **kwargs):
-    """
-    Load a PyTorch model with updated arguments to avoid warnings.
+    """Load a PyTorch model with updated arguments to avoid warnings.
 
     This function wraps torch.load and adds the 'weights_only' argument for PyTorch 1.13.0+ to prevent warnings.
 
@@ -121,11 +117,10 @@ def torch_load(*args, **kwargs):
 
 
 def torch_save(*args, **kwargs):
-    """
-    Save PyTorch objects with retry mechanism for robustness.
+    """Save PyTorch objects with retry mechanism for robustness.
 
-    This function wraps torch.save with 3 retries and exponential backoff in case of save failures, which can occur
-    due to device flushing delays or antivirus scanning.
+    This function wraps torch.save with 3 retries and exponential backoff in case of save failures, which can occur due
+    to device flushing delays or antivirus scanning.
 
     Args:
         *args (Any): Positional arguments to pass to torch.save.
@@ -146,8 +141,7 @@ def torch_save(*args, **kwargs):
 
 @contextmanager
 def arange_patch(args):
-    """
-    Workaround for ONNX torch.arange incompatibility with FP16.
+    """Workaround for ONNX torch.arange incompatibility with FP16.
 
     https://github.com/pytorch/pytorch/issues/148041.
     """
@@ -167,8 +161,7 @@ def arange_patch(args):
 
 @contextmanager
 def override_configs(args, overrides: dict[str, Any] | None = None):
-    """
-    Context manager to temporarily override configurations in args.
+    """Context manager to temporarily override configurations in args.
 
     Args:
         args (IterableSimpleNamespace): Original configuration arguments.

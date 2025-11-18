@@ -1128,10 +1128,12 @@ def plot_masks(
         mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
         mask_bgr = np.ones((h, w, 3), dtype=np.uint8) * 255
         if one_hot:
-            mask = masks[i].copy().transpose(1, 2, 0)
+            #mask = masks[i].copy().transpose(1, 2, 0)
+            mask = masks.argmax(axis=0).astype(np.uint8)
             for j in range(nc):
                 r, g, b = colors[j]
-                mask_bgr[mask[:, :, j] > 125, :] = np.array([b, g, r]).astype(np.uint8)
+                mask_bgr[mask == j] = (b, g, r)
+                #mask_bgr[mask[:, :, j] > 125, :] = np.array([b, g, r]).astype(np.uint8)
         else:
             for j in range(nc):
                 r, g, b = colors[j]

@@ -2977,7 +2977,7 @@ class SemSegMosaic(BaseMixTransform):
             >>> mosaic_aug = Mosaic(dataset, imgsz=640, p=0.5, n=4)
         """
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
-        assert n in {4, 9}, "grid must be equal to 4 or 9."
+        assert n in {3, 4, 9}, "grid must be equal to 4 or 9."
         super().__init__(dataset=dataset, p=p)
         self.num_classes = dataset.data["nc"]
         self.imgsz = imgsz
@@ -3094,8 +3094,8 @@ class SemSegMosaic(BaseMixTransform):
             mosaic_labels.append(labels_patch)
         final_labels = self._cat_labels(mosaic_labels)
 
-        final_labels["img"] = img3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
-        final_labels["mask"] = msk3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
+        final_labels["img"] =  cv2.resize(img3, dsize=(s * 2, s * 2), interpolation=cv2.INTER_CUBIC)
+        final_labels["mask"] = cv2.resize(img3, dsize=(s * 2, s * 2), interpolation=cv2.INTER_NEAREST)
         return final_labels
 
     def _mosaic4(self, labels):
@@ -3232,8 +3232,8 @@ class SemSegMosaic(BaseMixTransform):
             mosaic_labels.append(labels_patch)
         final_labels = self._cat_labels(mosaic_labels)
 
-        final_labels["img"] = img9[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
-        final_labels["mask"] = msk9[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
+        final_labels["img"] = cv2.resize(img9, dsize=(s * 2, s * 2), interpolation=cv2.INTER_CUBIC)
+        final_labels["mask"] = cv2.resize(msk9, dsize=(s * 2, s * 2), interpolation=cv2.INTER_NEAREST)
         return final_labels
 
     @staticmethod
@@ -3857,12 +3857,12 @@ class SemSegFormat:
         """
         segments = instances.segments
         if self.mask_overlap:
-            masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)
+            masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=1)
             masks = masks[None]  # (640, 640) -> (1, 640, 640)
             instances = instances[sorted_idx]
             cls = cls[sorted_idx]
         else:
-            masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
+            masks = polygons2masks((h, w), segments, color=1, downsample_ratio=1)
 
         return masks, instances, cls
 

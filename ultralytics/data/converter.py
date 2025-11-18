@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os.path
+import os
 import random
 import shutil
 from collections import defaultdict

@@ -171,9 +171,7 @@ class SemSegPredictor(DetectionPredictor):
 
         for j in range(nc):
             r, g, b = colors[j]
-            mask_bgr[..., 0] = (mask == j).astype(np.uint8) * b
-            mask_bgr[..., 1] = (mask == j).astype(np.uint8) * g
-            mask_bgr[..., 2] = (mask == j).astype(np.uint8) * r
+            mask_bgr[mask == j] = (b, g, r)
 
         msk = cv2.resize(mask_bgr, dsize=(w, h), interpolation=cv2.INTER_NEAREST)
 
@@ -187,8 +185,8 @@ class SemSegPredictor(DetectionPredictor):
 
 def predict(cfg=DEFAULT_CFG):
     """Train a YOLO segmentation model based on passed arguments."""
-    model = cfg.model or "yolov11n-seg.pt"
-    data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
+    model = cfg.model or "yolov11n-semseg.pt"
+    data = cfg.data or "CityscapeYOLO.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ""
     cfg.name = os.path.join(cfg.name, "predict")
     args = dict(model=model, data=data, device=device, name=cfg.name, task="semseg", plots=True)

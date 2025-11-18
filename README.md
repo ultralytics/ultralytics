@@ -223,8 +223,8 @@ Check the [Semseg Docs](https://github.com/kuazhangxiaoai/ultralytics-semantic-s
 | [YOLO11l-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11l-semseg.pt) | 512                   | 76.2              | 184.7 ± 5.9                    | 4.9 ± 2.7                           | 92.2               | 80.3              |
 | [YOLO11x-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11x-semseg.pt) | 512                   | 77.7              | 394.6 ± 10.7                   | 10.2 ± 5.1                          | 206.3              | 180.3             |
 
-- **IoU<sup>val</sup>** values are for single-model singlescale performance on the [Cityecapse val set](https://www.cityscapes-dataset.com/). <br>Reproduce by `yolo val semseg data=CityEscapeYOLO.yaml device=0 split=val` and submit merged results to the [Cityscapse evaluation tools](https://github.com/mcordts/cityscapesScripts).
-- **Speed** metrics are averaged over Cityecapse val images using an NVIDIA RTX 4090. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce by `yolo val semseg data=CityEscapeYOLO.yaml batch=1 device=0|cpu`
+- **IoU<sup>val</sup>** values are for single-model singlescale performance on the [Cityscapse val set](https://www.cityscapes-dataset.com/). <br>Reproduce by `yolo val semseg data=CityscapeYOLO.yaml device=0 split=val` and submit merged results to the [Cityscapse evaluation tools](https://github.com/mcordts/cityscapesScripts).
+- **Speed** metrics are averaged over Cityecapse val images using an NVIDIA RTX 4090. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce by `yolo val semseg data=CityscapeYOLO.yaml batch=1 device=0|cpu`
 
 </details>
 

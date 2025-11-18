@@ -1132,7 +1132,7 @@ def plot_masks(
             mask = masks.argmax(axis=0).astype(np.uint8)
             for j in range(nc):
                 r, g, b = colors[j]
-                mask_bgr[mask == j] = (b, g, r)
+                mask_bgr[mask[j] == j] = (b, g, r)
                 # mask_bgr[mask[:, :, j] > 125, :] = np.array([b, g, r]).astype(np.uint8)
         else:
             for j in range(nc):

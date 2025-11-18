@@ -171,7 +171,7 @@ class SemSegPredictor(DetectionPredictor):
 
         for j in range(nc):
             r, g, b = colors[j]
-            mask_bgr[mask == j] = (b, g, r)
+            mask_bgr[mask[j] == j] = (b, g, r)
 
         msk = cv2.resize(mask_bgr, dsize=(w, h), interpolation=cv2.INTER_NEAREST)
 

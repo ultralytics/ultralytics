@@ -45,6 +45,7 @@ from ultralytics.nn.modules import (
     ConvTranspose,
     Detect,
     DetectMoE,
+    DetectNeckMoE,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -55,6 +56,7 @@ from ultralytics.nn.modules import (
     ImagePoolingAttn,
     Index,
     LRPCHead,
+    NeckMoERouter,
     Pose,
     RepC3,
     RepConv,
@@ -65,6 +67,7 @@ from ultralytics.nn.modules import (
     SCDown,
     Segment,
     SegmentMoE,
+    SegmentNeckMoE,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
@@ -400,7 +403,7 @@ class DetectionModel(BaseModel):
                 """Perform a forward pass through the model, handling different Detect subclass types accordingly."""
                 if self.end2end:
                     return self.forward(x)["one2many"]
-                return self.forward(x)[0] if isinstance(m, (Segment, SegmentMoE, YOLOESegment, Pose, OBB)) else self.forward(x)
+                return self.forward(x)[0] if isinstance(m, (Segment, SegmentMoE, SegmentNeckMoE, YOLOESegment, Pose, OBB)) else self.forward(x)
 
             self.model.eval()  # Avoid changing batch statistics until training begins
             m.training = True  # Setting it to True to properly return strides
@@ -1625,13 +1628,20 @@ def parse_model(d, ch, verbose=True):
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
+        elif m is NeckMoERouter:
+            # NeckMoERouter takes list of channels and returns selected top-k
+            ch_list = [ch[x] for x in f]
+            args.insert(0, tuple(ch_list))  # ch=(ch1, ch2, ...)
+            # Output is top_k selected channels (we take the first top_k from input)
+            top_k = args[1] if len(args) > 1 else 3
+            c2 = ch_list[:top_k] if len(ch_list) >= top_k else ch_list
         elif m in frozenset(
-            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect, DetectMoE, SegmentMoE}
+            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect, DetectMoE, SegmentMoE, DetectNeckMoE, SegmentNeckMoE}
         ):
             args.append([ch[x] for x in f])
-            if m is Segment or m is YOLOESegment or m is SegmentMoE:
+            if m in {Segment, YOLOESegment, SegmentMoE, SegmentNeckMoE}:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, DetectMoE, SegmentMoE}:
+            if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, DetectMoE, SegmentMoE, DetectNeckMoE, SegmentNeckMoE}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])

@@ -20,7 +20,7 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "DetectMoE", "Pose", "RTDETRDecoder", "Segment", "SegmentMoE", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = "OBB", "Classify", "Detect", "DetectMoE", "DetectNeckMoE", "Pose", "RTDETRDecoder", "Segment", "SegmentMoE", "SegmentNeckMoE", "YOLOEDetect", "YOLOESegment", "v10Detect"
 
 
 class Detect(nn.Module):
@@ -1459,3 +1459,177 @@ class SegmentMoE(DetectMoE):
         y = self._inference_moe(routed_features, routing_indices)
         
         return (torch.cat([y, mc], 1), p) if self.export else (torch.cat([y, mc], 1), (x, mc, p))
+
+
+class DetectNeckMoE(Detect):
+    """YOLO Detect head with Neck-level MoE routing.
+    
+    Unlike DetectMoE which routes at the head level, this version applies routing
+    earlier - right after receiving neck features, before applying detection convolutions.
+    This reduces computation in the detection heads themselves.
+    
+    The key difference:
+    - DetectMoE: Apply cv2/cv3 to all layers → Route → Aggregate
+    - DetectNeckMoE: Route first → Apply cv2/cv3 only to selected layers
+    
+    Attributes:
+        gate_net (nn.Module): Gating network for early routing.
+        top_k (int): Number of P-layers to route to (default: 3 for neck-level).
+    
+    Examples:
+        >>> detect_neck_moe = DetectNeckMoE(nc=80, ch=(128, 256, 512, 768, 1024), top_k=3)
+        >>> x = [torch.randn(1, 128, 160, 160), ...]
+        >>> outputs = detect_neck_moe(x)
+    """
+    
+    def __init__(self, nc: int = 80, ch: tuple = (), top_k: int = 3, aux_loss_weight: float = 0.01):
+        """Initialize DetectNeckMoE with early routing capability.
+        
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Tuple of channel sizes.
+            top_k (int): Number of layers to select (default: 3 for better coverage).
+            aux_loss_weight (float): Load balancing loss weight.
+        """
+        super().__init__(nc, ch)
+        self.top_k = min(top_k, self.nl)
+        self.aux_loss_weight = aux_loss_weight
+        
+        # Gating network
+        gate_hidden = 256
+        self.gate_net = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(sum(ch), gate_hidden, 1),
+            nn.BatchNorm2d(gate_hidden),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(gate_hidden, self.nl, 1),
+        )
+        
+        self.register_buffer('size_bias', torch.linspace(-2.0, 2.0, self.nl))
+        
+    def compute_gate_scores(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Compute routing scores (same as DetectMoE)."""
+        target_size = x[0].shape[2:]
+        x_upsampled = []
+        for feat in x:
+            if feat.shape[2:] != target_size:
+                feat = F.interpolate(feat, size=target_size, mode='bilinear', align_corners=False)
+            x_upsampled.append(feat)
+        
+        x_cat = torch.cat(x_upsampled, dim=1)
+        gate_scores = self.gate_net(x_cat).squeeze(-1).squeeze(-1)
+        gate_scores = gate_scores + self.size_bias.unsqueeze(0)
+        gate_probs = F.softmax(gate_scores, dim=1)
+        
+        return gate_scores, gate_probs
+    
+    def compute_load_balancing_loss(self, gate_probs: torch.Tensor) -> torch.Tensor:
+        """Compute load balancing loss."""
+        expert_usage = gate_probs.mean(dim=0)
+        uniform_target = 1.0 / self.nl
+        load_loss = ((expert_usage - uniform_target) ** 2).sum()
+        return load_loss
+    
+    def forward(self, x: list[torch.Tensor]) -> list[torch.Tensor] | tuple:
+        """Forward with neck-level routing - route BEFORE applying detection convolutions."""
+        batch_size = x[0].shape[0]
+        
+        # Compute gate scores BEFORE detection heads
+        gate_scores, gate_probs = self.compute_gate_scores(x)
+        
+        # Select top-k indices
+        topk_probs, topk_indices = torch.topk(gate_probs, self.top_k, dim=1)  # [B, top_k]
+        topk_probs = topk_probs / (topk_probs.sum(dim=1, keepdim=True) + 1e-8)
+        
+        if self.training:
+            # Training: still process all layers for gradient flow
+            for i in range(self.nl):
+                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+            
+            self.gate_probs = gate_probs
+            self.load_loss = self.compute_load_balancing_loss(gate_probs)
+            return x
+        
+        # Inference: Only apply detection heads to top-k selected layers
+        # This is the key difference - we save computation by not running cv2/cv3 on unused layers
+        selected_outputs = []
+        for k in range(self.top_k):
+            batch_outputs = []
+            for b in range(batch_size):
+                layer_idx = topk_indices[b, k]
+                weight = topk_probs[b, k].unsqueeze(0).unsqueeze(1).unsqueeze(2)
+                
+                # Apply detection head only to this selected layer
+                feat = x[layer_idx][b:b+1]
+                out = torch.cat((self.cv2[layer_idx](feat), self.cv3[layer_idx](feat)), 1)
+                batch_outputs.append(out * weight)
+            
+            selected_outputs.append(torch.cat(batch_outputs, dim=0))
+        
+        # Aggregate selected outputs
+        y = self._inference_neck_moe(selected_outputs, topk_indices)
+        
+        return y if self.export else (y, selected_outputs)
+    
+    def _inference_neck_moe(self, selected_outputs: list[torch.Tensor], routing_indices: torch.Tensor) -> torch.Tensor:
+        """Decode from neck-routed features."""
+        shape = selected_outputs[0].shape
+        
+        # Concatenate selected outputs
+        x_cat = torch.cat([out.view(shape[0], self.no, -1) for out in selected_outputs], 2)
+        
+        if self.dynamic or self.shape != shape:
+            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors([selected_outputs[0]], self.stride[0].unsqueeze(0), 0.5))
+            self.shape = shape
+        
+        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+        dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        
+        return torch.cat((dbox, cls.sigmoid()), 1)
+
+
+class SegmentNeckMoE(DetectNeckMoE):
+    """Segmentation head with Neck-level MoE routing."""
+    
+    def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, ch: tuple = (), top_k: int = 3, aux_loss_weight: float = 0.01):
+        """Initialize SegmentNeckMoE."""
+        super().__init__(nc, ch, top_k, aux_loss_weight)
+        self.nm = nm
+        self.npr = npr
+        self.proto = Proto(ch[0], self.npr, self.nm)
+        
+        c4 = max(ch[0] // 4, self.nm)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
+    
+    def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor]:
+        """Forward with mask prediction and neck-level routing."""
+        p = self.proto(x[0])
+        bs = p.shape[0]
+        
+        gate_scores, gate_probs = self.compute_gate_scores(x)
+        topk_probs, topk_indices = torch.topk(gate_probs, self.top_k, dim=1)
+        
+        mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
+        
+        if self.training:
+            for i in range(self.nl):
+                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+            
+            self.gate_probs = gate_probs
+            self.load_loss = self.compute_load_balancing_loss(gate_probs)
+            return x, mc, p
+        
+        # Inference with neck-level routing
+        selected_outputs = []
+        for k in range(self.top_k):
+            batch_outputs = []
+            for b in range(bs):
+                layer_idx = topk_indices[b, k]
+                feat = x[layer_idx][b:b+1]
+                out = torch.cat((self.cv2[layer_idx](feat), self.cv3[layer_idx](feat)), 1)
+                batch_outputs.append(out)
+            selected_outputs.append(torch.cat(batch_outputs, dim=0))
+        
+        y = self._inference_neck_moe(selected_outputs, topk_indices)
+        
+        return (torch.cat([y, mc], 1), p) if self.export else (torch.cat([y, mc], 1), (selected_outputs, mc, p))

@@ -152,9 +152,10 @@ class GPUInfo:
         """
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
         assert min_util_fraction <= 1.0, f"min_util_fraction must be <= 1.0, got {min_util_fraction}"
-        LOGGER.info(
-            f"Searching for {count} idle GPUs with free memory >= {min_memory_fraction * 100:.1f}% and free utilization >= {min_util_fraction * 100:.1f}%..."
+        criteria = (
+            f"free memory >= {min_memory_fraction * 100:.1f}% and free utilization >= {min_util_fraction * 100:.1f}%"
         )
+        LOGGER.info(f"Searching for {count} idle GPUs with {criteria}...")
 
         if count <= 0:
             return []
@@ -177,11 +178,11 @@ class GPUInfo:
         selected = [gpu["index"] for gpu in eligible_gpus[:count]]
 
         if selected:
+            if len(selected) < count:
+                LOGGER.warning(f"Requested {count} GPUs but only {len(selected)} met the idle criteria.")
             LOGGER.info(f"Selected idle CUDA devices {selected}")
         else:
-            LOGGER.warning(
-                f"No GPUs met criteria (Free Mem >= {min_memory_fraction * 100:.1f}% and Free Util >= {min_util_fraction * 100:.1f}%)."
-            )
+            LOGGER.warning(f"No GPUs met criteria ({criteria}).")
 
         return selected
 

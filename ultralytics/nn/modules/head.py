@@ -1504,7 +1504,7 @@ class SegmentMoE(DetectMoE):
         if self.training:
             # Training: x is list of features, return with mc and p
             return x, mc, p
-        
+
         # Non-training: x is (y, features) tuple from DetectMoE (or just y if export)
         # Return in standard Segment format
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
@@ -1687,7 +1687,7 @@ class SegmentNeckMoE(DetectNeckMoE):
         if self.training:
             # Training: x is list of features
             return x, mc, p
-        
+
         # Non-training: x is (y, features) tuple from DetectNeckMoE (or just y if export)
         # Return in standard Segment format
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))

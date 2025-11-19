@@ -2071,7 +2071,7 @@ class NeckMoERouter(nn.Module):
             feat_list = []
             for b in range(batch_size):
                 idx = int(topk_indices[b, k])  # Convert tensor to int for explicit list indexing
-                feat_list.append(x[idx][b:b+1])
+                feat_list.append(x[idx][b : b + 1])
             selected_features.append(torch.cat(feat_list, dim=0))
 
         if self.training:

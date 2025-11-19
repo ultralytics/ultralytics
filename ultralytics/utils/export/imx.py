@@ -115,7 +115,7 @@ def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tenso
 
 
 class NMSWrapper(torch.nn.Module):
-    """Wrap PyTorch Module with multiclass_nms layer from sony_custom_layers."""
+    """Wrap PyTorch Module with multiclass_nms layer from edge-mdt-cl."""
 
     def __init__(
         self,
@@ -143,7 +143,7 @@ class NMSWrapper(torch.nn.Module):
 
     def forward(self, images):
         """Forward pass with model inference and NMS post-processing."""
-        from sony_custom_layers.pytorch import multiclass_nms_with_indices
+        from edgemdt_cl.pytorch.nms.nms_with_indices import multiclass_nms_with_indices
 
         # model inference
         outputs = self.model(images)
@@ -201,8 +201,8 @@ def torch2imx(
         >>> model = YOLO("yolo11n.pt")
         >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.45, max_det=300)
 
-    Notes:
-        - Requires model_compression_toolkit, onnx, edgemdt_tpc, and sony_custom_layers packages
+    Note:
+        - Requires model_compression_toolkit, onnx, edgemdt_tpc, and edge-mdt-cl packages
         - Only supports YOLOv8n and YOLO11n models (detection and pose tasks)
         - Output includes quantized ONNX model, IMX binary, and labels.txt file
     """
@@ -271,9 +271,23 @@ def torch2imx(
     f = Path(str(file).replace(file.suffix, "_imx_model"))
     f.mkdir(exist_ok=True)
     onnx_model = f / Path(str(file.name).replace(file.suffix, "_imx.onnx"))  # js dir
+
+    # Monkey-patch torch.onnx.export to use legacy exporter (dynamo=False) for MCT compatibility
+    import torch.onnx
+
+    original_export = torch.onnx.export
+
+    def legacy_export(*args, **kwargs):
+        """Force legacy ONNX exporter to avoid torch.export compatibility issues with MCT quantization."""
+        kwargs["dynamo"] = False  # Force legacy TorchScript-based exporter
+        return original_export(*args, **kwargs)
+
+    torch.onnx.export = legacy_export
     mct.exporter.pytorch_export_model(
         model=quant_model, save_model_path=onnx_model, repr_dataset=representative_dataset_gen
     )
+    # Restore original torch.onnx.export function
+    torch.onnx.export = original_export
 
     model_onnx = onnx.load(onnx_model)  # load onnx model
     for k, v in metadata.items():

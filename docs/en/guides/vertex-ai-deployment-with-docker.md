@@ -85,7 +85,7 @@ dependencies = [
    "ultralytics>=8.3.0",
    "fastapi[all]>=0.89.1",
    "uvicorn[standard]>=0.20.0",
-   "pillow>=9.0.0",
+   "pillow>=9.0.0,<12.0.0",
 ]
 
 [build-system]

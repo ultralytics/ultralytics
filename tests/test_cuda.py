@@ -105,7 +105,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
     )
     model = YOLO(file)
     model([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
-    model.val(data=TASK2DATA[task], imgsz=64 if dynamic else 32, half=half, int8=int8, device=DEVICES[0])
+    model.val(data=TASK2DATA[task], imgsz=32, half=half, int8=int8, device=DEVICES[0])
     Path(file).unlink()  # cleanup
     Path(file).with_suffix(".cache").unlink(missing_ok=True) if int8 else None  # cleanup INT8 cache
 

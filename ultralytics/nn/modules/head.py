@@ -1357,19 +1357,24 @@ class DetectMoE(Detect):
             self.load_loss = self.compute_load_balancing_loss(gate_probs)
             return x
         
-        # Inference: Use batch-level routing (all samples use same top-k layers)
-        # This simplifies inference and ensures consistent tensor sizes
-        gate_probs_mean = gate_probs.mean(dim=0)  # Average across batch
-        _, topk_indices = torch.topk(gate_probs_mean, self.top_k)  # Single set of indices for all samples
-        
-        # Select top-k features
-        selected_features = [x[idx] for idx in topk_indices]
-        selected_strides = [self.stride[idx] for idx in topk_indices]
-        
-        # Standard inference on selected features
-        y = self._inference_selected(selected_features, selected_strides)
-        
-        return y if self.export else (y, x)
+        # For export: apply MoE routing to select top-k layers
+        # For validation: use all layers (like standard Detect)
+        if self.export:
+            # Use batch-level routing (all samples use same top-k layers)
+            gate_probs_mean = gate_probs.mean(dim=0)  # Average across batch
+            _, topk_indices = torch.topk(gate_probs_mean, self.top_k)  # Single set of indices for all samples
+            
+            # Select top-k features
+            selected_features = [x[idx] for idx in topk_indices]
+            selected_strides = [self.stride[idx] for idx in topk_indices]
+            
+            # Standard inference on selected features
+            y = self._inference_selected(selected_features, selected_strides)
+            return y
+        else:
+            # Validation: use all layers like standard Detect
+            y = self._inference(x)
+            return (y, x)
     
     def _inference_selected(self, selected_features: list[torch.Tensor], selected_strides: list) -> torch.Tensor:
         """Decode bounding boxes from selected top-k features.
@@ -1390,6 +1395,31 @@ class DetectMoE(Detect):
         
         # Concatenate predictions from selected layers
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in selected_features], 2)
+        
+        # Decode boxes
+        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+        dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        
+        return torch.cat((dbox, cls.sigmoid()), 1)
+    
+    def _inference(self, x: list[torch.Tensor]) -> torch.Tensor:
+        """Decode bounding boxes from all feature layers (for validation).
+
+        Args:
+            x (list[torch.Tensor]): List of all feature maps.
+
+        Returns:
+            (torch.Tensor): Decoded predictions.
+        """
+        shape = x[0].shape  # BCHW
+        
+        # Create anchors for all features
+        if self.dynamic or self.shape != shape:
+            self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x, self.stride, 0.5))
+            self.shape = shape
+        
+        # Concatenate predictions from all layers
+        x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
         
         # Decode boxes
         box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
@@ -1437,45 +1467,25 @@ class SegmentMoE(DetectMoE):
 
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor]:
         """Forward pass with mask coefficients and MoE routing."""
+    def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor]:
+        """Segment MoE forward with mask prediction."""
         p = self.proto(x[0])  # mask protos
         bs = p.shape[0]
         
-        # Compute gate scores
-        gate_scores, gate_probs = self.compute_gate_scores(x)
-        
-        if self.training:
-            mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
-            
-            # Apply detection heads
-            for i in range(self.nl):
-                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-            
-            # Store gate info for potential auxiliary loss
-            self.gate_probs = gate_probs
-            self.load_loss = self.compute_load_balancing_loss(gate_probs)
-            return x, mc, p
-        
-        # Inference: Use batch-level routing
-        gate_probs_mean = gate_probs.mean(dim=0)
-        _, topk_indices = torch.topk(gate_probs_mean, self.top_k)
-        
-        # IMPORTANT: Compute ALL mask coefficients BEFORE modifying x
-        # (mc is needed for validation loss calculation)
+        # Compute mask coefficients from all layers (always needed)
         mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
         
-        # Also compute selected mc before modifying x
-        mc_selected = torch.cat([self.cv4[idx](x[idx]).view(bs, self.nm, -1) for idx in topk_indices], 2)
+        # Call DetectMoE.forward to get detection outputs
+        # This handles training/validation/export logic for detection
+        x = DetectMoE.forward(self, x)
         
-        # Now apply detection heads to all layers (needed for validation loss)
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        if self.training:
+            # Training: x is list of features, return with mc and p
+            return x, mc, p
         
-        # Use selected layers for detection output
-        selected_features = [x[idx] for idx in topk_indices]
-        selected_strides = [self.stride[idx] for idx in topk_indices]
-        y = self._inference_selected(selected_features, selected_strides)
-        
-        return (torch.cat([y, mc_selected], 1), p) if self.export else (torch.cat([y, mc_selected], 1), (x, mc, p))
+        # Non-training: x is (y, features) tuple from DetectMoE
+        # Follow same pattern as standard Segment
+        return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
 
 
 class DetectNeckMoE(Detect):
@@ -1577,21 +1587,24 @@ class DetectNeckMoE(Detect):
             self.load_loss = self.compute_load_balancing_loss(gate_probs)
             return x
         
-        # Inference: Batch-level routing - all samples use same top-k layers
-        gate_probs_mean = gate_probs.mean(dim=0)  # [nl]
-        _, topk_indices = torch.topk(gate_probs_mean, self.top_k)  # Single selection for entire batch
-        
-        # Process ALL layers (needed for potential loss calculation during validation)
+        # Process ALL layers (always needed for validation)
         x_processed = []
         for i in range(self.nl):
             x_processed.append(torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1))
         
-        # But only use selected layers for final detection output
-        selected_outputs = [x_processed[idx] for idx in topk_indices]
-        selected_strides = [self.stride[idx] for idx in topk_indices]
-        y = self._inference_selected(selected_outputs, selected_strides)
-        
-        return y if self.export else (y, x_processed)
+        if self.export:
+            # Export: use batch-level MoE routing - all samples use same top-k layers
+            gate_probs_mean = gate_probs.mean(dim=0)  # [nl]
+            _, topk_indices = torch.topk(gate_probs_mean, self.top_k)  # Single selection for entire batch
+            
+            selected_outputs = [x_processed[idx] for idx in topk_indices]
+            selected_strides = [self.stride[idx] for idx in topk_indices]
+            y = self._inference_selected(selected_outputs, selected_strides)
+            return y
+        else:
+            # Validation: use all layers like standard Detect
+            y = self._inference(x_processed)
+            return (y, x_processed)
     
     def _inference_selected(self, selected_features: list[torch.Tensor], selected_strides: list) -> torch.Tensor:
         """Simplified inference on uniformly selected layers."""
@@ -1602,6 +1615,20 @@ class DetectNeckMoE(Detect):
             self.shape = shape
         
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in selected_features], 2)
+        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+        dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        
+        return torch.cat((dbox, cls.sigmoid()), 1)
+    
+    def _inference(self, x: list[torch.Tensor]) -> torch.Tensor:
+        """Decode bounding boxes from all feature layers (for validation)."""
+        shape = x[0].shape
+        
+        if self.dynamic or self.shape != shape:
+            self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x, self.stride, 0.5))
+            self.shape = shape
+        
+        x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
         box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
         
@@ -1626,33 +1653,15 @@ class SegmentNeckMoE(DetectNeckMoE):
         p = self.proto(x[0])
         bs = p.shape[0]
         
-        gate_scores, gate_probs = self.compute_gate_scores(x)
-        
+        # Always compute mask coefficients for all layers (needed for validation)
         mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
         
+        # Call DetectNeckMoE.forward to get detection outputs
+        x = DetectNeckMoE.forward(self, x)
+        
         if self.training:
-            for i in range(self.nl):
-                x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-            
-            self.gate_probs = gate_probs
-            self.load_loss = self.compute_load_balancing_loss(gate_probs)
+            # Training: x is list of features
             return x, mc, p
         
-        # Inference: Batch-level routing - all samples use same top-k layers
-        gate_probs_mean = gate_probs.mean(dim=0)  # [nl]
-        _, topk_indices = torch.topk(gate_probs_mean, self.top_k)  # Single selection for entire batch
-        
-        # Process ALL layers (needed for potential loss calculation during validation)
-        x_processed = []
-        for i in range(self.nl):
-            x_processed.append(torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1))
-        
-        # But only use selected layers for final detection output
-        selected_outputs = [x_processed[idx] for idx in topk_indices]
-        selected_strides = [self.stride[idx] for idx in topk_indices]
-        y = self._inference_selected(selected_outputs, selected_strides)
-        
-        # Select corresponding mask coefficients for selected layers
-        mc_selected = torch.cat([self.cv4[idx](x[idx]).view(bs, self.nm, -1) for idx in topk_indices], 2)
-        
-        return (torch.cat([y, mc_selected], 1), p) if self.export else (torch.cat([y, mc_selected], 1), (x_processed, mc, p))
+        # Non-training: follow Segment pattern
+        return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))

@@ -21,12 +21,11 @@ from ultralytics.utils.files import increment_path
 
 
 def coco91_to_coco80_class() -> list[int]:
-    """
-    Convert 91-index COCO class IDs to 80-index COCO class IDs.
+    """Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (list[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value
-            is the corresponding 91-index class ID.
+        (list[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
+            corresponding 91-index class ID.
     """
     return [
         0,
@@ -124,14 +123,10 @@ def coco91_to_coco80_class() -> list[int]:
 
 
 def coco80_to_coco91_class() -> list[int]:
-    r"""
-    Convert 80-index (val2014) to 91-index (paper).
+    r"""Convert 80-index (val2014) to 91-index (paper).
 
     Returns:
         (list[int]): A list of 80 class IDs where each value is the corresponding 91-index class ID.
-
-    References:
-        https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
 
     Examples:
         >>> import numpy as np
@@ -143,6 +138,9 @@ def coco80_to_coco91_class() -> list[int]:
 
         Convert the COCO to darknet format
         >>> x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]
+
+    References:
+        https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
     """
     return [
         1,
@@ -236,8 +234,7 @@ def convert_coco(
     cls91to80: bool = True,
     lvis: bool = False,
 ):
-    """
-    Convert COCO dataset annotations to a YOLO annotation format suitable for training YOLO models.
+    """Convert COCO dataset annotations to a YOLO annotation format suitable for training YOLO models.
 
     Args:
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
@@ -348,8 +345,7 @@ def convert_coco(
 
 
 def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: int):
-    """
-    Convert a dataset of segmentation mask images to the YOLO segmentation format.
+    """Convert a dataset of segmentation mask images to the YOLO segmentation format.
 
     This function takes the directory containing the binary format mask images and converts them into YOLO segmentation
     format. The converted masks are saved in the specified output directory.
@@ -424,8 +420,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
 
 
 def convert_dota_to_yolo_obb(dota_root_path: str):
-    """
-    Convert DOTA dataset annotations to YOLO OBB (Oriented Bounding Box) format.
+    """Convert DOTA dataset annotations to YOLO OBB (Oriented Bounding Box) format.
 
     The function processes images in the 'train' and 'val' folders of the DOTA dataset. For each image, it reads the
     associated label from the original labels directory and writes new labels in YOLO OBB format to a new directory.
@@ -517,8 +512,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
 
 
 def min_index(arr1: np.ndarray, arr2: np.ndarray):
-    """
-    Find a pair of indexes with the shortest distance between two arrays of 2D points.
+    """Find a pair of indexes with the shortest distance between two arrays of 2D points.
 
     Args:
         arr1 (np.ndarray): A NumPy array of shape (N, 2) representing N 2D points.
@@ -533,14 +527,14 @@ def min_index(arr1: np.ndarray, arr2: np.ndarray):
 
 
 def merge_multi_segment(segments: list[list]):
-    """
-    Merge multiple segments into one list by connecting the coordinates with the minimum distance between each segment.
+    """Merge multiple segments into one list by connecting the coordinates with the minimum distance between each
+    segment.
 
     This function connects these coordinates with a thin line to merge all segments into one.
 
     Args:
-        segments (list[list]): Original segmentations in COCO's JSON file.
-                               Each element is a list of coordinates, like [segmentation1, segmentation2,...].
+        segments (list[list]): Original segmentations in COCO's JSON file. Each element is a list of coordinates, like
+            [segmentation1, segmentation2,...].
 
     Returns:
         s (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
@@ -584,14 +578,13 @@ def merge_multi_segment(segments: list[list]):
 
 
 def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device=None):
-    """
-    Convert existing object detection dataset (bounding boxes) to segmentation dataset or oriented bounding box (OBB) in
-    YOLO format. Generate segmentation data using SAM auto-annotator as needed.
+    """Convert existing object detection dataset (bounding boxes) to segmentation dataset or oriented bounding box (OBB)
+    in YOLO format. Generate segmentation data using SAM auto-annotator as needed.
 
     Args:
         im_dir (str | Path): Path to image directory to convert.
-        save_dir (str | Path, optional): Path to save the generated labels, labels will be saved
-            into `labels-segment` in the same directory level of `im_dir` if save_dir is None.
+        save_dir (str | Path, optional): Path to save the generated labels, labels will be saved into `labels-segment`
+            in the same directory level of `im_dir` if save_dir is None.
         sam_model (str): Segmentation model to use for intermediate segmentation data.
         device (int | str, optional): The specific device to run SAM models.
 
@@ -648,12 +641,11 @@ def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sa
 
 
 def create_synthetic_coco_dataset():
-    """
-    Create a synthetic COCO dataset with random images based on filenames from label lists.
+    """Create a synthetic COCO dataset with random images based on filenames from label lists.
 
-    This function downloads COCO labels, reads image filenames from label list files,
-    creates synthetic images for train2017 and val2017 subsets, and organizes
-    them in the COCO dataset structure. It uses multithreading to generate images efficiently.
+    This function downloads COCO labels, reads image filenames from label list files, creates synthetic images for
+    train2017 and val2017 subsets, and organizes them in the COCO dataset structure. It uses multithreading to generate
+    images efficiently.
 
     Examples:
         >>> from ultralytics.data.converter import create_synthetic_coco_dataset
@@ -704,11 +696,10 @@ def create_synthetic_coco_dataset():
 
 
 def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bool = False, zip: bool = False):
-    """
-    Convert RGB images to multispectral images by interpolating across wavelength bands.
+    """Convert RGB images to multispectral images by interpolating across wavelength bands.
 
-    This function takes RGB images and interpolates them to create multispectral images with a specified number
-    of channels. It can process either a single image or a directory of images.
+    This function takes RGB images and interpolates them to create multispectral images with a specified number of
+    channels. It can process either a single image or a directory of images.
 
     Args:
         path (str | Path): Path to an image file or directory containing images to convert.
@@ -756,12 +747,11 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
 
 
 async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
-    """
-    Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
+    """Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
 
-    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO
-    format with separate directories for images and labels. It supports parallel processing for efficient
-    conversion of large datasets and can download images from URLs if they don't exist locally.
+    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format with
+    separate directories for images and labels. It supports parallel processing for efficient conversion of large
+    datasets and can download images from URLs if they don't exist locally.
 
     The NDJSON format consists of:
     - First line: Dataset metadata with class names and configuration
@@ -769,8 +759,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     Args:
         ndjson_path (Union[str, Path]): Path to the input NDJSON file containing dataset information.
-        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset
-            will be saved. If None, uses the parent directory of the NDJSON file. Defaults to None.
+        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset will be saved. If
+            None, uses the parent directory of the NDJSON file. Defaults to None.
 
     Returns:
         (Path): Path to the generated data.yaml file that can be used for YOLO training.

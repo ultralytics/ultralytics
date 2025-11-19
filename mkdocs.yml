@@ -142,9 +142,10 @@ extra_css:
   - stylesheets/style.css
 
 extra_javascript:
+  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.0.8/js/chat.min.js
+  - https://unpkg.com/tablesort@5.6.0/dist/tablesort.min.js
   - javascript/extra.js
   - javascript/giscus.js
-  - https://unpkg.com/tablesort@5.3.0/dist/tablesort.min.js
   - javascript/tablesort.js
 
 markdown_extensions:
@@ -341,6 +342,7 @@ nav:
           - African-wildlife: datasets/detect/african-wildlife.md
           - Signature: datasets/detect/signature.md
           - Medical-pills: datasets/detect/medical-pills.md
+          - KITTI: datasets/detect/kitti.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md

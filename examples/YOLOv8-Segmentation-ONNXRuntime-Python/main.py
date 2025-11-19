@@ -15,12 +15,11 @@ from ultralytics.utils.checks import check_yaml
 
 
 class YOLOv8Seg:
-    """
-    YOLOv8 segmentation model for performing instance segmentation using ONNX Runtime.
+    """YOLOv8 segmentation model for performing instance segmentation using ONNX Runtime.
 
     This class implements a YOLOv8 instance segmentation model using ONNX Runtime for inference. It handles
-    preprocessing of input images, running inference with the ONNX model, and postprocessing the results to
-    generate bounding boxes and segmentation masks.
+    preprocessing of input images, running inference with the ONNX model, and postprocessing the results to generate
+    bounding boxes and segmentation masks.
 
     Attributes:
         session (ort.InferenceSession): ONNX Runtime inference session for model execution.
@@ -43,15 +42,14 @@ class YOLOv8Seg:
     """
 
     def __init__(self, onnx_model: str, conf: float = 0.25, iou: float = 0.7, imgsz: int | tuple[int, int] = 640):
-        """
-        Initialize the instance segmentation model using an ONNX model.
+        """Initialize the instance segmentation model using an ONNX model.
 
         Args:
             onnx_model (str): Path to the ONNX model file.
             conf (float, optional): Confidence threshold for filtering detections.
             iou (float, optional): IoU threshold for non-maximum suppression.
-            imgsz (int | tuple[int, int], optional): Input image size of the model. Can be an integer for square
-                input or a tuple for rectangular input.
+            imgsz (int | tuple[int, int], optional): Input image size of the model. Can be an integer for square input
+                or a tuple for rectangular input.
         """
         self.session = ort.InferenceSession(
             onnx_model,
@@ -66,8 +64,7 @@ class YOLOv8Seg:
         self.iou = iou
 
     def __call__(self, img: np.ndarray) -> list[Results]:
-        """
-        Run inference on the input image using the ONNX model.
+        """Run inference on the input image using the ONNX model.
 
         Args:
             img (np.ndarray): The original input image in BGR format.
@@ -81,8 +78,7 @@ class YOLOv8Seg:
         return self.postprocess(img, prep_img, outs)
 
     def letterbox(self, img: np.ndarray, new_shape: tuple[int, int] = (640, 640)) -> np.ndarray:
-        """
-        Resize and pad image while maintaining aspect ratio.
+        """Resize and pad image while maintaining aspect ratio.
 
         Args:
             img (np.ndarray): Input image in BGR format.
@@ -109,16 +105,15 @@ class YOLOv8Seg:
         return img
 
     def preprocess(self, img: np.ndarray, new_shape: tuple[int, int]) -> np.ndarray:
-        """
-        Preprocess the input image before feeding it into the model.
+        """Preprocess the input image before feeding it into the model.
 
         Args:
             img (np.ndarray): The input image in BGR format.
             new_shape (tuple[int, int]): The target shape for resizing as (height, width).
 
         Returns:
-            (np.ndarray): Preprocessed image ready for model inference, with shape (1, 3, height, width) and
-                normalized to [0, 1].
+            (np.ndarray): Preprocessed image ready for model inference, with shape (1, 3, height, width) and normalized
+                to [0, 1].
         """
         img = self.letterbox(img, new_shape)
         img = img[..., ::-1].transpose([2, 0, 1])[None]  # BGR to RGB, BHWC to BCHW
@@ -127,8 +122,7 @@ class YOLOv8Seg:
         return img
 
     def postprocess(self, img: np.ndarray, prep_img: np.ndarray, outs: list) -> list[Results]:
-        """
-        Post-process model predictions to extract meaningful results.
+        """Post-process model predictions to extract meaningful results.
 
         Args:
             img (np.ndarray): The original input image.
@@ -152,8 +146,7 @@ class YOLOv8Seg:
     def process_mask(
         self, protos: torch.Tensor, masks_in: torch.Tensor, bboxes: torch.Tensor, shape: tuple[int, int]
     ) -> torch.Tensor:
-        """
-        Process prototype masks with predicted mask coefficients to generate instance segmentation masks.
+        """Process prototype masks with predicted mask coefficients to generate instance segmentation masks.
 
         Args:
             protos (torch.Tensor): Prototype masks with shape (mask_dim, mask_h, mask_w).

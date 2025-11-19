@@ -21,8 +21,7 @@ from .blocks import (
 
 
 class ImageEncoderViT(nn.Module):
-    """
-    An image encoder using Vision Transformer (ViT) architecture for encoding images into a compact latent space.
+    """An image encoder using Vision Transformer (ViT) architecture for encoding images into a compact latent space.
 
     This class processes images by splitting them into patches, applying transformer blocks, and generating a final
     encoded representation through a neck module.
@@ -64,8 +63,7 @@ class ImageEncoderViT(nn.Module):
         window_size: int = 0,
         global_attn_indexes: tuple[int, ...] = (),
     ) -> None:
-        """
-        Initialize an ImageEncoderViT instance for encoding images using Vision Transformer architecture.
+        """Initialize an ImageEncoderViT instance for encoding images using Vision Transformer architecture.
 
         Args:
             img_size (int): Input image size, assumed to be square.
@@ -156,8 +154,7 @@ class ImageEncoderViT(nn.Module):
 
 
 class PromptEncoder(nn.Module):
-    """
-    Encode different types of prompts for input to SAM's mask decoder, producing sparse and dense embeddings.
+    """Encode different types of prompts for input to SAM's mask decoder, producing sparse and dense embeddings.
 
     Attributes:
         embed_dim (int): Dimension of the embeddings.
@@ -193,8 +190,7 @@ class PromptEncoder(nn.Module):
         mask_in_chans: int,
         activation: type[nn.Module] = nn.GELU,
     ) -> None:
-        """
-        Initialize the PromptEncoder module for encoding various types of prompts.
+        """Initialize the PromptEncoder module for encoding various types of prompts.
 
         Args:
             embed_dim (int): The dimension of the embeddings.
@@ -236,15 +232,14 @@ class PromptEncoder(nn.Module):
         self.no_mask_embed = nn.Embedding(1, embed_dim)
 
     def get_dense_pe(self) -> torch.Tensor:
-        """
-        Return the dense positional encoding used for encoding point prompts.
+        """Return the dense positional encoding used for encoding point prompts.
 
         Generate a positional encoding for a dense set of points matching the shape of the image
         encoding. The encoding is used to provide spatial information to the model when processing point prompts.
 
         Returns:
-            (torch.Tensor): Positional encoding tensor with shape (1, embed_dim, H, W), where H and W are the
-                height and width of the image embedding size, respectively.
+            (torch.Tensor): Positional encoding tensor with shape (1, embed_dim, H, W), where H and W are the height and
+                width of the image embedding size, respectively.
 
         Examples:
             >>> prompt_encoder = PromptEncoder(256, (64, 64), (1024, 1024), 16)
@@ -306,13 +301,11 @@ class PromptEncoder(nn.Module):
         boxes: torch.Tensor | None,
         masks: torch.Tensor | None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        Embed different types of prompts, returning both sparse and dense embeddings.
+        """Embed different types of prompts, returning both sparse and dense embeddings.
 
         Args:
-            points (tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first
-                tensor contains coordinates with shape (B, N, 2), and the second tensor contains labels with
-                shape (B, N).
+            points (tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first tensor
+                contains coordinates of shape (B, N, 2), and the second tensor contains labels of shape (B, N).
             boxes (torch.Tensor | None): Boxes to embed with shape (B, M, 2, 2), where M is the number of boxes.
             masks (torch.Tensor | None): Masks to embed with shape (B, 1, H, W).
 
@@ -354,11 +347,10 @@ class PromptEncoder(nn.Module):
 
 
 class MemoryEncoder(nn.Module):
-    """
-    Encode pixel features and masks into a memory representation for efficient image segmentation.
+    """Encode pixel features and masks into a memory representation for efficient image segmentation.
 
-    This class processes pixel-level features and masks, fusing them to generate encoded memory representations
-    suitable for downstream tasks in image segmentation models like SAM (Segment Anything Model).
+    This class processes pixel-level features and masks, fusing them to generate encoded memory representations suitable
+    for downstream tasks in image segmentation models like SAM (Segment Anything Model).
 
     Attributes:
         mask_downsampler (MaskDownSampler): Module for downsampling input masks.
@@ -385,8 +377,7 @@ class MemoryEncoder(nn.Module):
         out_dim,
         in_dim=256,  # in_dim of pix_feats
     ):
-        """
-        Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
+        """Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
 
         This encoder processes pixel-level features and masks, fusing them to generate encoded memory representations
         suitable for downstream tasks in image segmentation models like SAM (Segment Anything Model).
@@ -439,11 +430,10 @@ class MemoryEncoder(nn.Module):
 
 
 class ImageEncoder(nn.Module):
-    """
-    Encode images using a trunk-neck architecture, producing multiscale features and positional encodings.
+    """Encode images using a trunk-neck architecture, producing multiscale features and positional encodings.
 
-    This class combines a trunk network for feature extraction with a neck network for feature refinement
-    and positional encoding generation. It can optionally discard the lowest resolution features.
+    This class combines a trunk network for feature extraction with a neck network for feature refinement and positional
+    encoding generation. It can optionally discard the lowest resolution features.
 
     Attributes:
         trunk (nn.Module): The trunk network for initial feature extraction.
@@ -469,11 +459,10 @@ class ImageEncoder(nn.Module):
         neck: nn.Module,
         scalp: int = 0,
     ):
-        """
-        Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement.
+        """Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement.
 
-        This encoder combines a trunk network for feature extraction with a neck network for feature refinement
-        and positional encoding generation. It can optionally discard the lowest resolution features.
+        This encoder combines a trunk network for feature extraction with a neck network for feature refinement and
+        positional encoding generation. It can optionally discard the lowest resolution features.
 
         Args:
             trunk (nn.Module): The trunk network for initial feature extraction.
@@ -513,11 +502,10 @@ class ImageEncoder(nn.Module):
 
 
 class FpnNeck(nn.Module):
-    """
-    A Feature Pyramid Network (FPN) neck variant for multiscale feature fusion in object detection models.
+    """A Feature Pyramid Network (FPN) neck variant for multiscale feature fusion in object detection models.
 
-    This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing,
-    similar to ViT positional embedding interpolation.
+    This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to ViT
+    positional embedding interpolation.
 
     Attributes:
         position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding module.
@@ -550,11 +538,10 @@ class FpnNeck(nn.Module):
         fuse_type: str = "sum",
         fpn_top_down_levels: list[int] | None = None,
     ):
-        """
-        Initialize a modified Feature Pyramid Network (FPN) neck.
+        """Initialize a modified Feature Pyramid Network (FPN) neck.
 
-        This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing,
-        similar to ViT positional embedding interpolation.
+        This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to
+        ViT positional embedding interpolation.
 
         Args:
             d_model (int): Dimension of the model.
@@ -603,8 +590,7 @@ class FpnNeck(nn.Module):
         self.fpn_top_down_levels = list(fpn_top_down_levels)
 
     def forward(self, xs: list[torch.Tensor]):
-        """
-        Perform forward pass through the Feature Pyramid Network (FPN) neck.
+        """Perform forward pass through the Feature Pyramid Network (FPN) neck.
 
         This method processes a list of input tensors from the backbone through the FPN, applying lateral connections
         and top-down feature fusion. It generates output feature maps and corresponding positional encodings.
@@ -613,8 +599,8 @@ class FpnNeck(nn.Module):
             xs (list[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C, H, W).
 
         Returns:
-            out (list[torch.Tensor]): List of output feature maps after FPN processing, each with shape
-                (B, d_model, H, W).
+            out (list[torch.Tensor]): List of output feature maps after FPN processing, each with shape (B, d_model, H,
+                W).
             pos (list[torch.Tensor]): List of positional encodings corresponding to each output feature map.
 
         Examples:
@@ -656,12 +642,11 @@ class FpnNeck(nn.Module):
 
 
 class Hiera(nn.Module):
-    """
-    Hierarchical vision transformer for efficient multiscale feature extraction in image processing tasks.
+    """Hierarchical vision transformer for efficient multiscale feature extraction in image processing tasks.
 
-    This class implements a Hiera model, which is a hierarchical vision transformer architecture designed for
-    efficient multiscale feature extraction. It uses a series of transformer blocks organized into stages,
-    with optional pooling and global attention mechanisms.
+    This class implements a Hiera model, which is a hierarchical vision transformer architecture designed for efficient
+    multiscale feature extraction. It uses a series of transformer blocks organized into stages, with optional pooling
+    and global attention mechanisms.
 
     Attributes:
         window_spec (tuple[int, ...]): Window sizes for each stage.
@@ -715,12 +700,11 @@ class Hiera(nn.Module):
         ),
         return_interm_layers=True,  # return feats from every stage
     ):
-        """
-        Initialize a Hiera model, a hierarchical vision transformer for efficient multiscale feature extraction.
+        """Initialize a Hiera model, a hierarchical vision transformer for efficient multiscale feature extraction.
 
-        Hiera is a hierarchical vision transformer architecture designed for efficient multiscale feature extraction
-        in image processing tasks. It uses a series of transformer blocks organized into stages, with optional
-        pooling and global attention mechanisms.
+        Hiera is a hierarchical vision transformer architecture designed for efficient multiscale feature extraction in
+        image processing tasks. It uses a series of transformer blocks organized into stages, with optional pooling and
+        global attention mechanisms.
 
         Args:
             embed_dim (int): Initial embedding dimension for the model.
@@ -731,7 +715,8 @@ class Hiera(nn.Module):
             stages (tuple[int, ...]): Number of blocks per stage.
             dim_mul (float): Dimension multiplier factor at stage transitions.
             head_mul (float): Head multiplier factor at stage transitions.
-            window_pos_embed_bkg_spatial_size (tuple[int, int]): Spatial size for window positional embedding background.
+            window_pos_embed_bkg_spatial_size (tuple[int, int]): Spatial size for window positional embedding
+                background.
             window_spec (tuple[int, ...]): Window sizes for each stage when not using global attention.
             global_att_blocks (tuple[int, ...]): Indices of blocks that use global attention.
             return_interm_layers (bool): Whether to return intermediate layer outputs.
@@ -816,8 +801,7 @@ class Hiera(nn.Module):
         return pos_embed
 
     def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
-        """
-        Perform forward pass through Hiera model, extracting multiscale features from input images.
+        """Perform forward pass through Hiera model, extracting multiscale features from input images.
 
         Args:
             x (torch.Tensor): Input tensor with shape (B, C, H, W) representing a batch of images.

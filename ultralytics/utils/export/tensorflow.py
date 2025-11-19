@@ -65,8 +65,7 @@ def onnx2saved_model(
     disable_group_convolution: bool = False,
     prefix="",
 ):
-    """
-    Convert a ONNX model to TensorFlow SavedModel format via ONNX.
+    """Convert a ONNX model to TensorFlow SavedModel format via ONNX.
 
     Args:
         onnx_file (str): ONNX file path.
@@ -79,9 +78,9 @@ def onnx2saved_model(
     Returns:
         (keras.Model): Converted Keras model.
 
-    Note:
-        Requires onnx2tf package. Downloads calibration data if INT8 quantization is enabled.
-        Removes temporary files and renames quantized models after conversion.
+    Notes:
+        - Requires onnx2tf package. Downloads calibration data if INT8 quantization is enabled.
+        - Removes temporary files and renames quantized models after conversion.
     """
     # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
     onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")
@@ -121,15 +120,14 @@ def onnx2saved_model(
 
 
 def keras2pb(keras_model, file: Path, prefix=""):
-    """
-    Convert a Keras model to TensorFlow GraphDef (.pb) format.
+    """Convert a Keras model to TensorFlow GraphDef (.pb) format.
 
     Args:
-        keras_model(tf_keras): Keras model to convert to frozen graph format.
+        keras_model (keras.Model): Keras model to convert to frozen graph format.
         file (Path): Output file path (suffix will be changed to .pb).
         prefix (str, optional): Logging prefix. Defaults to "".
 
-    Note:
+    Notes:
         Creates a frozen graph by converting variables to constants for inference optimization.
     """
     import tensorflow as tf
@@ -144,15 +142,14 @@ def keras2pb(keras_model, file: Path, prefix=""):
 
 
 def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str = ""):
-    """
-    Convert a TensorFlow Lite model to Edge TPU format using the Edge TPU compiler.
+    """Convert a TensorFlow Lite model to Edge TPU format using the Edge TPU compiler.
 
     Args:
         tflite_file (str | Path): Path to the input TensorFlow Lite (.tflite) model file.
         output_dir (str | Path): Output directory path for the compiled Edge TPU model.
         prefix (str, optional): Logging prefix. Defaults to "".
 
-    Note:
+    Notes:
         Requires the Edge TPU compiler to be installed. The function compiles the TFLite model
         for optimal performance on Google's Edge TPU hardware accelerator.
     """
@@ -172,8 +169,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
 
 
 def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = False, prefix: str = ""):
-    """
-    Convert a TensorFlow GraphDef (.pb) model to TensorFlow.js format.
+    """Convert a TensorFlow GraphDef (.pb) model to TensorFlow.js format.
 
     Args:
         pb_file (str): Path to the input TensorFlow GraphDef (.pb) model file.
@@ -182,7 +178,7 @@ def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = Fals
         int8 (bool, optional): Enable INT8 quantization. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
 
-    Note:
+    Notes:
         Requires tensorflowjs package. Uses tensorflowjs_converter command-line tool for conversion.
         Handles spaces in file paths and warns if output directory contains spaces.
     """

@@ -10,8 +10,7 @@ from ultralytics.utils.plotting import colors
 
 
 class ObjectCounter(BaseSolution):
-    """
-    A class to manage the counting of objects in a real-time video stream based on their tracks.
+    """A class to manage the counting of objects in a real-time video stream based on their tracks.
 
     This class extends the BaseSolution class and provides functionality for counting objects moving in and out of a
     specified region in a video stream. It supports both polygonal and linear regions for counting.
@@ -59,8 +58,7 @@ class ObjectCounter(BaseSolution):
         prev_position: tuple[float, float] | None,
         cls: int,
     ) -> None:
-        """
-        Count objects within a polygonal or linear region based on their tracks.
+        """Count objects within a polygonal or linear region based on their tracks.
 
         Args:
             current_centroid (tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
@@ -117,8 +115,7 @@ class ObjectCounter(BaseSolution):
                 self.counted_ids.append(track_id)
 
     def display_counts(self, plot_im) -> None:
-        """
-        Display object counts on the input image or frame.
+        """Display object counts on the input image or frame.
 
         Args:
             plot_im (np.ndarray): The image or frame to display counts on.
@@ -138,19 +135,18 @@ class ObjectCounter(BaseSolution):
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
 
     def process(self, im0) -> SolutionResults:
-        """
-        Process input data (frames or object tracks) and update object counts.
+        """Process input data (frames or object tracks) and update object counts.
 
-        This method initializes the counting region, extracts tracks, draws bounding boxes and regions, updates
-        object counts, and displays the results on the input image.
+        This method initializes the counting region, extracts tracks, draws bounding boxes and regions, updates object
+        counts, and displays the results on the input image.
 
         Args:
             im0 (np.ndarray): The input image or frame to be processed.
 
         Returns:
             (SolutionResults): Contains processed image `im0`, 'in_count' (int, count of objects entering the region),
-                'out_count' (int, count of objects exiting the region), 'classwise_count' (dict, per-class object count),
-                and 'total_tracks' (int, total number of tracked objects).
+                'out_count' (int, count of objects exiting the region), 'classwise_count' (dict, per-class object
+                count), and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> counter = ObjectCounter()

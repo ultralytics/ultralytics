@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import functools
 import glob
 import inspect
@@ -53,8 +54,7 @@ from ultralytics.utils import (
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
-    """
-    Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
+    """Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
 
     Args:
         file_path (Path): Path to the requirements.txt file.
@@ -86,8 +86,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
 
 @functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
-    """
-    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
+    """Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
 
     Args:
         version (str): Version string, i.e. '2.0.1+cpu'
@@ -103,8 +102,7 @@ def parse_version(version="0.0.0") -> tuple:
 
 
 def is_ascii(s) -> bool:
-    """
-    Check if a string is composed of only ASCII characters.
+    """Check if a string is composed of only ASCII characters.
 
     Args:
         s (str | list | tuple | dict): Input to be checked (all are converted to string for checking).
@@ -116,8 +114,7 @@ def is_ascii(s) -> bool:
 
 
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
-    """
-    Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
+    """Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
@@ -139,7 +136,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     elif isinstance(imgsz, (list, tuple)):
         imgsz = list(imgsz)
     elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
-        imgsz = [int(imgsz)] if imgsz.isnumeric() else eval(imgsz)
+        imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
     else:
         raise TypeError(
             f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
@@ -187,8 +184,7 @@ def check_version(
     verbose: bool = False,
     msg: str = "",
 ) -> bool:
-    """
-    Check current version against the required version or range.
+    """Check current version against the required version or range.
 
     Args:
         current (str): Current version or package name to get version from.
@@ -268,8 +264,7 @@ def check_version(
 
 
 def check_latest_pypi_version(package_name="ultralytics"):
-    """
-    Return the latest version of a PyPI package without downloading or installing it.
+    """Return the latest version of a PyPI package without downloading or installing it.
 
     Args:
         package_name (str): The name of the package to find the latest version for.
@@ -289,8 +284,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
 
 
 def check_pip_update_available():
-    """
-    Check if a new version of the ultralytics package is available on PyPI.
+    """Check if a new version of the ultralytics package is available on PyPI.
 
     Returns:
         (bool): True if an update is available, False otherwise.
@@ -314,8 +308,7 @@ def check_pip_update_available():
 @ThreadingLocked()
 @functools.lru_cache
 def check_font(font="Arial.ttf"):
-    """
-    Find font locally or download to user's configuration directory if it does not already exist.
+    """Find font locally or download to user's configuration directory if it does not already exist.
 
     Args:
         font (str): Path or name of font.
@@ -344,8 +337,7 @@ def check_font(font="Arial.ttf"):
 
 
 def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = False) -> bool:
-    """
-    Check current python version against the required minimum version.
+    """Check current python version against the required minimum version.
 
     Args:
         minimum (str): Required minimum version of python.
@@ -360,13 +352,12 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
-    """
-    Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
+    """Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
         requirements (Path | str | list[str|tuple] | tuple[str]): Path to a requirements.txt file, a single package
-            requirement as a string, a list of package requirements as strings, or a list containing strings and
-            tuples of interchangeable packages.
+            requirement as a string, a list of package requirements as strings, or a list containing strings and tuples
+            of interchangeable packages.
         exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
@@ -422,17 +413,19 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 f"--index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
             )
             try:
-                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE, text=True)
+                return subprocess.check_output(base, shell=True, stderr=subprocess.STDOUT, text=True)
             except subprocess.CalledProcessError as e:
-                if e.stderr and "No virtual environment found" in e.stderr:
+                if e.output and "No virtual environment found" in e.output:
                     return subprocess.check_output(
                         base.replace("uv pip install", "uv pip install --system"),
                         shell=True,
-                        stderr=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
                         text=True,
                     )
                 raise
-        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True, text=True)
+        return subprocess.check_output(
+            f"pip install --no-cache-dir {packages} {commands}", shell=True, stderr=subprocess.STDOUT, text=True
+        )
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
@@ -459,8 +452,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
 
 def check_torchvision():
-    """
-    Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
+    """Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
     This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
@@ -495,8 +487,7 @@ def check_torchvision():
 
 
 def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
-    """
-    Check file(s) for acceptable suffix.
+    """Check file(s) for acceptable suffix.
 
     Args:
         file (str | list[str]): File or list of files to check.
@@ -512,8 +503,7 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True):
-    """
-    Replace legacy YOLOv5 filenames with updated YOLOv5u filenames.
+    """Replace legacy YOLOv5 filenames with updated YOLOv5u filenames.
 
     Args:
         file (str): Filename to check and potentially update.
@@ -540,8 +530,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
 
 
 def check_model_file_from_stem(model="yolo11n"):
-    """
-    Return a model filename from a valid model stem.
+    """Return a model filename from a valid model stem.
 
     Args:
         model (str): Model stem to check.
@@ -556,8 +545,7 @@ def check_model_file_from_stem(model="yolo11n"):
 
 
 def check_file(file, suffix="", download=True, download_dir=".", hard=True):
-    """
-    Search/download file (if necessary), check suffix (if provided), and return path.
+    """Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
         file (str): File name or path.
@@ -596,8 +584,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
 
 
 def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
-    """
-    Search/download YAML file (if necessary) and return path, checking suffix.
+    """Search/download YAML file (if necessary) and return path, checking suffix.
 
     Args:
         file (str | Path): File name or path.
@@ -611,8 +598,7 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
 
 
 def check_is_path_safe(basedir, path):
-    """
-    Check if the resolved path is under the intended directory to prevent path traversal.
+    """Check if the resolved path is under the intended directory to prevent path traversal.
 
     Args:
         basedir (Path | str): The intended directory.
@@ -629,8 +615,7 @@ def check_is_path_safe(basedir, path):
 
 @functools.lru_cache
 def check_imshow(warn=False):
-    """
-    Check if environment supports image displays.
+    """Check if environment supports image displays.
 
     Args:
         warn (bool): Whether to warn if environment doesn't support image displays.
@@ -654,8 +639,7 @@ def check_imshow(warn=False):
 
 
 def check_yolo(verbose=True, device=""):
-    """
-    Return a human-readable YOLO software and hardware summary.
+    """Return a human-readable YOLO software and hardware summary.
 
     Args:
         verbose (bool): Whether to print verbose information.
@@ -691,8 +675,7 @@ def check_yolo(verbose=True, device=""):
 
 
 def collect_system_info():
-    """
-    Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA.
+    """Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA.
 
     Returns:
         (dict): Dictionary containing system information.
@@ -752,8 +735,7 @@ def collect_system_info():
 
 
 def check_amp(model):
-    """
-    Check the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO model.
+    """Check the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO model.
 
     If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
     results, so AMP will be disabled during training.
@@ -849,8 +831,7 @@ def check_multiple_install():
 
 
 def print_args(args: dict | None = None, show_file=True, show_func=False):
-    """
-    Print function arguments (optional args dict).
+    """Print function arguments (optional args dict).
 
     Args:
         args (dict, optional): Arguments to print.
@@ -876,8 +857,7 @@ def print_args(args: dict | None = None, show_file=True, show_func=False):
 
 
 def cuda_device_count() -> int:
-    """
-    Get the number of NVIDIA GPUs available in the environment.
+    """Get the number of NVIDIA GPUs available in the environment.
 
     Returns:
         (int): The number of NVIDIA GPUs available.
@@ -902,8 +882,7 @@ def cuda_device_count() -> int:
 
 
 def cuda_is_available() -> bool:
-    """
-    Check if CUDA is available in the environment.
+    """Check if CUDA is available in the environment.
 
     Returns:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.
@@ -912,8 +891,7 @@ def cuda_is_available() -> bool:
 
 
 def is_rockchip():
-    """
-    Check if the current environment is running on a Rockchip SoC.
+    """Check if the current environment is running on a Rockchip SoC.
 
     Returns:
         (bool): True if running on a Rockchip SoC, False otherwise.
@@ -932,8 +910,7 @@ def is_rockchip():
 
 
 def is_intel():
-    """
-    Check if the system has Intel hardware (CPU or GPU).
+    """Check if the system has Intel hardware (CPU or GPU).
 
     Returns:
         (bool): True if Intel hardware is detected, False otherwise.
@@ -953,8 +930,7 @@ def is_intel():
 
 
 def is_sudo_available() -> bool:
-    """
-    Check if the sudo command is available in the environment.
+    """Check if the sudo command is available in the environment.
 
     Returns:
         (bool): True if the sudo command is available, False otherwise.

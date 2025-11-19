@@ -235,7 +235,8 @@ class YOLODataset(BaseDataset):
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,
                 bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
-                semseg_loss=hyp.semseg_loss if "train" in self.prefix else False
+                semseg_loss=hyp.semseg_loss if "train" in self.prefix else False,
+                nc=self.data["nc"]
             )
         )
         return transforms

@@ -248,11 +248,12 @@ def test_export_ncnn_matrix(task, half, batch):
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
-@pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with TFlite export.")
-@pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
+@pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
+@pytest.mark.skipif(WINDOWS or MACOS, reason="Skipping test on Windows and Macos")
 def test_export_imx():
     """Test YOLO export to IMX format."""
-    model = YOLO("yolov8n.pt")
+    model = YOLO(MODEL)
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
 

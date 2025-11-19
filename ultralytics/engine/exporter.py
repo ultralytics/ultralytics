@@ -99,7 +99,7 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
-    IS_PYTHON_3_12,
+    IS_PYTHON_MINIMUM_3_9,
     check_imgsz,
     check_requirements,
     check_version,
@@ -364,8 +364,8 @@ class Exporter:
             if not self.args.nms and model.task in {"detect", "pose"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True
-            if model.task not in {"detect", "pose", "classify"}:
-                raise ValueError("IMX export only supported for detection, pose estimation, and classification models.")
+            if model.task not in {"detect", "pose", "classify", "segment"}:
+                raise ValueError("IMX export only supported for detection, pose estimation, classification, and segmentation models.")
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -1173,18 +1173,26 @@ class Exporter:
     def export_imx(self, prefix=colorstr("IMX:")):
         """Export YOLO model to IMX format."""
         assert LINUX, (
-            "export only supported on Linux. "
-            "See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
+            "Export only supported on Linux."
+            "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
-        assert not IS_PYTHON_3_12, "IMX export requires Python>=3.8;<3.12"
-        assert not TORCH_2_9, f"IMX export requires PyTorch<2.9. Current PyTorch version is {TORCH_VERSION}."
+        assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
+
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(
-            ("model-compression-toolkit>=2.4.1", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0", "pydantic<=2.11.7")
+            (
+                "packaging<22" if ARM64 else "packaging",
+                "model-compression-toolkit>=2.4.1",
+                "edge-mdt-cl[torch]>=1.0.0",
+                "edge-mdt-tpc>=1.1.0",
+                "pydantic<=2.11.7",
+            )
         )
-        check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
+
+        check_requirements("imx500-converter[pt]>=3.17.3")
         check_requirements("mct-quantizers>=1.6.0")  # Separate for compatibility with model-compression-toolkit
+        check_requirements("onnxscript")  # Model Compression Toolkit dependency at Export in runtime
 
         # Install Java>=17
         try:

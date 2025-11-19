@@ -108,7 +108,7 @@ class SegmentationValidator(DetectionValidator):
                 b = boxes[i][mask]
                 s = scores[i][mask]
                 l = labels[i][mask]
-                m = mc[i][mask]                 
+                m = mc[i][mask]
                 preds.append(
                     {
                         "bboxes": b,
@@ -118,7 +118,9 @@ class SegmentationValidator(DetectionValidator):
                     }
                 )
         else:
-            proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
+            proto = (
+                preds[1][-1] if len(preds[1]) == 3 else preds[1]
+            )  # second output is len 3 if pt, but only 1 if exported
             preds = super().postprocess(preds[0])
 
         imgsz = [4 * x for x in proto.shape[2:]]  # get image size from proto

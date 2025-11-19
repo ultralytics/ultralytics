@@ -61,6 +61,7 @@ if __name__ == "__main__":
     dist.init_process_group(
         backend="nccl" if dist.is_nccl_available() else "gloo",
         timeout=timedelta(seconds=10800),  # 3 hours
+        world_size={trainer.world_size},
     )
     torch.cuda.set_device(int(os.getenv("LOCAL_RANK", dist.get_rank())))
     os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout

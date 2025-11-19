@@ -105,16 +105,16 @@ class SegmentationValidator(DetectionValidator):
             preds = []
             for i in range(boxes.shape[0]):
                 mask = scores[i] > 0.0
-                b = boxes[i][mask]
-                s = scores[i][mask]
-                l = labels[i][mask]
-                m = mc[i][mask]                 
+                bboxs = boxes[i][mask]
+                scores = scores[i][mask]
+                labels = labels[i][mask]
+                masks = mc[i][mask]                 
                 preds.append(
                     {
-                        "bboxes": b,
-                        "conf": s,
-                        "cls": l,
-                        "extra": m,
+                        "bboxes": bboxs,
+                        "conf": scores,
+                        "cls": labels,
+                        "extra": masks,
                     }
                 )
         else:

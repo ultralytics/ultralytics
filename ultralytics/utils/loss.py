@@ -607,6 +607,7 @@ class v8PoseLoss(v8DetectionLoss):
         kpts_obj_loss = 0
 
         if masks.any():
+            target_bboxes /= stride_tensor
             gt_kpt = selected_keypoints[masks]
             area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
             pred_kpt = pred_kpts[masks]

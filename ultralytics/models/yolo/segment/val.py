@@ -99,8 +99,28 @@ class SegmentationValidator(DetectionValidator):
         Returns:
             list[dict[str, torch.Tensor]]: Processed detection predictions with masks.
         """
-        proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
-        preds = super().postprocess(preds[0])
+        if len(preds) == 5:  # IMX segmentation
+            boxes, scores, labels, mc, p = preds
+            proto = p
+            preds = []
+            for i in range(boxes.shape[0]):
+                mask = scores[i] > 0.0
+                b = boxes[i][mask]
+                s = scores[i][mask]
+                l = labels[i][mask]
+                m = mc[i][mask]                 
+                preds.append(
+                    {
+                        "bboxes": b,
+                        "conf": s,
+                        "cls": l,
+                        "extra": m,
+                    }
+                )
+        else:
+            proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
+            preds = super().postprocess(preds[0])
+
         imgsz = [4 * x for x in proto.shape[2:]]  # get image size from proto
         for i, pred in enumerate(preds):
             coefficient = pred.pop("extra")

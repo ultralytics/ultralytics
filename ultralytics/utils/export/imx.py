@@ -11,7 +11,7 @@ import torch
 
 from ultralytics.nn.modules import Detect, Pose, Segment
 from ultralytics.utils import LOGGER
-from ultralytics.utils.tal import make_anchors
+from ultralytics.utils.tal import dist2bbox, make_anchors
 from ultralytics.utils.torch_utils import copy_attr
 
 # Configuration for Model Compression Toolkit (MCT) quantization
@@ -105,7 +105,7 @@ def _inference(self, x: list[torch.Tensor]) -> tuple[torch.Tensor]:
     """Decode boxes and cls scores for imx object detection."""
     x_cat = torch.cat([xi.view(x[0].shape[0], self.no, -1) for xi in x], 2)
     box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-    dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+    dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=False, dim=1) * self.strides
     return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
 
 

@@ -1189,6 +1189,8 @@ class Exporter:
                 "pydantic<=2.11.7",
             )
         )
+        if ARM64:
+            check_requirements("packaging<22")  # Re-enforce packaging constraint
 
         check_requirements("imx500-converter[pt]>=3.17.3")
         check_requirements("mct-quantizers>=1.6.0")  # Separate for compatibility with model-compression-toolkit

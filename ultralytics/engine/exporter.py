@@ -364,8 +364,8 @@ class Exporter:
             if not self.args.nms and model.task in {"detect", "pose"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True
-            if model.task not in {"detect", "pose", "classify"}:
-                raise ValueError("IMX export only supported for detection, pose estimation, and classification models.")
+            if model.task not in {"detect", "pose", "classify", "segment"}:
+                raise ValueError("IMX export only supported for detection, pose estimation, classification, and segmentation models.")
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -1184,7 +1184,7 @@ class Exporter:
             (
                 "packaging<22" if ARM64 else "packaging",
                 "model-compression-toolkit>=2.4.1",
-                "edge-mdt-cl",
+                "edge-mdt-cl[torch]>=1.0.0",
                 "edge-mdt-tpc>=1.1.0",
                 "pydantic<=2.11.7",
             )

@@ -100,7 +100,6 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_9,
-    IS_PYTHON_3_12,
     check_imgsz,
     check_requirements,
     check_version,

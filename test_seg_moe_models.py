@@ -79,7 +79,7 @@ def main():
     data_yaml = "/slow_disk2/ccl/datasets/0814lake/data.yaml"
     device = "2,3"  # 使用2号和3号GPU
     batch_size = 64
-    epochs = 3  # 测试用，只训练3个epoch
+    epochs = 3  # 测试用, 只训练3个epoch
 
     # 检查数据集文件是否存在
     if not os.path.exists(data_yaml):

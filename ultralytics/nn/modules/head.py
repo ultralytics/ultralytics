@@ -1491,9 +1491,6 @@ class SegmentMoE(DetectMoE):
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
 
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor]:
-        """Forward pass with mask coefficients and MoE routing."""
-
-    def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor]:
         """Segment MoE forward with mask prediction."""
         p = self.proto(x[0])  # mask protos
         bs = p.shape[0]

@@ -48,9 +48,9 @@ div.highlight {
 
 /* Banner ----------------------------------------------------------------------------------------------------------- */
 .md-banner {
-  background-image: url(https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/68e64c5afee71f0eab03fcd3_Banner%20Horizontal%20V2.avif);
+  background-image: url(https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/691dac3414d0280ebe3e5fda_bg.avif);
   background-size: cover;
-  background-position: 22% 0%;
+  background-position: center;
   background-repeat: no-repeat;
 }
 .md-banner__inner {
@@ -68,37 +68,26 @@ div.highlight {
   flex-direction: column;
 }
 .banner-wrapper {
-  padding: 40px 16px;
+  padding: 40px 0px;
 }
 .banner-wrapper > .banner-content-wrapper {
-  gap: 4px;
-}
-.banner-wrapper > .banner-content-wrapper > p {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: #fff;
+  gap: 0.75rem;
 }
 .banner-wrapper > .banner-content-wrapper > img {
-  height: 40px;
+  height: 30px;
 }
-.banner-wrapper > .banner-content-wrapper > .shenzhen-text {
-  font-size: 20px;
-  font-weight: 600;
-
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  background: linear-gradient(90deg, rgba(221, 214, 215, 0.8), rgba(255, 213, 226, 0.8), rgba(255, 241, 203, 0.8));
-  background-size: cover;
-  background-position: center;
-  background-clip: text;
-  -webkit-background-clip: text;
+.banner-wrapper > .banner-content-wrapper > .vc-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+.banner-wrapper > .banner-content-wrapper > .vc-wrapper > img {
+  height: 20px;
 }
 @media screen and (min-width: 768px) {
   .md-banner {
     height: 68px;
-
-    background-position: center;
   }
   .banner-wrapper,
   .banner-wrapper > .banner-content-wrapper {
@@ -108,11 +97,17 @@ div.highlight {
     padding: 14px 16px;
   }
   .banner-wrapper > .banner-content-wrapper {
-    gap: 16px;
+    gap: 1.25rem;
     margin: 0 auto;
   }
-  .banner-wrapper > .banner-content-wrapper > .shenzhen-text {
-    font-size: 28px;
+  .banner-wrapper > .banner-content-wrapper > img {
+    height: 40px;
+  }
+  .banner-wrapper > .banner-content-wrapper > .vc-wrapper {
+    gap: 0.5rem;
+  }
+  .banner-wrapper > .banner-content-wrapper > .vc-wrapper > img {
+    height: 28px;
   }
 }
 /* Banner ----------------------------------------------------------------------------------------------------------- */

@@ -20,7 +20,21 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "DetectMoE", "DetectNeckMoE", "Pose", "RTDETRDecoder", "Segment", "SegmentMoE", "SegmentNeckMoE", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = (
+    "OBB",
+    "Classify",
+    "Detect",
+    "DetectMoE",
+    "DetectNeckMoE",
+    "Pose",
+    "RTDETRDecoder",
+    "Segment",
+    "SegmentMoE",
+    "SegmentNeckMoE",
+    "YOLOEDetect",
+    "YOLOESegment",
+    "v10Detect",
+)
 
 
 class Detect(nn.Module):
@@ -1185,9 +1199,9 @@ class v10Detect(Detect):
 class DetectMoE(Detect):
     """YOLO Detect head with MoE (Mixture of Experts) routing for dynamic P-layer selection.
 
-    This class extends the Detect head to include a gating network that dynamically routes each prediction
-    to the top-2 most suitable P-layers. Large objects are guided to larger P-layers (P5/P6), while small
-    objects are guided to smaller P-layers (P2/P3).
+    This class extends the Detect head to include a gating network that dynamically routes each prediction to the top-2
+    most suitable P-layers. Large objects are guided to larger P-layers (P5/P6), while small objects are guided to
+    smaller P-layers (P2/P3).
 
     Attributes:
         gate_net (nn.Module): Gating network for computing routing scores.
@@ -1203,8 +1217,13 @@ class DetectMoE(Detect):
     Examples:
         Create a MoE detection head for 80 classes with 5 P-layers
         >>> detect_moe = DetectMoE(nc=80, ch=(128, 256, 512, 768, 1024))
-        >>> x = [torch.randn(1, 128, 160, 160), torch.randn(1, 256, 80, 80), 
-        ...      torch.randn(1, 512, 40, 40), torch.randn(1, 768, 20, 20), torch.randn(1, 1024, 10, 10)]
+        >>> x = [
+        ...     torch.randn(1, 128, 160, 160),
+        ...     torch.randn(1, 256, 80, 80),
+        ...     torch.randn(1, 512, 40, 40),
+        ...     torch.randn(1, 768, 20, 20),
+        ...     torch.randn(1, 1024, 10, 10),
+        ... ]
         >>> outputs = detect_moe(x)
     """
 
@@ -1220,11 +1239,11 @@ class DetectMoE(Detect):
         super().__init__(nc, ch)
         self.top_k = min(top_k, self.nl)  # Ensure top_k doesn't exceed number of layers
         self.aux_loss_weight = aux_loss_weight
-        
+
         # Initialize for EMA compatibility - avoid issues with deepcopy during training
         self.gate_probs = None
         self.load_loss = None
-        
+
         # Gating network: takes concatenated multi-scale features and outputs routing scores
         # Use adaptive pooling to handle different spatial sizes
         gate_hidden = 256
@@ -1235,28 +1254,28 @@ class DetectMoE(Detect):
             nn.ReLU(inplace=True),
             nn.Conv2d(gate_hidden, self.nl, 1),  # Output routing scores for each P-layer
         )
-        
+
         # Learnable size bias to guide routing: smaller indices (P2) for small objects, larger indices (P6) for large
         # Initialize with a gradient that encourages size-appropriate routing
-        self.register_buffer('size_bias', torch.linspace(-2.0, 2.0, self.nl))
-    
+        self.register_buffer("size_bias", torch.linspace(-2.0, 2.0, self.nl))
+
     def __deepcopy__(self, memo):
         """Custom deepcopy to handle EMA model creation during training."""
         # Create a new instance with the same config
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
-        
+
         # Copy all attributes except the problematic runtime tensors
         for k, v in self.__dict__.items():
-            if k in ('gate_probs', 'load_loss'):
+            if k in ("gate_probs", "load_loss"):
                 # Don't copy runtime tensors, just set to None
                 setattr(result, k, None)
             else:
                 setattr(result, k, copy.deepcopy(v, memo))
-        
+
         return result
-        
+
     def compute_gate_scores(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute routing scores for each P-layer.
 
@@ -1272,24 +1291,26 @@ class DetectMoE(Detect):
         x_upsampled = []
         for i, feat in enumerate(x):
             if feat.shape[2:] != target_size:
-                feat = F.interpolate(feat, size=target_size, mode='bilinear', align_corners=False)
+                feat = F.interpolate(feat, size=target_size, mode="bilinear", align_corners=False)
             x_upsampled.append(feat)
-        
+
         # Concatenate along channel dimension
         x_cat = torch.cat(x_upsampled, dim=1)  # [B, sum(ch), H, W]
-        
+
         # Compute gate scores
         gate_scores = self.gate_net(x_cat).squeeze(-1).squeeze(-1)  # [B, nl]
-        
+
         # Apply size bias to encourage appropriate routing
         gate_scores = gate_scores + self.size_bias.unsqueeze(0)
-        
+
         # Softmax for probabilities
         gate_probs = F.softmax(gate_scores, dim=1)
-        
+
         return gate_scores, gate_probs
-    
-    def route_features(self, x: list[torch.Tensor], gate_probs: torch.Tensor) -> tuple[list[torch.Tensor], torch.Tensor]:
+
+    def route_features(
+        self, x: list[torch.Tensor], gate_probs: torch.Tensor
+    ) -> tuple[list[torch.Tensor], torch.Tensor]:
         """Route features to top-k P-layers based on gate probabilities.
 
         Args:
@@ -1301,28 +1322,28 @@ class DetectMoE(Detect):
             routing_indices (torch.Tensor): Indices of selected P-layers [B, top_k].
         """
         batch_size = x[0].shape[0]
-        
+
         # Select top-k P-layers for each sample in the batch
         topk_probs, topk_indices = torch.topk(gate_probs, self.top_k, dim=1)  # [B, top_k]
-        
+
         # Normalize top-k probabilities
         topk_probs = topk_probs / (topk_probs.sum(dim=1, keepdim=True) + 1e-8)
-        
+
         # For inference, we'll use a weighted combination of top-k features
         routed_features = []
         for k in range(self.top_k):
             indices = topk_indices[:, k]  # [B]
             weights = topk_probs[:, k].unsqueeze(1).unsqueeze(2)  # [B, 1, 1]
-            
+
             # Gather features from selected P-layers
             selected_feats = []
             for b in range(batch_size):
-                selected_feats.append(x[indices[b]][b:b+1] * weights[b])
-            
+                selected_feats.append(x[indices[b]][b : b + 1] * weights[b])
+
             routed_features.append(torch.cat(selected_feats, dim=0))
-        
+
         return routed_features, topk_indices
-    
+
     def compute_load_balancing_loss(self, gate_probs: torch.Tensor) -> torch.Tensor:
         """Compute load balancing auxiliary loss to encourage uniform expert usage.
 
@@ -1334,40 +1355,40 @@ class DetectMoE(Detect):
         """
         # Compute mean probability per expert across the batch
         expert_usage = gate_probs.mean(dim=0)  # [nl]
-        
+
         # Encourage uniform distribution (1/nl for each expert)
         uniform_target = 1.0 / self.nl
         load_loss = ((expert_usage - uniform_target) ** 2).sum()
-        
+
         return load_loss
 
     def forward(self, x: list[torch.Tensor]) -> list[torch.Tensor] | tuple:
         """Concatenate and return predicted bounding boxes with MoE routing."""
         # Compute gate scores for routing
-        gate_scores, gate_probs = self.compute_gate_scores(x)
-        
+        _gate_scores, gate_probs = self.compute_gate_scores(x)
+
         # Apply detection heads to all features
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-        
+
         if self.training:
             # During training, return all features only (gate info can be retrieved separately if needed)
             # Store gate_probs for potential auxiliary loss computation
             self.gate_probs = gate_probs
             self.load_loss = self.compute_load_balancing_loss(gate_probs)
             return x
-        
+
         # For export: apply MoE routing to select top-k layers
         # For validation: use all layers (like standard Detect)
         if self.export:
             # Use batch-level routing (all samples use same top-k layers)
             gate_probs_mean = gate_probs.mean(dim=0)  # Average across batch
             _, topk_indices = torch.topk(gate_probs_mean, self.top_k)  # Single set of indices for all samples
-            
+
             # Select top-k features
             selected_features = [x[idx] for idx in topk_indices]
             selected_strides = [self.stride[idx] for idx in topk_indices]
-            
+
             # Standard inference on selected features
             y = self._inference_selected(selected_features, selected_strides)
             return y
@@ -1375,7 +1396,7 @@ class DetectMoE(Detect):
             # Validation: use all layers like standard Detect
             y = self._inference(x)
             return (y, x)
-    
+
     def _inference_selected(self, selected_features: list[torch.Tensor], selected_strides: list) -> torch.Tensor:
         """Decode bounding boxes from selected top-k features.
 
@@ -1387,21 +1408,23 @@ class DetectMoE(Detect):
             (torch.Tensor): Decoded predictions.
         """
         shape = selected_features[0].shape  # BCHW
-        
+
         # Create anchors for selected features
         if self.dynamic or self.shape != shape:
-            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(selected_features, selected_strides, 0.5))
+            self.anchors, self.strides = (
+                x.transpose(0, 1) for x in make_anchors(selected_features, selected_strides, 0.5)
+            )
             self.shape = shape
-        
+
         # Concatenate predictions from selected layers
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in selected_features], 2)
-        
+
         # Decode boxes
         box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
-        
+
         return torch.cat((dbox, cls.sigmoid()), 1)
-    
+
     def _inference(self, x: list[torch.Tensor]) -> torch.Tensor:
         """Decode bounding boxes from all feature layers (for validation).
 
@@ -1412,19 +1435,19 @@ class DetectMoE(Detect):
             (torch.Tensor): Decoded predictions.
         """
         shape = x[0].shape  # BCHW
-        
+
         # Create anchors for all features
         if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x, self.stride, 0.5))
             self.shape = shape
-        
+
         # Concatenate predictions from all layers
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
-        
+
         # Decode boxes
         box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
-        
+
         return torch.cat((dbox, cls.sigmoid()), 1)
 
 
@@ -1446,7 +1469,9 @@ class SegmentMoE(DetectMoE):
         >>> outputs = segment_moe(x)
     """
 
-    def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, ch: tuple = (), top_k: int = 2, aux_loss_weight: float = 0.01):
+    def __init__(
+        self, nc: int = 80, nm: int = 32, npr: int = 256, ch: tuple = (), top_k: int = 2, aux_loss_weight: float = 0.01
+    ):
         """Initialize SegmentMoE head with mask prediction and MoE routing.
 
         Args:
@@ -1461,28 +1486,29 @@ class SegmentMoE(DetectMoE):
         self.nm = nm
         self.npr = npr
         self.proto = Proto(ch[0], self.npr, self.nm)
-        
+
         c4 = max(ch[0] // 4, self.nm)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
 
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor]:
         """Forward pass with mask coefficients and MoE routing."""
+
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor]:
         """Segment MoE forward with mask prediction."""
         p = self.proto(x[0])  # mask protos
         bs = p.shape[0]
-        
+
         # Compute mask coefficients from all layers (always needed)
         mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
-        
+
         # Call DetectMoE.forward to get detection outputs
         # This handles training/validation/export logic for detection
         x = DetectMoE.forward(self, x)
-        
+
         if self.training:
             # Training: x is list of features, return with mc and p
             return x, mc, p
-        
+
         # Non-training: x is (y, features) tuple from DetectMoE
         # Follow same pattern as standard Segment
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
@@ -1490,28 +1516,27 @@ class SegmentMoE(DetectMoE):
 
 class DetectNeckMoE(Detect):
     """YOLO Detect head with Neck-level MoE routing.
-    
-    Unlike DetectMoE which routes at the head level, this version applies routing
-    earlier - right after receiving neck features, before applying detection convolutions.
-    This reduces computation in the detection heads themselves.
-    
+
+    Unlike DetectMoE which routes at the head level, this version applies routing earlier - right after receiving neck
+    features, before applying detection convolutions. This reduces computation in the detection heads themselves.
+
     The key difference:
     - DetectMoE: Apply cv2/cv3 to all layers → Route → Aggregate
     - DetectNeckMoE: Route first → Apply cv2/cv3 only to selected layers
-    
+
     Attributes:
         gate_net (nn.Module): Gating network for early routing.
         top_k (int): Number of P-layers to route to (default: 3 for neck-level).
-    
+
     Examples:
         >>> detect_neck_moe = DetectNeckMoE(nc=80, ch=(128, 256, 512, 768, 1024), top_k=3)
         >>> x = [torch.randn(1, 128, 160, 160), ...]
         >>> outputs = detect_neck_moe(x)
     """
-    
+
     def __init__(self, nc: int = 80, ch: tuple = (), top_k: int = 3, aux_loss_weight: float = 0.01):
         """Initialize DetectNeckMoE with early routing capability.
-        
+
         Args:
             nc (int): Number of classes.
             ch (tuple): Tuple of channel sizes.
@@ -1521,11 +1546,11 @@ class DetectNeckMoE(Detect):
         super().__init__(nc, ch)
         self.top_k = min(top_k, self.nl)
         self.aux_loss_weight = aux_loss_weight
-        
+
         # Initialize for EMA compatibility
         self.gate_probs = None
         self.load_loss = None
-        
+
         # Gating network
         gate_hidden = 256
         self.gate_net = nn.Sequential(
@@ -1535,68 +1560,68 @@ class DetectNeckMoE(Detect):
             nn.ReLU(inplace=True),
             nn.Conv2d(gate_hidden, self.nl, 1),
         )
-        
-        self.register_buffer('size_bias', torch.linspace(-2.0, 2.0, self.nl))
-    
+
+        self.register_buffer("size_bias", torch.linspace(-2.0, 2.0, self.nl))
+
     def __deepcopy__(self, memo):
         """Custom deepcopy to handle EMA model creation during training."""
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
         for k, v in self.__dict__.items():
-            if k in ('gate_probs', 'load_loss'):
+            if k in ("gate_probs", "load_loss"):
                 setattr(result, k, None)
             else:
                 setattr(result, k, copy.deepcopy(v, memo))
         return result
-        
+
     def compute_gate_scores(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute routing scores (same as DetectMoE)."""
         target_size = x[0].shape[2:]
         x_upsampled = []
         for feat in x:
             if feat.shape[2:] != target_size:
-                feat = F.interpolate(feat, size=target_size, mode='bilinear', align_corners=False)
+                feat = F.interpolate(feat, size=target_size, mode="bilinear", align_corners=False)
             x_upsampled.append(feat)
-        
+
         x_cat = torch.cat(x_upsampled, dim=1)
         gate_scores = self.gate_net(x_cat).squeeze(-1).squeeze(-1)
         gate_scores = gate_scores + self.size_bias.unsqueeze(0)
         gate_probs = F.softmax(gate_scores, dim=1)
-        
+
         return gate_scores, gate_probs
-    
+
     def compute_load_balancing_loss(self, gate_probs: torch.Tensor) -> torch.Tensor:
         """Compute load balancing loss."""
         expert_usage = gate_probs.mean(dim=0)
         uniform_target = 1.0 / self.nl
         load_loss = ((expert_usage - uniform_target) ** 2).sum()
         return load_loss
-    
+
     def forward(self, x: list[torch.Tensor]) -> list[torch.Tensor] | tuple:
         """Forward with neck-level routing - route BEFORE applying detection convolutions."""
         # Compute gate scores BEFORE detection heads
-        gate_scores, gate_probs = self.compute_gate_scores(x)
-        
+        _gate_scores, gate_probs = self.compute_gate_scores(x)
+
         if self.training:
             # Training: still process all layers for gradient flow
             for i in range(self.nl):
                 x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-            
+
             self.gate_probs = gate_probs
             self.load_loss = self.compute_load_balancing_loss(gate_probs)
             return x
-        
+
         # Process ALL layers (always needed for validation)
         x_processed = []
         for i in range(self.nl):
             x_processed.append(torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1))
-        
+
         if self.export:
             # Export: use batch-level MoE routing - all samples use same top-k layers
             gate_probs_mean = gate_probs.mean(dim=0)  # [nl]
             _, topk_indices = torch.topk(gate_probs_mean, self.top_k)  # Single selection for entire batch
-            
+
             selected_outputs = [x_processed[idx] for idx in topk_indices]
             selected_strides = [self.stride[idx] for idx in topk_indices]
             y = self._inference_selected(selected_outputs, selected_strides)
@@ -1605,63 +1630,67 @@ class DetectNeckMoE(Detect):
             # Validation: use all layers like standard Detect
             y = self._inference(x_processed)
             return (y, x_processed)
-    
+
     def _inference_selected(self, selected_features: list[torch.Tensor], selected_strides: list) -> torch.Tensor:
         """Simplified inference on uniformly selected layers."""
         shape = selected_features[0].shape
-        
+
         if self.dynamic or self.shape != shape:
-            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(selected_features, selected_strides, 0.5))
+            self.anchors, self.strides = (
+                x.transpose(0, 1) for x in make_anchors(selected_features, selected_strides, 0.5)
+            )
             self.shape = shape
-        
+
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in selected_features], 2)
         box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
-        
+
         return torch.cat((dbox, cls.sigmoid()), 1)
-    
+
     def _inference(self, x: list[torch.Tensor]) -> torch.Tensor:
         """Decode bounding boxes from all feature layers (for validation)."""
         shape = x[0].shape
-        
+
         if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x, self.stride, 0.5))
             self.shape = shape
-        
+
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
         box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
-        
+
         return torch.cat((dbox, cls.sigmoid()), 1)
 
 
 class SegmentNeckMoE(DetectNeckMoE):
     """Segmentation head with Neck-level MoE routing."""
-    
-    def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, ch: tuple = (), top_k: int = 3, aux_loss_weight: float = 0.01):
+
+    def __init__(
+        self, nc: int = 80, nm: int = 32, npr: int = 256, ch: tuple = (), top_k: int = 3, aux_loss_weight: float = 0.01
+    ):
         """Initialize SegmentNeckMoE."""
         super().__init__(nc, ch, top_k, aux_loss_weight)
         self.nm = nm
         self.npr = npr
         self.proto = Proto(ch[0], self.npr, self.nm)
-        
+
         c4 = max(ch[0] // 4, self.nm)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
-    
+
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor]:
         """Forward with mask prediction and neck-level routing."""
         p = self.proto(x[0])
         bs = p.shape[0]
-        
+
         # Always compute mask coefficients for all layers (needed for validation)
         mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
-        
+
         # Call DetectNeckMoE.forward to get detection outputs
         x = DetectNeckMoE.forward(self, x)
-        
+
         if self.training:
             # Training: x is list of features
             return x, mc, p
-        
+
         # Non-training: follow Segment pattern
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))

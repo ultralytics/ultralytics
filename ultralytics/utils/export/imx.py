@@ -201,7 +201,7 @@ def torch2imx(
         >>> model = YOLO("yolo11n.pt")
         >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.45, max_det=300)
 
-    Note:
+    Notes:
         - Requires model_compression_toolkit, onnx, edgemdt_tpc, and edge-mdt-cl packages
         - Only supports YOLOv8n and YOLO11n models (detection and pose tasks)
         - Output includes quantized ONNX model, IMX binary, and labels.txt file

@@ -95,6 +95,8 @@ Exporting YOLO11 models to ExecuTorch is straightforward:
         yolo predict model=yolo11n_executorch_model source=https://ultralytics.com/images/bus.jpg
         ```
 
+    ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference.
+
 ### Export Arguments
 
 When exporting to ExecuTorch format, you can specify the following arguments:

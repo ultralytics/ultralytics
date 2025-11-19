@@ -14,7 +14,7 @@ Welcome to the Ultralytics Help page! We are dedicated to providing you with det
 - [Contributor License Agreement (CLA)](CLA.md): Review the CLA to understand the rights and responsibilities associated with contributing to Ultralytics projects.
 - [Minimum Reproducible Example (MRE) Guide](minimum-reproducible-example.md): Learn the process for creating an MRE, which is crucial for the timely and effective resolution of bug reports.
 - [Code of Conduct](code-of-conduct.md): Our community guidelines support a respectful and open atmosphere for all collaborators.
-- [Environmental, Health and Safety (EHS) Policy](environmental-health-safety.md): Delve into our commitment to sustainability and the well-being of all our stakeholders.
+- [Environmental, Health, and Safety (EHS) Policy](environmental-health-safety.md): Delve into our commitment to sustainability and the well-being of all our stakeholders.
 - [Security Policy](security.md): Familiarize yourself with our security protocols and the procedure for reporting vulnerabilities.
 - [Privacy Policy](privacy.md): Read our privacy policy to understand how we protect your data and respect your privacy in all our services and operations.
 

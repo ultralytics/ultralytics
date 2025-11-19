@@ -55,7 +55,7 @@ Before we look at the code for exporting YOLO11 models to the CoreML format, let
 
 CoreML offers various deployment options for machine learning models, including:
 
-- **On-Device Deployment**: This method directly integrates CoreML models into your iOS app. It's particularly advantageous for ensuring low latency, enhanced privacy (since data remains on the device), and offline functionality. This approach, however, may be limited by the device's hardware capabilities, especially for larger and more complex models. On-device deployment can be executed in the following two ways.
+- **On-Device Deployment**: This method directly integrates CoreML models into your iOS app. It's particularly advantageous for ensuring low latency, enhanced privacy (since data remains on the device), and offline functionality. This approach, however, may be limited by the device's hardware capabilities, especially for larger and more complex models, and it can be executed in the following two ways:
     - **Embedded Models**: These models are included in the app bundle and are immediately accessible. They are ideal for small models that do not require frequent updates.
 
     - **Downloaded Models**: These models are fetched from a server as needed. This approach is suitable for larger models or those needing regular updates. It helps keep the app bundle size smaller.
@@ -109,7 +109,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLO11n PyTorch model to CoreML format
-        yolo export model=yolo11n.pt format=coreml # creates 'yolo11n.mlpackage''
+        yolo export model=yolo11n.pt format=coreml # creates 'yolo11n.mlpackage'
 
         # Run inference with the exported model
         yolo predict model=yolo11n.mlpackage source='https://ultralytics.com/images/bus.jpg'

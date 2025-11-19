@@ -1632,9 +1632,8 @@ def parse_model(d, ch, verbose=True):
             # NeckMoERouter takes list of channels and returns selected top-k
             ch_list = [ch[x] for x in f]
             args.insert(0, tuple(ch_list))  # ch=(ch1, ch2, ...)
-            # Output is top_k selected channels (we take the first top_k from input)
-            top_k = args[1] if len(args) > 1 else 3
-            c2 = ch_list[:top_k] if len(ch_list) >= top_k else ch_list
+            # Output channel count is the first channel (all selected features have same channels)
+            c2 = ch_list[0] if ch_list else 0
         elif m in frozenset(
             {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect, DetectMoE, SegmentMoE, DetectNeckMoE, SegmentNeckMoE}
         ):

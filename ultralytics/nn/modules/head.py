@@ -1372,7 +1372,7 @@ class DetectMoE(Detect):
             y = self._inference_selected(selected_features, selected_strides)
             return y
         else:
-            # Validation: use all layers like standard Detect
+            # Validation: return (y, x) tuple like standard Detect
             y = self._inference(x)
             return (y, x)
     
@@ -1476,15 +1476,14 @@ class SegmentMoE(DetectMoE):
         mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
         
         # Call DetectMoE.forward to get detection outputs
-        # This handles training/validation/export logic for detection
         x = DetectMoE.forward(self, x)
         
         if self.training:
             # Training: x is list of features, return with mc and p
             return x, mc, p
         
-        # Non-training: x is (y, features) tuple from DetectMoE
-        # Follow same pattern as standard Segment
+        # Non-training: x is (y, features) tuple from DetectMoE (or just y if export)
+        # Return in standard Segment format
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
 
 
@@ -1602,7 +1601,7 @@ class DetectNeckMoE(Detect):
             y = self._inference_selected(selected_outputs, selected_strides)
             return y
         else:
-            # Validation: use all layers like standard Detect
+            # Validation: return (y, x_processed) tuple like standard Detect
             y = self._inference(x_processed)
             return (y, x_processed)
     
@@ -1663,5 +1662,6 @@ class SegmentNeckMoE(DetectNeckMoE):
             # Training: x is list of features
             return x, mc, p
         
-        # Non-training: follow Segment pattern
+        # Non-training: x is (y, features) tuple from DetectNeckMoE (or just y if export)
+        # Return in standard Segment format
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))

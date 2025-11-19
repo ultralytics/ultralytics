@@ -58,7 +58,7 @@ if __name__ == "__main__":
     import torch
     import torch.distributed as dist
 
-    RANK = int(os.getenv("LOCAL_RANK", dist.get_rank()))
+    RANK = int(os.getenv("LOCAL_RANK"))
     torch.cuda.set_device(RANK)
     os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
     dist.init_process_group(

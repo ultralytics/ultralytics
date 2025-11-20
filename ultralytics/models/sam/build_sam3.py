@@ -25,11 +25,6 @@ from ultralytics.models.sam.sam3.vl_combiner import SAM3VLBackbone
 from .modules.blocks import PositionEmbeddingSine
 
 
-def _create_vl_backbone(vit_neck, text_encoder):
-    """Create visual-language backbone."""
-    return SAM3VLBackbone(visual=vit_neck, text=text_encoder, scalp=1)
-
-
 def _create_transformer_encoder() -> TransformerEncoderFusion:
     """Create transformer encoder with its layer."""
     encoder_layer = TransformerEncoderLayer(
@@ -227,18 +222,6 @@ def _create_sam3_model(
     return model
 
 
-def _create_text_encoder(bpe_path: str) -> VETextEncoder:
-    """Create SAM3 text encoder."""
-    tokenizer = SimpleTokenizer(bpe_path=bpe_path)
-    return VETextEncoder(
-        tokenizer=tokenizer,
-        d_model=256,
-        width=1024,
-        heads=16,
-        layers=24,
-    )
-
-
 def _create_vision_backbone(compile_mode=None, enable_inst_interactivity=True) -> Sam3DualViTDetNeck:
     """Create SAM3 visual backbone with ViT and neck."""
     # Position encoding
@@ -338,10 +321,16 @@ def build_sam3_image_model(
     )
 
     # Create text components
-    text_encoder = _create_text_encoder(bpe_path)
+    text_encoder = VETextEncoder(
+        tokenizer=SimpleTokenizer(bpe_path=bpe_path),
+        d_model=256,
+        width=1024,
+        heads=16,
+        layers=24,
+    )
 
     # Create visual-language backbone
-    backbone = _create_vl_backbone(vision_encoder, text_encoder)
+    backbone = SAM3VLBackbone(visual=vision_encoder, text=text_encoder, scalp=1)
 
     # Create transformer components
     transformer = _create_sam3_transformer()

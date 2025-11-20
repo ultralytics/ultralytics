@@ -502,7 +502,7 @@ class Predictor(BasePredictor):
         names = dict(enumerate(str(i) for i in range(pred_masks.shape[0])))
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         results = []
         for masks, orig_img, img_path in zip([pred_masks], orig_imgs, self.batch[0]):

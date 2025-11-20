@@ -23,6 +23,7 @@ from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
+from .sam3.data_misc import FindStage
 
 from .amg import (
     batch_iterator,
@@ -1977,6 +1978,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 class SAM3Predictor(Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
 
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        super().__init__(cfg, overrides, _callbacks)
+
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
         from .build_sam3 import build_sam3_image_model  # slow import
@@ -2022,8 +2026,17 @@ class SAM3Predictor(Predictor):
         # update mean and std
         self.mean = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
         self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
+        self.find_stage = FindStage(
+            img_ids=torch.tensor([0], device=self.device, dtype=torch.long),
+            text_ids=torch.tensor([0], device=self.device, dtype=torch.long),
+            input_boxes=None,
+            input_boxes_mask=None,
+            input_boxes_label=None,
+            input_points=None,
+            input_points_mask=None,
+        )
 
-    def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, labels=None):
+    def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
         """Prepare prompts by normalizing bounding boxes and points to the destination shape."""
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=self.torch_dtype, device=self.device)
@@ -2043,11 +2056,11 @@ class SAM3Predictor(Predictor):
             labels = labels.view(1, -1)  # (1, N)
         return bboxes, labels
 
-    def _inference_features(self, features, bboxes=None, labels=None):
+    def _inference_features(self, features, bboxes=None, labels=None, multimask_output=None):
         """Run inference on the extracted features with optional bounding boxes and labels."""
         geometric_prompt = self.model._get_dummy_prompt()
         if bboxes is not None:
-            geometric_prompt.append(bboxes, labels)
+            geometric_prompt.append_boxes(bboxes, labels)
         if len(self.model.text_embeddings) == 0:
             self.model.set_classes(text=["visual"])
         outputs = self.model.forward_grounding(
@@ -2067,13 +2080,15 @@ class SAM3Predictor(Predictor):
         presence_score = preds["presence_logit_dec"].sigmoid().unsqueeze(1)
         out_probs = (out_probs * presence_score).squeeze(-1)
 
-        keep = out_probs > self.args.confidence_threshold
+        keep = out_probs > self.args.conf
         out_probs = out_probs[keep]
         out_masks = out_masks[keep]
-        out_bbox = out_bbox[keep]
+        out_bbox = ops.xywh2xyxy(out_bbox[keep])
+        out_bbox[..., 0] *= self.imgsz[1]
+        out_bbox[..., 1] *= self.imgsz[0]
+        out_bbox[..., 2] *= self.imgsz[1]
+        out_bbox[..., 3] *= self.imgsz[0]
 
-        scale_fct = torch.tensor(self.imgsz[[1, 0, 1, 0]]).to(self.device)
-        boxes = boxes * scale_fct[None, :]
         names = dict(enumerate(str(i) for i in range(out_masks.shape[0])))
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list

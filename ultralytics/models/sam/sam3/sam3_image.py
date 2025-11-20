@@ -422,6 +422,7 @@ class Sam3Image(torch.nn.Module):
         find_target,
         geometric_prompt: Prompt,
     ):
+        backbone_out.update(self.text_embeddings)
         with torch.profiler.record_function("SAM3Image._encode_prompt"):
             prompt, prompt_mask, backbone_out = self._encode_prompt(backbone_out, find_input, geometric_prompt)
         # Run the encoder
@@ -635,6 +636,10 @@ class Sam3Image(torch.nn.Module):
         self.inst_interactive_predictor._is_batch = False
         return res
 
+    def set_classes(self, text: list[str]):
+        """Set the text embeddings for the given class names."""
+        self.text_embeddings = self.backbone.forward_text(text, device=self.device)
+
 
 class Sam3ImageOnVideoMultiGPU(Sam3Image):
     def __init__(self, *args, async_all_gather=True, gather_backbone_out=None, **kwargs):
@@ -829,7 +834,3 @@ class Sam3ImageOnVideoMultiGPU(Sam3Image):
         output_list = [torch.empty_like(x) for _ in range(self.world_size)]
         handle = torch.distributed.all_gather(output_list, x, async_op=async_op)
         return output_list, handle
-
-    def set_classes(self, text: list[str]):
-        """Set the text embeddings for the given class names."""
-        self.text_embeddings = self.model.backbone.forward_text(text, device=self.device)

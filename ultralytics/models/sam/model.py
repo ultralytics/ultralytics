@@ -174,3 +174,4 @@ class SAM(Model):
         if not self.is_sam3:
             return 
         self.model.set_classes(text)
+        self.model.names = text

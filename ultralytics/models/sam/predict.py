@@ -2026,15 +2026,6 @@ class SAM3Predictor(Predictor):
         # update mean and std
         self.mean = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
         self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
-        self.find_stage = FindStage(
-            img_ids=torch.tensor([0], device=self.device, dtype=torch.long),
-            text_ids=torch.tensor([0], device=self.device, dtype=torch.long),
-            input_boxes=None,
-            input_boxes_mask=None,
-            input_boxes_label=None,
-            input_points=None,
-            input_points_mask=None,
-        )
 
     def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
         """Prepare prompts by normalizing bounding boxes and points to the destination shape."""
@@ -2058,7 +2049,18 @@ class SAM3Predictor(Predictor):
 
     def _inference_features(self, features, bboxes=None, labels=None, multimask_output=None):
         """Run inference on the extracted features with optional bounding boxes and labels."""
-        geometric_prompt = self.model._get_dummy_prompt()
+        nc = len(getattr(self.model, "names", ["visual"]))
+        self.find_stage = FindStage(
+            img_ids=torch.tensor([0] * nc, device=self.device, dtype=torch.long),
+            text_ids=torch.tensor(list(range(nc)), device=self.device, dtype=torch.long),
+            input_boxes=None,
+            input_boxes_mask=None,
+            input_boxes_label=None,
+            input_points=None,
+            input_points_mask=None,
+        )
+
+        geometric_prompt = self.model._get_dummy_prompt(nc)
         if bboxes is not None:
             geometric_prompt.append_boxes(bboxes, labels)
         if len(self.model.text_embeddings) == 0:

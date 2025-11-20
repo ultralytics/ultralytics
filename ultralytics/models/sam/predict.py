@@ -2103,3 +2103,7 @@ class SAM3Predictor(Predictor):
             pred_bboxes = torch.cat([boxes, scores[:, None], cls[:, None]], dim=-1)
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         return results
+
+    def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
+        """Perform inference on a single image with optional prompts."""
+        return self.prompt_inference(im, bboxes, points, labels, masks, multimask_output)

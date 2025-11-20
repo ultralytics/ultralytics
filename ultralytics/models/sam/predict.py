@@ -772,37 +772,6 @@ class SAM2Predictor(Predictor):
                 points, labels = bboxes, bbox_labels
         return points, labels, masks
 
-    def set_image(self, image):
-        """Preprocess and set a single image for inference using the SAM2 model.
-
-        This method initializes the model if not already done, configures the data source to the specified image, and
-        preprocesses the image for feature extraction. It supports setting only one image at a time.
-
-        Args:
-            image (str | np.ndarray): Path to the image file as a string, or a numpy array representing the image.
-
-        Raises:
-            AssertionError: If more than one image is attempted to be set.
-
-        Examples:
-            >>> predictor = SAM2Predictor()
-            >>> predictor.set_image("path/to/image.jpg")
-            >>> predictor.set_image(np.array([...]))  # Using a numpy array
-
-        Notes:
-            - This method must be called before performing any inference on a new image.
-            - The method caches the extracted features for efficient subsequent inferences on the same image.
-            - Only one image can be set at a time. To process multiple images, call this method for each new image.
-        """
-        if self.model is None:
-            self.setup_model(model=None)
-        self.setup_source(image)
-        assert len(self.dataset) == 1, "`set_image` only supports setting one image!"
-        for batch in self.dataset:
-            im = self.preprocess(batch[1])
-            self.features = self.get_im_features(im)
-            break
-
     def get_im_features(self, im):
         """Extract image features from the SAM image encoder for subsequent processing."""
         assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
@@ -2003,3 +1972,55 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             "obj_ptr": obj_ptr,
             "object_score_logits": object_score_logits,
         }
+
+
+class SAM3Predictor(Predictor):
+    """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
+
+    def get_model(self):
+        """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
+        from .build_sam3 import build_sam3_image_model  # slow import
+
+        # TODO
+        return build_sam3_image_model(
+            self.args.model, bpe_path="/home/laughing/codes/sam3/assets/bpe_simple_vocab_16e6.txt.gz"
+        )
+
+    def get_im_features(self, im):
+        """Extract image features using the model's backbone."""
+        return self.model.backbone.forward_image(im)
+
+    def setup_model(self, model=None, verbose=True):
+        """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""
+        super().setup_model(model, verbose)
+        # update mean and std
+        self.mean = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
+        self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
+
+    def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None):
+        """Prepare prompts by normalizing bounding boxes and points to the destination shape."""
+        if points is not None:
+            points = torch.as_tensor(points, dtype=self.torch_dtype, device=self.device)
+            points = points[None] if points.ndim == 1 else points
+            # Assuming labels are all positive if users don't pass labels.
+            if labels is None:
+                labels = np.ones(points.shape[:-1])
+            labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
+            assert points.shape[-2] == labels.shape[-1], (
+                f"Number of points {points.shape[-2]} should match number of labels {labels.shape[-1]}."
+            )
+            points[..., 0] /= src_shape[1]
+            points[..., 1] /= src_shape[0]
+            if points.ndim == 2:
+                # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
+                points, labels = points[:, None, :], labels[:, None]
+        if bboxes is not None:
+            bboxes = torch.as_tensor(bboxes, dtype=self.torch_dtype, device=self.device)
+            bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
+            bboxes[:, 0::2] /= src_shape[1]
+            bboxes[:, 1::2] /= src_shape[0]
+        return bboxes, points, labels
+
+
+    def _inference_features(self, features, bboxes=None, points=None, labels=None):
+        pass

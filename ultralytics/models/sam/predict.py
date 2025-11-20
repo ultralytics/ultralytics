@@ -1997,30 +1997,66 @@ class SAM3Predictor(Predictor):
         self.mean = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
         self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
 
-    def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None):
+    def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, labels=None):
         """Prepare prompts by normalizing bounding boxes and points to the destination shape."""
-        if points is not None:
-            points = torch.as_tensor(points, dtype=self.torch_dtype, device=self.device)
-            points = points[None] if points.ndim == 1 else points
-            # Assuming labels are all positive if users don't pass labels.
-            if labels is None:
-                labels = np.ones(points.shape[:-1])
-            labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
-            assert points.shape[-2] == labels.shape[-1], (
-                f"Number of points {points.shape[-2]} should match number of labels {labels.shape[-1]}."
-            )
-            points[..., 0] /= src_shape[1]
-            points[..., 1] /= src_shape[0]
-            if points.ndim == 2:
-                # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
-                points, labels = points[:, None, :], labels[:, None]
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=self.torch_dtype, device=self.device)
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
             bboxes[:, 0::2] /= src_shape[1]
             bboxes[:, 1::2] /= src_shape[0]
-        return bboxes, points, labels
+            # Assuming labels are all positive if users don't pass labels.
+            if labels is None:
+                labels = np.ones(bboxes.shape[:-1])
+            labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
+            assert bboxes.shape[-2] == labels.shape[-1], (
+                f"Number of points {bboxes.shape[-2]} should match number of labels {labels.shape[-1]}."
+            )
+            bboxes = bboxes.view(1, -1, 4)  # (1, N, 4)
+            labels = labels.view(1, -1)  # (1, N)
+        return bboxes, labels
 
+    def _inference_features(self, features, bboxes=None, labels=None):
+        """Run inference on the extracted features with optional bounding boxes and labels."""
+        geometric_prompt = self.model._get_dummy_prompt()
+        if bboxes is not None:
+            geometric_prompt.append(bboxes, labels)
+        if len(self.model.text_embeddings) == 0:
+            self.model.set_classes(text=["visual"])
+        outputs = self.model.forward_grounding(
+            backbone_out=features,
+            find_input=self.find_stage,
+            geometric_prompt=geometric_prompt,
+            find_target=None,
+        )
+        return outputs
 
-    def _inference_features(self, features, bboxes=None, points=None, labels=None):
-        pass
+    def postprocess(self, preds, img, orig_imgs):
+        """Post-process the predictions to apply non-overlapping constraints if required."""
+        out_bbox = preds["pred_boxes"]
+        out_logits = preds["pred_logits"]
+        out_masks = preds["pred_masks"]
+        out_probs = out_logits.sigmoid()
+        presence_score = preds["presence_logit_dec"].sigmoid().unsqueeze(1)
+        out_probs = (out_probs * presence_score).squeeze(-1)
+
+        keep = out_probs > self.args.confidence_threshold
+        out_probs = out_probs[keep]
+        out_masks = out_masks[keep]
+        out_bbox = out_bbox[keep]
+
+        scale_fct = torch.tensor(self.imgsz[[1, 0, 1, 0]]).to(self.device)
+        boxes = boxes * scale_fct[None, :]
+        names = dict(enumerate(str(i) for i in range(out_masks.shape[0])))
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+        results = []
+        for masks, boxes, scores, orig_img, img_path in zip(
+            [out_masks], [out_bbox], [out_probs], orig_imgs, self.batch[0]
+        ):
+            masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0] > 0.5
+            cls = torch.arange(out_masks.shape[0], dtype=torch.int32, device=out_masks.device)
+            pred_bboxes = ops.scale_boxes(img.shape[2:], boxes.float(), orig_img.shape, padding=False)
+            pred_bboxes = torch.cat([pred_bboxes, scores[:, None], cls[:, None]], dim=-1)
+            results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
+        return results

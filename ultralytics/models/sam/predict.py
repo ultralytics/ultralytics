@@ -2075,7 +2075,7 @@ class SAM3Predictor(Predictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process the predictions to apply non-overlapping constraints if required."""
-        pred_bbox = preds["pred_boxes"]
+        pred_bbox = preds["pred_boxes"]  # (nc, num_query, 4)
         pred_logits = preds["pred_logits"]
         pred_masks = preds["pred_masks"]
         pred_scores = pred_logits.sigmoid()

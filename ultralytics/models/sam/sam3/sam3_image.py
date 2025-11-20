@@ -1,9 +1,9 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
+from __future__ import annotations
 import os
 from copy import deepcopy
 from typing import Dict, List, Optional, Tuple
-from __future__ import annotations
 
 import numpy as np
 import torch

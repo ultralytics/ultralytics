@@ -1,0 +1,54 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Builds ultralytics/ultralytics:latest-python image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Lightweight CPU image optimized for YOLO inference
+
+# Use official Python base image for reproducibility (3.11.10 for export and 3.12.10 for inference)
+FROM python:3.11.10-slim-bookworm
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_BREAK_SYSTEM_PACKAGES=1
+
+# Downloads to user config dir
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
+    /root/.config/Ultralytics/
+
+# Install linux packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3-pip git zip unzip wget curl htop libgl1 libglib2.0-0 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create working directory
+WORKDIR /ultralytics
+
+# Copy contents and configure git
+COPY . .
+RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
+    sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
+ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
+
+# Install pip packages
+RUN pip install uv && \
+    uv pip install --system -e . --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match && \
+    # Remove extra build files
+    rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
+
+# Usage Examples -------------------------------------------------------------------------------------------------------
+
+# Build and Push
+# t=ultralytics/ultralytics:latest-python && sudo docker build -f docker/Dockerfile-python -t $t . && sudo docker push $t
+
+# Run
+# t=ultralytics/ultralytics:latest-python && sudo docker run -it --ipc=host $t
+
+# Pull and Run
+# t=ultralytics/ultralytics:latest-python && sudo docker pull $t && sudo docker run -it --ipc=host $t
+
+# Pull and Run with local volume mounted
+# t=ultralytics/ultralytics:latest-python && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/shared/datasets:/datasets $t

@@ -1,0 +1,231 @@
+/* Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license */
+
+/* Table format like GitHub ----------------------------------------------------------------------------------------- */
+th,
+td {
+  border: 1px solid var(--md-typeset-table-color);
+  border-spacing: 0;
+  border-bottom: none;
+  border-left: none;
+  border-top: none;
+}
+.md-typeset__table {
+  line-height: 1;
+}
+.md-typeset__table table:not([class]) {
+  font-size: 0.74rem;
+  border-right: none;
+}
+.md-typeset__table table:not([class]) td,
+.md-typeset__table table:not([class]) th {
+  padding: 9px;
+}
+/* light mode alternating table bg colors */
+.md-typeset__table tr:nth-child(2n) {
+  background-color: #f6f8fa;
+}
+/* dark mode alternating table bg colors */
+[data-md-color-scheme="slate"] .md-typeset__table tr:nth-child(2n) {
+  background-color: #161b22;
+}
+/* Table format like GitHub ----------------------------------------------------------------------------------------- */
+
+/* Code block vertical scroll */
+div.highlight {
+  max-height: 20rem;
+  overflow-y: auto; /* for adding a scrollbar when needed */
+}
+
+/* Set content width */
+.md-grid {
+  max-width: 1440px;
+}
+
+/* Set language dropdown maximum height to screen height */
+.md-header .md-select:hover .md-select__inner {
+  max-height: 75vh;
+}
+
+/* Banner ----------------------------------------------------------------------------------------------------------- */
+.md-banner {
+  background-image: url(https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/691dac3414d0280ebe3e5fda_bg.avif);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.md-banner__inner {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+.banner-wrapper,
+.banner-wrapper > .banner-content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.banner-wrapper,
+.banner-wrapper > .banner-content-wrapper {
+  flex-direction: column;
+}
+.banner-wrapper {
+  padding: 40px 0px;
+}
+.banner-wrapper > .banner-content-wrapper {
+  gap: 0.75rem;
+}
+.banner-wrapper > .banner-content-wrapper > img {
+  height: 30px;
+}
+.banner-wrapper > .banner-content-wrapper > .vc-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+}
+.banner-wrapper > .banner-content-wrapper > .vc-wrapper > img {
+  height: 20px;
+}
+@media screen and (min-width: 768px) {
+  .md-banner {
+    height: 68px;
+  }
+  .banner-wrapper,
+  .banner-wrapper > .banner-content-wrapper {
+    flex-direction: row;
+  }
+  .banner-wrapper {
+    padding: 14px 16px;
+  }
+  .banner-wrapper > .banner-content-wrapper {
+    gap: 1.25rem;
+    margin: 0 auto;
+  }
+  .banner-wrapper > .banner-content-wrapper > img {
+    height: 40px;
+  }
+  .banner-wrapper > .banner-content-wrapper > .vc-wrapper {
+    gap: 0.5rem;
+  }
+  .banner-wrapper > .banner-content-wrapper > .vc-wrapper > img {
+    height: 28px;
+  }
+}
+/* Banner ----------------------------------------------------------------------------------------------------------- */
+
+/* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */
+.git-info,
+.dates-container,
+.authors-container,
+.share-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.git-info {
+  font-size: 0.8em;
+  color: gray;
+  margin-bottom: 10px;
+}
+.dates-container,
+.authors-container {
+  margin-bottom: 10px;
+}
+.date-item,
+.author-link,
+.share-button {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.date-item {
+  margin-right: 10px;
+}
+.hover-item {
+  transition: all 0.2s ease;
+  filter: grayscale(100%);
+}
+.date-item .hover-item {
+  font-size: 1.6em;
+  margin-right: 5px;
+}
+.author-link .hover-item {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 3px;
+  background-color: #f0f0f0; /* Placeholder color */
+  opacity: 0; /* Start fully transparent */
+  transition: opacity 0.3s ease-in-out;
+}
+.author-link .hover-item[src] {
+  opacity: 1; /* Fade in when src is set (image loaded) */
+}
+.hover-item:hover {
+  transform: scale(1.2);
+  filter: grayscale(0%);
+}
+.share-buttons {
+  margin-top: 10px;
+}
+.share-button {
+  background-color: #1da1f2;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: none;
+  font-size: 0.95em;
+  margin: 5px;
+  transition: all 0.2s ease;
+}
+.share-button:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+.share-button.linkedin {
+  background-color: #0077b5;
+}
+.share-button i {
+  margin-right: 5px;
+  font-size: 1.1em;
+}
+@media (max-width: 1024px) {
+  .git-info {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .dates-container,
+  .authors-container {
+    width: 100%;
+  }
+}
+/* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */
+
+/* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */
+.ult-header-search {
+  transform: scale(0.7);
+  transform-origin: left center;
+  margin-right: 0.5rem;
+}
+.ult-search-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.5rem;
+  color: var(--md-default-fg-color);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.ult-search-button:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+  border-color: var(--md-accent-fg-color);
+}
+.ult-search-button svg {
+  flex-shrink: 0;
+}
+/* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */

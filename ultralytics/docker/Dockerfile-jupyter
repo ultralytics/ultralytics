@@ -1,0 +1,32 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Builds ultralytics/ultralytics:latest-jupyter image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Image provides JupyterLab interface for interactive YOLO development and includes tutorial notebooks
+
+# Start from Python-based Ultralytics image for full Python environment
+FROM ultralytics/ultralytics:latest-python
+
+# Install JupyterLab for interactive development
+RUN uv pip install --system jupyterlab && \
+    # Create persistent data directory structure
+    mkdir -p /data/{datasets,weights,runs} && \
+    # Configure YOLO directories
+    yolo settings datasets_dir="/data/datasets" weights_dir="/data/weights" runs_dir="/data/runs" && \
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
+
+# Start JupyterLab with tutorial notebook
+ENTRYPOINT ["/usr/local/bin/jupyter", "lab", "--allow-root", "--ip=*", "/ultralytics/examples/tutorial.ipynb"]
+
+# Usage Examples -------------------------------------------------------------------------------------------------------
+
+# Build and Push
+# t=ultralytics/ultralytics:latest-jupyter && sudo docker build -f docker/Dockerfile-jupyter -t $t . && sudo docker push $t
+
+# Run
+# t=ultralytics/ultralytics:latest-jupyter && sudo docker run -it --ipc=host -p 8888:8888 $t
+
+# Pull and Run
+# t=ultralytics/ultralytics:latest-jupyter && sudo docker pull $t && sudo docker run -it --ipc=host -p 8888:8888 $t
+
+# Pull and Run with local volume mounted
+# t=ultralytics/ultralytics:latest-jupyter && sudo docker pull $t && sudo docker run -it --ipc=host -p 8888:8888 -v "$(pwd)"/datasets:/data/datasets $t

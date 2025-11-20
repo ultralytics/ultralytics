@@ -1,0 +1,36 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Builds GitHub actions CI runner image for deployment to DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Image is CUDA-optimized for YOLO single/multi-GPU training and inference tests
+
+# Start FROM Ultralytics GPU image
+FROM ultralytics/ultralytics:latest
+
+# Set additional environment variables for runner
+ARG RUNNER_VERSION=2.329.0
+ENV RUNNER_ALLOW_RUNASROOT=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Set the working directory
+WORKDIR /actions-runner
+
+# Download and unpack the latest runner from https://github.com/actions/runner and install dependencies
+RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
+    curl -o "$FILENAME" -L "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
+    tar xzf "$FILENAME" && \
+    rm "$FILENAME" && \
+    # Install runner dependencies \
+    uv pip install --system pytest-cov && \
+    ./bin/installdependencies.sh && \
+    apt-get -y install libicu-dev
+
+# JSON ENTRYPOINT command to configure and start runner with default TOKEN and NAME
+ENTRYPOINT ["sh", "-c", "./config.sh --url https://github.com/ultralytics/ultralytics --token ${GITHUB_RUNNER_TOKEN:-TOKEN} --name ${GITHUB_RUNNER_NAME:-NAME} --labels gpu-latest --replace && ./run.sh"]
+
+# Usage Examples -------------------------------------------------------------------------------------------------------
+
+# Build and Push
+# t=ultralytics/ultralytics:latest-runner && sudo docker build -f docker/Dockerfile-runner -t $t . && sudo docker push $t
+
+# Pull and Run in detached mode with access to GPUs 0 and 1
+# t=ultralytics/ultralytics:latest-runner && sudo docker run -d -e GITHUB_RUNNER_TOKEN=TOKEN -e GITHUB_RUNNER_NAME=NAME --ipc=host --gpus '"device=0,1"' $t

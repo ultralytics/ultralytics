@@ -1,0 +1,46 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Builds ultralytics/ultralytics:latest-conda image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Image is optimized for Ultralytics Anaconda (https://anaconda.org/conda-forge/ultralytics) installation and usage
+
+# Start FROM miniconda3 image https://hub.docker.com/r/continuumio/miniconda3
+FROM continuumio/miniconda3:latest
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_BREAK_SYSTEM_PACKAGES=1
+
+# Downloads to user config dir
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
+    /root/.config/Ultralytics/
+
+# Install linux packages and conda packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libgl1 && \
+    # Install conda packages
+    # mkl required to fix 'OSError: libmkl_intel_lp64.so.2: cannot open shared object file: No such file or directory'
+    conda config --set solver libmamba && \
+    conda install pytorch torchvision pytorch-cuda=12.1 -c pytorch -c nvidia && \
+    conda install -c conda-forge ultralytics mkl && \
+    # Remove extra build files
+    rm -rf /var/lib/apt/lists/* /root/.config/Ultralytics/persistent_cache.json
+
+# Copy model
+ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
+
+# Usage Examples -------------------------------------------------------------------------------------------------------
+
+# Build and Push
+# t=ultralytics/ultralytics:latest-conda && sudo docker build -f docker/Dockerfile-conda -t $t . && sudo docker push $t
+
+# Run
+# t=ultralytics/ultralytics:latest-conda && sudo docker run -it --ipc=host $t
+
+# Pull and Run
+# t=ultralytics/ultralytics:latest-conda && sudo docker pull $t && sudo docker run -it --ipc=host $t
+
+# Pull and Run with local volume mounted
+# t=ultralytics/ultralytics:latest-conda && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/shared/datasets:/datasets $t

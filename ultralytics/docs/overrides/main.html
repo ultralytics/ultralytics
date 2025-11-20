@@ -1,0 +1,36 @@
+<!-- Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license -->
+
+<!--Site announcement bar-->
+{% extends "base.html" %} {% block announce %}
+<a class="banner-wrapper" href="https://www.ultralytics.com/news/ultralytics-raises-30m-series-a" target="_blank">
+  <div class="banner-content-wrapper">
+    <img
+      src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/691dac336b5de2ae8b398bca_writting.svg"
+      alt="Ultralytics raises $30M Series A"
+      height="40"
+    />
+
+    <div class="vc-wrapper">
+      <img
+        src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/691dac33c95408144846afc7_image%201.png"
+        alt="Elephant"
+        height="28"
+      />
+      <img
+        src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/691dac3333068d9632cc6df8_image%202.png"
+        alt="SquareOne"
+        height="28"
+      />
+    </div>
+  </div>
+</a>
+{% endblock %}
+
+<!--Page titles-->
+{% block htmltitle %} {% if page.toc|first is defined %} {% set page_specific_title = page.toc.items[0].title %} {% else
+%} {% set page_specific_title = page.title | striptags %} {% endif %}
+<title>
+  {%- if page_specific_title -%} {{ page_specific_title }} - {{ config.site_name }} {%- else -%} {{ config.site_name }}
+  {%- endif -%}
+</title>
+{% endblock %}

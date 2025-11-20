@@ -1,0 +1,24 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Builds ultralytics/ultralytics:latest-cpu image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Lightweight CPU image optimized for inference (extends latest-python)
+
+# Build from Ultralytics Python image
+FROM ultralytics/ultralytics:latest-python
+
+# Set default command to bash
+CMD ["/bin/bash"]
+
+# Usage Examples -------------------------------------------------------------------------------------------------------
+
+# Build and Push
+# t=ultralytics/ultralytics:latest-cpu && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t
+
+# Run
+# t=ultralytics/ultralytics:latest-cpu && sudo docker run -it --ipc=host --name NAME $t
+
+# Pull and Run
+# t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host --name NAME $t
+
+# Pull and Run with local volume mounted
+# t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/shared/datasets:/datasets $t

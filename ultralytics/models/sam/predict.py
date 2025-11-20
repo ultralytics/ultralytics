@@ -2109,4 +2109,9 @@ class SAM3Predictor(Predictor):
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
         """Perform inference on a single image with optional prompts."""
+        bboxes = self.prompts.pop("bboxes", bboxes)
+        points = self.prompts.pop("points", points)
+        masks = self.prompts.pop("masks", masks)
+        labels = self.prompts.pop("labels", labels)
+
         return self.prompt_inference(im, bboxes, points, labels, masks, multimask_output)

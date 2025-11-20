@@ -2082,7 +2082,7 @@ class SAM3Predictor(Predictor):
         presence_score = preds["presence_logit_dec"].sigmoid().unsqueeze(1)
         pred_scores = (pred_scores * presence_score).squeeze(-1)
         pred_cls = torch.tensor(
-            list(range(len(pred_scores))),
+            list(range(pred_scores.shape[0])),
             dtype=pred_scores.dtype,
             device=pred_scores.device,
         )[:, None].expand_as(pred_scores)
@@ -2093,7 +2093,7 @@ class SAM3Predictor(Predictor):
         pred_bbox = pred_bbox[keep]
         pred_bbox[:, :4] = ops.xywh2xyxy(pred_bbox[:, :4])
 
-        names = getattr(self.model, "names", list(range(len(pred_scores))))
+        names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
         results = []

@@ -1990,6 +1990,32 @@ class SAM3Predictor(Predictor):
         """Extract image features using the model's backbone."""
         return self.model.backbone.forward_image(im)
 
+    def pre_transform(self, im):
+        """Perform initial transformations on the input image for preprocessing.
+
+        This method applies transformations such as resizing to prepare the image for further preprocessing. Currently,
+        batched inference is not supported; hence the list length should be 1.
+
+        Args:
+            im (list[np.ndarray]): List containing a single image in HWC numpy array format.
+
+        Returns:
+            (list[np.ndarray]): List containing the transformed image.
+
+        Raises:
+            AssertionError: If the input list contains more than one image.
+
+        Examples:
+            >>> predictor = Predictor()
+            >>> image = np.random.rand(480, 640, 3)  # Single HWC image
+            >>> transformed = predictor.pre_transform([image])
+            >>> print(len(transformed))
+            1
+        """
+        assert len(im) == 1, "SAM model does not currently support batched inference"
+        letterbox = LetterBox(1008, auto=False, center=False)  # hardcode here for sam3
+        return [letterbox(image=x) for x in im]
+
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""
         super().setup_model(model, verbose)

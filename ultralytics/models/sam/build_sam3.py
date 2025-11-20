@@ -23,6 +23,7 @@ from ultralytics.models.sam.sam3.tokenizer_ve import SimpleTokenizer
 from ultralytics.models.sam.sam3.vitdet import ViT
 from ultralytics.models.sam.sam3.vl_combiner import SAM3VLBackbone
 from .modules.blocks import PositionEmbeddingSine
+from ultralytics.utils.patches import torch_load
 
 
 def _create_transformer_encoder() -> TransformerEncoderFusion:
@@ -278,10 +279,10 @@ def _create_sam3_transformer() -> TransformerWrapper:
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
 
-def _load_checkpoint(model, checkpoint_path):
+def _load_checkpoint(model, checkpoint):
     """Load model checkpoint from file."""
-    with g_pathmgr.open(checkpoint_path, "rb") as f:
-        ckpt = torch.load(f, map_location="cpu", weights_only=True)
+    with open(checkpoint, "rb") as f:
+        ckpt = torch_load(f)
     if "model" in ckpt and isinstance(ckpt["model"], dict):
         ckpt = ckpt["model"]
     sam3_image_ckpt = {k.replace("detector.", ""): v for k, v in ckpt.items() if "detector" in k}
@@ -289,9 +290,8 @@ def _load_checkpoint(model, checkpoint_path):
         sam3_image_ckpt.update(
             {k.replace("tracker.", "inst_interactive_predictor.model."): v for k, v in ckpt.items() if "tracker" in k}
         )
-    missing_keys, _ = model.load_state_dict(sam3_image_ckpt, strict=False)
-    if len(missing_keys) > 0:
-        print(f"loaded {checkpoint_path} and found missing and/or unexpected keys:\n{missing_keys=}")
+    model.load_state_dict(sam3_image_ckpt, strict=False)
+    return model
 
 
 def build_sam3_image_model(
@@ -360,7 +360,7 @@ def build_sam3_image_model(
     )
 
     # Load checkpoint if provided
-    _load_checkpoint(model, checkpoint_path)
+    model = _load_checkpoint(model, checkpoint_path)
 
     # Setup device and mode
     model.eval()

@@ -2102,7 +2102,6 @@ class SAM3Predictor(Predictor):
                 boxes[..., 1] *= orig_img.shape[0]
                 boxes[..., 2] *= orig_img.shape[1]
                 boxes[..., 3] *= orig_img.shape[0]
-                # pred_bboxes = ops.scale_boxes(img.shape[2:], boxes.float(), orig_img.shape, padding=False)
                 pred_bboxes = torch.cat([boxes, scores[:, None], cls[:, None]], dim=-1)
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         return results

@@ -8,7 +8,6 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 import torch
-
 from ultralytics.utils import ASSETS, YAML
 from ultralytics.utils.checks import check_requirements, check_yaml
 

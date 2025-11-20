@@ -7,7 +7,6 @@ from typing import Any
 
 import cv2.dnn
 import numpy as np
-
 from ultralytics.utils import ASSETS, YAML
 from ultralytics.utils.checks import check_yaml
 

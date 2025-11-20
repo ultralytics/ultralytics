@@ -5,7 +5,6 @@ from __future__ import annotations
 import time
 
 import cv2
-
 from ultralytics import YOLO
 from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import Annotator, colors

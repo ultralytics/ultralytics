@@ -29,7 +29,6 @@ import subprocess
 from pathlib import Path
 
 from bs4 import BeautifulSoup
-
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
 

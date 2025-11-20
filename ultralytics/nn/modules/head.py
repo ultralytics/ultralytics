@@ -1670,6 +1670,7 @@ class SegmentNeckMoE(DetectNeckMoE):
         self.nm = nm
         self.npr = npr
         self.proto = Proto(ch[0], self.npr, self.nm)
+        self.proto.upsample = nn.Identity()  # Disable upsampling for P2 input to keep 160x160 output
 
         c4 = max(ch[0] // 4, self.nm)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)

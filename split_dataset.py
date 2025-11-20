@@ -1,6 +1,5 @@
-import os
-import shutil
 import random
+import shutil
 from pathlib import Path
 
 # paths
@@ -12,10 +11,12 @@ TRAIN = DEST / "train"
 VAL = DEST / "validation"
 TEST = DEST / "test"
 
+
 def create_folders():
     for folder in [TRAIN, VAL, TEST]:
         (folder / "images").mkdir(parents=True, exist_ok=True)
         (folder / "labels").mkdir(parents=True, exist_ok=True)
+
 
 def split_dataset(train_ratio=0.7, val_ratio=0.15):
     imgs = list(RAW_IMG.glob("*.jpg")) + list(RAW_IMG.glob("*.png"))
@@ -25,11 +26,7 @@ def split_dataset(train_ratio=0.7, val_ratio=0.15):
     train_end = int(n * train_ratio)
     val_end = int(n * (train_ratio + val_ratio))
 
-    sets = [
-        ("train", imgs[:train_end]),
-        ("validation", imgs[train_end:val_end]),
-        ("test", imgs[val_end:])
-    ]
+    sets = [("train", imgs[:train_end]), ("validation", imgs[train_end:val_end]), ("test", imgs[val_end:])]
 
     for name, files in sets:
         for img_path in files:
@@ -40,6 +37,7 @@ def split_dataset(train_ratio=0.7, val_ratio=0.15):
             shutil.copy(img_path, dest_img)
             if lbl_path.exists():
                 shutil.copy(lbl_path, dest_lbl)
+
 
 if __name__ == "__main__":
     print("Creating folder structure...")

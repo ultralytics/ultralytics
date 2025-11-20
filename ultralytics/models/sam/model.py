@@ -169,3 +169,8 @@ class SAM(Model):
             {'segment': {'predictor': <class 'ultralytics.models.sam.predict.Predictor'>}}
         """
         return {"segment": {"predictor": SAM2Predictor if self.is_sam2 else SAM3Predictor if self.is_sam3 else Predictor}}
+
+    def set_classes(self, text: list[str]):
+        if not self.is_sam3:
+            return 
+        self.model.set_classes(text)

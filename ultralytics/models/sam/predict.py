@@ -2017,7 +2017,7 @@ class SAM3Predictor(Predictor):
             1
         """
         assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(1008, auto=False, center=False)  # hardcode here for sam3
+        letterbox = LetterBox(1008, auto=False, center=False, scale_fill=True)  # hardcode here for sam3
         return [letterbox(image=x) for x in im]
 
     def setup_model(self, model=None, verbose=True):
@@ -2084,10 +2084,6 @@ class SAM3Predictor(Predictor):
         out_probs = out_probs[keep]
         out_masks = out_masks[keep]
         out_bbox = ops.xywh2xyxy(out_bbox[keep])
-        out_bbox[..., 0] *= self.imgsz[1]
-        out_bbox[..., 1] *= self.imgsz[0]
-        out_bbox[..., 2] *= self.imgsz[1]
-        out_bbox[..., 3] *= self.imgsz[0]
 
         names = dict(enumerate(str(i) for i in range(out_masks.shape[0])))
 
@@ -2097,9 +2093,13 @@ class SAM3Predictor(Predictor):
         for masks, boxes, scores, orig_img, img_path in zip(
             [out_masks], [out_bbox], [out_probs], orig_imgs, self.batch[0]
         ):
-            masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0] > 0.5
+            masks = F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.5
             cls = torch.arange(out_masks.shape[0], dtype=torch.int32, device=out_masks.device)
-            pred_bboxes = ops.scale_boxes(img.shape[2:], boxes.float(), orig_img.shape, padding=False)
-            pred_bboxes = torch.cat([pred_bboxes, scores[:, None], cls[:, None]], dim=-1)
+            boxes[..., 0] *= orig_img.shape[1]
+            boxes[..., 1] *= orig_img.shape[0]
+            boxes[..., 2] *= orig_img.shape[1]
+            boxes[..., 3] *= orig_img.shape[0]
+            # pred_bboxes = ops.scale_boxes(img.shape[2:], boxes.float(), orig_img.shape, padding=False)
+            pred_bboxes = torch.cat([boxes, scores[:, None], cls[:, None]], dim=-1)
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         return results

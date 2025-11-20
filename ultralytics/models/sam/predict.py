@@ -2002,6 +2002,8 @@ class SAM3Predictor(Predictor):
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=self.torch_dtype, device=self.device)
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
+            # needs xywh as input
+            bboxes = ops.xyxy2xywh(bboxes)
             bboxes[:, 0::2] /= src_shape[1]
             bboxes[:, 1::2] /= src_shape[0]
             # Assuming labels are all positive if users don't pass labels.

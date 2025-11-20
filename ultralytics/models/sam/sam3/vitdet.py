@@ -392,8 +392,8 @@ class Attention(nn.Module):
         self.rel_pos_w = nn.Parameter(torch.zeros(2 * self.input_size[1] - 1, self.head_dim))
 
         if not rel_pos_zero_init:
-            torch.nn.trunc_normal_(self.rel_pos_h, std=0.02)
-            torch.nn.trunc_normal_(self.rel_pos_w, std=0.02)
+            nn.init.trunc_normal_(self.rel_pos_h, std=0.02)
+            nn.init.trunc_normal_(self.rel_pos_w, std=0.02)
 
         # Precompute the relative coords
         H, W = self.input_size
@@ -749,7 +749,7 @@ class ViT(nn.Module):
         self.channel_list = [embed_dim] * len(self.full_attn_ids) if return_interm_layers else [embed_dim]
 
         if self.pos_embed is not None:
-            torch.nn.trunc_normal_(self.pos_embed, std=0.02)
+            nn.init.trunc_normal_(self.pos_embed, std=0.02)
 
         self.ln_pre = norm_layer(embed_dim) if ln_pre else nn.Identity()
         self.ln_post = norm_layer(embed_dim) if ln_post else nn.Identity()
@@ -763,7 +763,7 @@ class ViT(nn.Module):
 
     def _init_weights(self, m: nn.Module) -> None:
         if isinstance(m, nn.Linear):
-            torch.nn.trunc_normal_(m.weight, std=0.02)
+            nn.init.trunc_normal_(m.weight, std=0.02)
             if isinstance(m, nn.Linear) and m.bias is not None:
                 nn.init.constant_(m.bias, 0)
         elif isinstance(m, nn.LayerNorm):

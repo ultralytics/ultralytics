@@ -2075,37 +2075,38 @@ class SAM3Predictor(Predictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process the predictions to apply non-overlapping constraints if required."""
-        out_bbox = preds["pred_boxes"]
-        out_logits = preds["pred_logits"]
-        out_masks = preds["pred_masks"]
-        out_probs = out_logits.sigmoid()
+        pred_bbox = preds["pred_boxes"]
+        pred_logits = preds["pred_logits"]
+        pred_masks = preds["pred_masks"]
+        pred_scores = pred_logits.sigmoid()
         presence_score = preds["presence_logit_dec"].sigmoid().unsqueeze(1)
-        out_probs = (out_probs * presence_score).squeeze(-1)
+        pred_scores = (pred_scores * presence_score).squeeze(-1)
+        pred_cls = torch.tensor(
+            list(range(len(pred_scores))),
+            dtype=pred_scores.dtype,
+            device=pred_scores.device,
+        )[:, None].expand_as(pred_scores)
+        pred_bbox = torch.cat([pred_bbox, pred_scores[..., None], pred_cls[..., None]], dim=-1)
 
-        keep = out_probs > self.args.conf
-        out_probs = out_probs[keep]
-        out_masks = out_masks[keep]
-        out_bbox = ops.xywh2xyxy(out_bbox[keep])
+        keep = pred_scores > self.args.conf
+        pred_masks = pred_masks[keep]
+        pred_bbox = pred_bbox[keep]
+        pred_bbox[:, :4] = ops.xywh2xyxy(pred_bbox[:, :4])
 
-        names = dict(enumerate(str(i) for i in range(out_masks.shape[0])))
-
+        names = getattr(self.model, "names", list(range(len(pred_scores))))
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
         results = []
-        for masks, boxes, scores, orig_img, img_path in zip(
-            [out_masks], [out_bbox], [out_probs], orig_imgs, self.batch[0]
-        ):
+        for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_bbox], orig_imgs, self.batch[0]):
             if masks.shape[0] == 0:
-                masks, pred_bboxes = None, torch.zeros((0, 6), device=out_masks.device)
+                masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
                 masks = F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.5
-                cls = torch.arange(out_masks.shape[0], dtype=torch.int32, device=out_masks.device)
                 boxes[..., 0] *= orig_img.shape[1]
                 boxes[..., 1] *= orig_img.shape[0]
                 boxes[..., 2] *= orig_img.shape[1]
                 boxes[..., 3] *= orig_img.shape[0]
-                pred_bboxes = torch.cat([boxes, scores[:, None], cls[:, None]], dim=-1)
-            results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
+            results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         return results
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):

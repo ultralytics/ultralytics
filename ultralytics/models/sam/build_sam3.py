@@ -25,47 +25,6 @@ from ultralytics.models.sam.sam3.vl_combiner import SAM3VLBackbone
 from .modules.blocks import PositionEmbeddingSine
 
 
-def _create_vit_backbone(compile_mode=None):
-    """Create ViT backbone for visual feature extraction."""
-    return ViT(
-        img_size=1008,
-        pretrain_img_size=336,
-        patch_size=14,
-        embed_dim=1024,
-        depth=32,
-        num_heads=16,
-        mlp_ratio=4.625,
-        norm_layer="LayerNorm",
-        drop_path_rate=0.1,
-        qkv_bias=True,
-        use_abs_pos=True,
-        tile_abs_pos=True,
-        global_att_blocks=(7, 15, 23, 31),
-        rel_pos_blocks=(),
-        use_rope=True,
-        use_interp_rope=True,
-        window_size=24,
-        pretrain_use_cls_token=True,
-        retain_cls_token=False,
-        ln_pre=True,
-        ln_post=False,
-        return_interm_layers=False,
-        bias_patch_embed=False,
-        compile_mode=compile_mode,
-    )
-
-
-def _create_vit_neck(position_encoding, vit_backbone, enable_inst_interactivity=False):
-    """Create ViT neck for feature pyramid."""
-    return Sam3DualViTDetNeck(
-        position_encoding=position_encoding,
-        d_model=256,
-        scale_factors=[4.0, 2.0, 1.0, 0.5],
-        trunk=vit_backbone,
-        add_sam2_neck=enable_inst_interactivity,
-    )
-
-
 def _create_vl_backbone(vit_neck, text_encoder):
     """Create visual-language backbone."""
     return SAM3VLBackbone(visual=vit_neck, text=text_encoder, scalp=1)
@@ -291,11 +250,38 @@ def _create_vision_backbone(compile_mode=None, enable_inst_interactivity=True) -
     )
 
     # ViT backbone
-    vit_backbone: ViT = _create_vit_backbone(compile_mode=compile_mode)
-    vit_neck: Sam3DualViTDetNeck = _create_vit_neck(
-        position_encoding,
-        vit_backbone,
-        enable_inst_interactivity=enable_inst_interactivity,
+    vit_backbone = ViT(
+        img_size=1008,
+        pretrain_img_size=336,
+        patch_size=14,
+        embed_dim=1024,
+        depth=32,
+        num_heads=16,
+        mlp_ratio=4.625,
+        norm_layer="LayerNorm",
+        drop_path_rate=0.1,
+        qkv_bias=True,
+        use_abs_pos=True,
+        tile_abs_pos=True,
+        global_att_blocks=(7, 15, 23, 31),
+        rel_pos_blocks=(),
+        use_rope=True,
+        use_interp_rope=True,
+        window_size=24,
+        pretrain_use_cls_token=True,
+        retain_cls_token=False,
+        ln_pre=True,
+        ln_post=False,
+        return_interm_layers=False,
+        bias_patch_embed=False,
+        compile_mode=compile_mode,
+    )
+    vit_neck = Sam3DualViTDetNeck(
+        position_encoding=position_encoding,
+        d_model=256,
+        scale_factors=[4.0, 2.0, 1.0, 0.5],
+        trunk=vit_backbone,
+        add_sam2_neck=enable_inst_interactivity,
     )
     # Visual neck
     return vit_neck

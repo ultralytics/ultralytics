@@ -295,8 +295,8 @@ def _load_checkpoint(model, checkpoint):
 
 
 def build_sam3_image_model(
-    bpe_path: str,
     checkpoint_path: str,
+    bpe_path: str,
     enable_segmentation: bool = True,
     enable_inst_interactivity: bool = False,
     compile: bool = False,
@@ -305,8 +305,8 @@ def build_sam3_image_model(
     Build SAM3 image model
 
     Args:
-        bpe_path: Path to the BPE tokenizer vocabulary
         checkpoint_path: Optional path to model checkpoint
+        bpe_path: Path to the BPE tokenizer vocabulary
         enable_segmentation: Whether to enable segmentation head
         enable_inst_interactivity: Whether to enable instance interactivity (SAM 1 task)
         compile_mode: To enable compilation, set to "default"

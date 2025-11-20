@@ -21,7 +21,7 @@ from pathlib import Path
 from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info
 
-from .predict import Predictor, SAM2Predictor
+from .predict import Predictor, SAM2Predictor, SAM3Predictor
 
 
 class SAM(Model):
@@ -47,7 +47,7 @@ class SAM(Model):
         >>>     print(f"Detected {len(r.masks)} masks")
     """
 
-    def __init__(self, model: str = "sam_b.pt") -> None:
+    def __init__(self, model: str = "sam_b.pt", bpe_path=None) -> None:
         """Initialize the SAM (Segment Anything Model) instance.
 
         Args:
@@ -63,6 +63,8 @@ class SAM(Model):
         if model and Path(model).suffix not in {".pt", ".pth"}:
             raise NotImplementedError("SAM prediction requires pre-trained *.pt or *.pth model.")
         self.is_sam2 = "sam2" in Path(model).stem
+        self.is_sam3 = "sam3" in Path(model).stem
+        self.bpe_path = bpe_path
         super().__init__(model=model, task="segment")
 
     def _load(self, weights: str, task=None):
@@ -77,8 +79,12 @@ class SAM(Model):
             >>> sam._load("path/to/custom_weights.pt")
         """
         from .build import build_sam  # slow import
+        from .build_sam3 import build_sam3_image_model
 
-        self.model = build_sam(weights)
+        if self.is_sam3:
+            self.model = build_sam3_image_model(weights, bpe_path=self.bpe_path)
+        else:
+            self.model = build_sam(weights)
 
     def predict(self, source, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
         """Perform segmentation prediction on the given image or video source.
@@ -162,4 +168,4 @@ class SAM(Model):
             >>> print(task_map)
             {'segment': {'predictor': <class 'ultralytics.models.sam.predict.Predictor'>}}
         """
-        return {"segment": {"predictor": SAM2Predictor if self.is_sam2 else Predictor}}
+        return {"segment": {"predictor": SAM2Predictor if self.is_sam2 else SAM3Predictor if self.is_sam3 else Predictor}}

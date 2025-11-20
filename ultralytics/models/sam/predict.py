@@ -2093,14 +2093,17 @@ class SAM3Predictor(Predictor):
         for masks, boxes, scores, orig_img, img_path in zip(
             [out_masks], [out_bbox], [out_probs], orig_imgs, self.batch[0]
         ):
-            masks = F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.5
-            cls = torch.arange(out_masks.shape[0], dtype=torch.int32, device=out_masks.device)
-            boxes[..., 0] *= orig_img.shape[1]
-            boxes[..., 1] *= orig_img.shape[0]
-            boxes[..., 2] *= orig_img.shape[1]
-            boxes[..., 3] *= orig_img.shape[0]
-            # pred_bboxes = ops.scale_boxes(img.shape[2:], boxes.float(), orig_img.shape, padding=False)
-            pred_bboxes = torch.cat([boxes, scores[:, None], cls[:, None]], dim=-1)
+            if masks.shape[0] == 0:
+                masks, pred_bboxes = None, torch.zeros((0, 6), device=out_masks.device)
+            else:
+                masks = F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.5
+                cls = torch.arange(out_masks.shape[0], dtype=torch.int32, device=out_masks.device)
+                boxes[..., 0] *= orig_img.shape[1]
+                boxes[..., 1] *= orig_img.shape[0]
+                boxes[..., 2] *= orig_img.shape[1]
+                boxes[..., 3] *= orig_img.shape[0]
+                # pred_bboxes = ops.scale_boxes(img.shape[2:], boxes.float(), orig_img.shape, padding=False)
+                pred_bboxes = torch.cat([boxes, scores[:, None], cls[:, None]], dim=-1)
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         return results
 

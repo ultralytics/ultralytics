@@ -529,10 +529,6 @@ def main():
         # Minify files
         minify_files(html=False, css=False, js=False)
 
-        # Cleanup
-        shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
-        shutil.rmtree(DOCS / "repos", ignore_errors=True)
-
         # Print results and auto-serve on macOS
         size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
         LOGGER.info(f"Docs built correctly ✅ ({size:.1f} MB)")
@@ -557,6 +553,8 @@ def main():
     finally:
         if not restored:
             restore_all()
+        shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
+        shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
 
 if __name__ == "__main__":

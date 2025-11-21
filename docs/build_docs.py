@@ -400,7 +400,13 @@ def render_jinja_macros() -> dict[Path, str]:
             LOGGER.warning(f"Could not load default.yaml: {e}")
 
     loader_paths = [DOCS / "en", DOCS]  # search localized docs first, then root docs
-    env = Environment(loader=load_from_path(loader_paths), auto_escape_callback=lambda _: False)
+    env = Environment(
+        loader=load_from_path(loader_paths),
+        auto_escape_callback=lambda _: False,
+        trim_blocks=True,
+        lstrip_blocks=True,
+        keep_trailing_newline=True,
+    )
 
     def indent_filter(value: str, width: int = 4, first: bool = False, blank: bool = False) -> str:
         """Mimic Jinja's indent filter to preserve macros compatibility."""

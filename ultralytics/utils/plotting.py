@@ -207,7 +207,7 @@ class Annotator:
             elif im.shape[2] > 3:  # multispectral
                 im = np.ascontiguousarray(im[..., :3])
         if self.pil:  # use PIL
-            self.im = im if input_is_pil else Image.fromarray(im)
+            self.im = im if input_is_pil else Image.fromarray(im)  # stay in BGR since color palette is in BGR
             if self.im.mode not in {"RGB", "RGBA"}:  # multispectral
                 self.im = self.im.convert("RGB")
             self.draw = ImageDraw.Draw(self.im, "RGBA")
@@ -515,9 +515,10 @@ class Annotator:
         self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
         self.draw = ImageDraw.Draw(self.im)
 
-    def result(self):
-        """Return annotated image as array."""
-        return np.asarray(self.im)
+    def result(self, pil=False):
+        """Return annotated image as array or PIL image."""
+        im = np.asarray(self.im)  # self.im is in BGR
+        return Image.fromarray(im[..., ::-1]) if pil else im
 
     def show(self, title: str | None = None):
         """Show the annotated image."""

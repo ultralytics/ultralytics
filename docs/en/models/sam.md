@@ -216,7 +216,18 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
         auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam_b.pt")
         ```
 
-{% include "macros/sam-auto-annotate.md" %}
+| Argument     | Type        | Default        | Description                                                                          |
+| ------------ | ----------- | -------------- | ------------------------------------------------------------------------------------ |
+| `data`       | `str`       | required       | Path to directory containing target images for annotation or segmentation.           |
+| `det_model`  | `str`       | `'yolo11x.pt'` | YOLO detection model path for initial object detection.                              |
+| `sam_model`  | `str`       | `'sam_b.pt'`   | SAM model path for segmentation (supports SAM, SAM2 variants and mobile_sam models). |
+| `device`     | `str`       | `''`           | Computation device (e.g., 'cuda:0', 'cpu', or '' for automatic device detection).    |
+| `conf`       | `float`     | `0.25`         | YOLO detection confidence threshold for filtering weak detections.                   |
+| `iou`        | `float`     | `0.45`         | IoU threshold for Non-Maximum Suppression to filter overlapping boxes.               |
+| `imgsz`      | `int`       | `640`          | Input size for resizing images (must be multiple of 32).                             |
+| `max_det`    | `int`       | `300`          | Maximum number of detections per image for memory efficiency.                        |
+| `classes`    | `list[int]` | `None`         | List of class indices to detect (e.g., `[0, 1]` for person & bicycle).               |
+| `output_dir` | `str`       | `None`         | Save directory for annotations (defaults to './labels' relative to data path).       |
 
 The `auto_annotate` function takes the path to your images, with optional arguments for specifying the pre-trained detection and SAM segmentation models, the device to run the models on, and the output directory for saving the annotated results.
 

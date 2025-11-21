@@ -34,7 +34,13 @@ YOLO11 pretrained Segment models are shown here. Detect, Segment and Pose models
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-{% include "macros/yolo-seg-perf.md" %}
+| Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+| [YOLO11n-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n-seg.pt) | 640                   | 38.9                 | 32.0                  | 65.9 ± 1.1                     | 1.8 ± 0.0                           | 2.9                | 9.7               |
+| [YOLO11s-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s-seg.pt) | 640                   | 46.6                 | 37.8                  | 117.6 ± 4.9                    | 2.9 ± 0.0                           | 10.1               | 33.0              |
+| [YOLO11m-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m-seg.pt) | 640                   | 51.5                 | 41.5                  | 281.6 ± 1.2                    | 6.3 ± 0.1                           | 22.4               | 113.2             |
+| [YOLO11l-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l-seg.pt) | 640                   | 53.4                 | 42.9                  | 344.2 ± 3.2                    | 7.8 ± 0.2                           | 27.6               | 132.2             |
+| [YOLO11x-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x-seg.pt) | 640                   | 54.7                 | 43.8                  | 664.5 ± 3.2                    | 15.8 ± 0.7                          | 62.1               | 296.4             |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val segment data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val segment data=coco.yaml batch=1 device=0|cpu`
@@ -172,7 +178,26 @@ Export a YOLO11n-seg model to a different format like ONNX, CoreML, etc.
 
 Available YOLO11-seg export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-seg.onnx`. Usage examples are shown for your model after export completes.
 
-{% include "macros/export-table.md" %}
+
+| Format                                             | `format` Argument | Model                                             | Metadata | Arguments                                                                                                           |
+| -------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                    | -                 | `yolo11n-seg.pt`                | ✅       | -                                                                                                                   |
+| [TorchScript](../integrations/torchscript.md)      | `torchscript`     | `yolo11n-seg.torchscript`       | ✅       | `imgsz`, `half`, `dynamic`, `optimize`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                          |
+| [ONNX](../integrations/onnx.md)                    | `onnx`            | `yolo11n-seg.onnx`              | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                 |
+| [OpenVINO](../integrations/openvino.md)            | `openvino`        | `yolo11n-seg_openvino_model/`   | ✅       | `imgsz`, `half`, `dynamic`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device`                          |
+| [TensorRT](../integrations/tensorrt.md)            | `engine`          | `yolo11n-seg.engine`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [CoreML](../integrations/coreml.md)                | `coreml`          | `yolo11n-seg.mlpackage`         | ✅       | `imgsz`, `dynamic`, `half`, `int8`, `nms`:material-information-outline:{ title="conf, iou are also available when nms=True" }, `batch`, `device`                                              |
+| [TF SavedModel](../integrations/tf-savedmodel.md)  | `saved_model`     | `yolo11n-seg_saved_model/`      | ✅       | `imgsz`, `keras`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                                        |
+| [TF GraphDef](../integrations/tf-graphdef.md)      | `pb`              | `yolo11n-seg.pb`                | ❌       | `imgsz`, `batch`, `device`                                                                                          |
+| [TF Lite](../integrations/tflite.md)               | `tflite`          | `yolo11n-seg.tflite`            | ✅       | `imgsz`, `half`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device`                                     |
+| [TF Edge TPU](../integrations/edge-tpu.md)         | `edgetpu`         | `yolo11n-seg_edgetpu.tflite`    | ✅       | `imgsz`, `device`                                                                                                   |
+| [TF.js](../integrations/tfjs.md)                   | `tfjs`            | `yolo11n-seg_web_model/`        | ✅       | `imgsz`, `half`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                                         |
+| [PaddlePaddle](../integrations/paddlepaddle.md)    | `paddle`          | `yolo11n-seg_paddle_model/`     | ✅       | `imgsz`, `batch`, `device`                                                                                          |
+| [MNN](../integrations/mnn.md)                      | `mnn`             | `yolo11n-seg.mnn`               | ✅       | `imgsz`, `batch`, `int8`, `half`, `device`                                                                          |
+| [NCNN](../integrations/ncnn.md)                    | `ncnn`            | `yolo11n-seg_ncnn_model/`       | ✅       | `imgsz`, `half`, `batch`, `device`                                                                                  |
+| [IMX500](../integrations/sony-imx500.md):material-information-outline:{ title="imx format only supported for YOLOv8n and yolo11n model currently" } | `imx`             | `yolo11n-seg_imx_model/`        | ✅       | `imgsz`, `int8`, `data`, `fraction`, `device`                                                                       |
+| [RKNN](../integrations/rockchip-rknn.md)           | `rknn`            | `yolo11n-seg_rknn_model/`       | ✅       | `imgsz`, `batch`, `name`, `device`                                                                                  |
+| [ExecuTorch](../integrations/executorch.md)        | `executorch`      | `yolo11n-seg_executorch_model/` | ✅       | `imgsz`, `device`                                                                                                   |
 
 See full `export` details in the [Export](../modes/export.md) page.
 

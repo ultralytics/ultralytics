@@ -42,7 +42,13 @@ YOLO11 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-{% include "macros/yolo-obb-perf.md" %}
+| Model                                                                                        | size<br><sup>(pixels) | mAP<sup>test<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| -------------------------------------------------------------------------------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+| [YOLO11n-obb](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n-obb.pt) | 1024                  | 78.4               | 117.6 ± 0.8                    | 4.4 ± 0.0                           | 2.7                | 16.8              |
+| [YOLO11s-obb](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s-obb.pt) | 1024                  | 79.5               | 219.4 ± 4.0                    | 5.1 ± 0.0                           | 9.7                | 57.1              |
+| [YOLO11m-obb](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m-obb.pt) | 1024                  | 80.9               | 562.8 ± 2.9                    | 10.1 ± 0.4                          | 20.9               | 182.8             |
+| [YOLO11l-obb](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l-obb.pt) | 1024                  | 81.0               | 712.5 ± 5.0                    | 13.5 ± 0.6                          | 26.1               | 231.2             |
+| [YOLO11x-obb](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x-obb.pt) | 1024                  | 81.3               | 1408.6 ± 7.7                   | 28.6 ± 1.0                          | 58.8               | 519.1             |
 
 - **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
 - **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu`
@@ -209,7 +215,26 @@ Export a YOLO11n-obb model to a different format like ONNX, CoreML, etc.
 
 Available YOLO11-obb export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-obb.onnx`. Usage examples are shown for your model after export completes.
 
-{% include "macros/export-table.md" %}
+
+| Format                                             | `format` Argument | Model                                             | Metadata | Arguments                                                                                                           |
+| -------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                    | -                 | `yolo11n-obb.pt`                | ✅       | -                                                                                                                   |
+| [TorchScript](../integrations/torchscript.md)      | `torchscript`     | `yolo11n-obb.torchscript`       | ✅       | `imgsz`, `half`, `dynamic`, `optimize`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                          |
+| [ONNX](../integrations/onnx.md)                    | `onnx`            | `yolo11n-obb.onnx`              | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                 |
+| [OpenVINO](../integrations/openvino.md)            | `openvino`        | `yolo11n-obb_openvino_model/`   | ✅       | `imgsz`, `half`, `dynamic`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device`                          |
+| [TensorRT](../integrations/tensorrt.md)            | `engine`          | `yolo11n-obb.engine`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [CoreML](../integrations/coreml.md)                | `coreml`          | `yolo11n-obb.mlpackage`         | ✅       | `imgsz`, `dynamic`, `half`, `int8`, `nms`:material-information-outline:{ title="conf, iou are also available when nms=True" }, `batch`, `device`                                              |
+| [TF SavedModel](../integrations/tf-savedmodel.md)  | `saved_model`     | `yolo11n-obb_saved_model/`      | ✅       | `imgsz`, `keras`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                                        |
+| [TF GraphDef](../integrations/tf-graphdef.md)      | `pb`              | `yolo11n-obb.pb`                | ❌       | `imgsz`, `batch`, `device`                                                                                          |
+| [TF Lite](../integrations/tflite.md)               | `tflite`          | `yolo11n-obb.tflite`            | ✅       | `imgsz`, `half`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device`                                     |
+| [TF Edge TPU](../integrations/edge-tpu.md)         | `edgetpu`         | `yolo11n-obb_edgetpu.tflite`    | ✅       | `imgsz`, `device`                                                                                                   |
+| [TF.js](../integrations/tfjs.md)                   | `tfjs`            | `yolo11n-obb_web_model/`        | ✅       | `imgsz`, `half`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                                         |
+| [PaddlePaddle](../integrations/paddlepaddle.md)    | `paddle`          | `yolo11n-obb_paddle_model/`     | ✅       | `imgsz`, `batch`, `device`                                                                                          |
+| [MNN](../integrations/mnn.md)                      | `mnn`             | `yolo11n-obb.mnn`               | ✅       | `imgsz`, `batch`, `int8`, `half`, `device`                                                                          |
+| [NCNN](../integrations/ncnn.md)                    | `ncnn`            | `yolo11n-obb_ncnn_model/`       | ✅       | `imgsz`, `half`, `batch`, `device`                                                                                  |
+| [IMX500](../integrations/sony-imx500.md):material-information-outline:{ title="imx format only supported for YOLOv8n and yolo11n model currently" } | `imx`             | `yolo11n-obb_imx_model/`        | ✅       | `imgsz`, `int8`, `data`, `fraction`, `device`                                                                       |
+| [RKNN](../integrations/rockchip-rknn.md)           | `rknn`            | `yolo11n-obb_rknn_model/`       | ✅       | `imgsz`, `batch`, `name`, `device`                                                                                  |
+| [ExecuTorch](../integrations/executorch.md)        | `executorch`      | `yolo11n-obb_executorch_model/` | ✅       | `imgsz`, `device`                                                                                                   |
 
 See full `export` details in the [Export](../modes/export.md) page.
 

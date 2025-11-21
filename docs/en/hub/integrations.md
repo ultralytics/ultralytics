@@ -102,7 +102,26 @@ After you train a model, you can [export it](./models.md#deploy-model) to 13 dif
 
 The available export formats are detailed in the table below.
 
-{% include "macros/export-table.md" %}
+
+| Format                                             | `format` Argument | Model                                             | Metadata | Arguments                                                                                                           |
+| -------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
+| [PyTorch](https://pytorch.org/)                    | -                 | `yolo11n.pt`                | ✅       | -                                                                                                                   |
+| [TorchScript](../integrations/torchscript.md)      | `torchscript`     | `yolo11n.torchscript`       | ✅       | `imgsz`, `half`, `dynamic`, `optimize`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                          |
+| [ONNX](../integrations/onnx.md)                    | `onnx`            | `yolo11n.onnx`              | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `opset`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                 |
+| [OpenVINO](../integrations/openvino.md)            | `openvino`        | `yolo11n_openvino_model/`   | ✅       | `imgsz`, `half`, `dynamic`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device`                          |
+| [TensorRT](../integrations/tensorrt.md)            | `engine`          | `yolo11n.engine`            | ✅       | `imgsz`, `half`, `dynamic`, `simplify`, `workspace`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device` |
+| [CoreML](../integrations/coreml.md)                | `coreml`          | `yolo11n.mlpackage`         | ✅       | `imgsz`, `dynamic`, `half`, `int8`, `nms`:material-information-outline:{ title="conf, iou are also available when nms=True" }, `batch`, `device`                                              |
+| [TF SavedModel](../integrations/tf-savedmodel.md)  | `saved_model`     | `yolo11n_saved_model/`      | ✅       | `imgsz`, `keras`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                                        |
+| [TF GraphDef](../integrations/tf-graphdef.md)      | `pb`              | `yolo11n.pb`                | ❌       | `imgsz`, `batch`, `device`                                                                                          |
+| [TF Lite](../integrations/tflite.md)               | `tflite`          | `yolo11n.tflite`            | ✅       | `imgsz`, `half`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `data`, `fraction`, `device`                                     |
+| [TF Edge TPU](../integrations/edge-tpu.md)         | `edgetpu`         | `yolo11n_edgetpu.tflite`    | ✅       | `imgsz`, `device`                                                                                                   |
+| [TF.js](../integrations/tfjs.md)                   | `tfjs`            | `yolo11n_web_model/`        | ✅       | `imgsz`, `half`, `int8`, `nms`:material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }, `batch`, `device`                                                         |
+| [PaddlePaddle](../integrations/paddlepaddle.md)    | `paddle`          | `yolo11n_paddle_model/`     | ✅       | `imgsz`, `batch`, `device`                                                                                          |
+| [MNN](../integrations/mnn.md)                      | `mnn`             | `yolo11n.mnn`               | ✅       | `imgsz`, `batch`, `int8`, `half`, `device`                                                                          |
+| [NCNN](../integrations/ncnn.md)                    | `ncnn`            | `yolo11n_ncnn_model/`       | ✅       | `imgsz`, `half`, `batch`, `device`                                                                                  |
+| [IMX500](../integrations/sony-imx500.md):material-information-outline:{ title="imx format only supported for YOLOv8n and yolo11n model currently" } | `imx`             | `yolo11n_imx_model/`        | ✅       | `imgsz`, `int8`, `data`, `fraction`, `device`                                                                       |
+| [RKNN](../integrations/rockchip-rknn.md)           | `rknn`            | `yolo11n_rknn_model/`       | ✅       | `imgsz`, `batch`, `name`, `device`                                                                                  |
+| [ExecuTorch](../integrations/executorch.md)        | `executorch`      | `yolo11n_executorch_model/` | ✅       | `imgsz`, `device`                                                                                                   |
 
 ## Exciting New Features on the Way 🎉
 

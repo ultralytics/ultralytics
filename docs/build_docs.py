@@ -132,7 +132,7 @@ def update_markdown_files(md_filepath: Path):
         content = content.replace("‘", "'").replace("’", "'")
 
         # Add frontmatter if missing
-        if not content.strip().startswith("---\n") and "macros" not in md_filepath.parts:  # skip macros directory
+        if not content.strip().startswith("---\n"):
             header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
             content = header + content
 
@@ -189,12 +189,6 @@ def update_docs_html():
     if any(script):
         update_html_head(script)
 
-    # Delete the /macros directory from the built site
-    macros_dir = SITE / "macros"
-    if macros_dir.exists():
-        LOGGER.info(f"Removing /macros directory from site: {macros_dir}")
-        shutil.rmtree(macros_dir)
-
 
 def update_docs_soup(content: str, html_file: Path | None = None, max_title_length: int = 70) -> str:
     """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
@@ -236,33 +230,6 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
         modified = True
 
     return str(soup) if modified else content
-
-
-def remove_macros():
-    """Remove the /macros directory and related entries in sitemap.xml from the built site."""
-    shutil.rmtree(SITE / "macros", ignore_errors=True)
-    (SITE / "sitemap.xml.gz").unlink(missing_ok=True)
-
-    # Process sitemap.xml
-    sitemap = SITE / "sitemap.xml"
-    lines = sitemap.read_text(encoding="utf-8").splitlines(keepends=True)
-
-    # Find indices of '/macros/' lines
-    macros_indices = [i for i, line in enumerate(lines) if "/macros/" in line]
-
-    # Create a set of indices to remove (including lines before and after)
-    indices_to_remove = set()
-    for i in macros_indices:
-        indices_to_remove.update(range(i - 1, i + 3))  # i-1, i, i+1, i+2, i+3
-
-    # Create new list of lines, excluding the ones to remove
-    new_lines = [line for i, line in enumerate(lines) if i not in indices_to_remove]
-
-    # Write the cleaned content back to the file
-    sitemap.write_text("".join(new_lines), encoding="utf-8")
-
-    LOGGER.info(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
-
 
 # Precompiled regex patterns for minification
 HTML_COMMENT = re.compile(r"<!--[\s\S]*?-->")
@@ -520,7 +487,6 @@ def main():
         # Build the main documentation
         LOGGER.info(f"Building docs from {DOCS}")
         subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
-        remove_macros()
         LOGGER.info(f"Site built at {SITE}")
 
         # Update docs HTML pages

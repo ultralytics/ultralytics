@@ -37,7 +37,7 @@ jobs:
       GITHUB_REF: ${{ github.head_ref || github.ref }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           # Fetch depth 0 required to capture full docs author history
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}

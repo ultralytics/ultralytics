@@ -28,7 +28,9 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import yaml
 from bs4 import BeautifulSoup
+from minijinja import Environment, load_from_path
 
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
@@ -71,6 +73,138 @@ def prepare_docs_markdown(clone_repos: bool = True):
     # Add frontmatter
     for file in TQDM((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
         update_markdown_files(file)
+
+
+def render_jinja_macros():
+    """Render MiniJinja macros in markdown files before building with Zensical/MkDocs.
+    
+    This function:
+    1. Loads variables from mkdocs.yml's 'extra' section
+    2. Loads default config from ultralytics/cfg/default.yaml  
+    3. Sets up MiniJinja environment with loader function
+    4. Renders all markdown files through MiniJinja to expand macros
+    5. Writes rendered content back to the files
+    """
+    mkdocs_yml = DOCS.parent / "mkdocs.yml"
+    default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
+    
+    # Load variables from mkdocs.yml
+    extra_vars = {}
+    site_name = "Ultralytics Docs"
+    if mkdocs_yml.exists():
+        try:
+            with open(mkdocs_yml, encoding="utf-8") as f:
+                # Use UnsafeLoader to handle Python object tags without importing modules
+                config = yaml.load(f, Loader=yaml.UnsafeLoader)
+                extra_vars = config.get("extra", {})
+                site_name = config.get("site_name", site_name)
+        except Exception as e:
+            LOGGER.warning(f"Could not load full mkdocs.yml config: {e}. Using defaults.")
+    
+    # Load default config (this was loaded by macros plugin via include_yaml)
+    if default_yaml.exists():
+        try:
+            with open(default_yaml, encoding="utf-8") as f:
+                default_config = yaml.safe_load(f)
+                # Merge default config into extra_vars
+                extra_vars.update(default_config or {})
+        except Exception as e:
+            LOGGER.warning(f"Could not load default.yaml: {e}")
+    
+    # Setup MiniJinja environment with loader
+    loader_paths = [DOCS / "en", DOCS]  # search localized docs first, then root docs
+    env = Environment(
+        loader=load_from_path(loader_paths),
+        auto_escape_callback=lambda _: False,
+        keep_trailing_newline=True,
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+
+    def indent_filter(value: str, width: int = 4, first: bool = False, blank: bool = False) -> str:
+        """Mimic Jinja's indent filter used by the old mkdocs-macros plugin."""
+        prefix = " " * int(width)
+        result = []
+        for i, line in enumerate(str(value).splitlines(keepends=True)):
+            if not line.strip() and not blank:
+                result.append(line)
+                continue
+            if i == 0 and not first:
+                result.append(line)
+            else:
+                result.append(prefix + line)
+        return "".join(result)
+
+    env.add_filter("indent", indent_filter)
+    reserved_keys = {"name"}  # reserved MiniJinja render_str kwargs
+    newline = "\n"
+    
+    # Add common utility variables
+    extra_vars.update(
+        {
+            "page": {"meta": {}},  # Placeholder for page metadata
+            "config": {"site_name": site_name},
+        }
+    )
+    
+    files_processed = 0
+    files_with_macros = 0
+    
+    for md_file in TQDM((DOCS / "en").rglob("*.md"), desc="Rendering MiniJinja macros"):
+        if "macros" in md_file.parts:
+            continue  # Skip files in the macros directory itself
+        
+        try:
+            content = md_file.read_text(encoding="utf-8")
+            files_processed += 1
+            had_trailing_newline = content.endswith("\n")
+            
+            # Check if file contains Jinja2 syntax
+            if "{{" in content or "{%" in content:
+                # Split frontmatter from content to preserve it
+                parts = content.split("---\n")
+                frontmatter = ""
+                markdown_content = content
+                frontmatter_data = {}
+                leading_newlines = len(markdown_content) - len(markdown_content.lstrip(newline))
+                
+                if content.startswith("---\n") and len(parts) >= 3:
+                    frontmatter = f"---\n{parts[1]}---\n"
+                    markdown_content = "---\n".join(parts[2:])
+                    leading_newlines = len(markdown_content) - len(markdown_content.lstrip(newline))
+                    try:
+                        fm = yaml.safe_load(parts[1]) or {}
+                        if isinstance(fm, dict):
+                            frontmatter_data = fm
+                    except Exception as e:
+                        LOGGER.warning(f"Could not parse frontmatter for {md_file}: {e}")
+                
+                # Render through MiniJinja
+                context = {k: v for k, v in extra_vars.items() if k not in reserved_keys}
+                # Inject frontmatter both at root and under page.meta
+                for k, v in frontmatter_data.items():
+                    if k not in reserved_keys:
+                        context[k] = v
+                context["page"] = {"meta": frontmatter_data}
+                rendered = env.render_str(markdown_content, name=str(md_file.relative_to(DOCS)), **context)
+                # Match original leading newline count (avoid introducing extra blank lines)
+                stripped_rendered = rendered.lstrip(newline)
+                rendered = (newline * leading_newlines) + stripped_rendered
+                
+                # Recombine frontmatter with rendered content
+                final_content = frontmatter + rendered
+                if had_trailing_newline and not final_content.endswith("\n"):
+                    final_content += "\n"
+                md_file.write_text(final_content, encoding="utf-8")
+                files_with_macros += 1
+        
+        except Exception as e:
+            LOGGER.warning(f"Error rendering macros in {md_file}: {e}")
+    
+    if files_with_macros > 0:
+        LOGGER.info(f"Rendered MiniJinja macros in {files_with_macros}/{files_processed} files")
+    else:
+        LOGGER.info(f"No MiniJinja macros found in {files_processed} markdown files")
 
 
 def update_page_title(file_path: Path, new_title: str):
@@ -186,12 +320,6 @@ def update_docs_html():
     if any(script):
         update_html_head(script)
 
-    # Delete the /macros directory from the built site
-    macros_dir = SITE / "macros"
-    if macros_dir.exists():
-        LOGGER.info(f"Removing /macros directory from site: {macros_dir}")
-        shutil.rmtree(macros_dir)
-
 
 def update_docs_soup(content: str, html_file: Path | None = None, max_title_length: int = 70) -> str:
     """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
@@ -233,32 +361,6 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
         modified = True
 
     return str(soup) if modified else content
-
-
-def remove_macros():
-    """Remove the /macros directory and related entries in sitemap.xml from the built site."""
-    shutil.rmtree(SITE / "macros", ignore_errors=True)
-    (SITE / "sitemap.xml.gz").unlink(missing_ok=True)
-
-    # Process sitemap.xml
-    sitemap = SITE / "sitemap.xml"
-    lines = sitemap.read_text(encoding="utf-8").splitlines(keepends=True)
-
-    # Find indices of '/macros/' lines
-    macros_indices = [i for i, line in enumerate(lines) if "/macros/" in line]
-
-    # Create a set of indices to remove (including lines before and after)
-    indices_to_remove = set()
-    for i in macros_indices:
-        indices_to_remove.update(range(i - 1, i + 3))  # i-1, i, i+1, i+2, i+3
-
-    # Create new list of lines, excluding the ones to remove
-    new_lines = [line for i, line in enumerate(lines) if i not in indices_to_remove]
-
-    # Write the cleaned content back to the file
-    sitemap.write_text("".join(new_lines), encoding="utf-8")
-
-    LOGGER.info(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
 
 
 # Precompiled regex patterns for minification
@@ -376,11 +478,13 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
     prepare_docs_markdown()
+    
+    # Render Jinja2 macros before building
+    render_jinja_macros()
 
     # Build the main documentation
     LOGGER.info(f"Building docs from {DOCS}")
     subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
-    remove_macros()
     LOGGER.info(f"Site built at {SITE}")
 
     # Update docs HTML pages

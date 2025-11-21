@@ -728,9 +728,6 @@ nav:
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------
 plugins:
-  - macros:
-      include_yaml:
-        - ultralytics/cfg/default.yaml
   # - search:
   #     lang: en
   - mkdocstrings:

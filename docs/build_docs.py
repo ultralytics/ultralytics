@@ -80,24 +80,40 @@ def render_jinja_macros():
     
     This function:
     1. Loads variables from mkdocs.yml's 'extra' section
-    2. Sets up MiniJinja environment with macros directory
-    3. Renders all markdown files through MiniJinja to expand macros
-    4. Writes rendered content back to the files
+    2. Loads default config from ultralytics/cfg/default.yaml  
+    3. Sets up MiniJinja environment with macros directory
+    4. Renders all markdown files through MiniJinja to expand macros
+    5. Writes rendered content back to the files
     """
     macros_dir = DOCS / "macros"
     mkdocs_yml = DOCS.parent / "mkdocs.yml"
+    default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
     
     # Load variables from mkdocs.yml
     extra_vars = {}
+    site_name = "Ultralytics Docs"
     if mkdocs_yml.exists():
-        with open(mkdocs_yml, encoding="utf-8") as f:
-            # Use FullLoader to handle Python object tags in mkdocs.yml
-            config = yaml.load(f, Loader=yaml.FullLoader)
-            extra_vars = config.get("extra", {})
+        try:
+            with open(mkdocs_yml, encoding="utf-8") as f:
+                # Use UnsafeLoader to handle Python object tags without importing modules
+                config = yaml.load(f, Loader=yaml.UnsafeLoader)
+                extra_vars = config.get("extra", {})
+                site_name = config.get("site_name", site_name)
+        except Exception as e:
+            LOGGER.warning(f"Could not load full mkdocs.yml config: {e}. Using defaults.")
+    
+    # Load default config (this was loaded by macros plugin via include_yaml)
+    if default_yaml.exists():
+        try:
+            with open(default_yaml, encoding="utf-8") as f:
+                default_config = yaml.safe_load(f)
+                # Merge default config into extra_vars
+                extra_vars.update(default_config or {})
+        except Exception as e:
+            LOGGER.warning(f"Could not load default.yaml: {e}")
     
     # Setup MiniJinja environment
-    env = Environment()
-    env.set_auto_escape_callback(lambda _: None)  # Disable auto-escaping for markdown
+    env = Environment(auto_escape_callback=lambda _: None)  # Disable auto-escaping for markdown
     
     # Load all macro templates into the environment
     if macros_dir.exists():
@@ -109,7 +125,7 @@ def render_jinja_macros():
     # Add common utility variables
     extra_vars.update({
         "page": {"meta": {}},  # Placeholder for page metadata
-        "config": {"site_name": extra_vars.get("site_name", "Ultralytics Docs")},
+        "config": {"site_name": site_name},
     })
     
     files_processed = 0

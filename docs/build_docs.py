@@ -28,7 +28,9 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import yaml
 from bs4 import BeautifulSoup
+from minijinja import Environment
 
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
@@ -71,6 +73,84 @@ def prepare_docs_markdown(clone_repos: bool = True):
     # Add frontmatter
     for file in TQDM((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
         update_markdown_files(file)
+
+
+def render_jinja_macros():
+    """Render MiniJinja macros in markdown files before building with Zensical/MkDocs.
+    
+    This function:
+    1. Loads variables from mkdocs.yml's 'extra' section
+    2. Sets up MiniJinja environment with macros directory
+    3. Renders all markdown files through MiniJinja to expand macros
+    4. Writes rendered content back to the files
+    """
+    macros_dir = DOCS / "macros"
+    mkdocs_yml = DOCS.parent / "mkdocs.yml"
+    
+    # Load variables from mkdocs.yml
+    extra_vars = {}
+    if mkdocs_yml.exists():
+        with open(mkdocs_yml, encoding="utf-8") as f:
+            # Use FullLoader to handle Python object tags in mkdocs.yml
+            config = yaml.load(f, Loader=yaml.FullLoader)
+            extra_vars = config.get("extra", {})
+    
+    # Setup MiniJinja environment
+    env = Environment()
+    env.set_auto_escape_callback(lambda _: None)  # Disable auto-escaping for markdown
+    
+    # Load all macro templates into the environment
+    if macros_dir.exists():
+        for macro_file in macros_dir.glob("*.md"):
+            template_name = f"macros/{macro_file.name}"
+            content = macro_file.read_text(encoding="utf-8")
+            env.add_template(template_name, content)
+    
+    # Add common utility variables
+    extra_vars.update({
+        "page": {"meta": {}},  # Placeholder for page metadata
+        "config": {"site_name": extra_vars.get("site_name", "Ultralytics Docs")},
+    })
+    
+    files_processed = 0
+    files_with_macros = 0
+    
+    for md_file in TQDM((DOCS / "en").rglob("*.md"), desc="Rendering MiniJinja macros"):
+        if "macros" in md_file.parts:
+            continue  # Skip files in the macros directory itself
+        
+        try:
+            content = md_file.read_text(encoding="utf-8")
+            files_processed += 1
+            
+            # Check if file contains Jinja2 syntax
+            if "{{" in content or "{%" in content:
+                # Split frontmatter from content to preserve it
+                parts = content.split("---\n")
+                frontmatter = ""
+                markdown_content = content
+                
+                if content.startswith("---\n") and len(parts) >= 3:
+                    frontmatter = f"---\n{parts[1]}---\n"
+                    markdown_content = "---\n".join(parts[2:])
+                
+                # Add this template to the environment and render
+                template_name = str(md_file.relative_to(DOCS))
+                env.add_template(template_name, markdown_content)
+                rendered = env.render_template(template_name, **extra_vars)
+                
+                # Recombine frontmatter with rendered content
+                final_content = frontmatter + rendered
+                md_file.write_text(final_content, encoding="utf-8")
+                files_with_macros += 1
+        
+        except Exception as e:
+            LOGGER.warning(f"Error rendering macros in {md_file}: {e}")
+    
+    if files_with_macros > 0:
+        LOGGER.info(f"Rendered MiniJinja macros in {files_with_macros}/{files_processed} files")
+    else:
+        LOGGER.info(f"No MiniJinja macros found in {files_processed} markdown files")
 
 
 def update_page_title(file_path: Path, new_title: str):
@@ -376,6 +456,9 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
     prepare_docs_markdown()
+    
+    # Render Jinja2 macros before building
+    render_jinja_macros()
 
     # Build the main documentation
     LOGGER.info(f"Building docs from {DOCS}")

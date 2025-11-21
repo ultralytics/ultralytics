@@ -133,10 +133,12 @@ def render_jinja_macros():
     reserved_keys = {"name"}  # reserved MiniJinja render_str kwargs
     
     # Add common utility variables
-    extra_vars.update({
-        "page": {"meta": {}},  # Placeholder for page metadata
-        "config": {"site_name": site_name},
-    })
+    extra_vars.update(
+        {
+            "page": {"meta": {}},  # Placeholder for page metadata
+            "config": {"site_name": site_name},
+        }
+    )
     
     files_processed = 0
     files_with_macros = 0
@@ -155,13 +157,25 @@ def render_jinja_macros():
                 parts = content.split("---\n")
                 frontmatter = ""
                 markdown_content = content
+                frontmatter_data = {}
                 
                 if content.startswith("---\n") and len(parts) >= 3:
                     frontmatter = f"---\n{parts[1]}---\n"
                     markdown_content = "---\n".join(parts[2:])
+                    try:
+                        fm = yaml.safe_load(parts[1]) or {}
+                        if isinstance(fm, dict):
+                            frontmatter_data = fm
+                    except Exception as e:
+                        LOGGER.warning(f"Could not parse frontmatter for {md_file}: {e}")
                 
                 # Render through MiniJinja
                 context = {k: v for k, v in extra_vars.items() if k not in reserved_keys}
+                # Inject frontmatter both at root and under page.meta
+                for k, v in frontmatter_data.items():
+                    if k not in reserved_keys:
+                        context[k] = v
+                context["page"] = {"meta": frontmatter_data}
                 rendered = env.render_str(markdown_content, name=str(md_file.relative_to(DOCS)), **context)
                 
                 # Recombine frontmatter with rendered content

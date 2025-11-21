@@ -589,7 +589,7 @@ class Results(SimpleClass, DataExportMixin):
         if save:
             annotator.save(filename or f"results_{Path(self.path).name}")
 
-        return annotator.im if pil else annotator.result()
+        return annotator.result(pil)
 
     def show(self, *args, **kwargs):
         """Display the image with annotated inference results.

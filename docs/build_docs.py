@@ -30,7 +30,7 @@ from pathlib import Path
 
 import yaml
 from bs4 import BeautifulSoup
-from minijinja import Environment
+from minijinja import Environment, load_from_path
 
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
@@ -81,11 +81,10 @@ def render_jinja_macros():
     This function:
     1. Loads variables from mkdocs.yml's 'extra' section
     2. Loads default config from ultralytics/cfg/default.yaml  
-    3. Sets up MiniJinja environment with macros directory
+    3. Sets up MiniJinja environment with loader function
     4. Renders all markdown files through MiniJinja to expand macros
     5. Writes rendered content back to the files
     """
-    macros_dir = DOCS / "macros"
     mkdocs_yml = DOCS.parent / "mkdocs.yml"
     default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
     
@@ -112,15 +111,26 @@ def render_jinja_macros():
         except Exception as e:
             LOGGER.warning(f"Could not load default.yaml: {e}")
     
-    # Setup MiniJinja environment
-    env = Environment(auto_escape_callback=lambda _: None)  # Disable auto-escaping for markdown
-    
-    # Load all macro templates into the environment
-    if macros_dir.exists():
-        for macro_file in macros_dir.glob("*.md"):
-            template_name = f"macros/{macro_file.name}"
-            content = macro_file.read_text(encoding="utf-8")
-            env.add_template(template_name, content)
+    # Setup MiniJinja environment with loader
+    loader_paths = [DOCS / "en", DOCS]  # search localized docs first, then root docs
+    env = Environment(loader=load_from_path(loader_paths), auto_escape_callback=lambda _: False)
+
+    def indent_filter(value: str, width: int = 4, first: bool = False, blank: bool = False) -> str:
+        """Mimic Jinja's indent filter used by the old mkdocs-macros plugin."""
+        prefix = " " * int(width)
+        result = []
+        for i, line in enumerate(str(value).splitlines(keepends=True)):
+            if not line.strip() and not blank:
+                result.append(line)
+                continue
+            if i == 0 and not first:
+                result.append(line)
+            else:
+                result.append(prefix + line)
+        return "".join(result)
+
+    env.add_filter("indent", indent_filter)
+    reserved_keys = {"name"}  # reserved MiniJinja render_str kwargs
     
     # Add common utility variables
     extra_vars.update({
@@ -150,10 +160,9 @@ def render_jinja_macros():
                     frontmatter = f"---\n{parts[1]}---\n"
                     markdown_content = "---\n".join(parts[2:])
                 
-                # Add this template to the environment and render
-                template_name = str(md_file.relative_to(DOCS))
-                env.add_template(template_name, markdown_content)
-                rendered = env.render_template(template_name, **extra_vars)
+                # Render through MiniJinja
+                context = {k: v for k, v in extra_vars.items() if k not in reserved_keys}
+                rendered = env.render_str(markdown_content, name=str(md_file.relative_to(DOCS)), **context)
                 
                 # Recombine frontmatter with rendered content
                 final_content = frontmatter + rendered

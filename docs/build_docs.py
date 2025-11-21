@@ -137,6 +137,7 @@ def render_jinja_macros():
 
     env.add_filter("indent", indent_filter)
     reserved_keys = {"name"}  # reserved MiniJinja render_str kwargs
+    newline = "\n"
     
     # Add common utility variables
     extra_vars.update(
@@ -165,10 +166,12 @@ def render_jinja_macros():
                 frontmatter = ""
                 markdown_content = content
                 frontmatter_data = {}
+                leading_newlines = len(markdown_content) - len(markdown_content.lstrip(newline))
                 
                 if content.startswith("---\n") and len(parts) >= 3:
                     frontmatter = f"---\n{parts[1]}---\n"
                     markdown_content = "---\n".join(parts[2:])
+                    leading_newlines = len(markdown_content) - len(markdown_content.lstrip(newline))
                     try:
                         fm = yaml.safe_load(parts[1]) or {}
                         if isinstance(fm, dict):
@@ -184,6 +187,9 @@ def render_jinja_macros():
                         context[k] = v
                 context["page"] = {"meta": frontmatter_data}
                 rendered = env.render_str(markdown_content, name=str(md_file.relative_to(DOCS)), **context)
+                # Match original leading newline count (avoid introducing extra blank lines)
+                stripped_rendered = rendered.lstrip(newline)
+                rendered = (newline * leading_newlines) + stripped_rendered
                 
                 # Recombine frontmatter with rendered content
                 final_content = frontmatter + rendered

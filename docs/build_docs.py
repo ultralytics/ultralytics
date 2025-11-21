@@ -26,6 +26,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from bs4 import BeautifulSoup
@@ -489,10 +490,48 @@ def restore_render_backups(backups: dict[Path, str]):
             LOGGER.warning(f"Could not restore {path}: {e}")
 
 
+def backup_docs_sources() -> tuple[Path, list[tuple[Path, Path]]]:
+    """Create a temporary backup of docs sources so we can fully restore after building."""
+    backup_root = Path(tempfile.mkdtemp(prefix="docs_backup_", dir=str(DOCS.parent)))
+    sources = [DOCS / "en", DOCS / "macros"]
+    copied: list[tuple[Path, Path]] = []
+    for src in sources:
+        if not src.exists():
+            continue
+        dst = backup_root / src.name
+        shutil.copytree(src, dst)
+        copied.append((src, dst))
+    return backup_root, copied
+
+
+def restore_docs_sources(backup_root: Path, backups: list[tuple[Path, Path]]):
+    """Restore docs sources from the temporary backup."""
+    for src, dst in backups:
+        shutil.rmtree(src, ignore_errors=True)
+        if dst.exists():
+            shutil.copytree(dst, src)
+    shutil.rmtree(backup_root, ignore_errors=True)
+
+
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
+    backup_root: Path | None = None
+    docs_backups: list[tuple[Path, Path]] = []
     render_backups: dict[Path, str] = {}
+    restored = False
+
+    def restore_all():
+        nonlocal restored
+        if render_backups:
+            LOGGER.info("Restoring markdown files after MiniJinja rendering")
+            restore_render_backups(render_backups)
+        if backup_root:
+            LOGGER.info("Restoring docs directory from backup")
+            restore_docs_sources(backup_root, docs_backups)
+        restored = True
+
     try:
+        backup_root, docs_backups = backup_docs_sources()
         prepare_docs_markdown()
         render_backups = render_jinja_macros()
 
@@ -516,6 +555,9 @@ def main():
         size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
         LOGGER.info(f"Docs built correctly ✅ ({size:.1f} MB)")
 
+        # Restore sources before optionally serving
+        restore_all()
+
         if (MACOS or LINUX) and not os.getenv("GITHUB_ACTIONS"):
             import webbrowser
 
@@ -531,9 +573,8 @@ def main():
         else:
             LOGGER.info('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
     finally:
-        if render_backups:
-            LOGGER.info("Restoring markdown files after MiniJinja rendering")
-            restore_render_backups(render_backups)
+        if not restored:
+            restore_all()
 
 
 if __name__ == "__main__":

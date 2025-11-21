@@ -29,6 +29,8 @@ import subprocess
 from pathlib import Path
 
 from bs4 import BeautifulSoup
+from minijinja import Environment, load_from_path
+import yaml
 
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
@@ -373,44 +375,159 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
             LOGGER.info(f"Total {ext.upper()} reduction: {(r / data['original']) * 100:.2f}% ({r / 1024:.2f} KB saved)")
 
 
+def render_jinja_macros() -> dict[Path, str]:
+    """Render MiniJinja macros in markdown files before building with MkDocs."""
+    mkdocs_yml = DOCS.parent / "mkdocs.yml"
+    default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
+
+    extra_vars = {}
+    site_name = "Ultralytics Docs"
+    if mkdocs_yml.exists():
+        try:
+            with open(mkdocs_yml, encoding="utf-8") as f:
+                config = yaml.load(f, Loader=yaml.UnsafeLoader)
+            extra_vars = config.get("extra", {}) or {}
+            site_name = config.get("site_name", site_name)
+        except Exception as e:
+            LOGGER.warning(f"Could not load full mkdocs.yml config: {e}. Using defaults.")
+
+    if default_yaml.exists():
+        try:
+            with open(default_yaml, encoding="utf-8") as f:
+                default_config = yaml.safe_load(f)
+            extra_vars.update(default_config or {})
+        except Exception as e:
+            LOGGER.warning(f"Could not load default.yaml: {e}")
+
+    loader_paths = [DOCS / "en", DOCS]  # search localized docs first, then root docs
+    env = Environment(loader=load_from_path(loader_paths), auto_escape_callback=lambda _: False)
+
+    def indent_filter(value: str, width: int = 4, first: bool = False, blank: bool = False) -> str:
+        """Mimic Jinja's indent filter to preserve macros compatibility."""
+        prefix = " " * int(width)
+        result = []
+        for i, line in enumerate(str(value).splitlines(keepends=True)):
+            if not line.strip() and not blank:
+                result.append(line)
+                continue
+            if i == 0 and not first:
+                result.append(line)
+            else:
+                result.append(prefix + line)
+        return "".join(result)
+
+    env.add_filter("indent", indent_filter)
+    reserved_keys = {"name"}  # reserved MiniJinja render_str kwargs
+
+    extra_vars.update(
+        {
+            "page": {"meta": {}},  # Placeholder for page metadata
+            "config": {"site_name": site_name},
+        }
+    )
+
+    backups: dict[Path, str] = {}
+    files_processed = 0
+    files_with_macros = 0
+
+    for md_file in TQDM((DOCS / "en").rglob("*.md"), desc="Rendering MiniJinja macros"):
+        if "macros" in md_file.parts:
+            continue  # Skip files in the macros directory itself
+
+        try:
+            content = md_file.read_text(encoding="utf-8")
+        except Exception as e:
+            LOGGER.warning(f"Could not read {md_file}: {e}")
+            continue
+
+        files_processed += 1
+
+        if "{{" not in content and "{%" not in content:
+            continue
+
+        backups[md_file] = content
+
+        parts = content.split("---\n")
+        frontmatter = ""
+        markdown_content = content
+
+        if content.startswith("---\n") and len(parts) >= 3:
+            frontmatter = f"---\n{parts[1]}---\n"
+            markdown_content = "---\n".join(parts[2:])
+
+        context = {k: v for k, v in extra_vars.items() if k not in reserved_keys}
+        try:
+            rendered = env.render_str(markdown_content, name=str(md_file.relative_to(DOCS)), **context)
+        except Exception as e:
+            LOGGER.warning(f"Error rendering macros in {md_file}: {e}")
+            continue
+
+        final_content = frontmatter + rendered
+        md_file.write_text(final_content, encoding="utf-8")
+        files_with_macros += 1
+
+    if files_with_macros > 0:
+        LOGGER.info(f"Rendered MiniJinja macros in {files_with_macros}/{files_processed} files")
+    else:
+        LOGGER.info(f"No MiniJinja macros found in {files_processed} markdown files")
+
+    return backups
+
+
+def restore_render_backups(backups: dict[Path, str]):
+    """Restore markdown files to their pre-render state after building docs."""
+    for path, content in backups.items():
+        try:
+            path.write_text(content, encoding="utf-8")
+        except Exception as e:
+            LOGGER.warning(f"Could not restore {path}: {e}")
+
+
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
-    prepare_docs_markdown()
+    render_backups: dict[Path, str] = {}
+    try:
+        prepare_docs_markdown()
+        render_backups = render_jinja_macros()
 
-    # Build the main documentation
-    LOGGER.info(f"Building docs from {DOCS}")
-    subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
-    remove_macros()
-    LOGGER.info(f"Site built at {SITE}")
+        # Build the main documentation
+        LOGGER.info(f"Building docs from {DOCS}")
+        subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
+        remove_macros()
+        LOGGER.info(f"Site built at {SITE}")
 
-    # Update docs HTML pages
-    update_docs_html()
+        # Update docs HTML pages
+        update_docs_html()
 
-    # Minify files
-    minify_files(html=False, css=False, js=False)
+        # Minify files
+        minify_files(html=False, css=False, js=False)
 
-    # Cleanup
-    shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
-    shutil.rmtree(DOCS / "repos", ignore_errors=True)
+        # Cleanup
+        shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
+        shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
-    # Print results and auto-serve on macOS
-    size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
-    LOGGER.info(f"Docs built correctly ✅ ({size:.1f} MB)")
+        # Print results and auto-serve on macOS
+        size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
+        LOGGER.info(f"Docs built correctly ✅ ({size:.1f} MB)")
 
-    if (MACOS or LINUX) and not os.getenv("GITHUB_ACTIONS"):
-        import webbrowser
+        if (MACOS or LINUX) and not os.getenv("GITHUB_ACTIONS"):
+            import webbrowser
 
-        url = "http://localhost:8000"
-        LOGGER.info(f"Opening browser at {url}")
-        webbrowser.open(url)
-        try:
-            subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
-        except KeyboardInterrupt:
-            LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
-        except Exception as e:
-            LOGGER.info(f"\n❌ Server failed: {e}")
-    else:
-        LOGGER.info('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
+            url = "http://localhost:8000"
+            LOGGER.info(f"Opening browser at {url}")
+            webbrowser.open(url)
+            try:
+                subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
+            except KeyboardInterrupt:
+                LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
+            except Exception as e:
+                LOGGER.info(f"\n❌ Server failed: {e}")
+        else:
+            LOGGER.info('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
+    finally:
+        if render_backups:
+            LOGGER.info("Restoring markdown files after MiniJinja rendering")
+            restore_render_backups(render_backups)
 
 
 if __name__ == "__main__":

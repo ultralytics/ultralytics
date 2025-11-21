@@ -376,7 +376,7 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
             LOGGER.info(f"Total {ext.upper()} reduction: {(r / data['original']) * 100:.2f}% ({r / 1024:.2f} KB saved)")
 
 
-def render_jinja_macros() -> dict[Path, str]:
+def render_jinja_macros() -> None:
     """Render MiniJinja macros in markdown files before building with MkDocs."""
     mkdocs_yml = DOCS.parent / "mkdocs.yml"
     default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
@@ -433,7 +433,6 @@ def render_jinja_macros() -> dict[Path, str]:
         }
     )
 
-    backups: dict[Path, str] = {}
     files_processed = 0
     files_with_macros = 0
 
@@ -451,8 +450,6 @@ def render_jinja_macros() -> dict[Path, str]:
 
         if "{{" not in content and "{%" not in content:
             continue
-
-        backups[md_file] = content
 
         parts = content.split("---\n")
         frontmatter = ""
@@ -477,17 +474,6 @@ def render_jinja_macros() -> dict[Path, str]:
         LOGGER.info(f"Rendered MiniJinja macros in {files_with_macros}/{files_processed} files")
     else:
         LOGGER.info(f"No MiniJinja macros found in {files_processed} markdown files")
-
-    return backups
-
-
-def restore_render_backups(backups: dict[Path, str]):
-    """Restore markdown files to their pre-render state after building docs."""
-    for path, content in backups.items():
-        try:
-            path.write_text(content, encoding="utf-8")
-        except Exception as e:
-            LOGGER.warning(f"Could not restore {path}: {e}")
 
 
 def backup_docs_sources() -> tuple[Path, list[tuple[Path, Path]]]:
@@ -517,14 +503,10 @@ def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
     backup_root: Path | None = None
     docs_backups: list[tuple[Path, Path]] = []
-    render_backups: dict[Path, str] = {}
     restored = False
 
     def restore_all():
         nonlocal restored
-        if render_backups:
-            LOGGER.info("Restoring markdown files after MiniJinja rendering")
-            restore_render_backups(render_backups)
         if backup_root:
             LOGGER.info("Restoring docs directory from backup")
             restore_docs_sources(backup_root, docs_backups)
@@ -533,7 +515,7 @@ def main():
     try:
         backup_root, docs_backups = backup_docs_sources()
         prepare_docs_markdown()
-        render_backups = render_jinja_macros()
+        render_jinja_macros()
 
         # Build the main documentation
         LOGGER.info(f"Building docs from {DOCS}")

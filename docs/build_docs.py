@@ -113,7 +113,13 @@ def render_jinja_macros():
     
     # Setup MiniJinja environment with loader
     loader_paths = [DOCS / "en", DOCS]  # search localized docs first, then root docs
-    env = Environment(loader=load_from_path(loader_paths), auto_escape_callback=lambda _: False)
+    env = Environment(
+        loader=load_from_path(loader_paths),
+        auto_escape_callback=lambda _: False,
+        keep_trailing_newline=True,
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
 
     def indent_filter(value: str, width: int = 4, first: bool = False, blank: bool = False) -> str:
         """Mimic Jinja's indent filter used by the old mkdocs-macros plugin."""
@@ -150,6 +156,7 @@ def render_jinja_macros():
         try:
             content = md_file.read_text(encoding="utf-8")
             files_processed += 1
+            had_trailing_newline = content.endswith("\n")
             
             # Check if file contains Jinja2 syntax
             if "{{" in content or "{%" in content:
@@ -180,6 +187,8 @@ def render_jinja_macros():
                 
                 # Recombine frontmatter with rendered content
                 final_content = frontmatter + rendered
+                if had_trailing_newline and not final_content.endswith("\n"):
+                    final_content += "\n"
                 md_file.write_text(final_content, encoding="utf-8")
                 files_with_macros += 1
         

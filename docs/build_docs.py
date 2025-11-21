@@ -77,17 +77,17 @@ def prepare_docs_markdown(clone_repos: bool = True):
 
 def render_jinja_macros():
     """Render MiniJinja macros in markdown files before building with Zensical/MkDocs.
-    
+
     This function:
     1. Loads variables from mkdocs.yml's 'extra' section
-    2. Loads default config from ultralytics/cfg/default.yaml  
+    2. Loads default config from ultralytics/cfg/default.yaml
     3. Sets up MiniJinja environment with loader function
     4. Renders all markdown files through MiniJinja to expand macros
     5. Writes rendered content back to the files
     """
     mkdocs_yml = DOCS.parent / "mkdocs.yml"
     default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
-    
+
     # Load variables from mkdocs.yml
     extra_vars = {}
     site_name = "Ultralytics Docs"
@@ -100,7 +100,7 @@ def render_jinja_macros():
                 site_name = config.get("site_name", site_name)
         except Exception as e:
             LOGGER.warning(f"Could not load full mkdocs.yml config: {e}. Using defaults.")
-    
+
     # Load default config (this was loaded by macros plugin via include_yaml)
     if default_yaml.exists():
         try:
@@ -110,7 +110,7 @@ def render_jinja_macros():
                 extra_vars.update(default_config or {})
         except Exception as e:
             LOGGER.warning(f"Could not load default.yaml: {e}")
-    
+
     # Setup MiniJinja environment with loader
     loader_paths = [DOCS / "en", DOCS]  # search localized docs first, then root docs
     env = Environment(
@@ -138,7 +138,7 @@ def render_jinja_macros():
     env.add_filter("indent", indent_filter)
     reserved_keys = {"name"}  # reserved MiniJinja render_str kwargs
     newline = "\n"
-    
+
     # Add common utility variables
     extra_vars.update(
         {
@@ -146,19 +146,19 @@ def render_jinja_macros():
             "config": {"site_name": site_name},
         }
     )
-    
+
     files_processed = 0
     files_with_macros = 0
-    
+
     for md_file in TQDM((DOCS / "en").rglob("*.md"), desc="Rendering MiniJinja macros"):
         if "macros" in md_file.parts:
             continue  # Skip files in the macros directory itself
-        
+
         try:
             content = md_file.read_text(encoding="utf-8")
             files_processed += 1
             had_trailing_newline = content.endswith("\n")
-            
+
             # Check if file contains Jinja2 syntax
             if "{{" in content or "{%" in content:
                 # Split frontmatter from content to preserve it
@@ -167,7 +167,7 @@ def render_jinja_macros():
                 markdown_content = content
                 frontmatter_data = {}
                 leading_newlines = len(markdown_content) - len(markdown_content.lstrip(newline))
-                
+
                 if content.startswith("---\n") and len(parts) >= 3:
                     frontmatter = f"---\n{parts[1]}---\n"
                     markdown_content = "---\n".join(parts[2:])
@@ -178,7 +178,7 @@ def render_jinja_macros():
                             frontmatter_data = fm
                     except Exception as e:
                         LOGGER.warning(f"Could not parse frontmatter for {md_file}: {e}")
-                
+
                 # Render through MiniJinja
                 context = {k: v for k, v in extra_vars.items() if k not in reserved_keys}
                 # Inject frontmatter both at root and under page.meta
@@ -190,17 +190,17 @@ def render_jinja_macros():
                 # Match original leading newline count (avoid introducing extra blank lines)
                 stripped_rendered = rendered.lstrip(newline)
                 rendered = (newline * leading_newlines) + stripped_rendered
-                
+
                 # Recombine frontmatter with rendered content
                 final_content = frontmatter + rendered
                 if had_trailing_newline and not final_content.endswith("\n"):
                     final_content += "\n"
                 md_file.write_text(final_content, encoding="utf-8")
                 files_with_macros += 1
-        
+
         except Exception as e:
             LOGGER.warning(f"Error rendering macros in {md_file}: {e}")
-    
+
     if files_with_macros > 0:
         LOGGER.info(f"Rendered MiniJinja macros in {files_with_macros}/{files_processed} files")
     else:
@@ -478,7 +478,7 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
     prepare_docs_markdown()
-    
+
     # Render Jinja2 macros before building
     render_jinja_macros()
 

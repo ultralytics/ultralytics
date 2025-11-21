@@ -103,24 +103,18 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
 Here's a table outlining the Analytics arguments:
 
-
 | Argument | Type | Default | Description |
 | -------- | ---- | ------- | ----------- || `model` | `str` | `None` | Path to an Ultralytics YOLO model file. || `analytics_type` | `str` | `line` | Type of graph, i.e., `line`, `bar`, `area`, or `pie`. |
 
-
 You can also leverage different [`track`](../modes/track.md) arguments in the `Analytics` solution.
-
 
 | Argument | Type | Default | Description |
 | -------- | ---- | ------- | ----------- || `tracker` | `str` | `'botsort.yaml'` | Specifies the tracking algorithm to use, e.g., `bytetrack.yaml` or `botsort.yaml`. || `conf` | `float` | `0.3` | Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives. || `iou` | `float` | `0.5` | Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections. || `classes` | `list` | `None` | Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes. || `verbose` | `bool` | `True` | Controls the display of tracking results, providing a visual output of tracked objects. || `device` | `str` | `None` | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution. |
 
-
 Additionally, the following visualization arguments are supported:
-
 
 | Argument | Type | Default | Description |
 | -------- | ---- | ------- | ----------- || `show` | `bool` | `False` | If `True`, displays the annotated images or videos in a window. Useful for immediate visual feedback during development or testing. || `line_width` | `None or int` | `None` | Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity. |
-
 
 ## Conclusion
 

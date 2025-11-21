@@ -90,14 +90,11 @@ This class performs all the backend operations:
 
 The table below outlines the available parameters for `VisualAISearch`:
 
-
 | Argument | Type | Default | Description |
 | -------- | ---- | ------- | ----------- || `data` | `str` | `'images'` | Path to image directory used for similarity search. |
 
-
 | Argument | Type | Default | Description |
 | -------- | ---- | ------- | ----------- || `device` | `str` | `None` | Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution. |
-
 
 ## Advantages of Semantic Image Search with CLIP and FAISS
 

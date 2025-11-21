@@ -1197,6 +1197,8 @@ class Exporter:
         check_requirements("imx500-converter[pt]>=3.17.3")
         check_requirements("mct-quantizers>=1.6.0")  # Separate for compatibility with model-compression-toolkit
         check_requirements("onnxscript")  # Model Compression Toolkit dependency at Export in runtime
+        check_requirements(["torch","torchvision"])  # Edge MDT dependency at Export in runtime
+
 
         # Install Java>=17
         try:
@@ -1205,7 +1207,11 @@ class Exporter:
             java_version = int(version_match.group(1)) if version_match else 0
             assert java_version >= 17, "Java version too old"
         except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
+            cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "update"]
+            subprocess.run(cmd, check=True)
             cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "openjdk-21-jre"]
+            subprocess.run(cmd, check=True)
+            cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "clean"]
             subprocess.run(cmd, check=True)
 
         return torch2imx(

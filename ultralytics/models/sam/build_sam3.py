@@ -1,29 +1,31 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
-import torch
 import torch.nn as nn
-from iopath.common.file_io import g_pathmgr
-from ultralytics.models.sam.sam3.decoder import (
+from ultralytics.utils.patches import torch_load
+from .sam3.decoder import (
     TransformerDecoder,
     TransformerDecoderLayer,
+    TransformerDecoderLayerv2,
+    TransformerEncoderCrossAttention,
 )
-from ultralytics.models.sam.sam3.encoder import TransformerEncoderFusion, TransformerEncoderLayer
-from ultralytics.models.sam.sam3.geometry_encoders import SequenceGeometryEncoder
-from ultralytics.models.sam.sam3.maskformer_segmentation import PixelDecoder, UniversalSegmentationHead
-from ultralytics.models.sam.sam3.model_misc import (
+from .sam3.encoder import TransformerEncoderFusion, TransformerEncoderLayer
+from .sam3.geometry_encoders import SequenceGeometryEncoder
+from .sam3.maskformer_segmentation import PixelDecoder, UniversalSegmentationHead
+from .sam3.model_misc import (
     DotProductScoring,
     MLP,
     MultiheadAttentionWrapper as MultiheadAttention,
     TransformerWrapper,
 )
-from ultralytics.models.sam.sam3.necks import Sam3DualViTDetNeck
-from ultralytics.models.sam.sam3.sam3_image import Sam3Image
-from ultralytics.models.sam.sam3.text_encoder_ve import VETextEncoder
-from ultralytics.models.sam.sam3.tokenizer_ve import SimpleTokenizer
-from ultralytics.models.sam.sam3.vitdet import ViT
-from ultralytics.models.sam.sam3.vl_combiner import SAM3VLBackbone
-from .modules.blocks import PositionEmbeddingSine
-from ultralytics.utils.patches import torch_load
+from .sam3.necks import Sam3DualViTDetNeck
+from .sam3.sam3_image import Sam3Image
+from .sam3.text_encoder_ve import VETextEncoder
+from .sam3.tokenizer_ve import SimpleTokenizer
+from .sam3.vitdet import ViT
+from .sam3.vl_combiner import SAM3VLBackbone
+from .modules.blocks import PositionEmbeddingSine, RoPEAttention
+from .sam3.memory import CXBlock, SimpleFuser, SimpleMaskDownSampler, SimpleMaskEncoder
+from .sam3_model import SAM3Model
 
 
 def _create_transformer_encoder() -> TransformerEncoderFusion:
@@ -364,5 +366,156 @@ def build_sam3_image_model(
 
     # Setup device and mode
     model.eval()
+
+    return model
+
+
+def _create_tracker_maskmem_backbone():
+    """Create the SAM3 Tracker memory encoder."""
+    # Position encoding for mask memory backbone
+    position_encoding = PositionEmbeddingSine(
+        num_pos_feats=64,
+        normalize=True,
+        scale=None,
+        temperature=10000,
+        precompute_resolution=1008,
+    )
+
+    # Mask processing components
+    mask_downsampler = SimpleMaskDownSampler(kernel_size=3, stride=2, padding=1, interpol_size=[1152, 1152])
+
+    cx_block_layer = CXBlock(
+        dim=256,
+        kernel_size=7,
+        padding=3,
+        layer_scale_init_value=1.0e-06,
+        use_dwconv=True,
+    )
+
+    fuser = SimpleFuser(layer=cx_block_layer, num_layers=2)
+
+    maskmem_backbone = SimpleMaskEncoder(
+        out_dim=64,
+        position_encoding=position_encoding,
+        mask_downsampler=mask_downsampler,
+        fuser=fuser,
+    )
+
+    return maskmem_backbone
+
+
+def _create_tracker_transformer():
+    """Create the SAM3 Tracker transformer components."""
+    # Self attention
+    self_attention = RoPEAttention(
+        embedding_dim=256,
+        num_heads=1,
+        downsample_rate=1,
+        dropout=0.1,
+        rope_theta=10000.0,
+        feat_sizes=[72, 72],
+        use_fa3=False,
+        use_rope_real=False,
+    )
+
+    # Cross attention
+    cross_attention = RoPEAttention(
+        embedding_dim=256,
+        num_heads=1,
+        downsample_rate=1,
+        dropout=0.1,
+        kv_in_dim=64,
+        rope_theta=10000.0,
+        feat_sizes=[72, 72],
+        rope_k_repeat=True,
+        use_fa3=False,
+        use_rope_real=False,
+    )
+
+    # Encoder layer
+    encoder_layer = TransformerDecoderLayerv2(
+        cross_attention_first=False,
+        activation="relu",
+        dim_feedforward=2048,
+        dropout=0.1,
+        pos_enc_at_attn=False,
+        pre_norm=True,
+        self_attention=self_attention,
+        d_model=256,
+        pos_enc_at_cross_attn_keys=True,
+        pos_enc_at_cross_attn_queries=False,
+        cross_attention=cross_attention,
+    )
+
+    # Encoder
+    encoder = TransformerEncoderCrossAttention(
+        remove_cross_attention_layers=[],
+        batch_first=True,
+        d_model=256,
+        frozen=False,
+        pos_enc_at_input=True,
+        layer=encoder_layer,
+        num_layers=4,
+        use_act_checkpoint=False,
+    )
+
+    # Transformer wrapper
+    transformer = TransformerWrapper(
+        encoder=encoder,
+        decoder=None,
+        d_model=256,
+    )
+
+    return transformer
+
+
+def build_interactive_sam3(compile_mode=None) -> SAM3Model:
+    """
+    Build the SAM3 Tracker module for video tracking.
+
+    Returns:
+        Sam3TrackerPredictor: Wrapped SAM3 Tracker module
+    """
+
+    # Create model components
+    maskmem_backbone = _create_tracker_maskmem_backbone()
+    transformer = _create_tracker_transformer()
+    vision_backbone = _create_vision_backbone(compile_mode=compile_mode)
+    backbone = SAM3VLBackbone(scalp=1, visual=vision_backbone, text=None)
+    model = SAM3Model(
+        image_size=1008,
+        image_encoder=backbone,
+        memory_attention=transformer,
+        memory_encoder=maskmem_backbone,
+        backbone_stride=14,
+        num_maskmem=7,
+        sigmoid_scale_for_mem_enc=20.0,
+        sigmoid_bias_for_mem_enc=-10.0,
+        use_mask_input_as_output_without_sam=True,
+        directly_add_no_mem_embed=True,
+        use_high_res_features_in_sam=True,
+        multimask_output_in_sam=True,
+        iou_prediction_use_sigmoid=True,
+        use_obj_ptrs_in_encoder=True,
+        add_tpos_enc_to_obj_ptrs=True,
+        only_obj_ptrs_in_the_past_for_eval=True,
+        pred_obj_scores=True,
+        pred_obj_scores_mlp=True,
+        fixed_no_obj_ptr=True,
+        multimask_output_for_tracking=True,
+        use_multimask_token_for_obj_ptr=True,
+        multimask_min_pt_num=0,
+        multimask_max_pt_num=1,
+        use_mlp_for_obj_ptr_proj=True,
+        compile_image_encoder=False,
+        no_obj_embed_spatial=True,
+        proj_tpos_enc_in_obj_ptrs=True,
+        use_signed_tpos_enc_to_obj_ptrs=True,
+        sam_mask_decoder_extra_args=dict(
+            dynamic_multimask_via_stability=True,
+            dynamic_multimask_stability_delta=0.05,
+            dynamic_multimask_stability_thresh=0.98,
+        ),
+    )
 
     return model

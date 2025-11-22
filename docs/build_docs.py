@@ -420,13 +420,22 @@ def render_jinja_macros() -> None:
 
         parts = content.split("---\n")
         frontmatter = ""
+        frontmatter_data = {}
         markdown_content = content
 
         if content.startswith("---\n") and len(parts) >= 3:
             frontmatter = f"---\n{parts[1]}---\n"
             markdown_content = "---\n".join(parts[2:])
+            try:
+                frontmatter_data = yaml.safe_load(parts[1]) or {}
+            except Exception as e:
+                LOGGER.warning(f"Could not parse frontmatter in {md_file}: {e}")
+                frontmatter_data = {}
 
         context = {k: v for k, v in extra_vars.items() if k not in reserved_keys}
+        context.update({k: v for k, v in frontmatter_data.items() if k not in reserved_keys})
+        context["page"] = context.get("page", {})
+        context["page"]["meta"] = frontmatter_data
         try:
             rendered = env.render_str(markdown_content, name=str(md_file.relative_to(DOCS)), **context)
         except Exception as e:

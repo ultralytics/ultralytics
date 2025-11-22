@@ -1,7 +1,7 @@
 {% macro param_table(params=None) -%}
 | Argument | Type | Default | Description |
 | -------- | ---- | ------- | ----------- |
-{%- set default_params = {
+{% set default_params = {
     "source": ["str", "None", "Specifies the source directory for images or videos. Supports file paths, URLs, and video streams."],
     "persist": ["bool", "False", "Enables persistent tracking of objects between frames, maintaining IDs across video sequences."],
     "stream": ["bool", "False", "Treats the input source as a continuous video stream for real-time processing."],
@@ -25,4 +25,4 @@
 {% endif %}
 {% endfor %}
 {% endif %}
-{%- endmacro %}
+{%- endmacro -%}

@@ -1,7 +1,7 @@
 {% macro param_table(params=None) -%}
 | Argument | Type | Default | Description |
 | -------- | ---- | ------- | ----------- |
-{%- set default_params = {
+{% set default_params = {
     "show": ["bool", "False", "If `True`, displays the annotated images or videos in a window. Useful for immediate visual feedback during development or testing."],
     "save": ["bool", "False or True", "Enables saving of the annotated images or videos to files. Useful for documentation, further analysis, or sharing results. Defaults to True when using CLI & False when used in Python."],
     "save_frames": ["bool", "False", "When processing videos, saves individual frames as images. Useful for extracting specific frames or for detailed frame-by-frame analysis."],
@@ -25,4 +25,4 @@
 {% endif %}
 {% endfor %}
 {% endif %}
-{%- endmacro %}
+{%- endmacro -%}

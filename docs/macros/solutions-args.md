@@ -1,7 +1,7 @@
 {% macro param_table(params=None) -%}
 | Argument | Type | Default | Description |
 | -------- | ---- | ------- | ----------- |
-{%- set default_params = {
+{% set default_params = {
     "model": ["str", "None", "Path to an Ultralytics YOLO model file."],
     "region": ["list", "'[(20, 400), (1260, 400)]'", "List of points defining the counting region."],
     "show_in": ["bool", "True", "Flag to control whether to display the in counts on the video stream."],
@@ -35,4 +35,4 @@
 {% endif %}
 {% endfor %}
 {% endif %}
-{%- endmacro %}
+{%- endmacro -%}

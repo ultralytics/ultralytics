@@ -16,9 +16,10 @@ import re
 import subprocess
 import textwrap
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Literal
+from typing import Literal
 
 from ultralytics.utils.tqdm import TQDM
 
@@ -104,7 +105,7 @@ class DocItem:
     lineno: int
     end_lineno: int
     bases: list[str] = field(default_factory=list)
-    children: list["DocItem"] = field(default_factory=list)
+    children: list[DocItem] = field(default_factory=list)
     module_path: str = ""
     source: str = ""
 
@@ -863,7 +864,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
                 table = _render_table(["Name", "Description"], rows, level + 1, title=None)
                 method_section = f"**Methods**\n\n{table}"
 
-        order = ["args", "attributes", "methods", "examples"] + DEFAULT_SECTION_ORDER
+        order = ["args", "attributes", "methods", "examples", *DEFAULT_SECTION_ORDER]
         rendered = render_docstring(
             item.doc,
             level + 1,

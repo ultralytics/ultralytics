@@ -146,47 +146,62 @@ def update_markdown_files(md_filepath: Path):
 
 def update_docs_html():
     """Update titles, edit links, and convert plaintext links in HTML documentation in one pass."""
-    written = 0
+    from concurrent.futures import ProcessPoolExecutor
 
-    files = list(SITE.rglob("*.html"))
-    for html_file in TQDM(files, n=len(files), desc="Updating docs HTML"):
-        try:
-            content = html_file.read_text(encoding="utf-8")
-        except Exception as e:
-            LOGGER.warning(f"Could not read {html_file}: {e}")
-            continue
+    html_files = list(SITE.rglob("*.html"))
+    if not html_files:
+        LOGGER.info("Updated HTML files: 0")
+        return
 
-        changed = False
-        try:
-            rel_path = html_file.relative_to(SITE).as_posix()
-        except ValueError:
-            rel_path = html_file.name
-
-        if rel_path == "404.html":
-            new_content = re.sub(r"<title>.*?</title>", "<title>Ultralytics Docs - Not Found</title>", content)
-            if new_content != content:
-                content, changed = new_content, True
-
-        for subdir, pattern, docs_url in EDIT_LINK_RULES:
-            if rel_path.startswith(subdir):
-                new_content = pattern.sub(rf"\1{docs_url}\2", content)
-                if new_content != content:
-                    content, changed = new_content, True
-                break
-
-        new_content = update_docs_soup(content, html_file=html_file)
-        if new_content != content:
-            content, changed = new_content, True
-
-        new_content = fix_md_links(content)
-        if new_content != content:
-            content, changed = new_content, True
-
-        if changed:
-            html_file.write_text(content, encoding="utf-8")
-            written += 1
+    max_workers = os.cpu_count() or 1
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        results = TQDM(executor.map(_process_html_file, html_files), total=len(html_files), desc="Updating docs HTML")
+        written = sum(bool(r) for r in results)
 
     LOGGER.info(f"Updated HTML files: {written}")
+
+
+def _process_html_file(html_file: Path) -> bool:
+    """Process a single HTML file; returns True if modified."""
+    try:
+        content = html_file.read_text(encoding="utf-8")
+    except Exception as e:
+        LOGGER.warning(f"Could not read {html_file}: {e}")
+        return False
+
+    changed = False
+    try:
+        rel_path = html_file.relative_to(SITE).as_posix()
+    except ValueError:
+        rel_path = html_file.name
+
+    if rel_path == "404.html":
+        new_content = re.sub(r"<title>.*?</title>", "<title>Ultralytics Docs - Not Found</title>", content)
+        if new_content != content:
+            content, changed = new_content, True
+
+    for subdir, pattern, docs_url in EDIT_LINK_RULES:
+        if rel_path.startswith(subdir):
+            new_content = pattern.sub(rf"\1{docs_url}\2", content)
+            if new_content != content:
+                content, changed = new_content, True
+            break
+
+    new_content = update_docs_soup(content, html_file=html_file)
+    if new_content != content:
+        content, changed = new_content, True
+
+    new_content = fix_md_links(content)
+    if new_content != content:
+        content, changed = new_content, True
+
+    if changed:
+        try:
+            html_file.write_text(content, encoding="utf-8")
+            return True
+        except Exception as e:
+            LOGGER.warning(f"Could not write {html_file}: {e}")
+    return False
 
 
 def update_docs_soup(content: str, html_file: Path | None = None, max_title_length: int = 70) -> str:

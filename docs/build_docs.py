@@ -492,7 +492,7 @@ def main():
     try:
         backup_root, docs_backups = backup_docs_sources()
         prepare_docs_markdown()
-        build_reference()
+        build_reference_docs(update_nav=False)
         render_jinja_macros()
 
         # Build the main documentation

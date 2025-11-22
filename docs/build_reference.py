@@ -929,10 +929,8 @@ def update_mkdocs_file(reference_yaml: str) -> None:
 
 
 def build_reference(update_nav: bool = True) -> list[str]:
-    """Generate stub reference files for navigation, then render full docstring output."""
-    nav_items = build_reference_placeholders(update_nav=update_nav)
-    build_reference_docs(update_nav=False)
-    return nav_items
+    """Create placeholder reference files (legacy mkdocstrings flow)."""
+    return build_reference_placeholders(update_nav=update_nav)
 
 
 def build_reference_placeholders(update_nav: bool = True) -> list[str]:

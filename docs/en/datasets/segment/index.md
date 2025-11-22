@@ -26,7 +26,7 @@ The format for a single row in the segmentation dataset file is as follows:
 <class-index> <x1> <y1> <x2> <y2> ... <xn> <yn>
 ```
 
-In this format, `<class-index>` is the index of the class for the object, and `<x1> <y1> <x2> <y2> ... <xn> <yn>` are the bounding coordinates of the object's segmentation mask. The coordinates are separated by spaces.
+In this format, `<class-index>` is the index of the class for the object, and `<x1> <y1> <x2> <y2> ... <xn> <yn>` are the normalized polygon coordinates of the object's segmentation mask (values are in `[0, 1]` relative to image width and height). The coordinates are separated by spaces.
 
 Here is an example of the YOLO dataset format for a single image with two objects made up of a 3-point segment and a 5-point segment.
 
@@ -37,8 +37,8 @@ Here is an example of the YOLO dataset format for a single image with two object
 
 !!! tip
 
-      - The length of each row does **not** have to be equal.
-      - Each segmentation label must have a **minimum of 3 xy points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
+    - The length of each row does **not** have to be equal.
+    - Each segmentation label must have a **minimum of 3 `(x, y)` points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
 
 ### Dataset YAML format
 
@@ -83,7 +83,7 @@ Ultralytics YOLO supports various datasets for instance segmentation tasks. Here
 
 - [COCO](coco.md): A comprehensive dataset for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning, featuring over 200K labeled images across a wide range of categories.
 - [COCO8-seg](coco8-seg.md): A compact, 8-image subset of COCO designed for quick testing of segmentation model training, ideal for CI checks and workflow validation in the `ultralytics` repository.
-- [COCO128-seg](coco.md): A smaller dataset for [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks, containing a subset of 128 COCO images with segmentation annotations.
+- [COCO128-seg](coco128-seg.md): A smaller dataset for [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks, containing a subset of 128 COCO images with segmentation annotations.
 - [Carparts-seg](carparts-seg.md): A specialized dataset focused on the segmentation of car parts, ideal for automotive applications. It includes a variety of vehicles with detailed annotations of individual car components.
 - [Crack-seg](crack-seg.md): A dataset tailored for the segmentation of cracks in various surfaces. Essential for infrastructure maintenance and quality control, it provides detailed imagery for training models to identify structural weaknesses.
 - [Package-seg](package-seg.md): A dataset dedicated to the segmentation of different types of packaging materials and shapes. It's particularly useful for logistics and warehouse automation, aiding in the development of systems for package handling and sorting.
@@ -110,7 +110,7 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
 
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
 
-Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
+Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful segmentation models.
 
 ## Auto-Annotation
 

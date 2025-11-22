@@ -131,7 +131,7 @@ Idle GPU Training enables automatic selection of the least utilized GPUs in mult
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train using the single most idle GPU
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=-1)
@@ -144,10 +144,10 @@ Idle GPU Training enables automatic selection of the least utilized GPUs in mult
 
         ```bash
         # Start training using the single most idle GPU
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=-1
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=-1
 
         # Start training using the two most idle GPUs
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=-1,-1
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=-1,-1
         ```
 
 The auto-selection algorithm prioritizes GPUs with:

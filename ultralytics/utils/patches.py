@@ -1,11 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Monkey patches to update/extend functionality of existing functions."""
 
+from __future__ import annotations
+
 import time
 from contextlib import contextmanager
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import cv2
 import numpy as np
@@ -15,9 +17,8 @@ import torch
 _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
-def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]:
-    """
-    Read an image from a file with multilanguage filename support.
+def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
+    """Read an image from a file with multilanguage filename support.
 
     Args:
         filename (str): Path to the file to read.
@@ -42,14 +43,13 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]
         return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 
 
-def imwrite(filename: str, img: np.ndarray, params: Optional[List[int]] = None) -> bool:
-    """
-    Write an image to a file with multilanguage filename support.
+def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:
+    """Write an image to a file with multilanguage filename support.
 
     Args:
         filename (str): Path to the file to write.
         img (np.ndarray): Image to write.
-        params (List[int], optional): Additional parameters for image encoding.
+        params (list[int], optional): Additional parameters for image encoding.
 
     Returns:
         (bool): True if the file was written successfully, False otherwise.
@@ -69,15 +69,14 @@ def imwrite(filename: str, img: np.ndarray, params: Optional[List[int]] = None) 
 
 
 def imshow(winname: str, mat: np.ndarray) -> None:
-    """
-    Display an image in the specified window with multilanguage window name support.
+    """Display an image in the specified window with multilanguage window name support.
 
     This function is a wrapper around OpenCV's imshow function that displays an image in a named window. It handles
     multilanguage window names by encoding them properly for OpenCV compatibility.
 
     Args:
-        winname (str): Name of the window where the image will be displayed. If a window with this name already
-            exists, the image will be displayed in that window.
+        winname (str): Name of the window where the image will be displayed. If a window with this name already exists,
+            the image will be displayed in that window.
         mat (np.ndarray): Image to be shown. Should be a valid numpy array representing an image.
 
     Examples:
@@ -94,8 +93,7 @@ _torch_save = torch.save
 
 
 def torch_load(*args, **kwargs):
-    """
-    Load a PyTorch model with updated arguments to avoid warnings.
+    """Load a PyTorch model with updated arguments to avoid warnings.
 
     This function wraps torch.load and adds the 'weights_only' argument for PyTorch 1.13.0+ to prevent warnings.
 
@@ -119,11 +117,10 @@ def torch_load(*args, **kwargs):
 
 
 def torch_save(*args, **kwargs):
-    """
-    Save PyTorch objects with retry mechanism for robustness.
+    """Save PyTorch objects with retry mechanism for robustness.
 
-    This function wraps torch.save with 3 retries and exponential backoff in case of save failures, which can occur
-    due to device flushing delays or antivirus scanning.
+    This function wraps torch.save with 3 retries and exponential backoff in case of save failures, which can occur due
+    to device flushing delays or antivirus scanning.
 
     Args:
         *args (Any): Positional arguments to pass to torch.save.
@@ -144,8 +141,7 @@ def torch_save(*args, **kwargs):
 
 @contextmanager
 def arange_patch(args):
-    """
-    Workaround for ONNX torch.arange incompatibility with FP16.
+    """Workaround for ONNX torch.arange incompatibility with FP16.
 
     https://github.com/pytorch/pytorch/issues/148041.
     """
@@ -164,13 +160,12 @@ def arange_patch(args):
 
 
 @contextmanager
-def override_configs(args, overrides: Optional[Dict[str, Any]] = None):
-    """
-    Context manager to temporarily override configurations in args.
+def override_configs(args, overrides: dict[str, Any] | None = None):
+    """Context manager to temporarily override configurations in args.
 
     Args:
         args (IterableSimpleNamespace): Original configuration arguments.
-        overrides (Dict[str, Any]): Dictionary of overrides to apply.
+        overrides (dict[str, Any]): Dictionary of overrides to apply.
 
     Yields:
         (IterableSimpleNamespace): Configuration arguments with overrides applied.

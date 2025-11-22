@@ -41,7 +41,7 @@ YOLO11 is the latest iteration in the [Ultralytics](https://www.ultralytics.com/
 
 ## Supported Tasks and Modes
 
-YOLO11 builds upon the versatile model range introduced in YOLOv8, offering enhanced support across various computer vision tasks:
+YOLO11 builds upon the versatile model range established by earlier Ultralytics YOLO releases, offering enhanced support across various computer vision tasks:
 
 | Model       | Filenames                                                                                 | Task                                         | Inference | Validation | Training | Export |
 | ----------- | ----------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
@@ -139,7 +139,7 @@ Note that the example below is for YOLO11 [Detect](../tasks/detect.md) models fo
         yolo predict model=yolo11n.pt source=path/to/bus.jpg
         ```
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 !!! tip "Ultralytics YOLO11 Publication"
 
@@ -181,7 +181,7 @@ Ultralytics YOLO11 introduces several significant advancements over its predeces
 
 Training a YOLO11 model for object detection can be done using Python or CLI commands. Below are examples for both methods:
 
-!!! Example
+!!! example
 
     === "Python"
 

@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import copy
-from typing import Optional
 
 import torch
 from torch import nn
@@ -10,8 +11,7 @@ from .blocks import RoPEAttention
 
 
 class MemoryAttentionLayer(nn.Module):
-    """
-    Implements a memory attention layer with self-attention and cross-attention mechanisms for neural networks.
+    """Implements a memory attention layer with self-attention and cross-attention mechanisms for neural networks.
 
     This class combines self-attention, cross-attention, and feedforward components to process input tensors and
     generate memory-based attention outputs.
@@ -60,8 +60,7 @@ class MemoryAttentionLayer(nn.Module):
         pos_enc_at_cross_attn_keys: bool = True,
         pos_enc_at_cross_attn_queries: bool = False,
     ):
-        """
-        Initialize a memory attention layer with self-attention, cross-attention, and feedforward components.
+        """Initialize a memory attention layer with self-attention, cross-attention, and feedforward components.
 
         Args:
             d_model (int): Dimensionality of the model.
@@ -103,7 +102,7 @@ class MemoryAttentionLayer(nn.Module):
         self.pos_enc_at_cross_attn_queries = pos_enc_at_cross_attn_queries
         self.pos_enc_at_cross_attn_keys = pos_enc_at_cross_attn_keys
 
-    def _forward_sa(self, tgt: torch.Tensor, query_pos: Optional[torch.Tensor]) -> torch.Tensor:
+    def _forward_sa(self, tgt: torch.Tensor, query_pos: torch.Tensor | None) -> torch.Tensor:
         """Perform self-attention on input tensor using positional encoding and RoPE attention mechanism."""
         tgt2 = self.norm1(tgt)
         q = k = tgt2 + query_pos if self.pos_enc_at_attn else tgt2
@@ -115,8 +114,8 @@ class MemoryAttentionLayer(nn.Module):
         self,
         tgt: torch.Tensor,
         memory: torch.Tensor,
-        query_pos: Optional[torch.Tensor],
-        pos: Optional[torch.Tensor],
+        query_pos: torch.Tensor | None,
+        pos: torch.Tensor | None,
         num_k_exclude_rope: int = 0,
     ) -> torch.Tensor:
         """Perform cross-attention between target and memory tensors using RoPEAttention mechanism."""
@@ -140,12 +139,11 @@ class MemoryAttentionLayer(nn.Module):
         self,
         tgt: torch.Tensor,
         memory: torch.Tensor,
-        pos: Optional[torch.Tensor] = None,
-        query_pos: Optional[torch.Tensor] = None,
+        pos: torch.Tensor | None = None,
+        query_pos: torch.Tensor | None = None,
         num_k_exclude_rope: int = 0,
     ) -> torch.Tensor:
-        """
-        Process input tensors through self-attention, cross-attention, and feedforward network layers.
+        """Process input tensors through self-attention, cross-attention, and feedforward network layers.
 
         Args:
             tgt (torch.Tensor): Target tensor for self-attention with shape (N, L, D).
@@ -167,11 +165,10 @@ class MemoryAttentionLayer(nn.Module):
 
 
 class MemoryAttention(nn.Module):
-    """
-    Memory attention module for processing sequential data with self and cross-attention mechanisms.
+    """Memory attention module for processing sequential data with self and cross-attention mechanisms.
 
-    This class implements a multi-layer attention mechanism that combines self-attention and cross-attention
-    for processing sequential data, particularly useful in transformer-like architectures.
+    This class implements a multi-layer attention mechanism that combines self-attention and cross-attention for
+    processing sequential data, particularly useful in transformer-like architectures.
 
     Attributes:
         d_model (int): The dimension of the model's hidden state.
@@ -205,11 +202,10 @@ class MemoryAttention(nn.Module):
         num_layers: int,
         batch_first: bool = True,  # Do layers expect batch first input?
     ):
-        """
-        Initialize MemoryAttention with specified layers and normalization for sequential data processing.
+        """Initialize MemoryAttention with specified layers and normalization for sequential data processing.
 
-        This class implements a multi-layer attention mechanism that combines self-attention and cross-attention
-        for processing sequential data, particularly useful in transformer-like architectures.
+        This class implements a multi-layer attention mechanism that combines self-attention and cross-attention for
+        processing sequential data, particularly useful in transformer-like architectures.
 
         Args:
             d_model (int): The dimension of the model's hidden state.
@@ -242,12 +238,11 @@ class MemoryAttention(nn.Module):
         self,
         curr: torch.Tensor,  # self-attention inputs
         memory: torch.Tensor,  # cross-attention inputs
-        curr_pos: Optional[torch.Tensor] = None,  # pos_enc for self-attention inputs
-        memory_pos: Optional[torch.Tensor] = None,  # pos_enc for cross-attention inputs
+        curr_pos: torch.Tensor | None = None,  # pos_enc for self-attention inputs
+        memory_pos: torch.Tensor | None = None,  # pos_enc for cross-attention inputs
         num_obj_ptr_tokens: int = 0,  # number of object pointer *tokens*
     ) -> torch.Tensor:
-        """
-        Process inputs through attention layers, applying self and cross-attention with positional encoding.
+        """Process inputs through attention layers, applying self and cross-attention with positional encoding.
 
         Args:
             curr (torch.Tensor): Self-attention input tensor, representing the current state.

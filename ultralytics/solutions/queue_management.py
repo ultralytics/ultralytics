@@ -7,18 +7,17 @@ from ultralytics.utils.plotting import colors
 
 
 class QueueManager(BaseSolution):
-    """
-    Manages queue counting in real-time video streams based on object tracks.
+    """Manages queue counting in real-time video streams based on object tracks.
 
-    This class extends BaseSolution to provide functionality for tracking and counting objects within a specified
-    region in video frames.
+    This class extends BaseSolution to provide functionality for tracking and counting objects within a specified region
+    in video frames.
 
     Attributes:
         counts (int): The current count of objects in the queue.
-        rect_color (Tuple[int, int, int]): RGB color tuple for drawing the queue region rectangle.
+        rect_color (tuple[int, int, int]): RGB color tuple for drawing the queue region rectangle.
         region_length (int): The number of points defining the queue region.
-        track_line (List[Tuple[int, int]]): List of track line coordinates.
-        track_history (Dict[int, List[Tuple[int, int]]]): Dictionary storing tracking history for each object.
+        track_line (list[tuple[int, int]]): List of track line coordinates.
+        track_history (dict[int, list[tuple[int, int]]]): Dictionary storing tracking history for each object.
 
     Methods:
         initialize_region: Initialize the queue region.
@@ -46,8 +45,7 @@ class QueueManager(BaseSolution):
         self.region_length = len(self.region)  # Store region length for further usage
 
     def process(self, im0) -> SolutionResults:
-        """
-        Process queue management for a single frame of video.
+        """Process queue management for a single frame of video.
 
         Args:
             im0 (np.ndarray): Input image for processing, typically a frame from a video stream.
@@ -83,7 +81,7 @@ class QueueManager(BaseSolution):
 
         # Display queue counts
         annotator.queue_counts_display(
-            f"Queue Counts : {str(self.counts)}",
+            f"Queue Counts : {self.counts}",
             points=self.region,
             region_color=self.rect_color,
             txt_color=(104, 31, 17),

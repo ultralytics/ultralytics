@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import json
-from typing import Any, List, Tuple
+from typing import Any
 
 import cv2
 import numpy as np
@@ -12,11 +14,10 @@ from ultralytics.utils.checks import check_imshow
 
 
 class ParkingPtsSelection:
-    """
-    A class for selecting and managing parking zone points on images using a Tkinter-based UI.
+    """A class for selecting and managing parking zone points on images using a Tkinter-based UI.
 
-    This class provides functionality to upload an image, select points to define parking zones, and save the
-    selected points to a JSON file. It uses Tkinter for the graphical user interface.
+    This class provides functionality to upload an image, select points to define parking zones, and save the selected
+    points to a JSON file. It uses Tkinter for the graphical user interface.
 
     Attributes:
         tk (module): The Tkinter module for GUI operations.
@@ -26,8 +27,8 @@ class ParkingPtsSelection:
         canvas (tk.Canvas): The canvas widget for displaying the image and drawing bounding boxes.
         image (PIL.Image.Image): The uploaded image.
         canvas_image (ImageTk.PhotoImage): The image displayed on the canvas.
-        rg_data (List[List[Tuple[int, int]]]): List of bounding boxes, each defined by 4 points.
-        current_box (List[Tuple[int, int]]): Temporary storage for the points of the current bounding box.
+        rg_data (list[list[tuple[int, int]]]): List of bounding boxes, each defined by 4 points.
+        current_box (list[tuple[int, int]]): Temporary storage for the points of the current bounding box.
         imgw (int): Original width of the uploaded image.
         imgh (int): Original height of the uploaded image.
         canvas_max_width (int): Maximum width of the canvas.
@@ -141,7 +142,7 @@ class ParkingPtsSelection:
             self.draw_box(self.current_box)
             self.current_box.clear()
 
-    def draw_box(self, box: List[Tuple[int, int]]) -> None:
+    def draw_box(self, box: list[tuple[int, int]]) -> None:
         """Draw a bounding box on the canvas using the provided coordinates."""
         for i in range(4):
             self.canvas.create_line(box[i], box[(i + 1) % 4], fill="blue", width=2)
@@ -176,19 +177,18 @@ class ParkingPtsSelection:
 
 
 class ParkingManagement(BaseSolution):
-    """
-    Manages parking occupancy and availability using YOLO model for real-time monitoring and visualization.
+    """Manages parking occupancy and availability using YOLO model for real-time monitoring and visualization.
 
-    This class extends BaseSolution to provide functionality for parking lot management, including detection of
-    occupied spaces, visualization of parking regions, and display of occupancy statistics.
+    This class extends BaseSolution to provide functionality for parking lot management, including detection of occupied
+    spaces, visualization of parking regions, and display of occupancy statistics.
 
     Attributes:
         json_file (str): Path to the JSON file containing parking region details.
-        json (List[Dict]): Loaded JSON data containing parking region information.
-        pr_info (Dict[str, int]): Dictionary storing parking information (Occupancy and Available spaces).
-        arc (Tuple[int, int, int]): RGB color tuple for available region visualization.
-        occ (Tuple[int, int, int]): RGB color tuple for occupied region visualization.
-        dc (Tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
+        json (list[dict]): Loaded JSON data containing parking region information.
+        pr_info (dict[str, int]): Dictionary storing parking information (Occupancy and Available spaces).
+        arc (tuple[int, int, int]): RGB color tuple for available region visualization.
+        occ (tuple[int, int, int]): RGB color tuple for occupied region visualization.
+        dc (tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
 
     Methods:
         process: Process the input image for parking lot management and visualization.
@@ -219,19 +219,19 @@ class ParkingManagement(BaseSolution):
         self.dc = (255, 0, 189)  # Centroid color for each box
 
     def process(self, im0: np.ndarray) -> SolutionResults:
-        """
-        Process the input image for parking lot management and visualization.
+        """Process the input image for parking lot management and visualization.
 
-        This function analyzes the input image, extracts tracks, and determines the occupancy status of parking
-        regions defined in the JSON file. It annotates the image with occupied and available parking spots,
-        and updates the parking information.
+        This function analyzes the input image, extracts tracks, and determines the occupancy status of parking regions
+        defined in the JSON file. It annotates the image with occupied and available parking spots, and updates the
+        parking information.
 
         Args:
             im0 (np.ndarray): The input inference image.
 
         Returns:
             (SolutionResults): Contains processed image `plot_im`, 'filled_slots' (number of occupied parking slots),
-                'available_slots' (number of available parking slots), and 'total_tracks' (total number of tracked objects).
+                'available_slots' (number of available parking slots), and 'total_tracks' (total number of
+                tracked objects).
 
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")

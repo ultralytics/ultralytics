@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
-from typing import Any, Dict, List
+from typing import Any
 
 import cv2
 
@@ -10,16 +10,15 @@ from ultralytics.utils.plotting import colors
 
 
 class DistanceCalculation(BaseSolution):
-    """
-    A class to calculate distance between two objects in a real-time video stream based on their tracks.
+    """A class to calculate distance between two objects in a real-time video stream based on their tracks.
 
-    This class extends BaseSolution to provide functionality for selecting objects and calculating the distance
-    between them in a video stream using YOLO object detection and tracking.
+    This class extends BaseSolution to provide functionality for selecting objects and calculating the distance between
+    them in a video stream using YOLO object detection and tracking.
 
     Attributes:
         left_mouse_count (int): Counter for left mouse button clicks.
-        selected_boxes (Dict[int, List[float]]): Dictionary to store selected bounding boxes and their track IDs.
-        centroids (List[List[int]]): List to store centroids of selected bounding boxes.
+        selected_boxes (dict[int, list[float]]): Dictionary to store selected bounding boxes and their track IDs.
+        centroids (list[list[int]]): List to store centroids of selected bounding boxes.
 
     Methods:
         mouse_event_for_distance: Handle mouse events for selecting objects in the video stream.
@@ -39,12 +38,11 @@ class DistanceCalculation(BaseSolution):
 
         # Mouse event information
         self.left_mouse_count = 0
-        self.selected_boxes: Dict[int, List[float]] = {}
-        self.centroids: List[List[int]] = []  # Store centroids of selected objects
+        self.selected_boxes: dict[int, list[float]] = {}
+        self.centroids: list[list[int]] = []  # Store centroids of selected objects
 
     def mouse_event_for_distance(self, event: int, x: int, y: int, flags: int, param: Any) -> None:
-        """
-        Handle mouse events to select regions in a real-time video stream for distance calculation.
+        """Handle mouse events to select regions in a real-time video stream for distance calculation.
 
         Args:
             event (int): Type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN).
@@ -69,18 +67,17 @@ class DistanceCalculation(BaseSolution):
             self.left_mouse_count = 0
 
     def process(self, im0) -> SolutionResults:
-        """
-        Process a video frame and calculate the distance between two selected bounding boxes.
+        """Process a video frame and calculate the distance between two selected bounding boxes.
 
-        This method extracts tracks from the input frame, annotates bounding boxes, and calculates the distance
-        between two user-selected objects if they have been chosen.
+        This method extracts tracks from the input frame, annotates bounding boxes, and calculates the distance between
+        two user-selected objects if they have been chosen.
 
         Args:
             im0 (np.ndarray): The input image frame to process.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im`, `total_tracks` (int) representing the total number
-                of tracked objects, and `pixels_distance` (float) representing the distance between selected objects
+            (SolutionResults): Contains processed image `plot_im`, `total_tracks` (int) representing the total number of
+                tracked objects, and `pixels_distance` (float) representing the distance between selected objects
                 in pixels.
 
         Examples:

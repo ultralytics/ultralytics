@@ -1,8 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from collections.abc import Callable
 from types import SimpleNamespace
-from typing import Any, List, Optional
+from typing import Any
 
 import cv2
 import numpy as np
@@ -86,8 +88,7 @@ def _should_log_image_predictions() -> bool:
 
 
 def _resume_or_create_experiment(args: SimpleNamespace) -> None:
-    """
-    Resume CometML experiment or create a new experiment based on args.
+    """Resume CometML experiment or create a new experiment based on args.
 
     Ensures that the experiment object is only created in a single process during distributed training.
 
@@ -122,8 +123,7 @@ def _resume_or_create_experiment(args: SimpleNamespace) -> None:
 
 
 def _fetch_trainer_metadata(trainer) -> dict:
-    """
-    Return metadata for YOLO training including epoch and asset saving status.
+    """Return metadata for YOLO training including epoch and asset saving status.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The YOLO trainer object containing training state and config.
@@ -147,12 +147,11 @@ def _fetch_trainer_metadata(trainer) -> dict:
 
 def _scale_bounding_box_to_original_image_shape(
     box, resized_image_shape, original_image_shape, ratio_pad
-) -> List[float]:
-    """
-    Scale bounding box from resized image coordinates to original image coordinates.
+) -> list[float]:
+    """Scale bounding box from resized image coordinates to original image coordinates.
 
-    YOLO resizes images during training and the label values are normalized based on this resized shape.
-    This function rescales the bounding box labels to the original image shape.
+    YOLO resizes images during training and the label values are normalized based on this resized shape. This function
+    rescales the bounding box labels to the original image shape.
 
     Args:
         box (torch.Tensor): Bounding box in normalized xywh format.
@@ -161,7 +160,7 @@ def _scale_bounding_box_to_original_image_shape(
         ratio_pad (tuple): Ratio and padding information for scaling.
 
     Returns:
-        (List[float]): Scaled bounding box coordinates in xywh format with top-left corner adjustment.
+        (list[float]): Scaled bounding box coordinates in xywh format with top-left corner adjustment.
     """
     resized_image_height, resized_image_width = resized_image_shape
 
@@ -178,9 +177,8 @@ def _scale_bounding_box_to_original_image_shape(
     return box
 
 
-def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, class_name_map=None) -> Optional[dict]:
-    """
-    Format ground truth annotations for object detection.
+def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, class_name_map=None) -> dict | None:
+    """Format ground truth annotations for object detection.
 
     This function processes ground truth annotations from a batch of images for object detection tasks. It extracts
     bounding boxes, class labels, and other metadata for a specific image in the batch, and formats them for
@@ -203,7 +201,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
             - 'boxes': List of box coordinates [x, y, width, height]
             - 'label': Label string with format "gt_{class_name}"
             - 'score': Confidence score (always 1.0, scaled by _scale_confidence_score)
-        Returns None if no bounding boxes are found for the image.
+            Returns None if no bounding boxes are found for the image.
     """
     indices = batch["batch_idx"] == img_idx
     bboxes = batch["bboxes"][indices]
@@ -233,9 +231,8 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
     return {"name": "ground_truth", "data": data}
 
 
-def _format_prediction_annotations(image_path, metadata, class_label_map=None, class_map=None) -> Optional[dict]:
-    """
-    Format YOLO predictions for object detection visualization.
+def _format_prediction_annotations(image_path, metadata, class_label_map=None, class_map=None) -> dict | None:
+    """Format YOLO predictions for object detection visualization.
 
     Args:
         image_path (Path): Path to the image file.
@@ -259,7 +256,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
         class_label_map = {class_map[k]: v for k, v in class_label_map.items()}
     try:
         # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
-        from faster_coco_eval.core.mask import decode  # noqa
+        from faster_coco_eval.core.mask import decode
     except ImportError:
         decode = None
 
@@ -286,16 +283,15 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
     return {"name": "prediction", "data": data}
 
 
-def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> Optional[List[List[Any]]]:
-    """
-    Extract segmentation annotation from compressed segmentations as list of polygons.
+def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> list[list[Any]] | None:
+    """Extract segmentation annotation from compressed segmentations as list of polygons.
 
     Args:
         segmentation_raw (str): Raw segmentation data in compressed format.
         decode (Callable): Function to decode the compressed segmentation data.
 
     Returns:
-        (List[List[Any]] | None): List of polygon points or None if extraction fails.
+        (list[list[Any]] | None): List of polygon points or None if extraction fails.
     """
     try:
         mask = decode(segmentation_raw)
@@ -307,11 +303,8 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
     return None
 
 
-def _fetch_annotations(
-    img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map
-) -> Optional[List]:
-    """
-    Join the ground truth and prediction annotations if they exist.
+def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map) -> list | None:
+    """Join the ground truth and prediction annotations if they exist.
 
     Args:
         img_idx (int): Index of the image in the batch.
@@ -322,7 +315,7 @@ def _fetch_annotations(
         class_map (dict): Additional class mapping for label conversion.
 
     Returns:
-        (List | None): List of annotation dictionaries or None if no annotations exist.
+        (list | None): List of annotation dictionaries or None if no annotations exist.
     """
     ground_truth_annotations = _format_ground_truth_annotations_for_detection(
         img_idx, image_path, batch, class_label_map
@@ -350,25 +343,24 @@ def _create_prediction_metadata_map(model_predictions) -> dict:
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
     """Log the confusion matrix to Comet experiment."""
     conf_mat = trainer.validator.confusion_matrix.matrix
-    names = list(trainer.data["names"].values()) + ["background"]
+    names = [*list(trainer.data["names"].values()), "background"]
     experiment.log_confusion_matrix(
         matrix=conf_mat, labels=names, max_categories=len(names), epoch=curr_epoch, step=curr_step
     )
 
 
-def _log_images(experiment, image_paths, curr_step: Optional[int], annotations=None) -> None:
-    """
-    Log images to the experiment with optional annotations.
+def _log_images(experiment, image_paths, curr_step: int | None, annotations=None) -> None:
+    """Log images to the experiment with optional annotations.
 
-    This function logs images to a Comet ML experiment, optionally including annotation data for visualization
-    such as bounding boxes or segmentation masks.
+    This function logs images to a Comet ML experiment, optionally including annotation data for visualization such as
+    bounding boxes or segmentation masks.
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
-        image_paths (List[Path]): List of paths to images that will be logged.
+        image_paths (list[Path]): List of paths to images that will be logged.
         curr_step (int): Current training step/iteration for tracking in the experiment timeline.
-        annotations (List[List[dict]], optional): Nested list of annotation dictionaries for each image. Each
-            annotation contains visualization data like bounding boxes, labels, and confidence scores.
+        annotations (list[list[dict]], optional): Nested list of annotation dictionaries for each image. Each annotation
+            contains visualization data like bounding boxes, labels, and confidence scores.
     """
     if annotations:
         for image_path, annotation in zip(image_paths, annotations):
@@ -380,11 +372,10 @@ def _log_images(experiment, image_paths, curr_step: Optional[int], annotations=N
 
 
 def _log_image_predictions(experiment, validator, curr_step) -> None:
-    """
-    Log predicted boxes for a single image during training.
+    """Log predicted boxes for a single image during training.
 
-    This function logs image predictions to a Comet ML experiment during model validation. It processes
-    validation data and formats both ground truth and prediction annotations for visualization in the Comet
+    This function logs image predictions to a Comet ML experiment during model validation. It processes validation data
+    and formats both ground truth and prediction annotations for visualization in the Comet
     dashboard. The function respects configured limits on the number of images to log.
 
     Args:
@@ -443,12 +434,11 @@ def _log_image_predictions(experiment, validator, curr_step) -> None:
 
 
 def _log_plots(experiment, trainer) -> None:
-    """
-    Log evaluation plots and label plots for the experiment.
+    """Log evaluation plots and label plots for the experiment.
 
     This function logs various evaluation plots and confusion matrices to the experiment tracking system. It handles
-    different types of metrics (SegmentMetrics, PoseMetrics, DetMetrics, OBBMetrics) and logs the appropriate plots
-    for each type.
+    different types of metrics (SegmentMetrics, PoseMetrics, DetMetrics, OBBMetrics) and logs the appropriate plots for
+    each type.
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log plots to.
@@ -503,8 +493,7 @@ def _log_image_batches(experiment, trainer, curr_step: int) -> None:
 
 
 def _log_asset(experiment, asset_path) -> None:
-    """
-    Logs a specific asset file to the given experiment.
+    """Logs a specific asset file to the given experiment.
 
     This function facilitates logging an asset, such as a file, to the provided
     experiment. It enables integration with experiment tracking platforms.
@@ -517,11 +506,9 @@ def _log_asset(experiment, asset_path) -> None:
 
 
 def _log_table(experiment, table_path) -> None:
-    """
-    Logs a table to the provided experiment.
+    """Logs a table to the provided experiment.
 
-    This function is used to log a table file to the given experiment. The table
-    is identified by its file path.
+    This function is used to log a table file to the given experiment. The table is identified by its file path.
 
     Args:
         experiment (comet_ml.CometExperiment): The experiment object where the table file will be logged.
@@ -549,16 +536,15 @@ def on_train_epoch_end(trainer) -> None:
 
 
 def on_fit_epoch_end(trainer) -> None:
-    """
-    Log model assets at the end of each epoch during training.
+    """Log model assets at the end of each epoch during training.
 
-    This function is called at the end of each training epoch to log metrics, learning rates, and model information
-    to a Comet ML experiment. It also logs model assets, confusion matrices, and image predictions based on
-    configuration settings.
+    This function is called at the end of each training epoch to log metrics, learning rates, and model information to a
+    Comet ML experiment. It also logs model assets, confusion matrices, and image predictions based on configuration
+    settings.
 
     The function retrieves the current Comet ML experiment and logs various training metrics. If it's the first epoch,
-    it also logs model information. On specified save intervals, it logs the model, confusion matrix (if enabled),
-    and image predictions (if enabled).
+    it also logs model information. On specified save intervals, it logs the model, confusion matrix (if enabled), and
+    image predictions (if enabled).
 
     Args:
         trainer (BaseTrainer): The YOLO trainer object containing training state, metrics, and configuration.

@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Any, Dict, List, Optional, Tuple
+from __future__ import annotations
+
+from typing import Any
 
 import torch
 import torch.nn as nn
@@ -12,15 +14,14 @@ from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
 
 
 class HungarianMatcher(nn.Module):
-    """
-    A module implementing the HungarianMatcher for optimal assignment between predictions and ground truth.
+    """A module implementing the HungarianMatcher for optimal assignment between predictions and ground truth.
 
     HungarianMatcher performs optimal bipartite assignment over predicted and ground truth bounding boxes using a cost
     function that considers classification scores, bounding box coordinates, and optionally mask predictions. This is
     used in end-to-end object detection models like DETR.
 
     Attributes:
-        cost_gain (Dict[str, float]): Dictionary of cost coefficients for 'class', 'bbox', 'giou', 'mask', and 'dice'
+        cost_gain (dict[str, float]): Dictionary of cost coefficients for 'class', 'bbox', 'giou', 'mask', and 'dice'
             components.
         use_fl (bool): Whether to use Focal Loss for classification cost calculation.
         with_mask (bool): Whether the model makes mask predictions.
@@ -47,18 +48,17 @@ class HungarianMatcher(nn.Module):
 
     def __init__(
         self,
-        cost_gain: Optional[Dict[str, float]] = None,
+        cost_gain: dict[str, float] | None = None,
         use_fl: bool = True,
         with_mask: bool = False,
         num_sample_points: int = 12544,
         alpha: float = 0.25,
         gamma: float = 2.0,
     ):
-        """
-        Initialize HungarianMatcher for optimal assignment of predicted and ground truth bounding boxes.
+        """Initialize HungarianMatcher for optimal assignment of predicted and ground truth bounding boxes.
 
         Args:
-            cost_gain (Dict[str, float], optional): Dictionary of cost coefficients for different matching cost
+            cost_gain (dict[str, float], optional): Dictionary of cost coefficients for different matching cost
                 components. Should contain keys 'class', 'bbox', 'giou', 'mask', and 'dice'.
             use_fl (bool): Whether to use Focal Loss for classification cost calculation.
             with_mask (bool): Whether the model makes mask predictions.
@@ -82,12 +82,11 @@ class HungarianMatcher(nn.Module):
         pred_scores: torch.Tensor,
         gt_bboxes: torch.Tensor,
         gt_cls: torch.Tensor,
-        gt_groups: List[int],
-        masks: Optional[torch.Tensor] = None,
-        gt_mask: Optional[List[torch.Tensor]] = None,
-    ) -> List[Tuple[torch.Tensor, torch.Tensor]]:
-        """
-        Compute optimal assignment between predictions and ground truth using Hungarian algorithm.
+        gt_groups: list[int],
+        masks: torch.Tensor | None = None,
+        gt_mask: list[torch.Tensor] | None = None,
+    ) -> list[tuple[torch.Tensor, torch.Tensor]]:
+        """Compute optimal assignment between predictions and ground truth using Hungarian algorithm.
 
         This method calculates matching costs based on classification scores, bounding box coordinates, and optionally
         mask predictions, then finds the optimal bipartite assignment between predictions and ground truth.
@@ -98,15 +97,15 @@ class HungarianMatcher(nn.Module):
                 num_classes).
             gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (num_gts, 4).
             gt_cls (torch.Tensor): Ground truth class labels with shape (num_gts,).
-            gt_groups (List[int]): Number of ground truth boxes for each image in the batch.
+            gt_groups (list[int]): Number of ground truth boxes for each image in the batch.
             masks (torch.Tensor, optional): Predicted masks with shape (batch_size, num_queries, height, width).
-            gt_mask (List[torch.Tensor], optional): Ground truth masks, each with shape (num_masks, Height, Width).
+            gt_mask (list[torch.Tensor], optional): Ground truth masks, each with shape (num_masks, Height, Width).
 
         Returns:
-            (List[Tuple[torch.Tensor, torch.Tensor]]): A list of size batch_size, each element is a tuple
-                (index_i, index_j), where index_i is the tensor of indices of the selected predictions (in order)
-                and index_j is the tensor of indices of the corresponding selected ground truth targets (in order).
-                For each batch element, it holds: len(index_i) = len(index_j) = min(num_queries, num_target_boxes).
+            (list[tuple[torch.Tensor, torch.Tensor]]): A list of size batch_size, each element is a tuple (index_i,
+                index_j), where index_i is the tensor of indices of the selected predictions (in order) and index_j is
+                the tensor of indices of the corresponding selected ground truth targets (in order).
+            For each batch element, it holds: len(index_i) = len(index_j) = min(num_queries, num_target_boxes).
         """
         bs, nq, nc = pred_scores.shape
 
@@ -187,7 +186,7 @@ class HungarianMatcher(nn.Module):
 
 
 def get_cdn_group(
-    batch: Dict[str, Any],
+    batch: dict[str, Any],
     num_classes: int,
     num_queries: int,
     class_embed: torch.Tensor,
@@ -195,17 +194,16 @@ def get_cdn_group(
     cls_noise_ratio: float = 0.5,
     box_noise_scale: float = 1.0,
     training: bool = False,
-) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor], Optional[Dict[str, Any]]]:
-    """
-    Generate contrastive denoising training group with positive and negative samples from ground truths.
+) -> tuple[torch.Tensor | None, torch.Tensor | None, torch.Tensor | None, dict[str, Any] | None]:
+    """Generate contrastive denoising training group with positive and negative samples from ground truths.
 
-    This function creates denoising queries for contrastive denoising training by adding noise to ground truth
-    bounding boxes and class labels. It generates both positive and negative samples to improve model robustness.
+    This function creates denoising queries for contrastive denoising training by adding noise to ground truth bounding
+    boxes and class labels. It generates both positive and negative samples to improve model robustness.
 
     Args:
-        batch (Dict[str, Any]): Batch dictionary containing 'gt_cls' (torch.Tensor with shape (num_gts,)),
-            'gt_bboxes' (torch.Tensor with shape (num_gts, 4)), and 'gt_groups' (List[int]) indicating number of
-            ground truths per image.
+        batch (dict[str, Any]): Batch dictionary containing 'gt_cls' (torch.Tensor with shape (num_gts,)), 'gt_bboxes'
+            (torch.Tensor with shape (num_gts, 4)), and 'gt_groups' (list[int]) indicating number of ground truths
+            per image.
         num_classes (int): Total number of object classes.
         num_queries (int): Number of object queries.
         class_embed (torch.Tensor): Class embedding weights to map labels to embedding space.
@@ -218,7 +216,7 @@ def get_cdn_group(
         padding_cls (torch.Tensor | None): Modified class embeddings for denoising with shape (bs, num_dn, embed_dim).
         padding_bbox (torch.Tensor | None): Modified bounding boxes for denoising with shape (bs, num_dn, 4).
         attn_mask (torch.Tensor | None): Attention mask for denoising with shape (tgt_size, tgt_size).
-        dn_meta (Dict[str, Any] | None): Meta information dictionary containing denoising parameters.
+        dn_meta (dict[str, Any] | None): Meta information dictionary containing denoising parameters.
 
     Examples:
         Generate denoising group for training

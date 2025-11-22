@@ -141,7 +141,7 @@ YOLO11 benchmarks were run by the Ultralytics team on ten different model format
 
 ### Comparison Chart
 
-We have only included benchmarks for YOLO11n and YOLO11s models because other models sizes are too big to run on the Raspberry Pis and does not offer decent performance.
+We have only included benchmarks for YOLO11n and YOLO11s models because other model sizes are too big to run on the Raspberry Pis and do not offer decent performance.
 
 <figure style="text-align: center;">
     <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo11-benchmarks-coco128.avif" alt="YOLO11 benchmarks on RPi 5">
@@ -371,7 +371,7 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
 Congratulations on successfully setting up YOLO on your Raspberry Pi! For further learning and support, visit [Ultralytics YOLO11 Docs](../index.md) and [Kashmir World Foundation](https://www.kashmirworldfoundation.org/).
 
-## Acknowledgements and Citations
+## Acknowledgments and Citations
 
 This guide was initially created by Daan Eeltink for Kashmir World Foundation, an organization dedicated to the use of YOLO for the conservation of endangered species. We acknowledge their pioneering work and educational focus in the realm of object detection technologies.
 

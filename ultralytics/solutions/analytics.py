@@ -1,20 +1,22 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from itertools import cycle
-from typing import Any, Dict, Optional
+from typing import Any
 
 import cv2
 import numpy as np
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults  # Import a parent class
+from ultralytics.utils import plt_settings
 
 
 class Analytics(BaseSolution):
-    """
-    A class for creating and updating various types of charts for visual analytics.
+    """A class for creating and updating various types of charts for visual analytics.
 
-    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts
-    based on object detection and tracking data.
+    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts based on
+    object detection and tracking data.
 
     Attributes:
         type (str): The type of analytics chart to generate ('line', 'bar', 'pie', or 'area').
@@ -27,12 +29,12 @@ class Analytics(BaseSolution):
         fontsize (int): Font size for text display.
         color_cycle (cycle): Cyclic iterator for chart colors.
         total_counts (int): Total count of detected objects (used for line charts).
-        clswise_count (Dict[str, int]): Dictionary for class-wise object counts.
+        clswise_count (dict[str, int]): Dictionary for class-wise object counts.
         fig (Figure): Matplotlib figure object for the chart.
         ax (Axes): Matplotlib axes object for the chart.
         canvas (FigureCanvasAgg): Canvas for rendering the chart.
         lines (dict): Dictionary to store line objects for area charts.
-        color_mapping (Dict[str, str]): Dictionary mapping class labels to colors for consistent visualization.
+        color_mapping (dict[str, str]): Dictionary mapping class labels to colors for consistent visualization.
 
     Methods:
         process: Process image data and update the chart.
@@ -45,6 +47,7 @@ class Analytics(BaseSolution):
         >>> cv2.imshow("Analytics", results.plot_im)
     """
 
+    @plt_settings()
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Analytics class with various chart types for visual data representation."""
         super().__init__(**kwargs)
@@ -90,8 +93,7 @@ class Analytics(BaseSolution):
                 self.ax.axis("equal")
 
     def process(self, im0: np.ndarray, frame_number: int) -> SolutionResults:
-        """
-        Process image data and run object tracking to update analytics charts.
+        """Process image data and run object tracking to update analytics charts.
 
         Args:
             im0 (np.ndarray): Input image for processing.
@@ -135,15 +137,14 @@ class Analytics(BaseSolution):
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count)
 
     def update_graph(
-        self, frame_number: int, count_dict: Optional[Dict[str, int]] = None, plot: str = "line"
+        self, frame_number: int, count_dict: dict[str, int] | None = None, plot: str = "line"
     ) -> np.ndarray:
-        """
-        Update the graph with new data for single or multiple classes.
+        """Update the graph with new data for single or multiple classes.
 
         Args:
             frame_number (int): The current frame number.
-            count_dict (Dict[str, int], optional): Dictionary with class names as keys and counts as values for
-                multiple classes. If None, updates a single line graph.
+            count_dict (dict[str, int], optional): Dictionary with class names as keys and counts as values for multiple
+                classes. If None, updates a single line graph.
             plot (str): Type of the plot. Options are 'line', 'bar', 'pie', or 'area'.
 
         Returns:
@@ -204,7 +205,7 @@ class Analytics(BaseSolution):
                         markersize=self.line_width * 5,
                         label=f"{key} Data Points",
                     )
-            if plot == "bar":
+            elif plot == "bar":
                 self.ax.clear()  # clear bar data
                 for label in labels:  # Map labels to colors
                     if label not in self.color_mapping:
@@ -224,12 +225,12 @@ class Analytics(BaseSolution):
                 for bar, label in zip(bars, labels):
                     bar.set_label(label)  # Assign label to each bar
                 self.ax.legend(loc="upper left", fontsize=13, facecolor=self.fg_color, edgecolor=self.fg_color)
-            if plot == "pie":
+            elif plot == "pie":
                 total = sum(counts)
                 percentages = [size / total * 100 for size in counts]
-                start_angle = 90
                 self.ax.clear()
 
+                start_angle = 90
                 # Create pie chart and create legend labels with percentages
                 wedges, _ = self.ax.pie(
                     counts, labels=labels, startangle=start_angle, textprops={"color": self.fg_color}, autopct=None

@@ -34,7 +34,7 @@ In the world of [machine learning](https://www.ultralytics.com/glossary/machine-
 
 Here's why you should consider YOLO11's predict mode for your various inference needs:
 
-- **Versatility:** Capable of making inferences on images, videos, and even live streams.
+- **Versatility:** Capable of running inference on images, videos, and even live streams.
 - **Performance:** Engineered for real-time, high-speed processing without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy).
 - **Ease of Use:** Intuitive Python and CLI interfaces for rapid deployment and testing.
 - **Highly Customizable:** Various settings and parameters to tune the model's inference behavior according to your specific requirements.
@@ -45,10 +45,10 @@ YOLO11's predict mode is designed to be robust and versatile, featuring:
 
 - **Multiple Data Source Compatibility:** Whether your data is in the form of individual images, a collection of images, video files, or real-time video streams, predict mode has you covered.
 - **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method.
-- **Batch Processing:** The ability to process multiple images or video frames in a single batch, further speeding up inference time.
+- **Batch Processing:** Process multiple images or video frames in a single batch, further reducing total inference time.
 - **Integration Friendly:** Easily integrate with existing data pipelines and other software components, thanks to its flexible API.
 
-Ultralytics YOLO models return either a Python list of `Results` objects, or a memory-efficient Python generator of `Results` objects when `stream=True` is passed to the model during inference:
+Ultralytics YOLO models return either a Python list of `Results` objects or a memory-efficient generator of `Results` objects when `stream=True` is passed to the model during inference:
 
 !!! example "Predict"
 
@@ -248,7 +248,7 @@ Below are code examples for using each source type:
 
     === "CSV"
 
-        Run inference on a collection of images, URLs, videos and directories listed in a CSV file.
+        Run inference on a collection of images, URLs, videos, and directories listed in a CSV file.
         ```python
         from ultralytics import YOLO
 
@@ -280,7 +280,7 @@ Below are code examples for using each source type:
 
     === "directory"
 
-        Run inference on all images and videos in a directory. To also capture images and videos in subdirectories use a glob pattern, i.e. `path/to/dir/**/*`.
+        Run inference on all images and videos in a directory. To include assets in subdirectories, use a glob pattern such as `path/to/dir/**/*`.
         ```python
         from ultralytics import YOLO
 
@@ -350,7 +350,7 @@ Below are code examples for using each source type:
 
     === "Multi-Stream"
 
-        To handle multiple video streams simultaneously, use a `.streams` text file containing the streaming sources. The model will run batched inference where the batch size equals the number of streams. This setup enables efficient processing of multiple feeds concurrently.
+        To handle multiple video streams simultaneously, use a `.streams` text file containing one source per line. The model will run batched inference where the batch size equals the number of streams. This setup enables efficient processing of multiple feeds concurrently.
 
         ```python
         from ultralytics import YOLO
@@ -395,17 +395,33 @@ Below are code examples for using each source type:
 
 `model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
 
+!!! note
+
+    Ultralytics uses minimal padding during inference by default (`rect=True`). In this mode, the shorter side of each image is padded only as much as needed to make it divisible by the model's maximum stride, rather than padding it all the way to the full `imgsz`. When running inference on a batch of images, minimal padding only works if all images have identical size. Otherwise, images are uniformly padded to a square shape with both sides equal to `imgsz`.
+
+    - `batch=1`, using `rect` padding by default.
+    - `batch>1`, using `rect` padding only if all the images in one batch have identical size, otherwise using square padding to `imgsz`.
+
 !!! example
 
-    ```python
-    from ultralytics import YOLO
+    === "Python"
 
-    # Load a pretrained YOLO11n model
-    model = YOLO("yolo11n.pt")
+        ```python
+        from ultralytics import YOLO
 
-    # Run inference on 'bus.jpg' with arguments
-    model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, conf=0.5)
-    ```
+        # Load a pretrained YOLO11n model
+        model = YOLO("yolo11n.pt")
+
+        # Run inference on 'bus.jpg' with arguments
+        model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, conf=0.5)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference on 'bus.jpg'
+        yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
+        ```
 
 Inference arguments:
 
@@ -831,9 +847,9 @@ Here's a Python script using OpenCV (`cv2`) and YOLO to run inference on video f
 
 This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
 
-[car spare parts]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1
-[football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
-[human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43
+[car spare parts]: https://github.com/ultralytics/docs/releases/download/0/car-parts-detection-for-predict.avif
+[football player detect]: https://github.com/ultralytics/docs/releases/download/0/football-players-detection.avif
+[human fall detect]: https://github.com/ultralytics/docs/releases/download/0/person-fall-detection.avif
 
 ## FAQ
 

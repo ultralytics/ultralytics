@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import argparse
-from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -13,18 +14,17 @@ from ultralytics.utils.checks import check_requirements, check_yaml
 
 
 class YOLOv8:
-    """
-    YOLOv8 object detection model class for handling ONNX inference and visualization.
+    """YOLOv8 object detection model class for handling ONNX inference and visualization.
 
-    This class provides functionality to load a YOLOv8 ONNX model, perform inference on images,
-    and visualize the detection results with bounding boxes and labels.
+    This class provides functionality to load a YOLOv8 ONNX model, perform inference on images, and visualize the
+    detection results with bounding boxes and labels.
 
     Attributes:
         onnx_model (str): Path to the ONNX model file.
         input_image (str): Path to the input image file.
         confidence_thres (float): Confidence threshold for filtering detections.
         iou_thres (float): IoU threshold for non-maximum suppression.
-        classes (List[str]): List of class names from the COCO dataset.
+        classes (list[str]): List of class names from the COCO dataset.
         color_palette (np.ndarray): Random color palette for visualizing different classes.
         input_width (int): Width dimension of the model input.
         input_height (int): Height dimension of the model input.
@@ -46,8 +46,7 @@ class YOLOv8:
     """
 
     def __init__(self, onnx_model: str, input_image: str, confidence_thres: float, iou_thres: float):
-        """
-        Initialize an instance of the YOLOv8 class.
+        """Initialize an instance of the YOLOv8 class.
 
         Args:
             onnx_model (str): Path to the ONNX model.
@@ -66,17 +65,16 @@ class YOLOv8:
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
-    def letterbox(self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)) -> Tuple[np.ndarray, Tuple[int, int]]:
-        """
-        Resize and reshape images while maintaining aspect ratio by adding padding.
+    def letterbox(self, img: np.ndarray, new_shape: tuple[int, int] = (640, 640)) -> tuple[np.ndarray, tuple[int, int]]:
+        """Resize and reshape images while maintaining aspect ratio by adding padding.
 
         Args:
             img (np.ndarray): Input image to be resized.
-            new_shape (Tuple[int, int]): Target shape (height, width) for the image.
+            new_shape (tuple[int, int]): Target shape (height, width) for the image.
 
         Returns:
             img (np.ndarray): Resized and padded image.
-            pad (Tuple[int, int]): Padding values (top, left) applied to the image.
+            pad (tuple[int, int]): Padding values (top, left) applied to the image.
         """
         shape = img.shape[:2]  # current shape [height, width]
 
@@ -84,18 +82,18 @@ class YOLOv8:
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
 
         # Compute padding
-        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        new_unpad = round(shape[1] * r), round(shape[0] * r)
         dw, dh = (new_shape[1] - new_unpad[0]) / 2, (new_shape[0] - new_unpad[1]) / 2  # wh padding
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
-        top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
-        left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+        top, bottom = round(dh - 0.1), round(dh + 0.1)
+        left, right = round(dw - 0.1), round(dw + 0.1)
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
 
         return img, (top, left)
 
-    def draw_detections(self, img: np.ndarray, box: List[float], score: float, class_id: int) -> None:
+    def draw_detections(self, img: np.ndarray, box: list[float], score: float, class_id: int) -> None:
         """Draw bounding boxes and labels on the input image based on the detected objects."""
         # Extract the coordinates of the bounding box
         x1, y1, w, h = box
@@ -124,16 +122,15 @@ class YOLOv8:
         # Draw the label text on the image
         cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
-    def preprocess(self) -> Tuple[np.ndarray, Tuple[int, int]]:
-        """
-        Preprocess the input image before performing inference.
+    def preprocess(self) -> tuple[np.ndarray, tuple[int, int]]:
+        """Preprocess the input image before performing inference.
 
         This method reads the input image, converts its color space, applies letterboxing to maintain aspect ratio,
         normalizes pixel values, and prepares the image data for model input.
 
         Returns:
             image_data (np.ndarray): Preprocessed image data ready for inference with shape (1, 3, height, width).
-            pad (Tuple[int, int]): Padding values (top, left) applied during letterboxing.
+            pad (tuple[int, int]): Padding values (top, left) applied during letterboxing.
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
@@ -158,17 +155,16 @@ class YOLOv8:
         # Return the preprocessed image data
         return image_data, pad
 
-    def postprocess(self, input_image: np.ndarray, output: List[np.ndarray], pad: Tuple[int, int]) -> np.ndarray:
-        """
-        Perform post-processing on the model's output to extract and visualize detections.
+    def postprocess(self, input_image: np.ndarray, output: list[np.ndarray], pad: tuple[int, int]) -> np.ndarray:
+        """Perform post-processing on the model's output to extract and visualize detections.
 
-        This method processes the raw model output to extract bounding boxes, scores, and class IDs.
-        It applies non-maximum suppression to filter overlapping detections and draws the results on the input image.
+        This method processes the raw model output to extract bounding boxes, scores, and class IDs. It applies
+        non-maximum suppression to filter overlapping detections and draws the results on the input image.
 
         Args:
             input_image (np.ndarray): The input image.
-            output (List[np.ndarray]): The output arrays from the model.
-            pad (Tuple[int, int]): Padding values (top, left) used during letterboxing.
+            output (list[np.ndarray]): The output arrays from the model.
+            pad (tuple[int, int]): Padding values (top, left) used during letterboxing.
 
         Returns:
             (np.ndarray): The input image with detections drawn on it.
@@ -233,8 +229,7 @@ class YOLOv8:
         return input_image
 
     def main(self) -> np.ndarray:
-        """
-        Perform inference using an ONNX model and return the output image with drawn detections.
+        """Perform inference using an ONNX model and return the output image with drawn detections.
 
         Returns:
             (np.ndarray): The output image with drawn detections.

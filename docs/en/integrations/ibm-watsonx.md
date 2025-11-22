@@ -205,7 +205,7 @@ names:
     2: rov
 ```
 
-Run the following script to delete the current contents of `config.yaml` and replace it with the above contents that reflect our new data set directory structure. Be certain to replace the work_dir portion of the root directory path in line 4 with your own working directory path we retrieved earlier. Leave the train, val, and test subdirectory definitions. Also, do not change {work_dir} in line 23 of the code.
+Run the following script to delete the current contents of `config.yaml` and replace it with the configuration that reflects our new data set directory structure. The script automatically uses the `work_dir` variable we defined earlier, so be sure it points to your dataset before execution, and leave the train, val, and test subdirectory definitions unchanged.
 
 !!! example "Edit the .yaml File"
 
@@ -215,7 +215,7 @@ Run the following script to delete the current contents of `config.yaml` and rep
         # Contents of new config.yaml file
         def update_yaml_file(file_path):
             data = {
-                "path": "work_dir/trash_ICRA19/dataset",
+                "path": f"{work_dir}/trash_ICRA19/dataset",
                 "train": "train/images",
                 "val": "train/images",
                 "test": "test/images",
@@ -273,11 +273,11 @@ We can now run inference to test the performance of our fine-tuned model:
 
 This brief script generates predicted labels for each image in our test set, as well as new output image files that overlay the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) atop the original image.
 
-Predicted .txt labels for each image are saved via the `save_txt=True` argument and the output images with bounding box overlays are generated through the `save=True` argument.  
+Predicted .txt labels for each image are saved via the `save_txt=True` argument and the output images with bounding box overlays are generated through the `save=True` argument.
 The parameter `conf=0.5` informs the model to ignore all predictions with a confidence level of less than 50%.
 
-Lastly, `iou=.5` directs the model to ignore boxes in the same class with an overlap of 50% or greater. It helps to reduce potential duplicate boxes generated for the same object.  
-we can load the images with predicted bounding box overlays to view how our model performs on a handful of images.
+Lastly, `iou=.5` directs the model to ignore boxes in the same class with an overlap of 50% or greater. It helps to reduce potential duplicate boxes generated for the same object.
+We can load the images with predicted bounding box overlays to view how our model performs on a handful of images.
 
 !!! example "Display Predictions"
 

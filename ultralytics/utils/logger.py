@@ -9,9 +9,6 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-import psutil
-import requests
-
 from ultralytics.utils import MACOS, RANK
 from ultralytics.utils.checks import check_requirements
 
@@ -22,11 +19,10 @@ if RANK in {-1, 0} and DEFAULT_LOG_PATH.exists():
 
 
 class ConsoleLogger:
-    """
-    Console output capture with API/file streaming and deduplication.
+    """Console output capture with API/file streaming and deduplication.
 
-    Captures stdout/stderr output and streams it to either an API endpoint or local file, with intelligent
-    deduplication to reduce noise from repetitive console output.
+    Captures stdout/stderr output and streams it to either an API endpoint or local file, with intelligent deduplication
+    to reduce noise from repetitive console output.
 
     Attributes:
         destination (str | Path): Target destination for streaming (URL or Path object).
@@ -56,8 +52,7 @@ class ConsoleLogger:
     """
 
     def __init__(self, destination):
-        """
-        Initialize with API endpoint or local file path.
+        """Initialize with API endpoint or local file path.
 
         Args:
             destination (str | Path): API endpoint URL (http/https) or local file path for streaming output.
@@ -189,8 +184,10 @@ class ConsoleLogger:
         """Write log to API endpoint or local file destination."""
         try:
             if self.is_api:
+                import requests  # scoped as slow import
+
                 payload = {"timestamp": datetime.now().isoformat(), "message": text.strip()}
-                requests.post(self.destination, json=payload, timeout=5)
+                requests.post(str(self.destination), json=payload, timeout=5)
             else:
                 self.destination.parent.mkdir(parents=True, exist_ok=True)
                 with self.destination.open("a", encoding="utf-8") as f:
@@ -201,17 +198,20 @@ class ConsoleLogger:
     class _ConsoleCapture:
         """Lightweight stdout/stderr capture."""
 
-        __slots__ = ("original", "callback")
+        __slots__ = ("callback", "original")
 
         def __init__(self, original, callback):
+            """Initialize a stream wrapper that redirects writes to a callback while preserving the original."""
             self.original = original
             self.callback = callback
 
         def write(self, text):
+            """Forward text to the wrapped original stream, preserving default stdout/stderr semantics."""
             self.original.write(text)
             self.callback(text)
 
         def flush(self):
+            """Flush the wrapped stream to propagate buffered output promptly during console capture."""
             self.original.flush()
 
     class _LogHandler(logging.Handler):
@@ -220,24 +220,24 @@ class ConsoleLogger:
         __slots__ = ("callback",)
 
         def __init__(self, callback):
+            """Initialize a lightweight logging.Handler that forwards log records to the provided callback."""
             super().__init__()
             self.callback = callback
 
         def emit(self, record):
+            """Format and forward LogRecord messages to the capture callback for unified log streaming."""
             self.callback(self.format(record) + "\n")
 
 
 class SystemLogger:
-    """
-    Log dynamic system metrics for training monitoring.
+    """Log dynamic system metrics for training monitoring.
 
-    Captures real-time system metrics including CPU, RAM, disk I/O, network I/O, and NVIDIA GPU statistics for
-    training performance monitoring and analysis.
+    Captures real-time system metrics including CPU, RAM, disk I/O, network I/O, and NVIDIA GPU statistics for training
+    performance monitoring and analysis.
 
     Attributes:
         pynvml: NVIDIA pynvml module instance if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
-        process (psutil.Process): Current psutil.Process instance for process-specific metrics.
         net_start: Initial network I/O counters for calculating cumulative usage.
         disk_start: Initial disk I/O counters for calculating cumulative usage.
 
@@ -260,9 +260,10 @@ class SystemLogger:
 
     def __init__(self):
         """Initialize the system logger."""
+        import psutil  # scoped as slow import
+
         self.pynvml = None
         self.nvidia_initialized = self._init_nvidia()
-        self.process = psutil.Process()
         self.net_start = psutil.net_io_counters()
         self.disk_start = psutil.disk_io_counters()
 
@@ -278,11 +279,10 @@ class SystemLogger:
             return False
 
     def get_metrics(self):
-        """
-        Get current system metrics.
+        """Get current system metrics.
 
-        Collects comprehensive system metrics including CPU usage, RAM usage, disk I/O statistics,
-        network I/O statistics, and GPU metrics (if available). Example output:
+        Collects comprehensive system metrics including CPU usage, RAM usage, disk I/O statistics, network I/O
+        statistics, and GPU metrics (if available). Example output:
 
         ```python
         metrics = {
@@ -313,8 +313,10 @@ class SystemLogger:
             - power (int): GPU power consumption in watts
 
         Returns:
-            metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with respective usage data.
+            metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with usage data.
         """
+        import psutil  # scoped as slow import
+
         net = psutil.net_io_counters()
         disk = psutil.disk_io_counters()
         memory = psutil.virtual_memory()

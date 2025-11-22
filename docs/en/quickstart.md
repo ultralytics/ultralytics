@@ -31,8 +31,8 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://clickpy.clickhouse.com/dashboard/ultralytics)
 
         ```bash
-        # Install the ultralytics package from PyPI
-        pip install ultralytics
+        # Install or upgrade the ultralytics package from PyPI
+        pip install -U ultralytics
         ```
 
         You can also install `ultralytics` directly from the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics). This can be useful if you want the latest development version. Ensure you have the Git command-line tool installed, and then run:
@@ -66,7 +66,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         ### Conda Docker Image
 
-        Ultralytics Conda Docker images are also available from [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://www.anaconda.com/docs/main) and provide a straightforward way to start using `ultralytics` in a Conda environment.
+        Ultralytics Conda Docker images are also available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://www.anaconda.com/docs/main) and provide a straightforward way to start using `ultralytics` in a Conda environment.
 
         ```bash
         # Set image name as a variable
@@ -76,8 +76,8 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --gpus all $t            # all GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # specify GPUs
+        sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t            # all GPUs
+        sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t # specify GPUs
         ```
 
     === "Git clone"
@@ -122,8 +122,8 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --gpus all $t            # all GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # specify GPUs
+        sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t            # all GPUs
+        sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t # specify GPUs
         ```
 
         The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flags assign a pseudo-TTY and keep stdin open, allowing interaction with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--gpus all` flag enables access to all available GPUs inside the container, crucial for tasks requiring GPU computation.
@@ -167,7 +167,7 @@ While the standard installation methods cover most use cases, you might need a m
         2.  **Manually install dependencies:** You need to install all required packages listed in the `pyproject.toml` file, substituting or modifying versions as needed. For the headless OpenCV example:
             ```bash
             # Install other core dependencies
-            pip install torch torchvision numpy matplotlib polars pyyaml pillow psutil requests scipy seaborn ultralytics-thop
+            pip install torch torchvision numpy matplotlib polars pyyaml pillow psutil requests scipy ultralytics-thop
 
             # Install headless OpenCV instead of the default
             pip install opencv-python-headless
@@ -302,7 +302,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
 
     === "Export"
 
-        Export a YOLOv11n classification model to ONNX format with an image size of 224x128 (no TASK required):
+        Export a YOLO11n classification model to ONNX format with an image size of 224x128 (no TASK required):
         ```bash
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
         ```
@@ -505,7 +505,7 @@ Revisit these settings as you progress through projects or experiments to ensure
 Install Ultralytics with pip using:
 
 ```bash
-pip install ultralytics
+pip install -U ultralytics
 ```
 
 This installs the latest stable release of the `ultralytics` package from [PyPI](https://pypi.org/project/ultralytics/). To install the development version directly from GitHub:
@@ -541,7 +541,7 @@ Docker provides an isolated, consistent environment for Ultralytics YOLO, ensuri
 sudo docker pull ultralytics/ultralytics:latest
 
 # Run the ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest
+sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest
 ```
 
 For detailed Docker instructions, see the [Docker quickstart guide](guides/docker-quickstart.md).

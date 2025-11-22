@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import time
-from typing import Tuple
 
 import cv2
 
@@ -53,9 +54,8 @@ selected_bbox = None
 selected_center = None
 
 
-def get_center(x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int]:
-    """
-    Calculate the center point of a bounding box.
+def get_center(x1: int, y1: int, x2: int, y2: int) -> tuple[int, int]:
+    """Calculate the center point of a bounding box.
 
     Args:
         x1 (int): Top-left X coordinate.
@@ -70,35 +70,34 @@ def get_center(x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int]:
     return (x1 + x2) // 2, (y1 + y2) // 2
 
 
-def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: Tuple[int, int, int]) -> Tuple[int, int]:
-    """
-    Calculate the endpoint to extend a line from the center toward an image edge.
+def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: tuple[int, int, int]) -> tuple[int, int]:
+    """Calculate the endpoint to extend a line from the center toward an image edge.
 
     Args:
         mid_x (int): X-coordinate of the midpoint.
         mid_y (int): Y-coordinate of the midpoint.
         direction (str): Direction to extend ('left', 'right', 'up', 'down').
-        img_shape (Tuple[int, int, int]): Image shape in (height, width, channels).
+        img_shape (tuple[int, int, int]): Image shape in (height, width, channels).
 
     Returns:
         end_x (int): X-coordinate of the endpoint.
         end_y (int): Y-coordinate of the endpoint.
     """
     h, w = img_shape[:2]
-    if direction == "left":
-        return 0, mid_y
-    if direction == "right":
-        return w - 1, mid_y
-    if direction == "up":
-        return mid_x, 0
     if direction == "down":
         return mid_x, h - 1
-    return mid_x, mid_y
+    elif direction == "left":
+        return 0, mid_y
+    elif direction == "right":
+        return w - 1, mid_y
+    elif direction == "up":
+        return mid_x, 0
+    else:
+        return mid_x, mid_y
 
 
 def draw_tracking_scope(im, bbox: tuple, color: tuple) -> None:
-    """
-    Draw tracking scope lines extending from the bounding box to image edges.
+    """Draw tracking scope lines extending from the bounding box to image edges.
 
     Args:
         im (np.ndarray): Image array to draw on.
@@ -117,8 +116,7 @@ def draw_tracking_scope(im, bbox: tuple, color: tuple) -> None:
 
 
 def click_event(event: int, x: int, y: int, flags: int, param) -> None:
-    """
-    Handle mouse click events to select an object for focused tracking.
+    """Handle mouse click events to select an object for focused tracking.
 
     Args:
         event (int): OpenCV mouse event type.

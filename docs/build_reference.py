@@ -729,10 +729,10 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
     """Render a class, function, or method to Markdown."""
     anchor = item_anchor(item)
     title_prefix = item.kind.capitalize()
-    heading = f"{'#' * level} {title_prefix} `{item.name}`"
+    heading = f"{'#' * level} {title_prefix} `{item.name}` {{#{anchor}}}"
     signature_block = f"```python\n{item.signature}\n```\n"
 
-    parts = [f'<a id="{anchor}"></a>', heading, signature_block]
+    parts = [heading, signature_block]
 
     if item.bases:
         bases = ", ".join(f"`{b}`" for b in item.bases)

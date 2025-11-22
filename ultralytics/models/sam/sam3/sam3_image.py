@@ -104,6 +104,7 @@ class Sam3Image(torch.nn.Module):
 
         self.inst_interactive_predictor = inst_interactive_predictor
         self.text_embeddings = {}
+        self.names = []
 
     @property
     def device(self):
@@ -639,6 +640,7 @@ class Sam3Image(torch.nn.Module):
     def set_classes(self, text: list[str]):
         """Set the text embeddings for the given class names."""
         self.text_embeddings = self.backbone.forward_text(text, device=self.device)
+        self.names = text
 
 
 class Sam3ImageOnVideoMultiGPU(Sam3Image):

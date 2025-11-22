@@ -2048,13 +2048,17 @@ class SAM3Predictor(Predictor):
             labels = labels.view(1, -1)  # (1, N)
         return bboxes, labels
 
-    def _inference_features(self, features, bboxes=None, labels=None, texts: list[str] = None):
+    def _inference_features(self, features, bboxes=None, labels=None, text: list[str] = None):
         """Run inference on the extracted features with optional bounding boxes and labels."""
-        if texts is None:
-            texts = ["visual"]
-        if len(self.model.text_embeddings) == 0:
-            self.model.set_classes(text=texts)
-        nc = len(getattr(self.model, "names", texts))
+        # NOTE: priority: bboxes > text > pre-set classes
+        nc = 1 if bboxes is not None else len(text) if text is not None else len(self.model.names)
+        geometric_prompt = self.model._get_dummy_prompt(nc)
+        if bboxes is not None:
+            geometric_prompt.append_boxes(bboxes, labels)
+            if text is None:
+                text = ["visual"]  # bboxes needs this `visual` text prompt if no text passed
+        if text is not None and self.model.names != text:
+            self.model.set_classes(text=text)
         self.find_stage = FindStage(
             img_ids=torch.tensor([0] * nc, device=self.device, dtype=torch.long),
             text_ids=torch.tensor(list(range(nc)), device=self.device, dtype=torch.long),
@@ -2064,9 +2068,6 @@ class SAM3Predictor(Predictor):
             input_points=None,
             input_points_mask=None,
         )
-        geometric_prompt = self.model._get_dummy_prompt(nc)
-        if bboxes is not None:
-            geometric_prompt.append_boxes(bboxes, labels)
         outputs = self.model.forward_grounding(
             backbone_out=features,
             find_input=self.find_stage,
@@ -2111,14 +2112,14 @@ class SAM3Predictor(Predictor):
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         return results
 
-    def inference(self, im, bboxes=None, labels=None, texts: list[str] = None, *args, **kwargs):
+    def inference(self, im, bboxes=None, labels=None, text: list[str] = None, *args, **kwargs):
         """Perform inference on a single image with optional prompts."""
         bboxes = self.prompts.pop("bboxes", bboxes)
         labels = self.prompts.pop("labels", labels)
-        texts = self.prompts.pop("text", texts)
+        text = self.prompts.pop("text", text)
         features = self.get_im_features(im) if self.features is None else self.features
         prompts = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
-        return self._inference_features(features, *prompts, texts=texts)
+        return self._inference_features(features, *prompts, text=text)
 
     def reset_prompts(self):
         """Reset the prompts for the predictor."""

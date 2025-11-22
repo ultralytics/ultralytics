@@ -726,13 +726,11 @@ nav:
       - Security Policy: help/security.md
       - Privacy Policy: help/privacy.md
 
-# Plugins including 301 redirects navigation ---------------------------------------------------------------------------
+# Plugins (Note macros plugin replaced by minijinja in build_docs.py) --------------------------------------------------
 plugins:
-  - macros:
-      include_yaml:
-        - ultralytics/cfg/default.yaml
-  # - search:
-  #     lang: en
+  #  - macros:
+  #      include_yaml:
+  #        - ultralytics/cfg/default.yaml
   - mkdocstrings:
       enabled: true
       default_handler: python

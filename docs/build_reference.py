@@ -820,11 +820,17 @@ def render_summary_tabs(module: DocumentedModule) -> str:
             )
         )
 
+    property_links = []
     method_links = []
     for cls in module.classes:
         for child in cls.children:
+            if child.kind == "property":
+                property_links.append(f"- [`{cls.name}.{child.name}`](#{item_anchor(child)})")
+        for child in cls.children:
             if child.kind == "method":
                 method_links.append(f"- [`{cls.name}.{child.name}`](#{item_anchor(child)})")
+    if property_links:
+        tab_entries.append(("Properties", property_links))
     if method_links:
         tab_entries.append(("Methods", method_links))
 

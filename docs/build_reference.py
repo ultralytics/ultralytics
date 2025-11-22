@@ -946,7 +946,7 @@ def create_markdown(module: DocumentedModule) -> Path:
         f"# Reference for `{module_path_fs}.py`\n\n"
         f"!!! note\n\n"
         f"    This file is available at [{pretty}]({url}). If you spot a problem please help fix it by [contributing]"
-        f"(https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n"
+        f"(https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n"
     )
 
     md_filepath.parent.mkdir(parents=True, exist_ok=True)

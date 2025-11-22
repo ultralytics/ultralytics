@@ -64,6 +64,13 @@ EDIT_LINK_RULES = (
         "https://github.com/ultralytics/docs/tree/main/docs/en/compare/",
     ),
 )
+DOC_KIND_LABELS = {"Class", "Function", "Method", "Property"}
+DOC_KIND_COLORS = {
+    "Class": "#1e3a8a",     # deep blue
+    "Method": "#5b21b6",    # deep purple
+    "Function": "#c2410c",  # burnt orange
+    "Property": "#166534",  # deep green
+}
 
 
 def prepare_docs_markdown(clone_repos: bool = True):
@@ -187,8 +194,15 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
     needs_title_trim = bool(title_match and len(title_match.group(1)) > max_title_length and "-" in title_match.group(1))
     needs_link_conversion = ("<p" in content or "<li" in content) and bool(LINK_PATTERN.search(content))
     needs_codelineno_cleanup = "__codelineno-" in content
+    rel_path = ""
+    if html_file:
+        try:
+            rel_path = html_file.relative_to(SITE).as_posix()
+        except Exception:
+            rel_path = html_file.as_posix()
+    needs_kind_highlight = "reference" in rel_path or "reference" in content
 
-    if not (needs_title_trim or needs_link_conversion or needs_codelineno_cleanup):
+    if not (needs_title_trim or needs_link_conversion or needs_codelineno_cleanup or needs_kind_highlight):
         return content
 
     try:
@@ -229,6 +243,54 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
             else:  # If it has no text
                 a.replace_with(soup.new_tag("span"))  # Replace with an empty span
             modified = True
+
+    def highlight_labels(nodes):
+        nonlocal modified
+
+        for node in nodes:
+            if not node.contents:
+                continue
+            first = node.contents[0]
+            if hasattr(first, "get") and "doc-kind" in (first.get("class") or []):
+                continue
+            text = first if isinstance(first, str) else getattr(first, "string", "")
+            if not text:
+                continue
+            stripped = str(text).strip()
+            if not stripped:
+                continue
+            kind = stripped.split()[0].rstrip(":")
+            if kind not in DOC_KIND_LABELS:
+                continue
+            span = soup.new_tag("span", attrs={"class": f"doc-kind doc-kind-{kind.lower()}"})
+            span.string = kind.lower()
+            first.replace_with(span)
+            tail = str(text)[len(kind) :]
+            tail_stripped = tail.lstrip()
+            if tail_stripped.startswith(kind):
+                tail = tail_stripped[len(kind) :]
+            if not tail and len(node.contents) > 0:
+                tail = " "
+            if tail:
+                span.insert_after(tail)
+            modified = True
+
+    highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
+    highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
+
+    if modified:
+        head = soup.find("head")
+        if head and not soup.select("style[data-doc-kind]"):
+            style = soup.new_tag("style", attrs={"data-doc-kind": "true"})
+            style.string = (
+                ".doc-kind{display:inline-block;padding:0 0.4em;border-radius:10px;font-weight:700;"
+                "font-size:0.75em;letter-spacing:0.04em;color:#f8fafc;text-transform:lowercase;}"
+                f".doc-kind-class{{background:{DOC_KIND_COLORS['Class']};}}"
+                f".doc-kind-function{{background:{DOC_KIND_COLORS['Function']};}}"
+                f".doc-kind-method{{background:{DOC_KIND_COLORS['Method']};}}"
+                f".doc-kind-property{{background:{DOC_KIND_COLORS['Property']};}}"
+            )
+            head.append(style)
 
     return str(soup) if modified else content
 

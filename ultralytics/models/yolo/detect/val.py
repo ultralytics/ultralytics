@@ -280,17 +280,18 @@ class DetectionValidator(BaseValidator):
                 )
 
     def output_bad_cases(self, detections, labels, batch, si, conf: float = 0.25, iou_thres: float = 0.45):
-        """Out the images with overkill and underkill result
+        """Out the images with overkill and underkill result.
+
         Args:
-            # detections (Array[N, 6]): Detected bounding boxes and their associated information.
-            #                           Each row should contain (x1, y1, x2, y2, conf, class).
-            # labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels.
-            #                       Each row should contain (class, x1, y1, x2, y2).
-            detections (Dict[str, torch.Tensor]): Dictionary containing detected bounding boxes and their associated information.
-                                       Should contain 'cls', 'conf', and 'bboxes' keys, where 'bboxes' can be
-                                       Array[N, 4] for regular boxes or Array[N, 5] for OBB with angle.
-            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M, 5]) and
-                'cls' (Array[M]) keys, where M is the number of ground truth objects.
+            # detections (Array[N, 6]): Detected bounding boxes and their associated information. # Each row should
+                contain (x1, y1, x2, y2, conf, class).
+            # labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels. # Each row should
+                contain (class, x1, y1, x2, y2).
+            detections (Dict[str, torch.Tensor]): Dictionary containing detected bounding boxes and their associated
+                information. Should contain 'cls', 'conf', and 'bboxes' keys, where 'bboxes' can be Array[N, 4] for
+                regular boxes or Array[N, 5] for OBB with angle.
+            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M,
+                5]) and 'cls' (Array[M]) keys, where M is the number of ground truth objects.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """

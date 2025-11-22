@@ -693,7 +693,25 @@ def render_docstring(doc: ParsedDocstring, level: int, signature_params: list[Pa
                     default_val,
                 ]
             )
-        ordered_sections.append(_render_table(["Name", "Type", "Description", "Default"], rows, level, "Parameters"))
+        table = _render_table(["Name", "Type", "Description", "Default"], rows, level, title=None)
+        ordered_sections.append(f"**Args**\n\n{table}")
+
+    if doc.returns:
+        rows = []
+        for r in doc.returns:
+            rows.append([f"`{r.type}`" if r.type else "", r.description])
+        table = _render_table(["Type", "Description"], rows, level, title=None)
+        ordered_sections.append(f"**Returns**\n\n{table}")
+
+    if doc.examples:
+        code_block = "\n\n".join(f"```python\n{example.strip()}\n```" for example in doc.examples if example.strip())
+        if code_block:
+            ordered_sections.append(f"**Examples**\n\n{code_block}\n\n")
+
+    if doc.notes:
+        note_text = "\n\n".join(doc.notes).strip()
+        indented = textwrap.indent(note_text, "    ")
+        ordered_sections.append(f'!!! note "Notes"\n\n{indented}\n\n')
 
     if doc.attributes:
         rows = []
@@ -701,36 +719,23 @@ def render_docstring(doc: ParsedDocstring, level: int, signature_params: list[Pa
             rows.append(
                 [f"`{a.name}`", f"`{a.type}`" if a.type else "", a.description.strip() if a.description else ""]
             )
-        ordered_sections.append(_render_table(["Name", "Type", "Description"], rows, level, "Attributes"))
-
-    if doc.returns:
-        rows = []
-        for r in doc.returns:
-            rows.append([f"`{r.type}`" if r.type else "", r.description])
-        ordered_sections.append(_render_table(["Type", "Description"], rows, level, "Returns"))
+        table = _render_table(["Name", "Type", "Description"], rows, level, title=None)
+        ordered_sections.append(f"**Attributes**\n\n{table}")
 
     if doc.yields:
         rows = []
         for r in doc.yields:
             rows.append([f"`{r.type}`" if r.type else "", r.description])
-        ordered_sections.append(_render_table(["Type", "Description"], rows, level, "Yields"))
+        table = _render_table(["Type", "Description"], rows, level, title=None)
+        ordered_sections.append(f"**Yields**\n\n{table}")
 
     if doc.raises:
         rows = []
         for e in doc.raises:
             type_cell = e.type or e.name
             rows.append([f"`{type_cell}`" if type_cell else "", e.description or ""])
-        ordered_sections.append(_render_table(["Type", "Description"], rows, level, "Raises"))
-
-    if doc.notes:
-        note_text = "\n\n".join(doc.notes).strip()
-        indented = textwrap.indent(note_text, "    ")
-        ordered_sections.append(f'!!! note "Notes"\n\n{indented}\n\n')
-
-    if doc.examples:
-        code_block = "\n\n".join(f"```python\n{example.strip()}\n```" for example in doc.examples if example.strip())
-        if code_block:
-            ordered_sections.append(f"{'#' * level} Examples\n{code_block}\n\n")
+        table = _render_table(["Type", "Description"], rows, level, title=None)
+        ordered_sections.append(f"**Raises**\n\n{table}")
 
     sections.extend(ordered_sections)
 
@@ -774,10 +779,10 @@ def render_summary_tabs(module: DocumentedModule) -> str:
     if not tab_entries:
         return ""
 
-    lines = ["## API Summary\n"]
+    lines = ['!!! abstract "Summary"\n']
     for label, bullets in tab_entries:
-        lines.append(f'=== "{label}"\n')
-        lines.append("\n".join(f"    {line}" for line in bullets))
+        lines.append(f'    === "{label}"\n')
+        lines.append("\n".join(f"        {line}" for line in bullets))
         lines.append("")  # Blank line after each tab block
     return "\n".join(lines).rstrip() + "\n\n"
 

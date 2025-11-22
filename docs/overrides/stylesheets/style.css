@@ -210,14 +210,7 @@ div.highlight {
 }
 /* Logo switching for light/dark mode ------------------------------------------------------------------------------- */
 
-/* Target second column in two-column tables only */
-table td:nth-child(2):last-child {
-  font-size: 0.85em;
-  line-height: 1.2;
-}
-
 /* Remove underlines from links */
 .md-typeset a {
   text-decoration: none !important;
 }
-

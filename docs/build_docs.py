@@ -47,6 +47,23 @@ DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
 TITLE_PATTERN = re.compile(r"<title>(.*?)</title>", flags=re.IGNORECASE | re.DOTALL)
+SOUP_STRAINER = SoupStrainer(["html", "head", "body", "main", "div", "p", "li", "a", "title"])
+EDIT_LINK_RULES = (
+    (
+        "hub/sdk/",
+        re.compile(
+            r'(<a[^>]*class="md-content__button md-icon"[^>]*href=")[^"]*/hub/sdk/([^"]*"[^>]*title="Edit this page")'
+        ),
+        "https://github.com/ultralytics/hub-sdk/tree/main/docs/",
+    ),
+    (
+        "compare/",
+        re.compile(
+            r'(<a[^>]*class="md-content__button md-icon"[^>]*href=")[^"]*/compare/([^"]*"[^>]*title="Edit this page")'
+        ),
+        "https://github.com/ultralytics/docs/tree/main/docs/en/compare/",
+    ),
+)
 
 
 def prepare_docs_markdown(clone_repos: bool = True):
@@ -81,52 +98,6 @@ def prepare_docs_markdown(clone_repos: bool = True):
     # Add frontmatter
     for file in TQDM((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
         update_markdown_files(file)
-
-
-def update_page_title(file_path: Path, new_title: str):
-    """Update the title of an HTML file."""
-    with open(file_path, encoding="utf-8") as file:
-        content = file.read()
-
-    # Replace the existing title with the new title
-    updated_content = re.sub(r"<title>.*?</title>", f"<title>{new_title}</title>", content)
-
-    # Write the updated content back to the file
-    with open(file_path, "w", encoding="utf-8") as file:
-        file.write(updated_content)
-
-
-def update_html_head(script: str = ""):
-    """Update the HTML head section of each file."""
-    html_files = Path(SITE).rglob("*.html")
-    for html_file in TQDM(html_files, desc="Processing HTML files"):
-        with html_file.open("r", encoding="utf-8") as file:
-            html_content = file.read()
-
-        if script in html_content:  # script already in HTML file
-            return
-
-        head_end_index = html_content.lower().rfind("</head>")
-        if head_end_index != -1:
-            # Add the specified JavaScript to the HTML file just before the end of the head tag.
-            new_html_content = html_content[:head_end_index] + script + html_content[head_end_index:]
-            with html_file.open("w", encoding="utf-8") as file:
-                file.write(new_html_content)
-
-
-def update_subdir_edit_links(subdir: str = "", docs_url: str = ""):
-    """Update edit button links using regex instead of BeautifulSoup."""
-    if str(subdir[0]) == "/":
-        subdir = str(subdir[0])[1:]
-    pattern = re.compile(
-        rf'(<a[^>]*class="md-content__button md-icon"[^>]*href=")[^"]*/{subdir}([^"]*"[^>]*title="Edit this page")'
-    )
-    for html_file in TQDM((SITE / subdir).rglob("*.html"), desc="Processing subdir files", mininterval=1.0):
-        content = html_file.read_text(encoding="utf-8")
-        # Regex to find and replace edit link href
-        updated = pattern.sub(rf"\1{docs_url}\2", content)
-        if updated != content:
-            html_file.write_text(updated, encoding="utf-8")
 
 
 def update_markdown_files(md_filepath: Path):
@@ -167,33 +138,47 @@ def update_markdown_files(md_filepath: Path):
 
 
 def update_docs_html():
-    """Update titles, edit links, head sections, and convert plaintext links in HTML documentation."""
-    # Update 404 titles
-    update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
+    """Update titles, edit links, and convert plaintext links in HTML documentation in one pass."""
+    written = 0
 
-    # Update edit button links
-    for subdir, docs_url in (
-        ("hub/sdk/", "https://github.com/ultralytics/hub-sdk/tree/main/docs/"),  # do not use leading slash
-        ("compare/", "https://github.com/ultralytics/docs/tree/main/docs/en/compare/"),
-    ):
-        update_subdir_edit_links(subdir=subdir, docs_url=docs_url)
+    for html_file in TQDM(SITE.rglob("*.html"), desc="Updating docs HTML", mininterval=1.0):
+        try:
+            content = html_file.read_text(encoding="utf-8")
+        except Exception as e:
+            LOGGER.warning(f"Could not read {html_file}: {e}")
+            continue
 
-    # Convert plaintext links to HTML hyperlinks
-    files_modified = 0
-    for html_file in TQDM(SITE.rglob("*.html"), desc="Updating bs4 soup", mininterval=1.0):
-        with open(html_file, encoding="utf-8") as file:
-            content = file.read()
-        updated_content = fix_md_links(update_docs_soup(content, html_file=html_file))
-        if updated_content != content:
-            with open(html_file, "w", encoding="utf-8") as file:
-                file.write(updated_content)
-            files_modified += 1
-    LOGGER.info(f"Modified bs4 soup in {files_modified} files.")
+        changed = False
+        try:
+            rel_path = html_file.relative_to(SITE).as_posix()
+        except ValueError:
+            rel_path = html_file.name
 
-    # Update HTML file head section
-    script = ""
-    if any(script):
-        update_html_head(script)
+        if rel_path == "404.html":
+            new_content = re.sub(r"<title>.*?</title>", "<title>Ultralytics Docs - Not Found</title>", content)
+            if new_content != content:
+                content, changed = new_content, True
+
+        for subdir, pattern, docs_url in EDIT_LINK_RULES:
+            if rel_path.startswith(subdir):
+                new_content = pattern.sub(rf"\1{docs_url}\2", content)
+                if new_content != content:
+                    content, changed = new_content, True
+                break
+
+        new_content = update_docs_soup(content, html_file=html_file)
+        if new_content != content:
+            content, changed = new_content, True
+
+        new_content = fix_md_links(content)
+        if new_content != content:
+            content, changed = new_content, True
+
+        if changed:
+            html_file.write_text(content, encoding="utf-8")
+            written += 1
+
+    LOGGER.info(f"Updated HTML files: {written}")
 
 
 def update_docs_soup(content: str, html_file: Path | None = None, max_title_length: int = 70) -> str:
@@ -206,11 +191,10 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
     if not (needs_title_trim or needs_link_conversion or needs_codelineno_cleanup):
         return content
 
-    strainer = SoupStrainer(["html", "head", "body", "main", "div", "p", "li", "a", "title"])
     try:
-        soup = BeautifulSoup(content, "lxml", parse_only=strainer)
+        soup = BeautifulSoup(content, "lxml", parse_only=SOUP_STRAINER)
     except Exception:
-        soup = BeautifulSoup(content, "html.parser", parse_only=strainer)
+        soup = BeautifulSoup(content, "html.parser", parse_only=SOUP_STRAINER)
     modified = False
 
     # Truncate long meta title if needed

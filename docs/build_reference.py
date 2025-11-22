@@ -504,7 +504,10 @@ def _collect_source_block(src: str, node: ast.AST, end_line: int | None = None) 
     if not hasattr(node, "lineno") or not hasattr(node, "end_lineno"):
         return ""
     lines = src.splitlines()
-    start = max(node.lineno - 1, 0)
+    # Include decorators by starting from the first decorator line if present
+    decorator_lines = [getattr(d, "lineno", node.lineno) for d in getattr(node, "decorator_list", [])]
+    start_line = min(decorator_lines + [node.lineno]) if decorator_lines else node.lineno
+    start = max(start_line - 1, 0)
     end = end_line or getattr(node, "end_lineno", node.lineno)
     snippet = "\n".join(lines[start:end])
     return textwrap.dedent(snippet).rstrip()

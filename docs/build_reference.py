@@ -977,7 +977,10 @@ def create_markdown(module: DocumentedModule) -> Path:
     if not exists:
         subprocess.run(["git", "add", "-f", str(md_filepath)], check=True, cwd=PACKAGE_DIR)
 
-    return md_filepath.relative_to(PACKAGE_DIR.parent)
+    try:
+        return md_filepath.relative_to(PACKAGE_DIR.parent)
+    except ValueError:
+        return md_filepath
 
 
 def nested_dict():

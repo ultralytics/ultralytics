@@ -74,8 +74,6 @@ def prepare_docs_markdown(clone_repos: bool = True):
         )
         shutil.rmtree(DOCS / "en/hub/sdk", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")  # for docs
-        shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)  # delete if exists
-        shutil.copytree(local_dir / "hub_sdk", DOCS.parent / "hub_sdk")  # for mkdocstrings
         LOGGER.info(f"Cloned/Updated {repo} in {local_dir}")
 
         # Get docs repo
@@ -598,7 +596,7 @@ def main():
         # Render reference docs for any extra packages present (e.g., hub-sdk)
         extra_refs = [
             {
-                "package": DOCS.parent / "hub_sdk",
+                "package": DOCS / "repos" / "hub-sdk" / "hub_sdk",
                 "reference_dir": DOCS / "en" / "hub" / "sdk" / "reference",
                 "repo": "ultralytics/hub-sdk",
             },
@@ -607,6 +605,9 @@ def main():
             if ref["package"].exists():
                 build_reference_for(ref["package"], ref["reference_dir"], ref["repo"], update_nav=False)
         render_jinja_macros()
+
+        # Remove cloned repos before serving/building to keep the tree lean during mkdocs processing
+        shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
         # Build the main documentation
         LOGGER.info(f"Building docs from {DOCS}")

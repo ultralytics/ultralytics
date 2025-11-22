@@ -5,7 +5,9 @@ keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep 
 ---
 
 <div align="center">
-<p><a href="https://www.ultralytics.com/events/yolovision?utm_source=github&utm_medium=org&utm_campaign=yv25_event" target="_blank"><img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a></p>p>
+<br><br>
+<a href="https://www.ultralytics.com/events/yolovision?utm_source=github&utm_medium=org&utm_campaign=yv25_event" target="_blank"><img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
+<br><br>
 <a href="https://docs.ultralytics.com/zh/">中文</a> ·
 <a href="https://docs.ultralytics.com/ko/">한국어</a> ·
 <a href="https://docs.ultralytics.com/ja/">日本語</a> ·

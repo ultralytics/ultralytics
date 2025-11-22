@@ -1141,7 +1141,9 @@ def build_reference_docs(update_nav: bool = False) -> list[str]:
     return nav_items
 
 
-def build_reference_for(package_dir: Path, reference_dir: Path, github_repo: str, update_nav: bool = False) -> list[str]:
+def build_reference_for(
+    package_dir: Path, reference_dir: Path, github_repo: str, update_nav: bool = False
+) -> list[str]:
     """Temporarily switch package context to build reference docs for another project."""
     global PACKAGE_DIR, REFERENCE_DIR, GITHUB_REPO
     prev = (PACKAGE_DIR, REFERENCE_DIR, GITHUB_REPO)

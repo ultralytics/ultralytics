@@ -559,7 +559,10 @@ def main():
             except KeyboardInterrupt:
                 LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
             except Exception as e:
-                LOGGER.info(f"\n❌ Server failed: {e}")
+                if "Address already in use" in str(e):
+                    LOGGER.info("Port 8000 in use; skipping auto-serve. Serve manually if needed.")
+                else:
+                    LOGGER.info(f"\n❌ Server failed: {e}")
         else:
             LOGGER.info('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
     finally:

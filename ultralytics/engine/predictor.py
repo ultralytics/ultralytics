@@ -430,14 +430,26 @@ class BasePredictor:
         import hashlib
 
         p = Path(p).resolve()
+        is_image_mode = self.dataset.mode == "image"
+        frame_suffix = "" if is_image_mode else f"_{frame}"
+
         try:
+            # Build relative path under labels/
             src_root = Path(self.args.source).resolve()
             rel = p.relative_to(src_root)
-            self.txt_path = (self.save_dir / "labels" / rel).with_suffix("")
+
+            # Build final txt filename
+            txt_name = rel.stem + frame_suffix + ".txt"
+            self.txt_path = (self.save_dir / "labels" / rel.parent / txt_name)
+
         except Exception:
+            # Hash fallback
             h = hashlib.sha1(p.as_posix().encode()).hexdigest()[:8]
-            self.txt_path = (self.save_dir / "labels" / f"{p.stem}__{h}")
+            self.txt_path = self.save_dir / "labels" / f"{p.stem}{frame_suffix}__{h}.txt"
+
+        # Ensure directory exists
         self.txt_path.parent.mkdir(parents=True, exist_ok=True)
+
 
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
@@ -456,7 +468,7 @@ class BasePredictor:
 
         # Save results
         if self.args.save_txt:
-            result.save_txt(self.txt_path.with_suffix(".txt"), save_conf=self.args.save_conf)
+            result.save_txt(self.txt_path, save_conf=self.args.save_conf)
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
         if self.args.show:

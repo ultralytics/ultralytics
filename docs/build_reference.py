@@ -478,17 +478,23 @@ def parse_google_docstring(docstring: str | None) -> ParsedDocstring:
 
 def merge_docstrings(base: ParsedDocstring, extra: ParsedDocstring, ignore_summary: bool = True) -> ParsedDocstring:
     """Merge init docstring content into a class docstring."""
+    # Keep existing class docs; append init docs only when they introduce new entries (class takes priority).
+    def _merge_unique(base_items, extra_items, key):
+        seen = {key(item) for item in base_items}
+        base_items.extend(item for item in extra_items if key(item) not in seen)
+        return base_items
+
     if not base.summary and extra.summary and not ignore_summary:
         base.summary = extra.summary
     if extra.description:
         base.description = "\n\n".join(filter(None, [base.description, extra.description]))
-    base.params.extend(extra.params)
-    base.attributes.extend(extra.attributes)
-    base.returns.extend(extra.returns)
-    base.yields.extend(extra.yields)
-    base.raises.extend(extra.raises)
-    base.notes.extend(extra.notes)
-    base.examples.extend(extra.examples)
+    _merge_unique(base.params, extra.params, lambda p: (p.name, p.type, p.description, p.default))
+    _merge_unique(base.attributes, extra.attributes, lambda p: (p.name, p.type, p.description, p.default))
+    _merge_unique(base.returns, extra.returns, lambda r: (r.type, r.description))
+    _merge_unique(base.yields, extra.yields, lambda r: (r.type, r.description))
+    _merge_unique(base.raises, extra.raises, lambda r: (r.name, r.type, r.description, r.default))
+    _merge_unique(base.notes, extra.notes, lambda n: n.strip())
+    _merge_unique(base.examples, extra.examples, lambda e: e.strip())
     return base
 
 
@@ -777,7 +783,8 @@ def render_docstring(
 
     if extra_sections:
         sections.update({k: v for k, v in extra_sections.items() if v})
-    order = section_order or DEFAULT_SECTION_ORDER
+    # Ensure section order contains unique entries to avoid duplicate renders (e.g., classes injecting "examples")
+    order = list(dict.fromkeys(section_order or DEFAULT_SECTION_ORDER))
 
     ordered_sections: list[str] = []
     seen = set()
@@ -907,7 +914,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
             "</details>\n"
         )
 
-    return "\n".join(p for p in parts if p).rstrip() + "\n"
+    return "\n\n".join(p.rstrip() for p in parts if p).rstrip() + "\n\n"
 
 
 def render_module_markdown(module: DocumentedModule) -> str:

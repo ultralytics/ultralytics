@@ -1990,6 +1990,7 @@ class SAM3Predictor(Predictor):
             self.args.model, bpe_path="/home/laughing/codes/sam3/assets/bpe_simple_vocab_16e6.txt.gz"
         )
 
+    @smart_inference_mode()
     def get_im_features(self, im):
         """Extract image features using the model's backbone."""
         return self.model.backbone.forward_image(im)

@@ -2078,7 +2078,7 @@ class SAM3Predictor(Predictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process the predictions to apply non-overlapping constraints if required."""
-        pred_bbox = preds["pred_boxes"]  # (nc, num_query, 4)
+        pred_boxes = preds["pred_boxes"]  # (nc, num_query, 4)
         pred_logits = preds["pred_logits"]
         pred_masks = preds["pred_masks"]
         pred_scores = pred_logits.sigmoid()
@@ -2089,18 +2089,18 @@ class SAM3Predictor(Predictor):
             dtype=pred_scores.dtype,
             device=pred_scores.device,
         )[:, None].expand_as(pred_scores)
-        pred_bbox = torch.cat([pred_bbox, pred_scores[..., None], pred_cls[..., None]], dim=-1)
+        pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
 
         keep = pred_scores > self.args.conf
         pred_masks = pred_masks[keep]
-        pred_bbox = pred_bbox[keep]
-        pred_bbox[:, :4] = ops.xywh2xyxy(pred_bbox[:, :4])
+        pred_boxes = pred_boxes[keep]
+        pred_boxes[:, :4] = ops.xywh2xyxy(pred_boxes[:, :4])
 
         names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
         results = []
-        for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_bbox], orig_imgs, self.batch[0]):
+        for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):
             if masks.shape[0] == 0:
                 masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
@@ -2120,6 +2120,63 @@ class SAM3Predictor(Predictor):
         features = self.get_im_features(im) if self.features is None else self.features
         prompts = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
         return self._inference_features(features, *prompts, text=text)
+
+    @smart_inference_mode()
+    def inference_features(
+        self,
+        features,
+        src_shape,
+        bboxes=None,
+        labels=None,
+        text: list[str] = None,
+    ):
+        """Perform prompts preprocessing and inference on provided image features using the SAM model.
+
+        Args:
+            features (dict[str, Any]): Extracted image features from the SAM3 model image encoder.
+            src_shape (tuple[int, int]): The source shape (height, width) of the input image.
+            bboxes (np.ndarray | list[list[float]] | None): Bounding boxes in xyxy format with shape (N, 4).
+                pixels.
+            labels (np.ndarray | list[int] | None): Point prompt labels with shape (N, ).
+            text (list[str] | None): List of text prompts corresponding to the classes.
+
+        Returns:
+            pred_masks (torch.Tensor): The output masks in shape (C, H, W), where C is the number of generated masks.
+            pred_bboxes (torch.Tensor): Bounding boxes for each mask with shape (N, 6), where N is the number of boxes.
+                Each box is in xyxy format with additional columns for score and class.
+
+        Notes:
+            - The input features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a dict[str, Any] if performing on SAM2.
+        """
+        prompts = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
+        preds = self._inference_features(features, *prompts, text=text)
+        pred_boxes = preds["pred_boxes"]  # (nc, num_query, 4)
+        pred_logits = preds["pred_logits"]
+        pred_masks = preds["pred_masks"]
+        pred_scores = pred_logits.sigmoid()
+        presence_score = preds["presence_logit_dec"].sigmoid().unsqueeze(1)
+        pred_scores = (pred_scores * presence_score).squeeze(-1)
+        pred_cls = torch.tensor(
+            list(range(pred_scores.shape[0])),
+            dtype=pred_scores.dtype,
+            device=pred_scores.device,
+        )[:, None].expand_as(pred_scores)
+        pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
+
+        keep = pred_scores > self.args.conf
+        pred_masks = pred_masks[keep]
+        pred_boxes = pred_boxes[keep]
+        pred_boxes[:, :4] = ops.xywh2xyxy(pred_boxes[:, :4])
+
+        if pred_masks.shape[0] == 0:
+            pred_masks, pred_boxes = None, torch.zeros((0, 6), device=pred_masks.device)
+        else:
+            pred_masks = F.interpolate(pred_masks.float()[None], src_shape[:2], mode="bilinear")[0] > 0.5
+            pred_boxes[..., 0] *= src_shape[1]
+            pred_boxes[..., 1] *= src_shape[0]
+            pred_boxes[..., 2] *= src_shape[1]
+            pred_boxes[..., 3] *= src_shape[0]
+        return pred_masks, pred_boxes
 
     def reset_prompts(self):
         """Reset the prompts for the predictor."""

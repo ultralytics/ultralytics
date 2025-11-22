@@ -804,7 +804,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
 
     if item.kind == "class" and item.source:
         source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"
-        summary = f"&lt;&gt; Source code in <code>{html.escape(module_path)}.py</code>"
+        summary = f"Source code in <code>{html.escape(module_path)}.py</code>"
         parts.append(
             "<details>\n"
             f"<summary>{summary}</summary>\n\n"
@@ -821,13 +821,15 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
             )
             summary = summary.strip()
             method_rows.append([f"[`{child.name}`](#{item_anchor(child)})", summary])
-        parts.append(_render_table(["Name", "Description"], method_rows, level + 1, "Methods"))
+        if method_rows:
+            table = _render_table(["Name", "Description"], method_rows, level + 1, title=None)
+            parts.append(f"**Methods**\n\n{table}")
         for child in item.children:
-            parts.append(render_item(child, module_url, module_path, level + 2))
+            parts.append(render_item(child, module_url, module_path, level + 1))
 
     if item.source and item.kind != "class":
         source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"
-        summary = f"&lt;&gt; Source code in <code>{html.escape(module_path)}.py</code>"
+        summary = f"Source code in <code>{html.escape(module_path)}.py</code>"
         parts.append(
             "<details>\n"
             f"<summary>{summary}</summary>\n\n"

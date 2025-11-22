@@ -27,11 +27,19 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 import yaml
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 from minijinja import Environment, load_from_path
+
+try:
+    from plugin import postprocess_site  # mkdocs-ultralytics-plugin
+except ImportError:
+    postprocess_site = None
+
+from build_reference import build_reference_docs
 
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
@@ -40,6 +48,32 @@ os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
+TITLE_PATTERN = re.compile(r"<title>(.*?)</title>", flags=re.IGNORECASE | re.DOTALL)
+LOCAL_MD_LINK = re.compile(r'((?:href|src)=["\'])(\.{0,2}/[^"\'>\s]+?)\.md((?:[?#][^"\'>\s]*)?)(["\'])', re.IGNORECASE)
+SOUP_STRAINER = SoupStrainer(["html", "head", "body", "main", "div", "nav", "p", "li", "a", "title", "h2", "h3"])
+EDIT_LINK_RULES = (
+    (
+        "hub/sdk/",
+        re.compile(
+            r'(<a[^>]*class="md-content__button md-icon"[^>]*href=")[^"]*/hub/sdk/([^"]*"[^>]*title="Edit this page")'
+        ),
+        "https://github.com/ultralytics/hub-sdk/tree/main/docs/",
+    ),
+    (
+        "compare/",
+        re.compile(
+            r'(<a[^>]*class="md-content__button md-icon"[^>]*href=")[^"]*/compare/([^"]*"[^>]*title="Edit this page")'
+        ),
+        "https://github.com/ultralytics/docs/tree/main/docs/en/compare/",
+    ),
+)
+DOC_KIND_LABELS = {"Class", "Function", "Method", "Property"}
+DOC_KIND_COLORS = {
+    "Class": "#039dfc",  # blue
+    "Method": "#ef5eff",  # magenta
+    "Function": "#fc9803",  # orange
+    "Property": "#02e835",  # green
+}
 
 
 def prepare_docs_markdown(clone_repos: bool = True):
@@ -74,53 +108,6 @@ def prepare_docs_markdown(clone_repos: bool = True):
     # Add frontmatter
     for file in TQDM((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
         update_markdown_files(file)
-
-
-def update_page_title(file_path: Path, new_title: str):
-    """Update the title of an HTML file."""
-    with open(file_path, encoding="utf-8") as file:
-        content = file.read()
-
-    # Replace the existing title with the new title
-    updated_content = re.sub(r"<title>.*?</title>", f"<title>{new_title}</title>", content)
-
-    # Write the updated content back to the file
-    with open(file_path, "w", encoding="utf-8") as file:
-        file.write(updated_content)
-
-
-def update_html_head(script: str = ""):
-    """Update the HTML head section of each file."""
-    html_files = Path(SITE).rglob("*.html")
-    for html_file in TQDM(html_files, desc="Processing HTML files"):
-        with html_file.open("r", encoding="utf-8") as file:
-            html_content = file.read()
-
-        if script in html_content:  # script already in HTML file
-            return
-
-        head_end_index = html_content.lower().rfind("</head>")
-        if head_end_index != -1:
-            # Add the specified JavaScript to the HTML file just before the end of the head tag.
-            new_html_content = html_content[:head_end_index] + script + html_content[head_end_index:]
-            with html_file.open("w", encoding="utf-8") as file:
-                file.write(new_html_content)
-
-
-def update_subdir_edit_links(subdir: str = "", docs_url: str = ""):
-    """Update edit button links using regex instead of BeautifulSoup."""
-    if str(subdir[0]) == "/":
-        subdir = str(subdir[0])[1:]
-    for html_file in TQDM((SITE / subdir).rglob("*.html"), desc="Processing subdir files", mininterval=1.0):
-        content = html_file.read_text(encoding="utf-8")
-        # Regex to find and replace edit link href
-        updated = re.sub(
-            rf'(<a[^>]*class="md-content__button md-icon"[^>]*href=")[^"]*/{subdir}([^"]*"[^>]*title="Edit this page")',
-            rf"\1{docs_url}\2",
-            content,
-        )
-        if updated != content:
-            html_file.write_text(updated, encoding="utf-8")
 
 
 def update_markdown_files(md_filepath: Path):
@@ -161,45 +148,92 @@ def update_markdown_files(md_filepath: Path):
 
 
 def update_docs_html():
-    """Update titles, edit links, head sections, and convert plaintext links in HTML documentation."""
-    # Update 404 titles
-    update_page_title(SITE / "404.html", new_title="Ultralytics Docs - Not Found")
+    """Update titles, edit links, and convert plaintext links in HTML documentation in one pass."""
+    from concurrent.futures import ProcessPoolExecutor
 
-    # Update edit button links
-    for subdir, docs_url in (
-        ("hub/sdk/", "https://github.com/ultralytics/hub-sdk/tree/main/docs/"),  # do not use leading slash
-        ("compare/", "https://github.com/ultralytics/docs/tree/main/docs/en/compare/"),
-    ):
-        update_subdir_edit_links(subdir=subdir, docs_url=docs_url)
+    html_files = list(SITE.rglob("*.html"))
+    if not html_files:
+        LOGGER.info("Updated HTML files: 0")
+        return
 
-    # Convert plaintext links to HTML hyperlinks
-    files_modified = 0
-    for html_file in TQDM(SITE.rglob("*.html"), desc="Updating bs4 soup", mininterval=1.0):
-        with open(html_file, encoding="utf-8") as file:
-            content = file.read()
-        updated_content = update_docs_soup(content, html_file=html_file)
-        if updated_content != content:
-            with open(html_file, "w", encoding="utf-8") as file:
-                file.write(updated_content)
-            files_modified += 1
-    LOGGER.info(f"Modified bs4 soup in {files_modified} files.")
+    max_workers = os.cpu_count() or 1
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        results = TQDM(executor.map(_process_html_file, html_files), total=len(html_files), desc="Updating docs HTML")
+        written = sum(bool(r) for r in results)
 
-    # Update HTML file head section
-    script = ""
-    if any(script):
-        update_html_head(script)
+    LOGGER.info(f"Updated HTML files: {written}")
+
+
+def _process_html_file(html_file: Path) -> bool:
+    """Process a single HTML file; returns True if modified."""
+    try:
+        content = html_file.read_text(encoding="utf-8")
+    except Exception as e:
+        LOGGER.warning(f"Could not read {html_file}: {e}")
+        return False
+
+    changed = False
+    try:
+        rel_path = html_file.relative_to(SITE).as_posix()
+    except ValueError:
+        rel_path = html_file.name
+
+    if rel_path == "404.html":
+        new_content = re.sub(r"<title>.*?</title>", "<title>Ultralytics Docs - Not Found</title>", content)
+        if new_content != content:
+            content, changed = new_content, True
+
+    for subdir, pattern, docs_url in EDIT_LINK_RULES:
+        if rel_path.startswith(subdir):
+            new_content = pattern.sub(rf"\1{docs_url}\2", content)
+            if new_content != content:
+                content, changed = new_content, True
+            break
+
+    new_content = update_docs_soup(content, html_file=html_file)
+    if new_content != content:
+        content, changed = new_content, True
+
+    new_content = fix_md_links(content)
+    if new_content != content:
+        content, changed = new_content, True
+
+    if changed:
+        try:
+            html_file.write_text(content, encoding="utf-8")
+            return True
+        except Exception as e:
+            LOGGER.warning(f"Could not write {html_file}: {e}")
+    return False
 
 
 def update_docs_soup(content: str, html_file: Path | None = None, max_title_length: int = 70) -> str:
     """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
+    title_match = TITLE_PATTERN.search(content)
+    needs_title_trim = bool(
+        title_match and len(title_match.group(1)) > max_title_length and "-" in title_match.group(1)
+    )
+    needs_link_conversion = ("<p" in content or "<li" in content) and bool(LINK_PATTERN.search(content))
+    needs_codelineno_cleanup = "__codelineno-" in content
+    rel_path = ""
+    if html_file:
+        try:
+            rel_path = html_file.relative_to(SITE).as_posix()
+        except Exception:
+            rel_path = html_file.as_posix()
+    needs_kind_highlight = "reference" in rel_path or "reference" in content
+
+    if not (needs_title_trim or needs_link_conversion or needs_codelineno_cleanup or needs_kind_highlight):
+        return content
+
     try:
-        soup = BeautifulSoup(content, "lxml")
+        soup = BeautifulSoup(content, "lxml", parse_only=SOUP_STRAINER)
     except Exception:
-        soup = BeautifulSoup(content, "html.parser")
+        soup = BeautifulSoup(content, "html.parser", parse_only=SOUP_STRAINER)
     modified = False
 
     # Truncate long meta title if needed
-    title_tag = soup.find("title")
+    title_tag = soup.find("title") if needs_title_trim else None
     if title_tag and len(title_tag.text) > max_title_length and "-" in title_tag.text:
         title_tag.string = title_tag.text.rsplit("-", 1)[0].strip()
         modified = True
@@ -210,26 +244,102 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
         return str(soup) if modified else content
 
     # Convert plaintext links to HTML hyperlinks
-    for paragraph in main_content.select("p, li"):
-        for text_node in paragraph.find_all(string=True, recursive=False):
-            if text_node.parent.name not in {"a", "code"}:
-                new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))
-                if "<a href=" in new_text:
-                    text_node.replace_with(BeautifulSoup(new_text, "html.parser"))
-                    modified = True
+    if needs_link_conversion:
+        for paragraph in main_content.select("p, li"):
+            for text_node in paragraph.find_all(string=True, recursive=False):
+                if text_node.parent.name not in {"a", "code"}:
+                    new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))
+                    if "<a href=" in new_text:
+                        text_node.replace_with(BeautifulSoup(new_text, "html.parser"))
+                        modified = True
 
     # Remove href attributes from code line numbers in code blocks
-    for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
-        if a.string:  # If the a tag has text (the line number)
-            # Check if parent is a span with class="normal"
-            if a.parent and a.parent.name == "span" and "normal" in a.parent.get("class", []):
-                del a.parent["class"]
-            a.replace_with(a.string)  # Replace with just the text
-        else:  # If it has no text
-            a.replace_with(soup.new_tag("span"))  # Replace with an empty span
-        modified = True
+    if needs_codelineno_cleanup:
+        for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
+            if a.string:  # If the a tag has text (the line number)
+                # Check if parent is a span with class="normal"
+                if a.parent and a.parent.name == "span" and "normal" in a.parent.get("class", []):
+                    del a.parent["class"]
+                a.replace_with(a.string)  # Replace with just the text
+            else:  # If it has no text
+                a.replace_with(soup.new_tag("span"))  # Replace with an empty span
+            modified = True
+
+    def highlight_labels(nodes):
+        """Inject doc-kind badges into headings and nav entries."""
+        nonlocal modified
+
+        for node in nodes:
+            if not node.contents:
+                continue
+            first = node.contents[0]
+            if hasattr(first, "get") and "doc-kind" in (first.get("class") or []):
+                continue
+            text = first if isinstance(first, str) else getattr(first, "string", "")
+            if not text:
+                continue
+            stripped = str(text).strip()
+            if not stripped:
+                continue
+            kind = stripped.split()[0].rstrip(":")
+            if kind not in DOC_KIND_LABELS:
+                continue
+            span = soup.new_tag("span", attrs={"class": f"doc-kind doc-kind-{kind.lower()}"})
+            span.string = kind.lower()
+            first.replace_with(span)
+            tail = str(text)[len(kind) :]
+            tail_stripped = tail.lstrip()
+            if tail_stripped.startswith(kind):
+                tail = tail_stripped[len(kind) :]
+            if not tail and len(node.contents) > 0:
+                tail = " "
+            if tail:
+                span.insert_after(tail)
+            modified = True
+
+    highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
+    highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
+
+    if modified:
+        head = soup.find("head")
+        if head and not soup.select("style[data-doc-kind]"):
+            style = soup.new_tag("style", attrs={"data-doc-kind": "true"})
+            style.string = (
+                ".doc-kind{display:inline-flex;align-items:center;gap:0.25em;padding:0.18em 0.65em;border-radius:999px;"
+                "font-weight:700;font-size:0.72em;letter-spacing:0.06em;text-transform:uppercase;"
+                "line-height:1;color:var(--doc-kind-color,#f8fafc);"
+                "background:var(--doc-kind-bg,rgba(255,255,255,0.12));}"
+                f".doc-kind-class{{--doc-kind-color:{DOC_KIND_COLORS['Class']};--doc-kind-bg:rgba(3,157,252,0.22);}}"
+                f".doc-kind-function{{--doc-kind-color:{DOC_KIND_COLORS['Function']};--doc-kind-bg:rgba(252,152,3,0.22);}}"
+                f".doc-kind-method{{--doc-kind-color:{DOC_KIND_COLORS['Method']};--doc-kind-bg:rgba(239,94,255,0.22);}}"
+                f".doc-kind-property{{--doc-kind-color:{DOC_KIND_COLORS['Property']};--doc-kind-bg:rgba(2,232,53,0.22);}}"
+            )
+            head.append(style)
 
     return str(soup) if modified else content
+
+
+def fix_md_links(content: str) -> str:
+    """Replace .md references with trailing slashes in provided HTML content, fixing Zensical bug."""
+    if ".md" not in content:
+        return content
+
+    def repl(match: re.Match) -> str:
+        """Rewrite local href/src .md targets to trailing slashes."""
+        prefix, path, trailer, suffix = match.groups()
+        if "github.com" in path:
+            return match.group(0)
+        path = path.rstrip("/")
+        if path.endswith("index"):
+            path = path[: -len("index")]
+        path = path.rstrip("/")
+        return f"{prefix}{path}/{trailer}{suffix}"
+
+    lines = []
+    for line in content.split("\n"):
+        line = LOCAL_MD_LINK.sub(repl, line)
+        lines.append(line)
+    return "\n".join(lines)
 
 
 # Precompiled regex patterns for minification
@@ -263,6 +373,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         preserved = []
 
         def preserve(match):
+            """Mark HTML blocks that should not be minified."""
             preserved.append(match.group(0))
             return f"___PRESERVE_{len(preserved) - 1}___"
 
@@ -353,6 +464,7 @@ def render_jinja_macros() -> None:
         """SafeLoader that gracefully skips unknown tags (required for mkdocs.yml)."""
 
     def _ignore_unknown(loader, tag_suffix, node):
+        """Gracefully handle YAML tags that aren't registered."""
         if isinstance(node, yaml.ScalarNode):
             return loader.construct_scalar(node)
         if isinstance(node, yaml.SequenceNode):
@@ -364,6 +476,7 @@ def render_jinja_macros() -> None:
     SafeFallbackLoader.add_multi_constructor("", _ignore_unknown)
 
     def load_yaml(path: Path, *, safe_loader: yaml.Loader = yaml.SafeLoader) -> dict:
+        """Load YAML safely, returning an empty dict on errors."""
         if not path.exists():
             return {}
         try:
@@ -408,7 +521,7 @@ def render_jinja_macros() -> None:
     files_with_macros = 0
 
     for md_file in TQDM((DOCS / "en").rglob("*.md"), desc="Rendering MiniJinja macros"):
-        if "macros" in md_file.parts:
+        if "macros" in md_file.parts or "reference" in md_file.parts:
             continue
         files_processed += 1
 
@@ -477,11 +590,13 @@ def restore_docs_sources(backup_root: Path, backups: list[tuple[Path, Path]]):
 
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
+    start_time = time.perf_counter()
     backup_root: Path | None = None
     docs_backups: list[tuple[Path, Path]] = []
     restored = False
 
     def restore_all():
+        """Restore docs sources from backup once build steps complete."""
         nonlocal restored
         if backup_root:
             LOGGER.info("Restoring docs directory from backup")
@@ -491,22 +606,43 @@ def main():
     try:
         backup_root, docs_backups = backup_docs_sources()
         prepare_docs_markdown()
+        build_reference_docs(update_nav=False)
         render_jinja_macros()
 
         # Build the main documentation
         LOGGER.info(f"Building docs from {DOCS}")
-        subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
+        subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
         LOGGER.info(f"Site built at {SITE}")
 
         # Update docs HTML pages
         update_docs_html()
+
+        # Post-process site for meta tags, authors, social cards, and mkdocstrings polish
+        if postprocess_site:
+            postprocess_site(
+                site_dir=SITE,
+                docs_dir=DOCS / "en",
+                site_url="https://docs.ultralytics.com",
+                default_image="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png",
+                default_author="glenn.jocher@ultralytics.com",
+                add_desc=False,
+                add_image=True,
+                add_authors=True,
+                add_json_ld=True,
+                add_share_buttons=True,
+                add_css=False,
+                verbose=True,
+            )
+        else:
+            LOGGER.warning("postprocess_site not available; skipping mkdocstrings postprocessing")
 
         # Minify files
         minify_files(html=False, css=False, js=False)
 
         # Print results and auto-serve on macOS
         size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
-        LOGGER.info(f"Docs built correctly ✅ ({size:.1f} MB)")
+        duration = time.perf_counter() - start_time
+        LOGGER.info(f"Docs built correctly ✅ ({size:.1f}MB, {duration:.1f}s)")
 
         # Restore sources before optionally serving
         restore_all()
@@ -522,7 +658,10 @@ def main():
             except KeyboardInterrupt:
                 LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
             except Exception as e:
-                LOGGER.info(f"\n❌ Server failed: {e}")
+                if "Address already in use" in str(e):
+                    LOGGER.info("Port 8000 in use; skipping auto-serve. Serve manually if needed.")
+                else:
+                    LOGGER.info(f"\n❌ Server failed: {e}")
         else:
             LOGGER.info('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
     finally:

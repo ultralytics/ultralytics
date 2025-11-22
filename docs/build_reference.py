@@ -666,6 +666,8 @@ def render_docstring(doc: ParsedDocstring, level: int, signature_params: list[Pa
     merged_params = _merge_params(doc.params, sig_params)
 
     sections: list[str] = []
+    ordered_sections: list[str] = []
+
     if merged_params:
         rows = []
         for p in merged_params:
@@ -678,7 +680,7 @@ def render_docstring(doc: ParsedDocstring, level: int, signature_params: list[Pa
                     default_val,
                 ]
             )
-        sections.append(_render_table(["Name", "Type", "Description", "Default"], rows, level, "Parameters"))
+        ordered_sections.append(_render_table(["Name", "Type", "Description", "Default"], rows, level, "Parameters"))
 
     if doc.attributes:
         rows = []
@@ -686,35 +688,38 @@ def render_docstring(doc: ParsedDocstring, level: int, signature_params: list[Pa
             rows.append(
                 [f"`{a.name}`", f"`{a.type}`" if a.type else "", a.description.strip() if a.description else ""]
             )
-        sections.append(_render_table(["Name", "Type", "Description"], rows, level, "Attributes"))
+        ordered_sections.append(_render_table(["Name", "Type", "Description"], rows, level, "Attributes"))
 
     if doc.returns:
         rows = []
         for r in doc.returns:
             rows.append([f"`{r.type}`" if r.type else "", r.description])
-        sections.append(_render_table(["Type", "Description"], rows, level, "Returns"))
+        ordered_sections.append(_render_table(["Type", "Description"], rows, level, "Returns"))
 
     if doc.yields:
         rows = []
         for r in doc.yields:
             rows.append([f"`{r.type}`" if r.type else "", r.description])
-        sections.append(_render_table(["Type", "Description"], rows, level, "Yields"))
+        ordered_sections.append(_render_table(["Type", "Description"], rows, level, "Yields"))
 
     if doc.raises:
         rows = []
         for e in doc.raises:
             type_cell = e.type or e.name
             rows.append([f"`{type_cell}`" if type_cell else "", e.description or ""])
-        sections.append(_render_table(["Type", "Description"], rows, level, "Raises"))
+        ordered_sections.append(_render_table(["Type", "Description"], rows, level, "Raises"))
 
     if doc.notes:
         note_text = "\n\n".join(doc.notes).strip()
         indented = textwrap.indent(note_text, "    ")
-        sections.append(f'!!! note "Notes"\n\n{indented}\n\n')
+        ordered_sections.append(f'!!! note "Notes"\n\n{indented}\n\n')
+
     if doc.examples:
         code_block = "\n\n".join(f"```python\n{example.strip()}\n```" for example in doc.examples if example.strip())
         if code_block:
-            sections.append(f"{'#' * level} Examples\n{code_block}\n\n")
+            ordered_sections.append(f"{'#' * level} Examples\n{code_block}\n\n")
+
+    sections.extend(ordered_sections)
 
     parts.extend(filter(None, sections))
     return "\n\n".join([p.rstrip() for p in parts if p]).strip() + ("\n\n" if parts else "")
@@ -747,7 +752,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
             "<details>\n"
             f"<summary>{summary}</summary>\n\n"
             f'<p><a href="{source_url}">View source</a></p>\n\n'
-            f"```python\n{item.source}\n```\n"
+            f"<pre><code>{item.source}</code></pre>\n"
             "</details>\n"
         )
 
@@ -770,7 +775,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
             "<details>\n"
             f"<summary>{summary}</summary>\n\n"
             f'<p><a href="{source_url}">View source</a></p>\n\n'
-            f"```python\n{item.source}\n```\n"
+            f"<pre><code>{item.source}</code></pre>\n"
             "</details>\n"
         )
 

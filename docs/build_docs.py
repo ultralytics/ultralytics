@@ -26,9 +26,12 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
+import yaml
 from bs4 import BeautifulSoup
+from minijinja import Environment, load_from_path
 
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
@@ -129,7 +132,7 @@ def update_markdown_files(md_filepath: Path):
         content = content.replace("‘", "'").replace("’", "'")
 
         # Add frontmatter if missing
-        if not content.strip().startswith("---\n") and "macros" not in md_filepath.parts:  # skip macros directory
+        if not content.strip().startswith("---\n"):
             header = "---\ncomments: true\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
             content = header + content
 
@@ -186,12 +189,6 @@ def update_docs_html():
     if any(script):
         update_html_head(script)
 
-    # Delete the /macros directory from the built site
-    macros_dir = SITE / "macros"
-    if macros_dir.exists():
-        LOGGER.info(f"Removing /macros directory from site: {macros_dir}")
-        shutil.rmtree(macros_dir)
-
 
 def update_docs_soup(content: str, html_file: Path | None = None, max_title_length: int = 70) -> str:
     """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
@@ -233,32 +230,6 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
         modified = True
 
     return str(soup) if modified else content
-
-
-def remove_macros():
-    """Remove the /macros directory and related entries in sitemap.xml from the built site."""
-    shutil.rmtree(SITE / "macros", ignore_errors=True)
-    (SITE / "sitemap.xml.gz").unlink(missing_ok=True)
-
-    # Process sitemap.xml
-    sitemap = SITE / "sitemap.xml"
-    lines = sitemap.read_text(encoding="utf-8").splitlines(keepends=True)
-
-    # Find indices of '/macros/' lines
-    macros_indices = [i for i, line in enumerate(lines) if "/macros/" in line]
-
-    # Create a set of indices to remove (including lines before and after)
-    indices_to_remove = set()
-    for i in macros_indices:
-        indices_to_remove.update(range(i - 1, i + 3))  # i-1, i, i+1, i+2, i+3
-
-    # Create new list of lines, excluding the ones to remove
-    new_lines = [line for i, line in enumerate(lines) if i not in indices_to_remove]
-
-    # Write the cleaned content back to the file
-    sitemap.write_text("".join(new_lines), encoding="utf-8")
-
-    LOGGER.info(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
 
 
 # Precompiled regex patterns for minification
@@ -373,44 +344,192 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
             LOGGER.info(f"Total {ext.upper()} reduction: {(r / data['original']) * 100:.2f}% ({r / 1024:.2f} KB saved)")
 
 
+def render_jinja_macros() -> None:
+    """Render MiniJinja macros in markdown files before building with MkDocs."""
+    mkdocs_yml = DOCS.parent / "mkdocs.yml"
+    default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
+
+    class SafeFallbackLoader(yaml.SafeLoader):
+        """SafeLoader that gracefully skips unknown tags (required for mkdocs.yml)."""
+
+    def _ignore_unknown(loader, tag_suffix, node):
+        if isinstance(node, yaml.ScalarNode):
+            return loader.construct_scalar(node)
+        if isinstance(node, yaml.SequenceNode):
+            return loader.construct_sequence(node)
+        if isinstance(node, yaml.MappingNode):
+            return loader.construct_mapping(node)
+        return None
+
+    SafeFallbackLoader.add_multi_constructor("", _ignore_unknown)
+
+    def load_yaml(path: Path, *, safe_loader: yaml.Loader = yaml.SafeLoader) -> dict:
+        if not path.exists():
+            return {}
+        try:
+            with open(path, encoding="utf-8") as f:
+                return yaml.load(f, Loader=safe_loader) or {}
+        except Exception as e:
+            LOGGER.warning(f"Could not load {path}: {e}")
+            return {}
+
+    mkdocs_cfg = load_yaml(mkdocs_yml, safe_loader=SafeFallbackLoader)
+    extra_vars = mkdocs_cfg.get("extra", {}) or {}
+    site_name = mkdocs_cfg.get("site_name", "Ultralytics Docs")
+    extra_vars.update(load_yaml(default_yaml))
+
+    env = Environment(
+        loader=load_from_path([DOCS / "en", DOCS]),
+        auto_escape_callback=lambda _: False,
+        trim_blocks=True,
+        lstrip_blocks=True,
+        keep_trailing_newline=True,
+    )
+
+    def indent_filter(value: str, width: int = 4, first: bool = False, blank: bool = False) -> str:
+        """Mimic Jinja's indent filter to preserve macros compatibility."""
+        prefix = " " * int(width)
+        result = []
+        for i, line in enumerate(str(value).splitlines(keepends=True)):
+            if not line.strip() and not blank:
+                result.append(line)
+                continue
+            if i == 0 and not first:
+                result.append(line)
+            else:
+                result.append(prefix + line)
+        return "".join(result)
+
+    env.add_filter("indent", indent_filter)
+    reserved_keys = {"name"}
+    base_context = {**extra_vars, "page": {"meta": {}}, "config": {"site_name": site_name}}
+
+    files_processed = 0
+    files_with_macros = 0
+
+    for md_file in TQDM((DOCS / "en").rglob("*.md"), desc="Rendering MiniJinja macros"):
+        if "macros" in md_file.parts:
+            continue
+        files_processed += 1
+
+        try:
+            content = md_file.read_text(encoding="utf-8")
+        except Exception as e:
+            LOGGER.warning(f"Could not read {md_file}: {e}")
+            continue
+        if "{{" not in content and "{%" not in content:
+            continue
+
+        parts = content.split("---\n")
+        frontmatter = ""
+        frontmatter_data = {}
+        markdown_content = content
+        if content.startswith("---\n") and len(parts) >= 3:
+            frontmatter = f"---\n{parts[1]}---\n"
+            markdown_content = "---\n".join(parts[2:])
+            try:
+                frontmatter_data = yaml.safe_load(parts[1]) or {}
+            except Exception as e:
+                LOGGER.warning(f"Could not parse frontmatter in {md_file}: {e}")
+
+        context = {k: v for k, v in base_context.items() if k not in reserved_keys}
+        context.update({k: v for k, v in frontmatter_data.items() if k not in reserved_keys})
+        context["page"] = context.get("page", {})
+        context["page"]["meta"] = frontmatter_data
+
+        try:
+            rendered = env.render_str(markdown_content, name=str(md_file.relative_to(DOCS)), **context)
+        except Exception as e:
+            LOGGER.warning(f"Error rendering macros in {md_file}: {e}")
+            continue
+
+        md_file.write_text(frontmatter + rendered, encoding="utf-8")
+        files_with_macros += 1
+
+    if files_with_macros:
+        LOGGER.info(f"Rendered MiniJinja macros in {files_with_macros}/{files_processed} files")
+    else:
+        LOGGER.info(f"No MiniJinja macros found in {files_processed} markdown files")
+
+
+def backup_docs_sources() -> tuple[Path, list[tuple[Path, Path]]]:
+    """Create a temporary backup of docs sources so we can fully restore after building."""
+    backup_root = Path(tempfile.mkdtemp(prefix="docs_backup_", dir=str(DOCS.parent)))
+    sources = [DOCS / "en", DOCS / "macros"]
+    copied: list[tuple[Path, Path]] = []
+    for src in sources:
+        if not src.exists():
+            continue
+        dst = backup_root / src.name
+        shutil.copytree(src, dst)
+        copied.append((src, dst))
+    return backup_root, copied
+
+
+def restore_docs_sources(backup_root: Path, backups: list[tuple[Path, Path]]):
+    """Restore docs sources from the temporary backup."""
+    for src, dst in backups:
+        shutil.rmtree(src, ignore_errors=True)
+        if dst.exists():
+            shutil.copytree(dst, src)
+    shutil.rmtree(backup_root, ignore_errors=True)
+
+
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
-    prepare_docs_markdown()
+    backup_root: Path | None = None
+    docs_backups: list[tuple[Path, Path]] = []
+    restored = False
 
-    # Build the main documentation
-    LOGGER.info(f"Building docs from {DOCS}")
-    subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
-    remove_macros()
-    LOGGER.info(f"Site built at {SITE}")
+    def restore_all():
+        nonlocal restored
+        if backup_root:
+            LOGGER.info("Restoring docs directory from backup")
+            restore_docs_sources(backup_root, docs_backups)
+        restored = True
 
-    # Update docs HTML pages
-    update_docs_html()
+    try:
+        backup_root, docs_backups = backup_docs_sources()
+        prepare_docs_markdown()
+        render_jinja_macros()
 
-    # Minify files
-    minify_files(html=False, css=False, js=False)
+        # Build the main documentation
+        LOGGER.info(f"Building docs from {DOCS}")
+        subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
+        LOGGER.info(f"Site built at {SITE}")
 
-    # Cleanup
-    shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
-    shutil.rmtree(DOCS / "repos", ignore_errors=True)
+        # Update docs HTML pages
+        update_docs_html()
 
-    # Print results and auto-serve on macOS
-    size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
-    LOGGER.info(f"Docs built correctly ✅ ({size:.1f} MB)")
+        # Minify files
+        minify_files(html=False, css=False, js=False)
 
-    if (MACOS or LINUX) and not os.getenv("GITHUB_ACTIONS"):
-        import webbrowser
+        # Print results and auto-serve on macOS
+        size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
+        LOGGER.info(f"Docs built correctly ✅ ({size:.1f} MB)")
 
-        url = "http://localhost:8000"
-        LOGGER.info(f"Opening browser at {url}")
-        webbrowser.open(url)
-        try:
-            subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
-        except KeyboardInterrupt:
-            LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
-        except Exception as e:
-            LOGGER.info(f"\n❌ Server failed: {e}")
-    else:
-        LOGGER.info('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
+        # Restore sources before optionally serving
+        restore_all()
+
+        if (MACOS or LINUX) and not os.getenv("GITHUB_ACTIONS"):
+            import webbrowser
+
+            url = "http://localhost:8000"
+            LOGGER.info(f"Opening browser at {url}")
+            webbrowser.open(url)
+            try:
+                subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
+            except KeyboardInterrupt:
+                LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
+            except Exception as e:
+                LOGGER.info(f"\n❌ Server failed: {e}")
+        else:
+            LOGGER.info('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
+    finally:
+        if not restored:
+            restore_all()
+        shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
+        shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
 
 if __name__ == "__main__":

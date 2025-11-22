@@ -469,7 +469,7 @@ def _create_tracker_transformer():
     return transformer
 
 
-def build_interactive_sam3(compile_mode=None) -> SAM3Model:
+def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model:
     """
     Build the SAM3 Tracker module for video tracking.
 
@@ -518,4 +518,37 @@ def build_interactive_sam3(compile_mode=None) -> SAM3Model:
         ),
     )
 
+    # Load checkpoint if provided
+    model = _load_checkpoint_interactive(model, checkpoint_path)
+
+    # Setup device and mode
+    model.eval()
+    return model
+
+
+def _load_checkpoint_interactive(model, checkpoint):
+    """Load model checkpoint from file."""
+    with open(checkpoint, "rb") as f:
+        ckpt = torch_load(f)
+    if "model" in ckpt and isinstance(ckpt["model"], dict):
+        ckpt = ckpt["model"]
+    sam3_image_ckpt = {k.replace("detector.", ""): v for k, v in ckpt.items() if "detector" in k}
+    sam3_image_ckpt.update(
+        {
+            k.replace("backbone.vision_backbone", "image_encoder.vision_backbone"): v
+            for k, v in ckpt.items()
+            if "backbone.vision_backbone" in k
+        }
+    )
+    sam3_image_ckpt.update(
+        {k.replace("tracker.transformer", "memory_attention"): v for k, v in ckpt.items() if "tracker.transformer" in k}
+    )
+    sam3_image_ckpt.update(
+        {
+            k.replace("tracker.maskmem_backbone", "memory_encoder"): v
+            for k, v in ckpt.items()
+            if "tracker.transformer" in k
+        }
+    )
+    model.load_state_dict(sam3_image_ckpt, strict=False)
     return model

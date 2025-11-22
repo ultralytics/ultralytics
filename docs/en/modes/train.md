@@ -51,7 +51,7 @@ Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
 
 !!! warning "Windows Multi-Processing Error"
 
-    On Windows, you may receive a `RuntimeError` when launching the training as a script. Add a `if __name__ == "__main__":` block before your training code to resolve it.
+    On Windows, you may receive a `RuntimeError` when launching the training as a script. Add an `if __name__ == "__main__":` block before your training code to resolve it.
 
 !!! example "Single-GPU and CPU Training Example"
 

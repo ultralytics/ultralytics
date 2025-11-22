@@ -49,6 +49,10 @@ These are the notable functionalities offered by YOLO11's Val mode:
 
 Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes. See Arguments section below for a full list of validation arguments.
 
+!!! warning "Windows Multi-Processing Error"
+
+    On Windows, you may receive a `RuntimeError` when launching the validation as a script. Add an `if __name__ == "__main__":` block before your validation code to resolve it.
+
 !!! example
 
     === "Python"

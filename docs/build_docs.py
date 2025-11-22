@@ -27,6 +27,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 import yaml
@@ -570,6 +571,7 @@ def restore_docs_sources(backup_root: Path, backups: list[tuple[Path, Path]]):
 
 def main():
     """Build docs, update titles and edit links, minify HTML, and print local server command."""
+    start_time = time.perf_counter()
     backup_root: Path | None = None
     docs_backups: list[tuple[Path, Path]] = []
     restored = False
@@ -619,7 +621,8 @@ def main():
 
         # Print results and auto-serve on macOS
         size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
-        LOGGER.info(f"Docs built correctly ✅ ({size:.1f} MB)")
+        duration = time.perf_counter() - start_time
+        LOGGER.info(f"Docs built correctly ✅ ({size:.1f}MB, {duration:.1f}s)")
 
         # Restore sources before optionally serving
         restore_all()

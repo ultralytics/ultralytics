@@ -51,7 +51,7 @@ Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/a
 
 !!! warning "Windows Multi-Processing Error"
 
-    On Windows, you may receive a `RuntimeError` when launching the validation as a script. Add a `if __name__ == "__main__":` block before your validation code to resolve it.
+    On Windows, you may receive a `RuntimeError` when launching the validation as a script. Add an `if __name__ == "__main__":` block before your validation code to resolve it.
 
 !!! example
 

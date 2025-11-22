@@ -353,8 +353,22 @@ def render_jinja_macros() -> None:
     site_name = "Ultralytics Docs"
     if mkdocs_yml.exists():
         try:
+            class SafeFallbackLoader(yaml.SafeLoader):
+                """SafeLoader that gracefully skips unknown tags (required for mkdocs.yml)."""
+
+            def _ignore_unknown(loader, tag_suffix, node):
+                if isinstance(node, yaml.ScalarNode):
+                    return loader.construct_scalar(node)
+                if isinstance(node, yaml.SequenceNode):
+                    return loader.construct_sequence(node)
+                if isinstance(node, yaml.MappingNode):
+                    return loader.construct_mapping(node)
+                return None
+
+            SafeFallbackLoader.add_multi_constructor("", _ignore_unknown)
+
             with open(mkdocs_yml, encoding="utf-8") as f:
-                config = yaml.load(f, Loader=yaml.UnsafeLoader)
+                config = yaml.load(f, Loader=SafeFallbackLoader)
             extra_vars = config.get("extra", {}) or {}
             site_name = config.get("site_name", site_name)
         except Exception as e:

@@ -55,7 +55,7 @@ CLASS_DEF_RE = re.compile(r"(?:^|\n)class\s(\w+)(?:\(|:)")
 FUNC_DEF_RE = re.compile(r"(?:^|\n)(?:async\s+)?def\s(\w+)\(")
 SECTION_ENTRY_RE = re.compile(r"([\w*]+)\s*(?:\(([^)]+)\))?:\s*(.*)")
 RETURNS_RE = re.compile(r"([^:]+):\s*(.*)")
-SLUG_CLEAN_RE = re.compile(r"[^\w\s-]")
+SLUG_CLEAN_RE = re.compile(r"[^\w\s\.-]")
 SLUG_DASH_RE = re.compile(r"[-\s]+")
 
 
@@ -168,7 +168,8 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
 
 def slugify(value: str) -> str:
     """Create a simple anchor slug similar to MkDocs."""
-    value = SLUG_CLEAN_RE.sub("", value).strip().lower()
+    # Keep dots in qualified names and preserve case so anchors match fully qualified paths.
+    value = SLUG_CLEAN_RE.sub("", value).strip()
     return SLUG_DASH_RE.sub("-", value)
 
 
@@ -805,7 +806,7 @@ def render_docstring(
 
 def item_anchor(item: DocItem) -> str:
     """Create a stable anchor for a documented item."""
-    return slugify(item.qualname)
+    return item.qualname
 
 
 def render_summary_tabs(module: DocumentedModule) -> str:
@@ -857,7 +858,8 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
     """Render a class, function, or method to Markdown."""
     anchor = item_anchor(item)
     title_prefix = item.kind.capitalize()
-    heading = f"{'#' * level} {title_prefix} `{item.name}` {{#{anchor}}}"
+    anchor_id = anchor.replace("_", r"\_")  # escape underscores so attr_list keeps them in the id
+    heading = f"{'#' * level} {title_prefix} `{item.name}` {{#{anchor_id}}}"
     signature_block = f"```python\n{item.signature}\n```\n"
 
     parts = [heading, signature_block]

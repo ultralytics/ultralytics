@@ -250,7 +250,7 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
 
 
 def fix_md_links(content: str) -> str:
-    """Replace .md references with trailing slashes in provided HTML content, skipping GitHub links."""
+    """Replace .md references with trailing slashes in provided HTML content, fixing Zensical bug."""
     if ".md" in content:
         lines = []
         for line in content.split("\n"):

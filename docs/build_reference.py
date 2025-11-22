@@ -743,6 +743,45 @@ def item_anchor(item: DocItem) -> str:
     return slugify(item.qualname)
 
 
+def render_summary_tabs(module: DocumentedModule) -> str:
+    """Render a tabbed summary of classes, methods, and functions for quick navigation."""
+    tab_entries: list[tuple[str, list[str]]] = []
+
+    if module.classes:
+        tab_entries.append(
+            (
+                "Classes",
+                [f"- [`{cls.name}`](#{item_anchor(cls)})" for cls in module.classes],
+            )
+        )
+
+    method_links = []
+    for cls in module.classes:
+        for child in cls.children:
+            if child.kind == "method":
+                method_links.append(f"- [`{cls.name}.{child.name}`](#{item_anchor(child)})")
+    if method_links:
+        tab_entries.append(("Methods", method_links))
+
+    if module.functions:
+        tab_entries.append(
+            (
+                "Functions",
+                [f"- [`{func.name}`](#{item_anchor(func)})" for func in module.functions],
+            )
+        )
+
+    if not tab_entries:
+        return ""
+
+    lines = ["## API Summary\n"]
+    for label, bullets in tab_entries:
+        lines.append(f'=== "{label}"\n')
+        lines.append("\n".join(f"    {line}" for line in bullets))
+        lines.append("")  # Blank line after each tab block
+    return "\n".join(lines).rstrip() + "\n\n"
+
+
 def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2) -> str:
     """Render a class, function, or method to Markdown."""
     anchor = item_anchor(item)
@@ -801,14 +840,9 @@ def render_module_markdown(module: DocumentedModule) -> str:
     module_url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path}.py"
     content: list[str] = ["<br>\n"]
 
-    if module.classes:
-        content.append("## Classes\n\n")
-        content.extend(f"- [`{cls.name}`](#{item_anchor(cls)})\n" for cls in module.classes)
-        content.append("\n")
-    if module.functions:
-        content.append("## Functions\n\n")
-        content.extend(f"- [`{func.name}`](#{item_anchor(func)})\n" for func in module.functions)
-        content.append("\n")
+    summary_tabs = render_summary_tabs(module)
+    if summary_tabs:
+        content.append(summary_tabs)
 
     sections: list[str] = []
     for idx, cls in enumerate(module.classes):

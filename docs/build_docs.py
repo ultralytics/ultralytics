@@ -33,7 +33,7 @@ import yaml
 from bs4 import BeautifulSoup
 from minijinja import Environment, load_from_path
 
-from build_reference import build_reference
+from build_reference import build_reference, build_reference_docs
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
 

@@ -482,13 +482,13 @@ def _should_document(name: str, *, allow_private: bool = False) -> bool:
     return True
 
 
-def _collect_source_block(src: str, node: ast.AST) -> str:
-    """Return a dedented source snippet for the given node."""
+def _collect_source_block(src: str, node: ast.AST, end_line: int | None = None) -> str:
+    """Return a dedented source snippet for the given node up to an optional end line."""
     if not hasattr(node, "lineno") or not hasattr(node, "end_lineno"):
         return ""
     lines = src.splitlines()
     start = max(node.lineno - 1, 0)
-    end = getattr(node, "end_lineno", node.lineno)
+    end = end_line or getattr(node, "end_lineno", node.lineno)
     snippet = "\n".join(lines[start:end])
     return textwrap.dedent(snippet).rstrip()
 
@@ -569,7 +569,7 @@ def parse_class(node: ast.ClassDef, module_path: str, src: str) -> DocItem:
         bases=bases,
         children=methods,
         module_path=module_path,
-        source=_collect_source_block(src, node),
+        source=_collect_source_block(src, node, end_line=init_node.end_lineno if init_node else node.lineno),
     )
 
 
@@ -740,6 +740,17 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
 
     parts.append(render_docstring(item.doc, level + 1, signature_params=item.signature_params))
 
+    if item.kind == "class" and item.source:
+        source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"
+        summary = f"&lt;&gt; Source code in `{module_path}.py`"
+        parts.append(
+            "<details>\n"
+            f"<summary>{summary}</summary>\n\n"
+            f'<p><a href="{source_url}">View source</a></p>\n\n'
+            f"```python\n{item.source}\n```\n"
+            "</details>\n"
+        )
+
     if item.children:
         method_rows = []
         for child in item.children:
@@ -752,7 +763,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
         for child in item.children:
             parts.append(render_item(child, module_url, module_path, level + 2))
 
-    if item.source:
+    if item.source and item.kind != "class":
         source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"
         summary = f"&lt;&gt; Source code in `{module_path}.py`"
         parts.append(

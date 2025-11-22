@@ -33,6 +33,7 @@ else:
     PACKAGE_DIR = FILE.parents[1] / "ultralytics"
     REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
     GITHUB_REPO = "ultralytics/ultralytics"
+SIGNATURE_LINE_LENGTH = 120
 
 MKDOCS_YAML = PACKAGE_DIR.parent / "mkdocs.yml"
 INCLUDE_SPECIAL_METHODS = {
@@ -308,16 +309,22 @@ def format_signature(
         rendered = _format_parameter(kwarg, None, src)
         params.append(f"**{rendered}")
 
-    signature = f"{name}({', '.join(params)})"
-    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns:
-        annotation = _format_annotation(node.returns, src)
-        if annotation:
-            signature += f" -> {annotation}"
+    return_annotation = (
+        _format_annotation(node.returns, src)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns
+        else None
+    )
 
-    if is_class:
+    prefix = "" if is_class else ("async def " if is_async else "def ")
+    signature = f"{prefix}{name}({', '.join(params)})"
+    if return_annotation:
+        signature += f" -> {return_annotation}"
+
+    if len(signature) <= SIGNATURE_LINE_LENGTH or not params:
         return signature
-    prefix = "async def " if is_async else "def "
-    return prefix + signature
+
+    raw_signature = _get_definition_signature(node, src)
+    return raw_signature or signature
 
 
 def _split_section_entries(lines: list[str]) -> list[list[str]]:
@@ -501,6 +508,23 @@ def _collect_source_block(src: str, node: ast.AST, end_line: int | None = None) 
     return textwrap.dedent(snippet).rstrip()
 
 
+def _get_definition_signature(node: ast.AST, src: str) -> str:
+    """Return the original multi-line definition signature from source if available."""
+    if not hasattr(node, "lineno"):
+        return ""
+    lines = src.splitlines()[node.lineno - 1 :]
+    collected: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        collected.append(stripped)
+        if stripped.endswith(":"):
+            break
+    header = textwrap.dedent("\n".join(collected)).rstrip()
+    return header[:-1].rstrip() if header.endswith(":") else header
+
+
 def parse_function(
     node: ast.FunctionDef | ast.AsyncFunctionDef,
     module_path: str,
@@ -667,19 +691,17 @@ def _merge_params(doc_params: list[ParameterDoc], signature_params: list[Paramet
     return merged
 
 
-def render_docstring(doc: ParsedDocstring, level: int, signature_params: list[ParameterDoc] | None = None) -> str:
-    """Convert a ParsedDocstring into Markdown with tables similar to mkdocstrings."""
-    parts: list[str] = []
-    if doc.summary:
-        parts.append(doc.summary)
-    if doc.description:
-        parts.append(doc.description)
+DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "yields", "raises"]
 
+
+def _render_doc_sections(
+    doc: ParsedDocstring, level: int, signature_params: list[ParameterDoc] | None = None
+) -> dict[str, str]:
+    """Render individual docstring sections into markdown strings keyed by section name."""
     sig_params = signature_params or []
     merged_params = _merge_params(doc.params, sig_params)
 
-    sections: list[str] = []
-    ordered_sections: list[str] = []
+    sections: dict[str, str] = {}
 
     if merged_params:
         rows = []
@@ -694,24 +716,24 @@ def render_docstring(doc: ParsedDocstring, level: int, signature_params: list[Pa
                 ]
             )
         table = _render_table(["Name", "Type", "Description", "Default"], rows, level, title=None)
-        ordered_sections.append(f"**Args**\n\n{table}")
+        sections["args"] = f"**Args**\n\n{table}"
 
     if doc.returns:
         rows = []
         for r in doc.returns:
             rows.append([f"`{r.type}`" if r.type else "", r.description])
         table = _render_table(["Type", "Description"], rows, level, title=None)
-        ordered_sections.append(f"**Returns**\n\n{table}")
+        sections["returns"] = f"**Returns**\n\n{table}"
 
     if doc.examples:
         code_block = "\n\n".join(f"```python\n{example.strip()}\n```" for example in doc.examples if example.strip())
         if code_block:
-            ordered_sections.append(f"**Examples**\n\n{code_block}\n\n")
+            sections["examples"] = f"**Examples**\n\n{code_block}\n\n"
 
     if doc.notes:
         note_text = "\n\n".join(doc.notes).strip()
         indented = textwrap.indent(note_text, "    ")
-        ordered_sections.append(f'!!! note "Notes"\n\n{indented}\n\n')
+        sections["notes"] = f'!!! note "Notes"\n\n{indented}\n\n'
 
     if doc.attributes:
         rows = []
@@ -720,14 +742,14 @@ def render_docstring(doc: ParsedDocstring, level: int, signature_params: list[Pa
                 [f"`{a.name}`", f"`{a.type}`" if a.type else "", a.description.strip() if a.description else ""]
             )
         table = _render_table(["Name", "Type", "Description"], rows, level, title=None)
-        ordered_sections.append(f"**Attributes**\n\n{table}")
+        sections["attributes"] = f"**Attributes**\n\n{table}"
 
     if doc.yields:
         rows = []
         for r in doc.yields:
             rows.append([f"`{r.type}`" if r.type else "", r.description])
         table = _render_table(["Type", "Description"], rows, level, title=None)
-        ordered_sections.append(f"**Yields**\n\n{table}")
+        sections["yields"] = f"**Yields**\n\n{table}"
 
     if doc.raises:
         rows = []
@@ -735,11 +757,40 @@ def render_docstring(doc: ParsedDocstring, level: int, signature_params: list[Pa
             type_cell = e.type or e.name
             rows.append([f"`{type_cell}`" if type_cell else "", e.description or ""])
         table = _render_table(["Type", "Description"], rows, level, title=None)
-        ordered_sections.append(f"**Raises**\n\n{table}")
+        sections["raises"] = f"**Raises**\n\n{table}"
 
-    sections.extend(ordered_sections)
+    return sections
 
-    parts.extend(filter(None, sections))
+
+def render_docstring(
+    doc: ParsedDocstring,
+    level: int,
+    signature_params: list[ParameterDoc] | None = None,
+    section_order: list[str] | None = None,
+) -> str:
+    """Convert a ParsedDocstring into Markdown with tables similar to mkdocstrings."""
+    parts: list[str] = []
+    if doc.summary:
+        parts.append(doc.summary)
+    if doc.description:
+        parts.append(doc.description)
+
+    sections = _render_doc_sections(doc, level, signature_params)
+    order = section_order or DEFAULT_SECTION_ORDER
+
+    ordered_sections: list[str] = []
+    seen = set()
+    for key in order:
+        section = sections.get(key)
+        if section:
+            ordered_sections.append(section)
+            seen.add(key)
+
+    for key, section in sections.items():
+        if key not in seen:
+            ordered_sections.append(section)
+
+    parts.extend(filter(None, ordered_sections))
     return "\n\n".join([p.rstrip() for p in parts if p]).strip() + ("\n\n" if parts else "")
 
 
@@ -800,7 +851,39 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
         bases = ", ".join(f"`{b}`" for b in item.bases)
         parts.append(f"**Bases:** {bases}\n")
 
-    parts.append(render_docstring(item.doc, level + 1, signature_params=item.signature_params))
+    if item.kind == "class":
+        sections = _render_doc_sections(item.doc, level + 1, signature_params=item.signature_params)
+        class_parts: list[str] = [p for p in (item.doc.summary, item.doc.description) if p]
+
+        def pop_section(key: str):
+            section = sections.pop(key, None)
+            if section:
+                class_parts.append(section)
+
+        pop_section("args")
+        pop_section("attributes")
+
+        if item.children:
+            rows = []
+            for child in item.children:
+                summary = child.doc.summary or (
+                    _normalize_text(child.doc.description).split("\n\n")[0] if child.doc.description else ""
+                )
+                rows.append([f"[`{child.name}`](#{item_anchor(child)})", summary.strip()])
+            if rows:
+                table = _render_table(["Name", "Description"], rows, level + 1, title=None)
+                class_parts.append(f"**Methods**\n\n{table}")
+
+        pop_section("examples")
+        for key in DEFAULT_SECTION_ORDER:
+            pop_section(key)
+        class_parts.extend(sections.values())
+
+        rendered = "\n\n".join([p.rstrip() for p in class_parts if p]).strip()
+        if rendered:
+            parts.append(rendered + "\n\n")
+    else:
+        parts.append(render_docstring(item.doc, level + 1, signature_params=item.signature_params))
 
     if item.kind == "class" and item.source:
         source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"
@@ -814,16 +897,6 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
         )
 
     if item.children:
-        method_rows = []
-        for child in item.children:
-            summary = child.doc.summary or (
-                _normalize_text(child.doc.description).split("\n\n")[0] if child.doc.description else ""
-            )
-            summary = summary.strip()
-            method_rows.append([f"[`{child.name}`](#{item_anchor(child)})", summary])
-        if method_rows:
-            table = _render_table(["Name", "Description"], method_rows, level + 1, title=None)
-            parts.append(f"**Methods**\n\n{table}")
         for child in item.children:
             parts.append(render_item(child, module_url, module_path, level + 1))
 

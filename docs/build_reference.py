@@ -757,7 +757,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
         parts.append(
             "<details>\n"
             f"<summary>{summary}</summary>\n\n"
-            f'<p><a href="{source_url}">View source</a></p>\n\n'
+            f'<p><a href="{source_url}">View source</a></p>\n'
             f"{_code_fence(item.source)}\n"
             "</details>\n"
         )
@@ -780,7 +780,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
         parts.append(
             "<details>\n"
             f"<summary>{summary}</summary>\n\n"
-            f'<p><a href="{source_url}">View source</a></p>\n\n'
+            f'<p><a href="{source_url}">View source</a></p>\n'
             f"{_code_fence(item.source)}\n"
             "</details>\n"
         )

@@ -2028,7 +2028,7 @@ class SAM3Predictor(Predictor):
         self.mean = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
         self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
 
-    def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
+    def _prepare_geometric_prompts(self, src_shape, bboxes=None, labels=None):
         """Prepare prompts by normalizing bounding boxes and points to the destination shape."""
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=self.torch_dtype, device=self.device)
@@ -2048,9 +2048,13 @@ class SAM3Predictor(Predictor):
             labels = labels.view(1, -1)  # (1, N)
         return bboxes, labels
 
-    def _inference_features(self, features, bboxes=None, labels=None, multimask_output=None):
+    def _inference_features(self, features, bboxes=None, labels=None, texts: list[str] = None):
         """Run inference on the extracted features with optional bounding boxes and labels."""
-        nc = len(getattr(self.model, "names", ["visual"]))
+        if texts is None:
+            texts = ["visual"]
+        if len(self.model.text_embeddings) == 0:
+            self.model.set_classes(text=texts)
+        nc = len(getattr(self.model, "names", texts))
         self.find_stage = FindStage(
             img_ids=torch.tensor([0] * nc, device=self.device, dtype=torch.long),
             text_ids=torch.tensor(list(range(nc)), device=self.device, dtype=torch.long),
@@ -2060,12 +2064,9 @@ class SAM3Predictor(Predictor):
             input_points=None,
             input_points_mask=None,
         )
-
         geometric_prompt = self.model._get_dummy_prompt(nc)
         if bboxes is not None:
             geometric_prompt.append_boxes(bboxes, labels)
-        if len(self.model.text_embeddings) == 0:
-            self.model.set_classes(text=["visual"])
         outputs = self.model.forward_grounding(
             backbone_out=features,
             find_input=self.find_stage,
@@ -2110,11 +2111,16 @@ class SAM3Predictor(Predictor):
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         return results
 
-    def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
+    def inference(self, im, bboxes=None, labels=None, texts: list[str] = None, *args, **kwargs):
         """Perform inference on a single image with optional prompts."""
         bboxes = self.prompts.pop("bboxes", bboxes)
-        points = self.prompts.pop("points", points)
-        masks = self.prompts.pop("masks", masks)
         labels = self.prompts.pop("labels", labels)
+        texts = self.prompts.pop("text", texts)
+        features = self.get_im_features(im) if self.features is None else self.features
+        prompts = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
+        return self._inference_features(features, *prompts, texts=texts)
 
-        return self.prompt_inference(im, bboxes, points, labels, masks, multimask_output)
+    def reset_prompts(self):
+        """Reset the prompts for the predictor."""
+        self.prompts = {}
+        self.model.text_embeddings = {}

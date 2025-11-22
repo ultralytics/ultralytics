@@ -1,9 +1,7 @@
-{% macro param_table(params=None) %}
-
+{% macro param_table(params=None) -%}
 | Argument | Type | Default | Description |
 | -------- | ---- | ------- | ----------- |
-
-{%- set default_params = {
+{% set default_params = {
     "source": ["str", "None", "Specifies the source directory for images or videos. Supports file paths, URLs, and video streams."],
     "persist": ["bool", "False", "Enables persistent tracking of objects between frames, maintaining IDs across video sequences."],
     "stream": ["bool", "False", "Treats the input source as a continuous video stream for real-time processing."],
@@ -16,17 +14,15 @@
     "show": ["bool", "False", "If `True`, displays the annotated images or videos in a window for immediate visual feedback."],
     "line_width": ["None or int", "None", "Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size."]
 } %}
-
-{%- if not params %}
-{%- for param, details in default_params.items() %}
+{% if not params %}
+{% for param, details in default_params.items() %}
 | `{{ param }}` | `{{ details[0] }}` | `{{ details[1] }}` | {{ details[2] }} |
-{%- endfor %}
-{%- else %}
-{%- for param in params %}
-{%- if param in default_params %}
+{% endfor %}
+{% else %}
+{% for param in params %}
+{% if param in default_params %}
 | `{{ param }}` | `{{ default_params[param][0] }}` | `{{ default_params[param][1] }}` | {{ default_params[param][2] }} |
-{%- endif %}
-{%- endfor %}
-{%- endif %}
-
-{% endmacro %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{%- endmacro -%}

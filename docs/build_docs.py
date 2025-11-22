@@ -49,6 +49,7 @@ DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
 TITLE_PATTERN = re.compile(r"<title>(.*?)</title>", flags=re.IGNORECASE | re.DOTALL)
+LOCAL_MD_LINK = re.compile(r'((?:href|src)=["\'])(\.{0,2}/[^"\'>\s]+?)\.md((?:[?#][^"\'>\s]*)?)(["\'])', re.IGNORECASE)
 SOUP_STRAINER = SoupStrainer(["html", "head", "body", "main", "div", "nav", "p", "li", "a", "title", "h2", "h3"])
 EDIT_LINK_RULES = (
     (
@@ -320,15 +321,25 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
 
 def fix_md_links(content: str) -> str:
     """Replace .md references with trailing slashes in provided HTML content, fixing Zensical bug."""
-    if ".md" in content:
-        lines = []
-        for line in content.split("\n"):
-            if "github.com" not in line:
-                line = line.replace("index.md", "")
-                line = re.sub(r'(["\']?)([^"\'>\s]+?)\.md(["\']?)', r"\1\2/\3", line)
-            lines.append(line)
-        return "\n".join(lines)
-    return content
+    if ".md" not in content:
+        return content
+
+    def repl(match: re.Match) -> str:
+        """Rewrite local href/src .md targets to trailing slashes."""
+        prefix, path, trailer, suffix = match.groups()
+        if "github.com" in path:
+            return match.group(0)
+        path = path.rstrip("/")
+        if path.endswith("index"):
+            path = path[: -len("index")]
+        path = path.rstrip("/")
+        return f"{prefix}{path}/{trailer}{suffix}"
+
+    lines = []
+    for line in content.split("\n"):
+        line = LOCAL_MD_LINK.sub(repl, line)
+        lines.append(line)
+    return "\n".join(lines)
 
 
 # Precompiled regex patterns for minification

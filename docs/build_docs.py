@@ -231,6 +231,7 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
 
     return str(soup) if modified else content
 
+
 # Precompiled regex patterns for minification
 HTML_COMMENT = re.compile(r"<!--[\s\S]*?-->")
 HTML_PRESERVE = re.compile(r"<(pre|code|textarea|script)[^>]*>[\s\S]*?</\1>", re.IGNORECASE)

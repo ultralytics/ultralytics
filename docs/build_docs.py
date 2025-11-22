@@ -353,6 +353,7 @@ def render_jinja_macros() -> None:
     site_name = "Ultralytics Docs"
     if mkdocs_yml.exists():
         try:
+
             class SafeFallbackLoader(yaml.SafeLoader):
                 """SafeLoader that gracefully skips unknown tags (required for mkdocs.yml)."""
 

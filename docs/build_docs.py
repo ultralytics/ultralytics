@@ -39,7 +39,8 @@ try:
 except ImportError:
     postprocess_site = None
 
-from build_reference import build_reference, build_reference_docs
+from build_reference import build_reference_docs
+
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
 
@@ -67,8 +68,8 @@ EDIT_LINK_RULES = (
 )
 DOC_KIND_LABELS = {"Class", "Function", "Method", "Property"}
 DOC_KIND_COLORS = {
-    "Class": "#039dfc",     # blue
-    "Method": "#ef5eff",    # magenta
+    "Class": "#039dfc",  # blue
+    "Method": "#ef5eff",  # magenta
     "Function": "#fc9803",  # orange
     "Property": "#02e835",  # green
 }
@@ -208,7 +209,9 @@ def _process_html_file(html_file: Path) -> bool:
 def update_docs_soup(content: str, html_file: Path | None = None, max_title_length: int = 70) -> str:
     """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
     title_match = TITLE_PATTERN.search(content)
-    needs_title_trim = bool(title_match and len(title_match.group(1)) > max_title_length and "-" in title_match.group(1))
+    needs_title_trim = bool(
+        title_match and len(title_match.group(1)) > max_title_length and "-" in title_match.group(1)
+    )
     needs_link_conversion = ("<p" in content or "<li" in content) and bool(LINK_PATTERN.search(content))
     needs_codelineno_cleanup = "__codelineno-" in content
     rel_path = ""
@@ -326,6 +329,7 @@ def fix_md_links(content: str) -> str:
             lines.append(line)
         return "\n".join(lines)
     return content
+
 
 # Precompiled regex patterns for minification
 HTML_COMMENT = re.compile(r"<!--[\s\S]*?-->")

@@ -16,9 +16,10 @@ import re
 import subprocess
 import textwrap
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Literal
+from typing import Literal
 
 from ultralytics.utils.tqdm import TQDM
 
@@ -104,7 +105,7 @@ class DocItem:
     lineno: int
     end_lineno: int
     bases: list[str] = field(default_factory=list)
-    children: list["DocItem"] = field(default_factory=list)
+    children: list[DocItem] = field(default_factory=list)
     module_path: str = ""
     source: str = ""
 
@@ -272,7 +273,9 @@ def format_signature(
         args = (
             init_method.args
             if init_method
-            else ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[])
+            else ast.arguments(
+                posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
+            )
         )
     else:
         args = node.args
@@ -648,6 +651,7 @@ def _render_table(headers: list[str], rows: list[list[str]], level: int, title: 
     """Render a Markdown table with an optional heading."""
     if not rows:
         return ""
+
     def _clean_cell(value: str | None) -> str:
         """Normalize table cell values for Markdown output."""
         if value is None:
@@ -865,7 +869,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
                 table = _render_table(["Name", "Description"], rows, level + 1, title=None)
                 method_section = f"**Methods**\n\n{table}"
 
-        order = ["args", "attributes", "methods", "examples"] + DEFAULT_SECTION_ORDER
+        order = ["args", "attributes", "methods", "examples", *DEFAULT_SECTION_ORDER]
         rendered = render_docstring(
             item.doc,
             level + 1,

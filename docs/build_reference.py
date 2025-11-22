@@ -518,7 +518,7 @@ def _get_definition_signature(node: ast.AST, src: str) -> str:
         stripped = line.strip()
         if not stripped:
             continue
-        collected.append(stripped)
+        collected.append(line)
         if stripped.endswith(":"):
             break
     header = textwrap.dedent("\n".join(collected)).rstrip()
@@ -694,10 +694,20 @@ def _merge_params(doc_params: list[ParameterDoc], signature_params: list[Paramet
 DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "yields", "raises"]
 
 
-def _render_doc_sections(
-    doc: ParsedDocstring, level: int, signature_params: list[ParameterDoc] | None = None
-) -> dict[str, str]:
-    """Render individual docstring sections into markdown strings keyed by section name."""
+def render_docstring(
+    doc: ParsedDocstring,
+    level: int,
+    signature_params: list[ParameterDoc] | None = None,
+    section_order: list[str] | None = None,
+    extra_sections: dict[str, str] | None = None,
+) -> str:
+    """Convert a ParsedDocstring into Markdown with tables similar to mkdocstrings."""
+    parts: list[str] = []
+    if doc.summary:
+        parts.append(doc.summary)
+    if doc.description:
+        parts.append(doc.description)
+
     sig_params = signature_params or []
     merged_params = _merge_params(doc.params, sig_params)
 
@@ -759,23 +769,8 @@ def _render_doc_sections(
         table = _render_table(["Type", "Description"], rows, level, title=None)
         sections["raises"] = f"**Raises**\n\n{table}"
 
-    return sections
-
-
-def render_docstring(
-    doc: ParsedDocstring,
-    level: int,
-    signature_params: list[ParameterDoc] | None = None,
-    section_order: list[str] | None = None,
-) -> str:
-    """Convert a ParsedDocstring into Markdown with tables similar to mkdocstrings."""
-    parts: list[str] = []
-    if doc.summary:
-        parts.append(doc.summary)
-    if doc.description:
-        parts.append(doc.description)
-
-    sections = _render_doc_sections(doc, level, signature_params)
+    if extra_sections:
+        sections.update({k: v for k, v in extra_sections.items() if v})
     order = section_order or DEFAULT_SECTION_ORDER
 
     ordered_sections: list[str] = []
@@ -852,17 +847,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
         parts.append(f"**Bases:** {bases}\n")
 
     if item.kind == "class":
-        sections = _render_doc_sections(item.doc, level + 1, signature_params=item.signature_params)
-        class_parts: list[str] = [p for p in (item.doc.summary, item.doc.description) if p]
-
-        def pop_section(key: str):
-            section = sections.pop(key, None)
-            if section:
-                class_parts.append(section)
-
-        pop_section("args")
-        pop_section("attributes")
-
+        method_section = None
         if item.children:
             rows = []
             for child in item.children:
@@ -872,16 +857,17 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
                 rows.append([f"[`{child.name}`](#{item_anchor(child)})", summary.strip()])
             if rows:
                 table = _render_table(["Name", "Description"], rows, level + 1, title=None)
-                class_parts.append(f"**Methods**\n\n{table}")
+                method_section = f"**Methods**\n\n{table}"
 
-        pop_section("examples")
-        for key in DEFAULT_SECTION_ORDER:
-            pop_section(key)
-        class_parts.extend(sections.values())
-
-        rendered = "\n\n".join([p.rstrip() for p in class_parts if p]).strip()
-        if rendered:
-            parts.append(rendered + "\n\n")
+        order = ["args", "attributes", "methods", "examples"] + DEFAULT_SECTION_ORDER
+        rendered = render_docstring(
+            item.doc,
+            level + 1,
+            signature_params=item.signature_params,
+            section_order=order,
+            extra_sections={"methods": method_section} if method_section else None,
+        )
+        parts.append(rendered)
     else:
         parts.append(render_docstring(item.doc, level + 1, signature_params=item.signature_params))
 

@@ -29,9 +29,9 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+import yaml
 from bs4 import BeautifulSoup
 from minijinja import Environment, load_from_path
-import yaml
 
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM

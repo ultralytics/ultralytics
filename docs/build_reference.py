@@ -55,9 +55,6 @@ CLASS_DEF_RE = re.compile(r"(?:^|\n)class\s(\w+)(?:\(|:)")
 FUNC_DEF_RE = re.compile(r"(?:^|\n)(?:async\s+)?def\s(\w+)\(")
 SECTION_ENTRY_RE = re.compile(r"([\w*]+)\s*(?:\(([^)]+)\))?:\s*(.*)")
 RETURNS_RE = re.compile(r"([^:]+):\s*(.*)")
-SLUG_CLEAN_RE = re.compile(r"[^\w\s\.-]")
-SLUG_DASH_RE = re.compile(r"[-\s]+")
-
 
 @dataclass
 class ParameterDoc:
@@ -164,13 +161,6 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
     md_filepath.parent.mkdir(parents=True, exist_ok=True)
     md_filepath.write_text(header_content + title_content + "".join(md_content) + "\n")
     return md_filepath.relative_to(PACKAGE_DIR.parent)
-
-
-def slugify(value: str) -> str:
-    """Create a simple anchor slug similar to MkDocs."""
-    # Keep dots in qualified names and preserve case so anchors match fully qualified paths.
-    value = SLUG_CLEAN_RE.sub("", value).strip()
-    return SLUG_DASH_RE.sub("-", value)
 
 
 def _get_source(src: str, node: ast.AST) -> str:

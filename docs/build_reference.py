@@ -11,6 +11,7 @@ Note: Must be run from repository root directory. Do not run from docs directory
 from __future__ import annotations
 
 import ast
+import html
 import re
 import subprocess
 import textwrap
@@ -628,6 +629,11 @@ def _render_table(headers: list[str], rows: list[list[str]], level: int, title: 
     return f"{heading}" + "\n".join(table_lines) + "\n\n"
 
 
+def _code_fence(source: str, lang: str = "python") -> str:
+    """Return a fenced code block with optional language for highlighting."""
+    return f"```{lang}\n{source}\n```"
+
+
 def _merge_params(doc_params: list[ParameterDoc], signature_params: list[ParameterDoc]) -> list[ParameterDoc]:
     """Merge docstring params with signature params to include defaults/types."""
     sig_map = {p.name.lstrip("*"): p for p in signature_params}
@@ -747,12 +753,12 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
 
     if item.kind == "class" and item.source:
         source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"
-        summary = f"&lt;&gt; Source code in `{module_path}.py`"
+        summary = f"&lt;&gt; Source code in <code>{html.escape(module_path)}.py</code>"
         parts.append(
             "<details>\n"
             f"<summary>{summary}</summary>\n\n"
             f'<p><a href="{source_url}">View source</a></p>\n\n'
-            f"<pre><code>{item.source}</code></pre>\n"
+            f"{_code_fence(item.source)}\n"
             "</details>\n"
         )
 
@@ -770,12 +776,12 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
 
     if item.source and item.kind != "class":
         source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"
-        summary = f"&lt;&gt; Source code in `{module_path}.py`"
+        summary = f"&lt;&gt; Source code in <code>{html.escape(module_path)}.py</code>"
         parts.append(
             "<details>\n"
             f"<summary>{summary}</summary>\n\n"
             f'<p><a href="{source_url}">View source</a></p>\n\n'
-            f"<pre><code>{item.source}</code></pre>\n"
+            f"{_code_fence(item.source)}\n"
             "</details>\n"
         )
 

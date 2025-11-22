@@ -183,7 +183,7 @@ def update_docs_html():
     for html_file in TQDM(SITE.rglob("*.html"), desc="Updating bs4 soup", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
-        updated_content = update_docs_soup(content, html_file=html_file)
+        updated_content = fix_md_links(update_docs_soup(content, html_file=html_file))
         if updated_content != content:
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
@@ -248,6 +248,18 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
 
     return str(soup) if modified else content
 
+
+def fix_md_links(content: str) -> str:
+    """Replace .md references with trailing slashes in provided HTML content, skipping GitHub links."""
+    if ".md" in content:
+        lines = []
+        for line in content.split("\n"):
+            if "github.com" not in line:
+                line = line.replace("index.md", "")
+                line = re.sub(r'(["\']?)([^"\'>\s]+?)\.md(["\']?)', r"\1\2/\3", line)
+            lines.append(line)
+        return "\n".join(lines)
+    return content
 
 # Precompiled regex patterns for minification
 HTML_COMMENT = re.compile(r"<!--[\s\S]*?-->")

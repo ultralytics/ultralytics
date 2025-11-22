@@ -350,7 +350,7 @@ def _parse_named_entries(lines: list[str]) -> list[ParameterDoc]:
             description = " ".join(desc.split())
             if rest:
                 description = f"{description}\n" + "\n".join(rest)
-            entries.append(ParameterDoc(name=name, type=type_hint, description=description.strip()))
+            entries.append(ParameterDoc(name=name, type=type_hint, description=_normalize_text(description)))
         else:
             entries.append(ParameterDoc(name=text, type=None, description=""))
     return entries
@@ -369,9 +369,9 @@ def _parse_returns(lines: list[str]) -> list[ReturnDoc]:
             cleaned_type = type_hint.strip()
             if cleaned_type.startswith("(") and cleaned_type.endswith(")"):
                 cleaned_type = cleaned_type[1:-1].strip()
-            entries.append(ReturnDoc(type=cleaned_type, description=desc.strip()))
+            entries.append(ReturnDoc(type=cleaned_type, description=_normalize_text(desc.strip())))
         else:
-            entries.append(ReturnDoc(type=None, description=text))
+            entries.append(ReturnDoc(type=None, description=_normalize_text(text)))
     return entries
 
 
@@ -394,6 +394,25 @@ SECTION_ALIASES = {
     "notes": "notes",
     "note": "notes",
 }
+
+
+def _normalize_text(text: str) -> str:
+    """Collapse single newlines within paragraphs while preserving paragraph breaks."""
+    if not text:
+        return ""
+    paragraphs: list[str] = []
+    current: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            if current:
+                paragraphs.append(" ".join(current))
+                current = []
+            continue
+        current.append(stripped)
+    if current:
+        paragraphs.append(" ".join(current))
+    return "\n\n".join(paragraphs)
 
 
 def parse_google_docstring(docstring: str | None) -> ParsedDocstring:
@@ -421,6 +440,7 @@ def parse_google_docstring(docstring: str | None) -> ParsedDocstring:
         sections[current].append(line)
 
     description = "\n".join(sections.pop("description", [])).strip("\n")
+    description = _normalize_text(description)
 
     return ParsedDocstring(
         summary=summary,
@@ -681,7 +701,8 @@ def render_docstring(doc: ParsedDocstring, level: int, signature_params: list[Pa
     if doc.raises:
         rows = []
         for e in doc.raises:
-            rows.append([f"`{e.type}`" if e.type else "", e.description or e.name])
+            type_cell = e.type or e.name
+            rows.append([f"`{type_cell}`" if type_cell else "", e.description or ""])
         sections.append(_render_table(["Type", "Description"], rows, level, "Raises"))
 
     if doc.notes:
@@ -718,8 +739,11 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
     parts.append(render_docstring(item.doc, level + 1, signature_params=item.signature_params))
 
     if item.children:
-        toc = [f"- [`{child.name}`](#{item_anchor(child)})" for child in item.children]
-        parts.append(_render_section("Methods", toc, level + 1))
+        method_rows = []
+        for child in item.children:
+            summary = child.doc.summary or _normalize_text(child.doc.description).split("\n\n")[0] if child.doc.description else ""
+            method_rows.append([f"[`{child.name}`](#{item_anchor(child)})", summary])
+        parts.append(_render_table(["Name", "Description"], method_rows, level + 1, "Methods"))
         for child in item.children:
             parts.append(render_item(child, module_url, module_path, level + 2))
 

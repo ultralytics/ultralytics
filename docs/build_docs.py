@@ -39,7 +39,7 @@ try:
 except ImportError:
     postprocess_site = None
 
-from build_reference import build_reference_docs
+from build_reference import build_reference_docs, build_reference_for
 
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
@@ -50,23 +50,6 @@ SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
 TITLE_PATTERN = re.compile(r"<title>(.*?)</title>", flags=re.IGNORECASE | re.DOTALL)
 LOCAL_MD_LINK = re.compile(r'((?:href|src)=["\'])(\.{0,2}/[^"\'>\s]+?)\.md((?:[?#][^"\'>\s]*)?)(["\'])', re.IGNORECASE)
-SOUP_STRAINER = SoupStrainer(["html", "head", "body", "main", "div", "nav", "p", "li", "a", "title", "h2", "h3"])
-EDIT_LINK_RULES = (
-    (
-        "hub/sdk/",
-        re.compile(
-            r'(<a[^>]*class="md-content__button md-icon"[^>]*href=")[^"]*/hub/sdk/([^"]*"[^>]*title="Edit this page")'
-        ),
-        "https://github.com/ultralytics/hub-sdk/tree/main/docs/",
-    ),
-    (
-        "compare/",
-        re.compile(
-            r'(<a[^>]*class="md-content__button md-icon"[^>]*href=")[^"]*/compare/([^"]*"[^>]*title="Edit this page")'
-        ),
-        "https://github.com/ultralytics/docs/tree/main/docs/en/compare/",
-    ),
-)
 DOC_KIND_LABELS = {"Class", "Function", "Method", "Property"}
 DOC_KIND_COLORS = {
     "Class": "#039dfc",  # blue
@@ -178,17 +161,22 @@ def _process_html_file(html_file: Path) -> bool:
     except ValueError:
         rel_path = html_file.name
 
+    # For pages sourced from external repos (hub-sdk, compare), drop edit/copy buttons to avoid wrong links
+    if rel_path.startswith(("hub/sdk/", "compare/")):
+        before = content
+        content = re.sub(
+            r'<a[^>]*class="[^"]*md-content__button[^"]*"[^>]*>.*?</a>',
+            "",
+            content,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        if content != before:
+            changed = True
+
     if rel_path == "404.html":
         new_content = re.sub(r"<title>.*?</title>", "<title>Ultralytics Docs - Not Found</title>", content)
         if new_content != content:
             content, changed = new_content, True
-
-    for subdir, pattern, docs_url in EDIT_LINK_RULES:
-        if rel_path.startswith(subdir):
-            new_content = pattern.sub(rf"\1{docs_url}\2", content)
-            if new_content != content:
-                content, changed = new_content, True
-            break
 
     new_content = update_docs_soup(content, html_file=html_file)
     if new_content != content:
@@ -607,6 +595,17 @@ def main():
         backup_root, docs_backups = backup_docs_sources()
         prepare_docs_markdown()
         build_reference_docs(update_nav=False)
+        # Render reference docs for any extra packages present (e.g., hub-sdk)
+        extra_refs = [
+            {
+                "package": DOCS.parent / "hub_sdk",
+                "reference_dir": DOCS / "en" / "hub" / "sdk" / "reference",
+                "repo": "ultralytics/hub-sdk",
+            },
+        ]
+        for ref in extra_refs:
+            if ref["package"].exists():
+                build_reference_for(ref["package"], ref["reference_dir"], ref["repo"], update_nav=False)
         render_jinja_macros()
 
         # Build the main documentation

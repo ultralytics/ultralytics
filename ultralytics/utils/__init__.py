@@ -1181,7 +1181,8 @@ class JSONDict(dict):
         try:
             if self.file_path.exists():
                 with open(self.file_path) as f:
-                    self.update(json.load(f))
+                    # Use the base dict update to avoid persisting during reads
+                    super().update(json.load(f))
         except json.JSONDecodeError:
             LOGGER.warning(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
         except Exception as e:

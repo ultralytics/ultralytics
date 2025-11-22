@@ -478,6 +478,7 @@ def parse_google_docstring(docstring: str | None) -> ParsedDocstring:
 
 def merge_docstrings(base: ParsedDocstring, extra: ParsedDocstring, ignore_summary: bool = True) -> ParsedDocstring:
     """Merge init docstring content into a class docstring."""
+
     # Keep existing class docs; append init docs only when they introduce new entries (class takes priority).
     def _merge_unique(base_items, extra_items, key):
         seen = {key(item) for item in base_items}

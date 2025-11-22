@@ -54,10 +54,10 @@ class PoseValidator(DetectionValidator):
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         """Initialize a PoseValidator object for pose estimation validation.
-        
+
         This validator is specifically designed for pose estimation tasks, handling keypoints and implementing
         specialized metrics for pose evaluation.
-        
+
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path | str, optional): Directory to save results.

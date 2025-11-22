@@ -61,7 +61,7 @@ class SAMModel(nn.Module):
         pixel_std: list[float] = (58.395, 57.12, 57.375),
     ) -> None:
         """Initialize the SAMModel class to predict object masks from an image and input prompts.
-        
+
         Args:
             image_encoder (ImageEncoderViT): The backbone used to encode the image into image embeddings.
             prompt_encoder (PromptEncoder): Encodes various types of input prompts.

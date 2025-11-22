@@ -39,7 +39,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
         """Initialize a PoseTrainer object for training YOLO pose estimation models.
-        
+
         Args:
             cfg (dict, optional): Default configuration dictionary containing training parameters.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.

@@ -234,7 +234,7 @@ class Results(SimpleClass, DataExportMixin):
         speed: dict[str, float] | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
-        
+
         Args:
             orig_img (np.ndarray): The original image as a numpy array.
             path (str): The path to the image file.
@@ -851,11 +851,11 @@ class Boxes(BaseTensor):
 
     def __init__(self, boxes: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
         """Initialize the Boxes class with detection box data and the original image shape.
-        
+
         This class manages detection boxes, providing easy access and manipulation of box coordinates, confidence
         scores, class identifiers, and optional tracking IDs. It supports multiple formats for box coordinates,
         including both absolute and normalized forms.
-        
+
         Args:
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape (num_boxes, 6) or
                 (num_boxes, 7). Columns should contain [x1, y1, x2, y2, (optional) track_id, confidence, class].
@@ -1238,10 +1238,10 @@ class Probs(BaseTensor):
 
     def __init__(self, probs: torch.Tensor | np.ndarray, orig_shape: tuple[int, int] | None = None) -> None:
         """Initialize the Probs class with classification probabilities.
-        
+
         This class stores and manages classification probabilities, providing easy access to top predictions and their
         confidences.
-        
+
         Args:
             probs (torch.Tensor | np.ndarray): A 1D tensor or array of classification probabilities.
             orig_shape (tuple | None): The original image shape as (height, width). Not used in this class but kept for
@@ -1354,16 +1354,16 @@ class OBB(BaseTensor):
 
     def __init__(self, boxes: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
         """Initialize an OBB (Oriented Bounding Box) instance with oriented bounding box data and original image shape.
-        
+
         This class stores and manipulates Oriented Bounding Boxes (OBB) for object detection tasks. It provides various
         properties and methods to access and transform the OBB data.
-        
+
         Args:
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array containing the detection boxes, with shape
                 (num_boxes, 7) or (num_boxes, 8). The last two columns contain confidence and class values. If present,
                 the third last column contains track IDs, and the fifth column contains rotation.
             orig_shape (tuple[int, int]): Original image size, in the format (height, width).
-        
+
         Raises:
             AssertionError: If the number of values per box is not 7 or 8.
         """

@@ -1542,10 +1542,10 @@ class LetterBox:
         interpolation: int = cv2.INTER_LINEAR,
     ):
         """Initialize LetterBox object for resizing and padding images.
-        
+
         This class is designed to resize and pad images for object detection, instance segmentation, and pose estimation
         tasks. It supports various resizing modes including auto-sizing, scale-fill, and letterboxing.
-        
+
         Args:
             new_shape (tuple[int, int]): Target size (height, width) for the resized image.
             auto (bool): If True, use minimum rectangle to resize. If False, use new_shape directly.
@@ -1799,15 +1799,15 @@ class Albumentations:
 
     def __init__(self, p: float = 1.0, transforms: list | None = None) -> None:
         """Initialize the Albumentations transform object for YOLO bbox formatted parameters.
-        
+
         This class applies various image augmentations using the Albumentations library, including Blur, Median Blur,
         conversion to grayscale, Contrast Limited Adaptive Histogram Equalization, random changes of brightness and
         contrast, RandomGamma, and image quality reduction through compression.
-        
+
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
             transforms (list, optional): List of custom Albumentations transforms. If None, uses default transforms.
-        
+
         Raises:
             ImportError: If the Albumentations package is not installed.
             Exception: For any other errors during initialization.
@@ -1997,10 +1997,10 @@ class Format:
         bgr: float = 0.0,
     ):
         """Initialize the Format class with given parameters for image and instance annotation formatting.
-        
+
         This class standardizes image and instance annotations for object detection, instance segmentation, and pose
         estimation tasks, preparing them for use in PyTorch DataLoader's `collate_fn`.
-        
+
         Args:
             bbox_format (str): Format for bounding boxes. Options are 'xywh', 'xyxy', etc.
             normalize (bool): Whether to normalize bounding boxes to [0,1].
@@ -2282,10 +2282,10 @@ class RandomLoadText:
         padding_value: list[str] = [""],
     ) -> None:
         """Initialize the RandomLoadText class for randomly sampling positive and negative texts.
-        
+
         This class is designed to randomly sample positive texts and negative texts, and update the class indices
         accordingly to the number of samples. It can be used for text-based object detection tasks.
-        
+
         Args:
             prompt_format (str): Format string for the prompt. The format string should contain a single pair of curly
                 braces {} where the text will be inserted.
@@ -2621,10 +2621,10 @@ class ClassifyLetterBox:
 
     def __init__(self, size: int | tuple[int, int] = (640, 640), auto: bool = False, stride: int = 32):
         """Initialize the ClassifyLetterBox object for image preprocessing.
-        
+
         This class is designed to be part of a transformation pipeline for image classification tasks. It resizes and
         pads images to a specified size while maintaining the original aspect ratio.
-        
+
         Args:
             size (int | tuple[int, int]): Target size for the letterboxed image. If an int, a square image of (size,
                 size) is created. If a tuple, it should be (height, width).

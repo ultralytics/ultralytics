@@ -4,8 +4,9 @@
 # Image is aarch64-compatible for Apple M1, M2, M3, Raspberry Pi and other ARM architectures
 
 # Start FROM Ubuntu image https://hub.docker.com/_/ubuntu with "FROM arm64v8/ubuntu:22.04" (deprecated)
-# Start FROM Debian image for arm64v8 https://hub.docker.com/r/arm64v8/debian (new)
-FROM arm64v8/debian:bookworm-slim
+# Start FROM Debian image for arm64v8 https://hub.docker.com/r/arm64v8/debian (deprecated)
+# Start FROM official arm64v8 Ubuntu 24.04 image https://hub.docker.com/layers/arm64v8/ubuntu/24.04/
+FROM arm64v8/ubuntu:24.04
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -21,10 +22,11 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 # Install linux packages
 # pkg-config and libhdf5-dev (not included) are needed to build 'h5py==3.11.0' aarch64 wheel required by 'tensorflow'
 # gnupg required for Edge TPU install
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN apt update && \
+    apt upgrade -y && \
+    apt install -y --no-install-recommends \
     python3-pip git zip unzip wget curl htop gcc libgl1 libglib2.0-0 gnupg && \
-    apt-get clean && \
+    apt clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Create working directory

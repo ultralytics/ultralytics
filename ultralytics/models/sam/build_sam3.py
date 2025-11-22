@@ -378,7 +378,6 @@ def _create_tracker_maskmem_backbone():
         normalize=True,
         scale=None,
         temperature=10000,
-        precompute_resolution=1008,
     )
 
     # Mask processing components
@@ -411,11 +410,8 @@ def _create_tracker_transformer():
         embedding_dim=256,
         num_heads=1,
         downsample_rate=1,
-        dropout=0.1,
         rope_theta=10000.0,
         feat_sizes=[72, 72],
-        use_fa3=False,
-        use_rope_real=False,
     )
 
     # Cross attention
@@ -423,13 +419,10 @@ def _create_tracker_transformer():
         embedding_dim=256,
         num_heads=1,
         downsample_rate=1,
-        dropout=0.1,
         kv_in_dim=64,
         rope_theta=10000.0,
         feat_sizes=[72, 72],
         rope_k_repeat=True,
-        use_fa3=False,
-        use_rope_real=False,
     )
 
     # Encoder layer
@@ -536,7 +529,7 @@ def _load_checkpoint_interactive(model, checkpoint):
     sam3_image_ckpt.update(
         {
             k.replace("backbone.vision_backbone", "image_encoder.vision_backbone"): v
-            for k, v in ckpt.items()
+            for k, v in sam3_image_ckpt.items()
             if "backbone.vision_backbone" in k
         }
     )
@@ -547,8 +540,11 @@ def _load_checkpoint_interactive(model, checkpoint):
         {
             k.replace("tracker.maskmem_backbone", "memory_encoder"): v
             for k, v in ckpt.items()
-            if "tracker.transformer" in k
+            if "tracker.maskmem_backbone" in k
         }
     )
-    model.load_state_dict(sam3_image_ckpt, strict=False)
+    print(sam3_image_ckpt.keys())
+    # print(model.state_dict().keys())
+    missing_keys, _ = model.load_state_dict(sam3_image_ckpt, strict=True)
+    # print(missing_keys)
     return model

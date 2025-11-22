@@ -30,6 +30,12 @@ td {
 }
 /* Table format like GitHub ----------------------------------------------------------------------------------------- */
 
+/* Keep back-to-back links visually separated when Markdown omits spaces */
+.md-typeset p a + a,
+.md-typeset li a + a {
+  margin-left: 0.35em;
+}
+
 /* Code block vertical scroll */
 div.highlight {
   max-height: 20rem;

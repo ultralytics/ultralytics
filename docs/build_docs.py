@@ -148,7 +148,8 @@ def update_docs_html():
     """Update titles, edit links, and convert plaintext links in HTML documentation in one pass."""
     written = 0
 
-    for html_file in TQDM(SITE.rglob("*.html"), desc="Updating docs HTML", mininterval=1.0):
+    files = list(SITE.rglob("*.html"))
+    for html_file in TQDM(files, n=len(files), desc="Updating docs HTML"):
         try:
             content = html_file.read_text(encoding="utf-8")
         except Exception as e:

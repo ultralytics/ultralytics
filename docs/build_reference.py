@@ -849,8 +849,12 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
     if item.kind == "class":
         method_section = None
         if item.children:
+            props = [c for c in item.children if c.kind == "property"]
+            methods = [c for c in item.children if c.kind == "method"]
+            methods.sort(key=lambda m: (not m.name.startswith("__"), m.name))
+
             rows = []
-            for child in item.children:
+            for child in props + methods:
                 summary = child.doc.summary or (
                     _normalize_text(child.doc.description).split("\n\n")[0] if child.doc.description else ""
                 )

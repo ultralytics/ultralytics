@@ -203,28 +203,16 @@ class MemoryAttention(nn.Module):
         batch_first: bool = True,  # Do layers expect batch first input?
     ):
         """Initialize MemoryAttention with specified layers and normalization for sequential data processing.
-
+        
         This class implements a multi-layer attention mechanism that combines self-attention and cross-attention for
         processing sequential data, particularly useful in transformer-like architectures.
-
+        
         Args:
             d_model (int): The dimension of the model's hidden state.
             pos_enc_at_input (bool): Whether to apply positional encoding at the input.
             layer (nn.Module): The attention layer to be used in the module.
             num_layers (int): The number of attention layers.
             batch_first (bool): Whether the input tensors are in batch-first format.
-
-        Examples:
-            >>> d_model = 256
-            >>> layer = MemoryAttentionLayer(d_model)
-            >>> attention = MemoryAttention(d_model, pos_enc_at_input=True, layer=layer, num_layers=3)
-            >>> curr = torch.randn(10, 32, d_model)  # (seq_len, batch_size, d_model)
-            >>> memory = torch.randn(20, 32, d_model)  # (mem_len, batch_size, d_model)
-            >>> curr_pos = torch.randn(10, 32, d_model)
-            >>> memory_pos = torch.randn(20, 32, d_model)
-            >>> output = attention(curr, memory, curr_pos, memory_pos)
-            >>> print(output.shape)
-            torch.Size([10, 32, 256])
         """
         super().__init__()
         self.d_model = d_model

@@ -43,14 +43,10 @@ class GMC:
 
     def __init__(self, method: str = "sparseOptFlow", downscale: int = 2) -> None:
         """Initialize a Generalized Motion Compensation (GMC) object with tracking method and downscale factor.
-
+        
         Args:
             method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
             downscale (int): Downscale factor for processing frames.
-
-        Examples:
-            Initialize a GMC object with the 'sparseOptFlow' method and a downscale factor of 2
-            >>> gmc = GMC(method="sparseOptFlow", downscale=2)
         """
         super().__init__()
 

@@ -57,21 +57,13 @@ class BOTrack(STrack):
         self, xywh: np.ndarray, score: float, cls: int, feat: np.ndarray | None = None, feat_history: int = 50
     ):
         """Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
-
+        
         Args:
             xywh (np.ndarray): Bounding box coordinates in xywh format (center x, center y, width, height).
             score (float): Confidence score of the detection.
             cls (int): Class ID of the detected object.
             feat (np.ndarray, optional): Feature vector associated with the detection.
             feat_history (int): Maximum length of the feature history deque.
-
-        Examples:
-            Initialize a BOTrack object with bounding box, score, class ID, and feature vector
-            >>> xywh = np.array([100, 150, 60, 50])
-            >>> score = 0.9
-            >>> cls = 1
-            >>> feat = np.random.rand(128)
-            >>> bo_track = BOTrack(xywh, score, cls, feat)
         """
         super().__init__(xywh, score, cls)
 
@@ -180,15 +172,10 @@ class BOTSORT(BYTETracker):
 
     def __init__(self, args: Any, frame_rate: int = 30):
         """Initialize BOTSORT object with ReID module and GMC algorithm.
-
+        
         Args:
             args (Any): Parsed command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video being processed.
-
-        Examples:
-            Initialize BOTSORT with command-line arguments and a specified frame rate:
-            >>> args = parse_args()
-            >>> bot_sort = BOTSORT(args, frame_rate=30)
         """
         super().__init__(args, frame_rate)
         self.gmc = GMC(method=args.gmc_method)

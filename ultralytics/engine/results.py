@@ -49,16 +49,10 @@ class BaseTensor(SimpleClass):
 
     def __init__(self, data: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
         """Initialize BaseTensor with prediction data and the original shape of the image.
-
+        
         Args:
             data (torch.Tensor | np.ndarray): Prediction data such as bounding boxes, masks, or keypoints.
             orig_shape (tuple[int, int]): Original shape of the image in (height, width) format.
-
-        Examples:
-            >>> import torch
-            >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
-            >>> orig_shape = (720, 1280)
-            >>> base_tensor = BaseTensor(data, orig_shape)
         """
         assert isinstance(data, (torch.Tensor, np.ndarray)), "data must be torch.Tensor or np.ndarray"
         self.data = data
@@ -240,7 +234,7 @@ class Results(SimpleClass, DataExportMixin):
         speed: dict[str, float] | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
-
+        
         Args:
             orig_img (np.ndarray): The original image as a numpy array.
             path (str): The path to the image file.
@@ -251,13 +245,7 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
-
-        Examples:
-            >>> results = model("path/to/image.jpg")
-            >>> result = results[0]  # Get the first result
-            >>> boxes = result.boxes  # Get the boxes for the first result
-            >>> masks = result.masks  # Get the masks for the first result
-
+        
         Notes:
             For the default pose model, keypoint indices for human body pose estimation are:
             0: Nose, 1: Left Eye, 2: Right Eye, 3: Left Ear, 4: Right Ear
@@ -863,28 +851,20 @@ class Boxes(BaseTensor):
 
     def __init__(self, boxes: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
         """Initialize the Boxes class with detection box data and the original image shape.
-
+        
         This class manages detection boxes, providing easy access and manipulation of box coordinates, confidence
         scores, class identifiers, and optional tracking IDs. It supports multiple formats for box coordinates,
         including both absolute and normalized forms.
-
+        
         Args:
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape (num_boxes, 6) or
                 (num_boxes, 7). Columns should contain [x1, y1, x2, y2, (optional) track_id, confidence, class].
             orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
-
+        
         Attributes:
             data (torch.Tensor): The raw tensor containing detection boxes and their associated data.
             orig_shape (tuple[int, int]): The original image size, used for normalization.
             is_track (bool): Indicates whether tracking IDs are included in the box data.
-
-        Examples:
-            >>> import torch
-            >>> boxes = torch.tensor([[100, 50, 150, 100, 0.9, 0]])
-            >>> orig_shape = (480, 640)
-            >>> detection_boxes = Boxes(boxes, orig_shape)
-            >>> print(detection_boxes.xyxy)
-            tensor([[100.,  50., 150., 100.]])
         """
         if boxes.ndim == 1:
             boxes = boxes[None, :]
@@ -1061,17 +1041,10 @@ class Masks(BaseTensor):
 
     def __init__(self, masks: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
         """Initialize the Masks class with detection mask data and the original image shape.
-
+        
         Args:
             masks (torch.Tensor | np.ndarray): Detection masks with shape (num_masks, height, width).
             orig_shape (tuple): The original image shape as (height, width). Used for normalization.
-
-        Examples:
-            >>> import torch
-            >>> from ultralytics.engine.results import Masks
-            >>> masks = torch.rand(10, 160, 160)  # 10 masks of 160x160 resolution
-            >>> orig_shape = (720, 1280)  # Original image shape
-            >>> mask_obj = Masks(masks, orig_shape)
         """
         if masks.ndim == 2:
             masks = masks[None, :]
@@ -1159,20 +1132,15 @@ class Keypoints(BaseTensor):
 
     def __init__(self, keypoints: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
         """Initialize the Keypoints object with detection keypoints and original image dimensions.
-
+        
         This method processes the input keypoints tensor, handling both 2D and 3D formats. For 3D tensors (x, y,
         confidence), it masks out low-confidence keypoints by setting their coordinates to zero.
-
+        
         Args:
             keypoints (torch.Tensor): A tensor containing keypoint data. Shape can be either:
                 - (num_objects, num_keypoints, 2) for x, y coordinates only
                 - (num_objects, num_keypoints, 3) for x, y coordinates and confidence scores
             orig_shape (tuple[int, int]): The original image dimensions (height, width).
-
-        Examples:
-            >>> kpts = torch.rand(1, 17, 3)  # 1 object, 17 keypoints (COCO format), x,y,conf
-            >>> orig_shape = (720, 1280)  # Original image height, width
-            >>> keypoints = Keypoints(kpts, orig_shape)
         """
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
@@ -1275,32 +1243,21 @@ class Probs(BaseTensor):
 
     def __init__(self, probs: torch.Tensor | np.ndarray, orig_shape: tuple[int, int] | None = None) -> None:
         """Initialize the Probs class with classification probabilities.
-
+        
         This class stores and manages classification probabilities, providing easy access to top predictions and their
         confidences.
-
+        
         Args:
             probs (torch.Tensor | np.ndarray): A 1D tensor or array of classification probabilities.
             orig_shape (tuple | None): The original image shape as (height, width). Not used in this class but kept for
                 consistency with other result classes.
-
+        
         Attributes:
             data (torch.Tensor | np.ndarray): The raw tensor or array containing classification probabilities.
             top1 (int): Index of the top 1 class.
             top5 (list[int]): Indices of the top 5 classes.
             top1conf (torch.Tensor | np.ndarray): Confidence of the top 1 class.
             top5conf (torch.Tensor | np.ndarray): Confidences of the top 5 classes.
-
-        Examples:
-            >>> import torch
-            >>> probs = torch.tensor([0.1, 0.3, 0.2, 0.4])
-            >>> p = Probs(probs)
-            >>> print(p.top1)
-            3
-            >>> print(p.top1conf)
-            tensor(0.4000)
-            >>> print(p.top5)
-            [3, 1, 2, 0]
         """
         super().__init__(probs, orig_shape)
 
@@ -1409,30 +1366,23 @@ class OBB(BaseTensor):
 
     def __init__(self, boxes: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
         """Initialize an OBB (Oriented Bounding Box) instance with oriented bounding box data and original image shape.
-
+        
         This class stores and manipulates Oriented Bounding Boxes (OBB) for object detection tasks. It provides various
         properties and methods to access and transform the OBB data.
-
+        
         Args:
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array containing the detection boxes, with shape
                 (num_boxes, 7) or (num_boxes, 8). The last two columns contain confidence and class values. If present,
                 the third last column contains track IDs, and the fifth column contains rotation.
             orig_shape (tuple[int, int]): Original image size, in the format (height, width).
-
+        
         Attributes:
             data (torch.Tensor | np.ndarray): The raw OBB tensor.
             orig_shape (tuple[int, int]): The original image shape.
             is_track (bool): Whether the boxes include tracking IDs.
-
+        
         Raises:
             AssertionError: If the number of values per box is not 7 or 8.
-
-        Examples:
-            >>> import torch
-            >>> boxes = torch.rand(3, 7)  # 3 boxes with 7 values each
-            >>> orig_shape = (640, 480)
-            >>> obb = OBB(boxes, orig_shape)
-            >>> print(obb.xywhr)  # Access the boxes in xywhr format
         """
         if boxes.ndim == 1:
             boxes = boxes[None, :]

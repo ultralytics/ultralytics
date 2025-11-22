@@ -54,18 +54,12 @@ class STrack(BaseTrack):
 
     def __init__(self, xywh: list[float], score: float, cls: Any):
         """Initialize a new STrack instance.
-
+        
         Args:
             xywh (list[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where (x,
                 y) is the center, (w, h) are width and height, [a] is optional aspect ratio, and idx is the id.
             score (float): Confidence score of the detection.
             cls (Any): Class label for the detected object.
-
-        Examples:
-            >>> xywh = [100.0, 150.0, 50.0, 75.0, 1]
-            >>> score = 0.9
-            >>> cls = "person"
-            >>> track = STrack(xywh, score, cls)
         """
         super().__init__()
         # xywh+idx or xywha+idx
@@ -271,15 +265,10 @@ class BYTETracker:
 
     def __init__(self, args, frame_rate: int = 30):
         """Initialize a BYTETracker instance for object tracking.
-
+        
         Args:
             args (Namespace): Command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video sequence.
-
-        Examples:
-            Initialize BYTETracker with command-line arguments and a frame rate of 30
-            >>> args = Namespace(track_buffer=30)
-            >>> tracker = BYTETracker(args, frame_rate=30)
         """
         self.tracked_stracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]

@@ -81,20 +81,15 @@ class Predictor(BasePredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize the Predictor with configuration, overrides, and callbacks.
-
+        
         Sets up the Predictor object for SAM (Segment Anything Model) and applies any configuration overrides or
         callbacks provided. Initializes task-specific settings for SAM, such as retina_masks being set to True for
         optimal results.
-
+        
         Args:
             cfg (dict): Configuration dictionary containing default settings.
             overrides (dict | None): Dictionary of values to override default configuration.
             _callbacks (dict | None): Dictionary of callback functions to customize behavior.
-
-        Examples:
-            >>> predictor_example = Predictor(cfg=DEFAULT_CFG)
-            >>> predictor_example_with_imgsz = Predictor(overrides={"imgsz": 640})
-            >>> predictor_example_with_callback = Predictor(_callbacks={"on_predict_start": custom_callback})
         """
         if overrides is None:
             overrides = {}
@@ -910,19 +905,14 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize the predictor with configuration and optional overrides.
-
+        
         This constructor initializes the SAM2VideoPredictor with a given configuration, applies any specified overrides,
         and sets up the inference state along with certain flags that control the behavior of the predictor.
-
+        
         Args:
             cfg (dict): Configuration dictionary containing default settings.
             overrides (dict | None): Dictionary of values to override default configuration.
             _callbacks (dict | None): Dictionary of callback functions to customize behavior.
-
-        Examples:
-            >>> predictor = SAM2VideoPredictor(cfg=DEFAULT_CFG)
-            >>> predictor_example_with_imgsz = SAM2VideoPredictor(overrides={"imgsz": 640})
-            >>> predictor_example_with_callback = SAM2VideoPredictor(_callbacks={"on_predict_start": custom_callback})
         """
         super().__init__(cfg, overrides, _callbacks)
         self.inference_state = {}
@@ -1700,23 +1690,16 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         _callbacks: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the predictor with configuration and optional overrides.
-
+        
         This constructor initializes the SAM2DynamicInteractivePredictor with a given configuration, applies any
         specified overrides
-
+        
         Args:
             cfg (dict[str, Any]): Configuration dictionary containing default settings.
             overrides (dict[str, Any] | None): Dictionary of values to override default configuration.
             max_obj_num (int): Maximum number of objects to track. Default is 3. this is set to keep fix feature size
                 for the model.
             _callbacks (dict[str, Any] | None): Dictionary of callback functions to customize behavior.
-
-        Examples:
-            >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)
-            >>> predictor_example_with_imgsz = SAM2DynamicInteractivePredictor(overrides={"imgsz": 640})
-            >>> predictor_example_with_callback = SAM2DynamicInteractivePredictor(
-            ...     _callbacks={"on_predict_start": custom_callback}
-            ... )
         """
         super().__init__(cfg, overrides, _callbacks)
         self.non_overlap_masks = True

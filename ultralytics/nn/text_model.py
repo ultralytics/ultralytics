@@ -70,18 +70,13 @@ class CLIP(TextModel):
 
     def __init__(self, size: str, device: torch.device) -> None:
         """Initialize the CLIP text encoder.
-
+        
         This class implements the TextModel interface using OpenAI's CLIP model for text encoding. It loads a
         pre-trained CLIP model of the specified size and prepares it for text encoding tasks.
-
+        
         Args:
             size (str): Model size identifier (e.g., 'ViT-B/32').
             device (torch.device): Device to load the model on.
-
-        Examples:
-            >>> import torch
-            >>> clip_model = CLIP("ViT-B/32", device=torch.device("cuda:0"))
-            >>> text_features = clip_model.encode_text(["a photo of a cat", "a photo of a dog"])
         """
         super().__init__()
         self.model, self.image_preprocess = clip.load(size, device=device)
@@ -193,18 +188,12 @@ class MobileCLIP(TextModel):
 
     def __init__(self, size: str, device: torch.device) -> None:
         """Initialize the MobileCLIP text encoder.
-
+        
         This class implements the TextModel interface using Apple's MobileCLIP model for efficient text encoding.
-
+        
         Args:
             size (str): Model size identifier (e.g., 's0', 's1', 's2', 'b', 'blt').
             device (torch.device): Device to load the model on.
-
-        Examples:
-            >>> import torch
-            >>> model = MobileCLIP("s0", device=torch.device("cpu"))
-            >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
-            >>> features = model.encode_text(tokens)
         """
         try:
             import warnings
@@ -293,17 +282,12 @@ class MobileCLIPTS(TextModel):
 
     def __init__(self, device: torch.device):
         """Initialize the MobileCLIP TorchScript text encoder.
-
+        
         This class implements the TextModel interface using Apple's MobileCLIP model in TorchScript format for efficient
         text encoding with optimized inference performance.
-
+        
         Args:
             device (torch.device): Device to load the model on.
-
-        Examples:
-            >>> model = MobileCLIPTS(device=torch.device("cpu"))
-            >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
-            >>> features = model.encode_text(tokens)
         """
         super().__init__()
         from ultralytics.utils.downloads import attempt_download_asset

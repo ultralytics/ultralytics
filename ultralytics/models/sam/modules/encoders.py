@@ -64,7 +64,7 @@ class ImageEncoderViT(nn.Module):
         global_attn_indexes: tuple[int, ...] = (),
     ) -> None:
         """Initialize an ImageEncoderViT instance for encoding images using Vision Transformer architecture.
-
+        
         Args:
             img_size (int): Input image size, assumed to be square.
             patch_size (int): Size of image patches.
@@ -82,12 +82,6 @@ class ImageEncoderViT(nn.Module):
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window for windowed attention blocks.
             global_attn_indexes (tuple[int, ...]): Indices of blocks that use global attention.
-
-        Examples:
-            >>> encoder = ImageEncoderViT(img_size=224, patch_size=16, embed_dim=768, depth=12, num_heads=12)
-            >>> input_image = torch.randn(1, 3, 224, 224)
-            >>> output = encoder(input_image)
-            >>> print(output.shape)
         """
         super().__init__()
         self.img_size = img_size
@@ -191,22 +185,13 @@ class PromptEncoder(nn.Module):
         activation: type[nn.Module] = nn.GELU,
     ) -> None:
         """Initialize the PromptEncoder module for encoding various types of prompts.
-
+        
         Args:
             embed_dim (int): The dimension of the embeddings.
             image_embedding_size (tuple[int, int]): The spatial size of the image embedding as (H, W).
             input_image_size (tuple[int, int]): The padded size of the input image as (H, W).
             mask_in_chans (int): The number of hidden channels used for encoding input masks.
             activation (Type[nn.Module]): The activation function to use when encoding input masks.
-
-        Examples:
-            >>> prompt_encoder = PromptEncoder(256, (64, 64), (1024, 1024), 16)
-            >>> points = (torch.rand(1, 5, 2), torch.randint(0, 4, (1, 5)))
-            >>> boxes = torch.rand(1, 2, 2)
-            >>> masks = torch.rand(1, 1, 256, 256)
-            >>> sparse_embeddings, dense_embeddings = prompt_encoder(points, boxes, masks)
-            >>> print(sparse_embeddings.shape, dense_embeddings.shape)
-            torch.Size([1, 7, 256]) torch.Size([1, 256, 64, 64])
         """
         super().__init__()
         self.embed_dim = embed_dim
@@ -378,21 +363,13 @@ class MemoryEncoder(nn.Module):
         in_dim=256,  # in_dim of pix_feats
     ):
         """Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
-
+        
         This encoder processes pixel-level features and masks, fusing them to generate encoded memory representations
         suitable for downstream tasks in image segmentation models like SAM (Segment Anything Model).
-
+        
         Args:
             out_dim (int): Output dimension of the encoded features.
             in_dim (int): Input dimension of the pixel features.
-
-        Examples:
-            >>> encoder = MemoryEncoder(out_dim=256, in_dim=256)
-            >>> pix_feat = torch.randn(1, 256, 64, 64)
-            >>> masks = torch.randn(1, 1, 64, 64)
-            >>> encoded_feat, pos = encoder(pix_feat, masks)
-            >>> print(encoded_feat.shape, pos.shape)
-            torch.Size([1, 256, 64, 64]) torch.Size([1, 128, 64, 64])
         """
         super().__init__()
 
@@ -460,23 +437,14 @@ class ImageEncoder(nn.Module):
         scalp: int = 0,
     ):
         """Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement.
-
+        
         This encoder combines a trunk network for feature extraction with a neck network for feature refinement and
         positional encoding generation. It can optionally discard the lowest resolution features.
-
+        
         Args:
             trunk (nn.Module): The trunk network for initial feature extraction.
             neck (nn.Module): The neck network for feature refinement and positional encoding generation.
             scalp (int): Number of lowest resolution feature levels to discard.
-
-        Examples:
-            >>> trunk = SomeTrunkNetwork()
-            >>> neck = SomeNeckNetwork()
-            >>> encoder = ImageEncoder(trunk, neck, scalp=1)
-            >>> image = torch.randn(1, 3, 224, 224)
-            >>> output = encoder(image)
-            >>> print(output.keys())
-            dict_keys(['vision_features', 'vision_pos_enc', 'backbone_fpn'])
         """
         super().__init__()
         self.trunk = trunk
@@ -539,10 +507,10 @@ class FpnNeck(nn.Module):
         fpn_top_down_levels: list[int] | None = None,
     ):
         """Initialize a modified Feature Pyramid Network (FPN) neck.
-
+        
         This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to
         ViT positional embedding interpolation.
-
+        
         Args:
             d_model (int): Dimension of the model.
             backbone_channel_list (list[int]): List of channel dimensions from the backbone.
@@ -552,11 +520,6 @@ class FpnNeck(nn.Module):
             fpn_interp_model (str): Interpolation mode for FPN feature resizing.
             fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
             fpn_top_down_levels (Optional[list[int]]): Levels to have top-down features in outputs.
-
-        Examples:
-            >>> backbone_channels = [64, 128, 256, 512]
-            >>> fpn_neck = FpnNeck(256, backbone_channels)
-            >>> print(fpn_neck)
         """
         super().__init__()
         self.position_encoding = PositionEmbeddingSine(num_pos_feats=256)
@@ -701,11 +664,11 @@ class Hiera(nn.Module):
         return_interm_layers=True,  # return feats from every stage
     ):
         """Initialize a Hiera model, a hierarchical vision transformer for efficient multiscale feature extraction.
-
+        
         Hiera is a hierarchical vision transformer architecture designed for efficient multiscale feature extraction in
         image processing tasks. It uses a series of transformer blocks organized into stages, with optional pooling and
         global attention mechanisms.
-
+        
         Args:
             embed_dim (int): Initial embedding dimension for the model.
             num_heads (int): Initial number of attention heads.
@@ -720,13 +683,6 @@ class Hiera(nn.Module):
             window_spec (tuple[int, ...]): Window sizes for each stage when not using global attention.
             global_att_blocks (tuple[int, ...]): Indices of blocks that use global attention.
             return_interm_layers (bool): Whether to return intermediate layer outputs.
-
-        Examples:
-            >>> model = Hiera(embed_dim=96, num_heads=1, stages=(2, 3, 16, 3))
-            >>> input_tensor = torch.randn(1, 3, 224, 224)
-            >>> output_features = model(input_tensor)
-            >>> for feat in output_features:
-            ...     print(feat.shape)
         """
         super().__init__()
 

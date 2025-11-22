@@ -61,21 +61,14 @@ class SAMModel(nn.Module):
         pixel_std: list[float] = (58.395, 57.12, 57.375),
     ) -> None:
         """Initialize the SAMModel class to predict object masks from an image and input prompts.
-
+        
         Args:
             image_encoder (ImageEncoderViT): The backbone used to encode the image into image embeddings.
             prompt_encoder (PromptEncoder): Encodes various types of input prompts.
             mask_decoder (MaskDecoder): Predicts masks from the image embeddings and encoded prompts.
             pixel_mean (list[float]): Mean values for normalizing pixels in the input image.
             pixel_std (list[float]): Standard deviation values for normalizing pixels in the input image.
-
-        Examples:
-            >>> image_encoder = ImageEncoderViT(...)
-            >>> prompt_encoder = PromptEncoder(...)
-            >>> mask_decoder = MaskDecoder(...)
-            >>> sam_model = SAMModel(image_encoder, prompt_encoder, mask_decoder)
-            >>> # Further usage depends on SAMPredictor class
-
+        
         Notes:
             All forward() operations moved to SAMPredictor.
         """
@@ -206,7 +199,7 @@ class SAM2Model(torch.nn.Module):
         compile_image_encoder: bool = False,
     ):
         """Initialize the SAM2Model for video object segmentation with memory-based tracking.
-
+        
         Args:
             image_encoder (nn.Module): Visual encoder for extracting image features.
             memory_attention (nn.Module): Module for attending to memory features.
@@ -253,15 +246,6 @@ class SAM2Model(torch.nn.Module):
             no_obj_embed_spatial (bool): Whether add no obj embedding to spatial frames.
             sam_mask_decoder_extra_args (dict | None): Extra arguments for constructing the SAM mask decoder.
             compile_image_encoder (bool): Whether to compile the image encoder for faster inference.
-
-        Examples:
-            >>> image_encoder = ImageEncoderViT(...)
-            >>> memory_attention = SAM2TwoWayTransformer(...)
-            >>> memory_encoder = nn.Sequential(...)
-            >>> model = SAM2Model(image_encoder, memory_attention, memory_encoder)
-            >>> image_batch = torch.rand(1, 3, 512, 512)
-            >>> features = model.forward_image(image_batch)
-            >>> track_results = model.track_step(0, True, features, None, None, None, {})
         """
         super().__init__()
 

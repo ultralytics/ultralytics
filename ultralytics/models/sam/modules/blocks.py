@@ -145,10 +145,10 @@ class CXBlock(nn.Module):
         use_dwconv: bool = True,
     ):
         """Initialize a ConvNeXt Block for efficient feature extraction in convolutional neural networks.
-
+        
         This block implements a modified version of the ConvNeXt architecture, offering improved performance and
         flexibility in feature extraction.
-
+        
         Args:
             dim (int): Number of input channels.
             kernel_size (int): Size of the convolutional kernel.
@@ -156,13 +156,6 @@ class CXBlock(nn.Module):
             drop_path (float): Stochastic depth rate.
             layer_scale_init_value (float): Initial value for Layer Scale.
             use_dwconv (bool): Whether to use depthwise convolution.
-
-        Examples:
-            >>> block = CXBlock(dim=64, kernel_size=7, padding=3)
-            >>> x = torch.randn(1, 64, 32, 32)
-            >>> output = block(x)
-            >>> print(output.shape)
-            torch.Size([1, 64, 32, 32])
         """
         super().__init__()
         self.dwconv = nn.Conv2d(
@@ -223,20 +216,14 @@ class Fuser(nn.Module):
 
     def __init__(self, layer: nn.Module, num_layers: int, dim: int | None = None, input_projection: bool = False):
         """Initialize the Fuser module for feature fusion through multiple layers.
-
+        
         This module creates a sequence of identical layers and optionally applies an input projection.
-
+        
         Args:
             layer (nn.Module): The layer to be replicated in the fuser.
             num_layers (int): The number of times to replicate the layer.
             dim (int | None): The dimension for input projection, if used.
             input_projection (bool): Whether to use input projection.
-
-        Examples:
-            >>> layer = nn.Linear(64, 64)
-            >>> fuser = Fuser(layer, num_layers=3, dim=64, input_projection=True)
-            >>> input_tensor = torch.randn(1, 64)
-            >>> output = fuser(input_tensor)
         """
         super().__init__()
         self.proj = nn.Identity()
@@ -292,11 +279,11 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
         skip_first_layer_pe: bool = False,
     ) -> None:
         """Initialize a SAM2TwoWayAttentionBlock for performing self-attention and cross-attention in two directions.
-
+        
         This block extends the TwoWayAttentionBlock and consists of four main components: self-attention on sparse
         inputs, cross-attention from sparse to dense inputs, an MLP block on sparse inputs, and cross-attention from
         dense to sparse inputs.
-
+        
         Args:
             embedding_dim (int): The channel dimension of the embeddings.
             num_heads (int): The number of heads in the attention layers.
@@ -304,12 +291,6 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
             activation (Type[nn.Module]): The activation function of the MLP block.
             attention_downsample_rate (int): The downsample rate for attention computations.
             skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
-
-        Examples:
-            >>> block = SAM2TwoWayAttentionBlock(embedding_dim=256, num_heads=8, mlp_dim=2048)
-            >>> sparse_inputs = torch.randn(1, 100, 256)
-            >>> dense_inputs = torch.randn(1, 256, 32, 32)
-            >>> sparse_outputs, dense_outputs = block(sparse_inputs, dense_inputs)
         """
         super().__init__(embedding_dim, num_heads, mlp_dim, activation, attention_downsample_rate, skip_first_layer_pe)
         self.mlp = MLP(embedding_dim, mlp_dim, embedding_dim, num_layers=2, act=activation)
@@ -353,10 +334,10 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
         attention_downsample_rate: int = 2,
     ) -> None:
         """Initialize a SAM2TwoWayTransformer instance.
-
+        
         This transformer decoder attends to an input image using queries with supplied positional embeddings. It is
         designed for tasks like object detection, image segmentation, and point cloud processing.
-
+        
         Args:
             depth (int): Number of layers in the transformer.
             embedding_dim (int): Channel dimension for the input embeddings.
@@ -364,17 +345,6 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
             mlp_dim (int): Channel dimension internal to the MLP block.
             activation (Type[nn.Module]): Activation function to use in the MLP block.
             attention_downsample_rate (int): Downsampling rate for attention computations.
-
-        Examples:
-            >>> transformer = SAM2TwoWayTransformer(depth=5, embedding_dim=256, num_heads=8, mlp_dim=2048)
-            >>> transformer
-            SAM2TwoWayTransformer(
-              (layers): ModuleList(
-                (0-4): 5 x SAM2TwoWayAttentionBlock(...)
-              )
-              (final_attn_token_to_image): Attention(...)
-              (norm_final_attn): LayerNorm(...)
-            )
         """
         super().__init__(depth, embedding_dim, num_heads, mlp_dim, activation, attention_downsample_rate)
         self.layers = nn.ModuleList()
@@ -901,11 +871,11 @@ class Block(nn.Module):
         input_size: tuple[int, int] | None = None,
     ) -> None:
         """Initialize a transformer block with optional window attention and relative positional embeddings.
-
+        
         This constructor sets up a transformer block that can use either global or windowed self-attention, followed by
         a feed-forward network. It supports relative positional embeddings and is designed for use in vision transformer
         architectures.
-
+        
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads in the self-attention layer.
@@ -917,13 +887,6 @@ class Block(nn.Module):
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window. If 0, uses global attention.
             input_size (tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
-
-        Examples:
-            >>> block = Block(dim=256, num_heads=8, window_size=7)
-            >>> x = torch.randn(1, 56, 56, 256)
-            >>> output = block(x)
-            >>> print(output.shape)
-            torch.Size([1, 56, 56, 256])
         """
         super().__init__()
         self.norm1 = norm_layer(dim)
@@ -996,10 +959,10 @@ class REAttention(nn.Module):
         input_size: tuple[int, int] | None = None,
     ) -> None:
         """Initialize a Relative Position Attention module for transformer-based architectures.
-
+        
         This module implements multi-head attention with optional relative positional encodings, designed specifically
         for vision tasks in transformer models.
-
+        
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads.
@@ -1008,13 +971,6 @@ class REAttention(nn.Module):
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             input_size (tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
                 Required if use_rel_pos is True.
-
-        Examples:
-            >>> attention = REAttention(dim=256, num_heads=8, input_size=(32, 32))
-            >>> x = torch.randn(1, 32, 32, 256)
-            >>> output = attention(x)
-            >>> print(output.shape)
-            torch.Size([1, 32, 32, 256])
         """
         super().__init__()
         self.num_heads = num_heads
@@ -1079,23 +1035,16 @@ class PatchEmbed(nn.Module):
         embed_dim: int = 768,
     ) -> None:
         """Initialize the PatchEmbed module for converting image patches to embeddings.
-
+        
         This module is typically used as the first layer in vision transformer architectures to transform image data
         into a suitable format for subsequent transformer blocks.
-
+        
         Args:
             kernel_size (tuple[int, int]): Size of the convolutional kernel for patch extraction.
             stride (tuple[int, int]): Stride of the convolutional operation.
             padding (tuple[int, int]): Padding applied to the input before convolution.
             in_chans (int): Number of input image channels.
             embed_dim (int): Dimensionality of the output patch embeddings.
-
-        Examples:
-            >>> patch_embed = PatchEmbed(kernel_size=(16, 16), stride=(16, 16), in_chans=3, embed_dim=768)
-            >>> x = torch.randn(1, 3, 224, 224)
-            >>> output = patch_embed(x)
-            >>> print(output.shape)
-            torch.Size([1, 768, 14, 14])
         """
         super().__init__()
 

@@ -85,26 +85,21 @@ class Model(torch.nn.Module):
         verbose: bool = False,
     ) -> None:
         """Initialize a new instance of the YOLO model class.
-
+        
         This constructor sets up the model based on the provided model path or name. It handles various types of model
         sources, including local files, Ultralytics HUB models, and Triton Server models. The method initializes several
         important attributes of the model and prepares it for operations like training, prediction, or export.
-
+        
         Args:
             model (str | Path | Model): Path or name of the model to load or create. Can be a local file path, a model
                 name from Ultralytics HUB, a Triton Server model, or an already initialized Model instance.
             task (str, optional): The specific task for the model. If None, it will be inferred from the config.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent operations.
-
+        
         Raises:
             FileNotFoundError: If the specified model file does not exist or is inaccessible.
             ValueError: If the model file or configuration is invalid or unsupported.
             ImportError: If required dependencies for specific model types (like HUB SDK) are not installed.
-
-        Examples:
-            >>> model = Model("yolo11n.pt")
-            >>> model = Model("path/to/model.yaml", task="detect")
-            >>> model = Model("hub_model", verbose=True)
         """
         if isinstance(model, Model):
             self.__dict__ = model.__dict__  # accepts an already initialized Model

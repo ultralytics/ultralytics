@@ -37,15 +37,11 @@ class KalmanFilterXYAH:
 
     def __init__(self):
         """Initialize Kalman filter model matrices with motion and observation uncertainty weights.
-
+        
         The Kalman filter is initialized with an 8-dimensional state space (x, y, a, h, vx, vy, va, vh), where (x, y)
         represents the bounding box center position, 'a' is the aspect ratio, 'h' is the height, and their respective
         velocities are (vx, vy, va, vh). The filter uses a constant velocity model for object motion and a linear
         observation model for bounding box location.
-
-        Examples:
-            Initialize a Kalman filter for tracking:
-            >>> kf = KalmanFilterXYAH()
         """
         ndim, dt = 4, 1.0
 

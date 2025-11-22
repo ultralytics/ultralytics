@@ -299,12 +299,14 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
         if head and not soup.select("style[data-doc-kind]"):
             style = soup.new_tag("style", attrs={"data-doc-kind": "true"})
             style.string = (
-                ".doc-kind{display:inline-block;padding:0 0.4em;border-radius:10px;font-weight:700;"
-                "font-size:0.75em;letter-spacing:0.04em;color:#f8fafc;text-transform:lowercase;}"
-                f".doc-kind-class{{background:{DOC_KIND_COLORS['Class']};}}"
-                f".doc-kind-function{{background:{DOC_KIND_COLORS['Function']};}}"
-                f".doc-kind-method{{background:{DOC_KIND_COLORS['Method']};}}"
-                f".doc-kind-property{{background:{DOC_KIND_COLORS['Property']};}}"
+                ".doc-kind{display:inline-flex;align-items:center;gap:0.25em;padding:0.18em 0.65em;border-radius:999px;"
+                "font-weight:700;font-size:0.72em;letter-spacing:0.06em;text-transform:uppercase;"
+                "line-height:1;color:var(--doc-kind-color,#f8fafc);"
+                "background:var(--doc-kind-bg,rgba(255,255,255,0.12));}"
+                f".doc-kind-class{{--doc-kind-color:{DOC_KIND_COLORS['Class']};--doc-kind-bg:rgba(3,157,252,0.22);}}"
+                f".doc-kind-function{{--doc-kind-color:{DOC_KIND_COLORS['Function']};--doc-kind-bg:rgba(252,152,3,0.22);}}"
+                f".doc-kind-method{{--doc-kind-color:{DOC_KIND_COLORS['Method']};--doc-kind-bg:rgba(239,94,255,0.22);}}"
+                f".doc-kind-property{{--doc-kind-color:{DOC_KIND_COLORS['Property']};--doc-kind-bg:rgba(2,232,53,0.22);}}"
             )
             head.append(style)
 

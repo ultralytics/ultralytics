@@ -33,6 +33,7 @@ import yaml
 from bs4 import BeautifulSoup
 from minijinja import Environment, load_from_path
 
+from build_reference import build_reference
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
 
@@ -408,7 +409,7 @@ def render_jinja_macros() -> None:
     files_with_macros = 0
 
     for md_file in TQDM((DOCS / "en").rglob("*.md"), desc="Rendering MiniJinja macros"):
-        if "macros" in md_file.parts:
+        if "macros" in md_file.parts or "reference" in md_file.parts:
             continue
         files_processed += 1
 
@@ -491,11 +492,12 @@ def main():
     try:
         backup_root, docs_backups = backup_docs_sources()
         prepare_docs_markdown()
+        build_reference()
         render_jinja_macros()
 
         # Build the main documentation
         LOGGER.info(f"Building docs from {DOCS}")
-        subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
+        subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
         LOGGER.info(f"Site built at {SITE}")
 
         # Update docs HTML pages

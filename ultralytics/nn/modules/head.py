@@ -624,8 +624,8 @@ class Pose(Detect):
                     y[:, 2::ndim].sigmoid_()
                 else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
                     y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
-            y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
-            y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
+            y[:, 0::ndim] = (y[:, 0::ndim] + self.anchors[0]) * self.strides
+            y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
             return y
 
 

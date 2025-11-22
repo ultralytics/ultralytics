@@ -589,9 +589,8 @@ class v8PoseLoss(v8DetectionLoss):
     def kpts_decode(anchor_points: torch.Tensor, pred_kpts: torch.Tensor) -> torch.Tensor:
         """Decode predicted keypoints to image coordinates."""
         y = pred_kpts.clone()
-        y[..., :2] *= 2.0
-        y[..., 0] += anchor_points[:, [0]] - 0.5
-        y[..., 1] += anchor_points[:, [1]] - 0.5
+        y[..., 0] += anchor_points[:, [0]]
+        y[..., 1] += anchor_points[:, [1]]
         return y
 
     def calculate_keypoints_loss(

@@ -393,6 +393,7 @@ SECTION_ALIASES = {
     "example": "examples",
     "notes": "notes",
     "note": "notes",
+    "methods": "methods",
 }
 
 
@@ -437,7 +438,8 @@ def parse_google_docstring(docstring: str | None) -> ParsedDocstring:
         if key and stripped.endswith(":"):
             current = key
             continue
-        sections[current].append(line)
+        if current != "methods":  # ignore "Methods:" sections; methods are rendered from AST
+            sections[current].append(line)
 
     description = "\n".join(sections.pop("description", [])).strip("\n")
     description = _normalize_text(description)
@@ -768,11 +770,11 @@ def render_module_markdown(module: DocumentedModule) -> str:
     content: list[str] = ["<br>\n"]
 
     if module.classes:
-        content.append("## Classes\n")
+        content.append("## Classes\n\n")
         content.extend(f"- [`{cls.name}`](#{item_anchor(cls)})\n" for cls in module.classes)
         content.append("\n")
     if module.functions:
-        content.append("## Functions\n")
+        content.append("## Functions\n\n")
         content.extend(f"- [`{func.name}`](#{item_anchor(func)})\n" for func in module.functions)
         content.append("\n")
 

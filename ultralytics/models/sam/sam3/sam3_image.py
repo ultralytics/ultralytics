@@ -488,10 +488,9 @@ class Sam3Image(torch.nn.Module):
         return out
 
     def _get_dummy_prompt(self, num_prompts=1):
-        device = self.device
         geometric_prompt = Prompt(
-            box_embeddings=torch.zeros(0, num_prompts, 4, device=device),
-            box_mask=torch.zeros(num_prompts, 0, device=device, dtype=torch.bool),
+            box_embeddings=torch.zeros(0, num_prompts, 4, device=self.device),
+            box_mask=torch.zeros(num_prompts, 0, device=self.device, dtype=torch.bool),
         )
         return geometric_prompt
 

@@ -427,7 +427,6 @@ class BasePredictor:
 
         # FIX: generate collision-free txt path
         from pathlib import Path
-        import hashlib
 
         p = Path(p).resolve()
         is_image_mode = self.dataset.mode == "image"
@@ -440,7 +439,7 @@ class BasePredictor:
 
             # Build final txt filename
             txt_name = rel.stem + frame_suffix + ".txt"
-            self.txt_path = (self.save_dir / "labels" / rel.parent / txt_name)
+            self.txt_path = self.save_dir / "labels" / rel.parent / txt_name
 
         except Exception:
             # Hash fallback
@@ -449,7 +448,6 @@ class BasePredictor:
 
         # Ensure directory exists
         self.txt_path.parent.mkdir(parents=True, exist_ok=True)
-
 
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]

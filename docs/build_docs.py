@@ -262,6 +262,7 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
             modified = True
 
     def highlight_labels(nodes):
+        """Inject doc-kind badges into headings and nav entries."""
         nonlocal modified
 
         for node in nodes:
@@ -357,6 +358,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         preserved = []
 
         def preserve(match):
+            """Mark HTML blocks that should not be minified."""
             preserved.append(match.group(0))
             return f"___PRESERVE_{len(preserved) - 1}___"
 
@@ -447,6 +449,7 @@ def render_jinja_macros() -> None:
         """SafeLoader that gracefully skips unknown tags (required for mkdocs.yml)."""
 
     def _ignore_unknown(loader, tag_suffix, node):
+        """Gracefully handle YAML tags that aren't registered."""
         if isinstance(node, yaml.ScalarNode):
             return loader.construct_scalar(node)
         if isinstance(node, yaml.SequenceNode):
@@ -458,6 +461,7 @@ def render_jinja_macros() -> None:
     SafeFallbackLoader.add_multi_constructor("", _ignore_unknown)
 
     def load_yaml(path: Path, *, safe_loader: yaml.Loader = yaml.SafeLoader) -> dict:
+        """Load YAML safely, returning an empty dict on errors."""
         if not path.exists():
             return {}
         try:
@@ -577,6 +581,7 @@ def main():
     restored = False
 
     def restore_all():
+        """Restore docs sources from backup once build steps complete."""
         nonlocal restored
         if backup_root:
             LOGGER.info("Restoring docs directory from backup")

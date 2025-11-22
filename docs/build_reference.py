@@ -215,6 +215,7 @@ def collect_signature_parameters(args: ast.arguments, src: str, *, skip_self: bo
     params: list[ParameterDoc] = []
 
     def add_param(arg: ast.arg, default_value: ast.AST | None = None):
+        """Append a parameter entry, optionally skipping self/cls."""
         name = arg.arg
         if skip_self and name in {"self", "cls"}:
             return
@@ -648,6 +649,7 @@ def _render_table(headers: list[str], rows: list[list[str]], level: int, title: 
     if not rows:
         return ""
     def _clean_cell(value: str | None) -> str:
+        """Normalize table cell values for Markdown output."""
         if value is None:
             return ""
         return str(value).replace("\n", "<br>").strip()

@@ -42,10 +42,6 @@ class KalmanFilterXYAH:
         represents the bounding box center position, 'a' is the aspect ratio, 'h' is the height, and their respective
         velocities are (vx, vy, va, vh). The filter uses a constant velocity model for object motion and a linear
         observation model for bounding box location.
-
-        Examples:
-            Initialize a Kalman filter for tracking:
-            >>> kf = KalmanFilterXYAH()
         """
         ndim, dt = 4, 1.0
 

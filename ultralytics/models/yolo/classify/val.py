@@ -61,12 +61,6 @@ class ClassificationValidator(BaseValidator):
             save_dir (str | Path, optional): Directory to save results.
             args (dict, optional): Arguments containing model and validation configuration.
             _callbacks (list, optional): List of callback functions to be called during validation.
-
-        Examples:
-            >>> from ultralytics.models.yolo.classify import ClassificationValidator
-            >>> args = dict(model="yolo11n-cls.pt", data="imagenet10")
-            >>> validator = ClassificationValidator(args=args)
-            >>> validator()
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.targets = None

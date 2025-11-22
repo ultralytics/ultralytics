@@ -109,11 +109,6 @@ class TQDM:
             bar_format (str, optional): Custom bar format string.
             initial (int, optional): Initial counter value.
             **kwargs (Any): Additional keyword arguments for compatibility (ignored).
-
-        Examples:
-            >>> pbar = TQDM(range(100), desc="Processing")
-            >>> with TQDM(total=1000, unit="B", unit_scale=True) as pbar:
-            ...     pbar.update(1024)  # Updates by 1KB
         """
         # Disable if not verbose
         if disable is None:

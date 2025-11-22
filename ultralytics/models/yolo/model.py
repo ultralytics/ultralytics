@@ -61,11 +61,6 @@ class YOLO(Model):
             task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'. Defaults
                 to auto-detection based on model.
             verbose (bool): Display model info on load.
-
-        Examples:
-            >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLO11n detection model
-            >>> model = YOLO("yolo11n-seg.pt")  # load a pretrained YOLO11n segmentation model
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model

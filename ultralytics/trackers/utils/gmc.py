@@ -47,10 +47,6 @@ class GMC:
         Args:
             method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
             downscale (int): Downscale factor for processing frames.
-
-        Examples:
-            Initialize a GMC object with the 'sparseOptFlow' method and a downscale factor of 2
-            >>> gmc = GMC(method="sparseOptFlow", downscale=2)
         """
         super().__init__()
 

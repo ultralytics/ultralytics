@@ -61,24 +61,6 @@ class WorldTrainerFromScratch(WorldTrainer):
             cfg (dict): Configuration dictionary with default parameters for model training.
             overrides (dict, optional): Dictionary of parameter overrides to customize the configuration.
             _callbacks (list, optional): List of callback functions to be executed during different stages of training.
-
-        Examples:
-            >>> from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
-            >>> from ultralytics import YOLOWorld
-            >>> data = dict(
-            ...     train=dict(
-            ...         yolo_data=["Objects365.yaml"],
-            ...         grounding_data=[
-            ...             dict(
-            ...                 img_path="flickr30k/images",
-            ...                 json_file="flickr30k/final_flickr_separateGT_train.json",
-            ...             ),
-            ...         ],
-            ...     ),
-            ...     val=dict(yolo_data=["lvis.yaml"]),
-            ... )
-            >>> model = YOLOWorld("yolov8s-worldv2.yaml")
-            >>> model.train(data=data, trainer=WorldTrainerFromScratch)
         """
         if overrides is None:
             overrides = {}

@@ -64,14 +64,6 @@ class BOTrack(STrack):
             cls (int): Class ID of the detected object.
             feat (np.ndarray, optional): Feature vector associated with the detection.
             feat_history (int): Maximum length of the feature history deque.
-
-        Examples:
-            Initialize a BOTrack object with bounding box, score, class ID, and feature vector
-            >>> xywh = np.array([100, 150, 60, 50])
-            >>> score = 0.9
-            >>> cls = 1
-            >>> feat = np.random.rand(128)
-            >>> bo_track = BOTrack(xywh, score, cls, feat)
         """
         super().__init__(xywh, score, cls)
 
@@ -184,11 +176,6 @@ class BOTSORT(BYTETracker):
         Args:
             args (Any): Parsed command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video being processed.
-
-        Examples:
-            Initialize BOTSORT with command-line arguments and a specified frame rate:
-            >>> args = parse_args()
-            >>> bot_sort = BOTSORT(args, frame_rate=30)
         """
         super().__init__(args, frame_rate)
         self.gmc = GMC(method=args.gmc_method)

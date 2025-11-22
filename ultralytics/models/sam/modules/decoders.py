@@ -55,11 +55,6 @@ class MaskDecoder(nn.Module):
             activation (Type[nn.Module]): Type of activation to use when upscaling masks.
             iou_head_depth (int): Depth of the MLP used to predict mask quality.
             iou_head_hidden_dim (int): Hidden dimension of the MLP used to predict mask quality.
-
-        Examples:
-            >>> transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=256, nhead=8), num_layers=6)
-            >>> decoder = MaskDecoder(transformer_dim=256, transformer=transformer)
-            >>> print(decoder)
         """
         super().__init__()
         self.transformer_dim = transformer_dim
@@ -249,11 +244,6 @@ class SAM2MaskDecoder(nn.Module):
             pred_obj_scores (bool): Whether to predict object scores.
             pred_obj_scores_mlp (bool): Whether to use MLP for object score prediction.
             use_multimask_token_for_obj_ptr (bool): Whether to use multimask token for object pointer.
-
-        Examples:
-            >>> transformer = nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model=256, nhead=8), num_layers=6)
-            >>> decoder = SAM2MaskDecoder(transformer_dim=256, transformer=transformer)
-            >>> print(decoder)
         """
         super().__init__()
         self.transformer_dim = transformer_dim

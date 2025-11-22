@@ -55,10 +55,6 @@ class SAM(Model):
 
         Raises:
             NotImplementedError: If the model file extension is not .pt or .pth.
-
-        Examples:
-            >>> sam = SAM("sam_b.pt")
-            >>> print(sam.is_sam2)
         """
         if model and Path(model).suffix not in {".pt", ".pth"}:
             raise NotImplementedError("SAM prediction requires pre-trained *.pt or *.pth model.")

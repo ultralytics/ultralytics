@@ -48,9 +48,6 @@ class BaseTransform:
 
         This constructor sets up the base transformation object, which can be extended for specific image processing
         tasks. It is designed to be compatible with both classification and semantic segmentation.
-
-        Examples:
-            >>> transform = BaseTransform()
         """
         pass
 
@@ -166,11 +163,6 @@ class Compose:
 
         Args:
             transforms (list[Callable]): A list of callable transform objects to be applied sequentially.
-
-        Examples:
-            >>> from ultralytics.data.augment import Compose, RandomHSV, RandomFlip
-            >>> transforms = [RandomHSV(), RandomFlip()]
-            >>> compose = Compose(transforms)
         """
         self.transforms = transforms if isinstance(transforms, list) else [transforms]
 
@@ -341,11 +333,6 @@ class BaseMixTransform:
             dataset (Any): The dataset object containing images and labels for mixing.
             pre_transform (Callable | None): Optional transform to apply before mixing.
             p (float): Probability of applying the mix transformation. Should be in the range [0.0, 1.0].
-
-        Examples:
-            >>> dataset = YOLODataset("path/to/data")
-            >>> pre_transform = Compose([RandomFlip(), RandomPerspective()])
-            >>> mix_transform = BaseMixTransform(dataset, pre_transform, p=0.5)
         """
         self.dataset = dataset
         self.pre_transform = pre_transform
@@ -508,11 +495,6 @@ class Mosaic(BaseMixTransform):
             imgsz (int): Image size (height and width) after mosaic pipeline of a single image.
             p (float): Probability of applying the mosaic augmentation. Must be in the range 0-1.
             n (int): The grid size, either 4 (for 2x2) or 9 (for 3x3).
-
-        Examples:
-            >>> from ultralytics.data.augment import Mosaic
-            >>> dataset = YourDataset(...)
-            >>> mosaic_aug = Mosaic(dataset, imgsz=640, p=0.5, n=4)
         """
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
         assert n in {4, 9}, "grid must be equal to 4 or 9."
@@ -866,11 +848,6 @@ class MixUp(BaseMixTransform):
             dataset (Any): The dataset to which MixUp augmentation will be applied.
             pre_transform (Callable | None): Optional transform to apply to images before MixUp.
             p (float): Probability of applying MixUp augmentation to an image. Must be in the range [0, 1].
-
-        Examples:
-            >>> from ultralytics.data.dataset import YOLODataset
-            >>> dataset = YOLODataset("path/to/data.yaml")
-            >>> mixup = MixUp(dataset, pre_transform=None, p=0.5)
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
@@ -1069,10 +1046,6 @@ class RandomPerspective:
             border (tuple[int, int]): Tuple specifying mosaic border (top/bottom, left/right).
             pre_transform (Callable | None): Function/transform to apply to the image before starting the random
                 transformation.
-
-        Examples:
-            >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
-            >>> result = transform(labels)  # Apply random perspective to labels
         """
         self.degrees = degrees
         self.translate = translate
@@ -1402,10 +1375,6 @@ class RandomHSV:
             hgain (float): Maximum variation for hue. Should be in the range [0, 1].
             sgain (float): Maximum variation for saturation. Should be in the range [0, 1].
             vgain (float): Maximum variation for value. Should be in the range [0, 1].
-
-        Examples:
-            >>> hsv_aug = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
-            >>> hsv_aug(image)
         """
         self.hgain = hgain
         self.sgain = sgain
@@ -1484,10 +1453,6 @@ class RandomFlip:
 
         Raises:
             AssertionError: If direction is not 'horizontal' or 'vertical', or if p is not between 0 and 1.
-
-        Examples:
-            >>> flip = RandomFlip(p=0.5, direction="horizontal")
-            >>> flip_with_idx = RandomFlip(p=0.7, direction="vertical", flip_idx=[1, 0, 3, 2, 5, 4])
         """
         assert direction in {"horizontal", "vertical"}, f"Support direction `horizontal` or `vertical`, got {direction}"
         assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
@@ -1590,19 +1555,6 @@ class LetterBox:
             stride (int): Stride of the model (e.g., 32 for YOLOv5).
             padding_value (int): Value for padding the image. Default is 114.
             interpolation (int): Interpolation method for resizing. Default is cv2.INTER_LINEAR.
-
-        Attributes:
-            new_shape (tuple[int, int]): Target size for the resized image.
-            auto (bool): Flag for using minimum rectangle resizing.
-            scale_fill (bool): Flag for stretching image without padding.
-            scaleup (bool): Flag for allowing upscaling.
-            stride (int): Stride value for ensuring image size is divisible by stride.
-            padding_value (int): Value used for padding the image.
-            interpolation (int): Interpolation method used for resizing.
-
-        Examples:
-            >>> letterbox = LetterBox(new_shape=(640, 640), auto=False, scale_fill=False, scaleup=True, stride=32)
-            >>> resized_img = letterbox(original_img)
         """
         self.new_shape = new_shape
         self.auto = auto
@@ -1840,9 +1792,9 @@ class Albumentations:
         >>> augmented_labels = transform(labels)
 
     Notes:
-        - The Albumentations package must be installed to use this class.
-        - If the package is not installed or an error occurs during initialization, the transform will be set to None.
-        - Spatial transforms are handled differently and require special processing for bounding boxes.
+        - Requires Albumentations version 1.0.3 or higher.
+        - Spatial transforms are handled differently to ensure bbox compatibility.
+        - Some transforms are applied with very low probability (0.01) by default.
     """
 
     def __init__(self, p: float = 1.0, transforms: list | None = None) -> None:
@@ -1856,30 +1808,9 @@ class Albumentations:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
             transforms (list, optional): List of custom Albumentations transforms. If None, uses default transforms.
 
-        Attributes:
-            p (float): Probability of applying the augmentations.
-            transform (albumentations.Compose): Composed Albumentations transforms.
-            contains_spatial (bool): Indicates if the transforms include spatial transformations.
-
         Raises:
             ImportError: If the Albumentations package is not installed.
             Exception: For any other errors during initialization.
-
-        Examples:
-            >>> transform = Albumentations(p=0.5)
-            >>> augmented = transform(image=image, bboxes=bboxes, class_labels=classes)
-            >>> augmented_image = augmented["image"]
-            >>> augmented_bboxes = augmented["bboxes"]
-
-            >>> # Custom transforms example
-            >>> import albumentations as A
-            >>> custom_transforms = [A.Blur(p=0.01), A.CLAHE(p=0.01)]
-            >>> transform = Albumentations(p=1.0, transforms=custom_transforms)
-
-        Notes:
-            - Requires Albumentations version 1.0.3 or higher.
-            - Spatial transforms are handled differently to ensure bbox compatibility.
-            - Some transforms are applied with very low probability (0.01) by default.
         """
         self.p = p
         self.transform = None
@@ -2080,22 +2011,6 @@ class Format:
             mask_overlap (bool): If True, allows mask overlap.
             batch_idx (bool): If True, keeps batch indexes.
             bgr (float): Probability of returning BGR images instead of RGB.
-
-        Attributes:
-            bbox_format (str): Format for bounding boxes.
-            normalize (bool): Whether bounding boxes are normalized.
-            return_mask (bool): Whether to return instance masks.
-            return_keypoint (bool): Whether to return keypoints.
-            return_obb (bool): Whether to return oriented bounding boxes.
-            mask_ratio (int): Downsample ratio for masks.
-            mask_overlap (bool): Whether masks can overlap.
-            batch_idx (bool): Whether to keep batch indexes.
-            bgr (float): The probability to return BGR images.
-
-        Examples:
-            >>> format = Format(bbox_format="xyxy", return_mask=True, return_keypoint=False)
-            >>> print(format.bbox_format)
-            xyxy
         """
         self.bbox_format = bbox_format
         self.normalize = normalize
@@ -2380,22 +2295,6 @@ class RandomLoadText:
             padding (bool): Whether to pad texts to max_samples. If True, the number of texts will always be equal to
                 max_samples.
             padding_value (str): The padding text to use when padding is True.
-
-        Attributes:
-            prompt_format (str): The format string for the prompt.
-            neg_samples (tuple[int, int]): The range for sampling negative texts.
-            max_samples (int): The maximum number of text samples.
-            padding (bool): Whether padding is enabled.
-            padding_value (str): The value used for padding.
-
-        Examples:
-            >>> random_load_text = RandomLoadText(prompt_format="Object: {}", neg_samples=(50, 100), max_samples=120)
-            >>> random_load_text.prompt_format
-            'Object: {}'
-            >>> random_load_text.neg_samples
-            (50, 100)
-            >>> random_load_text.max_samples
-            120
         """
         self.prompt_format = prompt_format
         self.neg_samples = neg_samples
@@ -2731,19 +2630,6 @@ class ClassifyLetterBox:
                 size) is created. If a tuple, it should be (height, width).
             auto (bool): If True, automatically calculates the short side based on stride.
             stride (int): The stride value, used when 'auto' is True.
-
-        Attributes:
-            h (int): Target height of the letterboxed image.
-            w (int): Target width of the letterboxed image.
-            auto (bool): Flag indicating whether to automatically calculate short side.
-            stride (int): Stride value for automatic short side calculation.
-
-        Examples:
-            >>> transform = ClassifyLetterBox(size=224)
-            >>> img = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-            >>> result = transform(img)
-            >>> print(result.shape)
-            (224, 224, 3)
         """
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
@@ -2818,13 +2704,6 @@ class CenterCrop:
 
         Returns:
             (None): This method initializes the object and does not return anything.
-
-        Examples:
-            >>> transform = CenterCrop(224)
-            >>> img = np.random.rand(300, 300, 3)
-            >>> cropped_img = transform(img)
-            >>> print(cropped_img.shape)
-            (224, 224, 3)
         """
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
@@ -2889,13 +2768,6 @@ class ToTensor:
 
         Args:
             half (bool): If True, converts the tensor to half precision (float16).
-
-        Examples:
-            >>> transform = ToTensor(half=True)
-            >>> img = np.random.rand(640, 640, 3)
-            >>> tensor_img = transform(img)
-            >>> print(tensor_img.dtype)
-            torch.float16
         """
         super().__init__()
         self.half = half

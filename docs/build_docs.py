@@ -31,7 +31,7 @@ import time
 from pathlib import Path
 
 import yaml
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
 from minijinja import Environment, load_from_path
 
 try:
@@ -227,9 +227,9 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
         return content
 
     try:
-        soup = BeautifulSoup(content, "lxml", parse_only=SOUP_STRAINER)
+        soup = BeautifulSoup(content, "lxml")
     except Exception:
-        soup = BeautifulSoup(content, "html.parser", parse_only=SOUP_STRAINER)
+        soup = BeautifulSoup(content, "html.parser")
     modified = False
 
     # Truncate long meta title if needed

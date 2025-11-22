@@ -24,16 +24,10 @@ from typing import Literal
 from ultralytics.utils.tqdm import TQDM
 
 # Constants
-hub_sdk = False
-if hub_sdk:
-    PACKAGE_DIR = Path("/Users/glennjocher/PycharmProjects/hub-sdk/hub_sdk")
-    REFERENCE_DIR = PACKAGE_DIR.parent / "docs/reference"
-    GITHUB_REPO = "ultralytics/hub-sdk"
-else:
-    FILE = Path(__file__).resolve()
-    PACKAGE_DIR = FILE.parents[1] / "ultralytics"
-    REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
-    GITHUB_REPO = "ultralytics/ultralytics"
+FILE = Path(__file__).resolve()
+PACKAGE_DIR = FILE.parents[1] / "ultralytics"
+REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
+GITHUB_REPO = "ultralytics/ultralytics"
 SIGNATURE_LINE_LENGTH = 120
 
 MKDOCS_YAML = PACKAGE_DIR.parent / "mkdocs.yml"
@@ -1145,6 +1139,17 @@ def build_reference_docs(update_nav: bool = False) -> list[str]:
     if created:
         print(f"Created {created} new reference files")
     return nav_items
+
+
+def build_reference_for(package_dir: Path, reference_dir: Path, github_repo: str, update_nav: bool = False) -> list[str]:
+    """Temporarily switch package context to build reference docs for another project."""
+    global PACKAGE_DIR, REFERENCE_DIR, GITHUB_REPO
+    prev = (PACKAGE_DIR, REFERENCE_DIR, GITHUB_REPO)
+    try:
+        PACKAGE_DIR, REFERENCE_DIR, GITHUB_REPO = package_dir, reference_dir, github_repo
+        return build_reference_docs(update_nav=update_nav)
+    finally:
+        PACKAGE_DIR, REFERENCE_DIR, GITHUB_REPO = prev
 
 
 def main():

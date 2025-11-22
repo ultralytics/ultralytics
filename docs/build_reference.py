@@ -427,7 +427,7 @@ def parse_google_docstring(docstring: str | None) -> ParsedDocstring:
     if not lines:
         return ParsedDocstring()
 
-    summary = lines[0].strip()
+    summary = _normalize_text(lines[0].strip())
     body = lines[1:]
 
     sections: defaultdict[str, list[str]] = defaultdict(list)
@@ -743,7 +743,10 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
     if item.children:
         method_rows = []
         for child in item.children:
-            summary = child.doc.summary or _normalize_text(child.doc.description).split("\n\n")[0] if child.doc.description else ""
+            summary = child.doc.summary or (
+                _normalize_text(child.doc.description).split("\n\n")[0] if child.doc.description else ""
+            )
+            summary = summary.strip()
             method_rows.append([f"[`{child.name}`](#{item_anchor(child)})", summary])
         parts.append(_render_table(["Name", "Description"], method_rows, level + 1, "Methods"))
         for child in item.children:

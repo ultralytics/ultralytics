@@ -47,7 +47,7 @@ DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
 TITLE_PATTERN = re.compile(r"<title>(.*?)</title>", flags=re.IGNORECASE | re.DOTALL)
-SOUP_STRAINER = SoupStrainer(["html", "head", "body", "main", "div", "p", "li", "a", "title"])
+SOUP_STRAINER = SoupStrainer(["html", "head", "body", "main", "div", "nav", "p", "li", "a", "title", "h2", "h3"])
 EDIT_LINK_RULES = (
     (
         "hub/sdk/",
@@ -66,10 +66,10 @@ EDIT_LINK_RULES = (
 )
 DOC_KIND_LABELS = {"Class", "Function", "Method", "Property"}
 DOC_KIND_COLORS = {
-    "Class": "#1e3a8a",     # deep blue
-    "Method": "#5b21b6",    # deep purple
-    "Function": "#c2410c",  # burnt orange
-    "Property": "#166534",  # deep green
+    "Class": "#039dfc",     # blue
+    "Method": "#ef5eff",    # magenta
+    "Function": "#fc9803",  # orange
+    "Property": "#02e835",  # green
 }
 
 

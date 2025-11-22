@@ -272,7 +272,9 @@ def format_signature(
         args = (
             init_method.args
             if init_method
-            else ast.arguments(posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[])
+            else ast.arguments(
+                posonlyargs=[], args=[], vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[]
+            )
         )
     else:
         args = node.args
@@ -648,6 +650,7 @@ def _render_table(headers: list[str], rows: list[list[str]], level: int, title: 
     """Render a Markdown table with an optional heading."""
     if not rows:
         return ""
+
     def _clean_cell(value: str | None) -> str:
         if value is None:
             return ""

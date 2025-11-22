@@ -35,6 +35,7 @@ Usage - formats:
 
 from __future__ import annotations
 
+import hashlib
 import platform
 import re
 import threading
@@ -424,7 +425,20 @@ class BasePredictor:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # 0 if frame undetermined
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
+        # FIX: generate collision-free txt path
+        from pathlib import Path
+        import hashlib
+
+        p = Path(p).resolve()
+        try:
+            src_root = Path(self.args.source).resolve()
+            rel = p.relative_to(src_root)
+            self.txt_path = (self.save_dir / "labels" / rel).with_suffix("")
+        except Exception:
+            h = hashlib.sha1(p.as_posix().encode()).hexdigest()[:8]
+            self.txt_path = (self.save_dir / "labels" / f"{p.stem}__{h}")
+        self.txt_path.parent.mkdir(parents=True, exist_ok=True)
+
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
@@ -442,7 +456,7 @@ class BasePredictor:
 
         # Save results
         if self.args.save_txt:
-            result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
+            result.save_txt(self.txt_path.with_suffix(".txt"), save_conf=self.args.save_conf)
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
         if self.args.show:

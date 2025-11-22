@@ -56,6 +56,7 @@ FUNC_DEF_RE = re.compile(r"(?:^|\n)(?:async\s+)?def\s(\w+)\(")
 SECTION_ENTRY_RE = re.compile(r"([\w*]+)\s*(?:\(([^)]+)\))?:\s*(.*)")
 RETURNS_RE = re.compile(r"([^:]+):\s*(.*)")
 
+
 @dataclass
 class ParameterDoc:
     """Structured documentation for parameters, attributes, and exceptions."""

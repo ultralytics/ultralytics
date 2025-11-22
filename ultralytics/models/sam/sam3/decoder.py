@@ -147,8 +147,8 @@ class TransformerDecoderLayer(nn.Module):
         if self.use_text_cross_attention:
             tgt2 = self.ca_text(
                 self.with_pos_embed(tgt, tgt_query_pos),
-                memory_text,
-                memory_text,
+                memory_text.to(tgt.dtype),
+                memory_text.to(tgt.dtype),
                 key_padding_mask=text_attention_mask,
             )[0]
             tgt = tgt + self.catext_dropout(tgt2)
@@ -275,14 +275,6 @@ class TransformerDecoder(nn.Module):
             self.compilable_stored_size = None
             self.coord_cache = {}
 
-            if resolution is not None and stride is not None:
-                feat_size = resolution // stride
-                coords_h, coords_w = self._get_coords(
-                    feat_size, feat_size, device="cuda"
-                )
-                self.compilable_cord_cache = (coords_h, coords_w)
-                self.compilable_stored_size = (feat_size, feat_size)
-
         self.roi_pooler = (
             RoIAlign(output_size=7, spatial_scale=1, sampling_ratio=-1, aligned=True)
             if interaction_layer is not None
@@ -323,9 +315,9 @@ class TransformerDecoder(nn.Module):
             layer.layer_idx = layer_idx
 
     @staticmethod
-    def _get_coords(H, W, device):
-        coords_h = torch.arange(0, H, device=device, dtype=torch.float32) / H
-        coords_w = torch.arange(0, W, device=device, dtype=torch.float32) / W
+    def _get_coords(H, W, device, dtype):
+        coords_h = torch.arange(0, H, dtype=dtype, device=device) / H
+        coords_w = torch.arange(0, W, dtype=dtype, device=device) / W
         return coords_h, coords_w
 
     def _get_rpb_matrix(self, reference_boxes, feat_size):
@@ -333,7 +325,7 @@ class TransformerDecoder(nn.Module):
         boxes_xyxy = box_cxcywh_to_xyxy(reference_boxes).transpose(0, 1)
         bs, num_queries, _ = boxes_xyxy.shape
         if self.compilable_cord_cache is None:
-            self.compilable_cord_cache = self._get_coords(H, W, reference_boxes.device)
+            self.compilable_cord_cache = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
             self.compilable_stored_size = (H, W)
 
         if torch.compiler.is_dynamo_compiling() or self.compilable_stored_size == (

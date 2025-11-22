@@ -282,8 +282,8 @@ class UniversalSegmentationHead(SegmentationHead):
             tgt2 = self.cross_attn_norm(encoder_hidden_states)
             tgt2 = self.cross_attend_prompt(
                 query=tgt2,
-                key=prompt,
-                value=prompt,
+                key=prompt.to(tgt2.dtype),
+                value=prompt.to(tgt2.dtype),
                 key_padding_mask=prompt_mask,
             )[0]
             encoder_hidden_states = tgt2 + encoder_hidden_states

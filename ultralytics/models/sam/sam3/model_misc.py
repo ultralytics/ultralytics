@@ -56,7 +56,7 @@ class DotProductScoring(torch.nn.Module):
 
     def mean_pool_text(self, prompt, prompt_mask):
         # is_valid has shape (seq, bs, 1), where 1 is valid and 0 is padding
-        is_valid = (~prompt_mask).float().permute(1, 0)[..., None]
+        is_valid = (~prompt_mask).to(prompt.dtype).permute(1, 0)[..., None]
         # num_valid has shape (bs, 1)
         num_valid = torch.clamp(torch.sum(is_valid, dim=0), min=1.0)
         # mean pool over all the valid tokens -- pooled_prompt has shape (bs, proj_dim)
@@ -71,7 +71,7 @@ class DotProductScoring(torch.nn.Module):
 
         # apply MLP on prompt if specified
         if self.prompt_mlp is not None:
-            prompt = self.prompt_mlp(prompt)
+            prompt = self.prompt_mlp(prompt.to(hs.dtype))
 
         # first, get the mean-pooled version of the prompt
         pooled_prompt = self.mean_pool_text(prompt, prompt_mask)
@@ -241,7 +241,7 @@ def gen_sineembed_for_position(pos_tensor, num_feats=256):
     # n_query, bs, _ = pos_tensor.size()
     # sineembed_tensor = torch.zeros(n_query, bs, 256)
     scale = 2 * math.pi
-    dim_t = torch.arange(num_feats, dtype=torch.float32, device=pos_tensor.device)
+    dim_t = torch.arange(num_feats, dtype=pos_tensor.dtype, device=pos_tensor.device)
     dim_t = 10000 ** (2 * (torch.div(dim_t, 2, rounding_mode="floor")) / num_feats)
     x_embed = pos_tensor[:, :, 0] * scale
     y_embed = pos_tensor[:, :, 1] * scale

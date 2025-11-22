@@ -602,7 +602,7 @@ class SequenceGeometryEncoder(nn.Module):
         n_points, bs = points.shape[:2]
 
         if self.points_direct_project is not None:
-            proj = self.points_direct_project(points)
+            proj = self.points_direct_project(points.to(img_feats.dtype))
             assert points_embed is None
             points_embed = proj
 
@@ -631,7 +631,7 @@ class SequenceGeometryEncoder(nn.Module):
             enc_y = enc_y.view(n_points, bs, enc_y.shape[-1])
             enc = torch.cat([enc_x, enc_y], -1)
 
-            proj = self.points_pos_enc_project(enc)
+            proj = self.points_pos_enc_project(enc.to(img_feats.dtype))
             if points_embed is None:
                 points_embed = proj
             else:
@@ -640,12 +640,12 @@ class SequenceGeometryEncoder(nn.Module):
         type_embed = self.label_embed(points_labels.long())
         return type_embed + points_embed, points_mask
 
-    def _encode_boxes(self, boxes, boxes_mask, boxes_labels, img_feats):
+    def _encode_boxes(self, boxes, boxes_mask, boxes_labels, img_feats:torch.Tensor):
         boxes_embed = None
         n_boxes, bs = boxes.shape[:2]
 
         if self.boxes_direct_project is not None:
-            proj = self.boxes_direct_project(boxes)
+            proj = self.boxes_direct_project(boxes.to(img_feats.dtype))
             assert boxes_embed is None
             boxes_embed = proj
 
@@ -654,13 +654,13 @@ class SequenceGeometryEncoder(nn.Module):
 
             # boxes are [Num_boxes, bs, 4], normalized in [0, 1]
             # We need to denormalize, and convert to [x, y, x, y]
-            boxes_xyxy = box_cxcywh_to_xyxy(boxes)
+            boxes_xyxy = box_cxcywh_to_xyxy(boxes.to(img_feats.dtype))
             scale = torch.tensor([W, H, W, H], dtype=boxes_xyxy.dtype)
             scale = scale.pin_memory().to(device=boxes_xyxy.device, non_blocking=True)
             scale = scale.view(1, 1, 4)
             boxes_xyxy = boxes_xyxy * scale
             sampled = torchvision.ops.roi_align(
-                img_feats, boxes_xyxy.float().transpose(0, 1).unbind(0), self.roi_size
+                img_feats, boxes_xyxy.transpose(0, 1).unbind(0), self.roi_size
             )
             assert list(sampled.shape) == [
                 bs * n_boxes,
@@ -682,7 +682,7 @@ class SequenceGeometryEncoder(nn.Module):
             )
             enc = enc.view(boxes.shape[0], boxes.shape[1], enc.shape[-1])
 
-            proj = self.boxes_pos_enc_project(enc)
+            proj = self.boxes_pos_enc_project(enc.to(img_feats.dtype))
             if boxes_embed is None:
                 boxes_embed = proj
             else:

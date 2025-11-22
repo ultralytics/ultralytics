@@ -188,8 +188,8 @@ class TransformerEncoderLayer(nn.Module):
         tgt2 = self.norm2(tgt)
         tgt2 = self.cross_attn_image(
             query=tgt2 + query_pos if self.pos_enc_at_cross_attn_queries else tgt2,
-            key=memory + pos if self.pos_enc_at_cross_attn_keys else memory,
-            value=memory,
+            key=memory.to(tgt2.dtype) + pos if self.pos_enc_at_cross_attn_keys else memory.to(tgt2.dtype),
+            value=memory.to(tgt2.dtype),
             attn_mask=memory_mask,
             key_padding_mask=memory_key_padding_mask,
             # attn_bias=attn_bias,
@@ -364,6 +364,7 @@ class TransformerEncoder(nn.Module):
             valid_ratios = torch.ones(
                 (src_flatten.shape[0], self.num_feature_levels, 2),
                 device=src_flatten.device,
+                dtype=src_flatten.dtype,
             )
 
         return (

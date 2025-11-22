@@ -49,6 +49,12 @@ INCLUDE_SPECIAL_METHODS = {
     "__getattr__",
 }
 PROPERTY_DECORATORS = {"property", "cached_property"}
+CLASS_DEF_RE = re.compile(r"(?:^|\n)class\s(\w+)(?:\(|:)")
+FUNC_DEF_RE = re.compile(r"(?:^|\n)(?:async\s+)?def\s(\w+)\(")
+SECTION_ENTRY_RE = re.compile(r"([\w*]+)\s*(?:\(([^)]+)\))?:\s*(.*)")
+RETURNS_RE = re.compile(r"([^:]+):\s*(.*)")
+SLUG_CLEAN_RE = re.compile(r"[^\w\s-]")
+SLUG_DASH_RE = re.compile(r"[-\s]+")
 
 
 @dataclass
@@ -120,8 +126,8 @@ class DocumentedModule:
 def extract_classes_and_functions(filepath: Path) -> tuple[list[str], list[str]]:
     """Extract top-level class and (a)sync function names from a Python file."""
     content = filepath.read_text()
-    classes = re.findall(r"(?:^|\n)class\s(\w+)(?:\(|:)", content)
-    functions = re.findall(r"(?:^|\n)(?:async\s+)?def\s(\w+)\(", content)
+    classes = CLASS_DEF_RE.findall(content)
+    functions = FUNC_DEF_RE.findall(content)
     return classes, functions
 
 
@@ -133,19 +139,20 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
     if exists:
         return md_filepath.relative_to(PACKAGE_DIR.parent)
 
-    header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
     module_path_dots = module_path
-    module_path = module_path.replace(".", "/")
-    url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path}.py"
-    edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path}.py"
+    module_path_fs = module_path.replace(".", "/")
+    url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path_fs}.py"
+    edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path_fs}.py"
     pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")
 
+    header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
     title_content = (
-        f"# Reference for `{module_path}.py`\n\n"
+        f"# Reference for `{module_path_fs}.py`\n\n"
         f"!!! note\n\n"
         f"    This file is available at [{pretty}]({url}). If you spot a problem please help fix it by [contributing]"
         f"(https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n"
     )
+
     md_content = ["<br>\n\n"]
     md_content.extend(f"## ::: {module_path_dots}.{cls}\n\n<br><br><hr><br>\n\n" for cls in classes)
     md_content.extend(f"## ::: {module_path_dots}.{func}\n\n<br><br><hr><br>\n\n" for func in functions)
@@ -159,8 +166,8 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
 
 def slugify(value: str) -> str:
     """Create a simple anchor slug similar to MkDocs."""
-    value = re.sub(r"[^\w\s-]", "", value).strip().lower()
-    return re.sub(r"[-\s]+", "-", value)
+    value = SLUG_CLEAN_RE.sub("", value).strip().lower()
+    return SLUG_DASH_RE.sub("-", value)
 
 
 def _get_source(src: str, node: ast.AST) -> str:
@@ -345,7 +352,7 @@ def _parse_named_entries(lines: list[str]) -> list[ParameterDoc]:
         if not text:
             continue
         first_line, *rest = text.splitlines()
-        match = re.match(r"([\w*]+)\s*(?:\(([^)]+)\))?:\s*(.*)", first_line)
+        match = SECTION_ENTRY_RE.match(first_line)
         if match:
             name, type_hint, desc = match.groups()
             description = " ".join(desc.split())
@@ -364,7 +371,7 @@ def _parse_returns(lines: list[str]) -> list[ReturnDoc]:
         text = textwrap.dedent("\n".join(block)).strip()
         if not text:
             continue
-        match = re.match(r"([^:]+):\s*(.*)", text)
+        match = RETURNS_RE.match(text)
         if match:
             type_hint, desc = match.groups()
             cleaned_type = type_hint.strip()
@@ -824,21 +831,19 @@ def create_markdown(module: DocumentedModule) -> Path:
 
     header_content = ""
     if exists:
-        existing_content = md_filepath.read_text()
-        header_parts = existing_content.split("---")
-        for part in header_parts:
+        for part in md_filepath.read_text().split("---"):
             if "description:" in part or "comments:" in part:
                 header_content += f"---{part}---\n\n"
-    if not any(header_content):
+    if not header_content:
         header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
 
-    module_path = module.module_path.replace(".", "/")
-    url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path}.py"
-    edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path}.py"
+    module_path_fs = module.module_path.replace(".", "/")
+    url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path_fs}.py"
+    edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path_fs}.py"
     pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")  # Properly display __init__.py filenames
 
     title_content = (
-        f"# Reference for `{module_path}.py`\n\n"
+        f"# Reference for `{module_path_fs}.py`\n\n"
         f"!!! note\n\n"
         f"    This file is available at [{pretty}]({url}). If you spot a problem please help fix it by [contributing]"
         f"(https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n"
@@ -953,6 +958,15 @@ def update_mkdocs_file(reference_yaml: str) -> None:
         print("Could not find a suitable location to add Reference section")
 
 
+def _finalize_reference(nav_items: list[str], update_nav: bool, created: int, created_label: str) -> list[str]:
+    """Optionally sync navigation and print creation summary."""
+    if update_nav:
+        update_mkdocs_file(create_nav_menu_yaml(nav_items))
+    if created:
+        print(f"Created {created} new {created_label}")
+    return nav_items
+
+
 def build_reference(update_nav: bool = True) -> list[str]:
     """Create placeholder reference files (legacy mkdocstrings flow)."""
     return build_reference_placeholders(update_nav=update_nav)
@@ -967,11 +981,13 @@ def build_reference_placeholders(update_nav: bool = True) -> list[str]:
         classes, functions = extract_classes_and_functions(py_filepath)
         if not classes and not functions:
             continue
-        module_path = f"{PACKAGE_DIR.name}.{py_filepath.relative_to(PACKAGE_DIR).with_suffix('').as_posix().replace('/', '.')}"
+        module_path = (
+            f"{PACKAGE_DIR.name}.{py_filepath.relative_to(PACKAGE_DIR).with_suffix('').as_posix().replace('/', '.')}"
+        )
+        existed = (REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")).exists()
         md_rel = create_placeholder_markdown(py_filepath, module_path, classes, functions)
         nav_items.append(str(md_rel))
-        md_abs = PACKAGE_DIR.parent / md_rel
-        if not md_abs.exists():  # safety, though create_placeholder_markdown writes when missing
+        if not existed:
             created += 1
     if update_nav:
         update_mkdocs_file(create_nav_menu_yaml(nav_items))

@@ -30,8 +30,13 @@ import tempfile
 from pathlib import Path
 
 import yaml
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 from minijinja import Environment, load_from_path
+
+try:
+    from plugin import postprocess_site  # mkdocs-ultralytics-plugin
+except ImportError:
+    postprocess_site = None
 
 from build_reference import build_reference, build_reference_docs
 from ultralytics.utils import LINUX, LOGGER, MACOS
@@ -41,6 +46,7 @@ os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is 
 DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
+TITLE_PATTERN = re.compile(r"<title>(.*?)</title>", flags=re.IGNORECASE | re.DOTALL)
 
 
 def prepare_docs_markdown(clone_repos: bool = True):
@@ -112,14 +118,13 @@ def update_subdir_edit_links(subdir: str = "", docs_url: str = ""):
     """Update edit button links using regex instead of BeautifulSoup."""
     if str(subdir[0]) == "/":
         subdir = str(subdir[0])[1:]
+    pattern = re.compile(
+        rf'(<a[^>]*class="md-content__button md-icon"[^>]*href=")[^"]*/{subdir}([^"]*"[^>]*title="Edit this page")'
+    )
     for html_file in TQDM((SITE / subdir).rglob("*.html"), desc="Processing subdir files", mininterval=1.0):
         content = html_file.read_text(encoding="utf-8")
         # Regex to find and replace edit link href
-        updated = re.sub(
-            rf'(<a[^>]*class="md-content__button md-icon"[^>]*href=")[^"]*/{subdir}([^"]*"[^>]*title="Edit this page")',
-            rf"\1{docs_url}\2",
-            content,
-        )
+        updated = pattern.sub(rf"\1{docs_url}\2", content)
         if updated != content:
             html_file.write_text(updated, encoding="utf-8")
 
@@ -193,14 +198,23 @@ def update_docs_html():
 
 def update_docs_soup(content: str, html_file: Path | None = None, max_title_length: int = 70) -> str:
     """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
+    title_match = TITLE_PATTERN.search(content)
+    needs_title_trim = bool(title_match and len(title_match.group(1)) > max_title_length and "-" in title_match.group(1))
+    needs_link_conversion = ("<p" in content or "<li" in content) and bool(LINK_PATTERN.search(content))
+    needs_codelineno_cleanup = "__codelineno-" in content
+
+    if not (needs_title_trim or needs_link_conversion or needs_codelineno_cleanup):
+        return content
+
+    strainer = SoupStrainer(["html", "head", "body", "main", "div", "p", "li", "a", "title"])
     try:
-        soup = BeautifulSoup(content, "lxml")
+        soup = BeautifulSoup(content, "lxml", parse_only=strainer)
     except Exception:
-        soup = BeautifulSoup(content, "html.parser")
+        soup = BeautifulSoup(content, "html.parser", parse_only=strainer)
     modified = False
 
     # Truncate long meta title if needed
-    title_tag = soup.find("title")
+    title_tag = soup.find("title") if needs_title_trim else None
     if title_tag and len(title_tag.text) > max_title_length and "-" in title_tag.text:
         title_tag.string = title_tag.text.rsplit("-", 1)[0].strip()
         modified = True
@@ -211,24 +225,26 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
         return str(soup) if modified else content
 
     # Convert plaintext links to HTML hyperlinks
-    for paragraph in main_content.select("p, li"):
-        for text_node in paragraph.find_all(string=True, recursive=False):
-            if text_node.parent.name not in {"a", "code"}:
-                new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))
-                if "<a href=" in new_text:
-                    text_node.replace_with(BeautifulSoup(new_text, "html.parser"))
-                    modified = True
+    if needs_link_conversion:
+        for paragraph in main_content.select("p, li"):
+            for text_node in paragraph.find_all(string=True, recursive=False):
+                if text_node.parent.name not in {"a", "code"}:
+                    new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))
+                    if "<a href=" in new_text:
+                        text_node.replace_with(BeautifulSoup(new_text, "html.parser"))
+                        modified = True
 
     # Remove href attributes from code line numbers in code blocks
-    for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
-        if a.string:  # If the a tag has text (the line number)
-            # Check if parent is a span with class="normal"
-            if a.parent and a.parent.name == "span" and "normal" in a.parent.get("class", []):
-                del a.parent["class"]
-            a.replace_with(a.string)  # Replace with just the text
-        else:  # If it has no text
-            a.replace_with(soup.new_tag("span"))  # Replace with an empty span
-        modified = True
+    if needs_codelineno_cleanup:
+        for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
+            if a.string:  # If the a tag has text (the line number)
+                # Check if parent is a span with class="normal"
+                if a.parent and a.parent.name == "span" and "normal" in a.parent.get("class", []):
+                    del a.parent["class"]
+                a.replace_with(a.string)  # Replace with just the text
+            else:  # If it has no text
+                a.replace_with(soup.new_tag("span"))  # Replace with an empty span
+            modified = True
 
     return str(soup) if modified else content
 
@@ -502,6 +518,25 @@ def main():
 
         # Update docs HTML pages
         update_docs_html()
+
+        # Post-process site for meta tags, authors, social cards, and mkdocstrings polish
+        if postprocess_site:
+            postprocess_site(
+                site_dir=SITE,
+                docs_dir=DOCS / "en",
+                site_url="https://docs.ultralytics.com",
+                default_image="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png",
+                default_author="glenn.jocher@ultralytics.com",
+                add_desc=False,
+                add_image=True,
+                add_authors=True,
+                add_json_ld=True,
+                add_share_buttons=True,
+                add_css=False,
+                verbose=True,
+            )
+        else:
+            LOGGER.warning("postprocess_site not available; skipping mkdocstrings postprocessing")
 
         # Minify files
         minify_files(html=False, css=False, js=False)

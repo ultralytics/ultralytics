@@ -45,24 +45,24 @@ class PoseValidator(DetectionValidator):
         >>> args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml")
         >>> validator = PoseValidator(args=args)
         >>> validator()
+
+    Notes:
+        This class extends DetectionValidator with pose-specific functionality. It initializes with sigma values
+        for OKS calculation and sets up PoseMetrics for evaluation. A warning is displayed when using Apple MPS
+        due to a known bug with pose models.
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         """Initialize a PoseValidator object for pose estimation validation.
-
+        
         This validator is specifically designed for pose estimation tasks, handling keypoints and implementing
         specialized metrics for pose evaluation.
-
+        
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path | str, optional): Directory to save results.
             args (dict, optional): Arguments for the validator including task set to "pose".
             _callbacks (list, optional): List of callback functions to be executed during validation.
-
-        Notes:
-            This class extends DetectionValidator with pose-specific functionality. It initializes with sigma values
-            for OKS calculation and sets up PoseMetrics for evaluation. A warning is displayed when using Apple MPS
-            due to a known bug with pose models.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.sigma = None

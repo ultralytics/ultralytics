@@ -1542,10 +1542,10 @@ class LetterBox:
         interpolation: int = cv2.INTER_LINEAR,
     ):
         """Initialize LetterBox object for resizing and padding images.
-
+        
         This class is designed to resize and pad images for object detection, instance segmentation, and pose estimation
         tasks. It supports various resizing modes including auto-sizing, scale-fill, and letterboxing.
-
+        
         Args:
             new_shape (tuple[int, int]): Target size (height, width) for the resized image.
             auto (bool): If True, use minimum rectangle to resize. If False, use new_shape directly.
@@ -1555,15 +1555,6 @@ class LetterBox:
             stride (int): Stride of the model (e.g., 32 for YOLOv5).
             padding_value (int): Value for padding the image. Default is 114.
             interpolation (int): Interpolation method for resizing. Default is cv2.INTER_LINEAR.
-
-        Attributes:
-            new_shape (tuple[int, int]): Target size for the resized image.
-            auto (bool): Flag for using minimum rectangle resizing.
-            scale_fill (bool): Flag for stretching image without padding.
-            scaleup (bool): Flag for allowing upscaling.
-            stride (int): Stride value for ensuring image size is divisible by stride.
-            padding_value (int): Value used for padding the image.
-            interpolation (int): Interpolation method used for resizing.
         """
         self.new_shape = new_shape
         self.auto = auto
@@ -1801,35 +1792,25 @@ class Albumentations:
         >>> augmented_labels = transform(labels)
 
     Notes:
-        - The Albumentations package must be installed to use this class.
-        - If the package is not installed or an error occurs during initialization, the transform will be set to None.
-        - Spatial transforms are handled differently and require special processing for bounding boxes.
+        - Requires Albumentations version 1.0.3 or higher.
+        - Spatial transforms are handled differently to ensure bbox compatibility.
+        - Some transforms are applied with very low probability (0.01) by default.
     """
 
     def __init__(self, p: float = 1.0, transforms: list | None = None) -> None:
         """Initialize the Albumentations transform object for YOLO bbox formatted parameters.
-
+        
         This class applies various image augmentations using the Albumentations library, including Blur, Median Blur,
         conversion to grayscale, Contrast Limited Adaptive Histogram Equalization, random changes of brightness and
         contrast, RandomGamma, and image quality reduction through compression.
-
+        
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
             transforms (list, optional): List of custom Albumentations transforms. If None, uses default transforms.
-
-        Attributes:
-            p (float): Probability of applying the augmentations.
-            transform (albumentations.Compose): Composed Albumentations transforms.
-            contains_spatial (bool): Indicates if the transforms include spatial transformations.
-
+        
         Raises:
             ImportError: If the Albumentations package is not installed.
             Exception: For any other errors during initialization.
-
-        Notes:
-            - Requires Albumentations version 1.0.3 or higher.
-            - Spatial transforms are handled differently to ensure bbox compatibility.
-            - Some transforms are applied with very low probability (0.01) by default.
         """
         self.p = p
         self.transform = None
@@ -2016,10 +1997,10 @@ class Format:
         bgr: float = 0.0,
     ):
         """Initialize the Format class with given parameters for image and instance annotation formatting.
-
+        
         This class standardizes image and instance annotations for object detection, instance segmentation, and pose
         estimation tasks, preparing them for use in PyTorch DataLoader's `collate_fn`.
-
+        
         Args:
             bbox_format (str): Format for bounding boxes. Options are 'xywh', 'xyxy', etc.
             normalize (bool): Whether to normalize bounding boxes to [0,1].
@@ -2030,17 +2011,6 @@ class Format:
             mask_overlap (bool): If True, allows mask overlap.
             batch_idx (bool): If True, keeps batch indexes.
             bgr (float): Probability of returning BGR images instead of RGB.
-
-        Attributes:
-            bbox_format (str): Format for bounding boxes.
-            normalize (bool): Whether bounding boxes are normalized.
-            return_mask (bool): Whether to return instance masks.
-            return_keypoint (bool): Whether to return keypoints.
-            return_obb (bool): Whether to return oriented bounding boxes.
-            mask_ratio (int): Downsample ratio for masks.
-            mask_overlap (bool): Whether masks can overlap.
-            batch_idx (bool): Whether to keep batch indexes.
-            bgr (float): The probability to return BGR images.
         """
         self.bbox_format = bbox_format
         self.normalize = normalize
@@ -2312,10 +2282,10 @@ class RandomLoadText:
         padding_value: list[str] = [""],
     ) -> None:
         """Initialize the RandomLoadText class for randomly sampling positive and negative texts.
-
+        
         This class is designed to randomly sample positive texts and negative texts, and update the class indices
         accordingly to the number of samples. It can be used for text-based object detection tasks.
-
+        
         Args:
             prompt_format (str): Format string for the prompt. The format string should contain a single pair of curly
                 braces {} where the text will be inserted.
@@ -2325,13 +2295,6 @@ class RandomLoadText:
             padding (bool): Whether to pad texts to max_samples. If True, the number of texts will always be equal to
                 max_samples.
             padding_value (str): The padding text to use when padding is True.
-
-        Attributes:
-            prompt_format (str): The format string for the prompt.
-            neg_samples (tuple[int, int]): The range for sampling negative texts.
-            max_samples (int): The maximum number of text samples.
-            padding (bool): Whether padding is enabled.
-            padding_value (str): The value used for padding.
         """
         self.prompt_format = prompt_format
         self.neg_samples = neg_samples
@@ -2658,21 +2621,15 @@ class ClassifyLetterBox:
 
     def __init__(self, size: int | tuple[int, int] = (640, 640), auto: bool = False, stride: int = 32):
         """Initialize the ClassifyLetterBox object for image preprocessing.
-
+        
         This class is designed to be part of a transformation pipeline for image classification tasks. It resizes and
         pads images to a specified size while maintaining the original aspect ratio.
-
+        
         Args:
             size (int | tuple[int, int]): Target size for the letterboxed image. If an int, a square image of (size,
                 size) is created. If a tuple, it should be (height, width).
             auto (bool): If True, automatically calculates the short side based on stride.
             stride (int): The stride value, used when 'auto' is True.
-
-        Attributes:
-            h (int): Target height of the letterboxed image.
-            w (int): Target width of the letterboxed image.
-            auto (bool): Flag indicating whether to automatically calculate short side.
-            stride (int): Stride value for automatic short side calculation.
         """
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size

@@ -23,7 +23,7 @@ class FastSAMValidator(SegmentationValidator):
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
         """Initialize the FastSAMValidator class, setting the task to 'segment' and metrics to SegmentMetrics.
-
+        
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path, optional): Directory to save results.

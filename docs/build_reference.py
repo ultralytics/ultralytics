@@ -900,8 +900,16 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
         )
 
     if item.children:
-        for child in item.children:
+        props = [c for c in item.children if c.kind == "property"]
+        methods = [c for c in item.children if c.kind == "method"]
+        methods.sort(key=lambda m: (not m.name.startswith("__"), m.name))
+
+        ordered_children = props + methods
+        parts.append("<br>\n")
+        for idx, child in enumerate(ordered_children):
             parts.append(render_item(child, module_url, module_path, level + 1))
+            if idx != len(ordered_children) - 1:
+                parts.append("<br>\n")
 
     if item.source and item.kind != "class":
         source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"

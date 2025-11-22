@@ -203,10 +203,10 @@ class MemoryAttention(nn.Module):
         batch_first: bool = True,  # Do layers expect batch first input?
     ):
         """Initialize MemoryAttention with specified layers and normalization for sequential data processing.
-        
+
         This class implements a multi-layer attention mechanism that combines self-attention and cross-attention for
         processing sequential data, particularly useful in transformer-like architectures.
-        
+
         Args:
             d_model (int): The dimension of the model's hidden state.
             pos_enc_at_input (bool): Whether to apply positional encoding at the input.

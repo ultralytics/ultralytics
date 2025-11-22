@@ -145,10 +145,10 @@ class CXBlock(nn.Module):
         use_dwconv: bool = True,
     ):
         """Initialize a ConvNeXt Block for efficient feature extraction in convolutional neural networks.
-        
+
         This block implements a modified version of the ConvNeXt architecture, offering improved performance and
         flexibility in feature extraction.
-        
+
         Args:
             dim (int): Number of input channels.
             kernel_size (int): Size of the convolutional kernel.
@@ -216,9 +216,9 @@ class Fuser(nn.Module):
 
     def __init__(self, layer: nn.Module, num_layers: int, dim: int | None = None, input_projection: bool = False):
         """Initialize the Fuser module for feature fusion through multiple layers.
-        
+
         This module creates a sequence of identical layers and optionally applies an input projection.
-        
+
         Args:
             layer (nn.Module): The layer to be replicated in the fuser.
             num_layers (int): The number of times to replicate the layer.
@@ -279,11 +279,11 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
         skip_first_layer_pe: bool = False,
     ) -> None:
         """Initialize a SAM2TwoWayAttentionBlock for performing self-attention and cross-attention in two directions.
-        
+
         This block extends the TwoWayAttentionBlock and consists of four main components: self-attention on sparse
         inputs, cross-attention from sparse to dense inputs, an MLP block on sparse inputs, and cross-attention from
         dense to sparse inputs.
-        
+
         Args:
             embedding_dim (int): The channel dimension of the embeddings.
             num_heads (int): The number of heads in the attention layers.
@@ -334,10 +334,10 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
         attention_downsample_rate: int = 2,
     ) -> None:
         """Initialize a SAM2TwoWayTransformer instance.
-        
+
         This transformer decoder attends to an input image using queries with supplied positional embeddings. It is
         designed for tasks like object detection, image segmentation, and point cloud processing.
-        
+
         Args:
             depth (int): Number of layers in the transformer.
             embedding_dim (int): Channel dimension for the input embeddings.
@@ -871,11 +871,11 @@ class Block(nn.Module):
         input_size: tuple[int, int] | None = None,
     ) -> None:
         """Initialize a transformer block with optional window attention and relative positional embeddings.
-        
+
         This constructor sets up a transformer block that can use either global or windowed self-attention, followed by
         a feed-forward network. It supports relative positional embeddings and is designed for use in vision transformer
         architectures.
-        
+
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads in the self-attention layer.
@@ -959,10 +959,10 @@ class REAttention(nn.Module):
         input_size: tuple[int, int] | None = None,
     ) -> None:
         """Initialize a Relative Position Attention module for transformer-based architectures.
-        
+
         This module implements multi-head attention with optional relative positional encodings, designed specifically
         for vision tasks in transformer models.
-        
+
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads.
@@ -1035,10 +1035,10 @@ class PatchEmbed(nn.Module):
         embed_dim: int = 768,
     ) -> None:
         """Initialize the PatchEmbed module for converting image patches to embeddings.
-        
+
         This module is typically used as the first layer in vision transformer architectures to transform image data
         into a suitable format for subsequent transformer blocks.
-        
+
         Args:
             kernel_size (tuple[int, int]): Size of the convolutional kernel for patch extraction.
             stride (tuple[int, int]): Stride of the convolutional operation.

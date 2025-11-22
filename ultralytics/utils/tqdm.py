@@ -94,7 +94,7 @@ class TQDM:
         **kwargs,
     ) -> None:
         """Initialize the TQDM progress bar with specified configuration options.
-        
+
         Args:
             iterable (object, optional): Iterable to wrap with progress bar.
             desc (str, optional): Prefix description for the progress bar.

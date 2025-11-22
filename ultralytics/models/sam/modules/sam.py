@@ -61,14 +61,14 @@ class SAMModel(nn.Module):
         pixel_std: list[float] = (58.395, 57.12, 57.375),
     ) -> None:
         """Initialize the SAMModel class to predict object masks from an image and input prompts.
-        
+
         Args:
             image_encoder (ImageEncoderViT): The backbone used to encode the image into image embeddings.
             prompt_encoder (PromptEncoder): Encodes various types of input prompts.
             mask_decoder (MaskDecoder): Predicts masks from the image embeddings and encoded prompts.
             pixel_mean (list[float]): Mean values for normalizing pixels in the input image.
             pixel_std (list[float]): Standard deviation values for normalizing pixels in the input image.
-        
+
         Notes:
             All forward() operations moved to SAMPredictor.
         """
@@ -199,7 +199,7 @@ class SAM2Model(torch.nn.Module):
         compile_image_encoder: bool = False,
     ):
         """Initialize the SAM2Model for video object segmentation with memory-based tracking.
-        
+
         Args:
             image_encoder (nn.Module): Visual encoder for extracting image features.
             memory_attention (nn.Module): Module for attending to memory features.

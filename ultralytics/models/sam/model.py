@@ -49,10 +49,10 @@ class SAM(Model):
 
     def __init__(self, model: str = "sam_b.pt") -> None:
         """Initialize the SAM (Segment Anything Model) instance.
-        
+
         Args:
             model (str): Path to the pre-trained SAM model file. File should have a .pt or .pth extension.
-        
+
         Raises:
             NotImplementedError: If the model file extension is not .pt or .pth.
         """

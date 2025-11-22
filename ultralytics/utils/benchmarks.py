@@ -412,7 +412,7 @@ class ProfileModels:
         device: torch.device | str | None = None,
     ):
         """Initialize the ProfileModels class for profiling models.
-        
+
         Args:
             paths (list[str]): List of paths of the models to be profiled.
             num_timed_runs (int): Number of timed runs for the profiling.
@@ -422,7 +422,7 @@ class ProfileModels:
             half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
-        
+
         Notes:
             FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
         """

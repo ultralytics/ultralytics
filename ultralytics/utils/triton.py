@@ -39,10 +39,10 @@ class TritonRemoteModel:
 
     def __init__(self, url: str, endpoint: str = "", scheme: str = ""):
         """Initialize the TritonRemoteModel for interacting with a remote Triton Inference Server.
-        
+
         Arguments may be provided individually or parsed from a collective 'url' argument of the form
         <scheme>://<netloc>/<endpoint>/<task_name>
-        
+
         Args:
             url (str): The URL of the Triton server.
             endpoint (str, optional): The name of the model on the Triton server.

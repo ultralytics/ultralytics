@@ -45,7 +45,7 @@ class BaseTransform:
 
     def __init__(self) -> None:
         """Initialize the BaseTransform object.
-        
+
         This constructor sets up the base transformation object, which can be extended for specific image processing
         tasks. It is designed to be compatible with both classification and semantic segmentation.
         """
@@ -160,7 +160,7 @@ class Compose:
 
     def __init__(self, transforms):
         """Initialize the Compose object with a list of transforms.
-        
+
         Args:
             transforms (list[Callable]): A list of callable transform objects to be applied sequentially.
         """
@@ -326,9 +326,9 @@ class BaseMixTransform:
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
         """Initialize the BaseMixTransform object for mix transformations like CutMix, MixUp and Mosaic.
-        
+
         This class serves as a base for implementing mix transformations in image processing pipelines.
-        
+
         Args:
             dataset (Any): The dataset object containing images and labels for mixing.
             pre_transform (Callable | None): Optional transform to apply before mixing.
@@ -486,10 +486,10 @@ class Mosaic(BaseMixTransform):
 
     def __init__(self, dataset, imgsz: int = 640, p: float = 1.0, n: int = 4):
         """Initialize the Mosaic augmentation object.
-        
+
         This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image. The
         augmentation is applied to a dataset with a given probability.
-        
+
         Args:
             dataset (Any): The dataset on which the mosaic augmentation is applied.
             imgsz (int): Image size (height and width) after mosaic pipeline of a single image.
@@ -840,10 +840,10 @@ class MixUp(BaseMixTransform):
 
     def __init__(self, dataset, pre_transform=None, p: float = 0.0) -> None:
         """Initialize the MixUp augmentation object.
-        
+
         MixUp is an image augmentation technique that combines two images by taking a weighted sum of their pixel values
         and labels. This implementation is designed for use with the Ultralytics YOLO framework.
-        
+
         Args:
             dataset (Any): The dataset to which MixUp augmentation will be applied.
             pre_transform (Callable | None): Optional transform to apply to images before MixUp.
@@ -1033,10 +1033,10 @@ class RandomPerspective:
         pre_transform=None,
     ):
         """Initialize RandomPerspective object with transformation parameters.
-        
+
         This class implements random perspective and affine transformations on images and corresponding bounding boxes,
         segments, and keypoints. Transformations include rotation, translation, scaling, and shearing.
-        
+
         Args:
             degrees (float): Degree range for random rotations.
             translate (float): Fraction of total width and height for random translation.
@@ -1368,9 +1368,9 @@ class RandomHSV:
 
     def __init__(self, hgain: float = 0.5, sgain: float = 0.5, vgain: float = 0.5) -> None:
         """Initialize the RandomHSV object for random HSV (Hue, Saturation, Value) augmentation.
-        
+
         This class applies random adjustments to the HSV channels of an image within specified limits.
-        
+
         Args:
             hgain (float): Maximum variation for hue. Should be in the range [0, 1].
             sgain (float): Maximum variation for saturation. Should be in the range [0, 1].
@@ -1442,15 +1442,15 @@ class RandomFlip:
 
     def __init__(self, p: float = 0.5, direction: str = "horizontal", flip_idx: list[int] | None = None) -> None:
         """Initialize the RandomFlip class with probability and direction.
-        
+
         This class applies a random horizontal or vertical flip to an image with a given probability. It also updates
         any instances (bounding boxes, keypoints, etc.) accordingly.
-        
+
         Args:
             p (float): The probability of applying the flip. Must be between 0 and 1.
             direction (str): The direction to apply the flip. Must be 'horizontal' or 'vertical'.
             flip_idx (list[int] | None): Index mapping for flipping keypoints, if any.
-        
+
         Raises:
             AssertionError: If direction is not 'horizontal' or 'vertical', or if p is not between 0 and 1.
         """
@@ -1542,10 +1542,10 @@ class LetterBox:
         interpolation: int = cv2.INTER_LINEAR,
     ):
         """Initialize LetterBox object for resizing and padding images.
-        
+
         This class is designed to resize and pad images for object detection, instance segmentation, and pose estimation
         tasks. It supports various resizing modes including auto-sizing, scale-fill, and letterboxing.
-        
+
         Args:
             new_shape (tuple[int, int]): Target size (height, width) for the resized image.
             auto (bool): If True, use minimum rectangle to resize. If False, use new_shape directly.
@@ -1555,7 +1555,7 @@ class LetterBox:
             stride (int): Stride of the model (e.g., 32 for YOLOv5).
             padding_value (int): Value for padding the image. Default is 114.
             interpolation (int): Interpolation method for resizing. Default is cv2.INTER_LINEAR.
-        
+
         Attributes:
             new_shape (tuple[int, int]): Target size for the resized image.
             auto (bool): Flag for using minimum rectangle resizing.
@@ -1808,24 +1808,24 @@ class Albumentations:
 
     def __init__(self, p: float = 1.0, transforms: list | None = None) -> None:
         """Initialize the Albumentations transform object for YOLO bbox formatted parameters.
-        
+
         This class applies various image augmentations using the Albumentations library, including Blur, Median Blur,
         conversion to grayscale, Contrast Limited Adaptive Histogram Equalization, random changes of brightness and
         contrast, RandomGamma, and image quality reduction through compression.
-        
+
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
             transforms (list, optional): List of custom Albumentations transforms. If None, uses default transforms.
-        
+
         Attributes:
             p (float): Probability of applying the augmentations.
             transform (albumentations.Compose): Composed Albumentations transforms.
             contains_spatial (bool): Indicates if the transforms include spatial transformations.
-        
+
         Raises:
             ImportError: If the Albumentations package is not installed.
             Exception: For any other errors during initialization.
-        
+
         Notes:
             - Requires Albumentations version 1.0.3 or higher.
             - Spatial transforms are handled differently to ensure bbox compatibility.
@@ -2016,10 +2016,10 @@ class Format:
         bgr: float = 0.0,
     ):
         """Initialize the Format class with given parameters for image and instance annotation formatting.
-        
+
         This class standardizes image and instance annotations for object detection, instance segmentation, and pose
         estimation tasks, preparing them for use in PyTorch DataLoader's `collate_fn`.
-        
+
         Args:
             bbox_format (str): Format for bounding boxes. Options are 'xywh', 'xyxy', etc.
             normalize (bool): Whether to normalize bounding boxes to [0,1].
@@ -2030,7 +2030,7 @@ class Format:
             mask_overlap (bool): If True, allows mask overlap.
             batch_idx (bool): If True, keeps batch indexes.
             bgr (float): Probability of returning BGR images instead of RGB.
-        
+
         Attributes:
             bbox_format (str): Format for bounding boxes.
             normalize (bool): Whether bounding boxes are normalized.
@@ -2312,10 +2312,10 @@ class RandomLoadText:
         padding_value: list[str] = [""],
     ) -> None:
         """Initialize the RandomLoadText class for randomly sampling positive and negative texts.
-        
+
         This class is designed to randomly sample positive texts and negative texts, and update the class indices
         accordingly to the number of samples. It can be used for text-based object detection tasks.
-        
+
         Args:
             prompt_format (str): Format string for the prompt. The format string should contain a single pair of curly
                 braces {} where the text will be inserted.
@@ -2325,7 +2325,7 @@ class RandomLoadText:
             padding (bool): Whether to pad texts to max_samples. If True, the number of texts will always be equal to
                 max_samples.
             padding_value (str): The padding text to use when padding is True.
-        
+
         Attributes:
             prompt_format (str): The format string for the prompt.
             neg_samples (tuple[int, int]): The range for sampling negative texts.
@@ -2658,16 +2658,16 @@ class ClassifyLetterBox:
 
     def __init__(self, size: int | tuple[int, int] = (640, 640), auto: bool = False, stride: int = 32):
         """Initialize the ClassifyLetterBox object for image preprocessing.
-        
+
         This class is designed to be part of a transformation pipeline for image classification tasks. It resizes and
         pads images to a specified size while maintaining the original aspect ratio.
-        
+
         Args:
             size (int | tuple[int, int]): Target size for the letterboxed image. If an int, a square image of (size,
                 size) is created. If a tuple, it should be (height, width).
             auto (bool): If True, automatically calculates the short side based on stride.
             stride (int): The stride value, used when 'auto' is True.
-        
+
         Attributes:
             h (int): Target height of the letterboxed image.
             w (int): Target width of the letterboxed image.
@@ -2737,14 +2737,14 @@ class CenterCrop:
 
     def __init__(self, size: int | tuple[int, int] = (640, 640)):
         """Initialize the CenterCrop object for image preprocessing.
-        
+
         This class is designed to be part of a transformation pipeline, e.g., T.Compose([CenterCrop(size), ToTensor()]).
         It performs a center crop on input images to a specified size.
-        
+
         Args:
             size (int | tuple[int, int]): The desired output size of the crop. If size is an int, a square crop (size,
                 size) is made. If size is a sequence like (h, w), it is used as the output size.
-        
+
         Returns:
             (None): This method initializes the object and does not return anything.
         """
@@ -2804,11 +2804,11 @@ class ToTensor:
 
     def __init__(self, half: bool = False):
         """Initialize the ToTensor object for converting images to PyTorch tensors.
-        
+
         This class is designed to be used as part of a transformation pipeline for image preprocessing in the
         Ultralytics YOLO framework. It converts numpy arrays or PIL Images to PyTorch tensors, with an option for
         half-precision (float16) conversion.
-        
+
         Args:
             half (bool): If True, converts the tensor to half precision (float16).
         """

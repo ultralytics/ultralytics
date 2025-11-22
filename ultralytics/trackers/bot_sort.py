@@ -57,7 +57,7 @@ class BOTrack(STrack):
         self, xywh: np.ndarray, score: float, cls: int, feat: np.ndarray | None = None, feat_history: int = 50
     ):
         """Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
-        
+
         Args:
             xywh (np.ndarray): Bounding box coordinates in xywh format (center x, center y, width, height).
             score (float): Confidence score of the detection.
@@ -172,7 +172,7 @@ class BOTSORT(BYTETracker):
 
     def __init__(self, args: Any, frame_rate: int = 30):
         """Initialize BOTSORT object with ReID module and GMC algorithm.
-        
+
         Args:
             args (Any): Parsed command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video being processed.

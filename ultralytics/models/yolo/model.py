@@ -52,10 +52,10 @@ class YOLO(Model):
 
     def __init__(self, model: str | Path = "yolo11n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
-        
+
         This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
         YOLOE) based on the model filename.
-        
+
         Args:
             model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolo11n.yaml'.
             task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'. Defaults

@@ -53,10 +53,10 @@ class WorldTrainerFromScratch(WorldTrainer):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize a WorldTrainerFromScratch object.
-        
+
         This initializes a trainer for YOLO-World models from scratch, supporting mixed datasets including both object
         detection and grounding datasets for vision-language capabilities.
-        
+
         Args:
             cfg (dict): Configuration dictionary with default parameters for model training.
             overrides (dict, optional): Dictionary of parameter overrides to customize the configuration.

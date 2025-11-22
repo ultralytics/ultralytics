@@ -81,11 +81,11 @@ class Predictor(BasePredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize the Predictor with configuration, overrides, and callbacks.
-        
+
         Sets up the Predictor object for SAM (Segment Anything Model) and applies any configuration overrides or
         callbacks provided. Initializes task-specific settings for SAM, such as retina_masks being set to True for
         optimal results.
-        
+
         Args:
             cfg (dict): Configuration dictionary containing default settings.
             overrides (dict | None): Dictionary of values to override default configuration.
@@ -905,10 +905,10 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize the predictor with configuration and optional overrides.
-        
+
         This constructor initializes the SAM2VideoPredictor with a given configuration, applies any specified overrides,
         and sets up the inference state along with certain flags that control the behavior of the predictor.
-        
+
         Args:
             cfg (dict): Configuration dictionary containing default settings.
             overrides (dict | None): Dictionary of values to override default configuration.
@@ -1690,10 +1690,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         _callbacks: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the predictor with configuration and optional overrides.
-        
+
         This constructor initializes the SAM2DynamicInteractivePredictor with a given configuration, applies any
         specified overrides
-        
+
         Args:
             cfg (dict[str, Any]): Configuration dictionary containing default settings.
             overrides (dict[str, Any] | None): Dictionary of values to override default configuration.

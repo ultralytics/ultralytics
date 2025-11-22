@@ -47,7 +47,7 @@ class MaskDecoder(nn.Module):
         iou_head_hidden_dim: int = 256,
     ) -> None:
         """Initialize the MaskDecoder module for generating masks and their associated quality scores.
-        
+
         Args:
             transformer_dim (int): Channel dimension for the transformer module.
             transformer (nn.Module): Transformer module used for mask prediction.
@@ -225,10 +225,10 @@ class SAM2MaskDecoder(nn.Module):
         use_multimask_token_for_obj_ptr: bool = False,
     ) -> None:
         """Initialize the SAM2MaskDecoder module for predicting instance segmentation masks.
-        
+
         This decoder extends the functionality of MaskDecoder, incorporating additional features such as high-resolution
         feature processing, dynamic multimask output, and object score prediction.
-        
+
         Args:
             transformer_dim (int): Channel dimension of the transformer.
             transformer (nn.Module): Transformer used to predict masks.

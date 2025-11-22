@@ -64,7 +64,7 @@ class ImageEncoderViT(nn.Module):
         global_attn_indexes: tuple[int, ...] = (),
     ) -> None:
         """Initialize an ImageEncoderViT instance for encoding images using Vision Transformer architecture.
-        
+
         Args:
             img_size (int): Input image size, assumed to be square.
             patch_size (int): Size of image patches.
@@ -185,7 +185,7 @@ class PromptEncoder(nn.Module):
         activation: type[nn.Module] = nn.GELU,
     ) -> None:
         """Initialize the PromptEncoder module for encoding various types of prompts.
-        
+
         Args:
             embed_dim (int): The dimension of the embeddings.
             image_embedding_size (tuple[int, int]): The spatial size of the image embedding as (H, W).
@@ -363,10 +363,10 @@ class MemoryEncoder(nn.Module):
         in_dim=256,  # in_dim of pix_feats
     ):
         """Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
-        
+
         This encoder processes pixel-level features and masks, fusing them to generate encoded memory representations
         suitable for downstream tasks in image segmentation models like SAM (Segment Anything Model).
-        
+
         Args:
             out_dim (int): Output dimension of the encoded features.
             in_dim (int): Input dimension of the pixel features.
@@ -437,10 +437,10 @@ class ImageEncoder(nn.Module):
         scalp: int = 0,
     ):
         """Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement.
-        
+
         This encoder combines a trunk network for feature extraction with a neck network for feature refinement and
         positional encoding generation. It can optionally discard the lowest resolution features.
-        
+
         Args:
             trunk (nn.Module): The trunk network for initial feature extraction.
             neck (nn.Module): The neck network for feature refinement and positional encoding generation.
@@ -507,10 +507,10 @@ class FpnNeck(nn.Module):
         fpn_top_down_levels: list[int] | None = None,
     ):
         """Initialize a modified Feature Pyramid Network (FPN) neck.
-        
+
         This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to
         ViT positional embedding interpolation.
-        
+
         Args:
             d_model (int): Dimension of the model.
             backbone_channel_list (list[int]): List of channel dimensions from the backbone.
@@ -664,11 +664,11 @@ class Hiera(nn.Module):
         return_interm_layers=True,  # return feats from every stage
     ):
         """Initialize a Hiera model, a hierarchical vision transformer for efficient multiscale feature extraction.
-        
+
         Hiera is a hierarchical vision transformer architecture designed for efficient multiscale feature extraction in
         image processing tasks. It uses a series of transformer blocks organized into stages, with optional pooling and
         global attention mechanisms.
-        
+
         Args:
             embed_dim (int): Initial embedding dimension for the model.
             num_heads (int): Initial number of attention heads.

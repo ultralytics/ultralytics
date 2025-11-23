@@ -66,13 +66,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (headerElement && searchContainer) {
     const searchBar = document.createElement("div");
     searchBar.className = "ult-header-search";
+    const hotkey = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl+K";
     searchBar.innerHTML = `
-      <button class="ult-search-button" title="Search documentation (⌘K)" aria-label="Search documentation">
+      <button class="ult-search-button" title="Search documentation (${hotkey})" aria-label="Search documentation">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.35-4.35"></path>
         </svg>
         <span>Search</span>
+        <span class="ult-search-hotkey" aria-hidden="true">${hotkey}</span>
       </button>
     `;
     headerElement.insertBefore(searchBar, searchContainer);

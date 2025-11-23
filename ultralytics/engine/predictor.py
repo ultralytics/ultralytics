@@ -424,7 +424,8 @@ class BasePredictor:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # 0 if frame undetermined
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
+        rel = p.relative_to(self.dataset.root)
+        self.txt_path = (self.save_dir / "labels" / rel).with_suffix(".txt" if self.dataset.mode == "image" else f"_{frame}.txt")
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
@@ -442,7 +443,7 @@ class BasePredictor:
 
         # Save results
         if self.args.save_txt:
-            result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
+            result.save_txt(self.txt_path, save_conf=self.args.save_conf)
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
         if self.args.show:

@@ -43,7 +43,6 @@ from typing import Any
 
 import cv2
 import numpy as np
-from sympy import root
 import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
@@ -433,8 +432,8 @@ class BasePredictor:
             else:
                 rel = p.name
         except ValueError:
-            rel = p.name  
-              
+            rel = p.name
+
         rel = Path(rel)
 
         if frame is None:

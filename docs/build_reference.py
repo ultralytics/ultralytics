@@ -144,9 +144,7 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
     header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
     title_content = (
         f"# Reference for `{module_path_fs}.py`\n\n"
-        f"!!! note\n\n"
-        f"    This file is available at [{pretty}]({url}). If you spot a problem please help fix it by [contributing]"
-        f"(https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏!\n\n"
+        + contribution_admonition(pretty, url, edit, kind="success", title="Improvements")
     )
 
     md_content = ["<br>\n\n"]
@@ -157,7 +155,8 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
 
     md_filepath.parent.mkdir(parents=True, exist_ok=True)
     md_filepath.write_text(header_content + title_content + "".join(md_content) + "\n")
-    return md_filepath.relative_to(PACKAGE_DIR.parent)
+
+    return _relative_to_workspace(md_filepath)
 
 
 def _get_source(src: str, node: ast.AST) -> str:
@@ -697,6 +696,22 @@ def _merge_params(doc_params: list[ParameterDoc], signature_params: list[Paramet
 
 DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "yields", "raises"]
 SUMMARY_BADGE_MAP = {"Classes": "class", "Properties": "property", "Methods": "method", "Functions": "function"}
+def contribution_admonition(pretty: str, url: str, edit: str, *, kind: str = "note", title: str | None = None) -> str:
+    """Return a standardized contribution call-to-action admonition."""
+    label = f' "{title}"' if title else ""
+    body = (
+        f"This page is sourced from [{pretty}]({url}). Have an improvement or example to add? "
+        f"Open a [Pull Request]({edit}) — thank you! 🙏"
+    )
+    return f"!!! {kind}{label}\n\n    {body}\n\n"
+
+
+def _relative_to_workspace(path: Path) -> Path:
+    """Return path relative to workspace root when possible."""
+    try:
+        return path.relative_to(PACKAGE_DIR.parent)
+    except ValueError:
+        return path
 
 
 def render_source_panel(item: DocItem, module_url: str, module_path: str) -> str:
@@ -970,10 +985,7 @@ def create_markdown(module: DocumentedModule) -> Path:
 
     title_content = (
         f"# Reference for `{module_path_fs}.py`\n\n"
-        f'!!! question "Ideas to Improve?"\n\n'
-        f"    This file lives at [{pretty}]({url}). Have an enhancement idea or want to add an example? Please share by "
-        f"[contributing](https://docs.ultralytics.com/help/contributing/) a "
-        f"[Pull Request]({edit}) 🛠️. Thank you 🙏"
+        + contribution_admonition(pretty, url, edit, kind="success", title="Improvements")
     )
 
     md_filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -982,10 +994,7 @@ def create_markdown(module: DocumentedModule) -> Path:
     if not exists:
         subprocess.run(["git", "add", "-f", str(md_filepath)], check=True, cwd=PACKAGE_DIR)
 
-    try:
-        return md_filepath.relative_to(PACKAGE_DIR.parent)
-    except ValueError:
-        return md_filepath
+    return _relative_to_workspace(md_filepath)
 
 
 def nested_dict():
@@ -1114,10 +1123,10 @@ def build_reference_placeholders(update_nav: bool = True) -> list[str]:
         module_path = (
             f"{PACKAGE_DIR.name}.{py_filepath.relative_to(PACKAGE_DIR).with_suffix('').as_posix().replace('/', '.')}"
         )
-        existed = (REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")).exists()
+        exists = (REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")).exists()
         md_rel = create_placeholder_markdown(py_filepath, module_path, classes, functions)
         nav_items.append(str(md_rel))
-        if not existed:
+        if not exists:
             created += 1
     if update_nav:
         update_mkdocs_file(create_nav_menu_yaml(nav_items))

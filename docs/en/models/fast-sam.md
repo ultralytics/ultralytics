@@ -220,7 +220,7 @@ To perform object tracking on an image, use the `track` method as shown below:
 
 ## FastSAM official Usage
 
-FastSAM is also available directly from the [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-IVA-Lab/FastSAM) repository. Here is a brief overview of the typical steps you might take to use FastSAM:
+FastSAM is also available directly from the [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-LMC-Lab/FastSAM) repository. Here is a brief overview of the typical steps you might take to use FastSAM:
 
 ### Installation
 
@@ -298,7 +298,7 @@ We would like to acknowledge the FastSAM authors for their significant contribut
       }
       ```
 
-The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-LMC-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 
 ## FAQ
 

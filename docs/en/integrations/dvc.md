@@ -16,7 +16,7 @@ Integrating DVCLive with [Ultralytics YOLO11](https://www.ultralytics.com/) tran
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/dvclive-overview.avif" alt="DVCLive Overview">
 </p>
 
-[DVCLive](https://dvc.org/doc/dvclive), developed by DVC, is an innovative open-source tool for experiment tracking in machine learning. Integrating seamlessly with Git and DVC, it automates the logging of crucial experiment data like model parameters and training metrics. Designed for simplicity, DVCLive enables effortless comparison and analysis of multiple runs, enhancing the efficiency of machine learning projects with intuitive [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis tools.
+[DVCLive](https://doc.dvc.org/dvclive), developed by DVC, is an innovative open-source tool for experiment tracking in machine learning. Integrating seamlessly with Git and DVC, it automates the logging of crucial experiment data like model parameters and training metrics. Designed for simplicity, DVCLive enables effortless comparison and analysis of multiple runs, enhancing the efficiency of machine learning projects with intuitive [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis tools.
 
 ## YOLO11 Training with DVCLive
 
@@ -166,7 +166,7 @@ Based on your analysis, iterate on your experiments. Adjust model configurations
 
 This guide has led you through the process of integrating DVCLive with Ultralytics' YOLO11. You have learned how to harness the power of DVCLive for detailed experiment monitoring, effective visualization, and insightful analysis in your machine learning endeavors.
 
-For further details on usage, visit [DVCLive's official documentation](https://dvc.org/doc/dvclive/ml-frameworks/yolo).
+For further details on usage, visit [DVCLive's official documentation](https://doc.dvc.org/dvclive/ml-frameworks/yolo).
 
 Additionally, explore more integrations and capabilities of Ultralytics by visiting the [Ultralytics integration guide page](../integrations/index.md), which is a collection of great resources and insights.
 

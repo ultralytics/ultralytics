@@ -13,7 +13,7 @@ https://github.com/user-attachments/assets/723e919e-555b-4cca-8e60-18e711d4f3b2
 - [Live terminal output](https://docs.ultralytics.com/guides/view-results-in-terminal/): object ID, label, [confidence](https://www.ultralytics.com/glossary/confidence), and center coordinates
 - Adjustable object tracking algorithms ([ByteTrack](https://docs.ultralytics.com/reference/trackers/byte_tracker/), [BoT-SORT](https://docs.ultralytics.com/reference/trackers/bot_sort/))
 - Supports:
-  - [PyTorch](https://pytorch.org/) `.pt` models (for GPU devices like [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) or [CUDA](https://developer.nvidia.com/cuda-zone)-enabled desktops)
+  - [PyTorch](https://pytorch.org/) `.pt` models (for GPU devices like [NVIDIA Jetson](https://docs.ultralytics.com/guides/nvidia-jetson/) or [CUDA](https://developer.nvidia.com/cuda)-enabled desktops)
   - [NCNN](https://docs.ultralytics.com/integrations/ncnn/) `.param + .bin` models (for CPU-only devices like [Raspberry Pi](https://www.raspberrypi.org/) or ARM boards)
 
 ## 🏗️ Project Structure

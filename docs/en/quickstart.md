@@ -174,6 +174,7 @@ While the standard installation methods cover most use cases, you might need a m
             ```
 
         !!! warning "Dependency Management"
+
             This method gives full control but requires careful management of dependencies. Ensure all required packages are installed with compatible versions by referencing the `ultralytics` `pyproject.toml` file.
 
     === "Method 2: Install from a Custom Fork"

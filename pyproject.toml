@@ -83,10 +83,8 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage[toml]",
-    "mkdocs>=1.6.0",
-    "mkdocs-material>=9.5.9",
-    "mkdocstrings[python]",
-    "mkdocs-ultralytics-plugin>=0.2.2", # for meta descriptions and images, dates and authors
+    "zensical>=0.0.9",
+    "mkdocs-ultralytics-plugin>=0.2.3", # for meta descriptions and images, dates and authors
     "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
 ]
 export = [

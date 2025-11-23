@@ -5,12 +5,12 @@ keywords: Ultralytics, GCP, Google Cloud Platform, regions, latency testing, clo
 
 # Reference for `ultralytics/hub/google/__init__.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/google/\_\_init\_\_.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/google/__init__.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/hub/google/__init__.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/google/\_\_init\_\_.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/google/__init__.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 
-## ::: ultralytics.hub.google.GCPRegions
+## ::: ultralytics.hub.google.__init__.GCPRegions
 
 <br><br>

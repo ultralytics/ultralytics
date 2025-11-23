@@ -86,7 +86,6 @@ jobs:
           .
       - name: Build Docs and Check for Warnings
         run: |
-          export JUPYTER_PLATFORM_DIRS=1
           python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true

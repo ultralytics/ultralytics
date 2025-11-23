@@ -145,11 +145,11 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
     module_path_dots = module_path
     module_path_fs = module_path.replace(".", "/")
     url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path_fs}.py"
-    edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path_fs}.py"
     pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")
 
-    title_content = f"# Reference for `{module_path_fs}.py`\n\n" + contribution_admonition(
-        pretty, url, edit, kind="success", title="Improvements"
+    title_content = (
+        f"# Reference for `{module_path_fs}.py`\n\n"
+        + contribution_admonition(pretty, url, kind="success", title="Improvements")
     )
 
     md_content = ["<br>\n\n"]
@@ -701,14 +701,12 @@ def _merge_params(doc_params: list[ParameterDoc], signature_params: list[Paramet
 
 DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "yields", "raises"]
 SUMMARY_BADGE_MAP = {"Classes": "class", "Properties": "property", "Methods": "method", "Functions": "function"}
-
-
-def contribution_admonition(pretty: str, url: str, edit: str, *, kind: str = "note", title: str | None = None) -> str:
+def contribution_admonition(pretty: str, url: str, *, kind: str = "note", title: str | None = None) -> str:
     """Return a standardized contribution call-to-action admonition."""
     label = f' "{title}"' if title else ""
     body = (
         f"This page is sourced from [{pretty}]({url}). Have an improvement or example to add? "
-        f"Open a [Pull Request]({edit}) — thank you! 🙏"
+        f"Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏"
     )
     return f"!!! {kind}{label}\n\n    {body}\n\n"
 
@@ -987,11 +985,11 @@ def create_markdown(module: DocumentedModule) -> Path:
 
     module_path_fs = module.module_path.replace(".", "/")
     url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path_fs}.py"
-    edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path_fs}.py"
     pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")  # Properly display __init__.py filenames
 
-    title_content = f"# Reference for `{module_path_fs}.py`\n\n" + contribution_admonition(
-        pretty, url, edit, kind="success", title="Improvements"
+    title_content = (
+        f"# Reference for `{module_path_fs}.py`\n\n"
+        + contribution_admonition(pretty, url, kind="success", title="Improvements")
     )
 
     md_filepath.parent.mkdir(parents=True, exist_ok=True)

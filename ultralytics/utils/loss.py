@@ -791,7 +791,7 @@ class E2ELoss:
         self.o2m_copy = self.o2m
         if self.one2one.hyp.o2m == 1.0:
             self.o2o = 1.0
-            self.o2m = 0.5
+            self.o2m = 1.0
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""

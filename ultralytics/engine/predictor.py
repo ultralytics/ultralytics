@@ -424,7 +424,11 @@ class BasePredictor:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # 0 if frame undetermined
 
-        rel = p.relative_to(self.dataset.root)
+        if getattr(self.dataset, "root", None):
+            rel = p.relative_to(self.dataset.root)
+        else:
+            rel = p.name  # or p, but p.name is better for non-filesystem inputs
+
         self.txt_path = (self.save_dir / "labels" / rel).with_suffix(
             ".txt" if self.dataset.mode == "image" else f"_{frame}.txt"
         )

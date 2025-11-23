@@ -95,11 +95,9 @@ You can adjust these labels to match the specific actions you want to recognize 
 Additionally, you can choose between different video classification models:
 
 1. For Hugging Face models, you can use any compatible video classification model. The default is set to:
-
    - "microsoft/xclip-base-patch32"
 
 2. For TorchVision models (no support for zero-shot labels), you can select from the following options:
-
    - "s3d"
    - "r3d_18"
    - "swin3d_t"

@@ -48,7 +48,7 @@ We regret any inconvenience this may cause and will strive to update this docume
 
 YOLOv4 is a powerful and efficient object detection model that strikes a balance between speed and accuracy. Its use of unique features and bag of freebies techniques during training allows it to perform excellently in real-time object detection tasks. YOLOv4 can be trained and used by anyone with a conventional GPU, making it accessible and practical for a wide range of applications.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We would like to acknowledge the YOLOv4 authors for their significant contributions in the field of real-time object detection:
 

@@ -95,7 +95,7 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
 
 ## Use NCNN on Raspberry Pi
 
-Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture). Therefor our recommendation is to use NCNN with Raspberry Pi.
+Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture). Therefore our recommendation is to use NCNN with Raspberry Pi.
 
 ## Convert Model to NCNN and Run Inference
 
@@ -125,7 +125,7 @@ The YOLO11n model in PyTorch format is converted to NCNN to run inference with t
 
         ```bash
         # Export a YOLO11n PyTorch model to NCNN format
-        yolo export model=yolo11n.pt format=ncnn  # creates 'yolo11n_ncnn_model'
+        yolo export model=yolo11n.pt format=ncnn # creates 'yolo11n_ncnn_model'
 
         # Run inference with the exported model
         yolo predict model='yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
@@ -339,7 +339,7 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
 Congratulations on successfully setting up YOLO on your Raspberry Pi! For further learning and support, visit [Ultralytics YOLO11 Docs](../index.md) and [Kashmir World Foundation](https://www.kashmirworldfoundation.org/).
 
-## Acknowledgements and Citations
+## Acknowledgments and Citations
 
 This guide was initially created by Daan Eeltink for Kashmir World Foundation, an organization dedicated to the use of YOLO for the conservation of endangered species. We acknowledge their pioneering work and educational focus in the realm of object detection technologies.
 
@@ -400,7 +400,7 @@ You can convert a PyTorch YOLO11 model to NCNN format using either Python or CLI
 
         ```bash
         # Export a YOLO11n PyTorch model to NCNN format
-        yolo export model=yolo11n.pt format=ncnn  # creates 'yolo11n_ncnn_model'
+        yolo export model=yolo11n.pt format=ncnn # creates 'yolo11n_ncnn_model'
 
         # Run inference with the exported model
         yolo predict model='yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'

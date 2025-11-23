@@ -35,8 +35,7 @@ class SAHIInference:
         save_img=False,
         exist_ok=False,
     ):
-        """
-        Run object detection on a video using YOLO11 and SAHI.
+        """Run object detection on a video using YOLO11 and SAHI.
 
         Args:
             weights (str): Model weights path.

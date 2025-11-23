@@ -11,9 +11,9 @@ keywords: YOLOv5, multiple GPUs, machine learning, deep learning, PyTorch, data 
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone
+git clone https://github.com/ultralytics/yolov5 # clone
 cd yolov5
-pip install -r requirements.txt  # install
+pip install -r requirements.txt # install
 ```
 
 💡 ProTip! **Docker Image** is recommended for all Multi-GPU trainings. See [Docker Quickstart Guide](../environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
@@ -29,7 +29,7 @@ Select a pretrained model to start training from. Here we select [YOLOv5s](https
 ### Single GPU
 
 ```bash
-python train.py  --batch 64 --data coco.yaml --weights yolov5s.pt --device 0
+python train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0
 ```
 
 ### Multi-GPU [DataParallel](https://pytorch.org/docs/stable/nn.html#torch.nn.DataParallel) Mode (⚠️ not recommended)
@@ -37,7 +37,7 @@ python train.py  --batch 64 --data coco.yaml --weights yolov5s.pt --device 0
 You can increase the `device` to use Multiple GPUs in DataParallel mode.
 
 ```bash
-python train.py  --batch 64 --data coco.yaml --weights yolov5s.pt --device 0,1
+python train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0,1
 ```
 
 This method is slow and barely speeds up training compared to using just 1 GPU.

@@ -17,10 +17,9 @@ from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_fi
 
 
 class DetectionTrainer(BaseTrainer):
-    """
-    A class extending the BaseTrainer class for training based on a detection model.
+    """A class extending the BaseTrainer class for training based on a detection model.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.models.yolo.detect import DetectionTrainer
 
@@ -31,8 +30,7 @@ class DetectionTrainer(BaseTrainer):
     """
 
     def build_dataset(self, img_path, mode="train", batch=None):
-        """
-        Build YOLO Dataset.
+        """Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -74,7 +72,7 @@ class DetectionTrainer(BaseTrainer):
         return batch
 
     def set_model_attributes(self):
-        """Nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)."""
+        """Nl = de_parallel(self.model).model[-1].nl # number of detection layers (to scale hyps)."""
         # self.args.box *= 3 / nl  # scale to layers
         # self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
         # self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
@@ -98,8 +96,7 @@ class DetectionTrainer(BaseTrainer):
         )
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """
-        Returns a loss dict with labelled training loss items tensor.
+        """Returns a loss dict with labeled training loss items tensor.
 
         Not needed for classification but necessary for segmentation & detection
         """

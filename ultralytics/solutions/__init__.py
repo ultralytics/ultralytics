@@ -15,16 +15,16 @@ from .trackzone import TrackZone
 
 __all__ = (
     "AIGym",
+    "Analytics",
     "DistanceCalculation",
     "Heatmap",
+    "Inference",
     "ObjectCounter",
     "ParkingManagement",
     "ParkingPtsSelection",
     "QueueManager",
-    "SpeedEstimator",
-    "Analytics",
-    "Inference",
     "RegionCounter",
-    "TrackZone",
     "SecurityAlarm",
+    "SpeedEstimator",
+    "TrackZone",
 )

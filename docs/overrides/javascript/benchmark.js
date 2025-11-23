@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 // YOLO models chart ---------------------------------------------------------------------------------------------------
 const data = {
   YOLO11: {
@@ -104,14 +106,11 @@ function updateChart() {
   };
 
   // Get the selected algorithms from the checkboxes.
-  const selectedAlgorithms = [
-    ...document.querySelectorAll('input[name="algorithm"]:checked'),
-  ].map((e) => e.value);
+  const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map((e) => e.value);
 
   // Create the datasets for the selected algorithms.
   const datasets = selectedAlgorithms.map((algorithm, i) => {
-    const baseColor =
-      colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
+    const baseColor = colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
     const lineColor = i === 0 ? baseColor : lightenHexColor(baseColor, 0.6); // Lighten non-primary lines.
 
     return {
@@ -187,9 +186,7 @@ document$.subscribe(function () {
     if (typeof Chart !== "undefined") {
       document
         .querySelectorAll('input[name="algorithm"]')
-        .forEach((checkbox) =>
-          checkbox.addEventListener("change", updateChart),
-        );
+        .forEach((checkbox) => checkbox.addEventListener("change", updateChart));
       updateChart();
     } else {
       setTimeout(initializeApp, 100); // Retry every 100ms

@@ -31,11 +31,10 @@ from ultralytics.utils.plotting import plot_tune_results
 
 
 class Tuner:
-    """
-    Class responsible for hyperparameter tuning of YOLO models.
+    """Class responsible for hyperparameter tuning of YOLO models.
 
-    The class evolves YOLO model hyperparameters over a given number of iterations
-    by mutating them according to the search space and retraining the model to evaluate their performance.
+    The class evolves YOLO model hyperparameters over a given number of iterations by mutating them according to the
+    search space and retraining the model to evaluate their performance.
 
     Attributes:
         space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
@@ -43,13 +42,10 @@ class Tuner:
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
 
     Methods:
-        _mutate(hyp: dict) -> dict:
-            Mutates the given hyperparameters within the bounds specified in `self.space`.
+        _mutate(hyp: dict) -> dict: Mutates the given hyperparameters within the bounds specified in `self.space`.
+        __call__(): Executes the hyperparameter evolution across multiple iterations.
 
-        __call__():
-            Executes the hyperparameter evolution across multiple iterations.
-
-    Example:
+    Examples:
         Tune hyperparameters for YOLOv8n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
         ```python
         from ultralytics import YOLO
@@ -68,8 +64,7 @@ class Tuner:
     """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks=None):
-        """
-        Initialize the Tuner with configurations.
+        """Initialize the Tuner with configurations.
 
         Args:
             args (dict, optional): Configuration for hyperparameter evolution.
@@ -113,8 +108,7 @@ class Tuner:
         )
 
     def _mutate(self, parent="single", n=5, mutation=0.8, sigma=0.2):
-        """
-        Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
+        """Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
             parent (str): Parent selection method: 'single' or 'weighted'.
@@ -159,8 +153,7 @@ class Tuner:
         return hyp
 
     def __call__(self, model=None, iterations=10, cleanup=True):
-        """
-        Executes the hyperparameter evolution process when the Tuner instance is called.
+        """Executes the hyperparameter evolution process when the Tuner instance is called.
 
         This method iterates through the number of iterations, performing the following steps in each iteration:
         1. Load the existing hyperparameters or initialize new ones.
@@ -169,11 +162,11 @@ class Tuner:
         4. Log the fitness score and mutated hyperparameters to a CSV file.
 
         Args:
-           model (Model): A pre-initialized YOLO model to be used for training.
-           iterations (int): The number of generations to run the evolution for.
-           cleanup (bool): Whether to delete iteration weights to reduce storage space used during tuning.
+            model (Model): A pre-initialized YOLO model to be used for training.
+            iterations (int): The number of generations to run the evolution for.
+            cleanup (bool): Whether to delete iteration weights to reduce storage space used during tuning.
 
-        Note:
+        Notes:
            The method utilizes the `self.tune_csv` Path object to read and log hyperparameters and fitness scores.
            Ensure this path is set correctly in the Tuner instance.
         """
@@ -203,7 +196,7 @@ class Tuner:
             # Save results and mutated_hyp to CSV
             fitness = metrics.get("fitness", 0.0)
             log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]
-            headers = "" if self.tune_csv.exists() else (",".join(["fitness"] + list(self.space.keys())) + "\n")
+            headers = "" if self.tune_csv.exists() else (",".join(["fitness", *list(self.space.keys())]) + "\n")
             with open(self.tune_csv, "a") as f:
                 f.write(headers + ",".join(map(str, log_row)) + "\n")
 

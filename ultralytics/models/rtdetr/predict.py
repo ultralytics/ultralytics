@@ -9,14 +9,17 @@ from ultralytics.utils import ops
 
 
 class RTDETRPredictor(BasePredictor):
-    """
-    RT-DETR (Real-Time Detection Transformer) Predictor extending the BasePredictor class for making predictions using
-    Baidu's RT-DETR model.
+    """RT-DETR (Real-Time Detection Transformer) Predictor extending the BasePredictor class for making predictions
+    using Baidu's RT-DETR model.
 
-    This class leverages the power of Vision Transformers to provide real-time object detection while maintaining
-    high accuracy. It supports key features like efficient hybrid encoding and IoU-aware query selection.
+    This class leverages the power of Vision Transformers to provide real-time object detection while maintaining high
+    accuracy. It supports key features like efficient hybrid encoding and IoU-aware query selection.
 
-    Example:
+    Attributes:
+        imgsz (int): Image size for inference (must be square and scale-filled).
+        args (dict): Argument overrides for the predictor.
+
+    Examples:
         ```python
         from ultralytics.utils import ASSETS
         from ultralytics.models.rtdetr import RTDETRPredictor
@@ -25,15 +28,10 @@ class RTDETRPredictor(BasePredictor):
         predictor = RTDETRPredictor(overrides=args)
         predictor.predict_cli()
         ```
-
-    Attributes:
-        imgsz (int): Image size for inference (must be square and scale-filled).
-        args (dict): Argument overrides for the predictor.
     """
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
+        """Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
 
         The method filters detections based on confidence and class if specified in `self.args`.
 
@@ -70,9 +68,9 @@ class RTDETRPredictor(BasePredictor):
         return results
 
     def pre_transform(self, im):
-        """
-        Pre-transforms the input images before feeding them into the model for inference. The input images are
-        letterboxed to ensure a square aspect ratio and scale-filled. The size must be square(640) and scaleFilled.
+        """Pre-transforms the input images before feeding them into the model for inference. The input images are
+        letterboxed to ensure a square aspect ratio and scale-filled. The size must be square(640)
+        and scaleFilled.
 
         Args:
             im (list[np.ndarray] |torch.Tensor): Input images of shape (N,3,h,w) for tensor, [(h,w,3) x N] for list.

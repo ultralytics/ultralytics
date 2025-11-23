@@ -13,10 +13,9 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class PoseValidator(DetectionValidator):
-    """
-    A class extending the DetectionValidator class for validation based on a pose model.
+    """A class extending the DetectionValidator class for validation based on a pose model.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.models.yolo.pose import PoseValidator
 
@@ -157,14 +156,14 @@ class PoseValidator(DetectionValidator):
                 )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_kpts=None, gt_kpts=None):
-        """
-        Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground truth.
+        """Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground
+        truth.
 
         Args:
             detections (torch.Tensor): Tensor with shape (N, 6) representing detection boxes and scores, where each
                 detection is of the format (x1, y1, x2, y2, conf, class).
-            gt_bboxes (torch.Tensor): Tensor with shape (M, 4) representing ground truth bounding boxes, where each
-                box is of the format (x1, y1, x2, y2).
+            gt_bboxes (torch.Tensor): Tensor with shape (M, 4) representing ground truth bounding boxes, where each box
+                is of the format (x1, y1, x2, y2).
             gt_cls (torch.Tensor): Tensor with shape (M,) representing ground truth class indices.
             pred_kpts (torch.Tensor | None): Optional tensor with shape (N, 51) representing predicted keypoints, where
                 51 corresponds to 17 keypoints each having 3 values.
@@ -174,7 +173,7 @@ class PoseValidator(DetectionValidator):
             torch.Tensor: A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
                 where N is the number of detections.
 
-        Example:
+        Examples:
             ```python
             detections = torch.rand(100, 6)  # 100 predictions: (x1, y1, x2, y2, conf, class)
             gt_bboxes = torch.rand(50, 4)  # 50 ground truth boxes: (x1, y1, x2, y2)
@@ -184,7 +183,7 @@ class PoseValidator(DetectionValidator):
             correct_preds = _process_batch(detections, gt_bboxes, gt_cls, pred_kpts, gt_kpts)
             ```
 
-        Note:
+        Notes:
             `0.53` scale factor used in area computation is referenced from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384.
         """
         if pred_kpts is not None and gt_kpts is not None:
@@ -260,8 +259,8 @@ class PoseValidator(DetectionValidator):
             LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements("pycocotools>=2.0.6")
-                from pycocotools.coco import COCO  # noqa
-                from pycocotools.cocoeval import COCOeval  # noqa
+                from pycocotools.coco import COCO
+                from pycocotools.cocoeval import COCOeval
 
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"

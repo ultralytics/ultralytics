@@ -1,9 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 import math
 import warnings
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable
 
 import cv2
 import matplotlib.pyplot as plt
@@ -18,18 +19,18 @@ from ultralytics.utils.files import increment_path
 
 
 class Colors:
-    """
-    Ultralytics color palette https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Colors.
+    """Ultralytics color palette
+    https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Colors.
 
-    This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
-    RGB values.
+    This class provides methods to work with the Ultralytics color palette, including converting hex color codes to RGB
+    values.
 
     Attributes:
         palette (list of tuple): List of RGB color values.
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array with dtype np.uint8.
 
-    ## Ultralytics Color Palette
+            ## Ultralytics Color Palette
 
     | Index | Color                                                             | HEX       | RGB               |
     |-------|-------------------------------------------------------------------|-----------|-------------------|
@@ -54,7 +55,7 @@ class Colors:
     | 18    | <i class="fa-solid fa-square fa-2xl" style="color: #fc6d2f;"></i> | `#fc6d2f` | (252, 109, 47)    |
     | 19    | <i class="fa-solid fa-square fa-2xl" style="color: #a2ff0b;"></i> | `#a2ff0b` | (162, 255, 11)    |
 
-    ## Pose Color Palette
+        ## Pose Color Palette
 
     | Index | Color                                                             | HEX       | RGB               |
     |-------|-------------------------------------------------------------------|-----------|-------------------|
@@ -79,8 +80,7 @@ class Colors:
     | 18    | <i class="fa-solid fa-square fa-2xl" style="color: #ff0000;"></i> | `#ff0000` | (255, 0, 0)       |
     | 19    | <i class="fa-solid fa-square fa-2xl" style="color: #ffffff;"></i> | `#ffffff` | (255, 255, 255)   |
 
-    !!! note "Ultralytics Brand Colors"
-
+        !!! note "Ultralytics Brand Colors"
         For Ultralytics brand colors see [https://www.ultralytics.com/brand](https://www.ultralytics.com/brand). Please use the official Ultralytics colors for all marketing materials.
     """
 
@@ -151,8 +151,7 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 class Annotator:
-    """
-    Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
+    """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
     Attributes:
         im (Image.Image or numpy array): The image to annotate.
@@ -238,8 +237,7 @@ class Annotator:
         }
 
     def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
-        """
-        Assign text color based on background color.
+        """Assign text color based on background color.
 
         Args:
             color (tuple, optional): The background color of the rectangle for text (B, G, R).
@@ -256,8 +254,7 @@ class Annotator:
             return txt_color
 
     def circle_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=2):
-        """
-        Draws a label with a background circle centered within a given bounding box.
+        """Draws a label with a background circle centered within a given bounding box.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
@@ -297,8 +294,7 @@ class Annotator:
         )
 
     def text_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), margin=5):
-        """
-        Draws a label with a background rectangle centered within a given bounding box.
+        """Draws a label with a background rectangle centered within a given bounding box.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
@@ -334,8 +330,7 @@ class Annotator:
         )
 
     def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
-        """
-        Draws a bounding box to image with label.
+        """Draws a bounding box to image with label.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
@@ -392,8 +387,7 @@ class Annotator:
                 )
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
-        """
-        Plot masks on image.
+        """Plot masks on image.
 
         Args:
             masks (tensor): Predicted masks on cuda, shape: [n, h, w]
@@ -428,8 +422,7 @@ class Annotator:
             self.fromarray(self.im)
 
     def kpts(self, kpts, shape=(640, 640), radius=None, kpt_line=True, conf_thres=0.25, kpt_color=None):
-        """
-        Plot keypoints on the image.
+        """Plot keypoints on the image.
 
         Args:
             kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
@@ -439,7 +432,7 @@ class Annotator:
             conf_thres (float, optional): Confidence threshold. Defaults to 0.25.
             kpt_color (tuple, optional): Keypoint color (B, G, R). Defaults to None.
 
-        Note:
+        Notes:
             - `kpt_line=True` currently only supports human pose plotting.
             - Modifies self.im in-place.
             - If self.pil is True, converts image to numpy array and back to PIL.
@@ -547,8 +540,7 @@ class Annotator:
 
     @staticmethod
     def get_bbox_dimension(bbox=None):
-        """
-        Calculate the area of a bounding box.
+        """Calculate the area of a bounding box.
 
         Args:
             bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
@@ -564,8 +556,7 @@ class Annotator:
         return width, height, width * height
 
     def draw_region(self, reg_pts=None, color=(0, 255, 0), thickness=5):
-        """
-        Draw region line.
+        """Draw region line.
 
         Args:
             reg_pts (list): Region Points (for line 2 points, for region 4 points)
@@ -579,8 +570,7 @@ class Annotator:
             cv2.circle(self.im, (point[0], point[1]), thickness * 2, color, -1)  # -1 fills the circle
 
     def draw_centroid_and_tracks(self, track, color=(255, 0, 255), track_thickness=2):
-        """
-        Draw centroid point and track trails.
+        """Draw centroid point and track trails.
 
         Args:
             track (list): object tracking points for trails display
@@ -592,8 +582,7 @@ class Annotator:
         cv2.circle(self.im, (int(track[-1][0]), int(track[-1][1])), track_thickness * 2, color, -1)
 
     def queue_counts_display(self, label, points=None, region_color=(255, 255, 255), txt_color=(0, 0, 0)):
-        """
-        Displays queue counts on an image centered at the points with customizable font size and colors.
+        """Displays queue counts on an image centered at the points with customizable font size and colors.
 
         Args:
             label (str): Queue counts label.
@@ -632,8 +621,7 @@ class Annotator:
         )
 
     def display_objects_labels(self, im0, text, txt_color, bg_color, x_center, y_center, margin):
-        """
-        Display the bounding boxes labels in parking management app.
+        """Display the bounding boxes labels in parking management app.
 
         Args:
             im0 (ndarray): Inference image.
@@ -656,8 +644,7 @@ class Annotator:
         cv2.putText(im0, text, (text_x, text_y), 0, self.sf, txt_color, self.tf, lineType=cv2.LINE_AA)
 
     def display_analytics(self, im0, text, txt_color, bg_color, margin):
-        """
-        Display the overall statistics for parking lots.
+        """Display the overall statistics for parking lots.
 
         Args:
             im0 (ndarray): Inference image.
@@ -686,11 +673,10 @@ class Annotator:
 
     @staticmethod
     def estimate_pose_angle(a, b, c):
-        """
-        Calculate the pose angle for object.
+        """Calculate the pose angle for object.
 
         Args:
-            a (float) : The value of pose point a
+            a (float): The value of pose point a
             b (float): The value of pose point b
             c (float): The value o pose point c
 
@@ -705,8 +691,7 @@ class Annotator:
         return angle
 
     def draw_specific_points(self, keypoints, indices=None, radius=2, conf_thres=0.25):
-        """
-        Draw specific keypoints for gym steps counting.
+        """Draw specific keypoints for gym steps counting.
 
         Args:
             keypoints (list): Keypoints data to be plotted.
@@ -717,7 +702,7 @@ class Annotator:
         Returns:
             (numpy.ndarray): Image with drawn keypoints.
 
-        Note:
+        Notes:
             Keypoint format: [x, y] or [x, y, confidence].
             Modifies self.im in-place.
         """
@@ -735,8 +720,7 @@ class Annotator:
         return self.im
 
     def plot_workout_information(self, display_text, position, color=(104, 31, 17), txt_color=(255, 255, 255)):
-        """
-        Draw text with a background on the image.
+        """Draw text with a background on the image.
 
         Args:
             display_text (str): The text to be displayed.
@@ -762,8 +746,7 @@ class Annotator:
     def plot_angle_and_count_and_stage(
         self, angle_text, count_text, stage_text, center_kpt, color=(104, 31, 17), txt_color=(255, 255, 255)
     ):
-        """
-        Plot the pose angle, count value, and step stage.
+        """Plot the pose angle, count value, and step stage.
 
         Args:
             angle_text (str): Angle value for workout monitoring
@@ -788,8 +771,7 @@ class Annotator:
         )
 
     def seg_bbox(self, mask, mask_color=(255, 0, 255), label=None, txt_color=(255, 255, 255)):
-        """
-        Function for drawing segmented object in bounding box shape.
+        """Function for drawing segmented object in bounding box shape.
 
         Args:
             mask (np.ndarray): A 2D array of shape (N, 2) containing the contour points of the segmented object.
@@ -816,8 +798,7 @@ class Annotator:
             )
 
     def sweep_annotator(self, line_x=0, line_y=0, label=None, color=(221, 0, 186), txt_color=(255, 255, 255)):
-        """
-        Function for drawing a sweep annotation line and an optional label.
+        """Function for drawing a sweep annotation line and an optional label.
 
         Args:
             line_x (int): The x-coordinate of the sweep line.
@@ -852,8 +833,7 @@ class Annotator:
     def plot_distance_and_line(
         self, pixels_distance, centroids, line_color=(104, 31, 17), centroid_color=(255, 0, 255)
     ):
-        """
-        Plot the distance and line on frame.
+        """Plot the distance and line on frame.
 
         Args:
             pixels_distance (float): Pixels distance between two bbox centroids.
@@ -886,8 +866,7 @@ class Annotator:
         cv2.circle(self.im, centroids[1], 6, centroid_color, -1)
 
     def visioneye(self, box, center_point, color=(235, 219, 11), pin_color=(255, 0, 255)):
-        """
-        Function for pinpoint human-vision eye mapping and plotting.
+        """Function for pinpoint human-vision eye mapping and plotting.
 
         Args:
             box (list): Bounding box coordinates
@@ -958,12 +937,11 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
 
 
 def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False, BGR=False, save=True):
-    """
-    Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
+    """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
-    This function takes a bounding box and an image, and then saves a cropped portion of the image according
-    to the bounding box. Optionally, the crop can be squared, and the function allows for gain and padding
-    adjustments to the bounding box.
+    This function takes a bounding box and an image, and then saves a cropped portion of the image according to the
+    bounding box. Optionally, the crop can be squared, and the function allows for gain and padding adjustments to the
+    bounding box.
 
     Args:
         xyxy (torch.Tensor or list): A tensor or list representing the bounding box in xyxy format.
@@ -978,7 +956,7 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
     Returns:
         (numpy.ndarray): The cropped image.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.utils.plotting import save_one_box
 
@@ -1006,24 +984,23 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
 
 @threaded
 def plot_images(
-    images: Union[torch.Tensor, np.ndarray],
-    batch_idx: Union[torch.Tensor, np.ndarray],
-    cls: Union[torch.Tensor, np.ndarray],
-    bboxes: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.float32),
-    confs: Optional[Union[torch.Tensor, np.ndarray]] = None,
-    masks: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.uint8),
-    kpts: Union[torch.Tensor, np.ndarray] = np.zeros((0, 51), dtype=np.float32),
-    paths: Optional[List[str]] = None,
+    images: torch.Tensor | np.ndarray,
+    batch_idx: torch.Tensor | np.ndarray,
+    cls: torch.Tensor | np.ndarray,
+    bboxes: torch.Tensor | np.ndarray = np.zeros(0, dtype=np.float32),
+    confs: torch.Tensor | np.ndarray | None = None,
+    masks: torch.Tensor | np.ndarray = np.zeros(0, dtype=np.uint8),
+    kpts: torch.Tensor | np.ndarray = np.zeros((0, 51), dtype=np.float32),
+    paths: list[str] | None = None,
     fname: str = "images.jpg",
-    names: Optional[Dict[int, str]] = None,
-    on_plot: Optional[Callable] = None,
+    names: dict[int, str] | None = None,
+    on_plot: Callable | None = None,
     max_size: int = 1920,
     max_subplots: int = 16,
     save: bool = True,
     conf_thres: float = 0.25,
-) -> Optional[np.ndarray]:
-    """
-    Plot image grid with labels, bounding boxes, masks, and keypoints.
+) -> np.ndarray | None:
+    """Plot image grid with labels, bounding boxes, masks, and keypoints.
 
     Args:
         images: Batch of images to plot. Shape: (batch_size, channels, height, width).
@@ -1045,7 +1022,7 @@ def plot_images(
     Returns:
         np.ndarray: Plotted image grid as a numpy array if save is False, None otherwise.
 
-    Note:
+    Notes:
         This function supports both tensor and numpy array inputs. It will automatically
         convert tensor inputs to numpy arrays for processing.
     """
@@ -1174,9 +1151,9 @@ def plot_images(
 
 @plt_settings()
 def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, on_plot=None):
-    """
-    Plot training results from a results CSV file. The function supports various types of data including segmentation,
-    pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
+    """Plot training results from a results CSV file. The function supports various types of data including
+    segmentation, pose estimation, and classification. Plots are saved as 'results.png' in the directory where the
+    CSV is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results. Defaults to 'path/to/results.csv'.
@@ -1187,7 +1164,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
             Defaults to None.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.utils.plotting import plot_results
 
@@ -1237,8 +1214,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
 
 
 def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none"):
-    """
-    Plots a scatter plot with points colored based on a 2D histogram.
+    """Plots a scatter plot with points colored based on a 2D histogram.
 
     Args:
         v (array-like): Values for the x-axis.
@@ -1268,9 +1244,9 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
 
 
 def plot_tune_results(csv_file="tune_results.csv"):
-    """
-    Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key
-    in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
+    """Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each
+    key in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on
+    the plots.
 
     Args:
         csv_file (str, optional): Path to the CSV file containing the tuning results. Defaults to 'tune_results.csv'.
@@ -1345,8 +1321,7 @@ def output_to_rotated_target(output, max_det=300):
 
 
 def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detect/exp")):
-    """
-    Visualize feature maps of a given model module during inference.
+    """Visualize feature maps of a given model module during inference.
 
     Args:
         x (torch.Tensor): Features to be visualized.

@@ -118,7 +118,7 @@ You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blo
         # Predict a segment based on a single point prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
 
-        # Predict mutiple segments based on multiple points prompt
+        # Predict multiple segments based on multiple points prompt
         model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
 
         # Predict a segment based on multiple points prompt per object
@@ -146,7 +146,7 @@ To automatically annotate your dataset using the Ultralytics framework, utilize 
 
 {% include "macros/sam-auto-annotate.md" %}
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If you find MobileSAM useful in your research or development work, please consider citing our paper:
 

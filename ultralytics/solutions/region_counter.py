@@ -6,24 +6,23 @@ from ultralytics.utils.plotting import Annotator, colors
 
 
 class RegionCounter(BaseSolution):
-    """
-    A class designed for real-time counting of objects within user-defined regions in a video stream.
+    """A class designed for real-time counting of objects within user-defined regions in a video stream.
 
-    This class inherits from `BaseSolution` and offers functionalities to define polygonal regions in a video
-    frame, track objects, and count those objects that pass through each defined region. This makes it useful
-    for applications that require counting in specified areas, such as monitoring zones or segmented sections.
+    This class inherits from `BaseSolution` and offers functionalities to define polygonal regions in a video frame,
+    track objects, and count those objects that pass through each defined region. This makes it useful for applications
+    that require counting in specified areas, such as monitoring zones or segmented sections.
 
     Attributes:
-        region_template (dict): A template for creating new counting regions with default attributes including
-                                the name, polygon coordinates, and display colors.
-        counting_regions (list): A list storing all defined regions, where each entry is based on `region_template`
-                                 and includes specific region settings like name, coordinates, and color.
+        region_template (dict): A template for creating new counting regions with default attributes including the name,
+            polygon coordinates, and display colors.
+        counting_regions (list): A list storing all defined regions, where each entry is based on `region_template` and
+            includes specific region settings like name, coordinates, and color.
 
     Methods:
         add_region: Adds a new counting region with specified attributes, such as the region's name, polygon points,
-                    region color, and text color.
-        count: Processes video frames to count objects in each region, drawing regions and displaying counts
-               on the frame. Handles object detection, region definition, and containment checks.
+            region color, and text color.
+        count: Processes video frames to count objects in each region, drawing regions and displaying counts on the
+            frame. Handles object detection, region definition, and containment checks.
     """
 
     def __init__(self, **kwargs):
@@ -40,8 +39,7 @@ class RegionCounter(BaseSolution):
         self.counting_regions = []
 
     def add_region(self, name, polygon_points, region_color, text_color):
-        """
-        Adds a new region to the counting list based on the provided template with specific attributes.
+        """Adds a new region to the counting list based on the provided template with specific attributes.
 
         Args:
             name (str): Name assigned to the new region.
@@ -61,14 +59,13 @@ class RegionCounter(BaseSolution):
         self.counting_regions.append(region)
 
     def count(self, im0):
-        """
-        Processes the input frame to detect and count objects within each defined region.
+        """Processes the input frame to detect and count objects within each defined region.
 
         Args:
             im0 (numpy.ndarray): Input image frame where objects and regions are annotated.
 
         Returns:
-           im0 (numpy.ndarray): Processed image frame with annotated counting information.
+            im0 (numpy.ndarray): Processed image frame with annotated counting information.
         """
         self.annotator = Annotator(im0, line_width=self.line_width)
         self.extract_tracks(im0)

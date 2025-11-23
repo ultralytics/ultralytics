@@ -11,10 +11,9 @@ from ultralytics.utils.plotting import output_to_rotated_target, plot_images
 
 
 class OBBValidator(DetectionValidator):
-    """
-    A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) model.
+    """A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) model.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.models.yolo.obb import OBBValidator
 
@@ -51,8 +50,8 @@ class OBBValidator(DetectionValidator):
         )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
-        """
-        Perform computation of the correct prediction matrix for a batch of detections and ground truth bounding boxes.
+        """Perform computation of the correct prediction matrix for a batch of detections and ground truth bounding
+        boxes.
 
         Args:
             detections (torch.Tensor): A tensor of shape (N, 7) representing the detected bounding boxes and associated
@@ -65,7 +64,7 @@ class OBBValidator(DetectionValidator):
             (torch.Tensor): The correct prediction matrix with shape (N, 10), which includes 10 IoU (Intersection over
                 Union) levels for each detection, indicating the accuracy of predictions compared to the ground truth.
 
-        Example:
+        Examples:
             ```python
             detections = torch.rand(100, 7)  # 100 sample detections
             gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
@@ -73,7 +72,7 @@ class OBBValidator(DetectionValidator):
             correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
             ```
 
-        Note:
+        Notes:
             This method relies on `batch_probiou` to calculate IoU between detections and ground truth bounding boxes.
         """
         iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))

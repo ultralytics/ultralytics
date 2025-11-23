@@ -37,8 +37,7 @@ counting_regions = [
 
 
 def mouse_callback(event, x, y, flags, param):
-    """
-    Handles mouse events for region manipulation.
+    """Handles mouse events for region manipulation.
 
     Args:
         event (int): The mouse event type (e.g., cv2.EVENT_LBUTTONDOWN).
@@ -46,21 +45,19 @@ def mouse_callback(event, x, y, flags, param):
         y (int): The y-coordinate of the mouse pointer.
         flags (int): Additional flags passed by OpenCV.
         param: Additional parameters passed to the callback (not used in this function).
-
-    Global Variables:
+        Global Variables:
         current_region (dict): A dictionary representing the current selected region.
-
-    Mouse Events:
+        Mouse Events:
         - LBUTTONDOWN: Initiates dragging for the region containing the clicked point.
         - MOUSEMOVE: Moves the selected region if dragging is active.
         - LBUTTONUP: Ends dragging for the selected region.
 
+    Examples:
+        >>> cv2.setMouseCallback(window_name, mouse_callback)
+
     Notes:
         - This function is intended to be used as a callback for OpenCV mouse events.
         - Requires the existence of the 'counting_regions' list and the 'Polygon' class.
-
-    Example:
-        >>> cv2.setMouseCallback(window_name, mouse_callback)
     """
     global current_region
 
@@ -102,12 +99,10 @@ def run(
     track_thickness=2,
     region_thickness=2,
 ):
-    """
-    Run Region counting on a video using YOLOv8 and ByteTrack.
+    """Run Region counting on a video using YOLOv8 and ByteTrack.
 
-    Supports movable region for real time counting inside specific area.
-    Supports multiple regions counting.
-    Regions can be Polygons or rectangle in shape
+    Supports movable region for real time counting inside specific area. Supports multiple regions counting. Regions can
+    be Polygons or rectangle in shape
 
     Args:
         weights (str): Model weights path.

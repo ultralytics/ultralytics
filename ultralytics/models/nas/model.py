@@ -24,13 +24,15 @@ from .val import NASValidator
 
 
 class NAS(Model):
-    """
-    YOLO NAS model for object detection.
+    """YOLO NAS model for object detection.
 
-    This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine.
-    It is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
+    This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine. It
+    is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
 
-    Example:
+    Attributes:
+        model (str): Path to the pre-trained model or model name. Defaults to 'yolo_nas_s.pt'.
+
+    Examples:
         ```python
         from ultralytics import NAS
 
@@ -38,10 +40,7 @@ class NAS(Model):
         results = model.predict("ultralytics/assets/bus.jpg")
         ```
 
-    Attributes:
-        model (str): Path to the pre-trained model or model name. Defaults to 'yolo_nas_s.pt'.
-
-    Note:
+    Notes:
         YOLO-NAS models only support pre-trained models. Do not provide YAML configuration files.
     """
 
@@ -79,8 +78,7 @@ class NAS(Model):
         self.model.task = "detect"  # for export()
 
     def info(self, detailed=False, verbose=True):
-        """
-        Logs model info.
+        """Logs model info.
 
         Args:
             detailed (bool): Show detailed information about model.

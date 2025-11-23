@@ -26,7 +26,6 @@ This repository provides a Rust demo for key YOLO-Series tasks such as `Classifi
 <summary>You have two options to link the ONNXRuntime library:</summary>
 
 - **Option 1: Manual Linking**
-
   - For detailed setup, consult the [ONNX Runtime linking documentation](https://ort.pyke.io/setup/linking).
   - **Linux or macOS**:
     1. Download the ONNX Runtime package from the [Releases page](https://github.com/microsoft/onnxruntime/releases).

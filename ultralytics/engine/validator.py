@@ -38,8 +38,7 @@ from ultralytics.utils.torch_utils import de_parallel, select_device, smart_infe
 
 
 class BaseValidator:
-    """
-    BaseValidator.
+    """BaseValidator.
 
     A base class for creating validators.
 
@@ -59,16 +58,15 @@ class BaseValidator:
         nc: Number of classes.
         iouv: (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
         jdict (dict): Dictionary to store JSON validation results.
-        speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective
-                      batch processing times in milliseconds.
+        speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective batch
+            processing times in milliseconds.
         save_dir (Path): Directory to save results.
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        """
-        Initializes a BaseValidator instance.
+        """Initializes a BaseValidator instance.
 
         Args:
             dataloader (torch.utils.data.DataLoader): Dataloader to be used for validation.
@@ -220,8 +218,7 @@ class BaseValidator:
             return stats
 
     def match_predictions(self, pred_classes, true_classes, iou, use_scipy=False):
-        """
-        Matches predictions to ground truth objects (pred_classes, true_classes) using IoU.
+        """Matches predictions to ground truth objects (pred_classes, true_classes) using IoU.
 
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape(N,).

@@ -15,10 +15,9 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class SegmentationValidator(DetectionValidator):
-    """
-    A class extending the DetectionValidator class for validation based on a segmentation model.
+    """A class extending the DetectionValidator class for validation based on a segmentation model.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.models.yolo.segment import SegmentationValidator
 
@@ -171,17 +170,16 @@ class SegmentationValidator(DetectionValidator):
         self.metrics.confusion_matrix = self.confusion_matrix
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
-        """
-        Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
+        """Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
 
         Args:
-            detections (torch.Tensor): Tensor of shape (N, 6) representing detected bounding boxes and
-                associated confidence scores and class indices. Each row is of the format [x1, y1, x2, y2, conf, class].
-            gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground truth bounding box coordinates.
-                Each row is of the format [x1, y1, x2, y2].
+            detections (torch.Tensor): Tensor of shape (N, 6) representing detected bounding boxes and associated
+                confidence scores and class indices. Each row is of the format [x1, y1, x2, y2, conf, class].
+            gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground truth bounding box coordinates. Each
+                row is of the format [x1, y1, x2, y2].
             gt_cls (torch.Tensor): Tensor of shape (M,) representing ground truth class indices.
-            pred_masks (torch.Tensor | None): Tensor representing predicted masks, if available. The shape should
-                match the ground truth masks.
+            pred_masks (torch.Tensor | None): Tensor representing predicted masks, if available. The shape should match
+                the ground truth masks.
             gt_masks (torch.Tensor | None): Tensor of shape (M, H, W) representing ground truth masks, if available.
             overlap (bool): Flag indicating if overlapping masks should be considered.
             masks (bool): Flag indicating if the batch contains mask data.
@@ -189,17 +187,17 @@ class SegmentationValidator(DetectionValidator):
         Returns:
             (torch.Tensor): A correct prediction matrix of shape (N, 10), where 10 represents different IoU levels.
 
-        Note:
-            - If `masks` is True, the function computes IoU between predicted and ground truth masks.
-            - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
-
-        Example:
+        Examples:
             ```python
             detections = torch.tensor([[25, 30, 200, 300, 0.8, 1], [50, 60, 180, 290, 0.75, 0]])
             gt_bboxes = torch.tensor([[24, 29, 199, 299], [55, 65, 185, 295]])
             gt_cls = torch.tensor([1, 0])
             correct_preds = validator._process_batch(detections, gt_bboxes, gt_cls)
             ```
+
+        Notes:
+            - If `masks` is True, the function computes IoU between predicted and ground truth masks.
+            - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
         """
         if masks:
             if overlap:
@@ -256,13 +254,12 @@ class SegmentationValidator(DetectionValidator):
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename, pred_masks):
-        """
-        Save one JSON result.
+        """Save one JSON result.
 
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
-        from pycocotools.mask import encode  # noqa
+        from pycocotools.mask import encode
 
         def single_encode(x):
             """Encode predicted masks as RLE and append results to jdict."""
@@ -296,8 +293,8 @@ class SegmentationValidator(DetectionValidator):
             LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements("pycocotools>=2.0.6")
-                from pycocotools.coco import COCO  # noqa
-                from pycocotools.cocoeval import COCOeval  # noqa
+                from pycocotools.coco import COCO
+                from pycocotools.cocoeval import COCOeval
 
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"

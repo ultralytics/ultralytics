@@ -9,11 +9,10 @@ from ultralytics.utils.plotting import Annotator, colors
 
 
 class SpeedEstimator(BaseSolution):
-    """
-    A class to estimate the speed of objects in a real-time video stream based on their tracks.
+    """A class to estimate the speed of objects in a real-time video stream based on their tracks.
 
-    This class extends the BaseSolution class and provides functionality for estimating object speeds using
-    tracking data in video streams.
+    This class extends the BaseSolution class and provides functionality for estimating object speeds using tracking
+    data in video streams.
 
     Attributes:
         spd (Dict[int, float]): Dictionary storing speed data for tracked objects.
@@ -51,8 +50,7 @@ class SpeedEstimator(BaseSolution):
         self.trk_pp = {}  # set for tracks previous point
 
     def estimate_speed(self, im0):
-        """
-        Estimates the speed of objects based on tracking data.
+        """Estimates the speed of objects based on tracking data.
 
         Args:
             im0 (np.ndarray): Input image for processing. Shape is typically (H, W, C) for RGB images.

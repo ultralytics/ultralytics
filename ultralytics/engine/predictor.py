@@ -62,8 +62,7 @@ Example:
 
 
 class BasePredictor:
-    """
-    BasePredictor.
+    """BasePredictor.
 
     A base class for creating predictors.
 
@@ -79,8 +78,7 @@ class BasePredictor:
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initializes the BasePredictor class.
+        """Initializes the BasePredictor class.
 
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
@@ -114,8 +112,7 @@ class BasePredictor:
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):
-        """
-        Prepares input image before inference.
+        """Prepares input image before inference.
 
         Args:
             im (torch.Tensor | List(np.ndarray)): BCHW for tensor, [(HWC) x B] for list.
@@ -143,8 +140,7 @@ class BasePredictor:
         return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
     def pre_transform(self, im):
-        """
-        Pre-transform input image before inference.
+        """Pre-transform input image before inference.
 
         Args:
             im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
@@ -173,14 +169,13 @@ class BasePredictor:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
 
     def predict_cli(self, source=None, model=None):
-        """
-        Method used for Command Line Interface (CLI) prediction.
+        """Method used for Command Line Interface (CLI) prediction.
 
         This function is designed to run predictions using the CLI. It sets up the source and model, then processes
         the inputs in a streaming manner. This method ensures that no outputs accumulate in memory by consuming the
         generator without storing results.
 
-        Note:
+        Notes:
             Do not modify this function or remove the generator. The generator ensures that no outputs are
             accumulated in memory, which is critical for preventing memory issues during long-running predictions.
         """

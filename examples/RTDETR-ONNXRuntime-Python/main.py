@@ -15,8 +15,7 @@ class RTDETR:
     """RTDETR object detection model class for handling inference and visualization."""
 
     def __init__(self, model_path, img_path, conf_thres=0.5, iou_thres=0.5):
-        """
-        Initializes the RTDETR object with the specified parameters.
+        """Initializes the RTDETR object with the specified parameters.
 
         Args:
             model_path: Path to the ONNX model file.
@@ -42,8 +41,7 @@ class RTDETR:
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
     def draw_detections(self, box, score, class_id):
-        """
-        Draws bounding boxes and labels on the input image based on the detected objects.
+        """Draws bounding boxes and labels on the input image based on the detected objects.
 
         Args:
             box: Detected bounding box.
@@ -87,8 +85,7 @@ class RTDETR:
         )
 
     def preprocess(self):
-        """
-        Preprocesses the input image before performing inference.
+        """Preprocesses the input image before performing inference.
 
         Returns:
             image_data: Preprocessed image data ready for inference.
@@ -118,16 +115,16 @@ class RTDETR:
         return image_data
 
     def bbox_cxcywh_to_xyxy(self, boxes):
-        """
-        Converts bounding boxes from (center x, center y, width, height) format to (x_min, y_min, x_max, y_max) format.
+        """Converts bounding boxes from (center x, center y, width, height) format to (x_min, y_min, x_max, y_max)
+        format.
 
         Args:
-            boxes (numpy.ndarray): An array of shape (N, 4) where each row represents
-                                a bounding box in (cx, cy, w, h) format.
+            boxes (numpy.ndarray): An array of shape (N, 4) where each row represents a bounding box in (cx, cy, w, h)
+                format.
 
         Returns:
-            numpy.ndarray: An array of shape (N, 4) where each row represents
-                        a bounding box in (x_min, y_min, x_max, y_max) format.
+            numpy.ndarray: An array of shape (N, 4) where each row represents a bounding box in (x_min, y_min, x_max,
+                y_max) format.
         """
         # Calculate half width and half height of the bounding boxes
         half_width = boxes[:, 2] / 2
@@ -143,8 +140,7 @@ class RTDETR:
         return np.column_stack((x_min, y_min, x_max, y_max))
 
     def postprocess(self, model_output):
-        """
-        Postprocesses the model output to extract detections and draw them on the input image.
+        """Postprocesses the model output to extract detections and draw them on the input image.
 
         Args:
             model_output: Output of the model inference.
@@ -182,8 +178,7 @@ class RTDETR:
         return self.img
 
     def main(self):
-        """
-        Executes the detection on the input image using the ONNX model.
+        """Executes the detection on the input image using the ONNX model.
 
         Returns:
             np.array: Output image with annotations.

@@ -5,11 +5,10 @@ from ultralytics.utils.plotting import Annotator, colors
 
 
 class QueueManager(BaseSolution):
-    """
-    Manages queue counting in real-time video streams based on object tracks.
+    """Manages queue counting in real-time video streams based on object tracks.
 
-    This class extends BaseSolution to provide functionality for tracking and counting objects within a specified
-    region in video frames.
+    This class extends BaseSolution to provide functionality for tracking and counting objects within a specified region
+    in video frames.
 
     Attributes:
         counts (int): The current count of objects in the queue.
@@ -45,15 +44,13 @@ class QueueManager(BaseSolution):
         self.region_length = len(self.region)  # Store region length for further usage
 
     def process_queue(self, im0):
-        """
-        Processes the queue management for a single frame of video.
+        """Processes the queue management for a single frame of video.
 
         Args:
             im0 (numpy.ndarray): Input image for processing, typically a frame from a video stream.
 
         Returns:
             (numpy.ndarray): Processed image with annotations, bounding boxes, and queue counts.
-
         This method performs the following steps:
         1. Resets the queue count for the current frame.
         2. Initializes an Annotator object for drawing on the image.
@@ -102,7 +99,7 @@ class QueueManager(BaseSolution):
 
         # Display queue counts
         self.annotator.queue_counts_display(
-            f"Queue Counts : {str(self.counts)}",
+            f"Queue Counts : {self.counts!s}",
             points=self.region,
             region_color=self.rect_color,
             txt_color=(104, 31, 17),

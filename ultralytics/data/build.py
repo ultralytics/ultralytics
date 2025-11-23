@@ -26,8 +26,7 @@ from ultralytics.utils.checks import check_file
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """
-    Dataloader that reuses workers.
+    """Dataloader that reuses workers.
 
     Uses same syntax as vanilla DataLoader.
     """
@@ -60,8 +59,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
             pass
 
     def reset(self):
-        """
-        Reset iterator.
+        """Reset iterator.
 
         This is useful when we want to modify settings of dataset while training.
         """
@@ -69,8 +67,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
 
 class _RepeatSampler:
-    """
-    Sampler that repeats forever.
+    """Sampler that repeats forever.
 
     Args:
         sampler (Dataset.sampler): The sampler to repeat.
@@ -86,7 +83,7 @@ class _RepeatSampler:
             yield from iter(self.sampler)
 
 
-def seed_worker(worker_id):  # noqa
+def seed_worker(worker_id):
     """Set dataloader worker seed https://pytorch.org/docs/stable/notes/randomness.html#dataloader."""
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
@@ -184,8 +181,7 @@ def check_source(source):
 
 
 def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
-    """
-    Loads an inference source for object detection and applies necessary transformations.
+    """Loads an inference source for object detection and applies necessary transformations.
 
     Args:
         source (str, Path, Tensor, PIL.Image, np.ndarray): The input source for inference.

@@ -257,7 +257,7 @@ def minify_files(html=True, css=True, js=True):
         if js:
             import jsmin
     except ImportError as e:
-        print(f"Missing required package: {str(e)}")
+        print(f"Missing required package: {e!s}")
         return
 
     stats = {}

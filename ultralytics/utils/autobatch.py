@@ -12,8 +12,7 @@ from ultralytics.utils.torch_utils import autocast, profile
 
 
 def check_train_batch_size(model, imgsz=640, amp=True, batch=-1, max_num_obj=1):
-    """
-    Compute optimal YOLO training batch size using the autobatch() function.
+    """Compute optimal YOLO training batch size using the autobatch() function.
 
     Args:
         model (torch.nn.Module): YOLO model to check batch size for.
@@ -25,7 +24,7 @@ def check_train_batch_size(model, imgsz=640, amp=True, batch=-1, max_num_obj=1):
     Returns:
         (int): Optimal batch size computed using the autobatch() function.
 
-    Note:
+    Notes:
         If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
         Otherwise, a default fraction of 0.6 is used.
     """
@@ -36,8 +35,7 @@ def check_train_batch_size(model, imgsz=640, amp=True, batch=-1, max_num_obj=1):
 
 
 def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max_num_obj=1):
-    """
-    Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
+    """Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
 
     Args:
         model (torch.nn.module): YOLO model to compute batch size for.
@@ -87,7 +85,7 @@ def autobatch(model, imgsz=640, fraction=0.60, batch_size=DEFAULT_CFG.batch, max
         ]
         fit_x, fit_y = zip(*xy) if xy else ([], [])
         p = np.polyfit(np.log(fit_x), np.log(fit_y), deg=1)  # first-degree polynomial fit in log space
-        b = int(round(np.exp((np.log(f * fraction) - p[1]) / p[0])))  # y intercept (optimal batch size)
+        b = round(np.exp((np.log(f * fraction) - p[1]) / p[0]))  # y intercept (optimal batch size)
         if None in results:  # some sizes failed
             i = results.index(None)  # first fail index
             if b >= batch_sizes[i]:  # y intercept above failure point

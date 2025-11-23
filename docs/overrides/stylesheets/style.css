@@ -62,6 +62,39 @@ div.highlight {
   max-height: 75vh;
 }
 
+/* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */
+.md-header label[for="__search"],
+.md-search {
+  display: none !important;
+}
+.ult-header-search {
+  transform: scale(0.7);
+  transform-origin: left center;
+  margin-right: 0.5rem;
+}
+.ult-search-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.5rem;
+  color: var(--md-default-fg-color);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.ult-search-button:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+  border-color: var(--md-accent-fg-color);
+}
+.ult-search-button svg {
+  flex-shrink: 0;
+}
+/* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */
+
 /* Banner ----------------------------------------------------------------------------------------------------------- */
 .md-banner {
   background-image: url(https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/691dac3414d0280ebe3e5fda_bg.avif);

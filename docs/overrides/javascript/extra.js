@@ -50,8 +50,50 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "Hello 👋",
       message: "Ask about YOLO, tutorials, training, export, deployment, or troubleshooting.",
       chatExamples: ["What's new in SAM 3?", "How can I get started with YOLO?", "How does Enterprise Licensing work?"],
+      searchExamples: [
+        "YOLO11 quickstart",
+        "custom dataset training",
+        "model export formats",
+        "object detection tutorial",
+        "hyperparameter tuning",
+      ],
     },
   });
+
+  const headerElement = document.querySelector(".md-header__inner");
+  const searchContainer = headerElement?.querySelector(".md-header__source");
+
+  if (headerElement && searchContainer) {
+    const searchBar = document.createElement("div");
+    searchBar.className = "ult-header-search";
+    searchBar.innerHTML = `
+      <button class="ult-search-button" title="Search documentation (⌘K)" aria-label="Search documentation">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <span>Search</span>
+      </button>
+    `;
+    headerElement.insertBefore(searchBar, searchContainer);
+
+    const defaultSearchToggle = headerElement.querySelector('label[for="__search"]');
+    const defaultSearchInput = document.getElementById("__search");
+    const defaultSearchDialog = document.querySelector(".md-search");
+    if (defaultSearchToggle) {
+      defaultSearchToggle.setAttribute("aria-hidden", "true");
+      defaultSearchToggle.style.display = "none";
+    }
+    if (defaultSearchInput) {
+      defaultSearchInput.setAttribute("tabindex", "-1");
+      defaultSearchInput.setAttribute("aria-hidden", "true");
+    }
+    if (defaultSearchDialog) defaultSearchDialog.style.display = "none";
+
+    searchBar.querySelector(".ult-search-button").addEventListener("click", () => {
+      ultralyticsChat?.toggle(true, "search");
+    });
+  }
 });
 
 // Fix language switcher links

@@ -790,7 +790,7 @@ class E2ELoss:
         self.o2o = self.total - self.o2m
         self.o2m_copy = self.o2m
         if self.one2one.hyp.o2m == 1.0:
-            self.o2o = 0.5
+            self.o2o = 1.0
             self.o2m = 0.5
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:

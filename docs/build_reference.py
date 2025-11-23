@@ -29,6 +29,10 @@ PACKAGE_DIR = FILE.parents[1] / "ultralytics"
 REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
 GITHUB_REPO = "ultralytics/ultralytics"
 SIGNATURE_LINE_LENGTH = 120
+GITHUB_ICON = (
+    '<span class="md-icon" aria-hidden="true" data-md-svg-icon="fontawesome/brands/github" '
+    'style="vertical-align:text-bottom;margin-right:6px;"></span>'
+)
 
 MKDOCS_YAML = PACKAGE_DIR.parent / "mkdocs.yml"
 INCLUDE_SPECIAL_METHODS = {
@@ -697,6 +701,21 @@ DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "
 SUMMARY_BADGE_MAP = {"Classes": "class", "Properties": "property", "Methods": "method", "Functions": "function"}
 
 
+def render_source_panel(item: DocItem, module_url: str, module_path: str) -> str:
+    """Render a collapsible source panel with a GitHub link."""
+    if not item.source:
+        return ""
+    source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"
+    summary = f"Source code in <code>{html.escape(module_path)}.py</code>"
+    return (
+        "<details>\n"
+        f"<summary>{summary}</summary>\n\n"
+        f'<a href="{source_url}">{GITHUB_ICON}View on GitHub</a>\n'
+        f"{_code_fence(item.source)}\n"
+        "</details>\n"
+    )
+
+
 def render_docstring(
     doc: ParsedDocstring,
     level: int,
@@ -889,15 +908,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
         parts.append(render_docstring(item.doc, level + 1, signature_params=item.signature_params))
 
     if item.kind == "class" and item.source:
-        source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"
-        summary = f"Source code in <code>{html.escape(module_path)}.py</code>"
-        parts.append(
-            "<details>\n"
-            f"<summary>{summary}</summary>\n\n"
-            f'<a href="{source_url}">View source</a>\n'
-            f"{_code_fence(item.source)}\n"
-            "</details>\n"
-        )
+        parts.append(render_source_panel(item, module_url, module_path))
 
     if item.children:
         props = [c for c in item.children if c.kind == "property"]
@@ -912,15 +923,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
                 parts.append("<br>\n")
 
     if item.source and item.kind != "class":
-        source_url = f"{module_url}#L{item.lineno}-L{item.end_lineno}"
-        summary = f"Source code in <code>{html.escape(module_path)}.py</code>"
-        parts.append(
-            "<details>\n"
-            f"<summary>{summary}</summary>\n\n"
-            f'<a href="{source_url}">View source</a>\n'
-            f"{_code_fence(item.source)}\n"
-            "</details>\n"
-        )
+        parts.append(render_source_panel(item, module_url, module_path))
 
     return "\n\n".join(p.rstrip() for p in parts if p).rstrip() + "\n\n"
 

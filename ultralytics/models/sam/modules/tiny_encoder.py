@@ -10,7 +10,6 @@
 # --------------------------------------------------------
 
 import itertools
-from typing import Tuple
 
 import torch
 import torch.nn as nn
@@ -22,15 +21,7 @@ from ultralytics.utils.instance import to_2tuple
 
 
 class Conv2d_BN(torch.nn.Sequential):
-    """
-    A sequential container that performs 2D convolution followed by batch normalization.
-
-    Attributes:
-        c (torch.nn.Conv2d): 2D convolution layer.
-        1 (torch.nn.BatchNorm2d): Batch normalization layer.
-
-    Methods:
-        __init__: Initializes the Conv2d_BN with specified parameters.
+    """A sequential container that performs 2D convolution followed by batch normalization.
 
     Args:
         a (int): Number of input channels.
@@ -41,6 +32,13 @@ class Conv2d_BN(torch.nn.Sequential):
         dilation (int): Dilation factor for the convolution. Defaults to 1.
         groups (int): Number of groups for the convolution. Defaults to 1.
         bn_weight_init (float): Initial value for batch normalization weight. Defaults to 1.
+
+    Attributes:
+        c (torch.nn.Conv2d): 2D convolution layer.
+        1 (torch.nn.BatchNorm2d): Batch normalization layer.
+
+    Methods:
+        __init__: Initializes the Conv2d_BN with specified parameters.
 
     Examples:
         >>> conv_bn = Conv2d_BN(3, 64, ks=3, stride=1, pad=1)
@@ -60,8 +58,7 @@ class Conv2d_BN(torch.nn.Sequential):
 
 
 class PatchEmbed(nn.Module):
-    """
-    Embeds images into patches and projects them into a specified embedding dimension.
+    """Embeds images into patches and projects them into a specified embedding dimension.
 
     Attributes:
         patches_resolution (Tuple[int, int]): Resolution of the patches after embedding.
@@ -84,7 +81,7 @@ class PatchEmbed(nn.Module):
     def __init__(self, in_chans, embed_dim, resolution, activation):
         """Initializes patch embedding with convolutional layers for image-to-patch conversion and projection."""
         super().__init__()
-        img_size: Tuple[int, int] = to_2tuple(resolution)
+        img_size: tuple[int, int] = to_2tuple(resolution)
         self.patches_resolution = (img_size[0] // 4, img_size[1] // 4)
         self.num_patches = self.patches_resolution[0] * self.patches_resolution[1]
         self.in_chans = in_chans
@@ -102,8 +99,7 @@ class PatchEmbed(nn.Module):
 
 
 class MBConv(nn.Module):
-    """
-    Mobile Inverted Bottleneck Conv (MBConv) layer, part of the EfficientNet architecture.
+    """Mobile Inverted Bottleneck Conv (MBConv) layer, part of the EfficientNet architecture.
 
     Attributes:
         in_chans (int): Number of input channels.
@@ -163,8 +159,7 @@ class MBConv(nn.Module):
 
 
 class PatchMerging(nn.Module):
-    """
-    Merges neighboring patches in the feature map and projects to a new dimension.
+    """Merges neighboring patches in the feature map and projects to a new dimension.
 
     This class implements a patch merging operation that combines spatial information and adjusts the feature
     dimension. It uses a series of convolutional layers with batch normalization to achieve this.
@@ -220,8 +215,7 @@ class PatchMerging(nn.Module):
 
 
 class ConvLayer(nn.Module):
-    """
-    Convolutional Layer featuring multiple MobileNetV3-style inverted bottleneck convolutions (MBConv).
+    """Convolutional Layer featuring multiple MobileNetV3-style inverted bottleneck convolutions (MBConv).
 
     This layer optionally applies downsample operations to the output and supports gradient checkpointing.
 
@@ -255,8 +249,7 @@ class ConvLayer(nn.Module):
         out_dim=None,
         conv_expand_ratio=4.0,
     ):
-        """
-        Initializes the ConvLayer with the given dimensions and settings.
+        """Initializes the ConvLayer with the given dimensions and settings.
 
         This layer consists of multiple MobileNetV3-style inverted bottleneck convolutions (MBConv) and
         optionally applies downsampling to the output.
@@ -313,11 +306,10 @@ class ConvLayer(nn.Module):
 
 
 class Mlp(nn.Module):
-    """
-    Multi-layer Perceptron (MLP) module for transformer architectures.
+    """Multi-layer Perceptron (MLP) module for transformer architectures.
 
-    This module applies layer normalization, two fully-connected layers with an activation function in between,
-    and dropout. It is commonly used in transformer-based architectures.
+    This module applies layer normalization, two fully-connected layers with an activation function in between, and
+    dropout. It is commonly used in transformer-based architectures.
 
     Attributes:
         norm (nn.LayerNorm): Layer normalization applied to the input.
@@ -361,12 +353,11 @@ class Mlp(nn.Module):
 
 
 class Attention(torch.nn.Module):
-    """
-    Multi-head attention module with spatial awareness and trainable attention biases.
+    """Multi-head attention module with spatial awareness and trainable attention biases.
 
-    This module implements a multi-head attention mechanism with support for spatial awareness, applying
-    attention biases based on spatial resolution. It includes trainable attention biases for each unique
-    offset between spatial positions in the resolution grid.
+    This module implements a multi-head attention mechanism with support for spatial awareness, applying attention
+    biases based on spatial resolution. It includes trainable attention biases for each unique offset between spatial
+    positions in the resolution grid.
 
     Attributes:
         num_heads (int): Number of attention heads.
@@ -403,8 +394,7 @@ class Attention(torch.nn.Module):
         attn_ratio=4,
         resolution=(14, 14),
     ):
-        """
-        Initializes the Attention module for multi-head attention with spatial awareness.
+        """Initializes the Attention module for multi-head attention with spatial awareness.
 
         This module implements a multi-head attention mechanism with support for spatial awareness, applying
         attention biases based on spatial resolution. It includes trainable attention biases for each unique
@@ -490,11 +480,10 @@ class Attention(torch.nn.Module):
 
 
 class TinyViTBlock(nn.Module):
-    """
-    TinyViT Block that applies self-attention and a local convolution to the input.
+    """TinyViT Block that applies self-attention and a local convolution to the input.
 
-    This block is a key component of the TinyViT architecture, combining self-attention mechanisms with
-    local convolutions to process input features efficiently.
+    This block is a key component of the TinyViT architecture, combining self-attention mechanisms with local
+    convolutions to process input features efficiently.
 
     Attributes:
         dim (int): The dimensionality of the input and output.
@@ -531,8 +520,7 @@ class TinyViTBlock(nn.Module):
         local_conv_size=3,
         activation=nn.GELU,
     ):
-        """
-        Initializes a TinyViT block with self-attention and local convolution.
+        """Initializes a TinyViT block with self-attention and local convolution.
 
         This block is a key component of the TinyViT architecture, combining self-attention mechanisms with
         local convolutions to process input features efficiently.
@@ -627,8 +615,7 @@ class TinyViTBlock(nn.Module):
         return x + self.drop_path(self.mlp(x))
 
     def extra_repr(self) -> str:
-        """
-        Returns a string representation of the TinyViTBlock's parameters.
+        """Returns a string representation of the TinyViTBlock's parameters.
 
         This method provides a formatted string containing key information about the TinyViTBlock, including its
         dimension, input resolution, number of attention heads, window size, and MLP ratio.
@@ -648,11 +635,10 @@ class TinyViTBlock(nn.Module):
 
 
 class BasicLayer(nn.Module):
-    """
-    A basic TinyViT layer for one stage in a TinyViT architecture.
+    """A basic TinyViT layer for one stage in a TinyViT architecture.
 
-    This class represents a single layer in the TinyViT model, consisting of multiple TinyViT blocks
-    and an optional downsampling operation.
+    This class represents a single layer in the TinyViT model, consisting of multiple TinyViT blocks and an optional
+    downsampling operation.
 
     Attributes:
         dim (int): The dimensionality of the input and output features.
@@ -690,8 +676,7 @@ class BasicLayer(nn.Module):
         activation=nn.GELU,
         out_dim=None,
     ):
-        """
-        Initializes a BasicLayer in the TinyViT architecture.
+        """Initializes a BasicLayer in the TinyViT architecture.
 
         This layer consists of multiple TinyViT blocks and an optional downsampling operation. It is designed to
         process feature maps at a specific resolution and dimensionality within the TinyViT model.
@@ -763,11 +748,10 @@ class BasicLayer(nn.Module):
 
 
 class TinyViT(nn.Module):
-    """
-    TinyViT: A compact vision transformer architecture for efficient image classification and feature extraction.
+    """TinyViT: A compact vision transformer architecture for efficient image classification and feature extraction.
 
-    This class implements the TinyViT model, which combines elements of vision transformers and convolutional
-    neural networks for improved efficiency and performance on vision tasks.
+    This class implements the TinyViT model, which combines elements of vision transformers and convolutional neural
+    networks for improved efficiency and performance on vision tasks.
 
     Attributes:
         img_size (int): Input image size.
@@ -814,8 +798,7 @@ class TinyViT(nn.Module):
         local_conv_size=3,
         layer_lr_decay=1.0,
     ):
-        """
-        Initializes the TinyViT model.
+        """Initializes the TinyViT model.
 
         This constructor sets up the TinyViT architecture, including patch embedding, multiple layers of
         attention and convolution blocks, and a classification head.
@@ -824,11 +807,9 @@ class TinyViT(nn.Module):
             img_size (int): Size of the input image. Default is 224.
             in_chans (int): Number of input channels. Default is 3.
             num_classes (int): Number of classes for classification. Default is 1000.
-            embed_dims (Tuple[int, int, int, int]): Embedding dimensions for each stage.
-                Default is (96, 192, 384, 768).
+            embed_dims (Tuple[int, int, int, int]): Embedding dimensions for each stage. Default is (96, 192, 384, 768).
             depths (Tuple[int, int, int, int]): Number of blocks in each stage. Default is (2, 2, 6, 2).
-            num_heads (Tuple[int, int, int, int]): Number of attention heads in each stage.
-                Default is (3, 6, 12, 24).
+            num_heads (Tuple[int, int, int, int]): Number of attention heads in each stage. Default is (3, 6, 12, 24).
             window_sizes (Tuple[int, int, int, int]): Window sizes for each stage. Default is (7, 7, 14, 7).
             mlp_ratio (float): Ratio of MLP hidden dim to embedding dim. Default is 4.0.
             drop_rate (float): Dropout rate. Default is 0.0.
@@ -992,8 +973,7 @@ class TinyViT(nn.Module):
         return self.forward_features(x)
 
     def set_imgsz(self, imgsz=[1024, 1024]):
-        """
-        Set image size to make model compatible with different image sizes.
+        """Set image size to make model compatible with different image sizes.
 
         Args:
             imgsz (Tuple[int, int]): The size of the input image.

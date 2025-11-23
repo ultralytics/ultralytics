@@ -15,10 +15,9 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class DetectionValidator(BaseValidator):
-    """
-    A class extending the BaseValidator class for validation based on a detection model.
+    """A class extending the BaseValidator class for validation based on a detection model.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.models.yolo.detect import DetectionValidator
 
@@ -207,12 +206,11 @@ class DetectionValidator(BaseValidator):
                 )
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
-        """
-        Return correct prediction matrix.
+        """Return correct prediction matrix.
 
         Args:
-            detections (torch.Tensor): Tensor of shape (N, 6) representing detections where each detection is
-                (x1, y1, x2, y2, conf, class).
+            detections (torch.Tensor): Tensor of shape (N, 6) representing detections where each detection is (x1, y1,
+                x2, y2, conf, class).
             gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground-truth bounding box coordinates. Each
                 bounding box is of the format: (x1, y1, x2, y2).
             gt_cls (torch.Tensor): Tensor of shape (M,) representing target class indices.
@@ -220,7 +218,7 @@ class DetectionValidator(BaseValidator):
         Returns:
             (torch.Tensor): Correct prediction matrix of shape (N, 10) for 10 IoU levels.
 
-        Note:
+        Notes:
             The function does not return any value directly usable for metrics calculation. Instead, it provides an
             intermediate representation used for evaluating predictions against ground truth.
         """
@@ -228,8 +226,7 @@ class DetectionValidator(BaseValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def build_dataset(self, img_path, mode="val", batch=None):
-        """
-        Build YOLO Dataset.
+        """Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -310,8 +307,8 @@ class DetectionValidator(BaseValidator):
                     assert x.is_file(), f"{x} file not found"
                 check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
                 if self.is_coco:
-                    from pycocotools.coco import COCO  # noqa
-                    from pycocotools.cocoeval import COCOeval  # noqa
+                    from pycocotools.coco import COCO
+                    from pycocotools.cocoeval import COCOeval
 
                     anno = COCO(str(anno_json))  # init annotations api
                     pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)

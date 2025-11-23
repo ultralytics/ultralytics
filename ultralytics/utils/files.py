@@ -11,11 +11,10 @@ from pathlib import Path
 
 
 class WorkingDirectory(contextlib.ContextDecorator):
-    """
-    A context manager and decorator for temporarily changing the working directory.
+    """A context manager and decorator for temporarily changing the working directory.
 
-    This class allows for the temporary change of the working directory using a context manager or decorator.
-    It ensures that the original working directory is restored after the context or decorated function completes.
+    This class allows for the temporary change of the working directory using a context manager or decorator. It ensures
+    that the original working directory is restored after the context or decorated function completes.
 
     Attributes:
         dir (Path): The new directory to switch to.
@@ -47,15 +46,14 @@ class WorkingDirectory(contextlib.ContextDecorator):
         """Changes the current working directory to the specified directory upon entering the context."""
         os.chdir(self.dir)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):  # noqa
+    def __exit__(self, exc_type, exc_val, exc_tb):
         """Restores the original working directory when exiting the context."""
         os.chdir(self.cwd)
 
 
 @contextmanager
 def spaces_in_path(path):
-    """
-    Context manager to handle paths with spaces in their names. If a path contains spaces, it replaces them with
+    """Context manager to handle paths with spaces in their names. If a path contains spaces, it replaces them with
     underscores, copies the file/directory to the new path, executes the context code block, then copies the
     file/directory back to its original location.
 
@@ -105,13 +103,12 @@ def spaces_in_path(path):
 
 
 def increment_path(path, exist_ok=False, sep="", mkdir=False):
-    """
-    Increments a file or directory path, i.e., runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
+    """Increments a file or directory path, i.e., runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
 
-    If the path exists and `exist_ok` is not True, the path will be incremented by appending a number and `sep` to
-    the end of the path. If the path is a file, the file extension will be preserved. If the path is a directory, the
-    number will be appended directly to the end of the path. If `mkdir` is set to True, the path will be created as a
-    directory if it does not already exist.
+    If the path exists and `exist_ok` is not True, the path will be incremented by appending a number and `sep` to the
+    end of the path. If the path is a file, the file extension will be preserved. If the path is a directory, the number
+    will be appended directly to the end of the path. If `mkdir` is set to True, the path will be created as a directory
+    if it does not already exist.
 
     Args:
         path (str | pathlib.Path): Path to increment.
@@ -184,8 +181,7 @@ def get_latest_run(search_dir="."):
 
 
 def update_models(model_names=("yolo11n.pt",), source_dir=Path("."), update_names=False):
-    """
-    Updates and re-saves specified YOLO models in an 'updated_models' subdirectory.
+    """Updates and re-saves specified YOLO models in an 'updated_models' subdirectory.
 
     Args:
         model_names (Tuple[str, ...]): Model filenames to update.

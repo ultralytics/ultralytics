@@ -15,8 +15,7 @@ class YOLOv8Seg:
     """YOLOv8 segmentation model."""
 
     def __init__(self, onnx_model):
-        """
-        Initialization.
+        """Initialization.
 
         Args:
             onnx_model (str): Path to the ONNX model.
@@ -33,7 +32,7 @@ class YOLOv8Seg:
         self.ndtype = np.half if self.session.get_inputs()[0].type == "tensor(float16)" else np.single
 
         # Get model width and height(YOLOv8-seg only has one input)
-        self.model_height, self.model_width = [x.shape for x in self.session.get_inputs()][0][-2:]
+        self.model_height, self.model_width = next(x.shape for x in self.session.get_inputs())[-2:]
 
         # Load COCO class names
         self.classes = yaml_load(check_yaml("coco8.yaml"))["names"]
@@ -42,8 +41,7 @@ class YOLOv8Seg:
         self.color_palette = Colors()
 
     def __call__(self, im0, conf_threshold=0.4, iou_threshold=0.45, nm=32):
-        """
-        The whole pipeline: pre-process -> inference -> post-process.
+        """The whole pipeline: pre-process -> inference -> post-process.
 
         Args:
             im0 (Numpy.ndarray): original input image.
@@ -76,8 +74,7 @@ class YOLOv8Seg:
         return boxes, segments, masks
 
     def preprocess(self, img):
-        """
-        Pre-processes the input image.
+        """Pre-processes the input image.
 
         Args:
             img (Numpy.ndarray): image about to be processed.
@@ -93,12 +90,12 @@ class YOLOv8Seg:
         new_shape = (self.model_height, self.model_width)
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
         ratio = r, r
-        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        new_unpad = round(shape[1] * r), round(shape[0] * r)
         pad_w, pad_h = (new_shape[1] - new_unpad[0]) / 2, (new_shape[0] - new_unpad[1]) / 2  # wh padding
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
-        top, bottom = int(round(pad_h - 0.1)), int(round(pad_h + 0.1))
-        left, right = int(round(pad_w - 0.1)), int(round(pad_w + 0.1))
+        top, bottom = round(pad_h - 0.1), round(pad_h + 0.1)
+        left, right = round(pad_w - 0.1), round(pad_w + 0.1)
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
 
         # Transforms: HWC to CHW -> BGR to RGB -> div(255) -> contiguous -> add axis(optional)
@@ -107,8 +104,7 @@ class YOLOv8Seg:
         return img_process, ratio, (pad_w, pad_h)
 
     def postprocess(self, preds, im0, ratio, pad_w, pad_h, conf_threshold, iou_threshold, nm=32):
-        """
-        Post-process the prediction.
+        """Post-process the prediction.
 
         Args:
             preds (Numpy.ndarray): predictions come from ort.session.run().
@@ -165,8 +161,7 @@ class YOLOv8Seg:
 
     @staticmethod
     def masks2segments(masks):
-        """
-        Takes a list of masks(n,h,w) and returns a list of segments(n,xy), from
+        """Takes a list of masks(n,h,w) and returns a list of segments(n,xy), from
         https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
@@ -187,8 +182,7 @@ class YOLOv8Seg:
 
     @staticmethod
     def crop_mask(masks, boxes):
-        """
-        Takes a mask and a bounding box, and returns a mask that is cropped to the bounding box, from
+        """Takes a mask and a bounding box, and returns a mask that is cropped to the bounding box, from
         https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
@@ -198,16 +192,16 @@ class YOLOv8Seg:
         Returns:
             (Numpy.ndarray): The masks are being cropped to the bounding box.
         """
-        n, h, w = masks.shape
+        _n, h, w = masks.shape
         x1, y1, x2, y2 = np.split(boxes[:, :, None], 4, 1)
         r = np.arange(w, dtype=x1.dtype)[None, None, :]
         c = np.arange(h, dtype=x1.dtype)[None, :, None]
         return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
 
     def process_mask(self, protos, masks_in, bboxes, im0_shape):
-        """
-        Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher
-        quality but is slower, from https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
+        """Takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher
+        quality but is slower,
+        from https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
             protos (numpy.ndarray): [mask_dim, mask_h, mask_w].
@@ -228,8 +222,7 @@ class YOLOv8Seg:
 
     @staticmethod
     def scale_mask(masks, im0_shape, ratio_pad=None):
-        """
-        Takes a mask, and resizes it to the original image size, from
+        """Takes a mask, and resizes it to the original image size, from
         https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/ops.py.
 
         Args:
@@ -248,8 +241,8 @@ class YOLOv8Seg:
             pad = ratio_pad[1]
 
         # Calculate tlbr of mask
-        top, left = int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))  # y, x
-        bottom, right = int(round(im1_shape[0] - pad[1] + 0.1)), int(round(im1_shape[1] - pad[0] + 0.1))
+        top, left = round(pad[1] - 0.1), round(pad[0] - 0.1)  # y, x
+        bottom, right = round(im1_shape[0] - pad[1] + 0.1), round(im1_shape[1] - pad[0] + 0.1)
         if len(masks.shape) < 2:
             raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
         masks = masks[top:bottom, left:right]
@@ -261,8 +254,7 @@ class YOLOv8Seg:
         return masks
 
     def draw_and_visualize(self, im, bboxes, segments, vis=False, save=True):
-        """
-        Draw and visualize results.
+        """Draw and visualize results.
 
         Args:
             im (np.ndarray): original image, shape [h, w, c].

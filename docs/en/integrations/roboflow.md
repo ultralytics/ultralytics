@@ -29,7 +29,7 @@ In this guide, we are going to showcase how to find, label, and organize data fo
 
 Roboflow provides two services that can help you collect data for YOLO11 models: [Universe](https://universe.roboflow.com/?ref=ultralytics) and [Collect](https://github.com/roboflow/roboflow-collect?ref=ultralytics).
 
-Universe is an online repository with over 250,000 vision datasets totalling over 100 million images.
+Universe is an online repository with over 250,000 vision datasets totaling over 100 million images.
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe.avif" alt="Roboflow Universe" width="800">

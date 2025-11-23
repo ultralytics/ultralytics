@@ -36,7 +36,6 @@ Before you start to follow this guide:
 
 - Visit our documentation, [Quick Start Guide: NVIDIA Jetson with Ultralytics YOLO11](nvidia-jetson.md) to set up your NVIDIA Jetson device with Ultralytics YOLO11
 - Install [DeepStream SDK](https://developer.nvidia.com/deepstream-getting-started) according to the JetPack version
-
     - For JetPack 4.6.4, install [DeepStream 6.0.1](https://docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
     - For JetPack 5.1.3, install [DeepStream 6.3](https://docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
     - For JetPack 6.1, install [DeepStream 7.1](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Installation.html)
@@ -245,8 +244,8 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 5.  Run the following to select 1000 random images from COCO dataset to run calibration
 
     ```bash
-    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
-        cp ${jpg} calibration/; \
+    for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do
+      cp ${jpg} calibration/
     done
     ```
 
@@ -386,7 +385,7 @@ The following benchmarks summarizes how YOLO11 models perform at different Tenso
         | TensorRT (FP16) | ✅      | 39.06                   |
         | TensorRT (INT8) | ✅      | 22.83                   |
 
-## Acknowledgements
+## Acknowledgments
 
 This guide was initially created by our friends at Seeed Studio, Lakshantha and Elaine.
 

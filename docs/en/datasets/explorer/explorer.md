@@ -116,7 +116,6 @@ Image.fromarray(plt)
 ```python
 # plot
 from PIL import Image
-
 from ultralytics.data.explorer import plot_query_result
 
 plt = plot_query_result(exp.ask_ai("show me 10 images containing exactly 2 persons"))
@@ -193,7 +192,7 @@ pa_table = table.to_arrow()
 
 ### Work with Embeddings
 
-You can access the raw embedding from lancedb Table and analyse it. The image embeddings are stored in column `vector`
+You can access the raw embedding from lancedb Table and analyze it. The image embeddings are stored in column `vector`
 
 ```python
 import numpy as np
@@ -204,7 +203,7 @@ embeddings = np.array(embeddings)
 
 ### Scatterplot
 
-One of the preliminary steps in analysing embeddings is by plotting them in 2D space via dimensionality reduction. Let's try an example
+One of the preliminary steps in analyzing embeddings is by plotting them in 2D space via dimensionality reduction. Let's try an example
 
 ![Scatterplot Example](https://github.com/ultralytics/docs/releases/download/0/scatterplot-sql-queries.avif)
 

@@ -113,8 +113,7 @@ def _fetch_trainer_metadata(trainer):
 
 
 def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, original_image_shape, ratio_pad):
-    """
-    YOLO resizes images during training and the label values are normalized based on this resized shape.
+    """YOLO resizes images during training and the label values are normalized based on this resized shape.
 
     This function rescales the bounding box labels to the original image shape.
     """
@@ -214,7 +213,7 @@ def _create_prediction_metadata_map(model_predictions):
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
     """Log the confusion matrix to Comet experiment."""
     conf_mat = trainer.validator.confusion_matrix.matrix
-    names = list(trainer.data["names"].values()) + ["background"]
+    names = [*list(trainer.data["names"].values()), "background"]
     experiment.log_confusion_matrix(
         matrix=conf_mat, labels=names, max_categories=len(names), epoch=curr_epoch, step=curr_step
     )

@@ -166,16 +166,16 @@ def verify_image_label(args):
 
 
 def visualize_image_annotations(image_path, txt_path, label_map):
-    """
-    Visualizes YOLO annotations (bounding boxes and class labels) on an image.
+    """Visualizes YOLO annotations (bounding boxes and class labels) on an image.
 
-    This function reads an image and its corresponding annotation file in YOLO format, then
-    draws bounding boxes around detected objects and labels them with their respective class names.
-    The bounding box colors are assigned based on the class ID, and the text color is dynamically
-    adjusted for readability, depending on the background color's luminance.
+    This function reads an image and its corresponding annotation file in YOLO format, then draws bounding boxes around
+    detected objects and labels them with their respective class names. The bounding box colors are assigned based on
+    the class ID, and the text color is dynamically adjusted for readability, depending on the background color's
+    luminance.
 
     Args:
-        image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL (e.g., .jpg, .png).
+        image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL (e.g., .jpg,
+            .png).
         txt_path (str): The path to the annotation file in YOLO format, that should contain one line per object with:
                         - class_id (int): The class index.
                         - x_center (float): The X center of the bounding box (relative to image width).
@@ -184,7 +184,7 @@ def visualize_image_annotations(image_path, txt_path, label_map):
                         - height (float): The height of the bounding box (relative to image height).
         label_map (dict): A dictionary that maps class IDs (integers) to class labels (strings).
 
-    Example:
+    Examples:
         >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
         >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
     """
@@ -203,7 +203,7 @@ def visualize_image_annotations(image_path, txt_path, label_map):
             w = width * img_width
             h = height * img_height
             annotations.append((x, y, w, h, int(class_id)))
-    fig, ax = plt.subplots(1)  # Plot the image and annotations
+    _fig, ax = plt.subplots(1)  # Plot the image and annotations
     for x, y, w, h, label in annotations:
         color = tuple(c / 255 for c in colors(label, True))  # Get and normalize the RGB color
         rect = plt.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor="none")  # Create a rectangle
@@ -215,13 +215,12 @@ def visualize_image_annotations(image_path, txt_path, label_map):
 
 
 def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
-    """
-    Convert a list of polygons to a binary mask of the specified image size.
+    """Convert a list of polygons to a binary mask of the specified image size.
 
     Args:
         imgsz (tuple): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
-                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where N is the
+            number of polygons, and M is the number of points such that M % 2 = 0.
         color (int, optional): The color value to fill in the polygons on the mask. Defaults to 1.
         downsample_ratio (int, optional): Factor by which to downsample the mask. Defaults to 1.
 
@@ -238,13 +237,12 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
 
 
 def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
-    """
-    Convert a list of polygons to a set of binary masks of the specified image size.
+    """Convert a list of polygons to a set of binary masks of the specified image size.
 
     Args:
         imgsz (tuple): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where
-                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape [N, M], where N is the
+            number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask. Defaults to 1.
 
@@ -277,8 +275,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
 
 
 def find_dataset_yaml(path: Path) -> Path:
-    """
-    Find and return the YAML file associated with a Detect, Segment or Pose dataset.
+    """Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
     performs a recursive search. It prefers YAML files that have the same stem as the provided path. An AssertionError
@@ -299,8 +296,7 @@ def find_dataset_yaml(path: Path) -> Path:
 
 
 def check_det_dataset(dataset, autodownload=True):
-    """
-    Download, verify, and/or unzip a dataset if not found locally.
+    """Download, verify, and/or unzip a dataset if not found locally.
 
     This function checks the availability of a specified dataset, and if not found, it has the option to download and
     unzip the dataset. It then reads and parses the accompanying YAML data, ensuring key requirements are met and also
@@ -368,7 +364,7 @@ def check_det_dataset(dataset, autodownload=True):
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
             name = clean_url(dataset)  # dataset name with URL auth stripped
-            m = f"\nDataset '{name}' images not found ⚠️, missing path '{[x for x in val if not x.exists()][0]}'"
+            m = f"\nDataset '{name}' images not found ⚠️, missing path '{next(x for x in val if not x.exists())}'"
             if s and autodownload:
                 LOGGER.warning(m)
             else:
@@ -392,11 +388,10 @@ def check_det_dataset(dataset, autodownload=True):
 
 
 def check_cls_dataset(dataset, split=""):
-    """
-    Checks a classification dataset such as Imagenet.
+    """Checks a classification dataset such as Imagenet.
 
-    This function accepts a `dataset` name and attempts to retrieve the corresponding dataset information.
-    If the dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
+    This function accepts a `dataset` name and attempts to retrieve the corresponding dataset information. If the
+    dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
 
     Args:
         dataset (str | Path): The name of the dataset.
@@ -470,15 +465,14 @@ def check_cls_dataset(dataset, split=""):
 
 
 class HUBDatasetStats:
-    """
-    A class for generating HUB dataset JSON and `-hub` dataset directory.
+    """A class for generating HUB dataset JSON and `-hub` dataset directory.
 
     Args:
         path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip). Default is 'coco8.yaml'.
         task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'. Default is 'detect'.
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
-    Example:
+    Examples:
         Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
             i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
         ```python
@@ -628,10 +622,9 @@ class HUBDatasetStats:
 
 
 def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
-    """
-    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the Python
-    Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will not be
-    resized.
+    """Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the
+    Python Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it
+    will not be resized.
 
     Args:
         f (str): The path to the input image file.
@@ -639,7 +632,7 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         max_dim (int, optional): The maximum dimension (width or height) of the output image. Default is 1920 pixels.
         quality (int, optional): The image compression quality as a percentage. Default is 50%.
 
-    Example:
+    Examples:
         ```python
         from pathlib import Path
         from ultralytics.data.utils import compress_one_image
@@ -665,15 +658,15 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
 
 
 def autosplit(path=DATASETS_DIR / "coco8/images", weights=(0.9, 0.1, 0.0), annotated_only=False):
-    """
-    Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
+    """Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt
+    files.
 
     Args:
         path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco8/images'.
         weights (list | tuple, optional): Train, validation, and test split fractions. Defaults to (0.9, 0.1, 0.0).
         annotated_only (bool, optional): If True, only images with an associated txt file are used. Defaults to False.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.data.utils import autosplit
 

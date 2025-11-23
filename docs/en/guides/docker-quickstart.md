@@ -175,9 +175,9 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 
         ```bash
         xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
-        -v /tmp/.X11-unix:/tmp/.X11-unix \
-        -v ~/.Xauthority:/root/.Xauthority \
-        -it --ipc=host $t
+          -v /tmp/.X11-unix:/tmp/.X11-unix \
+          -v ~/.Xauthority:/root/.Xauthority \
+          -it --ipc=host $t
         ```
 
         This command sets the `DISPLAY` environment variable to the host's display, mounts the X11 socket, and maps the `.Xauthority` file to the container. The `xhost +local:docker` command allows the Docker container to access the X11 server.
@@ -189,8 +189,8 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 
         ```bash
         xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
-        -v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY \
-        --net=host -it --ipc=host $t
+          -v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY \
+          --net=host -it --ipc=host $t
         ```
 
         This command sets the `DISPLAY` environment variable to the host's display, mounts the Wayland socket, and allows the Docker container to access the Wayland server.
@@ -257,17 +257,17 @@ To visualize YOLO prediction results with a GUI in a Docker container, you need 
 
 ```bash
 xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
--v /tmp/.X11-unix:/tmp/.X11-unix \
--v ~/.Xauthority:/root/.Xauthority \
--it --ipc=host ultralytics/ultralytics:latest
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v ~/.Xauthority:/root/.Xauthority \
+  -it --ipc=host ultralytics/ultralytics:latest
 ```
 
 For systems running Wayland, use:
 
 ```bash
 xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
--v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY \
---net=host -it --ipc=host ultralytics/ultralytics:latest
+  -v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY \
+  --net=host -it --ipc=host ultralytics/ultralytics:latest
 ```
 
 More information can be found in the [Run graphical user interface (GUI) applications in a Docker Container](#run-graphical-user-interface-gui-applications-in-a-docker-container) section.

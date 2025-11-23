@@ -1,14 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Tuple
 
 import torch
 import torch.nn.functional as F
 
 
 def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num):
-    """
-    Selects the closest conditioning frames to a given frame index.
+    """Selects the closest conditioning frames to a given frame index.
 
     Args:
         frame_idx (int): Current frame index.
@@ -124,8 +122,7 @@ def apply_rotary_enc(
 
 
 def window_partition(x, window_size):
-    """
-    Partitions input tensor into non-overlapping windows with padding if needed.
+    """Partitions input tensor into non-overlapping windows with padding if needed.
 
     Args:
         x (torch.Tensor): Input tensor with shape (B, H, W, C).
@@ -156,23 +153,22 @@ def window_partition(x, window_size):
 
 
 def window_unpartition(windows, window_size, pad_hw, hw):
-    """
-    Unpartitions windowed sequences into original sequences and removes padding.
+    """Unpartitions windowed sequences into original sequences and removes padding.
 
-    This function reverses the windowing process, reconstructing the original input from windowed segments
-    and removing any padding that was added during the windowing process.
+    This function reverses the windowing process, reconstructing the original input from windowed segments and removing
+    any padding that was added during the windowing process.
 
     Args:
         windows (torch.Tensor): Input tensor of windowed sequences with shape (B * num_windows, window_size,
-            window_size, C), where B is the batch size, num_windows is the number of windows, window_size is
-            the size of each window, and C is the number of channels.
+            window_size, C), where B is the batch size, num_windows is the number of windows, window_size is the size of
+            each window, and C is the number of channels.
         window_size (int): Size of each window.
         pad_hw (Tuple[int, int]): Padded height and width (Hp, Wp) of the input before windowing.
         hw (Tuple[int, int]): Original height and width (H, W) of the input before padding and windowing.
 
     Returns:
-        (torch.Tensor): Unpartitioned sequences with shape (B, H, W, C), where B is the batch size, H and W
-            are the original height and width, and C is the number of channels.
+        (torch.Tensor): Unpartitioned sequences with shape (B, H, W, C), where B is the batch size, H and W are the
+            original height and width, and C is the number of channels.
 
     Examples:
         >>> windows = torch.rand(32, 8, 8, 64)  # 32 windows of size 8x8 with 64 channels
@@ -194,18 +190,16 @@ def window_unpartition(windows, window_size, pad_hw, hw):
 
 
 def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor:
-    """
-    Extracts relative positional embeddings based on query and key sizes.
+    """Extracts relative positional embeddings based on query and key sizes.
 
     Args:
         q_size (int): Size of the query.
         k_size (int): Size of the key.
-        rel_pos (torch.Tensor): Relative position embeddings with shape (L, C), where L is the maximum relative
-            distance and C is the embedding dimension.
+        rel_pos (torch.Tensor): Relative position embeddings with shape (L, C), where L is the maximum relative distance
+            and C is the embedding dimension.
 
     Returns:
-        (torch.Tensor): Extracted positional embeddings according to relative positions, with shape (q_size,
-            k_size, C).
+        (torch.Tensor): Extracted positional embeddings according to relative positions, with shape (q_size, k_size, C).
 
     Examples:
         >>> q_size, k_size = 8, 16
@@ -240,11 +234,10 @@ def add_decomposed_rel_pos(
     q: torch.Tensor,
     rel_pos_h: torch.Tensor,
     rel_pos_w: torch.Tensor,
-    q_size: Tuple[int, int],
-    k_size: Tuple[int, int],
+    q_size: tuple[int, int],
+    k_size: tuple[int, int],
 ) -> torch.Tensor:
-    """
-    Adds decomposed Relative Positional Embeddings to the attention map.
+    """Adds decomposed Relative Positional Embeddings to the attention map.
 
     This function calculates and applies decomposed Relative Positional Embeddings as described in the MVITv2
     paper. It enhances the attention mechanism by incorporating spatial relationships between query and key
@@ -259,8 +252,8 @@ def add_decomposed_rel_pos(
         k_size (Tuple[int, int]): Spatial sequence size of key k as (k_h, k_w).
 
     Returns:
-        (torch.Tensor): Updated attention map with added relative positional embeddings, shape
-            (B, q_h * q_w, k_h * k_w).
+        (torch.Tensor): Updated attention map with added relative positional embeddings, shape (B, q_h * q_w, k_h *
+            k_w).
 
     Examples:
         >>> B, C, q_h, q_w, k_h, k_w = 1, 64, 8, 8, 8, 8

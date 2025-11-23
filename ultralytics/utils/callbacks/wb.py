@@ -16,8 +16,7 @@ except (ImportError, AssertionError):
 
 
 def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall", y_title="Precision"):
-    """
-    Create and log a custom metric visualization to wandb.plot.pr_curve.
+    """Create and log a custom metric visualization to wandb.plot.pr_curve.
 
     This function crafts a custom metric visualization that mimics the behavior of the default wandb precision-recall
     curve while allowing for enhanced customization. The visual metric is useful for monitoring model performance across
@@ -55,11 +54,10 @@ def _plot_curve(
     num_x=100,
     only_mean=False,
 ):
-    """
-    Log a metric curve visualization.
+    """Log a metric curve visualization.
 
-    This function generates a metric curve based on input data and logs the visualization to wandb.
-    The curve can represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
+    This function generates a metric curve based on input data and logs the visualization to wandb. The curve can
+    represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
 
     Args:
         x (np.ndarray): Data points for the x-axis with length N.
@@ -72,7 +70,7 @@ def _plot_curve(
         num_x (int, optional): Number of interpolated data points for visualization. Defaults to 100.
         only_mean (bool, optional): Flag to indicate if only the mean curve should be plotted. Defaults to True.
 
-    Note:
+    Notes:
         The function leverages the '_custom_table' function to generate the actual visualization.
     """
     import numpy as np

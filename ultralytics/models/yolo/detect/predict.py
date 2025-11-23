@@ -6,10 +6,9 @@ from ultralytics.utils import ops
 
 
 class DetectionPredictor(BasePredictor):
-    """
-    A class extending the BasePredictor class for prediction based on a detection model.
+    """A class extending the BasePredictor class for prediction based on a detection model.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.utils import ASSETS
         from ultralytics.models.yolo.detect import DetectionPredictor

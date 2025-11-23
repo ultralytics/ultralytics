@@ -1,3 +1,5 @@
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 // Giscus functionality
 function loadGiscus() {
   const giscusContainer = document.getElementById("giscus-container");
@@ -42,10 +44,7 @@ function loadGiscus() {
         // Instruct Giscus to change theme
         var frame = document.querySelector(".giscus-frame");
         if (frame) {
-          frame.contentWindow.postMessage(
-            { giscus: { setConfig: { theme } } },
-            "https://giscus.app",
-          );
+          frame.contentWindow.postMessage({ giscus: { setConfig: { theme } } }, "https://giscus.app");
         }
       }
     });

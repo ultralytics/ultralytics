@@ -10,13 +10,9 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class ClassificationPredictor(BasePredictor):
-    """
-    A class extending the BasePredictor class for prediction based on a classification model.
+    """A class extending the BasePredictor class for prediction based on a classification model.
 
-    Notes:
-        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
-
-    Example:
+    Examples:
         ```python
         from ultralytics.utils import ASSETS
         from ultralytics.models.yolo.classify import ClassificationPredictor
@@ -25,6 +21,9 @@ class ClassificationPredictor(BasePredictor):
         predictor = ClassificationPredictor(overrides=args)
         predictor.predict_cli()
         ```
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):

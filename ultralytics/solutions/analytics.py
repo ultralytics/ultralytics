@@ -12,11 +12,10 @@ from ultralytics.solutions.solutions import BaseSolution  # Import a parent clas
 
 
 class Analytics(BaseSolution):
-    """
-    A class for creating and updating various types of charts for visual analytics.
+    """A class for creating and updating various types of charts for visual analytics.
 
-    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts
-    based on object detection and tracking data.
+    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts based on
+    object detection and tracking data.
 
     Attributes:
         type (str): The type of analytics chart to generate ('line', 'bar', 'pie', or 'area').
@@ -84,8 +83,7 @@ class Analytics(BaseSolution):
                 self.ax.axis("equal")
 
     def process_data(self, im0, frame_number):
-        """
-        Processes image data and runs object tracking to update analytics charts.
+        """Processes image data and runs object tracking to update analytics charts.
 
         Args:
             im0 (np.ndarray): Input image for processing.
@@ -122,8 +120,7 @@ class Analytics(BaseSolution):
         return im0
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
-        """
-        Updates the graph with new data for single or multiple classes.
+        """Updates the graph with new data for single or multiple classes.
 
         Args:
             frame_number (int): The current frame number.
@@ -216,7 +213,7 @@ class Analytics(BaseSolution):
                 self.ax.clear()
 
                 # Create pie chart and create legend labels with percentages
-                wedges, autotexts = self.ax.pie(
+                wedges, _autotexts = self.ax.pie(
                     counts, labels=labels, startangle=start_angle, textprops={"color": self.fg_color}, autopct=None
                 )
                 legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]

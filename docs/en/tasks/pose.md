@@ -122,8 +122,8 @@ Validate trained YOLO11n-pose model [accuracy](https://www.ultralytics.com/gloss
     === "CLI"
 
         ```bash
-        yolo pose val model=yolo11n-pose.pt  # val official model
-        yolo pose val model=path/to/best.pt  # val custom model
+        yolo pose val model=yolo11n-pose.pt # val official model
+        yolo pose val model=path/to/best.pt # val custom model
         ```
 
 ## Predict
@@ -148,8 +148,8 @@ Use a trained YOLO11n-pose model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo pose predict model=yolo11n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
+        yolo pose predict model=yolo11n-pose.pt source='https://ultralytics.com/images/bus.jpg' # predict with official model
+        yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # predict with custom model
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
@@ -176,8 +176,8 @@ Export a YOLO11n Pose model to a different format like ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n-pose.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=yolo11n-pose.pt format=onnx # export official model
+        yolo export model=path/to/best.pt format=onnx # export custom trained model
         ```
 
 Available YOLO11-pose export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-pose.onnx`. Usage examples are shown for your model after export completes.

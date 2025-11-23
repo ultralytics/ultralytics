@@ -84,10 +84,10 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
 
         ```bash
         # Perform tracking with various models using the command line interface
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4"  # Official Detect model
+        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4"      # Official Detect model
         yolo track model=yolo11n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
-        yolo track model=yolo11n-pose.pt source="https://youtu.be/LNwODJXcvt4"  # Official Pose model
-        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4"  # Custom trained model
+        yolo track model=yolo11n-pose.pt source="https://youtu.be/LNwODJXcvt4" # Official Pose model
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # Custom trained model
 
         # Track using ByteTrack tracker
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
@@ -296,8 +296,7 @@ Finally, after all threads have completed their task, the windows displaying the
 
 
     def run_tracker_in_thread(model_name, filename):
-        """
-        Run YOLO tracker in its own thread for concurrent processing.
+        """Run YOLO tracker in its own thread for concurrent processing.
 
         Args:
             model_name (str): The YOLO11 model object.
@@ -386,8 +385,7 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
 
 
     def run_tracker_in_thread(model_name, filename):
-        """
-        Run YOLO tracker in its own thread for concurrent processing.
+        """Run YOLO tracker in its own thread for concurrent processing.
 
         Args:
             model_name (str): The YOLO11 model object.

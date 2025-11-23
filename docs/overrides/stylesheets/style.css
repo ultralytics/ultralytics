@@ -1,3 +1,5 @@
+/* Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license */
+
 /* Table format like GitHub ----------------------------------------------------------------------------------------- */
 th,
 td {
@@ -136,10 +138,7 @@ div.highlight {
   background-color: rgb(222, 255, 56);
 }
 
-.banner-wrapper
-  > .banner-button-wrapper
-  > .banner-button-wrapper
-  > button:hover {
+.banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button:hover {
   background-color: rgba(222, 255, 56, 0.85);
 }
 

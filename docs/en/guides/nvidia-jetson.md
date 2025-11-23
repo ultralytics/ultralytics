@@ -273,7 +273,7 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format
-        yolo export model=yolo11n.pt format=engine  # creates 'yolo11n.engine'
+        yolo export model=yolo11n.pt format=engine # creates 'yolo11n.engine'
 
         # Run inference with the exported model
         yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -318,7 +318,7 @@ The following Jetson devices are equipped with DLA hardware:
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
-        yolo export model=yolo11n.pt format=engine device="dla:0" half=True  # dla:0 or dla:1 corresponds to the DLA cores
+        yolo export model=yolo11n.pt format=engine device="dla:0" half=True # dla:0 or dla:1 corresponds to the DLA cores
 
         # Run inference with the exported model on the DLA
         yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'

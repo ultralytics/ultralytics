@@ -10,8 +10,7 @@ from ultralytics.utils.checks import check_imshow, check_requirements
 
 
 class BaseSolution:
-    """
-    A base class for managing Ultralytics Solutions.
+    """A base class for managing Ultralytics Solutions.
 
     This class provides core functionality for various Ultralytics Solutions, including model loading, object tracking,
     and region initialization.
@@ -43,8 +42,8 @@ class BaseSolution:
     """
 
     def __init__(self, IS_CLI=False, **kwargs):
-        """
-        Initializes the `BaseSolution` class with configuration settings and the YOLO model for Ultralytics solutions.
+        """Initializes the `BaseSolution` class with configuration settings and the YOLO model for Ultralytics
+        solutions.
 
         IS_CLI (optional): Enables CLI mode if set.
         """
@@ -99,8 +98,7 @@ class BaseSolution:
         self.track_history = defaultdict(list)
 
     def extract_tracks(self, im0):
-        """
-        Applies object tracking and extracts tracks from an input image or frame.
+        """Applies object tracking and extracts tracks from an input image or frame.
 
         Args:
             im0 (ndarray): The input image or frame.
@@ -124,8 +122,7 @@ class BaseSolution:
             self.boxes, self.clss, self.track_ids = [], [], []
 
     def store_tracking_history(self, track_id, box):
-        """
-        Stores the tracking history of an object.
+        """Stores the tracking history of an object.
 
         This method updates the tracking history for a given object by appending the center point of its
         bounding box to the track line. It maintains a maximum of 30 points in the tracking history.
@@ -153,8 +150,8 @@ class BaseSolution:
         )  # region or line
 
     def display_output(self, im0):
-        """
-        Display the results of the processing, which could involve showing frames, printing counts, or saving results.
+        """Display the results of the processing, which could involve showing frames, printing counts, or saving
+        results.
 
         This method is responsible for visualizing the output of the object detection and tracking process. It displays
         the processed frame with annotations, and allows for user interaction to close the display.

@@ -5,8 +5,7 @@ from ultralytics.utils.plotting import Annotator
 
 
 class AIGym(BaseSolution):
-    """
-    A class to manage gym steps of people in a real-time video stream based on their poses.
+    """A class to manage gym steps of people in a real-time video stream based on their poses.
 
     This class extends BaseSolution to monitor workouts using YOLO pose estimation models. It tracks and counts
     repetitions of exercises based on predefined angle thresholds for up and down positions.
@@ -52,8 +51,7 @@ class AIGym(BaseSolution):
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
 
     def monitor(self, im0):
-        """
-        Monitors workouts using Ultralytics YOLO Pose Model.
+        """Monitors workouts using Ultralytics YOLO Pose Model.
 
         This function processes an input image to track and analyze human poses for workout monitoring. It uses
         the YOLO Pose model to detect keypoints, estimate angles, and count repetitions based on predefined

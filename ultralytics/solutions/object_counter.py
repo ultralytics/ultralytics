@@ -5,8 +5,7 @@ from ultralytics.utils.plotting import Annotator, colors
 
 
 class ObjectCounter(BaseSolution):
-    """
-    A class to manage the counting of objects in a real-time video stream based on their tracks.
+    """A class to manage the counting of objects in a real-time video stream based on their tracks.
 
     This class extends the BaseSolution class and provides functionality for counting objects moving in and out of a
     specified region in a video stream. It supports both polygonal and linear regions for counting.
@@ -47,8 +46,7 @@ class ObjectCounter(BaseSolution):
         self.show_out = self.CFG["show_out"]
 
     def count_objects(self, current_centroid, track_id, prev_position, cls):
-        """
-        Counts objects within a polygonal or linear region based on their tracks.
+        """Counts objects within a polygonal or linear region based on their tracks.
 
         Args:
             current_centroid (Tuple[float, float]): Current centroid values in the current frame.
@@ -96,11 +94,8 @@ class ObjectCounter(BaseSolution):
                 region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
                 region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
 
-                if (
-                    region_width < region_height
-                    and current_centroid[0] > prev_position[0]
-                    or region_width >= region_height
-                    and current_centroid[1] > prev_position[1]
+                if (region_width < region_height and current_centroid[0] > prev_position[0]) or (
+                    region_width >= region_height and current_centroid[1] > prev_position[1]
                 ):  # Moving right
                     self.in_count += 1
                     self.classwise_counts[self.names[cls]]["IN"] += 1
@@ -110,8 +105,7 @@ class ObjectCounter(BaseSolution):
                 self.counted_ids.append(track_id)
 
     def store_classwise_counts(self, cls):
-        """
-        Initialize class-wise counts for a specific object class if not already present.
+        """Initialize class-wise counts for a specific object class if not already present.
 
         Args:
             cls (int): Class index for classwise count updates.
@@ -129,8 +123,7 @@ class ObjectCounter(BaseSolution):
             self.classwise_counts[self.names[cls]] = {"IN": 0, "OUT": 0}
 
     def display_counts(self, im0):
-        """
-        Displays object counts on the input image or frame.
+        """Displays object counts on the input image or frame.
 
         Args:
             im0 (numpy.ndarray): The input image or frame to display counts on.
@@ -151,8 +144,7 @@ class ObjectCounter(BaseSolution):
             self.annotator.display_analytics(im0, labels_dict, (104, 31, 17), (255, 255, 255), 10)
 
     def count(self, im0):
-        """
-        Processes input data (frames or object tracks) and updates object counts.
+        """Processes input data (frames or object tracks) and updates object counts.
 
         This method initializes the counting region, extracts tracks, draws bounding boxes and regions, updates
         object counts, and displays the results on the input image.

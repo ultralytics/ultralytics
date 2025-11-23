@@ -101,7 +101,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format
-        yolo export model=yolo11n.pt format=engine  # creates 'yolo11n.engine''
+        yolo export model=yolo11n.pt format=engine # creates 'yolo11n.engine''
 
         # Run inference with the exported model
         yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -124,7 +124,6 @@ When processing implicitly quantized networks TensorRT uses INT8 opportunistical
 The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) NVIDIA discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/). The calibration algorithm used is `"ENTROPY_CALIBRATION_2"` and you can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#enable_int8_c). Ultralytics tests found that `"ENTROPY_CALIBRATION_2"` was the best choice and exports are fixed to using this algorithm.
 
 - `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
-
     - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and [accuracy](https://www.ultralytics.com/glossary/accuracy). Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
 
     - Default is `workspace=None`, which will allow for TensorRT to automatically allocate memory, when configuring manually, this value may need to be increased if calibration crashes (exits without warning).
@@ -177,7 +176,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format with INT8 quantization
-        yolo export model=yolo11n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml  # creates 'yolov8n.engine''
+        yolo export model=yolo11n.pt format=engine batch=8 workspace=4 int8=True data=coco.yaml # creates 'yolov8n.engine''
 
         # Run inference with the exported TensorRT quantized model
         yolo predict model=yolov8n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -185,7 +184,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 ???+ warning "Calibration Cache"
 
-    TensorRT will generate a calibration `.cache` which can be re-used to speed up export of future model weights using the same data, but this may result in poor calibration when the data is vastly different or if the `batch` value is changed drastically. In these circumstances, the existing `.cache` should be renamed and moved to a different directory or deleted entirely.
+    TensorRT will generate a calibration `.cache` which can be reused to speed up export of future model weights using the same data, but this may result in poor calibration when the data is vastly different or if the `batch` value is changed drastically. In these circumstances, the existing `.cache` should be renamed and moved to a different directory or deleted entirely.
 
 #### Advantages of using YOLO with TensorRT INT8
 
@@ -530,7 +529,6 @@ These guides will help you integrate YOLOv8 models efficiently in various deploy
 Performance improvements with TensorRT can vary based on the hardware used. Here are some typical benchmarks:
 
 - **NVIDIA A100**:
-
     - **FP32** Inference: ~0.52 ms / image
     - **FP16** Inference: ~0.34 ms / image
     - **INT8** Inference: ~0.28 ms / image

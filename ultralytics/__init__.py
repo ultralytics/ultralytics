@@ -15,14 +15,14 @@ from ultralytics.utils.downloads import download
 
 settings = SETTINGS
 __all__ = (
-    "__version__",
     "ASSETS",
-    "YOLO",
-    "YOLOWorld",
     "NAS",
-    "SAM",
-    "FastSAM",
     "RTDETR",
+    "SAM",
+    "YOLO",
+    "FastSAM",
+    "YOLOWorld",
+    "__version__",
     "checks",
     "download",
     "settings",

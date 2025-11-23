@@ -57,8 +57,7 @@ def benchmark(
     verbose=False,
     eps=1e-3,
 ):
-    """
-    Benchmark a YOLO model across different formats for speed and accuracy.
+    """Benchmark a YOLO model across different formats for speed and accuracy.
 
     Args:
         model (str | Path): Path to the model file or directory.
@@ -71,8 +70,8 @@ def benchmark(
         eps (float): Epsilon value for divide by zero prevention.
 
     Returns:
-        (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
-            and inference time.
+        (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric, and
+            inference time.
 
     Examples:
         Benchmark a YOLO model with default settings:
@@ -188,8 +187,7 @@ class RF100Benchmark:
         self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
 
     def set_key(self, api_key):
-        """
-        Set Roboflow API key for processing.
+        """Set Roboflow API key for processing.
 
         Args:
             api_key (str): The API key.
@@ -205,8 +203,7 @@ class RF100Benchmark:
         self.rf = Roboflow(api_key=api_key)
 
     def parse_dataset(self, ds_link_txt="datasets_links.txt"):
-        """
-        Parse dataset links and download datasets.
+        """Parse dataset links and download datasets.
 
         Args:
             ds_link_txt (str): Path to the file containing dataset links.
@@ -224,7 +221,7 @@ class RF100Benchmark:
         with open(ds_link_txt) as file:
             for line in file:
                 try:
-                    _, url, workspace, project, version = re.split("/+", line.strip())
+                    _, _url, workspace, project, version = re.split("/+", line.strip())
                     self.ds_names.append(project)
                     proj_version = f"{project}-{version}"
                     if not Path(proj_version).exists():
@@ -239,8 +236,7 @@ class RF100Benchmark:
 
     @staticmethod
     def fix_yaml(path):
-        """
-        Fixes the train and validation paths in a given YAML file.
+        """Fixes the train and validation paths in a given YAML file.
 
         Args:
             path (str): Path to the YAML file to be fixed.
@@ -256,8 +252,7 @@ class RF100Benchmark:
             yaml.safe_dump(yaml_data, file)
 
     def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
-        """
-        Evaluate model performance on validation results.
+        """Evaluate model performance on validation results.
 
         Args:
             yaml_path (str): Path to the YAML configuration file.
@@ -306,15 +301,14 @@ class RF100Benchmark:
                     map_val = lst["map50"]
         else:
             print("There's only one dict res")
-            map_val = [res["map50"] for res in eval_lines][0]
+            map_val = next(res["map50"] for res in eval_lines)
 
         with open(eval_log_file, "a") as f:
             f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
 
 
 class ProfileModels:
-    """
-    ProfileModels class for profiling different models on ONNX and TensorRT.
+    """ProfileModels class for profiling different models on ONNX and TensorRT.
 
     This class profiles the performance of different models, returning results such as model speed and FLOPs.
 
@@ -349,8 +343,7 @@ class ProfileModels:
         trt=True,
         device=None,
     ):
-        """
-        Initialize the ProfileModels class for profiling models.
+        """Initialize the ProfileModels class for profiling models.
 
         Args:
             paths (List[str]): List of paths of the models to be profiled.
@@ -362,14 +355,14 @@ class ProfileModels:
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | None): Device used for profiling. If None, it is determined automatically.
 
-        Notes:
-            FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
-
         Examples:
             Initialize and profile models
             >>> from ultralytics.utils.benchmarks import ProfileModels
             >>> profiler = ProfileModels(["yolov8n.yaml", "yolov8s.yaml"], imgsz=640)
             >>> profiler.profile()
+
+        Notes:
+            FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
@@ -543,7 +536,7 @@ class ProfileModels:
 
     def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
         """Generates a table row string with model performance metrics including inference times and model details."""
-        layers, params, gradients, flops = model_info
+        _layers, params, _gradients, flops = model_info
         return (
             f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms | {t_engine[0]:.1f}±"
             f"{t_engine[1]:.1f} ms | {params / 1e6:.1f} | {flops:.1f} |"
@@ -552,7 +545,7 @@ class ProfileModels:
     @staticmethod
     def generate_results_dict(model_name, t_onnx, t_engine, model_info):
         """Generates a dictionary of profiling results including model name, parameters, GFLOPs, and speed metrics."""
-        layers, params, gradients, flops = model_info
+        _layers, params, _gradients, flops = model_info
         return {
             "model/name": model_name,
             "model/parameters": params,

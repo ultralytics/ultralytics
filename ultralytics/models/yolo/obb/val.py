@@ -156,6 +156,8 @@ class OBBValidator(DetectionValidator):
             >>> preds = [{"bboxes": torch.rand(10, 5), "cls": torch.zeros(10), "conf": torch.rand(10)}]
             >>> validator.plot_predictions(batch, preds, 0)
         """
+        if not preds:
+            return
         for i, pred in enumerate(preds):
             pred["batch_idx"] = torch.ones_like(pred["conf"]) * i
         keys = preds[0].keys()

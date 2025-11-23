@@ -30,6 +30,22 @@ td {
 }
 /* Table format like GitHub ----------------------------------------------------------------------------------------- */
 
+/* Ensure in-page anchors account for sticky header/nav height to fix Zensical bug of clicked header behind nav bar*/
+:root {
+  --anchor-offset: 140px;
+}
+html {
+  scroll-padding-top: var(--anchor-offset);
+}
+.md-typeset :is(h1, h2, h3, h4, h5, h6)[id] {
+  scroll-margin-top: var(--anchor-offset);
+}
+@media (max-width: 768px) {
+  :root {
+    --anchor-offset: 110px;
+  }
+}
+
 /* Code block vertical scroll */
 div.highlight {
   max-height: 20rem;
@@ -201,31 +217,16 @@ div.highlight {
 }
 /* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */
 
-/* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */
-.ult-header-search {
-  transform: scale(0.7);
-  transform-origin: left center;
-  margin-right: 0.5rem;
+/* Logo switching for light/dark mode ------------------------------------------------------------------------------- */
+[data-md-color-scheme="default"] .md-header__button.md-logo img {
+  content: url("https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/68e4eb1e9893320b26cc02c3_Ultralytics%20Logo.png.svg");
 }
-.ult-search-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--md-default-bg-color);
-  border: 1px solid var(--md-default-fg-color--lighter);
-  border-radius: 0.5rem;
-  color: var(--md-default-fg-color);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+[data-md-color-scheme="slate"] .md-header__button.md-logo img {
+  content: url("https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Reverse.svg");
 }
-.ult-search-button:hover {
-  transform: scale(1.1);
-  filter: brightness(1.2);
-  border-color: var(--md-accent-fg-color);
+/* Logo switching for light/dark mode ------------------------------------------------------------------------------- */
+
+/* Remove underlines from links */
+.md-typeset a {
+  text-decoration: none !important;
 }
-.ult-search-button svg {
-  flex-shrink: 0;
-}
-/* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */

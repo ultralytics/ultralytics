@@ -109,6 +109,20 @@ div.highlight {
   font-size: 0.75rem;
   line-height: 1.3;
 }
+
+/* Dark mode adjustments for search button */
+[data-md-color-scheme="slate"] .ult-search-button {
+  background: #1e2129;
+  border-color: #3e424e;
+}
+[data-md-color-scheme="slate"] .ult-search-button:hover {
+  border-color: #5c6170;
+  background: #262a34;
+}
+[data-md-color-scheme="slate"] .ult-search-button:focus-visible {
+  background: #262a34;
+  border-color: #5c6170;
+}
 /* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */
 
 /* Banner ----------------------------------------------------------------------------------------------------------- */

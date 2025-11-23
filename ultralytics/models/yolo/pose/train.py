@@ -8,7 +8,7 @@ from typing import Any
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER
+from ultralytics.utils import DEFAULT_CFG
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
@@ -53,12 +53,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
             overrides = {}
         overrides["task"] = "pose"
         super().__init__(cfg, overrides, _callbacks)
-
-        if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
-            LOGGER.warning(
-                "Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
-                "See https://github.com/ultralytics/ultralytics/issues/4031."
-            )
 
     def get_model(
         self,

@@ -290,7 +290,7 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
     if "reference" in rel_path:
         for ellipsis in soup.select("nav.md-nav--secondary .md-ellipsis"):
             kind = ellipsis.find(class_=lambda c: c and "doc-kind" in c.split())
-            text = (str(kind.next_sibling).strip() if kind and kind.next_sibling else ellipsis.get_text(strip=True))
+            text = str(kind.next_sibling).strip() if kind and kind.next_sibling else ellipsis.get_text(strip=True)
             if "." not in text:
                 continue
             ellipsis.clear()

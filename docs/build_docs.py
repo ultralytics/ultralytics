@@ -139,10 +139,11 @@ def update_docs_html():
     desc = f"Updating HTML at {SITE}"
     max_workers = os.cpu_count() or 1
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        results = TQDM(executor.map(_process_html_file, html_files), total=len(html_files), desc=desc)
-        written = sum(bool(r) for r in results)
-
-    LOGGER.info(f"Docs HTML: {written}/{len(html_files)} updated in {SITE}")
+        pbar = TQDM(executor.map(_process_html_file, html_files), total=len(html_files), desc=desc)
+        updated = 0
+        for res in pbar:
+            updated += bool(res)
+            pbar.set_description(f"{desc} ({updated}/{len(html_files)} updated)")
 
 
 def _process_html_file(html_file: Path) -> bool:

@@ -63,6 +63,22 @@ div.highlight {
 }
 
 /* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */
+:root {
+  --ult-search-bg: #f5f6f8;
+  --ult-search-border: #dcdfe5;
+  --ult-search-hover-bg: #eef0f4;
+  --ult-search-hover-border: #cfd3db;
+  --ult-search-hotkey-bg: var(--md-default-fg-color--lightest);
+  --ult-search-hotkey-fg: var(--md-default-fg-color--lighter);
+}
+[data-md-color-scheme="slate"] {
+  --ult-search-bg: rgba(255, 255, 255, 0.04);
+  --ult-search-border: rgba(255, 255, 255, 0.12);
+  --ult-search-hover-bg: rgba(255, 255, 255, 0.08);
+  --ult-search-hover-border: rgba(255, 255, 255, 0.2);
+  --ult-search-hotkey-bg: rgba(255, 255, 255, 0.14);
+  --ult-search-hotkey-fg: rgba(255, 255, 255, 0.86);
+}
 .md-header label[for="__search"],
 .md-search {
   display: none !important;
@@ -77,8 +93,8 @@ div.highlight {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #f5f6f8;
-  border: 1px solid #dcdfe5;
+  background: var(--ult-search-bg);
+  border: 1px solid var(--ult-search-border);
   border-radius: 0.5rem;
   color: var(--md-default-fg-color);
   font-size: 1.1rem;
@@ -88,12 +104,13 @@ div.highlight {
 .ult-search-button:hover {
   transform: scale(1.1);
   filter: brightness(1.04);
-  border-color: #cfd3db;
+  border-color: var(--ult-search-hover-border);
+  background: var(--ult-search-hover-bg);
 }
 .ult-search-button:focus-visible {
   outline: none;
-  border-color: #cfd3db;
-  background: #eef0f4;
+  border-color: var(--ult-search-hover-border);
+  background: var(--ult-search-hover-bg);
 }
 .ult-search-button svg {
   flex-shrink: 0;
@@ -104,8 +121,8 @@ div.highlight {
   margin-left: 0.25rem;
   padding: 0.1rem 0.4rem;
   border-radius: 0.35rem;
-  background: var(--md-default-fg-color--lightest);
-  color: var(--md-default-fg-color--lighter);
+  background: var(--ult-search-hotkey-bg);
+  color: var(--ult-search-hotkey-fg);
   font-size: 0.75rem;
   line-height: 1.3;
 }

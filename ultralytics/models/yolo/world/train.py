@@ -20,12 +20,21 @@ def on_pretrain_routine_end(trainer):
         de_parallel(trainer.ema.ema).set_classes(names, cache_clip_model=False)
 
 
+<<<<<<< HEAD
 class WorldTrainer(DetectionTrainer):
     """
     A class to fine-tune a world model on a close-set dataset.
 
     This trainer extends the DetectionTrainer to support training YOLO World models, which combine
     visual and textual features for improved object detection and understanding.
+=======
+class WorldTrainer(yolo.detect.DetectionTrainer):
+    """A class to fine-tune a world model on a close-set dataset.
+
+    Examples:
+        ```python
+        from ultralytics.models.yolo.world import WorldModel
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         clip (module): The CLIP module for text-image understanding.
@@ -82,8 +91,12 @@ class WorldTrainer(DetectionTrainer):
         return model
 
     def build_dataset(self, img_path, mode="train", batch=None):
+<<<<<<< HEAD
         """
         Build YOLO Dataset for training or validation.
+=======
+        """Build YOLO Dataset.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             img_path (str): Path to the folder containing images.

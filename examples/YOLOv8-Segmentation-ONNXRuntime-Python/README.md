@@ -16,8 +16,14 @@ Install the required packages using pip. You will need [`ultralytics`](https://g
 ```bash
 pip install ultralytics
 pip install onnxruntime-gpu # For GPU support
+<<<<<<< HEAD
 # pip install onnxruntime # For CPU-only support
 pip install numpy opencv-python
+=======
+# pip install onnxruntime    # Use this instead if you don't have an NVIDIA GPU
+pip install numpy
+pip install opencv-python
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 ## 🚀 Getting Started

@@ -11,11 +11,17 @@ from .ops import HungarianMatcher
 
 
 class DETRLoss(nn.Module):
+<<<<<<< HEAD
     """
     DETR (DEtection TRansformer) Loss class for calculating various loss components.
 
     This class computes classification loss, bounding box loss, GIoU loss, and optionally auxiliary losses for the
     DETR object detection model.
+=======
+    """DETR (DEtection TRansformer) Loss class. This class calculates and returns the different loss components for the
+    DETR object detection model. It computes classification loss, bounding box loss, GIoU loss, and optionally
+    auxiliary losses.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         nc (int): Number of classes.
@@ -43,8 +49,7 @@ class DETRLoss(nn.Module):
         gamma=1.5,
         alpha=0.25,
     ):
-        """
-        Initialize DETR loss function with customizable components and gains.
+        """Initialize DETR loss function with customizable components and gains.
 
         Uses default loss_gain if not provided. Initializes HungarianMatcher with preset cost gains. Supports auxiliary
         losses and various loss types.
@@ -348,16 +353,15 @@ class DETRLoss(nn.Module):
         }
 
     def forward(self, pred_bboxes, pred_scores, batch, postfix="", **kwargs):
-        """
-        Calculate loss for predicted bounding boxes and scores.
+        """Calculate loss for predicted bounding boxes and scores.
 
         Args:
             pred_bboxes (torch.Tensor): Predicted bounding boxes, shape [l, b, query, 4].
             pred_scores (torch.Tensor): Predicted class scores, shape [l, b, query, num_classes].
             batch (dict): Batch information containing:
-                cls (torch.Tensor): Ground truth classes, shape [num_gts].
-                bboxes (torch.Tensor): Ground truth bounding boxes, shape [num_gts, 4].
-                gt_groups (List[int]): Number of ground truths for each image in the batch.
+            cls (torch.Tensor): Ground truth classes, shape [num_gts].
+            bboxes (torch.Tensor): Ground truth bounding boxes, shape [num_gts, 4].
+            gt_groups (List[int]): Number of ground truths for each image in the batch.
             postfix (str): Postfix for loss names.
             **kwargs (Any): Additional arguments, may include 'match_indices'.
 
@@ -387,16 +391,19 @@ class DETRLoss(nn.Module):
 
 
 class RTDETRDetectionLoss(DETRLoss):
-    """
-    Real-Time DeepTracker (RT-DETR) Detection Loss class that extends the DETRLoss.
+    """Real-Time DeepTracker (RT-DETR) Detection Loss class that extends the DETRLoss.
 
     This class computes the detection loss for the RT-DETR model, which includes the standard detection loss as well as
     an additional denoising training loss when provided with denoising metadata.
     """
 
     def forward(self, preds, batch, dn_bboxes=None, dn_scores=None, dn_meta=None):
+<<<<<<< HEAD
         """
         Forward pass to compute detection loss with optional denoising loss.
+=======
+        """Forward pass to compute the detection loss.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             preds (tuple): Tuple containing predicted bounding boxes and scores.
@@ -430,8 +437,12 @@ class RTDETRDetectionLoss(DETRLoss):
 
     @staticmethod
     def get_dn_match_indices(dn_pos_idx, dn_num_group, gt_groups):
+<<<<<<< HEAD
         """
         Get match indices for denoising.
+=======
+        """Get the match indices for denoising.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             dn_pos_idx (List[torch.Tensor]): List of tensors containing positive indices for denoising.

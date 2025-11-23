@@ -59,12 +59,18 @@ Once your instance state shows as 'running', select it from the EC2 dashboard. C
 Now that you're connected via SSH, you can set up and run YOLOv5. First, clone the official YOLOv5 repository from [GitHub](https://github.com/ultralytics/yolov5) and navigate into the directory. Then, install the required dependencies using `pip`. It's recommended to use a [Python](https://www.python.org/) 3.8 environment or later. The necessary models and datasets will be downloaded automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases) when you run commands like training or detection.
 
 ```bash
+<<<<<<< HEAD
 # Clone the YOLOv5 repository
 git clone https://github.com/ultralytics/yolov5
 cd yolov5
 
 # Install required packages
 pip install -r requirements.txt
+=======
+git clone https://github.com/ultralytics/yolov5 # clone repository
+cd yolov5
+pip install -r requirements.txt # install dependencies
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 With the environment ready, you can start using YOLOv5 for various tasks:
@@ -91,6 +97,7 @@ Refer to the Ultralytics documentation for detailed guides on [Training](https:/
 If you're working with very large datasets or encounter memory limitations during training, increasing the swap memory on your instance can sometimes help. Swap space allows the system to use disk space as virtual RAM.
 
 ```bash
+<<<<<<< HEAD
 # Allocate a 64GB swap file (adjust size as needed)
 sudo fallocate -l 64G /swapfile
 
@@ -105,6 +112,13 @@ sudo swapon /swapfile
 
 # Verify the swap memory is active
 free -h
+=======
+sudo fallocate -l 64G /swapfile # allocate 64GB swap file
+sudo chmod 600 /swapfile        # modify permissions
+sudo mkswap /swapfile           # set up a Linux swap area
+sudo swapon /swapfile           # activate swap file
+free -h                         # verify swap memory
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 Congratulations! 🎉 You have successfully set up an AWS Deep Learning instance, installed Ultralytics YOLOv5, and are ready to perform [object detection](https://www.ultralytics.com/glossary/object-detection) tasks. Whether you're experimenting with pre-trained models or [training](https://docs.ultralytics.com/modes/train/) on your own data, this powerful setup provides a scalable foundation for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects. Should you encounter any issues, consult the extensive [AWS documentation](https://docs.aws.amazon.com/) and the helpful Ultralytics community resources like the [FAQ](https://docs.ultralytics.com/help/FAQ/). Happy detecting!

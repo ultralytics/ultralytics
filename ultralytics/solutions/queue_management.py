@@ -5,11 +5,10 @@ from ultralytics.utils.plotting import colors
 
 
 class QueueManager(BaseSolution):
-    """
-    Manages queue counting in real-time video streams based on object tracks.
+    """Manages queue counting in real-time video streams based on object tracks.
 
-    This class extends BaseSolution to provide functionality for tracking and counting objects within a specified
-    region in video frames.
+    This class extends BaseSolution to provide functionality for tracking and counting objects within a specified region
+    in video frames.
 
     Attributes:
         counts (int): The current count of objects in the queue.
@@ -43,16 +42,37 @@ class QueueManager(BaseSolution):
         self.rect_color = (255, 255, 255)  # Rectangle color for visualization
         self.region_length = len(self.region)  # Store region length for further usage
 
+<<<<<<< HEAD
     def process(self, im0):
         """
         Process queue management for a single frame of video.
+=======
+    def process_queue(self, im0):
+        """Processes the queue management for a single frame of video.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             im0 (numpy.ndarray): Input image for processing, typically a frame from a video stream.
 
         Returns:
+<<<<<<< HEAD
             (SolutionResults): Contains processed image `im0`, 'queue_count' (int, number of objects in the queue) and
                 'total_tracks' (int, total number of tracked objects).
+=======
+            (numpy.ndarray): Processed image with annotations, bounding boxes, and queue counts.
+        This method performs the following steps:
+        1. Resets the queue count for the current frame.
+        2. Initializes an Annotator object for drawing on the image.
+        3. Extracts tracks from the image.
+        4. Draws the counting region on the image.
+        5. For each detected object:
+           - Draws bounding boxes and labels.
+           - Stores tracking history.
+           - Draws centroids and tracks.
+           - Checks if the object is inside the counting region and updates the count.
+        6. Displays the queue count on the image.
+        7. Displays the processed output.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Examples:
             >>> queue_manager = QueueManager()
@@ -80,8 +100,13 @@ class QueueManager(BaseSolution):
                 self.counts += 1
 
         # Display queue counts
+<<<<<<< HEAD
         annotator.queue_counts_display(
             f"Queue Counts : {str(self.counts)}",
+=======
+        self.annotator.queue_counts_display(
+            f"Queue Counts : {self.counts!s}",
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
             points=self.region,
             region_color=self.rect_color,
             txt_color=(104, 31, 17),

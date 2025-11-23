@@ -93,8 +93,7 @@ class YOLOWorld(Model):
     """YOLO-World object detection model."""
 
     def __init__(self, model="yolov8s-world.pt", verbose=False) -> None:
-        """
-        Initialize YOLOv8-World model with a pre-trained model file.
+        """Initialize YOLOv8-World model with a pre-trained model file.
 
         Loads a YOLOv8-World model for object detection. If no custom class names are provided, it assigns default
         COCO class names.
@@ -122,8 +121,12 @@ class YOLOWorld(Model):
         }
 
     def set_classes(self, classes):
+<<<<<<< HEAD
         """
         Set the model's class names for detection.
+=======
+        """Set classes.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             classes (list[str]): A list of categories i.e. ["person"].

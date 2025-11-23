@@ -9,15 +9,24 @@ from ultralytics.utils import ops
 
 
 class RTDETRPredictor(BasePredictor):
+<<<<<<< HEAD
     """
     RT-DETR (Real-Time Detection Transformer) Predictor extending the BasePredictor class for making predictions.
 
     This class leverages Vision Transformers to provide real-time object detection while maintaining high accuracy.
     It supports key features like efficient hybrid encoding and IoU-aware query selection.
+=======
+    """RT-DETR (Real-Time Detection Transformer) Predictor extending the BasePredictor class for making predictions
+    using Baidu's RT-DETR model.
+
+    This class leverages the power of Vision Transformers to provide real-time object detection while maintaining high
+    accuracy. It supports key features like efficient hybrid encoding and IoU-aware query selection.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         imgsz (int): Image size for inference (must be square and scale-filled).
         args (dict): Argument overrides for the predictor.
+<<<<<<< HEAD
         model (torch.nn.Module): The loaded RT-DETR model.
         batch (list): Current batch of processed inputs.
 
@@ -27,11 +36,22 @@ class RTDETRPredictor(BasePredictor):
         >>> args = dict(model="rtdetr-l.pt", source=ASSETS)
         >>> predictor = RTDETRPredictor(overrides=args)
         >>> predictor.predict_cli()
+=======
+
+    Examples:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.rtdetr import RTDETRPredictor
+
+        args = dict(model="rtdetr-l.pt", source=ASSETS)
+        predictor = RTDETRPredictor(overrides=args)
+        predictor.predict_cli()
+        ```
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
+        """Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
 
         The method filters detections based on confidence and class if specified in `self.args`. It converts
         model predictions to Results objects containing properly scaled bounding boxes.
@@ -70,9 +90,15 @@ class RTDETRPredictor(BasePredictor):
         return results
 
     def pre_transform(self, im):
+<<<<<<< HEAD
         """
         Pre-transforms the input images before feeding them into the model for inference. The input images are
         letterboxed to ensure a square aspect ratio and scale-filled. The size must be square(640) and scale_filled.
+=======
+        """Pre-transforms the input images before feeding them into the model for inference. The input images are
+        letterboxed to ensure a square aspect ratio and scale-filled. The size must be square(640)
+        and scaleFilled.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             im (list[np.ndarray] |torch.Tensor): Input images of shape (N,3,h,w) for tensor, [(h,w,3) x N] for list.

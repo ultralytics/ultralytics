@@ -151,6 +151,7 @@ The 3 exported models will be saved alongside the original PyTorch model:
 `detect.py` runs inference on exported models:
 
 ```bash
+<<<<<<< HEAD
 python detect.py --weights yolov5s.pt             # PyTorch
 python detect.py --weights yolov5s.torchscript    # TorchScript
 python detect.py --weights yolov5s.onnx           # ONNX Runtime or OpenCV DNN with dnn=True
@@ -162,11 +163,25 @@ python detect.py --weights yolov5s.pb             # TensorFlow GraphDef
 python detect.py --weights yolov5s.tflite         # TensorFlow Lite
 python detect.py --weights yolov5s_edgetpu.tflite # TensorFlow Edge TPU
 python detect.py --weights yolov5s_paddle_model   # PaddlePaddle
+=======
+python detect.py --weights yolov5s.pt # PyTorch
+yolov5s.torchscript                   # TorchScript
+yolov5s.onnx                          # ONNX Runtime or OpenCV DNN with dnn=True
+yolov5s_openvino_model                # OpenVINO
+yolov5s.engine                        # TensorRT
+yolov5s.mlmodel                       # CoreML (macOS only)
+yolov5s_saved_model                   # TensorFlow SavedModel
+yolov5s.pb                            # TensorFlow GraphDef
+yolov5s.tflite                        # TensorFlow Lite
+yolov5s_edgetpu.tflite                # TensorFlow Edge TPU
+yolov5s_paddle_model                  # PaddlePaddle
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 `val.py` runs validation on exported models:
 
 ```bash
+<<<<<<< HEAD
 python val.py --weights yolov5s.pt             # PyTorch
 python val.py --weights yolov5s.torchscript    # TorchScript
 python val.py --weights yolov5s.onnx           # ONNX Runtime or OpenCV DNN with dnn=True
@@ -178,6 +193,19 @@ python val.py --weights yolov5s.pb             # TensorFlow GraphDef
 python val.py --weights yolov5s.tflite         # TensorFlow Lite
 python val.py --weights yolov5s_edgetpu.tflite # TensorFlow Edge TPU
 python val.py --weights yolov5s_paddle_model   # PaddlePaddle
+=======
+python val.py --weights yolov5s.pt # PyTorch
+yolov5s.torchscript                # TorchScript
+yolov5s.onnx                       # ONNX Runtime or OpenCV DNN with dnn=True
+yolov5s_openvino_model             # OpenVINO
+yolov5s.engine                     # TensorRT
+yolov5s.mlmodel                    # CoreML (macOS Only)
+yolov5s_saved_model                # TensorFlow SavedModel
+yolov5s.pb                         # TensorFlow GraphDef
+yolov5s.tflite                     # TensorFlow Lite
+yolov5s_edgetpu.tflite             # TensorFlow Edge TPU
+yolov5s_paddle_model               # PaddlePaddle
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 Use PyTorch Hub with exported YOLOv5 models:

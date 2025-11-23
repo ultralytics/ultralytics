@@ -32,11 +32,15 @@ This guide demonstrates how to find, label, and organize data for training a cus
 
 ## Gather Data for Training a Custom YOLO11 Model
 
+<<<<<<< HEAD
 Roboflow offers two primary services to assist in data collection for Ultralytics [YOLO models](../models/index.md): Universe and Collect. For more general information on data collection strategies, refer to our [Data Collection and Annotation Guide](../guides/data-collection-and-annotation.md).
 
 ### Roboflow Universe
 
 Roboflow Universe is an online repository featuring a large number of vision [datasets](../datasets/index.md).
+=======
+Universe is an online repository with over 250,000 vision datasets totaling over 100 million images.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe.avif" alt="Roboflow Universe" width="800">

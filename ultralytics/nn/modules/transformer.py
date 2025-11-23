@@ -12,16 +12,16 @@ from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
 
 __all__ = (
-    "TransformerEncoderLayer",
-    "TransformerLayer",
-    "TransformerBlock",
-    "MLPBlock",
-    "LayerNorm2d",
     "AIFI",
+    "MLP",
     "DeformableTransformerDecoder",
     "DeformableTransformerDecoderLayer",
+    "LayerNorm2d",
+    "MLPBlock",
     "MSDeformAttn",
-    "MLP",
+    "TransformerBlock",
+    "TransformerEncoderLayer",
+    "TransformerLayer",
 )
 
 
@@ -340,7 +340,7 @@ class MLP(nn.Module):
         super().__init__()
         self.num_layers = num_layers
         h = [hidden_dim] * (num_layers - 1)
-        self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim]))
+        self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim, *h], [*h, output_dim]))
         self.sigmoid = sigmoid
         self.act = act()
 
@@ -360,9 +360,9 @@ class MLP(nn.Module):
 
 
 class LayerNorm2d(nn.Module):
-    """
-    2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
+    """2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
 
+<<<<<<< HEAD
     Original implementations in
     https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
     and
@@ -372,6 +372,10 @@ class LayerNorm2d(nn.Module):
         weight (nn.Parameter): Learnable scale parameter.
         bias (nn.Parameter): Learnable bias parameter.
         eps (float): Small constant for numerical stability.
+=======
+    Original implementations in https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
+    and https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
 
     def __init__(self, num_channels, eps=1e-6):
@@ -404,8 +408,7 @@ class LayerNorm2d(nn.Module):
 
 
 class MSDeformAttn(nn.Module):
-    """
-    Multiscale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
+    """Multiscale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
 
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
 
@@ -474,12 +477,12 @@ class MSDeformAttn(nn.Module):
         constant_(self.output_proj.bias.data, 0.0)
 
     def forward(self, query, refer_bbox, value, value_shapes, value_mask=None):
-        """
-        Perform forward pass for multiscale deformable attention.
+        """Perform forward pass for multiscale deformable attention.
 
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
 
         Args:
+<<<<<<< HEAD
             query (torch.Tensor): Tensor with shape [bs, query_length, C].
             refer_bbox (torch.Tensor): Tensor with shape [bs, query_length, n_levels, 2], range in [0, 1],
                 top-left (0,0), bottom-right (1, 1), including padding area.
@@ -487,6 +490,14 @@ class MSDeformAttn(nn.Module):
             value_shapes (list): List with shape [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})].
             value_mask (torch.Tensor, optional): Tensor with shape [bs, value_length], True for non-padding elements,
                 False for padding elements.
+=======
+            query (torch.Tensor): [bs, query_length, C]
+            refer_bbox (torch.Tensor): [bs, query_length, n_levels, 2], range in [0, 1], top-left (0,0), bottom-right
+                (1, 1), including padding area
+            value (torch.Tensor): [bs, value_length, C]
+            value_shapes (List): [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})]
+            value_mask (Tensor): [bs, value_length], True for non-padding elements, False for padding elements
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (torch.Tensor): Output tensor with shape [bs, Length_{query}, C].
@@ -518,8 +529,7 @@ class MSDeformAttn(nn.Module):
 
 
 class DeformableTransformerDecoderLayer(nn.Module):
-    """
-    Deformable Transformer Decoder Layer inspired by PaddleDetection and Deformable-DETR implementations.
+    """Deformable Transformer Decoder Layer inspired by PaddleDetection and Deformable-DETR implementations.
 
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/deformable_transformer.py
@@ -627,8 +637,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
 
 class DeformableTransformerDecoder(nn.Module):
-    """
-    Implementation of Deformable Transformer Decoder based on PaddleDetection.
+    """Implementation of Deformable Transformer Decoder based on PaddleDetection.
 
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
 

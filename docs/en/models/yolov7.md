@@ -105,7 +105,7 @@ Please note that the specific steps may vary depending on your specific use case
 
 We regret any inconvenience this may cause and will strive to update this document with usage examples for Ultralytics once support for YOLOv7 is implemented.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We would like to acknowledge the YOLOv7 authors for their significant contributions in the field of real-time object detection:
 

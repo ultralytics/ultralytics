@@ -82,9 +82,13 @@ sudo mkswap /swapfile
 
 # Enable the swap file
 sudo swapon /swapfile
+<<<<<<< HEAD
 
 # Verify the swap space allocation (should show increased swap memory)
 free -h
+=======
+free -h # confirm the memory increment
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 ## Training Custom Datasets

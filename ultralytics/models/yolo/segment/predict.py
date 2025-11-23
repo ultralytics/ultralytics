@@ -6,11 +6,17 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class SegmentationPredictor(DetectionPredictor):
-    """
-    A class extending the DetectionPredictor class for prediction based on a segmentation model.
+    """A class extending the DetectionPredictor class for prediction based on a segmentation model.
 
+<<<<<<< HEAD
     This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
     prediction results.
+=======
+    Examples:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.segment import SegmentationPredictor
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         args (dict): Configuration arguments for the predictor.

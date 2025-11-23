@@ -6,11 +6,17 @@ from ultralytics.utils import ops
 
 
 class DetectionPredictor(BasePredictor):
-    """
-    A class extending the BasePredictor class for prediction based on a detection model.
+    """A class extending the BasePredictor class for prediction based on a detection model.
 
+<<<<<<< HEAD
     This predictor specializes in object detection tasks, processing model outputs into meaningful detection results
     with bounding boxes and class predictions.
+=======
+    Examples:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.detect import DetectionPredictor
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         args (namespace): Configuration arguments for the predictor.

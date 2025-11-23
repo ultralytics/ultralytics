@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS, checks, colorstr
@@ -6,14 +7,18 @@ from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
 
 def run_ray_tune(
     model,
-    space: dict = None,
+    space: dict | None = None,
     grace_period: int = 10,
-    gpu_per_trial: int = None,
+    gpu_per_trial: int | None = None,
     max_samples: int = 10,
     **train_args,
 ):
+<<<<<<< HEAD
     """
     Run hyperparameter tuning using Ray Tune.
+=======
+    """Runs hyperparameter tuning using Ray Tune.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Args:
         model (YOLO): Model to run the tuner on.
@@ -27,8 +32,13 @@ def run_ray_tune(
         (dict): A dictionary containing the results of the hyperparameter search.
 
     Examples:
+<<<<<<< HEAD
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")  # Load a YOLO11n model
+=======
+        ```python
+        from ultralytics import YOLO
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Start tuning hyperparameters for YOLO11n training on the COCO8 dataset
         >>> result_grid = model.tune(data="coco8.yaml", use_ray=True)
@@ -88,7 +98,18 @@ def run_ray_tune(
     model_in_store = ray.put(model)
 
     def _tune(config):
+<<<<<<< HEAD
         """Train the YOLO model with the specified hyperparameters."""
+=======
+        """Trains the YOLO model with the specified hyperparameters and additional arguments.
+
+        Args:
+            config (dict): A dictionary of hyperparameters to use for training.
+
+        Returns:
+            None
+        """
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
         model_to_train.reset_callbacks()
         config.update(train_args)

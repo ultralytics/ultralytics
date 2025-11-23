@@ -38,7 +38,6 @@ Without further ado, let's dive in!
 | Watermelon  |      1976      |
 
 - Necessary Python packages include:
-
     - `ultralytics`
     - `sklearn`
     - `pandas`
@@ -47,12 +46,10 @@ Without further ado, let's dive in!
 - This tutorial operates with `k=5` folds. However, you should determine the best number of folds for your specific dataset.
 
 1. Initiate a new Python virtual environment (`venv`) for your project and activate it. Use `pip` (or your preferred package manager) to install:
-
     - The Ultralytics library: `pip install -U ultralytics`. Alternatively, you can clone the official [repo](https://github.com/ultralytics/ultralytics).
     - Scikit-learn, pandas, and PyYAML: `pip install -U scikit-learn pandas pyyaml`.
 
 2. Verify that your annotations are in the [YOLO detection format](../datasets/detect/index.md).
-
     - For this tutorial, all annotation files are found in the `Fruit-Detection/labels` directory.
 
 ## Generating Feature Vectors for Object Detection Dataset
@@ -130,7 +127,6 @@ The rows index the label files, each corresponding to an image in your dataset, 
 ## K-Fold Dataset Split
 
 1. Now we will use the `KFold` class from `sklearn.model_selection` to generate `k` splits of the dataset.
-
     - Important:
         - Setting `shuffle=True` ensures a randomized distribution of classes in your splits.
         - By setting `random_state=M` where `M` is a chosen integer, you can obtain repeatable results.
@@ -219,7 +215,6 @@ The rows index the label files, each corresponding to an image in your dataset, 
     ```
 
 5. Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.
-
     - **NOTE:** The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
 
     ```python

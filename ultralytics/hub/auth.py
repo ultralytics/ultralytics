@@ -9,8 +9,7 @@ API_KEY_URL = f"{HUB_WEB_ROOT}/settings?tab=api+keys"
 
 
 class Auth:
-    """
-    Manages authentication processes including API key handling, cookie-based authentication, and header generation.
+    """Manages authentication processes including API key handling, cookie-based authentication, and header generation.
 
     The class supports different methods of authentication:
     1. Directly using an API key.
@@ -25,9 +24,14 @@ class Auth:
 
     id_token = api_key = model_key = False
 
+<<<<<<< HEAD
     def __init__(self, api_key: str = "", verbose: bool = False):
         """
         Initialize Auth class and authenticate user.
+=======
+    def __init__(self, api_key="", verbose=False):
+        """Initialize Auth class and authenticate user.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Handles API key validation, Google Colab authentication, and new key requests. Updates SETTINGS upon successful
         authentication.
@@ -70,8 +74,16 @@ class Auth:
         elif verbose:
             LOGGER.info(f"{PREFIX}Get API key from {API_KEY_URL} and then run 'yolo login API_KEY'")
 
+<<<<<<< HEAD
     def request_api_key(self, max_attempts: int = 3) -> bool:
         """Prompt the user to input their API key."""
+=======
+    def request_api_key(self, max_attempts=3):
+        """Prompt the user to input their API key.
+
+        Returns the model ID.
+        """
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         import getpass
 
         for attempts in range(max_attempts):
@@ -83,8 +95,7 @@ class Auth:
         raise ConnectionError(emojis(f"{PREFIX}Failed to authenticate ❌"))
 
     def authenticate(self) -> bool:
-        """
-        Attempt to authenticate with the server using either id_token or API key.
+        """Attempt to authenticate with the server using either id_token or API key.
 
         Returns:
             (bool): True if authentication is successful, False otherwise.
@@ -102,10 +113,15 @@ class Auth:
             return False
 
     def auth_with_cookies(self) -> bool:
+<<<<<<< HEAD
         """
         Attempt to fetch authentication via cookies and set id_token.
 
         User must be logged in to HUB and running in a supported browser.
+=======
+        """Attempt to fetch authentication via cookies and set id_token. User must be logged in to HUB and running in a
+        supported browser.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (bool): True if authentication is successful, False otherwise.
@@ -124,8 +140,7 @@ class Auth:
             return False
 
     def get_auth_header(self):
-        """
-        Get the authentication header for making API requests.
+        """Get the authentication header for making API requests.
 
         Returns:
             (dict | None): The authentication header if id_token or API key is set, None otherwise.

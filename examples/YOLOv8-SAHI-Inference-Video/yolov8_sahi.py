@@ -48,6 +48,7 @@ class SAHIInference:
 
     def inference(
         self,
+<<<<<<< HEAD
         weights: str = "yolo11n.pt",
         source: str = "test.mp4",
         view_img: bool = False,
@@ -60,6 +61,15 @@ class SAHIInference:
     ) -> None:
         """
         Run object detection on a video using YOLO11 and SAHI.
+=======
+        weights="yolo11n.pt",
+        source="test.mp4",
+        view_img=False,
+        save_img=False,
+        exist_ok=False,
+    ):
+        """Run object detection on a video using YOLO11 and SAHI.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         The function processes each frame of the video, applies sliced inference using SAHI,
         and optionally displays and/or saves the results with bounding boxes and labels.

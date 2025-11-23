@@ -12,8 +12,7 @@ TORCH_1_10 = check_version(torch.__version__, "1.10.0")
 
 
 class TaskAlignedAssigner(nn.Module):
-    """
-    A task-aligned assigner for object detection.
+    """A task-aligned assigner for object detection.
 
     This class assigns ground-truth (gt) objects to anchors based on the task-aligned metric, which combines both
     classification and localization information.
@@ -37,8 +36,13 @@ class TaskAlignedAssigner(nn.Module):
 
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+<<<<<<< HEAD
         """
         Compute the task-aligned assignment.
+=======
+        """Compute the task-aligned assignment. Reference code is available at
+        https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             pd_scores (torch.Tensor): Predicted classification scores with shape (bs, num_total_anchors, num_classes).
@@ -81,8 +85,13 @@ class TaskAlignedAssigner(nn.Module):
             return tuple(t.to(device) for t in result)
 
     def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
+<<<<<<< HEAD
         """
         Compute the task-aligned assignment.
+=======
+        """Compute the task-aligned assignment. Reference code is available at
+        https://github.com/Nioolek/PPYOLOE_pytorch/blob/master/ppyoloe/assigner/tal_assigner.py.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             pd_scores (torch.Tensor): Predicted classification scores with shape (bs, num_total_anchors, num_classes).
@@ -191,6 +200,7 @@ class TaskAlignedAssigner(nn.Module):
         """
         return bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True).squeeze(-1).clamp_(0)
 
+<<<<<<< HEAD
     def select_topk_candidates(self, metrics, topk_mask=None):
         """
         Select the top-k candidates based on the given metrics.
@@ -202,6 +212,18 @@ class TaskAlignedAssigner(nn.Module):
             topk_mask (torch.Tensor): An optional boolean tensor of shape (b, max_num_obj, topk), where
                                 topk is the number of top candidates to consider. If not provided,
                                 the top-k values are automatically computed based on the given metrics.
+=======
+    def select_topk_candidates(self, metrics, largest=True, topk_mask=None):
+        """Select the top-k candidates based on the given metrics.
+
+        Args:
+            metrics (Tensor): A tensor of shape (b, max_num_obj, h*w), where b is the batch size, max_num_obj is the
+                maximum number of objects, and h*w represents the total number of anchor points.
+            largest (bool): If True, select the largest values; otherwise, select the smallest values.
+            topk_mask (Tensor): An optional boolean tensor of shape (b, max_num_obj, topk), where topk is the number of
+                top candidates to consider. If not provided, the top-k values are automatically computed based on the
+                given metrics.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (torch.Tensor): A tensor of shape (b, max_num_obj, h*w) containing the selected top-k candidates.
@@ -225,10 +247,10 @@ class TaskAlignedAssigner(nn.Module):
         return count_tensor.to(metrics.dtype)
 
     def get_targets(self, gt_labels, gt_bboxes, target_gt_idx, fg_mask):
-        """
-        Compute target labels, target bounding boxes, and target scores for the positive anchor points.
+        """Compute target labels, target bounding boxes, and target scores for the positive anchor points.
 
         Args:
+<<<<<<< HEAD
             gt_labels (torch.Tensor): Ground truth labels of shape (b, max_num_obj, 1), where b is the
                                 batch size and max_num_obj is the maximum number of objects.
             gt_bboxes (torch.Tensor): Ground truth bounding boxes of shape (b, max_num_obj, 4).
@@ -237,6 +259,14 @@ class TaskAlignedAssigner(nn.Module):
                                     number of anchor points.
             fg_mask (torch.Tensor): A boolean tensor of shape (b, h*w) indicating the positive
                               (foreground) anchor points.
+=======
+            gt_labels (Tensor): Ground truth labels of shape (b, max_num_obj, 1), where b is the batch size and
+                max_num_obj is the maximum number of objects.
+            gt_bboxes (Tensor): Ground truth bounding boxes of shape (b, max_num_obj, 4).
+            target_gt_idx (Tensor): Indices of the assigned ground truth objects for positive anchor points, with shape
+                (b, h*w), where h*w is the total number of anchor points.
+            fg_mask (Tensor): A boolean tensor of shape (b, h*w) indicating the positive (foreground) anchor points.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             target_labels (torch.Tensor): Shape (b, h*w), containing the target labels for positive anchor points.
@@ -271,8 +301,7 @@ class TaskAlignedAssigner(nn.Module):
 
     @staticmethod
     def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
-        """
-        Select positive anchor centers within ground truth bounding boxes.
+        """Select positive anchor centers within ground truth bounding boxes.
 
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates, shape (h*w, 2).
@@ -282,7 +311,7 @@ class TaskAlignedAssigner(nn.Module):
         Returns:
             (torch.Tensor): Boolean mask of positive anchors, shape (b, n_boxes, h*w).
 
-        Note:
+        Notes:
             b: batch size, n_boxes: number of ground truth boxes, h: height, w: width.
             Bounding box format: [x_min, y_min, x_max, y_max].
         """
@@ -294,8 +323,7 @@ class TaskAlignedAssigner(nn.Module):
 
     @staticmethod
     def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
-        """
-        Select anchor boxes with highest IoU when assigned to multiple ground truths.
+        """Select anchor boxes with highest IoU when assigned to multiple ground truths.
 
         Args:
             mask_pos (torch.Tensor): Positive mask, shape (b, n_max_boxes, h*w).
@@ -306,6 +334,12 @@ class TaskAlignedAssigner(nn.Module):
             target_gt_idx (torch.Tensor): Indices of assigned ground truths, shape (b, h*w).
             fg_mask (torch.Tensor): Foreground mask, shape (b, h*w).
             mask_pos (torch.Tensor): Updated positive mask, shape (b, n_max_boxes, h*w).
+<<<<<<< HEAD
+=======
+
+        Notes:
+            b: batch size, h: height, w: width.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         """
         # Convert (b, n_max_boxes, h*w) -> (b, h*w)
         fg_mask = mask_pos.sum(-2)
@@ -332,8 +366,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
 
     @staticmethod
     def select_candidates_in_gts(xy_centers, gt_bboxes):
-        """
-        Select the positive anchor center in gt for rotated bounding boxes.
+        """Select the positive anchor center in gt for rotated bounding boxes.
 
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates with shape (h*w, 2).
@@ -392,8 +425,7 @@ def bbox2dist(anchor_points, bbox, reg_max):
 
 
 def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
-    """
-    Decode predicted rotated bounding box coordinates from anchor points and distribution.
+    """Decode predicted rotated bounding box coordinates from anchor points and distribution.
 
     Args:
         pred_dist (torch.Tensor): Predicted rotated distance with shape (bs, h*w, 4).

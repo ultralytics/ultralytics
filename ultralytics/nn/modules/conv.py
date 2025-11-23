@@ -8,20 +8,20 @@ import torch
 import torch.nn as nn
 
 __all__ = (
+    "CBAM",
+    "ChannelAttention",
+    "Concat",
     "Conv",
     "Conv2",
-    "LightConv",
+    "ConvTranspose",
     "DWConv",
     "DWConvTranspose2d",
-    "ConvTranspose",
     "Focus",
     "GhostConv",
-    "ChannelAttention",
-    "SpatialAttention",
-    "CBAM",
-    "Concat",
-    "RepConv",
     "Index",
+    "LightConv",
+    "RepConv",
+    "SpatialAttention",
 )
 
 
@@ -154,8 +154,12 @@ class Conv2(Conv):
 
 
 class LightConv(nn.Module):
+<<<<<<< HEAD
     """
     Light convolution module with 1x1 and depthwise convolutions.
+=======
+    """Light convolution with args(ch_in, ch_out, kernel).
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     This implementation is based on the PaddleDetection HGNetV2 backbone.
 
@@ -311,8 +315,12 @@ class Focus(nn.Module):
         # self.contract = Contract(gain=2)
 
     def forward(self, x):
+<<<<<<< HEAD
         """
         Apply Focus operation and convolution to input tensor.
+=======
+        """Applies convolution to concatenated tensor and returns the output.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Input shape is (b,c,w,h) and output shape is (b,4c,w/2,h/2).
 
@@ -372,6 +380,7 @@ class GhostConv(nn.Module):
 
 
 class RepConv(nn.Module):
+<<<<<<< HEAD
     """
     RepConv module with training and deploy modes.
 
@@ -386,6 +395,11 @@ class RepConv(nn.Module):
 
     References:
         https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
+=======
+    """RepConv is a basic rep-style block, including training and deploy status.
+
+    This module is used in RT-DETR. Based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
 
     default_act = nn.SiLU()  # default activation
@@ -700,8 +714,12 @@ class Index(nn.Module):
         self.index = index
 
     def forward(self, x):
+<<<<<<< HEAD
         """
         Select and return a particular index from input.
+=======
+        """Forward pass.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             x (List[torch.Tensor]): List of input tensors.

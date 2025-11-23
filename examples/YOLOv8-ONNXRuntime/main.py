@@ -16,6 +16,7 @@ class YOLOv8:
     """
     YOLOv8 object detection model class for handling inference and visualization.
 
+<<<<<<< HEAD
     This class provides functionality to load a YOLOv8 ONNX model, perform inference on images,
     and visualize the detection results.
 
@@ -36,6 +37,10 @@ class YOLOv8:
     def __init__(self, onnx_model: str, input_image: str, confidence_thres: float, iou_thres: float):
         """
         Initialize an instance of the YOLOv8 class.
+=======
+    def __init__(self, onnx_model, input_image, confidence_thres, iou_thres):
+        """Initializes an instance of the YOLOv8 class.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             onnx_model (str): Path to the ONNX model.
@@ -54,9 +59,14 @@ class YOLOv8:
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
+<<<<<<< HEAD
     def letterbox(self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)) -> Tuple[np.ndarray, Tuple[int, int]]:
         """
         Resize and reshape images while maintaining aspect ratio by adding padding.
+=======
+    def draw_detections(self, img, box, score, class_id):
+        """Draws bounding boxes and labels on the input image based on the detected objects.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             img (np.ndarray): Input image to be resized.
@@ -120,12 +130,17 @@ class YOLOv8:
         # Draw the label text on the image
         cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
+<<<<<<< HEAD
     def preprocess(self) -> Tuple[np.ndarray, Tuple[int, int]]:
         """
         Preprocess the input image before performing inference.
 
         This method reads the input image, converts its color space, applies letterboxing to maintain aspect ratio,
         normalizes pixel values, and prepares the image data for model input.
+=======
+    def preprocess(self):
+        """Preprocesses the input image before performing inference.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (np.ndarray): Preprocessed image data ready for inference with shape (1, 3, height, width).
@@ -154,12 +169,17 @@ class YOLOv8:
         # Return the preprocessed image data
         return image_data, pad
 
+<<<<<<< HEAD
     def postprocess(self, input_image: np.ndarray, output: List[np.ndarray], pad: Tuple[int, int]) -> np.ndarray:
         """
         Perform post-processing on the model's output to extract and visualize detections.
 
         This method processes the raw model output to extract bounding boxes, scores, and class IDs.
         It applies non-maximum suppression to filter overlapping detections and draws the results on the input image.
+=======
+    def postprocess(self, input_image, output):
+        """Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             input_image (np.ndarray): The input image.
@@ -228,9 +248,14 @@ class YOLOv8:
         # Return the modified input image
         return input_image
 
+<<<<<<< HEAD
     def main(self) -> np.ndarray:
         """
         Perform inference using an ONNX model and return the output image with drawn detections.
+=======
+    def main(self):
+        """Performs inference using an ONNX model and returns the output image with drawn detections.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (np.ndarray): The output image with drawn detections.

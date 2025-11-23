@@ -19,8 +19,7 @@ from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class BaseTensor(SimpleClass):
-    """
-    Base tensor class with additional methods for easy manipulation and device handling.
+    """Base tensor class with additional methods for easy manipulation and device handling.
 
     Attributes:
         data (torch.Tensor | np.ndarray): Prediction data such as bounding boxes, masks, or keypoints.
@@ -43,8 +42,7 @@ class BaseTensor(SimpleClass):
     """
 
     def __init__(self, data, orig_shape) -> None:
-        """
-        Initialize BaseTensor with prediction data and the original shape of the image.
+        """Initialize BaseTensor with prediction data and the original shape of the image.
 
         Args:
             data (torch.Tensor | np.ndarray): Prediction data such as bounding boxes, masks, or keypoints.
@@ -62,8 +60,7 @@ class BaseTensor(SimpleClass):
 
     @property
     def shape(self):
-        """
-        Returns the shape of the underlying data tensor.
+        """Returns the shape of the underlying data tensor.
 
         Returns:
             (Tuple[int, ...]): The shape of the data tensor.
@@ -77,8 +74,7 @@ class BaseTensor(SimpleClass):
         return self.data.shape
 
     def cpu(self):
-        """
-        Returns a copy of the tensor stored in CPU memory.
+        """Returns a copy of the tensor stored in CPU memory.
 
         Returns:
             (BaseTensor): A new BaseTensor object with the data tensor moved to CPU memory.
@@ -95,8 +91,7 @@ class BaseTensor(SimpleClass):
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu(), self.orig_shape)
 
     def numpy(self):
-        """
-        Returns a copy of the tensor as a numpy array.
+        """Returns a copy of the tensor as a numpy array.
 
         Returns:
             (np.ndarray): A numpy array containing the same data as the original tensor.
@@ -112,12 +107,11 @@ class BaseTensor(SimpleClass):
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.numpy(), self.orig_shape)
 
     def cuda(self):
-        """
-        Moves the tensor to GPU memory.
+        """Moves the tensor to GPU memory.
 
         Returns:
-            (BaseTensor): A new BaseTensor instance with the data moved to GPU memory if it's not already a
-                numpy array, otherwise returns self.
+            (BaseTensor): A new BaseTensor instance with the data moved to GPU memory if it's not already a numpy array,
+                otherwise returns self.
 
         Examples:
             >>> import torch
@@ -131,8 +125,7 @@ class BaseTensor(SimpleClass):
         return self.__class__(torch.as_tensor(self.data).cuda(), self.orig_shape)
 
     def to(self, *args, **kwargs):
-        """
-        Return a copy of the tensor with the specified device and dtype.
+        """Return a copy of the tensor with the specified device and dtype.
 
         Args:
             *args (Any): Variable length argument list to be passed to torch.Tensor.to().
@@ -149,8 +142,7 @@ class BaseTensor(SimpleClass):
         return self.__class__(torch.as_tensor(self.data).to(*args, **kwargs), self.orig_shape)
 
     def __len__(self):  # override len(results)
-        """
-        Returns the length of the underlying data tensor.
+        """Returns the length of the underlying data tensor.
 
         Returns:
             (int): The number of elements in the first dimension of the data tensor.
@@ -164,8 +156,7 @@ class BaseTensor(SimpleClass):
         return len(self.data)
 
     def __getitem__(self, idx):
-        """
-        Returns a new BaseTensor instance containing the specified indexed elements of the data tensor.
+        """Returns a new BaseTensor instance containing the specified indexed elements of the data tensor.
 
         Args:
             idx (int | List[int] | torch.Tensor): Index or indices to select from the data tensor.
@@ -183,12 +174,20 @@ class BaseTensor(SimpleClass):
         return self.__class__(self.data[idx], self.orig_shape)
 
 
+<<<<<<< HEAD
 class Results(SimpleClass, DataExportMixin):
     """
     A class for storing and manipulating inference results.
 
     This class provides methods for accessing, manipulating, and visualizing inference results from various
     Ultralytics models, including detection, segmentation, classification, and pose estimation.
+=======
+class Results(SimpleClass):
+    """A class for storing and manipulating inference results.
+
+    This class encapsulates the functionality for handling detection, segmentation, pose estimation, and classification
+    results from YOLO models.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         orig_img (numpy.ndarray): The original image as a numpy array.
@@ -236,8 +235,7 @@ class Results(SimpleClass, DataExportMixin):
     def __init__(
         self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, obb=None, speed=None
     ) -> None:
-        """
-        Initialize the Results class for storing and manipulating inference results.
+        """Initialize the Results class for storing and manipulating inference results.
 
         Args:
             orig_img (numpy.ndarray): The original image as a numpy array.
@@ -277,8 +275,7 @@ class Results(SimpleClass, DataExportMixin):
         self._keys = "boxes", "masks", "probs", "keypoints", "obb"
 
     def __getitem__(self, idx):
-        """
-        Return a Results object for a specific index of inference results.
+        """Return a Results object for a specific index of inference results.
 
         Args:
             idx (int | slice): Index or slice to retrieve from the Results object.
@@ -294,12 +291,16 @@ class Results(SimpleClass, DataExportMixin):
         return self._apply("__getitem__", idx)
 
     def __len__(self):
-        """
-        Return the number of detections in the Results object.
+        """Return the number of detections in the Results object.
 
         Returns:
+<<<<<<< HEAD
             (int): The number of detections, determined by the length of the first non-empty
                 attribute in (masks, probs, keypoints, or obb).
+=======
+            (int): The number of detections, determined by the length of the first non-empty attribute (boxes, masks,
+                probs, keypoints, or obb).
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Examples:
             >>> results = Results(orig_img, path, names, boxes=torch.rand(5, 4))
@@ -311,16 +312,21 @@ class Results(SimpleClass, DataExportMixin):
             if v is not None:
                 return len(v)
 
+<<<<<<< HEAD
     def update(self, boxes=None, masks=None, probs=None, obb=None, keypoints=None):
         """
         Updates the Results object with new detection data.
+=======
+    def update(self, boxes=None, masks=None, probs=None, obb=None):
+        """Updates the Results object with new detection data.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         This method allows updating the boxes, masks, probabilities, and oriented bounding boxes (OBB) of the
         Results object. It ensures that boxes are clipped to the original image shape.
 
         Args:
-            boxes (torch.Tensor | None): A tensor of shape (N, 6) containing bounding box coordinates and
-                confidence scores. The format is (x1, y1, x2, y2, conf, class).
+            boxes (torch.Tensor | None): A tensor of shape (N, 6) containing bounding box coordinates and confidence
+                scores. The format is (x1, y1, x2, y2, conf, class).
             masks (torch.Tensor | None): A tensor of shape (N, H, W) containing segmentation masks.
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
             obb (torch.Tensor | None): A tensor of shape (N, 5) containing oriented bounding box coordinates.
@@ -343,8 +349,7 @@ class Results(SimpleClass, DataExportMixin):
             self.keypoints = Keypoints(keypoints, self.orig_shape)
 
     def _apply(self, fn, *args, **kwargs):
-        """
-        Applies a function to all non-empty attributes and returns a new Results object with modified attributes.
+        """Applies a function to all non-empty attributes and returns a new Results object with modified attributes.
 
         This method is internally called by methods like .to(), .cuda(), .cpu(), etc.
 
@@ -370,8 +375,7 @@ class Results(SimpleClass, DataExportMixin):
         return r
 
     def cpu(self):
-        """
-        Returns a copy of the Results object with all its tensors moved to CPU memory.
+        """Returns a copy of the Results object with all its tensors moved to CPU memory.
 
         This method creates a new Results object with all tensor attributes (boxes, masks, probs, keypoints, obb)
         transferred to CPU memory. It's useful for moving data from GPU to CPU for further processing or saving.
@@ -387,8 +391,7 @@ class Results(SimpleClass, DataExportMixin):
         return self._apply("cpu")
 
     def numpy(self):
-        """
-        Converts all tensors in the Results object to numpy arrays.
+        """Converts all tensors in the Results object to numpy arrays.
 
         Returns:
             (Results): A new Results object with all tensors converted to numpy arrays.
@@ -406,8 +409,7 @@ class Results(SimpleClass, DataExportMixin):
         return self._apply("numpy")
 
     def cuda(self):
-        """
-        Moves all tensors in the Results object to GPU memory.
+        """Moves all tensors in the Results object to GPU memory.
 
         Returns:
             (Results): A new Results object with all tensors moved to CUDA device.
@@ -421,8 +423,7 @@ class Results(SimpleClass, DataExportMixin):
         return self._apply("cuda")
 
     def to(self, *args, **kwargs):
-        """
-        Moves all tensors in the Results object to the specified device and dtype.
+        """Moves all tensors in the Results object to the specified device and dtype.
 
         Args:
             *args (Any): Variable length argument list to be passed to torch.Tensor.to().
@@ -440,8 +441,7 @@ class Results(SimpleClass, DataExportMixin):
         return self._apply("to", *args, **kwargs)
 
     def new(self):
-        """
-        Creates a new Results object with the same image, path, names, and speed attributes.
+        """Creates a new Results object with the same image, path, names, and speed attributes.
 
         Returns:
             (Results): A new Results object with copied attributes from the original instance.
@@ -473,8 +473,7 @@ class Results(SimpleClass, DataExportMixin):
         color_mode="class",
         txt_color=(255, 255, 255),
     ):
-        """
-        Plots detection results on an input RGB image.
+        """Plots detection results on an input RGB image.
 
         Args:
             conf (bool): Whether to plot detection confidence scores.
@@ -594,8 +593,7 @@ class Results(SimpleClass, DataExportMixin):
         return annotator.im if pil else annotator.result()
 
     def show(self, *args, **kwargs):
-        """
-        Display the image with annotated inference results.
+        """Display the image with annotated inference results.
 
         This method plots the detection results on the original image and displays it. It's a convenient way to
         visualize the model's predictions directly.
@@ -613,15 +611,14 @@ class Results(SimpleClass, DataExportMixin):
         self.plot(show=True, *args, **kwargs)
 
     def save(self, filename=None, *args, **kwargs):
-        """
-        Saves annotated inference results image to file.
+        """Saves annotated inference results image to file.
 
         This method plots the detection results on the original image and saves the annotated image to a file. It
         utilizes the `plot` method to generate the annotated image and then saves it to the specified filename.
 
         Args:
-            filename (str | Path | None): The filename to save the annotated image. If None, a default filename
-                is generated based on the original image path.
+            filename (str | Path | None): The filename to save the annotated image. If None, a default filename is
+                generated based on the original image path.
             *args (Any): Variable length argument list to be passed to the `plot` method.
             **kwargs (Any): Arbitrary keyword arguments to be passed to the `plot` method.
 
@@ -639,15 +636,14 @@ class Results(SimpleClass, DataExportMixin):
         return filename
 
     def verbose(self):
-        """
-        Returns a log string for each task in the results, detailing detection and classification outcomes.
+        """Returns a log string for each task in the results, detailing detection and classification outcomes.
 
         This method generates a human-readable string summarizing the detection and classification results. It includes
         the number of detections for each class and the top probabilities for classification tasks.
 
         Returns:
-            (str): A formatted string containing a summary of the results. For detection tasks, it includes the
-                number of detections per class. For classification tasks, it includes the top 5 class probabilities.
+            (str): A formatted string containing a summary of the results. For detection tasks, it includes the number
+                of detections per class. For classification tasks, it includes the top 5 class probabilities.
 
         Examples:
             >>> results = model("path/to/image.jpg")
@@ -671,8 +667,7 @@ class Results(SimpleClass, DataExportMixin):
             return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
 
     def save_txt(self, txt_file, save_conf=False):
-        """
-        Save detection results to a text file.
+        """Save detection results to a text file.
 
         Args:
             txt_file (str | Path): Path to the output text file.
@@ -726,8 +721,7 @@ class Results(SimpleClass, DataExportMixin):
                 f.writelines(text + "\n" for text in texts)
 
     def save_crop(self, save_dir, file_name=Path("im.jpg")):
-        """
-        Saves cropped detection images to specified directory.
+        """Saves cropped detection images to specified directory.
 
         This method saves cropped images of detected objects to a specified directory. Each crop is saved in a
         subdirectory named after the object's class, with the filename based on the input file_name.
@@ -736,16 +730,24 @@ class Results(SimpleClass, DataExportMixin):
             save_dir (str | Path): Directory path where cropped images will be saved.
             file_name (str | Path): Base filename for the saved cropped images. Default is Path("im.jpg").
 
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> for result in results:
+            ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
+
         Notes:
             - This method does not support Classify or Oriented Bounding Box (OBB) tasks.
             - Crops are saved as 'save_dir/class_name/file_name.jpg'.
             - The method will create necessary subdirectories if they don't exist.
             - Original image is copied before cropping to avoid modifying the original.
+<<<<<<< HEAD
 
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             >>>     result.save_crop(save_dir="path/to/crops", file_name="detection")
+=======
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         """
         if self.probs is not None:
             LOGGER.warning("Classify task do not support `save_crop`.")
@@ -762,8 +764,7 @@ class Results(SimpleClass, DataExportMixin):
             )
 
     def summary(self, normalize=False, decimals=5):
-        """
-        Converts inference results to a summarized dictionary with optional normalization for box coordinates.
+        """Converts inference results to a summarized dictionary with optional normalization for box coordinates.
 
         This method creates a list of detection dictionaries, each containing information about a single
         detection or classification result. For classification tasks, it returns the top class and its
@@ -775,9 +776,15 @@ class Results(SimpleClass, DataExportMixin):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
+<<<<<<< HEAD
             (List[Dict]): A list of dictionaries, each containing summarized information for a single detection
                 or classification result. The structure of each dictionary varies based on the task type
                 (classification or detection) and available information (boxes, masks, keypoints).
+=======
+            (List[Dict]): A list of dictionaries, each containing summarized information for a single detection or
+                classification result. The structure of each dictionary varies based on the task type (classification or
+                detection) and available information (boxes, masks, keypoints).
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Examples:
             >>> results = model("image.jpg")
@@ -827,10 +834,123 @@ class Results(SimpleClass, DataExportMixin):
 
         return results
 
+<<<<<<< HEAD
+=======
+    def to_df(self, normalize=False, decimals=5):
+        """Converts detection results to a Pandas Dataframe.
+
+        This method converts the detection results into Pandas Dataframe format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions. If True,
+                coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+
+        Returns:
+            (DataFrame): A Pandas Dataframe containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> df_result = results[0].to_df()
+            >>> print(df_result)
+        """
+        import pandas as pd  # scope for faster 'import ultralytics'
+
+        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+
+    def to_csv(self, normalize=False, decimals=5, *args, **kwargs):
+        """Converts detection results to a CSV format.
+
+        This method serializes the detection results into a CSV format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions. If True,
+                coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_csv().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_csv().
+
+        Returns:
+            (str): CSV containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> csv_result = results[0].to_csv()
+            >>> print(csv_result)
+        """
+        return self.to_df(normalize=normalize, decimals=decimals).to_csv(*args, **kwargs)
+
+    def to_xml(self, normalize=False, decimals=5, *args, **kwargs):
+        """Converts detection results to XML format.
+
+        This method serializes the detection results into an XML format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions. If True,
+                coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+            *args (Any): Variable length argument list to be passed to pandas.DataFrame.to_xml().
+            **kwargs (Any): Arbitrary keyword arguments to be passed to pandas.DataFrame.to_xml().
+
+        Returns:
+            (str): An XML string containing all the information in results in an organized way.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> xml_result = results[0].to_xml()
+            >>> print(xml_result)
+        """
+        check_requirements("lxml")
+        df = self.to_df(normalize=normalize, decimals=decimals)
+        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(*args, **kwargs)
+
+    def tojson(self, normalize=False, decimals=5):
+        """Deprecated version of to_json()."""
+        LOGGER.warning("WARNING ⚠️ 'result.tojson()' is deprecated, replace with 'result.to_json()'.")
+        return self.to_json(normalize, decimals)
+
+    def to_json(self, normalize=False, decimals=5):
+        """Converts detection results to JSON format.
+
+        This method serializes the detection results into a JSON-compatible format. It includes information
+        about detected objects such as bounding boxes, class names, confidence scores, and optionally
+        segmentation masks and keypoints.
+
+        Args:
+            normalize (bool): Whether to normalize the bounding box coordinates by the image dimensions. If True,
+                coordinates will be returned as float values between 0 and 1. Defaults to False.
+            decimals (int): Number of decimal places to round the output values to. Defaults to 5.
+
+        Returns:
+            (str): A JSON string containing the serialized detection results.
+
+        Examples:
+            >>> results = model("path/to/image.jpg")
+            >>> json_result = results[0].to_json()
+            >>> print(json_result)
+
+        Notes:
+            - For classification tasks, the JSON will contain class probabilities instead of bounding boxes.
+            - For object detection tasks, the JSON will include bounding box coordinates, class names, and
+              confidence scores.
+            - If available, segmentation masks and keypoints will also be included in the JSON output.
+            - The method uses the `summary` method internally to generate the data structure before
+              converting it to JSON.
+        """
+        import json
+
+        return json.dumps(self.summary(normalize=normalize, decimals=decimals), indent=2)
+
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
 class Boxes(BaseTensor):
-    """
-    A class for managing and manipulating detection boxes.
+    """A class for managing and manipulating detection boxes.
 
     This class provides functionality for handling detection boxes, including their coordinates, confidence scores,
     class labels, and optional tracking IDs. It supports various box formats and offers methods for easy manipulation
@@ -866,17 +986,15 @@ class Boxes(BaseTensor):
     """
 
     def __init__(self, boxes, orig_shape) -> None:
-        """
-        Initialize the Boxes class with detection box data and the original image shape.
+        """Initialize the Boxes class with detection box data and the original image shape.
 
         This class manages detection boxes, providing easy access and manipulation of box coordinates,
         confidence scores, class identifiers, and optional tracking IDs. It supports multiple formats
         for box coordinates, including both absolute and normalized forms.
 
         Args:
-            boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape
-                (num_boxes, 6) or (num_boxes, 7). Columns should contain
-                [x1, y1, x2, y2, confidence, class, (optional) track_id].
+            boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape (num_boxes, 6) or
+                (num_boxes, 7). Columns should contain [x1, y1, x2, y2, confidence, class, (optional) track_id].
             orig_shape (Tuple[int, int]): The original image shape as (height, width). Used for normalization.
 
         Attributes:
@@ -902,12 +1020,11 @@ class Boxes(BaseTensor):
 
     @property
     def xyxy(self):
-        """
-        Returns bounding boxes in [x1, y1, x2, y2] format.
+        """Returns bounding boxes in [x1, y1, x2, y2] format.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): A tensor or numpy array of shape (n, 4) containing bounding box
-                coordinates in [x1, y1, x2, y2] format, where n is the number of boxes.
+            (torch.Tensor | numpy.ndarray): A tensor or numpy array of shape (n, 4) containing bounding box coordinates
+                in [x1, y1, x2, y2] format, where n is the number of boxes.
 
         Examples:
             >>> results = model("image.jpg")
@@ -919,12 +1036,11 @@ class Boxes(BaseTensor):
 
     @property
     def conf(self):
-        """
-        Returns the confidence scores for each detection box.
+        """Returns the confidence scores for each detection box.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): A 1D tensor or array containing confidence scores for each detection,
-                with shape (N,) where N is the number of detections.
+            (torch.Tensor | numpy.ndarray): A 1D tensor or array containing confidence scores for each detection, with
+                shape (N,) where N is the number of detections.
 
         Examples:
             >>> boxes = Boxes(torch.tensor([[10, 20, 30, 40, 0.9, 0]]), orig_shape=(100, 100))
@@ -936,12 +1052,11 @@ class Boxes(BaseTensor):
 
     @property
     def cls(self):
-        """
-        Returns the class ID tensor representing category predictions for each bounding box.
+        """Returns the class ID tensor representing category predictions for each bounding box.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the class IDs for each detection box.
-                The shape is (N,), where N is the number of boxes.
+            (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the class IDs for each detection box. The
+                shape is (N,), where N is the number of boxes.
 
         Examples:
             >>> results = model("image.jpg")
@@ -953,12 +1068,11 @@ class Boxes(BaseTensor):
 
     @property
     def id(self):
-        """
-        Returns the tracking IDs for each detection box if available.
+        """Returns the tracking IDs for each detection box if available.
 
         Returns:
-            (torch.Tensor | None): A tensor containing tracking IDs for each box if tracking is enabled,
-                otherwise None. Shape is (N,) where N is the number of boxes.
+            (torch.Tensor | None): A tensor containing tracking IDs for each box if tracking is enabled, otherwise None.
+                Shape is (N,) where N is the number of boxes.
 
         Examples:
             >>> results = model.track("path/to/video.mp4")
@@ -979,13 +1093,12 @@ class Boxes(BaseTensor):
     @property
     @lru_cache(maxsize=2)  # maxsize 1 should suffice
     def xywh(self):
-        """
-        Convert bounding boxes from [x1, y1, x2, y2] format to [x, y, width, height] format.
+        """Convert bounding boxes from [x1, y1, x2, y2] format to [x, y, width, height] format.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): Boxes in [x_center, y_center, width, height] format, where x_center, y_center are the coordinates of
-                the center point of the bounding box, width, height are the dimensions of the bounding box and the
-                shape of the returned tensor is (N, 4), where N is the number of boxes.
+            (torch.Tensor | numpy.ndarray): Boxes in [x_center, y_center, width, height] format, where x_center,
+                y_center are the coordinates of the center point of the bounding box, width, height are the dimensions
+                of the bounding box and the shape of the returned tensor is (N, 4), where N is the number of boxes.
 
         Examples:
             >>> boxes = Boxes(torch.tensor([[100, 50, 150, 100], [200, 150, 300, 250]]), orig_shape=(480, 640))
@@ -999,15 +1112,14 @@ class Boxes(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xyxyn(self):
-        """
-        Returns normalized bounding box coordinates relative to the original image size.
+        """Returns normalized bounding box coordinates relative to the original image size.
 
         This property calculates and returns the bounding box coordinates in [x1, y1, x2, y2] format,
         normalized to the range [0, 1] based on the original image dimensions.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): Normalized bounding box coordinates with shape (N, 4), where N is
-                the number of boxes. Each row contains [x1, y1, x2, y2] values normalized to [0, 1].
+            (torch.Tensor | numpy.ndarray): Normalized bounding box coordinates with shape (N, 4), where N is the number
+                of boxes. Each row contains [x1, y1, x2, y2] values normalized to [0, 1].
 
         Examples:
             >>> boxes = Boxes(torch.tensor([[100, 50, 300, 400, 0.9, 0]]), orig_shape=(480, 640))
@@ -1023,16 +1135,15 @@ class Boxes(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xywhn(self):
-        """
-        Returns normalized bounding boxes in [x, y, width, height] format.
+        """Returns normalized bounding boxes in [x, y, width, height] format.
 
         This property calculates and returns the normalized bounding box coordinates in the format
         [x_center, y_center, width, height], where all values are relative to the original image dimensions.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): Normalized bounding boxes with shape (N, 4), where N is the
-                number of boxes. Each row contains [x_center, y_center, width, height] values normalized
-                to [0, 1] based on the original image dimensions.
+            (torch.Tensor | numpy.ndarray): Normalized bounding boxes with shape (N, 4), where N is the number of boxes.
+                Each row contains [x_center, y_center, width, height] values normalized to [0, 1] based on the original
+                image dimensions.
 
         Examples:
             >>> boxes = Boxes(torch.tensor([[100, 50, 150, 100, 0.9, 0]]), orig_shape=(480, 640))
@@ -1047,11 +1158,10 @@ class Boxes(BaseTensor):
 
 
 class Masks(BaseTensor):
-    """
-    A class for storing and manipulating detection masks.
+    """A class for storing and manipulating detection masks.
 
-    This class extends BaseTensor and provides functionality for handling segmentation masks,
-    including methods for converting between pixel and normalized coordinates.
+    This class extends BaseTensor and provides functionality for handling segmentation masks, including methods for
+    converting between pixel and normalized coordinates.
 
     Attributes:
         data (torch.Tensor | numpy.ndarray): The raw tensor or array containing mask data.
@@ -1074,8 +1184,7 @@ class Masks(BaseTensor):
     """
 
     def __init__(self, masks, orig_shape) -> None:
-        """
-        Initialize the Masks class with detection mask data and the original image shape.
+        """Initialize the Masks class with detection mask data and the original image shape.
 
         Args:
             masks (torch.Tensor | np.ndarray): Detection masks with shape (num_masks, height, width).
@@ -1095,15 +1204,14 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xyn(self):
-        """
-        Returns normalized xy-coordinates of the segmentation masks.
+        """Returns normalized xy-coordinates of the segmentation masks.
 
         This property calculates and caches the normalized xy-coordinates of the segmentation masks. The coordinates
         are normalized relative to the original image shape.
 
         Returns:
-            (List[numpy.ndarray]): A list of numpy arrays, where each array contains the normalized xy-coordinates
-                of a single segmentation mask. Each array has shape (N, 2), where N is the number of points in the
+            (List[numpy.ndarray]): A list of numpy arrays, where each array contains the normalized xy-coordinates of a
+                single segmentation mask. Each array has shape (N, 2), where N is the number of points in the
                 mask contour.
 
         Examples:
@@ -1120,16 +1228,14 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xy(self):
-        """
-        Returns the [x, y] pixel coordinates for each segment in the mask tensor.
+        """Returns the [x, y] pixel coordinates for each segment in the mask tensor.
 
         This property calculates and returns a list of pixel coordinates for each segmentation mask in the
         Masks object. The coordinates are scaled to match the original image dimensions.
 
         Returns:
-            (List[numpy.ndarray]): A list of numpy arrays, where each array contains the [x, y] pixel
-                coordinates for a single segmentation mask. Each array has shape (N, 2), where N is the
-                number of points in the segment.
+            (List[numpy.ndarray]): A list of numpy arrays, where each array contains the [x, y] pixel coordinates for a
+                single segmentation mask. Each array has shape (N, 2), where N is the number of points in the segment.
 
         Examples:
             >>> results = model("image.jpg")
@@ -1145,11 +1251,10 @@ class Masks(BaseTensor):
 
 
 class Keypoints(BaseTensor):
-    """
-    A class for storing and manipulating detection keypoints.
+    """A class for storing and manipulating detection keypoints.
 
-    This class encapsulates functionality for handling keypoint data, including coordinate manipulation,
-    normalization, and confidence values.
+    This class encapsulates functionality for handling keypoint data, including coordinate manipulation, normalization,
+    and confidence values.
 
     Attributes:
         data (torch.Tensor): The raw tensor containing keypoint data.
@@ -1178,8 +1283,7 @@ class Keypoints(BaseTensor):
 
     @smart_inference_mode()  # avoid keypoints < conf in-place error
     def __init__(self, keypoints, orig_shape) -> None:
-        """
-        Initializes the Keypoints object with detection keypoints and original image dimensions.
+        """Initializes the Keypoints object with detection keypoints and original image dimensions.
 
         This method processes the input keypoints tensor, handling both 2D and 3D formats. For 3D tensors
         (x, y, confidence), it masks out low-confidence keypoints by setting their coordinates to zero.
@@ -1206,12 +1310,11 @@ class Keypoints(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xy(self):
-        """
-        Returns x, y coordinates of keypoints.
+        """Returns x, y coordinates of keypoints.
 
         Returns:
-            (torch.Tensor): A tensor containing the x, y coordinates of keypoints with shape (N, K, 2), where N is
-                the number of detections and K is the number of keypoints per detection.
+            (torch.Tensor): A tensor containing the x, y coordinates of keypoints with shape (N, K, 2), where N is the
+                number of detections and K is the number of keypoints per detection.
 
         Examples:
             >>> results = model("image.jpg")
@@ -1230,13 +1333,12 @@ class Keypoints(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xyn(self):
-        """
-        Returns normalized coordinates (x, y) of keypoints relative to the original image size.
+        """Returns normalized coordinates (x, y) of keypoints relative to the original image size.
 
         Returns:
             (torch.Tensor | numpy.ndarray): A tensor or array of shape (N, K, 2) containing normalized keypoint
-                coordinates, where N is the number of instances, K is the number of keypoints, and the last
-                dimension contains [x, y] values in the range [0, 1].
+                coordinates, where N is the number of instances, K is the number of keypoints, and the last dimension
+                contains [x, y] values in the range [0, 1].
 
         Examples:
             >>> keypoints = Keypoints(torch.rand(1, 17, 2), orig_shape=(480, 640))
@@ -1252,13 +1354,11 @@ class Keypoints(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def conf(self):
-        """
-        Returns confidence values for each keypoint.
+        """Returns confidence values for each keypoint.
 
         Returns:
-            (torch.Tensor | None): A tensor containing confidence scores for each keypoint if available,
-                otherwise None. Shape is (num_detections, num_keypoints) for batched data or (num_keypoints,)
-                for single detection.
+            (torch.Tensor | None): A tensor containing confidence scores for each keypoint if available, otherwise None.
+                Shape is (num_detections, num_keypoints) for batched data or (num_keypoints,) for single detection.
 
         Examples:
             >>> keypoints = Keypoints(torch.rand(1, 17, 3), orig_shape=(640, 640))  # 1 detection, 17 keypoints
@@ -1269,11 +1369,10 @@ class Keypoints(BaseTensor):
 
 
 class Probs(BaseTensor):
-    """
-    A class for storing and manipulating classification probabilities.
+    """A class for storing and manipulating classification probabilities.
 
-    This class extends BaseTensor and provides methods for accessing and manipulating
-    classification probabilities, including top-1 and top-5 predictions.
+    This class extends BaseTensor and provides methods for accessing and manipulating classification probabilities,
+    including top-1 and top-5 predictions.
 
     Attributes:
         data (torch.Tensor | numpy.ndarray): The raw tensor or array containing classification probabilities.
@@ -1303,8 +1402,7 @@ class Probs(BaseTensor):
     """
 
     def __init__(self, probs, orig_shape=None) -> None:
-        """
-        Initialize the Probs class with classification probabilities.
+        """Initialize the Probs class with classification probabilities.
 
         This class stores and manages classification probabilities, providing easy access to top predictions and their
         confidences.
@@ -1337,8 +1435,7 @@ class Probs(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def top1(self):
-        """
-        Returns the index of the class with the highest probability.
+        """Returns the index of the class with the highest probability.
 
         Returns:
             (int): Index of the class with the highest probability.
@@ -1353,8 +1450,7 @@ class Probs(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def top5(self):
-        """
-        Returns the indices of the top 5 class probabilities.
+        """Returns the indices of the top 5 class probabilities.
 
         Returns:
             (List[int]): A list containing the indices of the top 5 class probabilities, sorted in descending order.
@@ -1369,8 +1465,7 @@ class Probs(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def top1conf(self):
-        """
-        Returns the confidence score of the highest probability class.
+        """Returns the confidence score of the highest probability class.
 
         This property retrieves the confidence score (probability) of the class with the highest predicted probability
         from the classification results.
@@ -1389,16 +1484,15 @@ class Probs(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def top5conf(self):
-        """
-        Returns confidence scores for the top 5 classification predictions.
+        """Returns confidence scores for the top 5 classification predictions.
 
         This property retrieves the confidence scores corresponding to the top 5 class probabilities
         predicted by the model. It provides a quick way to access the most likely class predictions
         along with their associated confidence levels.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): A tensor or array containing the confidence scores for the
-                top 5 predicted classes, sorted in descending order of probability.
+            (torch.Tensor | numpy.ndarray): A tensor or array containing the confidence scores for the top 5 predicted
+                classes, sorted in descending order of probability.
 
         Examples:
             >>> results = model("image.jpg")
@@ -1410,11 +1504,10 @@ class Probs(BaseTensor):
 
 
 class OBB(BaseTensor):
-    """
-    A class for storing and manipulating Oriented Bounding Boxes (OBB).
+    """A class for storing and manipulating Oriented Bounding Boxes (OBB).
 
-    This class provides functionality to handle oriented bounding boxes, including conversion between
-    different formats, normalization, and access to various properties of the boxes.
+    This class provides functionality to handle oriented bounding boxes, including conversion between different formats,
+    normalization, and access to various properties of the boxes.
 
     Attributes:
         data (torch.Tensor): The raw OBB tensor containing box coordinates and associated data.
@@ -1443,16 +1536,15 @@ class OBB(BaseTensor):
     """
 
     def __init__(self, boxes, orig_shape) -> None:
-        """
-        Initialize an OBB (Oriented Bounding Box) instance with oriented bounding box data and original image shape.
+        """Initialize an OBB (Oriented Bounding Box) instance with oriented bounding box data and original image shape.
 
         This class stores and manipulates Oriented Bounding Boxes (OBB) for object detection tasks. It provides
         various properties and methods to access and transform the OBB data.
 
         Args:
-            boxes (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the detection boxes,
-                with shape (num_boxes, 7) or (num_boxes, 8). The last two columns contain confidence and class values.
-                If present, the third last column contains track IDs, and the fifth column contains rotation.
+            boxes (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the detection boxes, with shape
+                (num_boxes, 7) or (num_boxes, 8). The last two columns contain confidence and class values. If present,
+                the third last column contains track IDs, and the fifth column contains rotation.
             orig_shape (Tuple[int, int]): Original image size, in the format (height, width).
 
         Attributes:
@@ -1480,8 +1572,7 @@ class OBB(BaseTensor):
 
     @property
     def xywhr(self):
-        """
-        Returns boxes in [x_center, y_center, width, height, rotation] format.
+        """Returns boxes in [x_center, y_center, width, height, rotation] format.
 
         Returns:
             (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the oriented bounding boxes with format
@@ -1498,15 +1589,14 @@ class OBB(BaseTensor):
 
     @property
     def conf(self):
-        """
-        Returns the confidence scores for Oriented Bounding Boxes (OBBs).
+        """Returns the confidence scores for Oriented Bounding Boxes (OBBs).
 
         This property retrieves the confidence values associated with each OBB detection. The confidence score
         represents the model's certainty in the detection.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): A tensor or numpy array of shape (N,) containing confidence scores
-                for N detections, where each score is in the range [0, 1].
+            (torch.Tensor | numpy.ndarray): A tensor or numpy array of shape (N,) containing confidence scores for N
+                detections, where each score is in the range [0, 1].
 
         Examples:
             >>> results = model("image.jpg")
@@ -1518,8 +1608,7 @@ class OBB(BaseTensor):
 
     @property
     def cls(self):
-        """
-        Returns the class values of the oriented bounding boxes.
+        """Returns the class values of the oriented bounding boxes.
 
         Returns:
             (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the class values for each oriented
@@ -1536,12 +1625,11 @@ class OBB(BaseTensor):
 
     @property
     def id(self):
-        """
-        Returns the tracking IDs of the oriented bounding boxes (if available).
+        """Returns the tracking IDs of the oriented bounding boxes (if available).
 
         Returns:
-            (torch.Tensor | numpy.ndarray | None): A tensor or numpy array containing the tracking IDs for each
-                oriented bounding box. Returns None if tracking IDs are not available.
+            (torch.Tensor | numpy.ndarray | None): A tensor or numpy array containing the tracking IDs for each oriented
+                bounding box. Returns None if tracking IDs are not available.
 
         Examples:
             >>> results = model("image.jpg", tracker=True)  # Run inference with tracking
@@ -1556,8 +1644,7 @@ class OBB(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xyxyxyxy(self):
-        """
-        Converts OBB format to 8-point (xyxyxyxy) coordinate format for rotated bounding boxes.
+        """Converts OBB format to 8-point (xyxyxyxy) coordinate format for rotated bounding boxes.
 
         Returns:
             (torch.Tensor | numpy.ndarray): Rotated bounding boxes in xyxyxyxy format with shape (N, 4, 2), where N is
@@ -1575,13 +1662,12 @@ class OBB(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xyxyxyxyn(self):
-        """
-        Converts rotated bounding boxes to normalized xyxyxyxy format.
+        """Converts rotated bounding boxes to normalized xyxyxyxy format.
 
         Returns:
             (torch.Tensor | numpy.ndarray): Normalized rotated bounding boxes in xyxyxyxy format with shape (N, 4, 2),
-                where N is the number of boxes. Each box is represented by 4 points (x, y), normalized relative to
-                the original image dimensions.
+                where N is the number of boxes. Each box is represented by 4 points (x, y), normalized relative to the
+                original image dimensions.
 
         Examples:
             >>> obb = OBB(torch.rand(10, 7), orig_shape=(640, 480))  # 10 random OBBs
@@ -1597,16 +1683,15 @@ class OBB(BaseTensor):
     @property
     @lru_cache(maxsize=2)
     def xyxy(self):
-        """
-        Converts oriented bounding boxes (OBB) to axis-aligned bounding boxes in xyxy format.
+        """Converts oriented bounding boxes (OBB) to axis-aligned bounding boxes in xyxy format.
 
         This property calculates the minimal enclosing rectangle for each oriented bounding box and returns it in
         xyxy format (x1, y1, x2, y2). This is useful for operations that require axis-aligned bounding boxes, such
         as IoU calculation with non-rotated boxes.
 
         Returns:
-            (torch.Tensor | numpy.ndarray): Axis-aligned bounding boxes in xyxy format with shape (N, 4), where N
-                is the number of boxes. Each row contains [x1, y1, x2, y2] coordinates.
+            (torch.Tensor | numpy.ndarray): Axis-aligned bounding boxes in xyxy format with shape (N, 4), where N is the
+                number of boxes. Each row contains [x1, y1, x2, y2] coordinates.
 
         Examples:
             >>> import torch

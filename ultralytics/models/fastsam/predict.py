@@ -12,8 +12,13 @@ from .utils import adjust_bboxes_to_image_border
 
 
 class FastSAMPredictor(SegmentationPredictor):
+<<<<<<< HEAD
     """
     FastSAMPredictor is specialized for fast SAM (Segment Anything Model) segmentation prediction tasks.
+=======
+    """FastSAMPredictor is specialized for fast SAM (Segment Anything Model) segmentation prediction tasks in
+    Ultralytics YOLO framework.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     This class extends the SegmentationPredictor, customizing the prediction pipeline specifically for fast SAM. It
     adjusts post-processing steps to incorporate mask prediction and non-maximum suppression while optimizing for
@@ -77,8 +82,13 @@ class FastSAMPredictor(SegmentationPredictor):
         return self.prompt(results, bboxes=bboxes, points=points, labels=labels, texts=texts)
 
     def prompt(self, results, bboxes=None, points=None, labels=None, texts=None):
+<<<<<<< HEAD
         """
         Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.
+=======
+        """Internal function for image segmentation inference based on cues like bounding boxes, points, and masks.
+        Leverages SAM's specialized architecture for prompt-based, real-time segmentation.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             results (Results | List[Results]): Original inference results from FastSAM models without any prompts.
@@ -151,12 +161,21 @@ class FastSAMPredictor(SegmentationPredictor):
         return prompt_results
 
     def _clip_inference(self, images, texts):
+<<<<<<< HEAD
         """
         Perform CLIP inference to calculate similarity between images and text prompts.
 
         Args:
             images (List[PIL.Image]): List of source images, each should be PIL.Image with RGB channel order.
             texts (List[str]): List of prompt texts, each should be a string object.
+=======
+        """CLIP Inference process.
+
+        Args:
+            images (List[PIL.Image]): A list of source images and each of them should be PIL.Image type with RGB channel
+                order.
+            texts (List[str]): A list of prompt texts and each of them should be string object.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (torch.Tensor): Similarity matrix between given images and texts with shape (M, N).

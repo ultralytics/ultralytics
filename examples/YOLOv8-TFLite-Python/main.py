@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 import argparse
-from typing import Tuple, Union
 
 import cv2
 import numpy as np
@@ -18,7 +18,12 @@ except ImportError:
 
 
 class YOLOv8TFLite:
+<<<<<<< HEAD
     """
+=======
+    """YOLOv8TFLite.
+
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     A class for performing object detection using the YOLOv8 model with TensorFlow Lite.
 
     This class handles model loading, preprocessing, inference, and visualization of detection results.
@@ -40,6 +45,7 @@ class YOLOv8TFLite:
         out_zero_point (int): Output quantization zero point.
 
     Methods:
+<<<<<<< HEAD
         letterbox: Resizes and pads image while maintaining aspect ratio.
         draw_detections: Draws bounding boxes and labels on the input image.
         preprocess: Preprocesses the input image before inference.
@@ -56,6 +62,20 @@ class YOLOv8TFLite:
             conf (float): Confidence threshold for filtering detections.
             iou (float): IoU threshold for non-maximum suppression.
             metadata (str | None): Path to the metadata file containing class names.
+=======
+        detect(img_path: str) -> np.ndarray: Performs inference and returns the output image with drawn detections.
+    """
+
+    def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: str | None = None):
+        """Initializes an instance of the YOLOv8TFLite class.
+
+        Args:
+            model (str): Path to the TFLite model.
+            conf (float, optional): Confidence threshold for filtering detections. Defaults to 0.25.
+            iou (float, optional): IoU (Intersection over Union) threshold for non-maximum suppression. Defaults to
+                0.45.
+            metadata (Union[str, None], optional): Path to the metadata file or None if not used. Defaults to None.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         """
         self.conf = conf
         self.iou = iou
@@ -83,6 +103,7 @@ class YOLOv8TFLite:
         self.out_index = output_details["index"]
         self.out_scale, self.out_zero_point = output_details["quantization"]
 
+<<<<<<< HEAD
     def letterbox(
         self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)
     ) -> Tuple[np.ndarray, Tuple[float, float]]:
@@ -98,25 +119,34 @@ class YOLOv8TFLite:
             (Tuple[float, float]): Padding ratios (top/height, left/width) for coordinate adjustment.
         """
         shape = img.shape[:2]  # Current shape [height, width]
+=======
+    def letterbox(self, img: np.ndarray, new_shape: tuple = (640, 640)) -> tuple[np.ndarray, tuple[float, float]]:
+        """Resizes and reshapes images while maintaining aspect ratio by adding padding, suitable for YOLO models."""
+        shape = img.shape[:2]  # current shape [height, width]
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         # Scale ratio (new / old)
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
 
         # Compute padding
-        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        new_unpad = round(shape[1] * r), round(shape[0] * r)
         dw, dh = (new_shape[1] - new_unpad[0]) / 2, (new_shape[0] - new_unpad[1]) / 2  # wh padding
 
         if shape[::-1] != new_unpad:  # Resize if needed
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
-        top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
-        left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+        top, bottom = round(dh - 0.1), round(dh + 0.1)
+        left, right = round(dw - 0.1), round(dw + 0.1)
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
 
         return img, (top / img.shape[0], left / img.shape[1])
 
     def draw_detections(self, img: np.ndarray, box: np.ndarray, score: np.float32, class_id: int) -> None:
+<<<<<<< HEAD
         """
         Draw bounding boxes and labels on the input image based on the detected objects.
+=======
+        """Draws bounding boxes and labels on the input image based on the detected objects.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             img (np.ndarray): The input image to draw detections on.
@@ -152,9 +182,14 @@ class YOLOv8TFLite:
         # Draw text
         cv2.putText(img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
+<<<<<<< HEAD
     def preprocess(self, img: np.ndarray) -> Tuple[np.ndarray, Tuple[float, float]]:
         """
         Preprocess the input image before performing inference.
+=======
+    def preprocess(self, img: np.ndarray) -> tuple[np.ndarray, tuple[float, float]]:
+        """Preprocesses the input image before performing inference.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             img (np.ndarray): The input image to be preprocessed with shape (H, W, C).
@@ -169,9 +204,14 @@ class YOLOv8TFLite:
         img = img.astype(np.float32)
         return img / 255, pad  # Normalize to [0, 1]
 
+<<<<<<< HEAD
     def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: Tuple[float, float]) -> np.ndarray:
         """
         Process model outputs to extract and visualize detections.
+=======
+    def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: tuple[float, float]) -> np.ndarray:
+        """Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             img (np.ndarray): The original input image.
@@ -208,8 +248,12 @@ class YOLOv8TFLite:
         return img
 
     def detect(self, img_path: str) -> np.ndarray:
+<<<<<<< HEAD
         """
         Perform object detection on an input image.
+=======
+        """Performs inference using a TFLite model and returns the output image with drawn detections.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             img_path (str): Path to the input image file.

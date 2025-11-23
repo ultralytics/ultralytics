@@ -58,7 +58,11 @@ from ultralytics import YOLO
 # Load a model
 model = YOLO("yolo11n.pt")  # load an official model
 
+<<<<<<< HEAD
 # Retrieve metadata during export. Metadata needs to be added to config.pbtxt. See next section.
+=======
+# Retrieve metadata during export
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 metadata = []
 
 
@@ -112,30 +116,51 @@ The Triton Model Repository is a storage location where Triton can access and lo
 
     # (Optional) Enable TensorRT for GPU inference
     # First run will be slow due to TensorRT engine conversion
+<<<<<<< HEAD
     optimization {
       execution_accelerators {
         gpu_execution_accelerator {
+=======
+    data = f"""
+    optimization {{
+      execution_accelerators {{
+        gpu_execution_accelerator {{
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
           name: "tensorrt"
-          parameters {
+          parameters {{
             key: "precision_mode"
             value: "FP16"
-          }
-          parameters {
+          }}
+          parameters {{
             key: "max_workspace_size_bytes"
             value: "3221225472"
-          }
-          parameters {
+          }}
+          parameters {{
             key: "trt_engine_cache_enable"
             value: "1"
-          }
-          parameters {
+          }}
+          parameters {{
             key: "trt_engine_cache_path"
             value: "/models/yolo/1"
+<<<<<<< HEAD
           }
         }
       }
     }
     """ % metadata[0]  # noqa
+=======
+          }}
+        }}
+      }}
+    }}
+    parameters {{
+      key: "metadata"
+      value: {{
+        string_value: "{metadata[0]}"
+      }}
+    }}
+    """
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     with open(triton_model_path / "config.pbtxt", "w") as f:
         f.write(data)

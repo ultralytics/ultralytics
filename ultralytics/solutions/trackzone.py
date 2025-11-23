@@ -8,11 +8,15 @@ from ultralytics.utils.plotting import colors
 
 
 class TrackZone(BaseSolution):
-    """
-    A class to manage region-based object tracking in a video stream.
+    """A class to manage region-based object tracking in a video stream.
 
     This class extends the BaseSolution class and provides functionality for tracking objects within a specific region
+<<<<<<< HEAD
     defined by a polygonal area. Objects outside the region are excluded from tracking.
+=======
+    defined by a polygonal area. Objects outside the region are excluded from tracking. It supports dynamic
+    initialization of the region, allowing either a default region or a user-specified polygon.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         region (np.ndarray): The polygonal region for tracking, represented as a convex hull of points.
@@ -45,9 +49,14 @@ class TrackZone(BaseSolution):
         default_region = [(75, 75), (565, 75), (565, 285), (75, 285)]
         self.region = cv2.convexHull(np.array(self.region or default_region, dtype=np.int32))
 
+<<<<<<< HEAD
     def process(self, im0):
         """
         Process the input frame to track objects within a defined region.
+=======
+    def trackzone(self, im0):
+        """Processes the input frame to track objects within a defined region.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         This method initializes the annotator, creates a mask for the specified region, extracts tracks
         only from the masked area, and updates tracking information. Objects outside the region are ignored.

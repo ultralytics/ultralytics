@@ -9,11 +9,10 @@ from ultralytics.solutions.solutions import BaseSolution, SolutionResults  # Imp
 
 
 class Analytics(BaseSolution):
-    """
-    A class for creating and updating various types of charts for visual analytics.
+    """A class for creating and updating various types of charts for visual analytics.
 
-    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts
-    based on object detection and tracking data.
+    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts based on
+    object detection and tracking data.
 
     Attributes:
         type (str): The type of analytics chart to generate ('line', 'bar', 'pie', or 'area').
@@ -86,9 +85,14 @@ class Analytics(BaseSolution):
             if self.type == "pie":  # Ensure pie chart is circular
                 self.ax.axis("equal")
 
+<<<<<<< HEAD
     def process(self, im0, frame_number):
         """
         Process image data and run object tracking to update analytics charts.
+=======
+    def process_data(self, im0, frame_number):
+        """Processes image data and runs object tracking to update analytics charts.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             im0 (np.ndarray): Input image for processing.
@@ -127,8 +131,12 @@ class Analytics(BaseSolution):
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count)
 
     def update_graph(self, frame_number, count_dict=None, plot="line"):
+<<<<<<< HEAD
         """
         Update the graph with new data for single or multiple classes.
+=======
+        """Updates the graph with new data for single or multiple classes.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             frame_number (int): The current frame number.
@@ -221,7 +229,11 @@ class Analytics(BaseSolution):
                 self.ax.clear()
 
                 # Create pie chart and create legend labels with percentages
+<<<<<<< HEAD
                 wedges, _ = self.ax.pie(
+=======
+                wedges, _autotexts = self.ax.pie(
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
                     counts, labels=labels, startangle=start_angle, textprops={"color": self.fg_color}, autopct=None
                 )
                 legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]

@@ -16,6 +16,7 @@ class RTDETR:
     """
     RTDETR object detection model class for handling inference and visualization.
 
+<<<<<<< HEAD
     This class implements the RT-DETR (Real-Time Detection Transformer) model for object detection tasks,
     supporting ONNX model inference and visualization of detection results.
 
@@ -38,6 +39,10 @@ class RTDETR:
     def __init__(self, model_path: str, img_path: str, conf_thres: float = 0.5, iou_thres: float = 0.5):
         """
         Initialize the RTDETR object detection model.
+=======
+    def __init__(self, model_path, img_path, conf_thres=0.5, iou_thres=0.5):
+        """Initializes the RTDETR object with the specified parameters.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             model_path (str): Path to the ONNX model file.
@@ -62,9 +67,14 @@ class RTDETR:
         # Generate a color palette for drawing bounding boxes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
+<<<<<<< HEAD
     def draw_detections(self, box: np.ndarray, score: float, class_id: int) -> None:
         """
         Draw bounding boxes and labels on the input image for detected objects.
+=======
+    def draw_detections(self, box, score, class_id):
+        """Draws bounding boxes and labels on the input image based on the detected objects.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             box (np.ndarray): Detected bounding box coordinates [x1, y1, x2, y2].
@@ -104,11 +114,16 @@ class RTDETR:
             self.img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA
         )
 
+<<<<<<< HEAD
     def preprocess(self) -> np.ndarray:
         """
         Preprocess the input image for model inference.
 
         Loads the image, converts color space, resizes to model input dimensions, and normalizes pixel values.
+=======
+    def preprocess(self):
+        """Preprocesses the input image before performing inference.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (np.ndarray): Preprocessed image data with shape (1, 3, H, W) ready for inference.
@@ -136,6 +151,7 @@ class RTDETR:
 
         return image_data
 
+<<<<<<< HEAD
     def bbox_cxcywh_to_xyxy(self, boxes: np.ndarray) -> np.ndarray:
         """
         Convert bounding boxes from (cx, cy, w, h) format to (x_min, y_min, x_max, y_max) format.
@@ -145,6 +161,19 @@ class RTDETR:
 
         Returns:
             (np.ndarray): Array of shape (N, 4) with bounding boxes in (x_min, y_min, x_max, y_max) format.
+=======
+    def bbox_cxcywh_to_xyxy(self, boxes):
+        """Converts bounding boxes from (center x, center y, width, height) format to (x_min, y_min, x_max, y_max)
+        format.
+
+        Args:
+            boxes (numpy.ndarray): An array of shape (N, 4) where each row represents a bounding box in (cx, cy, w, h)
+                format.
+
+        Returns:
+            numpy.ndarray: An array of shape (N, 4) where each row represents a bounding box in (x_min, y_min, x_max,
+                y_max) format.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         """
         # Calculate half width and half height of the bounding boxes
         half_width = boxes[:, 2] / 2
@@ -159,9 +188,14 @@ class RTDETR:
         # Return the bounding boxes in (x_min, y_min, x_max, y_max) format
         return np.column_stack((x_min, y_min, x_max, y_max))
 
+<<<<<<< HEAD
     def postprocess(self, model_output: List[np.ndarray]) -> np.ndarray:
         """
         Postprocess model output to extract and visualize detections.
+=======
+    def postprocess(self, model_output):
+        """Postprocesses the model output to extract detections and draw them on the input image.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             model_output (List[np.ndarray]): Output tensors from the model inference.
@@ -197,11 +231,16 @@ class RTDETR:
 
         return self.img
 
+<<<<<<< HEAD
     def main(self) -> np.ndarray:
         """
         Execute object detection on the input image using the ONNX model.
 
         Performs the complete detection pipeline: preprocessing, inference, and postprocessing.
+=======
+    def main(self):
+        """Executes the detection on the input image using the ONNX model.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (np.ndarray): Output image with detection annotations.

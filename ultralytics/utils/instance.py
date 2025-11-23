@@ -3,7 +3,6 @@
 from collections import abc
 from itertools import repeat
 from numbers import Number
-from typing import List
 
 import numpy as np
 
@@ -32,17 +31,16 @@ __all__ = ("Bboxes", "Instances")  # tuple or list
 
 
 class Bboxes:
-    """
-    A class for handling bounding boxes.
+    """A class for handling bounding boxes.
 
-    The class supports various bounding box formats like 'xyxy', 'xywh', and 'ltwh'.
-    Bounding box data should be provided in numpy arrays.
+    The class supports various bounding box formats like 'xyxy', 'xywh', and 'ltwh'. Bounding box data should be
+    provided in numpy arrays.
 
     Attributes:
         bboxes (np.ndarray): The bounding boxes stored in a 2D numpy array with shape (N, 4).
         format (str): The format of the bounding boxes ('xyxy', 'xywh', or 'ltwh').
 
-    Note:
+    Notes:
         This class does not handle normalization or denormalization of bounding boxes.
     """
 
@@ -106,12 +104,11 @@ class Bboxes:
     #     self.normalized = True
 
     def mul(self, scale):
-        """
-        Multiply bounding box coordinates by scale factor(s).
+        """Multiply bounding box coordinates by scale factor(s).
 
         Args:
-            scale (int | tuple | list): Scale factor(s) for four coordinates.
-                If int, the same scale is applied to all coordinates.
+            scale (int | tuple | list): Scale factor(s) for four coordinates. If int, the same scale is applied to all
+                coordinates.
         """
         if isinstance(scale, Number):
             scale = to_4tuple(scale)
@@ -123,12 +120,11 @@ class Bboxes:
         self.bboxes[:, 3] *= scale[3]
 
     def add(self, offset):
-        """
-        Add offset to bounding box coordinates.
+        """Add offset to bounding box coordinates.
 
         Args:
-            offset (int | tuple | list): Offset(s) for four coordinates.
-                If int, the same offset is applied to all coordinates.
+            offset (int | tuple | list): Offset(s) for four coordinates. If int, the same offset is applied to all
+                coordinates.
         """
         if isinstance(offset, Number):
             offset = to_4tuple(offset)
@@ -144,18 +140,21 @@ class Bboxes:
         return len(self.bboxes)
 
     @classmethod
-    def concatenate(cls, boxes_list: List["Bboxes"], axis=0) -> "Bboxes":
-        """
-        Concatenate a list of Bboxes objects into a single Bboxes object.
+    def concatenate(cls, boxes_list: list["Bboxes"], axis=0) -> "Bboxes":
+        """Concatenate a list of Bboxes objects into a single Bboxes object.
 
         Args:
             boxes_list (List[Bboxes]): A list of Bboxes objects to concatenate.
+<<<<<<< HEAD
             axis (int, optional): The axis along which to concatenate the bounding boxes.
+=======
+            axis (int, optional): The axis along which to concatenate the bounding boxes. Defaults to 0.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (Bboxes): A new Bboxes object containing the concatenated bounding boxes.
 
-        Note:
+        Notes:
             The input should be a list or tuple of Bboxes objects.
         """
         assert isinstance(boxes_list, (list, tuple))
@@ -168,12 +167,15 @@ class Bboxes:
         return cls(np.concatenate([b.bboxes for b in boxes_list], axis=axis))
 
     def __getitem__(self, index) -> "Bboxes":
-        """
-        Retrieve a specific bounding box or a set of bounding boxes using indexing.
+        """Retrieve a specific bounding box or a set of bounding boxes using indexing.
 
         Args:
+<<<<<<< HEAD
             index (int | slice | np.ndarray): The index, slice, or boolean array to select
                                               the desired bounding boxes.
+=======
+            index (int, slice, or np.ndarray): The index, slice, or boolean array to select the desired bounding boxes.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (Bboxes): A new Bboxes object containing the selected bounding boxes.
@@ -181,7 +183,7 @@ class Bboxes:
         Raises:
             AssertionError: If the indexed bounding boxes do not form a 2-dimensional matrix.
 
-        Note:
+        Notes:
             When using boolean indexing, make sure to provide a boolean array with the same
             length as the number of bounding boxes.
         """
@@ -193,6 +195,7 @@ class Bboxes:
 
 
 class Instances:
+<<<<<<< HEAD
     """
     Container for bounding boxes, segments, and keypoints of detected objects in an image.
 
@@ -201,6 +204,9 @@ class Instances:
         keypoints (np.ndarray): Keypoints with shape (N, 17, 3) in format (x, y, visible).
         normalized (bool): Flag indicating whether the bounding box coordinates are normalized.
         segments (np.ndarray): Segments array with shape (N, M, 2) after resampling.
+=======
+    """Container for bounding boxes, segments, and keypoints of detected objects in an image.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Methods:
         convert_bbox: Convert bounding box format.
@@ -215,17 +221,37 @@ class Instances:
         update: Update instance variables.
         concatenate: Concatenate multiple Instances objects.
 
+    Attributes:
+        _bboxes (Bboxes): Internal object for handling bounding box operations.
+        keypoints (ndarray): keypoints(x, y, visible) with shape [N, 17, 3]. Default is None.
+        normalized (bool): Flag indicating whether the bounding box coordinates are normalized.
+        segments (ndarray): Segments array with shape [N, 1000, 2] after resampling.
+
     Examples:
+<<<<<<< HEAD
         >>> instances = Instances(
         ...     bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
         ...     segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
         ...     keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
         ... )
+=======
+        ```python
+        # Create an Instances object
+        instances = Instances(
+            bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
+            segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
+            keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
+        )
+        ```
+
+    Notes:
+        The bounding box format is either 'xywh' or 'xyxy', and is determined by the `bbox_format` argument.
+        This class does not perform input validation, and it assumes the inputs are well-formed.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
 
     def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True) -> None:
-        """
-        Initialize the object with bounding boxes, segments, and keypoints.
+        """Initialize the object with bounding boxes, segments, and keypoints.
 
         Args:
             bboxes (np.ndarray): Bounding boxes, shape (N, 4).
@@ -324,16 +350,23 @@ class Instances:
             self.keypoints[..., 1] += padh
 
     def __getitem__(self, index) -> "Instances":
-        """
-        Retrieve a specific instance or a set of instances using indexing.
+        """Retrieve a specific instance or a set of instances using indexing.
 
         Args:
+<<<<<<< HEAD
             index (int | slice | np.ndarray): The index, slice, or boolean array to select the desired instances.
 
         Returns:
             (Instances): A new Instances object containing the selected boxes, segments, and keypoints if present.
+=======
+            index (int, slice, or np.ndarray): The index, slice, or boolean array to select the desired instances.
 
-        Note:
+        Returns:
+            Instances: A new Instances object containing the selected bounding boxes, segments, and keypoints if
+                present.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+
+        Notes:
             When using boolean indexing, make sure to provide a boolean array with the same
             length as the number of instances.
         """
@@ -446,19 +479,29 @@ class Instances:
         return len(self.bboxes)
 
     @classmethod
+<<<<<<< HEAD
     def concatenate(cls, instances_list: List["Instances"], axis=0) -> "Instances":
         """
         Concatenate a list of Instances objects into a single Instances object.
+=======
+    def concatenate(cls, instances_list: list["Instances"], axis=0) -> "Instances":
+        """Concatenates a list of Instances objects into a single Instances object.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             instances_list (List[Instances]): A list of Instances objects to concatenate.
             axis (int, optional): The axis along which the arrays will be concatenated.
 
         Returns:
+<<<<<<< HEAD
             (Instances): A new Instances object containing the concatenated bounding boxes,
                        segments, and keypoints if present.
+=======
+            Instances: A new Instances object containing the concatenated bounding boxes, segments, and keypoints if
+                present.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
-        Note:
+        Notes:
             The `Instances` objects in the list should have the same properties, such as
             the format of the bounding boxes, whether keypoints are present, and if the
             coordinates are normalized.

@@ -17,7 +17,11 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
+<<<<<<< HEAD
 __all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "YOLOEDetect", "YOLOESegment"
+=======
+__all__ = "OBB", "Classify", "Detect", "Pose", "RTDETRDecoder", "Segment", "v10Detect"
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
 
 class Detect(nn.Module):
@@ -77,17 +81,22 @@ class Detect(nn.Module):
         return y if self.export else (y, x)
 
     def forward_end2end(self, x):
-        """
-        Performs forward pass of the v10Detect module.
+        """Performs forward pass of the v10Detect module.
 
         Args:
             x (List[torch.Tensor]): Input feature maps from different levels.
 
         Returns:
+<<<<<<< HEAD
             (dict | tuple):
 
                 - If in training mode, returns a dictionary containing outputs of both one2many and one2one detections.
                 - If not in training mode, returns processed detections or a tuple with processed detections and raw outputs.
+=======
+            (dict, tensor): If not in training mode, returns a dictionary containing the outputs of both one2many and
+                one2one detections. If in training mode, returns a dictionary containing the outputs of one2many and
+                one2one detections separately.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         """
         x_detach = [xi.detach() for xi in x]
         one2one = [
@@ -162,8 +171,7 @@ class Detect(nn.Module):
 
     @staticmethod
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
-        """
-        Post-processes YOLO model predictions.
+        """Post-processes YOLO model predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
@@ -570,8 +578,7 @@ class YOLOESegment(YOLOEDetect):
 
 
 class RTDETRDecoder(nn.Module):
-    """
-    Real-Time Deformable Transformer Decoder (RTDETRDecoder) module for object detection.
+    """Real-Time Deformable Transformer Decoder (RTDETRDecoder) module for object detection.
 
     This decoder module utilizes Transformer architecture along with deformable convolutions to predict bounding boxes
     and class labels for objects in an image. It integrates features from multiple layers and runs through a series of
@@ -599,8 +606,7 @@ class RTDETRDecoder(nn.Module):
         box_noise_scale=1.0,
         learnt_init_query=False,
     ):
-        """
-        Initializes the RTDETRDecoder module with the given parameters.
+        """Initializes the RTDETRDecoder module with the given parameters.
 
         Args:
             nc (int): Number of classes. Default is 80.
@@ -841,8 +847,7 @@ class RTDETRDecoder(nn.Module):
 
 
 class v10Detect(Detect):
-    """
-    v10 Detection head from https://arxiv.org/pdf/2405.14458.
+    """v10 Detection head from https://arxiv.org/pdf/2405.14458.
 
     Args:
         nc (int): Number of classes.
@@ -855,7 +860,6 @@ class v10Detect(Detect):
         __init__(self, nc=80, ch=()): Initializes the v10Detect object.
         forward(self, x): Performs forward pass of the v10Detect module.
         bias_init(self): Initializes biases of the Detect module.
-
     """
 
     end2end = True

@@ -2,14 +2,8 @@
 
 // Apply theme colors based on dark/light mode
 const applyTheme = (isDark) => {
-  document.body.setAttribute(
-    "data-md-color-scheme",
-    isDark ? "slate" : "default",
-  );
-  document.body.setAttribute(
-    "data-md-color-primary",
-    isDark ? "black" : "indigo",
-  );
+  document.body.setAttribute("data-md-color-scheme", isDark ? "slate" : "default");
+  document.body.setAttribute("data-md-color-primary", isDark ? "black" : "indigo");
 };
 
 // Check and apply appropriate theme based on system/user preference
@@ -22,19 +16,12 @@ const checkTheme = () => {
 };
 
 // Watch for system theme changes
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", checkTheme);
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", checkTheme);
 
 // Initialize theme handling on page load
 document.addEventListener("DOMContentLoaded", () => {
   // Watch for theme toggle changes
-  document
-    .getElementById("__palette_1")
-    ?.addEventListener(
-      "change",
-      (e) => e.target.checked && setTimeout(checkTheme),
-    );
+  document.getElementById("__palette_1")?.addEventListener("change", (e) => e.target.checked && setTimeout(checkTheme));
   // Initial theme check
   checkTheme();
 });
@@ -67,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+<<<<<<< HEAD
   // Configuration object for Inkeep
   const config = {
     baseSettings: {
@@ -75,6 +63,20 @@ document.addEventListener("DOMContentLoaded", () => {
       organizationDisplayName: "Ultralytics",
       colorMode: {
         enableSystem: true,
+=======
+  // configure and initialize the widget
+  const addInkeepWidget = (componentType, targetElementId) => {
+    const inkeepWidget = Inkeep().embed({
+      componentType,
+      ...(componentType !== "ChatButton" ? { targetElement: targetElementId } : {}),
+      colorModeSync: {
+        observedElement: document.documentElement,
+        isDarkModeCallback: (el) => {
+          const currentTheme = el.getAttribute("data-color-mode");
+          return currentTheme === "dark";
+        },
+        colorModeAttribute: "data-color-mode-scheme",
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
       },
       theme: {
         styles: [

@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 import functools
 import gc
@@ -10,7 +11,6 @@ from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Union
 
 import numpy as np
 import torch
@@ -74,8 +74,7 @@ def smart_inference_mode():
 
 
 def autocast(enabled: bool, device: str = "cuda"):
-    """
-    Get the appropriate autocast context manager based on PyTorch version and AMP setting.
+    """Get the appropriate autocast context manager based on PyTorch version and AMP setting.
 
     This function returns a context manager for automatic mixed precision (AMP) training that is compatible with both
     older and newer versions of PyTorch. It handles the differences in the autocast API between PyTorch versions.
@@ -87,6 +86,7 @@ def autocast(enabled: bool, device: str = "cuda"):
     Returns:
         (torch.amp.autocast): The appropriate autocast context manager.
 
+<<<<<<< HEAD
     Notes:
         - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
         - For older versions, it uses `torch.cuda.autocast`.
@@ -95,6 +95,18 @@ def autocast(enabled: bool, device: str = "cuda"):
         >>> with autocast(enabled=True):
         ...     # Your mixed precision operations here
         ...     pass
+=======
+    Examples:
+        ```python
+        with autocast(amp=True):
+            # Your mixed precision operations here
+            pass
+        ```
+
+    Notes:
+        - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
+        - For older versions, it uses `torch.cuda.autocast`.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
     if TORCH_1_13:
         return torch.amp.autocast(device, enabled=enabled)
@@ -128,20 +140,33 @@ def get_gpu_info(index):
 
 
 def select_device(device="", batch=0, newline=False, verbose=True):
+<<<<<<< HEAD
     """
     Select the appropriate PyTorch device based on the provided arguments.
+=======
+    """Selects the appropriate PyTorch device based on the provided arguments.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     The function takes a string specifying the device or a torch.device object and returns a torch.device object
     representing the selected device. The function also validates the number of available devices and raises an
     exception if the requested device(s) are not available.
 
     Args:
+<<<<<<< HEAD
         device (str | torch.device, optional): Device string or torch.device object.
             Options are 'None', 'cpu', or 'cuda', or '0' or '0,1,2,3'. Defaults to an empty string, which auto-selects
             the first available GPU, or CPU if no GPU is available.
         batch (int, optional): Batch size being used in your model.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
+=======
+        device (str | torch.device, optional): Device string or torch.device object. Options are 'None', 'cpu', or
+            'cuda', or '0' or '0,1,2,3'. Defaults to an empty string, which auto-selects the first available GPU, or CPU
+            if no GPU is available.
+        batch (int, optional): Batch size being used in your model. Defaults to 0.
+        newline (bool, optional): If True, adds a newline at the end of the log string. Defaults to False.
+        verbose (bool, optional): If True, logs the device information. Defaults to True.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Returns:
         (torch.device): Selected device.
@@ -157,7 +182,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         >>> select_device("cpu")
         device(type='cpu')
 
-    Note:
+    Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
@@ -334,6 +359,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
     layers = __import__("collections").OrderedDict((n, m) for n, m in model.named_modules() if len(m._modules) == 0)
     n_l = len(layers)  # number of layers
     if detailed:
+<<<<<<< HEAD
         h = f"{'layer':>5}{'name':>40}{'type':>20}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}"
         LOGGER.info(h)
         for i, (mn, m) in enumerate(layers.items()):
@@ -346,6 +372,15 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
                     )
             else:  # layers with no learnable params
                 LOGGER.info(f"{i:>5g}{mn:>40}{mt:>20}{False!r:>10}{0:>12g}{str([]):>20}{'-':>10}{'-':>10}{'-':>15}")
+=======
+        LOGGER.info(f"{'layer':>5}{'name':>40}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}")
+        for i, (name, p) in enumerate(model.named_parameters()):
+            name = name.replace("module_list.", "")
+            LOGGER.info(
+                f"{i:>5g}{name:>40s}{p.requires_grad!r:>10}{p.numel():>12g}{list(p.shape)!s:>20s}"
+                f"{p.mean():>10.3g}{p.std():>10.3g}{p.dtype!s:>15s}"
+            )
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     flops = get_flops(model, imgsz)  # imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
     fused = " (fused)" if getattr(model, "is_fused", lambda: False)() else ""
@@ -367,15 +402,17 @@ def get_num_gradients(model):
 
 
 def model_info_for_loggers(trainer):
-    """
-    Return model info dict with useful model information.
+    """Return model info dict with useful model information.
 
+<<<<<<< HEAD
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing model and validation data.
 
     Returns:
         (dict): Dictionary containing model parameters, GFLOPs, and inference speeds.
 
+=======
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     Examples:
         YOLOv8n info for loggers
         >>> results = {
@@ -635,8 +672,13 @@ def unset_deterministic():
 
 
 class ModelEMA:
+<<<<<<< HEAD
     """
     Updated Exponential Moving Average (EMA) implementation.
+=======
+    """Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models. Keeps a moving
+    average of everything in the model state_dict (parameters and buffers).
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Keeps a moving average of everything in the model state_dict (parameters and buffers).
     For EMA details see References.
@@ -702,9 +744,8 @@ class ModelEMA:
             copy_attr(self.ema, model, include, exclude)
 
 
-def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict = None) -> dict:
-    """
-    Strip optimizer from 'f' to finalize training, optionally save as 's'.
+def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict | None = None) -> dict:
+    """Strip optimizer from 'f' to finalize training, optionally save as 's'.
 
     Args:
         f (str | Path): File path to model to strip the optimizer from. Defaults to 'best.pt'.
@@ -715,10 +756,23 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
         (dict): The combined checkpoint dictionary.
 
     Examples:
+<<<<<<< HEAD
         >>> from pathlib import Path
         >>> from ultralytics.utils.torch_utils import strip_optimizer
         >>> for f in Path("path/to/model/checkpoints").rglob("*.pt"):
         >>>    strip_optimizer(f)
+=======
+        ```python
+        from pathlib import Path
+        from ultralytics.utils.torch_utils import strip_optimizer
+
+        for f in Path("path/to/model/checkpoints").rglob("*.pt"):
+            strip_optimizer(f)
+        ```
+
+    Notes:
+        Use `ultralytics.nn.torch_safe_load` for missing modules with `x = torch_safe_load(f)[0]`
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
     try:
         x = torch.load(f, map_location=torch.device("cpu"))
@@ -763,8 +817,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
 
 
 def convert_optimizer_state_dict_to_fp16(state_dict):
-    """
-    Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
+    """Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
 
     Args:
         state_dict (dict): Optimizer state dictionary.
@@ -782,12 +835,11 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
 
 @contextmanager
 def cuda_memory_usage(device=None):
-    """
-    Monitor and manage CUDA memory usage.
+    """Monitor and manage CUDA memory usage.
 
-    This function checks if CUDA is available and, if so, empties the CUDA cache to free up unused memory.
-    It then yields a dictionary containing memory usage information, which can be updated by the caller.
-    Finally, it updates the dictionary with the amount of memory reserved by CUDA on the specified device.
+    This function checks if CUDA is available and, if so, empties the CUDA cache to free up unused memory. It then
+    yields a dictionary containing memory usage information, which can be updated by the caller. Finally, it updates the
+    dictionary with the amount of memory reserved by CUDA on the specified device.
 
     Args:
         device (torch.device, optional): The CUDA device to query memory usage for. Defaults to None.
@@ -806,6 +858,7 @@ def cuda_memory_usage(device=None):
         yield cuda_info
 
 
+<<<<<<< HEAD
 def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
@@ -816,6 +869,14 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
         n (int, optional): Number of iterations to average. Defaults to 10.
         device (str | torch.device, optional): Device to profile on. Defaults to None.
         max_num_obj (int, optional): Maximum number of objects for simulation. Defaults to 0.
+=======
+def profile(input, ops, n=10, device=None, max_num_obj=0):
+    """Ultralytics speed, memory and FLOPs profiler.
+
+    Examples:
+        ```python
+        from ultralytics.utils.torch_utils import profile
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Returns:
         (list): Profile results for each operation.
@@ -881,7 +942,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         mem += cuda_info["memory"] / 1e9  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
-                LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{str(s_in):>24s}{str(s_out):>24s}")
+                LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{s_in!s:>24s}{s_out!s:>24s}")
                 results.append([p, flops, mem, tf, tb, s_in, s_out])
             except Exception as e:
                 LOGGER.info(e)
@@ -904,8 +965,7 @@ class EarlyStopping:
     """
 
     def __init__(self, patience=50):
-        """
-        Initialize early stopping object.
+        """Initialize early stopping object.
 
         Args:
             patience (int, optional): Number of epochs to wait after fitness stops improving before stopping.
@@ -916,8 +976,7 @@ class EarlyStopping:
         self.possible_stop = False  # possible stop may occur next epoch
 
     def __call__(self, epoch, fitness):
-        """
-        Check whether to stop training.
+        """Check whether to stop training.
 
         Args:
             epoch (int): Current epoch of training
@@ -947,8 +1006,7 @@ class EarlyStopping:
 
 
 class FXModel(nn.Module):
-    """
-    A custom model class for torch.fx compatibility.
+    """A custom model class for torch.fx compatibility.
 
     This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph
     manipulation. It copies attributes from an existing model and explicitly sets the model attribute to ensure proper
@@ -959,8 +1017,7 @@ class FXModel(nn.Module):
     """
 
     def __init__(self, model):
-        """
-        Initialize the FXModel.
+        """Initialize the FXModel.
 
         Args:
             model (nn.Module): The original model to wrap for torch.fx compatibility.
@@ -971,8 +1028,7 @@ class FXModel(nn.Module):
         self.model = model.model
 
     def forward(self, x):
-        """
-        Forward pass through the model.
+        """Forward pass through the model.
 
         This method performs the forward pass through the model, handling the dependencies between layers and saving
         intermediate outputs.

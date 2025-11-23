@@ -61,7 +61,11 @@ Install the required dependencies:
 cd ultralytics
 pip install -r requirements.txt
 pip install ultralytics
+<<<<<<< HEAD
 pip install onnx
+=======
+pip install onnx > =1.12.0
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 ### Perform YOLO11 tasks
@@ -110,7 +114,11 @@ source activate yolo11env
 cd ultralytics
 pip install -r requirements.txt
 pip install ultralytics
+<<<<<<< HEAD
 pip install onnx
+=======
+pip install onnx > =1.12.0
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 Note that we need to use the `source activate yolo11env` for all the %%bash cells, to make sure that the %%bash cell uses environment we want.
@@ -166,7 +174,11 @@ Running YOLO11 on AzureML for model training involves several steps:
     conda create --name yolo11env -y python=3.12
     conda activate yolo11env
     conda install pip -y
+<<<<<<< HEAD
     pip install ultralytics onnx
+=======
+    pip install ultralytics onnx > =1.12.0
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     ```
 
 3. **Run YOLO11 Tasks**: Use the Ultralytics CLI to train your model:

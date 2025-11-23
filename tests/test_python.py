@@ -138,17 +138,17 @@ def test_predict_visualize(model):
 
 
 def test_predict_grey_and_4ch():
-    """Test YOLO prediction on SOURCE converted to greyscale and 4-channel images with various filenames."""
+    """Test YOLO prediction on SOURCE converted to grayscale and 4-channel images with various filenames."""
     im = Image.open(SOURCE)
     directory = TMP / "im4"
     directory.mkdir(parents=True, exist_ok=True)
 
-    source_greyscale = directory / "greyscale.jpg"
+    source_greyscale = directory / "grayscale.jpg"
     source_rgba = directory / "4ch.png"
     source_non_utf = directory / "non_UTF_测试文件_tést_image.jpg"
     source_spaces = directory / "image with spaces.jpg"
 
-    im.convert("L").save(source_greyscale)  # greyscale
+    im.convert("L").save(source_greyscale)  # grayscale
     im.convert("RGBA").save(source_rgba)  # 4-ch PNG with alpha
     im.save(source_non_utf)  # non-UTF characters in filename
     im.save(source_spaces)  # spaces in filename
@@ -178,8 +178,12 @@ def test_youtube():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 def test_track_stream():
+<<<<<<< HEAD
     """
     Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
+=======
+    """Tests streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
@@ -258,7 +262,7 @@ def test_predict_callback_and_setup():
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
 
     dataset = load_inference_source(source=SOURCE)
-    bs = dataset.bs  # noqa access predictor properties
+    bs = dataset.bs
     results = model.predict(dataset, stream=True, imgsz=160)  # source already setup
     for r, im0, bs in results:
         print("test_callback", im0.shape)

@@ -14,8 +14,7 @@ from ultralytics.utils.plotting import Annotator
 
 
 class BaseSolution:
-    """
-    A base class for managing Ultralytics Solutions.
+    """A base class for managing Ultralytics Solutions.
 
     This class provides core functionality for various Ultralytics Solutions, including model loading, object tracking,
     and region initialization.
@@ -46,9 +45,15 @@ class BaseSolution:
         >>> solution.display_output(image)
     """
 
+<<<<<<< HEAD
     def __init__(self, is_cli=False, **kwargs):
         """
         Initializes the BaseSolution class with configuration settings and the YOLO model.
+=======
+    def __init__(self, IS_CLI=False, **kwargs):
+        """Initializes the `BaseSolution` class with configuration settings and the YOLO model for Ultralytics
+        solutions.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             is_cli (bool): Enables CLI mode if set to True.
@@ -125,8 +130,7 @@ class BaseSolution:
         return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 
     def extract_tracks(self, im0):
-        """
-        Applies object tracking and extracts tracks from an input image or frame.
+        """Applies object tracking and extracts tracks from an input image or frame.
 
         Args:
             im0 (np.ndarray): The input image or frame.
@@ -148,9 +152,14 @@ class BaseSolution:
             self.LOGGER.warning("no tracks found!")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
 
+<<<<<<< HEAD
     def store_tracking_history(self, track_id, box, is_obb=False):
         """
         Stores the tracking history of an object.
+=======
+    def store_tracking_history(self, track_id, box):
+        """Stores the tracking history of an object.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         This method updates the tracking history for a given object by appending the center point of its
         bounding box to the track line. It maintains a maximum of 30 points in the tracking history.
@@ -178,9 +187,15 @@ class BaseSolution:
             self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)
         )  # region or line
 
+<<<<<<< HEAD
     def display_output(self, plot_im):
         """
         Display the results of the processing, which could involve showing frames, printing counts, or saving results.
+=======
+    def display_output(self, im0):
+        """Display the results of the processing, which could involve showing frames, printing counts, or saving
+        results.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         This method is responsible for visualizing the output of the object detection and tracking process. It displays
         the processed frame with annotations, and allows for user interaction to close the display.

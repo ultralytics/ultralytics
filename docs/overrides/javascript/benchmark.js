@@ -125,6 +125,7 @@ function updateChart(initialDatasets = []) {
     EfficientDet: "#000000",
   };
 
+<<<<<<< HEAD
   // Always include all models in the dataset creation
   const datasets = Object.keys(data).map((algorithm, i) => {
     const baseColor =
@@ -133,6 +134,15 @@ function updateChart(initialDatasets = []) {
       Object.keys(data).indexOf(algorithm) === 0
         ? baseColor
         : lightenHexColor(baseColor, 0.6);
+=======
+  // Get the selected algorithms from the checkboxes.
+  const selectedAlgorithms = [...document.querySelectorAll('input[name="algorithm"]:checked')].map((e) => e.value);
+
+  // Create the datasets for the selected algorithms.
+  const datasets = selectedAlgorithms.map((algorithm, i) => {
+    const baseColor = colorMap[algorithm] || `hsl(${Math.random() * 360}, 70%, 50%)`;
+    const lineColor = i === 0 ? baseColor : lightenHexColor(baseColor, 0.6); // Lighten non-primary lines.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     return {
       label: algorithm,
@@ -224,6 +234,7 @@ function initChart(activeModels) {
 document$.subscribe(function () {
   (function initializeApp() {
     if (typeof Chart !== "undefined") {
+<<<<<<< HEAD
       // Get active models from page config or use default
       // e.g. <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv5", "YOLOv8"]'></canvas>
       const pageConfig = document
@@ -231,6 +242,12 @@ document$.subscribe(function () {
         .getAttribute("active-models");
       const activeModels = pageConfig ? JSON.parse(pageConfig) : [];
       initChart(activeModels);
+=======
+      document
+        .querySelectorAll('input[name="algorithm"]')
+        .forEach((checkbox) => checkbox.addEventListener("change", updateChart));
+      updateChart();
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     } else {
       setTimeout(initializeApp, 50); // Retry every 50 ms
     }

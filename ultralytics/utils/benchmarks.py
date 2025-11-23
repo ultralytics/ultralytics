@@ -59,8 +59,7 @@ def benchmark(
     eps=1e-3,
     format="",
 ):
-    """
-    Benchmark a YOLO model across different formats for speed and accuracy.
+    """Benchmark a YOLO model across different formats for speed and accuracy.
 
     Args:
         model (str | Path): Path to the model file or directory.
@@ -74,8 +73,8 @@ def benchmark(
         format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
 
     Returns:
-        (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
-            and inference time.
+        (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric, and
+            inference time.
 
     Examples:
         Benchmark a YOLO model with default settings:
@@ -227,8 +226,7 @@ class RF100Benchmark:
         self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
 
     def set_key(self, api_key):
-        """
-        Set Roboflow API key for processing.
+        """Set Roboflow API key for processing.
 
         Args:
             api_key (str): The API key.
@@ -244,8 +242,7 @@ class RF100Benchmark:
         self.rf = Roboflow(api_key=api_key)
 
     def parse_dataset(self, ds_link_txt="datasets_links.txt"):
-        """
-        Parse dataset links and download datasets.
+        """Parse dataset links and download datasets.
 
         Args:
             ds_link_txt (str): Path to the file containing dataset links.
@@ -267,7 +264,7 @@ class RF100Benchmark:
         with open(ds_link_txt, encoding="utf-8") as file:
             for line in file:
                 try:
-                    _, url, workspace, project, version = re.split("/+", line.strip())
+                    _, _url, workspace, project, version = re.split("/+", line.strip())
                     self.ds_names.append(project)
                     proj_version = f"{project}-{version}"
                     if not Path(proj_version).exists():
@@ -282,15 +279,27 @@ class RF100Benchmark:
 
     @staticmethod
     def fix_yaml(path):
+<<<<<<< HEAD
         """Fix the train and validation paths in a given YAML file."""
         yaml_data = YAML.load(path)
+=======
+        """Fixes the train and validation paths in a given YAML file.
+
+        Args:
+            path (str): Path to the YAML file to be fixed.
+
+        Examples:
+            >>> RF100Benchmark.fix_yaml("path/to/data.yaml")
+        """
+        with open(path) as file:
+            yaml_data = yaml.safe_load(file)
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         yaml_data["train"] = "train/images"
         yaml_data["val"] = "valid/images"
         YAML.dump(yaml_data, path)
 
     def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
-        """
-        Evaluate model performance on validation results.
+        """Evaluate model performance on validation results.
 
         Args:
             yaml_path (str): Path to the YAML configuration file.
@@ -337,16 +346,20 @@ class RF100Benchmark:
                 if lst["class"] == "all":
                     map_val = lst["map50"]
         else:
+<<<<<<< HEAD
             LOGGER.info("Single dict found")
             map_val = [res["map50"] for res in eval_lines][0]
+=======
+            print("There's only one dict res")
+            map_val = next(res["map50"] for res in eval_lines)
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         with open(eval_log_file, "a", encoding="utf-8") as f:
             f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
 
 
 class ProfileModels:
-    """
-    ProfileModels class for profiling different models on ONNX and TensorRT.
+    """ProfileModels class for profiling different models on ONNX and TensorRT.
 
     This class profiles the performance of different models, returning results such as model speed and FLOPs.
 
@@ -389,8 +402,7 @@ class ProfileModels:
         trt=True,
         device=None,
     ):
-        """
-        Initialize the ProfileModels class for profiling models.
+        """Initialize the ProfileModels class for profiling models.
 
         Args:
             paths (List[str]): List of paths of the models to be profiled.
@@ -402,14 +414,19 @@ class ProfileModels:
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
 
-        Notes:
-            FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
-
         Examples:
             Initialize and profile models
             >>> from ultralytics.utils.benchmarks import ProfileModels
+<<<<<<< HEAD
             >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
             >>> profiler.run()
+=======
+            >>> profiler = ProfileModels(["yolov8n.yaml", "yolov8s.yaml"], imgsz=640)
+            >>> profiler.profile()
+
+        Notes:
+            FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
@@ -628,6 +645,7 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
+<<<<<<< HEAD
         """
         Generate a table row string with model performance metrics.
 
@@ -641,6 +659,10 @@ class ProfileModels:
             (str): Formatted table row string with model metrics.
         """
         layers, params, gradients, flops = model_info
+=======
+        """Generates a table row string with model performance metrics including inference times and model details."""
+        _layers, params, _gradients, flops = model_info
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         return (
             f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms | {t_engine[0]:.1f}±"
             f"{t_engine[1]:.1f} ms | {params / 1e6:.1f} | {flops:.1f} |"
@@ -648,6 +670,7 @@ class ProfileModels:
 
     @staticmethod
     def generate_results_dict(model_name, t_onnx, t_engine, model_info):
+<<<<<<< HEAD
         """
         Generate a dictionary of profiling results.
 
@@ -661,6 +684,10 @@ class ProfileModels:
             (dict): Dictionary containing profiling results.
         """
         layers, params, gradients, flops = model_info
+=======
+        """Generates a dictionary of profiling results including model name, parameters, GFLOPs, and speed metrics."""
+        _layers, params, _gradients, flops = model_info
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         return {
             "model/name": model_name,
             "model/parameters": params,

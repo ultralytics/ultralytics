@@ -10,6 +10,7 @@ from .val import RTDETRDataset, RTDETRValidator
 
 
 class RTDETRTrainer(DetectionTrainer):
+<<<<<<< HEAD
     """
     Trainer class for the RT-DETR model developed by Baidu for real-time object detection.
 
@@ -33,11 +34,28 @@ class RTDETRTrainer(DetectionTrainer):
         >>> args = dict(model="rtdetr-l.yaml", data="coco8.yaml", imgsz=640, epochs=3)
         >>> trainer = RTDETRTrainer(overrides=args)
         >>> trainer.train()
+=======
+    """Trainer class for the RT-DETR model developed by Baidu for real-time object detection. Extends the
+    DetectionTrainer class for YOLO to adapt to the specific features and architecture of RT-DETR. This model
+    leverages Vision Transformers and has capabilities like IoU-aware query selection and adaptable inference speed.
+
+    Examples:
+        ```python
+        from ultralytics.models.rtdetr.train import RTDETRTrainer
+
+        args = dict(model="rtdetr-l.yaml", data="coco8.yaml", imgsz=640, epochs=3)
+        trainer = RTDETRTrainer(overrides=args)
+        trainer.train()
+        ```
+
+    Notes:
+        - F.grid_sample used in RT-DETR does not support the `deterministic=True` argument.
+        - AMP training can lead to NaN outputs and may produce errors during bipartite graph matching.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """
-        Initialize and return an RT-DETR model for object detection tasks.
+        """Initialize and return an RT-DETR model for object detection tasks.
 
         Args:
             cfg (dict, optional): Model configuration.
@@ -53,8 +71,7 @@ class RTDETRTrainer(DetectionTrainer):
         return model
 
     def build_dataset(self, img_path, mode="val", batch=None):
-        """
-        Build and return an RT-DETR dataset for training or validation.
+        """Build and return an RT-DETR dataset for training or validation.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -80,6 +97,34 @@ class RTDETRTrainer(DetectionTrainer):
         )
 
     def get_validator(self):
+<<<<<<< HEAD
         """Returns a DetectionValidator suitable for RT-DETR model validation."""
         self.loss_names = "giou_loss", "cls_loss", "l1_loss"
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+=======
+        """Returns a DetectionValidator suitable for RT-DETR model validation.
+
+        Returns:
+            (RTDETRValidator): Validator object for model validation.
+        """
+        self.loss_names = "giou_loss", "cls_loss", "l1_loss"
+        return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+
+    def preprocess_batch(self, batch):
+        """Preprocess a batch of images. Scales and converts the images to float format.
+
+        Args:
+            batch (dict): Dictionary containing a batch of images, bboxes, and labels.
+
+        Returns:
+            (dict): Preprocessed batch.
+        """
+        batch = super().preprocess_batch(batch)
+        bs = len(batch["img"])
+        batch_idx = batch["batch_idx"]
+        gt_bbox, gt_class = [], []
+        for i in range(bs):
+            gt_bbox.append(batch["bboxes"][batch_idx == i].to(batch_idx.device))
+            gt_class.append(batch["cls"][batch_idx == i].to(device=batch_idx.device, dtype=torch.long))
+        return batch
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435

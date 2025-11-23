@@ -14,8 +14,7 @@ from .tal import bbox2dist
 
 
 class VarifocalLoss(nn.Module):
-    """
-    Varifocal loss by Zhang et al.
+    """Varifocal loss by Zhang et al.
 
     https://arxiv.org/abs/2008.13367.
 
@@ -84,7 +83,15 @@ class DFLoss(nn.Module):
         self.reg_max = reg_max
 
     def __call__(self, pred_dist, target):
+<<<<<<< HEAD
         """Return sum of left and right DFL losses from https://ieeexplore.ieee.org/document/9792391."""
+=======
+        """Return sum of left and right DFL losses.
+
+        Distribution Focal Loss (DFL) proposed in Generalized Focal Loss
+        https://ieeexplore.ieee.org/document/9792391
+        """
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         target = target.clamp_(0, self.reg_max - 1 - 0.01)
         tl = target.long()  # target left
         tr = tl + 1  # target right
@@ -363,8 +370,7 @@ class v8SegmentationLoss(v8DetectionLoss):
     def single_mask_loss(
         gt_mask: torch.Tensor, pred: torch.Tensor, proto: torch.Tensor, xyxy: torch.Tensor, area: torch.Tensor
     ) -> torch.Tensor:
-        """
-        Compute the instance segmentation loss for a single image.
+        """Compute the instance segmentation loss for a single image.
 
         Args:
             gt_mask (torch.Tensor): Ground truth mask of shape (n, H, W), where n is the number of objects.
@@ -396,8 +402,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         imgsz: torch.Tensor,
         overlap: bool,
     ) -> torch.Tensor:
-        """
-        Calculate the loss for instance segmentation.
+        """Calculate the loss for instance segmentation.
 
         Args:
             fg_mask (torch.Tensor): A binary tensor of shape (BS, N_anchors) indicating which anchors are positive.
@@ -542,8 +547,7 @@ class v8PoseLoss(v8DetectionLoss):
     def calculate_keypoints_loss(
         self, masks, target_gt_idx, keypoints, batch_idx, stride_tensor, target_bboxes, pred_kpts
     ):
-        """
-        Calculate the keypoints loss for the model.
+        """Calculate the keypoints loss for the model.
 
         This function calculates the keypoints loss and keypoints object loss for a given batch. The keypoints loss is
         based on the difference between the predicted keypoints and ground truth keypoints. The keypoints object loss is
@@ -715,8 +719,7 @@ class v8OBBLoss(v8DetectionLoss):
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     def bbox_decode(self, anchor_points, pred_dist, pred_angle):
-        """
-        Decode predicted object bounding box coordinates from anchor points and distribution.
+        """Decode predicted object bounding box coordinates from anchor points and distribution.
 
         Args:
             anchor_points (torch.Tensor): Anchor points, (h*w, 2).

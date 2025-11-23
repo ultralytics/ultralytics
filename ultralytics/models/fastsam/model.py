@@ -9,11 +9,19 @@ from .val import FastSAMValidator
 
 
 class FastSAM(Model):
+<<<<<<< HEAD
     """
     FastSAM model interface for segment anything tasks.
 
     This class extends the base Model class to provide specific functionality for the FastSAM (Fast Segment Anything Model)
     implementation, allowing for efficient and accurate image segmentation.
+=======
+    """FastSAM model interface.
+
+    Examples:
+        ```python
+        from ultralytics import FastSAM
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         model (str): Path to the pre-trained FastSAM model file.
@@ -33,8 +41,7 @@ class FastSAM(Model):
         super().__init__(model=model, task="segment")
 
     def predict(self, source, stream=False, bboxes=None, points=None, labels=None, texts=None, **kwargs):
-        """
-        Perform segmentation prediction on image or video source.
+        """Perform segmentation prediction on image or video source.
 
         Supports prompted segmentation with bounding boxes, points, labels, and texts. The method packages these
         prompts and passes them to the parent class predict method.

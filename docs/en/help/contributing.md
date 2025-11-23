@@ -56,10 +56,16 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         This example illustrates the standard Google-style docstring format. Note how it clearly separates the function description, arguments, return value, and examples for maximum readability.
 
+<<<<<<< HEAD
         ```python
         def example_function(arg1, arg2=4):
             """
             Example function demonstrating Google-style docstrings.
+=======
+         ```python
+         def example_function(arg1, arg2=4):
+             """Example function demonstrating Google-style docstrings.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
             Args:
                 arg1 (int): The first argument.
@@ -144,10 +150,16 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         This example combines Google-style docstrings with Python type hints. When using type hints, you can omit the type information in the docstring arguments section, as it's already specified in the function signature.
 
+<<<<<<< HEAD
         ```python
         def example_function(arg1: int, arg2: int = 4) -> bool:
             """
             Example function demonstrating Google-style docstrings.
+=======
+         ```python
+         def example_function(arg1: int, arg2: int = 4) -> bool:
+             """Example function demonstrating Google-style docstrings.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
             Args:
                 arg1: The first argument.
@@ -166,6 +178,7 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         For smaller or simpler functions, a single-line docstring may be sufficient. These should be concise but complete sentences that start with a capital letter and end with a period.
 
+<<<<<<< HEAD
         ```python
         def example_small_function(arg1: int, arg2: int = 4) -> bool:
             """Example function with a single-line docstring."""
@@ -179,6 +192,96 @@ All pull requests must pass the [GitHub Actions](https://github.com/features/act
 ## ✨ Best Practices for Code Contributions
 
 When contributing code to Ultralytics projects, keep these best practices in mind:
+=======
+         ```python
+         def example_small_function(arg1: int, arg2: int = 4) -> bool:
+             """Example function with a single-line docstring."""
+             return arg1 == arg2
+         ```
+
+### GitHub Actions CI Tests
+
+All pull requests must pass the GitHub Actions [Continuous Integration](https://docs.ultralytics.com/help/CI/) (CI) tests before they can be merged. These tests include linting, unit tests, and other checks to ensure that your changes meet the project's quality standards. Review the CI output and address any issues that arise.
+
+## Reporting Bugs
+
+We highly value bug reports as they help us maintain the quality of our projects. When reporting a bug, please provide a [Minimum Reproducible Example](https://docs.ultralytics.com/help/minimum-reproducible-example/)—a simple, clear code example that consistently reproduces the issue. This allows us to quickly identify and resolve the problem.
+
+## License
+
+Ultralytics uses the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) for its repositories. This license promotes openness, transparency, and collaborative improvement in software development. It ensures that all users have the freedom to use, modify, and share the software, fostering a strong community of collaboration and innovation.
+
+We encourage all contributors to familiarize themselves with the terms of the AGPL-3.0 license to contribute effectively and ethically to the Ultralytics open-source community.
+
+## Open-Sourcing Your Projects with YOLO and AGPL-3.0 Compliance
+
+If you're planning to develop and release your own project using YOLO models, the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.gnu.org/licenses/agpl-3.0.html) ensures that all derivative works remain open and accessible. This section provides guidance, including steps, best practices, and requirements, to help you open-source your project while complying with AGPL-3.0.
+
+### Options for Starting Your Project
+
+You can kick-start your project using one of these approaches:
+
+1. **Fork the Ultralytics YOLO Repository**  
+   Fork the official Ultralytics YOLO repository directly from [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics).
+    - Use this option if you plan to build directly on the latest YOLO implementation.
+    - Modify the forked code as needed while ensuring compliance with AGPL-3.0.
+
+2. **Start from the Ultralytics Template Repository**  
+   Use the Ultralytics template repository available at [https://github.com/ultralytics/template](https://github.com/ultralytics/template).
+    - Ideal for starting a clean, modular project with pre-configured best practices.
+    - This option provides a lightweight starting point for projects that integrate or extend YOLO models.
+
+### What You Need to Open-Source
+
+To comply with AGPL-3.0, you must make the following components of your project openly available:
+
+1. **Your Entire Project Source Code**:
+    - Include all code for the larger project containing your YOLO models, scripts, and utilities.
+
+2. **Model Weights** (if modified):
+    - Share any fine-tuned or modified model weights as part of the open-source project.
+
+3. **Configuration Files**:
+    - Provide configuration files such as `.yaml` or `.json` that define the training setup, hyperparameters, or deployment configurations.
+
+4. **Training Data (if redistributable)**:
+    - If you include preprocessed or generated data that is redistributable, ensure it is part of the repository or clearly linked.
+
+5. **Web Application Components**:
+    - Include all backend and frontend source code if your project is a web application, especially server-side components.
+
+6. **Documentation**:
+    - Include clear documentation on how to use, build, and extend your project.
+
+7. **Build and Deployment Scripts**:
+    - Share scripts for setting up the environment, building the application, and deploying it, such as `Dockerfiles`, `requirements.txt`, or `Makefiles`.
+
+8. **Testing Framework**:
+    - Open-source your test cases, such as unit and integration tests, to ensure reproducibility and reliability.
+
+9. **Third-Party Modifications**:
+    - Provide source code for any third-party libraries you've modified.
+
+### Steps to Open-Source Your Project
+
+1. **Choose Your Starting Point**:
+    - Fork the Ultralytics YOLO repository or start from the Ultralytics template repository.
+
+2. **Set Your License**:
+    - Add a `LICENSE` file containing the AGPL-3.0 text.
+
+3. **Credit Upstream Contributions**:
+    - Include attribution to Ultralytics YOLO in your README. For example:
+        ```
+        This project builds on [Ultralytics YOLO](https://github.com/ultralytics/ultralytics), licensed under AGPL-3.0.
+        ```
+
+4. **Make Your Code Public**:
+    - Push your entire project (including the components listed above) to a public GitHub repository.
+
+5. **Document Your Project**:
+    - Write a clear `README.md` with instructions for setup, usage, and contributions.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
 - **Avoid code duplication:** Reuse existing code wherever possible and minimize unnecessary arguments.
 - **Make smaller, focused changes:** Focus on targeted modifications rather than large-scale changes.

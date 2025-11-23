@@ -8,11 +8,17 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class OBBPredictor(DetectionPredictor):
-    """
-    A class extending the DetectionPredictor class for prediction based on an Oriented Bounding Box (OBB) model.
+    """A class extending the DetectionPredictor class for prediction based on an Oriented Bounding Box (OBB) model.
 
+<<<<<<< HEAD
     This predictor handles oriented bounding box detection tasks, processing images and returning results with rotated
     bounding boxes.
+=======
+    Examples:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.obb import OBBPredictor
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         args (namespace): Configuration arguments for the predictor.

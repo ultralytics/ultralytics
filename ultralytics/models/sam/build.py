@@ -126,8 +126,7 @@ def _build_sam(
     checkpoint=None,
     mobile_sam=False,
 ):
-    """
-    Builds a Segment Anything Model (SAM) with specified encoder parameters.
+    """Builds a Segment Anything Model (SAM) with specified encoder parameters.
 
     Args:
         encoder_embed_dim (int | List[int]): Embedding dimension for the encoder.
@@ -223,8 +222,7 @@ def _build_sam2(
     encoder_window_spec=[8, 4, 16, 8],
     checkpoint=None,
 ):
-    """
-    Builds and returns a Segment Anything Model 2 (SAM2) with specified architecture parameters.
+    """Builds and returns a Segment Anything Model 2 (SAM2) with specified architecture parameters.
 
     Args:
         encoder_embed_dim (int): Embedding dimension for the encoder.
@@ -325,8 +323,7 @@ sam_model_map = {
 
 
 def build_sam(ckpt="sam_b.pt"):
-    """
-    Builds and returns a Segment Anything Model (SAM) based on the provided checkpoint.
+    """Builds and returns a Segment Anything Model (SAM) based on the provided checkpoint.
 
     Args:
         ckpt (str | Path): Path to the checkpoint file or name of a pre-defined SAM model.

@@ -9,7 +9,11 @@
 #     ├── yolov8s.pt
 #     └── ...
 
+<<<<<<< HEAD
 python << EOF
+=======
+python - << EOF
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 from ultralytics.utils.downloads import attempt_download_asset
 
 assets = [f"yolov8{size}{suffix}.pt" for size in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose")]

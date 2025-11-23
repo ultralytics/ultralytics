@@ -22,13 +22,13 @@ from .val import NASValidator
 
 
 class NAS(Model):
-    """
-    YOLO NAS model for object detection.
+    """YOLO NAS model for object detection.
 
-    This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine.
-    It is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
+    This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine. It
+    is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
 
     Attributes:
+<<<<<<< HEAD
         model (torch.nn.Module): The loaded YOLO-NAS model.
         task (str): The task type for the model, defaults to 'detect'.
         predictor (NASPredictor): The predictor instance for making predictions.
@@ -38,6 +38,17 @@ class NAS(Model):
         >>> from ultralytics import NAS
         >>> model = NAS("yolo_nas_s")
         >>> results = model.predict("ultralytics/assets/bus.jpg")
+=======
+        model (str): Path to the pre-trained model or model name. Defaults to 'yolo_nas_s.pt'.
+
+    Examples:
+        ```python
+        from ultralytics import NAS
+
+        model = NAS("yolo_nas_s")
+        results = model.predict("ultralytics/assets/bus.jpg")
+        ```
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Notes:
         YOLO-NAS models only support pre-trained models. Do not provide YAML configuration files.
@@ -83,9 +94,14 @@ class NAS(Model):
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # for export()
         self.model.eval()
 
+<<<<<<< HEAD
     def info(self, detailed: bool = False, verbose: bool = True):
         """
         Log model information.
+=======
+    def info(self, detailed=False, verbose=True):
+        """Logs model info.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             detailed (bool): Show detailed information about model.

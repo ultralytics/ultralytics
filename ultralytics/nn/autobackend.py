@@ -20,7 +20,14 @@ from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
 def check_class_names(names):
+<<<<<<< HEAD
     """Check class names and convert to dict format if needed."""
+=======
+    """Check class names.
+
+    Map imagenet class codes to human-readable names if required. Convert lists to dicts.
+    """
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):
@@ -49,8 +56,7 @@ def default_class_names(data=None):
 
 
 class AutoBackend(nn.Module):
-    """
-    Handles dynamic backend selection for running inference using Ultralytics YOLO models.
+    """Handles dynamic backend selection for running inference using Ultralytics YOLO models.
 
     The AutoBackend class is designed to provide an abstraction layer for various inference engines. It supports a wide
     range of formats, each with specific naming conventions as outlined below:
@@ -106,15 +112,23 @@ class AutoBackend(nn.Module):
         fuse: bool = True,
         verbose: bool = True,
     ):
-        """
-        Initialize the AutoBackend for inference.
+        """Initialize the AutoBackend for inference.
 
         Args:
+<<<<<<< HEAD
             weights (str | List[str] | torch.nn.Module): Path to the model weights file or a module instance.
             device (torch.device): Device to run the model on.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path | optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
+=======
+            weights (str | torch.nn.Module): Path to the model weights file or a module instance. Defaults to
+                'yolo11n.pt'.
+            device (torch.device): Device to run the model on. Defaults to CPU.
+            dnn (bool): Use OpenCV DNN module for ONNX inference. Defaults to False.
+            data (str | Path | optional): Path to the additional data.yaml file containing class names. Optional.
+            fp16 (bool): Enable half-precision inference. Supported only on specific backends. Defaults to False.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
             batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
             verbose (bool): Enable verbose logging.
@@ -289,6 +303,7 @@ class AutoBackend(nn.Module):
         # TensorRT
         elif engine:
             LOGGER.info(f"Loading {w} for TensorRT inference...")
+<<<<<<< HEAD
 
             if IS_JETSON and check_version(PYTHON_VERSION, "<=3.8.10"):
                 # fix error: `np.bool` was a deprecated alias for the builtin `bool` for JetPack 4 and JetPack 5 with Python <= 3.8.10
@@ -296,10 +311,14 @@ class AutoBackend(nn.Module):
 
             try:  # https://developer.nvidia.com/nvidia-tensorrt-download
                 import tensorrt as trt  # noqa
+=======
+            try:
+                import tensorrt as trt
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
             except ImportError:
                 if LINUX:
                     check_requirements("tensorrt>7.0.0,!=10.1.0")
-                import tensorrt as trt  # noqa
+                import tensorrt as trt
             check_version(trt.__version__, ">=7.0.0", hard=True)
             check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
             if device.type == "cpu":
@@ -446,8 +465,13 @@ class AutoBackend(nn.Module):
         # PaddlePaddle
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
+<<<<<<< HEAD
             check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle>=3.0.0")
             import paddle.inference as pdi  # noqa
+=======
+            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle")
+            import paddle.inference as pdi
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
             w = Path(w)
             model_file, params_file = None, None
@@ -567,9 +591,14 @@ class AutoBackend(nn.Module):
 
         self.__dict__.update(locals())  # assign all variables to self
 
+<<<<<<< HEAD
     def forward(self, im, augment=False, visualize=False, embed=None, **kwargs):
         """
         Runs inference on the YOLOv8 MultiBackend model.
+=======
+    def forward(self, im, augment=False, visualize=False, embed=None):
+        """Runs inference on the YOLOv8 MultiBackend model.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             im (torch.Tensor): The image tensor to perform inference on.
@@ -581,7 +610,7 @@ class AutoBackend(nn.Module):
         Returns:
             (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.
         """
-        b, ch, h, w = im.shape  # batch, channel, height, width
+        _b, _ch, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:
             im = im.half()  # to FP16
         if self.nhwc:
@@ -642,7 +671,7 @@ class AutoBackend(nn.Module):
                     # Start async inference with userdata=i to specify the position in results list
                     async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)  # keep image as BCHW
                 async_queue.wait_all()  # wait for all inference requests to complete
-                y = np.concatenate([list(r.values())[0] for r in results])
+                y = np.concatenate([next(iter(r.values())) for r in results])
 
             else:  # inference_mode = "LATENCY", optimized for fastest first result at batch-size 1
                 y = list(self.ov_compiled_model(im).values())
@@ -781,8 +810,7 @@ class AutoBackend(nn.Module):
             return self.from_numpy(y)
 
     def from_numpy(self, x):
-        """
-        Convert a numpy array to a tensor.
+        """Convert a numpy array to a tensor.
 
         Args:
             x (np.ndarray): The array to be converted.
@@ -793,8 +821,7 @@ class AutoBackend(nn.Module):
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
     def warmup(self, imgsz=(1, 3, 640, 640)):
-        """
-        Warm up the model by running one forward pass with a dummy input.
+        """Warm up the model by running one forward pass with a dummy input.
 
         Args:
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
@@ -809,8 +836,13 @@ class AutoBackend(nn.Module):
 
     @staticmethod
     def _model_type(p="path/to/model.pt"):
+<<<<<<< HEAD
         """
         Takes a path to a model file and returns the model type.
+=======
+        """Takes a path to a model file and returns the model type. Possibles types are pt, jit, onnx, xml, engine,
+        coreml, saved_model, pb, tflite, edgetpu, tfjs, ncnn or paddle.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             p (str): Path to the model file.
@@ -839,4 +871,4 @@ class AutoBackend(nn.Module):
             url = urlsplit(p)
             triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
 
-        return types + [triton]
+        return [*types, triton]

@@ -15,8 +15,7 @@ from ultralytics.utils.checks import check_requirements
 
 
 def bbox_iof(polygon1, bbox2, eps=1e-6):
-    """
-    Calculate Intersection over Foreground (IoF) between polygons and bounding boxes.
+    """Calculate Intersection over Foreground (IoF) between polygons and bounding boxes.
 
     Args:
         polygon1 (np.ndarray): Polygon coordinates with shape (n, 8).
@@ -62,8 +61,7 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
 
 
 def load_yolo_dota(data_root, split="train"):
-    """
-    Load DOTA dataset.
+    """Load DOTA dataset.
 
     Args:
         data_root (str): Data root directory.
@@ -98,8 +96,7 @@ def load_yolo_dota(data_root, split="train"):
 
 
 def get_windows(im_size, crop_sizes=(1024,), gaps=(200,), im_rate_thr=0.6, eps=0.01):
-    """
-    Get the coordinates of windows.
+    """Get the coordinates of windows.
 
     Args:
         im_size (tuple): Original image size, (h, w).
@@ -159,8 +156,7 @@ def get_window_obj(anno, windows, iof_thr=0.7):
 
 
 def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, allow_background_images=True):
-    """
-    Crop images and save new labels.
+    """Crop images and save new labels.
 
     Args:
         anno (dict): Annotation dict, including `filepath`, `label`, `ori_size` as its keys.
@@ -204,8 +200,7 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, allow_background_i
 
 
 def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=(1024,), gaps=(200,)):
-    """
-    Split both images and labels.
+    """Split both images and labels.
 
     Args:
         data_root (str): Root directory of the dataset.
@@ -241,8 +236,7 @@ def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=(1024
 
 
 def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
-    """
-    Split train and val set of DOTA.
+    """Split train and val set of DOTA.
 
     Args:
         data_root (str): Root directory of the dataset.
@@ -278,8 +272,7 @@ def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
 
 
 def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
-    """
-    Split test set of DOTA, labels are not included within this set.
+    """Split test set of DOTA, labels are not included within this set.
 
     Args:
         data_root (str): Root directory of the dataset.

@@ -22,11 +22,10 @@ from ultralytics.utils.patches import imread
 
 @dataclass
 class SourceTypes:
-    """
-    Class to represent various types of input sources for predictions.
+    """Class to represent various types of input sources for predictions.
 
-    This class uses dataclass to define boolean flags for different types of input sources that can be used for
-    making predictions with YOLO models.
+    This class uses dataclass to define boolean flags for different types of input sources that can be used for making
+    predictions with YOLO models.
 
     Attributes:
         stream (bool): Flag indicating if the input source is a video stream.
@@ -49,11 +48,10 @@ class SourceTypes:
 
 
 class LoadStreams:
-    """
-    Stream Loader for various types of video streams.
+    """Stream Loader for various types of video streams.
 
-    Supports RTSP, RTMP, HTTP, and TCP streams. This class handles the loading and processing of multiple video
-    streams simultaneously, making it suitable for real-time video analysis tasks.
+    Supports RTSP, RTMP, HTTP, and TCP streams. This class handles the loading and processing of multiple video streams
+    simultaneously, making it suitable for real-time video analysis tasks.
 
     Attributes:
         sources (List[str]): The source input paths or URLs for the video streams.
@@ -217,11 +215,10 @@ class LoadStreams:
 
 
 class LoadScreenshots:
-    """
-    Ultralytics screenshot dataloader for capturing and processing screen images.
+    """Ultralytics screenshot dataloader for capturing and processing screen images.
 
-    This class manages the loading of screenshot images for processing with YOLO. It is suitable for use with
-    `yolo predict source=screen`.
+    This class manages the loading of screenshot images for processing with YOLO. It is suitable for use with `yolo
+    predict source=screen`.
 
     Attributes:
         source (str): The source input indicating which screen to capture.
@@ -251,7 +248,7 @@ class LoadScreenshots:
     def __init__(self, source, channels=3):
         """Initialize screenshot capture with specified screen and region parameters."""
         check_requirements("mss")
-        import mss  # noqa
+        import mss
 
         source, *params = source.split()
         self.screen, left, top, width, height = 0, None, None, None, None  # default to full screen 0
@@ -291,11 +288,10 @@ class LoadScreenshots:
 
 
 class LoadImagesAndVideos:
-    """
-    A class for loading and processing images and videos for YOLO object detection.
+    """A class for loading and processing images and videos for YOLO object detection.
 
-    This class manages the loading and pre-processing of image and video data from various sources, including
-    single image files, video files, and lists of image and video paths.
+    This class manages the loading and pre-processing of image and video data from various sources, including single
+    image files, video files, and lists of image and video paths.
 
     Attributes:
         files (List[str]): List of image and video file paths.
@@ -465,8 +461,7 @@ class LoadImagesAndVideos:
 
 
 class LoadPilAndNumpy:
-    """
-    Load images from PIL and Numpy arrays for batch processing.
+    """Load images from PIL and Numpy arrays for batch processing.
 
     This class manages loading and pre-processing of image data from both PIL and Numpy formats. It performs basic
     validation and format conversion to ensure that the images are in the required format for downstream processing.
@@ -533,11 +528,10 @@ class LoadPilAndNumpy:
 
 
 class LoadTensor:
-    """
-    A class for loading and processing tensor data for object detection tasks.
+    """A class for loading and processing tensor data for object detection tasks.
 
-    This class handles the loading and pre-processing of image data from PyTorch tensors, preparing them for
-    further processing in object detection pipelines.
+    This class handles the loading and pre-processing of image data from PyTorch tensors, preparing them for further
+    processing in object detection pipelines.
 
     Attributes:
         im0 (torch.Tensor): The input tensor containing the image(s) with shape (B, C, H, W).
@@ -620,13 +614,12 @@ def autocast_list(source):
 
 
 def get_best_youtube_url(url, method="pytube"):
-    """
-    Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
+    """Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
     Args:
         url (str): The URL of the YouTube video.
-        method (str): The method to use for extracting video info. Options are "pytube", "pafy", and "yt-dlp".
-            Defaults to "pytube".
+        method (str): The method to use for extracting video info. Options are "pytube", "pafy", and "yt-dlp". Defaults
+            to "pytube".
 
     Returns:
         (str | None): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
@@ -655,7 +648,7 @@ def get_best_youtube_url(url, method="pytube"):
 
     elif method == "pafy":
         check_requirements(("pafy", "youtube_dl==2020.12.2"))
-        import pafy  # noqa
+        import pafy
 
         return pafy.new(url).getbestvideo(preftype="mp4").url
 

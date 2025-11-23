@@ -40,7 +40,12 @@ from ultralytics.utils.torch_utils import de_parallel, select_device, smart_infe
 
 
 class BaseValidator:
+<<<<<<< HEAD
     """
+=======
+    """BaseValidator.
+
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     A base class for creating validators.
 
     This class provides the foundation for validation processes, including model evaluation, metric computation, and
@@ -55,6 +60,7 @@ class BaseValidator:
         device (torch.device): Device to use for validation.
         batch_i (int): Current batch index.
         training (bool): Whether the model is in training mode.
+<<<<<<< HEAD
         names (dict): Class names mapping.
         seen (int): Number of images seen so far during validation.
         stats (dict): Statistics collected during validation.
@@ -64,6 +70,17 @@ class BaseValidator:
         jdict (list): List to store JSON validation results.
         speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective
             batch processing times in milliseconds.
+=======
+        names (dict): Class names.
+        seen: Records the number of images seen so far during validation.
+        stats: Placeholder for statistics during validation.
+        confusion_matrix: Placeholder for a confusion matrix.
+        nc: Number of classes.
+        iouv: (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
+        jdict (dict): Dictionary to store JSON validation results.
+        speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective batch
+            processing times in milliseconds.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         save_dir (Path): Directory to save results.
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
@@ -92,8 +109,12 @@ class BaseValidator:
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+<<<<<<< HEAD
         """
         Initialize a BaseValidator instance.
+=======
+        """Initializes a BaseValidator instance.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
@@ -253,11 +274,16 @@ class BaseValidator:
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
             return stats
 
+<<<<<<< HEAD
     def match_predictions(
         self, pred_classes: torch.Tensor, true_classes: torch.Tensor, iou: torch.Tensor, use_scipy: bool = False
     ) -> torch.Tensor:
         """
         Match predictions to ground truth objects using IoU.
+=======
+    def match_predictions(self, pred_classes, true_classes, iou, use_scipy=False):
+        """Matches predictions to ground truth objects (pred_classes, true_classes) using IoU.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape (N,).

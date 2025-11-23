@@ -254,7 +254,6 @@ FastSAM is also available directly from the [https://github.com/CASIA-IVA-Lab/Fa
 1. Download a [model checkpoint](https://drive.google.com/file/d/1m1sjY4ihXBU1fZXdQ-Xdj-mDltW-2Rqv/view?usp=sharing).
 
 2. Use FastSAM for inference. Example commands:
-
     - Segment everything in an image:
 
         ```shell
@@ -280,7 +279,7 @@ FastSAM is also available directly from the [https://github.com/CASIA-IVA-Lab/Fa
 
 Additionally, you can try FastSAM through a [Colab demo](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing) or on the [HuggingFace web demo](https://huggingface.co/spaces/An-619/FastSAM) for a visual experience.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We would like to acknowledge the FastSAM authors for their significant contributions in the field of real-time instance segmentation:
 

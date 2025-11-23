@@ -10,9 +10,9 @@ from ultralytics.utils.plotting import plot_images
 
 
 class ClassificationValidator(BaseValidator):
-    """
-    A class extending the BaseValidator class for validation based on a classification model.
+    """A class extending the BaseValidator class for validation based on a classification model.
 
+<<<<<<< HEAD
     This validator handles the validation process for classification models, including metrics calculation,
     confusion matrix generation, and visualization of results.
 
@@ -46,6 +46,19 @@ class ClassificationValidator(BaseValidator):
 
     Notes:
         Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+=======
+    Examples:
+        ```python
+        from ultralytics.models.yolo.classify import ClassificationValidator
+
+        args = dict(model="yolov8n-cls.pt", data="imagenet10")
+        validator = ClassificationValidator(args=args)
+        validator()
+        ```
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):

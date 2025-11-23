@@ -6,8 +6,7 @@ from ultralytics.utils.plotting import colors
 
 
 class SecurityAlarm(BaseSolution):
-    """
-    A class to manage security alarm functionalities for real-time monitoring.
+    """A class to manage security alarm functionalities for real-time monitoring.
 
     This class extends the BaseSolution class and provides features to monitor objects in a frame, send email
     notifications when specific thresholds are exceeded for total detections, and annotate the output frame for
@@ -16,6 +15,7 @@ class SecurityAlarm(BaseSolution):
     Attributes:
         email_sent (bool): Flag to track if an email has already been sent for the current event.
         records (int): Threshold for the number of detected objects to trigger an alert.
+<<<<<<< HEAD
         server (smtplib.SMTP): SMTP server connection for sending email alerts.
         to_email (str): Recipient's email address for alerts.
         from_email (str): Sender's email address for alerts.
@@ -24,6 +24,13 @@ class SecurityAlarm(BaseSolution):
         authenticate: Set up email server authentication for sending alerts.
         send_email: Send an email notification with details and an image attachment.
         process: Monitor the frame, process detections, and trigger alerts if thresholds are crossed.
+=======
+
+    Methods:
+        authenticate: Sets up email server authentication for sending alerts.
+        send_email: Sends an email notification with details and an image attachment.
+        monitor: Monitors the frame, processes detections, and triggers alerts if thresholds are crossed.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Examples:
         >>> security = SecurityAlarm()
@@ -47,8 +54,12 @@ class SecurityAlarm(BaseSolution):
         self.from_email = ""
 
     def authenticate(self, from_email, password, to_email):
+<<<<<<< HEAD
         """
         Authenticate the email server for sending alert notifications.
+=======
+        """Authenticates the email server for sending alert notifications.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             from_email (str): Sender's email address.
@@ -70,8 +81,12 @@ class SecurityAlarm(BaseSolution):
         self.from_email = from_email
 
     def send_email(self, im0, records=5):
+<<<<<<< HEAD
         """
         Send an email notification with an image attachment indicating the number of objects detected.
+=======
+        """Sends an email notification with an image attachment indicating the number of objects detected.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             im0 (numpy.ndarray): The input image or frame to be attached to the email.
@@ -114,9 +129,14 @@ class SecurityAlarm(BaseSolution):
         except Exception as e:
             LOGGER.error(f"Failed to send email: {e}")
 
+<<<<<<< HEAD
     def process(self, im0):
         """
         Monitor the frame, process object detections, and trigger alerts if thresholds are exceeded.
+=======
+    def monitor(self, im0):
+        """Monitors the frame, processes object detections, and triggers alerts if thresholds are exceeded.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             im0 (numpy.ndarray): The input image or frame to be processed and annotated.

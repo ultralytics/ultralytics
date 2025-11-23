@@ -26,8 +26,7 @@ from ultralytics.utils.checks import check_file
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """
-    Dataloader that reuses workers.
+    """Dataloader that reuses workers.
 
     This dataloader extends the PyTorch DataLoader to provide infinite recycling of workers, which improves efficiency
     for training loops that need to iterate through the dataset multiple times.
@@ -71,13 +70,19 @@ class InfiniteDataLoader(dataloader.DataLoader):
             pass
 
     def reset(self):
+<<<<<<< HEAD
         """Reset the iterator to allow modifications to the dataset during training."""
+=======
+        """Reset iterator.
+
+        This is useful when we want to modify settings of dataset while training.
+        """
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         self.iterator = self._get_iterator()
 
 
 class _RepeatSampler:
-    """
-    Sampler that repeats forever.
+    """Sampler that repeats forever.
 
     This sampler wraps another sampler and yields its contents indefinitely, allowing for infinite iteration
     over a dataset.
@@ -96,8 +101,13 @@ class _RepeatSampler:
             yield from iter(self.sampler)
 
 
+<<<<<<< HEAD
 def seed_worker(worker_id):  # noqa
     """Set dataloader worker seed for reproducibility across worker processes."""
+=======
+def seed_worker(worker_id):
+    """Set dataloader worker seed https://pytorch.org/docs/stable/notes/randomness.html#dataloader."""
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
@@ -222,9 +232,14 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
+<<<<<<< HEAD
 def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False, channels=3):
     """
     Load an inference source for object detection and apply necessary transformations.
+=======
+def load_inference_source(source=None, batch=1, vid_stride=1, buffer=False):
+    """Loads an inference source for object detection and applies necessary transformations.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Args:
         source (str | Path | torch.Tensor | PIL.Image | np.ndarray, optional): The input source for inference.

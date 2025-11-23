@@ -13,9 +13,15 @@ keywords: YOLOv5, transfer learning, freeze layers, machine learning, deep learn
 First, clone the YOLOv5 repository and install the necessary dependencies listed in [`requirements.txt`](https://github.com/ultralytics/yolov5/blob/master/requirements.txt). Ensure you have a [**Python>=3.8.0**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) installed. Pre-trained [models](https://github.com/ultralytics/yolov5/tree/master/models) and required [datasets](https://github.com/ultralytics/yolov5/tree/master/data) will be downloaded automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
+<<<<<<< HEAD
 git clone https://github.com/ultralytics/yolov5 # clone repository
 cd yolov5
 pip install -r requirements.txt # install dependencies
+=======
+git clone https://github.com/ultralytics/yolov5 # clone
+cd yolov5
+pip install -r requirements.txt # install
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 ## How Layer Freezing Works

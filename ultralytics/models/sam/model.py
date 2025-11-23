@@ -23,12 +23,11 @@ from .predict import Predictor, SAM2Predictor
 
 
 class SAM(Model):
-    """
-    SAM (Segment Anything Model) interface class for real-time image segmentation tasks.
+    """SAM (Segment Anything Model) interface class for real-time image segmentation tasks.
 
-    This class provides an interface to the Segment Anything Model (SAM) from Ultralytics, designed for
-    promptable segmentation with versatility in image analysis. It supports various prompts such as bounding
-    boxes, points, or labels, and features zero-shot performance capabilities.
+    This class provides an interface to the Segment Anything Model (SAM) from Ultralytics, designed for promptable
+    segmentation with versatility in image analysis. It supports various prompts such as bounding boxes, points, or
+    labels, and features zero-shot performance capabilities.
 
     Attributes:
         model (torch.nn.Module): The loaded SAM model.
@@ -47,8 +46,12 @@ class SAM(Model):
     """
 
     def __init__(self, model="sam_b.pt") -> None:
+<<<<<<< HEAD
         """
         Initialize the SAM (Segment Anything Model) instance.
+=======
+        """Initializes the SAM (Segment Anything Model) instance.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             model (str): Path to the pre-trained SAM model file. File should have a .pt or .pth extension.
@@ -66,8 +69,15 @@ class SAM(Model):
         super().__init__(model=model, task="segment")
 
     def _load(self, weights: str, task=None):
+<<<<<<< HEAD
         """
         Load the specified weights into the SAM model.
+=======
+        """Loads the specified weights into the SAM model.
+
+        This method initializes the SAM model with the provided weights file, setting up the model architecture
+        and loading the pre-trained parameters.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             weights (str): Path to the weights file. Should be a .pt or .pth file containing the model parameters.
@@ -82,12 +92,16 @@ class SAM(Model):
         self.model = build_sam(weights)
 
     def predict(self, source, stream=False, bboxes=None, points=None, labels=None, **kwargs):
+<<<<<<< HEAD
         """
         Perform segmentation prediction on the given image or video source.
+=======
+        """Performs segmentation prediction on the given image or video source.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
-            source (str | PIL.Image | numpy.ndarray): Path to the image or video file, or a PIL.Image object, or
-                a numpy.ndarray object.
+            source (str | PIL.Image | numpy.ndarray): Path to the image or video file, or a PIL.Image object, or a
+                numpy.ndarray object.
             stream (bool): If True, enables real-time streaming.
             bboxes (List[List[float]] | None): List of bounding box coordinates for prompted segmentation.
             points (List[List[float]] | None): List of points for prompted segmentation.
@@ -109,15 +123,19 @@ class SAM(Model):
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
     def __call__(self, source=None, stream=False, bboxes=None, points=None, labels=None, **kwargs):
+<<<<<<< HEAD
         """
         Perform segmentation prediction on the given image or video source.
+=======
+        """Performs segmentation prediction on the given image or video source.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         This method is an alias for the 'predict' method, providing a convenient way to call the SAM model
         for segmentation tasks.
 
         Args:
-            source (str | PIL.Image | numpy.ndarray | None): Path to the image or video file, or a PIL.Image
-                object, or a numpy.ndarray object.
+            source (str | PIL.Image | numpy.ndarray | None): Path to the image or video file, or a PIL.Image object, or
+                a numpy.ndarray object.
             stream (bool): If True, enables real-time streaming.
             bboxes (List[List[float]] | None): List of bounding box coordinates for prompted segmentation.
             points (List[List[float]] | None): List of points for prompted segmentation.
@@ -135,8 +153,15 @@ class SAM(Model):
         return self.predict(source, stream, bboxes, points, labels, **kwargs)
 
     def info(self, detailed=False, verbose=True):
+<<<<<<< HEAD
         """
         Log information about the SAM model.
+=======
+        """Logs information about the SAM model.
+
+        This method provides details about the Segment Anything Model (SAM), including its architecture,
+        parameters, and computational requirements.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             detailed (bool): If True, displays detailed information about the model layers and operations.
@@ -154,8 +179,12 @@ class SAM(Model):
 
     @property
     def task_map(self):
+<<<<<<< HEAD
         """
         Provide a mapping from the 'segment' task to its corresponding 'Predictor'.
+=======
+        """Provides a mapping from the 'segment' task to its corresponding 'Predictor'.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (Dict[str, Dict[str, Type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding Predictor

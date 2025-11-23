@@ -7,6 +7,7 @@ from ultralytics import SAM, YOLO
 
 
 def auto_annotate(
+<<<<<<< HEAD
     data: Union[str, Path],
     det_model: str = "yolo11x.pt",
     sam_model: str = "sam_b.pt",
@@ -20,6 +21,20 @@ def auto_annotate(
 ) -> None:
     """
     Automatically annotate images using a YOLO object detection model and a SAM segmentation model.
+=======
+    data,
+    det_model="yolo11x.pt",
+    sam_model="sam_b.pt",
+    device="",
+    conf=0.25,
+    iou=0.45,
+    imgsz=640,
+    max_det=300,
+    classes=None,
+    output_dir=None,
+):
+    """Automatically annotates images using a YOLO object detection model and a SAM segmentation model.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     This function processes images in a specified directory, detects objects using a YOLO model, and then generates
     segmentation masks using a SAM model. The resulting annotations are saved as text files.
@@ -53,8 +68,13 @@ def auto_annotate(
     )
 
     for result in det_results:
+<<<<<<< HEAD
         class_ids = result.boxes.cls.int().tolist()  # noqa
         if class_ids:
+=======
+        class_ids = result.boxes.cls.int().tolist()
+        if len(class_ids):
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
             boxes = result.boxes.xyxy  # Boxes object for bbox outputs
             sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)
             segments = sam_results[0].masks.xyn

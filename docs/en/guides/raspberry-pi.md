@@ -95,7 +95,11 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
 
 ## Use NCNN on Raspberry Pi
 
+<<<<<<< HEAD
 Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture).
+=======
+Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture). Therefore our recommendation is to use NCNN with Raspberry Pi.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
 ## Convert Model to NCNN and Run Inference
 
@@ -367,7 +371,7 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
 Congratulations on successfully setting up YOLO on your Raspberry Pi! For further learning and support, visit [Ultralytics YOLO11 Docs](../index.md) and [Kashmir World Foundation](https://www.kashmirworldfoundation.org/).
 
-## Acknowledgements and Citations
+## Acknowledgments and Citations
 
 This guide was initially created by Daan Eeltink for Kashmir World Foundation, an organization dedicated to the use of YOLO for the conservation of endangered species. We acknowledge their pioneering work and educational focus in the realm of object detection technologies.
 

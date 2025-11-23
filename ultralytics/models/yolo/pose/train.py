@@ -9,11 +9,19 @@ from ultralytics.utils.plotting import plot_images, plot_results
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
+<<<<<<< HEAD
     """
     A class extending the DetectionTrainer class for training YOLO pose estimation models.
 
     This trainer specializes in handling pose estimation tasks, managing model training, validation, and visualization
     of pose keypoints alongside bounding boxes.
+=======
+    """A class extending the DetectionTrainer class for training based on a pose model.
+
+    Examples:
+        ```python
+        from ultralytics.models.yolo.pose import PoseTrainer
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         args (dict): Configuration arguments for training.

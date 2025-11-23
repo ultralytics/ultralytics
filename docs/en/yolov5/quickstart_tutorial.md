@@ -43,6 +43,7 @@ results.print()  # Other options: .show(), .save(), .crop(), .pandas(), etc. Exp
 Harness `detect.py` for versatile [inference](../modes/predict.md) on various sources. It automatically fetches [models](https://github.com/ultralytics/yolov5/tree/master/models) from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases) and saves results with ease. This script is ideal for command-line usage and integrating YOLOv5 into larger systems, supporting inputs like images, videos, directories, webcams, and even [live streams](https://en.wikipedia.org/wiki/Streaming_media).
 
 ```bash
+<<<<<<< HEAD
 python detect.py --weights yolov5s.pt --source 0                              # webcam
 python detect.py --weights yolov5s.pt --source image.jpg                      # image
 python detect.py --weights yolov5s.pt --source video.mp4                      # video
@@ -53,6 +54,18 @@ python detect.py --weights yolov5s.pt --source list.streams                   # 
 python detect.py --weights yolov5s.pt --source 'path/*.jpg'                   # glob pattern
 python detect.py --weights yolov5s.pt --source 'https://youtu.be/LNwODJXcvt4' # YouTube video
 python detect.py --weights yolov5s.pt --source 'rtsp://example.com/media.mp4' # RTSP, RTMP, HTTP stream
+=======
+python detect.py --weights yolov5s.pt --source 0 # webcam
+image.jpg                                        # image
+video.mp4                                        # video
+screen                                           # screenshot
+path/                                            # directory
+list.txt                                         # list of images
+list.streams                                     # list of streams
+'path/*.jpg'                                     # glob
+'https://youtu.be/LNwODJXcvt4'                   # YouTube
+'rtsp://example.com/media.mp4'                   # RTSP, RTMP, HTTP stream
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 ## Training
@@ -60,6 +73,7 @@ python detect.py --weights yolov5s.pt --source 'rtsp://example.com/media.mp4' # 
 Replicate the YOLOv5 [COCO dataset](https://cocodataset.org/#home) benchmarks by following the [training instructions](../modes/train.md) below. The necessary [models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](../datasets/detect/coco.md) (like `coco128.yaml` or the full `coco.yaml`) are pulled directly from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases). Training YOLOv5n/s/m/l/x on a V100 [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) should typically take 1/2/4/6/8 days respectively (note that [Multi-GPU training](./tutorials/multi_gpu_training.md) setups work faster). Maximize performance by using the highest possible `--batch-size` or use `--batch-size -1` for the YOLOv5 [AutoBatch](https://github.com/ultralytics/yolov5/pull/5092) feature, which automatically finds the optimal [batch size](https://www.ultralytics.com/glossary/batch-size). The following batch sizes are ideal for V100-16GB GPUs. Refer to our [configuration guide](../usage/cfg.md) for details on model configuration files (`*.yaml`).
 
 ```bash
+<<<<<<< HEAD
 # Train YOLOv5n on COCO128 for 3 epochs
 python train.py --data coco128.yaml --epochs 3 --weights yolov5n.pt --batch-size 128
 
@@ -74,6 +88,13 @@ python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5l.yaml --
 
 # Train YOLOv5x on COCO for 300 epochs
 python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5x.yaml --batch-size 16
+=======
+python train.py --data coco.yaml --epochs 300 --weights '' --cfg yolov5n.yaml --batch-size 128
+yolov5s 64
+yolov5m 40
+yolov5l 24
+yolov5x 16
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/yolov5-training-curves.avif" alt="YOLOv5 training curves showing mAP and loss metrics over epochs for different model sizes (n, s, m, l, x) on the COCO dataset">

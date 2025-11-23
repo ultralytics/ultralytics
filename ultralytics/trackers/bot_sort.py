@@ -16,8 +16,12 @@ from .utils.kalman_filter import KalmanFilterXYWH
 
 
 class BOTrack(STrack):
+<<<<<<< HEAD
     """
     An extended version of the STrack class for YOLO, adding object tracking features.
+=======
+    """An extended version of the STrack class for YOLOv8, adding object tracking features.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     This class extends the STrack class to include additional functionalities for object tracking, such as feature
     smoothing, Kalman filter prediction, and reactivation of tracks.
@@ -52,8 +56,7 @@ class BOTrack(STrack):
     shared_kalman = KalmanFilterXYWH()
 
     def __init__(self, tlwh, score, cls, feat=None, feat_history=50):
-        """
-        Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
+        """Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
 
         Args:
             tlwh (np.ndarray): Bounding box coordinates in tlwh format (top left x, top left y, width, height).
@@ -149,8 +152,13 @@ class BOTrack(STrack):
 
 
 class BOTSORT(BYTETracker):
+<<<<<<< HEAD
     """
     An extended version of the BYTETracker class for YOLO, designed for object tracking with ReID and GMC algorithm.
+=======
+    """An extended version of the BYTETracker class for YOLOv8, designed for object tracking with ReID and GMC
+    algorithm.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         proximity_thresh (float): Threshold for spatial proximity (IoU) between tracks and detections.
@@ -172,6 +180,7 @@ class BOTSORT(BYTETracker):
         >>> bot_sort.init_track(dets, scores, cls, img)
         >>> bot_sort.multi_predict(tracks)
 
+<<<<<<< HEAD
     Note:
         The class is designed to work with a YOLO object detection model and supports ReID only if enabled via args.
     """
@@ -179,6 +188,14 @@ class BOTSORT(BYTETracker):
     def __init__(self, args, frame_rate=30):
         """
         Initialize BOTSORT object with ReID module and GMC algorithm.
+=======
+    Notes:
+        The class is designed to work with the YOLOv8 object detection model and supports ReID only if enabled via args.
+    """
+
+    def __init__(self, args, frame_rate=30):
+        """Initialize YOLOv8 object with ReID module and GMC algorithm.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             args (object): Parsed command-line arguments containing tracking parameters.

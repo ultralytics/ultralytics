@@ -37,15 +37,21 @@ counting_regions = [
 ]
 
 
+<<<<<<< HEAD
 def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
     """
     Handle mouse events for region manipulation.
+=======
+def mouse_callback(event, x, y, flags, param):
+    """Handles mouse events for region manipulation.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Args:
         event (int): The mouse event type (e.g., cv2.EVENT_LBUTTONDOWN).
         x (int): The x-coordinate of the mouse pointer.
         y (int): The y-coordinate of the mouse pointer.
         flags (int): Additional flags passed by OpenCV.
+<<<<<<< HEAD
         param (Any): Additional parameters passed to the callback.
 
     Global Variables:
@@ -57,6 +63,22 @@ def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
 
     Examples:
         >>> cv2.setMouseCallback(window_name, mouse_callback)
+=======
+        param: Additional parameters passed to the callback (not used in this function).
+        Global Variables:
+        current_region (dict): A dictionary representing the current selected region.
+        Mouse Events:
+        - LBUTTONDOWN: Initiates dragging for the region containing the clicked point.
+        - MOUSEMOVE: Moves the selected region if dragging is active.
+        - LBUTTONUP: Ends dragging for the selected region.
+
+    Examples:
+        >>> cv2.setMouseCallback(window_name, mouse_callback)
+
+    Notes:
+        - This function is intended to be used as a callback for OpenCV mouse events.
+        - Requires the existence of the 'counting_regions' list and the 'Polygon' class.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
     global current_region
 
@@ -87,6 +109,7 @@ def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
 
 
 def run(
+<<<<<<< HEAD
     weights: str = "yolo11n.pt",
     source: str = None,
     device: str = "cpu",
@@ -100,6 +123,23 @@ def run(
 ) -> None:
     """
     Run region counting on a video using Ultralytics YOLO and ByteTrack.
+=======
+    weights="yolov8n.pt",
+    source=None,
+    device="cpu",
+    view_img=False,
+    save_img=False,
+    exist_ok=False,
+    classes=None,
+    line_thickness=2,
+    track_thickness=2,
+    region_thickness=2,
+):
+    """Run Region counting on a video using YOLOv8 and ByteTrack.
+
+    Supports movable region for real time counting inside specific area. Supports multiple regions counting. Regions can
+    be Polygons or rectangle in shape
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Args:
         weights (str): Model weights path.

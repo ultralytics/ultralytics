@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 import math
-from typing import Tuple, Type
 
 import torch
 from torch import Tensor, nn
@@ -10,12 +10,10 @@ from ultralytics.nn.modules import MLPBlock
 
 
 class TwoWayTransformer(nn.Module):
-    """
-    A Two-Way Transformer module for simultaneous attention to image and query points.
+    """A Two-Way Transformer module for simultaneous attention to image and query points.
 
-    This class implements a specialized transformer decoder that attends to an input image using queries with
-    supplied positional embeddings. It's useful for tasks like object detection, image segmentation, and point
-    cloud processing.
+    This class implements a specialized transformer decoder that attends to an input image using queries with supplied
+    positional embeddings. It's useful for tasks like object detection, image segmentation, and point cloud processing.
 
     Attributes:
         depth (int): Number of layers in the transformer.
@@ -44,11 +42,10 @@ class TwoWayTransformer(nn.Module):
         embedding_dim: int,
         num_heads: int,
         mlp_dim: int,
-        activation: Type[nn.Module] = nn.ReLU,
+        activation: type[nn.Module] = nn.ReLU,
         attention_downsample_rate: int = 2,
     ) -> None:
-        """
-        Initialize a Two-Way Transformer for simultaneous attention to image and query points.
+        """Initialize a Two-Way Transformer for simultaneous attention to image and query points.
 
         Args:
             depth (int): Number of layers in the transformer.
@@ -85,9 +82,14 @@ class TwoWayTransformer(nn.Module):
         image_embedding: Tensor,
         image_pe: Tensor,
         point_embedding: Tensor,
+<<<<<<< HEAD
     ) -> Tuple[Tensor, Tensor]:
         """
         Process image and point embeddings through the Two-Way Transformer.
+=======
+    ) -> tuple[Tensor, Tensor]:
+        """Processes image and point embeddings through the Two-Way Transformer.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             image_embedding (Tensor): Image to attend to, with shape (B, embedding_dim, H, W).
@@ -126,12 +128,11 @@ class TwoWayTransformer(nn.Module):
 
 
 class TwoWayAttentionBlock(nn.Module):
-    """
-    A two-way attention block for simultaneous attention to image and query points.
+    """A two-way attention block for simultaneous attention to image and query points.
 
     This class implements a specialized transformer block with four main layers: self-attention on sparse inputs,
-    cross-attention of sparse inputs to dense inputs, MLP block on sparse inputs, and cross-attention of dense
-    inputs to sparse inputs.
+    cross-attention of sparse inputs to dense inputs, MLP block on sparse inputs, and cross-attention of dense inputs to
+    sparse inputs.
 
     Attributes:
         self_attn (Attention): Self-attention layer for queries.
@@ -162,12 +163,16 @@ class TwoWayAttentionBlock(nn.Module):
         embedding_dim: int,
         num_heads: int,
         mlp_dim: int = 2048,
-        activation: Type[nn.Module] = nn.ReLU,
+        activation: type[nn.Module] = nn.ReLU,
         attention_downsample_rate: int = 2,
         skip_first_layer_pe: bool = False,
     ) -> None:
+<<<<<<< HEAD
         """
         Initialize a TwoWayAttentionBlock for simultaneous attention to image and query points.
+=======
+        """Initializes a TwoWayAttentionBlock for simultaneous attention to image and query points.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         This block implements a specialized transformer layer with four main components: self-attention on sparse
         inputs, cross-attention of sparse inputs to dense inputs, MLP block on sparse inputs, and cross-attention
@@ -196,6 +201,7 @@ class TwoWayAttentionBlock(nn.Module):
 
         self.skip_first_layer_pe = skip_first_layer_pe
 
+<<<<<<< HEAD
     def forward(self, queries: Tensor, keys: Tensor, query_pe: Tensor, key_pe: Tensor) -> Tuple[Tensor, Tensor]:
         """
         Apply two-way attention to process query and key embeddings in a transformer block.
@@ -210,6 +216,10 @@ class TwoWayAttentionBlock(nn.Module):
             queries (Tensor): Processed query embeddings with shape (B, N_queries, embedding_dim).
             keys (Tensor): Processed key embeddings with shape (B, N_keys, embedding_dim).
         """
+=======
+    def forward(self, queries: Tensor, keys: Tensor, query_pe: Tensor, key_pe: Tensor) -> tuple[Tensor, Tensor]:
+        """Applies two-way attention to process query and key embeddings in a transformer block."""
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         # Self attention block
         if self.skip_first_layer_pe:
             queries = self.self_attn(q=queries, k=queries, v=queries)
@@ -242,11 +252,10 @@ class TwoWayAttentionBlock(nn.Module):
 
 
 class Attention(nn.Module):
-    """
-    An attention layer with downscaling capability for embedding size after projection.
+    """An attention layer with downscaling capability for embedding size after projection.
 
-    This class implements a multi-head attention mechanism with the option to downsample the internal
-    dimension of queries, keys, and values.
+    This class implements a multi-head attention mechanism with the option to downsample the internal dimension of
+    queries, keys, and values.
 
     Attributes:
         embedding_dim (int): Dimensionality of input embeddings.
@@ -277,10 +286,17 @@ class Attention(nn.Module):
         embedding_dim: int,
         num_heads: int,
         downsample_rate: int = 1,
-        kv_in_dim: int = None,
+        kv_in_dim: int | None = None,
     ) -> None:
+<<<<<<< HEAD
         """
         Initialize the Attention module with specified dimensions and settings.
+=======
+        """Initializes the Attention module with specified dimensions and settings.
+
+        This class implements a multi-head attention mechanism with optional downsampling of the internal
+        dimension for queries, keys, and values.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             embedding_dim (int): Dimensionality of input embeddings.

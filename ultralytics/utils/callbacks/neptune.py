@@ -54,9 +54,14 @@ def _log_images(imgs_dict: dict, group: str = "") -> None:
             run[f"{group}/{k}"].upload(File(v))
 
 
+<<<<<<< HEAD
 def _log_plot(title: str, plot_path: str) -> None:
     """
     Log plots to the NeptuneAI experiment logger.
+=======
+def _log_plot(title, plot_path):
+    """Log plots to the NeptuneAI experiment logger.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Args:
         title (str): Title of the plot.

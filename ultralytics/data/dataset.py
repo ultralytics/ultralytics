@@ -44,8 +44,7 @@ DATASET_CACHE_VERSION = "1.0.3"
 
 
 class YOLODataset(BaseDataset):
-    """
-    Dataset class for loading object detection and/or segmentation labels in YOLO format.
+    """Dataset class for loading object detection and/or segmentation labels in YOLO format.
 
     This class supports loading data for object detection, segmentation, pose estimation, and oriented bounding box
     (OBB) tasks using the YOLO format.
@@ -87,8 +86,7 @@ class YOLODataset(BaseDataset):
         super().__init__(*args, channels=self.data["channels"], **kwargs)
 
     def cache_labels(self, path=Path("./labels.cache")):
-        """
-        Cache dataset labels, check images and read shapes.
+        """Cache dataset labels, check images and read shapes.
 
         Args:
             path (Path): Path where to save the cache file.
@@ -250,9 +248,9 @@ class YOLODataset(BaseDataset):
         self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label):
-        """
-        Custom your label format here.
+        """Custom your label format here.
 
+<<<<<<< HEAD
         Args:
             label (dict): Label dictionary containing bboxes, segments, keypoints, etc.
 
@@ -260,6 +258,9 @@ class YOLODataset(BaseDataset):
             (dict): Updated label dictionary with instances.
 
         Note:
+=======
+        Notes:
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
             cls is not with bboxes now, classification and semantic segmentation need an independent cls label
             Can also support classification and semantic segmentation by adding or removing dict keys there.
         """
@@ -314,8 +315,12 @@ class YOLODataset(BaseDataset):
 
 
 class YOLOMultiModalDataset(YOLODataset):
+<<<<<<< HEAD
     """
     Dataset class for loading object detection and/or segmentation labels in YOLO format with multi-modal support.
+=======
+    """Dataset class for loading object detection and/or segmentation labels in YOLO format.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     This class extends YOLODataset to add text information for multi-modal model training, enabling models to
     process both image and text data.
@@ -521,7 +526,7 @@ class GroundingDataset(YOLODataset):
                     cat2id[cat_name] = len(cat2id)
                     texts.append([cat_name])
                 cls = cat2id[cat_name]  # class
-                box = [cls] + box.tolist()
+                box = [cls, *box.tolist()]
                 if box not in bboxes:
                     bboxes.append(box)
                     if ann.get("segmentation") is not None:
@@ -633,8 +638,7 @@ class GroundingDataset(YOLODataset):
 
 
 class YOLOConcatDataset(ConcatDataset):
-    """
-    Dataset as a concatenation of multiple datasets.
+    """Dataset as a concatenation of multiple datasets.
 
     This class is useful to assemble different existing datasets for YOLO training, ensuring they use the same
     collation function.
@@ -676,7 +680,19 @@ class YOLOConcatDataset(ConcatDataset):
 
 # TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):
+<<<<<<< HEAD
     """Semantic Segmentation Dataset."""
+=======
+    """Semantic Segmentation Dataset.
+
+    This class is responsible for handling datasets used for semantic segmentation tasks. It inherits functionalities
+    from the BaseDataset class.
+
+    Notes:
+        This class is currently a placeholder and needs to be populated with methods and attributes for supporting
+        semantic segmentation tasks.
+    """
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     def __init__(self):
         """Initialize a SemanticDataset object."""
@@ -684,8 +700,14 @@ class SemanticDataset(BaseDataset):
 
 
 class ClassificationDataset:
+<<<<<<< HEAD
     """
     Extends torchvision ImageFolder to support YOLO classification tasks.
+=======
+    """Extends torchvision ImageFolder to support YOLO classification tasks, offering functionalities like image
+    augmentation, caching, and verification. It's designed to efficiently handle large datasets for training deep
+    learning models, with optional image transformations and caching mechanisms to speed up training.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     This class offers functionalities like image augmentation, caching, and verification. It's designed to efficiently
     handle large datasets for training deep learning models, with optional image transformations and caching mechanisms
@@ -695,7 +717,7 @@ class ClassificationDataset:
         cache_ram (bool): Indicates if caching in RAM is enabled.
         cache_disk (bool): Indicates if caching on disk is enabled.
         samples (list): A list of tuples, each containing the path to an image, its class index, path to its .npy cache
-                        file (if caching on disk), and optionally the loaded image array (if caching in RAM).
+            file (if caching on disk), and optionally the loaded image array (if caching in RAM).
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
         prefix (str): Prefix for logging and cache filenames.
@@ -707,8 +729,7 @@ class ClassificationDataset:
     """
 
     def __init__(self, root, args, augment=False, prefix=""):
-        """
-        Initialize YOLO object with root, image size, augmentations, and cache settings.
+        """Initialize YOLO object with root, image size, augmentations, and cache settings.
 
         Args:
             root (str): Path to the dataset directory where images are stored in a class-specific folder structure.
@@ -740,7 +761,7 @@ class ClassificationDataset:
             self.cache_ram = False
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
-        self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
         self.torch_transforms = (
             classify_augmentations(

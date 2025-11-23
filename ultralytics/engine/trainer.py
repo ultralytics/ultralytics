@@ -57,8 +57,7 @@ from ultralytics.utils.torch_utils import (
 
 
 class BaseTrainer:
-    """
-    A base class for creating trainers.
+    """A base class for creating trainers.
 
     Attributes:
         args (SimpleNamespace): Configuration for the trainer.
@@ -92,8 +91,12 @@ class BaseTrainer:
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+<<<<<<< HEAD
         """
         Initialize the BaseTrainer class.
+=======
+        """Initializes the BaseTrainer class.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
@@ -569,8 +572,12 @@ class BaseTrainer:
         #    (self.wdir / "last_mosaic.pt").write_bytes(serialized_ckpt)  # save mosaic checkpoint
 
     def get_dataset(self):
+<<<<<<< HEAD
         """
         Get train and validation datasets from data dictionary.
+=======
+        """Get train, val path from data dict if it exists.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (dict): A dictionary containing the training/validation/test dataset and category names.
@@ -630,8 +637,12 @@ class BaseTrainer:
         return batch
 
     def validate(self):
+<<<<<<< HEAD
         """
         Run validation on test set using self.validator.
+=======
+        """Runs validation on test set using self.validator.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (tuple): A tuple containing metrics dictionary and fitness score.
@@ -659,10 +670,9 @@ class BaseTrainer:
         raise NotImplementedError("build_dataset function not implemented in trainer")
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """
-        Returns a loss dict with labelled training loss items tensor.
+        """Returns a loss dict with labeled training loss items tensor.
 
-        Note:
+        Notes:
             This is not needed for classification but necessary for segmentation & detection
         """
         return {"loss": loss_items} if loss_items is not None else ["loss"]
@@ -692,10 +702,15 @@ class BaseTrainer:
         """Save training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
         n = len(metrics) + 2  # number of cols
-        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
+        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time", *keys])).rstrip(",") + "\n")  # header
         t = time.time() - self.train_time_start
+<<<<<<< HEAD
         with open(self.csv, "a", encoding="utf-8") as f:
             f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
+=======
+        with open(self.csv, "a") as f:
+            f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t, *vals])).rstrip(",") + "\n")
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     def plot_metrics(self):
         """Plot and display metrics visually."""
@@ -790,8 +805,13 @@ class BaseTrainer:
             self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
+<<<<<<< HEAD
         """
         Construct an optimizer for the given model.
+=======
+        """Constructs an optimizer for the given model, based on the specified optimizer name, learning rate, momentum,
+        weight decay, and number of iterations.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             model (torch.nn.Module): The model for which to build an optimizer.

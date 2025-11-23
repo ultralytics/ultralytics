@@ -1,15 +1,16 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
+from collections.abc import Generator
 from itertools import product
-from typing import Any, Generator, List, Tuple
+from typing import Any
 
 import numpy as np
 import torch
 
 
 def is_box_near_crop_edge(
-    boxes: torch.Tensor, crop_box: List[int], orig_box: List[int], atol: float = 20.0
+    boxes: torch.Tensor, crop_box: list[int], orig_box: list[int], atol: float = 20.0
 ) -> torch.Tensor:
     """Determines if bounding boxes are near the edge of a cropped image region using a specified tolerance."""
     crop_box_torch = torch.as_tensor(crop_box, dtype=torch.float, device=boxes.device)
@@ -21,6 +22,7 @@ def is_box_near_crop_edge(
     return torch.any(near_crop_edge, dim=1)
 
 
+<<<<<<< HEAD
 def batch_iterator(batch_size: int, *args) -> Generator[List[Any], None, None]:
     """
     Yield batches of data from input arguments with specified batch size for efficient processing.
@@ -44,6 +46,10 @@ def batch_iterator(batch_size: int, *args) -> Generator[List[Any], None, None]:
         [[3, 4], ['c', 'd']]
         [[5], ['e']]
     """
+=======
+def batch_iterator(batch_size: int, *args) -> Generator[list[Any], None, None]:
+    """Yields batches of data from input arguments with specified batch size for efficient processing."""
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     assert args and all(len(a) == len(args[0]) for a in args), "Batched iteration must have same-size inputs."
     n_batches = len(args[0]) // batch_size + int(len(args[0]) % batch_size != 0)
     for b in range(n_batches):
@@ -51,11 +57,10 @@ def batch_iterator(batch_size: int, *args) -> Generator[List[Any], None, None]:
 
 
 def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, threshold_offset: float) -> torch.Tensor:
-    """
-    Computes the stability score for a batch of masks.
+    """Computes the stability score for a batch of masks.
 
-    The stability score is the IoU between binary masks obtained by thresholding the predicted mask logits at
-    high and low values.
+    The stability score is the IoU between binary masks obtained by thresholding the predicted mask logits at high and
+    low values.
 
     Args:
         masks (torch.Tensor): Batch of predicted mask logits.
@@ -65,15 +70,15 @@ def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, thresh
     Returns:
         (torch.Tensor): Stability scores for each mask in the batch.
 
-    Notes:
-        - One mask is always contained inside the other.
-        - Memory is saved by preventing unnecessary cast to torch.int64.
-
     Examples:
         >>> masks = torch.rand(10, 256, 256)  # Batch of 10 masks
         >>> mask_threshold = 0.5
         >>> threshold_offset = 0.1
         >>> stability_scores = calculate_stability_score(masks, mask_threshold, threshold_offset)
+
+    Notes:
+        - One mask is always contained inside the other.
+        - Memory is saved by preventing unnecessary cast to torch.int64.
     """
     intersections = (masks > (mask_threshold + threshold_offset)).sum(-1, dtype=torch.int16).sum(-1, dtype=torch.int32)
     unions = (masks > (mask_threshold - threshold_offset)).sum(-1, dtype=torch.int16).sum(-1, dtype=torch.int32)
@@ -89,12 +94,13 @@ def build_point_grid(n_per_side: int) -> np.ndarray:
     return np.stack([points_x, points_y], axis=-1).reshape(-1, 2)
 
 
-def build_all_layer_point_grids(n_per_side: int, n_layers: int, scale_per_layer: int) -> List[np.ndarray]:
+def build_all_layer_point_grids(n_per_side: int, n_layers: int, scale_per_layer: int) -> list[np.ndarray]:
     """Generates point grids for multiple crop layers with varying scales and densities."""
     return [build_point_grid(int(n_per_side / (scale_per_layer**i))) for i in range(n_layers + 1)]
 
 
 def generate_crop_boxes(
+<<<<<<< HEAD
     im_size: Tuple[int, ...], n_layers: int, overlap_ratio: float
 ) -> Tuple[List[List[int]], List[int]]:
     """
@@ -115,6 +121,11 @@ def generate_crop_boxes(
         >>> overlap_ratio = 0.25
         >>> crop_boxes, layer_idxs = generate_crop_boxes(im_size, n_layers, overlap_ratio)
     """
+=======
+    im_size: tuple[int, ...], n_layers: int, overlap_ratio: float
+) -> tuple[list[list[int]], list[int]]:
+    """Generates crop boxes of varying sizes for multiscale image processing, with layered overlapping regions."""
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     crop_boxes, layer_idxs = [], []
     im_h, im_w = im_size
     short_side = min(im_h, im_w)
@@ -124,8 +135,13 @@ def generate_crop_boxes(
     layer_idxs.append(0)
 
     def crop_len(orig_len, n_crops, overlap):
+<<<<<<< HEAD
         """Calculates the length of each crop given the original length, number of crops, and overlap."""
         return int(math.ceil((overlap * (n_crops - 1) + orig_len) / n_crops))
+=======
+        """Crops bounding boxes to the size of the input image."""
+        return math.ceil((overlap * (n_crops - 1) + orig_len) / n_crops)
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     for i_layer in range(n_layers):
         n_crops_per_side = 2 ** (i_layer + 1)
@@ -146,7 +162,7 @@ def generate_crop_boxes(
     return crop_boxes, layer_idxs
 
 
-def uncrop_boxes_xyxy(boxes: torch.Tensor, crop_box: List[int]) -> torch.Tensor:
+def uncrop_boxes_xyxy(boxes: torch.Tensor, crop_box: list[int]) -> torch.Tensor:
     """Uncrop bounding boxes by adding the crop box offset to their coordinates."""
     x0, y0, _, _ = crop_box
     offset = torch.tensor([[x0, y0, x0, y0]], device=boxes.device)
@@ -156,7 +172,7 @@ def uncrop_boxes_xyxy(boxes: torch.Tensor, crop_box: List[int]) -> torch.Tensor:
     return boxes + offset
 
 
-def uncrop_points(points: torch.Tensor, crop_box: List[int]) -> torch.Tensor:
+def uncrop_points(points: torch.Tensor, crop_box: list[int]) -> torch.Tensor:
     """Uncrop points by adding the crop box offset to their coordinates."""
     x0, y0, _, _ = crop_box
     offset = torch.tensor([[x0, y0]], device=points.device)
@@ -166,7 +182,7 @@ def uncrop_points(points: torch.Tensor, crop_box: List[int]) -> torch.Tensor:
     return points + offset
 
 
-def uncrop_masks(masks: torch.Tensor, crop_box: List[int], orig_h: int, orig_w: int) -> torch.Tensor:
+def uncrop_masks(masks: torch.Tensor, crop_box: list[int], orig_h: int, orig_w: int) -> torch.Tensor:
     """Uncrop masks by padding them to the original image size, handling coordinate transformations."""
     x0, y0, x1, y1 = crop_box
     if x0 == 0 and y0 == 0 and x1 == orig_w and y1 == orig_h:
@@ -177,6 +193,7 @@ def uncrop_masks(masks: torch.Tensor, crop_box: List[int], orig_h: int, orig_w: 
     return torch.nn.functional.pad(masks, pad, value=0)
 
 
+<<<<<<< HEAD
 def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tuple[np.ndarray, bool]:
     """
     Removes small disconnected regions or holes in a mask based on area threshold and mode.
@@ -196,6 +213,10 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
         >>> mask[45:55, 45:55] = False  # Create a hole
         >>> processed_mask, modified = remove_small_regions(mask, 50, "holes")
     """
+=======
+def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> tuple[np.ndarray, bool]:
+    """Removes small disconnected regions or holes in a mask based on area threshold and mode."""
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     import cv2  # type: ignore
 
     assert mode in {"holes", "islands"}, f"Provided mode {mode} is invalid"
@@ -206,7 +227,7 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
     small_regions = [i + 1 for i, s in enumerate(sizes) if s < area_thresh]
     if not small_regions:
         return mask, False
-    fill_labels = [0] + small_regions
+    fill_labels = [0, *small_regions]
     if not correct_holes:
         # If every region is below threshold, keep largest
         fill_labels = [i for i in range(n_labels) if i not in fill_labels] or [int(np.argmax(sizes)) + 1]

@@ -8,11 +8,20 @@ from ultralytics.utils.torch_utils import de_parallel
 
 
 class WorldTrainerFromScratch(WorldTrainer):
+<<<<<<< HEAD
     """
     A class extending the WorldTrainer for training a world model from scratch on open-set datasets.
 
     This trainer specializes in handling mixed datasets including both object detection and grounding datasets,
     supporting training YOLO-World models with combined vision-language capabilities.
+=======
+    """A class extending the WorldTrainer class for training a world model from scratch on open-set dataset.
+
+    Examples:
+        ```python
+        from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
+        from ultralytics import YOLOWorld
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         cfg (dict): Configuration dictionary with default parameters for model training.
@@ -77,11 +86,15 @@ class WorldTrainerFromScratch(WorldTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def build_dataset(self, img_path, mode="train", batch=None):
+<<<<<<< HEAD
         """
         Build YOLO Dataset for training or validation.
 
         This method constructs appropriate datasets based on the mode and input paths, handling both
         standard YOLO datasets and grounding datasets with different formats.
+=======
+        """Build YOLO Dataset.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             img_path (List[str] | str): Path to the folder containing images or list of paths.
@@ -104,8 +117,12 @@ class WorldTrainerFromScratch(WorldTrainer):
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
     def get_dataset(self):
+<<<<<<< HEAD
         """
         Get train and validation paths from data dictionary.
+=======
+        """Get train, val path from data dict if it exists.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Processes the data configuration to extract paths for training and validation datasets,
         handling both YOLO detection datasets and grounding datasets.

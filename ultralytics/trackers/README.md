@@ -58,10 +58,17 @@ results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Track
 ```bash
 # CLI
 # Perform tracking with various models using the command line interface
+<<<<<<< HEAD
 yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" # Official Detect model
 # yolo track model=yolo11n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
 # yolo track model=yolo11n-pose.pt source="https://youtu.be/LNwODJXcvt4" # Official Pose model
 # yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # Custom trained model
+=======
+yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4"      # Official Detect model
+yolo track model=yolo11n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
+yolo track model=yolo11n-pose.pt source="https://youtu.be/LNwODJXcvt4" # Official Pose model
+yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # Custom trained model
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
 # Track using ByteTrack tracker
 # yolo track model=path/to/best.pt tracker="bytetrack.yaml"

@@ -8,11 +8,10 @@ from ultralytics.utils.plotting import colors
 
 
 class SpeedEstimator(BaseSolution):
-    """
-    A class to estimate the speed of objects in a real-time video stream based on their tracks.
+    """A class to estimate the speed of objects in a real-time video stream based on their tracks.
 
-    This class extends the BaseSolution class and provides functionality for estimating object speeds using
-    tracking data in video streams.
+    This class extends the BaseSolution class and provides functionality for estimating object speeds using tracking
+    data in video streams.
 
     Attributes:
         spd (Dict[int, float]): Dictionary storing speed data for tracked objects.
@@ -36,8 +35,23 @@ class SpeedEstimator(BaseSolution):
     """
 
     def __init__(self, **kwargs):
+<<<<<<< HEAD
         """
         Initialize the SpeedEstimator object with speed estimation parameters and data structures.
+=======
+        """Initializes the SpeedEstimator object with speed estimation parameters and data structures."""
+        super().__init__(**kwargs)
+
+        self.initialize_region()  # Initialize speed region
+
+        self.spd = {}  # set for speed data
+        self.trkd_ids = []  # list for already speed_estimated and tracked ID's
+        self.trk_pt = {}  # set for tracks previous time
+        self.trk_pp = {}  # set for tracks previous point
+
+    def estimate_speed(self, im0):
+        """Estimates the speed of objects based on tracking data.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.

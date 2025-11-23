@@ -11,11 +11,16 @@ from ultralytics.utils.plotting import output_to_rotated_target, plot_images
 
 
 class OBBValidator(DetectionValidator):
-    """
-    A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) model.
+    """A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) model.
 
+<<<<<<< HEAD
     This validator specializes in evaluating models that predict rotated bounding boxes, commonly used for aerial and
     satellite imagery where objects can appear at various orientations.
+=======
+    Examples:
+        ```python
+        from ultralytics.models.yolo.obb import OBBValidator
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         args (dict): Configuration arguments for the validator.
@@ -64,8 +69,8 @@ class OBBValidator(DetectionValidator):
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
 
     def _process_batch(self, detections, gt_bboxes, gt_cls):
-        """
-        Perform computation of the correct prediction matrix for a batch of detections and ground truth bounding boxes.
+        """Perform computation of the correct prediction matrix for a batch of detections and ground truth bounding
+        boxes.
 
         Args:
             detections (torch.Tensor): A tensor of shape (N, 7) representing the detected bounding boxes and associated
@@ -79,12 +84,21 @@ class OBBValidator(DetectionValidator):
                 Union) levels for each detection, indicating the accuracy of predictions compared to the ground truth.
 
         Examples:
+<<<<<<< HEAD
             >>> detections = torch.rand(100, 7)  # 100 sample detections
             >>> gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
             >>> gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
             >>> correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
+=======
+            ```python
+            detections = torch.rand(100, 7)  # 100 sample detections
+            gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
+            gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
+            correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
+            ```
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
-        Note:
+        Notes:
             This method relies on `batch_probiou` to calculate IoU between detections and ground truth bounding boxes.
         """
         iou = batch_probiou(gt_bboxes, torch.cat([detections[:, :4], detections[:, -1:]], dim=-1))

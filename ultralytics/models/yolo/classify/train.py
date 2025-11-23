@@ -14,9 +14,9 @@ from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_di
 
 
 class ClassificationTrainer(BaseTrainer):
-    """
-    A class extending the BaseTrainer class for training based on a classification model.
+    """A class extending the BaseTrainer class for training based on a classification model.
 
+<<<<<<< HEAD
     This trainer handles the training process for image classification tasks, supporting both YOLO classification models
     and torchvision models.
 
@@ -45,6 +45,19 @@ class ClassificationTrainer(BaseTrainer):
         >>> args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)
         >>> trainer = ClassificationTrainer(overrides=args)
         >>> trainer.train()
+=======
+    Examples:
+        ```python
+        from ultralytics.models.yolo.classify import ClassificationTrainer
+
+        args = dict(model="yolov8n-cls.pt", data="imagenet10", epochs=3)
+        trainer = ClassificationTrainer(overrides=args)
+        trainer.train()
+        ```
+
+    Notes:
+        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -183,8 +196,12 @@ class ClassificationTrainer(BaseTrainer):
         )
 
     def label_loss_items(self, loss_items=None, prefix="train"):
+<<<<<<< HEAD
         """
         Return a loss dict with labelled training loss items tensor.
+=======
+        """Returns a loss dict with labeled training loss items tensor.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             loss_items (torch.Tensor, optional): Loss tensor items.

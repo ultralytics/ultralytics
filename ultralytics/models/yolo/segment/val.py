@@ -15,11 +15,16 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class SegmentationValidator(DetectionValidator):
-    """
-    A class extending the DetectionValidator class for validation based on a segmentation model.
+    """A class extending the DetectionValidator class for validation based on a segmentation model.
 
+<<<<<<< HEAD
     This validator handles the evaluation of segmentation models, processing both bounding box and mask predictions
     to compute metrics such as mAP for both detection and segmentation tasks.
+=======
+    Examples:
+        ```python
+        from ultralytics.models.yolo.segment import SegmentationValidator
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         plot_masks (list): List to store masks for plotting.
@@ -229,24 +234,30 @@ class SegmentationValidator(DetectionValidator):
         self.metrics.confusion_matrix = self.confusion_matrix
 
     def _process_batch(self, detections, gt_bboxes, gt_cls, pred_masks=None, gt_masks=None, overlap=False, masks=False):
-        """
-        Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
+        """Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
 
         Args:
-            detections (torch.Tensor): Tensor of shape (N, 6) representing detected bounding boxes and
-                associated confidence scores and class indices. Each row is of the format [x1, y1, x2, y2, conf, class].
-            gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground truth bounding box coordinates.
-                Each row is of the format [x1, y1, x2, y2].
+            detections (torch.Tensor): Tensor of shape (N, 6) representing detected bounding boxes and associated
+                confidence scores and class indices. Each row is of the format [x1, y1, x2, y2, conf, class].
+            gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground truth bounding box coordinates. Each
+                row is of the format [x1, y1, x2, y2].
             gt_cls (torch.Tensor): Tensor of shape (M,) representing ground truth class indices.
+<<<<<<< HEAD
             pred_masks (torch.Tensor, optional): Tensor representing predicted masks, if available. The shape should
                 match the ground truth masks.
             gt_masks (torch.Tensor, optional): Tensor of shape (M, H, W) representing ground truth masks, if available.
+=======
+            pred_masks (torch.Tensor | None): Tensor representing predicted masks, if available. The shape should match
+                the ground truth masks.
+            gt_masks (torch.Tensor | None): Tensor of shape (M, H, W) representing ground truth masks, if available.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
             overlap (bool): Flag indicating if overlapping masks should be considered.
             masks (bool): Flag indicating if the batch contains mask data.
 
         Returns:
             (torch.Tensor): A correct prediction matrix of shape (N, 10), where 10 represents different IoU levels.
 
+<<<<<<< HEAD
         Note:
             - If `masks` is True, the function computes IoU between predicted and ground truth masks.
             - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
@@ -256,6 +267,19 @@ class SegmentationValidator(DetectionValidator):
             >>> gt_bboxes = torch.tensor([[24, 29, 199, 299], [55, 65, 185, 295]])
             >>> gt_cls = torch.tensor([1, 0])
             >>> correct_preds = validator._process_batch(detections, gt_bboxes, gt_cls)
+=======
+        Examples:
+            ```python
+            detections = torch.tensor([[25, 30, 200, 300, 0.8, 1], [50, 60, 180, 290, 0.75, 0]])
+            gt_bboxes = torch.tensor([[24, 29, 199, 299], [55, 65, 185, 295]])
+            gt_cls = torch.tensor([1, 0])
+            correct_preds = validator._process_batch(detections, gt_bboxes, gt_cls)
+            ```
+
+        Notes:
+            - If `masks` is True, the function computes IoU between predicted and ground truth masks.
+            - If `overlap` is True and `masks` is True, overlapping masks are taken into account when computing IoU.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         """
         if masks:
             if overlap:
@@ -334,6 +358,7 @@ class SegmentationValidator(DetectionValidator):
         ).save_txt(file, save_conf=save_conf)
 
     def pred_to_json(self, predn, filename, pred_masks):
+<<<<<<< HEAD
         """
         Save one JSON result for COCO evaluation.
 
@@ -341,11 +366,14 @@ class SegmentationValidator(DetectionValidator):
             predn (torch.Tensor): Predictions in the format [x1, y1, x2, y2, conf, cls].
             filename (str): Image filename.
             pred_masks (numpy.ndarray): Predicted masks.
+=======
+        """Save one JSON result.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
-        from pycocotools.mask import encode  # noqa
+        from pycocotools.mask import encode
 
         def single_encode(x):
             """Encode predicted masks as RLE and append results to jdict."""
@@ -375,6 +403,14 @@ class SegmentationValidator(DetectionValidator):
         """Return COCO-style object detection evaluation metrics."""
         if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
             pred_json = self.save_dir / "predictions.json"  # predictions
+<<<<<<< HEAD
+=======
+            LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
+            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
+                check_requirements("pycocotools>=2.0.6")
+                from pycocotools.coco import COCO
+                from pycocotools.cocoeval import COCOeval
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
             anno_json = (
                 self.data["path"]

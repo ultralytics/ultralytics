@@ -13,9 +13,15 @@ keywords: YOLOv5, custom dataset, model training, object detection, machine lear
 First, ensure you have the necessary environment set up. Clone the YOLOv5 repository and install the required dependencies from `requirements.txt`. A [**Python>=3.8.0**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) is essential. Models and datasets are automatically downloaded from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases) if they are not found locally.
 
 ```bash
+<<<<<<< HEAD
 git clone https://github.com/ultralytics/yolov5 # Clone the repository
 cd yolov5
 pip install -r requirements.txt # Install dependencies
+=======
+git clone https://github.com/ultralytics/yolov5 # clone
+cd yolov5
+pip install -r requirements.txt # install
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 ## Train On Custom Data
@@ -44,7 +50,11 @@ Developing a custom [object detection](https://docs.ultralytics.com/tasks/detect
 
     Explore our licensing options further on the [Ultralytics Licensing](https://www.ultralytics.com/license) page.
 
+<<<<<<< HEAD
 Before initiating the training, dataset preparation is essential.
+=======
+YOLOv5 models must be trained on labeled data in order to learn classes of objects in that data. There are two options for creating your dataset before you start training:
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
 ## 1. Create a Dataset
 
@@ -112,8 +122,13 @@ Structure your [datasets](https://docs.ultralytics.com/datasets/) directory as i
 YOLOv5 automatically locates the labels for each image by substituting the last instance of `/images/` in the image path with `/labels/`. For example:
 
 ```bash
+<<<<<<< HEAD
 ../datasets/coco128/images/im0.jpg # Path to the image file
 ../datasets/coco128/labels/im0.txt # Path to the corresponding label file
+=======
+../datasets/coco128/images/im0.jpg # image
+../datasets/coco128/labels/im0.txt # label
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 ```
 
 The recommended directory structure is:

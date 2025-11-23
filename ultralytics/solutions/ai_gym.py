@@ -6,8 +6,7 @@ from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, Sol
 
 
 class AIGym(BaseSolution):
-    """
-    A class to manage gym steps of people in a real-time video stream based on their poses.
+    """A class to manage gym steps of people in a real-time video stream based on their poses.
 
     This class extends BaseSolution to monitor workouts using YOLO pose estimation models. It tracks and counts
     repetitions of exercises based on predefined angle thresholds for up and down positions.
@@ -47,9 +46,14 @@ class AIGym(BaseSolution):
         self.down_angle = float(self.CFG["down_angle"])  # Pose down predefined angle to consider down pose
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
 
+<<<<<<< HEAD
     def process(self, im0):
         """
         Monitor workouts using Ultralytics YOLO Pose Model.
+=======
+    def monitor(self, im0):
+        """Monitors workouts using Ultralytics YOLO Pose Model.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         This function processes an input image to track and analyze human poses for workout monitoring. It uses
         the YOLO Pose model to detect keypoints, estimate angles, and count repetitions based on predefined

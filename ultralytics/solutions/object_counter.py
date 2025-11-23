@@ -7,8 +7,7 @@ from ultralytics.utils.plotting import colors
 
 
 class ObjectCounter(BaseSolution):
-    """
-    A class to manage the counting of objects in a real-time video stream based on their tracks.
+    """A class to manage the counting of objects in a real-time video stream based on their tracks.
 
     This class extends the BaseSolution class and provides functionality for counting objects moving in and out of a
     specified region in a video stream. It supports both polygonal and linear regions for counting.
@@ -49,8 +48,7 @@ class ObjectCounter(BaseSolution):
         self.margin = self.line_width * 2  # Scales the background rectangle size to display counts properly
 
     def count_objects(self, current_centroid, track_id, prev_position, cls):
-        """
-        Counts objects within a polygonal or linear region based on their tracks.
+        """Counts objects within a polygonal or linear region based on their tracks.
 
         Args:
             current_centroid (Tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
@@ -98,12 +96,18 @@ class ObjectCounter(BaseSolution):
                 region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
                 region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
 
+<<<<<<< HEAD
                 if (
                     region_width < region_height
                     and current_centroid[0] > prev_position[0]
                     or region_width >= region_height
                     and current_centroid[1] > prev_position[1]
                 ):  # Moving right or downward
+=======
+                if (region_width < region_height and current_centroid[0] > prev_position[0]) or (
+                    region_width >= region_height and current_centroid[1] > prev_position[1]
+                ):  # Moving right
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
                     self.in_count += 1
                     self.classwise_counts[self.names[cls]]["IN"] += 1
                 else:  # Moving left or upward
@@ -111,12 +115,38 @@ class ObjectCounter(BaseSolution):
                     self.classwise_counts[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
+<<<<<<< HEAD
     def display_counts(self, plot_im):
         """
         Display object counts on the input image or frame.
 
         Args:
             plot_im (numpy.ndarray): The image or frame to display counts on.
+=======
+    def store_classwise_counts(self, cls):
+        """Initialize class-wise counts for a specific object class if not already present.
+
+        Args:
+            cls (int): Class index for classwise count updates.
+
+        This method ensures that the 'classwise_counts' dictionary contains an entry for the specified class,
+        initializing 'IN' and 'OUT' counts to zero if the class is not already present.
+
+        Examples:
+            >>> counter = ObjectCounter()
+            >>> counter.store_classwise_counts(0)  # Initialize counts for class index 0
+            >>> print(counter.classwise_counts)
+            {'person': {'IN': 0, 'OUT': 0}}
+        """
+        if self.names[cls] not in self.classwise_counts:
+            self.classwise_counts[self.names[cls]] = {"IN": 0, "OUT": 0}
+
+    def display_counts(self, im0):
+        """Displays object counts on the input image or frame.
+
+        Args:
+            im0 (numpy.ndarray): The input image or frame to display counts on.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Examples:
             >>> counter = ObjectCounter()
@@ -132,9 +162,14 @@ class ObjectCounter(BaseSolution):
         if labels_dict:
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
 
+<<<<<<< HEAD
     def process(self, im0):
         """
         Process input data (frames or object tracks) and update object counts.
+=======
+    def count(self, im0):
+        """Processes input data (frames or object tracks) and updates object counts.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         This method initializes the counting region, extracts tracks, draws bounding boxes and regions, updates
         object counts, and displays the results on the input image.

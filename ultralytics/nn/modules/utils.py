@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import uniform_
 
-__all__ = "multi_scale_deformable_attn_pytorch", "inverse_sigmoid"
+__all__ = "inverse_sigmoid", "multi_scale_deformable_attn_pytorch"
 
 
 def _get_clones(module, n):
@@ -110,8 +110,12 @@ def multi_scale_deformable_attn_pytorch(
     sampling_locations: torch.Tensor,
     attention_weights: torch.Tensor,
 ) -> torch.Tensor:
+<<<<<<< HEAD
     """
     Implement multi-scale deformable attention in PyTorch.
+=======
+    """Multiscale deformable attention.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     This function performs deformable attention across multiple feature map scales, allowing the model to attend to
     different spatial locations with learned offsets.

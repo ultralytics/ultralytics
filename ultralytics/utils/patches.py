@@ -13,8 +13,7 @@ _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
 def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
-    """
-    Read an image from a file.
+    """Read an image from a file.
 
     Args:
         filename (str): Path to the file to read.
@@ -40,8 +39,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR):
 
 
 def imwrite(filename: str, img: np.ndarray, params=None):
-    """
-    Write an image to a file.
+    """Write an image to a file.
 
     Args:
         filename (str): Path to the file to write.
@@ -66,11 +64,15 @@ def imwrite(filename: str, img: np.ndarray, params=None):
 
 
 def imshow(winname: str, mat: np.ndarray):
+<<<<<<< HEAD
     """
     Display an image in the specified window.
 
     This function is a wrapper around OpenCV's imshow function that displays an image in a named window. It is
     particularly useful for visualizing images during development and debugging.
+=======
+    """Displays an image in the specified window.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Args:
         winname (str): Name of the window where the image will be displayed. If a window with this name already
@@ -92,8 +94,7 @@ _torch_save = torch.save
 
 
 def torch_load(*args, **kwargs):
-    """
-    Load a PyTorch model with updated arguments to avoid warnings.
+    """Load a PyTorch model with updated arguments to avoid warnings.
 
     This function wraps torch.load and adds the 'weights_only' argument for PyTorch 1.13.0+ to prevent warnings.
 
@@ -117,11 +118,16 @@ def torch_load(*args, **kwargs):
 
 
 def torch_save(*args, **kwargs):
+<<<<<<< HEAD
     """
     Save PyTorch objects with retry mechanism for robustness.
 
     This function wraps torch.save with 3 retries and exponential backoff in case of save failures, which can occur
     due to device flushing delays or antivirus scanning.
+=======
+    """Optionally use dill to serialize lambda functions where pickle does not, adding robustness with 3 retries and
+    exponential standoff in case of save failure.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Args:
         *args (Any): Positional arguments to pass to torch.save.

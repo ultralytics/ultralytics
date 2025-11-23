@@ -10,8 +10,12 @@ from .torch_utils import TORCH_1_9
 
 
 def find_free_network_port() -> int:
+<<<<<<< HEAD
     """
     Find a free port on localhost.
+=======
+    """Finds a free port on localhost.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     It is useful in single-node training when we don't want to connect to a real main node but have to set the
     `MASTER_PORT` environment variable.

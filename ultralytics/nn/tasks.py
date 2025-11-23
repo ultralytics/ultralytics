@@ -97,8 +97,7 @@ class BaseModel(torch.nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
 
     def forward(self, x, *args, **kwargs):
-        """
-        Perform forward pass of the model for either training or inference.
+        """Perform forward pass of the model for either training or inference.
 
         If x is a dict, calculates and returns the loss for training. Otherwise, returns predictions for inference.
 
@@ -115,14 +114,19 @@ class BaseModel(torch.nn.Module):
         return self.predict(x, *args, **kwargs)
 
     def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
-        """
-        Perform a forward pass through the network.
+        """Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
+<<<<<<< HEAD
             profile (bool): Print the computation time of each layer if True.
             visualize (bool): Save the feature maps of the model if True.
             augment (bool): Augment image during prediction.
+=======
+            profile (bool): Print the computation time of each layer if True, defaults to False.
+            visualize (bool): Save the feature maps of the model if True, defaults to False.
+            augment (bool): Augment image during prediction, defaults to False.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
             embed (list, optional): A list of feature vectors/embeddings to return.
 
         Returns:
@@ -133,13 +137,17 @@ class BaseModel(torch.nn.Module):
         return self._predict_once(x, profile, visualize, embed)
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
-        """
-        Perform a forward pass through the network.
+        """Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
+<<<<<<< HEAD
             profile (bool): Print the computation time of each layer if True.
             visualize (bool): Save the feature maps of the model if True.
+=======
+            profile (bool): Print the computation time of each layer if True, defaults to False.
+            visualize (bool): Save the feature maps of the model if True, defaults to False.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
             embed (list, optional): A list of feature vectors/embeddings to return.
 
         Returns:
@@ -172,8 +180,13 @@ class BaseModel(torch.nn.Module):
         return self._predict_once(x)
 
     def _profile_one_layer(self, m, x, dt):
+<<<<<<< HEAD
         """
         Profile the computation time and FLOPs of a single layer of the model on a given input.
+=======
+        """Profile the computation time and FLOPs of a single layer of the model on a given input. Appends the results
+        to the provided list.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             m (torch.nn.Module): The layer to be profiled.
@@ -198,9 +211,14 @@ class BaseModel(torch.nn.Module):
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
     def fuse(self, verbose=True):
+<<<<<<< HEAD
         """
         Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer for improved computation
         efficiency.
+=======
+        """Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer, in order to improve the
+        computation efficiency.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (torch.nn.Module): The fused model is returned.
@@ -230,8 +248,7 @@ class BaseModel(torch.nn.Module):
         return self
 
     def is_fused(self, thresh=10):
-        """
-        Check if the model has less than a certain threshold of BatchNorm layers.
+        """Check if the model has less than a certain threshold of BatchNorm layers.
 
         Args:
             thresh (int, optional): The threshold number of BatchNorm layers.
@@ -243,8 +260,12 @@ class BaseModel(torch.nn.Module):
         return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
 
     def info(self, detailed=False, verbose=True, imgsz=640):
+<<<<<<< HEAD
         """
         Print model information.
+=======
+        """Prints model information.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             detailed (bool): If True, prints out detailed information about the model.
@@ -254,8 +275,12 @@ class BaseModel(torch.nn.Module):
         return model_info(self, detailed=detailed, verbose=verbose, imgsz=imgsz)
 
     def _apply(self, fn):
+<<<<<<< HEAD
         """
         Apply a function to all tensors in the model that are not parameters or registered buffers.
+=======
+        """Applies a function to all the tensors in the model that are not parameters or registered buffers.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             fn (function): The function to apply to the model.
@@ -274,8 +299,12 @@ class BaseModel(torch.nn.Module):
         return self
 
     def load(self, weights, verbose=True):
+<<<<<<< HEAD
         """
         Load weights into the model.
+=======
+        """Load the weights into the model.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
@@ -300,8 +329,7 @@ class BaseModel(torch.nn.Module):
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
 
     def loss(self, batch, preds=None):
-        """
-        Compute loss.
+        """Compute loss.
 
         Args:
             batch (dict): Batch to compute loss on.
@@ -587,8 +615,7 @@ class ClassificationModel(BaseModel):
 
 
 class RTDETRDetectionModel(DetectionModel):
-    """
-    RTDETR (Real-time DEtection and Tracking using Transformers) Detection Model class.
+    """RTDETR (Real-time DEtection and Tracking using Transformers) Detection Model class.
 
     This class is responsible for constructing the RTDETR architecture, defining loss functions, and facilitating both
     the training and inference processes. RTDETR is an object detection and tracking model that extends from the
@@ -601,8 +628,7 @@ class RTDETRDetectionModel(DetectionModel):
     """
 
     def __init__(self, cfg="rtdetr-l.yaml", ch=3, nc=None, verbose=True):
-        """
-        Initialize the RTDETRDetectionModel.
+        """Initialize the RTDETRDetectionModel.
 
         Args:
             cfg (str | dict): Configuration file name or path.
@@ -619,8 +645,7 @@ class RTDETRDetectionModel(DetectionModel):
         return RTDETRDetectionLoss(nc=self.nc, use_vfl=True)
 
     def loss(self, batch, preds=None):
-        """
-        Compute the loss for the given batch of data.
+        """Compute the loss for the given batch of data.
 
         Args:
             batch (dict): Dictionary containing image and label data.
@@ -664,8 +689,7 @@ class RTDETRDetectionModel(DetectionModel):
         )
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
-        """
-        Perform a forward pass through the model.
+        """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
@@ -754,8 +778,7 @@ class WorldModel(DetectionModel):
         return txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
 
     def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
-        """
-        Perform a forward pass through the model.
+        """Perform a forward pass through the model.
 
         Args:
             x (torch.Tensor): The input tensor.
@@ -799,8 +822,7 @@ class WorldModel(DetectionModel):
         return x
 
     def loss(self, batch, preds=None):
-        """
-        Compute loss.
+        """Compute loss.
 
         Args:
             batch (dict): Batch to compute loss on.
@@ -1105,23 +1127,30 @@ class Ensemble(torch.nn.ModuleList):
 
 @contextlib.contextmanager
 def temporary_modules(modules=None, attributes=None):
-    """
-    Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
+    """Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
 
-    This function can be used to change the module paths during runtime. It's useful when refactoring code,
-    where you've moved a module from one location to another, but you still want to support the old import
-    paths for backwards compatibility.
+    This function can be used to change the module paths during runtime. It's useful when refactoring code, where you've
+    moved a module from one location to another, but you still want to support the old import paths for backwards
+    compatibility.
 
     Args:
         modules (dict, optional): A dictionary mapping old module paths to new module paths.
         attributes (dict, optional): A dictionary mapping old module attributes to new module attributes.
 
     Examples:
+<<<<<<< HEAD
         >>> with temporary_modules({"old.module": "new.module"}, {"old.module.attribute": "new.module.attribute"}):
         >>> import old.module  # this will now import new.module
         >>> from old.module import attribute  # this will now import new.module.attribute
+=======
+        ```python
+        with temporary_modules({"old.module": "new.module"}, {"old.module.attribute": "new.module.attribute"}):
+            import old.module  # this will now import new.module
+            from old.module import attribute  # this will now import new.module.attribute
+        ```
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
-    Note:
+    Notes:
         The changes are only in effect inside the context manager and are undone once the context manager exits.
         Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
         applications or libraries. Use this function with caution.
@@ -1194,10 +1223,9 @@ class SafeUnpickler(pickle.Unpickler):
 
 
 def torch_safe_load(weight, safe_only=False):
-    """
-    Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
-    error, logs a warning message, and attempts to install the missing module via the check_requirements() function.
-    After installation, the function again attempts to load the model using torch.load().
+    """Attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches
+    the error, logs a warning message, and attempts to install the missing module via the check_requirements()
+    function. After installation, the function again attempts to load the model using torch.load().
 
     Args:
         weight (str): The file path of the PyTorch model.
@@ -1205,11 +1233,22 @@ def torch_safe_load(weight, safe_only=False):
 
     Returns:
         ckpt (dict): The loaded model checkpoint.
+<<<<<<< HEAD
         file (str): The loaded filename.
 
     Examples:
         >>> from ultralytics.nn.tasks import torch_safe_load
         >>> ckpt, file = torch_safe_load("path/to/best.pt", safe_only=True)
+=======
+        file (str): The loaded filename
+
+    Examples:
+    ```python
+    from ultralytics.nn.tasks import torch_safe_load
+
+    ckpt, file = torch_safe_load("path/to/best.pt", safe_only=True)
+    ```
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
     from ultralytics.utils.downloads import attempt_download_asset
 
@@ -1377,8 +1416,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     if scales:
         scale = d.get("scale")
         if not scale:
+<<<<<<< HEAD
             scale = tuple(scales.keys())[0]
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
+=======
+            scale = next(iter(scales.keys()))
+            LOGGER.warning(f"WARNING ⚠️ no model scale passed. Assuming scale='{scale}'.")
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         depth, width, max_channels = scales[scale]
 
     if act:
@@ -1524,7 +1568,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
         if verbose:
-            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {t:<45}{str(args):<30}")  # print
+            LOGGER.info(f"{i:>3}{f!s:>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args!s:<30}")  # print
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
         if i == 0:
@@ -1558,8 +1602,14 @@ def yaml_model_load(path):
 
 
 def guess_model_scale(model_path):
+<<<<<<< HEAD
     """
     Extract the size character n, s, m, l, or x of the model's scale from the model path.
+=======
+    """Takes a path to a YOLO model's YAML file as input and extracts the size character of the model's scale. The
+    function uses regular expression matching to find the pattern of the model scale in the YAML file name, which is
+    denoted by n, s, m, l, or x. The function returns the size character of the model scale as a string.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Args:
         model_path (str | Path): The path to the YOLO model's YAML file.
@@ -1574,8 +1624,7 @@ def guess_model_scale(model_path):
 
 
 def guess_model_task(model):
-    """
-    Guess the task of a PyTorch model from its architecture or configuration.
+    """Guess the task of a PyTorch model from its architecture or configuration.
 
     Args:
         model (torch.nn.Module | dict): PyTorch model or model configuration in YAML format.

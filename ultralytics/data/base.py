@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 import glob
 import math
@@ -7,7 +8,6 @@ import random
 from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from typing import Optional
 
 import cv2
 import numpy as np
@@ -19,8 +19,7 @@ from ultralytics.utils.patches import imread
 
 
 class BaseDataset(Dataset):
-    """
-    Base dataset class for loading and processing image data.
+    """Base dataset class for loading and processing image data.
 
     This class provides core functionality for loading images, caching, and preparing data for training and inference
     in object detection tasks.
@@ -180,6 +179,7 @@ class BaseDataset(Dataset):
         check_file_speeds(im_files, prefix=self.prefix)  # check image read speeds
         return im_files
 
+<<<<<<< HEAD
     def update_labels(self, include_class: Optional[list]):
         """
         Update labels to include only specified classes.
@@ -187,6 +187,10 @@ class BaseDataset(Dataset):
         Args:
             include_class (list, optional): List of classes to include. If None, all classes are included.
         """
+=======
+    def update_labels(self, include_class: list | None):
+        """Update labels to include only these classes (optional)."""
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
             if include_class is not None:
@@ -305,7 +309,7 @@ class BaseDataset(Dataset):
                 LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writeable")
                 return False
         disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
-        total, used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
+        total, _used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
         if disk_required > free:
             self.cache = None
             LOGGER.warning(
@@ -405,24 +409,37 @@ class BaseDataset(Dataset):
         return label
 
     def build_transforms(self, hyp=None):
-        """
-        Users can customize augmentations here.
+        """Users can customize augmentations here.
 
         Examples:
+<<<<<<< HEAD
             >>> if self.augment:
             ...     # Training transforms
             ...     return Compose([])
             >>> else:
             ...    # Val transforms
             ...    return Compose([])
+=======
+            ```python
+            if self.augment:
+                # Training transforms
+                return Compose([])
+            else:
+                # Val transforms
+                return Compose([])
+            ```
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         """
         raise NotImplementedError
 
     def get_labels(self):
-        """
-        Users can customize their own format here.
+        """Users can customize their own format here.
 
+<<<<<<< HEAD
         Examples:
+=======
+        Notes:
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
             Ensure output is a dictionary with the following keys:
             >>> dict(
             ...     im_file=im_file,

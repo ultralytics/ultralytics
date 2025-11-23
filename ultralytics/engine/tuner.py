@@ -28,8 +28,12 @@ from ultralytics.utils.plotting import plot_tune_results
 
 
 class Tuner:
+<<<<<<< HEAD
     """
     A class for hyperparameter tuning of YOLO models.
+=======
+    """Class responsible for hyperparameter tuning of YOLO models.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     The class evolves YOLO model hyperparameters over a given number of iterations by mutating them according to the
     search space and retraining the model to evaluate their performance.
@@ -43,6 +47,7 @@ class Tuner:
         prefix (str): Prefix string for logging messages.
 
     Methods:
+<<<<<<< HEAD
         _mutate: Mutates the given hyperparameters within the specified bounds.
         __call__: Executes the hyperparameter evolution across multiple iterations.
 
@@ -53,14 +58,26 @@ class Tuner:
         >>> model.tune(
         ...     data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False
         ... )
+=======
+        _mutate(hyp: dict) -> dict: Mutates the given hyperparameters within the bounds specified in `self.space`.
+        __call__(): Executes the hyperparameter evolution across multiple iterations.
+
+    Examples:
+        Tune hyperparameters for YOLOv8n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo11n.pt")
+        model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
+        ```
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Tune with custom search space.
         >>> model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
     """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks=None):
-        """
-        Initialize the Tuner with configurations.
+        """Initialize the Tuner with configurations.
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
@@ -107,8 +124,12 @@ class Tuner:
         )
 
     def _mutate(self, parent="single", n=5, mutation=0.8, sigma=0.2):
+<<<<<<< HEAD
         """
         Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
+=======
+        """Mutates the hyperparameters based on bounds and scaling factors specified in `self.space`.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Args:
             parent (str): Parent selection method: 'single' or 'weighted'.
@@ -153,8 +174,12 @@ class Tuner:
         return hyp
 
     def __call__(self, model=None, iterations=10, cleanup=True):
+<<<<<<< HEAD
         """
         Execute the hyperparameter evolution process when the Tuner instance is called.
+=======
+        """Executes the hyperparameter evolution process when the Tuner instance is called.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         This method iterates through the number of iterations, performing the following steps in each iteration:
 
@@ -168,9 +193,15 @@ class Tuner:
             iterations (int): The number of generations to run the evolution for.
             cleanup (bool): Whether to delete iteration weights to reduce storage space used during tuning.
 
+<<<<<<< HEAD
         Note:
             The method utilizes the `self.tune_csv` Path object to read and log hyperparameters and fitness scores.
             Ensure this path is set correctly in the Tuner instance.
+=======
+        Notes:
+           The method utilizes the `self.tune_csv` Path object to read and log hyperparameters and fitness scores.
+           Ensure this path is set correctly in the Tuner instance.
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         """
         t0 = time.time()
         best_save_dir, best_metrics = None, None
@@ -204,8 +235,13 @@ class Tuner:
             # Save results and mutated_hyp to CSV
             fitness = metrics.get("fitness", 0.0)
             log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]
+<<<<<<< HEAD
             headers = "" if self.tune_csv.exists() else (",".join(["fitness"] + list(self.space.keys())) + "\n")
             with open(self.tune_csv, "a", encoding="utf-8") as f:
+=======
+            headers = "" if self.tune_csv.exists() else (",".join(["fitness", *list(self.space.keys())]) + "\n")
+            with open(self.tune_csv, "a") as f:
+>>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
                 f.write(headers + ",".join(map(str, log_row)) + "\n")
 
             # Get best results

@@ -29,10 +29,8 @@ PACKAGE_DIR = FILE.parents[1] / "ultralytics"
 REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
 GITHUB_REPO = "ultralytics/ultralytics"
 SIGNATURE_LINE_LENGTH = 120
-GITHUB_ICON = (
-    '<span class="md-icon" aria-hidden="true" data-md-svg-icon="fontawesome/brands/github" '
-    'style="vertical-align:text-bottom;margin-right:6px;"></span>'
-)
+# Use Font Awesome brand GitHub icon (CSS already loaded via mkdocs.yml and HTML head)
+GITHUB_ICON = '<i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>'
 
 MKDOCS_YAML = PACKAGE_DIR.parent / "mkdocs.yml"
 INCLUDE_SPECIAL_METHODS = {
@@ -973,8 +971,9 @@ def create_markdown(module: DocumentedModule) -> Path:
     title_content = (
         f"# Reference for `{module_path_fs}.py`\n\n"
         f'!!! question "Ideas to Improve?"\n\n'
-        f"    This file is available at [{pretty}]({url}). If you spot a problem please help fix it by [contributing]"
-        f"(https://docs.ultralytics.com/help/contributing/) a [Pull Request]({edit}) 🛠️. Thank you 🙏"
+        f"    This file lives at [{pretty}]({url}). Have an enhancement idea or want to add an example? Please share by "
+        f"[contributing](https://docs.ultralytics.com/help/contributing/) a "
+        f"[Pull Request]({edit}) 🛠️. Thank you 🙏"
     )
 
     md_filepath.parent.mkdir(parents=True, exist_ok=True)

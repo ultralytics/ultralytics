@@ -81,7 +81,7 @@ div.highlight {
   border: 1px solid #dcdfe5;
   border-radius: 0.5rem;
   color: var(--md-default-fg-color);
-  font-size: 1.0rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }

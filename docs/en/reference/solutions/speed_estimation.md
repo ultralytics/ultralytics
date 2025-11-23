@@ -7,7 +7,7 @@ keywords: Ultralytics, speed estimation, YOLO, real-time tracking, object tracki
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/speed_estimation.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/speed_estimation.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/speed_estimation.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/speed_estimation.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/speed_estimation.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

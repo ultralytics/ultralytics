@@ -7,7 +7,7 @@ keywords: Ultralytics, BaseValidator, model validation, PyTorch, TensorFlow, ONN
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/validator.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/validator.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/engine/validator.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/validator.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/validator.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

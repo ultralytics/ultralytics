@@ -7,7 +7,7 @@ keywords: Ultralytics, SAM, Segment Anything Model, SAM 2, Segment Anything Mode
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/predict.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/sam/predict.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/sam/predict.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

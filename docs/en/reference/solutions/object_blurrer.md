@@ -7,7 +7,7 @@ keywords: Ultralytics, ObjectBlurrer, object detection, blurring, real-time proc
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/object_blurrer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/object_blurrer.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/object_blurrer.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/object_blurrer.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/object_blurrer.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

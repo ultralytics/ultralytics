@@ -7,7 +7,7 @@ keywords: Ultralytics, SolutionConfig, vision AI configuration, YOLO models, Pyt
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/config.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/config.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/config.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/config.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/config.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

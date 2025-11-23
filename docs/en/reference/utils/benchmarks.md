@@ -7,7 +7,7 @@ keywords: YOLO, model benchmarking, ONNX, TensorRT, PyTorch, TensorFlow, CoreML,
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/benchmarks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/benchmarks.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/benchmarks.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/benchmarks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/benchmarks.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

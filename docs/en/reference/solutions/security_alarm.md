@@ -7,7 +7,7 @@ keywords: Ultralytics, Security Alarm System, Real-time Surveillance, Object Det
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/security_alarm.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/security_alarm.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/security_alarm.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/security_alarm.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/security_alarm.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

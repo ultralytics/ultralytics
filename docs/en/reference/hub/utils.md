@@ -7,7 +7,7 @@ keywords: Ultralytics, HUB, Utilities, YOLO, smart_request, request_with_credent
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/utils.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/hub/utils.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/utils.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

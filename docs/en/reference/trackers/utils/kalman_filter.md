@@ -7,7 +7,7 @@ keywords: Kalman Filter, Object Tracking, Python, Ultralytics, YOLO, Bounding Bo
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/kalman_filter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/kalman_filter.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/trackers/utils/kalman_filter.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/kalman_filter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/kalman_filter.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

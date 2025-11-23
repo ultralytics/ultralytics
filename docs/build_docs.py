@@ -49,7 +49,7 @@ DOCS = Path(__file__).parent.resolve()
 SITE = DOCS.parent / "site"
 LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
 TITLE_PATTERN = re.compile(r"<title>(.*?)</title>", flags=re.IGNORECASE | re.DOTALL)
-LOCAL_MD_LINK = re.compile(r'((?:href|src)=["\'])(\.{0,2}/[^"\'>\s]+?)\.md((?:[?#][^"\'>\s]*)?)(["\'])', re.IGNORECASE)
+MD_LINK_PATTERN = re.compile(r'(["\']?)([^"\'>\s]+?)\.md(["\']?)')
 DOC_KIND_LABELS = {"Class", "Function", "Method", "Property"}
 DOC_KIND_COLORS = {
     "Class": "#039dfc",  # blue
@@ -181,7 +181,7 @@ def _process_html_file(html_file: Path) -> bool:
     if new_content != content:
         content, changed = new_content, True
 
-    new_content = fix_md_links(content)
+    new_content = _rewrite_md_links(content)
     if new_content != content:
         content, changed = new_content, True
 
@@ -325,25 +325,16 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
     return str(soup) if modified else content
 
 
-def fix_md_links(content: str) -> str:
-    """Replace .md references with trailing slashes in provided HTML content, fixing Zensical bug."""
+def _rewrite_md_links(content: str) -> str:
+    """Replace .md references with trailing slashes in HTML content, skipping GitHub links."""
     if ".md" not in content:
         return content
 
-    def repl(match: re.Match) -> str:
-        """Rewrite local href/src .md targets to trailing slashes."""
-        prefix, path, trailer, suffix = match.groups()
-        if "github.com" in path:
-            return match.group(0)
-        path = path.rstrip("/")
-        if path.endswith("index"):
-            path = path[: -len("index")]
-        path = path.rstrip("/")
-        return f"{prefix}{path}/{trailer}{suffix}"
-
     lines = []
     for line in content.split("\n"):
-        line = LOCAL_MD_LINK.sub(repl, line)
+        if "github.com" not in line:
+            line = line.replace("index.md", "")
+            line = MD_LINK_PATTERN.sub(r"\1\2/\3", line)
         lines.append(line)
     return "\n".join(lines)
 

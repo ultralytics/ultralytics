@@ -311,8 +311,8 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
         if head and not soup.select("style[data-doc-kind]"):
             style = soup.new_tag("style", attrs={"data-doc-kind": "true"})
             style.string = (
-                ".doc-kind{display:inline-flex;align-items:center;gap:0.25em;padding:0.22em 0.78em;border-radius:999px;"
-                "font-weight:700;font-size:0.85em;letter-spacing:0.06em;text-transform:uppercase;"
+                ".doc-kind{display:inline-flex;align-items:center;gap:0.25em;padding:0.21em 0.59em;border-radius:999px;"
+                "font-weight:700;font-size:0.81em;letter-spacing:0.06em;text-transform:uppercase;"
                 "line-height:1;color:var(--doc-kind-color,#f8fafc);"
                 "background:var(--doc-kind-bg,rgba(255,255,255,0.12));}"
                 f".doc-kind-class{{--doc-kind-color:{DOC_KIND_COLORS['Class']};--doc-kind-bg:rgba(3,157,252,0.22);}}"

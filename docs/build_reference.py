@@ -148,9 +148,8 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
     edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path_fs}.py"
     pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")
 
-    title_content = (
-        f"# Reference for `{module_path_fs}.py`\n\n"
-        + contribution_admonition(pretty, url, edit, kind="success", title="Improvements")
+    title_content = f"# Reference for `{module_path_fs}.py`\n\n" + contribution_admonition(
+        pretty, url, edit, kind="success", title="Improvements"
     )
 
     md_content = ["<br>\n\n"]
@@ -702,6 +701,8 @@ def _merge_params(doc_params: list[ParameterDoc], signature_params: list[Paramet
 
 DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "yields", "raises"]
 SUMMARY_BADGE_MAP = {"Classes": "class", "Properties": "property", "Methods": "method", "Functions": "function"}
+
+
 def contribution_admonition(pretty: str, url: str, edit: str, *, kind: str = "note", title: str | None = None) -> str:
     """Return a standardized contribution call-to-action admonition."""
     label = f' "{title}"' if title else ""
@@ -989,9 +990,8 @@ def create_markdown(module: DocumentedModule) -> Path:
     edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path_fs}.py"
     pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")  # Properly display __init__.py filenames
 
-    title_content = (
-        f"# Reference for `{module_path_fs}.py`\n\n"
-        + contribution_admonition(pretty, url, edit, kind="success", title="Improvements")
+    title_content = f"# Reference for `{module_path_fs}.py`\n\n" + contribution_admonition(
+        pretty, url, edit, kind="success", title="Improvements"
     )
 
     md_filepath.parent.mkdir(parents=True, exist_ok=True)

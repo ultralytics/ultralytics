@@ -30,12 +30,6 @@ td {
 }
 /* Table format like GitHub ----------------------------------------------------------------------------------------- */
 
-/* Keep back-to-back links visually separated when Markdown omits spaces */
-.md-typeset p a + a,
-.md-typeset li a + a {
-  margin-left: 0.35em;
-}
-
 /* Ensure in-page anchors account for sticky header/nav height to fix Zensical bug of clicked header behind nav bar*/
 :root {
   --anchor-offset: 140px;

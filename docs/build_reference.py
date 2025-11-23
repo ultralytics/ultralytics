@@ -25,7 +25,8 @@ from ultralytics.utils.tqdm import TQDM
 
 # Constants
 FILE = Path(__file__).resolve()
-PACKAGE_DIR = FILE.parents[1] / "ultralytics"
+REPO_ROOT = FILE.parents[1]
+PACKAGE_DIR = REPO_ROOT / "ultralytics"
 REFERENCE_DIR = PACKAGE_DIR.parent / "docs/en/reference"
 GITHUB_REPO = "ultralytics/ultralytics"
 SIGNATURE_LINE_LENGTH = 120
@@ -892,8 +893,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
     """Render a class, function, or method to Markdown."""
     anchor = item_anchor(item)
     title_prefix = item.kind.capitalize()
-    anchor_id = anchor.replace("_", r"\_")  # escape underscores so attr_list keeps them in the id
-    heading = f"{'#' * level} {title_prefix} `{display_qualname(item)}` {{#{anchor_id}}}"
+    heading = f"{'#' * level} {title_prefix} `{display_qualname(item)}` {{#{anchor}}}"
     signature_block = f"```python\n{item.signature}\n```\n"
 
     parts = [heading, signature_block]
@@ -1001,7 +1001,7 @@ def create_markdown(module: DocumentedModule) -> Path:
     md_filepath.write_text(header_content + title_content + render_module_markdown(module))
 
     if not exists:
-        subprocess.run(["git", "add", "-f", str(md_filepath)], check=True, cwd=PACKAGE_DIR)
+        subprocess.run(["git", "add", "-f", str(md_filepath)], check=True, cwd=REPO_ROOT)
 
     return _relative_to_workspace(md_filepath)
 

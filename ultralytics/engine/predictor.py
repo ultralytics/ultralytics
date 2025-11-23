@@ -425,7 +425,9 @@ class BasePredictor:
             frame = int(match[1]) if match else None  # 0 if frame undetermined
 
         rel = p.relative_to(self.dataset.root)
-        self.txt_path = (self.save_dir / "labels" / rel).with_suffix(".txt" if self.dataset.mode == "image" else f"_{frame}.txt")
+        self.txt_path = (self.save_dir / "labels" / rel).with_suffix(
+            ".txt" if self.dataset.mode == "image" else f"_{frame}.txt"
+        )
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations

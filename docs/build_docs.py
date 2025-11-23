@@ -287,6 +287,21 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
     highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
     highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
 
+    if "reference" in rel_path:
+        for ellipsis in soup.select("nav.md-nav--secondary .md-ellipsis"):
+            kind = ellipsis.find(class_=lambda c: c and "doc-kind" in c.split())
+            text = (str(kind.next_sibling).strip() if kind and kind.next_sibling else ellipsis.get_text(strip=True))
+            if "." not in text:
+                continue
+            ellipsis.clear()
+            short = text.rsplit(".", 1)[-1]
+            if kind:
+                ellipsis.append(kind)
+                ellipsis.append(f" {short}")
+            else:
+                ellipsis.append(short)
+            modified = True
+
     if needs_kind_highlight and not modified and soup.select(".doc-kind"):
         # Ensure style injection when pre-existing badges are present
         modified = True

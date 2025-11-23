@@ -835,6 +835,11 @@ def item_anchor(item: DocItem) -> str:
     return item.qualname
 
 
+def display_qualname(item: DocItem) -> str:
+    """Return a cleaned, fully-qualified name for display (strip __init__ noise)."""
+    return item.qualname.replace(".__init__.", ".")
+
+
 def render_summary_tabs(module: DocumentedModule) -> str:
     """Render a tabbed summary of classes, methods, and functions for quick navigation."""
     tab_entries: list[tuple[str, list[str]]] = []
@@ -887,7 +892,7 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
     anchor = item_anchor(item)
     title_prefix = item.kind.capitalize()
     anchor_id = anchor.replace("_", r"\_")  # escape underscores so attr_list keeps them in the id
-    heading = f"{'#' * level} {title_prefix} `{item.name}` {{#{anchor_id}}}"
+    heading = f"{'#' * level} {title_prefix} `{display_qualname(item)}` {{#{anchor_id}}}"
     signature_block = f"```python\n{item.signature}\n```\n"
 
     parts = [heading, signature_block]

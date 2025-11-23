@@ -287,13 +287,17 @@ def update_docs_soup(content: str, html_file: Path | None = None, max_title_leng
     highlight_labels(soup.select("main h1, main h2, main h3, main h4, main h5"))
     highlight_labels(soup.select("nav.md-nav--secondary .md-ellipsis, nav.md-nav__list .md-ellipsis"))
 
+    if needs_kind_highlight and not modified and soup.select(".doc-kind"):
+        # Ensure style injection when pre-existing badges are present
+        modified = True
+
     if modified:
         head = soup.find("head")
         if head and not soup.select("style[data-doc-kind]"):
             style = soup.new_tag("style", attrs={"data-doc-kind": "true"})
             style.string = (
                 ".doc-kind{display:inline-flex;align-items:center;gap:0.25em;padding:0.22em 0.78em;border-radius:999px;"
-                "font-weight:700;font-size:0.86em;letter-spacing:0.06em;text-transform:uppercase;"
+                "font-weight:700;font-size:0.85em;letter-spacing:0.06em;text-transform:uppercase;"
                 "line-height:1;color:var(--doc-kind-color,#f8fafc);"
                 "background:var(--doc-kind-bg,rgba(255,255,255,0.12));}"
                 f".doc-kind-class{{--doc-kind-color:{DOC_KIND_COLORS['Class']};--doc-kind-bg:rgba(3,157,252,0.22);}}"

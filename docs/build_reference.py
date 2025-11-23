@@ -694,6 +694,7 @@ def _merge_params(doc_params: list[ParameterDoc], signature_params: list[Paramet
 
 
 DEFAULT_SECTION_ORDER = ["args", "returns", "examples", "notes", "attributes", "yields", "raises"]
+SUMMARY_BADGE_MAP = {"Classes": "class", "Properties": "property", "Methods": "method", "Functions": "function"}
 
 
 def render_docstring(
@@ -836,7 +837,9 @@ def render_summary_tabs(module: DocumentedModule) -> str:
 
     lines = ['!!! abstract "Summary"\n']
     for label, bullets in tab_entries:
-        lines.append(f'    === "{label}"\n')
+        badge_class = SUMMARY_BADGE_MAP.get(label, label.lower())
+        label_badge = f'<span class="doc-kind doc-kind-{badge_class}">{label}</span>'
+        lines.append(f'    === "{label_badge}"\n')
         lines.append("\n".join(f"        {line}" for line in bullets))
         lines.append("")  # Blank line after each tab block
     return "\n".join(lines).rstrip() + "\n\n"

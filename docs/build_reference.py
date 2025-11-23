@@ -132,8 +132,15 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
     md_filepath = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
     exists = md_filepath.exists()
 
+    header_content = ""
     if exists:
-        return md_filepath.relative_to(PACKAGE_DIR.parent)
+        current = md_filepath.read_text()
+        if current.startswith("---"):
+            parts = current.split("---", 2)
+            if len(parts) > 2:
+                header_content = f"---{parts[1]}---\n\n"
+    if not header_content:
+        header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
 
     module_path_dots = module_path
     module_path_fs = module_path.replace(".", "/")
@@ -141,7 +148,6 @@ def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: li
     edit = f"https://github.com/{GITHUB_REPO}/edit/main/{module_path_fs}.py"
     pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")
 
-    header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
     title_content = (
         f"# Reference for `{module_path_fs}.py`\n\n"
         + contribution_admonition(pretty, url, edit, kind="success", title="Improvements")

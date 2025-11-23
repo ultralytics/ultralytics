@@ -136,13 +136,13 @@ def update_docs_html():
     if not html_files:
         LOGGER.info("Updated HTML files: 0")
         return
-
+    desc = f"Updating HTML at {SITE}"
     max_workers = os.cpu_count() or 1
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        results = TQDM(executor.map(_process_html_file, html_files), total=len(html_files), desc="Updating docs HTML")
+        results = TQDM(executor.map(_process_html_file, html_files), total=len(html_files), desc=desc)
         written = sum(bool(r) for r in results)
 
-    LOGGER.info(f"Updated HTML files: {written}")
+    LOGGER.info(f"Docs HTML: {written}/{len(html_files)} updated in {SITE}")
 
 
 def _process_html_file(html_file: Path) -> bool:
@@ -426,19 +426,21 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
         "css": compress if css else None,
         "js": jsmin.jsmin if js else None,
     }.items():
-        stats[ext] = {"original": 0, "minified": 0}
-        directory = ""  # "stylesheets" if ext == css else "javascript" if ext == "js" else ""
-        for f in TQDM((SITE / directory).rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}", mininterval=1.0):
+        orig = minified = 0
+        files = list(SITE.rglob(f"*.{ext}"))
+        if not files:
+            continue
+        pbar = TQDM(files, desc=f"Minifying {ext.upper()} - reduced 0.00% (0.00 KB saved)")
+        for f in pbar:
             content = f.read_text(encoding="utf-8")
-            minified = minifier(content) if minifier else remove_comments_and_empty_lines(content, ext)
-            stats[ext]["original"] += len(content)
-            stats[ext]["minified"] += len(minified)
-            f.write_text(minified, encoding="utf-8")
-
-    for ext, data in stats.items():
-        if data["original"]:
-            r = data["original"] - data["minified"]  # reduction
-            LOGGER.info(f"Total {ext.upper()} reduction: {(r / data['original']) * 100:.2f}% ({r / 1024:.2f} KB saved)")
+            out = minifier(content) if minifier else remove_comments_and_empty_lines(content, ext)
+            orig += len(content)
+            minified += len(out)
+            f.write_text(out, encoding="utf-8")
+            saved = orig - minified
+            pct = (saved / orig) * 100 if orig else 0.0
+            pbar.set_description(f"Minifying {ext.upper()} - reduced {pct:.2f}% ({saved / 1024:.2f} KB saved)")
+        stats[ext] = {"original": orig, "minified": minified}
 
 
 def render_jinja_macros() -> None:
@@ -505,8 +507,10 @@ def render_jinja_macros() -> None:
 
     files_processed = 0
     files_with_macros = 0
+    macros_total = 0
 
-    for md_file in TQDM((DOCS / "en").rglob("*.md"), desc="Rendering MiniJinja macros"):
+    pbar = TQDM((DOCS / "en").rglob("*.md"), desc="MiniJinja: 0 macros, 0 pages")
+    for md_file in pbar:
         if "macros" in md_file.parts or "reference" in md_file.parts:
             continue
         files_processed += 1
@@ -531,6 +535,10 @@ def render_jinja_macros() -> None:
             except Exception as e:
                 LOGGER.warning(f"Could not parse frontmatter in {md_file}: {e}")
 
+        macro_hits = markdown_content.count("{{") + markdown_content.count("{%")
+        if not macro_hits:
+            continue
+
         context = {k: v for k, v in base_context.items() if k not in reserved_keys}
         context.update({k: v for k, v in frontmatter_data.items() if k not in reserved_keys})
         context["page"] = context.get("page", {})
@@ -544,11 +552,8 @@ def render_jinja_macros() -> None:
 
         md_file.write_text(frontmatter + rendered, encoding="utf-8")
         files_with_macros += 1
-
-    if files_with_macros:
-        LOGGER.info(f"Rendered MiniJinja macros in {files_with_macros}/{files_processed} files")
-    else:
-        LOGGER.info(f"No MiniJinja macros found in {files_processed} markdown files")
+        macros_total += macro_hits
+        pbar.set_description(f"MiniJinja: {macros_total} macros, {files_with_macros} pages")
 
 
 def backup_docs_sources() -> tuple[Path, list[tuple[Path, Path]]]:

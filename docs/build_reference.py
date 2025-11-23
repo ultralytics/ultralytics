@@ -1126,7 +1126,8 @@ def build_reference_docs(update_nav: bool = False) -> list[str]:
     nav_items: list[str] = []
     created = 0
 
-    for py_filepath in TQDM(list(PACKAGE_DIR.rglob("*.py")), desc="Rendering docstrings", unit="file"):
+    desc = f"Docstrings {GITHUB_REPO or PACKAGE_DIR.name}"
+    for py_filepath in TQDM(list(PACKAGE_DIR.rglob("*.py")), desc=desc, unit="file"):
         md_target = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
         exists_before = md_target.exists()
         module = parse_module(py_filepath)

@@ -893,7 +893,8 @@ def render_item(item: DocItem, module_url: str, module_path: str, level: int = 2
     """Render a class, function, or method to Markdown."""
     anchor = item_anchor(item)
     title_prefix = item.kind.capitalize()
-    heading = f"{'#' * level} {title_prefix} `{display_qualname(item)}` {{#{anchor}}}"
+    anchor_id = anchor.replace("_", r"\_")  # escape underscores so attr_list keeps them in the id
+    heading = f"{'#' * level} {title_prefix} `{display_qualname(item)}` {{#{anchor_id}}}"
     signature_block = f"```python\n{item.signature}\n```\n"
 
     parts = [heading, signature_block]

@@ -7,7 +7,7 @@ keywords: YOLO, SegmentationPredictor, machine learning, computer vision, object
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/segment/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/segment/predict.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/models/yolo/segment/predict.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/segment/predict.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/models/yolo/segment/predict.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

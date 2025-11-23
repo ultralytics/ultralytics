@@ -7,7 +7,7 @@ keywords: Ultralytics HUB API, login, logout, reset model, export model, check d
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/\_\_init\_\_.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/__init__.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/hub/__init__.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/\_\_init\_\_.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/__init__.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

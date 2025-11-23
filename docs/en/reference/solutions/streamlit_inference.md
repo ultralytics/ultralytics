@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLOv8, live inference, real-time object detection, Strea
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/streamlit_inference.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/streamlit_inference.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/streamlit_inference.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/streamlit_inference.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/streamlit_inference.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

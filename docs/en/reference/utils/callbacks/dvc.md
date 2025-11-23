@@ -7,7 +7,7 @@ keywords: Ultralytics, DVC, DVCLive, machine learning, logging, training, callba
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/dvc.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/dvc.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/callbacks/dvc.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/dvc.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/dvc.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

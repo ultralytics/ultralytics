@@ -7,7 +7,7 @@ keywords: Ultralytics, semantic search, CLIP, FAISS, image retrieval, natural la
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/similarity_search.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/similarity_search.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/solutions/similarity_search.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/similarity_search.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/similarity_search.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

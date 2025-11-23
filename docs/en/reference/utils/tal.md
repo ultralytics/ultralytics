@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, TaskAlignedAssigner, object detection, machine lear
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tal.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tal.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/tal.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tal.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tal.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

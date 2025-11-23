@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, HUBTrainingSession, model training, heartbeats, che
 
 !!! success "Improvements"
 
-    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/session.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/session.py). Have an improvement or example to add? Open a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/hub/session.py) — thank you! 🙏
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/session.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/hub/session.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 

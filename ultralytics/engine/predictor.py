@@ -43,6 +43,7 @@ from typing import Any
 
 import cv2
 import numpy as np
+from sympy import root
 import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
@@ -424,14 +425,24 @@ class BasePredictor:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # 0 if frame undetermined
 
-        if getattr(self.dataset, "root", None):
-            rel = p.relative_to(self.dataset.root)
-        else:
-            rel = p.name  # or p, but p.name is better for non-filesystem inputs
+        root = getattr(self.dataset, "root", None)
 
-        self.txt_path = (self.save_dir / "labels" / rel).with_suffix(
-            ".txt" if self.dataset.mode == "image" else f"_{frame}.txt"
-        )
+        try:
+            if root:
+                rel = p.relative_to(root)
+            else:
+                rel = p.name
+        except ValueError:
+            rel = p.name  
+              
+        rel = Path(rel)
+
+        if frame is None:
+            filename = rel.with_suffix(".txt")
+        else:
+            filename = rel.with_stem(rel.stem + f"_{frame}").with_suffix(".txt")
+
+        self.txt_path = self.save_dir / "labels" / filename
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations

@@ -27,7 +27,7 @@ Help shape the future of Ultralytics HUB by sharing your ideas, feedback, and in
 
 ## Thank You, Community! 🌍
 
-Your [contributions](../../help/contributing.md) and ongoing support fuel our commitment to pushing the boundaries of [AI innovation](https://github.com/ultralytics/ultralytics). Stay tuned—exciting things are just around the corner!
+Your [contributions](https://docs.ultralytics.com/help/contributing/) and ongoing support fuel our commitment to pushing the boundaries of [AI innovation](https://github.com/ultralytics/ultralytics). Stay tuned—exciting things are just around the corner!
 
 ---
 

@@ -10,7 +10,7 @@ from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse, request
 
-from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
+from ultralytics.utils import ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
@@ -43,8 +43,7 @@ GITHUB_ASSETS_STEMS = frozenset(k.rpartition(".")[0] for k in GITHUB_ASSETS_NAME
 
 
 def is_url(url: str | Path, check: bool = False) -> bool:
-    """
-    Validate if the given string is a URL and optionally check if the URL exists online.
+    """Validate if the given string is a URL and optionally check if the URL exists online.
 
     Args:
         url (str): The string to be validated as a URL.
@@ -60,18 +59,18 @@ def is_url(url: str | Path, check: bool = False) -> bool:
     try:
         url = str(url)
         result = parse.urlparse(url)
-        assert all([result.scheme, result.netloc])  # check if is url
+        if not (result.scheme and result.netloc):
+            return False
         if check:
-            with request.urlopen(url) as response:
-                return response.getcode() == 200  # check if exists online
+            r = request.urlopen(request.Request(url, method="HEAD"), timeout=3)
+            return 200 <= r.getcode() < 400
         return True
     except Exception:
         return False
 
 
 def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_Store", "__MACOSX")) -> None:
-    """
-    Delete all specified system files in a directory.
+    """Delete all specified system files in a directory.
 
     Args:
         path (str | Path): The directory path where the files should be deleted.
@@ -98,8 +97,7 @@ def zip_directory(
     exclude: tuple[str, ...] = (".DS_Store", "__MACOSX"),
     progress: bool = True,
 ) -> Path:
-    """
-    Zip the contents of a directory, excluding specified files.
+    """Zip the contents of a directory, excluding specified files.
 
     The resulting zip file is named after the directory and placed alongside it.
 
@@ -141,12 +139,11 @@ def unzip_file(
     exist_ok: bool = False,
     progress: bool = True,
 ) -> Path:
-    """
-    Unzip a *.zip file to the specified path, excluding specified files.
+    """Unzip a *.zip file to the specified path, excluding specified files.
 
-    If the zipfile does not contain a single top-level directory, the function will create a new
-    directory with the same name as the zipfile (without the extension) to extract its contents.
-    If a path is not provided, the function will use the parent directory of the zipfile as the default path.
+    If the zipfile does not contain a single top-level directory, the function will create a new directory with the same
+    name as the zipfile (without the extension) to extract its contents. If a path is not provided, the function will
+    use the parent directory of the zipfile as the default path.
 
     Args:
         file (str | Path): The path to the zipfile to be extracted.
@@ -182,7 +179,7 @@ def unzip_file(
         if unzip_as_dir:
             # Zip has 1 top-level directory
             extract_path = path  # i.e. ../datasets
-            path = Path(path) / list(top_level_dirs)[0]  # i.e. extract coco8/ dir to ../datasets/
+            path = Path(path) / next(iter(top_level_dirs))  # i.e. extract coco8/ dir to ../datasets/
         else:
             # Zip has multiple files at top level
             path = extract_path = Path(path) / Path(file).stem  # i.e. extract multiple files to ../datasets/coco8/
@@ -209,8 +206,7 @@ def check_disk_space(
     sf: float = 1.5,
     hard: bool = True,
 ) -> bool:
-    """
-    Check if there is sufficient disk space to download and store a file.
+    """Check if there is sufficient disk space to download and store a file.
 
     Args:
         file_bytes (int): The file size in bytes.
@@ -221,7 +217,7 @@ def check_disk_space(
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    total, used, free = shutil.disk_usage(path)  # bytes
+    _total, _used, free = shutil.disk_usage(path)  # bytes
     if file_bytes * sf < free:
         return True  # sufficient space
 
@@ -237,8 +233,7 @@ def check_disk_space(
 
 
 def get_google_drive_file_info(link: str) -> tuple[str, str | None]:
-    """
-    Retrieve the direct download link and filename for a shareable Google Drive file link.
+    """Retrieve the direct download link and filename for a shareable Google Drive file link.
 
     Args:
         link (str): The shareable link of the Google Drive file.
@@ -288,16 +283,15 @@ def safe_download(
     exist_ok: bool = False,
     progress: bool = True,
 ) -> Path | str:
-    """
-    Download files from a URL with options for retrying, unzipping, and deleting the downloaded file. Enhanced with
+    """Download files from a URL with options for retrying, unzipping, and deleting the downloaded file. Enhanced with
     robust partial download detection using Content-Length validation.
 
     Args:
         url (str): The URL of the file to be downloaded.
-        file (str, optional): The filename of the downloaded file.
-            If not provided, the file will be saved with the same name as the URL.
-        dir (str | Path, optional): The directory to save the downloaded file.
-            If not provided, the file will be saved in the current working directory.
+        file (str, optional): The filename of the downloaded file. If not provided, the file will be saved with the same
+            name as the URL.
+        dir (str | Path, optional): The directory to save the downloaded file. If not provided, the file will be saved
+            in the current working directory.
         unzip (bool, optional): Whether to unzip the downloaded file.
         delete (bool, optional): Whether to delete the downloaded file after unzipping.
         curl (bool, optional): Whether to use curl command line tool for downloading.
@@ -323,10 +317,7 @@ def safe_download(
     if "://" not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
     elif not f.is_file():  # URL and file do not exist
-        uri = (url if gdrive else clean_url(url)).replace(  # cleaned and aliased url
-            "https://github.com/ultralytics/assets/releases/download/v0.0.0/",
-            "https://ultralytics.com/assets/",  # assets alias
-        )
+        uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
         desc = f"Downloading {uri} to '{f}'"
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         curl_installed = shutil.which("curl")
@@ -374,10 +365,10 @@ def safe_download(
                 raise  # Re-raise immediately - no point retrying if insufficient disk space
             except Exception as e:
                 if i == 0 and not is_online():
-                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment is not online.")) from e
+                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment may be offline.")) from e
                 elif i >= retry:
-                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached.")) from e
-                LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}...")
+                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")) from e
+                LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")
 
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile
@@ -399,8 +390,7 @@ def get_github_assets(
     version: str = "latest",
     retry: bool = False,
 ) -> tuple[str, list[str]]:
-    """
-    Retrieve the specified version's tag and assets from a GitHub repository.
+    """Retrieve the specified version's tag and assets from a GitHub repository.
 
     If the version is not specified, the function fetches the latest release assets.
 
@@ -437,8 +427,7 @@ def attempt_download_asset(
     release: str = "v8.3.0",
     **kwargs,
 ) -> str:
-    """
-    Attempt to download a file from GitHub release assets if it is not found locally.
+    """Attempt to download a file from GitHub release assets if it is not found locally.
 
     Args:
         file (str | Path): The filename or file path to be downloaded.
@@ -497,8 +486,7 @@ def download(
     retry: int = 3,
     exist_ok: bool = False,
 ) -> None:
-    """
-    Download files from specified URLs to a given directory.
+    """Download files from specified URLs to a given directory.
 
     Supports concurrent downloads if multiple threads are specified.
 

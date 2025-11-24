@@ -49,6 +49,10 @@ These are the notable functionalities offered by YOLO11's Val mode:
 
 Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes. See Arguments section below for a full list of validation arguments.
 
+!!! warning "Windows Multi-Processing Error"
+
+    On Windows, you may receive a `RuntimeError` when launching the validation as a script. Add an `if __name__ == "__main__":` block before your validation code to resolve it.
+
 !!! example
 
     === "Python"
@@ -65,7 +69,7 @@ Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/a
         metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps  # a list contains map50-95 of each category
+        metrics.box.maps  # a list containing mAP50-95 for each category
         ```
 
     === "CLI"
@@ -200,7 +204,11 @@ These benefits ensure that your models are evaluated thoroughly and can be optim
 
 ### Can I validate my YOLO11 model using a custom dataset?
 
-Yes, you can validate your YOLO11 model using a [custom dataset](https://docs.ultralytics.com/datasets/). Specify the `data` argument with the path to your dataset configuration file. This file should include paths to the [validation data](https://www.ultralytics.com/glossary/validation-data), class names, and other relevant details.
+Yes, you can validate your YOLO11 model using a [custom dataset](https://docs.ultralytics.com/datasets/). Specify the `data` argument with the path to your dataset configuration file. This file should include the path to the [validation data](https://www.ultralytics.com/glossary/validation-data).
+
+!!! note
+
+    Validation is performed using the model's own class names, which you can view using `model.names`, and which may be different to those specified in the dataset configuration file.
 
 Example in Python:
 

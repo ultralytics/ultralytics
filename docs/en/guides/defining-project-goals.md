@@ -50,7 +50,7 @@ Primary users include traffic management authorities and law enforcement, while 
 
 Setting measurable objectives is key to the success of a computer vision project. These goals should be clear, achievable, and time-bound.
 
-For example, if you are developing a system to estimate vehicle speeds on a highway. You could consider the following measurable objectives:
+For example, if you are developing a system to estimate vehicle speeds on a highway, you could consider the following measurable objectives:
 
 - To achieve at least 95% [accuracy](https://www.ultralytics.com/glossary/accuracy) in speed detection within six months, using a dataset of 10,000 vehicle images.
 - The system should be able to process real-time video feeds at 30 frames per second with minimal delay.
@@ -132,7 +132,7 @@ Connecting with other computer vision enthusiasts can be incredibly helpful for 
 
 ## Conclusion
 
-Defining a clear problem and setting measurable goals is key to a successful computer vision project. We've highlighted the importance of being clear and focused from the start. Having specific goals helps avoid oversight. Also, staying connected with others in the community through platforms like [GitHub](https://github.com/ultralytics/ultralytics) or [Discord](https://discord.com/invite/ultralytics) is important for learning and staying current. In short, good planning and engaging with the community is a huge part of successful computer vision projects.
+Defining a clear problem and setting measurable goals is key to a successful computer vision project. We've highlighted the importance of being clear and focused from the start. Having specific goals helps avoid oversight. Also, staying connected with others in the community through platforms like [GitHub](https://github.com/ultralytics/ultralytics) or [Discord](https://discord.com/invite/ultralytics) is important for learning and staying current. In short, good planning and engaging with the community are a huge part of successful computer vision projects.
 
 ## FAQ
 

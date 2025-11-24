@@ -52,7 +52,7 @@ pip install gradio
 
 ## Usage Example
 
-This section provides the Python code used to create the Gradio interface with the Ultralytics YOLO11 model. The code supports classification tasks, detection tasks, segmentation tasks, and key point tasks.
+This section provides the Python code used to create the Gradio interface with the Ultralytics YOLO11 model. The code supports classification tasks, detection tasks, segmentation tasks, and keypoint tasks.
 
 ```python
 import gradio as gr
@@ -64,7 +64,7 @@ model = YOLO("yolo11n.pt")
 
 
 def predict_image(img, conf_threshold, iou_threshold):
-    """Predicts objects in an image using a YOLO11 model with adjustable confidence and IOU thresholds."""
+    """Predicts objects in an image using a YOLO11 model with adjustable confidence and IoU thresholds."""
     results = model.predict(
         source=img,
         conf=conf_threshold,

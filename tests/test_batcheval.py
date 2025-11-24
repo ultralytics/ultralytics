@@ -1,3 +1,5 @@
+"""Tests for ultralytics.analytics.batcheval module."""
+
 from pathlib import Path
 
 import pytest
@@ -13,6 +15,7 @@ from ultralytics.analytics.batcheval import (
 
 
 def test_resolve_models_with_pt(tmp_path: Path) -> None:
+    """Test that resolve_models correctly handles a direct .pt file path."""
     m = tmp_path / "m.pt"
     m.write_bytes(b"dummy")  # fake weights
     specs = resolve_models([str(m)])
@@ -24,6 +27,7 @@ def test_resolve_models_with_pt(tmp_path: Path) -> None:
 
 
 def test_resolve_models_with_run_dir(tmp_path: Path) -> None:
+    """Test that resolve_models correctly handles a run directory with weights/best.pt."""
     run = tmp_path / "train99"
     wdir = run / "weights"
     wdir.mkdir(parents=True)
@@ -38,6 +42,7 @@ def test_resolve_models_with_run_dir(tmp_path: Path) -> None:
 
 
 def test_collect_summary_and_write_csv(tmp_path: Path) -> None:
+    """Test that _collect_summary_rows and _write_csv produce valid CSV output."""
     results = [
         BatchEvalResult(model_name="a", metrics={"metrics/mAP50": 0.5, "metrics/mAP50-95": 0.4}),
         BatchEvalResult(model_name="b", metrics={"metrics/mAP50": 0.6}),
@@ -54,6 +59,7 @@ def test_collect_summary_and_write_csv(tmp_path: Path) -> None:
 
 
 def test_run_conf_sweep_strips_incoming_conf_and_forwards_other_kwargs(monkeypatch, tmp_path: Path) -> None:
+    """Test that _run_conf_sweep strips user-provided conf and forwards other kwargs."""
     calls = []
 
     class DummyModel:
@@ -92,6 +98,7 @@ def test_run_conf_sweep_strips_incoming_conf_and_forwards_other_kwargs(monkeypat
 
 
 def test_handle_yolo_batcheval_forwards_extra_overrides(monkeypatch) -> None:
+    """Test that handle_yolo_batcheval forwards extra kwargs to YOLO().val()."""
     import ultralytics.analytics as analytics_mod
     import ultralytics.cfg as cfg_mod
 
@@ -123,6 +130,7 @@ def test_handle_yolo_batcheval_forwards_extra_overrides(monkeypatch) -> None:
 
 
 def test_handle_yolo_batcheval_requires_models_and_data(monkeypatch) -> None:
+    """Test that handle_yolo_batcheval raises SyntaxError when required args are missing."""
     import ultralytics.analytics as analytics_mod
     import ultralytics.cfg as cfg_mod
 

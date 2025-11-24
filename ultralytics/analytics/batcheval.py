@@ -9,10 +9,11 @@ Scope:
 from __future__ import annotations
 
 import csv
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Sequence
+from typing import Any
 
 from ultralytics import YOLO
 from ultralytics.utils import LOGGER
@@ -31,12 +32,11 @@ class BatchEvalResult:
     """Result of evaluating a single model within a batch."""
 
     model_name: str
-    metrics: Dict[str, float]
+    metrics: dict[str, float]
 
 
 def _iter_model_paths(pattern: str) -> Iterable[Path]:
-    """
-    Yield paths for a user-specified model identifier.
+    """Yield paths for a user-specified model identifier.
 
     Supports:
     - Explicit file or directory paths.
@@ -53,24 +53,22 @@ def _iter_model_paths(pattern: str) -> Iterable[Path]:
     if has_wildcard:
         matched = sorted(Path(".").glob(pattern))
         if matched:
-            for path in matched:
-                yield path
+            yield from matched
             return
 
     # If nothing matched, surface a clear error.
     raise FileNotFoundError(f"No files or directories found matching model pattern: {pattern}")
 
 
-def resolve_models(models: Sequence[str]) -> List[ModelSpec]:
-    """
-    Resolve user-provided model identifiers into concrete weight paths.
+def resolve_models(models: Sequence[str]) -> list[ModelSpec]:
+    """Resolve user-provided model identifiers into concrete weight paths.
 
     Accepts:
         - Run directories (e.g. 'runs/detect/train38') -> uses 'weights/best.pt'.
         - Direct .pt files (e.g. 'path/to/model.pt').
         - Simple glob patterns that expand to either of the above.
     """
-    resolved: List[ModelSpec] = []
+    resolved: list[ModelSpec] = []
     for item in models:
         for path in _iter_model_paths(item):
             if path.is_dir():
@@ -91,8 +89,7 @@ def evaluate_model(
     split: str = "val",
     **val_kwargs: Any,
 ) -> BatchEvalResult:
-    """
-    Run Ultralytics val for a single model and extract key metrics.
+    """Run Ultralytics val for a single model and extract key metrics.
 
     This is a thin wrapper around YOLO(weights).val(...).
     """
@@ -101,7 +98,7 @@ def evaluate_model(
     metrics = model.val(data=data, split=split, **val_kwargs)
 
     # Prefer the standardized results_dict interface when available.
-    metrics_dict: Dict[str, float]
+    metrics_dict: dict[str, float]
     if hasattr(metrics, "results_dict"):
         metrics_dict = dict(metrics.results_dict)
     elif isinstance(metrics, Mapping):
@@ -121,11 +118,11 @@ def _default_save_dir() -> Path:
     return Path("runs") / "batcheval" / ts
 
 
-def _collect_summary_rows(results: Sequence[BatchEvalResult]) -> List[Dict[str, Any]]:
+def _collect_summary_rows(results: Sequence[BatchEvalResult]) -> list[dict[str, Any]]:
     """Normalize batch results into a list of flat dicts suitable for CSV export."""
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for res in results:
-        row: Dict[str, Any] = {"model_name": res.model_name}
+        row: dict[str, Any] = {"model_name": res.model_name}
         for k, v in res.metrics.items():
             row[k] = v
         rows.append(row)
@@ -165,8 +162,7 @@ def _run_conf_sweep(
     save_root: Path,
     **val_kwargs: Any,
 ) -> None:
-    """
-    Run an optional confidence sweep by re-running validation with different thresholds.
+    """Run an optional confidence sweep by re-running validation with different thresholds.
 
     This keeps the implementation simple and uses the public `conf` argument to YOLO().val(...).
     """
@@ -215,9 +211,8 @@ def batcheval(
     conf_step: float = 0.05,
     save_dir: str | Path | None = None,
     **val_kwargs: Any,
-) -> List[BatchEvalResult]:
-    """
-    Evaluate multiple models on the same dataset split and write a unified report.
+) -> list[BatchEvalResult]:
+    """Evaluate multiple models on the same dataset split and write a unified report.
 
     This function returns a list of `BatchEvalResult` objects and writes:
     - `summary.csv` (always): one row per model with flattened scalar metrics.
@@ -234,7 +229,7 @@ def batcheval(
         raise ValueError("No models resolved from provided identifiers.")
 
     LOGGER.info(f"Starting batcheval for {len(specs)} model(s). Results will be written to: {save_root}")
-    results: List[BatchEvalResult] = []
+    results: list[BatchEvalResult] = []
 
     for spec in specs:
         results.append(evaluate_model(spec, data=data, split=split, **val_kwargs))
@@ -260,9 +255,8 @@ def batcheval(
     return results
 
 
-def run_cli(args: Dict[str, Any]) -> List[BatchEvalResult]:
-    """
-    CLI entrypoint wrapper.
+def run_cli(args: dict[str, Any]) -> list[BatchEvalResult]:
+    """CLI entrypoint wrapper.
 
     Expected args keys:
         models (str | Sequence[str]): comma-separated list or sequence of models.
@@ -317,5 +311,3 @@ def run_cli(args: Dict[str, Any]) -> List[BatchEvalResult]:
         save_dir=save_dir,
         **val_kwargs,
     )
-
-

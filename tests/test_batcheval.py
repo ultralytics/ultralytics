@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from ultralytics.analytics.batcheval import (
     BatchEvalResult,
     ModelSpec,

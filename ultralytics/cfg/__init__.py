@@ -751,7 +751,8 @@ def handle_yolo_batcheval(args: list[str]) -> None:
     """Handle the `yolo batcheval` command for batch model evaluation.
 
     This command evaluates multiple models on the same dataset split and writes summary CSV outputs.
-    Example:
+
+    Examples:
         yolo batcheval models="runs/detect/train*,models/exp2.pt" data=coco8.yaml split=val
     """
     from ultralytics.analytics import run_cli as batcheval_run_cli

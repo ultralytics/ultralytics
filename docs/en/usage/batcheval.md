@@ -55,5 +55,3 @@ By default, outputs are written under `runs/batcheval/<timestamp>/`:
 
 For details on the metrics reported by validation, see the validation documentation and `results.results_dict` in
 `ultralytics.utils.metrics`.
-
-

@@ -22,7 +22,7 @@ You can split these into separate files later if you want, but this single canva
 
 ---
 
-## DESIGN\_BATCHEVAL
+## DESIGN_BATCHEVAL
 
 ### Goal
 
@@ -107,10 +107,11 @@ We normalize into:
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass
 class ModelSpec:
-    name: str          # for reporting
-    weights_path: Path # full path to .pt
+    name: str  # for reporting
+    weights_path: Path  # full path to .pt
 ```
 
 #### Evaluation Strategy
@@ -134,7 +135,6 @@ If `sweep_conf=True`, we have two options:
 
 2. **Smarter (if supported)**\
    If Ultralytics exposes a way to get raw predictions and recompute metrics offline, we can:
-
    - Cache predictions for one run.
    - Sweep thresholds offline using a helper similar to LB2YOLO.
 
@@ -188,10 +188,10 @@ Scope:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Sequence, Optional
 
 from ultralytics import YOLO
 
@@ -208,14 +208,14 @@ class BatchEvalResult:
     metrics: dict  # TODO: align with Ultralytics metrics type if needed
 
 
-def resolve_models(models: Sequence[str]) -> List[ModelSpec]:
+def resolve_models(models: Sequence[str]) -> list[ModelSpec]:
     """Resolve user-provided model identifiers into concrete weight paths.
 
     Accepts:
         - Run directories (e.g. runs/detect/train38) -> uses weights/best.pt
         - Direct .pt files (e.g. path/to/model.pt)
     """
-    resolved: List[ModelSpec] = []
+    resolved: list[ModelSpec] = []
     for item in models:
         p = Path(item)
         if p.is_dir():
@@ -260,13 +260,12 @@ def batcheval(
     conf_min: float = 0.05,
     conf_max: float = 0.95,
     conf_step: float = 0.05,
-    save_dir: Optional[str | Path] = None,
+    save_dir: str | Path | None = None,
     **val_kwargs,
-) -> List[BatchEvalResult]:
+) -> list[BatchEvalResult]:
     """Evaluate multiple models on the same dataset split and write a unified report.
 
-    Returns a list of BatchEvalResult objects; also writes summary.csv
-    (and optional sweep.csv) to save_dir.
+    Returns a list of BatchEvalResult objects; also writes summary.csv (and optional sweep.csv) to save_dir.
     """
     if save_dir is None:
         save_root = _default_save_dir()
@@ -275,7 +274,7 @@ def batcheval(
     save_root.mkdir(parents=True, exist_ok=True)
 
     specs = resolve_models(models)
-    results: List[BatchEvalResult] = []
+    results: list[BatchEvalResult] = []
 
     for spec in specs:
         results.append(evaluate_model(spec, data=data, split=split, **val_kwargs))
@@ -320,12 +319,11 @@ def run_cli(args: dict):
 
 ---
 
-## tests/test\_batcheval.py (skeleton)
+## tests/test_batcheval.py (skeleton)
 
 ```python
-from pathlib import Path
 
-from ultralytics.analytics.batcheval import resolve_models, ModelSpec
+from ultralytics.analytics.batcheval import ModelSpec, resolve_models
 
 
 def test_resolve_models_with_pt(tmp_path):
@@ -379,6 +377,7 @@ yolo batcheval \
   conf_min=0.05 \
   conf_max=0.95 \
   conf_step=0.05
+```
 ````
 
 Outputs are written to `runs/batcheval/<timestamp>/`:
@@ -395,7 +394,7 @@ Outputs are written to `runs/batcheval/<timestamp>/`:
 ```md
 # Draft PR: yolo batcheval
 
-**Title:**  
+**Title:**
 feat: add `yolo batcheval` command for multi-model evaluation
 
 ---
@@ -468,4 +467,3 @@ external experiment tracking tools.
   - Add richer per-class metrics to `summary.csv`.
   - Integrate with any existing or future `dashboard` functionality that can consume these CSVs.
 ````
-

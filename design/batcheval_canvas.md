@@ -322,7 +322,6 @@ def run_cli(args: dict):
 ## tests/test_batcheval.py (skeleton)
 
 ```python
-
 from ultralytics.analytics.batcheval import ModelSpec, resolve_models
 
 

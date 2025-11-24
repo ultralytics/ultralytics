@@ -781,8 +781,10 @@ def handle_yolo_batcheval(args: list[str]) -> None:
             # For now we do not support bare boolean flags; guide user via alignment error.
             check_dict_alignment(full_args_dict, {arg: ""})
 
-    # Validate keys.
-    check_dict_alignment(full_args_dict, overrides)
+    # Validate only known keys; allow additional overrides (e.g. imgsz, conf, save_json, plots)
+    # to pass through to YOLO().val(...) via batcheval without being rejected.
+    known_overrides = {k: v for k, v in overrides.items() if k in full_args_dict}
+    check_dict_alignment(full_args_dict, known_overrides)
 
     # Required arguments.
     missing = [k for k in ("models", "data") if k not in overrides or overrides[k] in {None, ""}]

@@ -1,6 +1,14 @@
 from pathlib import Path
 
-from ultralytics.analytics.batcheval import BatchEvalResult, ModelSpec, _collect_summary_rows, _write_csv, resolve_models
+import pytest
+from ultralytics.analytics.batcheval import (
+    BatchEvalResult,
+    ModelSpec,
+    _collect_summary_rows,
+    _run_conf_sweep,
+    _write_csv,
+    resolve_models,
+)
 
 
 def test_resolve_models_with_pt(tmp_path: Path) -> None:
@@ -44,3 +52,82 @@ def test_collect_summary_and_write_csv(tmp_path: Path) -> None:
     assert "metrics/mAP50" in data[0]
 
 
+def test_run_conf_sweep_strips_incoming_conf_and_forwards_other_kwargs(monkeypatch, tmp_path: Path) -> None:
+    calls = []
+
+    class DummyModel:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        def val(self, **kwargs):
+            calls.append(kwargs)
+            return {"metrics/mAP50": 0.5}
+
+    # Ensure batcheval uses our dummy model instead of creating real YOLO instances.
+    monkeypatch.setitem(_run_conf_sweep.__globals__, "YOLO", DummyModel)
+
+    weights = tmp_path / "m.pt"
+    weights.write_bytes(b"dummy")
+    spec = ModelSpec(name="m", weights_path=weights)
+
+    _run_conf_sweep(
+        specs=[spec],
+        data="data.yaml",
+        split="val",
+        conf_min=0.1,
+        conf_max=0.3,
+        conf_step=0.1,
+        save_root=tmp_path,
+        conf=0.9,  # incoming user conf that must not clash with the sweep conf
+        imgsz=640,
+    )
+
+    # Three sweep steps: 0.1, 0.2, 0.3
+    assert len(calls) == 3
+    confs = sorted(kwargs["conf"] for kwargs in calls)
+    assert confs == pytest.approx([0.1, 0.2, 0.3], rel=1e-6)
+    for kwargs in calls:
+        assert kwargs["imgsz"] == 640
+
+
+def test_handle_yolo_batcheval_forwards_extra_overrides(monkeypatch) -> None:
+    import ultralytics.analytics as analytics_mod
+    import ultralytics.cfg as cfg_mod
+
+    captured: dict = {}
+
+    def fake_run_cli(args):
+        captured["args"] = args
+
+    # Route the batcheval CLI call to our fake implementation.
+    monkeypatch.setattr(analytics_mod, "run_cli", fake_run_cli)
+
+    cfg_mod.handle_yolo_batcheval(
+        [
+            "models=model.pt",
+            "data=coco8.yaml",
+            "imgsz=640",
+            "conf=0.25",
+            "save_json=True",
+        ]
+    )
+
+    forwarded = captured["args"]
+    assert forwarded["models"] == "model.pt"
+    assert forwarded["data"] == "coco8.yaml"
+    # Extra overrides should be forwarded unchanged (after smart_value parsing).
+    assert forwarded["imgsz"] == 640
+    assert forwarded["conf"] == 0.25
+    assert forwarded["save_json"] is True
+
+
+def test_handle_yolo_batcheval_requires_models_and_data(monkeypatch) -> None:
+    import ultralytics.analytics as analytics_mod
+    import ultralytics.cfg as cfg_mod
+
+    # Prevent any real batcheval execution.
+    monkeypatch.setattr(analytics_mod, "run_cli", lambda args: None)
+
+    # Missing data argument should raise a SyntaxError.
+    with pytest.raises(SyntaxError):
+        cfg_mod.handle_yolo_batcheval(["models=model.pt"])

@@ -174,6 +174,9 @@ def _run_conf_sweep(
         raise ValueError("conf_step must be > 0 for confidence sweeps.")
 
     sweep_rows: list[dict[str, Any]] = []
+    # Drop any incoming 'conf' override so the sweep's own thresholds take precedence
+    # and we don't pass duplicate keyword arguments to YOLO().val(...).
+    safe_val_kwargs = {k: v for k, v in val_kwargs.items() if k != "conf"}
 
     for spec in specs:
         model = YOLO(str(spec.weights_path))
@@ -182,7 +185,7 @@ def _run_conf_sweep(
             LOGGER.info(
                 f"Running confidence sweep for model '{spec.name}' at conf={conf:.3f} on split '{split}'.",
             )
-            metrics = model.val(data=data, split=split, conf=conf, **val_kwargs)
+            metrics = model.val(data=data, split=split, conf=conf, **safe_val_kwargs)
             if hasattr(metrics, "results_dict"):
                 metrics_dict = dict(metrics.results_dict)
             elif isinstance(metrics, Mapping):

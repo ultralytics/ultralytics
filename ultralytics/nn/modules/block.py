@@ -131,7 +131,7 @@ class Protov4_add_semseg(Proto):
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
         if self.training:
-            semseg = self.semseg(feat)
+            semseg = self.semseg(x[0])
             return (p, semseg)
         return p
 

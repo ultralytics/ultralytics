@@ -609,11 +609,11 @@ class Pose(Detect):
                 grid_h, grid_w = self.shape[2], self.shape[3]
                 grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
                 norm = self.strides / (self.stride[0] * grid_size)
-                a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
+                a = (y[:, :, :2] + self.anchors) * norm
             else:
                 # NCNN fix
                 y = kpts.view(bs, *self.kpt_shape, -1)
-                a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
+                a = (y[:, :, :2] + self.anchors) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
             return a.view(bs, self.nk, -1)
@@ -628,6 +628,175 @@ class Pose(Detect):
             y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
             return y
 
+
+from torch import distributions
+import math
+
+class RealNVP(nn.Module):
+    """RealNVP: a flow-based generative model
+
+    `Density estimation using Real NVP
+    arXiv: <https://arxiv.org/abs/1605.08803>`_.
+
+    Code is modified from `the official implementation of RLE
+    <https://github.com/Jeff-sjtu/res-loglikelihood-regression>`_.
+
+    See also `real-nvp-pytorch
+    <https://github.com/senya-ashukha/real-nvp-pytorch>`_.
+    """
+
+    @staticmethod
+    def get_scale_net():
+        """Get the scale model in a single invertable mapping."""
+        return nn.Sequential(
+            nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64),
+            nn.SiLU(), nn.Linear(64, 2), nn.Tanh())
+
+    @staticmethod
+    def get_trans_net():
+        """Get the translation model in a single invertable mapping."""
+        return nn.Sequential(
+            nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64),
+            nn.SiLU(), nn.Linear(64, 2))
+
+    @property
+    def prior(self):
+        """The prior distribution."""
+        return distributions.MultivariateNormal(self.loc, self.cov)
+
+    def __init__(self):
+        super(RealNVP, self).__init__()
+
+        self.register_buffer('loc', torch.zeros(2))
+        self.register_buffer('cov', torch.eye(2))
+        self.register_buffer(
+            'mask', torch.tensor([[0, 1], [1, 0]] * 3, dtype=torch.float32))
+
+        self.s = torch.nn.ModuleList(
+            [self.get_scale_net() for _ in range(len(self.mask))])
+        self.t = torch.nn.ModuleList(
+            [self.get_trans_net() for _ in range(len(self.mask))])
+        self.init_weights()
+
+    def init_weights(self):
+        """Initialization model weights."""
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight, gain=0.01)
+
+    def backward_p(self, x):
+        """Apply mapping form the data space to the latent space and calculate
+        the log determinant of the Jacobian matrix."""
+
+        log_det_jacob, z = x.new_zeros(x.shape[0]), x
+        for i in reversed(range(len(self.t))):
+            z_ = self.mask[i] * z
+            s = self.s[i](z_) * (1 - self.mask[i])  # torch.exp(s): betas
+            t = self.t[i](z_) * (1 - self.mask[i])  # gammas
+            z = (1 - self.mask[i]) * (z - t) * torch.exp(-s) + z_
+            log_det_jacob -= s.sum(dim=1)
+        return z, log_det_jacob
+
+    def log_prob(self, x):
+        """Calculate the log probability of given sample in data space."""
+
+        z, log_det = self.backward_p(x)
+        return self.prior.log_prob(z) + log_det
+
+
+class PoseRLE(Pose):
+    """
+    YOLO Pose head for keypoints models.
+
+    This class extends the Detect head to include keypoint prediction capabilities for pose estimation tasks.
+
+    Attributes:
+        kpt_shape (tuple): Number of keypoints and dimensions (2 for x,y or 3 for x,y,visible).
+        nk (int): Total number of keypoint values.
+        cv4 (nn.ModuleList): Convolution layers for keypoint prediction.
+
+    Methods:
+        forward: Perform forward pass through YOLO model and return predictions.
+        kpts_decode: Decode keypoints from predictions.
+
+    Examples:
+        Create a pose detection head
+        >>> pose = Pose(nc=80, kpt_shape=(17, 3), ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = pose(x)
+    """
+
+    def __init__(self, nc: int = 80, kpt_shape: tuple = (17, 3), reg_max=16, end2end=False, ch: tuple = ()):
+        """
+        Initialize YOLO network with default parameters and Convolutional Layers.
+
+        Args:
+            nc (int): Number of classes.
+            kpt_shape (tuple): Number of keypoints, number of dims (2 for x,y or 3 for x,y,visible).
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        kpt_shape = (kpt_shape[0], 4)
+        super().__init__(nc, kpt_shape, reg_max, end2end, ch)
+        self.flow_model = RealNVP()
+
+    def kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
+        """Decode keypoints from predictions."""
+        ndim = self.kpt_shape[1]
+        bs = kpts.shape[0]
+        if self.export:
+            if self.format in {
+                "tflite",
+                "edgetpu",
+            }:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
+                # Precompute normalization factor to increase numerical stability
+                y = kpts.view(bs, *self.kpt_shape, -1)
+                grid_h, grid_w = self.shape[2], self.shape[3]
+                grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
+                norm = self.strides / (self.stride[0] * grid_size)
+                a = (y[:, :, :2] + self.anchors) * norm
+            else:
+                # NCNN fix
+                y = kpts.view(bs, *self.kpt_shape, -1)
+                a = (y[:, :, :2] + self.anchors) * self.strides
+            if ndim == 3:
+                a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
+            return a.view(bs, self.nk, -1)
+        else:
+            y = kpts.clone()
+            if ndim == 3: 
+                if NOT_MACOS14:
+                    y[:, 2::ndim].sigmoid_()
+                else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+                    y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
+            elif ndim == 4:
+                reshaped_tensor = y.view(bs, self.kpt_shape[0], ndim, -1)
+                coords = reshaped_tensor[:, :, :2, :]
+                conf = 1 - reshaped_tensor[:, :, 2:, :].sigmoid()
+                mean_sigma = conf.mean(dim=2, keepdim=True)
+                y = torch.cat((coords, mean_sigma), dim=2).view(bs, self.kpt_shape[0] * 3, -1)
+                ndim = 3
+            y[:, 0::ndim] = (y[:, 0::ndim] + self.anchors[0]) * self.strides
+            y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
+            return y
+
+    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
+        """
+        Post-process YOLO model predictions.
+
+        Args:
+            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nk) with last dimension
+                format [x, y, w, h, class_probs, keypoints].
+
+        Returns:
+            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + self.nk) and last
+                dimension format [x, y, w, h, max_class_prob, class_index, keypoints].
+        """
+        boxes, scores, kpts = preds.split([4, self.nc, self.kpt_shape[0] * 3], dim=-1)
+        scores, conf, idx = self.get_topk_index(scores, self.max_det)
+        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
+        kpts = kpts.gather(dim=1, index=idx.repeat(1, 1, self.kpt_shape[0] * 3))
+        return torch.cat([boxes, scores, conf, kpts], dim=-1)
+    
 
 class Classify(nn.Module):
     """

@@ -535,6 +535,153 @@ class v8SegmentationLoss(v8DetectionLoss):
         return loss / fg_mask.sum()
 
 
+from torch import distributions
+import math
+
+class RealNVP(nn.Module):
+    """RealNVP: a flow-based generative model
+
+    `Density estimation using Real NVP
+    arXiv: <https://arxiv.org/abs/1605.08803>`_.
+
+    Code is modified from `the official implementation of RLE
+    <https://github.com/Jeff-sjtu/res-loglikelihood-regression>`_.
+
+    See also `real-nvp-pytorch
+    <https://github.com/senya-ashukha/real-nvp-pytorch>`_.
+    """
+
+    @staticmethod
+    def get_scale_net():
+        """Get the scale model in a single invertable mapping."""
+        return nn.Sequential(
+            nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64),
+            nn.SiLU(), nn.Linear(64, 2), nn.Tanh())
+
+    @staticmethod
+    def get_trans_net():
+        """Get the translation model in a single invertable mapping."""
+        return nn.Sequential(
+            nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64),
+            nn.SiLU(), nn.Linear(64, 2))
+
+    @property
+    def prior(self):
+        """The prior distribution."""
+        return distributions.MultivariateNormal(self.loc, self.cov)
+
+    def __init__(self):
+        super(RealNVP, self).__init__()
+
+        self.register_buffer('loc', torch.zeros(2))
+        self.register_buffer('cov', torch.eye(2))
+        self.register_buffer(
+            'mask', torch.tensor([[0, 1], [1, 0]] * 3, dtype=torch.float32))
+
+        self.s = torch.nn.ModuleList(
+            [self.get_scale_net() for _ in range(len(self.mask))])
+        self.t = torch.nn.ModuleList(
+            [self.get_trans_net() for _ in range(len(self.mask))])
+        self.init_weights()
+
+    def init_weights(self):
+        """Initialization model weights."""
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight, gain=0.01)
+
+    def backward_p(self, x):
+        """Apply mapping form the data space to the latent space and calculate
+        the log determinant of the Jacobian matrix."""
+
+        log_det_jacob, z = x.new_zeros(x.shape[0]), x
+        for i in reversed(range(len(self.t))):
+            z_ = self.mask[i] * z
+            s = self.s[i](z_) * (1 - self.mask[i])  # torch.exp(s): betas
+            t = self.t[i](z_) * (1 - self.mask[i])  # gammas
+            z = (1 - self.mask[i]) * (z - t) * torch.exp(-s) + z_
+            log_det_jacob -= s.sum(dim=1)
+        return z, log_det_jacob
+
+    def log_prob(self, x):
+        """Calculate the log probability of given sample in data space."""
+
+        z, log_det = self.backward_p(x)
+        return self.prior.log_prob(z) + log_det
+
+
+class RLELoss(nn.Module):
+    """RLE Loss.
+
+    `Human Pose Regression With Residual Log-Likelihood Estimation
+    arXiv: <https://arxiv.org/abs/2107.11291>`_.
+
+    Code is modified from `the official implementation
+    <https://github.com/Jeff-sjtu/res-loglikelihood-regression>`_.
+
+    Args:
+        use_target_weight (bool): Option to use weighted loss.
+            Different joint types may have different target weights.
+        size_average (bool): Option to average the loss by the batch_size.
+        residual (bool): Option to add L1 loss and let the flow
+            learn the residual error distribution.
+        q_dis (string): Option for the identity Q(error) distribution,
+            Options: "laplace" or "gaussian"
+    """
+
+    def __init__(self,
+                 use_target_weight=True,
+                 size_average=True,
+                 residual=True,
+                 q_distribution='laplace'):
+        super(RLELoss, self).__init__()
+        self.size_average = size_average
+        self.use_target_weight = use_target_weight
+        self.residual = residual
+        self.q_distribution = q_distribution
+
+    def forward(self, sigma, log_phi, error, target_weight=None):
+        """Forward function.
+
+        Note:
+            - batch_size: N
+            - num_keypoints: K
+            - dimension of keypoints: D (D=2 or D=3)
+
+        Args:
+            pred (Tensor[N, D]): Output regression.
+            sigma (Tensor[N, D]): Output sigma.
+            target (Tensor[N, K, D]): Target regression.
+            target_weight (Tensor[N, K, D]):
+                Weights across different joint types.
+        """
+        log_phi = log_phi.unsqueeze(1)
+        log_sigma = torch.log(sigma)
+        nf_loss = log_sigma - log_phi
+
+        if self.residual:
+            assert self.q_distribution in ['laplace', 'gaussian']
+            if self.q_distribution == 'laplace':
+                loss_q = torch.log(sigma * 2) + torch.abs(error)
+            else:
+                loss_q = torch.log(sigma * math.sqrt(2 * math.pi)) + 0.5 * error**2
+
+            loss = nf_loss + loss_q
+        else:
+            loss = nf_loss
+
+        if self.use_target_weight:
+            assert target_weight is not None
+            if target_weight.dim() == 1:
+                target_weight = target_weight.unsqueeze(1)
+            loss *= target_weight
+
+        if self.size_average:
+            loss /= len(loss)
+
+        return loss.sum()
+
+
 class v8PoseLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 pose estimation."""
 
@@ -547,6 +694,14 @@ class v8PoseLoss(v8DetectionLoss):
         nkpt = self.kpt_shape[0]  # number of keypoints
         sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
+        if model.args.rle_loss:
+            self.joint_weights = torch.Tensor([1., 1., 1., 1., 1., 1., 1., 1.2, 1.2, 1.5, 1.5, 1., 1., 
+                                               1.2, 1.2, 1.5, 1.5]).to(self.device)
+            self.rle_loss = True
+            self.rle_loss_module = RLELoss(q_distribution='gaussian').to(self.device)
+            self.flow_model = model.model[-1].flow_model
+        else:
+            self.rle_loss = False
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the total loss and detach it for pose estimation."""
@@ -563,6 +718,12 @@ class v8PoseLoss(v8DetectionLoss):
 
         # Pboxes
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)
+        pred_kpts *= stride_tensor.view(1, -1, 1, 1)
+        # if self.rle_loss:
+        #     pred_kpts[..., 0] *= stride_tensor
+        #     pred_kpts[..., 0] /= imgsz[1]
+        #     pred_kpts[..., 1] *= stride_tensor
+        #     pred_kpts[..., 1] /= imgsz[0]
 
         # Bbox loss
         if fg_mask.sum():
@@ -581,7 +742,10 @@ class v8PoseLoss(v8DetectionLoss):
             )
 
         loss[1] *= self.hyp.pose  # pose gain
-        loss[2] *= self.hyp.kobj  # kobj gain
+        if self.rle_loss:
+            loss[2] *= self.hyp.rle  # kobj gain
+        else:
+            loss[2] *= self.hyp.kobj  # kobj gain
 
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
@@ -649,13 +813,13 @@ class v8PoseLoss(v8DetectionLoss):
         )
 
         # Divide coordinates by stride
-        selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)
+        # selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)
 
         kpts_loss = 0
         kpts_obj_loss = 0
 
         if masks.any():
-            target_bboxes /= stride_tensor
+            # target_bboxes /= stride_tensor
             gt_kpt = selected_keypoints[masks]
             area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
             pred_kpt = pred_kpts[masks]
@@ -664,8 +828,25 @@ class v8PoseLoss(v8DetectionLoss):
 
             if pred_kpt.shape[-1] == 3:
                 kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
+            
+            if self.rle_loss:
+                pred_kpt_visible = pred_kpt[kpt_mask]
+                gt_kpt_visible = gt_kpt[kpt_mask]
+                pred_coords = pred_kpt_visible[:, 0:2]
+                pred_sigma = pred_kpt_visible[:, 2:4]  # Nx2
+                gt_kpt_visible = gt_kpt_visible[:, 0:2]  # Nx2
+                target_weight = self.joint_weights.unsqueeze(0).repeat(kpt_mask.shape[0], 1)
+                target_weight = target_weight[kpt_mask]
 
-        return kpts_loss, kpts_obj_loss
+                pred_sigma = pred_sigma.sigmoid()
+                error = (pred_coords - gt_kpt_visible) / (pred_sigma + 1e-9)
+                log_phi = self.flow_model.log_prob(error)
+                rle_loss = self.rle_loss_module(pred_sigma, log_phi, error, target_weight)  # pose loss
+
+        if self.rle_loss:
+            return kpts_loss, rle_loss
+        else:
+            return kpts_loss, kpts_obj_loss
 
 
 class v8ClassificationLoss:

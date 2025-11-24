@@ -82,6 +82,7 @@ from .head import (
     Detect,
     LRPCHead,
     Pose,
+    PoseRLE,
     RTDETRDecoder,
     Segment,
     Segmentv8_add,

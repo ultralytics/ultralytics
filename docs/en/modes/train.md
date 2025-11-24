@@ -51,7 +51,7 @@ Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
 
 !!! warning "Windows Multi-Processing Error"
 
-    On Windows, you may receive a `RuntimeError` when launching the training as a script. Add a `if __name__ == "__main__":` block before your training code to resolve it.
+    On Windows, you may receive a `RuntimeError` when launching the training as a script. Add an `if __name__ == "__main__":` block before your training code to resolve it.
 
 !!! example "Single-GPU and CPU Training Example"
 
@@ -131,7 +131,7 @@ Idle GPU Training enables automatic selection of the least utilized GPUs in mult
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
         # Train using the single most idle GPU
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640, device=-1)
@@ -144,10 +144,10 @@ Idle GPU Training enables automatic selection of the least utilized GPUs in mult
 
         ```bash
         # Start training using the single most idle GPU
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=-1
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=-1
 
         # Start training using the two most idle GPUs
-        yolo detect train data=coco8.yaml model=yolov8n.pt epochs=100 imgsz=640 device=-1,-1
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640 device=-1,-1
         ```
 
 The auto-selection algorithm prioritizes GPUs with:

@@ -3,6 +3,8 @@
 import sys
 from unittest import mock
 
+import torch
+
 from tests import MODEL
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
@@ -11,7 +13,7 @@ from ultralytics.models.yolo import classify, detect, segment
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
 
 
-def test_func(*args):  # noqa
+def test_func(*args):
     """Test function callback for evaluating YOLO model performance metrics."""
     print("callback test passed")
 
@@ -67,7 +69,15 @@ def test_detect():
 
 def test_segment():
     """Test image segmentation training, validation, and prediction pipelines using YOLO models."""
-    overrides = {"data": "coco8-seg.yaml", "model": "yolo11n-seg.yaml", "imgsz": 32, "epochs": 1, "save": False}
+    overrides = {
+        "data": "coco8-seg.yaml",
+        "model": "yolo11n-seg.yaml",
+        "imgsz": 32,
+        "epochs": 1,
+        "save": False,
+        "mask_ratio": 1,
+        "overlap_mask": False,
+    }
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "coco8-seg.yaml"
     cfg.imgsz = 32
@@ -128,3 +138,20 @@ def test_classify():
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), "predictor test failed"
+
+
+def test_nan_recovery():
+    """Test NaN loss detection and recovery during training."""
+    nan_injected = [False]
+
+    def inject_nan(trainer):
+        """Inject NaN into loss during batch processing to test recovery mechanism."""
+        if trainer.epoch == 1 and trainer.tloss is not None and not nan_injected[0]:
+            trainer.tloss *= torch.tensor(float("nan"))
+            nan_injected[0] = True
+
+    overrides = {"data": "coco8.yaml", "model": "yolo11n.yaml", "imgsz": 32, "epochs": 3}
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_batch_end", inject_nan)
+    trainer.train()
+    assert nan_injected[0], "NaN injection failed"

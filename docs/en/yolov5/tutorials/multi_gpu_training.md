@@ -59,7 +59,7 @@ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data co
 - `--nproc_per_node` specifies how many GPUs you would like to use. In the example above, it is 2.
 - `--batch` is the total batch-size. It will be divided evenly to each GPU. In the example above, it is 64/2=32 per GPU.
 
-The code above will use GPUs `0... (N-1)`.
+The code above will use GPUs `0... (N-1)`. You can also set `CUDA_VISIBLE_DEVICES=2,3` (or any other list) before launching the command if you prefer to control device visibility via environment variables.
 
 <details>
   <summary>Use specific GPUs (click to expand)</summary>
@@ -134,7 +134,7 @@ DDP profiling results on an [AWS EC2 P4d instance](../environments/aws_quickstar
 
 ```bash
 # prepare
-t=ultralytics/yolov5:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/coco:/usr/src/coco $t
+t=ultralytics/yolov5:latest && sudo docker pull $t && sudo docker run -it --runtime=nvidia --ipc=host --gpus all -v "$(pwd)"/coco:/usr/src/coco $t
 pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 cd .. && rm -rf app && git clone https://github.com/ultralytics/yolov5 -b master app && cd app
 cp data/coco.yaml data/coco_profile.yaml
@@ -177,7 +177,7 @@ If you went through all the above, feel free to raise an Issue by giving as much
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)

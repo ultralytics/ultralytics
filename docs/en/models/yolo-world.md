@@ -79,6 +79,17 @@ This section details the models available with their specific pre-trained weight
 
 The YOLO-World models are easy to integrate into your Python applications. Ultralytics provides user-friendly [Python API](../usage/python.md) and [CLI commands](../usage/cli.md) to streamline development.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/sWEm3dIGKU8"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> YOLO-World Model Usage examples with Ultralytics | Open Vocab, Prompt-Free & others  🚀
+</p>
+
 ### Train Usage
 
 !!! tip
@@ -102,7 +113,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
         # Train the model on the COCO8 example dataset for 100 epochs
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
-        # Run inference with the YOLOv8n model on the 'bus.jpg' image
+        # Run inference with the YOLO-World model on the 'bus.jpg' image
         results = model("path/to/bus.jpg")
         ```
 
@@ -322,7 +333,7 @@ This approach provides a powerful means of customizing state-of-the-art [object 
         model.train(data=data, batch=128, epochs=100, trainer=WorldTrainerFromScratch)
         ```
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We extend our gratitude to the [Tencent AILab Computer Vision Center](https://www.tencent.com/) for their pioneering work in real-time open-vocabulary object detection with YOLO-World:
 

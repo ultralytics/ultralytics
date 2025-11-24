@@ -56,7 +56,7 @@ The default tracker is BoT-SORT.
 
 ## Tracking
 
-To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLO11n, YOLO11n-seg and YOLO11n-pose.
+To run the tracker on video streams, use a trained Detect, Segment, or Pose model such as YOLO11n, YOLO11n-seg, or YOLO11n-pose.
 
 !!! example
 
@@ -89,7 +89,7 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
         ```
 
-As can be seen in the above usage, tracking is available for all Detect, Segment and Pose models run on videos or streaming sources.
+As can be seen in the above usage, tracking is available for all Detect, Segment, and Pose models run on videos or streaming sources.
 
 ## Configuration
 
@@ -152,7 +152,7 @@ The following table provides a description of each parameter:
 
 !!! warning "Tracker Threshold Information"
 
-    If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
+    If a detection's confidence score falls below [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), the tracker will not update that object, resulting in no active tracks.
 
 | **Parameter**       | **Valid Values or Ranges**                    | **Description**                                                                                                                                        |
 | ------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -202,9 +202,20 @@ Once exported, you can point to the TensorRT model path in your tracker config, 
 
 ## Python Examples
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/leOPZhE0ckg"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Build Interactive Object Tracking with Ultralytics YOLO | Click to Crop & Display ⚡
+</p>
+
 ### Persisting Tracks Loop
 
-Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/opencv) (`cv2`) and YOLO11 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`). The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
+Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/opencv) (`cv2`) and YOLO11 to run object tracking on video frames. This script assumes the necessary packages (`opencv-python` and `ultralytics`) are already installed. The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
 !!! example "Streaming for-loop with tracking"
 
@@ -348,8 +359,7 @@ Finally, after all threads have completed their task, the windows displaying the
 
 
     def run_tracker_in_thread(model_name, filename):
-        """
-        Run YOLO tracker in its own thread for concurrent processing.
+        """Run YOLO tracker in its own thread for concurrent processing.
 
         Args:
             model_name (str): The YOLO11 model object.
@@ -388,9 +398,9 @@ To initiate your contribution, please refer to our [Contributing Guide](../help/
 
 Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosystem 🙏!
 
-[fish track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142
-[people track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527
-[vehicle track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab
+[fish track]: https://github.com/ultralytics/docs/releases/download/0/fish-tracking.avif
+[people track]: https://github.com/ultralytics/docs/releases/download/0/people-tracking.avif
+[vehicle track]: https://github.com/ultralytics/docs/releases/download/0/vehicle-tracking.avif
 
 ## FAQ
 
@@ -438,8 +448,7 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
 
 
     def run_tracker_in_thread(model_name, filename):
-        """
-        Run YOLO tracker in its own thread for concurrent processing.
+        """Run YOLO tracker in its own thread for concurrent processing.
 
         Args:
             model_name (str): The YOLO11 model object.

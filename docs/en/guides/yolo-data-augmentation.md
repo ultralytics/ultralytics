@@ -45,6 +45,8 @@ You can customize each parameter using the Python API, the command line interfac
     === "Python"
 
         ```python
+        import albumentations as A
+
         from ultralytics import YOLO
 
         # Load a model
@@ -67,6 +69,13 @@ You can customize each parameter using the Python API, the command line interfac
             erasing=0.0,
             auto_augment=None,
         )
+
+        # Training with custom Albumentations transforms (Python API only)
+        custom_transforms = [
+            A.Blur(blur_limit=7, p=0.5),
+            A.CLAHE(clip_limit=4.0, p=0.5),
+        ]
+        model.train(data="coco.yaml", epochs=100, augmentations=custom_transforms)
         ```
 
     === "CLI"
@@ -133,7 +142,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ hsv_s }}`
-- **Usage**: Modifies the intensity of colors in the image. The `hsv_h` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_s` and `hsv_s`. For example, with `hsv_s=0.7`, the intensity is randomly selected within`-0.7` to `0.7`.
+- **Usage**: Modifies the intensity of colors in the image. The `hsv_s` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_s` and `hsv_s`. For example, with `hsv_s=0.7`, the intensity is randomly selected within`-0.7` to `0.7`.
 - **Purpose**: Helps models handle varying weather conditions and camera settings. For example, a red traffic sign might appear highly vivid on a sunny day but look dull and faded in foggy conditions.
 - **Ultralytics' implementation**: [RandomHSV](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomHSV)
 
@@ -171,7 +180,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ translate }}`
-- **Usage**: Shifts images horizontally and vertically by a random fraction of the image size. The `translate` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen twice (once for each axis) within the range `-translate` and `translate`. For example, with `translate=0.5`, the translation is randomly selected within`-0.5` to `0.5` on the x-asis, and another independent random value is selected within the same range on the y-axis.
+- **Usage**: Shifts images horizontally and vertically by a random fraction of the image size. The `translate` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen twice (once for each axis) within the range `-translate` and `translate`. For example, with `translate=0.5`, the translation is randomly selected within`-0.5` to `0.5` on the x-axis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Helps models learn to detect partially visible objects and improves robustness to object position. For example, in vehicle damage assessment applications, car parts may appear fully or partially in frame depending on the photographer's position and distance, the translation augmentation will teach the model to recognize these features regardless of their completeness or position.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 - **Note**: For simplicity, the translations applied below are the same each time for both `x` and `y` axes. Values `-1.0` and `1.0`are not shown as they would translate the image completely out of the frame.
@@ -200,7 +209,7 @@ Then launch the training with the Python API:
 
 - **Range**: `-180` to `+180`
 - **Default**: `{{ shear }}`
-- **Usage**: Introduces a geometric transformation that skews the image along both x-axis and y-axis, effectively shifting parts of the image in one direction while maintaining parallel lines. The `shear` hyperparameter defines the shear angle, with the final adjustment randomly chosen between `-shear` and `shear`. For example, with `shear=10.0`, the shear is randomly selected within`-10` to `10` on the x-asis, and another independent random value is selected within the same range on the y-axis.
+- **Usage**: Introduces a geometric transformation that skews the image along both x-axis and y-axis, effectively shifting parts of the image in one direction while maintaining parallel lines. The `shear` hyperparameter defines the shear angle, with the final adjustment randomly chosen between `-shear` and `shear`. For example, with `shear=10.0`, the shear is randomly selected within`-10` to `10` on the x-axis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Helps models generalize to variations in viewing angles caused by slight tilts or oblique viewpoints. For instance, in traffic monitoring, objects like cars and road signs may appear slanted due to non-perpendicular camera placements. Applying shear augmentation ensures the model learns to recognize objects despite such skewed distortions.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 - **Note**:
@@ -215,7 +224,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `0.001`
 - **Default**: `{{ perspective }}`
-- **Usage**: Applies a full perspective transformation along both x-axis and y-axis, simulating how objects appear when viewed from different depths or angles. The `perspective` hyperparameter defines the perspective magnitude, with the final adjustment randomly chosen between `-perspective` and `perspective`. For example, with `perspective=0.001`, the perspective is randomly selected within`-0.001` to `0.001` on the x-asis, and another independent random value is selected within the same range on the y-axis.
+- **Usage**: Applies a full perspective transformation along both x-axis and y-axis, simulating how objects appear when viewed from different depths or angles. The `perspective` hyperparameter defines the perspective magnitude, with the final adjustment randomly chosen between `-perspective` and `perspective`. For example, with `perspective=0.001`, the perspective is randomly selected within`-0.001` to `0.001` on the x-axis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Perspective augmentation is crucial for handling extreme viewpoint changes, especially in scenarios where objects appear foreshortened or distorted due to perspective shifts. For example, in drone-based object detection, buildings, roads, and vehicles can appear stretched or compressed depending on the drone's tilt and altitude. By applying perspective transformations, models learn to recognize objects despite these perspective-induced distortions, improving their robustness in real-world deployments.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 
@@ -321,9 +330,9 @@ Then launch the training with the Python API:
     - Once an object is copied, regardless of the `copy_paste_mode`, its Intersection over Area (IoA) is computed with all the object of the source image. If all the IoA are below `0.3` (30%), the object is pasted in the target image. If only one the IoA is above `0.3`, the object is not pasted in the target image.
     - The IoA threshold cannot be changed with the current implementation and is set to `0.3` by default.
 
-|                                                             **`copy_paste` off**                                                              |                                                  **`copy_paste` on with `copy_paste_mode=flip`**                                                  |                                                            Visualize the `copy_paste` process                                                            |
-| :-------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_copy_paste_off.avif" alt="augmentation_identity" width="80%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_copy_paste_on.avif" alt="copy_paste_on_augmentation" width="80%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_copy_paste_demo.gif" alt="copy_paste_augmentation_gif_demo" width="97%"/> |
+|                                                             **`copy_paste` off**                                                              |                                                  **`copy_paste` on with `copy_paste_mode=flip`**                                                  |                                                            Visualize the `copy_paste` process                                                             |
+| :-------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_copy_paste_off.avif" alt="augmentation_identity" width="80%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_copy_paste_on.avif" alt="copy_paste_on_augmentation" width="80%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_copy_paste_demo.avif" alt="copy_paste_augmentation_gif_demo" width="97%"/> |
 
 ### Copy-Paste Mode (`copy_paste_mode`)
 
@@ -372,6 +381,113 @@ Then launch the training with the Python API:
 | :-------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------: |
 | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_identity.avif" alt="augmentation_identity" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_erasing_ex1.avif" alt="erasing_ex1_augmentation" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_erasing_ex2.avif" alt="erasing_ex2_augmentation" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_erasing_ex3.avif" alt="erasing_ex3_augmentation" width="85%"/> |
 
+## Advanced Augmentation Features
+
+### Custom Albumentations Transforms (`augmentations`)
+
+- **Type**: `list` of Albumentations transforms
+- **Default**: `None`
+- **Usage**: Allows you to provide custom [Albumentations](https://albumentations.ai/) transforms for data augmentation using the Python API. This parameter accepts a list of Albumentations transform objects that will be applied during training instead of the default Albumentations transforms.
+- **Purpose**: Provides fine-grained control over data augmentation strategies by leveraging the extensive library of Albumentations transforms. This is particularly useful when you need specialized augmentations beyond the built-in YOLO options, such as advanced color adjustments, noise injection, or domain-specific transformations.
+- **Ultralytics' implementation**: [Albumentations](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.Albumentations)
+
+!!! example "Custom Albumentations Example"
+
+    === "Python API"
+
+        ```python
+        import albumentations as A
+
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolo11n.pt")
+
+        # Define custom Albumentations transforms
+        custom_transforms = [
+            A.Blur(blur_limit=7, p=0.5),
+            A.GaussNoise(var_limit=(10.0, 50.0), p=0.3),
+            A.CLAHE(clip_limit=4.0, p=0.5),
+            A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
+            A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
+        ]
+
+        # Train with custom Albumentations transforms
+        model.train(
+            data="coco8.yaml",
+            epochs=100,
+            augmentations=custom_transforms,  # Pass custom transforms
+            imgsz=640,
+        )
+        ```
+
+    === "More Advanced Example"
+
+        ```python
+        import albumentations as A
+
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolo11n.pt")
+
+        # Define advanced custom Albumentations transforms with specific parameters
+        advanced_transforms = [
+            A.OneOf(
+                [
+                    A.MotionBlur(blur_limit=7, p=1.0),
+                    A.MedianBlur(blur_limit=7, p=1.0),
+                    A.GaussianBlur(blur_limit=7, p=1.0),
+                ],
+                p=0.3,
+            ),
+            A.OneOf(
+                [
+                    A.GaussNoise(var_limit=(10.0, 50.0), p=1.0),
+                    A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.1, 0.5), p=1.0),
+                ],
+                p=0.2,
+            ),
+            A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
+            A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, brightness_by_max=True, p=0.5),
+            A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
+            A.CoarseDropout(
+                max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8, fill_value=0, p=0.2
+            ),
+        ]
+
+        # Train with advanced custom transforms
+        model.train(
+            data="coco8.yaml",
+            epochs=100,
+            augmentations=advanced_transforms,
+            imgsz=640,
+        )
+        ```
+
+**Key Points:**
+
+- **Python API Only**: Custom Albumentations transforms are currently supported only through the Python API. They cannot be specified via CLI or YAML configuration files.
+- **Replaces Default Transforms**: When you provide custom transforms via the `augmentations` parameter, they completely replace the default Albumentations transforms. **The default YOLO augmentations (like `mosaic`, `hsv_h`, `hsv_s`, `degrees`, etc.) remain active and are applied independently**.
+- **Bounding Box Compatibility**: Be cautious when using spatial transforms (transforms that change the geometry of the image). Ultralytics handles bounding box adjustments automatically, but some complex transforms may require additional configuration.
+- **Extensive Library**: Albumentations offers over 70+ different transforms. Explore the [Albumentations documentation](https://albumentations.ai/docs/) to discover all available options.
+- **Performance Consideration**: Adding too many augmentations or using computationally expensive transforms can slow down training. Start with a small set and monitor training speed.
+
+**Common Use Cases:**
+
+- **Medical Imaging**: Apply specialized transforms like elastic deformations or grid distortions for X-ray or MRI image augmentation
+- **Aerial/Satellite Imagery**: Use transforms optimized for overhead perspectives
+- **Low-Light Conditions**: Apply noise and brightness adjustments to simulate challenging lighting
+- **Industrial Inspection**: Add defect-like patterns or texture variations for quality control applications
+
+**Compatibility Notes:**
+
+- Requires Albumentations version 1.0.3 or higher
+- Compatible with all YOLO detection and segmentation tasks
+- Not applicable for classification tasks (classification uses a different augmentation pipeline)
+
+For more information about Albumentations and available transforms, visit the [official Albumentations documentation](https://albumentations.ai/docs/).
+
 ## FAQ
 
 ### There are too many augmentations to choose from. How do I know which ones to use?
@@ -389,6 +505,8 @@ In short: keep it simple. Start with a small set of augmentations and gradually 
 If the `albumentations` package is installed, Ultralytics automatically applies a set of extra image augmentations using it. These augmentations are handled internally and require no additional configuration.
 
 You can find the full list of applied transformations in our [technical documentation](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.Albumentations), as well as in our [Albumentations integration guide](https://docs.ultralytics.com/integrations/albumentations/). Note that only the augmentations with a probability `p` greater than `0` are active. These are purposefully applied at low frequencies to mimic real-world visual artifacts, such as blur or grayscale effects.
+
+You can also provide your own custom Albumentations transforms using the Python API. See the [Advanced Augmentation Features](#advanced-augmentation-features) section for more details.
 
 ### When starting a training, I don't see any reference to albumentations. Why?
 

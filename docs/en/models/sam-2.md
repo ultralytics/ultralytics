@@ -4,11 +4,11 @@ description: Discover SAM 2, the next generation of Meta's Segment Anything Mode
 keywords: SAM 2, SAM 2.1, Segment Anything, video segmentation, image segmentation, promptable segmentation, zero-shot performance, SA-V dataset, Ultralytics, real-time segmentation, AI, machine learning
 ---
 
-!!! tip "SAM 2.1"
-
-    We have just added support for the more accurate SAM2.1 model. Please give it a try!
-
 # SAM 2: Segment Anything Model 2
+
+!!! note "SAM Evolution"
+
+    SAM 2 builds upon the original [SAM](sam.md) with video segmentation capabilities. For the upcoming next-generation model with enhanced memory and 2× faster processing, see [SAM 3](sam-3.md).
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/inference-with-meta-sam-and-sam2-using-ultralytics-python-package.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Inference with Segment Anything 2 In Colab"></a>
 
@@ -71,7 +71,7 @@ SAM 2 sets a new benchmark in the field, outperforming previous models on variou
 - **Memory Mechanism**: Includes a memory encoder, memory bank, and memory attention module. These components collectively store and utilize information from past frames, enabling the model to maintain consistent [object tracking](https://www.ultralytics.com/glossary/object-tracking) over time.
 - **Mask Decoder**: Generates the final segmentation masks based on the encoded image features and prompts. In video, it also uses memory context to ensure accurate tracking across frames.
 
-![SAM 2 Architecture Diagram](https://raw.githubusercontent.com/facebookresearch/sam2/refs/heads/main/assets/model_diagram.png)
+![SAM 2 Architecture Diagram](https://github.com/ultralytics/docs/releases/download/0/sam2-architecture-diagram.avif)
 
 ### Memory Mechanism and Occlusion Handling
 
@@ -228,7 +228,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 ## Dynamic Interactive Segment and Track
 
-SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with multiple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training.
+SAM2DynamicInteractivePredictor is an advanced training-free extension of SAM2 that enables dynamic interaction with multiple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor rebuilds the inference flow to make the best use of pre-trained SAM2 models without requiring additional training.
 
 ![SAM 2 Example Results](https://github.com/ultralytics/assets/releases/download/v0.0.0/sam2-interative-sample.avif)
 
@@ -260,7 +260,7 @@ It offers three significant enhancements:
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
         # Define a category by box prompt
-        predictor(source="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
+        predictor(source="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[0], update_memory=True)
 
         # Detect this particular object in a new image
         results = predictor(source="image2.jpg")
@@ -269,7 +269,7 @@ It offers three significant enhancements:
         results = predictor(
             source="image4.jpg",
             bboxes=[[300, 300, 400, 400]],  # New object
-            obj_ids=[2],  # New object ID
+            obj_ids=[1],  # New object ID
             update_memory=True,  # Add to memory
         )
         # Perform inference
@@ -281,7 +281,7 @@ It offers three significant enhancements:
             source="image6.jpg",
             points=[[150, 150]],  # Refinement point
             labels=[1],  # Positive point
-            obj_ids=[2],  # Same object ID
+            obj_ids=[1],  # Same object ID
             update_memory=True,  # Update memory with new information
         )
         # Perform inference on new image
@@ -296,7 +296,7 @@ It offers three significant enhancements:
 
 | Name            | Default Value | Data Type   | Description                                 |
 | --------------- | ------------- | ----------- | ------------------------------------------- |
-| `max_obj_num`   | `3`           | `str`       | The preset maximum number of categories     |
+| `max_obj_num`   | `3`           | `int`       | The preset maximum number of categories     |
 | `update_memory` | `False`       | `bool`      | Whether to update memory with new prompts   |
 | `obj_ids`       | `None`        | `List[int]` | List of object IDs corresponding to prompts |
 
@@ -397,7 +397,7 @@ Despite its strengths, SAM 2 has certain limitations:
 - **Efficiency with Multiple Objects**: Segmentation efficiency decreases when processing multiple objects simultaneously due to the lack of inter-object communication.
 - **Detail [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: May miss fine details, especially with fast-moving objects. Additional prompts can partially address this issue, but temporal smoothness is not guaranteed.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If SAM 2 is a crucial part of your research or development work, please cite it using the following reference:
 

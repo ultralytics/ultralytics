@@ -175,6 +175,7 @@ class AutoBackend(nn.Module):
             ncnn,
             imx,
             rknn,
+            axelera,
             triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -567,6 +568,12 @@ class AutoBackend(nn.Module):
             rknn_model.load_rknn(str(w))
             rknn_model.init_runtime()
             metadata = w.parent / "metadata.yaml"
+            
+        # Axelera
+        elif axelera:
+            from axelera.runtime import op
+
+            ax_model = op.load(model)
 
         # Any other format (unsupported)
         else:
@@ -766,6 +773,11 @@ class AutoBackend(nn.Module):
             im = (im.cpu().numpy() * 255).astype("uint8")
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im)
+            
+        # Axelera
+        elif self.axelera:
+            im = im.cpu()
+            y = self.ax_model(im)
 
         # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
         else:

@@ -1113,7 +1113,7 @@ class Exporter:
         # apt update && apt install git python3-dev python3-pip -y
         # install libllvm14 libgirepository1.0-dev pkg-config libcairo2-dev
         
-        check_requirements("axelera-voyager-sdk==1.5.0rc3", cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc3/build-packages-ubuntu-22.04/python")
+        # check_requirements("axelera-voyager-sdk==1.5.0rc3", cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc3/build-packages-ubuntu-22.04/python")
 
 
         from axelera import compiler

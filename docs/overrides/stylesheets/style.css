@@ -30,6 +30,22 @@ td {
 }
 /* Table format like GitHub ----------------------------------------------------------------------------------------- */
 
+/* Ensure in-page anchors account for sticky header/nav height to fix Zensical bug of clicked header behind nav bar*/
+:root {
+  --anchor-offset: 140px;
+}
+html {
+  scroll-padding-top: var(--anchor-offset);
+}
+.md-typeset :is(h1, h2, h3, h4, h5, h6)[id] {
+  scroll-margin-top: var(--anchor-offset);
+}
+@media (max-width: 768px) {
+  :root {
+    --anchor-offset: 110px;
+  }
+}
+
 /* Code block vertical scroll */
 div.highlight {
   max-height: 20rem;
@@ -45,6 +61,106 @@ div.highlight {
 .md-header .md-select:hover .md-select__inner {
   max-height: 75vh;
 }
+
+/* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */
+:root {
+  --ult-search-bg: #f5f6f8;
+  --ult-search-border: #dcdfe5;
+  --ult-search-hover-bg: #eef0f4;
+  --ult-search-hover-border: #cfd3db;
+  --ult-search-hotkey-bg: var(--md-default-fg-color--lightest);
+  --ult-search-hotkey-fg: var(--md-default-fg-color--lighter);
+  --ult-search-icon-bg: #eef0f4;
+  --ult-search-icon-border: #cfd3db;
+}
+[data-md-color-scheme="slate"] {
+  --ult-search-bg: rgba(255, 255, 255, 0.04);
+  --ult-search-border: rgba(255, 255, 255, 0.12);
+  --ult-search-hover-bg: rgba(255, 255, 255, 0.08);
+  --ult-search-hover-border: rgba(255, 255, 255, 0.2);
+  --ult-search-hotkey-bg: rgba(255, 255, 255, 0.14);
+  --ult-search-hotkey-fg: rgba(255, 255, 255, 0.86);
+  --ult-search-icon-bg: rgba(255, 255, 255, 0.08);
+  --ult-search-icon-border: rgba(255, 255, 255, 0.24);
+}
+.md-header label[for="__search"],
+.md-search {
+  display: none !important;
+}
+.ult-header-search {
+  transform: scale(0.7);
+  transform-origin: left center;
+  margin-right: 0.5rem;
+}
+.ult-search-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--ult-search-bg);
+  border: 1px solid var(--ult-search-border);
+  border-radius: 0.5rem;
+  color: var(--md-default-fg-color);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.ult-search-button:hover {
+  transform: scale(1.1);
+  filter: brightness(1.04);
+  border-color: var(--ult-search-hover-border);
+  background: var(--ult-search-hover-bg);
+}
+.ult-search-button:focus-visible {
+  outline: none;
+  border-color: var(--ult-search-hover-border);
+  background: var(--ult-search-hover-bg);
+}
+.ult-search-button svg {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+}
+.ult-search-hotkey {
+  margin-left: 0.25rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.35rem;
+  background: var(--ult-search-hotkey-bg);
+  color: var(--ult-search-hotkey-fg);
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+@media (max-width: 768px) {
+  .ult-header-search {
+    transform: none;
+    margin-right: 0;
+  }
+  .ult-search-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.25rem;
+    gap: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    justify-content: center;
+  }
+  .ult-search-button:hover,
+  .ult-search-button:focus-visible {
+    transform: none;
+    filter: none;
+    background: transparent;
+    border: none;
+  }
+  .ult-search-button span {
+    display: none;
+  }
+  .ult-search-button svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+/* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */
 
 /* Banner ----------------------------------------------------------------------------------------------------------- */
 .md-banner {
@@ -201,31 +317,16 @@ div.highlight {
 }
 /* MkDocs Ultralytics Plugin ---------------------------------------------------------------------------------------- */
 
-/* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */
-.ult-header-search {
-  transform: scale(0.7);
-  transform-origin: left center;
-  margin-right: 0.5rem;
+/* Logo switching for light/dark mode ------------------------------------------------------------------------------- */
+[data-md-color-scheme="default"] .md-header__button.md-logo img {
+  content: url("https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/68e4eb1e9893320b26cc02c3_Ultralytics%20Logo.png.svg");
 }
-.ult-search-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--md-default-bg-color);
-  border: 1px solid var(--md-default-fg-color--lighter);
-  border-radius: 0.5rem;
-  color: var(--md-default-fg-color);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+[data-md-color-scheme="slate"] .md-header__button.md-logo img {
+  content: url("https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Reverse.svg");
 }
-.ult-search-button:hover {
-  transform: scale(1.1);
-  filter: brightness(1.2);
-  border-color: var(--md-accent-fg-color);
+/* Logo switching for light/dark mode ------------------------------------------------------------------------------- */
+
+/* Remove underlines from links */
+.md-typeset a {
+  text-decoration: none !important;
 }
-.ult-search-button svg {
-  flex-shrink: 0;
-}
-/* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */

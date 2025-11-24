@@ -46,7 +46,7 @@ from .utils import (
 DATASET_CACHE_VERSION = "1.0.3"
 # CACHE_SUFFIX=".cache"
 # CACHE_SUFFIX=".merged.cache" #
-CACHE_SUFFIX=".engine.cache" # refine
+CACHE_SUFFIX=".cache" # refine
 
 
 class YOLODataset(BaseDataset):

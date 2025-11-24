@@ -1,5 +1,7 @@
 from .modules.sam import SAM2Model
 from .sam3.memory import SimpleMaskEncoder
+from .modules.blocks import TwoWayTransformer
+from .modules.decoders import SAM2MaskDecoder
 import torch
 
 
@@ -78,6 +80,24 @@ class SAM3Model(SAM2Model):
             no_obj_embed_spatial,
             sam_mask_decoder_extra_args,
             compile_image_encoder,
+        )
+        self.sam_mask_decoder = SAM2MaskDecoder(
+            num_multimask_outputs=3,
+            transformer=TwoWayTransformer(
+                depth=2,
+                embedding_dim=self.sam_prompt_embed_dim,
+                mlp_dim=2048,
+                num_heads=8,
+            ),
+            transformer_dim=self.sam_prompt_embed_dim,
+            iou_head_depth=3,
+            iou_head_hidden_dim=256,
+            use_high_res_features=self.use_high_res_features_in_sam,
+            iou_prediction_use_sigmoid=self.iou_prediction_use_sigmoid,
+            pred_obj_scores=self.pred_obj_scores,
+            pred_obj_scores_mlp=self.pred_obj_scores_mlp,
+            use_multimask_token_for_obj_ptr=self.use_multimask_token_for_obj_ptr,
+            **(self.sam_mask_decoder_extra_args or {}),
         )
 
     def forward_image(self, img_batch: torch.Tensor):

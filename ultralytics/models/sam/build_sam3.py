@@ -550,8 +550,5 @@ def _load_checkpoint_interactive(model, checkpoint):
             if "tracker." in k
         }
     )
-    print(ckpt.keys())
-    # print(model.state_dict().keys())
-    missing_keys, _ = model.load_state_dict(sam3_image_ckpt, strict=False)
-    print(missing_keys)
+    model.load_state_dict(sam3_image_ckpt, strict=False)
     return model

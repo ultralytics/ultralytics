@@ -175,6 +175,7 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
     Tested with Raspberry Pi OS Bookworm 64-bit and a USB Coral Edge TPU.
 
     !!! note
+
         Shown is the inference time, pre-/postprocessing is not included.
 
     === "Raspberry Pi 4B 2GB"

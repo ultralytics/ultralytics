@@ -699,7 +699,8 @@ class RealNVP(nn.Module):
 
     def log_prob(self, x):
         """Calculate the log probability of given sample in data space."""
-
+        if x.dtype == torch.float32 and self.s[0][0].weight.dtype != torch.float32:
+            self.float()
         z, log_det = self.backward_p(x)
         return self.prior.log_prob(z) + log_det
 

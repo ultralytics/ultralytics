@@ -698,10 +698,11 @@ class v8PoseLoss(v8DetectionLoss):
             self.joint_weights = torch.Tensor([1., 1., 1., 1., 1., 1., 1., 1.2, 1.2, 1.5, 1.5, 1., 1., 
                                                1.2, 1.2, 1.5, 1.5]).to(self.device)
             self.rle_loss = True
-            self.rle_loss_module = RLELoss(q_distribution='gaussian').to(self.device)
+            self.rle_loss_module = RLELoss(q_distribution="laplace").to(self.device)
             self.flow_model = model.model[-1].flow_model
         else:
             self.rle_loss = False
+        self.ori_shape = True  # calculate oks loss at original shape
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the total loss and detach it for pose estimation."""
@@ -718,12 +719,8 @@ class v8PoseLoss(v8DetectionLoss):
 
         # Pboxes
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)
-        pred_kpts *= stride_tensor.view(1, -1, 1, 1)
-        # if self.rle_loss:
-        #     pred_kpts[..., 0] *= stride_tensor
-        #     pred_kpts[..., 0] /= imgsz[1]
-        #     pred_kpts[..., 1] *= stride_tensor
-        #     pred_kpts[..., 1] /= imgsz[0]
+        if self.ori_shape:
+            pred_kpts[..., :2] *= stride_tensor.view(1, -1, 1, 1)
 
         # Bbox loss
         if fg_mask.sum():
@@ -739,6 +736,7 @@ class v8PoseLoss(v8DetectionLoss):
                 stride_tensor,
                 target_bboxes,
                 pred_kpts,
+                imgsz
             )
 
         loss[1] *= self.hyp.pose  # pose gain
@@ -766,6 +764,7 @@ class v8PoseLoss(v8DetectionLoss):
         stride_tensor: torch.Tensor,
         target_bboxes: torch.Tensor,
         pred_kpts: torch.Tensor,
+        imgsz
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Calculate the keypoints loss for the model.
@@ -813,13 +812,16 @@ class v8PoseLoss(v8DetectionLoss):
         )
 
         # Divide coordinates by stride
-        # selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)
+        if not self.ori_shape:
+            selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)
 
         kpts_loss = 0
         kpts_obj_loss = 0
+        rle_loss = 0
 
         if masks.any():
-            # target_bboxes /= stride_tensor
+            if not self.ori_shape:
+                target_bboxes /= stride_tensor
             gt_kpt = selected_keypoints[masks]
             area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
             pred_kpt = pred_kpts[masks]
@@ -835,6 +837,13 @@ class v8PoseLoss(v8DetectionLoss):
                 pred_coords = pred_kpt_visible[:, 0:2]
                 pred_sigma = pred_kpt_visible[:, 2:4]  # Nx2
                 gt_kpt_visible = gt_kpt_visible[:, 0:2]  # Nx2
+
+                # normalize coords to [0, 1]
+                pred_coords[:, 0] /= imgsz[1]
+                pred_coords[:, 1] /= imgsz[0]
+                gt_kpt_visible[:, 0] /= imgsz[1]
+                gt_kpt_visible[:, 1] /= imgsz[0]
+
                 target_weight = self.joint_weights.unsqueeze(0).repeat(kpt_mask.shape[0], 1)
                 target_weight = target_weight[kpt_mask]
 

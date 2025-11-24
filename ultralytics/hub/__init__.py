@@ -1,4 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
+
+from typing import Optional
 
 from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
@@ -7,29 +10,28 @@ from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX
 from ultralytics.utils import LOGGER, SETTINGS, checks
 
 __all__ = (
-    "PREFIX",
     "HUB_WEB_ROOT",
+    "PREFIX",
     "HUBTrainingSession",
-    "login",
-    "logout",
-    "reset_model",
+    "check_dataset",
     "export_fmts_hub",
     "export_model",
     "get_export",
-    "check_dataset",
+    "login",
+    "logout",
+    "reset_model",
 )
 
 
-def login(api_key: str = None, save: bool = True) -> bool:
-    """
-    Log in to the Ultralytics HUB API using the provided API key.
+def login(api_key: str | None = None, save: bool = True) -> bool:
+    """Log in to the Ultralytics HUB API using the provided API key.
 
     The session is not stored; a new session is created when needed using the saved SETTINGS or the HUB_API_KEY
     environment variable if successfully authenticated.
 
     Args:
-        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from
-            SETTINGS or HUB_API_KEY environment variable.
+        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from SETTINGS
+            or HUB_API_KEY environment variable.
         save (bool, optional): Whether to save the API key to SETTINGS if authentication is successful.
 
     Returns:
@@ -85,12 +87,11 @@ def export_fmts_hub():
     """Return a list of HUB-supported export formats."""
     from ultralytics.engine.exporter import export_formats
 
-    return list(export_formats()["Argument"][1:]) + ["ultralytics_tflite", "ultralytics_coreml"]
+    return [*list(export_formats()["Argument"][1:]), "ultralytics_tflite", "ultralytics_coreml"]
 
 
 def export_model(model_id: str = "", format: str = "torchscript"):
-    """
-    Export a model to a specified format for deployment via the Ultralytics HUB API.
+    """Export a model to a specified format for deployment via the Ultralytics HUB API.
 
     Args:
         model_id (str): The ID of the model to export. An empty string will use the default model.
@@ -115,13 +116,11 @@ def export_model(model_id: str = "", format: str = "torchscript"):
 
 
 def get_export(model_id: str = "", format: str = "torchscript"):
-    """
-    Retrieve an exported model in the specified format from Ultralytics HUB using the model ID.
+    """Retrieve an exported model in the specified format from Ultralytics HUB using the model ID.
 
     Args:
         model_id (str): The ID of the model to retrieve from Ultralytics HUB.
-        format (str): The export format to retrieve. Must be one of the supported formats returned by
-            export_fmts_hub().
+        format (str): The export format to retrieve. Must be one of the supported formats returned by export_fmts_hub().
 
     Returns:
         (dict): JSON response containing the exported model information.
@@ -146,8 +145,7 @@ def get_export(model_id: str = "", format: str = "torchscript"):
 
 
 def check_dataset(path: str, task: str) -> None:
-    """
-    Check HUB dataset Zip file for errors before upload.
+    """Check HUB dataset Zip file for errors before upload.
 
     Args:
         path (str): Path to data.zip (with data.yaml inside data.zip).

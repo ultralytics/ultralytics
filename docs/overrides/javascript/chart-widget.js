@@ -60,8 +60,7 @@ class ChartWidget {
       const action = e.target.closest("button").dataset.action;
       if (action === "png") this.downloadPNG();
       if (action === "csv") this.downloadCSV();
-      if (action === "ultralytics")
-        window.open("https://ultralytics.com", "_blank");
+      if (action === "ultralytics") window.open("https://ultralytics.com", "_blank");
     });
 
     this.toolbar.querySelectorAll("button").forEach((btn) => {
@@ -148,10 +147,7 @@ class ChartWidget {
     });
 
     const headers = Object.keys(data[0]);
-    const csv = [
-      headers.join(","),
-      ...data.map((row) => headers.map((h) => `"${row[h] || ""}"`).join(",")),
-    ].join("\n");
+    const csv = [headers.join(","), ...data.map((row) => headers.map((h) => `"${row[h] || ""}"`).join(","))].join("\n");
 
     const a = document.createElement("a");
     a.download = `chart-data-${Date.now()}.csv`;

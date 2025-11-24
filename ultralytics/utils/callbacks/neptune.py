@@ -18,8 +18,7 @@ except (ImportError, AssertionError):
 
 
 def _log_scalars(scalars: dict, step: int = 0) -> None:
-    """
-    Log scalars to the NeptuneAI experiment logger.
+    """Log scalars to the NeptuneAI experiment logger.
 
     Args:
         scalars (dict): Dictionary of scalar values to log to NeptuneAI.
@@ -35,11 +34,10 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
 
 
 def _log_images(imgs_dict: dict, group: str = "") -> None:
-    """
-    Log images to the NeptuneAI experiment logger.
+    """Log images to the NeptuneAI experiment logger.
 
-    This function logs image data to Neptune.ai when a valid Neptune run is active. Images are organized
-    under the specified group name.
+    This function logs image data to Neptune.ai when a valid Neptune run is active. Images are organized under the
+    specified group name.
 
     Args:
         imgs_dict (dict): Dictionary of images to log, with keys as image names and values as image data.

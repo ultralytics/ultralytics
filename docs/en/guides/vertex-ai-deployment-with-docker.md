@@ -350,8 +350,8 @@ async def predict(request: PredictionRequest):
         # Re-raise HTTPException as-is (don't catch and convert to 500)
         raise
     except Exception as e:
-        logger.error(f"Prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+        logger.error(f"Prediction error: {e!s}")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {e!s}")
 ```
 
 Finally, add the application entry point to run the FastAPI server.

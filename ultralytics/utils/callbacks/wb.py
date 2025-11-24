@@ -16,8 +16,7 @@ except (ImportError, AssertionError):
 
 
 def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall", y_title="Precision"):
-    """
-    Create and log a custom metric visualization to wandb.plot.pr_curve.
+    """Create and log a custom metric visualization to wandb.plot.pr_curve.
 
     This function crafts a custom metric visualization that mimics the behavior of the default wandb precision-recall
     curve while allowing for enhanced customization. The visual metric is useful for monitoring model performance across
@@ -61,11 +60,10 @@ def _plot_curve(
     num_x=100,
     only_mean=False,
 ):
-    """
-    Log a metric curve visualization.
+    """Log a metric curve visualization.
 
-    This function generates a metric curve based on input data and logs the visualization to wandb.
-    The curve can represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
+    This function generates a metric curve based on input data and logs the visualization to wandb. The curve can
+    represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
 
     Args:
         x (np.ndarray): Data points for the x-axis with length N.
@@ -105,15 +103,14 @@ def _plot_curve(
 
 
 def _log_plots(plots, step):
-    """
-    Log plots to WandB at a specific step if they haven't been logged already.
+    """Log plots to WandB at a specific step if they haven't been logged already.
 
-    This function checks each plot in the input dictionary against previously processed plots and logs
-    new or updated plots to WandB at the specified step.
+    This function checks each plot in the input dictionary against previously processed plots and logs new or updated
+    plots to WandB at the specified step.
 
     Args:
-        plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries
-            containing plot metadata including timestamps.
+        plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries containing plot
+            metadata including timestamps.
         step (int): The step/epoch at which to log the plots in the WandB run.
 
     Notes:

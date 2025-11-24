@@ -12,8 +12,7 @@ def pytest_addoption(parser):
 
 
 def pytest_collection_modifyitems(config, items):
-    """
-    Modify the list of test items to exclude tests marked as slow if the --slow option is not specified.
+    """Modify the list of test items to exclude tests marked as slow if the --slow option is not specified.
 
     Args:
         config: The pytest configuration object that provides access to command-line options.
@@ -25,8 +24,7 @@ def pytest_collection_modifyitems(config, items):
 
 
 def pytest_sessionstart(session):
-    """
-    Initialize session configurations for pytest.
+    """Initialize session configurations for pytest.
 
     This function is automatically called by pytest after the 'Session' object has been created but before performing
     test collection. It sets the initial seeds and prepares the temporary directory for the test session.
@@ -42,11 +40,10 @@ def pytest_sessionstart(session):
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    """
-    Cleanup operations after pytest session.
+    """Cleanup operations after pytest session.
 
-    This function is automatically called by pytest at the end of the entire test session. It removes certain files
-    and directories used during testing.
+    This function is automatically called by pytest at the end of the entire test session. It removes certain files and
+    directories used during testing.
 
     Args:
         terminalreporter: The terminal reporter object used for terminal output.
@@ -57,10 +54,10 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
     # Remove files
     models = [path for x in {"*.onnx", "*.torchscript"} for path in WEIGHTS_DIR.rglob(x)]
-    for file in ["decelera_portrait_min.mov", "bus.jpg", "yolo11n.onnx", "yolo11n.torchscript"] + models:
+    for file in ["decelera_portrait_min.mov", "bus.jpg", "yolo11n.onnx", "yolo11n.torchscript", *models]:
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
     models = [path for x in {"*.mlpackage", "*_openvino_model"} for path in WEIGHTS_DIR.rglob(x)]
-    for directory in [WEIGHTS_DIR / "path with spaces", TMP.parents[1] / ".pytest_cache", TMP] + models:
+    for directory in [WEIGHTS_DIR / "path with spaces", TMP.parents[1] / ".pytest_cache", TMP, *models]:
         shutil.rmtree(directory, ignore_errors=True)

@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS, checks, colorstr
@@ -6,14 +7,13 @@ from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
 
 def run_ray_tune(
     model,
-    space: dict = None,
+    space: dict | None = None,
     grace_period: int = 10,
-    gpu_per_trial: int = None,
+    gpu_per_trial: int | None = None,
     max_samples: int = 10,
     **train_args,
 ):
-    """
-    Run hyperparameter tuning using Ray Tune.
+    """Run hyperparameter tuning using Ray Tune.
 
     Args:
         model (YOLO): Model to run the tuner on.

@@ -45,17 +45,15 @@ def sanitize_dict(x: dict) -> dict:
 
 
 def on_pretrain_routine_end(trainer):
-    """
-    Log training parameters to MLflow at the end of the pretraining routine.
+    """Log training parameters to MLflow at the end of the pretraining routine.
 
     This function sets up MLflow logging based on environment variables and trainer arguments. It sets the tracking URI,
-    experiment name, and run name, then starts the MLflow run if not already active. It finally logs the parameters
-    from the trainer.
+    experiment name, and run name, then starts the MLflow run if not already active. It finally logs the parameters from
+    the trainer.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The training object with arguments and parameters to log.
-
-    Environment Variables:
+        Environment Variables:
         MLFLOW_TRACKING_URI: The URI for MLflow tracking. If not set, defaults to 'runs/mlflow'.
         MLFLOW_EXPERIMENT_NAME: The name of the MLflow experiment. If not set, defaults to trainer.args.project.
         MLFLOW_RUN: The name of the MLflow run. If not set, defaults to trainer.args.name.

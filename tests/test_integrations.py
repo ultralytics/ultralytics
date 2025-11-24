@@ -74,7 +74,7 @@ def test_mlflow_keep_run_active():
 def test_triton():
     """Test NVIDIA Triton Server functionalities with YOLO model."""
     check_requirements("tritonclient[all]")
-    from tritonclient.http import InferenceServerClient  # noqa
+    from tritonclient.http import InferenceServerClient
 
     # Create variables
     model_name = "yolo"

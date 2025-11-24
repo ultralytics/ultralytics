@@ -2,14 +2,8 @@
 
 // Apply theme colors based on dark/light mode
 const applyTheme = (isDark) => {
-  document.body.setAttribute(
-    "data-md-color-scheme",
-    isDark ? "slate" : "default",
-  );
-  document.body.setAttribute(
-    "data-md-color-primary",
-    isDark ? "black" : "indigo",
-  );
+  document.body.setAttribute("data-md-color-scheme", isDark ? "slate" : "default");
+  document.body.setAttribute("data-md-color-primary", isDark ? "black" : "indigo");
 };
 
 // Check and apply appropriate theme based on system/user preference
@@ -22,19 +16,12 @@ const checkTheme = () => {
 };
 
 // Watch for system theme changes
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", checkTheme);
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", checkTheme);
 
 // Initialize theme handling on page load
 document.addEventListener("DOMContentLoaded", () => {
   // Watch for theme toggle changes
-  document
-    .getElementById("__palette_1")
-    ?.addEventListener(
-      "change",
-      (e) => e.target.checked && setTimeout(checkTheme),
-    );
+  document.getElementById("__palette_1")?.addEventListener("change", (e) => e.target.checked && setTimeout(checkTheme));
   // Initial theme check
   checkTheme();
 });
@@ -44,8 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const enableSearchBar = true;
 
   const inkeepScript = document.createElement("script");
-  inkeepScript.src =
-    "https://cdn.jsdelivr.net/npm/@inkeep/cxkit-js@0.5/dist/embed.js";
+  inkeepScript.src = "https://cdn.jsdelivr.net/npm/@inkeep/cxkit-js@0.5/dist/embed.js";
   inkeepScript.type = "module";
   inkeepScript.defer = true;
   document.head.appendChild(inkeepScript);
@@ -195,9 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Update links
-    langs.forEach(
-      (lang) => (lang.link.href = location.origin + "/" + lang.code + basePath),
-    );
+    langs.forEach((lang) => (lang.link.href = location.origin + "/" + lang.code + basePath));
     if (defaultLink) defaultLink.href = location.origin + basePath;
   }
 

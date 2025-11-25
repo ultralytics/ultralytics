@@ -37,7 +37,7 @@ jobs:
       GITHUB_REF: ${{ github.head_ref || github.ref }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           # Fetch depth 0 required to capture full docs author history
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
@@ -57,9 +57,9 @@ jobs:
           ruff check \
           --fix \
           --unsafe-fixes \
-          --extend-select I,D,UP \
+          --extend-select F,I,D,UP,RUF,FA \
           --target-version py39 \
-          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 \
+          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012 \
           .
       - name: Update Docs Reference Section and Push Changes
         continue-on-error: true
@@ -80,13 +80,12 @@ jobs:
       - name: Ruff checks
         run: |
           ruff check \
-          --extend-select I,D,UP \
+          --extend-select F,I,D,UP,RUF,FA \
           --target-version py39 \
-          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 \
+          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012 \
           .
       - name: Build Docs and Check for Warnings
         run: |
-          export JUPYTER_PLATFORM_DIRS=1
           python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true

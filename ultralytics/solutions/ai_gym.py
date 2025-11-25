@@ -7,8 +7,7 @@ from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, Sol
 
 
 class AIGym(BaseSolution):
-    """
-    A class to manage gym steps of people in a real-time video stream based on their poses.
+    """A class to manage gym steps of people in a real-time video stream based on their poses.
 
     This class extends BaseSolution to monitor workouts using YOLO pose estimation models. It tracks and counts
     repetitions of exercises based on predefined angle thresholds for up and down positions.
@@ -32,12 +31,11 @@ class AIGym(BaseSolution):
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """
-        Initialize AIGym for workout monitoring using pose estimation and predefined angles.
+        """Initialize AIGym for workout monitoring using pose estimation and predefined angles.
 
         Args:
-            **kwargs (Any): Keyword arguments passed to the parent class constructor.
-                model (str): Model name or path, defaults to "yolo11n-pose.pt".
+            **kwargs (Any): Keyword arguments passed to the parent class constructor including:
+                - model (str): Model name or path, defaults to "yolo11n-pose.pt".
         """
         kwargs["model"] = kwargs.get("model", "yolo11n-pose.pt")
         super().__init__(**kwargs)
@@ -49,22 +47,18 @@ class AIGym(BaseSolution):
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
 
     def process(self, im0) -> SolutionResults:
-        """
-        Monitor workouts using Ultralytics YOLO Pose Model.
+        """Monitor workouts using Ultralytics YOLO Pose Model.
 
-        This function processes an input image to track and analyze human poses for workout monitoring. It uses
-        the YOLO Pose model to detect keypoints, estimate angles, and count repetitions based on predefined
-        angle thresholds.
+        This function processes an input image to track and analyze human poses for workout monitoring. It uses the YOLO
+        Pose model to detect keypoints, estimate angles, and count repetitions based on predefined angle thresholds.
 
         Args:
             im0 (np.ndarray): Input image for processing.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im`,
-                'workout_count' (list of completed reps),
-                'workout_stage' (list of current stages),
-                'workout_angle' (list of angles), and
-                'total_tracks' (total number of tracked individuals).
+            (SolutionResults): Contains processed image `plot_im`, 'workout_count' (list of completed reps),
+                'workout_stage' (list of current stages), 'workout_angle' (list of angles), and 'total_tracks' (total
+                number of tracked individuals).
 
         Examples:
             >>> gym = AIGym()

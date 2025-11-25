@@ -16,7 +16,7 @@ Here's a brief description of our CI actions:
 - **[Docker Deployment](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yml):** This test checks the deployment of the project using Docker to ensure the Dockerfile and related scripts are working correctly.
 - **[Broken Links](https://github.com/ultralytics/ultralytics/actions/workflows/links.yml):** This test scans the codebase for any broken or dead links in our markdown or HTML files.
 - **[CodeQL](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml):** CodeQL is a tool from GitHub that performs semantic analysis on our code, helping to find potential security vulnerabilities and maintain high-quality code.
-- **[PyPI Publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml):** This test checks if the project can be packaged and published to PyPi without any errors.
+- **[PyPI Publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml):** This test checks if the project can be packaged and published to PyPI without any errors.
 
 ### CI Results
 

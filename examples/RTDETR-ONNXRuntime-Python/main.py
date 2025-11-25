@@ -13,8 +13,7 @@ import yaml
 
 
 def download_file(url: str, local_path: str) -> str:
-    """
-    Download a file from a URL to a local path.
+    """Download a file from a URL to a local path.
 
     Args:
         url (str): URL of the file to download.
@@ -34,8 +33,7 @@ def download_file(url: str, local_path: str) -> str:
 
 
 class RTDETR:
-    """
-    RT-DETR (Real-Time Detection Transformer) object detection model for ONNX inference and visualization.
+    """RT-DETR (Real-Time Detection Transformer) object detection model for ONNX inference and visualization.
 
     This class implements the RT-DETR model for object detection tasks, supporting ONNX model inference and
     visualization of detection results with bounding boxes and class labels.
@@ -77,16 +75,15 @@ class RTDETR:
         iou_thres: float = 0.5,
         class_names: str | None = None,
     ):
-        """
-        Initialize the RT-DETR object detection model.
+        """Initialize the RT-DETR object detection model.
 
         Args:
             model_path (str): Path to the ONNX model file.
             img_path (str): Path to the input image.
             conf_thres (float, optional): Confidence threshold for filtering detections.
             iou_thres (float, optional): IoU threshold for non-maximum suppression.
-            class_names (Optional[str], optional): Path to a YAML file containing class names.
-                If None, uses COCO dataset classes.
+            class_names (Optional[str], optional): Path to a YAML file containing class names. If None, uses COCO
+                dataset classes.
         """
         self.model_path = model_path
         self.img_path = img_path
@@ -157,11 +154,10 @@ class RTDETR:
         )
 
     def preprocess(self) -> np.ndarray:
-        """
-        Preprocess the input image for model inference.
+        """Preprocess the input image for model inference.
 
-        Loads the image, converts color space from BGR to RGB, resizes to model input dimensions, and normalizes
-        pixel values to [0, 1] range.
+        Loads the image, converts color space from BGR to RGB, resizes to model input dimensions, and normalizes pixel
+        values to [0, 1] range.
 
         Returns:
             (np.ndarray): Preprocessed image data with shape (1, 3, H, W) ready for inference.
@@ -190,12 +186,11 @@ class RTDETR:
         return image_data
 
     def bbox_cxcywh_to_xyxy(self, boxes: np.ndarray) -> np.ndarray:
-        """
-        Convert bounding boxes from center format to corner format.
+        """Convert bounding boxes from center format to corner format.
 
         Args:
-            boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in
-                (center_x, center_y, width, height) format.
+            boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in (center_x, center_y,
+                width, height) format.
 
         Returns:
             (np.ndarray): Array of shape (N, 4) with bounding boxes in (x_min, y_min, x_max, y_max) format.
@@ -214,11 +209,10 @@ class RTDETR:
         return np.column_stack((x_min, y_min, x_max, y_max))
 
     def postprocess(self, model_output: list[np.ndarray]) -> np.ndarray:
-        """
-        Postprocess model output to extract and visualize detections.
+        """Postprocess model output to extract and visualize detections.
 
-        Applies confidence thresholding, converts bounding box format, scales coordinates to original image
-        dimensions, and draws detection annotations.
+        Applies confidence thresholding, converts bounding box format, scales coordinates to original image dimensions,
+        and draws detection annotations.
 
         Args:
             model_output (list[np.ndarray]): Output tensors from the model inference.
@@ -255,8 +249,7 @@ class RTDETR:
         return self.img
 
     def main(self) -> np.ndarray:
-        """
-        Execute the complete object detection pipeline on the input image.
+        """Execute the complete object detection pipeline on the input image.
 
         Performs preprocessing, ONNX model inference, and postprocessing to generate annotated detection results.
 

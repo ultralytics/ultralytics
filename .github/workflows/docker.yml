@@ -78,12 +78,11 @@ jobs:
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
             derivatives: ""
-          # Disabled due to NaN training errors in https://github.com/ultralytics/ultralytics/pull/22352
-          # - dockerfile: "Dockerfile-jetson-jetpack5"
-          #   tags: "latest-jetson-jetpack5"
-          #   platforms: "linux/arm64"
-          #   runs_on: "ubuntu-24.04-arm"
-          #   derivatives: ""
+          - dockerfile: "Dockerfile-jetson-jetpack5"
+            tags: "latest-jetson-jetpack5"
+            platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
+            derivatives: ""
           - dockerfile: "Dockerfile-jetson-jetpack4"
             tags: "latest-jetson-jetpack4"
             platforms: "linux/arm64"
@@ -102,7 +101,7 @@ jobs:
         uses: ultralytics/actions/cleanup-disk@main
 
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # copy full .git directory to access full git history in Docker images
 

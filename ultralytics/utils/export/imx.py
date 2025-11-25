@@ -236,7 +236,8 @@ def torch2imx(
             img = img / 255.0
             yield [img]
 
-    tpc = get_target_platform_capabilities(tpc_version="5.0", device_type="imx500")
+    # NOTE: need tpc_version to be "4.0" for IMX500 Pose estimation models
+    tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
 
     bit_cfg = mct.core.BitWidthConfig()
     mct_config = MCT_CONFIG["YOLO11" if "C2PSA" in model.__str__() else "YOLOv8"][model.task]

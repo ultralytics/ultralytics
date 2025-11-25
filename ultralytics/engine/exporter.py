@@ -21,6 +21,7 @@ NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
 ExecuTorch              | `executorch`              | yolo11n_executorch_model/
+Axelera                 | `axelera`                 | yolo11n.axm
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -156,8 +157,8 @@ def export_formats():
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
-        ["Axelera", "axelera", ".axm", True, False, ["batch"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
+        ["Axelera", "axelera", ".axm", True, False, ["batch"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -336,8 +337,8 @@ class Exporter:
             ncnn,
             imx,
             rknn,
-            axelera,
             executorch,
+            axelera,
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
@@ -559,10 +560,10 @@ class Exporter:
             f[13] = self.export_imx()
         if rknn:
             f[14] = self.export_rknn()
-        if axelera:
-            f[15] = self.export_axelera()
         if executorch:
-            f[16] = self.export_executorch()
+            f[15] = self.export_executorch()
+        if axelera:
+            f[16] = self.export_axelera()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None

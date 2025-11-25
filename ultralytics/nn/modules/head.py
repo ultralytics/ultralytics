@@ -75,6 +75,7 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
+    detach_o2o = True
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """
@@ -142,10 +143,10 @@ class Detect(nn.Module):
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        preds = self.forward_head(x, **self.one2many)
+        x_detach = [xi.detach() for xi in x]
+        preds = self.forward_head(x if self.detach_o2o else x_detach, **self.one2many)
         if self.end2end:
-            x_detach = [xi.detach() for xi in x]
-            one2one = self.forward_head(x_detach, **self.one2one)
+            one2one = self.forward_head(x_detach if self.detach_o2o else x, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds

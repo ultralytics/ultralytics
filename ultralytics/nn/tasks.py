@@ -430,6 +430,17 @@ class DetectionModel(BaseModel):
             self.info()
             LOGGER.info("")
 
+    def update_detach(self, detach_o2o=True):
+        """
+        Update the Detect layer to detach one-to-one outputs if end-to-end detection is enabled.
+
+        Args:
+            detach_o2o (bool): Whether to detach one-to-one outputs.
+        """
+        m = self.model[-1]
+        if isinstance(m, Detect) and getattr(m, "end2end", False):
+            m.detach_o2o = detach_o2o
+
     def _predict_augment(self, x):
         """
         Perform augmentations on input image x and return augmented inference and train outputs.

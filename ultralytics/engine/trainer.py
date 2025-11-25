@@ -467,10 +467,10 @@ class BaseTrainer:
             if self.args.o2m != 1.0 and hasattr(unwrap_model(self.model).criterion, "update"):
                 unwrap_model(self.model).criterion.update()
 
-            if self.epoch >= (self.epochs - self.args.detach_epoch) and hasattr(
-                unwrap_model(self.model), "update_detach"
-            ):
-                unwrap_model(self.model).update_detach(detach_o2o=False)
+            # if self.epoch >= (self.epochs - self.args.detach_epoch) and hasattr(
+            #     unwrap_model(self.model), "update_detach"
+            # ):
+            #     unwrap_model(self.model).update_detach(detach_o2o=False)
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
 

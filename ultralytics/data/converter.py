@@ -18,6 +18,7 @@ from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQD
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
+from ultralytics.data.labelbox import convert_labelbox  # re-export for convenience
 
 
 def coco91_to_coco80_class() -> list[int]:

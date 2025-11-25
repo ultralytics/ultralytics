@@ -160,8 +160,12 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.tilde
   - pymdownx.details
-  - pymdownx.superfences
   - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.snippets:
@@ -243,7 +247,7 @@ nav:
           - Simple Utilities: usage/simple-utilities.md
           - Advanced Customization: usage/engine.md
       - Modes:
-          - modes/index.md
+          - Modes: modes/index.md
           - Train: modes/train.md
           - Val: modes/val.md
           - Predict: modes/predict.md
@@ -251,7 +255,7 @@ nav:
           - Track: modes/track.md
           - Benchmark: modes/benchmark.md
       - Tasks:
-          - tasks/index.md
+          - Tasks: tasks/index.md
           - Detect: tasks/detect.md
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
@@ -266,7 +270,7 @@ nav:
       - Guides:
           - guides/index.md
   - Modes:
-      - modes/index.md
+      - Modes: modes/index.md
       - Train: modes/train.md
       - Val: modes/val.md
       - Predict: modes/predict.md
@@ -281,7 +285,7 @@ nav:
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
   - Tasks:
-      - tasks/index.md
+      - Tasks: tasks/index.md
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
       - Classify: tasks/classify.md
@@ -296,7 +300,7 @@ nav:
           - Track: modes/track.md
           - Benchmark: modes/benchmark.md
   - Models:
-      - models/index.md
+      - Models: models/index.md
       - YOLOv3: models/yolov3.md
       - YOLOv4: models/yolov4.md
       - YOLOv5: models/yolov5.md
@@ -318,7 +322,7 @@ nav:
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
       - YOLOE (Real-Time Seeing Anything): models/yoloe.md
   - Datasets:
-      - datasets/index.md
+      - Datasets: datasets/index.md
       - Detection:
           - datasets/detect/index.md
           - Argoverse: datasets/detect/argoverse.md
@@ -376,8 +380,8 @@ nav:
           - DOTA8: datasets/obb/dota8.md
       - Multi-Object Tracking:
           - datasets/track/index.md
-  - Solutions 🚀:
-      - solutions/index.md
+  - Solutions:
+      - Solutions: solutions/index.md
       - Object Counting: guides/object-counting.md
       - Object Cropping: guides/object-cropping.md
       - Object Blurring: guides/object-blurring.md
@@ -395,9 +399,8 @@ nav:
       - Live Inference: guides/streamlit-live-inference.md
       - Track Objects in Zone: guides/trackzone.md
       - Similarity Search 🚀 NEW: guides/similarity-search.md
-
   - Guides:
-      - guides/index.md
+      - Guides: guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
       - YOLO Performance Metrics: guides/yolo-performance-metrics.md
       - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
@@ -458,7 +461,7 @@ nav:
               - Comet Logging: yolov5/tutorials/comet_logging_integration.md
               - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Integrations:
-      - integrations/index.md
+      - Integrations: integrations/index.md
       - SONY IMX500: integrations/sony-imx500.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
       - ClearML: integrations/clearml.md
@@ -495,7 +498,7 @@ nav:
       - Roboflow: integrations/roboflow.md
       - ExecuTorch: integrations/executorch.md
   - HUB:
-      - hub/index.md
+      - HUB: hub/index.md
       - Web:
           - hub/index.md
           - Quickstart: hub/quickstart.md
@@ -726,29 +729,31 @@ nav:
       - Security Policy: help/security.md
       - Privacy Policy: help/privacy.md
 
-# Plugins (Note macros plugin replaced by minijinja in build_docs.py) --------------------------------------------------
+# Plugins --------------------------------------------------------------------------------------------------------------
 plugins:
+  # Macros are handled by minijinja in build_docs.py
   #  - macros:
   #      include_yaml:
   #        - ultralytics/cfg/default.yaml
-  - mkdocstrings:
-      enabled: true
-      default_handler: python
-      handlers:
-        python:
-          options:
-            docstring_options:
-              ignore_init_summary: true
-            merge_init_into_class: true
-            docstring_style: google
-            show_root_heading: true
-            show_source: true
-            separate_signature: true
-            line_length: 80
-            show_signature_annotations: true
-            show_symbol_type_heading: true # insiders
-            show_symbol_type_toc: true # insiders
-            show_inheritance_diagram: true # insiders
+  # Docstrings are rendered ahead of time via docs/build_reference.py (no mkdocstrings dependency)
+  #  - mkdocstrings:
+  #      enabled: true
+  #      default_handler: python
+  #      handlers:
+  #        python:
+  #          options:
+  #            docstring_options:
+  #              ignore_init_summary: true
+  #            merge_init_into_class: true
+  #            docstring_style: google
+  #            show_root_heading: true
+  #            show_source: true
+  #            separate_signature: true
+  #            line_length: 80
+  #            show_signature_annotations: true
+  #            show_symbol_type_heading: true # insiders
+  #            show_symbol_type_toc: true # insiders
+  #            show_inheritance_diagram: true # insiders
   - ultralytics:
       add_desc: False
       add_image: True

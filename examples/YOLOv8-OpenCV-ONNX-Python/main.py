@@ -18,8 +18,7 @@ colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 def draw_bounding_box(
     img: np.ndarray, class_id: int, confidence: float, x: int, y: int, x_plus_w: int, y_plus_h: int
 ) -> None:
-    """
-    Draw bounding boxes on the input image based on the provided arguments.
+    """Draw bounding boxes on the input image based on the provided arguments.
 
     Args:
         img (np.ndarray): The input image to draw the bounding box on.
@@ -37,8 +36,7 @@ def draw_bounding_box(
 
 
 def main(onnx_model: str, input_image: str) -> list[dict[str, Any]]:
-    """
-    Load ONNX model, perform inference, draw bounding boxes, and display the output image.
+    """Load ONNX model, perform inference, draw bounding boxes, and display the output image.
 
     Args:
         onnx_model (str): Path to the ONNX model.
@@ -81,7 +79,7 @@ def main(onnx_model: str, input_image: str) -> list[dict[str, Any]]:
     # Iterate through output to collect bounding boxes, confidence scores, and class IDs
     for i in range(rows):
         classes_scores = outputs[0][i][4:]
-        (minScore, maxScore, minClassLoc, (x, maxClassIndex)) = cv2.minMaxLoc(classes_scores)
+        (_minScore, maxScore, _minClassLoc, (_x, maxClassIndex)) = cv2.minMaxLoc(classes_scores)
         if maxScore >= 0.25:
             box = [
                 outputs[0][i][0] - (0.5 * outputs[0][i][2]),  # x center - width/2 = left x

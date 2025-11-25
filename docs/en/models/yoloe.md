@@ -8,7 +8,7 @@ keywords: YOLOE, open-vocabulary detection, real-time object detection, instance
 
 ## Introduction
 
-![YOLOE Prompting Options](https://raw.githubusercontent.com/THU-MIG/yoloe/main/figures/visualization.svg)
+![YOLOE Prompting Options](https://github.com/ultralytics/docs/releases/download/0/yoloe-visualization.avif)
 
 [YOLOE (Real-Time Seeing Anything)](https://arxiv.org/html/2503.07465v1) is a new advancement in zero-shot, promptable YOLO models, designed for **open-vocabulary** detection and segmentation. Unlike previous YOLO models limited to fixed categories, YOLOE uses text, image, or internal vocabulary prompts, enabling real-time detection of any object class. Built upon YOLOv10 and inspired by [YOLO-World](yolo-world.md), YOLOE achieves **state-of-the-art zero-shot performance** with minimal impact on speed and accuracy.
 
@@ -78,6 +78,17 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 #### Fine-Tuning on custom dataset
 
 You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on your custom YOLO dataset for both detection and instance segmentation tasks.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/vnn90bEyk0w"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train YOLOE on Car Parts Segmentation Dataset | Open-Vocabulary Model, Prediction & Export 🚀
+</p>
 
 !!! example
 
@@ -790,7 +801,7 @@ YOLOE's open-vocabulary detection and segmentation enable diverse applications b
   YOLOE facilitates rapid dataset creation by providing initial bounding box and segmentation annotations, significantly reducing human labeling efforts. Particularly valuable in **analytics of large media collections**, where it can auto-identify objects present, assisting in building specialized models faster.
 
 - **Segmentation for Any Object:**
-  Extends segmentation capabilities to arbitrary objects through prompts—particularly beneficial for [medical imaging](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), **microscopy**, or [satellite imagery analysis](https://www.ultralytics.com/blog/using-computer-vision-to-analyse-satellite-imagery), automatically identifying and precisely segmenting structures without specialized pre-trained models. Unlike models like [SAM](sam.md), YOLOE simultaneously recognizes and segments objects automatically, aiding in tasks like **content creation** or **scene understanding**.
+  Extends segmentation capabilities to arbitrary objects through prompts—particularly beneficial for [medical imaging](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), **microscopy**, or [satellite imagery analysis](https://www.ultralytics.com/blog/using-computer-vision-to-analyze-satellite-imagery), automatically identifying and precisely segmenting structures without specialized pre-trained models. Unlike models like [SAM](sam.md), YOLOE simultaneously recognizes and segments objects automatically, aiding in tasks like **content creation** or **scene understanding**.
 
 Across all these use cases, YOLOE's core advantage is **versatility**, providing a unified model for detection, recognition, and segmentation across dynamic scenarios. Its efficiency ensures real-time performance on resource-constrained devices, ideal for robotics, [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars), defense, and beyond.
 
@@ -808,7 +819,7 @@ Across all these use cases, YOLOE's core advantage is **versatility**, providing
 
 YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md) and [CLI](../usage/cli.md), similar to other YOLO models (YOLOv8, YOLO-World). Here's how to quickly get started:
 
-!!! Example "Training and inference with YOLOE"
+!!! example "Training and inference with YOLOE"
 
     === "Python"
 
@@ -899,7 +910,7 @@ The [Ultralytics documentation](https://docs.ultralytics.com/) provides further 
     **Pro Tip:**
     To maximize YOLOE's zero-shot accuracy, fine-tune from provided checkpoints rather than training from scratch. Use prompt words aligning with common training labels (see LVIS categories) to improve detection accuracy.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If YOLOE has contributed to your research or project, please cite the original paper by **Ao Wang, Lihao Liu, Hui Chen, Zijia Lin, Jungong Han, and Guiguang Ding** from **Tsinghua University**:
 

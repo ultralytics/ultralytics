@@ -25,7 +25,7 @@ The hand-keypoints dataset contains 26,768 images of hands annotated with keypoi
 
 ![Hand Landmarks](https://github.com/ultralytics/docs/releases/download/0/hand_landmarks.jpg)
 
-## KeyPoints
+## Keypoints
 
 The dataset includes keypoints for hand detection. The keypoints are annotated as follows:
 
@@ -41,8 +41,8 @@ Each hand has a total of 21 keypoints.
 ## Key Features
 
 - **Large Dataset**: 26,768 images with hand keypoint annotations.
-- **YOLO11 Compatibility**: Ready for use with YOLO11 models.
-- **21 Keypoints**: Detailed hand pose representation.
+- **YOLO11 Compatibility**: Labels ship in YOLO keypoint format and are ready for use with YOLO11 models.
+- **21 Keypoints**: Detailed hand pose representation spanning the wrist and four points per finger.
 
 ## Dataset Structure
 
@@ -94,7 +94,7 @@ To train a YOLO11n-pose model on the Hand Keypoints dataset for 100 [epochs](htt
 
 The Hand keypoints dataset contains a diverse set of images with human hands annotated with keypoints. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/human-hand-pose.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/human-hand-pose.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
@@ -124,7 +124,7 @@ We would also like to acknowledge the creator of this dataset, [Rion Dsilva](htt
 
 To train a YOLO11 model on the Hand Keypoints dataset, you can use either Python or the command line interface (CLI). Here's an example for training a YOLO11n-pose model for 100 epochs with an image size of 640:
 
-!!! Example
+!!! example
 
     === "Python"
 

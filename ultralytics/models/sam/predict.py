@@ -23,6 +23,7 @@ from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.utils.checks import check_imgsz
 from .sam3.data_misc import FindStage
 
 from .amg import (
@@ -525,30 +526,6 @@ class Predictor(BasePredictor):
         # Reset segment-all mode.
         self.segment_all = False
         return results
-
-    def setup_source(self, source):
-        """Set up the data source for inference.
-
-        This method configures the data source from which images will be fetched for inference. It supports various
-        input types such as image files, directories, video files, and other compatible data sources.
-
-        Args:
-            source (str | Path | None): The path or identifier for the image data source. Can be a file path, directory
-                path, URL, or other supported source types.
-
-        Examples:
-            >>> predictor = Predictor()
-            >>> predictor.setup_source("path/to/images")
-            >>> predictor.setup_source("video.mp4")
-            >>> predictor.setup_source(None)  # Uses default source if available
-
-        Notes:
-            - If source is None, the method may use a default source if configured.
-            - The method adapts to different source types and prepares them for subsequent inference steps.
-            - Supported source types may include local files, directories, URLs, and video streams.
-        """
-        if source is not None:
-            super().setup_source(source)
 
     def set_image(self, image):
         """Preprocess and set a single image for inference.
@@ -2231,7 +2208,7 @@ class SAM3Predictor(SAM2Predictor):
             1
         """
         assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(1008, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
+        letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
         return [letterbox(image=x) for x in im]
 
     # TODO
@@ -2240,8 +2217,8 @@ class SAM3Predictor(SAM2Predictor):
         assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
             f"SAM 2 models only support square image size, but got {self.imgsz}."
         )
-        # self.model.set_imgsz(self.imgsz)
-        # self._bb_feat_sizes = [[x // (4 * i) for x in self.imgsz] for i in [1, 2, 4]]
+        self.model.set_imgsz(self.imgsz)
+        self._bb_feat_sizes = [[int(x / (3.5 * i)) for x in self.imgsz] for i in [1, 2, 4]]
 
         backbone_out = self.model.forward_image(im)
         _, vision_feats, _, _ = self.model._prepare_backbone_features(backbone_out)
@@ -2252,8 +2229,18 @@ class SAM3Predictor(SAM2Predictor):
         ]
         return {"image_embed": feats[-1], "high_res_feats": feats[:-1]}
 
-class SAM3VideoPredictor(SAM2VideoPredictor):
+    def setup_source(self, source):
+        """Set up source and inference mode.
 
+        Args:
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor): Source for
+                inference.
+        """
+        # Override the image size check for SAM3
+        super().setup_source(source, stride=14)
+
+
+class SAM3VideoPredictor(SAM2VideoPredictor):
     _bb_feat_sizes = [
         (288, 288),
         (144, 144),

@@ -2113,6 +2113,12 @@ class SAM3SemanticPredictor(SAM3Predictor):
                 boxes[..., 1] *= orig_img.shape[0]
                 boxes[..., 2] *= orig_img.shape[1]
                 boxes[..., 3] *= orig_img.shape[0]
+                # boxes[..., 0] *= img.shape[-1]
+                # boxes[..., 1] *= img.shape[-2]
+                # boxes[..., 2] *= img.shape[-1]
+                # boxes[..., 3] *= img.shape[-2]
+                # boxes = ops.scale_boxes(img.shape[2:], boxes.float(), orig_img.shape, padding=False)
+                # masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0] > 0.5
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         return results
 

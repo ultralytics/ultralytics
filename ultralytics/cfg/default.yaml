@@ -104,6 +104,7 @@ sgd_w: 0.5
 cls_w: 1.0
 stride_ratio: 1.0
 detach_epoch: 10
+topk: 10
 box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain
 dfl: 1.5 # (float) distribution focal loss gain

@@ -492,6 +492,7 @@ nav:
       - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md
       - Rockchip RKNN: integrations/rockchip-rknn.md
+      - Axelera: integrations/axelera.md
       - Neural Magic: integrations/neural-magic.md
       - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
       - Gradio: integrations/gradio.md

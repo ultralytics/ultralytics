@@ -330,3 +330,11 @@ div.highlight {
 .md-typeset a {
   text-decoration: none !important;
 }
+
+/* Remove language switcher */
+.weglot-container,
+.weglot_switcher,
+[id^="weglot-switcher"],
+.weglot-container[id^="weglot-switcher"] {
+  display: none !important;
+}

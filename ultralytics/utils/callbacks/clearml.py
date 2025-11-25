@@ -123,7 +123,7 @@ def on_train_end(trainer) -> None:
     """Log final model and training results on training completion."""
     if task := Task.current_task():
         # Log final results, confusion matrix and PR plots
-        for f in trainer.plots.keys() + trainer.validator.plots.keys():
+        for f in [*trainer.plots.keys(), *trainer.validator.plots.keys()]:
             if "batch" not in f.name:
                 _log_plot(title=f.stem, plot_path=f)
         # Report final metrics

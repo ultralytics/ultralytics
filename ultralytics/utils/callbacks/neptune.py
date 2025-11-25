@@ -106,7 +106,7 @@ def on_train_end(trainer) -> None:
     """Log final results, plots, and model weights at the end of training."""
     if run:
         # Log final results, CM matrix + PR plots
-        for f in trainer.plots.keys() + trainer.validator.plots.keys():
+        for f in [*trainer.plots.keys(), *trainer.validator.plots.keys()]:
             if "batch" not in f.name:
                 _log_plot(title=f.stem, plot_path=f)
         # Log the final model

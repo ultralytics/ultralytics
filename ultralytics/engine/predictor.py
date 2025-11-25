@@ -495,7 +495,7 @@ class BasePredictor:
         if getattr(self.args, "show_fps", False):
             mode = getattr(self.dataset, "mode", None)
             if mode in {"video", "stream"}:
-                current_frame_process_time = time.time()
+                current_frame_process_time = time.perf_counter()
                 if self.last_frame_process_time != 0:
                     fps = 1 / max(current_frame_process_time - self.last_frame_process_time, 1e-6)
                     cv2.putText(

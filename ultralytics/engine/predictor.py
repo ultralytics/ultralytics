@@ -497,7 +497,7 @@ class BasePredictor:
             if mode in {"video", "stream"}:
                 current_frame_process_time = time.time()
                 if self.last_frame_process_time != 0:
-                    fps = 1 / (current_frame_process_time - self.last_frame_process_time)
+                    fps = 1 / max(current_frame_process_time - self.last_frame_process_time, 1e-6)
                     cv2.putText(
                         im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2, cv2.LINE_AA
                     )

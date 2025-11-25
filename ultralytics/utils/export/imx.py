@@ -173,10 +173,9 @@ class NMSWrapper(torch.nn.Module):
             out_kpts = torch.gather(kpts, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
             return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_kpts
         if self.task == "segment":
-            mc = outputs[2]
-            p = outputs[3]
+            mc, proto = outputs[2], outputs[3]
             out_mc = torch.gather(mc, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, mc.size(-1)))
-            return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_mc, p
+            return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_mc, proto
         return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, nms_outputs.n_valid
 
 

@@ -1224,6 +1224,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             - The method leverages the model's `_prepare_backbone_features` method to prepare the backbone features.
         """
         self.model.set_imgsz(self.imgsz)
+        self._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
         backbone_out = self.model.forward_image(im)
         if batch > 1:  # expand features if there's more than one prompt
             for i, feat in enumerate(backbone_out["backbone_fpn"]):
@@ -2221,7 +2222,7 @@ class SAM3Predictor(SAM2Predictor):
                 inference.
         """
         # Override the image size check for SAM3
-        super().setup_source(source, stride=14)
+        super().setup_source(source, stride=self.stride)
 
 
 class SAM3VideoPredictor(SAM2VideoPredictor):
@@ -2230,6 +2231,17 @@ class SAM3VideoPredictor(SAM2VideoPredictor):
         (144, 144),
         (72, 72),
     ]
+    stride = 14
+
+    def setup_source(self, source):
+        """Set up source and inference mode.
+
+        Args:
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor): Source for
+                inference.
+        """
+        # Override the image size check for SAM3
+        super().setup_source(source, stride=self.stride)
 
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""
@@ -2267,33 +2279,5 @@ class SAM3VideoPredictor(SAM2VideoPredictor):
             1
         """
         assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(1008, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
+        letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
         return [letterbox(image=x) for x in im]
-
-    # TODO
-    def get_im_features(self, im, batch=1):
-        """Extract and process image features using SAM2's image encoder for subsequent segmentation tasks.
-
-        Args:
-            im (torch.Tensor): The input image tensor.
-            batch (int, optional): The batch size for expanding features if there are multiple prompts.
-
-        Returns:
-            vis_feats (torch.Tensor): The visual features extracted from the image.
-            vis_pos_embed (torch.Tensor): The positional embeddings for the visual features.
-            feat_sizes (list[tuple]): A list containing the sizes of the extracted features.
-
-        Notes:
-            - If `batch` is greater than 1, the features are expanded to fit the batch size.
-            - The method leverages the model's `_prepare_backbone_features` method to prepare the backbone features.
-        """
-        # self.model.set_imgsz(self.imgsz)
-        backbone_out = self.model.forward_image(im)
-        if batch > 1:  # expand features if there's more than one prompt
-            for i, feat in enumerate(backbone_out["backbone_fpn"]):
-                backbone_out["backbone_fpn"][i] = feat.expand(batch, -1, -1, -1)
-            for i, pos in enumerate(backbone_out["vision_pos_enc"]):
-                pos = pos.expand(batch, -1, -1, -1)
-                backbone_out["vision_pos_enc"][i] = pos
-        _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
-        return vis_feats, vis_pos_embed, feat_sizes

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .modules.sam import SAM2Model
 from .modules.utils import get_1d_sine_pe, select_closest_cond_frames
 from .modules.blocks import TwoWayTransformer
@@ -109,6 +111,11 @@ class SAM3Model(SAM2Model):
             backbone_out["backbone_fpn"][0] = self.sam_mask_decoder.conv_s0(backbone_out["backbone_fpn"][0])
             backbone_out["backbone_fpn"][1] = self.sam_mask_decoder.conv_s1(backbone_out["backbone_fpn"][1])
         return backbone_out
+
+    def set_imgsz(self, imgsz: tuple[int, int]):
+        """Set the image size for the model and mask downsampler."""
+        super().set_imgsz(imgsz)
+        self.memory_encoder.mask_downsampler.interpol_size = [size // 14 * 16 for size in imgsz]
 
     def _prepare_memory_conditioned_features(
         self,

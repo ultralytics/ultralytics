@@ -1077,6 +1077,7 @@ class PatchEmbed(nn.Module):
         padding: tuple[int, int] = (0, 0),
         in_chans: int = 3,
         embed_dim: int = 768,
+        bias: bool = True
     ) -> None:
         """Initialize the PatchEmbed module for converting image patches to embeddings.
 
@@ -1089,6 +1090,7 @@ class PatchEmbed(nn.Module):
             padding (tuple[int, int]): Padding applied to the input before convolution.
             in_chans (int): Number of input image channels.
             embed_dim (int): Dimensionality of the output patch embeddings.
+            bias (bool): If True, adds a learnable bias to the convolutional layer.
 
         Examples:
             >>> patch_embed = PatchEmbed(kernel_size=(16, 16), stride=(16, 16), in_chans=3, embed_dim=768)
@@ -1099,7 +1101,7 @@ class PatchEmbed(nn.Module):
         """
         super().__init__()
 
-        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Compute patch embedding by applying convolution and transposing resulting tensor."""

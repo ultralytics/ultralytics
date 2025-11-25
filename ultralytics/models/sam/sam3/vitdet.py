@@ -25,6 +25,7 @@ except ModuleNotFoundError:
     # compatibility for older timm versions
     from timm.models.layers import DropPath, Mlp
 from torch import Tensor
+from ultralytics.models.sam.modules.blocks import PatchEmbed
 
 from .model_misc import LayerScale
 
@@ -284,46 +285,6 @@ def concat_rel_pos(
     return q, k
 
 
-class PatchEmbed(nn.Module):
-    """
-    Image to Patch Embedding.
-    """
-
-    def __init__(
-        self,
-        kernel_size: Tuple[int, int] = (16, 16),
-        stride: Tuple[int, int] = (16, 16),
-        padding: Tuple[int, int] = (0, 0),
-        in_chans: int = 3,
-        embed_dim: int = 768,
-        bias: bool = True,
-    ):
-        """
-        Args:
-            kernel_size (Tuple): kernel size of the projection layer.
-            stride (Tuple): stride of the projection layer.
-            padding (Tuple): padding size of the projection layer.
-            in_chans (int): Number of input image channels.
-            embed_dim (int):  embed_dim (int): Patch embedding dimension.
-        """
-        super().__init__()
-
-        self.proj = nn.Conv2d(
-            in_chans,
-            embed_dim,
-            kernel_size=kernel_size,
-            stride=stride,
-            padding=padding,
-            bias=bias,
-        )
-
-    def forward(self, x: Tensor) -> Tensor:
-        x = self.proj(x)
-        # B C H W -> B H W C
-        x = x.permute(0, 2, 3, 1)
-        return x
-
-
 class Attention(nn.Module):
     """Multi-head Attention block with relative position embeddings and 2d-rope."""
 
@@ -438,14 +399,14 @@ class Attention(nn.Module):
             cls_freqs_cis = torch.polar(torch.ones_like(t), t)[None, :]
             freqs_cis = torch.cat([cls_freqs_cis, freqs_cis], dim=0)
 
-        self.register_buffer("freqs_cis", freqs_cis)
+        self.freqs_cis = freqs_cis
 
     def _apply_rope(self, q, k) -> Tuple[Tensor, Tensor]:
         if not self.use_rope:
             return q, k
 
         assert self.freqs_cis is not None
-        return apply_rotary_enc(q, k, freqs_cis=self.freqs_cis)
+        return apply_rotary_enc(q, k, freqs_cis=self.freqs_cis.to(q.device))
 
     def forward(self, x: Tensor) -> Tensor:
         s = 1 if self.cls_token else 0  # used to exclude cls_token

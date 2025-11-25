@@ -12,7 +12,7 @@ keywords: Axelera AI, Metis AIPU, Europa, Voyager SDK, Edge AI, YOLOv8, YOLO11, 
 
 ![Axelera AI Ecosystem](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
 
-**Axelera AI** delivers the world's most powerful solutions for AI at the edge. Their technology moves beyond standard processing, bringing **Large Language Models (LLMs)** and **Vision Language Models (VLMs)** out of the cloud and onto on-premise devices.
+**Axelera AI** delivers powerful solutions for AI at the edge. Their technology moves beyond standard processing, bringing **Large Language Models (LLMs)** and **Vision Language Models (VLMs)** out of the cloud and onto on-premise devices.
 
 At the core is the **Metis® AI Processing Unit (AIPU)**, which utilizes a novel dataflow architecture and [in-memory computing](https://docs.ultralytics.com/glossary/edge-computing) to deliver massive throughput (up to **856 TOPS**) with exceptional power efficiency. Whether you are deploying [object detection](https://docs.ultralytics.com/tasks/detect/) in drones or video analytics in servers, Axelera offers a scalable hardware portfolio.
 

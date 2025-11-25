@@ -22,7 +22,7 @@ It **does not**:
 ## Python
 
 ```python
-from ultralytics.data.converter import convert_labelbox
+from ultralytics.data.labelbox import convert_labelbox
 
 convert_labelbox(
     labels_path="export.ndjson",

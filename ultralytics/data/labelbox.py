@@ -129,7 +129,9 @@ def convert_labelbox(
             LOGGER.warning(f"Image not found for Labelbox row, skipping: {src_image}")
             continue
 
-        dst_image = images_out / external_id
+        # Preserve subdirectory structure from externalId (e.g., "floor1/cam0.jpg")
+        relative_path = Path(external_id)
+        dst_image = images_out / relative_path
         dst_image.parent.mkdir(parents=True, exist_ok=True)
         if not dst_image.exists():
             shutil.copy2(src_image, dst_image)
@@ -158,10 +160,11 @@ def convert_labelbox(
             label_lines.append(line)
             n_boxes += 1
 
-        if label_lines:
-            n_images += 1
-            label_file = labels_out / f"{Path(external_id).stem}.txt"
-            label_file.write_text("\n".join(label_lines) + "\n", encoding="utf-8")
+        # Always write a label file (empty if no annotations) to match YOLO dataloader expectations
+        label_file = labels_out / relative_path.with_suffix(".txt")
+        label_file.parent.mkdir(parents=True, exist_ok=True)
+        label_file.write_text("\n".join(label_lines) + "\n" if label_lines else "", encoding="utf-8")
+        n_images += 1
 
     # Write dataset YAML (standard YOLO layout)
     names = {v: k for k, v in name_to_id.items()}

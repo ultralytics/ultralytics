@@ -1085,7 +1085,7 @@ class Exporter:
         check_requirements("axelera-voyager-sdk==1.5.0-rc6", cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc6/build-packages-ubuntu-22.04/python")
 
         from axelera import compiler
-        from axelera.compiler import CompilerConfig, top_level
+        from axelera.compiler import CompilerConfig
         
         self.args.opset = 17
         onnx_path = self.export_onnx()

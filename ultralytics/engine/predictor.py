@@ -492,7 +492,13 @@ class BasePredictor:
         im = self.plotted_img
 
         # FPS calculation
-        if self.args.show_fps:
+        if self.last_frame_process_time:
+                current_frame_process_time = time.time()
+                fps = 1 / (current_frame_process_time - self.last_frame_process_time) if current_frame_process_time != self.last_frame_process_time else 0
+                cv2.putText(im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2, cv2.LINE_AA)
+                self.last_frame_process_time = current_frame_process_time
+            else:
+                self.last_frame_process_time = time.time()
             current_frame_process_time = time.time()
             fps = (
                 1 / (current_frame_process_time - self.last_frame_process_time)

@@ -492,7 +492,7 @@ class BasePredictor:
         im = self.plotted_img
 
         # FPS calculation
-        if self.args.show_fps:
+        if getattr(self.args, "show_fps", False):
             mode = getattr(self.dataset, "mode", None)
             if mode in {"video", "stream"}:
                 current_frame_process_time = time.time()

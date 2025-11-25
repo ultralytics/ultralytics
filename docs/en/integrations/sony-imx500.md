@@ -39,10 +39,10 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 
 Currently, you can only export models that include the following tasks to IMX500 format.
 
-- [Object detection](https://docs.ultralytics.com/tasks/detect/)
-- [Pose estimation](https://docs.ultralytics.com/tasks/pose/)
+- [Object Detection](https://docs.ultralytics.com/tasks/detect/)
+- [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)
 - [Classification](https://docs.ultralytics.com/tasks/classify/)
-- [Segmentation](https://docs.ultralytics.com/tasks/segment/)
+- [Instance segmentation](https://docs.ultralytics.com/tasks/segment/)
 
 ## Usage Examples
 
@@ -142,7 +142,7 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          yolo predict model=yolo11n-cls_imx_model source='https://ultralytics.com/images/bus.jpg' imgsz=224
          ```
 
-!!! example "Segmentation"
+!!! example "Instance Segmentation"
 
     === "Python"
 
@@ -233,7 +233,7 @@ The export process will create an ONNX model for quantization validation, along 
         └── yolo11n-cls_imx.pbtxt
         ```
 
-    === "Segmentation"
+    === "Instance Segmentation"
 
         ```bash
         yolo11n-seg_imx_model
@@ -430,7 +430,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 frame.display()
         ```
 
-    === "Segmentation"
+    === "Instance Segmentation"
 
         ```python
         import numpy as np
@@ -460,6 +460,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 )
 
             def post_process(self, output_tensors):
+                """Post-process the output tensors for instance segmentation."""
                 return pp_yolo_segment_ultralytics(output_tensors)
 
         device = AiCamera(frame_rate=17) # Optimal frame rate for maximum DPS of the YOLO-seg model running on the AI Camera
@@ -469,12 +470,12 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
         annotator = Annotator()
 
         with device as stream:
-        for frame in stream:
-        detections = frame.detections[frame.detections.confidence > 0.3]
-        labels = [f"{model.labels[c]}" for m, c, s, _, _ in detections]
-        annotator.annotate_instance_segments(frame, detections)
-        annotator.annotate_boxes(frame, detections, labels=labels)
+            for frame in stream:
+                detections = frame.detections[frame.detections.confidence > 0.4]
 
+                labels = [f"{model.labels[c]}" for m, c, s, _, _ in detections]
+                annotator.annotate_instance_segments(frame, detections)
+                annotator.annotate_boxes(frame, detections, labels=labels)
                 frame.display()
         ```
 

@@ -104,7 +104,7 @@ Convert a YOLO11 model for Metis deployment.
 !!! example "Export to Axelera Format"
 
     !!! note "Future example — will work when runtime is released"
-    
+
         This code block demonstrates the planned flow. It will require the upcoming Axelera runtime package (ETA Q1 2026) to execute successfully.
 
     === "Python"

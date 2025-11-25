@@ -11,9 +11,9 @@ import torch
 
 from ultralytics.nn.modules import Detect, Pose, Segment
 from ultralytics.utils import LOGGER
+from ultralytics.utils.patches import onnx_export_patch
 from ultralytics.utils.tal import make_anchors
 from ultralytics.utils.torch_utils import copy_attr
-from ultralytics.utils.patches import onnx_export_patch
 
 # Configuration for Model Compression Toolkit (MCT) quantization
 MCT_CONFIG = {

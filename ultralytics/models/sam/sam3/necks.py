@@ -123,3 +123,7 @@ class Sam3DualViTDetNeck(nn.Module):
                 sam2_out.append(sam2_x_out)
                 sam2_pos.append(sam2_pos_out)
         return sam3_out, sam3_pos, sam2_out, sam2_pos
+
+    def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
+        """Set the image size for the trunk backbone"""
+        self.trunk.set_imgsz(imgsz)

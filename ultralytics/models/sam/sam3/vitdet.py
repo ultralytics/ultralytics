@@ -337,41 +337,41 @@ class Attention(nn.Module):
         self.rope_interp = rope_interp
 
         # init rel_pos embeddings and rope
-        self._setup_rel_pos(rel_pos_zero_init)
-        self._setup_rope_freqs()
+        self._setup_rel_pos(rel_pos_zero_init, input_size)
+        self._setup_rope_freqs(input_size)
 
-    def _setup_rel_pos(self, rel_pos_zero_init: bool = True) -> None:
+    def _setup_rel_pos(self, rel_pos_zero_init: bool = True, input_size: Optional[Tuple[int, int]] = None) -> None:
         if not self.use_rel_pos:
             self.rel_pos_h = None
             self.rel_pos_w = None
             return
 
-        assert self.input_size is not None
+        assert input_size is not None
         assert self.cls_token is False, "not supported"
         # initialize relative positional embeddings
-        self.rel_pos_h = nn.Parameter(torch.zeros(2 * self.input_size[0] - 1, self.head_dim))
-        self.rel_pos_w = nn.Parameter(torch.zeros(2 * self.input_size[1] - 1, self.head_dim))
+        self.rel_pos_h = nn.Parameter(torch.zeros(2 * input_size[0] - 1, self.head_dim))
+        self.rel_pos_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, self.head_dim))
 
         if not rel_pos_zero_init:
             nn.init.trunc_normal_(self.rel_pos_h, std=0.02)
             nn.init.trunc_normal_(self.rel_pos_w, std=0.02)
 
         # Precompute the relative coords
-        H, W = self.input_size
+        H, W = input_size
         q_coords = torch.arange(H)[:, None]
         k_coords = torch.arange(W)[None, :]
         relative_coords = (q_coords - k_coords) + (H - 1)
-        self.register_buffer("relative_coords", relative_coords.long())
+        self.relative_coords = relative_coords.long()
 
-    def _setup_rope_freqs(self) -> None:
+    def _setup_rope_freqs(self, input_size: Optional[Tuple[int, int]] = None) -> None:
         if not self.use_rope:
             self.freqs_cis = None
             return
 
-        assert self.input_size is not None
+        assert input_size is not None
         # determine rope input size
         if self.rope_pt_size is None:
-            self.rope_pt_size = self.input_size
+            self.rope_pt_size = input_size
 
         # initialize 2d rope freqs
         self.compute_cis = partial(
@@ -383,11 +383,11 @@ class Attention(nn.Module):
         # interpolate rope
         scale_pos = 1.0
         if self.rope_interp:
-            scale_pos = self.rope_pt_size[0] / self.input_size[0]
+            scale_pos = self.rope_pt_size[0] / input_size[0]
         # get scaled freqs_cis
         freqs_cis = self.compute_cis(
-            end_x=self.input_size[0],
-            end_y=self.input_size[1],
+            end_x=input_size[0],
+            end_y=input_size[1],
             scale_pos=scale_pos,
         )
         if self.cls_token:
@@ -676,6 +676,8 @@ class ViT(nn.Module):
         # stochastic depth decay rule
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]
 
+        self.patch_size = patch_size
+        self.window_size = window_size
         self.blocks = nn.ModuleList()
         cur_stage = 1
         for i in range(depth):
@@ -794,3 +796,11 @@ class ViT(nn.Module):
 
     def get_num_layers(self) -> int:
         return len(self.blocks)
+
+    def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
+        """Setup rel pos embeddings and rope freqs for a new input image size."""
+        for block in self.blocks:
+            if block.window_size != 0:
+                continue
+            block.attn._setup_rel_pos(input_size=(imgsz[0] // self.patch_size, imgsz[1] // self.patch_size))
+            block.attn._setup_rope_freqs(input_size=(imgsz[0] // self.patch_size, imgsz[1] // self.patch_size))

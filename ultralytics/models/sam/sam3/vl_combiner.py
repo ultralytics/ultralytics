@@ -174,3 +174,7 @@ class SAM3VLBackbone(nn.Module):
         )
 
         return output
+
+    def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
+        """Set the image size for the vision backbone"""
+        self.vision_backbone.set_imgsz(imgsz)

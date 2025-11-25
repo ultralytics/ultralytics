@@ -1021,6 +1021,8 @@ class SAM2Model(torch.nn.Module):
 
     def set_imgsz(self, imgsz):
         """Set image size to make model compatible with different image sizes."""
+        if hasattr(self.image_encoder, "set_imgsz"):
+            self.image_encoder.set_imgsz(imgsz)
         self.image_size = imgsz[0]
         self.sam_prompt_encoder.input_image_size = imgsz
         self.sam_prompt_encoder.image_embedding_size = [x // self.backbone_stride for x in imgsz]  # fixed ViT patch size of 16

@@ -6,6 +6,10 @@ keywords: Axelera AI, Metis AIPU, Europa, Voyager SDK, Edge AI, YOLOv8, YOLO11, 
 
 # Axelera AI Acceleration
 
+!!! note "Coming soon — Q1 2026 availability"
+
+    Axelera export/runtime support in `ultralytics` is **in progress** and slated for **Q1 2026**. The examples on this page describe the expected workflow and will work once the Axelera runtime package is published.
+
 !!! note "Partner Integration"
 
     Ultralytics partners with **Axelera AI** to streamline high-performance, energy-efficient inference on [Edge AI](https://docs.ultralytics.com/glossary/edge-ai) devices. This integration allows users to export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** and **Europa®** platforms using the **Voyager SDK**.
@@ -79,6 +83,10 @@ Key features for Ultralytics users:
 
 To use Axelera acceleration, you need the `ultralytics` package installed. Note that the Voyager SDK is a separate system-level installation required to interface with the hardware.
 
+!!! note "Axelera runtime pending release"
+
+    Axelera-specific wheels are not yet published to PyPI or the Axelera portal. Installation commands below represent the **future** workflow once the runtime becomes available (ETA Q1 2026).
+
 ```bash
 # Install Ultralytics
 pip install ultralytics
@@ -89,7 +97,7 @@ pip install ultralytics
 
 ## Exporting YOLO Models to Axelera
 
-You can export your trained YOLO models to the Axelera format using the standard Ultralytics export command. This process generates the artifacts required by the Voyager compiler.
+When the Axelera runtime package ships (target Q1 2026), you will export your trained YOLO models to the Axelera format using the standard Ultralytics export command. This process generates the artifacts required by the Voyager compiler.
 
 !!! warning "Voyager SDK Required"
 
@@ -125,26 +133,26 @@ For available arguments, refer to the [Export Mode documentation](https://docs.u
 
 ## Running Inference
 
-Once exported, inference is typically managed via the Voyager SDK's runtime bindings. Below is a conceptual example of running a compiled YOLO model.
+Once exported, you will be able to load the Axelera-compiled model directly with the `ultralytics` API (similar to loading [ONNX](https://docs.ultralytics.com/integrations/onnx/) models). The example below shows the expected usage pattern for running inference and saving results after the runtime package ships.
 
 ```python
-# Pseudo-code for running inference with Axelera runtime
-import cv2
-from axelera.runtime import InferenceSession  # Hypothetical import
+from ultralytics import YOLO
 
-# Initialize the Axelera Inference Session with your compiled model
-session = InferenceSession("yolo11n_metis.axmodel")
+# Load the Axelera-compiled model (example path; same flow as ONNX)
+model = YOLO("yolo11n_axelera.axmodel")  # will work once Axelera runtime is released
 
-# Load and preprocess image
-image = cv2.imread("path/to/image.jpg")
-input_data = preprocess(image)  # Resize and normalize as per model requirements
+# Run inference; you can pass a file, folder, glob, or list of sources
+results = model("path/to/images", imgsz=640, save=True)
 
-# Run inference on the AIPU
-results = session.run(input_data)
+# Iterate over result objects to inspect or render detections
+for r in results:
+    boxes = r.boxes  # bounding boxes tensor + metadata
+    print(f"Detected {len(boxes)} objects")
 
-# Process results (NMS, coordinate scaling)
-detections = postprocess(results)
-print(f"Detected {len(detections)} objects")
+    # Save visuals per result (files saved alongside inputs)
+    r.save()  # saves annotated image(s) to disk
+    # Or display interactively (desktop environments)
+    # r.show()
 ```
 
 ## Inference Performance

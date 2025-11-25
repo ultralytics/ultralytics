@@ -10,7 +10,7 @@ keywords: Axelera AI, Metis AIPU, Europa, Voyager SDK, Edge AI, YOLOv8, YOLO11, 
 
     Ultralytics partners with **Axelera AI** to bring high-performance, energy-efficient inference to [Edge AI](https://docs.ultralytics.com/glossary/edge-ai). The integration seamlessly connects Ultralytics [YOLO models](https://docs.ultralytics.com/models/) with the **Metis® AIPU** and **Europa®** platforms via the **Voyager SDK**, enabling advanced [computer vision](https://docs.ultralytics.com/glossary/computer-vision-cv) and Generative AI applications.
 
-![Axelera AI Ecosystem](https://github.com/ultralytics/docs/releases/download/0/axelera-ecosystem-overview.webp)
+![Axelera AI Ecosystem](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
 
 **Axelera AI** delivers the world's most powerful solutions for AI at the edge. Their technology moves beyond standard processing, bringing **Large Language Models (LLMs)** and **Vision Language Models (VLMs)** out of the cloud and onto on-premise devices.
 

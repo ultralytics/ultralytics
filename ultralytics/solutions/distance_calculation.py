@@ -65,14 +65,9 @@ class DistanceCalculation(BaseSolution):
             self.selected_boxes = {}
             self.left_mouse_count = 0
 
-<<<<<<< HEAD
     def process(self, im0):
         """
         Processes a video frame and calculates the distance between two selected bounding boxes.
-=======
-    def calculate(self, im0):
-        """Processes a video frame and calculates the distance between two selected bounding boxes.
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         This method extracts tracks from the input frame, annotates bounding boxes, and calculates the distance
         between two user-selected objects if they have been chosen.

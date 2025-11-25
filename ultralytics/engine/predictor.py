@@ -38,9 +38,9 @@ from __future__ import annotations
 import platform
 import re
 import threading
+import time
 from pathlib import Path
 from typing import Any
-import time
 
 import cv2
 import numpy as np
@@ -490,7 +490,7 @@ class BasePredictor:
     def show(self, p: str = ""):
         """Display an image in a window with FPS overlay if enabled."""
         im = self.plotted_img
-        
+
         # FPS calculation
         if self.args.show_fps:
             if self.last_frame_process_time:

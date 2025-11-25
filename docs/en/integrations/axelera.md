@@ -69,7 +69,7 @@ For availability, visit the [Axelera AI Store](https://store.axelera.ai/).
 
 ## Voyager SDK
 
-The **Voyager SDK** is the comprehensive software stack enabling the Metis AIPU. It abstracts the complexity of [NPU](https://docs.ultralytics.com/glossary/neural-network-nn) programming, allowing developers to go from [PyTorch](https://pytorch.org/) to the edge in minutes.
+The **Voyager SDK** is the comprehensive software stack enabling the Metis AIPU. It abstracts the complexity of NPU programming, allowing developers to go from [PyTorch](https://pytorch.org/) to the edge in minutes.
 
 Key capabilities include:
 

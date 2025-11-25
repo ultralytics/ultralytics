@@ -1458,7 +1458,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             "maskmem_features": None,
             "maskmem_pos_enc": None,
             "pred_masks": torch.full(
-                size=(batch_size, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
+                # size=(batch_size, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
+                size=(batch_size, 1, *self._bb_feat_sizes[0]),
                 fill_value=-1024.0,
                 dtype=self.torch_dtype,
                 device=self.device,
@@ -2250,3 +2251,78 @@ class SAM3InterativePredictor(SAM2Predictor):
             feat.permute(1, 2, 0).view(1, -1, *feat_size) for feat, feat_size in zip(vision_feats, self._bb_feat_sizes)
         ]
         return {"image_embed": feats[-1], "high_res_feats": feats[:-1]}
+
+class SAM3VideoPredictor(SAM2VideoPredictor):
+
+    _bb_feat_sizes = [
+        (288, 288),
+        (144, 144),
+        (72, 72),
+    ]
+
+    def setup_model(self, model=None, verbose=True):
+        """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""
+        super().setup_model(model, verbose)
+        # update mean and std
+        self.mean = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
+        self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
+
+    def get_model(self):
+        """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
+        from .build_sam3 import build_interactive_sam3  # slow import
+
+        return build_interactive_sam3(self.args.model)
+
+    def pre_transform(self, im):
+        """Perform initial transformations on the input image for preprocessing.
+
+        This method applies transformations such as resizing to prepare the image for further preprocessing. Currently,
+        batched inference is not supported; hence the list length should be 1.
+
+        Args:
+            im (list[np.ndarray]): List containing a single image in HWC numpy array format.
+
+        Returns:
+            (list[np.ndarray]): List containing the transformed image.
+
+        Raises:
+            AssertionError: If the input list contains more than one image.
+
+        Examples:
+            >>> predictor = Predictor()
+            >>> image = np.random.rand(480, 640, 3)  # Single HWC image
+            >>> transformed = predictor.pre_transform([image])
+            >>> print(len(transformed))
+            1
+        """
+        assert len(im) == 1, "SAM model does not currently support batched inference"
+        letterbox = LetterBox(1008, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
+        return [letterbox(image=x) for x in im]
+
+    # TODO
+    def get_im_features(self, im, batch=1):
+        """Extract and process image features using SAM2's image encoder for subsequent segmentation tasks.
+
+        Args:
+            im (torch.Tensor): The input image tensor.
+            batch (int, optional): The batch size for expanding features if there are multiple prompts.
+
+        Returns:
+            vis_feats (torch.Tensor): The visual features extracted from the image.
+            vis_pos_embed (torch.Tensor): The positional embeddings for the visual features.
+            feat_sizes (list[tuple]): A list containing the sizes of the extracted features.
+
+        Notes:
+            - If `batch` is greater than 1, the features are expanded to fit the batch size.
+            - The method leverages the model's `_prepare_backbone_features` method to prepare the backbone features.
+        """
+        # self.model.set_imgsz(self.imgsz)
+        backbone_out = self.model.forward_image(im)
+        if batch > 1:  # expand features if there's more than one prompt
+            for i, feat in enumerate(backbone_out["backbone_fpn"]):
+                backbone_out["backbone_fpn"][i] = feat.expand(batch, -1, -1, -1)
+            for i, pos in enumerate(backbone_out["vision_pos_enc"]):
+                pos = pos.expand(batch, -1, -1, -1)
+                backbone_out["vision_pos_enc"][i] = pos
+        _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
+        return vis_feats, vis_pos_embed, feat_sizes

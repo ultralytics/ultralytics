@@ -1075,51 +1075,66 @@ class Exporter:
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
         return str(f)
-    
+
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """YOLO Axelera export."""
         # apt update && apt install git python3-dev python3-pip -y
         # install libllvm14 libgirepository1.0-dev pkg-config libcairo2-dev
-        
-        check_requirements("axelera-voyager-sdk==1.5.0-rc6", cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc6/build-packages-ubuntu-22.04/python")
+
+        check_requirements(
+            "axelera-voyager-sdk==1.5.0-rc6",
+            cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc6/build-packages-ubuntu-22.04/python",
+        )
 
         from axelera import compiler
         from axelera.compiler import CompilerConfig
-        
+
         self.args.opset = 17
         onnx_path = self.export_onnx()
         model_name = f"{Path(onnx_path).stem}"
         export_path = Path(f"{model_name}_axelera_model")
         export_path.mkdir(exist_ok=True)
-                
+
         assert not self.args.dynamic, "Axelera does not support Dynamic tensor"
         assert not self.args.int8, "Axelera only supports int8 input; the model runs in mixed precision on hardware"
-        
+
         def transform_fn(data_item) -> np.ndarray:
             data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
             assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
             im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
             return np.expand_dims(im, 0) if im.ndim == 3 else im
-        
-        if "C2PSA" in self.model.__str__(): # YOLO11
-            config = CompilerConfig(ptq_scheme="per_tensor_min_max", ignore_weight_buffers=False, resources_used=0.25, aipu_cores_used=1, multicore_mode="batch", output_axm_format=True, model_name=model_name)
-        else: # YOLOv8
-            config = CompilerConfig(tiling_depth=6, split_buffer_promotion=True, resources_used=0.25, aipu_cores_used=1, multicore_mode="batch", output_axm_format=True, model_name=model_name)
-        
+
+        if "C2PSA" in self.model.__str__():  # YOLO11
+            config = CompilerConfig(
+                ptq_scheme="per_tensor_min_max",
+                ignore_weight_buffers=False,
+                resources_used=0.25,
+                aipu_cores_used=1,
+                multicore_mode="batch",
+                output_axm_format=True,
+                model_name=model_name,
+            )
+        else:  # YOLOv8
+            config = CompilerConfig(
+                tiling_depth=6,
+                split_buffer_promotion=True,
+                resources_used=0.25,
+                aipu_cores_used=1,
+                multicore_mode="batch",
+                output_axm_format=True,
+                model_name=model_name,
+            )
+
         qmodel = compiler.quantize(
             model=onnx_path,
             calibration_dataset=self.get_int8_calibration_dataloader(prefix),
             config=config,
-            transform_fn=transform_fn
+            transform_fn=transform_fn,
         )
-        
-        compiler.compile(
-            model=qmodel,
-            config=config,
-            output_dir=export_path
-        )
-        
+
+        compiler.compile(model=qmodel, config=config, output_dir=export_path)
+
         return f"{model_name}.axm"
 
     @try_export

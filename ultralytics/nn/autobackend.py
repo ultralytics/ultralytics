@@ -570,7 +570,7 @@ class AutoBackend(nn.Module):
             rknn_model.load_rknn(str(w))
             rknn_model.init_runtime()
             metadata = w.parent / "metadata.yaml"
-            
+
         # Axelera
         elif axelera:
             from axelera.runtime import op
@@ -797,7 +797,7 @@ class AutoBackend(nn.Module):
             im = (im.cpu().numpy() * 255).astype("uint8")
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im)
-            
+
         # Axelera
         elif self.axelera:
             im = im.cpu()

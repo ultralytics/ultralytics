@@ -1979,6 +1979,7 @@ class SAM3SemanticPredictor(Predictor):
     @smart_inference_mode()
     def get_im_features(self, im):
         """Extract image features using the model's backbone."""
+        self.model.backbone.set_imgsz(self.imgsz)
         return self.model.backbone.forward_image(im)
 
     def pre_transform(self, im):
@@ -2004,7 +2005,7 @@ class SAM3SemanticPredictor(Predictor):
             1
         """
         assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(1008, auto=False, center=False, scale_fill=True)  # hardcode here for sam3
+        letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=True)  # hardcode here for sam3
         return [letterbox(image=x) for x in im]
 
     def setup_model(self, model=None, verbose=True):

@@ -204,7 +204,6 @@ def _create_sam3_model(
     input_geometry_encoder,
     segmentation_head,
     dot_prod_scoring,
-    inst_interactive_predictor,
 ):
     """Create the SAM3 image model."""
     common_params = {
@@ -217,7 +216,7 @@ def _create_sam3_model(
         "dot_prod_scoring": dot_prod_scoring,
         "use_instance_query": False,
         "multimask_output": True,
-        "inst_interactive_predictor": inst_interactive_predictor,
+        "inst_interactive_predictor": None,
         "matcher": None,
     }
 
@@ -345,12 +344,7 @@ def build_sam3_image_model(
 
     # Create geometry encoder
     input_geometry_encoder = _create_geometry_encoder()
-    if enable_inst_interactivity:
-        # sam3_pvs_base = build_tracker(apply_temporal_disambiguation=False)
-        # inst_predictor = SAM3InteractiveImagePredictor(sam3_pvs_base)
-        pass
-    else:
-        inst_predictor = None
+
     # Create the SAM3 model
     model = _create_sam3_model(
         backbone,
@@ -358,7 +352,6 @@ def build_sam3_image_model(
         input_geometry_encoder,
         segmentation_head,
         dot_prod_scoring,
-        inst_predictor,
     )
 
     # Load checkpoint if provided
@@ -543,12 +536,6 @@ def _load_checkpoint_interactive(model, checkpoint):
             if "tracker.maskmem_backbone" in k
         }
     )
-    sam3_image_ckpt.update(
-        {
-            k.replace("tracker.", ""): v
-            for k, v in ckpt.items()
-            if "tracker." in k
-        }
-    )
+    sam3_image_ckpt.update({k.replace("tracker.", ""): v for k, v in ckpt.items() if "tracker." in k})
     model.load_state_dict(sam3_image_ckpt, strict=False)
     return model

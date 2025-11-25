@@ -47,7 +47,7 @@ class SAM(Model):
         >>>     print(f"Detected {len(r.masks)} masks")
     """
 
-    def __init__(self, model: str = "sam_b.pt", bpe_path=None) -> None:
+    def __init__(self, model: str = "sam_b.pt") -> None:
         """Initialize the SAM (Segment Anything Model) instance.
 
         Args:
@@ -64,7 +64,6 @@ class SAM(Model):
             raise NotImplementedError("SAM prediction requires pre-trained *.pt or *.pth model.")
         self.is_sam2 = "sam2" in Path(model).stem
         self.is_sam3 = "sam3" in Path(model).stem
-        self.bpe_path = bpe_path
         super().__init__(model=model, task="segment")
 
     def _load(self, weights: str, task=None):
@@ -79,10 +78,10 @@ class SAM(Model):
             >>> sam._load("path/to/custom_weights.pt")
         """
         from .build import build_sam  # slow import
-        from .build_sam3 import build_sam3_image_model
+        from .build_sam3 import build_interactive_sam3
 
         if self.is_sam3:
-            self.model = build_sam3_image_model(weights, bpe_path=self.bpe_path)
+            self.model = build_interactive_sam3(weights)
         else:
             self.model = build_sam(weights)
 
@@ -169,9 +168,3 @@ class SAM(Model):
             {'segment': {'predictor': <class 'ultralytics.models.sam.predict.Predictor'>}}
         """
         return {"segment": {"predictor": SAM2Predictor if self.is_sam2 else SAM3Predictor if self.is_sam3 else Predictor}}
-
-    def set_classes(self, text: list[str]):
-        if not self.is_sam3:
-            return 
-        self.model.set_classes(text)
-        self.model.names = text

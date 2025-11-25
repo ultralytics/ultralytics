@@ -1976,7 +1976,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         }
 
 
-class SAM3Predictor(Predictor):
+class SAM3SemanticPredictor(Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -2186,7 +2186,7 @@ class SAM3Predictor(Predictor):
         self.model.text_embeddings = {}
 
 
-class SAM3InterativePredictor(SAM2Predictor):
+class SAM3Predictor(SAM2Predictor):
     """Segment Anything Model 3 (SAM3) Interactive Predictor for image segmentation tasks."""
 
     _bb_feat_sizes = [

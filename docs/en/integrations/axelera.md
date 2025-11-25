@@ -29,10 +29,10 @@ graph TD
 
     C -->|Max Density <br> 30+ Streams| F[**Metis PCIe x4**<br>856 TOPS]
     C -->|Standard PC <br> Low Profile| G[**Metis PCIe x1**<br>214 TOPS]
-    
+
     D -->|Drones & Handhelds| H[**Metis M.2**<br>2280 M-Key]
     D -->|High Performance Embedded| I[**Metis M.2 MAX**<br>Extended Thermal]
-    
+
     E -->|ARM-based All-in-One| J[**Metis Compute Board**<br>RK3588 + AIPU]
     E -->|Prototyping| K[**Arduino Portenta x8**<br>Integration Kit]
 
@@ -51,7 +51,7 @@ Axelera AI's hardware is designed to accelerate [Ultralytics YOLO11](https://doc
 These add-in cards integrate into existing hardware, ideal for [brownfield deployments](https://docs.ultralytics.com/glossary/edge-computing).
 
 | Product           | Form Factor    | Compute            | Performance (INT8) | Ideal Application                                                                                                                           |
-|:------------------|:---------------|:-------------------|:-------------------|:--------------------------------------------------------------------------------------------------------------------------------------------|
+| :---------------- | :------------- | :----------------- | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Metis PCIe x4** | PCIe Gen3 x16  | **4x** Metis AIPUs | **856 TOPS**       | High-density [video analytics](https://docs.ultralytics.com/guides/analytics/), smart cities                                                |
 | **Metis PCIe x1** | PCIe Gen3 x1   | **1x** Metis AIPU  | **214 TOPS**       | Industrial PCs, retail [queue management](https://docs.ultralytics.com/guides/queue-management/)                                            |
 | **Metis M.2**     | M.2 2280 M-Key | **1x** Metis AIPU  | **214 TOPS**       | [Drones](https://docs.ultralytics.com/blog/build-ai-powered-drone-applications-with-ultralytics-yolo11), robotics, portable medical devices |
@@ -61,9 +61,9 @@ These add-in cards integrate into existing hardware, ideal for [brownfield deplo
 
 For a complete out-of-the-box experience, Axelera partners with leading manufacturers.
 
-* **Metis Compute Board**: A powerful standalone unit pairing the Metis AIPU with a Rockchip RK3588 ARM CPU.
-* **Workstations**: Enterprise-grade towers from **Dell** (Precision 3460XE) and **Lenovo** (ThinkStation P360 Ultra) pre-installed with Metis accelerators.
-* **Industrial PCs**: Ruggedized systems from **Advantech** (MIC-770v3) and **Aetina** designed for [manufacturing automation](https://docs.ultralytics.com/solutions/ai-in-manufacturing).
+- **Metis Compute Board**: A powerful standalone unit pairing the Metis AIPU with a Rockchip RK3588 ARM CPU.
+- **Workstations**: Enterprise-grade towers from **Dell** (Precision 3460XE) and **Lenovo** (ThinkStation P360 Ultra) pre-installed with Metis accelerators.
+- **Industrial PCs**: Ruggedized systems from **Advantech** (MIC-770v3) and **Aetina** designed for [manufacturing automation](https://docs.ultralytics.com/solutions/ai-in-manufacturing).
 
 For availability, visit the [Axelera AI Store](https://store.axelera.ai/).
 
@@ -133,22 +133,22 @@ Axelera AI delivers "unmatched performance" for edge applications. By leveraging
 ### Benchmark Highlights
 
 | Metric              | Metis PCIe x4 | Metis M.2    | Note                    |
-|:--------------------|:--------------|:-------------|:------------------------|
+| :------------------ | :------------ | :----------- | :---------------------- |
 | **Peak Throughput** | **856 TOPS**  | 214 TOPS     | INT8 Precision          |
 | **YOLOv5m FPS**     | **~1539 FPS** | ~326 FPS     | 640x640 Input           |
 | **YOLOv5s FPS**     | N/A           | **~827 FPS** | 640x640 Input           |
 | **Efficiency**      | High          | Very High    | Ideal for battery power |
 
-*Benchmarks sourced from Axelera AI public materials (Sept 2025). Actual performance varies by model complexity and input resolution.*
+_Benchmarks sourced from Axelera AI public materials (Sept 2025). Actual performance varies by model complexity and input resolution._
 
 ## Real-World Applications
 
 The combination of Ultralytics YOLO and Axelera hardware enables robust solutions across various industries.
 
-* **Smart Retail**: Utilize [object counting](https://docs.ultralytics.com/guides/object-counting/) and [heatmap analytics](https://docs.ultralytics.com/guides/heatmaps/) to optimize store layouts and checkout flows.
-* **Industrial Safety**: Deploy [PPE detection](https://docs.ultralytics.com/datasets/detect/construction-ppe/) in factories using the ruggedized PCIe cards.
-* **Agriculture**: Run [crop monitoring](https://docs.ultralytics.com/solutions/ai-in-agriculture) and [precision farming](https://docs.ultralytics.com/blog/computer-vision-in-agriculture-transforming-fruit-detection-and-precision-farming) on drones equipped with the Metis M.2 module.
-* **Traffic Management**: Implement [speed estimation](https://docs.ultralytics.com/guides/speed-estimation/) and [license plate recognition](https://docs.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) at the edge without cloud latency.
+- **Smart Retail**: Utilize [object counting](https://docs.ultralytics.com/guides/object-counting/) and [heatmap analytics](https://docs.ultralytics.com/guides/heatmaps/) to optimize store layouts and checkout flows.
+- **Industrial Safety**: Deploy [PPE detection](https://docs.ultralytics.com/datasets/detect/construction-ppe/) in factories using the ruggedized PCIe cards.
+- **Agriculture**: Run [crop monitoring](https://docs.ultralytics.com/solutions/ai-in-agriculture) and [precision farming](https://docs.ultralytics.com/blog/computer-vision-in-agriculture-transforming-fruit-detection-and-precision-farming) on drones equipped with the Metis M.2 module.
+- **Traffic Management**: Implement [speed estimation](https://docs.ultralytics.com/guides/speed-estimation/) and [license plate recognition](https://docs.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) at the edge without cloud latency.
 
 ## FAQ
 

@@ -1,5 +1,4 @@
 from .modules.sam import SAM2Model
-from .sam3.memory import SimpleMaskEncoder
 from .modules.utils import get_1d_sine_pe, select_closest_cond_frames
 from .modules.blocks import TwoWayTransformer
 from .modules.decoders import SAM2MaskDecoder
@@ -275,6 +274,7 @@ class SAM3Model(SAM2Model):
         # pix_feat_with_mem = pix_feat_with_mem.permute(1, 2, 0).view(B, C, H, W)
         # return pix_feat_with_mem
 
+        # TODO
         prompt = torch.cat(to_cat_memory, dim=0)
         prompt_mask = None  # For now, we always masks are zeros anyways
         prompt_pos_embed = torch.cat(to_cat_memory_pos_embed, dim=0)
@@ -291,52 +291,3 @@ class SAM3Model(SAM2Model):
         # reshape the output (HW)BC => BCHW
         pix_feat_with_mem = encoder_out["memory"].permute(1, 2, 0).view(B, C, H, W)
         return pix_feat_with_mem
-
-    # def _encode_new_memory(
-    #     self,
-    #     image,
-    #     current_vision_feats,
-    #     feat_sizes,
-    #     pred_masks_high_res,
-    #     object_score_logits,
-    #     is_mask_from_pts,
-    # ):
-    #     """Encode the current image and its prediction into a memory feature."""
-    #     B = current_vision_feats[-1].size(1)  # batch size on this frame
-    #     C = self.hidden_dim
-    #     H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
-    #     # top-level feature, (HW)BC => BCHW
-    #     pix_feat = current_vision_feats[-1].permute(1, 2, 0).view(B, C, H, W)
-    #     if self.non_overlap_masks_for_mem_enc and not self.training:
-    #         # optionally, apply non-overlapping constraints to the masks (it's applied
-    #         # in the batch dimension and should only be used during eval, where all
-    #         # the objects come from the same video under batch size 1).
-    #         pred_masks_high_res = self._apply_non_overlapping_constraints(pred_masks_high_res)
-    #     # scale the raw mask logits with a temperature before applying sigmoid
-    #     if is_mask_from_pts and not self.training:
-    #         mask_for_mem = (pred_masks_high_res > 0).float()
-    #     else:
-    #         # apply sigmoid on the raw mask logits to turn them into range (0, 1)
-    #         mask_for_mem = torch.sigmoid(pred_masks_high_res)
-    #     # apply scale and bias terms to the sigmoid probabilities
-    #     if self.sigmoid_scale_for_mem_enc != 1.0:
-    #         mask_for_mem = mask_for_mem * self.sigmoid_scale_for_mem_enc
-    #     if self.sigmoid_bias_for_mem_enc != 0.0:
-    #         mask_for_mem = mask_for_mem + self.sigmoid_bias_for_mem_enc
-    #
-    #     if isinstance(self.maskmem_backbone, SimpleMaskEncoder):
-    #         pix_feat = pix_feat.view_as(pix_feat)
-    #         maskmem_out = self.maskmem_backbone(pix_feat, mask_for_mem, skip_mask_sigmoid=True)
-    #     else:
-    #         maskmem_out = self.maskmem_backbone(image, pix_feat, mask_for_mem)
-    #     # Clone the feats and pos_enc to enable compilation
-    #     maskmem_features = self._maybe_clone(maskmem_out["vision_features"])
-    #     maskmem_pos_enc = [self._maybe_clone(m) for m in maskmem_out["vision_pos_enc"]]
-    #     # add a no-object embedding to the spatial memory to indicate that the frame
-    #     # is predicted to be occluded (i.e. no object is appearing in the frame)
-    #     is_obj_appearing = (object_score_logits > 0).float()
-    #     maskmem_features += (1 - is_obj_appearing[..., None, None]) * self.no_obj_embed_spatial[..., None, None].expand(
-    #         *maskmem_features.shape
-    #     )
-    #
-    #     return maskmem_features, maskmem_pos_enc

@@ -82,5 +82,3 @@ def test_convert_labelbox_creates_yolo_dataset(tmp_path: Path):
     # Check image copied
     copied_img = save_dir / "images" / "train" / "img1.jpg"
     assert copied_img.exists()
-
-

@@ -15,45 +15,44 @@ from __future__ import annotations
 
 import json
 import shutil
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable
 
 import yaml
 
 from ultralytics.utils import LOGGER, YAML
 
 
-def load_class_map(path: str | Path) -> Dict[str, int]:
+def load_class_map(path: str | Path) -> dict[str, int]:
     """Load class_name -> class_id mapping from a YAML file.
 
     YAML format:
 
-    classes:
-      class0:
+    classes: class0:
         labelbox: ["labelbox.class0"]
-      class1:
+    class1:
         labelbox: ["labelbox.class1"]
-      class2:
+    class2:
         labelbox: ["labelbox.class2a", "labelbox.class2b"]
     """
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     classes_cfg = cfg.get("classes", {})
-    name_to_id: Dict[str, int] = {}
+    name_to_id: dict[str, int] = {}
     for idx, (class_name, _meta) in enumerate(classes_cfg.items()):
         name_to_id[class_name] = idx
     return name_to_id
 
 
-def load_labelbox_mapping(path: str | Path) -> Dict[str, int]:
+def load_labelbox_mapping(path: str | Path) -> dict[str, int]:
     """Build a mapping from Labelbox label strings to YOLO class IDs.
 
     Uses the same YAML as load_class_map but flattens the labelbox entries.
     """
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     classes_cfg = cfg.get("classes", {})
-    mapping: Dict[str, int] = {}
+    mapping: dict[str, int] = {}
     for idx, (_class_name, meta) in enumerate(classes_cfg.items()):
         for lb_name in meta.get("labelbox", []):
             mapping[lb_name] = idx
@@ -62,7 +61,7 @@ def load_labelbox_mapping(path: str | Path) -> Dict[str, int]:
 
 def parse_labelbox_ndjson(path: str | Path) -> Iterable[dict]:
     """Yield each Labelbox data row (annotation) from an NDJSON export file."""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -175,5 +174,3 @@ def convert_labelbox(
 
     LOGGER.info(f"Labelbox data converted successfully: {n_images} images, {n_boxes} boxes. Saved to {save_dir}.")
     return save_dir / "data.yaml"
-
-

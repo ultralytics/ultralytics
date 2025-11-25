@@ -43,5 +43,3 @@ yolo convert labelbox \
 ```
 
 This will create a YOLO-style folder structure under `save_dir` and a dataset YAML using the class names and IDs from `class_map.yaml`.
-
-

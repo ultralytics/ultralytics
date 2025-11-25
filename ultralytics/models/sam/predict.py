@@ -23,7 +23,6 @@ from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
-from ultralytics.utils.checks import check_imgsz
 from .sam3.data_misc import FindStage
 
 from .amg import (
@@ -165,7 +164,7 @@ class Predictor(BasePredictor):
             1
         """
         assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(self.args.imgsz, auto=False, center=False)
+        letterbox = LetterBox(self.imgsz, auto=False, center=False)
         return [letterbox(image=x) for x in im]
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
@@ -1985,32 +1984,6 @@ class SAM3Predictor(SAM2Predictor):
         from .build_sam3 import build_interactive_sam3  # slow import
 
         return build_interactive_sam3(self.args.model)
-
-    def pre_transform(self, im):
-        """Perform initial transformations on the input image for preprocessing.
-
-        This method applies transformations such as resizing to prepare the image for further preprocessing. Currently,
-        batched inference is not supported; hence the list length should be 1.
-
-        Args:
-            im (list[np.ndarray]): List containing a single image in HWC numpy array format.
-
-        Returns:
-            (list[np.ndarray]): List containing the transformed image.
-
-        Raises:
-            AssertionError: If the input list contains more than one image.
-
-        Examples:
-            >>> predictor = Predictor()
-            >>> image = np.random.rand(480, 640, 3)  # Single HWC image
-            >>> transformed = predictor.pre_transform([image])
-            >>> print(len(transformed))
-            1
-        """
-        assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
-        return [letterbox(image=x) for x in im]
 
 
 class SAM3SemanticPredictor(SAM3Predictor):

@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import LOGGER, ops
+from ultralytics.utils import ops
 from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, kpt_iou
 
 
@@ -45,6 +45,11 @@ class PoseValidator(DetectionValidator):
         >>> args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml")
         >>> validator = PoseValidator(args=args)
         >>> validator()
+
+    Notes:
+        This class extends DetectionValidator with pose-specific functionality. It initializes with sigma values
+        for OKS calculation and sets up PoseMetrics for evaluation. A warning is displayed when using Apple MPS
+        due to a known bug with pose models.
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
@@ -58,28 +63,12 @@ class PoseValidator(DetectionValidator):
             save_dir (Path | str, optional): Directory to save results.
             args (dict, optional): Arguments for the validator including task set to "pose".
             _callbacks (list, optional): List of callback functions to be executed during validation.
-
-        Examples:
-            >>> from ultralytics.models.yolo.pose import PoseValidator
-            >>> args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml")
-            >>> validator = PoseValidator(args=args)
-            >>> validator()
-
-        Notes:
-            This class extends DetectionValidator with pose-specific functionality. It initializes with sigma values
-            for OKS calculation and sets up PoseMetrics for evaluation. A warning is displayed when using Apple MPS
-            due to a known bug with pose models.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.sigma = None
         self.kpt_shape = None
         self.args.task = "pose"
         self.metrics = PoseMetrics()
-        if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
-            LOGGER.warning(
-                "Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
-                "See https://github.com/ultralytics/ultralytics/issues/4031."
-            )
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch by converting keypoints data to float and moving it to the device."""

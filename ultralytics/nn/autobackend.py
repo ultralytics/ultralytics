@@ -689,7 +689,12 @@ class AutoBackend(nn.Module):
                     y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
                 elif self.task == "pose":
                     # boxes, conf, kpts
-                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1)
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1, dtype=y[0].dtype)
+                elif self.task == "segment":
+                    y = (
+                        np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1, dtype=y[0].dtype),
+                        y[4],
+                    )
 
         # OpenVINO
         elif self.xml:

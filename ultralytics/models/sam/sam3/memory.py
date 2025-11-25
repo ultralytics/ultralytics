@@ -74,7 +74,7 @@ class SimpleMaskDownSampler(nn.Module):
                 align_corners=False,
                 mode="bilinear",
                 antialias=True,
-            )
+            ).to(x.dtype)
         return self.encoder(x)
 
 

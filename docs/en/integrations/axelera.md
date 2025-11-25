@@ -130,7 +130,6 @@ Once exported, inference is typically managed via the Voyager SDK's runtime bind
 ```python
 # Pseudo-code for running inference with Axelera runtime
 import cv2
-import numpy as np
 from axelera.runtime import InferenceSession  # Hypothetical import
 
 # Initialize the Axelera Inference Session with your compiled model
@@ -173,13 +172,17 @@ Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
 ## FAQ
 
 ### What YOLO versions are supported on Axelera?
+
 The Voyager SDK and Ultralytics integration support the export of [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/) models.
 
 ### Can I deploy custom trained models?
+
 Yes. Any model trained using [Ultralytics Train Mode](https://docs.ultralytics.com/modes/train/) can be exported to the Axelera format, provided it uses supported layers and operations.
 
 ### How does INT8 quantization affect accuracy?
+
 Axelera's quantization engine uses advanced calibration techniques to minimize accuracy drop. For most detection tasks, the performance gain significantly outweighs the negligible impact on [mAP](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
 
 ### Where can I find the Voyager SDK?
+
 The SDK, drivers, and compiler tools are available via the [Axelera Developer Portal](https://www.axelera.ai/).

@@ -1963,7 +1963,57 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         }
 
 
-class SAM3SemanticPredictor(Predictor):
+class SAM3Predictor(SAM2Predictor):
+    """Segment Anything Model 3 (SAM3) Interactive Predictor for image segmentation tasks."""
+
+    _bb_feat_sizes = [
+        (288, 288),
+        (144, 144),
+        (72, 72),
+    ]
+    stride = 14
+
+    def setup_model(self, model=None, verbose=True):
+        """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""
+        super().setup_model(model, verbose)
+        # update mean and std
+        self.mean = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
+        self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
+
+    def get_model(self):
+        """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
+        from .build_sam3 import build_interactive_sam3  # slow import
+
+        return build_interactive_sam3(self.args.model)
+
+    def pre_transform(self, im):
+        """Perform initial transformations on the input image for preprocessing.
+
+        This method applies transformations such as resizing to prepare the image for further preprocessing. Currently,
+        batched inference is not supported; hence the list length should be 1.
+
+        Args:
+            im (list[np.ndarray]): List containing a single image in HWC numpy array format.
+
+        Returns:
+            (list[np.ndarray]): List containing the transformed image.
+
+        Raises:
+            AssertionError: If the input list contains more than one image.
+
+        Examples:
+            >>> predictor = Predictor()
+            >>> image = np.random.rand(480, 640, 3)  # Single HWC image
+            >>> transformed = predictor.pre_transform([image])
+            >>> print(len(transformed))
+            1
+        """
+        assert len(im) == 1, "SAM model does not currently support batched inference"
+        letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
+        return [letterbox(image=x) for x in im]
+
+
+class SAM3SemanticPredictor(SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, bpe_path=None):
@@ -2007,13 +2057,6 @@ class SAM3SemanticPredictor(Predictor):
         assert len(im) == 1, "SAM model does not currently support batched inference"
         letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=True)  # hardcode here for sam3
         return [letterbox(image=x) for x in im]
-
-    def setup_model(self, model=None, verbose=True):
-        """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""
-        super().setup_model(model, verbose)
-        # update mean and std
-        self.mean = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
-        self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
 
     def _prepare_geometric_prompts(self, src_shape, bboxes=None, labels=None):
         """Prepare prompts by normalizing bounding boxes and points to the destination shape."""
@@ -2172,99 +2215,7 @@ class SAM3SemanticPredictor(Predictor):
         self.model.text_embeddings = {}
 
 
-class SAM3Predictor(SAM2Predictor):
-    """Segment Anything Model 3 (SAM3) Interactive Predictor for image segmentation tasks."""
+class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
+    """Segment Anything Model 3 (SAM3) Video Predictor for video segmentation tasks."""
 
-    _bb_feat_sizes = [
-        (288, 288),
-        (144, 144),
-        (72, 72),
-    ]
-    stride = 14
-
-    def setup_model(self, model=None, verbose=True):
-        """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""
-        super().setup_model(model, verbose)
-        # update mean and std
-        self.mean = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
-        self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
-
-    def get_model(self):
-        """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
-        from .build_sam3 import build_interactive_sam3  # slow import
-
-        return build_interactive_sam3(self.args.model)
-
-    def pre_transform(self, im):
-        """Perform initial transformations on the input image for preprocessing.
-
-        This method applies transformations such as resizing to prepare the image for further preprocessing. Currently,
-        batched inference is not supported; hence the list length should be 1.
-
-        Args:
-            im (list[np.ndarray]): List containing a single image in HWC numpy array format.
-
-        Returns:
-            (list[np.ndarray]): List containing the transformed image.
-
-        Raises:
-            AssertionError: If the input list contains more than one image.
-
-        Examples:
-            >>> predictor = Predictor()
-            >>> image = np.random.rand(480, 640, 3)  # Single HWC image
-            >>> transformed = predictor.pre_transform([image])
-            >>> print(len(transformed))
-            1
-        """
-        assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
-        return [letterbox(image=x) for x in im]
-
-
-class SAM3VideoPredictor(SAM2VideoPredictor):
-    _bb_feat_sizes = [
-        (288, 288),
-        (144, 144),
-        (72, 72),
-    ]
-    stride = 14
-
-    def setup_model(self, model=None, verbose=True):
-        """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""
-        super().setup_model(model, verbose)
-        # update mean and std
-        self.mean = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
-        self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
-
-    def get_model(self):
-        """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
-        from .build_sam3 import build_interactive_sam3  # slow import
-
-        return build_interactive_sam3(self.args.model)
-
-    def pre_transform(self, im):
-        """Perform initial transformations on the input image for preprocessing.
-
-        This method applies transformations such as resizing to prepare the image for further preprocessing. Currently,
-        batched inference is not supported; hence the list length should be 1.
-
-        Args:
-            im (list[np.ndarray]): List containing a single image in HWC numpy array format.
-
-        Returns:
-            (list[np.ndarray]): List containing the transformed image.
-
-        Raises:
-            AssertionError: If the input list contains more than one image.
-
-        Examples:
-            >>> predictor = Predictor()
-            >>> image = np.random.rand(480, 640, 3)  # Single HWC image
-            >>> transformed = predictor.pre_transform([image])
-            >>> print(len(transformed))
-            1
-        """
-        assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
-        return [letterbox(image=x) for x in im]
+    pass

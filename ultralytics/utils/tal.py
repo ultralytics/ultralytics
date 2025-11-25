@@ -33,6 +33,7 @@ class TaskAlignedAssigner(nn.Module):
         stride: list = [8, 16, 32],
         stride_ratio: float = 1.0,
         eps: float = 1e-9,
+        topk2=None,
     ):
         """
         Initialize a TaskAlignedAssigner object with customizable hyperparameters.
@@ -46,6 +47,7 @@ class TaskAlignedAssigner(nn.Module):
         """
         super().__init__()
         self.topk = topk
+        self.topk2 = topk2 or topk
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -121,7 +123,7 @@ class TaskAlignedAssigner(nn.Module):
             pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt
         )
 
-        target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(mask_pos, overlaps, self.n_max_boxes)
+        target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(mask_pos, overlaps, self.n_max_boxes, align_metric)
 
         # Assigned target
         target_labels, target_bboxes, target_scores = self.get_targets(gt_labels, gt_bboxes, target_gt_idx, fg_mask)
@@ -314,8 +316,7 @@ class TaskAlignedAssigner(nn.Module):
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
         return bbox_deltas.amin(3).gt_(eps)
 
-    @staticmethod
-    def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
+    def select_highest_overlaps(self, mask_pos, overlaps, n_max_boxes, align_metric):
         """
         Select anchor boxes with highest IoU when assigned to multiple ground truths.
 
@@ -339,6 +340,18 @@ class TaskAlignedAssigner(nn.Module):
             is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
 
             mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
+            fg_mask = mask_pos.sum(-2)
+
+        if self.topk2 != self.topk:
+            align_metric = align_metric * mask_pos  # update overlaps
+            max_overlaps_idx = torch.topk(align_metric, self.topk2, dim=-1, largest=True).indices  # (b, n_max_boxes)
+            # overlaps = overlaps * mask_pos  # update overlaps
+            # max_overlaps_idx = torch.topk(overlaps, self.topk2, dim=-1, largest=True).indices  # (b, n_max_boxes)
+            topk_idx = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos
+            topk_idx.scatter_(-1, max_overlaps_idx, 1.0)
+            # WARNING: directly use topk_idx might assign empty labels
+            # mask_pos = topk_idx  # (b, n_max_boxes, h*w)
+            mask_pos *= topk_idx
             fg_mask = mask_pos.sum(-2)
         # Find each grid serve which gt(index)
         target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)

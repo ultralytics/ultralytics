@@ -95,6 +95,7 @@ class AutoBackend(nn.Module):
             | RKNN                  | *_rknn_model/     |
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
+            | Axelera               | *.axm             |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -175,8 +176,8 @@ class AutoBackend(nn.Module):
             ncnn,
             imx,
             rknn,
-            axelera,
             pte,
+            axelera,
             triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16

@@ -493,9 +493,7 @@ class BasePredictor:
 
         # FPS calculation
         if self.args.show_fps:
-            if self.last_frame_process_time:
-                self.last_frame_process_time = time.time()
-            else:
+            if self.dataset.mode in {"video", "stream"}:
                 current_frame_process_time = time.time()
                 fps = 1 / (current_frame_process_time - self.last_frame_process_time) if current_frame_process_time != self.last_frame_process_time else 0
                 self.last_frame_process_time = current_frame_process_time

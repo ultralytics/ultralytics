@@ -81,6 +81,8 @@ class Predictor(BasePredictor):
         >>> results = predictor(bboxes=bboxes)
     """
 
+    stride = 16
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize the Predictor with configuration, overrides, and callbacks.
 
@@ -558,6 +560,12 @@ class Predictor(BasePredictor):
             im = self.preprocess(batch[1])
             self.features = self.get_im_features(im)
             break
+
+    def setup_source(self, source):
+        """Set up the data source for SAM inference."""
+        if source is None:  # handle the situation when set_imgsz in advance
+            return
+        return super().setup_source(source, self.stride)
 
     def get_im_features(self, im):
         """Extract image features using the SAM model's image encoder for subsequent mask prediction."""
@@ -1958,17 +1966,15 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 class SAM3SemanticPredictor(Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, bpe_path=None):
         super().__init__(cfg, overrides, _callbacks)
+        self.bpe_path = bpe_path
 
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
         from .build_sam3 import build_sam3_image_model  # slow import
 
-        # TODO
-        return build_sam3_image_model(
-            self.args.model, bpe_path="/home/laughing/codes/sam3/assets/bpe_simple_vocab_16e6.txt.gz"
-        )
+        return build_sam3_image_model(self.args.model, bpe_path=self.bpe_path)
 
     @smart_inference_mode()
     def get_im_features(self, im):
@@ -2214,16 +2220,6 @@ class SAM3Predictor(SAM2Predictor):
         letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
         return [letterbox(image=x) for x in im]
 
-    def setup_source(self, source):
-        """Set up source and inference mode.
-
-        Args:
-            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor): Source for
-                inference.
-        """
-        # Override the image size check for SAM3
-        super().setup_source(source, stride=self.stride)
-
 
 class SAM3VideoPredictor(SAM2VideoPredictor):
     _bb_feat_sizes = [
@@ -2232,16 +2228,6 @@ class SAM3VideoPredictor(SAM2VideoPredictor):
         (72, 72),
     ]
     stride = 14
-
-    def setup_source(self, source):
-        """Set up source and inference mode.
-
-        Args:
-            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor): Source for
-                inference.
-        """
-        # Override the image size check for SAM3
-        super().setup_source(source, stride=self.stride)
 
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""

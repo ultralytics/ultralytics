@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Deploy Ultralytics YOLO models on Axelera AI's Metis and Europa hardware. Explore PCIe cards, M.2 modules, and edge systems for high-performance computer vision.
+description: Deploy Ultralytics YOLO models on Axelera AI's Metis and Europa hardware. Learn how to export, compile, and run high-performance edge inference.
 keywords: Axelera AI, Metis AIPU, Europa, Voyager SDK, Edge AI, YOLOv8, YOLO11, Model Export, Computer Vision, PCIe, M.2, Object Detection, Generative AI
 ---
 
@@ -8,17 +8,17 @@ keywords: Axelera AI, Metis AIPU, Europa, Voyager SDK, Edge AI, YOLOv8, YOLO11, 
 
 !!! note "Partner Integration"
 
-    Ultralytics partners with **Axelera AI** to bring high-performance, energy-efficient inference to [Edge AI](https://docs.ultralytics.com/glossary/edge-ai). The integration seamlessly connects Ultralytics [YOLO models](https://docs.ultralytics.com/models/) with the **Metis® AIPU** and **Europa®** platforms via the **Voyager SDK**, enabling advanced [computer vision](https://docs.ultralytics.com/glossary/computer-vision-cv) and Generative AI applications.
+    Ultralytics partners with **Axelera AI** to streamline high-performance, energy-efficient inference on [Edge AI](https://docs.ultralytics.com/glossary/edge-ai) devices. This integration allows users to export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** and **Europa®** platforms using the **Voyager SDK**.
 
 ![Axelera AI Ecosystem](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
 
-**Axelera AI** delivers powerful solutions for AI at the edge. Their technology moves beyond standard processing, bringing **Large Language Models (LLMs)** and **Vision Language Models (VLMs)** out of the cloud and onto on-premise devices.
+**Axelera AI** provides dedicated hardware acceleration for computer vision and Generative AI at the edge. Their technology leverages a proprietary dataflow architecture and [in-memory computing](https://docs.ultralytics.com/glossary/edge-computing) to deliver high throughput (up to **856 TOPS**) within a low power envelope.
 
-At the core is the **Metis® AI Processing Unit (AIPU)**, which utilizes a novel dataflow architecture and [in-memory computing](https://docs.ultralytics.com/glossary/edge-computing) to deliver massive throughput (up to **856 TOPS**) with exceptional power efficiency. Whether you are deploying [object detection](https://docs.ultralytics.com/tasks/detect/) in drones or video analytics in servers, Axelera offers a scalable hardware portfolio.
+For Ultralytics users, this offers a scalable path to deploy [object detection](https://docs.ultralytics.com/tasks/detect/), [pose estimation](https://docs.ultralytics.com/tasks/pose/), and other YOLO tasks on devices ranging from embedded drones to edge servers.
 
 ## Selecting the Right Hardware
 
-Axelera AI offers a diverse range of form factors. Use the chart below to identify the best solution for your [deployment strategy](https://docs.ultralytics.com/guides/model-deployment-practices/).
+Axelera AI offers various form factors to suit different deployment constraints. The chart below helps identify the optimal hardware for your Ultralytics YOLO deployment.
 
 ```mermaid
 graph TD
@@ -44,65 +44,62 @@ graph TD
 
 ## Hardware Portfolio
 
-Axelera AI's hardware is designed to accelerate [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) and other architectures with industry-leading FPS-per-watt performance.
+The Axelera hardware lineup is optimized to run [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) and legacy versions with high FPS-per-watt efficiency.
 
 ### Accelerator Cards
 
-These add-in cards integrate into existing hardware, ideal for [brownfield deployments](https://docs.ultralytics.com/glossary/edge-computing).
+These cards enable AI acceleration in existing host devices, facilitating [brownfield deployments](https://docs.ultralytics.com/glossary/edge-computing).
 
-| Product           | Form Factor    | Compute            | Performance (INT8) | Ideal Application                                                                                                                           |
+| Product           | Form Factor    | Compute            | Performance (INT8) | Target Application                                                                                                                          |
 | :---------------- | :------------- | :----------------- | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Metis PCIe x4** | PCIe Gen3 x16  | **4x** Metis AIPUs | **856 TOPS**       | High-density [video analytics](https://docs.ultralytics.com/guides/analytics/), smart cities                                                |
 | **Metis PCIe x1** | PCIe Gen3 x1   | **1x** Metis AIPU  | **214 TOPS**       | Industrial PCs, retail [queue management](https://docs.ultralytics.com/guides/queue-management/)                                            |
 | **Metis M.2**     | M.2 2280 M-Key | **1x** Metis AIPU  | **214 TOPS**       | [Drones](https://docs.ultralytics.com/blog/build-ai-powered-drone-applications-with-ultralytics-yolo11), robotics, portable medical devices |
-| **Metis M.2 MAX** | M.2 2280       | **1x** Metis AIPU  | **214 TOPS**       | Harsh environments requiring advanced thermal management                                                                                    |
+| **Metis M.2 MAX** | M.2 2280       | **1x** Metis AIPU  | **214 TOPS**       | Environments requiring advanced thermal management                                                                                          |
 
 ### Integrated Systems
 
-For a complete out-of-the-box experience, Axelera partners with leading manufacturers.
+For turnkey solutions, Axelera partners with manufacturers to provide systems pre-validated for the Metis AIPU.
 
-- **Metis Compute Board**: A powerful standalone unit pairing the Metis AIPU with a Rockchip RK3588 ARM CPU.
-- **Workstations**: Enterprise-grade towers from **Dell** (Precision 3460XE) and **Lenovo** (ThinkStation P360 Ultra) pre-installed with Metis accelerators.
-- **Industrial PCs**: Ruggedized systems from **Advantech** (MIC-770v3) and **Aetina** designed for [manufacturing automation](https://docs.ultralytics.com/solutions/ai-in-manufacturing).
+- **Metis Compute Board**: A standalone edge device pairing the Metis AIPU with a Rockchip RK3588 ARM CPU.
+- **Workstations**: Enterprise towers from **Dell** (Precision 3460XE) and **Lenovo** (ThinkStation P360 Ultra).
+- **Industrial PCs**: Ruggedized systems from **Advantech** and **Aetina** designed for [manufacturing automation](https://docs.ultralytics.com/solutions/ai-in-manufacturing).
 
-For availability, visit the [Axelera AI Store](https://store.axelera.ai/).
+## Voyager SDK Integration
 
-## Voyager SDK
+The **Voyager SDK** serves as the bridge between Ultralytics models and Axelera hardware. It handles the compilation, quantization, and runtime execution of neural networks.
 
-The **Voyager SDK** is the comprehensive software stack enabling the Metis AIPU. It abstracts the complexity of NPU programming, allowing developers to go from [PyTorch](https://pytorch.org/) to the edge in minutes.
+Key features for Ultralytics users:
 
-Key capabilities include:
-
-1. **Model Zoo**: Access to 100+ pre-optimized models, including the full [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/) families.
-2. **Quantization Engine**: Automatically converts models to [INT8 precision](https://docs.ultralytics.com/glossary/model-quantization) with calibration to maintain high [accuracy](https://docs.ultralytics.com/glossary/accuracy).
-3. **Pipeline Builder**: A zero-code YAML framework to chain models (e.g., detection followed by [pose estimation](https://docs.ultralytics.com/tasks/pose/)).
-4. **Generative AI**: Support for running LLMs and VLMs locally.
+1. **Seamless Export**: The SDK's compiler optimizes YOLO models for the Metis dataflow architecture.
+2. **Quantization Engine**: Automatically converts FP32 models to [INT8 precision](https://docs.ultralytics.com/glossary/model-quantization) with minimal accuracy loss.
+3. **Pipeline Builder**: A YAML-based framework to chain multiple models (e.g., detection + [pose estimation](https://docs.ultralytics.com/tasks/pose/)) without writing complex C++ code.
 
 ## Installation & Setup
 
-To deploy on Axelera hardware, you will need the `ultralytics` package for model training and export, alongside the system-level Voyager SDK.
+To use Axelera acceleration, you need the `ultralytics` package installed. Note that the Voyager SDK is a separate system-level installation required to interface with the hardware.
 
 ```bash
 # Install Ultralytics
 pip install ultralytics
 
-# The Axelera Voyager SDK must be installed separately on your host/target device.
-# Visit the Axelera Developer Portal for the latest drivers.
+# Note: Download and install the Axelera Voyager SDK from the Axelera Developer Portal
+# to enable the 'axelera' export format and runtime.
 ```
 
-## How to Export to Axelera
+## Exporting YOLO Models to Axelera
 
-Ultralytics provides a direct export path to the Axelera format. This process generates an intermediate file (typically ONNX) optimized for the Voyager compiler.
+You can export your trained YOLO models to the Axelera format using the standard Ultralytics export command. This process generates the artifacts required by the Voyager compiler.
 
-!!! warning "Export Prerequisites"
+!!! warning "Voyager SDK Required"
 
-    Running the export requires the `axelera` libraries to be present in your environment if you wish to compile immediately. However, you can export to [ONNX](https://docs.ultralytics.com/integrations/onnx/) first and then use the Voyager compiler toolchain.
+    The `format='axelera'` export requires the Axelera libraries to be available in your environment. Alternatively, you can export to [ONNX](https://docs.ultralytics.com/integrations/onnx/) and manually compile using the Voyager toolchain.
 
 ### Export Examples
 
-Convert a trained model for deployment. This is a crucial step in [model deployment practices](https://docs.ultralytics.com/guides/model-deployment-practices/).
+Convert a YOLO11 model for Metis deployment.
 
-!!! example "Export YOLO11 to Axelera Format"
+!!! example "Export to Axelera Format"
 
     === "Python"
 
@@ -113,7 +110,7 @@ Convert a trained model for deployment. This is a crucial step in [model deploym
         model = YOLO("yolo11n.pt")
 
         # Export to Axelera format
-        # Arguments can be adjusted for specific image sizes and batching
+        # int8=True enables quantization for the NPU
         model.export(format="axelera", int8=True, imgsz=640)
         ```
 
@@ -124,13 +121,36 @@ Convert a trained model for deployment. This is a crucial step in [model deploym
         yolo export model=yolo11n.pt format=axelera int8=True imgsz=640
         ```
 
-For more details on configuration, see the [Export Mode documentation](https://docs.ultralytics.com/modes/export/).
+For available arguments, refer to the [Export Mode documentation](https://docs.ultralytics.com/modes/export/).
+
+## Running Inference
+
+Once exported, inference is typically managed via the Voyager SDK's runtime bindings. Below is a conceptual example of running a compiled YOLO model.
+
+```python
+# Pseudo-code for running inference with Axelera runtime
+import cv2
+import numpy as np
+from axelera.runtime import InferenceSession  # Hypothetical import
+
+# Initialize the Axelera Inference Session with your compiled model
+session = InferenceSession("yolo11n_metis.axmodel")
+
+# Load and preprocess image
+image = cv2.imread("path/to/image.jpg")
+input_data = preprocess(image)  # Resize and normalize as per model requirements
+
+# Run inference on the AIPU
+results = session.run(input_data)
+
+# Process results (NMS, coordinate scaling)
+detections = postprocess(results)
+print(f"Detected {len(detections)} objects")
+```
 
 ## Inference Performance
 
-Axelera AI delivers "unmatched performance" for edge applications. By leveraging [dataflow architecture](https://www.axelera.ai/technology), the Metis AIPU avoids the memory bottlenecks of traditional [GPUs](https://docs.ultralytics.com/glossary/gpu-graphics-processing-unit).
-
-### Benchmark Highlights
+The Metis AIPU is designed to maximize throughput while minimizing energy consumption. The benchmarks below illustrate the performance achievable with standard Ultralytics models.
 
 | Metric              | Metis PCIe x4 | Metis M.2    | Note                    |
 | :------------------ | :------------ | :----------- | :---------------------- |
@@ -139,35 +159,27 @@ Axelera AI delivers "unmatched performance" for edge applications. By leveraging
 | **YOLOv5s FPS**     | N/A           | **~827 FPS** | 640x640 Input           |
 | **Efficiency**      | High          | Very High    | Ideal for battery power |
 
-_Benchmarks sourced from Axelera AI public materials (Sept 2025). Actual performance varies by model complexity and input resolution._
+_Benchmarks based on Axelera AI data (Sept 2025). Actual FPS depends on model size, batching, and input resolution._
 
 ## Real-World Applications
 
-The combination of Ultralytics YOLO and Axelera hardware enables robust solutions across various industries.
+Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
 
-- **Smart Retail**: Utilize [object counting](https://docs.ultralytics.com/guides/object-counting/) and [heatmap analytics](https://docs.ultralytics.com/guides/heatmaps/) to optimize store layouts and checkout flows.
-- **Industrial Safety**: Deploy [PPE detection](https://docs.ultralytics.com/datasets/detect/construction-ppe/) in factories using the ruggedized PCIe cards.
-- **Agriculture**: Run [crop monitoring](https://docs.ultralytics.com/solutions/ai-in-agriculture) and [precision farming](https://docs.ultralytics.com/blog/computer-vision-in-agriculture-transforming-fruit-detection-and-precision-farming) on drones equipped with the Metis M.2 module.
-- **Traffic Management**: Implement [speed estimation](https://docs.ultralytics.com/guides/speed-estimation/) and [license plate recognition](https://docs.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) at the edge without cloud latency.
+- **Smart Retail**: Real-time [object counting](https://docs.ultralytics.com/guides/object-counting/) and [heatmap analytics](https://docs.ultralytics.com/guides/heatmaps/) for store optimization.
+- **Industrial Safety**: Low-latency [PPE detection](https://docs.ultralytics.com/datasets/detect/construction-ppe/) in manufacturing environments.
+- **Drone Analytics**: High-speed [object detection](https://docs.ultralytics.com/tasks/detect/) on UAVs for [agriculture](https://docs.ultralytics.com/solutions/ai-in-agriculture) and search-and-rescue.
+- **Traffic Systems**: Edge-based [license plate recognition](https://docs.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) and [speed estimation](https://docs.ultralytics.com/guides/speed-estimation/).
 
 ## FAQ
 
-### What is the difference between Metis and Europa?
+### What YOLO versions are supported on Axelera?
+The Voyager SDK and Ultralytics integration support the export of [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/) models.
 
-**Metis** is the current generation AIPU delivering cost-effective high performance (214-856 TOPS). **Europa** is the next-generation platform targeting **629 TOPS per chip**, designed for the most demanding Generative AI and [computer vision](https://docs.ultralytics.com/glossary/computer-vision-cv) workloads.
+### Can I deploy custom trained models?
+Yes. Any model trained using [Ultralytics Train Mode](https://docs.ultralytics.com/modes/train/) can be exported to the Axelera format, provided it uses supported layers and operations.
 
-### Does the Voyager SDK support custom trained models?
+### How does INT8 quantization affect accuracy?
+Axelera's quantization engine uses advanced calibration techniques to minimize accuracy drop. For most detection tasks, the performance gain significantly outweighs the negligible impact on [mAP](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
 
-Yes. If you train a model using [Ultralytics Train Mode](https://docs.ultralytics.com/modes/train/) on your own [datasets](https://docs.ultralytics.com/datasets/), you can export it to Axelera format just like the pre-trained models.
-
-### Can I run YOLO11 on the M.2 card?
-
-Absolutely. The M.2 card provides 214 TOPS, which is more than sufficient to run [YOLO11](https://docs.ultralytics.com/models/yolo11/) models at high frame rates, making it perfect for compact edge devices.
-
-### How does Axelera compare to a GPU?
-
-Axelera's Metis AIPU is an [ASIC](https://docs.ultralytics.com/glossary/tpu-tensor-processing-unit) (Application Specific Integrated Circuit) designed specifically for AI inference. It generally offers better price-performance and significantly higher energy efficiency (FPS/Watt) than a general-purpose GPU for these specific tasks.
-
-### Where can I get support?
-
-For issues related to the YOLO model training and export syntax, check the [Ultralytics Help](https://docs.ultralytics.com/help/). For hardware-specific issues, drivers, or the Voyager SDK, visit the [Axelera Support Portal](https://www.axelera.ai/).
+### Where can I find the Voyager SDK?
+The SDK, drivers, and compiler tools are available via the [Axelera Developer Portal](https://www.axelera.ai/).

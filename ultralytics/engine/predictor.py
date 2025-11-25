@@ -493,11 +493,14 @@ class BasePredictor:
         
         # FPS calculation
         if self.args.show_fps:
-            current_frame_process_time = time.time()
-            fps = 1 / (current_frame_process_time - self.last_frame_process_time) if current_frame_process_time != self.last_frame_process_time else 0
-            self.last_frame_process_time = current_frame_process_time
-            cv2.putText(im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
-                        1.0, (0, 255, 0), 2, cv2.LINE_AA)
+            if self.last_frame_process_time:
+                self.last_frame_process_time = time.time()
+            else:
+                current_frame_process_time = time.time()
+                fps = 1 / (current_frame_process_time - self.last_frame_process_time) if current_frame_process_time != self.last_frame_process_time else 0
+                self.last_frame_process_time = current_frame_process_time
+                cv2.putText(im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                            1.0, (0, 255, 0), 2, cv2.LINE_AA)
         
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)

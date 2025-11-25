@@ -709,6 +709,7 @@ class SAM2Predictor(Predictor):
         (128, 128),
         (64, 64),
     ]
+    stride = 16
 
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
@@ -756,7 +757,7 @@ class SAM2Predictor(Predictor):
             f"SAM 2 models only support square image size, but got {self.imgsz}."
         )
         self.model.set_imgsz(self.imgsz)
-        self._bb_feat_sizes = [[x // (4 * i) for x in self.imgsz] for i in [1, 2, 4]]
+        self._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
 
         backbone_out = self.model.forward_image(im)
         _, vision_feats, _, _ = self.model._prepare_backbone_features(backbone_out)
@@ -2171,6 +2172,7 @@ class SAM3Predictor(SAM2Predictor):
         (144, 144),
         (72, 72),
     ]
+    stride = 14
 
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3 model with appropriate mean and standard deviation for preprocessing."""
@@ -2210,24 +2212,6 @@ class SAM3Predictor(SAM2Predictor):
         assert len(im) == 1, "SAM model does not currently support batched inference"
         letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=False)  # hardcode here for sam3
         return [letterbox(image=x) for x in im]
-
-    # TODO
-    def get_im_features(self, im):
-        """Extract image features from the SAM image encoder for subsequent processing."""
-        assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
-            f"SAM 2 models only support square image size, but got {self.imgsz}."
-        )
-        self.model.set_imgsz(self.imgsz)
-        self._bb_feat_sizes = [[int(x / (3.5 * i)) for x in self.imgsz] for i in [1, 2, 4]]
-
-        backbone_out = self.model.forward_image(im)
-        _, vision_feats, _, _ = self.model._prepare_backbone_features(backbone_out)
-        if self.model.directly_add_no_mem_embed:
-            vision_feats[-1] = vision_feats[-1] + self.model.no_mem_embed
-        feats = [
-            feat.permute(1, 2, 0).view(1, -1, *feat_size) for feat, feat_size in zip(vision_feats, self._bb_feat_sizes)
-        ]
-        return {"image_embed": feats[-1], "high_res_feats": feats[:-1]}
 
     def setup_source(self, source):
         """Set up source and inference mode.

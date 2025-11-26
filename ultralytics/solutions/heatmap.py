@@ -47,7 +47,7 @@ class Heatmap(ObjectCounter):
         self.heatmap = None
 
     def heatmap_effect(self, box):
-        """Efficiently calculate heatmap area and effect location for applying colormap.
+        """Efficiently calculates heatmap area and effect location for applying colormap.
 
         Args:
             box (List[float]): Bounding box coordinates [x0, y0, x1, y1].
@@ -67,7 +67,7 @@ class Heatmap(ObjectCounter):
         # Update only the values within the bounding box in a single vectorized operation
         self.heatmap[y0:y1, x0:x1][within_radius] += 2
 
-    def process(self, im0):
+    def generate_heatmap(self, im0):
         """Generate heatmap for each frame using Ultralytics.
 
         Args:

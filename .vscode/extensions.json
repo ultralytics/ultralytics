@@ -7,6 +7,7 @@
     "esbenp.prettier-vscode",
     "ms-azuretools.vscode-docker",
     "ms-vscode-remote.remote-containers",
-    "WakaTime.vscode-wakatime"
+    "WakaTime.vscode-wakatime",
+    "redjue.git-commit-plugin"
   ]
 }

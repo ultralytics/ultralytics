@@ -16,6 +16,7 @@ Usage:
 
 import argparse
 import os
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -26,7 +27,7 @@ except ImportError:
     # Fallback if not in ultralytics environment
     from tqdm import tqdm as TQDM
 
-    class LOGGER:
+    class SimpleLogger:
         @staticmethod
         def info(msg):
             print(f"[INFO] {msg}")
@@ -39,9 +40,25 @@ except ImportError:
         def error(msg):
             print(f"[ERROR] {msg}")
 
+    # Match expected interface name
+    LOGGER = SimpleLogger
+
+
+SPLIT_MAP = {"training": "train", "testing": "val"}
+
 
 class KITTIToYOLO3D:
-    """Convert KITTI dataset to YOLO 3D Stereo format."""
+    """Convert KITTI dataset to YOLO 3D Stereo format with directory layout:
+
+    root/
+        images/{train|val}/left/*.png
+        images/{train|val}/right/*.png
+        labels/{train|val}/*.txt
+        calib/{train|val}/*.txt
+        dataset.yaml
+        train.txt (image index list for training split if created)
+        val.txt   (image index list for validation/testing split if created)
+    """
 
     def __init__(self, kitti_root, output_root, filter_classes=None):
         """
@@ -94,14 +111,13 @@ class KITTIToYOLO3D:
                 LOGGER.info(f"Filtering classes: {sorted(self.filter_classes)}")
                 LOGGER.info(f"Class ID remapping: {self.class_id_remap}")
 
-        # Create output directories
+        # Create base output directories (split-specific subfolders created during conversion)
         self._setup_output_dirs()
 
     def _setup_output_dirs(self):
-        """Create output directory structure."""
-        dirs = ["images/left", "images/right", "labels", "calib"]
-        for d in dirs:
-            (self.output_root / d).mkdir(parents=True, exist_ok=True)
+        """Create base directory containers (no split yet)."""
+        for parent in ["images", "labels", "calib"]:
+            (self.output_root / parent).mkdir(parents=True, exist_ok=True)
 
     def parse_calibration(self, calib_file):
         """
@@ -346,11 +362,11 @@ class KITTIToYOLO3D:
 
         return yolo_labels
 
-    def copy_calibration(self, calib_file, output_name):
-        """Copy calibration file to output (simplified format)."""
+    def copy_calibration(self, calib_file, output_name, split_name):
+        """Copy calibration file to output (simplified format) under split directory."""
         calib = self.parse_calibration(calib_file)
 
-        output_file = self.output_root / "calib" / f"{output_name}.txt"
+        output_file = self.output_root / "calib" / split_name / f"{output_name}.txt"
 
         with open(output_file, "w") as f:
             f.write(f"fx: {calib['fx']:.6f}\n")
@@ -381,6 +397,22 @@ class KITTIToYOLO3D:
 
         LOGGER.info(f"Found {len(image_files)} images")
 
+        # Map KITTI split name to dataset split name (training->train, testing->val)
+        split_name = SPLIT_MAP.get(split, split)
+
+        # Ensure split-specific directories exist
+        required_dirs = [
+            f"images/{split_name}/left",
+            f"images/{split_name}/right",
+            f"labels/{split_name}",
+            f"calib/{split_name}",
+        ]
+        for d in required_dirs:
+            (self.output_root / d).mkdir(parents=True, exist_ok=True)
+
+        # Collect image index list for optional train.txt/val.txt
+        index_list = []
+
         # Process each image
         for img_file in TQDM(image_files, desc="Converting"):
             img_id = img_file.stem
@@ -400,23 +432,37 @@ class KITTIToYOLO3D:
                 LOGGER.warning(f"Missing calibration for {img_id}, skipping")
                 continue
 
-            # Convert labels (if training split)
-            if split == "training" and label_file.exists():
+            # Convert labels (only if label file exists; testing split has none in official KITTI)
+            if label_file.exists():
                 yolo_labels = self.convert_label(str(label_file), str(calib_file))
-
-                # Write labels
-                output_label = self.output_root / "labels" / f"{img_id}.txt"
+                output_label = self.output_root / "labels" / split_name / f"{img_id}.txt"
                 with open(output_label, "w") as f:
                     f.write("\n".join(yolo_labels))
 
             # Copy calibration
-            self.copy_calibration(str(calib_file), img_id)
+            self.copy_calibration(str(calib_file), img_id, split_name)
 
-            # Note: Images can be symlinked or copied
-            # For now, we just note their location
-            # You can add shutil.copy2 if you want to copy them
+            # Copy images into output directory (idempotent)
+            try:
+                out_left = self.output_root / "images" / split_name / "left" / f"{img_id}.png"
+                out_right = self.output_root / "images" / split_name / "right" / f"{img_id}.png"
 
-        LOGGER.info(f"\nConversion complete!")
+                if not out_left.exists():
+                    shutil.copy2(left_img, out_left)
+                if not out_right.exists():
+                    shutil.copy2(right_img, out_right)
+            except Exception as e:
+                LOGGER.warning(f"Failed to copy images for {img_id}: {e}")
+
+            # Add to index list (store relative path to left image)
+            index_list.append(f"images/{split_name}/left/{img_id}.png")
+
+        # Write index file (train.txt or val.txt)
+        index_filename = f"{split_name}.txt"
+        with open(self.output_root / index_filename, "w") as f:
+            f.write("\n".join(index_list))
+
+        LOGGER.info(f"\nConversion complete for split '{split_name}'")
         LOGGER.info(f"Output directory: {self.output_root}")
 
     def create_dataset_yaml(self, splits=["train", "val"]):
@@ -440,21 +486,35 @@ class KITTIToYOLO3D:
         # Build names section
         names_section = "\n".join([f"  {k}: {v}" for k, v in sorted(class_names.items())])
 
-        yaml_content = f"""# KITTI 3D Object Detection Dataset (Stereo)
-path: {self.output_root}
-train: train.txt
-val: val.txt
-# Classes
-names:
-{names_section}
-# Dataset info
-nc: {num_classes}  # number of classes
-stereo: true
-image_size: [375, 1242]  # height, width
-# Calibration
-baseline: 0.54  # meters (approximate)
-focal_length: 721.5  # pixels (approximate)
-"""
+        # Determine available splits dynamically
+        available_splits = []
+        for s in splits:
+            left_dir = self.output_root / "images" / s / "left"
+            if left_dir.exists() and any(left_dir.glob("*.png")):
+                available_splits.append(s)
+
+        # Fallback: if val missing, duplicate train for val reference (YOLO requirement)
+        train_ref = "train.txt" if "train" in available_splits else None
+        val_ref = "val.txt" if "val" in available_splits else ("train.txt" if train_ref else None)
+
+        yaml_lines = ["# KITTI 3D Object Detection Dataset (Stereo)", f"path: {self.output_root}"]
+        if train_ref:
+            yaml_lines.append(f"train: {train_ref}")
+        if val_ref:
+            yaml_lines.append(f"val: {val_ref}")
+        yaml_lines.extend([
+            "# Classes",
+            "names:",
+            names_section,
+            "# Dataset info",
+            f"nc: {num_classes}  # number of classes",
+            "stereo: true",
+            "image_size: [375, 1242]  # height, width",
+            "# Calibration",
+            "baseline: 0.54  # meters (approximate)",
+            "focal_length: 721.5  # pixels (approximate)",
+        ])
+        yaml_content = "\n".join(yaml_lines) + "\n"
 
         yaml_file = self.output_root / "dataset.yaml"
         with open(yaml_file, "w") as f:
@@ -516,12 +576,15 @@ Examples:
 
     LOGGER.info("\n✓ Conversion complete!")
     LOGGER.info(f"\nYour dataset is ready at: {output_root}")
-    LOGGER.info("\nDirectory structure:")
-    LOGGER.info("  images/left/    - Left camera images (reference)")
-    LOGGER.info("  images/right/   - Right camera images (reference)")
-    LOGGER.info("  labels/         - YOLO 3D format labels")
-    LOGGER.info("  calib/          - Calibration files")
-    LOGGER.info("  dataset.yaml    - Dataset configuration")
+    # Determine split name for logging (training->train, testing->val)
+    split_name = SPLIT_MAP.get(args.split, args.split)
+    LOGGER.info("\nDirectory structure (partial):")
+    LOGGER.info(f"  images/{split_name}/left/   - Left camera images")
+    LOGGER.info(f"  images/{split_name}/right/  - Right camera images")
+    LOGGER.info(f"  labels/{split_name}/        - YOLO 3D format labels")
+    LOGGER.info(f"  calib/{split_name}/         - Calibration files")
+    LOGGER.info("  train.txt / val.txt - Image index lists (if present)")
+    LOGGER.info("  dataset.yaml        - Dataset configuration")
 
 
 if __name__ == "__main__":

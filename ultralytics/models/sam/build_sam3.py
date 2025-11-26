@@ -396,53 +396,6 @@ def _create_tracker_maskmem_backbone():
     return maskmem_backbone
 
 
-def _create_tracker_transformer():
-    """Create the SAM3 Tracker transformer components."""
-
-    # Encoder layer
-    encoder_layer = TransformerDecoderLayerv2(
-        cross_attention_first=False,
-        activation="relu",
-        dim_feedforward=2048,
-        dropout=0.1,
-        pos_enc_at_attn=False,
-        pre_norm=True,
-        self_attention=RoPEAttention(
-            embedding_dim=256,
-            num_heads=1,
-            downsample_rate=1,
-            rope_theta=10000.0,
-            feat_sizes=[72, 72],
-        ),
-        d_model=256,
-        pos_enc_at_cross_attn_keys=True,
-        pos_enc_at_cross_attn_queries=False,
-        cross_attention=RoPEAttention(
-            embedding_dim=256,
-            num_heads=1,
-            downsample_rate=1,
-            kv_in_dim=64,
-            rope_theta=10000.0,
-            feat_sizes=[72, 72],
-            rope_k_repeat=True,
-        ),
-    )
-
-    # Encoder
-    encoder = TransformerEncoderCrossAttention(
-        remove_cross_attention_layers=[],
-        batch_first=True,
-        d_model=256,
-        frozen=False,
-        pos_enc_at_input=True,
-        layer=encoder_layer,
-        num_layers=4,
-        use_act_checkpoint=False,
-    )
-
-    return encoder
-
-
 def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model:
     """
     Build the SAM3 Tracker module for video tracking.
@@ -453,13 +406,49 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model
 
     # Create model components
     maskmem_backbone = _create_tracker_maskmem_backbone()
-    transformer = _create_tracker_transformer()
+    memory_attention = TransformerEncoderCrossAttention(
+        remove_cross_attention_layers=[],
+        batch_first=True,
+        d_model=256,
+        frozen=False,
+        pos_enc_at_input=True,
+        layer=TransformerDecoderLayerv2(
+            cross_attention_first=False,
+            activation="relu",
+            dim_feedforward=2048,
+            dropout=0.1,
+            pos_enc_at_attn=False,
+            pre_norm=True,
+            self_attention=RoPEAttention(
+                embedding_dim=256,
+                num_heads=1,
+                downsample_rate=1,
+                rope_theta=10000.0,
+                feat_sizes=[72, 72],
+            ),
+            d_model=256,
+            pos_enc_at_cross_attn_keys=True,
+            pos_enc_at_cross_attn_queries=False,
+            cross_attention=RoPEAttention(
+                embedding_dim=256,
+                num_heads=1,
+                downsample_rate=1,
+                kv_in_dim=64,
+                rope_theta=10000.0,
+                feat_sizes=[72, 72],
+                rope_k_repeat=True,
+            ),
+        ),
+        num_layers=4,
+        use_act_checkpoint=False,
+    )
+
     vision_backbone = _create_vision_backbone(compile_mode=compile_mode)
     backbone = SAM3VLBackbone(scalp=1, visual=vision_backbone, text=None)
     model = SAM3Model(
         image_size=1008,
         image_encoder=backbone,
-        memory_attention=transformer,
+        memory_attention=memory_attention,
         memory_encoder=maskmem_backbone,
         backbone_stride=14,
         num_maskmem=7,

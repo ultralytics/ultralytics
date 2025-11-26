@@ -79,6 +79,7 @@ class MaskDownSampler(nn.Module):
         padding: int = 0,
         total_stride: int = 16,
         activation: type[nn.Module] = nn.GELU,
+        interpol_size: tuple[int, int] = None,
     ):
         """Initialize a mask downsampler module for progressive downsampling and channel expansion."""
         super().__init__()
@@ -102,9 +103,24 @@ class MaskDownSampler(nn.Module):
             mask_in_chans = mask_out_chans
 
         self.encoder.append(nn.Conv2d(mask_out_chans, embed_dim, kernel_size=1))
+        self.interpol_size = interpol_size
+        if self.interpol_size is not None:
+            assert isinstance(self.interpol_size, (list, tuple)), (
+                f"Unsupported type {type(self.interpol_size)}. Should be a list or tuple."
+            )
+            self.interpol_size = list(interpol_size)
+            assert len(self.interpol_size) == 2
 
     def forward(self, x: Tensor) -> Tensor:
         """Downsample and encode input mask to embed_dim channels using convolutional layers and LayerNorm2d."""
+        if self.interpol_size is not None and self.interpol_size != list(x.shape[-2:]):
+            x = F.interpolate(
+                x.float(),
+                size=self.interpol_size,
+                align_corners=False,
+                mode="bilinear",
+                antialias=True,
+            ).to(x.dtype)
         return self.encoder(x)
 
 
@@ -1077,7 +1093,7 @@ class PatchEmbed(nn.Module):
         padding: tuple[int, int] = (0, 0),
         in_chans: int = 3,
         embed_dim: int = 768,
-        bias: bool = True
+        bias: bool = True,
     ) -> None:
         """Initialize the PatchEmbed module for converting image patches to embeddings.
 

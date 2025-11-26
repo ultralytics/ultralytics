@@ -376,6 +376,7 @@ class MemoryEncoder(nn.Module):
         self,
         out_dim,
         in_dim=256,  # in_dim of pix_feats
+        interpol_size: tuple[int, int] = None,
     ):
         """Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
 
@@ -385,6 +386,7 @@ class MemoryEncoder(nn.Module):
         Args:
             out_dim (int): Output dimension of the encoded features.
             in_dim (int): Input dimension of the pixel features.
+            interpol_size (tuple[int, int] | None): Size to interpolate masks to. If None, uses the size of pixel features.
 
         Examples:
             >>> encoder = MemoryEncoder(out_dim=256, in_dim=256)
@@ -396,7 +398,7 @@ class MemoryEncoder(nn.Module):
         """
         super().__init__()
 
-        self.mask_downsampler = MaskDownSampler(kernel_size=3, stride=2, padding=1)
+        self.mask_downsampler = MaskDownSampler(kernel_size=3, stride=2, padding=1, interpol_size=interpol_size)
 
         self.pix_feat_proj = nn.Conv2d(in_dim, in_dim, kernel_size=1)
         self.fuser = Fuser(CXBlock(dim=256), num_layers=2)

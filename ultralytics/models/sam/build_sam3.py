@@ -20,7 +20,7 @@ from .sam3.vitdet import ViT
 from .sam3.vl_combiner import SAM3VLBackbone
 from .modules.blocks import PositionEmbeddingSine, RoPEAttention
 from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
-from .sam3.memory import CXBlock, SimpleFuser, SimpleMaskDownSampler, SimpleMaskEncoder
+from .modules.encoders import MemoryEncoder
 from .sam3_model import SAM3Model
 
 
@@ -359,39 +359,6 @@ def build_sam3_image_model(
     return model
 
 
-def _create_tracker_maskmem_backbone():
-    """Create the SAM3 Tracker memory encoder."""
-    # Position encoding for mask memory backbone
-    position_encoding = PositionEmbeddingSine(
-        num_pos_feats=64,
-        normalize=True,
-        scale=None,
-        temperature=10000,
-    )
-
-    # Mask processing components
-    mask_downsampler = SimpleMaskDownSampler(kernel_size=3, stride=2, padding=1, interpol_size=[1152, 1152])
-
-    cx_block_layer = CXBlock(
-        dim=256,
-        kernel_size=7,
-        padding=3,
-        layer_scale_init_value=1.0e-06,
-        use_dwconv=True,
-    )
-
-    fuser = SimpleFuser(layer=cx_block_layer, num_layers=2)
-
-    maskmem_backbone = SimpleMaskEncoder(
-        out_dim=64,
-        position_encoding=position_encoding,
-        mask_downsampler=mask_downsampler,
-        fuser=fuser,
-    )
-
-    return maskmem_backbone
-
-
 def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model:
     """
     Build the SAM3 Tracker module for video tracking.
@@ -401,7 +368,7 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model
     """
 
     # Create model components
-    maskmem_backbone = _create_tracker_maskmem_backbone()
+    memory_encoder = MemoryEncoder(out_dim=64, interpol_size=[1152, 1152])
     memory_attention = MemoryAttention(
         batch_first=True,
         d_model=256,
@@ -439,7 +406,7 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model
         image_size=1008,
         image_encoder=backbone,
         memory_attention=memory_attention,
-        memory_encoder=maskmem_backbone,
+        memory_encoder=memory_encoder,
         backbone_stride=14,
         num_maskmem=7,
         sigmoid_scale_for_mem_enc=20.0,

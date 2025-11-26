@@ -322,9 +322,7 @@ class Sam3VideoBase(nn.Module):
         # Step 1: if text feature is not cached in `feature_cache`, compute and cache it
         text_batch_key = tuple(input_batch.find_text_batch)
         if "text" not in feature_cache or text_batch_key not in feature_cache["text"]:
-            text_outputs = self.detector.backbone.forward_text(
-                input_batch.find_text_batch, device=self.device
-            )
+            text_outputs = self.detector.backbone.forward_text(input_batch.find_text_batch)
             # note: we only cache the text feature of the most recent prompt
             feature_cache["text"] = {text_batch_key: text_outputs}
         else:

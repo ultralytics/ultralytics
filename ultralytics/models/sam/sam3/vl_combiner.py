@@ -68,8 +68,7 @@ class SAM3VLBackbone(nn.Module):
                 language backbone for the additional text
         """
         output = self.forward_image(samples)
-        device = output["vision_features"].device
-        output.update(self.forward_text(captions, input_boxes, additional_text, device))
+        output.update(self.forward_text(captions, input_boxes, additional_text))
         return output
 
     def forward_image(self, samples: torch.Tensor):
@@ -132,18 +131,7 @@ class SAM3VLBackbone(nn.Module):
             "backbone_fpn": sam2_features,
         }
 
-    def forward_text(self, captions, input_boxes=None, additional_text=None, device="cuda"):
-        return self._forward_text_no_ack_ckpt(
-            captions=captions, input_boxes=input_boxes, additional_text=additional_text, device=device
-        )
-
-    def _forward_text_no_ack_ckpt(
-        self,
-        captions,
-        input_boxes=None,
-        additional_text=None,
-        device="cuda",
-    ):
+    def forward_text(self, captions, input_boxes=None, additional_text=None):
         output = {}
 
         # Forward through text_encoder
@@ -163,7 +151,7 @@ class SAM3VLBackbone(nn.Module):
 
         with sdpa_context:
             text_attention_mask, text_memory, text_embeds = self.language_backbone(
-                text_to_encode, input_boxes, device=device
+                text_to_encode, input_boxes
             )
 
         if additional_text is not None:

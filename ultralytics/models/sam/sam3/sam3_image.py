@@ -495,13 +495,12 @@ class Sam3Image(torch.nn.Module):
         return geometric_prompt
 
     def forward(self, input):
-        device = self.device
         backbone_out = {"img_batch_all_stages": input.img_batch}
         backbone_out.update(self.backbone.forward_image(input.img_batch))
         num_frames = len(input.find_inputs)
         assert num_frames == 1
 
-        text_outputs = self.backbone.forward_text(input.find_text_batch, device=device)
+        text_outputs = self.backbone.forward_text(input.find_text_batch)
         backbone_out.update(text_outputs)
 
         previous_stages_out = SAM3Output(iter_mode=SAM3Output.IterMode.LAST_STEP_PER_STAGE)
@@ -638,7 +637,7 @@ class Sam3Image(torch.nn.Module):
 
     def set_classes(self, text: list[str]):
         """Set the text embeddings for the given class names."""
-        self.text_embeddings = self.backbone.forward_text(text, device=self.device)
+        self.text_embeddings = self.backbone.forward_text(text)
         self.names = text
 
 

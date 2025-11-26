@@ -116,7 +116,7 @@ class Sam3Processor:
         if "backbone_out" not in state:
             raise ValueError("You must call set_image before set_text_prompt")
 
-        text_outputs = self.model.backbone.forward_text([prompt], device=self.device)
+        text_outputs = self.model.backbone.forward_text([prompt])
         # will erase the previous text prompt if any
         state["backbone_out"].update(text_outputs)
         if "geometric_prompt" not in state:
@@ -136,9 +136,7 @@ class Sam3Processor:
 
         if "language_features" not in state["backbone_out"]:
             # Looks like we don't have a text prompt yet. This is allowed, but we need to set the text prompt to "visual" for the model to rely only on the geometric prompt
-            dummy_text_outputs = self.model.backbone.forward_text(
-                ["visual"], device=self.device
-            )
+            dummy_text_outputs = self.model.backbone.forward_text(["visual"])
             state["backbone_out"].update(dummy_text_outputs)
 
         if "geometric_prompt" not in state:

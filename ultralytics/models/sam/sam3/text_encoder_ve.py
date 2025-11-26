@@ -287,16 +287,13 @@ class VETextEncoder(nn.Module):
         self,
         text: Union[List[str], Tuple[torch.Tensor, torch.Tensor, dict]],
         input_boxes: Optional[List] = None,
-        device: torch.device = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         if isinstance(text[0], str):
             # no use case for this
             assert input_boxes is None or len(input_boxes) == 0, "not supported"
 
             # Encode the text
-            tokenized = self.tokenizer(text, context_length=self.context_length).to(
-                device
-            )  # [b, seq_len]
+            tokenized = self.tokenizer(text, context_length=self.context_length).to(self.resizer.weight.device)  # [b, seq_len]
             text_attention_mask = (tokenized != 0).bool()
 
             # manually embed the tokens

@@ -10,11 +10,11 @@ keywords: Axelera AI, Metis AIPU, Europa, Voyager SDK, Edge AI, YOLOv8, YOLO11, 
 
     Axelera support in `ultralytics` is **in progress**. The examples here show the planned UI/UX and will become runnable once the Axelera runtime package is released.
 
-Ultralytics partners with **Axelera AI** to streamline high-performance, energy-efficient inference on [Edge AI](https://docs.ultralytics.com/glossary/edge-ai) devices. This integration allows users to export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** and **Europa®** platforms using the **Voyager SDK**.
+Ultralytics partners with **Axelera AI** to streamline high-performance, energy-efficient inference on [Edge AI](https://www.ultralytics.com/glossary/edge-ai) devices. This integration allows users to export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** and **Europa®** platforms using the **Voyager SDK**.
 
 ![Axelera AI Ecosystem](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
 
-**Axelera AI** provides dedicated hardware acceleration for computer vision and Generative AI at the edge. Their technology leverages a proprietary dataflow architecture and [in-memory computing](https://docs.ultralytics.com/glossary/edge-computing) to deliver high throughput (up to **856 TOPS**) within a low power envelope.
+**Axelera AI** provides dedicated hardware acceleration for computer vision and Generative AI at the edge. Their technology leverages a proprietary dataflow architecture and [in-memory computing](https://www.ultralytics.com/glossary/edge-computing) to deliver high throughput (up to **856 TOPS**) within a low power envelope.
 
 For Ultralytics users, this offers a scalable path to deploy [object detection](https://docs.ultralytics.com/tasks/detect/), [pose estimation](https://docs.ultralytics.com/tasks/pose/), and other YOLO tasks on devices ranging from embedded drones to edge servers.
 
@@ -50,7 +50,7 @@ The Axelera hardware lineup is optimized to run [Ultralytics YOLO11](https://doc
 
 ### Accelerator Cards
 
-These cards enable AI acceleration in existing host devices, facilitating [brownfield deployments](https://docs.ultralytics.com/glossary/edge-computing).
+These cards enable AI acceleration in existing host devices, facilitating [brownfield deployments](https://www.ultralytics.com/glossary/edge-computing).
 
 | Product           | Form Factor    | Compute            | Performance (INT8) | Target Application                                                                                                                          |
 | :---------------- | :------------- | :----------------- | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -65,7 +65,7 @@ For turnkey solutions, Axelera partners with manufacturers to provide systems pr
 
 - **Metis Compute Board**: A standalone edge device pairing the Metis AIPU with a Rockchip RK3588 ARM CPU.
 - **Workstations**: Enterprise towers from **Dell** (Precision 3460XE) and **Lenovo** (ThinkStation P360 Ultra).
-- **Industrial PCs**: Ruggedized systems from **Advantech** and **Aetina** designed for [manufacturing automation](https://docs.ultralytics.com/solutions/ai-in-manufacturing).
+- **Industrial PCs**: Ruggedized systems from **Advantech** and **Aetina** designed for [manufacturing automation](https://www.ultralytics.com/solutions/ai-in-manufacturing).
 
 ## Voyager SDK Integration
 
@@ -74,7 +74,7 @@ The **Voyager SDK** serves as the bridge between Ultralytics models and Axelera 
 Key features for Ultralytics users:
 
 1. **Seamless Export**: The SDK's compiler optimizes YOLO models for the Metis dataflow architecture.
-2. **Quantization Engine**: Automatically converts FP32 models to [INT8 precision](https://docs.ultralytics.com/glossary/model-quantization) with minimal accuracy loss.
+2. **Quantization Engine**: Automatically converts FP32 models to [INT8 precision](https://www.ultralytics.com/glossary/model-quantization) with minimal accuracy loss.
 3. **Pipeline Builder**: A YAML-based framework to chain multiple models (e.g., detection + [pose estimation](https://docs.ultralytics.com/tasks/pose/)) without writing complex C++ code.
 
 ## Installation & Setup
@@ -180,7 +180,7 @@ Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
 
 - **Smart Retail**: Real-time [object counting](https://docs.ultralytics.com/guides/object-counting/) and [heatmap analytics](https://docs.ultralytics.com/guides/heatmaps/) for store optimization.
 - **Industrial Safety**: Low-latency [PPE detection](https://docs.ultralytics.com/datasets/detect/construction-ppe/) in manufacturing environments.
-- **Drone Analytics**: High-speed [object detection](https://docs.ultralytics.com/tasks/detect/) on UAVs for [agriculture](https://docs.ultralytics.com/solutions/ai-in-agriculture) and search-and-rescue.
+- **Drone Analytics**: High-speed [object detection](https://docs.ultralytics.com/tasks/detect/) on UAVs for [agriculture](https://www.ultralytics.com/solutions/ai-in-agriculture) and search-and-rescue.
 - **Traffic Systems**: Edge-based [license plate recognition](https://docs.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) and [speed estimation](https://docs.ultralytics.com/guides/speed-estimation/).
 
 ## FAQ

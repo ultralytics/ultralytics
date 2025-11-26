@@ -285,7 +285,7 @@ class SAM3Model(SAM2Model):
         prompt = torch.cat(to_cat_memory, dim=0)
         prompt_mask = None  # For now, we always masks are zeros anyways
         prompt_pos_embed = torch.cat(to_cat_memory_pos_embed, dim=0)
-        encoder_out = self.memory_attention.encoder(
+        encoder_out = self.memory_attention(
             src=current_vision_feats,
             src_key_padding_mask=[None],
             src_pos=current_vision_pos_embeds,

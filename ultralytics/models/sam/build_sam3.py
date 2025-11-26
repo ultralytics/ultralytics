@@ -398,25 +398,6 @@ def _create_tracker_maskmem_backbone():
 
 def _create_tracker_transformer():
     """Create the SAM3 Tracker transformer components."""
-    # Self attention
-    self_attention = RoPEAttention(
-        embedding_dim=256,
-        num_heads=1,
-        downsample_rate=1,
-        rope_theta=10000.0,
-        feat_sizes=[72, 72],
-    )
-
-    # Cross attention
-    cross_attention = RoPEAttention(
-        embedding_dim=256,
-        num_heads=1,
-        downsample_rate=1,
-        kv_in_dim=64,
-        rope_theta=10000.0,
-        feat_sizes=[72, 72],
-        rope_k_repeat=True,
-    )
 
     # Encoder layer
     encoder_layer = TransformerDecoderLayerv2(
@@ -426,11 +407,25 @@ def _create_tracker_transformer():
         dropout=0.1,
         pos_enc_at_attn=False,
         pre_norm=True,
-        self_attention=self_attention,
+        self_attention=RoPEAttention(
+            embedding_dim=256,
+            num_heads=1,
+            downsample_rate=1,
+            rope_theta=10000.0,
+            feat_sizes=[72, 72],
+        ),
         d_model=256,
         pos_enc_at_cross_attn_keys=True,
         pos_enc_at_cross_attn_queries=False,
-        cross_attention=cross_attention,
+        cross_attention=RoPEAttention(
+            embedding_dim=256,
+            num_heads=1,
+            downsample_rate=1,
+            kv_in_dim=64,
+            rope_theta=10000.0,
+            feat_sizes=[72, 72],
+            rope_k_repeat=True,
+        ),
     )
 
     # Encoder
@@ -445,14 +440,7 @@ def _create_tracker_transformer():
         use_act_checkpoint=False,
     )
 
-    # Transformer wrapper
-    transformer = TransformerWrapper(
-        encoder=encoder,
-        decoder=None,
-        d_model=256,
-    )
-
-    return transformer
+    return encoder
 
 
 def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model:
@@ -527,7 +515,11 @@ def _load_checkpoint_interactive(model, checkpoint):
         }
     )
     sam3_image_ckpt.update(
-        {k.replace("tracker.transformer", "memory_attention"): v for k, v in ckpt.items() if "tracker.transformer" in k}
+        {
+            k.replace("tracker.transformer.encoder", "memory_attention"): v
+            for k, v in ckpt.items()
+            if "tracker.transformer" in k
+        }
     )
     sam3_image_ckpt.update(
         {

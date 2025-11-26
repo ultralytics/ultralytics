@@ -106,6 +106,7 @@ from ultralytics.utils.checks import (
     check_version,
     is_intel,
     is_sudo_available,
+    check_apt_requirements
 )
 from ultralytics.utils.export import (
     keras2pb,
@@ -1078,25 +1079,20 @@ class Exporter:
         return str(f)
 
     @try_export
+    @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """YOLO Axelera export."""
-        # TODO: Make this a function to use also with imx
-        # TODO: Find a way to check if package are installed
-        cmd = (["sudo"] if is_sudo_available() else []) + [
-            "apt",
-            "install",
-            "-y",
-            "libllvm14",
-            "libgirepository1.0-dev",
-            "pkg-config",
-            "libcairo2-dev",
-        ]
-        subprocess.run(cmd, check=True)
 
-        check_requirements(
+        # TODO: Make this a fucntion to use also with imx
+        try:
+            from axelera import compiler
+        except ImportError:
+            check_apt_requirements(["libllvm14","libgirepository1.0-dev", "pkg-config", "libcairo2-dev"])
+        
+            check_requirements(
             "axelera-voyager-sdk==1.5.0-rc6",
             cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc6/build-packages-ubuntu-22.04/python",
-        )
+            )
 
         from axelera import compiler
         from axelera.compiler import CompilerConfig

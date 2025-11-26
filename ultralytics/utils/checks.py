@@ -349,12 +349,11 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
     """
     return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 
-            
+
 @TryExcept()
 def check_apt_requirements(requirements):
-    """
-    Check if apt packages are installed and install missing ones.
-    
+    """Check if apt packages are installed and install missing ones.
+
     Args:
         requirements: List of apt package names to check and install
     """
@@ -363,32 +362,30 @@ def check_apt_requirements(requirements):
     for package in requirements:
         try:
             # Use dpkg -l to check if package is installed
-            result = subprocess.run(
-                ["dpkg", "-l", package],
-                capture_output=True,
-                text=True,
-                check=False
-            )
+            result = subprocess.run(["dpkg", "-l", package], capture_output=True, text=True, check=False)
             # Check if package is installed (look for "ii" status)
-            if result.returncode != 0 or not any(line.startswith("ii") and package in line for line in result.stdout.splitlines()):
+            if result.returncode != 0 or not any(
+                line.startswith("ii") and package in line for line in result.stdout.splitlines()
+            ):
                 missing_packages.append(package)
         except Exception:
             # If check fails, assume package is not installed
             missing_packages.append(package)
-    
+
     # Install missing packages if any
     if missing_packages:
         # Optionally update package list first
         if is_sudo_available():
             subprocess.run(["sudo", "apt", "update"], check=False)
-        
+
         # Build and run the install command
         cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y"] + missing_packages
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        
+
         LOGGER.info(f"✓ Successfully installed: {', '.join(missing_packages)}")
     else:
         LOGGER.info("✓ All required packages are already installed.")
+
 
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):

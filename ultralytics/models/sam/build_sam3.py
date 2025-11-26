@@ -2,11 +2,7 @@
 
 import torch.nn as nn
 from ultralytics.utils.patches import torch_load
-from .sam3.decoder import (
-    TransformerDecoder,
-    TransformerDecoderLayer,
-    TransformerDecoderLayerv2,
-)
+from .sam3.decoder import TransformerDecoder, TransformerDecoderLayer
 from .sam3.encoder import TransformerEncoderFusion, TransformerEncoderLayer
 from .sam3.geometry_encoders import SequenceGeometryEncoder
 from .sam3.maskformer_segmentation import PixelDecoder, UniversalSegmentationHead
@@ -23,7 +19,7 @@ from .sam3.tokenizer_ve import SimpleTokenizer
 from .sam3.vitdet import ViT
 from .sam3.vl_combiner import SAM3VLBackbone
 from .modules.blocks import PositionEmbeddingSine, RoPEAttention
-from .modules.memory_attention import MemoryAttention
+from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 from .sam3.memory import CXBlock, SimpleFuser, SimpleMaskDownSampler, SimpleMaskEncoder
 from .sam3_model import SAM3Model
 
@@ -410,14 +406,13 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model
         batch_first=True,
         d_model=256,
         pos_enc_at_input=True,
-        layer=TransformerDecoderLayerv2(
-            cross_attention_first=False,
-            activation="relu",
+        layer=MemoryAttentionLayer(
             dim_feedforward=2048,
             dropout=0.1,
             pos_enc_at_attn=False,
-            pre_norm=True,
-            self_attention=RoPEAttention(
+            pos_enc_at_cross_attn_keys=True,
+            pos_enc_at_cross_attn_queries=False,
+            self_attn=RoPEAttention(
                 embedding_dim=256,
                 num_heads=1,
                 downsample_rate=1,
@@ -425,9 +420,7 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model
                 feat_sizes=[72, 72],
             ),
             d_model=256,
-            pos_enc_at_cross_attn_keys=True,
-            pos_enc_at_cross_attn_queries=False,
-            cross_attention=RoPEAttention(
+            cross_attn=RoPEAttention(
                 embedding_dim=256,
                 num_heads=1,
                 downsample_rate=1,

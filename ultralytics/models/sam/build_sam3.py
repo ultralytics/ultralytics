@@ -85,8 +85,6 @@ def _create_transformer_decoder() -> TransformerDecoder:
         frozen=False,
         interaction_layer=None,
         dac_use_selfatt_ln=True,
-        resolution=1008,
-        stride=14,
         use_act_checkpoint=True,
         presence_token=True,
     )

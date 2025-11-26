@@ -72,16 +72,11 @@ class TransformerDecoderLayer(nn.Module):
         # for tgt
         tgt: Optional[Tensor],  # nq, bs, d_model
         tgt_query_pos: Optional[Tensor] = None,  # pos for query. MLP(Sine(pos))
-        tgt_query_sine_embed: Optional[Tensor] = None,  # pos for query. Sine(pos)
-        tgt_key_padding_mask: Optional[Tensor] = None,
-        tgt_reference_points: Optional[Tensor] = None,  # nq, bs, 4
         memory_text: Optional[Tensor] = None,  # num_token, bs, d_model
         text_attention_mask: Optional[Tensor] = None,  # bs, num_token
         # for memory
         memory: Optional[Tensor] = None,  # hw, bs, d_model
         memory_key_padding_mask: Optional[Tensor] = None,
-        memory_level_start_index: Optional[Tensor] = None,  # num_levels
-        memory_spatial_shapes: Optional[Tensor] = None,  # bs, num_levels, 2
         memory_pos: Optional[Tensor] = None,  # pos for memory
         # sa
         self_attn_mask: Optional[Tensor] = None,  # mask used for self-attention
@@ -91,7 +86,6 @@ class TransformerDecoderLayer(nn.Module):
         dac_use_selfatt_ln=True,
         presence_token=None,
         # skip inside deformable attn
-        identity=0.0,
         **kwargs,  # additional kwargs for compatibility
     ):
         """
@@ -196,8 +190,6 @@ class TransformerDecoder(nn.Module):
         use_normed_output_consistently: bool = True,
         separate_box_head_instance: bool = False,
         separate_norm_instance: bool = False,
-        resolution: Optional[int] = None,
-        stride: Optional[int] = None,
     ):
         super().__init__()
         self.d_model = d_model
@@ -366,12 +358,10 @@ class TransformerDecoder(nn.Module):
         memory,
         tgt_mask: Optional[Tensor] = None,
         memory_mask: Optional[Tensor] = None,
-        tgt_key_padding_mask: Optional[Tensor] = None,
         memory_key_padding_mask: Optional[Tensor] = None,
         pos: Optional[Tensor] = None,
         reference_boxes: Optional[Tensor] = None,  # num_queries, bs, 4
         # for memory
-        level_start_index: Optional[Tensor] = None,  # num_levels
         spatial_shapes: Optional[Tensor] = None,  # bs, num_levels, 2
         valid_ratios: Optional[Tensor] = None,
         # for text
@@ -468,15 +458,10 @@ class TransformerDecoder(nn.Module):
             output, presence_out = layer(
                 tgt=output,
                 tgt_query_pos=query_pos,
-                tgt_query_sine_embed=query_sine_embed,
-                tgt_key_padding_mask=tgt_key_padding_mask,
-                tgt_reference_points=reference_points_input,
                 memory_text=memory_text,
                 text_attention_mask=text_attention_mask,
                 memory=memory,
                 memory_key_padding_mask=memory_key_padding_mask,
-                memory_level_start_index=level_start_index,
-                memory_spatial_shapes=spatial_shapes,
                 memory_pos=pos,
                 self_attn_mask=tgt_mask,
                 cross_attn_mask=memory_mask,

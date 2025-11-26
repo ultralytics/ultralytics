@@ -1080,7 +1080,6 @@ class Exporter:
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """YOLO Axelera export."""
-
         # TODO: Make this a fucntion to use also with imx
         # TODO: Find a way to check if package are installed 
         cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "libllvm14","libgirepository1.0-dev", "pkg-config", "libcairo2-dev"]

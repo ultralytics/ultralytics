@@ -751,29 +751,12 @@ class TransformerDecoderLayerv2(TransformerDecoderLayerv1):
         self,
         tgt,
         memory,
-        dac: bool = False,
-        tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
-        tgt_key_padding_mask: Optional[Tensor] = None,
-        memory_key_padding_mask: Optional[Tensor] = None,
         pos: Optional[Tensor] = None,
         query_pos: Optional[Tensor] = None,
-        attn_bias: Optional[Tensor] = None,
         num_k_exclude_rope: int = 0,
     ):
-        assert dac is False
-        assert tgt_mask is None
-        assert memory_mask is None
-        assert tgt_key_padding_mask is None
-        assert memory_key_padding_mask is None
-        assert attn_bias is None
-
-        if self.cross_attention_first:
-            tgt = self._forward_ca(tgt, memory, query_pos, pos, num_k_exclude_rope)
-            tgt = self._forward_sa(tgt, query_pos)
-        else:
-            tgt = self._forward_sa(tgt, query_pos)
-            tgt = self._forward_ca(tgt, memory, query_pos, pos, num_k_exclude_rope)
+        tgt = self._forward_sa(tgt, query_pos)
+        tgt = self._forward_ca(tgt, memory, query_pos, pos, num_k_exclude_rope)
 
         # MLP
         tgt2 = self.norm3(tgt)

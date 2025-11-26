@@ -10,7 +10,6 @@ import torch.nn as nn
 
 from torch.nn.attention import sdpa_kernel, SDPBackend
 
-from .act_ckpt_utils import activation_ckpt_wrapper
 from .necks import Sam3DualViTDetNeck
 
 
@@ -36,9 +35,7 @@ class SAM3VLBackbone(nn.Module):
         :param text: The text encoder to use
         """
         super().__init__()
-        self.vision_backbone: Sam3DualViTDetNeck = (
-            torch.compile(visual) if compile_visual else visual
-        )
+        self.vision_backbone: Sam3DualViTDetNeck = torch.compile(visual) if compile_visual else visual
         self.language_backbone = text
         self.scalp = scalp
         # allow running activation checkpointing on the entire vision and language backbones
@@ -76,16 +73,11 @@ class SAM3VLBackbone(nn.Module):
         return output
 
     def forward_image(self, samples: torch.Tensor):
-        return activation_ckpt_wrapper(self._forward_image_no_act_ckpt)(
-            samples=samples,
-            act_ckpt_enable=self.act_ckpt_whole_vision_backbone and self.training,
-        )
+        return self._forward_image_no_act_ckpt(samples=samples)
 
     def _forward_image_no_act_ckpt(self, samples):
         # Forward through backbone
-        sam3_features, sam3_pos, sam2_features, sam2_pos = self.vision_backbone.forward(
-            samples
-        )
+        sam3_features, sam3_pos, sam2_features, sam2_pos = self.vision_backbone.forward(samples)
         if self.scalp > 0:
             # Discard the lowest resolution features
             sam3_features, sam3_pos = (
@@ -118,15 +110,9 @@ class SAM3VLBackbone(nn.Module):
 
         return output
 
-    def forward_text(
-        self, captions, input_boxes=None, additional_text=None, device="cuda"
-    ):
-        return activation_ckpt_wrapper(self._forward_text_no_ack_ckpt)(
-            captions=captions,
-            input_boxes=input_boxes,
-            additional_text=additional_text,
-            device=device,
-            act_ckpt_enable=self.act_ckpt_whole_language_backbone and self.training,
+    def forward_text(self, captions, input_boxes=None, additional_text=None, device="cuda"):
+        return self._forward_text_no_ack_ckpt(
+            captions=captions, input_boxes=input_boxes, additional_text=additional_text, device=device
         )
 
     def _forward_text_no_ack_ckpt(
@@ -160,18 +146,14 @@ class SAM3VLBackbone(nn.Module):
 
         if additional_text is not None:
             output["additional_text_features"] = text_memory[:, -len(additional_text) :]
-            output["additional_text_mask"] = text_attention_mask[
-                -len(additional_text) :
-            ]
+            output["additional_text_mask"] = text_attention_mask[-len(additional_text) :]
 
         text_memory = text_memory[:, : len(captions)]
         text_attention_mask = text_attention_mask[: len(captions)]
         text_embeds = text_embeds[:, : len(captions)]
         output["language_features"] = text_memory
         output["language_mask"] = text_attention_mask
-        output["language_embeds"] = (
-            text_embeds  # Text embeddings before forward to the encoder
-        )
+        output["language_embeds"] = text_embeds  # Text embeddings before forward to the encoder
 
         return output
 

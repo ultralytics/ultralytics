@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from .modules.sam import SAM2Model
-from .modules.utils import get_1d_sine_pe, select_closest_cond_frames
 from .modules.blocks import TwoWayTransformer
 from .modules.decoders import SAM2MaskDecoder
 import torch

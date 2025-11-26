@@ -103,7 +103,7 @@ class SAM3Model(SAM2Model):
 
     def forward_image(self, img_batch: torch.Tensor):
         """Process image batch through encoder to extract multi-level features for SAM model."""
-        backbone_out = self.image_encoder.forward_image(img_batch)["sam2_backbone_out"]
+        backbone_out = self.image_encoder.forward_image_sam2(img_batch)
         if self.use_high_res_features_in_sam:
             # precompute projected level 0 and level 1 features in SAM decoder
             # to avoid running it again on every SAM click

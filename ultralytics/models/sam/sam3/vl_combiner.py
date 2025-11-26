@@ -107,6 +107,31 @@ class SAM3VLBackbone(nn.Module):
 
         return output
 
+    def forward_image_sam2(self, samples: torch.Tensor):
+        xs = self.vision_backbone.trunk(samples)
+        sam2_features, sam2_pos = [], []
+        x = xs[-1]  # simpleFPN
+
+        assert self.vision_backbone.sam2_convs is not None, "SAM2 neck is not available."
+        for i in range(len(self.vision_backbone.sam2_convs)):
+            sam2_x_out = self.vision_backbone.sam2_convs[i](x)
+            sam2_pos_out = self.vision_backbone.position_encoding(sam2_x_out).to(sam2_x_out.dtype)
+            sam2_features.append(sam2_x_out)
+            sam2_pos.append(sam2_pos_out)
+
+        if self.scalp > 0:
+            # Discard the lowest resolution features
+            sam2_features, sam2_pos = (
+                sam2_features[: -self.scalp],
+                sam2_pos[: -self.scalp],
+            )
+
+        return {
+            "vision_features": sam2_features[-1],
+            "vision_pos_enc": sam2_pos,
+            "backbone_fpn": sam2_features,
+        }
+
     def forward_text(self, captions, input_boxes=None, additional_text=None, device="cuda"):
         return self._forward_text_no_ack_ckpt(
             captions=captions, input_boxes=input_boxes, additional_text=additional_text, device=device

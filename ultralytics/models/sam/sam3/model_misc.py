@@ -11,7 +11,6 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 from torch import nn, Tensor
 from typing_extensions import override
 
@@ -116,42 +115,6 @@ class TransformerWrapper(nn.Module):
             if p.dim() > 1:
                 if "box_embed" not in n and "query_embed" not in n and "reference_points" not in n:
                     nn.init.xavier_uniform_(p)
-
-
-class MLP(nn.Module):
-    """Very simple multi-layer perceptron (also called FFN)"""
-
-    def __init__(
-        self,
-        input_dim: int,
-        hidden_dim: int,
-        output_dim: int,
-        num_layers: int,
-        dropout: float = 0.0,
-        residual: bool = False,
-        out_norm: Optional[nn.Module] = None,
-    ):
-        super().__init__()
-        self.num_layers = num_layers
-        h = [hidden_dim] * (num_layers - 1)
-        self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim]))
-        self.drop = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
-        # whether to add the output as a residual connection to the input
-        if residual and input_dim != output_dim:
-            raise ValueError("residual is only supported if input_dim == output_dim")
-        self.residual = residual
-        # whether to apply a normalization layer to the output
-        assert isinstance(out_norm, nn.Module) or out_norm is None
-        self.out_norm = out_norm or nn.Identity()
-
-    def forward(self, x):
-        orig_x = x
-        for i, layer in enumerate(self.layers):
-            x = self.drop(F.relu(layer(x))) if i < self.num_layers - 1 else layer(x)
-        if self.residual:
-            x = x + orig_x
-        x = self.out_norm(x)
-        return x
 
 
 def get_valid_ratio(mask):

@@ -15,7 +15,8 @@ from torchvision.ops.roi_align import RoIAlign
 from ultralytics.utils.ops import xywh2xyxy
 
 from ultralytics.nn.modules.utils import _get_clones, inverse_sigmoid
-from .model_misc import gen_sineembed_for_position, MLP
+from ultralytics.nn.modules.transformer import MLP
+from .model_misc import gen_sineembed_for_position
 
 
 class TransformerDecoderLayer(nn.Module):

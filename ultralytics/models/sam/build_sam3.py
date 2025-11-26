@@ -2,11 +2,12 @@
 
 import torch.nn as nn
 from ultralytics.utils.patches import torch_load
+from ultralytics.nn.modules.transformer import MLP
 from .sam3.decoder import TransformerDecoder, TransformerDecoderLayer
 from .sam3.encoder import TransformerEncoderFusion, TransformerEncoderLayer
 from .sam3.geometry_encoders import SequenceGeometryEncoder
 from .sam3.maskformer_segmentation import PixelDecoder, UniversalSegmentationHead
-from .sam3.model_misc import DotProductScoring, MLP, TransformerWrapper
+from .sam3.model_misc import DotProductScoring, TransformerWrapper
 from .sam3.necks import Sam3DualViTDetNeck
 from .sam3.sam3_image import Sam3Image
 from .sam3.text_encoder_ve import VETextEncoder
@@ -99,7 +100,6 @@ def _create_dot_product_scoring():
         hidden_dim=2048,
         output_dim=256,
         num_layers=2,
-        dropout=0.1,
         residual=True,
         out_norm=nn.LayerNorm(256),
     )
@@ -247,7 +247,7 @@ def _create_vision_backbone(compile_mode=None, enable_inst_interactivity=True) -
 
 
 def _create_sam3_transformer() -> TransformerWrapper:
-    """Create SAM3 transformer encoder and decoder."""
+    """Create SAM3 detector encoder and decoder."""
     encoder: TransformerEncoderFusion = _create_transformer_encoder()
     decoder: TransformerDecoder = _create_transformer_decoder()
 

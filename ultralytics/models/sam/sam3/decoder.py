@@ -554,115 +554,6 @@ class TransformerDecoder(nn.Module):
         )
 
 
-class TransformerEncoderCrossAttention(nn.Module):
-    def __init__(
-        self,
-        d_model: int,
-        frozen: bool,
-        pos_enc_at_input: bool,
-        layer,
-        num_layers: int,
-        use_act_checkpoint: bool = False,
-        batch_first: bool = False,  # Do layers expect batch first input?
-        # which layers to exclude cross attention? default: None, means all
-        # layers use cross attention
-        remove_cross_attention_layers: Optional[list] = None,
-    ):
-        super().__init__()
-        self.d_model = d_model
-        self.layers = get_clones(layer, num_layers)
-        self.num_layers = num_layers
-        self.norm = nn.LayerNorm(d_model)
-        self.pos_enc_at_input = pos_enc_at_input
-        self.use_act_checkpoint = use_act_checkpoint
-
-        if frozen:
-            for p in self.parameters():
-                p.requires_grad_(False)
-
-        self.batch_first = batch_first
-
-        # remove cross attention layers if specified
-        self.remove_cross_attention_layers = [False] * self.num_layers
-        if remove_cross_attention_layers is not None:
-            for i in remove_cross_attention_layers:
-                self.remove_cross_attention_layers[i] = True
-        assert len(self.remove_cross_attention_layers) == len(self.layers)
-
-        for i, remove_cross_attention in enumerate(self.remove_cross_attention_layers):
-            if remove_cross_attention:
-                self.layers[i].cross_attn_image = None
-                self.layers[i].norm2 = None
-                self.layers[i].dropout2 = None
-
-    def forward(
-        self,
-        src,  # self-attention inputs
-        prompt,  # cross-attention inputs
-        src_mask: Optional[Tensor] = None,  # att.mask for self-attention inputs
-        prompt_mask: Optional[Tensor] = None,  # att.mask for cross-attention inputs
-        src_key_padding_mask: Optional[Tensor] = None,
-        prompt_key_padding_mask: Optional[Tensor] = None,
-        src_pos: Optional[Tensor] = None,  # pos_enc for self-attention inputs
-        prompt_pos: Optional[Tensor] = None,  # pos_enc for cross-attention inputs
-        feat_sizes: Optional[list] = None,
-        num_obj_ptr_tokens: int = 0,  # number of object pointer *tokens*
-    ):
-        if isinstance(src, list):
-            assert isinstance(src_key_padding_mask, list) and isinstance(src_pos, list)
-            assert len(src) == len(src_key_padding_mask) == len(src_pos) == 1
-            src, src_key_padding_mask, src_pos = (
-                src[0],
-                src_key_padding_mask[0],
-                src_pos[0],
-            )
-
-        assert src.shape[1] == prompt.shape[1], "Batch size must be the same for src and prompt"
-
-        output = src
-
-        if self.pos_enc_at_input and src_pos is not None:
-            output = output + 0.1 * src_pos
-
-        if self.batch_first:
-            # Convert to batch first
-            output = output.transpose(0, 1)
-            src_pos = src_pos.transpose(0, 1)
-            prompt = prompt.transpose(0, 1)
-            prompt_pos = prompt_pos.transpose(0, 1)
-
-        for layer in self.layers:
-            kwds = {}
-            if isinstance(layer.cross_attn_image, RoPEAttention):
-                kwds = {"num_k_exclude_rope": num_obj_ptr_tokens}
-
-            output = layer(
-                tgt=output,
-                memory=prompt,
-                tgt_mask=src_mask,
-                memory_mask=prompt_mask,
-                tgt_key_padding_mask=src_key_padding_mask,
-                memory_key_padding_mask=prompt_key_padding_mask,
-                pos=prompt_pos,
-                query_pos=src_pos,
-                dac=False,
-                attn_bias=None,
-                **kwds,
-            )
-            normed_output = self.norm(output)
-
-        if self.batch_first:
-            # Convert back to seq first
-            normed_output = normed_output.transpose(0, 1)
-            src_pos = src_pos.transpose(0, 1)
-
-        return {
-            "memory": normed_output,
-            "pos_embed": src_pos,
-            "padding_mask": src_key_padding_mask,
-        }
-
-
 class TransformerDecoderLayerv1(nn.Module):
     def __init__(
         self,
@@ -860,7 +751,7 @@ class TransformerDecoderLayerv2(TransformerDecoderLayerv1):
         self,
         tgt,
         memory,
-        dac: bool,
+        dac: bool = False,
         tgt_mask: Optional[Tensor] = None,
         memory_mask: Optional[Tensor] = None,
         tgt_key_padding_mask: Optional[Tensor] = None,

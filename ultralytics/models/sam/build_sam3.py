@@ -6,7 +6,6 @@ from .sam3.decoder import (
     TransformerDecoder,
     TransformerDecoderLayer,
     TransformerDecoderLayerv2,
-    TransformerEncoderCrossAttention,
 )
 from .sam3.encoder import TransformerEncoderFusion, TransformerEncoderLayer
 from .sam3.geometry_encoders import SequenceGeometryEncoder
@@ -24,6 +23,7 @@ from .sam3.tokenizer_ve import SimpleTokenizer
 from .sam3.vitdet import ViT
 from .sam3.vl_combiner import SAM3VLBackbone
 from .modules.blocks import PositionEmbeddingSine, RoPEAttention
+from .modules.memory_attention import MemoryAttention
 from .sam3.memory import CXBlock, SimpleFuser, SimpleMaskDownSampler, SimpleMaskEncoder
 from .sam3_model import SAM3Model
 
@@ -406,11 +406,9 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model
 
     # Create model components
     maskmem_backbone = _create_tracker_maskmem_backbone()
-    memory_attention = TransformerEncoderCrossAttention(
-        remove_cross_attention_layers=[],
+    memory_attention = MemoryAttention(
         batch_first=True,
         d_model=256,
-        frozen=False,
         pos_enc_at_input=True,
         layer=TransformerDecoderLayerv2(
             cross_attention_first=False,
@@ -440,7 +438,6 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model
             ),
         ),
         num_layers=4,
-        use_act_checkpoint=False,
     )
 
     vision_backbone = _create_vision_backbone(compile_mode=compile_mode)

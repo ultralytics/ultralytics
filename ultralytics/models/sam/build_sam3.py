@@ -292,11 +292,7 @@ def _load_checkpoint(model, checkpoint):
 
 
 def build_sam3_image_model(
-    checkpoint_path: str,
-    bpe_path: str,
-    enable_segmentation: bool = True,
-    enable_inst_interactivity: bool = False,
-    compile: bool = False,
+    checkpoint_path: str, bpe_path: str, enable_segmentation: bool = True, compile: bool = False
 ):
     """
     Build SAM3 image model
@@ -305,7 +301,6 @@ def build_sam3_image_model(
         checkpoint_path: Optional path to model checkpoint
         bpe_path: Path to the BPE tokenizer vocabulary
         enable_segmentation: Whether to enable segmentation head
-        enable_inst_interactivity: Whether to enable instance interactivity (SAM 1 task)
         compile_mode: To enable compilation, set to "default"
 
     Returns:
@@ -313,9 +308,7 @@ def build_sam3_image_model(
     """
     # Create visual components
     compile_mode = "default" if compile else None
-    vision_encoder = _create_vision_backbone(
-        compile_mode=compile_mode, enable_inst_interactivity=enable_inst_interactivity
-    )
+    vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=False)
 
     # Create text components
     text_encoder = VETextEncoder(
@@ -400,8 +393,7 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model
         num_layers=4,
     )
 
-    vision_backbone = _create_vision_backbone(compile_mode=compile_mode)
-    backbone = SAM3VLBackbone(scalp=1, visual=vision_backbone, text=None)
+    backbone = SAM3VLBackbone(scalp=1, visual=_create_vision_backbone(compile_mode=compile_mode), text=None)
     model = SAM3Model(
         image_size=1008,
         image_encoder=backbone,

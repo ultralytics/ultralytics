@@ -1,7 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 from __future__ import annotations
-import os
 from copy import deepcopy
 from typing import Dict, List, Optional, Tuple
 
@@ -11,7 +10,6 @@ import torch
 from .model_misc import SAM3Output
 
 from .vl_combiner import SAM3VLBackbone
-from .utils.nms import nms_masks
 
 from ultralytics.utils.ops import xywh2xyxy
 
@@ -53,7 +51,7 @@ class Sam3Image(torch.nn.Module):
         detach_presence_in_joint_score: bool = False,  # only relevant if using presence token/score
         separate_scorer_for_instance: bool = False,
         num_interactive_steps_val: int = 0,
-        inst_interactive_predictor: None,
+        inst_interactive_predictor = None,
         **kwargs,
     ):
         super().__init__()
@@ -634,198 +632,3 @@ class Sam3Image(torch.nn.Module):
         """Set the text embeddings for the given class names."""
         self.text_embeddings = self.backbone.forward_text(text)
         self.names = text
-
-
-class Sam3ImageOnVideoMultiGPU(Sam3Image):
-    def __init__(self, *args, async_all_gather=True, gather_backbone_out=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.rank = int(os.getenv("RANK", "0"))
-        self.world_size = int(os.getenv("WORLD_SIZE", "1"))
-        self.async_all_gather = async_all_gather
-
-        # if gather_backbone is not set, default to gathering only for `SAM3VLBackbone`
-        if gather_backbone_out is None:
-            gather_backbone_out = isinstance(self.backbone, SAM3VLBackbone)
-        self.gather_backbone_out = gather_backbone_out
-
-    def forward_video_grounding_multigpu(
-        self,
-        backbone_out,
-        find_inputs,
-        geometric_prompt: Prompt,
-        frame_idx,
-        num_frames,
-        # `multigpu_buffer` is a dict to cache detector's outputs in a chunk between different calls
-        multigpu_buffer,
-        track_in_reverse=False,
-        # whether to also return the SAM2 backbone features
-        return_sam2_backbone_feats=False,
-        # whether to perform NMS and suppress the scores of those detections removed by NMS
-        run_nms=False,
-        nms_prob_thresh=None,
-        nms_iou_thresh=None,
-        **kwargs,
-    ):
-        """
-        Compute the detector's detection outputs in a distributed manner, where all GPUs process
-        a chunk of frames (equal to the number of GPUs) at once and store them in cache.
-        """
-        # Step 1: fetch the detector outputs in the current chunk from buffer
-        frame_idx_curr_b = frame_idx - frame_idx % self.world_size
-        frame_idx_curr_e = min(frame_idx_curr_b + self.world_size, num_frames)
-        # in case the current frame's detection results are not in the buffer yet, build the current chunk
-        # (this should only happen on the first chunk, since we are also building the next chunk below)
-        if frame_idx not in multigpu_buffer:
-            with torch.profiler.record_function("build_multigpu_buffer_next_chunk1"):
-                self._build_multigpu_buffer_next_chunk(
-                    backbone_out=backbone_out,
-                    find_inputs=find_inputs,
-                    geometric_prompt=geometric_prompt,
-                    frame_idx_begin=frame_idx_curr_b,
-                    frame_idx_end=frame_idx_curr_e,
-                    num_frames=num_frames,
-                    multigpu_buffer=multigpu_buffer,
-                    run_nms=run_nms,
-                    nms_prob_thresh=nms_prob_thresh,
-                    nms_iou_thresh=nms_iou_thresh,
-                )
-
-        # read out the current frame's results from `multigpu_buffer`
-        out = {}
-        for k, (v, handle) in multigpu_buffer[frame_idx].items():
-            if k.startswith("sam2_backbone_") and not return_sam2_backbone_feats:
-                continue
-            if handle is not None:
-                handle.wait()  # wait for async all-gather to finish
-            out[k] = v
-
-        # Step 2: remove detection outputs of the previous chunk from cache to save GPU memory
-        if not track_in_reverse and frame_idx_curr_b - self.world_size >= 0:
-            frame_idx_prev_e = frame_idx_curr_b
-            frame_idx_prev_b = frame_idx_curr_b - self.world_size
-        elif track_in_reverse and frame_idx_curr_e < num_frames:
-            frame_idx_prev_b = frame_idx_curr_e
-            frame_idx_prev_e = min(frame_idx_prev_b + self.world_size, num_frames)
-        else:
-            frame_idx_prev_b = frame_idx_prev_e = None
-        if frame_idx_prev_b is not None:
-            for frame_idx_rm in range(frame_idx_prev_b, frame_idx_prev_e):
-                multigpu_buffer.pop(frame_idx_rm, None)
-
-        # Step 3: compute and cache detection outputs of the next chunk ahead of time
-        # (so that we can overlap computation with all-gather transfer)
-        if not track_in_reverse and frame_idx_curr_e < num_frames:
-            frame_idx_next_b = frame_idx_curr_e
-            frame_idx_next_e = min(frame_idx_next_b + self.world_size, num_frames)
-        elif track_in_reverse and frame_idx_curr_b - self.world_size >= 0:
-            frame_idx_next_e = frame_idx_curr_b
-            frame_idx_next_b = frame_idx_curr_b - self.world_size
-        else:
-            frame_idx_next_b = frame_idx_next_e = None
-        if frame_idx_next_b is not None and frame_idx_next_b not in multigpu_buffer:
-            with torch.profiler.record_function("build_multigpu_buffer_next_chunk2"):
-                self._build_multigpu_buffer_next_chunk(
-                    backbone_out=backbone_out,
-                    find_inputs=find_inputs,
-                    geometric_prompt=geometric_prompt,
-                    frame_idx_begin=frame_idx_next_b,
-                    frame_idx_end=frame_idx_next_e,
-                    num_frames=num_frames,
-                    multigpu_buffer=multigpu_buffer,
-                    run_nms=run_nms,
-                    nms_prob_thresh=nms_prob_thresh,
-                    nms_iou_thresh=nms_iou_thresh,
-                )
-
-        return out, backbone_out
-
-    def _build_multigpu_buffer_next_chunk(
-        self,
-        backbone_out,
-        find_inputs,
-        geometric_prompt: Prompt,
-        frame_idx_begin,
-        frame_idx_end,
-        num_frames,
-        multigpu_buffer,
-        run_nms=False,
-        nms_prob_thresh=None,
-        nms_iou_thresh=None,
-    ):
-        """Compute detection outputs on a chunk of frames and store their results in multigpu_buffer."""
-        # each GPU computes detections on one frame in the chunk (in a round-robin manner)
-        frame_idx_local_gpu = min(frame_idx_begin + self.rank, frame_idx_end - 1)
-        # `forward_grounding` (from base class `Sam3ImageOnVideo`) runs the detector on a single frame
-        with torch.profiler.record_function("forward_grounding"):
-            out_local = self.forward_grounding(
-                backbone_out=backbone_out,
-                find_input=find_inputs[frame_idx_local_gpu],
-                find_target=None,
-                geometric_prompt=geometric_prompt,
-            )
-        if run_nms:
-            with torch.profiler.record_function("nms_masks"):
-                # run NMS as a post-processing step on top of the detection outputs
-                assert nms_prob_thresh is not None and nms_iou_thresh is not None
-                pred_probs = out_local["pred_logits"].squeeze(-1).sigmoid()
-                pred_masks = out_local["pred_masks"]
-                # loop over text prompts (not an overhead for demo where there's only 1 prompt)
-                for prompt_idx in range(pred_probs.size(0)):
-                    keep = nms_masks(
-                        pred_probs=pred_probs[prompt_idx],
-                        pred_masks=pred_masks[prompt_idx],
-                        prob_threshold=nms_prob_thresh,
-                        iou_threshold=nms_iou_thresh,
-                    )
-                    # set a very low threshold for those detections removed by NMS
-                    out_local["pred_logits"][prompt_idx, :, 0] -= 1e4 * (~keep).float()
-
-        if self.gather_backbone_out:
-            # gather the SAM 2 backbone features across GPUs
-            feats = out_local["prev_encoder_out"]["backbone_out"]["sam2_backbone_out"]
-            assert len(feats["backbone_fpn"]) == 3  # SAM2 backbone always have 3 levels
-            # cast the SAM2 backbone features to bfloat16 for all-gather (this is usually
-            # a no-op, SAM2 backbone features are likely already in bfloat16 due to AMP)
-            backbone_fpn_bf16 = [x.to(torch.bfloat16) for x in feats["backbone_fpn"]]
-            fpn0, fpn_handle0 = self._gather_tensor(backbone_fpn_bf16[0])
-            fpn1, fpn_handle1 = self._gather_tensor(backbone_fpn_bf16[1])
-            fpn2, fpn_handle2 = self._gather_tensor(backbone_fpn_bf16[2])
-            # vision_pos_enc is the same on all frames, so no need to all-gather them
-            vision_pos_enc = feats["vision_pos_enc"]
-
-        # trim the detector output to only include the necessary keys
-        out_local = {
-            "pred_logits": out_local["pred_logits"],
-            "pred_boxes": out_local["pred_boxes"],
-            "pred_boxes_xyxy": out_local["pred_boxes_xyxy"],
-            "pred_masks": out_local["pred_masks"],
-        }
-
-        # gather the results: after this step, each GPU will receive detector outputs on
-        # all frames in the chunk and store them in `multigpu_buffer`
-        out_gathered = {k: self._gather_tensor(v) for k, v in out_local.items()}
-        for rank in range(self.world_size):
-            frame_idx_to_save = frame_idx_begin + rank
-            if frame_idx_to_save >= num_frames:
-                continue
-            frame_buffer = {k: (v[rank], handle) for k, (v, handle) in out_gathered.items()}
-            if self.gather_backbone_out:
-                # also add gathered SAM 2 backbone features to frame_buffer
-                frame_buffer["tracker_backbone_fpn_0"] = (fpn0[rank], fpn_handle0)
-                frame_buffer["tracker_backbone_fpn_1"] = (fpn1[rank], fpn_handle1)
-                frame_buffer["tracker_backbone_fpn_2"] = (fpn2[rank], fpn_handle2)
-                frame_buffer["tracker_backbone_pos_enc"] = (vision_pos_enc, None)
-
-            multigpu_buffer[frame_idx_to_save] = frame_buffer
-
-    def _gather_tensor(self, x):
-        if self.world_size == 1:
-            return [x], None
-
-        async_op = self.async_all_gather
-        # here `.contiguous()` is required -- otherwise NCCL all_gather
-        # sometimes gives wrong results
-        x = x.contiguous()  # ensure contiguous memory for NCCL
-        output_list = [torch.empty_like(x) for _ in range(self.world_size)]
-        handle = torch.distributed.all_gather(output_list, x, async_op=async_op)
-        return output_list, handle

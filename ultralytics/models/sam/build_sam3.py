@@ -6,12 +6,7 @@ from .sam3.decoder import TransformerDecoder, TransformerDecoderLayer
 from .sam3.encoder import TransformerEncoderFusion, TransformerEncoderLayer
 from .sam3.geometry_encoders import SequenceGeometryEncoder
 from .sam3.maskformer_segmentation import PixelDecoder, UniversalSegmentationHead
-from .sam3.model_misc import (
-    DotProductScoring,
-    MLP,
-    MultiheadAttentionWrapper as MultiheadAttention,
-    TransformerWrapper,
-)
+from .sam3.model_misc import DotProductScoring, MLP, TransformerWrapper
 from .sam3.necks import Sam3DualViTDetNeck
 from .sam3.sam3_image import Sam3Image
 from .sam3.text_encoder_ve import VETextEncoder
@@ -34,13 +29,13 @@ def _create_transformer_encoder() -> TransformerEncoderFusion:
         pos_enc_at_cross_attn_keys=False,
         pos_enc_at_cross_attn_queries=False,
         pre_norm=True,
-        self_attention=MultiheadAttention(
+        self_attention=nn.MultiheadAttention(
             num_heads=8,
             dropout=0.1,
             embed_dim=256,
             batch_first=True,
         ),
-        cross_attention=MultiheadAttention(
+        cross_attention=nn.MultiheadAttention(
             num_heads=8,
             dropout=0.1,
             embed_dim=256,
@@ -67,7 +62,7 @@ def _create_transformer_decoder() -> TransformerDecoder:
         d_model=256,
         dim_feedforward=2048,
         dropout=0.1,
-        cross_attention=MultiheadAttention(
+        cross_attention=nn.MultiheadAttention(
             num_heads=8,
             dropout=0.1,
             embed_dim=256,
@@ -120,12 +115,6 @@ def _create_segmentation_head(compile_mode=None):
         compile_mode=compile_mode,
     )
 
-    cross_attend_prompt = MultiheadAttention(
-        num_heads=8,
-        dropout=0,
-        embed_dim=256,
-    )
-
     segmentation_head = UniversalSegmentationHead(
         hidden_dim=256,
         upsampling_stages=3,
@@ -133,7 +122,11 @@ def _create_segmentation_head(compile_mode=None):
         presence_head=False,
         dot_product_scorer=None,
         act_ckpt=True,
-        cross_attend_prompt=cross_attend_prompt,
+        cross_attend_prompt=nn.MultiheadAttention(
+            num_heads=8,
+            dropout=0,
+            embed_dim=256,
+        ),
         pixel_decoder=pixel_decoder,
     )
     return segmentation_head
@@ -155,20 +148,8 @@ def _create_geometry_encoder():
         dropout=0.1,
         pos_enc_at_attn=False,
         pre_norm=True,
-        self_attention=MultiheadAttention(
-            num_heads=8,
-            dropout=0.1,
-            embed_dim=256,
-            batch_first=False,
-        ),
         pos_enc_at_cross_attn_queries=False,
         pos_enc_at_cross_attn_keys=True,
-        cross_attention=MultiheadAttention(
-            num_heads=8,
-            dropout=0.1,
-            embed_dim=256,
-            batch_first=False,
-        ),
     )
 
     # Create geometry encoder

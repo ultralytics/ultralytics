@@ -150,6 +150,7 @@ class TransformerDecoderLayer(nn.Module):
             value=memory,
             attn_mask=cross_attn_mask,
             key_padding_mask=(memory_key_padding_mask.transpose(0, 1) if memory_key_padding_mask is not None else None),
+            need_weights=False,
         )[0]
 
         tgt = tgt + self.dropout1(tgt2)

@@ -16,12 +16,6 @@ from torch import nn, Tensor
 from typing_extensions import override
 
 
-class MultiheadAttentionWrapper(nn.MultiheadAttention):
-    def forward(self, *args, **kwargs):
-        kwargs["need_weights"] = False
-        return super().forward(*args, **kwargs)
-
-
 class DotProductScoring(torch.nn.Module):
     def __init__(
         self,

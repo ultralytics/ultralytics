@@ -285,6 +285,7 @@ class UniversalSegmentationHead(SegmentationHead):
                 key=prompt.to(tgt2.dtype),
                 value=prompt.to(tgt2.dtype),
                 key_padding_mask=prompt_mask,
+                need_weights=False,
             )[0]
             encoder_hidden_states = tgt2 + encoder_hidden_states
 

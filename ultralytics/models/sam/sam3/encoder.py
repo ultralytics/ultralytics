@@ -24,7 +24,6 @@ class TransformerEncoderLayer(nn.Module):
 
     def __init__(
         self,
-        cross_attention: nn.Module,
         d_model: int,
         dim_feedforward: int,
         dropout: float,
@@ -32,7 +31,8 @@ class TransformerEncoderLayer(nn.Module):
         pos_enc_at_cross_attn_keys: bool,
         pos_enc_at_cross_attn_queries: bool,
         pre_norm: bool,
-        self_attention: nn.Module,
+        self_attention: nn.Module = None,
+        cross_attention: nn.Module = None,
     ):
         """
         Initialize a transformer encoder layer.
@@ -52,8 +52,8 @@ class TransformerEncoderLayer(nn.Module):
         self.d_model = d_model
         self.dim_feedforward = dim_feedforward
         self.dropout_value = dropout
-        self.self_attn = self_attention
-        self.cross_attn_image = cross_attention
+        self.self_attn = self_attention or nn.MultiheadAttention(num_heads=8, dropout=0.1, embed_dim=256)
+        self.cross_attn_image = cross_attention or nn.MultiheadAttention(num_heads=8, dropout=0.1, embed_dim=256)
 
         # Implementation of Feedforward model
         self.linear1 = nn.Linear(d_model, dim_feedforward)
@@ -110,7 +110,9 @@ class TransformerEncoderLayer(nn.Module):
         q = k = tgt + query_pos if self.pos_enc_at_attn else tgt
 
         # Self attention
-        tgt2 = self.self_attn(q, k, value=tgt, attn_mask=tgt_mask, key_padding_mask=tgt_key_padding_mask)[0]
+        tgt2 = self.self_attn(
+            q, k, value=tgt, attn_mask=tgt_mask, key_padding_mask=tgt_key_padding_mask, need_weights=False
+        )[0]
         tgt = tgt + self.dropout1(tgt2)
         tgt = self.norm1(tgt)
 
@@ -121,6 +123,7 @@ class TransformerEncoderLayer(nn.Module):
             value=memory,
             attn_mask=memory_mask,
             key_padding_mask=memory_key_padding_mask,
+            need_weights=False,
         )[0]
         tgt = tgt + self.dropout2(tgt2)
         tgt = self.norm2(tgt)

@@ -481,7 +481,12 @@ Examples:
         """,
     )
     parser.add_argument("--kitti-root", type=str, required=True, help="Path to KITTI dataset root directory")
-    parser.add_argument("--output-root", type=str, required=True, help="Path to output directory")
+    parser.add_argument(
+        "--output-root",
+        type=str,
+        default=None,
+        help="Path to output directory (default: same as --kitti-root)",
+    )
     parser.add_argument(
         "--split", type=str, default="training", choices=["training", "testing"], help="Which split to convert"
     )
@@ -495,8 +500,13 @@ Examples:
 
     args = parser.parse_args()
 
+    # Determine output root fallback
+    output_root = args.output_root or args.kitti_root
+    if args.output_root is None:
+        LOGGER.info("--output-root not provided. Using --kitti-root as output directory.")
+
     # Initialize converter
-    converter = KITTIToYOLO3D(args.kitti_root, args.output_root, filter_classes=args.filter_classes)
+    converter = KITTIToYOLO3D(args.kitti_root, output_root, filter_classes=args.filter_classes)
 
     # Convert dataset
     converter.convert_split(args.split)
@@ -505,7 +515,7 @@ Examples:
     converter.create_dataset_yaml()
 
     LOGGER.info("\n✓ Conversion complete!")
-    LOGGER.info(f"\nYour dataset is ready at: {args.output_root}")
+    LOGGER.info(f"\nYour dataset is ready at: {output_root}")
     LOGGER.info("\nDirectory structure:")
     LOGGER.info("  images/left/    - Left camera images (reference)")
     LOGGER.info("  images/right/   - Right camera images (reference)")
@@ -516,4 +526,3 @@ Examples:
 
 if __name__ == "__main__":
     main()
-

@@ -468,7 +468,6 @@ class TransformerEncoderFusion(TransformerEncoder):
         src_key_padding_mask: Optional[List[Tensor]] = None,
         src_pos: Optional[List[Tensor]] = None,
         prompt_key_padding_mask: Optional[Tensor] = None,
-        prompt_pos: Optional[Tensor] = None,
         feat_sizes: Optional[List[int]] = None,
         encoder_extra_kwargs: Optional[Dict] = None,
     ):

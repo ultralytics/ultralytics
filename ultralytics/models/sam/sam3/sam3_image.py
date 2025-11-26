@@ -212,14 +212,12 @@ class Sam3Image(torch.nn.Module):
         backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = feat_tuple
 
         # Run the encoder
-        prompt_pos_embed = torch.zeros_like(prompt)
         # make a copy of the image feature lists since the encoder may modify these lists in-place
         memory = self.transformer.encoder(
             src=img_feats.copy(),
             src_key_padding_mask=None,
             src_pos=img_pos_embeds.copy(),
             prompt=prompt,
-            prompt_pos=prompt_pos_embed,
             prompt_key_padding_mask=prompt_mask,
             feat_sizes=vis_feat_sizes,
             encoder_extra_kwargs=encoder_extra_kwargs,
@@ -366,7 +364,6 @@ class Sam3Image(torch.nn.Module):
         out,
         backbone_out,
         img_ids,
-        vis_feat_sizes,
         encoder_hidden_states,
         prompt,
         prompt_mask,
@@ -445,7 +442,6 @@ class Sam3Image(torch.nn.Module):
                 out=out,
                 backbone_out=backbone_out,
                 img_ids=find_input.img_ids,
-                vis_feat_sizes=encoder_out["vis_feat_sizes"],
                 encoder_hidden_states=out["encoder_hidden_states"],
                 prompt=prompt,
                 prompt_mask=prompt_mask,

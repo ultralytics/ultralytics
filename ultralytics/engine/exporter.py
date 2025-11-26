@@ -1080,9 +1080,12 @@ class Exporter:
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """YOLO Axelera export."""
-        # apt update && apt install git python3-dev python3-pip -y
-        # install libllvm14 libgirepository1.0-dev pkg-config libcairo2-dev
 
+        # TODO: Make this a fucntion to use also with imx
+        # TODO: Find a way to check if package are installed 
+        cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "libllvm14","libgirepository1.0-dev", "pkg-config", "libcairo2-dev"]
+        subprocess.run(cmd, check=True)
+        
         check_requirements(
             "axelera-voyager-sdk==1.5.0-rc6",
             cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc6/build-packages-ubuntu-22.04/python",

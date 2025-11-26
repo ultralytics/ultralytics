@@ -4,18 +4,15 @@ Transformer decoder.
 Inspired from Pytorch's version, adds the pre-norm variant
 """
 
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import numpy as np
 
 import torch
-
-from ultralytics.models.sam.modules.blocks import RoPEAttention
-
 from torch import nn, Tensor
 from torchvision.ops.roi_align import RoIAlign
 
-from .box_ops import box_cxcywh_to_xyxy
+from ultralytics.utils.ops import xywh2xyxy
 
 from .model_misc import (
     gen_sineembed_for_position,
@@ -308,7 +305,7 @@ class TransformerDecoder(nn.Module):
 
     def _get_rpb_matrix(self, reference_boxes, feat_size):
         H, W = feat_size
-        boxes_xyxy = box_cxcywh_to_xyxy(reference_boxes).transpose(0, 1)
+        boxes_xyxy = xywh2xyxy(reference_boxes).transpose(0, 1)
         bs, num_queries, _ = boxes_xyxy.shape
         if self.compilable_cord_cache is None:
             self.compilable_cord_cache = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)

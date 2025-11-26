@@ -14,10 +14,7 @@ from .sam1_task_predictor import SAM3InteractiveImagePredictor
 from .vl_combiner import SAM3VLBackbone
 from .utils.nms import nms_masks
 
-
-from .act_ckpt_utils import activation_ckpt_wrapper
-
-from .box_ops import box_cxcywh_to_xyxy
+from ultralytics.utils.ops import xywh2xyxy
 
 from .geometry_encoders import Prompt
 from .model_misc import inverse_sigmoid
@@ -327,7 +324,7 @@ class Sam3Image(torch.nn.Module):
         anchor_box_offsets = box_head(hs)
         reference_boxes_inv_sig = inverse_sigmoid(reference_boxes)
         outputs_coord = (reference_boxes_inv_sig + anchor_box_offsets).sigmoid()
-        outputs_boxes_xyxy = box_cxcywh_to_xyxy(outputs_coord)
+        outputs_boxes_xyxy = xywh2xyxy(outputs_coord)
 
         if dec_presence_out is not None:
             _update_out(out, "presence_logit_dec", dec_presence_out, update_aux=self.training)
@@ -386,12 +383,11 @@ class Sam3Image(torch.nn.Module):
             num_o2o = (hs.size(2) // 2) if apply_dac else hs.size(2)
             num_o2m = hs.size(2) - num_o2o
             obj_queries = hs if self.o2m_mask_predict else hs[:, :, :num_o2o]
-            seg_head_outputs = activation_ckpt_wrapper(self.segmentation_head)(
+            seg_head_outputs = self.segmentation_head(
                 backbone_feats=backbone_out["backbone_fpn"],
                 obj_queries=obj_queries,
                 image_ids=img_ids,
                 encoder_hidden_states=encoder_hidden_states,
-                act_ckpt_enable=self.training and self.use_act_checkpoint_seg_head,
                 prompt=prompt,
                 prompt_mask=prompt_mask,
             )
@@ -547,7 +543,7 @@ class Sam3Image(torch.nn.Module):
     def back_convert(self, targets):
         batched_targets = {
             "boxes": targets.boxes.view(-1, 4),
-            "boxes_xyxy": box_cxcywh_to_xyxy(targets.boxes.view(-1, 4)),
+            "boxes_xyxy": xywh2xyxy(targets.boxes.view(-1, 4)),
             "boxes_padded": targets.boxes_padded,
             "positive_map": targets.boxes.new_ones(len(targets.boxes), 1),
             "num_boxes": targets.num_boxes,

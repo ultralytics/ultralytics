@@ -65,7 +65,7 @@ TASK2DATA = {
 TASK2MODEL = {
     "detect": "yolo11n.pt",
     "segment": "yolo11n-seg.pt",
-    "semseg": "yolo11n.pt",
+    "semseg": "yolo11n-semseg.pt",
     "classify": "yolo11n-cls.pt",
     "pose": "yolo11n-pose.pt",
     "obb": "yolo11n-obb.pt",

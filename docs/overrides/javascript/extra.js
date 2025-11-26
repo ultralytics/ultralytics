@@ -162,9 +162,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 //Fix chatbot window appearing glitch on page switching
 (function () {
-  const CLASS = "ult-chat-modal";   // <-- change this
+  const CLASS = "ult-chat-modal"; // <-- change this
   const STYLE_ID = "temp-hide-popup-style";
-  const DURATION = 1000;             // 5 seconds
+  const DURATION = 1000; // 5 seconds
 
   function hideTemporarily() {
     // Remove any previous style (from previous page)
@@ -182,7 +182,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     document.documentElement.appendChild(styleEl);
 
-    
     setTimeout(() => {
       styleEl.remove();
     }, DURATION);
@@ -196,4 +195,3 @@ document.addEventListener("DOMContentLoaded", () => {
     window.document$.subscribe(hideTemporarily);
   }
 })();
-

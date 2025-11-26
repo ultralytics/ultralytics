@@ -357,6 +357,7 @@ def check_apt_requirements(requirements):
     Args:
         requirements: List of apt package names to check and install
     """
+    prefix = colorstr("red", "bold", "apt requirements:")
     # Check which packages are missing
     missing_packages = []
     for package in requirements:
@@ -374,17 +375,19 @@ def check_apt_requirements(requirements):
 
     # Install missing packages if any
     if missing_packages:
+        LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, attempting AutoUpdate...")
         # Optionally update package list first
         if is_sudo_available():
             subprocess.run(["sudo", "apt", "update"], check=False)
-
+        
         # Build and run the install command
         cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y"] + missing_packages
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-
-        LOGGER.info(f"✓ Successfully installed: {', '.join(missing_packages)}")
-    else:
-        LOGGER.info("✓ All required packages are already installed.")
+        
+        LOGGER.info(f"{prefix} AutoUpdate success ✅")
+        LOGGER.warning(
+                    f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
+                )
 
 
 @TryExcept()

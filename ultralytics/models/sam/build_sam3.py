@@ -276,21 +276,6 @@ def _create_sam3_transformer() -> TransformerWrapper:
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
 
-def _load_checkpoint(model, checkpoint):
-    """Load model checkpoint from file."""
-    with open(checkpoint, "rb") as f:
-        ckpt = torch_load(f)
-    if "model" in ckpt and isinstance(ckpt["model"], dict):
-        ckpt = ckpt["model"]
-    sam3_image_ckpt = {k.replace("detector.", ""): v for k, v in ckpt.items() if "detector" in k}
-    if model.inst_interactive_predictor is not None:
-        sam3_image_ckpt.update(
-            {k.replace("tracker.", "inst_interactive_predictor.model."): v for k, v in ckpt.items() if "tracker" in k}
-        )
-    model.load_state_dict(sam3_image_ckpt, strict=False)
-    return model
-
-
 def build_sam3_image_model(
     checkpoint_path: str, bpe_path: str, enable_segmentation: bool = True, compile: bool = False
 ):
@@ -431,41 +416,42 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model
     )
 
     # Load checkpoint if provided
-    model = _load_checkpoint_interactive(model, checkpoint_path)
+    model = _load_checkpoint(model, checkpoint_path, interactive=True)
 
     # Setup device and mode
     model.eval()
     return model
 
 
-def _load_checkpoint_interactive(model, checkpoint):
-    """Load model checkpoint from file."""
+def _load_checkpoint(model, checkpoint, interactive=False):
+    """Load SAM3 model checkpoint from file."""
     with open(checkpoint, "rb") as f:
         ckpt = torch_load(f)
     if "model" in ckpt and isinstance(ckpt["model"], dict):
         ckpt = ckpt["model"]
     sam3_image_ckpt = {k.replace("detector.", ""): v for k, v in ckpt.items() if "detector" in k}
-    sam3_image_ckpt.update(
-        {
-            k.replace("backbone.vision_backbone", "image_encoder.vision_backbone"): v
-            for k, v in sam3_image_ckpt.items()
-            if "backbone.vision_backbone" in k
-        }
-    )
-    sam3_image_ckpt.update(
-        {
-            k.replace("tracker.transformer.encoder", "memory_attention"): v
-            for k, v in ckpt.items()
-            if "tracker.transformer" in k
-        }
-    )
-    sam3_image_ckpt.update(
-        {
-            k.replace("tracker.maskmem_backbone", "memory_encoder"): v
-            for k, v in ckpt.items()
-            if "tracker.maskmem_backbone" in k
-        }
-    )
-    sam3_image_ckpt.update({k.replace("tracker.", ""): v for k, v in ckpt.items() if "tracker." in k})
+    if interactive:
+        sam3_image_ckpt.update(
+            {
+                k.replace("backbone.vision_backbone", "image_encoder.vision_backbone"): v
+                for k, v in sam3_image_ckpt.items()
+                if "backbone.vision_backbone" in k
+            }
+        )
+        sam3_image_ckpt.update(
+            {
+                k.replace("tracker.transformer.encoder", "memory_attention"): v
+                for k, v in ckpt.items()
+                if "tracker.transformer" in k
+            }
+        )
+        sam3_image_ckpt.update(
+            {
+                k.replace("tracker.maskmem_backbone", "memory_encoder"): v
+                for k, v in ckpt.items()
+                if "tracker.maskmem_backbone" in k
+            }
+        )
+        sam3_image_ckpt.update({k.replace("tracker.", ""): v for k, v in ckpt.items() if "tracker." in k})
     model.load_state_dict(sam3_image_ckpt, strict=False)
     return model

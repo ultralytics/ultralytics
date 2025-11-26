@@ -10,7 +10,6 @@ import torch
 
 from .model_misc import SAM3Output
 
-from .sam1_task_predictor import SAM3InteractiveImagePredictor
 from .vl_combiner import SAM3VLBackbone
 from .utils.nms import nms_masks
 
@@ -54,7 +53,7 @@ class Sam3Image(torch.nn.Module):
         detach_presence_in_joint_score: bool = False,  # only relevant if using presence token/score
         separate_scorer_for_instance: bool = False,
         num_interactive_steps_val: int = 0,
-        inst_interactive_predictor: SAM3InteractiveImagePredictor = None,
+        inst_interactive_predictor: None,
         **kwargs,
     ):
         super().__init__()

@@ -293,24 +293,6 @@ class TransformerEncoder(nn.Module):
         for layer_idx, layer in enumerate(self.layers):
             layer.layer_idx = layer_idx
 
-    @staticmethod
-    def get_reference_points(spatial_shapes, valid_ratios, device):
-        with torch.no_grad():
-            reference_points_list = []
-            for lvl, (H_, W_) in enumerate(spatial_shapes):
-                ref_y, ref_x = torch.meshgrid(
-                    torch.linspace(0.5, H_ - 0.5, H_, dtype=torch.float32, device=device),
-                    torch.linspace(0.5, W_ - 0.5, W_, dtype=torch.float32, device=device),
-                )
-                ref_y = ref_y.reshape(-1)[None] / (valid_ratios[:, None, lvl, 1] * H_)
-                ref_x = ref_x.reshape(-1)[None] / (valid_ratios[:, None, lvl, 0] * W_)
-                ref = torch.stack((ref_x, ref_y), -1)
-                reference_points_list.append(ref)
-            reference_points = torch.cat(reference_points_list, 1)
-            reference_points = reference_points[:, :, None] * valid_ratios[:, None]
-
-        return reference_points
-
     def _prepare_multilevel_features(self, srcs, masks, pos_embeds):
         assert len(srcs) == self.num_feature_levels, "mismatch between expected and received # of feature levels"
 
@@ -320,7 +302,7 @@ class TransformerEncoder(nn.Module):
         spatial_shapes = []
         has_mask = masks is not None and masks[0] is not None
         for lvl, (src, mask, pos_embed) in enumerate(zip(srcs, masks, pos_embeds)):
-            bs, c, h, w = src.shape
+            _, _, h, w = src.shape
             spatial_shape = (h, w)
             spatial_shapes.append(spatial_shape)
 
@@ -408,8 +390,6 @@ class TransformerEncoder(nn.Module):
             spatial_shapes,
         ) = self._prepare_multilevel_features(src, src_key_padding_masks, pos)
 
-        reference_points = self.get_reference_points(spatial_shapes, valid_ratios, device=src_flatten.device)
-
         output = src_flatten
         for layer in self.layers:
             layer_kwargs = {}
@@ -480,11 +460,6 @@ class TransformerEncoderFusion(TransformerEncoder):
         self.pool_text_with_mask = pool_text_with_mask
         if compile_mode is not None:
             self.forward = torch.compile(self.forward, mode=compile_mode, fullgraph=True)
-
-    @staticmethod
-    def get_reference_points(spatial_shapes, valid_ratios, device):
-        # Not needed here
-        return None
 
     def forward(
         self,

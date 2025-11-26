@@ -72,7 +72,7 @@ class MemoryAttentionLayer(nn.Module):
             pos_enc_at_cross_attn_keys (bool): Whether to add positional encoding to cross-attention keys.
             pos_enc_at_cross_attn_queries (bool): Whether to add positional encoding to cross-attention queries.
             self_attn (nn.Module | None): Custom self-attention module. If None, a default RoPEAttention is used.
-            cross-attention (nn.Module | None): Custom cross-attention module. If None, a default RoPEAttention is used.
+            cross_attn (nn.Module | None): Custom cross-attention module. If None, a default RoPEAttention is used.
         """
         super().__init__()
         self.d_model = d_model

@@ -650,11 +650,13 @@ def is_ubuntu() -> bool:
     except FileNotFoundError:
         return False
 
+
 def is_debian(codename=None) -> bool:
     """Check if the OS is Debian.
-    
+
     Args:
-        codename (str | None): Specific Debian codename to check for (e.g., 'buster', 'bullseye'). If None, only checks for Debian.
+        codename (str | None): Specific Debian codename to check for (e.g., 'buster', 'bullseye'). If None, only checks
+            for Debian.
 
     Returns:
         (bool): True if OS is Debian, False otherwise.

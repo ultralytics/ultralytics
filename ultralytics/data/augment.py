@@ -2959,7 +2959,7 @@ class SemSegMosaic(BaseMixTransform):
         >>> augmented_labels = mosaic_aug(original_labels)
     """
 
-    def __init__(self, dataset, imgsz=1024, p=1.0, n=3):
+    def __init__(self, dataset, imgsz=1024, p=1.0, n=4):
         """Initializes the Mosaic augmentation object.
 
         This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.

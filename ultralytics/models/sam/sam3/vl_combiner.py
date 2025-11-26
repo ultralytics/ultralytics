@@ -150,9 +150,7 @@ class SAM3VLBackbone(nn.Module):
         )
 
         with sdpa_context:
-            text_attention_mask, text_memory, text_embeds = self.language_backbone(
-                text_to_encode, input_boxes
-            )
+            text_attention_mask, text_memory, text_embeds = self.language_backbone(text_to_encode, input_boxes)
 
         if additional_text is not None:
             output["additional_text_features"] = text_memory[:, -len(additional_text) :]

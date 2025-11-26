@@ -159,3 +159,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 200);
   }
 })();
+
+//Fix chatbot window appearing glitch on page switching
+(function () {
+  const CLASS = "ult-chat-modal";   // <-- change this
+  const STYLE_ID = "temp-hide-popup-style";
+  const DURATION = 1000;             // 5 seconds
+
+  function hideTemporarily() {
+    // Remove any previous style (from previous page)
+    const old = document.getElementById(STYLE_ID);
+    if (old) old.remove();
+
+    // Create new style rule
+    const styleEl = document.createElement("style");
+    styleEl.id = STYLE_ID;
+    styleEl.textContent = `
+      .${CLASS} {
+        display: none !important;
+        visibility: hidden !important;
+      }
+    `;
+    document.documentElement.appendChild(styleEl);
+
+    
+    setTimeout(() => {
+      styleEl.remove();
+    }, DURATION);
+  }
+
+  // Initial page load
+  document.addEventListener("DOMContentLoaded", hideTemporarily);
+
+  // MkDocs Material internal navigation hook
+  if (window.document$) {
+    window.document$.subscribe(hideTemporarily);
+  }
+})();
+

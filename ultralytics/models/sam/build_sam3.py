@@ -27,7 +27,6 @@ from .sam3_model import SAM3Model
 def _create_transformer_encoder() -> TransformerEncoderFusion:
     """Create transformer encoder with its layer."""
     encoder_layer = TransformerEncoderLayer(
-        activation="relu",
         d_model=256,
         dim_feedforward=2048,
         dropout=0.1,
@@ -65,7 +64,6 @@ def _create_transformer_encoder() -> TransformerEncoderFusion:
 def _create_transformer_decoder() -> TransformerDecoder:
     """Create transformer decoder with its layer."""
     decoder_layer = TransformerDecoderLayer(
-        activation="relu",
         d_model=256,
         dim_feedforward=2048,
         dropout=0.1,
@@ -152,7 +150,6 @@ def _create_geometry_encoder():
     )
     # Create geometry encoder layer
     geo_layer = TransformerEncoderLayer(
-        activation="relu",
         d_model=256,
         dim_feedforward=2048,
         dropout=0.1,

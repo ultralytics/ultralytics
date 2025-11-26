@@ -2,7 +2,6 @@
 
 """Various utility models"""
 
-import copy
 import math
 import weakref
 from collections.abc import Iterator
@@ -15,17 +14,6 @@ import torch
 import torch.nn.functional as F
 from torch import nn, Tensor
 from typing_extensions import override
-
-
-def inverse_sigmoid(x, eps=1e-3):
-    """
-    The inverse function for sigmoid activation function.
-    Note: It might face numberical issues with fp16 small eps.
-    """
-    x = x.clamp(min=0, max=1)
-    x1 = x.clamp(min=eps)
-    x2 = (1 - x).clamp(min=eps)
-    return torch.log(x1 / x2)
 
 
 class MultiheadAttentionWrapper(nn.MultiheadAttention):
@@ -138,9 +126,7 @@ class TransformerWrapper(nn.Module):
         self.pos_enc_at_input_dec = pos_enc_at_input_dec
 
         # for two stage
-        assert two_stage_type in ["none"], "unknown param {} of two_stage_type".format(
-            two_stage_type
-        )
+        assert two_stage_type in ["none"], "unknown param {} of two_stage_type".format(two_stage_type)
         self.two_stage_type = two_stage_type
 
         self._reset_parameters()
@@ -149,11 +135,7 @@ class TransformerWrapper(nn.Module):
     def _reset_parameters(self):
         for n, p in self.named_parameters():
             if p.dim() > 1:
-                if (
-                    "box_embed" not in n
-                    and "query_embed" not in n
-                    and "reference_points" not in n
-                ):
+                if "box_embed" not in n and "query_embed" not in n and "reference_points" not in n:
                     nn.init.xavier_uniform_(p)
 
 
@@ -173,9 +155,7 @@ class MLP(nn.Module):
         super().__init__()
         self.num_layers = num_layers
         h = [hidden_dim] * (num_layers - 1)
-        self.layers = nn.ModuleList(
-            nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim])
-        )
+        self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim]))
         self.drop = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         # whether to add the output as a residual connection to the input
         if residual and input_dim != output_dim:
@@ -193,36 +173,6 @@ class MLP(nn.Module):
             x = x + orig_x
         x = self.out_norm(x)
         return x
-
-
-def get_clones(module, N):
-    return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
-
-
-def get_clones_seq(module, N):
-    return nn.Sequential(*[copy.deepcopy(module) for i in range(N)])
-
-
-def get_activation_fn(activation):
-    """Return an activation function given a string"""
-    if activation == "relu":
-        return F.relu
-    if activation == "gelu":
-        return F.gelu
-    if activation == "glu":
-        return F.glu
-    raise RuntimeError(f"activation should be relu/gelu, not {activation}.")
-
-
-def get_activation_module(activation):
-    """Return an activation function given a string"""
-    if activation == "relu":
-        return nn.ReLU
-    if activation == "gelu":
-        return nn.GELU
-    if activation == "glu":
-        return nn.GLU
-    raise RuntimeError(f"activation should be relu/gelu, not {activation}.")
 
 
 def get_valid_ratio(mask):
@@ -247,26 +197,18 @@ def gen_sineembed_for_position(pos_tensor, num_feats=256):
     y_embed = pos_tensor[:, :, 1] * scale
     pos_x = x_embed[:, :, None] / dim_t
     pos_y = y_embed[:, :, None] / dim_t
-    pos_x = torch.stack(
-        (pos_x[:, :, 0::2].sin(), pos_x[:, :, 1::2].cos()), dim=3
-    ).flatten(2)
-    pos_y = torch.stack(
-        (pos_y[:, :, 0::2].sin(), pos_y[:, :, 1::2].cos()), dim=3
-    ).flatten(2)
+    pos_x = torch.stack((pos_x[:, :, 0::2].sin(), pos_x[:, :, 1::2].cos()), dim=3).flatten(2)
+    pos_y = torch.stack((pos_y[:, :, 0::2].sin(), pos_y[:, :, 1::2].cos()), dim=3).flatten(2)
     if pos_tensor.size(-1) == 2:
         pos = torch.cat((pos_y, pos_x), dim=2)
     elif pos_tensor.size(-1) == 4:
         w_embed = pos_tensor[:, :, 2] * scale
         pos_w = w_embed[:, :, None] / dim_t
-        pos_w = torch.stack(
-            (pos_w[:, :, 0::2].sin(), pos_w[:, :, 1::2].cos()), dim=3
-        ).flatten(2)
+        pos_w = torch.stack((pos_w[:, :, 0::2].sin(), pos_w[:, :, 1::2].cos()), dim=3).flatten(2)
 
         h_embed = pos_tensor[:, :, 3] * scale
         pos_h = h_embed[:, :, None] / dim_t
-        pos_h = torch.stack(
-            (pos_h[:, :, 0::2].sin(), pos_h[:, :, 1::2].cos()), dim=3
-        ).flatten(2)
+        pos_h = torch.stack((pos_h[:, :, 0::2].sin(), pos_h[:, :, 1::2].cos()), dim=3).flatten(2)
 
         pos = torch.cat((pos_y, pos_x, pos_w, pos_h), dim=2)
     else:
@@ -311,7 +253,9 @@ class SAM3Output(list):
         # Defines the type of iterator over ouptuts.
         ALL_STEPS_PER_STAGE = auto()
         LAST_STEP_PER_STAGE = auto()
-        FLATTENED = auto()  # Returns each interactivity step as if it is a separate stage (this is used in SAM3Image model)
+        FLATTENED = (
+            auto()
+        )  # Returns each interactivity step as if it is a separate stage (this is used in SAM3Image model)
 
     def __init__(
         self,
@@ -320,17 +264,15 @@ class SAM3Output(list):
         loss_stages: Optional[List[int]] = None,
     ):
         if output is not None:
-            assert (
-                isinstance(output, list)
-                and len(output) > 0
-                and isinstance(output[0], list)
-            ), "Expected output to be a list of lists"
+            assert isinstance(output, list) and len(output) > 0 and isinstance(output[0], list), (
+                "Expected output to be a list of lists"
+            )
             self.output = output
         else:
             self.output = []
-        assert isinstance(
-            iter_mode, SAM3Output.IterMode
-        ), f"iter_mode shoulf be of enum type 'SAM3Output.IterMode'. Got {type(iter_mode)}"
+        assert isinstance(iter_mode, SAM3Output.IterMode), (
+            f"iter_mode shoulf be of enum type 'SAM3Output.IterMode'. Got {type(iter_mode)}"
+        )
 
         self.iter_mode = iter_mode
         # We create a weak reference to self to be used in the lambda functions.
@@ -338,9 +280,7 @@ class SAM3Output(list):
         self_ref = weakref.ref(self)
         self._mode2iter = {
             SAM3Output.IterMode.ALL_STEPS_PER_STAGE: lambda: iter(self_ref().output),
-            SAM3Output.IterMode.LAST_STEP_PER_STAGE: lambda: (
-                inner_list[-1] for inner_list in self_ref().output
-            ),
+            SAM3Output.IterMode.LAST_STEP_PER_STAGE: lambda: (inner_list[-1] for inner_list in self_ref().output),
             SAM3Output.IterMode.FLATTENED: lambda: (
                 element for inner_list in self_ref().output for element in inner_list
             ),
@@ -377,9 +317,7 @@ class SAM3Output(list):
         This class is used internally by the SAM3Output.iteration_mode method.
         """
 
-        def __init__(
-            self, model_output: "SAM3Output", iter_mode: "SAM3Output.IterMode"
-        ):
+        def __init__(self, model_output: "SAM3Output", iter_mode: "SAM3Output.IterMode"):
             self._model_output = model_output
             self._orig_iter_mode = model_output.iter_mode
             self._new_iter_mode = iter_mode
@@ -395,9 +333,7 @@ class SAM3Output(list):
             return super().__exit__(exc_type, exc_value, traceback)
 
     @staticmethod
-    def iteration_mode(
-        model_output: "SAM3Output", iter_mode: IterMode
-    ) -> _IterationMode:
+    def iteration_mode(model_output: "SAM3Output", iter_mode: IterMode) -> _IterationMode:
         """
         Returns a context manager that allows you to temporarily change the iteration mode of the SAM3Output object.
         Args:
@@ -409,9 +345,7 @@ class SAM3Output(list):
         return SAM3Output._IterationMode(model_output=model_output, iter_mode=iter_mode)
 
     def append(self, item: list):
-        assert isinstance(
-            item, list
-        ), f"Only list items are supported. Got {type(item)}"
+        assert isinstance(item, list), f"Only list items are supported. Got {type(item)}"
         self.output.append(item)
 
     def __repr__(self):

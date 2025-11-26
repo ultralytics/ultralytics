@@ -14,19 +14,13 @@ from torchvision.ops.roi_align import RoIAlign
 
 from ultralytics.utils.ops import xywh2xyxy
 
-from .model_misc import (
-    gen_sineembed_for_position,
-    get_activation_fn,
-    get_clones,
-    inverse_sigmoid,
-    MLP,
-)
+from ultralytics.nn.modules.utils import _get_clones, inverse_sigmoid
+from .model_misc import gen_sineembed_for_position, MLP
 
 
 class TransformerDecoderLayer(nn.Module):
     def __init__(
         self,
-        activation: str,
         d_model: int,
         dim_feedforward: int,
         dropout: float,
@@ -55,7 +49,7 @@ class TransformerDecoderLayer(nn.Module):
 
         # ffn
         self.linear1 = nn.Linear(d_model, dim_feedforward)
-        self.activation = get_activation_fn(activation)
+        self.activation = nn.ReLU()
         self.dropout3 = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         self.linear2 = nn.Linear(dim_feedforward, d_model)
         self.dropout4 = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
@@ -205,9 +199,9 @@ class TransformerDecoder(nn.Module):
     ):
         super().__init__()
         self.d_model = d_model
-        self.layers = get_clones(layer, num_layers)
+        self.layers = _get_clones(layer, num_layers)
         self.fine_layers = (
-            get_clones(interaction_layer, num_layers) if interaction_layer is not None else [None] * num_layers
+            _get_clones(interaction_layer, num_layers) if interaction_layer is not None else [None] * num_layers
         )
         self.num_layers = num_layers
         self.num_queries = num_queries

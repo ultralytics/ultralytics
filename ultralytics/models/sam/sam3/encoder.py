@@ -5,8 +5,9 @@ from typing import Dict, List, Optional, Tuple
 
 import torch
 from torch import nn, Tensor
+from ultralytics.nn.modules.utils import _get_clones
 
-from .model_misc import get_activation_fn, get_clones, get_valid_ratio
+from .model_misc import get_valid_ratio
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -23,7 +24,6 @@ class TransformerEncoderLayer(nn.Module):
 
     def __init__(
         self,
-        activation: str,
         cross_attention: nn.Module,
         d_model: int,
         dim_feedforward: int,
@@ -38,7 +38,6 @@ class TransformerEncoderLayer(nn.Module):
         Initialize a transformer encoder layer.
 
         Args:
-            activation: Activation function to use in the feedforward network
             cross_attention: Cross-attention module for attending to image features
             d_model: Model dimension/hidden size
             dim_feedforward: Dimension of the feedforward network
@@ -68,8 +67,7 @@ class TransformerEncoderLayer(nn.Module):
         self.dropout2 = nn.Dropout(dropout)
         self.dropout3 = nn.Dropout(dropout)
 
-        self.activation_str = activation
-        self.activation = get_activation_fn(activation)
+        self.activation = nn.ReLU()
         self.pre_norm = pre_norm
 
         self.pos_enc_at_attn = pos_enc_at_attn
@@ -272,7 +270,7 @@ class TransformerEncoder(nn.Module):
         use_act_checkpoint: bool = False,
     ):
         super().__init__()
-        self.layers = get_clones(layer, num_layers)
+        self.layers = _get_clones(layer, num_layers)
         self.num_layers = num_layers
 
         self.num_feature_levels = num_feature_levels

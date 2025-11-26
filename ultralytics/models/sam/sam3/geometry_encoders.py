@@ -8,8 +8,7 @@ import torchvision
 from typing_extensions import override
 
 from ultralytics.utils.ops import xywh2xyxy
-
-from .model_misc import get_clones
+from ultralytics.nn.modules.utils import _get_clones
 
 
 def is_right_padded(mask):
@@ -507,7 +506,7 @@ class SequenceGeometryEncoder(nn.Module):
         self.encode = None
         if num_layers > 0:
             assert add_cls, "It's currently highly recommended to add a CLS when using a transformer"
-            self.encode = get_clones(layer, num_layers)
+            self.encode = _get_clones(layer, num_layers)
             self.encode_norm = nn.LayerNorm(self.d_model)
 
         if mask_encoder is not None:

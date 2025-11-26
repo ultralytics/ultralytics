@@ -12,9 +12,8 @@ from .model_misc import SAM3Output
 from .vl_combiner import SAM3VLBackbone
 
 from ultralytics.utils.ops import xywh2xyxy
-
+from ultralytics.nn.modules.utils import inverse_sigmoid
 from .geometry_encoders import Prompt
-from .model_misc import inverse_sigmoid
 
 
 def _update_out(out, out_name, out_value, auxiliary=True, update_aux=True):

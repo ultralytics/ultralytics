@@ -803,22 +803,9 @@ class SAM2Predictor(Predictor):
 class SAM2VideoPredictor(SAM2Predictor):
     """SAM2VideoPredictor to handle user interactions with videos and manage inference states.
 
-<<<<<<< HEAD
-    This class extends the functionality of SAM2Predictor to support video processing and maintains
-    the state of inference operations. It includes configurations for managing non-overlapping masks,
-    clearing memory for non-conditional inputs, and setting up callbacks for prediction events.
-
-    Attributes:
-        inference_state (dict): A dictionary to store the current state of inference operations.
-        non_overlap_masks (bool): A flag indicating whether masks should be non-overlapping.
-        clear_non_cond_mem_around_input (bool): A flag to control clearing non-conditional memory around inputs.
-        clear_non_cond_mem_for_multi_obj (bool): A flag to control clearing non-conditional memory for multi-object scenarios.
-        callbacks (dict): A dictionary of callbacks for various prediction lifecycle events.
-=======
-    This class extends the functionality of SAM2Predictor to support video processing and maintains the state of
-    inference operations. It includes configurations for managing non-overlapping masks, clearing memory for
+    <<<<<<< HEAD This class extends the functionality of SAM2Predictor to support video processing and maintains the
+    state of inference operations. It includes configurations for managing non-overlapping masks, clearing memory for
     non-conditional inputs, and setting up callbacks for prediction events.
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Args:
         cfg (dict, Optional): Configuration settings for the predictor. Defaults to DEFAULT_CFG.
@@ -826,6 +813,16 @@ class SAM2VideoPredictor(SAM2Predictor):
         _callbacks (list, Optional): Custom callbacks to be added. Defaults to None.
 
     Attributes:
+        inference_state (dict): A dictionary to store the current state of inference operations.
+        non_overlap_masks (bool): A flag indicating whether masks should be non-overlapping.
+        clear_non_cond_mem_around_input (bool): A flag to control clearing non-conditional memory around inputs.
+        clear_non_cond_mem_for_multi_obj (bool): A flag to control clearing non-conditional memory for multi-object
+            scenarios.
+        callbacks (dict): A dictionary of callbacks for various prediction lifecycle events. ======= This class extends
+            the functionality of SAM2Predictor to support video processing and maintains the state of inference
+            operations. It includes configurations for managing non-overlapping masks, clearing memory for
+            non-conditional inputs, and setting up callbacks for prediction events.
+            >>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
         inference_state (Dict): A dictionary to store the current state of inference operations.
         non_overlap_masks (bool): A flag indicating whether masks should be non-overlapping.
         clear_non_cond_mem_around_input (bool): A flag to control clearing non-conditional memory around inputs.

@@ -89,9 +89,7 @@ div.highlight {
   font-weight: 500;
 }
 
-<<<<<<< HEAD
-=======
-.banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p,
+<<<<<<< HEAD ======= .banner-wrapper > .banner-content-wrapper > .banner-info-wrapper > p,
 .banner-wrapper > .banner-button-wrapper > .banner-button-wrapper > button {
   font-size: 14px;
 }
@@ -129,8 +127,7 @@ div.highlight {
   background-color: rgba(222, 255, 56, 0.85);
 }
 
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
-@media screen and (min-width: 768px) {
+>>>>>>>02121a52dd0a636899376093a514e43cc27a4435 @media screen and (min-width: 768px) {
   .banner-wrapper,
   .banner-wrapper > .banner-content-wrapper {
     flex-direction: row;

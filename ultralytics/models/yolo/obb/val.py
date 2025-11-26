@@ -13,14 +13,8 @@ from ultralytics.utils.plotting import output_to_rotated_target, plot_images
 class OBBValidator(DetectionValidator):
     """A class extending the DetectionValidator class for validation based on an Oriented Bounding Box (OBB) model.
 
-<<<<<<< HEAD
-    This validator specializes in evaluating models that predict rotated bounding boxes, commonly used for aerial and
-    satellite imagery where objects can appear at various orientations.
-=======
-    Examples:
-        ```python
-        from ultralytics.models.yolo.obb import OBBValidator
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+    <<<<<<< HEAD This validator specializes in evaluating models that predict rotated bounding boxes, commonly used for
+    aerial and satellite imagery where objects can appear at various orientations. =======
 
     Attributes:
         args (dict): Configuration arguments for the validator.
@@ -38,6 +32,10 @@ class OBBValidator(DetectionValidator):
         eval_json: Evaluate YOLO output in JSON format and return performance statistics.
 
     Examples:
+        ```python
+        from ultralytics.models.yolo.obb import OBBValidator
+    >>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+
         >>> from ultralytics.models.yolo.obb import OBBValidator
         >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml")
         >>> validator = OBBValidator(args=args)
@@ -45,8 +43,7 @@ class OBBValidator(DetectionValidator):
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        """
-        Initialize OBBValidator and set task to 'obb', metrics to OBBMetrics.
+        """Initialize OBBValidator and set task to 'obb', metrics to OBBMetrics.
 
         This constructor initializes an OBBValidator instance for validating Oriented Bounding Box (OBB) models.
         It extends the DetectionValidator class and configures it specifically for the OBB task.
@@ -84,19 +81,19 @@ class OBBValidator(DetectionValidator):
                 Union) levels for each detection, indicating the accuracy of predictions compared to the ground truth.
 
         Examples:
-<<<<<<< HEAD
+        <<<<<<< HEAD
             >>> detections = torch.rand(100, 7)  # 100 sample detections
             >>> gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
             >>> gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
             >>> correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
-=======
+        =======
             ```python
             detections = torch.rand(100, 7)  # 100 sample detections
             gt_bboxes = torch.rand(50, 5)  # 50 sample ground truth boxes
             gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
             correct_matrix = OBBValidator._process_batch(detections, gt_bboxes, gt_cls)
             ```
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+        >>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
         Notes:
             This method relies on `batch_probiou` to calculate IoU between detections and ground truth bounding boxes.
@@ -105,8 +102,7 @@ class OBBValidator(DetectionValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def _prepare_batch(self, si, batch):
-        """
-        Prepare batch data for OBB validation with proper scaling and formatting.
+        """Prepare batch data for OBB validation with proper scaling and formatting.
 
         Args:
             si (int): Batch index to process.
@@ -133,8 +129,7 @@ class OBBValidator(DetectionValidator):
         return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
     def _prepare_pred(self, pred, pbatch):
-        """
-        Prepare predictions by scaling bounding boxes to original image dimensions.
+        """Prepare predictions by scaling bounding boxes to original image dimensions.
 
         This method takes prediction tensors containing bounding box coordinates and scales them from the model's
         input dimensions to the original image dimensions using the provided batch information.
@@ -156,8 +151,7 @@ class OBBValidator(DetectionValidator):
         return predn
 
     def plot_predictions(self, batch, preds, ni):
-        """
-        Plot predicted bounding boxes on input images and save the result.
+        """Plot predicted bounding boxes on input images and save the result.
 
         Args:
             batch (dict): Batch data containing images, file paths, and other metadata.
@@ -180,12 +174,11 @@ class OBBValidator(DetectionValidator):
         )  # pred
 
     def pred_to_json(self, predn, filename):
-        """
-        Convert YOLO predictions to COCO JSON format with rotated bounding box information.
+        """Convert YOLO predictions to COCO JSON format with rotated bounding box information.
 
         Args:
-            predn (torch.Tensor): Prediction tensor containing bounding box coordinates, confidence scores,
-                class predictions, and rotation angles with shape (N, 6+) where the last column is the angle.
+            predn (torch.Tensor): Prediction tensor containing bounding box coordinates, confidence scores, class
+                predictions, and rotation angles with shape (N, 6+) where the last column is the angle.
             filename (str | Path): Path to the image file for which predictions are being processed.
 
         Notes:
@@ -209,8 +202,7 @@ class OBBValidator(DetectionValidator):
             )
 
     def save_one_txt(self, predn, save_conf, shape, file):
-        """
-        Save YOLO OBB (Oriented Bounding Box) detections to a text file in normalized coordinates.
+        """Save YOLO OBB (Oriented Bounding Box) detections to a text file in normalized coordinates.
 
         Args:
             predn (torch.Tensor): Predicted detections with shape (N, 7) containing bounding boxes, confidence scores,

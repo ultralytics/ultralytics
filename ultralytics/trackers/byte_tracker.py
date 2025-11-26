@@ -232,15 +232,12 @@ class STrack(BaseTrack):
 class BYTETracker:
     """BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
 
-<<<<<<< HEAD
-    This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects in a
-    video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for
-    predicting the new object locations, and performs data association.
-=======
+    <<<<<<< HEAD This class encapsulates the functionality for initializing, updating, and managing the tracks for
+    detected objects in a video sequence. It maintains the state of tracked, lost, and removed tracks over frames,
+    utilizes Kalman filtering for predicting the new object locations, and performs data association. =======
     Responsible for initializing, updating, and managing the tracks for detected objects in a video sequence. It
     maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for predicting the
-    new object locations, and performs data association.
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+    new object locations, and performs data association. >>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
 
     Attributes:
         tracked_stracks (List[STrack]): List of successfully activated tracks.

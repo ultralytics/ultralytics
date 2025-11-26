@@ -99,7 +99,8 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
 Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture).
 =======
 Out of all the model export formats supported by Ultralytics, [NCNN](https://docs.ultralytics.com/integrations/ncnn/) delivers the best inference performance when working with Raspberry Pi devices because NCNN is highly optimized for mobile/ embedded platforms (such as ARM architecture). Therefore our recommendation is to use NCNN with Raspberry Pi.
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+
+> > > > > > > 02121a52dd0a636899376093a514e43cc27a4435
 
 ## Convert Model to NCNN and Run Inference
 

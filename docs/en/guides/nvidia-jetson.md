@@ -320,10 +320,10 @@ The following Jetson devices are equipped with DLA hardware:
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
-<<<<<<< HEAD
+        HEAD
         # Once DLA core number is specified at export, it will use the same core at inference
-=======
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+        =======
+        02121a52dd0a636899376093a514e43cc27a4435
         yolo export model=yolo11n.pt format=engine device="dla:0" half=True # dla:0 or dla:1 corresponds to the DLA cores
 
         # Run inference with the exported model on the DLA

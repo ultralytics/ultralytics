@@ -7,15 +7,8 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
 class PosePredictor(DetectionPredictor):
     """A class extending the DetectionPredictor class for prediction based on a pose model.
 
-<<<<<<< HEAD
-    This class specializes in pose estimation, handling keypoints detection alongside standard object detection
-    capabilities inherited from DetectionPredictor.
-=======
-    Examples:
-        ```python
-        from ultralytics.utils import ASSETS
-        from ultralytics.models.yolo.pose import PosePredictor
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+    <<<<<<< HEAD This class specializes in pose estimation, handling keypoints detection alongside standard object
+    detection capabilities inherited from DetectionPredictor. =======
 
     Attributes:
         args (namespace): Configuration arguments for the predictor.
@@ -25,6 +18,11 @@ class PosePredictor(DetectionPredictor):
         construct_result: Constructs the result object from the prediction, including keypoints.
 
     Examples:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.pose import PosePredictor
+    >>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.pose import PosePredictor
         >>> args = dict(model="yolo11n-pose.pt", source=ASSETS)
@@ -33,8 +31,7 @@ class PosePredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize PosePredictor, a specialized predictor for pose estimation tasks.
+        """Initialize PosePredictor, a specialized predictor for pose estimation tasks.
 
         This initializer sets up a PosePredictor instance, configuring it for pose detection tasks and handling
         device-specific warnings for Apple MPS.
@@ -60,8 +57,7 @@ class PosePredictor(DetectionPredictor):
             )
 
     def construct_result(self, pred, img, orig_img, img_path):
-        """
-        Construct the result object from the prediction, including keypoints.
+        """Construct the result object from the prediction, including keypoints.
 
         This method extends the parent class implementation by extracting keypoint data from predictions
         and adding them to the result object.
@@ -74,7 +70,8 @@ class PosePredictor(DetectionPredictor):
             img_path (str): The path to the original image file.
 
         Returns:
-            (Results): The result object containing the original image, image path, class names, bounding boxes, and keypoints.
+            (Results): The result object containing the original image, image path, class names, bounding boxes, and
+                keypoints.
         """
         result = super().construct_result(pred, img, orig_img, img_path)
         # Extract keypoints from prediction and reshape according to model's keypoint shape

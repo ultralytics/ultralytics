@@ -136,7 +136,8 @@ cargo run --release -- --trt --fp16 --profile --model MODEL_PATH.onnx --source S
 Example Profile Output (yolov8m.onnx, batch=1, 3 runs, trt, fp16, RTX 3060Ti):
 
 <<<<<<< HEAD
-```output
+
+````output
 ==> 0 # Warm-up run
 =======
 ```bash
@@ -170,7 +171,7 @@ Example Profile Output (yolov8m.onnx, batch=1, 3 runs, trt, fp16, RTX 3060Ti):
 [ORT D2H]: 187.117µs
 [Model Inference]: 5.493119ms
 [Model Postprocess]: 1.040906ms
-```
+````
 
 #### Other Options
 

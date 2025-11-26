@@ -17,12 +17,11 @@ from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
 
 class YOLOEDetectValidator(DetectionValidator):
-    """
-    A mixin class for YOLOE model validation that handles both text and visual prompt embeddings.
+    """A mixin class for YOLOE model validation that handles both text and visual prompt embeddings.
 
-    This mixin provides functionality to validate YOLOE models using either text or visual prompt embeddings.
-    It includes methods for extracting visual prompt embeddings from samples, preprocessing batches, and
-    running validation with different prompt types.
+    This mixin provides functionality to validate YOLOE models using either text or visual prompt embeddings. It
+    includes methods for extracting visual prompt embeddings from samples, preprocessing batches, and running validation
+    with different prompt types.
 
     Attributes:
         device (torch.device): The device on which validation is performed.
@@ -32,8 +31,7 @@ class YOLOEDetectValidator(DetectionValidator):
 
     @smart_inference_mode()
     def get_visual_pe(self, dataloader, model):
-        """
-        Extract visual prompt embeddings from training samples.
+        """Extract visual prompt embeddings from training samples.
 
         This function processes a dataloader to compute visual prompt embeddings for each class
         using a YOLOE model. It normalizes the embeddings and handles cases where no samples
@@ -85,8 +83,7 @@ class YOLOEDetectValidator(DetectionValidator):
         return batch
 
     def get_vpe_dataloader(self, data):
-        """
-        Create a dataloader for LVIS training visual prompt samples.
+        """Create a dataloader for LVIS training visual prompt samples.
 
         This function prepares a dataloader for visual prompt embeddings (VPE) using the LVIS dataset.
         It applies necessary transformations and configurations to the dataset and returns a dataloader
@@ -121,8 +118,7 @@ class YOLOEDetectValidator(DetectionValidator):
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None, refer_data=None, load_vp=False):
-        """
-        Run validation on the model using either text or visual prompt embeddings.
+        """Run validation on the model using either text or visual prompt embeddings.
 
         This method validates the model using either text prompts or visual prompts, depending
         on the `load_vp` flag. It supports validation during training (using a trainer object)

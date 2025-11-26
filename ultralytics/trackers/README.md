@@ -261,8 +261,7 @@ from ultralytics import YOLO
 
 
 def run_tracker_in_thread(filename, model, file_index):
-    """
-    Runs tracking on a video file using the specified model.
+    """Runs tracking on a video file using the specified model.
 
     Args:
         filename (str): The path to the video file.

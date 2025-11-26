@@ -149,15 +149,19 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
     - Simple and efficient but can be slow to converge and might get stuck in local minima.
 
 <<<<<<< HEAD
+
 - **[Adam](https://www.ultralytics.com/glossary/adam-optimizer) (Adaptive Moment Estimation)**:
 
 =======
+
 - **Adam (Adaptive Moment Estimation)**:
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
-    - Combines the benefits of both SGD with momentum and RMSProp.
-    - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
-    - Well-suited for noisy data and sparse gradients.
-    - Efficient and generally requires less tuning, making it a recommended optimizer for YOLO11.
+
+    > > > > > > > 02121a52dd0a636899376093a514e43cc27a4435
+
+        - Combines the benefits of both SGD with momentum and RMSProp.
+        - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
+        - Well-suited for noisy data and sparse gradients.
+        - Efficient and generally requires less tuning, making it a recommended optimizer for YOLO11.
 
 - **RMSProp (Root Mean Square Propagation)**:
     - Adjusts the learning rate for each parameter by dividing the gradient by a running average of the magnitudes of recent gradients.

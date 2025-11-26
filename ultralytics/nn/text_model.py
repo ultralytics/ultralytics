@@ -17,8 +17,7 @@ except ImportError:
 
 
 class TextModel(nn.Module):
-    """
-    Abstract base class for text encoding models.
+    """Abstract base class for text encoding models.
 
     This class defines the interface for text encoding models used in vision-language tasks. Subclasses must implement
     the tokenize and encode_text methods.
@@ -44,11 +43,10 @@ class TextModel(nn.Module):
 
 
 class CLIP(TextModel):
-    """
-    Implements OpenAI's CLIP (Contrastive Language-Image Pre-training) text encoder.
+    """Implements OpenAI's CLIP (Contrastive Language-Image Pre-training) text encoder.
 
-    This class provides a text encoder based on OpenAI's CLIP model, which can convert text into feature vectors
-    that are aligned with corresponding image features in a shared embedding space.
+    This class provides a text encoder based on OpenAI's CLIP model, which can convert text into feature vectors that
+    are aligned with corresponding image features in a shared embedding space.
 
     Attributes:
         model (clip.model.CLIP): The loaded CLIP model.
@@ -69,8 +67,7 @@ class CLIP(TextModel):
     """
 
     def __init__(self, size, device):
-        """
-        Initialize the CLIP text encoder.
+        """Initialize the CLIP text encoder.
 
         This class implements the TextModel interface using OpenAI's CLIP model for text encoding. It loads
         a pre-trained CLIP model of the specified size and prepares it for text encoding tasks.
@@ -92,8 +89,7 @@ class CLIP(TextModel):
         self.eval()
 
     def tokenize(self, texts):
-        """
-        Convert input texts to CLIP tokens.
+        """Convert input texts to CLIP tokens.
 
         Args:
             texts (str | List[str]): Input text or list of texts to tokenize.
@@ -110,8 +106,7 @@ class CLIP(TextModel):
 
     @smart_inference_mode()
     def encode_text(self, texts, dtype=torch.float32):
-        """
-        Encode tokenized texts into normalized feature vectors.
+        """Encode tokenized texts into normalized feature vectors.
 
         This method processes tokenized text inputs through the CLIP model to generate feature vectors, which are then
         normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
@@ -136,8 +131,7 @@ class CLIP(TextModel):
 
 
 class MobileCLIP(TextModel):
-    """
-    Implement Apple's MobileCLIP text encoder for efficient text encoding.
+    """Implement Apple's MobileCLIP text encoder for efficient text encoding.
 
     This class implements the TextModel interface using Apple's MobileCLIP model, providing efficient text encoding
     capabilities for vision-language tasks.
@@ -162,8 +156,7 @@ class MobileCLIP(TextModel):
     config_size_map = {"s0": "s0", "s1": "s1", "s2": "s2", "b": "b", "blt": "b"}
 
     def __init__(self, size, device):
-        """
-        Initialize the MobileCLIP text encoder.
+        """Initialize the MobileCLIP text encoder.
 
         This class implements the TextModel interface using Apple's MobileCLIP model for efficient text encoding.
 
@@ -204,8 +197,7 @@ class MobileCLIP(TextModel):
         self.eval()
 
     def tokenize(self, texts):
-        """
-        Convert input texts to MobileCLIP tokens.
+        """Convert input texts to MobileCLIP tokens.
 
         Args:
             texts (list[str]): List of text strings to tokenize.
@@ -221,8 +213,7 @@ class MobileCLIP(TextModel):
 
     @smart_inference_mode()
     def encode_text(self, texts, dtype=torch.float32):
-        """
-        Encode tokenized texts into normalized feature vectors.
+        """Encode tokenized texts into normalized feature vectors.
 
         Args:
             texts (torch.Tensor): Tokenized text inputs.
@@ -244,8 +235,7 @@ class MobileCLIP(TextModel):
 
 
 class MobileCLIPTS(TextModel):
-    """
-    Load a TorchScript traced version of MobileCLIP.
+    """Load a TorchScript traced version of MobileCLIP.
 
     This class implements the TextModel interface using Apple's MobileCLIP model, providing efficient text encoding
     capabilities for vision-language tasks.
@@ -267,8 +257,7 @@ class MobileCLIPTS(TextModel):
     """
 
     def __init__(self, device):
-        """
-        Initialize the MobileCLIP text encoder.
+        """Initialize the MobileCLIP text encoder.
 
         This class implements the TextModel interface using Apple's MobileCLIP model for efficient text encoding.
 
@@ -290,8 +279,7 @@ class MobileCLIPTS(TextModel):
         self.device = device
 
     def tokenize(self, texts):
-        """
-        Convert input texts to MobileCLIP tokens.
+        """Convert input texts to MobileCLIP tokens.
 
         Args:
             texts (list[str]): List of text strings to tokenize.
@@ -307,8 +295,7 @@ class MobileCLIPTS(TextModel):
 
     @smart_inference_mode()
     def encode_text(self, texts, dtype=torch.float32):
-        """
-        Encode tokenized texts into normalized feature vectors.
+        """Encode tokenized texts into normalized feature vectors.
 
         Args:
             texts (torch.Tensor): Tokenized text inputs.
@@ -329,8 +316,7 @@ class MobileCLIPTS(TextModel):
 
 
 def build_text_model(variant, device=None):
-    """
-    Build a text encoding model based on the specified variant.
+    """Build a text encoding model based on the specified variant.
 
     Args:
         variant (str): Model variant in format "base:size" (e.g., "clip:ViT-B/32" or "mobileclip:s0").

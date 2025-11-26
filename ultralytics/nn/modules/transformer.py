@@ -26,8 +26,7 @@ __all__ = (
 
 
 class TransformerEncoderLayer(nn.Module):
-    """
-    Defines a single layer of the transformer encoder.
+    """Defines a single layer of the transformer encoder.
 
     Attributes:
         ma (nn.MultiheadAttention): Multi-head attention module.
@@ -43,8 +42,7 @@ class TransformerEncoderLayer(nn.Module):
     """
 
     def __init__(self, c1, cm=2048, num_heads=8, dropout=0.0, act=nn.GELU(), normalize_before=False):
-        """
-        Initialize the TransformerEncoderLayer with specified parameters.
+        """Initialize the TransformerEncoderLayer with specified parameters.
 
         Args:
             c1 (int): Input dimension.
@@ -81,8 +79,7 @@ class TransformerEncoderLayer(nn.Module):
         return tensor if pos is None else tensor + pos
 
     def forward_post(self, src, src_mask=None, src_key_padding_mask=None, pos=None):
-        """
-        Perform forward pass with post-normalization.
+        """Perform forward pass with post-normalization.
 
         Args:
             src (torch.Tensor): Input tensor.
@@ -102,8 +99,7 @@ class TransformerEncoderLayer(nn.Module):
         return self.norm2(src)
 
     def forward_pre(self, src, src_mask=None, src_key_padding_mask=None, pos=None):
-        """
-        Perform forward pass with pre-normalization.
+        """Perform forward pass with pre-normalization.
 
         Args:
             src (torch.Tensor): Input tensor.
@@ -123,8 +119,7 @@ class TransformerEncoderLayer(nn.Module):
         return src + self.dropout2(src2)
 
     def forward(self, src, src_mask=None, src_key_padding_mask=None, pos=None):
-        """
-        Forward propagates the input through the encoder module.
+        """Forward propagates the input through the encoder module.
 
         Args:
             src (torch.Tensor): Input tensor.
@@ -141,15 +136,13 @@ class TransformerEncoderLayer(nn.Module):
 
 
 class AIFI(TransformerEncoderLayer):
-    """
-    Defines the AIFI transformer layer.
+    """Defines the AIFI transformer layer.
 
     This class extends TransformerEncoderLayer to work with 2D data by adding positional embeddings.
     """
 
     def __init__(self, c1, cm=2048, num_heads=8, dropout=0, act=nn.GELU(), normalize_before=False):
-        """
-        Initialize the AIFI instance with specified parameters.
+        """Initialize the AIFI instance with specified parameters.
 
         Args:
             c1 (int): Input dimension.
@@ -162,8 +155,7 @@ class AIFI(TransformerEncoderLayer):
         super().__init__(c1, cm, num_heads, dropout, act, normalize_before)
 
     def forward(self, x):
-        """
-        Forward pass for the AIFI transformer layer.
+        """Forward pass for the AIFI transformer layer.
 
         Args:
             x (torch.Tensor): Input tensor with shape [B, C, H, W].
@@ -179,8 +171,7 @@ class AIFI(TransformerEncoderLayer):
 
     @staticmethod
     def build_2d_sincos_position_embedding(w, h, embed_dim=256, temperature=10000.0):
-        """
-        Build 2D sine-cosine position embedding.
+        """Build 2D sine-cosine position embedding.
 
         Args:
             w (int): Width of the feature map.
@@ -209,8 +200,7 @@ class TransformerLayer(nn.Module):
     """Transformer layer https://arxiv.org/abs/2010.11929 (LayerNorm layers removed for better performance)."""
 
     def __init__(self, c, num_heads):
-        """
-        Initialize a self-attention mechanism using linear transformations and multi-head attention.
+        """Initialize a self-attention mechanism using linear transformations and multi-head attention.
 
         Args:
             c (int): Input and output channel dimension.
@@ -225,8 +215,7 @@ class TransformerLayer(nn.Module):
         self.fc2 = nn.Linear(c, c, bias=False)
 
     def forward(self, x):
-        """
-        Apply a transformer block to the input x and return the output.
+        """Apply a transformer block to the input x and return the output.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -239,8 +228,7 @@ class TransformerLayer(nn.Module):
 
 
 class TransformerBlock(nn.Module):
-    """
-    Vision Transformer https://arxiv.org/abs/2010.11929.
+    """Vision Transformer https://arxiv.org/abs/2010.11929.
 
     Attributes:
         conv (Conv, optional): Convolution layer if input and output channels differ.
@@ -250,8 +238,7 @@ class TransformerBlock(nn.Module):
     """
 
     def __init__(self, c1, c2, num_heads, num_layers):
-        """
-        Initialize a Transformer module with position embedding and specified number of heads and layers.
+        """Initialize a Transformer module with position embedding and specified number of heads and layers.
 
         Args:
             c1 (int): Input channel dimension.
@@ -268,8 +255,7 @@ class TransformerBlock(nn.Module):
         self.c2 = c2
 
     def forward(self, x):
-        """
-        Forward propagates the input through the bottleneck module.
+        """Forward propagates the input through the bottleneck module.
 
         Args:
             x (torch.Tensor): Input tensor with shape [b, c1, w, h].
@@ -288,8 +274,7 @@ class MLPBlock(nn.Module):
     """Implements a single block of a multi-layer perceptron."""
 
     def __init__(self, embedding_dim, mlp_dim, act=nn.GELU):
-        """
-        Initialize the MLPBlock with specified embedding dimension, MLP dimension, and activation function.
+        """Initialize the MLPBlock with specified embedding dimension, MLP dimension, and activation function.
 
         Args:
             embedding_dim (int): Input and output dimension.
@@ -302,8 +287,7 @@ class MLPBlock(nn.Module):
         self.act = act()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Forward pass for the MLPBlock.
+        """Forward pass for the MLPBlock.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -315,8 +299,7 @@ class MLPBlock(nn.Module):
 
 
 class MLP(nn.Module):
-    """
-    Implements a simple multi-layer perceptron (also called FFN).
+    """Implements a simple multi-layer perceptron (also called FFN).
 
     Attributes:
         num_layers (int): Number of layers in the MLP.
@@ -326,8 +309,7 @@ class MLP(nn.Module):
     """
 
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers, act=nn.ReLU, sigmoid=False):
-        """
-        Initialize the MLP with specified input, hidden, output dimensions and number of layers.
+        """Initialize the MLP with specified input, hidden, output dimensions and number of layers.
 
         Args:
             input_dim (int): Input dimension.
@@ -345,8 +327,7 @@ class MLP(nn.Module):
         self.act = act()
 
     def forward(self, x):
-        """
-        Forward pass for the entire MLP.
+        """Forward pass for the entire MLP.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -362,25 +343,22 @@ class MLP(nn.Module):
 class LayerNorm2d(nn.Module):
     """2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
 
-<<<<<<< HEAD
-    Original implementations in
-    https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
-    and
+    <<<<<<< HEAD Original implementations in
+    https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py and
     https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py.
 
     Attributes:
         weight (nn.Parameter): Learnable scale parameter.
         bias (nn.Parameter): Learnable bias parameter.
-        eps (float): Small constant for numerical stability.
-=======
-    Original implementations in https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
-    and https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py.
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+        eps (float): Small constant for numerical stability. =======
+        Original implementations
+        in https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py
+        and https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py.
+        >>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
 
     def __init__(self, num_channels, eps=1e-6):
-        """
-        Initialize LayerNorm2d with the given parameters.
+        """Initialize LayerNorm2d with the given parameters.
 
         Args:
             num_channels (int): Number of channels in the input.
@@ -392,8 +370,7 @@ class LayerNorm2d(nn.Module):
         self.eps = eps
 
     def forward(self, x):
-        """
-        Perform forward pass for 2D layer normalization.
+        """Perform forward pass for 2D layer normalization.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -425,8 +402,7 @@ class MSDeformAttn(nn.Module):
     """
 
     def __init__(self, d_model=256, n_levels=4, n_heads=8, n_points=4):
-        """
-        Initialize MSDeformAttn with the given parameters.
+        """Initialize MSDeformAttn with the given parameters.
 
         Args:
             d_model (int): Model dimension.
@@ -482,22 +458,21 @@ class MSDeformAttn(nn.Module):
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
 
         Args:
-<<<<<<< HEAD
+        <<<<<<< HEAD
             query (torch.Tensor): Tensor with shape [bs, query_length, C].
-            refer_bbox (torch.Tensor): Tensor with shape [bs, query_length, n_levels, 2], range in [0, 1],
-                top-left (0,0), bottom-right (1, 1), including padding area.
+            refer_bbox (torch.Tensor): Tensor with shape [bs, query_length, n_levels, 2], range in [0, 1], top-left
+                (0,0), bottom-right (1, 1), including padding area.
             value (torch.Tensor): Tensor with shape [bs, value_length, C].
             value_shapes (list): List with shape [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})].
             value_mask (torch.Tensor, optional): Tensor with shape [bs, value_length], True for non-padding elements,
-                False for padding elements.
-=======
+                False for padding elements. =======
             query (torch.Tensor): [bs, query_length, C]
             refer_bbox (torch.Tensor): [bs, query_length, n_levels, 2], range in [0, 1], top-left (0,0), bottom-right
                 (1, 1), including padding area
             value (torch.Tensor): [bs, value_length, C]
             value_shapes (List): [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})]
-            value_mask (Tensor): [bs, value_length], True for non-padding elements, False for padding elements
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+            value_mask (Tensor): [bs, value_length], True for non-padding elements, False for padding elements >>>>>>>
+                02121a52dd0a636899376093a514e43cc27a4435
 
         Returns:
             (torch.Tensor): Output tensor with shape [bs, Length_{query}, C].
@@ -550,8 +525,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
     """
 
     def __init__(self, d_model=256, n_heads=8, d_ffn=1024, dropout=0.0, act=nn.ReLU(), n_levels=4, n_points=4):
-        """
-        Initialize the DeformableTransformerDecoderLayer with the given parameters.
+        """Initialize the DeformableTransformerDecoderLayer with the given parameters.
 
         Args:
             d_model (int): Model dimension.
@@ -588,8 +562,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         return tensor if pos is None else tensor + pos
 
     def forward_ffn(self, tgt):
-        """
-        Perform forward pass through the Feed-Forward Network part of the layer.
+        """Perform forward pass through the Feed-Forward Network part of the layer.
 
         Args:
             tgt (torch.Tensor): Input tensor.
@@ -602,8 +575,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         return self.norm3(tgt)
 
     def forward(self, embed, refer_bbox, feats, shapes, padding_mask=None, attn_mask=None, query_pos=None):
-        """
-        Perform the forward pass through the entire decoder layer.
+        """Perform the forward pass through the entire decoder layer.
 
         Args:
             embed (torch.Tensor): Input embeddings.
@@ -649,8 +621,7 @@ class DeformableTransformerDecoder(nn.Module):
     """
 
     def __init__(self, hidden_dim, decoder_layer, num_layers, eval_idx=-1):
-        """
-        Initialize the DeformableTransformerDecoder with the given parameters.
+        """Initialize the DeformableTransformerDecoder with the given parameters.
 
         Args:
             hidden_dim (int): Hidden dimension.
@@ -676,8 +647,7 @@ class DeformableTransformerDecoder(nn.Module):
         attn_mask=None,
         padding_mask=None,
     ):
-        """
-        Perform the forward pass through the entire decoder.
+        """Perform the forward pass through the entire decoder.
 
         Args:
             embed (torch.Tensor): Decoder embeddings.

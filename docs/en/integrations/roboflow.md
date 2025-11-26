@@ -37,10 +37,11 @@ Roboflow offers two primary services to assist in data collection for Ultralytic
 
 ### Roboflow Universe
 
-Roboflow Universe is an online repository featuring a large number of vision [datasets](../datasets/index.md).
-=======
+# Roboflow Universe is an online repository featuring a large number of vision [datasets](../datasets/index.md).
+
 Universe is an online repository with over 250,000 vision datasets totaling over 100 million images.
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+
+> > > > > > > 02121a52dd0a636899376093a514e43cc27a4435
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe.avif" alt="Roboflow Universe" width="800">

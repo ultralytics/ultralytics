@@ -9,11 +9,10 @@ from ultralytics.models.yolo.segment import SegmentationPredictor
 
 
 class YOLOEVPDetectPredictor(DetectionPredictor):
-    """
-    A mixin class for YOLO-EVP (Enhanced Visual Prompting) predictors.
+    """A mixin class for YOLO-EVP (Enhanced Visual Prompting) predictors.
 
-    This mixin provides common functionality for YOLO models that use visual prompting, including
-    model setup, prompt handling, and preprocessing transformations.
+    This mixin provides common functionality for YOLO models that use visual prompting, including model setup, prompt
+    handling, and preprocessing transformations.
 
     Attributes:
         model (torch.nn.Module): The YOLO model for inference.
@@ -29,8 +28,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     """
 
     def setup_model(self, model, verbose=True):
-        """
-        Sets up the model for prediction.
+        """Sets up the model for prediction.
 
         Args:
             model (torch.nn.Module): Model to load or use.
@@ -40,18 +38,16 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         self.done_warmup = True
 
     def set_prompts(self, prompts):
-        """
-        Set the visual prompts for the model.
+        """Set the visual prompts for the model.
 
         Args:
-            prompts (dict): Dictionary containing class indices and bounding boxes or masks.
-                Must include a 'cls' key with class indices.
+            prompts (dict): Dictionary containing class indices and bounding boxes or masks. Must include a 'cls' key
+                with class indices.
         """
         self.prompts = prompts
 
     def pre_transform(self, im):
-        """
-        Preprocess images and prompts before inference.
+        """Preprocess images and prompts before inference.
 
         This method applies letterboxing to the input image and transforms the visual prompts
         (bounding boxes or masks) accordingly.
@@ -94,14 +90,14 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return img
 
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
-        """
-        Processes a single image by resizing bounding boxes or masks and generating visuals.
+        """Processes a single image by resizing bounding boxes or masks and generating visuals.
 
         Args:
             dst_shape (tuple): The target shape (height, width) of the image.
             src_shape (tuple): The original shape (height, width) of the image.
             category (str): The category of the image for visual prompts.
-            bboxes (list | np.ndarray, optional): A list of bounding boxes in the format [x1, y1, x2, y2]. Defaults to None.
+            bboxes (list | np.ndarray, optional): A list of bounding boxes in the format [x1, y1, x2, y2]. Defaults to
+                None.
             masks (np.ndarray, optional): A list of masks corresponding to the image. Defaults to None.
 
         Returns:
@@ -131,8 +127,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return LoadVisualPrompt().get_visuals(category, dst_shape, bboxes, masks)
 
     def inference(self, im, *args, **kwargs):
-        """
-        Run inference with visual prompts.
+        """Run inference with visual prompts.
 
         Args:
             im (torch.Tensor): Input image tensor.
@@ -145,13 +140,12 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return super().inference(im, vpe=self.prompts, *args, **kwargs)
 
     def get_vpe(self, source):
-        """
-        Processes the source to get the visual prompt embeddings (VPE).
+        """Processes the source to get the visual prompt embeddings (VPE).
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source
-                of the image to make predictions on. Accepts various types including file paths, URLs, PIL
-                images, numpy arrays, and torch tensors.
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source of the image to
+                make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
+                torch tensors.
 
         Returns:
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.

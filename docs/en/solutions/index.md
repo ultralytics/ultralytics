@@ -138,9 +138,10 @@ yolo solutions source="path/to/video.mp4" # specify video file path
 ```
 
 ### Contribute to Our Solutions
+
 =======
-        ```bash
-        yolo solutions count show=True # for object counting
+```bash
+yolo solutions count show=True # for object counting
 
         yolo solutions source="path/to/video/file.mp4" # specify video file path
         ```
@@ -154,7 +155,8 @@ yolo solutions source="path/to/video.mp4" # specify video file path
 {% include "macros/solutions-args.md" %}
 
 ## Contribute to Our Solutions
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+
+> > > > > > > 02121a52dd0a636899376093a514e43cc27a4435
 
 We welcome contributions from the community! If you've mastered a particular aspect of Ultralytics YOLO that's not yet covered in our solutions, we encourage you to share your expertise. Writing a guide is a great way to give back to the community and help us make our documentation more comprehensive and user-friendly.
 

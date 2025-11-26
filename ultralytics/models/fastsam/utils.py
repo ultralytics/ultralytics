@@ -10,7 +10,7 @@ def adjust_bboxes_to_image_border(boxes, image_shape, threshold=20):
         threshold (int): Pixel threshold for considering a box close to the border.
 
     Returns:
-       boxes (torch.Tensor): Adjusted bounding boxes with shape (n, 4).
+        boxes (torch.Tensor): Adjusted bounding boxes with shape (n, 4).
     """
     # Image dimensions
     h, w = image_shape

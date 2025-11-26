@@ -8,15 +8,8 @@ from ultralytics.utils import ops
 class DetectionPredictor(BasePredictor):
     """A class extending the BasePredictor class for prediction based on a detection model.
 
-<<<<<<< HEAD
-    This predictor specializes in object detection tasks, processing model outputs into meaningful detection results
-    with bounding boxes and class predictions.
-=======
-    Examples:
-        ```python
-        from ultralytics.utils import ASSETS
-        from ultralytics.models.yolo.detect import DetectionPredictor
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+    <<<<<<< HEAD This predictor specializes in object detection tasks, processing model outputs into meaningful
+    detection results with bounding boxes and class predictions. =======
 
     Attributes:
         args (namespace): Configuration arguments for the predictor.
@@ -29,6 +22,11 @@ class DetectionPredictor(BasePredictor):
         construct_result: Create a single Result object from a prediction.
 
     Examples:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.detect import DetectionPredictor
+    >>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.detect import DetectionPredictor
         >>> args = dict(model="yolo11n.pt", source=ASSETS)
@@ -37,8 +35,7 @@ class DetectionPredictor(BasePredictor):
     """
 
     def postprocess(self, preds, img, orig_imgs, **kwargs):
-        """
-        Post-process predictions and return a list of Results objects.
+        """Post-process predictions and return a list of Results objects.
 
         This method applies non-maximum suppression to raw model predictions and prepares them for visualization and
         further analysis.
@@ -97,8 +94,7 @@ class DetectionPredictor(BasePredictor):
         return [feats[idx] if len(idx) else [] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
 
     def construct_results(self, preds, img, orig_imgs):
-        """
-        Construct a list of Results objects from model predictions.
+        """Construct a list of Results objects from model predictions.
 
         Args:
             preds (List[torch.Tensor]): List of predicted bounding boxes and scores for each image.
@@ -114,8 +110,7 @@ class DetectionPredictor(BasePredictor):
         ]
 
     def construct_result(self, pred, img, orig_img, img_path):
-        """
-        Construct a single Results object from one image prediction.
+        """Construct a single Results object from one image prediction.
 
         Args:
             pred (torch.Tensor): Predicted boxes and scores with shape (N, 6) where N is the number of detections.

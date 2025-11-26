@@ -57,15 +57,15 @@ When adding new functions or classes, include [Google-style docstrings](https://
         This example illustrates the standard Google-style docstring format. Note how it clearly separates the function description, arguments, return value, and examples for maximum readability.
 
 <<<<<<< HEAD
-        ```python
+`python
         def example_function(arg1, arg2=4):
             """
             Example function demonstrating Google-style docstrings.
-=======
-         ```python
-         def example_function(arg1, arg2=4):
-             """Example function demonstrating Google-style docstrings.
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+        =======
+         `python
+def example_function(arg1, arg2=4):
+"""Example function demonstrating Google-style docstrings.
+02121a52dd0a636899376093a514e43cc27a4435
 
             Args:
                 arg1 (int): The first argument.
@@ -87,8 +87,7 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         ```python
         def example_function(arg1, arg2=4):
-            """
-            Example function demonstrating Google-style docstrings.
+            """Example function demonstrating Google-style docstrings.
 
             Args:
                 arg1 (int): The first argument.
@@ -110,8 +109,7 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         ```python
         def example_function(arg1, arg2=4):
-            """
-            Example function demonstrating Google-style docstrings.
+            """Example function demonstrating Google-style docstrings.
 
             Args:
                 arg1 (int): The first argument.
@@ -151,15 +149,15 @@ When adding new functions or classes, include [Google-style docstrings](https://
         This example combines Google-style docstrings with Python type hints. When using type hints, you can omit the type information in the docstring arguments section, as it's already specified in the function signature.
 
 <<<<<<< HEAD
-        ```python
+`python
         def example_function(arg1: int, arg2: int = 4) -> bool:
             """
             Example function demonstrating Google-style docstrings.
-=======
-         ```python
-         def example_function(arg1: int, arg2: int = 4) -> bool:
-             """Example function demonstrating Google-style docstrings.
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+        =======
+         `python
+def example_function(arg1: int, arg2: int = 4) -> bool:
+"""Example function demonstrating Google-style docstrings.
+02121a52dd0a636899376093a514e43cc27a4435
 
             Args:
                 arg1: The first argument.
@@ -179,11 +177,11 @@ When adding new functions or classes, include [Google-style docstrings](https://
         For smaller or simpler functions, a single-line docstring may be sufficient. These should be concise but complete sentences that start with a capital letter and end with a period.
 
 <<<<<<< HEAD
-        ```python
+`python
         def example_small_function(arg1: int, arg2: int = 4) -> bool:
             """Example function with a single-line docstring."""
             return arg1 == arg2
-        ```
+        `
 
 ### ✅ GitHub Actions CI Tests
 
@@ -191,8 +189,8 @@ All pull requests must pass the [GitHub Actions](https://github.com/features/act
 
 ## ✨ Best Practices for Code Contributions
 
-When contributing code to Ultralytics projects, keep these best practices in mind:
-=======
+# When contributing code to Ultralytics projects, keep these best practices in mind:
+
          ```python
          def example_small_function(arg1: int, arg2: int = 4) -> bool:
              """Example function with a single-line docstring."""
@@ -279,9 +277,8 @@ To comply with AGPL-3.0, you must make the following components of your project 
 4. **Make Your Code Public**:
     - Push your entire project (including the components listed above) to a public GitHub repository.
 
-5. **Document Your Project**:
-    - Write a clear `README.md` with instructions for setup, usage, and contributions.
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+5. **Document Your Project**: - Write a clear `README.md` with instructions for setup, usage, and contributions.
+    > > > > > > > 02121a52dd0a636899376093a514e43cc27a4435
 
 - **Avoid code duplication:** Reuse existing code wherever possible and minimize unnecessary arguments.
 - **Make smaller, focused changes:** Focus on targeted modifications rather than large-scale changes.
@@ -333,17 +330,14 @@ If you prefer not to open-source your project, consider obtaining an [Enterprise
 Complying means making the **complete corresponding source code** of your project publicly available under the AGPL-3.0 license.
 
 1. **Choose Your Starting Point:**
-
     - **Fork Ultralytics YOLO:** Directly fork the [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics) if building closely upon it.
     - **Use Ultralytics Template:** Start with the [Ultralytics template repository](https://github.com/ultralytics/template) for a clean, modular setup integrating YOLO.
 
 2. **License Your Project:**
-
     - Add an `LICENSE` file containing the full text of the [AGPL-3.0 license](https://opensource.org/license/agpl-v3).
     - Add a notice at the top of each source file indicating the license.
 
 3. **Publish Your Source Code:**
-
     - Make your **entire project's source code** publicly accessible (e.g., on GitHub). This includes:
         - The complete larger application or system that incorporates the YOLO model or code.
         - Any modifications made to the original Ultralytics YOLO code.

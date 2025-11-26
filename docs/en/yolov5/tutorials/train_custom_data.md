@@ -54,7 +54,8 @@ Developing a custom [object detection](https://docs.ultralytics.com/tasks/detect
 Before initiating the training, dataset preparation is essential.
 =======
 YOLOv5 models must be trained on labeled data in order to learn classes of objects in that data. There are two options for creating your dataset before you start training:
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+
+> > > > > > > 02121a52dd0a636899376093a514e43cc27a4435
 
 ## 1. Create a Dataset
 

@@ -12,8 +12,7 @@ from ultralytics.utils.plotting import plot_images
 class ClassificationValidator(BaseValidator):
     """A class extending the BaseValidator class for validation based on a classification model.
 
-<<<<<<< HEAD
-    This validator handles the validation process for classification models, including metrics calculation,
+    <<<<<<< HEAD This validator handles the validation process for classification models, including metrics calculation,
     confusion matrix generation, and visualization of results.
 
     Attributes:
@@ -44,10 +43,6 @@ class ClassificationValidator(BaseValidator):
         >>> validator = ClassificationValidator(args=args)
         >>> validator()
 
-    Notes:
-        Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
-=======
-    Examples:
         ```python
         from ultralytics.models.yolo.classify import ClassificationValidator
 
@@ -57,13 +52,14 @@ class ClassificationValidator(BaseValidator):
         ```
 
     Notes:
+        Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+    =======
         - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+    >>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
-        """
-        Initialize ClassificationValidator with dataloader, save directory, and other parameters.
+        """Initialize ClassificationValidator with dataloader, save directory, and other parameters.
 
         This validator handles the validation process for classification models, including metrics calculation,
         confusion matrix generation, and visualization of results.
@@ -107,8 +103,7 @@ class ClassificationValidator(BaseValidator):
         return batch
 
     def update_metrics(self, preds, batch):
-        """
-        Update running metrics with model predictions and batch targets.
+        """Update running metrics with model predictions and batch targets.
 
         Args:
             preds (torch.Tensor): Model predictions, typically logits or probabilities for each class.
@@ -122,8 +117,7 @@ class ClassificationValidator(BaseValidator):
         self.targets.append(batch["cls"].type(torch.int32).cpu())
 
     def finalize_metrics(self, *args, **kwargs):
-        """
-        Finalize metrics including confusion matrix and processing speed.
+        """Finalize metrics including confusion matrix and processing speed.
 
         This method processes the accumulated predictions and targets to generate the confusion matrix,
         optionally plots it, and updates the metrics object with speed information.
@@ -163,8 +157,7 @@ class ClassificationValidator(BaseValidator):
         return ClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
 
     def get_dataloader(self, dataset_path, batch_size):
-        """
-        Build and return a data loader for classification validation.
+        """Build and return a data loader for classification validation.
 
         Args:
             dataset_path (str | Path): Path to the dataset directory.
@@ -182,8 +175,7 @@ class ClassificationValidator(BaseValidator):
         LOGGER.info(pf % ("all", self.metrics.top1, self.metrics.top5))
 
     def plot_val_samples(self, batch, ni):
-        """
-        Plot validation image samples with their ground truth labels.
+        """Plot validation image samples with their ground truth labels.
 
         Args:
             batch (dict): Dictionary containing batch data with 'img' (images) and 'cls' (class labels).
@@ -204,8 +196,7 @@ class ClassificationValidator(BaseValidator):
         )
 
     def plot_predictions(self, batch, preds, ni):
-        """
-        Plot images with their predicted class labels and save the visualization.
+        """Plot images with their predicted class labels and save the visualization.
 
         Args:
             batch (dict): Batch data containing images and other information.

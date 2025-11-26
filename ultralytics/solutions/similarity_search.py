@@ -16,10 +16,9 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some sys
 
 
 class VisualAISearch(BaseSolution):
-    """
-    VisualAISearch leverages OpenCLIP to generate high-quality image and text embeddings, aligning them in a shared
-    semantic space. It then uses FAISS to perform fast and scalable similarity-based retrieval, allowing users to search
-    large collections of images using natural language queries with high accuracy and speed.
+    """VisualAISearch leverages OpenCLIP to generate high-quality image and text embeddings, aligning them in a shared
+    semantic space. It then uses FAISS to perform fast and scalable similarity-based retrieval, allowing users to
+    search large collections of images using natural language queries with high accuracy and speed.
 
     Attributes:
         data (str): Directory containing images.
@@ -130,8 +129,7 @@ class VisualAISearch(BaseSolution):
 
 
 class SearchApp:
-    """
-    A Flask-based web interface powers the semantic image search experience, enabling users to input natural language
+    """A Flask-based web interface powers the semantic image search experience, enabling users to input natural language
     queries and instantly view the most relevant images retrieved from the indexed database—all through a clean,
     responsive, and easily customizable frontend.
 

@@ -8,15 +8,8 @@ from ultralytics.utils import DEFAULT_CFG, ops
 class SegmentationPredictor(DetectionPredictor):
     """A class extending the DetectionPredictor class for prediction based on a segmentation model.
 
-<<<<<<< HEAD
-    This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
-    prediction results.
-=======
-    Examples:
-        ```python
-        from ultralytics.utils import ASSETS
-        from ultralytics.models.yolo.segment import SegmentationPredictor
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+    <<<<<<< HEAD This class specializes in processing segmentation model outputs, handling both bounding boxes and masks
+    in the prediction results. =======
 
     Attributes:
         args (dict): Configuration arguments for the predictor.
@@ -29,6 +22,11 @@ class SegmentationPredictor(DetectionPredictor):
         construct_result: Constructs a single result object from a prediction.
 
     Examples:
+        ```python
+        from ultralytics.utils import ASSETS
+        from ultralytics.models.yolo.segment import SegmentationPredictor
+    >>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.segment import SegmentationPredictor
         >>> args = dict(model="yolo11n-seg.pt", source=ASSETS)
@@ -37,8 +35,7 @@ class SegmentationPredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
+        """Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
 
         This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
         prediction results.
@@ -52,8 +49,7 @@ class SegmentationPredictor(DetectionPredictor):
         self.args.task = "segment"
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Apply non-max suppression and process segmentation detections for each image in the input batch.
+        """Apply non-max suppression and process segmentation detections for each image in the input batch.
 
         Args:
             preds (tuple): Model predictions, containing bounding boxes, scores, classes, and mask coefficients.
@@ -61,8 +57,8 @@ class SegmentationPredictor(DetectionPredictor):
             orig_imgs (list | torch.Tensor | np.ndarray): Original image or batch of images.
 
         Returns:
-            (list): List of Results objects containing the segmentation predictions for each image in the batch.
-                   Each Results object includes both bounding boxes and segmentation masks.
+            (list): List of Results objects containing the segmentation predictions for each image in the batch. Each
+                Results object includes both bounding boxes and segmentation masks.
 
         Examples:
             >>> predictor = SegmentationPredictor(overrides=dict(model="yolo11n-seg.pt"))
@@ -73,8 +69,7 @@ class SegmentationPredictor(DetectionPredictor):
         return super().postprocess(preds[0], img, orig_imgs, protos=protos)
 
     def construct_results(self, preds, img, orig_imgs, protos):
-        """
-        Construct a list of result objects from the predictions.
+        """Construct a list of result objects from the predictions.
 
         Args:
             preds (List[torch.Tensor]): List of predicted bounding boxes, scores, and masks.
@@ -83,8 +78,8 @@ class SegmentationPredictor(DetectionPredictor):
             protos (List[torch.Tensor]): List of prototype masks.
 
         Returns:
-            (List[Results]): List of result objects containing the original images, image paths, class names,
-                bounding boxes, and masks.
+            (List[Results]): List of result objects containing the original images, image paths, class names, bounding
+                boxes, and masks.
         """
         return [
             self.construct_result(pred, img, orig_img, img_path, proto)
@@ -92,8 +87,7 @@ class SegmentationPredictor(DetectionPredictor):
         ]
 
     def construct_result(self, pred, img, orig_img, img_path, proto):
-        """
-        Construct a single result object from the prediction.
+        """Construct a single result object from the prediction.
 
         Args:
             pred (np.ndarray): The predicted bounding boxes, scores, and masks.

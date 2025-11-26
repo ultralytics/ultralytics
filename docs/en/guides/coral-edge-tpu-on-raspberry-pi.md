@@ -143,11 +143,11 @@ Now you can run inference using the following code:
     === "CLI"
 
         ```bash
-<<<<<<< HEAD
+        HEAD
         yolo predict model=path/to/MODEL_NAME_full_integer_quant_edgetpu.tflite source=path/to/source.png # Load an official model or custom model
-=======
+        =======
         yolo predict model=path/to/ source=path/to/source.png < model_name > _full_integer_quant_edgetpu.tflite # Load an official model or custom model
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+        02121a52dd0a636899376093a514e43cc27a4435
         ```
 
 Find comprehensive information on the [Predict](../modes/predict.md) page for full prediction mode details.

@@ -8,8 +8,7 @@ from ultralytics.utils.plotting import save_one_box
 
 
 class ObjectCropper(BaseSolution):
-    """
-    A class to manage the cropping of detected objects in a real-time video stream or images.
+    """A class to manage the cropping of detected objects in a real-time video stream or images.
 
     This class extends the BaseSolution class and provides functionality for cropping objects based on detected bounding
     boxes. The cropped images are saved to a specified directory for further analysis or usage.
@@ -31,12 +30,11 @@ class ObjectCropper(BaseSolution):
     """
 
     def __init__(self, **kwargs):
-        """
-        Initialize the ObjectCropper class for cropping objects from detected bounding boxes.
+        """Initialize the ObjectCropper class for cropping objects from detected bounding boxes.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class and used for configuration.
-                crop_dir (str): Path to the directory for saving cropped object images.
+            crop_dir (str): Path to the directory for saving cropped object images.
         """
         super().__init__(**kwargs)
 
@@ -52,14 +50,14 @@ class ObjectCropper(BaseSolution):
         self.conf = self.CFG["conf"]
 
     def process(self, im0):
-        """
-        Crop detected objects from the input image and save them as separate images.
+        """Crop detected objects from the input image and save them as separate images.
 
         Args:
             im0 (numpy.ndarray): The input image containing detected objects.
 
         Returns:
-            (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed image.
+            (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed
+                image.
 
         Examples:
             >>> cropper = ObjectCropper()

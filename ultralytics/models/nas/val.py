@@ -21,14 +21,14 @@ class NASValidator(DetectionValidator):
         lb (torch.Tensor): Optional tensor for multilabel NMS.
 
     Examples:
-<<<<<<< HEAD
+    <<<<<<< HEAD
         >>> from ultralytics import NAS
         >>> model = NAS("yolo_nas_s")
         >>> validator = model.validator
         Assumes that raw_preds are available
         >>> final_preds = validator.postprocess(raw_preds)
 
-=======
+    =======
         ```python
         from ultralytics import NAS
 
@@ -38,7 +38,8 @@ class NASValidator(DetectionValidator):
         final_preds = validator.postprocess(raw_preds)
         ```
 
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+    >>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+
     Notes:
         This class is generally not instantiated directly but is used internally within the `NAS` class.
     """

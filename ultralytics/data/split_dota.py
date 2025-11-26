@@ -106,7 +106,8 @@ def get_windows(im_size, crop_sizes=(1024,), gaps=(200,), im_rate_thr=0.6, eps=0
         eps (float): Epsilon value for math operations.
 
     Returns:
-        (np.ndarray): Array of window coordinates with shape (n, 4) where each row is [x_start, y_start, x_stop, y_stop].
+        (np.ndarray): Array of window coordinates with shape (n, 4) where each row is [x_start, y_start, x_stop,
+            y_stop].
     """
     h, w = im_size
     windows = []

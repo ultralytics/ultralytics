@@ -26,12 +26,10 @@ This repository provides a [Rust](https://www.rust-lang.org/) demo showcasing ke
 <summary>You have two options to link the ONNXRuntime library:</summary>
 
 - **Option 1: Manual Linking**
-<<<<<<< HEAD
-
-  - For detailed setup instructions, consult the [ONNX Runtime linking documentation](https://ort.pyke.io/setup/linking).
-=======
+  <<<<<<< HEAD
+  - # For detailed setup instructions, consult the [ONNX Runtime linking documentation](https://ort.pyke.io/setup/linking).
   - For detailed setup, consult the [ONNX Runtime linking documentation](https://ort.pyke.io/setup/linking).
->>>>>>> 02121a52dd0a636899376093a514e43cc27a4435
+    > > > > > > > 02121a52dd0a636899376093a514e43cc27a4435
   - **Linux or macOS**:
     1. Download the appropriate ONNX Runtime package from the official [Releases page](https://github.com/microsoft/onnxruntime/releases).
     2. Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable, pointing to the downloaded library file:

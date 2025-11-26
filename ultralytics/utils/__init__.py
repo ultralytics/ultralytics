@@ -650,6 +650,22 @@ def is_ubuntu() -> bool:
     except FileNotFoundError:
         return False
 
+def is_debian(codename=None) -> bool:
+    """Check if the OS is Debian.
+    
+    Args:
+        codename (str | None): Specific Debian codename to check for (e.g., 'buster', 'bullseye'). If None, only checks for Debian.
+
+    Returns:
+        (bool): True if OS is Debian, False otherwise.
+    """
+    try:
+        with open("/etc/os-release") as f:
+            content = f.read()
+            return "ID=debian" in content and (codename is None or f"VERSION_CODENAME={codename}" in content)
+    except FileNotFoundError:
+        return False
+
 
 def is_colab():
     """Check if the current script is running inside a Google Colab notebook.
@@ -879,6 +895,10 @@ IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
+IS_DEBIAN_BOOKWORM = is_debian(codename="bookworm")
+IS_DEBIAN_TRIXIE = is_debian(codename="trixie")
+IS_DEBIAN = is_debian()
+IS_UBUNTU = is_ubuntu()
 GIT = GitRepo()
 USER_CONFIG_DIR = get_user_config_dir()  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"

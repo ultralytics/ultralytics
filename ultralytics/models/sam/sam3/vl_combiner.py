@@ -73,9 +73,6 @@ class SAM3VLBackbone(nn.Module):
         return output
 
     def forward_image(self, samples: torch.Tensor):
-        return self._forward_image_no_act_ckpt(samples=samples)
-
-    def _forward_image_no_act_ckpt(self, samples):
         # Forward through backbone
         sam3_features, sam3_pos, sam2_features, sam2_pos = self.vision_backbone.forward(samples)
         if self.scalp > 0:

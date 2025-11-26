@@ -101,12 +101,12 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import (
     IS_PYTHON_3_12,
+    check_apt_requirements,
     check_imgsz,
     check_requirements,
     check_version,
     is_intel,
     is_sudo_available,
-    check_apt_requirements
 )
 from ultralytics.utils.export import (
     keras2pb,
@@ -1082,7 +1082,6 @@ class Exporter:
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """YOLO Axelera export."""
-
         # TODO: Make this a fucntion to use also with imx
         try:
             from axelera import compiler

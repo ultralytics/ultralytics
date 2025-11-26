@@ -81,7 +81,7 @@ class ClassificationPredictor(BasePredictor):
             (list[Results]): List of Results objects containing classification results for each image.
         """
         if not isinstance(orig_imgs, list):  # Input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         preds = preds[0] if isinstance(preds, (list, tuple)) else preds
         return [

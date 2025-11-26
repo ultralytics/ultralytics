@@ -6,14 +6,15 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segm
 
 # SAM 3: Segment Anything with Concepts
 
-!!! note "Coming Soon ⚠️"
+!!! note "Released — Ultralytics integration in progress"
 
-    🚧 SAM 3 models have not yet been publicly released by Meta. The information below is based on the research paper submitted to ICLR 2026.
-    Model downloads and final benchmarks will be available following Meta's official release.
+    Meta released SAM-3 on **November 20th, 2025**. Ultralytics is integrating the models now and will ship a package update with native support soon. In the meantime, you can follow the official SAM 3 README steps below to try the upstream release.
 
 ![SAM 3 Overview](https://github.com/ultralytics/docs/releases/download/0/sam-3-overview.webp)
 
-**SAM 3** (Segment Anything Model 3) represents Meta's next-generation foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
+**SAM 3** (Segment Anything Model 3) is Meta's released foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
+
+Ultralytics is actively integrating SAM-3 into the `ultralytics` package. Until that release lands, you can experiment with the upstream Meta implementation using the official installation and usage steps below.
 
 ## Overview
 
@@ -107,24 +108,19 @@ SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotat
 
 ## Installation
 
-SAM 3 will be supported natively in the Ultralytics package upon release:
+SAM 3 will be available directly in the Ultralytics package once integration lands. Installation will remain:
 
 ```bash
 pip install ultralytics
 ```
 
-Models will download automatically when first used. You can then use standard [predict mode](../modes/predict.md) and later [export](../modes/export.md) models to formats like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md) for deployment.
+Models will download automatically when first used. You can then use standard [predict mode](../modes/predict.md) and later [export](../modes/export.md) models to formats like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md) for deployment. Watch for a package update with SAM-3 weights and configs soon.
 
 ## How to Use SAM 3: Versatility in Concept Segmentation
 
-!!! warning "Preview API - Subject to Change"
+!!! warning "Ultralytics API preview"
 
-    The code examples below demonstrate intended usage patterns based on the research paper. The actual API will be available after:
-
-    1. Meta open-sources SAM 3 model weights
-    2. Ultralytics integrates SAM 3 into the package
-
-    Syntax and parameters may differ in the final implementation. These examples serve as a preview of expected functionality.
+    The following examples show the intended Ultralytics API once SAM 3 ships in the package. Until integration lands, details may change.
 
 ### Supported Tasks and Models
 
@@ -171,7 +167,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
     !!! warning "API Preview"
 
-        This example shows intended usage. Actual implementation pending Meta's release and Ultralytics integration.
+        This example shows intended usage. Actual implementation pending Ultralytics integration.
 
 #### Segment with Image Exemplars
 
@@ -202,7 +198,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
     !!! warning "API Preview"
 
-        This example shows intended usage. Actual implementation pending Meta's release and Ultralytics integration.
+        This example shows intended usage. Actual implementation pending Ultralytics integration.
 
 #### Interactive Refinement
 
@@ -239,7 +235,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
     !!! warning "API Preview"
 
-        This example shows intended usage. Actual implementation pending Meta's release and Ultralytics integration.
+        This example shows intended usage. Actual implementation pending Ultralytics integration.
 
 ### Video Concept Segmentation
 
@@ -269,7 +265,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
     !!! warning "API Preview"
 
-        This example shows intended usage. Actual implementation pending Meta's release and Ultralytics integration.
+        This example shows intended usage. Actual implementation pending Ultralytics integration.
 
 For broader streaming and production setups, see [object tracking](../guides/object-counting.md) and [view results in terminal](../guides/view-results-in-terminal.md).
 
@@ -298,7 +294,7 @@ SAM 3 maintains full backward compatibility with SAM 2's visual prompting:
 
     !!! warning "API Preview"
 
-        This example shows intended usage. Actual implementation pending Meta's release and Ultralytics integration.
+        This example shows intended usage. Actual implementation pending Ultralytics integration.
 
 ## Performance Benchmarks
 
@@ -502,7 +498,7 @@ While SAM 3 represents a major advancement, it has certain limitations:
 
 ### When Will SAM 3 Be Released?
 
-SAM 3 is currently under review at ICLR 2026 (conference in 2026, review in 2025). Official models, weights, and benchmarks will be released publicly following the review process, likely in 2026. Ultralytics will provide immediate support for SAM 3 integration upon Meta's release and document usage in [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
+SAM 3 was released by Meta on **November 20th, 2025**. Ultralytics support is in progress and will ship in an upcoming package update with full docs for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
 
 ### Will SAM 3 Be Integrated Into Ultralytics?
 
@@ -510,7 +506,7 @@ Yes. SAM 3 will be supported in the Ultralytics Python package upon release, inc
 
 !!! warning "Implementation Timeline"
 
-    Code examples in this documentation are preview versions showing intended usage patterns. Actual implementation will be available after Meta releases SAM 3 weights and Ultralytics completes integration.
+    Code examples in this documentation are preview versions showing intended usage patterns. Actual implementation will be available after Ultralytics completes integration.
 
 ### What Is Promptable Concept Segmentation (PCS)?
 

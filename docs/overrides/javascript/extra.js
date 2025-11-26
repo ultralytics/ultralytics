@@ -60,41 +60,42 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   });
 
-  // Add search bar to header
   const headerElement = document.querySelector(".md-header__inner");
   const searchContainer = headerElement?.querySelector(".md-header__source");
 
   if (headerElement && searchContainer) {
     const searchBar = document.createElement("div");
     searchBar.className = "ult-header-search";
+    const hotkey = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl+K";
     searchBar.innerHTML = `
-      <button class="ult-search-button" title="Search documentation (⌘K)">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="m21 21-4.35-4.35"/>
+      <button class="ult-search-button" title="Search documentation (${hotkey})" aria-label="Search documentation">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
         </svg>
         <span>Search</span>
+        <span class="ult-search-hotkey" aria-hidden="true">${hotkey}</span>
       </button>
     `;
     headerElement.insertBefore(searchBar, searchContainer);
+
+    const defaultSearchToggle = headerElement.querySelector('label[for="__search"]');
+    const defaultSearchInput = document.getElementById("__search");
+    const defaultSearchDialog = document.querySelector(".md-search");
+    if (defaultSearchToggle) {
+      defaultSearchToggle.setAttribute("aria-hidden", "true");
+      defaultSearchToggle.style.display = "none";
+    }
+    if (defaultSearchInput) {
+      defaultSearchInput.setAttribute("tabindex", "-1");
+      defaultSearchInput.setAttribute("aria-hidden", "true");
+    }
+    if (defaultSearchDialog) defaultSearchDialog.style.display = "none";
 
     searchBar.querySelector(".ult-search-button").addEventListener("click", () => {
       ultralyticsChat?.toggle(true, "search");
     });
   }
-
-  // Keyboard shortcuts
-  document.addEventListener("keydown", (e) => {
-    if (
-      (e.metaKey || e.ctrlKey) &&
-      e.key === "k" &&
-      !/input|textarea/i.test(e.target.tagName) &&
-      !e.target.isContentEditable
-    ) {
-      e.preventDefault();
-      ultralyticsChat?.toggle(true, "search");
-    }
-  });
 });
 
 // Fix language switcher links

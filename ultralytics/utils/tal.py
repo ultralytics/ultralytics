@@ -341,8 +341,8 @@ class TaskAlignedAssigner(nn.Module):
             # is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
             # mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
 
-            # sum_pos = (mask_pos * (1 - align_metric.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
-            sum_pos = (mask_pos * (1 - overlaps.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
+            sum_pos = (mask_pos * (1 - align_metric.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
+            # sum_pos = (mask_pos * (1 - overlaps.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
             # sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
             sum_pos = sum_pos.unsqueeze(-1).repeat(1, 1, mask_pos.shape[-1])  # (b, n_max_boxes, h*w)
             sum_pos[~(mask_pos.bool())] = sum_pos.max() + 1

@@ -3,7 +3,7 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [       
+    "configurations": [
         {
             "name": "Python Debugger: Current File",
             "type": "debugpy",
@@ -16,8 +16,43 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/ultralytics/data/scripts/convert_kitti_3d.py",
-            "args": ["--kitti-root", "/root/autodl-tmp"],
+            "args": [
+                "--kitti-root",
+                "/root/autodl-tmp",
+                "--output-root",
+                "/root/autodl-tmp/converted_kitti_3dop",
+                "--split",
+                "training",
+                "--split-strategy",
+                "3dop"
+            ],
             "console": "integratedTerminal"
+        },
+        {
+            "name": "test datalaoder",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "ultralytics/data/kitti_stereo.py",
+            "args": [
+                "--root",
+                "/root/autodl-tmp/converted_kitti_3dop",
+                "--split",
+                "train"
+            ]
+        },
+        {
+            "name": "stereo cli task",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/root/miniconda3/bin/yolo",
+            "args": [
+                "task='stereo3ddet'",
+                "data=/root/autodl-tmp/converted_kitti_3dop/dataset.yaml",
+                "model=ultralytics/stereo-adas-3d:v0.1",
+                "mode=train",
+                "epochs=1",
+                "batch=2"
+            ],
         }
     ]
 }

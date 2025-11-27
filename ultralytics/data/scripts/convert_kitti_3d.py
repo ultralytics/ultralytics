@@ -60,7 +60,7 @@ class KITTIToYOLO3D:
         val.txt   (image index list for validation/testing split if created)
     """
 
-    def __init__(self, kitti_root, output_root, filter_classes=None):
+    def __init__(self, kitti_root, output_root, filter_classes=None, split_strategy="single"):
         """
         Args:
             kitti_root: Path to KITTI dataset root
@@ -86,7 +86,10 @@ class KITTIToYOLO3D:
             "Misc": 7,
         }
 
-        # Filter classes (if specified)
+        # Split strategy: 'single' (original behavior) or '3dop' (fixed train/val split on training set indices)
+        self.split_strategy = split_strategy
+
+    # Filter classes (if specified)
         self.filter_classes = filter_classes
         self.class_id_remap = None  # Will store remapping from original to new IDs
         if self.filter_classes is not None:
@@ -376,14 +379,16 @@ class KITTIToYOLO3D:
             f.write(f"baseline: {calib['baseline']:.6f}\n")
 
     def convert_split(self, split="training"):
-        """
-        Convert entire KITTI split (training or testing).
+        """Convert entire KITTI split.
 
         Args:
             split: 'training' or 'testing'
+        Behavior:
+            - 'single' strategy: mirrors KITTI splits to train/val.
+            - '3dop' strategy: when split=='training', internally slices indices 0-3711 -> train, 3712-end -> val.
         """
         LOGGER.info(f"\n{'='*60}")
-        LOGGER.info(f"Converting KITTI {split} split")
+        LOGGER.info(f"Converting KITTI {split} split (strategy={self.split_strategy})")
         LOGGER.info(f"{'='*60}\n")
 
         # Paths
@@ -392,61 +397,100 @@ class KITTIToYOLO3D:
         label_dir = self.kitti_root / split / "label_2"
         calib_dir = self.kitti_root / split / "calib"
 
-        # Get all image files
         image_files = sorted(image_2_dir.glob("*.png"))
+        total = len(image_files)
+        LOGGER.info(f"Found {total} images in raw '{split}' split")
 
-        LOGGER.info(f"Found {len(image_files)} images")
+        # 3DOP branch
+        if self.split_strategy == "3dop" and split == "training":
+            TRAIN_CUTOFF = 3712  # indices 0..3711 inclusive
+            if total < TRAIN_CUTOFF:
+                LOGGER.error(f"Not enough images ({total}) for 3DOP split (need >= {TRAIN_CUTOFF}).")
+                return
 
-        # Map KITTI split name to dataset split name (training->train, testing->val)
+            # Prepare directories for both subsets
+            for subset in ["train", "val"]:
+                for d in [f"images/{subset}/left", f"images/{subset}/right", f"labels/{subset}", f"calib/{subset}"]:
+                    (self.output_root / d).mkdir(parents=True, exist_ok=True)
+
+            train_index, val_index = [], []
+            for idx, img_file in enumerate(TQDM(image_files, desc="Converting (3DOP)")):
+                img_id = img_file.stem
+                subset = "train" if idx < TRAIN_CUTOFF else "val"
+
+                left_img = image_2_dir / f"{img_id}.png"
+                right_img = image_3_dir / f"{img_id}.png"
+                label_file = label_dir / f"{img_id}.txt"
+                calib_file = calib_dir / f"{img_id}.txt"
+
+                if not left_img.exists() or not right_img.exists():
+                    LOGGER.warning(f"Missing images for {img_id}, skipping")
+                    continue
+                if not calib_file.exists():
+                    LOGGER.warning(f"Missing calibration for {img_id}, skipping")
+                    continue
+
+                if label_file.exists():
+                    yolo_labels = self.convert_label(str(label_file), str(calib_file))
+                    with open(self.output_root / "labels" / subset / f"{img_id}.txt", "w") as f:
+                        f.write("\n".join(yolo_labels))
+
+                self.copy_calibration(str(calib_file), img_id, subset)
+
+                try:
+                    out_left = self.output_root / "images" / subset / "left" / f"{img_id}.png"
+                    out_right = self.output_root / "images" / subset / "right" / f"{img_id}.png"
+                    if not out_left.exists():
+                        shutil.copy2(left_img, out_left)
+                    if not out_right.exists():
+                        shutil.copy2(right_img, out_right)
+                except Exception as e:
+                    LOGGER.warning(f"Failed to copy images for {img_id}: {e}")
+
+                rel_left = f"images/{subset}/left/{img_id}.png"
+                (train_index if subset == "train" else val_index).append(rel_left)
+
+            # Write index files
+            with open(self.output_root / "train.txt", "w") as f:
+                f.write("\n".join(train_index))
+            with open(self.output_root / "val.txt", "w") as f:
+                f.write("\n".join(val_index))
+
+            LOGGER.info(f"3DOP conversion complete: train={len(train_index)} val={len(val_index)}")
+            return
+
+        # ----- Single split behavior -----
         split_name = SPLIT_MAP.get(split, split)
 
-        # Ensure split-specific directories exist
-        required_dirs = [
-            f"images/{split_name}/left",
-            f"images/{split_name}/right",
-            f"labels/{split_name}",
-            f"calib/{split_name}",
-        ]
-        for d in required_dirs:
+        # Ensure directories exist
+        for d in [f"images/{split_name}/left", f"images/{split_name}/right", f"labels/{split_name}", f"calib/{split_name}"]:
             (self.output_root / d).mkdir(parents=True, exist_ok=True)
 
-        # Collect image index list for optional train.txt/val.txt
         index_list = []
-
-        # Process each image
         for img_file in TQDM(image_files, desc="Converting"):
             img_id = img_file.stem
-
-            # File paths
             left_img = image_2_dir / f"{img_id}.png"
             right_img = image_3_dir / f"{img_id}.png"
             label_file = label_dir / f"{img_id}.txt"
             calib_file = calib_dir / f"{img_id}.txt"
 
-            # Check if files exist
             if not left_img.exists() or not right_img.exists():
                 LOGGER.warning(f"Missing images for {img_id}, skipping")
                 continue
-
             if not calib_file.exists():
                 LOGGER.warning(f"Missing calibration for {img_id}, skipping")
                 continue
 
-            # Convert labels (only if label file exists; testing split has none in official KITTI)
             if label_file.exists():
                 yolo_labels = self.convert_label(str(label_file), str(calib_file))
-                output_label = self.output_root / "labels" / split_name / f"{img_id}.txt"
-                with open(output_label, "w") as f:
+                with open(self.output_root / "labels" / split_name / f"{img_id}.txt", "w") as f:
                     f.write("\n".join(yolo_labels))
 
-            # Copy calibration
             self.copy_calibration(str(calib_file), img_id, split_name)
 
-            # Copy images into output directory (idempotent)
             try:
                 out_left = self.output_root / "images" / split_name / "left" / f"{img_id}.png"
                 out_right = self.output_root / "images" / split_name / "right" / f"{img_id}.png"
-
                 if not out_left.exists():
                     shutil.copy2(left_img, out_left)
                 if not out_right.exists():
@@ -454,15 +498,12 @@ class KITTIToYOLO3D:
             except Exception as e:
                 LOGGER.warning(f"Failed to copy images for {img_id}: {e}")
 
-            # Add to index list (store relative path to left image)
             index_list.append(f"images/{split_name}/left/{img_id}.png")
 
-        # Write index file (train.txt or val.txt)
-        index_filename = f"{split_name}.txt"
-        with open(self.output_root / index_filename, "w") as f:
+        with open(self.output_root / f"{split_name}.txt", "w") as f:
             f.write("\n".join(index_list))
 
-        LOGGER.info(f"\nConversion complete for split '{split_name}'")
+        LOGGER.info(f"Conversion complete for split '{split_name}'")
         LOGGER.info(f"Output directory: {self.output_root}")
 
     def create_dataset_yaml(self, splits=["train", "val"]):
@@ -551,6 +592,13 @@ Examples:
         "--split", type=str, default="training", choices=["training", "testing"], help="Which split to convert"
     )
     parser.add_argument(
+        "--split-strategy",
+        type=str,
+        default="single",
+        choices=["single", "3dop"],
+        help="Split logic: 'single' maps KITTI splits directly; '3dop' divides KITTI training into train(0-3711) and val(3712-end)",
+    )
+    parser.add_argument(
         "--filter-classes",
         type=str,
         nargs="+",
@@ -566,7 +614,12 @@ Examples:
         LOGGER.info("--output-root not provided. Using --kitti-root as output directory.")
 
     # Initialize converter
-    converter = KITTIToYOLO3D(args.kitti_root, output_root, filter_classes=args.filter_classes)
+    converter = KITTIToYOLO3D(
+        args.kitti_root,
+        output_root,
+        filter_classes=args.filter_classes,
+        split_strategy=args.split_strategy,
+    )
 
     # Convert dataset
     converter.convert_split(args.split)
@@ -577,12 +630,22 @@ Examples:
     LOGGER.info("\n✓ Conversion complete!")
     LOGGER.info(f"\nYour dataset is ready at: {output_root}")
     # Determine split name for logging (training->train, testing->val)
-    split_name = SPLIT_MAP.get(args.split, args.split)
     LOGGER.info("\nDirectory structure (partial):")
-    LOGGER.info(f"  images/{split_name}/left/   - Left camera images")
-    LOGGER.info(f"  images/{split_name}/right/  - Right camera images")
-    LOGGER.info(f"  labels/{split_name}/        - YOLO 3D format labels")
-    LOGGER.info(f"  calib/{split_name}/         - Calibration files")
+    if args.split_strategy == "3dop" and args.split == "training":
+        LOGGER.info("  images/train/left/  - Train left images")
+        LOGGER.info("  images/train/right/ - Train right images")
+        LOGGER.info("  images/val/left/    - Val left images")
+        LOGGER.info("  images/val/right/   - Val right images")
+        LOGGER.info("  labels/train/       - Train labels")
+        LOGGER.info("  labels/val/         - Val labels")
+        LOGGER.info("  calib/train/        - Train calibration")
+        LOGGER.info("  calib/val/          - Val calibration")
+    else:
+        split_name = SPLIT_MAP.get(args.split, args.split)
+        LOGGER.info(f"  images/{split_name}/left/   - Left camera images")
+        LOGGER.info(f"  images/{split_name}/right/  - Right camera images")
+        LOGGER.info(f"  labels/{split_name}/        - YOLO 3D format labels")
+        LOGGER.info(f"  calib/{split_name}/         - Calibration files")
     LOGGER.info("  train.txt / val.txt - Image index lists (if present)")
     LOGGER.info("  dataset.yaml        - Dataset configuration")
 

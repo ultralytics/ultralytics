@@ -291,15 +291,24 @@ class KITTIStereoDataset:
 if __name__ == "__main__":
     """Test the KITTI Stereo Dataset dataloader."""
     import sys
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Test KITTI Stereo Dataset Dataloader")
+    parser.add_argument("--root", type=str, default="kitti-stereo-debug", help="Root directory of the dataset")
+    parser.add_argument("--split", type=str, default="train", help="Dataset split to use ('train' or 'val')")
+
 
     # Test dataset initialization
     print("=" * 60)
     print("Testing KITTI Stereo Dataset")
     print("=" * 60)
 
+    args = parser.parse_args()
+    print(f"root = {args.root}")
+
     try:
         # Initialize dataset
-        dataset = KITTIStereoDataset(root="kitti-stereo-debug", split="train")
+        dataset = KITTIStereoDataset(root=args.root, split=args.split)
         print(f"✓ Dataset initialized successfully")
         print(f"  - Dataset length: {len(dataset)}")
         print(f"  - Split: {dataset.split}")
@@ -371,7 +380,7 @@ if __name__ == "__main__":
             print("-" * 60)
 
             try:
-                val_dataset = KITTIStereoDataset(root="kitti-stereo-debug", split="val")
+                val_dataset = KITTIStereoDataset(root=args.root, split="val")
                 print(f"✓ Validation dataset initialized successfully")
                 print(f"  - Validation dataset length: {len(val_dataset)}")
                 if len(val_dataset) > 0:

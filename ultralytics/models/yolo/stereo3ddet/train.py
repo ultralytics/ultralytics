@@ -10,8 +10,10 @@ import cv2
 import numpy as np
 
 from ultralytics.models import yolo
-from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG, YAML
 from ultralytics.models.yolo.stereo3ddet.visualize import plot_stereo_sample
+from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetAdapterDataset
+from ultralytics.data import build_dataloader
 
 
 class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
@@ -33,6 +35,94 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         return yolo.stereo3ddet.Stereo3DDetValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
+
+    def get_dataset(self) -> dict[str, Any]:
+        """Parse stereo dataset YAML and return metadata for KITTIStereoDataset.
+
+        This overrides the base implementation to avoid the default YOLO detection dataset checks
+        and instead wire up paths/splits intended for the custom `KITTIStereoDataset` loader.
+
+        Returns:
+            dict: Dataset dictionary with fields used by the trainer and model.
+        """
+        # Load YAML if a path is provided; accept dicts directly
+        data_cfg = self.args.data
+        if isinstance(data_cfg, (str, Path)):
+            data_cfg = YAML.load(str(data_cfg))
+
+        if not isinstance(data_cfg, dict):
+            raise RuntimeError("stereo3ddet: data must be a YAML path or dict")
+
+        # Root path and splits
+        root_path = data_cfg.get("path") or "."
+        root = Path(str(root_path)).resolve()
+        # Accept either directory-style train/val or txt; KITTIStereoDataset uses split names
+        train_split = data_cfg.get("train_split", "train")
+        val_split = data_cfg.get("val_split", "val")
+
+        # Names/nc fallback
+        names = data_cfg.get("names") or {
+            0: "Car",
+            1: "Van",
+            2: "Truck",
+            3: "Pedestrian",
+            4: "Person_sitting",
+            5: "Cyclist",
+            6: "Tram",
+            7: "Misc",
+        }
+        nc = data_cfg.get("nc", len(names))
+
+        # Return a dict compatible with BaseTrainer expectations, plus stereo descriptors
+        return {
+            "yaml_file": str(self.args.data) if isinstance(self.args.data, (str, Path)) else None,
+            "path": str(root),
+            # Signal to our get_dataloader/build_dataset that this is a stereo dataset
+            "train": {"type": "kitti_stereo", "root": str(root), "split": train_split},
+            "val": {"type": "kitti_stereo", "root": str(root), "split": val_split},
+            "names": names,
+            "nc": nc,
+            # carry over optional stereo metadata if present
+            "stereo": data_cfg.get("stereo", True),
+            "image_size": data_cfg.get("image_size", [375, 1242]),
+            "baseline": data_cfg.get("baseline"),
+            "focal_length": data_cfg.get("focal_length"),
+        }
+
+    def build_dataset(self, img_path, mode: str = "train", batch: int | None = None):
+        """Build Stereo3DDetAdapterDataset when given our descriptor; fallback to detection dataset otherwise."""
+        # If img_path is a stereo descriptor dict created in get_dataset
+        desc = img_path if isinstance(img_path, dict) else self.data.get(mode)
+        if isinstance(desc, dict) and desc.get("type") == "kitti_stereo":
+            imgsz = int(self.args.imgsz) if hasattr(self.args, "imgsz") else 640
+            return Stereo3DDetAdapterDataset(
+                root=str(desc.get("root", ".")),
+                split=str(desc.get("split", "train")),
+                imgsz=imgsz,
+                names=self.data.get("names"),
+            )
+        # Otherwise, use the default detection dataset builder
+        return super().build_dataset(img_path, mode=mode, batch=batch)
+
+    def get_dataloader(self, dataset_path, batch_size: int = 16, rank: int = 0, mode: str = "train"):
+        """Construct dataloader using the stereo adapter dataset if applicable."""
+        # Build our dataset (handles both stereo descriptor dict and path strings)
+        dataset = self.build_dataset(dataset_path, mode=mode, batch=batch_size)
+
+        # If using our adapter, build InfiniteDataLoader with its collate_fn via Ultralytics helper
+        if isinstance(dataset, Stereo3DDetAdapterDataset):
+            shuffle = mode == "train"
+            return build_dataloader(
+                dataset,
+                batch=batch_size,
+                workers=self.args.workers if mode == "train" else self.args.workers * 2,
+                shuffle=shuffle,
+                rank=rank,
+                drop_last=self.args.compile and mode == "train",
+                pin_memory=True,
+            )
+        # Fallback to default detection dataloader
+        return super().get_dataloader(dataset_path, batch_size=batch_size, rank=rank, mode=mode)
 
     def plot_training_samples(self, batch: dict[str, Any], ni: int) -> None:
         """Plot left-image training samples (default) plus stereo pairs using the existing dataset layout.

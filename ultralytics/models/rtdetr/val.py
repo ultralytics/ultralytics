@@ -85,7 +85,9 @@ class RTDETRDataset(YOLODataset):
             transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
         else:
             # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
-            transforms = Compose([lambda x: {**x, **{"ratio_pad": [x["ratio_pad"], [0, 0]]}}])
+            def add_ratio_pad(x): 
+                return {**x, **{"ratio_pad": [x["ratio_pad"], [0, 0]]}}
+            transforms = Compose(add_ratio_pad)
         transforms.append(
             Format(
                 bbox_format="xywh",

@@ -108,12 +108,13 @@ class TransformerDecoderLayer(nn.Module):
 
             if presence_token is not None:
                 tgt_o2o = torch.cat([presence_token, tgt_o2o], dim=0)
-                tgt_query_pos_o2o = torch.cat([torch.zeros_like(presence_token), tgt_query_pos_o2o], dim=0)
+                tgt_query_pos_o2o = torch.cat([torch.zeros_like(presence_token), tgt_query_pos_o2o], dim=0).to(tgt_o2o.dtype)
                 tgt_query_pos = torch.cat([torch.zeros_like(presence_token), tgt_query_pos], dim=0)
 
             q = k = self.with_pos_embed(tgt_o2o, tgt_query_pos_o2o)
             tgt2 = self.self_attn(q, k, tgt_o2o, attn_mask=self_attn_mask)[0]
             tgt_o2o = tgt_o2o + self.dropout2(tgt2)
+            print(tgt2.dtype, tgt_o2o.dtype)
             if dac:
                 if not dac_use_selfatt_ln:
                     tgt_o2o = self.norm2(tgt_o2o)
@@ -122,7 +123,10 @@ class TransformerDecoderLayer(nn.Module):
                     tgt = self.norm2(tgt)
             else:
                 tgt = tgt_o2o
+                print(tgt.dtype)
                 tgt = self.norm2(tgt)
+            print(tgt.dtype)
+            exit()
 
         if self.use_text_cross_attention:
             tgt2 = self.ca_text(

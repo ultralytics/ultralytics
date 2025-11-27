@@ -301,7 +301,7 @@ class BasePredictor:
 
             # Reset FPS tracking for new source
             self.last_frame_process_time = 0.0
-            
+
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
@@ -491,7 +491,7 @@ class BasePredictor:
             cv2.imwrite(str(save_path.with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p: str = ""):
-        """Display an image in a window"""
+        """Display an image in a window."""
         im = self.plotted_img
 
         # FPS calculation - only for video/stream sources
@@ -513,7 +513,7 @@ class BasePredictor:
         cv2.imshow(p, im)
         if cv2.waitKey(300 if self.dataset.mode == "image" else 1) & 0xFF == ord("q"):  # 300ms if image; else 1ms
             raise StopIteration
-        
+
     def run_callbacks(self, event: str):
         """Run all registered callbacks for a specific event."""
         for callback in self.callbacks.get(event, []):

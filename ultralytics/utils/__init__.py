@@ -651,15 +651,16 @@ def is_ubuntu() -> bool:
         return False
 
 
-def is_debian(codenames:list[str] | None | str = None) -> list[bool] | bool:
+def is_debian(codenames: list[str] | None | str = None) -> list[bool] | bool:
     """Check if the OS is Debian.
 
     Args:
-        codenames (list[str] | None | str): Specific Debian codename to check for (e.g., 'buster', 'bullseye'). If None, only checks
-            for Debian.
+        codenames (list[str] | None | str): Specific Debian codename to check for (e.g., 'buster', 'bullseye'). If None,
+            only checks for Debian.
 
     Returns:
-        (list[bool] | bool): List of booleans indicating if OS matches each Debian codename, or a single boolean if no codenames provided.
+        (list[bool] | bool): List of booleans indicating if OS matches each Debian codename, or a single boolean if no
+            codenames provided.
     """
     try:
         with open("/etc/os-release") as f:
@@ -668,9 +669,13 @@ def is_debian(codenames:list[str] | None | str = None) -> list[bool] | bool:
                 return "ID=debian" in content
             if isinstance(codenames, str):
                 codenames = [codenames]
-            return [f"VERSION_CODENAME={codename}" in content if codename else "ID=debian" in content for codename in codenames]
+            return [
+                f"VERSION_CODENAME={codename}" in content if codename else "ID=debian" in content
+                for codename in codenames
+            ]
     except FileNotFoundError:
         return [False] * len(codenames) if codenames else False
+
 
 def is_colab():
     """Check if the current script is running inside a Google Colab notebook.

@@ -144,7 +144,6 @@ class BasePredictor:
         self.batch = None
         self.results = None
         self.transforms = None
-        self.last_frame_process_time = 0.0  # for FPS calculation in show()
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
         self._lock = threading.Lock()  # for automatic thread-safe inference

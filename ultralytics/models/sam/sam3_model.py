@@ -1231,6 +1231,7 @@ class Sam3TrackerPredictor(SAM3Model):
         )
         return pred_masks
 
+    # TODO
     def track_step(
         self,
         frame_idx,

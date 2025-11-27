@@ -9,6 +9,7 @@ import torch
 from torch.utils.data import Dataset
 
 from ultralytics.data.kitti_stereo import KITTIStereoDataset
+from ultralytics.models.yolo.stereo3ddet.augment import StereoAugmentationPipeline, StereoCalibration, PhotometricAugmentor
 
 
 def _letterbox(image: np.ndarray, new_shape: int, color=(114, 114, 114)) -> Tuple[np.ndarray, float, int, int]:
@@ -39,6 +40,10 @@ class Stereo3DDetAdapterDataset(Dataset):
 
         self.base = KITTIStereoDataset(root=self.root, split=self.split)
         self.left_dir = self.root / "images" / split / "left"
+        # Full stereo augmentation pipeline (photometric + geometric)
+        self._aug = StereoAugmentationPipeline(
+            photometric=PhotometricAugmentor(p_apply=0.9)
+        )
 
     def __len__(self) -> int:
         return len(self.base)
@@ -46,7 +51,7 @@ class Stereo3DDetAdapterDataset(Dataset):
     def _labels_to_tensors(
         self, labels: List[Dict[str, Any]], scale: float, pad_left: int, pad_top: int, ori_w: int, ori_h: int
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        cls_list: List[List[float]] = []
+        cls_list: List[float] = []
         bboxes_list: List[List[float]] = []
 
         for obj in labels:
@@ -79,13 +84,13 @@ class Stereo3DDetAdapterDataset(Dataset):
                 wn = float(min(max(wn, 0.0), 1.0))
                 hn = float(min(max(hn, 0.0), 1.0))
 
-                cls_list.append([cid])
+                cls_list.append(float(cid))
                 bboxes_list.append([cxn, cyn, wn, hn])
             except Exception:
                 continue
 
         if len(cls_list) == 0:
-            cls_t = torch.zeros((0, 1), dtype=torch.float32)
+            cls_t = torch.zeros((0,), dtype=torch.float32)
             bboxes_t = torch.zeros((0, 4), dtype=torch.float32)
         else:
             cls_t = torch.tensor(cls_list, dtype=torch.float32)
@@ -95,14 +100,31 @@ class Stereo3DDetAdapterDataset(Dataset):
     def __getitem__(self, idx: int) -> Dict[str, Any]:
         sample = self.base[idx]
         left_img: np.ndarray = sample["left_img"]
+        right_img: np.ndarray = sample["right_img"]
         h0, w0 = left_img.shape[:2]
+
+        # Optional stereo augmentation (train split only)
+        if self.split == "train":
+            calib = sample.get("calib", {})
+            calib_obj = StereoCalibration(
+                fx=float(calib.get("fx", 0.0)),
+                fy=float(calib.get("fy", 0.0)),
+                cx=float(calib.get("cx", 0.0)),
+                cy=float(calib.get("cy", 0.0)),
+                baseline=float(calib.get("baseline", 0.0)),
+                height=h0,
+                width=w0,
+            )
+            left_img, right_img, labels_aug, _ = self._aug.augment(left_img, right_img, sample.get("labels", []), calib_obj)
+        else:
+            labels_aug = sample.get("labels", [])
 
         # BGR -> RGB and letterbox to imgsz
         left_img_rgb = cv2.cvtColor(left_img, cv2.COLOR_BGR2RGB)
         img_resized, scale, pad_left, pad_top = _letterbox(left_img_rgb, self.imgsz)
 
         # Convert labels
-        cls_t, bboxes_t = self._labels_to_tensors(sample.get("labels", []), scale, pad_left, pad_top, w0, h0)
+        cls_t, bboxes_t = self._labels_to_tensors(labels_aug, scale, pad_left, pad_top, w0, h0)
 
         # Build example
         img_tensor = torch.from_numpy(img_resized).permute(2, 0, 1).contiguous()  # HWC->CHW
@@ -132,16 +154,16 @@ class Stereo3DDetAdapterDataset(Dataset):
             if n:
                 cls_all.append(b["cls"])  # (n,1)
                 bboxes_all.append(b["bboxes"])  # (n,4)
-                batch_idx_all.append(torch.full((n, 1), i, dtype=torch.int64))
+                batch_idx_all.append(torch.full((n,), i, dtype=torch.int64))
 
         if cls_all:
             cls_cat = torch.cat(cls_all, 0)
             bboxes_cat = torch.cat(bboxes_all, 0)
             batch_idx = torch.cat(batch_idx_all, 0)
         else:
-            cls_cat = torch.zeros((0, 1), dtype=torch.float32)
+            cls_cat = torch.zeros((0,), dtype=torch.float32)
             bboxes_cat = torch.zeros((0, 4), dtype=torch.float32)
-            batch_idx = torch.zeros((0, 1), dtype=torch.int64)
+            batch_idx = torch.zeros((0,), dtype=torch.int64)
 
         return {
             "img": imgs,

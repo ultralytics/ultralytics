@@ -28,6 +28,9 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         if overrides is None:
             overrides = {}
         overrides["task"] = "stereo3ddet"
+        # Disable plots and validation for custom stereo pipeline until a dedicated validator is implemented
+        overrides.setdefault("plots", False)
+        overrides.setdefault("val", False)
         super().__init__(cfg, overrides, _callbacks)
 
     def get_validator(self):
@@ -77,6 +80,8 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         return {
             "yaml_file": str(self.args.data) if isinstance(self.args.data, (str, Path)) else None,
             "path": str(root),
+            # Required by DetectionTrainer.get_model
+            "channels": 3,
             # Signal to our get_dataloader/build_dataset that this is a stereo dataset
             "train": {"type": "kitti_stereo", "root": str(root), "split": train_split},
             "val": {"type": "kitti_stereo", "root": str(root), "split": val_split},
@@ -204,3 +209,10 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         except Exception:
             # Stay non-intrusive in case of any optional plotting error
             pass
+
+    def plot_training_labels(self) -> None:
+        """Override default label-plotting which expects detection dataset internals.
+
+        Our stereo adapter does not provide a global `dataset.labels` cache, so skip gracefully.
+        """
+        return

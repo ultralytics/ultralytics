@@ -46,9 +46,9 @@
             "request": "launch",
             "program": "/root/miniconda3/bin/yolo",
             "args": [
-                "task='stereo3ddet'",
+                "task=stereo3ddet",
                 "data=/root/autodl-tmp/converted_kitti_3dop/dataset.yaml",
-                "model=ultralytics/stereo-adas-3d:v0.1",
+                "model=yolo11-stereo3ddet.yaml",
                 "mode=train",
                 "epochs=1",
                 "batch=2"

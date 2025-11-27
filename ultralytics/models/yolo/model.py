@@ -120,12 +120,12 @@ class YOLO(Model):
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
             },
-            # Initial wiring: reuse detection stack for stereo3ddet until custom head/trainer are implemented
+            # Stereo 3D detection: scaffolded trainer/validator/predictor
             "stereo3ddet": {
-                "model": DetectionModel,
-                "trainer": yolo.detect.DetectionTrainer,
-                "validator": yolo.detect.DetectionValidator,
-                "predictor": yolo.detect.DetectionPredictor,
+                "model": yolo.stereo3ddet.Stereo3DDetModel,  # placeholder stereo model class
+                "trainer": yolo.stereo3ddet.Stereo3DDetTrainer,
+                "validator": yolo.stereo3ddet.Stereo3DDetValidator,
+                "predictor": yolo.stereo3ddet.Stereo3DDetPredictor,
             },
         }
 

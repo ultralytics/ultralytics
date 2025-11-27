@@ -14,7 +14,8 @@
 #     └── kitti-stereo ← downloads here (~175 GB for full dataset)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: kitti-stereo # dataset root dir
+# NOTE: Overridden to use pre-converted dataset; no downloads.
+path: /root/autodl-tmp/converted_kitti_3dop # dataset root dir (pre-converted, skip downloads)
 train: images/train/left # train images (left stereo) (relative to 'path') 
 val: images/val/left # val images (left stereo) (relative to 'path')
 
@@ -41,6 +42,12 @@ download: |
   
   from ultralytics.utils import LOGGER, TQDM
   from ultralytics.utils.downloads import download, safe_download
+  
+    # Early exit: if converted dataset already exists at yaml["path"], skip any download/convert
+    dir = Path(yaml["path"]).resolve()
+    if (dir / "images" / "train" / "left").exists():
+            LOGGER.info(f"Using existing KITTI Stereo dataset at: {dir} (skipping download/convert)")
+            raise SystemExit(0)
   
   def convert_kitti_to_yolo_stereo(kitti_root: Path, output_dir: Path, split: str = "training"):
       """Convert KITTI dataset to YOLO format with stereo support.
@@ -315,8 +322,9 @@ download: |
           f.writelines(yolo_lines)
   
   
-  # Main download and conversion logic
-  dir = Path(yaml["path"])  # dataset root dir
+    # Main download and conversion logic
+    # (Only reached if early-exit above did not trigger)
+    dir = Path(yaml["path"])  # dataset root dir
   
   LOGGER.info("=" * 60)
   LOGGER.info("KITTI Stereo Dataset Download and Conversion")

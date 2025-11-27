@@ -299,6 +299,9 @@ class BasePredictor:
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
+            # Reset FPS tracking for new source
+            self.last_frame_process_time = 0.0
+            
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
@@ -488,10 +491,10 @@ class BasePredictor:
             cv2.imwrite(str(save_path.with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p: str = ""):
-        """Display an image in a window with FPS overlay if enabled."""
+        """Display an image in a window"""
         im = self.plotted_img
 
-        # FPS calculation
+        # FPS calculation - only for video/stream sources
         if getattr(self.args, "show_fps", False):
             mode = getattr(self.dataset, "mode", None)
             if mode in {"video", "stream"}:
@@ -501,7 +504,6 @@ class BasePredictor:
                     cv2.putText(
                         im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2, cv2.LINE_AA
                     )
-
                 self.last_frame_process_time = current_frame_process_time
 
         if platform.system() == "Linux" and p not in self.windows:
@@ -511,7 +513,7 @@ class BasePredictor:
         cv2.imshow(p, im)
         if cv2.waitKey(300 if self.dataset.mode == "image" else 1) & 0xFF == ord("q"):  # 300ms if image; else 1ms
             raise StopIteration
-
+        
     def run_callbacks(self, event: str):
         """Run all registered callbacks for a specific event."""
         for callback in self.callbacks.get(event, []):

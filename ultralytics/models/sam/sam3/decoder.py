@@ -61,8 +61,7 @@ class TransformerDecoderLayer(nn.Module):
         return tensor if pos is None else tensor + pos
 
     def forward_ffn(self, tgt):
-        with torch.amp.autocast(device_type="cuda", enabled=False):
-            tgt2 = self.linear2(self.dropout3(self.activation(self.linear1(tgt))))
+        tgt2 = self.linear2(self.dropout3(self.activation(self.linear1(tgt))))
         tgt = tgt + self.dropout4(tgt2)
         tgt = self.norm3(tgt)
         return tgt
@@ -112,9 +111,8 @@ class TransformerDecoderLayer(nn.Module):
                 tgt_query_pos = torch.cat([torch.zeros_like(presence_token), tgt_query_pos], dim=0)
 
             q = k = self.with_pos_embed(tgt_o2o, tgt_query_pos_o2o)
-            tgt2 = self.self_attn(q, k, tgt_o2o, attn_mask=self_attn_mask)[0]
+            tgt2 = self.self_attn(q, k, tgt_o2o, attn_mask=self_attn_mask)[0].to(tgt.dtype)
             tgt_o2o = tgt_o2o + self.dropout2(tgt2)
-            print(tgt2.dtype, tgt_o2o.dtype)
             if dac:
                 if not dac_use_selfatt_ln:
                     tgt_o2o = self.norm2(tgt_o2o)
@@ -123,10 +121,7 @@ class TransformerDecoderLayer(nn.Module):
                     tgt = self.norm2(tgt)
             else:
                 tgt = tgt_o2o
-                print(tgt.dtype)
                 tgt = self.norm2(tgt)
-            print(tgt.dtype)
-            exit()
 
         if self.use_text_cross_attention:
             tgt2 = self.ca_text(
@@ -156,7 +151,7 @@ class TransformerDecoderLayer(nn.Module):
         tgt = self.norm1(tgt)
 
         # ffn
-        tgt = self.forward_ffn(tgt)
+        tgt = self.forward_ffn(tgt.to(memory.dtype))
 
         presence_token_out = None
         if presence_token is not None:

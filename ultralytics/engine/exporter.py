@@ -1083,7 +1083,6 @@ class Exporter:
         return str(f)
 
     @try_export
-    @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """YOLO Axelera export."""
         # TODO: Make this a function to use also with imx

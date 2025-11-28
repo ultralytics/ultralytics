@@ -23,8 +23,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
   <strong>Watch:</strong> How to Remove Background and Isolate Objects with Ultralytics YOLO Segmentation & OpenCV in Python 🚀
 </p>
 
-
-
 ## Recipe Walkthrough
 
 1.  See the [Ultralytics Quickstart Installation section](../quickstart.md) for a quick walkthrough on installing the required libraries.

@@ -192,8 +192,8 @@ def select_device(device="", newline=False, verbose=True):
             index = None
         if index is not None:
             if verbose:
-                info = get_gpu_info(index)  
-                s += f"XPU:{index} ({info})\n"  
+                info = get_gpu_info(index)
+                s += f"XPU:{index} ({info})\n"
                 LOGGER.info(s if newline else s.rstrip())
             return torch.device("xpu", index)
     elif device:  # non-cpu device requested

@@ -1,11 +1,13 @@
 import pytest
 import torch
+
 from ultralytics import YOLO
 
 pytestmark = pytest.mark.skipif(
     not hasattr(torch, "xpu") or not torch.xpu.is_available(),
     reason="XPU not available",
 )
+
 
 def test_yolo_xpu_forward():
     model = YOLO("/root/ultralytics/yolov11n.pt")

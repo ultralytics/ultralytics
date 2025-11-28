@@ -161,7 +161,7 @@ def arange_patch(args):
 
 @contextmanager
 def onnx_export_patch():
-    """Workaround for ONNX torch.arange incompatibility with FP16."""
+    """Workaround for ONNX export issues in PyTorch 2.9+ with Dynamo enabled."""
     from ultralytics.utils.torch_utils import TORCH_2_9
 
     if TORCH_2_9:

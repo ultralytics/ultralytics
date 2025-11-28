@@ -574,6 +574,13 @@ class AutoBackend(nn.Module):
 
         # Axelera
         elif axelera:
+            try:
+                from axelera.runtime import op
+            except ImportError:
+                check_requirements(
+                    "axelera_runtime2==0.1.1",
+                    cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc6/build-packages-ubuntu-22.04/python",
+                )
             from axelera.runtime import op
 
             ax_model = op.load(model)

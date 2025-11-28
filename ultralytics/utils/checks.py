@@ -759,7 +759,7 @@ def check_amp(model):
     if hasattr(torch, "xpu") and torch.xpu.is_available() and device.type == "xpu":
         LOGGER.warning(f"{prefix}Intel XPU detected. AMP is disabled (not supported on XPU).")
         return False
-    
+
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
     else:

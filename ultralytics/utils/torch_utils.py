@@ -158,7 +158,6 @@ def select_device(device="", newline=False, verbose=True):
     Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
     device = str(device).lower()
@@ -211,7 +210,8 @@ def select_device(device="", newline=False, verbose=True):
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions.\n"
-                if torch.cuda.device_count() == 0 else ""
+                if torch.cuda.device_count() == 0
+                else ""
             )
             raise ValueError(
                 f"Invalid CUDA 'device={device}'."

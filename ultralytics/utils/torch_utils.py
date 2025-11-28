@@ -127,6 +127,8 @@ def get_cpu_info():
 def get_gpu_info(index):
     """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
     properties = torch.cuda.get_device_properties(index)
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        properties = torch.xpu.get_device_properties(index)
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
@@ -156,11 +158,11 @@ def select_device(device="", newline=False, verbose=True):
     Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
+
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
-    device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
 
@@ -178,27 +180,41 @@ def select_device(device="", newline=False, verbose=True):
 
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
+
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
-    elif device:  # non-cpu device requested
+    # ⭐新增：无 CUDA 但有 XPU 时，让 device="0" 走 XPU
+    elif device and not torch.cuda.is_available() and hasattr(torch, "xpu") and torch.xpu.is_available():
+        try:
+            idx = int(device)
+            if idx >= torch.xpu.device_count():
+                raise ValueError(f"XPU index {idx} out of range")
+            p = torch.xpu.get_device_properties(idx)
+            mem = p.total_memory / (1 << 10)
+            s += f"XPU:{idx} ({p.name}, {mem:.0f}MiB)\n"
+            if verbose:
+                LOGGER.info(s)
+            return torch.device(f"xpu:{idx}")
+        except:
+            pass
+
+    # ⭐修改：只有 CUDA 可用时才走 CUDA 分支
+    elif device and torch.cuda.is_available():
         if device == "cuda":
             device = "0"
         if "," in device:
-            device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
+            device = ",".join([x for x in device.split(",") if x])
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
+        os.environ["CUDA_VISIBLE_DEVICES"] = device
+
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
             LOGGER.info(s)
             install = (
-                "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
-                "CUDA devices are seen by torch.\n"
-                if torch.cuda.device_count() == 0
-                else ""
+                "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions.\n"
+                if torch.cuda.device_count() == 0 else ""
             )
             raise ValueError(
-                f"Invalid CUDA 'device={device}' requested."
-                f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
-                f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
+                f"Invalid CUDA 'device={device}'."
                 f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
                 f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
                 f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
@@ -215,10 +231,15 @@ def select_device(device="", newline=False, verbose=True):
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"
         arg = "mps"
+    elif hasattr(torch, "xpu") and torch.xpu.is_available():
+        # Default auto-detect XPU
+        props = torch.xpu.get_device_properties(0)
+        mem = props.total_memory / (1 << 10)
+        s += f"XPU:0 ({props.name}, {mem:.0f}MiB)\n"
+        arg = "xpu"
     else:  # revert to CPU
         s += f"CPU ({get_cpu_info()})\n"
         arg = "cpu"
-
     if arg in {"cpu", "mps"}:
         torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS for cpu training
     if verbose:
@@ -228,6 +249,11 @@ def select_device(device="", newline=False, verbose=True):
 
 def time_sync():
     """Return PyTorch-accurate time."""
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        try:
+            torch.xpu.synchronize()
+        except Exception:
+            pass
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     return time.time()

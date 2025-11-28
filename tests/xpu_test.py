@@ -8,7 +8,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 def test_yolo_xpu_forward():
-    model = YOLO("/root/ultralytics/yolov8n.pt")
+    model = YOLO("/root/ultralytics/yolov11n.pt")
     model.to("xpu")
     x = torch.rand(1, 3, 64, 64, device="xpu")
     y = model.model(x)

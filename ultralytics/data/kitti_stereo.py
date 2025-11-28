@@ -95,19 +95,16 @@ class KITTIStereoDataset:
         return image_ids
 
     def _parse_calibration(self, calib_file: Path) -> dict[str, Any]:
-        """Parse KITTI calibration file into structured dictionary.
+        """Parse calibration file into a structured dictionary.
+
+        Supports both original KITTI format (P0..P3, R0_rect, Tr_*) and the simplified
+        converted format (fx, fy, cx, cy, right_cx, right_cy, baseline, image_width, image_height).
 
         Args:
             calib_file (Path): Path to calibration file.
 
         Returns:
-            dict[str, Any]: Dictionary containing:
-                - fx, fy, cx, cy: Camera intrinsics
-                - baseline: Stereo baseline in meters
-                - P0, P1, P2, P3: Projection matrices (3x4)
-                - R0_rect: Rectification matrix (3x3)
-                - Tr_velo_to_cam: Transformation from velodyne to camera (3x4)
-                - Tr_imu_to_velo: Transformation from IMU to velodyne (3x4)
+            dict[str, Any]: Dictionary containing intrinsics and (when available) matrices.
         """
         with open(calib_file, "r") as f:
             lines = f.readlines()
@@ -124,7 +121,27 @@ class KITTIStereoDataset:
                 continue
 
             key = parts[0].strip()
-            values = [float(x) for x in parts[1].strip().split()]
+            value_str = parts[1].strip()
+
+            # Simplified format keys (single numeric value)
+            if key in {"fx", "fy", "cx", "cy", "right_cx", "right_cy", "baseline"}:
+                try:
+                    calib_dict[key] = float(value_str)
+                except ValueError:
+                    continue
+                continue
+            if key in {"image_width", "image_height"}:
+                try:
+                    calib_dict[key] = int(float(value_str))
+                except ValueError:
+                    continue
+                continue
+
+            # Original KITTI format keys (lists of numbers)
+            try:
+                values = [float(x) for x in value_str.split()]
+            except ValueError:
+                continue
 
             if key == "P0":
                 calib_dict["P0"] = np.array(values).reshape(3, 4)
@@ -141,16 +158,22 @@ class KITTIStereoDataset:
             elif key == "Tr_imu_to_velo":
                 calib_dict["Tr_imu_to_velo"] = np.array(values).reshape(3, 4)
 
-        # Extract intrinsics from P2 (left camera)
-        if "P2" in calib_dict:
+        # Extract intrinsics from P2 (left camera) if not provided directly
+        if "P2" in calib_dict and not all(k in calib_dict for k in ("fx", "fy", "cx", "cy")):
             P2 = calib_dict["P2"]
             calib_dict["fx"] = P2[0, 0]
             calib_dict["fy"] = P2[1, 1]
             calib_dict["cx"] = P2[0, 2]
             calib_dict["cy"] = P2[1, 2]
 
-        # Calculate baseline from P2 and P3
-        if "P2" in calib_dict and "P3" in calib_dict:
+        # Extract right camera principal point if available in P3 and not provided directly
+        if "P3" in calib_dict and not all(k in calib_dict for k in ("right_cx", "right_cy")):
+            P3 = calib_dict["P3"]
+            calib_dict["right_cx"] = P3[0, 2]
+            calib_dict["right_cy"] = P3[1, 2]
+
+        # Calculate baseline from P2 and P3 if not provided directly
+        if "P2" in calib_dict and "P3" in calib_dict and "fx" in calib_dict and "baseline" not in calib_dict:
             P2 = calib_dict["P2"]
             P3 = calib_dict["P3"]
             fx = calib_dict["fx"]

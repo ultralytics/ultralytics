@@ -41,7 +41,7 @@
             ]
         },
         {
-            "name": "stereo cli task",
+            "name": "train smoke test",
             "type": "debugpy",
             "request": "launch",
             "program": "/root/miniconda3/bin/yolo",
@@ -51,7 +51,8 @@
                 "model=yolo11-stereo3ddet.yaml",
                 "mode=train",
                 "epochs=1",
-                "batch=2"
+                "batch=2",
+                "workers=0"
             ],
         }
     ]

@@ -126,6 +126,9 @@ def get_cpu_info():
 @functools.lru_cache
 def get_gpu_info(index):
     """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        properties = torch.xpu.get_device_properties(index)
+        return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
     properties = torch.cuda.get_device_properties(index)
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
@@ -180,6 +183,19 @@ def select_device(device="", newline=False, verbose=True):
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        if device.startswith("xpu"):
+            index = int(device.split(":")[1]) if ":" in device else 0
+        elif device in {"", "0"}:
+            index = 0
+        else:
+            index = None
+        if index is not None:
+            if verbose:
+                info = get_gpu_info(index)  
+                s += f"XPU:{index} ({info})\n"  
+                LOGGER.info(s if newline else s.rstrip())
+            return torch.device("xpu", index)
     elif device:  # non-cpu device requested
         if device == "cuda":
             device = "0"
@@ -228,6 +244,8 @@ def select_device(device="", newline=False, verbose=True):
 
 def time_sync():
     """Return PyTorch-accurate time."""
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        torch.xpu.synchronize()
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     return time.time()

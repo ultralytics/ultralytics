@@ -246,7 +246,24 @@ class StereoAugmentationPipeline:
     ) -> Tuple[np.ndarray, np.ndarray, List[Dict[str, Any]], StereoCalibration | None]:
         # Geometric first
         left, right, labels = self.hflip(left, right, labels)
+
+        # Keep track of original size to adjust calibration if scaled
+        orig_h, orig_w = left.shape[:2]
         left, right, labels = self.rscale(left, right, labels)
+        new_h, new_w = left.shape[:2]
+
+        # If calibration provided and size changed, update intrinsics to preserve geometry
+        if calibration is not None and (new_h != orig_h or new_w != orig_w):
+            sx = new_w / float(orig_w)
+            sy = new_h / float(orig_h)
+            # Scale focal lengths and principal points; baseline unchanged
+            calibration.fx *= sx
+            calibration.fy *= sy
+            calibration.cx *= sx
+            calibration.cy *= sy
+            calibration.width = int(new_w)
+            calibration.height = int(new_h)
+
         left, right, labels = self.rcrop(left, right, labels)
         # Photometric last
         left, right = self.photometric(left, right)

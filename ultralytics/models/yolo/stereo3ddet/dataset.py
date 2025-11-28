@@ -134,6 +134,7 @@ class Stereo3DDetAdapterDataset(Dataset):
 
         # Targets stub (to be populated with heatmaps/offsets etc. by future encoder)
         # For now, provide empty dict so model can compute forward without targets
+        # TODO: implement target encoding for stereo 3D detection
         targets: Dict[str, Any] = {}
 
         image_id = sample.get("image_id")

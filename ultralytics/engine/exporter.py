@@ -163,7 +163,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["Axelera", "axelera", ".axm", False, False, ["batch"]],
+        ["Axelera", "axelera", ".axm", False, False, ["batch", "int8"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -365,6 +365,10 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
         validate_args(fmt, self.args, fmt_keys)
+        if axelera:
+            if not self.args.int8:
+                LOGGER.warning("Axelera export requires int8=True, setting int8=True.")
+                self.args.int8 = True
         if imx:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
@@ -1104,9 +1108,6 @@ class Exporter:
         model_name = f"{Path(onnx_path).stem}"
         export_path = Path(f"{model_name}_axelera_model")
         export_path.mkdir(exist_ok=True)
-
-        assert not self.args.dynamic, "Axelera does not support Dynamic tensor"
-        assert not self.args.int8, "Axelera only supports int8 input; the model runs in mixed precision on hardware"
 
         def transform_fn(data_item) -> np.ndarray:
             data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item

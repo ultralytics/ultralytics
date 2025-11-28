@@ -161,7 +161,7 @@ def select_device(device="", newline=False, verbose=True):
 
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
-
+    device = str(device).lower()
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'

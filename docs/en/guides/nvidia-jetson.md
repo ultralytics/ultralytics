@@ -221,7 +221,7 @@ You can find all available `onnxruntime-gpu` packages—organized by JetPack ver
 For **JetPack 6** with `Python 3.10` support, you can install `onnxruntime-gpu 1.23.0`:
 
 ```bash
-pip install https://pypi.jetson-ai-lab.io/jp6/cu129/+f/e1e/9e3dc2f4d5551/onnxruntime_gpu-1.23.0-cp310-cp310-linux_aarch64.whl#sha256=e1e9e3dc2f4d5551c5f0b5554cf490d141cd0d339a5a7f4826ac0e04f20a35fc
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.23.0-cp310-cp310-linux_aarch64.whl
 ```
 
 Alternatively, for `onnxruntime-gpu 1.20.0`:

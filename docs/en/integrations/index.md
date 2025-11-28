@@ -53,7 +53,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Weights & Biases (W&B)](weights-biases.md): Monitor experiments, visualize metrics, and foster reproducibility and collaboration on Ultralytics projects.
 
-- [VS Code](vscode.md): An extension for VS Code that provides code snippets for accelerating development workflows with Ultralytics and also for anyone looking for examples to help learn or get started with Ultralytics.
+- [VS Code](vscode.md): An extension for VS Code that provides code snippets to accelerate Ultralytics development workflows and offers examples to help anyone learn or get started.
 
 - [Albumentations](albumentations.md): Enhance your Ultralytics models with powerful image augmentations to improve model robustness and generalization.
 
@@ -88,6 +88,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 - [SONY IMX500](sony-imx500.md) 🚀 NEW: Optimize and deploy [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
 - [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
+
+- [Axelera](axelera.md): Explore Metis accelerators and the Voyager SDK for running Ultralytics models with efficient edge inference.
 
 - [Neural Magic](neural-magic.md): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.
 

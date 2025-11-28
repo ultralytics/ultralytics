@@ -51,7 +51,7 @@ Dataset [benchmarking](../../modes/benchmark.md) involves evaluating the perform
 
 !!! example "Benchmarking Example"
 
-    The following script demonstrates how to programmatically benchmark an Ultralytics YOLO model (e.g., YOLOv11n) on all 100 datasets within the Roboflow 100 benchmark using the `RF100Benchmark` class.
+    The following script demonstrates how to programmatically benchmark an Ultralytics YOLO model (e.g., YOLO11n) on all 100 datasets within the Roboflow 100 benchmark using the `RF100Benchmark` class.
 
     === "Python"
 

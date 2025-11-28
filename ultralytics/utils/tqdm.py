@@ -109,11 +109,6 @@ class TQDM:
             bar_format (str, optional): Custom bar format string.
             initial (int, optional): Initial counter value.
             **kwargs (Any): Additional keyword arguments for compatibility (ignored).
-
-        Examples:
-            >>> pbar = TQDM(range(100), desc="Processing")
-            >>> with TQDM(total=1000, unit="B", unit_scale=True) as pbar:
-            ...     pbar.update(1024)  # Updates by 1KB
         """
         # Disable if not verbose
         if disable is None:
@@ -159,9 +154,17 @@ class TQDM:
             self._display()
 
     def _format_rate(self, rate: float) -> str:
-        """Format rate with units."""
+        """Format rate with units, switching between it/s and s/it for readability."""
         if rate <= 0:
             return ""
+
+        inv_rate = 1 / rate if rate else None
+
+        # Use s/it format when inv_rate > 1 (i.e., rate < 1 it/s) for better readability
+        if inv_rate and inv_rate > 1:
+            return f"{inv_rate:.1f}s/B" if self.is_bytes else f"{inv_rate:.1f}s/{self.unit}"
+
+        # Use it/s format for fast iterations
         fallback = f"{rate:.1f}B/s" if self.is_bytes else f"{rate:.1f}{self.unit}/s"
         return next((f"{rate / t:.1f}{u}" for t, u in self.scales if rate >= t), fallback)
 

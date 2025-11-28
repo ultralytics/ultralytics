@@ -84,7 +84,11 @@ from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_COLAB,
+    IS_DEBIAN_BOOKWORM,
+    IS_DEBIAN_TRIXIE,
     IS_JETSON,
+    IS_RASPBERRYPI,
+    IS_UBUNTU,
     LINUX,
     LOGGER,
     MACOS,
@@ -99,6 +103,7 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
+    IS_PYTHON_3_12,
     check_imgsz,
     check_requirements,
     check_version,
@@ -627,7 +632,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0"]
+        requirements = ["onnx>=1.12.0,<=1.19.1"]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
@@ -995,7 +1000,7 @@ class Exporter:
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
-                "onnx>=1.12.0",
+                "onnx>=1.12.0,<=1.19.1",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.71",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
@@ -1112,14 +1117,15 @@ class Exporter:
         assert LINUX, f"export only supported on Linux. See {help_url}"
         if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
+            sudo = "sudo " if is_sudo_available() else ""
             for c in (
-                "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -",
-                'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '
-                "sudo tee /etc/apt/sources.list.d/coral-edgetpu.list",
-                "sudo apt-get update",
-                "sudo apt-get install edgetpu-compiler",
+                f"{sudo}mkdir -p /etc/apt/keyrings",
+                f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --dearmor -o /etc/apt/keyrings/google.gpg",
+                f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
+                f"{sudo}apt-get update",
+                f"{sudo}apt-get install -y edgetpu-compiler",
             ):
-                subprocess.run(c if is_sudo_available() else c.replace("sudo ", ""), shell=True, check=True)
+                subprocess.run(c, shell=True, check=True)
 
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
@@ -1174,6 +1180,8 @@ class Exporter:
             "export only supported on Linux. "
             "See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
         )
+        assert not IS_PYTHON_3_12, "IMX export requires Python>=3.8;<3.12"
+        assert not TORCH_2_9, f"IMX export requires PyTorch<2.9. Current PyTorch version is {TORCH_VERSION}."
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(
@@ -1189,8 +1197,16 @@ class Exporter:
             java_version = int(version_match.group(1)) if version_match else 0
             assert java_version >= 17, "Java version too old"
         except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
-            cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "openjdk-21-jre"]
-            subprocess.run(cmd, check=True)
+            cmd = None
+            if IS_UBUNTU or IS_DEBIAN_TRIXIE:
+                LOGGER.info(f"\n{prefix} installing Java 21 for Ubuntu...")
+                cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "openjdk-21-jre"]
+            elif IS_RASPBERRYPI or IS_DEBIAN_BOOKWORM:
+                LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
+                cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "openjdk-17-jre"]
+
+            if cmd:
+                subprocess.run(cmd, check=True)
 
         return torch2imx(
             self.model,
@@ -1404,7 +1420,7 @@ class NMSModel(torch.nn.Module):
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
-            multiplier = (8 if self.obb else 1) / max(len(self.model.names), 1)
+            multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
             if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier

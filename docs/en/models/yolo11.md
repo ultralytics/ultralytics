@@ -41,7 +41,7 @@ YOLO11 is the latest iteration in the [Ultralytics](https://www.ultralytics.com/
 
 ## Supported Tasks and Modes
 
-YOLO11 builds upon the versatile model range introduced in YOLOv8, offering enhanced support across various computer vision tasks:
+YOLO11 builds upon the versatile model range established by earlier Ultralytics YOLO releases, offering enhanced support across various computer vision tasks:
 
 | Model       | Filenames                                                                                 | Task                                         | Inference | Validation | Training | Export |
 | ----------- | ----------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
@@ -66,41 +66,31 @@ This table provides an overview of the YOLO11 model variants, showcasing their a
 
         See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
 
-{% filter indent(width=8, first=False, blank=True) %}
-{% include "macros/yolo-det-perf.md" %}
-{% endfilter %}
+        --8<-- "docs/macros/yolo-det-perf.md"
 
     === "Segmentation (COCO)"
 
         See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pre-trained classes.
 
-{% filter indent(width=8, first=False, blank=True) %}
-{% include "macros/yolo-seg-perf.md" %}
-{% endfilter %}
+        --8<-- "docs/macros/yolo-seg-perf.md"
 
     === "Classification (ImageNet)"
 
         See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pre-trained classes.
 
-{% filter indent(width=8, first=False, blank=True) %}
-{% include "macros/yolo-cls-perf.md" %}
-{% endfilter %}
+        --8<-- "docs/macros/yolo-cls-perf.md"
 
     === "Pose (COCO)"
 
         See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pre-trained class, 'person'.
 
-{% filter indent(width=8, first=False, blank=True) %}
-{% include "macros/yolo-pose-perf.md" %}
-{% endfilter %}
+        --8<-- "docs/macros/yolo-pose-perf.md"
 
     === "OBB (DOTAv1)"
 
         See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pre-trained classes.
 
-{% filter indent(width=8, first=False, blank=True) %}
-{% include "macros/yolo-obb-perf.md" %}
-{% endfilter %}
+        --8<-- "docs/macros/yolo-obb-perf.md"
 
 ## Usage Examples
 
@@ -181,7 +171,7 @@ Ultralytics YOLO11 introduces several significant advancements over its predeces
 
 Training a YOLO11 model for object detection can be done using Python or CLI commands. Below are examples for both methods:
 
-!!! Example
+!!! example
 
     === "Python"
 

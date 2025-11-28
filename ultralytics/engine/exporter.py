@@ -1195,7 +1195,7 @@ class Exporter:
             )
         )
         if ARM64:
-            check_requirements("packaging<22")  # LegacyVersion not in packaging>=22
+            check_requirements("packaging==21.3")  # LegacyVersion not in packaging>=22
         check_requirements("imx500-converter[pt]>=3.17.3")
 
         # Install Java>=17
@@ -1208,10 +1208,10 @@ class Exporter:
             cmd = None
             if IS_UBUNTU or IS_DEBIAN_TRIXIE:
                 LOGGER.info(f"\n{prefix} installing Java 21 for Ubuntu...")
-                cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "openjdk-21-jre"]
+                cmd = (["sudo"] if is_sudo_available() else []) + ["apt-get", "install", "-y", "openjdk-21-jre"]
             elif IS_RASPBERRYPI or IS_DEBIAN_BOOKWORM:
                 LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
-                cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "openjdk-17-jre"]
+                cmd = (["sudo"] if is_sudo_available() else []) + ["apt-get", "install", "-y", "openjdk-17-jre"]
 
             if cmd:
                 subprocess.run(cmd, check=True)

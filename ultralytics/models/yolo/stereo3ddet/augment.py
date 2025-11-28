@@ -30,58 +30,43 @@ class StereoCalibration:
 
 
 class PhotometricAugmentor:
-    """Photometric augmentations applied identically to both stereo views.
+    """Wrapper around Ultralytics RandomHSV to apply identical HSV augmentation to both stereo views.
 
-    Includes brightness, contrast, and Gaussian blur. Geometry is preserved
-    so labels and calibration remain unchanged.
+    Ensures the same random gains are used for left and right images to preserve stereo correspondence.
+    Falls back to returning images unchanged if probability threshold not met or images are not 3-channel.
     """
 
     def __init__(
         self,
-        brightness_range: Tuple[float, float] = (-0.2, 0.2),
-        contrast_range: Tuple[float, float] = (0.8, 1.2),
-        blur_kernel_size: int = 5,
+        hgain: float = 0.5,
+        sgain: float = 0.5,
+        vgain: float = 0.5,
         p_apply: float = 0.5,
         seed: Optional[int] = None,
     ):
-        self.brightness_range = brightness_range
-        self.contrast_range = contrast_range
-        self.blur_kernel_size = blur_kernel_size if blur_kernel_size % 2 == 1 else blur_kernel_size + 1
+        from ultralytics.data.augment import RandomHSV  # lazy import
+
+        self.hgain = hgain
+        self.sgain = sgain
+        self.vgain = vgain
         self.p_apply = float(p_apply)
+        self._hsv_impl = RandomHSV(hgain=hgain, sgain=sgain, vgain=vgain)
         if seed is not None:
             np.random.seed(seed)
-
-    @staticmethod
-    def _adjust_brightness(image: np.ndarray, delta: float) -> np.ndarray:
-        img = image.astype(np.float32)
-        img = img + delta * 255.0
-        return np.clip(img, 0, 255).astype(np.uint8)
-
-    @staticmethod
-    def _adjust_contrast(image: np.ndarray, factor: float) -> np.ndarray:
-        img = image.astype(np.float32)
-        mean = float(np.mean(img))
-        img = (img - mean) * factor + mean
-        return np.clip(img, 0, 255).astype(np.uint8)
 
     def __call__(self, left: np.ndarray, right: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         if np.random.rand() >= self.p_apply:
             return left, right
-
-        aug_type = np.random.choice(["brightness", "contrast", "blur"])  # choose one
-        if aug_type == "brightness":
-            delta = np.random.uniform(*self.brightness_range)
-            left = self._adjust_brightness(left, delta)
-            right = self._adjust_brightness(right, delta)
-        elif aug_type == "contrast":
-            factor = np.random.uniform(*self.contrast_range)
-            left = self._adjust_contrast(left, factor)
-            right = self._adjust_contrast(right, factor)
-        elif aug_type == "blur":
-            k = self.blur_kernel_size
-            left = cv2.GaussianBlur(left, (k, k), 0)
-            right = cv2.GaussianBlur(right, (k, k), 0)
-        return left, right
+        if left.shape[-1] != 3 or right.shape[-1] != 3:
+            return left, right
+        # Save RNG state to replicate identical gains
+        state = np.random.get_state()
+        left_labels = {"img": left.copy()}
+        left_aug = self._hsv_impl(left_labels)["img"]
+        np.random.set_state(state)
+        right_labels = {"img": right.copy()}
+        right_aug = self._hsv_impl(right_labels)["img"]
+        return left_aug, right_aug
 
 
 class HorizontalFlipAugmentor:

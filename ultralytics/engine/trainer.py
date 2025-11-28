@@ -540,6 +540,14 @@ class BaseTrainer:
     def _get_memory(self, fraction=False):
         """Get accelerator memory utilization in GB or as a fraction of total memory."""
         memory, total = 0, 0
+        if self.device.type == "xpu":
+            try:
+                idx = self.device.index if isinstance(self.device, torch.device) else int(self.device)
+                memory = torch.xpu.memory_allocated(idx)
+                total = torch.xpu.get_device_properties(self.device).total_memory
+                return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
+            except Exception:
+                return 0.0
         if self.device.type == "mps":
             memory = torch.mps.driver_allocated_memory()
             if fraction:
@@ -561,6 +569,8 @@ class BaseTrainer:
             torch.mps.empty_cache()
         elif self.device.type == "cpu":
             return
+        elif self.device.type == "xpu":
+            torch.xpu.empty_cache()
         else:
             torch.cuda.empty_cache()
 

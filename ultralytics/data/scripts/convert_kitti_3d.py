@@ -136,16 +136,31 @@ class KITTIToYOLO3D:
         P2 = np.array([float(x) for x in lines[2].split()[1:]]).reshape(3, 4)
         P3 = np.array([float(x) for x in lines[3].split()[1:]]).reshape(3, 4)
 
-        # Extract intrinsics
+        # Extract intrinsics (left camera)
         fx = P2[0, 0]
         fy = P2[1, 1]
         cx = P2[0, 2]
         cy = P2[1, 2]
+        # Extract intrinsics (right camera)
+        right_cx = P3[0, 2]
+        right_cy = P3[1, 2]
 
         # Calculate baseline
         baseline = (P2[0, 3] - P3[0, 3]) / fx
 
-        return {"fx": fx, "fy": fy, "cx": cx, "cy": cy, "baseline": abs(baseline), "P2": P2, "P3": P3}
+        return {
+            "fx": fx,
+            "fy": fy,
+            "cx": cx,
+            "cy": cy,
+            "right_cx": right_cx,
+            "right_cy": right_cy,
+            "baseline": abs(baseline),
+            "image_width": self.img_width,
+            "image_height": self.img_height,
+            "P2": P2,
+            "P3": P3,
+        }
 
     def compute_bottom_vertices(self, X, Y, Z, h, w, l, ry, calib):
         """
@@ -376,7 +391,11 @@ class KITTIToYOLO3D:
             f.write(f"fy: {calib['fy']:.6f}\n")
             f.write(f"cx: {calib['cx']:.6f}\n")
             f.write(f"cy: {calib['cy']:.6f}\n")
+            f.write(f"right_cx: {calib['right_cx']:.6f}\n")
+            f.write(f"right_cy: {calib['right_cy']:.6f}\n")
             f.write(f"baseline: {calib['baseline']:.6f}\n")
+            f.write(f"image_width: {calib['image_width']}\n")
+            f.write(f"image_height: {calib['image_height']}\n")
 
     def convert_split(self, split="training"):
         """Convert entire KITTI split.

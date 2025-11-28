@@ -1,6 +1,6 @@
 """
 YOLOv11 Stereo 3D Detection - Complete Implementation
-基于Stereo CenterNet的立体3D检测网络
+A stereo 3D detection network based on Stereo CenterNet
 """
 
 from __future__ import annotations
@@ -15,11 +15,11 @@ from torch.optim.lr_scheduler import MultiStepLR
 
 
 # ============================================================================
-# 第一部分: 特征融合层
+# Part 1: Feature Fusion Layer
 # ============================================================================
 
 class StereoFeatureFusion(nn.Module):
-    """立体特征融合模块"""
+    """Stereo feature fusion module."""
 
     def __init__(self, in_channels: int, out_channels: int = 256):
         super().__init__()
@@ -43,16 +43,16 @@ class StereoFeatureFusion(nn.Module):
 
 
 # ============================================================================
-# 第二部分: Neck (FPN-style特征金字塔)
+# Part 2: Neck (FPN-style Feature Pyramid)
 # ============================================================================
 
 class StereoPAN(nn.Module):
-    """立体路径聚合网络 (Path Aggregation Network)"""
+    """Stereo Path Aggregation Network (PAN)."""
 
     def __init__(self, in_channels: int = 256, out_channels: int = 256):
         super().__init__()
 
-        # 自顶向下 (Top-Down)
+        # Top-Down pathway
         self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
 
         self.td_layers = nn.ModuleList(
@@ -70,7 +70,7 @@ class StereoPAN(nn.Module):
             ]
         )
 
-        # 自底向上 (Bottom-Up)
+        # Bottom-Up pathway
         self.bu_layers = nn.ModuleList(
             [
                 nn.Sequential(
@@ -89,40 +89,40 @@ class StereoPAN(nn.Module):
     def forward(self, features: List[torch.Tensor]) -> List[torch.Tensor]:
         """
         Args:
-            features: [P3, P4, P5] 来自Backbone的多尺度特征
+            features: [P3, P4, P5] multi-scale features from backbone
         Returns:
             [P3_out, P4_out, P5_out]
         """
-        # 简化版: 只处理P3层 (主检测层)
-        # 实际应用中应处理多层
-        return features  # 占位符
+        # Simplified: only handle P3 (primary detection layer).
+        # In practice, handle multiple levels.
+        return features  # placeholder
 
 
 # ============================================================================
-# 第三部分: 检测Head (10个分支)
+# Part 3: Detection Head (10 branches)
 # ============================================================================
 
 class StereoCenterNetHead(nn.Module):
-    """立体CenterNet检测头 - 10个并行分支"""
+    """Stereo CenterNet detection head with 10 parallel branches."""
 
     def __init__(self, in_channels: int = 256, num_classes: int = 3):
         super().__init__()
         self.in_channels = in_channels
         self.num_classes = num_classes
 
-        # 共享特征提取 (可选)
+        # Shared feature extractor (optional)
         self.shared_head = self._build_shared_head(in_channels)
 
-        # 10个分支定义
+        # Ten branch definitions
         self.branches = nn.ModuleDict(
             {
-                # Task A: 立体2D检测 (5个分支)
+                # Task A: Stereo 2D detection (5 branches)
                 "heatmap": self._build_branch(in_channels, num_classes),
                 "offset": self._build_branch(in_channels, 2),
                 "bbox_size": self._build_branch(in_channels, 2),
                 "lr_distance": self._build_branch(in_channels, 1),
                 "right_width": self._build_branch(in_channels, 1),
-                # Task B: 3D组件 (5个分支)
+                # Task B: 3D components (5 branches)
                 "dimensions": self._build_branch(in_channels, 3),
                 "orientation": self._build_branch(in_channels, 8),
                 "vertices": self._build_branch(in_channels, 8),
@@ -132,7 +132,7 @@ class StereoCenterNetHead(nn.Module):
         )
 
     def _build_shared_head(self, in_channels: int) -> nn.Sequential:
-        """共享的特征提取头"""
+        """Shared feature extraction head."""
         return nn.Sequential(
             nn.Conv2d(in_channels, 256, 3, 1, 1),
             nn.BatchNorm2d(256),
@@ -143,7 +143,7 @@ class StereoCenterNetHead(nn.Module):
         )
 
     def _build_branch(self, in_channels: int, out_channels: int) -> nn.Sequential:
-        """构建单个分支: Conv(3×3) → BN → ReLU → Conv(1×1)"""
+        """Build a single branch: Conv(3×3) → BN → ReLU → Conv(1×1)."""
         return nn.Sequential(
             nn.Conv2d(in_channels, 256, 3, 1, 1),
             nn.BatchNorm2d(256),
@@ -154,14 +154,14 @@ class StereoCenterNetHead(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
         Args:
-            x: [B, C, H, W] 来自Neck的融合特征
+            x: [B, C, H, W] fused features from the neck
         Returns:
             Dict of 10 branch outputs
         """
-        # 共享特征提取
+        # Shared feature extraction
         shared_feat = self.shared_head(x)  # [B, 256, H, W]
 
-        # 并行运行10个分支
+        # Run the 10 branches in parallel
         outputs = {}
         for branch_name, branch_module in self.branches.items():
             outputs[branch_name] = branch_module(shared_feat)
@@ -170,11 +170,11 @@ class StereoCenterNetHead(nn.Module):
 
 
 # ============================================================================
-# 第四部分: Loss函数
+# Part 4: Loss Functions
 # ============================================================================
 
 class FocalLoss(nn.Module):
-    """焦点损失 (用于热图) - 解决类不平衡"""
+    """Focal loss (for heatmaps) to address class imbalance."""
 
     def __init__(self, alpha: float = 2.0, beta: float = 4.0):
         super().__init__()
@@ -183,9 +183,9 @@ class FocalLoss(nn.Module):
 
     def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         """
-        焦点损失
+        Focal loss:
         L = -1/N * Σ [
-            (1-ŷ)^α * log(ŷ)       if y=1
+            (1-ŷ)^α * log(ŷ)         if y=1
             (1-y)^β * ŷ^α * log(1-ŷ) if y=0
         ]
         """
@@ -207,14 +207,14 @@ class FocalLoss(nn.Module):
 
 
 class StereoCenterNetLoss(nn.Module):
-    """立体CenterNet的总Loss"""
+    """Total loss for Stereo CenterNet."""
 
     def __init__(self, num_classes: int = 3):
         super().__init__()
         self.focal_loss_fn = FocalLoss(alpha=2.0, beta=4.0)
         self.num_classes = num_classes
 
-        # 各分支权重
+        # Per-branch weights
         self.loss_weights = {
             "heatmap": 1.0,
             "offset": 1.0,
@@ -230,7 +230,7 @@ class StereoCenterNetLoss(nn.Module):
 
     def forward(self, predictions: Dict, targets: Dict) -> Tuple[torch.Tensor, Dict]:
         """
-        计算各分支的Loss
+        Compute the loss for each branch.
 
         Args:
             predictions: Dict of network outputs
@@ -242,57 +242,57 @@ class StereoCenterNetLoss(nn.Module):
 
         # ===== Task A: Stereo 2D Detection =====
 
-        # 1. 热图 (Focal Loss)
+        # 1. Heatmap (Focal Loss)
         losses["heatmap"] = self.focal_loss_fn(predictions["heatmap"], targets["heatmap"])
 
-        # 2. 中心点偏移 (L1, 仅在热图点处)
+        # 2. Center offset (L1, only at heatmap points)
         losses["offset"] = self.masked_l1_loss(
             predictions["offset"], targets["offset"], mask=targets.get("heatmap", None)
         )
 
-        # 3. 2D框尺寸 (Smooth L1)
+        # 3. 2D box size (Smooth L1)
         losses["bbox_size"] = self.masked_l1_loss(
             predictions["bbox_size"], targets["bbox_size"], mask=targets.get("heatmap", None)
         )
 
-        # 4. 左右中心距离 (L1)
+        # 4. Left-right center distance (L1)
         losses["lr_distance"] = self.masked_l1_loss(
             predictions["lr_distance"], targets["lr_distance"], mask=targets.get("heatmap", None)
         )
 
-        # 5. 右框宽度 (特殊处理)
+        # 5. Right box width (special handling)
         losses["right_width"] = self.right_width_loss(
             predictions["right_width"], targets["right_width"], mask=targets.get("heatmap", None)
         )
 
         # ===== Task B: 3D Components =====
 
-        # 6. 3D尺寸 (L1)
+        # 6. 3D dimensions (L1)
         losses["dimensions"] = self.masked_l1_loss(
             predictions["dimensions"], targets["dimensions"], mask=targets.get("heatmap", None)
         )
 
-        # 7. 方向角 (Multi-Bin)
+        # 7. Orientation angle (Multi-Bin)
         losses["orientation"] = self.orientation_loss(
             predictions["orientation"], targets["orientation"], mask=targets.get("heatmap", None)
         )
 
-        # 8. 顶点坐标 (L1)
+        # 8. Vertex coordinates (L1)
         losses["vertices"] = self.masked_l1_loss(
             predictions["vertices"], targets["vertices"], mask=targets.get("heatmap", None)
         )
 
-        # 9. 顶点亚像素偏移 (L1)
+        # 9. Vertex sub-pixel offset (L1)
         losses["vertex_offset"] = self.masked_l1_loss(
             predictions["vertex_offset"], targets["vertex_offset"], mask=targets.get("heatmap", None)
         )
 
-        # 10. 顶点距离 (L1)
+        # 10. Vertex distance (L1)
         losses["vertex_dist"] = self.masked_l1_loss(
             predictions["vertex_dist"], targets["vertex_dist"], mask=targets.get("heatmap", None)
         )
 
-        # 加权求和
+        # Weighted sum
         total_loss = sum(self.loss_weights[k] * v for k, v in losses.items())
 
         return total_loss, losses
@@ -300,11 +300,11 @@ class StereoCenterNetLoss(nn.Module):
     def masked_l1_loss(
         self, pred: torch.Tensor, target: torch.Tensor, mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        """带mask的Smooth L1 Loss"""
+        """Smooth L1 loss with optional mask."""
         loss = F.smooth_l1_loss(pred, target, reduction="none")
 
         if mask is not None:
-            # 扩展mask到pred的维度
+            # Expand mask to pred dims
             if mask.dim() == 3:  # [B, H, W]
                 mask = mask.unsqueeze(1).expand_as(pred)  # [B, C, H, W]
 
@@ -322,8 +322,8 @@ class StereoCenterNetLoss(nn.Module):
     def right_width_loss(
         self, pred: torch.Tensor, target: torch.Tensor, mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        """右框宽度的特殊Loss (with sigmoid变换)"""
-        # 应用sigmoid变换: wr = 1/σ(ŵr) - 1
+        """Special loss for right-box width (with sigmoid transform)."""
+        # Apply sigmoid transform: wr = 1/σ(ŵr) - 1
         pred_transformed = 1.0 / (torch.sigmoid(pred) + 1e-4) - 1.0
 
         loss = F.l1_loss(pred_transformed, target, reduction="none")
@@ -346,28 +346,28 @@ class StereoCenterNetLoss(nn.Module):
         self, pred: torch.Tensor, target: torch.Tensor, mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        方向角Loss (Multi-Bin编码)
+        Orientation angle loss (Multi-Bin encoding).
 
         pred: [B, 8, H, W]
-          结构: [bin_logit_1, bin_logit_2, sin_1, cos_1, sin_2, cos_2, pad, pad]
+            layout: [bin_logit_1, bin_logit_2, sin_1, cos_1, sin_2, cos_2, pad, pad]
         target: [B, 8, H, W]
-          结构: [bin_id, bin_id, sin, cos, ...]
+            layout: [bin_id, bin_id, sin, cos, ...]
         """
-        # 分离bin分类和角度回归
+        # Split bin classification and angle regression
         bin_pred = pred[:, :2, :, :]  # [B, 2, H, W]
         angle_pred = pred[:, 2:6, :, :]  # [B, 4, H, W]
 
         bin_target = target[:, 0:1, :, :].long().squeeze(1)  # [B, H, W]
         angle_target = target[:, 2:6, :, :]  # [B, 4, H, W]
 
-        # Bin分类 Loss
+        # Bin classification loss
         bin_loss = F.cross_entropy(bin_pred, bin_target, reduction="none")  # [B, H, W]
 
-        # 角度回归 Loss (仅sin/cos, 共4维)
+        # Angle regression loss (sin/cos only, 4 dims)
         angle_loss = F.l1_loss(angle_pred, angle_target, reduction="none")
         angle_loss = angle_loss.mean(dim=1)  # [B, H, W]
 
-        # 总Loss
+        # Total loss
         total_loss = bin_loss + 0.5 * angle_loss
 
         if mask is not None:
@@ -384,7 +384,7 @@ class StereoCenterNetLoss(nn.Module):
 
 
 class UncertaintyWeightedLoss(nn.Module):
-    """不确定性加权的多任务Loss (Kendall et al. 2018)"""
+    """Uncertainty-weighted multi-task loss (Kendall et al., 2018)."""
 
     def __init__(self, num_tasks: int = 10):
         super().__init__()
@@ -392,7 +392,7 @@ class UncertaintyWeightedLoss(nn.Module):
 
     def forward(self, losses: Dict[str, torch.Tensor]) -> torch.Tensor:
         """
-        L_total = Σ_i (1/(2*σ_i²) * L_i + log(σ_i))
+        L_total = Σ_i (exp(-log_var_i) * L_i + log_var_i)
 
         Args:
             losses: Dict of individual task losses
@@ -411,11 +411,11 @@ class UncertaintyWeightedLoss(nn.Module):
 
 
 # ============================================================================
-# 第五部分: 完整模型
+# Part 5: Full Model
 # ============================================================================
 
 class StereoYOLOv11(nn.Module):
-    """YOLOv11 Stereo 3D Detection - 完整模型"""
+    """YOLOv11 Stereo 3D Detection - Full model."""
 
     def __init__(self, backbone_type: str = "resnet18", num_classes: int = 3, in_channels: int = 256):
         super().__init__()
@@ -423,30 +423,30 @@ class StereoYOLOv11(nn.Module):
         self.backbone_type = backbone_type
         self.num_classes = num_classes
 
-        # 1. Backbone (共享)
+        # 1. Backbone (shared)
         self.backbone = self._build_backbone(backbone_type)
         backbone_out_channels = self._get_backbone_channels(backbone_type)
 
-        # 2. 特征融合
+        # 2. Feature fusion
         self.fusion = StereoFeatureFusion(in_channels=backbone_out_channels, out_channels=in_channels)
 
-        # 3. Neck (特征金字塔)
+        # 3. Neck (feature pyramid)
         self.neck = StereoPAN(in_channels=in_channels, out_channels=in_channels)
 
-        # 4. Detection Heads
+        # 4. Detection heads
         self.heads = StereoCenterNetHead(in_channels=in_channels, num_classes=num_classes)
 
-        # 5. Loss函数
+        # 5. Loss functions
         self.criterion = StereoCenterNetLoss(num_classes=num_classes)
         self.uncertainty_loss = UncertaintyWeightedLoss(num_tasks=10)
 
     def _build_backbone(self, backbone_type: str) -> nn.Module:
-        """构建骨干网络"""
+        """Build the backbone network."""
         if backbone_type == "resnet18":
             from torchvision import models
 
             backbone = models.resnet18(pretrained=True)
-            # 去掉最后的FC层
+            # Remove final FC layer
             return nn.Sequential(*list(backbone.children())[:-2])
 
         elif backbone_type == "resnet50":
@@ -459,7 +459,7 @@ class StereoYOLOv11(nn.Module):
             raise ValueError(f"Unknown backbone type: {backbone_type}")
 
     def _get_backbone_channels(self, backbone_type: str) -> int:
-        """获取Backbone输出通道数"""
+        """Get the number of output channels of the backbone."""
         if "resnet18" in backbone_type:
             return 512
         elif "resnet50" in backbone_type:
@@ -474,62 +474,98 @@ class StereoYOLOv11(nn.Module):
         targets: Optional[Dict] = None,
     ) -> Tuple[Dict, Optional[torch.Tensor]]:
         """
-        完整前向传播
+        Full forward pass.
 
         Args:
             left_img: [B, 3, H, W]
             right_img: [B, 3, H, W]
-            targets: Dict of ground truth (训练时)
+            targets: Dict of ground truth (training)
 
         Returns:
-            (predictions, loss) 或 predictions
+            (predictions, loss) or predictions
         """
-        # 1. Backbone特征提取
+        # 1. Backbone feature extraction
         left_feat = self.backbone(left_img)  # [B, C_backbone, H/32, W/32]
         right_feat = self.backbone(right_img)  # [B, C_backbone, H/32, W/32]
 
-        # 2. 特征融合
+        # 2. Feature fusion
         fused_feat = self.fusion(left_feat, right_feat)  # [B, 256, H/32, W/32]
 
-        # 3. Neck处理 (简化版: 这里只处理一层)
-        # 实际应该处理多尺度
+        # 3. Neck processing (simplified: single level here)
+        # In practice, handle multiple scales
         neck_out = [fused_feat, fused_feat, fused_feat]
 
-        # 4. Detection Heads (使用P3输出, 对应4倍下采样)
+        # 4. Detection heads (use P3 output, 4× downsample)
         predictions = self.heads(neck_out[0])
 
-        # 5. 计算Loss (训练时)
+        # 5. Compute loss (training)
         if targets is not None:
-            # 各分支单独Loss
-            total_loss, loss_dict = self.criterion(predictions, targets)
-
-            # (可选) 使用不确定性加权
-            # total_loss = self.uncertainty_loss(loss_dict)
-
-            return predictions, total_loss, loss_dict
+            # Per-branch losses
+            total_loss, _loss_dict = self.criterion(predictions, targets)
+            # (Optional) apply uncertainty weighting
+            # total_loss = self.uncertainty_loss(_loss_dict)
+            return predictions, total_loss
         else:
             return predictions
 
 
+class StereoYOLOv11Wrapper(nn.Module):
+    """Wrapper that accepts a single 6-channel image tensor and splits into left/right.
+
+    Exposes a YOLO-like interface: forward(img, targets=None) -> (loss, items) during training.
+    """
+
+    def __init__(self, backbone_type: str = "resnet18", num_classes: int = 3, in_channels: int = 256):
+        super().__init__()
+        self.core = StereoYOLOv11(backbone_type=backbone_type, num_classes=num_classes, in_channels=in_channels)
+        self.names = {i: str(i) for i in range(num_classes)}
+
+    def forward(self, x, targets: Optional[Dict] = None, augment: bool = False):
+        """Accepts either a tensor [B,6,H,W] or a dict with keys 'img' and optional 'targets'."""
+        # Unpack input
+        if isinstance(x, dict):
+            img6 = x.get("img", None)
+            # Allow targets to be supplied via input dict if not provided explicitly
+            if targets is None:
+                targets = x.get("targets", None)
+        else:
+            img6 = x
+
+        if not isinstance(img6, torch.Tensor):
+            raise TypeError("StereoYOLOv11Wrapper expected a Tensor or dict with key 'img'.")
+
+        assert img6.shape[1] == 6, "StereoYOLOv11Wrapper expects a 6-channel input (left+right)."
+        left = img6[:, 0:3, :, :]
+        right = img6[:, 3:6, :, :]
+
+        if targets is not None:
+            preds, total_loss = self.core(left, right, targets)
+            # Return a dict with 'loss' key for Ultralytics Trainer compatibility
+            return {"loss": total_loss, "preds": preds}
+        else:
+            preds = self.core(left, right, None)
+            return preds
+
+
 # ============================================================================
-# 第六部分: 训练工具
+# Part 6: Training Utilities
 # ============================================================================
 
 class Trainer:
-    """训练器"""
+    """Trainer."""
 
     def __init__(self, model: StereoYOLOv11, device: str = "cuda", learning_rate: float = 1.5e-4):
         self.model = model.to(device)
         self.device = device
 
-        # 优化器 (使用AdamW)
+        # Optimizer (AdamW)
         self.optimizer = AdamW(self.model.parameters(), lr=learning_rate, weight_decay=1e-4)
 
-        # 学习率调度
-        self.scheduler = MultiStepLR(self.optimizer, milestones=[40], gamma=0.1)  # 第40 epoch降10倍
+        # Learning rate schedule
+        self.scheduler = MultiStepLR(self.optimizer, milestones=[40], gamma=0.1)  # decay 10× at epoch 40
 
     def train_epoch(self, train_loader) -> Dict[str, float]:
-        """训练一个epoch"""
+        """Train for one epoch."""
         self.model.train()
         total_loss = 0
         loss_stats = {}
@@ -545,12 +581,12 @@ class Trainer:
             self.optimizer.zero_grad()
             loss.backward()
 
-            # 梯度裁剪
+            # Gradient clipping
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=35.0)
 
             self.optimizer.step()
 
-            # 统计
+            # Logging stats
             total_loss += loss.item()
             for k, v in loss_dict.items():
                 if k not in loss_stats:
@@ -560,7 +596,7 @@ class Trainer:
             if batch_idx % 100 == 0:
                 print(f"Batch {batch_idx}: Loss = {loss.item():.4f}")
 
-        # 平均Loss
+        # Average losses
         num_batches = len(train_loader)
         avg_loss = total_loss / num_batches
         for k in loss_stats:
@@ -569,26 +605,26 @@ class Trainer:
         return {"total": avg_loss, **loss_stats}
 
     def step_scheduler(self):
-        """更新学习率"""
+        """Step the learning rate scheduler."""
         self.scheduler.step()
 
 
 if __name__ == "__main__":
-    # 创建模型
+    # Create model
     model = StereoYOLOv11(backbone_type="resnet18", num_classes=3, in_channels=256)
 
-    # 创建虚拟输入
+    # Create dummy inputs
     left_img = torch.randn(2, 3, 384, 1280)
     right_img = torch.randn(2, 3, 384, 1280)
 
-    # 创建虚拟targets (无target时仅推理)
+    # Create dummy targets (None for inference-only)
     targets = None
 
-    # 前向传播
+    # Forward pass
     if targets is None:
         predictions = model(left_img, right_img)
 
-        # 查看输出
+        # Inspect outputs
         for branch_name, output in predictions.items():
             print(f"{branch_name}: {output.shape}")
     else:

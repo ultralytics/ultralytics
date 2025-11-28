@@ -27,8 +27,8 @@ def _letterbox(image: np.ndarray, new_shape: int, color=(114, 114, 114)) -> Tupl
 class Stereo3DDetAdapterDataset(Dataset):
     """Wraps KITTIStereoDataset to emit YOLO-style batches for training.
 
-    - Returns keys: 'img', 'cls', 'bboxes', 'im_file', 'ori_shape'.
-    - Uses the left image for 'img' while preserving stereo pairing internally if needed later.
+    - Returns keys: 'img' (6-channel), 'targets' (dict), 'im_file', 'ori_shape'.
+    - Builds a single 6-channel tensor by stacking left and right RGB after identical letterbox.
     - Converts normalized left 2D boxes to resized+letterboxed normalized xywh.
     """
 
@@ -119,57 +119,40 @@ class Stereo3DDetAdapterDataset(Dataset):
         else:
             labels_aug = sample.get("labels", [])
 
-        # BGR -> RGB and letterbox to imgsz
-        left_img_rgb = cv2.cvtColor(left_img, cv2.COLOR_BGR2RGB)
-        img_resized, scale, pad_left, pad_top = _letterbox(left_img_rgb, self.imgsz)
+        # BGR -> RGB for both
+        left_rgb = cv2.cvtColor(left_img, cv2.COLOR_BGR2RGB)
+        right_rgb = cv2.cvtColor(right_img, cv2.COLOR_BGR2RGB)
+        # Letterbox both identically using left's parameters, then reapply to right by computing separately
+        left_resized, scale_l, pad_left_l, pad_top_l = _letterbox(left_rgb, self.imgsz)
+        right_resized, _, _, _ = _letterbox(right_rgb, self.imgsz)
+        # Stack to 6 channels
+        left_t = torch.from_numpy(left_resized).permute(2, 0, 1).contiguous()
+        right_t = torch.from_numpy(right_resized).permute(2, 0, 1).contiguous()
+        img6 = torch.cat([left_t, right_t], dim=0)
+        if img6.dtype != torch.uint8:
+            img6 = img6.to(torch.uint8)
 
-        # Convert labels
-        cls_t, bboxes_t = self._labels_to_tensors(labels_aug, scale, pad_left, pad_top, w0, h0)
-
-        # Build example
-        img_tensor = torch.from_numpy(img_resized).permute(2, 0, 1).contiguous()  # HWC->CHW
-        if img_tensor.dtype != torch.uint8:
-            img_tensor = img_tensor.to(torch.uint8)
+        # Targets stub (to be populated with heatmaps/offsets etc. by future encoder)
+        # For now, provide empty dict so model can compute forward without targets
+        targets: Dict[str, Any] = {}
 
         image_id = sample.get("image_id")
         im_file = str(self.left_dir / f"{image_id}.png")
 
         return {
-            "img": img_tensor,  # uint8 [0,255]
-            "cls": cls_t,  # (N,1)
-            "bboxes": bboxes_t,  # (N,4) normalized xywh
+            "img": img6,  # uint8 [0,255], shape (6,H,W)
+            "targets": targets,
             "im_file": im_file,
             "ori_shape": (h0, w0),
         }
 
     @staticmethod
     def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
-        imgs = torch.stack([b["img"] for b in batch], 0)  # (B,3,H,W)
-        cls_all: List[torch.Tensor] = []
-        bboxes_all: List[torch.Tensor] = []
-        batch_idx_all: List[torch.Tensor] = []
-
-        for i, b in enumerate(batch):
-            n = b["cls"].shape[0]
-            if n:
-                cls_all.append(b["cls"])  # (n,1)
-                bboxes_all.append(b["bboxes"])  # (n,4)
-                batch_idx_all.append(torch.full((n,), i, dtype=torch.int64))
-
-        if cls_all:
-            cls_cat = torch.cat(cls_all, 0)
-            bboxes_cat = torch.cat(bboxes_all, 0)
-            batch_idx = torch.cat(batch_idx_all, 0)
-        else:
-            cls_cat = torch.zeros((0,), dtype=torch.float32)
-            bboxes_cat = torch.zeros((0, 4), dtype=torch.float32)
-            batch_idx = torch.zeros((0,), dtype=torch.int64)
-
+        imgs = torch.stack([b["img"] for b in batch], 0)  # (B,6,H,W)
+        targets_list = [b["targets"] for b in batch]
         return {
             "img": imgs,
-            "cls": cls_cat,
-            "bboxes": bboxes_cat,
-            "batch_idx": batch_idx,
+            "targets": targets_list,
             "im_file": [b["im_file"] for b in batch],
             "ori_shape": [b["ori_shape"] for b in batch],
         }

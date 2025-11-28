@@ -80,8 +80,8 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         return {
             "yaml_file": str(self.args.data) if isinstance(self.args.data, (str, Path)) else None,
             "path": str(root),
-            # Required by DetectionTrainer.get_model
-            "channels": 3,
+            # Channels for model input (6 = left+right stacked)
+            "channels": 6,
             # Signal to our get_dataloader/build_dataset that this is a stereo dataset
             "train": {"type": "kitti_stereo", "root": str(root), "split": train_split},
             "val": {"type": "kitti_stereo", "root": str(root), "split": val_split},
@@ -128,6 +128,37 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             )
         # Fallback to default detection dataloader
         return super().get_dataloader(dataset_path, batch_size=batch_size, rank=rank, mode=mode)
+
+    def get_model(self, cfg=None, weights=None, verbose=True):
+        """Instantiate the custom stereo model wrapper using 6-channel input.
+
+        Raises on failure to avoid silently falling back to detection model.
+        """
+        try:
+            from .stereo_yolo_v11 import StereoYOLOv11Wrapper
+            model = StereoYOLOv11Wrapper()
+            if verbose:
+                print("Initialized StereoYOLOv11Wrapper for 6-channel input")
+            return model
+        except Exception as e:
+            raise RuntimeError(f"Failed to initialize StereoYOLOv11Wrapper: {e}")
+
+    def preprocess_batch(self, batch):
+        """Normalize 6-channel images to float [0,1]."""
+        imgs = batch["img"].to(self.device, non_blocking=True)
+        batch["img"] = imgs.float() / 255.0
+        return batch
+
+    def _forward_train(self, batch):
+        """Forward training pass for the stereo model, passing targets dict if present."""
+        imgs = batch["img"]
+        targets = batch.get("targets", None)
+        out = self.model(imgs, targets=targets)
+        if isinstance(out, dict) and "loss" in out:
+            return out["loss"], out
+        # Fallback for unexpected outputs
+        import torch
+        return out if isinstance(out, torch.Tensor) else torch.tensor(0.0, device=imgs.device), {"out": out}
 
     def plot_training_samples(self, batch: dict[str, Any], ni: int) -> None:
         """Plot left-image training samples (default) plus stereo pairs using the existing dataset layout.

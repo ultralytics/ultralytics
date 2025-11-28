@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from .sam3_video_model import Sam3VideoBase, MaskletConfirmationStatus
-from ultralytics.utils.ops import ltwh2xywh, xyxy2ltwh
+from ultralytics.utils.ops import xyxy2xywhn, xyxy2ltwh
 from .sam3.data_misc import BatchedDatapoint, convert_my_tensors, FindStage
 from .sam3.geometry_encoders import Prompt
 from .sam3.io_utils import load_resource_as_video_frames
@@ -621,8 +621,8 @@ class Sam3VideoInference(Sam3VideoBase):
             assert boxes_xywh.dim() == 2
             assert boxes_xywh.size(0) > 0 and boxes_xywh.size(-1) == 4
             assert box_labels.dim() == 1 and box_labels.size(0) == boxes_xywh.size(0)
-            boxes_cxcywh = ltwh2xywh(boxes_xywh)
-            assert (boxes_xywh >= 0).all().item() and (boxes_xywh <= 1).all().item()
+            boxes_cxcywh = xyxy2xywhn(boxes_xywh, h=inference_state["orig_height"], w=inference_state["orig_width"])
+            # assert (boxes_xywh >= 0).all().item() and (boxes_xywh <= 1).all().item()
             assert (boxes_cxcywh >= 0).all().item() and (boxes_cxcywh <= 1).all().item()
 
             new_box_input = boxes_cxcywh, box_labels

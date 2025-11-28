@@ -83,7 +83,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage[toml]",
-    "zensical>=0.0.9",
+    "zensical>=0.0.9; python_version >= '3.10'",
     "mkdocs-ultralytics-plugin>=0.2.3", # for meta descriptions and images, dates and authors
     "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
 ]

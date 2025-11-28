@@ -374,7 +374,6 @@ Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 75% ━
 
 ---
 
-
 # 合并测试用例
  - 测试用例
 ```bash
@@ -420,6 +419,71 @@ def test_yolo_xpu_forward():
 (2 durations < 0.005s hidden.  Use -vv to show these durations.)
 1 passed in 10.53s
 ````    
+
+
+# 从源码安装的测试
+
+```bash
+git clone https://github.com/hzdzkjdxyjs/ultralytics.git ultralytics_b60
+cd ultralytics_b60
+conda activate B60 # 这是老环境，但我认为不需要新环境去验证
+````
+
+在当前目录下创建自动测试文件
+```python
+import pytest
+import torch
+from ultralytics import YOLO
+
+pytestmark = pytest.mark.skipif(
+    not hasattr(torch, "xpu") or not torch.xpu.is_available(),
+    reason="XPU not available",
+)
+
+def test_yolo_xpu_forward():
+    model = YOLO("yolov8n.pt")
+    model.to("xpu")
+    x = torch.rand(1, 3, 64, 64, device="xpu")
+    y = model.model(x)
+    assert y is not None
+    print("\n[XPU Test] YOLO XPU forward passed successfully ✔")
+````
+ - 执行自动化脚本
+
+```bash
+(B60) root@b60:~/ultralytics_b60# /root/anaconda3/envs/B60/bin/python -m pytest -s -q test.py
+
+[XPU Test] YOLO XPU forward passed successfully ✔
+.
+=============================================================== slowest 30 durations ================================================================
+1.18s call     test.py::test_yolo_xpu_forward
+
+(2 durations < 0.005s hidden.  Use -vv to show these durations.)
+1 passed in 22.78s
+
+````
+
+ - xpu支持测试
+ - 在当前目录下创建训练文件，修改device参数 xpu ；xpu：0；xpu：1；xpu：0，1
+```python
+from ultralytics import YOLO
+model = YOLO("yolov8n.yaml")
+model.train(
+        data="coco128.yaml",
+        epochs=50,
+        imgsz=256,
+        device="xpu:0")
+````
+
+ - 我必须强调一下这个的结果，无论你输入什么参数最后只会运行0卡，这是因为目前我没有看到有比较好的方式能支持多卡训练，所以我想等待之后再对这个代码进行修改，这不是bug！！！
+
+ - 长压测试，修改epochs为50轮
+ - 非常遗憾的来说，如果我从yaml文件从头开始训练，他的效果并不好
+ - 但我认为社区的生态不能仅仅局限于NV一张卡，所以我们可以先进行框架适配
+ - 之后再进行算子适配，这时候就需要督促Intel的团队了
+ - 如果仅仅预训练的权重来训练的话，效果会好一点
+
+---
 
 # 本次更改只支持单卡训练，为什么不支持多卡？
  - 并非是torch及其依赖不支持多卡训练，因为我能够在llamafactory进行多卡训练
@@ -491,3 +555,4 @@ def main():
 if __name__ == "__main__":
     main()
 ````
+

@@ -109,7 +109,6 @@ def select_device(device="", newline=False, verbose=True):
     Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
 
@@ -162,7 +161,8 @@ def select_device(device="", newline=False, verbose=True):
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions.\n"
-                if torch.cuda.device_count() == 0 else ""
+                if torch.cuda.device_count() == 0
+                else ""
             )
             raise ValueError(
                 f"Invalid CUDA 'device={device}'."
@@ -202,13 +202,15 @@ def select_device(device="", newline=False, verbose=True):
 
 ```python
 from ultralytics import YOLO
+
 model = YOLO("/root/ultralytics/ultralytics/cfg/models/v8/yolov8n.yaml")
 model.train(
-        data="coco128.yaml",
-        epochs=50,
-        imgsz=256,
-        #device="xpu：1"
-        device="xpu")
+    data="coco128.yaml",
+    epochs=50,
+    imgsz=256,
+    # device="xpu：1"
+    device="xpu",
+)
 ```
 
 - 测试结果：支持训练
@@ -513,7 +515,7 @@ model.train(data="coco128.yaml", epochs=50, imgsz=256, device="xpu:0")
 
 ```python
 self.device = select_device(self.args.device)
-self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device)  else str(self.device)
+self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
 ```
 
 - 我发现这两行代码会决定您的设备数量，但是主要是os.getenv("CUDA_VISIBLE_DEVICES")决定的

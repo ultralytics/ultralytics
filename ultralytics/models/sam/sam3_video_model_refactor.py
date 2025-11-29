@@ -405,7 +405,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # Step 3: build SAM2 backbone features and store them in `feature_cache`
         backbone_cache = {}
-        sam_mask_decoder = self.tracker.sam_mask_decoder
+        sam_mask_decoder = self.tracker.model.sam_mask_decoder
         tracker_backbone_fpn = [
             sam_mask_decoder.conv_s0(sam3_image_out["tracker_backbone_fpn_0"]),
             sam_mask_decoder.conv_s1(sam3_image_out["tracker_backbone_fpn_1"]),
@@ -484,11 +484,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Recondition the masklets based on the new detections
         for trk_obj_id, det_idx in trk_id_to_max_iou_high_conf_det.items():
             new_mask = det_out["mask"][det_idx : det_idx + 1]
-            input_mask_res = self.tracker.input_mask_size
             new_mask_binary = (
                 F.interpolate(
                     new_mask.unsqueeze(1),
-                    size=(input_mask_res, input_mask_res),
+                    size=self._bb_feat_sizes[0],
                     mode="bilinear",
                     align_corners=False,
                 ).squeeze(1)[0]
@@ -505,7 +504,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     # Unfortunately, these can get reconditioned anyway due to batching. We should consider removing these heuristics.
                     and obj_score > HIGH_CONF_THRESH
                 ):
-                    logger.debug(
+                    LOGGER.debug(
                         f"Adding new mask for track {trk_obj_id} at frame {frame_idx}. Objects {inference_state['obj_ids']} are all reconditioned."
                     )
                     self.tracker.add_new_mask(
@@ -573,7 +572,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             new_det_num = len(new_det_fa_inds)
             num_obj_dropped_due_to_limit = 0
             if not is_image_only and prev_obj_num + new_det_num > self.max_num_objects:
-                logger.warning(f"hitting {self.max_num_objects=} with {new_det_num=} and {prev_obj_num=}")
+                LOGGER.warning(f"hitting {self.max_num_objects=} with {new_det_num=} and {prev_obj_num=}")
                 new_det_num_to_keep = self.max_num_objects - prev_obj_num
                 num_obj_dropped_due_to_limit = new_det_num - new_det_num_to_keep
                 new_det_fa_inds = self._drop_new_det_with_obj_limit(new_det_fa_inds, det_scores_np, new_det_num_to_keep)
@@ -1026,7 +1025,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         to_suppress = suppress_i_mask.any(dim=1) | suppress_j_mask.any(dim=0)
 
         # Log for debugging
-        if self.rank == 0 and logger.isEnabledFor(logging.DEBUG) and frame_idx is not None:
+        if self.rank == 0 and LOGGER.isEnabledFor(logging.DEBUG) and frame_idx is not None:
             suppress_i_mask = suppress_i_mask.cpu().numpy()
             suppress_j_mask = suppress_j_mask.cpu().numpy()
             last_occluded = last_occluded.cpu().numpy()
@@ -1038,7 +1037,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             for i in range(batch_size):
                 for j in range(batch_size):
                     if suppress_i_mask[i, j]:
-                        logger.debug(
+                        LOGGER.debug(
                             f"{frame_idx=}: Suppressing obj {obj_ids[i]} last occluded {last_occluded[i]} in favor of {obj_ids[j]} last occluded {last_occluded[j]}"
                         )
 
@@ -1046,7 +1045,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             for i in range(batch_size):
                 for j in range(batch_size):
                     if suppress_j_mask[i, j]:
-                        logger.debug(
+                        LOGGER.debug(
                             f"{frame_idx=}: Suppressing obj {obj_ids[j]} last occluded {last_occluded[j]} in favor of {obj_ids[i]} last occluded {last_occluded[i]}"
                         )
 
@@ -1072,6 +1071,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
             # propagate one frame
             num_frames_propagated = 0
+            # TODO
             for out in self.tracker.propagate_in_video(
                 inference_state,
                 start_frame_idx=frame_idx,
@@ -1095,11 +1095,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             obj_scores_list.append(out_obj_scores.squeeze(1))
 
         # concatenate the output masklets from all local inference states
-        H_mask = W_mask = self.tracker.low_res_mask_size
         if len(low_res_masks_list) > 0:
             low_res_masks_local = torch.cat(low_res_masks_list, dim=0)
             obj_scores_local = torch.cat(obj_scores_list, dim=0)
-            assert low_res_masks_local.shape[1:] == (H_mask, W_mask)
 
             # Apply hole filling to the masks
             # NOTE
@@ -1111,7 +1109,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             # )
             low_res_masks_local = low_res_masks_local.squeeze(1)
         else:
-            low_res_masks_local = torch.zeros(0, H_mask, W_mask, device=self.device)
+            low_res_masks_local = torch.zeros(0, *self._bb_feat_sizes[0], device=self.device)
             obj_scores_local = torch.zeros(0, device=self.device)
 
         return obj_ids_local, low_res_masks_local, obj_scores_local
@@ -1331,7 +1329,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 )
                 if is_within_hotstart:
                     obj_ids_newly_removed.add(obj_id)
-                    logger.debug(
+                    LOGGER.debug(
                         f"Removing object {obj_id} at frame {frame_idx} "
                         f"since it is unmatched for frames: {frame_indices}"
                     )
@@ -1341,7 +1339,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 and obj_id not in removed_obj_ids
                 and obj_id not in obj_ids_newly_removed
             ):
-                logger.debug(f"Suppressing object {obj_id} at frame {frame_idx}, due to being unmatched")
+                LOGGER.debug(f"Suppressing object {obj_id} at frame {frame_idx}, due to being unmatched")
                 suppressed_obj_ids.add(obj_id)
 
         # Step 3: removed tracks that overlaps with another track for `hotstart_dup_thresh` frames
@@ -1371,7 +1369,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             ):
                 if len(frame_indices) >= self.hotstart_dup_thresh:
                     obj_ids_newly_removed.add(obj_id)
-                    logger.debug(
+                    LOGGER.debug(
                         f"Removing object {obj_id} at frame {frame_idx} "
                         f"since it overlaps with another track {first_obj_id} at frames: {frame_indices}"
                     )
@@ -1392,7 +1390,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if len(tracker_inference_states) == 0:
             return
         # Avoid an extra interpolation step by directly interpolating to `interpol_size`
-        high_res_H, high_res_W = self.tracker.memory_encoder.mask_downsampler.interpol_size
+        high_res_H, high_res_W = self.tracker.model.memory_encoder.mask_downsampler.interpol_size
         # NOTE: inspect this part if we observe OOMs in the demo
         high_res_masks = F.interpolate(
             low_res_masks.unsqueeze(1),
@@ -1475,10 +1473,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         assert len(new_obj_ids) == new_obj_masks.size(0)
         assert new_obj_masks.is_floating_point()
-        input_mask_res = self.tracker.input_mask_size
         new_obj_masks = F.interpolate(
             new_obj_masks.unsqueeze(1),
-            size=(input_mask_res, input_mask_res),
+            size=self._bb_feat_sizes[0],
             mode="bilinear",
             align_corners=False,
         ).squeeze(1)
@@ -1614,9 +1611,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         sd = torch.load(ckpt_path, map_location="cpu", weights_only=True)["model"]
         missing_keys, unexpected_keys = self.load_state_dict(sd, strict=strict)
         if len(missing_keys) > 0 or len(unexpected_keys) > 0:
-            logger.warning(f"Loaded ckpt with {missing_keys=}, {unexpected_keys=}")
+            LOGGER.warning(f"Loaded ckpt with {missing_keys=}, {unexpected_keys=}")
         else:
-            logger.info("Loaded ckpt successfully without missing or unexpected keys")
+            LOGGER.info("Loaded ckpt successfully without missing or unexpected keys")
 
     def _encode_prompt(self, **kwargs):
         return self.detector._encode_prompt(**kwargs)

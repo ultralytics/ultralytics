@@ -1,15 +1,10 @@
 import torch
-import numpy as np
 from .sam3_video_model import Sam3VideoBase, MaskletConfirmationStatus
 from ultralytics.utils.ops import xyxy2xywhn, xyxy2ltwh
 from .sam3.data_misc import BatchedDatapoint, convert_my_tensors, FindStage
 from .sam3.geometry_encoders import Prompt
 from .sam3.io_utils import load_resource_as_video_frames
 from ultralytics.utils import LOGGER as logger
-from collections import defaultdict
-import torch.nn.functional as F
-
-from .sam3.io_utils import load_resource_as_video_frames
 from .sam3.misc import copy_data_to_device
 from torchvision.ops import masks_to_boxes
 from tqdm.auto import tqdm
@@ -70,7 +65,6 @@ class Sam3VideoInference(Sam3VideoBase):
         inference_state["tracker_inference_states"] = []
         inference_state["tracker_metadata"] = {}
         inference_state["feature_cache"] = {}
-        inference_state["cached_frame_outputs"] = {}
         inference_state["action_history"] = []  # for logging user actions
         inference_state["is_image_only"] = False
         return inference_state
@@ -95,7 +89,6 @@ class Sam3VideoInference(Sam3VideoBase):
         inference_state["tracker_inference_states"].clear()
         inference_state["tracker_metadata"].clear()
         inference_state["feature_cache"].clear()
-        inference_state["cached_frame_outputs"].clear()
         inference_state["action_history"].clear()  # for logging user actions
 
     def _construct_initial_input_batch(self, inference_state, images):
@@ -318,14 +311,6 @@ class Sam3VideoInference(Sam3VideoBase):
                         unconfirmed_obj_ids,
                     )
 
-                    self._cache_frame_outputs(
-                        inference_state,
-                        yield_frame_idx,
-                        yield_out["obj_id_to_mask"],
-                        suppressed_obj_ids=suppressed_obj_ids,
-                        removed_obj_ids=hotstart_removed_obj_ids,
-                        unconfirmed_obj_ids=unconfirmed_obj_ids,
-                    )
                 else:
                     postprocessed_out = None  # no output on other GPUs
                 yield yield_frame_idx, postprocessed_out
@@ -371,9 +356,6 @@ class Sam3VideoInference(Sam3VideoBase):
         inference_state["tracker_metadata"] = tracker_metadata_new
         # use a dummy string in "previous_stages_out" to indicate this frame has outputs
         inference_state["previous_stages_out"][frame_idx] = "_THIS_FRAME_HAS_OUTPUTS_"
-
-        if self.rank == 0:
-            self._cache_frame_outputs(inference_state, frame_idx, obj_id_to_mask)
 
         out = {
             "obj_id_to_mask": obj_id_to_mask,
@@ -473,104 +455,6 @@ class Sam3VideoInference(Sam3VideoBase):
             "frame_stats": out.get("frame_stats", None),
         }
         return outputs
-
-    def _cache_frame_outputs(
-        self,
-        inference_state,
-        frame_idx,
-        obj_id_to_mask,
-        suppressed_obj_ids=None,
-        removed_obj_ids=None,
-        unconfirmed_obj_ids=None,
-    ):
-        # Filter out suppressed, removed, and unconfirmed objects from the cache
-        filtered_obj_id_to_mask = obj_id_to_mask.copy()
-
-        objects_to_exclude = set()
-        if suppressed_obj_ids is not None:
-            objects_to_exclude.update(suppressed_obj_ids)
-        if removed_obj_ids is not None:
-            objects_to_exclude.update(removed_obj_ids)
-        if unconfirmed_obj_ids is not None:
-            objects_to_exclude.update(unconfirmed_obj_ids)
-
-        if objects_to_exclude:
-            for obj_id in objects_to_exclude:
-                if obj_id in filtered_obj_id_to_mask:
-                    del filtered_obj_id_to_mask[obj_id]
-
-        inference_state["cached_frame_outputs"][frame_idx] = filtered_obj_id_to_mask
-
-    def _build_tracker_output(self, inference_state, frame_idx, refined_obj_id_to_mask=None):
-        assert "cached_frame_outputs" in inference_state and frame_idx in inference_state["cached_frame_outputs"], (
-            "No cached outputs found. Ensure normal propagation has run first to populate the cache."
-        )
-        cached_outputs = inference_state["cached_frame_outputs"][frame_idx]
-
-        obj_id_to_mask = cached_outputs.copy()
-
-        # Update with refined masks if provided
-        if refined_obj_id_to_mask is not None:
-            for obj_id, refined_mask in refined_obj_id_to_mask.items():
-                assert refined_mask is not None, f"Refined mask data must be provided for obj_id {obj_id}"
-                obj_id_to_mask[obj_id] = refined_mask
-
-        return obj_id_to_mask
-
-    def add_fake_objects_to_inference_state(self, inference_state, num_objects, frame_idx):
-        new_det_obj_ids_local = np.arange(num_objects)
-        # TODO: get the high-res size from the model
-        # high_res_H, high_res_W = self.tracker.maskmem_backbone.mask_downsampler.interpol_size
-        high_res_H, high_res_W = [1152, 1152]
-        new_det_masks = torch.ones(len(new_det_obj_ids_local), high_res_H, high_res_W).to(self.device)
-
-        inference_state["tracker_inference_states"] = self._tracker_add_new_objects(
-            frame_idx=frame_idx,
-            num_frames=inference_state["num_frames"],
-            new_obj_ids=new_det_obj_ids_local,
-            new_obj_masks=new_det_masks,
-            tracker_states_local=inference_state["tracker_inference_states"],
-            orig_vid_height=inference_state["orig_height"],
-            orig_vid_width=inference_state["orig_width"],
-            feature_cache=inference_state["feature_cache"],
-        )
-
-        # Synthesize obj_id_to_mask data for cached_frame_outputs to support _build_tracker_output during warmup
-        obj_id_to_mask = {}
-        if num_objects > 0:
-            H_video = inference_state["orig_height"]
-            W_video = inference_state["orig_width"]
-
-            video_res_masks = F.interpolate(
-                new_det_masks.unsqueeze(1),  # Add channel dimension for interpolation
-                size=(H_video, W_video),
-                mode="bilinear",
-                align_corners=False,
-            )  # (num_objects, 1, H_video, W_video)
-            for i, obj_id in enumerate(new_det_obj_ids_local):
-                obj_id_to_mask[obj_id] = (video_res_masks[i] > 0.0).to(torch.bool)
-        if self.rank == 0:
-            for fidx in range(inference_state["num_frames"]):
-                self._cache_frame_outputs(inference_state, fidx, obj_id_to_mask)
-
-        inference_state["tracker_metadata"].update(
-            {
-                "obj_ids_per_gpu": [np.arange(num_objects)],
-                "obj_ids_all_gpu": np.arange(num_objects),  # Same as 1 GPU
-                "num_obj_per_gpu": [num_objects],
-                "obj_id_to_score": {i: 1.0 for i in range(num_objects)},
-                "max_obj_id": num_objects,
-                "rank0_metadata": {
-                    "masklet_confirmation": {
-                        "status": np.zeros(num_objects, dtype=np.int64),
-                        "consecutive_det_num": np.zeros(num_objects, dtype=np.int64),
-                    },
-                    "removed_obj_ids": set(),
-                    "suppressed_obj_ids": defaultdict(set),
-                },
-            }
-        )
-        return inference_state
 
     @torch.inference_mode()
     def add_prompt(

@@ -1644,6 +1644,173 @@ class SAM2VideoPredictor(SAM2Predictor):
             for obj_output_dict in inference_state["output_dict_per_obj"].values():
                 obj_output_dict["non_cond_frame_outputs"].pop(t, None)
 
+    @torch.inference_mode()
+    def remove_object(self, inference_state, obj_id, strict=False):
+        """
+        Remove an object id from the tracking state. If strict is True, we check whether
+        the object id actually exists and raise an error if it doesn't exist.
+        """
+        old_obj_idx_to_rm = inference_state["obj_id_to_idx"].get(obj_id, None)
+        # Check whether this object_id to remove actually exists and possibly raise an error.
+        if old_obj_idx_to_rm is None:
+            if not strict:
+                return inference_state["obj_ids"]
+            raise RuntimeError(
+                f"Cannot remove object id {obj_id} as it doesn't exist. "
+                f"All existing object ids: {inference_state['obj_ids']}."
+            )
+
+        # If this is the only remaining object id, we simply reset the state.
+        if len(inference_state["obj_id_to_idx"]) == 1:
+            self.clear_all_points_in_video(inference_state)
+            return inference_state["obj_ids"]
+
+        # There are still remaining objects after removing this object id. In this case,
+        # we need to delete the object storage from inference state tensors.
+        # Step 0: clear the input on those frames where this object id has point or mask input
+        # (note that this step is required as it might downgrade conditioning frames to
+        # non-conditioning ones)
+        obj_input_frames_inds = set()
+        obj_input_frames_inds.update(inference_state["point_inputs_per_obj"][old_obj_idx_to_rm])
+        obj_input_frames_inds.update(inference_state["mask_inputs_per_obj"][old_obj_idx_to_rm])
+        for frame_idx in obj_input_frames_inds:
+            self.clear_all_points_in_frame(inference_state, frame_idx, obj_id, need_output=False)
+
+        # Step 1: Update the object id mapping (note that it must be done after Step 0,
+        # since Step 0 still requires the old object id mappings in inference_state)
+        old_obj_ids = inference_state["obj_ids"]
+        old_obj_inds = list(range(len(old_obj_ids)))
+        remain_old_obj_inds = old_obj_inds.copy()
+        remain_old_obj_inds.remove(old_obj_idx_to_rm)
+        new_obj_ids = [old_obj_ids[old_idx] for old_idx in remain_old_obj_inds]
+        new_obj_inds = list(range(len(new_obj_ids)))
+        # build new mappings
+        old_idx_to_new_idx = dict(zip(remain_old_obj_inds, new_obj_inds))
+        inference_state["obj_id_to_idx"] = dict(zip(new_obj_ids, new_obj_inds))
+        inference_state["obj_idx_to_id"] = dict(zip(new_obj_inds, new_obj_ids))
+        inference_state["obj_ids"] = new_obj_ids
+
+        # Step 2: For per-object tensor storage, we shift their obj_idx in the dict keys.
+        # (note that "consolidated_frame_inds" doesn't need to be updated in this step as
+        # it's already handled in Step 0)
+        def _map_keys(container):
+            new_kvs = []
+            for k in old_obj_inds:
+                v = container.pop(k)
+                if k in old_idx_to_new_idx:
+                    new_kvs.append((old_idx_to_new_idx[k], v))
+            container.update(new_kvs)
+
+        _map_keys(inference_state["point_inputs_per_obj"])
+        _map_keys(inference_state["mask_inputs_per_obj"])
+        _map_keys(inference_state["output_dict_per_obj"])
+        _map_keys(inference_state["temp_output_dict_per_obj"])
+
+        # Step 3: For packed tensor storage, we index the remaining ids and rebuild the per-object slices.
+        def _slice_state(output_dict, storage_key):
+            for frame_idx, out in output_dict[storage_key].items():
+                out["maskmem_features"] = out["maskmem_features"][remain_old_obj_inds]
+                out["maskmem_pos_enc"] = [x[remain_old_obj_inds] for x in out["maskmem_pos_enc"]]
+                # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
+                out["maskmem_pos_enc"] = self._get_maskmem_pos_enc(inference_state, out)
+                out["pred_masks"] = out["pred_masks"][remain_old_obj_inds]
+                out["obj_ptr"] = out["obj_ptr"][remain_old_obj_inds]
+                out["object_score_logits"] = out["object_score_logits"][remain_old_obj_inds]
+                if self.use_memory_selection:
+                    out["iou_score"] = out["iou_score"][remain_old_obj_inds]
+                    out["eff_iou_score"] = self.cal_mem_score(
+                        out["object_score_logits"], out["iou_score"]
+                    )  # recalculate the memory frame score
+                # also update the per-object slices
+                self._add_output_per_object(inference_state, frame_idx, out, storage_key)
+
+        _slice_state(inference_state["output_dict"], "cond_frame_outputs")
+        _slice_state(inference_state["output_dict"], "non_cond_frame_outputs")
+
+        return inference_state["obj_ids"]
+
+    @torch.inference_mode()
+    def clear_all_points_in_frame(self, inference_state, frame_idx, obj_id):
+        """Remove all input points or mask in a specific frame for a given object."""
+        obj_idx = self._obj_id_to_idx(inference_state, obj_id)
+
+        # Clear the conditioning information on the given frame
+        inference_state["point_inputs_per_obj"][obj_idx].pop(frame_idx, None)
+        inference_state["mask_inputs_per_obj"][obj_idx].pop(frame_idx, None)
+
+        temp_output_dict_per_obj = inference_state["temp_output_dict_per_obj"]
+        temp_output_dict_per_obj[obj_idx]["cond_frame_outputs"].pop(frame_idx, None)
+        temp_output_dict_per_obj[obj_idx]["non_cond_frame_outputs"].pop(frame_idx, None)
+
+        # Check and see if there are still any inputs left on this frame
+        batch_size = len(inference_state["obj_idx_to_id"])
+        frame_has_input = False
+        for obj_idx2 in range(batch_size):
+            if frame_idx in inference_state["point_inputs_per_obj"][obj_idx2]:
+                frame_has_input = True
+                break
+            if frame_idx in inference_state["mask_inputs_per_obj"][obj_idx2]:
+                frame_has_input = True
+                break
+
+        # If this frame has no remaining inputs for any objects, we further clear its
+        # conditioning frame status
+        if not frame_has_input:
+            output_dict = inference_state["output_dict"]
+            consolidated_frame_inds = inference_state["consolidated_frame_inds"]
+            consolidated_frame_inds["cond_frame_outputs"].discard(frame_idx)
+            consolidated_frame_inds["non_cond_frame_outputs"].discard(frame_idx)
+            # Remove the frame's conditioning output (possibly downgrading it to non-conditioning)
+            out = output_dict["cond_frame_outputs"].pop(frame_idx, None)
+            if out is not None:
+                # The frame is not a conditioning frame anymore since it's not receiving inputs,
+                # so we "downgrade" its output (if exists) to a non-conditioning frame output.
+                output_dict["non_cond_frame_outputs"][frame_idx] = out
+                inference_state["frames_already_tracked"].pop(frame_idx, None)
+            # Similarly, do it for the sliced output on each object.
+            for obj_idx2 in range(batch_size):
+                obj_output_dict = inference_state["output_dict_per_obj"][obj_idx2]
+                obj_out = obj_output_dict["cond_frame_outputs"].pop(frame_idx, None)
+                if obj_out is not None:
+                    obj_output_dict["non_cond_frame_outputs"][frame_idx] = obj_out
+
+            # If all the conditioning frames have been removed, we also clear the tracking outputs
+            if len(output_dict["cond_frame_outputs"]) == 0:
+                self._reset_tracking_results(inference_state)
+
+    @torch.inference_mode()
+    def clear_all_points_in_video(self, inference_state):
+        """Remove all input points or mask in all frames throughout the video."""
+        self._reset_tracking_results(inference_state)
+        # Remove all object ids
+        inference_state["obj_id_to_idx"].clear()
+        inference_state["obj_idx_to_id"].clear()
+        inference_state["obj_ids"].clear()
+        inference_state["point_inputs_per_obj"].clear()
+        inference_state["mask_inputs_per_obj"].clear()
+        inference_state["output_dict_per_obj"].clear()
+        inference_state["temp_output_dict_per_obj"].clear()
+
+    def _reset_tracking_results(self, inference_state):
+        """Reset all tracking inputs and results across the videos."""
+        for v in inference_state["point_inputs_per_obj"].values():
+            v.clear()
+        for v in inference_state["mask_inputs_per_obj"].values():
+            v.clear()
+        for v in inference_state["output_dict_per_obj"].values():
+            v["cond_frame_outputs"].clear()
+            v["non_cond_frame_outputs"].clear()
+        for v in inference_state["temp_output_dict_per_obj"].values():
+            v["cond_frame_outputs"].clear()
+            v["non_cond_frame_outputs"].clear()
+        inference_state["output_dict"]["cond_frame_outputs"].clear()
+        inference_state["output_dict"]["non_cond_frame_outputs"].clear()
+        inference_state["consolidated_frame_inds"]["cond_frame_outputs"].clear()
+        inference_state["consolidated_frame_inds"]["non_cond_frame_outputs"].clear()
+        inference_state["tracking_has_started"] = False
+        inference_state["frames_already_tracked"].clear()
+        inference_state["first_ann_frame_idx"] = None
+
 
 class SAM2DynamicInteractivePredictor(SAM2Predictor):
     """SAM2DynamicInteractivePredictor extends SAM2Predictor to support dynamic interactions with video frames or a

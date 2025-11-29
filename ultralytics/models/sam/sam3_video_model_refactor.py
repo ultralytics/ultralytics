@@ -199,6 +199,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         # from .build_sam3 import build_interactive_sam3  # slow import
         # self.tracker = build_interactive_sam3(self.args.model, with_backbone=False)
         from .build_sam3 import build_tracker  # slow import
+
         self.tracker = build_tracker(self.args.model, with_backbone=False)
 
     def _det_track_one_frame(
@@ -989,13 +990,9 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
                 tqdm_disable=True,
                 run_mem_encoder=run_mem_encoder,
             ):
-                out_frame_idx, out_obj_ids, out_low_res_masks, _, out_obj_scores = out
+                _, out_obj_ids, out_low_res_masks, _, out_obj_scores = out
                 num_frames_propagated += 1
 
-            # only 1 frames should be propagated
-            assert num_frames_propagated == 1 and out_frame_idx == frame_idx, (
-                f"num_frames_propagated: {num_frames_propagated}, out_frame_idx: {out_frame_idx}, frame_idx: {frame_idx}"
-            )
             assert isinstance(out_obj_ids, list)
             obj_ids_local.extend(out_obj_ids)
             low_res_masks_list.append(out_low_res_masks.squeeze(1))
@@ -1324,12 +1321,11 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
             # Run Sam2 memory encoder. Note that we do not re-enforce the non-overlapping constraint as it is turned off by default
 
             # TODO: init_state
-            encoded_mem = self.tracker._run_memory_encoder(
-                tracker_state,
-                frame_idx,
-                local_batch_size,
-                local_high_res_masks,
-                local_object_score_logits,
+            encoded_mem = self._run_memory_encoder(
+                inference_state=tracker_state,
+                batch_size=local_batch_size,
+                high_res_masks=local_high_res_masks,
+                object_score_logits=local_object_score_logits,
                 is_mask_from_pts=False,
             )
             local_maskmem_features, local_maskmem_pos_enc = encoded_mem
@@ -1342,8 +1338,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
                 output_dict[storage_key][frame_idx]["maskmem_pos_enc"] = [pos for pos in local_maskmem_pos_enc]
                 # for batched inference state, we also need to add per-object
                 # memory slides to support instance interactivity
-                # TODO: init_state
-                self.tracker._add_output_per_object(
+                self._add_output_per_object(
                     inference_state=tracker_state,
                     frame_idx=frame_idx,
                     current_out=output_dict[storage_key][frame_idx],
@@ -1368,6 +1363,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         # prepare inference_state
         # batch objects that first appear on the same frame together
         # Clear inference state. Keep the cached image features if available.
+        # TODO
         new_tracker_state = self.tracker.init_state(
             cached_features=feature_cache,
             video_height=orig_vid_height,
@@ -1390,15 +1386,14 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
 
         # add object one by one
         for new_obj_id, new_mask in zip(new_obj_ids, new_obj_masks):
-            self.tracker.add_new_mask(
+            self.add_new_prompts(
                 inference_state=new_tracker_state,
                 frame_idx=frame_idx,
                 obj_id=new_obj_id,
                 mask=new_mask,
-                add_mask_to_memory=True,
             )
         # NOTE: we skip enforcing the non-overlapping constraint **globally** when adding new objects.
-        self.tracker.propagate_in_video_preflight(new_tracker_state, run_mem_encoder=True)
+        self.propagate_in_video_preflight(new_tracker_state)
         tracker_states_local.append(new_tracker_state)
         return tracker_states_local
 
@@ -1412,9 +1407,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         for tracker_inference_state in tracker_states_local_before_removal:
             # we try to remove `obj_id` on every inference state with `strict=False`
             # it will not do anything if an inference state doesn't contain `obj_id`
-            new_obj_ids, _ = self.tracker.remove_object(
-                tracker_inference_state, obj_id, strict=False, need_output=False
-            )
+            new_obj_ids, _ = self.remove_object(tracker_inference_state, obj_id, strict=False)
             # only keep an inference state if it's non-empty after object removal
             if len(new_obj_ids) > 0:
                 tracker_states_local.append(tracker_inference_state)

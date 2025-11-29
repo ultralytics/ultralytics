@@ -1,4 +1,4 @@
-from .predict import SAM2VideoPredictor
+from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 import math
 import logging
@@ -83,7 +83,7 @@ def mask_to_box(masks: torch.Tensor):
     return bbox_coords
 
 
-class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
+class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     """Segment Anything Model 3 (SAM3) Video Semantic Predictor."""
 
     _bb_feat_sizes = [
@@ -141,8 +141,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         reconstruction_bbox_iou_thresh=0.0,
         reconstruction_bbox_det_score=0.0,
     ):
-        super().__init__(cfg, overrides, _callbacks)
-        self.bpe_path = bpe_path
+        super().__init__(cfg, overrides, _callbacks, bpe_path=bpe_path)
         self.score_threshold_detection = score_threshold_detection
         self.det_nms_thresh = det_nms_thresh
         self.assoc_iou_thresh = assoc_iou_thresh
@@ -186,21 +185,8 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         self.reconstruction_bbox_iou_thresh = reconstruction_bbox_iou_thresh
         self.reconstruction_bbox_det_score = reconstruction_bbox_det_score
 
-    def get_model(self):
-        """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
-        from .build_sam3 import build_sam3_image_model  # slow import
-
-        return build_sam3_image_model(self.args.model, bpe_path=self.bpe_path)
-
-    def setup_model(self, model=None, verbose=True):
-        """Set up the SAM3 model and initialize the interactive tracker."""
-        super().setup_model(model, verbose)
-        # TODO
-        # from .build_sam3 import build_interactive_sam3  # slow import
-        # self.tracker = build_interactive_sam3(self.args.model, with_backbone=False)
-        from .build_sam3 import build_tracker  # slow import
-
-        self.tracker = build_tracker(self.args.model, with_backbone=False)
+        # build SAM3 tracker
+        self.tracker = SAM3VideoPredictor(overrides=overrides)
 
     def _det_track_one_frame(
         self,
@@ -419,9 +405,10 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
 
         # Step 3: build SAM2 backbone features and store them in `feature_cache`
         backbone_cache = {}
+        sam_mask_decoder = self.tracker.sam_mask_decoder
         tracker_backbone_fpn = [
-            self.tracker.sam_mask_decoder.conv_s0(sam3_image_out["tracker_backbone_fpn_0"]),
-            self.tracker.sam_mask_decoder.conv_s1(sam3_image_out["tracker_backbone_fpn_1"]),
+            sam_mask_decoder.conv_s0(sam3_image_out["tracker_backbone_fpn_0"]),
+            sam_mask_decoder.conv_s1(sam3_image_out["tracker_backbone_fpn_1"]),
             sam3_image_out["tracker_backbone_fpn_2"],  # fpn_2 doesn't need conv
         ]
         tracker_backbone_out = {
@@ -485,6 +472,54 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
             obj_scores_global = obj_scores_local
         return low_res_masks_global, obj_scores_global
 
+    def _recondition_masklets(
+        self,
+        frame_idx,
+        det_out: Dict[str, Tensor],
+        trk_id_to_max_iou_high_conf_det: List[int],
+        tracker_states_local: List[Any],
+        tracker_metadata: Dict[str, npt.NDArray],
+        tracker_obj_scores_global: Tensor,
+    ):
+        # Recondition the masklets based on the new detections
+        for trk_obj_id, det_idx in trk_id_to_max_iou_high_conf_det.items():
+            new_mask = det_out["mask"][det_idx : det_idx + 1]
+            input_mask_res = self.tracker.input_mask_size
+            new_mask_binary = (
+                F.interpolate(
+                    new_mask.unsqueeze(1),
+                    size=(input_mask_res, input_mask_res),
+                    mode="bilinear",
+                    align_corners=False,
+                ).squeeze(1)[0]
+                > 0
+            )
+            HIGH_CONF_THRESH = 0.8
+            reconditioned_states_idx = set()
+            obj_idx = np.where(tracker_metadata["obj_ids_all_gpu"] == trk_obj_id)[0].item()
+            obj_score = tracker_obj_scores_global[obj_idx]
+            for state_idx, inference_state in enumerate(tracker_states_local):
+                if (
+                    trk_obj_id in inference_state["obj_ids"]
+                    # NOTE: Goal of this condition is to avoid reconditioning masks that are occluded/low qualiy.
+                    # Unfortunately, these can get reconditioned anyway due to batching. We should consider removing these heuristics.
+                    and obj_score > HIGH_CONF_THRESH
+                ):
+                    logger.debug(
+                        f"Adding new mask for track {trk_obj_id} at frame {frame_idx}. Objects {inference_state['obj_ids']} are all reconditioned."
+                    )
+                    self.tracker.add_new_mask(
+                        inference_state=inference_state,
+                        frame_idx=frame_idx,
+                        obj_id=trk_obj_id,
+                        mask=new_mask_binary,
+                    )
+                    reconditioned_states_idx.add(state_idx)
+
+            for idx in reconditioned_states_idx:
+                self.tracker.propagate_in_video_preflight(tracker_states_local[idx], run_mem_encoder=True)
+        return tracker_states_local
+
     def run_tracker_update_planning_phase(
         self,
         frame_idx: int,
@@ -538,7 +573,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
             new_det_num = len(new_det_fa_inds)
             num_obj_dropped_due_to_limit = 0
             if not is_image_only and prev_obj_num + new_det_num > self.max_num_objects:
-                LOGGER.warning(f"hitting {self.max_num_objects=} with {new_det_num=} and {prev_obj_num=}")
+                logger.warning(f"hitting {self.max_num_objects=} with {new_det_num=} and {prev_obj_num=}")
                 new_det_num_to_keep = self.max_num_objects - prev_obj_num
                 num_obj_dropped_due_to_limit = new_det_num - new_det_num_to_keep
                 new_det_fa_inds = self._drop_new_det_with_obj_limit(new_det_fa_inds, det_scores_np, new_det_num_to_keep)
@@ -632,6 +667,64 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
 
         # Step 3 (optional): recondition masklets based on high-confidence detections before memory encoding
         # NOTE: Running this in execution phase (after memory encoding) can lead to suboptimal results
+        should_recondition_iou = False
+
+        # Evaluate tracklets for reconditioning based on bbox IoU mismatch with detections
+        if self.reconstruction_bbox_iou_thresh > 0 and len(trk_id_to_max_iou_high_conf_det) > 0:
+            for trk_obj_id, det_idx in trk_id_to_max_iou_high_conf_det.items():
+                det_box = det_out["bbox"][det_idx]
+                det_score = det_out["scores"][det_idx]
+
+                try:
+                    trk_idx = list(tracker_metadata_prev["obj_ids_all_gpu"]).index(trk_obj_id)
+                except ValueError:
+                    continue  # Skip if tracklet not found
+
+                tracker_mask = tracker_low_res_masks_global[trk_idx]
+                mask_binary = tracker_mask > 0
+                mask_area = mask_binary.sum().item()
+
+                if mask_area == 0:
+                    continue  # Skip tracklets with zero mask area
+
+                # Get bounding box from SAM2 mask and convert to normalized coordinates
+                tracker_box_pixels = mask_to_box(mask_binary.unsqueeze(0).unsqueeze(0)).squeeze(0).squeeze(0)
+                mask_height, mask_width = tracker_mask.shape[-2:]
+                tracker_box_normalized = torch.tensor(
+                    [
+                        tracker_box_pixels[0] / mask_width,
+                        tracker_box_pixels[1] / mask_height,
+                        tracker_box_pixels[2] / mask_width,
+                        tracker_box_pixels[3] / mask_height,
+                    ],
+                    device=tracker_box_pixels.device,
+                )
+
+                # Compute IoU between detection and SAM2 tracklet bounding boxes
+                det_box_batch = det_box.unsqueeze(0)
+                tracker_box_batch = tracker_box_normalized.unsqueeze(0)
+                iou = box_iou(det_box_batch, tracker_box_batch)[0]
+
+                if iou < self.reconstruction_bbox_iou_thresh and det_score >= self.reconstruction_bbox_det_score:
+                    should_recondition_iou = True
+                    reconditioned_obj_ids.add(trk_obj_id)
+
+        should_recondition_periodic = (
+            self.recondition_every_nth_frame > 0
+            and frame_idx % self.recondition_every_nth_frame == 0
+            and len(trk_id_to_max_iou_high_conf_det) > 0
+        )
+
+        # Recondition if periodic or IoU condition met
+        if should_recondition_periodic or should_recondition_iou:
+            self._recondition_masklets(
+                frame_idx,
+                det_out,
+                trk_id_to_max_iou_high_conf_det,
+                tracker_states_local,
+                tracker_metadata_prev,
+                tracker_obj_scores_global,
+            )
 
         # Step 4: Run SAM2 memory encoder on the current frame's prediction masks
         # This is done on all GPUs
@@ -933,7 +1026,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         to_suppress = suppress_i_mask.any(dim=1) | suppress_j_mask.any(dim=0)
 
         # Log for debugging
-        if self.rank == 0 and LOGGER.isEnabledFor(logging.DEBUG) and frame_idx is not None:
+        if self.rank == 0 and logger.isEnabledFor(logging.DEBUG) and frame_idx is not None:
             suppress_i_mask = suppress_i_mask.cpu().numpy()
             suppress_j_mask = suppress_j_mask.cpu().numpy()
             last_occluded = last_occluded.cpu().numpy()
@@ -945,7 +1038,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
             for i in range(batch_size):
                 for j in range(batch_size):
                     if suppress_i_mask[i, j]:
-                        LOGGER.debug(
+                        logger.debug(
                             f"{frame_idx=}: Suppressing obj {obj_ids[i]} last occluded {last_occluded[i]} in favor of {obj_ids[j]} last occluded {last_occluded[j]}"
                         )
 
@@ -953,7 +1046,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
             for i in range(batch_size):
                 for j in range(batch_size):
                     if suppress_j_mask[i, j]:
-                        LOGGER.debug(
+                        logger.debug(
                             f"{frame_idx=}: Suppressing obj {obj_ids[j]} last occluded {last_occluded[j]} in favor of {obj_ids[i]} last occluded {last_occluded[i]}"
                         )
 
@@ -979,7 +1072,6 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
 
             # propagate one frame
             num_frames_propagated = 0
-            # TODO
             for out in self.tracker.propagate_in_video(
                 inference_state,
                 start_frame_idx=frame_idx,
@@ -990,19 +1082,24 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
                 tqdm_disable=True,
                 run_mem_encoder=run_mem_encoder,
             ):
-                _, out_obj_ids, out_low_res_masks, _, out_obj_scores = out
+                out_frame_idx, out_obj_ids, out_low_res_masks, _, out_obj_scores = out
                 num_frames_propagated += 1
 
+            # only 1 frames should be propagated
+            assert num_frames_propagated == 1 and out_frame_idx == frame_idx, (
+                f"num_frames_propagated: {num_frames_propagated}, out_frame_idx: {out_frame_idx}, frame_idx: {frame_idx}"
+            )
             assert isinstance(out_obj_ids, list)
             obj_ids_local.extend(out_obj_ids)
             low_res_masks_list.append(out_low_res_masks.squeeze(1))
             obj_scores_list.append(out_obj_scores.squeeze(1))
 
         # concatenate the output masklets from all local inference states
+        H_mask = W_mask = self.tracker.low_res_mask_size
         if len(low_res_masks_list) > 0:
             low_res_masks_local = torch.cat(low_res_masks_list, dim=0)
             obj_scores_local = torch.cat(obj_scores_list, dim=0)
-            assert low_res_masks_local.shape[1:] == self._bb_feat_sizes[0]
+            assert low_res_masks_local.shape[1:] == (H_mask, W_mask)
 
             # Apply hole filling to the masks
             # NOTE
@@ -1014,7 +1111,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
             # )
             low_res_masks_local = low_res_masks_local.squeeze(1)
         else:
-            low_res_masks_local = torch.zeros(0, *self._bb_feat_sizes[0], device=self.device)
+            low_res_masks_local = torch.zeros(0, H_mask, W_mask, device=self.device)
             obj_scores_local = torch.zeros(0, device=self.device)
 
         return obj_ids_local, low_res_masks_local, obj_scores_local
@@ -1234,7 +1331,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
                 )
                 if is_within_hotstart:
                     obj_ids_newly_removed.add(obj_id)
-                    LOGGER.debug(
+                    logger.debug(
                         f"Removing object {obj_id} at frame {frame_idx} "
                         f"since it is unmatched for frames: {frame_indices}"
                     )
@@ -1244,7 +1341,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
                 and obj_id not in removed_obj_ids
                 and obj_id not in obj_ids_newly_removed
             ):
-                LOGGER.debug(f"Suppressing object {obj_id} at frame {frame_idx}, due to being unmatched")
+                logger.debug(f"Suppressing object {obj_id} at frame {frame_idx}, due to being unmatched")
                 suppressed_obj_ids.add(obj_id)
 
         # Step 3: removed tracks that overlaps with another track for `hotstart_dup_thresh` frames
@@ -1274,7 +1371,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
             ):
                 if len(frame_indices) >= self.hotstart_dup_thresh:
                     obj_ids_newly_removed.add(obj_id)
-                    LOGGER.debug(
+                    logger.debug(
                         f"Removing object {obj_id} at frame {frame_idx} "
                         f"since it overlaps with another track {first_obj_id} at frames: {frame_indices}"
                     )
@@ -1294,15 +1391,18 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         """
         if len(tracker_inference_states) == 0:
             return
+        # Avoid an extra interpolation step by directly interpolating to `interpol_size`
+        high_res_H, high_res_W = self.tracker.memory_encoder.mask_downsampler.interpol_size
+        # NOTE: inspect this part if we observe OOMs in the demo
         high_res_masks = F.interpolate(
             low_res_masks.unsqueeze(1),
-            size=self.tracker.memory_encoder.mask_downsampler.interpol_size,
+            size=(high_res_H, high_res_W),
             mode="bilinear",
             align_corners=False,
         )
         # We first apply non-overlapping constraints before memory encoding. This may include some suppression heuristics.
         if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
-            high_res_masks = self._suppress_object_pw_area_shrinkage(high_res_masks)
+            high_res_masks = self.tracker._suppress_object_pw_area_shrinkage(high_res_masks)
         # Instead of gathering the predicted object scores, we use mask areas as a proxy.
         object_score_logits = torch.where((high_res_masks > 0).any(dim=(-1, -2)), 10.0, -10.0)
 
@@ -1320,12 +1420,12 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
             local_batch_size = local_high_res_masks.size(0)
             # Run Sam2 memory encoder. Note that we do not re-enforce the non-overlapping constraint as it is turned off by default
 
-            # TODO: init_state
-            encoded_mem = self._run_memory_encoder(
-                inference_state=tracker_state,
-                batch_size=local_batch_size,
-                high_res_masks=local_high_res_masks,
-                object_score_logits=local_object_score_logits,
+            encoded_mem = self.tracker._run_memory_encoder(
+                tracker_state,
+                frame_idx,
+                local_batch_size,
+                local_high_res_masks,
+                local_object_score_logits,
                 is_mask_from_pts=False,
             )
             local_maskmem_features, local_maskmem_pos_enc = encoded_mem
@@ -1338,7 +1438,7 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
                 output_dict[storage_key][frame_idx]["maskmem_pos_enc"] = [pos for pos in local_maskmem_pos_enc]
                 # for batched inference state, we also need to add per-object
                 # memory slides to support instance interactivity
-                self._add_output_per_object(
+                self.tracker._add_output_per_object(
                     inference_state=tracker_state,
                     frame_idx=frame_idx,
                     current_out=output_dict[storage_key][frame_idx],
@@ -1363,7 +1463,6 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         # prepare inference_state
         # batch objects that first appear on the same frame together
         # Clear inference state. Keep the cached image features if available.
-        # TODO
         new_tracker_state = self.tracker.init_state(
             cached_features=feature_cache,
             video_height=orig_vid_height,
@@ -1376,9 +1475,10 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
 
         assert len(new_obj_ids) == new_obj_masks.size(0)
         assert new_obj_masks.is_floating_point()
+        input_mask_res = self.tracker.input_mask_size
         new_obj_masks = F.interpolate(
             new_obj_masks.unsqueeze(1),
-            size=self.imgsz,
+            size=(input_mask_res, input_mask_res),
             mode="bilinear",
             align_corners=False,
         ).squeeze(1)
@@ -1386,14 +1486,15 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
 
         # add object one by one
         for new_obj_id, new_mask in zip(new_obj_ids, new_obj_masks):
-            self.add_new_prompts(
+            self.tracker.add_new_mask(
                 inference_state=new_tracker_state,
                 frame_idx=frame_idx,
                 obj_id=new_obj_id,
                 mask=new_mask,
+                add_mask_to_memory=True,
             )
         # NOTE: we skip enforcing the non-overlapping constraint **globally** when adding new objects.
-        self.propagate_in_video_preflight(new_tracker_state)
+        self.tracker.propagate_in_video_preflight(new_tracker_state, run_mem_encoder=True)
         tracker_states_local.append(new_tracker_state)
         return tracker_states_local
 
@@ -1407,7 +1508,9 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         for tracker_inference_state in tracker_states_local_before_removal:
             # we try to remove `obj_id` on every inference state with `strict=False`
             # it will not do anything if an inference state doesn't contain `obj_id`
-            new_obj_ids, _ = self.remove_object(tracker_inference_state, obj_id, strict=False)
+            new_obj_ids, _ = self.tracker.remove_object(
+                tracker_inference_state, obj_id, strict=False, need_output=False
+            )
             # only keep an inference state if it's non-empty after object removal
             if len(new_obj_ids) > 0:
                 tracker_states_local.append(tracker_inference_state)
@@ -1511,9 +1614,9 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         sd = torch.load(ckpt_path, map_location="cpu", weights_only=True)["model"]
         missing_keys, unexpected_keys = self.load_state_dict(sd, strict=strict)
         if len(missing_keys) > 0 or len(unexpected_keys) > 0:
-            LOGGER.warning(f"Loaded ckpt with {missing_keys=}, {unexpected_keys=}")
+            logger.warning(f"Loaded ckpt with {missing_keys=}, {unexpected_keys=}")
         else:
-            LOGGER.info("Loaded ckpt successfully without missing or unexpected keys")
+            logger.info("Loaded ckpt successfully without missing or unexpected keys")
 
     def _encode_prompt(self, **kwargs):
         return self.detector._encode_prompt(**kwargs)
@@ -1533,26 +1636,3 @@ class SAM3VideoSemanticPredictor(SAM2VideoPredictor):
         score_order = np.argsort(det_scores_np[new_det_fa_inds])[::-1]
         new_det_fa_inds = new_det_fa_inds[score_order[:num_to_keep]]
         return new_det_fa_inds
-
-    def _suppress_shrinked_masks(self, pred_masks, new_pred_masks, shrink_threshold=0.3):
-        """Suppress masks that shrink in area after applying pixelwise non-overlapping constriants."""
-        area_before = (pred_masks > 0).sum(dim=(-1, -2))
-        area_after = (new_pred_masks > 0).sum(dim=(-1, -2))
-        area_before = torch.clamp(area_before, min=1.0)
-        area_ratio = area_after / area_before
-        keep = area_ratio >= shrink_threshold
-        keep_mask = keep[..., None, None].expand_as(pred_masks)
-        pred_masks_after = torch.where(keep_mask, pred_masks, torch.clamp(pred_masks, max=-10.0))
-        return pred_masks_after
-
-    def _suppress_object_pw_area_shrinkage(self, pred_masks):
-        """
-        This function suppresses masks that shrink in area after applying pixelwise non-overlapping constriants.
-        Note that the final output can still be overlapping.
-        """
-        # Apply pixel-wise non-overlapping constraint based on mask scores
-        pixel_level_non_overlapping_masks = super()._apply_non_overlapping_constraints(pred_masks)
-        # Fully suppress masks with high shrinkage (probably noisy) based on the pixel wise non-overlapping constraints
-        # NOTE: The output of this function can be a no op if none of the masks shrinked by a large factor.
-        pred_masks = self._suppress_shrinked_masks(pred_masks, pixel_level_non_overlapping_masks)
-        return pred_masks

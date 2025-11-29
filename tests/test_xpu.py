@@ -10,6 +10,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_yolo_xpu_forward():
+    """Test that YOLO forward works on Intel XPU."""
     model = YOLO("yolo11n.pt")
     model.to("xpu")
     x = torch.rand(1, 3, 64, 64, device="xpu")

@@ -1647,8 +1647,3 @@ class Sam3VideoBase(nn.Module):
         score_order = np.argsort(det_scores_np[new_det_fa_inds])[::-1]
         new_det_fa_inds = new_det_fa_inds[score_order[:num_to_keep]]
         return new_det_fa_inds
-
-    @property
-    def device(self):
-        self._device = getattr(self, "_device", None) or next(self.parameters()).device
-        return self._device

@@ -126,12 +126,15 @@ def get_cpu_info():
 @functools.lru_cache
 def get_gpu_info(index):
     """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
-    if hasattr(torch, "xpu") and torch.xpu.is_available():
-        properties = torch.xpu.get_device_properties(index)
-        return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
     properties = torch.cuda.get_device_properties(index)
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
+@functools.lru_cache
+def get_xpu_info(index):
+    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        properties = torch.xpu.get_device_properties(index)
+        return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 def select_device(device="", newline=False, verbose=True):
     """Select the appropriate PyTorch device based on the provided arguments.
@@ -187,7 +190,7 @@ def select_device(device="", newline=False, verbose=True):
         parts = device.split(":")
         index = int(parts[1]) if len(parts) > 1 else 0
         if verbose:
-            info = get_gpu_info(index)
+            info = get_xpu_info(index)
             s += f"XPU:{index} ({info})\n"
             LOGGER.info(s if newline else s.rstrip())
         return torch.device("xpu", index)

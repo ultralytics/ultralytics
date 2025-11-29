@@ -183,19 +183,14 @@ def select_device(device="", newline=False, verbose=True):
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
-    if hasattr(torch, "xpu") and torch.xpu.is_available():
-        if device.startswith("xpu"):
-            index = int(device.split(":")[1]) if ":" in device else 0
-        elif device in {"", "0"}:
-            index = 0
-        else:
-            index = None
-        if index is not None:
-            if verbose:
-                info = get_gpu_info(index)
-                s += f"XPU:{index} ({info})\n"
-                LOGGER.info(s if newline else s.rstrip())
-            return torch.device("xpu", index)
+    elif device.startswith("xpu"):  # Intel XPU
+        parts = device.split(":")
+        index = int(parts[1]) if len(parts) > 1 else 0
+        if verbose:
+            info = get_gpu_info(index)
+            s += f"XPU:{index} ({info})\n"
+            LOGGER.info(s if newline else s.rstrip())
+        return torch.device("xpu", index)
     elif device:  # non-cpu device requested
         if device == "cuda":
             device = "0"

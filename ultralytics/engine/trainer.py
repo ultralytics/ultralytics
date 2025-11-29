@@ -544,7 +544,7 @@ class BaseTrainer:
             memory = torch.mps.driver_allocated_memory()
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
-        elif self.device.type != "cpu" and hasattr(torch, "xpu") and torch.xpu.is_available():
+        elif self.device.type != "cpu" and self.device.type == "xpu":
             memory = torch.xpu.memory_allocated(self.device)
             total = torch.xpu.get_device_properties(self.device).total_memory
             return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
@@ -565,7 +565,7 @@ class BaseTrainer:
             torch.mps.empty_cache()
         elif self.device.type == "cpu":
             return
-        elif hasattr(torch, "xpu") and torch.xpu.is_available():
+        elif self.device.type == "xpu":
             torch.xpu.empty_cache()
         else:
             torch.cuda.empty_cache()

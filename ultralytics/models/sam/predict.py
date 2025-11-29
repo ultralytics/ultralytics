@@ -1977,7 +1977,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         self.bpe_path = bpe_path
 
     def get_model(self):
-        """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
+        """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
         from .build_sam3 import build_sam3_image_model  # slow import
 
         return build_sam3_image_model(self.args.model, bpe_path=self.bpe_path)

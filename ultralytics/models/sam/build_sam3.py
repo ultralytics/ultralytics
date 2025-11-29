@@ -315,7 +315,7 @@ def build_sam3_image_model(
     return model
 
 
-def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model:
+def build_interactive_sam3(checkpoint_path: str, compile_mode=None, with_backbone=True) -> SAM3Model:
     """
     Build the SAM3 Tracker module for video tracking.
 
@@ -356,7 +356,11 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None) -> SAM3Model
         num_layers=4,
     )
 
-    backbone = SAM3VLBackbone(scalp=1, visual=_create_vision_backbone(compile_mode=compile_mode), text=None)
+    backbone = (
+        SAM3VLBackbone(scalp=1, visual=_create_vision_backbone(compile_mode=compile_mode), text=None)
+        if with_backbone
+        else None
+    )
     model = SAM3Model(
         image_size=1008,
         image_encoder=backbone,
@@ -651,7 +655,7 @@ def build_sam3_video_model(
         # ckpt = {k: v for k, v in ckpt.items() if "tracker" not in k}
         missing_keys, unexpected_keys = model.load_state_dict(ckpt, strict=strict_state_dict_loading)
         # if missing_keys:
-            # print(f"Missing keys: {missing_keys}")
+        # print(f"Missing keys: {missing_keys}")
         # if unexpected_keys:
         # print(f"Unexpected keys: {unexpected_keys}")
     model.eval()

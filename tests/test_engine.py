@@ -3,6 +3,7 @@
 import sys
 from unittest import mock
 
+import pytest
 import torch
 
 from tests import MODEL
@@ -155,3 +156,15 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+
+
+@pytest.mark.skipif(
+    not hasattr(torch.backends, "mps") or not torch.backends.mps.is_available(),
+    reason="MPS not available",
+)
+def test_train_mps_memory_cleanup():
+    """Test that MPS memory is cleaned up after training by checking if torch.mps.empty_cache is called."""
+    model = YOLO("yolo11n.pt")
+    with mock.patch("torch.mps.empty_cache") as empty_cache:
+        model.train(data="coco8.yaml", epochs=1, imgsz=32, device="mps")
+        assert empty_cache.called

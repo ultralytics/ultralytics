@@ -428,6 +428,8 @@ class BaseTrainer:
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= self.world_size
+                    if isinstance(self.loss_items, torch.Tensor):
+                        self.loss_items = self.loss_items.detach()
                     self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
 
                 # Backward
@@ -435,6 +437,15 @@ class BaseTrainer:
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni
+
+                    # MPS-specific memory cleanup after optimizer step
+                    if self.device.type == "mps":
+                        torch.mps.synchronize()  # Ensure all operations complete before cleanup
+                        torch.mps.empty_cache()
+                        # More aggressive GC in early epochs to prevent initial memory buildup
+                        gc_interval = 1 if epoch < 5 else (5 if epoch < 10 else 10)
+                        if (ni + 1) % gc_interval == 0:
+                            gc.collect()
 
                     # Timed stopping
                     if self.args.time:
@@ -464,6 +475,15 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
+
+                # MPS-specific: Clear batch data to prevent accumulation
+                # More aggressive cleanup in early epochs
+                if self.device.type == "mps":
+                    batch_interval = 1 if nb < 5 else (5 if nb < 25 else 25)
+                    if (i + 1) % batch_interval == 0:
+                        gc.collect()
+                        torch.mps.synchronize()  # Ensure all operations complete before cleanup
+                        torch.mps.empty_cache()
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
 

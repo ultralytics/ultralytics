@@ -12,6 +12,7 @@ from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.metrics import OBBMetrics, batch_probiou
 from ultralytics.utils.nms import TorchNMS
+from ultralytics.utils.plotting import plot_images
 
 
 class OBBValidator(DetectionValidator):
@@ -141,24 +142,34 @@ class OBBValidator(DetectionValidator):
             "im_file": batch["im_file"][si],
         }
 
-    def plot_predictions(self, batch: dict[str, Any], preds: list[torch.Tensor], ni: int) -> None:
+    def plot_predictions(self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int) -> None:
         """Plot predicted bounding boxes on input images and save the result.
 
         Args:
             batch (dict[str, Any]): Batch data containing images, file paths, and other metadata.
-            preds (list[torch.Tensor]): List of prediction tensors for each image in the batch.
+            preds (list[dict[str, torch.Tensor]]): List of prediction dictionaries for each image in the batch.
             ni (int): Batch index used for naming the output file.
 
         Examples:
             >>> validator = OBBValidator()
             >>> batch = {"img": images, "im_file": paths}
-            >>> preds = [torch.rand(10, 7)]  # Example predictions for one image
+            >>> preds = [{"bboxes": torch.rand(10, 5), "cls": torch.zeros(10), "conf": torch.rand(10)}]
             >>> validator.plot_predictions(batch, preds, 0)
         """
-        for p in preds:
-            # TODO: fix this duplicated `xywh2xyxy`
-            p["bboxes"][:, :4] = ops.xywh2xyxy(p["bboxes"][:, :4])  # convert to xyxy format for plotting
-        super().plot_predictions(batch, preds, ni)  # plot bboxes
+        if not preds:
+            return
+        for i, pred in enumerate(preds):
+            pred["batch_idx"] = torch.ones_like(pred["conf"]) * i
+        keys = preds[0].keys()
+        batched_preds = {k: torch.cat([x[k] for x in preds], dim=0) for k in keys}
+        plot_images(
+            images=batch["img"],
+            labels=batched_preds,
+            paths=batch["im_file"],
+            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )
 
     def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
         """Convert YOLO predictions to COCO JSON format with rotated bounding box information.

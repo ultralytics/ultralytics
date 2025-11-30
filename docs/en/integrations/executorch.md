@@ -156,6 +156,7 @@ import java.io.FileOutputStream
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
 import org.pytorch.executorch.Tensor
+import org.pytorch.torchvision.TensorImageUtils  
 // ...
 
 fun runObjectDetection() {
@@ -175,8 +176,8 @@ fun runObjectDetection() {
     val module = Module.load(outputFile.absolutePath)
 
     // Get our data from an image in the app package.
-    val inputStream = assets.open("bus.jpg")
-    val bitmap = BitmapFactory.decodeStream(inputStream)
+    val bitmap = assets.open("bus.jpg").use { inputStream ->
+            BitmapFactory.decodeStream(inputStream)
     val resizedBitmap = bitmap.scale(640, 640, false)
 
     // Prepare input tensor.

@@ -462,7 +462,7 @@ Note: During the first export, ExecuTorch will download and compile necessary co
 
 ### Can I run inference with ExecuTorch models directly in Python?
 
-ExecuTorch models (`.pte` files) are designed for deployment on mobile and edge devices using the ExecuTorch runtime. They cannot be directly loaded with `YOLO()` for inference in Python. You need to integrate them into your target application using the ExecuTorch runtime libraries.
+ExecuTorch models (`.pte` files) are designed for deployment on mobile and edge devices using the ExecuTorch runtime. You typically don't use the models directly in Python on your computer. You need to integrate them into your target application using the ExecuTorch runtime libraries.
 
 ### What platforms are supported by ExecuTorch?
 

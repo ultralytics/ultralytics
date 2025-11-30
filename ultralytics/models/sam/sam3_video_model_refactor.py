@@ -235,10 +235,11 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             feature_cache=feature_cache,
             allow_new_detections=allow_new_detections,
         )
+        self.tracker.backbone_out = feature_cache[frame_idx][1]["tracker_backbone_out"]
         
         # TODO: update `im` for SAM2VideoPredictor, need to be fixed
-        for inference_state in tracker_states_local:
-            inference_state["im"] = feature_cache[frame_idx][0].unsqueeze(0)
+        # for inference_state in tracker_states_local:
+        #     inference_state["im"] = feature_cache[frame_idx][0].unsqueeze(0)
 
         # Step 2: each GPU propagates its local SAM2 states to get the SAM2 prediction masks.
         # the returned `tracker_low_res_masks_global` contains the concatenated masklet predictions
@@ -1449,6 +1450,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # batch objects that first appear on the same frame together
         # Clear inference state. Keep the cached image features if available.
         new_tracker_state = self.tracker._init_state(num_frames=num_frames)
+        # TODO: adding image placeholder
         new_tracker_state["im"] = feature_cache[frame_idx][0].unsqueeze(0)
         new_tracker_state["backbone_out"] = (
             prev_tracker_state.get("backbone_out", None) if prev_tracker_state is not None else None

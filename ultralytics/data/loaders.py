@@ -349,6 +349,7 @@ class LoadImagesAndVideos:
             vid_stride (int): Video frame-rate stride.
             channels (int): Number of image channels (1 for grayscale, 3 for RGB).
         """
+        self.root = Path(path).resolve()
         parent = None
         if isinstance(path, str) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
             parent, content = Path(path).parent, Path(path).read_text()
@@ -515,6 +516,7 @@ class LoadPilAndNumpy:
             im0 (PIL.Image.Image | np.ndarray | list): Single image or list of images in PIL or numpy format.
             channels (int): Number of image channels (1 for grayscale, 3 for RGB).
         """
+        self.root = None
         if not isinstance(im0, list):
             im0 = [im0]
         # use `image{i}.jpg` when Image.filename returns an empty path.

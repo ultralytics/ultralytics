@@ -589,6 +589,7 @@ class AutoBackend(nn.Module):
                 w = next(w.rglob("*.axm"))  # get *.axm file from *_axelera_model dir
 
             ax_model = op.load(str(w))
+            metadata = w.parent / "metadata.yaml"
 
         # ExecuTorch
         elif pte:

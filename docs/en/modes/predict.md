@@ -553,17 +553,18 @@ You can reconstruct each instance mask by linearly combining the mask coefficien
 ```python
 import numpy as np
 
+
 def decode_yolo_detection(pred, conf_thres=0.25):
     # If the model output has a batch dimension, select the first image:
     # pred = output[0]  # output shape: [batch, channels, num_preds]
 
     # pred shape after selecting the batch: [4 + num_classes, num_preds]
-    boxes = pred[:4]                      # xywh
-    scores = pred[4:]                     # objectness + class scores
+    boxes = pred[:4]  # xywh
+    scores = pred[4:]  # objectness + class scores
 
     obj = scores[0:1]
     cls = scores[1:]
-    cls_conf = cls * obj                  # final class confidence
+    cls_conf = cls * obj  # final class confidence
 
     class_ids = cls_conf.argmax(axis=0)
     conf = cls_conf[class_ids, np.arange(cls_conf.shape[1])]
@@ -572,8 +573,8 @@ def decode_yolo_detection(pred, conf_thres=0.25):
     x, y, w, h = boxes[:, keep]
 
     # Convert xywh → xyxy
-    x1, y1 = x - w/2, y - h/2
-    x2, y2 = x + w/2, y + h/2
+    x1, y1 = x - w / 2, y - h / 2
+    x2, y2 = x + w / 2, y + h / 2
 
     return np.vstack([x1, y1, x2, y2]).T, conf[keep], class_ids[keep]
 ```

@@ -10,7 +10,7 @@
       return 0;
     }
 
-    const value = parseFloat(t[1].replace(/[^\-?0-9.]/g, ""));
+    const value = Number.parseFloat(t[1].replace(/[^\-?0-9.]/g, ""));
     const unit = t[3].toLowerCase();
     const base = unit[1] === "i" ? 1024 : 1e3;
     const powers = { k: 2, m: 3, g: 4, t: 5, p: 6, e: 7, z: 8, y: 9 };
@@ -38,8 +38,8 @@ Tablesort.extend(
     r = r.split(".");
 
     for (let i = 0, s = t.length; i < s; i++) {
-      const e = parseInt(t[i], 10);
-      const n = parseInt(r[i], 10);
+      const e = Number.parseInt(t[i], 10);
+      const n = Number.parseInt(r[i], 10);
 
       if (e !== n) {
         return n < e ? -1 : 1;
@@ -56,7 +56,7 @@ Tablesort.extend(
       .split("±")[0]
       .trim()
       .replace(/[^\-?0-9.]/g, "");
-  const compareNumber = (a, b) => (parseFloat(a) || 0) - (parseFloat(b) || 0);
+  const compareNumber = (a, b) => (Number.parseFloat(a) || 0) - (Number.parseFloat(b) || 0);
 
   Tablesort.extend(
     "number",

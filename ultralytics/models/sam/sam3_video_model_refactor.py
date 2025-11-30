@@ -487,7 +487,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             new_mask_binary = (
                 F.interpolate(
                     new_mask.unsqueeze(1),
-                    size=self._bb_feat_sizes[0],
+                    size=self.tracker.imgsz,
                     mode="bilinear",
                     align_corners=False,
                 ).squeeze(1)[0]
@@ -507,7 +507,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     LOGGER.debug(
                         f"Adding new mask for track {trk_obj_id} at frame {frame_idx}. Objects {inference_state['obj_ids']} are all reconditioned."
                     )
-                    self.tracker.add_new_mask(
+                    self.tracker.add_new_prompts(
                         inference_state=inference_state,
                         frame_idx=frame_idx,
                         obj_id=trk_obj_id,
@@ -516,7 +516,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     reconditioned_states_idx.add(state_idx)
 
             for idx in reconditioned_states_idx:
-                self.tracker.propagate_in_video_preflight(tracker_states_local[idx], run_mem_encoder=True)
+                self.tracker.propagate_in_video_preflight(tracker_states_local[idx])
         return tracker_states_local
 
     def run_tracker_update_planning_phase(
@@ -1399,6 +1399,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             align_corners=False,
         )
         # We first apply non-overlapping constraints before memory encoding. This may include some suppression heuristics.
+        # TODO
         if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
             high_res_masks = self.tracker._suppress_object_pw_area_shrinkage(high_res_masks)
         # Instead of gathering the predicted object scores, we use mask areas as a proxy.
@@ -1419,12 +1420,11 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             # Run Sam2 memory encoder. Note that we do not re-enforce the non-overlapping constraint as it is turned off by default
 
             encoded_mem = self.tracker._run_memory_encoder(
-                tracker_state,
-                frame_idx,
                 local_batch_size,
                 local_high_res_masks,
                 local_object_score_logits,
                 is_mask_from_pts=False,
+                inference_state=tracker_state,
             )
             local_maskmem_features, local_maskmem_pos_enc = encoded_mem
             # Store encoded memories in the local inference state
@@ -1461,12 +1461,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # prepare inference_state
         # batch objects that first appear on the same frame together
         # Clear inference state. Keep the cached image features if available.
-        new_tracker_state = self.tracker.init_state(
-            cached_features=feature_cache,
-            video_height=orig_vid_height,
-            video_width=orig_vid_width,
-            num_frames=num_frames,
-        )
+        new_tracker_state = self.tracker._init_state(num_frames=num_frames)
         new_tracker_state["backbone_out"] = (
             prev_tracker_state.get("backbone_out", None) if prev_tracker_state is not None else None
         )
@@ -1475,7 +1470,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         assert new_obj_masks.is_floating_point()
         new_obj_masks = F.interpolate(
             new_obj_masks.unsqueeze(1),
-            size=self._bb_feat_sizes[0],
+            size=self.imgsz,
             mode="bilinear",
             align_corners=False,
         ).squeeze(1)
@@ -1483,15 +1478,14 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # add object one by one
         for new_obj_id, new_mask in zip(new_obj_ids, new_obj_masks):
-            self.tracker.add_new_mask(
+            self.tracker.add_new_prompts(
                 inference_state=new_tracker_state,
                 frame_idx=frame_idx,
                 obj_id=new_obj_id,
                 mask=new_mask,
-                add_mask_to_memory=True,
             )
         # NOTE: we skip enforcing the non-overlapping constraint **globally** when adding new objects.
-        self.tracker.propagate_in_video_preflight(new_tracker_state, run_mem_encoder=True)
+        self.tracker.propagate_in_video_preflight(new_tracker_state)
         tracker_states_local.append(new_tracker_state)
         return tracker_states_local
 
@@ -1505,9 +1499,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         for tracker_inference_state in tracker_states_local_before_removal:
             # we try to remove `obj_id` on every inference state with `strict=False`
             # it will not do anything if an inference state doesn't contain `obj_id`
-            new_obj_ids, _ = self.tracker.remove_object(
-                tracker_inference_state, obj_id, strict=False, need_output=False
-            )
+            new_obj_ids, _ = self.tracker.remove_object(tracker_inference_state, obj_id, strict=False)
             # only keep an inference state if it's non-empty after object removal
             if len(new_obj_ids) > 0:
                 tracker_states_local.append(tracker_inference_state)

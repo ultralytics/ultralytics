@@ -69,6 +69,19 @@ class RTDETRDataset(YOLODataset):
         """
         return super().load_image(i=i, rect_mode=rect_mode)
 
+    def get_image_and_label(self, index):
+        """Get and return label information from the dataset.
+
+        Args:
+            index (int): Index of the image to retrieve.
+
+        Returns:
+            (dict[str, Any]): Label dictionary with image and metadata.
+        """
+        labels = super().get_image_and_label(index)
+        labels["ratio_pad"] = [labels["ratio_pad"], [0, 0]]
+        return labels
+
     def build_transforms(self, hyp=None):
         """Build transformation pipeline for the dataset.
 
@@ -85,7 +98,7 @@ class RTDETRDataset(YOLODataset):
             transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
         else:
             # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
-            transforms = Compose([lambda x: {**x, **{"ratio_pad": [x["ratio_pad"], [0, 0]]}}])
+            transforms = Compose([])
         transforms.append(
             Format(
                 bbox_format="xywh",

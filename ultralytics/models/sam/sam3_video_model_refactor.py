@@ -98,7 +98,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         cfg=DEFAULT_CFG,
         overrides=None,
         _callbacks=None,
-        bpe_path=None,
+        bpe_path="runs/bpe_simple_vocab_16e6.txt.gz",
         # prob threshold for detection outputs -- only keep detections above this threshold
         # enters NMS and det-to-track matching
         score_threshold_detection=0.5,
@@ -141,6 +141,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         reconstruction_bbox_iou_thresh=0.0,
         reconstruction_bbox_det_score=0.0,
     ):
+        overrides = overrides or dict(imgsz=1008, model="sam3.pt", half=True)
         super().__init__(cfg, overrides, _callbacks, bpe_path=bpe_path)
         self.score_threshold_detection = score_threshold_detection
         self.det_nms_thresh = det_nms_thresh
@@ -187,6 +188,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # build SAM3 tracker
         self.tracker = SAM3VideoPredictor(overrides=overrides)
+        self.setup_model()
 
     def _det_track_one_frame(
         self,
@@ -351,7 +353,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 1: if text feature is not cached in `feature_cache`, compute and cache it
         text_batch_key = tuple(input_batch.find_text_batch)
         if "text" not in feature_cache or text_batch_key not in feature_cache["text"]:
-            text_outputs = self.detector.backbone.forward_text(input_batch.find_text_batch)
+            text_outputs = self.model.backbone.forward_text(input_batch.find_text_batch)
             # note: we only cache the text feature of the most recent prompt
             feature_cache["text"] = {text_batch_key: text_outputs}
         else:
@@ -368,7 +370,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         max_frame_num_to_track = tracking_bounds.get("max_frame_num_to_track")
         start_frame_idx = tracking_bounds.get("propagate_in_video_start_frame_idx")
 
-        sam3_image_out, _ = self.detector.forward_video_grounding_multigpu(
+        sam3_image_out, _ = self.model.forward_video_grounding_multigpu(
             backbone_out={
                 "img_batch_all_stages": input_batch.img_batch,
                 **text_outputs,
@@ -1069,25 +1071,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             if len(inference_state["obj_ids"]) == 0:
                 continue  # skip propagation on empty inference states
 
-            # propagate one frame
-            num_frames_propagated = 0
-            # TODO
-            for out in self.tracker.propagate_in_video(
-                inference_state,
-                start_frame_idx=frame_idx,
-                # end_frame_idx = start_frame_idx + max_frame_num_to_track
-                # (i.e. propagating 1 frame since end_frame_idx is inclusive)
-                max_frame_num_to_track=0,
-                reverse=reverse,
-                tqdm_disable=True,
-                run_mem_encoder=run_mem_encoder,
-            ):
-                out_frame_idx, out_obj_ids, out_low_res_masks, _, out_obj_scores = out
-                num_frames_propagated += 1
-
-            # only 1 frames should be propagated
-            assert num_frames_propagated == 1 and out_frame_idx == frame_idx, (
-                f"num_frames_propagated: {num_frames_propagated}, out_frame_idx: {out_frame_idx}, frame_idx: {frame_idx}"
+            out_obj_ids, out_low_res_masks, out_obj_scores = self.tracker.propagate_in_video(
+                inference_state, frame_idx=frame_idx
             )
             assert isinstance(out_obj_ids, list)
             obj_ids_local.extend(out_obj_ids)
@@ -1462,6 +1447,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # batch objects that first appear on the same frame together
         # Clear inference state. Keep the cached image features if available.
         new_tracker_state = self.tracker._init_state(num_frames=num_frames)
+        new_tracker_state["im"] = feature_cache[frame_idx][0].unsqueeze(0)
         new_tracker_state["backbone_out"] = (
             prev_tracker_state.get("backbone_out", None) if prev_tracker_state is not None else None
         )
@@ -1608,7 +1594,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             LOGGER.info("Loaded ckpt successfully without missing or unexpected keys")
 
     def _encode_prompt(self, **kwargs):
-        return self.detector._encode_prompt(**kwargs)
+        return self.model._encode_prompt(**kwargs)
 
     def _drop_new_det_with_obj_limit(self, new_det_fa_inds, det_scores_np, num_to_keep):
         """

@@ -460,6 +460,10 @@ nav:
               - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
               - Comet Logging: yolov5/tutorials/comet_logging_integration.md
               - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
+      - Model Optimization:
+          - guides/model-optimization/index.md
+          - Pruning: guides/model-optimization/pruning.md
+
   - Integrations:
       - Integrations: integrations/index.md
       - SONY IMX500: integrations/sony-imx500.md

@@ -1320,6 +1320,7 @@ class SettingsManager(JSONDict):
             "wandb": False,  # Weights & Biases logging
             "vscode_msg": True,  # VSCode message
             "openvino_msg": True,  # OpenVINO export on Intel CPU message
+            "yaml_exec": False,  # Allow YAML code execution
         }
 
         self.help_msg = (

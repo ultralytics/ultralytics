@@ -1179,9 +1179,21 @@ class SAM2VideoPredictor(SAM2Predictor):
             return
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
+        predictor.inference_state = predictor._init_state(predictor.dataset.frames)
 
+    @staticmethod
+    def _init_state(num_frames):
+        """Initialize an inference state.
+
+        This function sets up the initial state required for performing inference on video data. It includes
+        initializing various dictionaries and ordered dictionaries that will store inputs, outputs, and other metadata
+        relevant to the tracking process.
+
+        Args:
+            num_frames (int): The number of frames in the video.
+        """
         inference_state = {
-            "num_frames": predictor.dataset.frames,
+            "num_frames": num_frames,  # TODO: see if there's any chance to remove it
             "point_inputs_per_obj": {},  # inputs points on each frame
             "mask_inputs_per_obj": {},  # inputs mask on each frame
             "constants": {},  # values that don't change across frames (so we only need to hold one copy of them)
@@ -1209,7 +1221,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             "tracking_has_started": False,
             "frames_already_tracked": [],
         }
-        predictor.inference_state = inference_state
+        return inference_state
 
     def get_im_features(self, im, batch=1):
         """Extract and process image features using SAM2's image encoder for subsequent segmentation tasks.

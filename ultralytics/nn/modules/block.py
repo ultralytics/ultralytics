@@ -45,6 +45,7 @@ __all__ = (
     "HGBlock",
     "HGStem",
     "ImagePoolingAttn",
+    "NeckMoERouter",
     "Proto",
     "RepC3",
     "RepNCSPELAN4",
@@ -1943,3 +1944,137 @@ class SAVPE(nn.Module):
         aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
 
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
+
+
+class NeckMoERouter(nn.Module):
+    """Neck-level MoE Router for early feature selection in multi-scale detection.
+
+    This module performs dynamic routing at the neck stage (before detection heads), selecting the top-k most relevant
+    feature scales based on a gating network. This reduces computation in both the neck and head modules.
+
+    Attributes:
+        nl (int): Number of feature levels (P2-P6).
+        top_k (int): Number of top features to select and process.
+        gate_net (nn.Module): Gating network for computing routing scores.
+        size_bias (torch.Tensor): Learnable bias to guide size-based routing.
+        aux_loss_weight (float): Weight for load balancing auxiliary loss.
+
+    Methods:
+        forward: Route input features and return selected top-k features.
+        compute_gate_scores: Compute routing scores for each feature level.
+
+    Examples:
+        Add router in neck
+        >>> router = NeckMoERouter(ch=(128, 256, 512, 768, 1024), top_k=3)
+        >>> x_in = [torch.randn(2, 128, 160, 160), torch.randn(2, 256, 80, 80), ...]
+        >>> x_out, indices = router(x_in)  # Returns top-3 selected features
+    """
+
+    def __init__(self, ch: tuple = (), top_k: int = 3, aux_loss_weight: float = 0.01):
+        """Initialize NeckMoERouter with gating network.
+
+        Args:
+            ch (tuple): Tuple of channel sizes from backbone/neck feature maps.
+            top_k (int): Number of feature levels to route to (default: 3).
+            aux_loss_weight (float): Weight for auxiliary load balancing loss.
+        """
+        super().__init__()
+        self.nl = len(ch)
+        self.ch = ch
+        self.top_k = min(top_k, self.nl)
+        self.aux_loss_weight = aux_loss_weight
+
+        # Gating network for computing routing scores
+        gate_hidden = 256
+        self.gate_net = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(sum(ch), gate_hidden, 1),
+            nn.BatchNorm2d(gate_hidden),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(gate_hidden, self.nl, 1),
+        )
+
+        # Size bias: encourage small features (P2/P3) for small objects, large (P5/P6) for large
+        self.register_buffer("size_bias", torch.linspace(-2.0, 2.0, self.nl))
+
+    def compute_gate_scores(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Compute routing scores for each feature level.
+
+        Args:
+            x (list[torch.Tensor]): List of feature maps from different levels.
+
+        Returns:
+            gate_scores (torch.Tensor): Raw routing scores [B, nl].
+            gate_probs (torch.Tensor): Normalized routing probabilities [B, nl].
+        """
+        # Upsample all features to the same size (use largest feature size)
+        target_size = x[0].shape[2:]
+        x_upsampled = []
+        for feat in x:
+            if feat.shape[2:] != target_size:
+                feat = F.interpolate(feat, size=target_size, mode="bilinear", align_corners=False)
+            x_upsampled.append(feat)
+
+        # Concatenate and compute gate scores
+        x_cat = torch.cat(x_upsampled, dim=1)
+        gate_scores = self.gate_net(x_cat).squeeze(-1).squeeze(-1)
+
+        # Apply size bias
+        gate_scores = gate_scores + self.size_bias.unsqueeze(0)
+
+        # Softmax for probabilities
+        gate_probs = F.softmax(gate_scores, dim=1)
+
+        return gate_scores, gate_probs
+
+    def compute_load_balancing_loss(self, gate_probs: torch.Tensor) -> torch.Tensor:
+        """Compute load balancing auxiliary loss.
+
+        Args:
+            gate_probs (torch.Tensor): Routing probabilities [B, nl].
+
+        Returns:
+            (torch.Tensor): Load balancing loss scalar.
+        """
+        expert_usage = gate_probs.mean(dim=0)
+        uniform_target = 1.0 / self.nl
+        load_loss = ((expert_usage - uniform_target) ** 2).sum()
+        return load_loss
+
+    def forward(self, x: list[torch.Tensor]) -> tuple[list[torch.Tensor], torch.Tensor] | list[torch.Tensor]:
+        """Route input features to top-k levels.
+
+        Args:
+            x (list[torch.Tensor]): Input feature maps from backbone/neck.
+
+        Returns:
+            Training: (selected_features, routing_indices)
+            Inference: selected_features (list of top-k feature maps)
+        """
+        batch_size = x[0].shape[0]
+
+        # Compute gate scores
+        _gate_scores, gate_probs = self.compute_gate_scores(x)
+
+        # Select top-k features
+        _topk_probs, topk_indices = torch.topk(gate_probs, self.top_k, dim=1)  # [B, top_k]
+
+        # Store for potential auxiliary loss
+        if self.training:
+            self.gate_probs = gate_probs
+            self.load_loss = self.compute_load_balancing_loss(gate_probs)
+
+        # Gather selected features
+        # For each batch, select the top-k feature maps
+        selected_features = []
+        for k in range(self.top_k):
+            feat_list = []
+            for b in range(batch_size):
+                idx = int(topk_indices[b, k])  # Convert tensor to int for explicit list indexing
+                feat_list.append(x[idx][b : b + 1])
+            selected_features.append(torch.cat(feat_list, dim=0))
+
+        if self.training:
+            return selected_features, topk_indices
+
+        return selected_features

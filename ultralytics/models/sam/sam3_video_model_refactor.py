@@ -1400,8 +1400,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         )
         # We first apply non-overlapping constraints before memory encoding. This may include some suppression heuristics.
         # TODO
-        if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
-            high_res_masks = self.tracker._suppress_object_pw_area_shrinkage(high_res_masks)
+        # if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
+        #     high_res_masks = self.tracker._suppress_object_pw_area_shrinkage(high_res_masks)
         # Instead of gathering the predicted object scores, we use mask areas as a proxy.
         object_score_logits = torch.where((high_res_masks > 0).any(dim=(-1, -2)), 10.0, -10.0)
 

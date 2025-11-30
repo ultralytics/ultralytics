@@ -2391,4 +2391,51 @@ class SAM3SemanticPredictor(SAM3Predictor):
 class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Video Predictor for video segmentation tasks."""
 
-    pass
+    def propagate_in_video(self, inference_state, frame_idx):
+        """Perform image segmentation inference based on the given input cues, using the currently loaded image. This
+        method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt
+        encoder, and mask decoder for real-time and promptable segmentation tasks.
+
+        Args:
+            inference_state (dict): The current state of inference, including input cues and previous outputs.
+            frame_idx (int): The index of the current frame in the video sequence.
+        """
+        frame = frame_idx
+        output_dict = inference_state["output_dict"]
+        obj_ids = inference_state["obj_ids"]
+        consolidated_frame_inds = inference_state["consolidated_frame_inds"]
+        batch_size = len(inference_state["obj_idx_to_id"])
+        if len(output_dict["cond_frame_outputs"]) == 0:
+            raise RuntimeError("No points are provided; please add points first")
+
+        if frame in consolidated_frame_inds["cond_frame_outputs"]:
+            storage_key = "cond_frame_outputs"
+            current_out = output_dict[storage_key][frame]
+            if self.clear_non_cond_mem_around_input and (self.clear_non_cond_mem_for_multi_obj or batch_size <= 1):
+                # clear non-conditioning memory of the surrounding frames
+                self._clear_non_cond_mem_around_input(frame)
+        elif frame in consolidated_frame_inds["non_cond_frame_outputs"]:
+            storage_key = "non_cond_frame_outputs"
+            current_out = output_dict[storage_key][frame]
+        else:
+            storage_key = "non_cond_frame_outputs"
+            current_out = self._run_single_frame_inference(
+                output_dict=output_dict,
+                frame_idx=frame,
+                batch_size=batch_size,
+                is_init_cond_frame=False,
+                point_inputs=None,
+                mask_inputs=None,
+                reverse=False,
+                run_mem_encoder=True,
+            )
+            output_dict[storage_key][frame] = current_out
+        # Create slices of per-object outputs for subsequent interaction with each
+        # individual object after tracking.
+        self._add_output_per_object(frame, current_out, storage_key)
+        inference_state["frames_already_tracked"].append(frame)
+        pred_masks = current_out["pred_masks"].flatten(0, 1)
+        pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks
+        obj_scores = current_out["object_score_logits"]
+
+        return frame_idx, obj_ids, pred_masks, None, obj_scores

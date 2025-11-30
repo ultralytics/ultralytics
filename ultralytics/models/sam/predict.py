@@ -2443,7 +2443,6 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
         self._add_output_per_object(frame, current_out, storage_key, inference_state=inference_state)
         inference_state["frames_already_tracked"].append(frame)
         pred_masks = current_out["pred_masks"].flatten(0, 1)
-        pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks
         obj_scores = current_out["object_score_logits"]
 
         return obj_ids, pred_masks, obj_scores

@@ -129,6 +129,7 @@ def get_gpu_info(index):
     properties = torch.cuda.get_device_properties(index)
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
+
 @functools.lru_cache
 def get_xpu_info(index: int = 0):
     """Return a string with system XPU information, i.e. 'Intel(R) Graphics..., 15102MiB'."""
@@ -136,6 +137,7 @@ def get_xpu_info(index: int = 0):
         properties = torch.xpu.get_device_properties(index)
         return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
     return None
+
 
 def select_device(device="", newline=False, verbose=True):
     """Select the appropriate PyTorch device based on the provided arguments.

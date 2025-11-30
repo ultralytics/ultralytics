@@ -687,7 +687,7 @@ def collect_system_info():
 
     gib = 1 << 30  # bytes per GiB
     cuda = torch.cuda.is_available()
-    xpu = hasattr(torch, "xpu") and torch.xpu.is_available()    #avoid situations where the backend is not compiled 
+    xpu = hasattr(torch, "xpu") and torch.xpu.is_available()  # avoid situations where the backend is not compiled
     check_yolo()
     total, _used, free = shutil.disk_usage("/")
 

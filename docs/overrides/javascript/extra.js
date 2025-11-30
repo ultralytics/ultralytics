@@ -137,7 +137,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Update links
-    langs.forEach((lang) => (lang.link.href = `${location.origin}/${lang.code}${basePath}`));
+    langs.forEach((lang) => {
+      lang.link.href = `${location.origin}/${lang.code}${basePath}`;
+    });
     if (defaultLink) {
       defaultLink.href = location.origin + basePath;
     }

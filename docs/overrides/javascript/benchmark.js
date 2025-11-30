@@ -125,7 +125,7 @@ let chart = null;
 let chartWidget = null;
 
 const lighten = (hex, amt = 0.6) => {
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
   return `#${[r, g, b]
     .map((c) =>
       Math.min(255, Math.round(c + (255 - c) * amt))

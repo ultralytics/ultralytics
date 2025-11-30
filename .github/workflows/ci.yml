@@ -47,6 +47,10 @@ on:
         default: true
         type: boolean
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   HUB:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
@@ -63,7 +67,6 @@ jobs:
           python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
-        shell: bash # for Windows compatibility
         run: |
           uv pip install --system . --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
@@ -118,7 +121,6 @@ jobs:
           python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
-        shell: bash # for Windows compatibility
         run: |
           uv pip install --system -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
@@ -126,22 +128,16 @@ jobs:
           yolo checks
           uv pip list
       - name: Benchmark DetectionModel
-        shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.309
       - name: Benchmark ClassificationModel
-        shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel
-        shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.337
       - name: Benchmark SegmentationModel
-        shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.195
       - name: Benchmark PoseModel
-        shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.197
       - name: Benchmark OBBModel
-        shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.597
       - name: Merge Coverage Reports
         run: |
@@ -184,21 +180,22 @@ jobs:
           python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
-        shell: bash # for Windows compatibility
         run: |
           slow=""
           torch=""
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install --system -e ".[export,solutions]" $torch pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install --system -e ".[export,solutions]" \
+            $torch pytest-cov pytest-xdist \
+            --extra-index-url https://download.pytorch.org/whl/cpu \
+            --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
           uv pip list
       - name: Pytest tests
-        shell: bash # for Windows compatibility
-        run: pytest --cov=ultralytics/ --cov-report=xml tests/
+        run: pytest --cov=ultralytics/ -v --cov-report=xml -n auto --dist=loadscope tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         uses: codecov/codecov-action@v5
@@ -216,66 +213,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
-        python: ["3.12"]
-        torch: [latest]
+        os: [ ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm ]
+        python: [ "3.12" ]
+        torch: [ latest ]
         include:
-          - os: ubuntu-latest
-            python: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
-            torch: "1.8.0"
-            torchvision: "0.9.0"
-          - os: ubuntu-latest
-            python: "3.9"
-            torch: "1.9.0"
-            torchvision: "0.10.0"
-          - os: ubuntu-latest
-            python: "3.9"
-            torch: "1.10.0"
-            torchvision: "0.11.0"
-          - os: ubuntu-latest
-            python: "3.10"
-            torch: "1.11.0"
-            torchvision: "0.12.0"
-          - os: ubuntu-latest
-            python: "3.10"
-            torch: "1.12.0"
-            torchvision: "0.13.0"
-          - os: ubuntu-latest
-            python: "3.10"
-            torch: "1.13.0"
-            torchvision: "0.14.0"
-          - os: ubuntu-latest
-            python: "3.11"
-            torch: "2.0.0"
-            torchvision: "0.15.0"
-          - os: ubuntu-latest
-            python: "3.11"
-            torch: "2.1.0"
-            torchvision: "0.16.0"
-          - os: ubuntu-latest
-            python: "3.12"
-            torch: "2.2.0"
-            torchvision: "0.17.0"
-          - os: ubuntu-latest
-            python: "3.12"
-            torch: "2.3.0"
-            torchvision: "0.18.0"
-          - os: ubuntu-latest
-            python: "3.12"
-            torch: "2.4.0"
-            torchvision: "0.19.0"
-          - os: ubuntu-latest
-            python: "3.12"
-            torch: "2.5.0"
-            torchvision: "0.20.0"
-          - os: ubuntu-latest
-            python: "3.12"
-            torch: "2.6.0"
-            torchvision: "0.21.0"
-          - os: ubuntu-latest
-            python: "3.12"
-            torch: "2.7.0"
-            torchvision: "0.22.0"
+          - { os: ubuntu-latest, python: "3.8", torch: "1.8.0", torchvision: "0.9.0" }
+          - { os: ubuntu-latest, python: "3.9", torch: "1.9.0", torchvision: "0.10.0" }
+          - { os: ubuntu-latest, python: "3.9", torch: "1.10.0", torchvision: "0.11.0" }
+          - { os: ubuntu-latest, python: "3.10", torch: "1.11.0", torchvision: "0.12.0" }
+          - { os: ubuntu-latest, python: "3.10", torch: "1.12.0", torchvision: "0.13.0" }
+          - { os: ubuntu-latest, python: "3.10", torch: "1.13.0", torchvision: "0.14.0" }
+          - { os: ubuntu-latest, python: "3.11", torch: "2.0.0", torchvision: "0.15.0" }
+          - { os: ubuntu-latest, python: "3.11", torch: "2.1.0", torchvision: "0.16.0" }
+          - { os: ubuntu-latest, python: "3.12", torch: "2.2.0", torchvision: "0.17.0" }
+          - { os: ubuntu-latest, python: "3.12", torch: "2.3.0", torchvision: "0.18.0" }
+          - { os: ubuntu-latest, python: "3.12", torch: "2.4.0", torchvision: "0.19.0" }
+          - { os: ubuntu-latest, python: "3.12", torch: "2.5.0", torchvision: "0.20.0" }
+          - { os: ubuntu-latest, python: "3.12", torch: "2.6.0", torchvision: "0.21.0" }
+          - { os: ubuntu-latest, python: "3.12", torch: "2.7.0", torchvision: "0.22.0" }
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -283,13 +238,15 @@ jobs:
           python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
-        shell: bash # for Windows compatibility
         run: |
           torch=""
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install --system -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install --system -e ".[export,solutions]" \
+            $torch faster-coco-eval mlflow pytest-cov \
+            --extra-index-url https://download.pytorch.org/whl/cpu \
+            --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks

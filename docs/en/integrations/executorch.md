@@ -314,7 +314,7 @@ fun tensorTo2DPredictions(outputTensor: Tensor): Array<FloatArray> {
     val numBoxes = 8400
     val numAttrs = 84
     val predictions = Array(numBoxes) { FloatArray(numAttrs) }
-    
+
     for (i in 0 until numBoxes) {
         for (j in 0 until numAttrs) {
             predictions[i][j] = flat[j * numBoxes + i]

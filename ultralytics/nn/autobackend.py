@@ -95,7 +95,7 @@ class AutoBackend(nn.Module):
             | RKNN                  | *_rknn_model/     |
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
-            | Axelera               | *.axm             |
+            | Axelera               | *_axelera_model/  |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -123,6 +123,7 @@ class AutoBackend(nn.Module):
         rknn (bool): Whether the model is an RKNN model.
         triton (bool): Whether the model is a Triton Inference Server model.
         pte (bool): Whether the model is a PyTorch ExecuTorch model.
+        axelera (bool): Whether the model is an Axelera model.
 
     Methods:
         forward: Run inference on an input image.
@@ -583,7 +584,11 @@ class AutoBackend(nn.Module):
                 )
             from axelera.runtime import op
 
-            ax_model = op.load(model)
+            w = Path(w)
+            if not w.is_file():  # if not *.axm
+                w = next(w.rglob("*.axm"))  # get *.axm file from *_axelera_model dir
+
+            ax_model = op.load(str(w))
 
         # ExecuTorch
         elif pte:

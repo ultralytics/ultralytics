@@ -21,7 +21,7 @@ NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
 ExecuTorch              | `executorch`              | yolo11n_executorch_model/
-Axelera                 | `axelera`                 | yolo11n.axm
+Axelera                 | `axelera`                 | yolo11n_axelera_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -51,6 +51,7 @@ Inference:
                          yolo11n_imx_model          # IMX
                          yolo11n_rknn_model         # RKNN
                          yolo11n_executorch_model   # ExecuTorch
+                         yolo11n_axelera_model      # Axelera
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -163,7 +164,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["Axelera", "axelera", ".axm", False, False, ["batch", "int8"]],
+        ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -1144,8 +1145,15 @@ class Exporter:
         )
 
         compiler.compile(model=qmodel, config=config, output_dir=export_path)
+        
+        axm_name = f"{model_name}.axm"
+        axm_src = Path(axm_name)
+        axm_dst = export_path / axm_name
 
-        return f"{model_name}.axm"
+        if axm_src.exists():
+            axm_src.replace(axm_dst)
+
+        return export_path
 
     @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):

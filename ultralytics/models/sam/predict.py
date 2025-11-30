@@ -2438,4 +2438,4 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
         pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks
         obj_scores = current_out["object_score_logits"]
 
-        return frame_idx, obj_ids, pred_masks, None, obj_scores
+        return obj_ids, pred_masks, obj_scores

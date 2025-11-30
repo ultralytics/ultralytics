@@ -1021,9 +1021,9 @@ class SAM2VideoPredictor(SAM2Predictor):
             - If the frame is being tracked for the first time, it is treated as an initial conditioning frame.
             - The method handles the consolidation of outputs and resizing of masks to the original video resolution.
         """
-        assert (masks is None) ^ (points is None), "'masks' and 'points' prompts are not compatible with each other."
-        obj_idx = self._obj_id_to_idx(obj_id)
         inference_state = inference_state or self.inference_state
+        assert (masks is None) ^ (points is None), "'masks' and 'points' prompts are not compatible with each other."
+        obj_idx = self._obj_id_to_idx(obj_id, inference_state)
 
         point_inputs = None
         pop_key = "point_inputs_per_obj"
@@ -1077,6 +1077,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             # them into memory.
             run_mem_encoder=False,
             prev_sam_mask_logits=prev_sam_mask_logits,
+            inference_state=inference_state,
         )
         # Add the output to the output dict (to be used as future memory)
         obj_temp_output_dict[storage_key][frame_idx] = current_out
@@ -1086,6 +1087,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             frame_idx,
             is_cond=is_cond,
             run_mem_encoder=False,
+            inference_state=inference_state,
         )
         pred_masks = consolidated_out["pred_masks"].flatten(0, 1)
         return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
@@ -1128,11 +1130,11 @@ class SAM2VideoPredictor(SAM2Predictor):
             # consolidate the temporary output across all objects on this frame
             for frame_idx in temp_frame_inds:
                 consolidated_out = self._consolidate_temp_output_across_obj(
-                    frame_idx, is_cond=is_cond, run_mem_encoder=True
+                    frame_idx, is_cond=is_cond, run_mem_encoder=True, inference_state=inference_state
                 )
                 # merge them into "output_dict" and also create per-object slices
                 output_dict[storage_key][frame_idx] = consolidated_out
-                self._add_output_per_object(frame_idx, consolidated_out, storage_key)
+                self._add_output_per_object(frame_idx, consolidated_out, storage_key, inference_state=inference_state)
                 if self.clear_non_cond_mem_around_input and (self.clear_non_cond_mem_for_multi_obj or batch_size <= 1):
                     # clear non-conditioning memory of the surrounding frames
                     self._clear_non_cond_mem_around_input(frame_idx)
@@ -1378,7 +1380,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         #     pred_masks = fill_holes_in_mask_scores(pred_masks, self.fill_hole_area)
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
-        current_out["maskmem_pos_enc"] = self._get_maskmem_pos_enc(current_out["maskmem_pos_enc"])
+        current_out["maskmem_pos_enc"] = self._get_maskmem_pos_enc(current_out["maskmem_pos_enc"], inference_state)
         return current_out
 
     def _get_maskmem_pos_enc(self, out_maskmem_pos_enc, inference_state: dict[str, Any] = None):
@@ -1526,6 +1528,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 high_res_masks=high_res_masks,
                 is_mask_from_pts=True,  # these frames are what the user interacted with
                 object_score_logits=consolidated_out["object_score_logits"],
+                inference_state=inference_state,
             )
 
         return consolidated_out
@@ -1598,7 +1601,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         )
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
-        maskmem_pos_enc = self._get_maskmem_pos_enc(maskmem_pos_enc)
+        maskmem_pos_enc = self._get_maskmem_pos_enc(maskmem_pos_enc, inference_state)
         return maskmem_features.to(
             dtype=torch.float16, device=self.device, non_blocking=self.device.type == "cuda"
         ), maskmem_pos_enc
@@ -1686,7 +1689,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         obj_input_frames_inds.update(inference_state["point_inputs_per_obj"][old_obj_idx_to_rm])
         obj_input_frames_inds.update(inference_state["mask_inputs_per_obj"][old_obj_idx_to_rm])
         for frame_idx in obj_input_frames_inds:
-            self.clear_all_points_in_frame(inference_state, frame_idx, obj_id, need_output=False)
+            self.clear_all_points_in_frame(inference_state, frame_idx, obj_id)
 
         # Step 1: Update the object id mapping (note that it must be done after Step 0,
         # since Step 0 still requires the old object id mappings in inference_state)
@@ -1724,7 +1727,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 out["maskmem_features"] = out["maskmem_features"][remain_old_obj_inds]
                 out["maskmem_pos_enc"] = [x[remain_old_obj_inds] for x in out["maskmem_pos_enc"]]
                 # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
-                out["maskmem_pos_enc"] = self._get_maskmem_pos_enc(inference_state, out)
+                out["maskmem_pos_enc"] = self._get_maskmem_pos_enc(out["maskmem_pos_enc"], inference_state)
                 out["pred_masks"] = out["pred_masks"][remain_old_obj_inds]
                 out["obj_ptr"] = out["obj_ptr"][remain_old_obj_inds]
                 out["object_score_logits"] = out["object_score_logits"][remain_old_obj_inds]
@@ -1734,7 +1737,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                         out["object_score_logits"], out["iou_score"]
                     )  # recalculate the memory frame score
                 # also update the per-object slices
-                self._add_output_per_object(inference_state, frame_idx, out, storage_key)
+                self._add_output_per_object(frame_idx, out, storage_key, inference_state=inference_state)
 
         _slice_state(inference_state["output_dict"], "cond_frame_outputs")
         _slice_state(inference_state["output_dict"], "non_cond_frame_outputs")
@@ -1744,7 +1747,7 @@ class SAM2VideoPredictor(SAM2Predictor):
     @torch.inference_mode()
     def clear_all_points_in_frame(self, inference_state, frame_idx, obj_id):
         """Remove all input points or mask in a specific frame for a given object."""
-        obj_idx = self._obj_id_to_idx(inference_state, obj_id)
+        obj_idx = self._obj_id_to_idx(obj_id, inference_state)
 
         # Clear the conditioning information on the given frame
         inference_state["point_inputs_per_obj"][obj_idx].pop(frame_idx, None)
@@ -2391,6 +2394,10 @@ class SAM3SemanticPredictor(SAM3Predictor):
 class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Video Predictor for video segmentation tasks."""
 
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        super().__init__(cfg, overrides, _callbacks)
+        self.use_memory_selection = False  # TODO
+
     def propagate_in_video(self, inference_state, frame_idx):
         """Perform image segmentation inference based on the given input cues, using the currently loaded image. This
         method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt
@@ -2428,11 +2435,12 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
                 mask_inputs=None,
                 reverse=False,
                 run_mem_encoder=True,
+                inference_state=inference_state,
             )
             output_dict[storage_key][frame] = current_out
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
-        self._add_output_per_object(frame, current_out, storage_key)
+        self._add_output_per_object(frame, current_out, storage_key, inference_state=inference_state)
         inference_state["frames_already_tracked"].append(frame)
         pred_masks = current_out["pred_masks"].flatten(0, 1)
         pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks

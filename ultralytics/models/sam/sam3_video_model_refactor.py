@@ -1,5 +1,5 @@
 from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils import DEFAULT_CFG, LOGGER
 import math
 import logging
 import math
@@ -167,7 +167,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self.decrease_trk_keep_alive_for_empty_masklets = decrease_trk_keep_alive_for_empty_masklets
         self.o2o_matching_masklets_enable = o2o_matching_masklets_enable
         self.fill_hole_area = fill_hole_area
-        self.rank = RANK
+        self.rank = 0
         self.world_size = 1
         self._dist_pg_cpu = None  # CPU process group (lazy-initialized on first use)
 
@@ -188,7 +188,11 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # build SAM3 tracker
         self.tracker = SAM3VideoPredictor(overrides=overrides)
+        self.tracker.setup_model()
         self.setup_model()
+        # TODO
+        self.imgsz = [1008, 1008]
+        self.tracker.imgsz = [1008, 1008]
 
     def _det_track_one_frame(
         self,
@@ -487,13 +491,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         for trk_obj_id, det_idx in trk_id_to_max_iou_high_conf_det.items():
             new_mask = det_out["mask"][det_idx : det_idx + 1]
             new_mask_binary = (
-                F.interpolate(
-                    new_mask.unsqueeze(1),
-                    size=self.tracker.imgsz,
-                    mode="bilinear",
-                    align_corners=False,
-                ).squeeze(1)[0]
-                > 0
+                F.interpolate(new_mask.unsqueeze(1), size=[1152, 1152], mode="bilinear", align_corners=False) > 0
             )
             HIGH_CONF_THRESH = 0.8
             reconditioned_states_idx = set()
@@ -513,7 +511,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                         inference_state=inference_state,
                         frame_idx=frame_idx,
                         obj_id=trk_obj_id,
-                        mask=new_mask_binary,
+                        masks=new_mask_binary,
                     )
                     reconditioned_states_idx.add(state_idx)
 
@@ -1456,7 +1454,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         assert new_obj_masks.is_floating_point()
         new_obj_masks = F.interpolate(
             new_obj_masks.unsqueeze(1),
-            size=self.imgsz,
+            size=[1152, 1152],
             mode="bilinear",
             align_corners=False,
         ).squeeze(1)
@@ -1468,7 +1466,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 inference_state=new_tracker_state,
                 frame_idx=frame_idx,
                 obj_id=new_obj_id,
-                mask=new_mask,
+                masks=new_mask[None, None],  # add bs, channel
             )
         # NOTE: we skip enforcing the non-overlapping constraint **globally** when adding new objects.
         self.tracker.propagate_in_video_preflight(new_tracker_state)
@@ -1485,7 +1483,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         for tracker_inference_state in tracker_states_local_before_removal:
             # we try to remove `obj_id` on every inference state with `strict=False`
             # it will not do anything if an inference state doesn't contain `obj_id`
-            new_obj_ids, _ = self.tracker.remove_object(tracker_inference_state, obj_id, strict=False)
+            new_obj_ids = self.tracker.remove_object(tracker_inference_state, obj_id, strict=False)
             # only keep an inference state if it's non-empty after object removal
             if len(new_obj_ids) > 0:
                 tracker_states_local.append(tracker_inference_state)

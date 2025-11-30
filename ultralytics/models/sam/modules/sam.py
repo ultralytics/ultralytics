@@ -329,6 +329,7 @@ class SAM2Model(torch.nn.Module):
 
         self._build_sam_heads()
         self.max_cond_frames_in_attn = max_cond_frames_in_attn
+        self.add_all_frames_to_correct_as_cond = True
 
         # Model compilation
         if compile_image_encoder:

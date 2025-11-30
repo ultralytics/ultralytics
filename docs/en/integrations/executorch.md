@@ -1,14 +1,22 @@
 ---
 comments: true
 description: Export YOLO11 models to ExecuTorch format for efficient on-device inference on mobile and edge devices. Optimize your AI models for iOS, Android, and embedded systems.
-keywords: Ultralytics, YOLO11, ExecuTorch, model export, PyTorch, edge AI, mobile deployment, on-device inference, XNNPACK, embedded systems
+keywords: Ultralytics, YOLO11, ExecuTorch, model export, PyTorch, edge AI, iOS, iPadOS, Android, Raspberry Pi, NVIDIA Jetson, mobile deployment, on-device inference, XNNPACK, embedded systems
 ---
 
 # Deploy YOLO11 on Mobile & Edge with ExecuTorch
 
 Deploying computer vision models on edge devices like smartphones, tablets, and embedded systems requires an optimized runtime that balances performance with resource constraints. ExecuTorch, PyTorch's solution for edge computing, enables efficient on-device inference for [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models.
 
-This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, enabling you to deploy your models on mobile and edge devices with optimized performance.
+This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, enabling you to deploy your models on the following mobile and edge devices with optimized performance:
+
+- **Mobile Applications**: Deploy on iOS and Android applications with native performance, enabling real-time object detection in mobile apps.
+
+- **Embedded Systems**: Run on embedded Linux devices like Raspberry Pi, NVIDIA Jetson, and other ARM-based systems with optimized performance.
+
+- **Edge AI Devices**: Deploy on specialized edge AI hardware with custom delegates for accelerated inference.
+
+- **IoT Devices**: Integrate into IoT devices for on-device inference without cloud connectivity requirements.
 
 ## Why export to ExecuTorch?
 
@@ -32,21 +40,9 @@ ExecuTorch provides several powerful features for deploying Ultralytics YOLO mod
 
 - **Model Metadata**: Exported models include metadata (image size, class names, etc.) in a separate YAML file for easy integration.
 
-## Deployment Options with ExecuTorch
-
-ExecuTorch models can be deployed across various edge and mobile platforms:
-
-- **Mobile Applications**: Deploy on iOS and Android applications with native performance, enabling real-time object detection in mobile apps.
-
-- **Embedded Systems**: Run on embedded Linux devices like Raspberry Pi, NVIDIA Jetson, and other ARM-based systems with optimized performance.
-
-- **Edge AI Devices**: Deploy on specialized edge AI hardware with custom delegates for accelerated inference.
-
-- **IoT Devices**: Integrate into IoT devices for on-device inference without cloud connectivity requirements.
-
 ## Exporting Ultralytics YOLO11 Models to ExecuTorch
 
-Converting Ultralytics YOLO11 models to ExecuTorch format enables efficient deployment on mobile and edge devices.
+Exporting Ultralytics YOLO11 models to ExecuTorch format enables efficient deployment on mobile and edge devices.
 
 ### Installation
 
@@ -95,7 +91,7 @@ Exporting YOLO11 models to ExecuTorch is straightforward:
         yolo predict model=yolo11n_executorch_model source=https://ultralytics.com/images/bus.jpg
         ```
 
-    ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference.
+    ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference. To dynamically lookup human-readable detection class names and output-tensor shapes, embed the YAML metadata file in your app.
 
 ### Export Arguments
 
@@ -474,7 +470,7 @@ ExecuTorch supports:
 
 ### How does ExecuTorch compare to TFLite for mobile deployment?
 
-Both ExecuTorch and TFLite are excellent for mobile deployment:
+Both ExecuTorch and [TFLite](tflite.md) are excellent for mobile deployment:
 
 - **ExecuTorch**: Better PyTorch integration, native PyTorch workflow, growing ecosystem
 - **TFLite**: More mature, wider hardware support, more deployment examples

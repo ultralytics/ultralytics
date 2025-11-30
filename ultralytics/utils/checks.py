@@ -702,7 +702,7 @@ def collect_system_info():
         "CPU": get_cpu_info(),
         "CPU count": os.cpu_count(),
         "GPU": get_gpu_info(index=0) if cuda else None,
-        "XPU": get_xpu_info() if xpu else None,
+        "XPU": get_xpu_info(index=0) if xpu else None,
         "GPU count": torch.cuda.device_count() if cuda else None,
         "XPU count": torch.xpu.device_count() if xpu else None,
         "CUDA": torch.version.cuda if cuda else None,

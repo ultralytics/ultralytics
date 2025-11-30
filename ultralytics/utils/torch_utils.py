@@ -130,11 +130,12 @@ def get_gpu_info(index):
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 @functools.lru_cache
-def get_xpu_info(index):
-    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
+def get_xpu_info(index: int = 0):
+    """Return a string with system XPU information, i.e. 'Intel(R) Graphics..., 15102MiB'."""
     if hasattr(torch, "xpu") and torch.xpu.is_available():
         properties = torch.xpu.get_device_properties(index)
         return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
+    return None
 
 def select_device(device="", newline=False, verbose=True):
     """Select the appropriate PyTorch device based on the provided arguments.

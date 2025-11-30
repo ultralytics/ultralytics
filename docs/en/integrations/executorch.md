@@ -156,7 +156,7 @@ import java.io.FileOutputStream
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
 import org.pytorch.executorch.Tensor
-import org.pytorch.torchvision.TensorImageUtils  
+import org.pytorch.torchvision.TensorImageUtils
 // ...
 
 fun runObjectDetection() {

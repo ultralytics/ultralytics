@@ -194,7 +194,8 @@ def _create_sam3_model(
         "matcher": None,
     }
 
-    model = Sam3Image(**common_params)
+    # TODO: fix this
+    model = Sam3ImageOnVideoMultiGPU(**common_params)
     return model
 
 
@@ -271,7 +272,8 @@ def build_sam3_image_model(
     """
     # Create visual components
     compile_mode = "default" if compile else None
-    vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=False)
+    # TODO
+    vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=True)
 
     # Create text components
     text_encoder = VETextEncoder(
@@ -596,8 +598,8 @@ def build_sam3_video_model(
     # Build the main SAM3 video model
     if apply_temporal_disambiguation:
         model = Sam3VideoInference(
-            detector=detector,
-            tracker=tracker,
+            # detector=detector,
+            # tracker=tracker,
             score_threshold_detection=0.5,
             assoc_iou_thresh=0.1,
             det_nms_thresh=0.1,
@@ -622,8 +624,8 @@ def build_sam3_video_model(
     else:
         # a version without any heuristics for ablation studies
         model = Sam3VideoInference(
-            detector=detector,
-            tracker=tracker,
+            # detector=detector,
+            # tracker=tracker,
             score_threshold_detection=0.5,
             assoc_iou_thresh=0.1,
             det_nms_thresh=0.1,
@@ -647,16 +649,16 @@ def build_sam3_video_model(
         )
 
     # Load checkpoint if provided
-    if checkpoint_path is not None:
-        with open(checkpoint_path, "rb") as f:
-            ckpt = torch_load(f, map_location="cpu", weights_only=True)
-        if "model" in ckpt and isinstance(ckpt["model"], dict):
-            ckpt = ckpt["model"]
-        # ckpt = {k: v for k, v in ckpt.items() if "tracker" not in k}
-        missing_keys, unexpected_keys = model.load_state_dict(ckpt, strict=strict_state_dict_loading)
+    # if checkpoint_path is not None:
+    #     with open(checkpoint_path, "rb") as f:
+    #         ckpt = torch_load(f, map_location="cpu", weights_only=True)
+    #     if "model" in ckpt and isinstance(ckpt["model"], dict):
+    #         ckpt = ckpt["model"]
+    #     # ckpt = {k: v for k, v in ckpt.items() if "tracker" not in k}
+    #     missing_keys, unexpected_keys = model.load_state_dict(ckpt, strict=strict_state_dict_loading)
         # if missing_keys:
         # print(f"Missing keys: {missing_keys}")
         # if unexpected_keys:
         # print(f"Unexpected keys: {unexpected_keys}")
-    model.eval()
+    # model.eval()
     return model

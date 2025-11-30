@@ -1,5 +1,6 @@
 import torch
 from .sam3_video_model import Sam3VideoBase, MaskletConfirmationStatus
+from .sam3_video_model_refactor import SAM3VideoSemanticPredictor
 from ultralytics.utils.ops import xyxy2xywhn, xyxy2ltwh
 from .sam3.data_misc import BatchedDatapoint, convert_my_tensors, FindStage
 from .sam3.geometry_encoders import Prompt
@@ -11,7 +12,8 @@ from tqdm.auto import tqdm
 from .predict import SAM2Predictor
 
 
-class Sam3VideoInference(Sam3VideoBase):
+# class Sam3VideoInference(Sam3VideoBase):
+class Sam3VideoInference(SAM3VideoSemanticPredictor):
     TEXT_ID_FOR_TEXT = 0
     TEXT_ID_FOR_VISUAL = 1
 

@@ -36,7 +36,7 @@ function loadGiscus() {
   // Register event handlers for theme changes
   var ref = document.querySelector("[data-md-component=palette]");
   if (ref) {
-    ref.addEventListener("change", function () {
+    ref.addEventListener("change", () => {
       var palette = __md_get("__palette");
       if (palette && typeof palette.color === "object") {
         var theme = palette.color.scheme === "slate" ? "dark" : "light";

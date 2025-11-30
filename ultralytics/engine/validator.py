@@ -358,6 +358,10 @@ class BaseValidator:
         """Get description of the YOLO model."""
         pass
 
+    def output_bad_cases(self, detections, labels, batch, si):
+        """Out the images with overkill and underkill."""
+        pass
+
     @property
     def metric_keys(self):
         """Return the metric keys used in YOLO training/validation."""

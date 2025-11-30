@@ -460,6 +460,7 @@ class Results(SimpleClass, DataExportMixin):
         filename: str | None = None,
         color_mode: str = "class",
         txt_color: tuple[int, int, int] = (255, 255, 255),
+        color_list=None,
     ) -> np.ndarray:
         """Plot detection results on an input RGB image.
 
@@ -473,6 +474,11 @@ class Results(SimpleClass, DataExportMixin):
             im_gpu (torch.Tensor | None): Normalized image on GPU for faster mask plotting.
             kpt_radius (int): Radius of drawn keypoints.
             kpt_line (bool): Whether to draw lines connecting keypoints.
+            labels (bool): Whether to plot the label of bounding boxes.
+            boxes (bool): Whether to plot the bounding boxes.
+            masks (bool): Whether to plot the masks.
+            probs (bool): Whether to plot classification probability.
+            color_list (list): Specify the color used to display the box. If value is None, use default color.
             labels (bool): Whether to plot labels of bounding boxes.
             boxes (bool): Whether to plot bounding boxes.
             masks (bool): Whether to plot masks.
@@ -532,7 +538,7 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
-            for i, d in enumerate(reversed(pred_boxes)):
+            for index, d in enumerate(reversed(pred_boxes)):
                 c, d_conf, id = int(d.cls), float(d.conf) if conf else None, int(d.id.item()) if d.is_track else None
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
@@ -540,16 +546,7 @@ class Results(SimpleClass, DataExportMixin):
                 annotator.box_label(
                     box,
                     label,
-                    color=colors(
-                        c
-                        if color_mode == "class"
-                        else id
-                        if id is not None
-                        else i
-                        if color_mode == "instance"
-                        else None,
-                        True,
-                    ),
+                    color=colors(c, True) if color_list is None else color_list[len(pred_boxes) - index - 1],
                 )
 
         # Plot Classify results

@@ -6,15 +6,20 @@ import os
 from pathlib import Path
 from typing import Any
 
+import cv2
 import numpy as np
 import torch
 import torch.distributed as dist
 
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
+from ultralytics.engine.results import Results
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
+from ultralytics.utils.plotting import Colors
+
+colors = Colors()
 from ultralytics.utils.plotting import plot_images
 
 
@@ -176,7 +181,9 @@ class DetectionValidator(BaseValidator):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
             predn = self._prepare_pred(pred)
-
+            idx = batch["batch_idx"] == si
+            bbox = pbatch["bboxes"]
+            labelsn = torch.cat((batch["cls"][idx], bbox), 1)  # native-space labels
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
             self.metrics.update_stats(
@@ -192,7 +199,8 @@ class DetectionValidator(BaseValidator):
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
                 if self.args.visualize:
-                    self.confusion_matrix.plot_matches(batch["img"][si], pbatch["im_file"], self.save_dir)
+                    # self.confusion_matrix.plot_matches(batch["img"][si], pbatch["im_file"], self.save_dir)
+                    self.output_bad_cases(predn, labelsn, batch, si, conf=self.args.conf)
 
             if no_pred:
                 continue
@@ -270,6 +278,165 @@ class DetectionValidator(BaseValidator):
                         *self.metrics.class_result(i),
                     )
                 )
+
+    def output_bad_cases(self, detections, labels, batch, si, conf: float = 0.25, iou_thres: float = 0.45):
+        """Out the images with overkill and underkill result.
+
+        Args:
+            # detections (Array[N, 6]): Detected bounding boxes and their associated information. # Each row should
+                contain (x1, y1, x2, y2, conf, class).
+            # labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels. # Each row should
+                contain (class, x1, y1, x2, y2).
+            detections (Dict[str, torch.Tensor]): Dictionary containing detected bounding boxes and their associated
+                information. Should contain 'cls', 'conf', and 'bboxes' keys, where 'bboxes' can be Array[N, 4] for
+                regular boxes or Array[N, 5] for OBB with angle.
+            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M,
+                5]) and 'cls' (Array[M]) keys, where M is the number of ground truth objects.
+            conf (float, optional): Confidence threshold for detections.
+            iou_thres (float, optional): IoU threshold for matching detections to ground truth.
+        """
+        (self.save_dir / "visualizations" / "false_negative").mkdir(parents=True, exist_ok=True)
+        (self.save_dir / "visualizations" / "false_positive").mkdir(parents=True, exist_ok=True)
+
+        conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
+        _gt_cls, _gt_bboxes = batch["cls"], batch["bboxes"]
+        no_pred = len(detections["cls"]) == 0
+        if no_pred:
+            detections = torch.empty((0, 6), device=self.device)  # Output all labels
+        else:
+            detections = torch.cat(
+                [detections["bboxes"], detections["conf"].reshape(-1, 1), detections["cls"].reshape(-1, 1)], 1
+            )
+
+        detections = detections[detections[:, 4] > conf]
+        # gt_classes = labels[:, 0].int()
+        detection_classes = detections[:, 5].int()
+        iou = box_iou(labels[:, 1:], detections[:, :4])
+
+        boxes = torch.cat(
+            [detections[:, :4], detections[:, 4].reshape(-1, 1), detection_classes.reshape(-1, 1)], dim=1
+        ).cpu()
+
+        x = torch.where(iou > iou_thres)
+        if x[0].shape[0]:
+            matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()
+            if x[0].shape[0] > 1:
+                matches = matches[matches[:, 2].argsort()[::-1]]
+                matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
+                matches = matches[matches[:, 2].argsort()[::-1]]
+                matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
+        else:
+            matches = np.zeros((0, 3))
+
+        # matches is the index of box that meet the iou threshold. like
+        # [[          0           0     0.81668], ground truth box index, pred box index, iou
+        #  [          1           1     0.88082],
+        #  [          2           2      0.9422]]
+        # We need to find the pairs not in matches here. That is iou < iou_thres
+        # Find the ground truth box without prediction box, and prediction box without ground truth
+        x = torch.where(iou > iou_thres)
+        torch.where(iou <= iou_thres)  # y[0] is label, y[1] is predict
+        labels_matches = matches[:, 0]
+        pred_matches = matches[:, 1]
+
+        false_negative = np.setdiff1d(list(range(labels.shape[0])), labels_matches)
+        false_positive = np.setdiff1d(list(range(detections.shape[0])), pred_matches)
+
+        # Convert image data to CV2
+        img = batch["img"][si].cpu().float().numpy()
+        img *= 255
+        img = img.transpose(1, 2, 0)
+        img = np.ascontiguousarray(img)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        if false_negative.shape[0] > 0:
+            # plot false negative images
+            # In false negative part, show all correct detections, then append the false negative box from label
+
+            fn_labels = labels[false_negative].cpu()
+            correct_labels = labels[[i for i in range(labels.shape[0]) if i not in false_negative]].cpu()
+
+            label_boxes = torch.cat(
+                [
+                    torch.cat(
+                        [correct_labels, torch.zeros(correct_labels.shape[0], 1)],  # Correct label boxes
+                        dim=1,
+                    )[:, torch.tensor([1, 2, 3, 4, 5, 0])],
+                    torch.cat(
+                        [fn_labels, torch.zeros(fn_labels.shape[0], 1)],  # Under kill label boxes
+                        dim=1,
+                    )[:, torch.tensor([1, 2, 3, 4, 5, 0])],
+                ]
+            )  # Rearrange the element position of fn_labels
+            detection_boxes = boxes
+
+            file_name = batch["im_file"][si]
+
+            label_color_list = [colors.GREEN_COLOR] * correct_labels.shape[0] + [colors.RED_COLOR] * fn_labels.shape[0]
+            detection_color_list = [colors.BLUE_COLOR] * detections.shape[0]
+
+            combined_img = self._generate_combined_img(
+                detection_boxes, detection_color_list, label_boxes, label_color_list, file_name, img
+            )
+
+            cv2.imwrite(
+                str(self.save_dir / "visualizations" / "false_negative" / os.path.split(file_name)[1]), combined_img
+            )
+
+        if false_positive.shape[0] > 0:
+            # plot false positive images
+            # In false positive mode, will show all detection result on images,
+            # then mark the false positive part with red
+
+            detection_boxes = boxes
+            label_boxes = torch.cat(
+                [labels.cpu(), torch.zeros(labels.shape[0], 1)],  # Correct label boxes
+                dim=1,
+            )[:, torch.tensor([1, 2, 3, 4, 5, 0])]
+
+            label_color_list = [colors.GREEN_COLOR] * labels.shape[0]
+            detection_color_list = [colors.BLUE_COLOR] * detections.shape[0]
+            [colors.GREEN_COLOR] * detections.shape[0] + [colors.BLUE_COLOR] * labels.shape[0]
+            for i in false_positive:
+                detection_color_list[i] = colors.RED_COLOR  # Replace the false positive part with red color
+            file_name = batch["im_file"][si]
+
+            combined_img = self._generate_combined_img(
+                detection_boxes, detection_color_list, label_boxes, label_color_list, file_name, img
+            )
+
+            cv2.imwrite(
+                str(self.save_dir / "visualizations" / "false_positive" / os.path.split(file_name)[1]), combined_img
+            )
+
+    def _generate_combined_img(
+        self, detection_boxes, detection_color_list, label_boxes, label_color_list, file_name, img
+    ):
+        label_plot_args = dict(line_width=1, boxes=True, color_list=label_color_list)
+        detection_plot_args = dict(line_width=1, boxes=True, color_list=detection_color_list)
+        # Prepare label image
+        label_result = Results(orig_img=img, path=file_name, names=self.names, boxes=label_boxes)
+        label_plotted_img = label_result.plot(**label_plot_args)
+        # Prepare detection image
+        detection_result = Results(orig_img=img, path=file_name, names=self.names, boxes=detection_boxes)
+        detection_plotted_img = detection_result.plot(**detection_plot_args)
+
+        label_plotted_img = cv2.copyMakeBorder(
+            label_plotted_img, 25, 0, 0, 0, cv2.BORDER_CONSTANT, value=[127, 127, 127]
+        )
+        detection_plotted_img = cv2.copyMakeBorder(
+            detection_plotted_img, 25, 0, 0, 0, cv2.BORDER_CONSTANT, value=[127, 127, 127]
+        )
+
+        label_plotted_img = cv2.putText(
+            label_plotted_img, "Ground Truth", (20, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA
+        )
+        detection_plotted_img = cv2.putText(
+            detection_plotted_img, "Predicted", (20, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA
+        )
+
+        combined_img = np.concatenate([label_plotted_img, detection_plotted_img], axis=1)
+        return combined_img
 
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
         """Return correct prediction matrix.

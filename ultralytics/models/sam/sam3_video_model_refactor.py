@@ -235,6 +235,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             feature_cache=feature_cache,
             allow_new_detections=allow_new_detections,
         )
+        
+        # TODO: update `im` for SAM2VideoPredictor, need to be fixed
+        for inference_state in tracker_states_local:
+            inference_state["im"] = feature_cache[frame_idx][0].unsqueeze(0)
 
         # Step 2: each GPU propagates its local SAM2 states to get the SAM2 prediction masks.
         # the returned `tracker_low_res_masks_global` contains the concatenated masklet predictions

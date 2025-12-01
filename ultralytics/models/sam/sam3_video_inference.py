@@ -5,11 +5,10 @@ from ultralytics.utils.ops import xyxy2xywhn, xyxy2ltwh
 from .sam3.data_misc import BatchedDatapoint, convert_my_tensors, FindStage
 from .sam3.geometry_encoders import Prompt
 from .sam3.io_utils import load_resource_as_video_frames
-from ultralytics.utils import LOGGER as logger
+from ultralytics.utils import LOGGER
 from .sam3.misc import copy_data_to_device
 from torchvision.ops import masks_to_boxes
 from tqdm.auto import tqdm
-from .predict import SAM2Predictor
 
 
 # class Sam3VideoInference(Sam3VideoBase):
@@ -62,6 +61,12 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         predictor._construct_initial_input_batch(inference_state, images)
         predictor.inference_state = inference_state
 
+    def inference(self, im, bboxes=None, labels=None, text: list[str] = None, *args, **kwargs):
+        frame = self.dataset.frame
+        height, width = self.batch[1][0].shape[:2]
+        self.inference_state["orig_height"] = height
+        self.inference_state["orig_width"] = width
+
     @torch.inference_mode()
     def init_state_ori(
         self,
@@ -81,7 +86,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             video_loader_type=video_loader_type,
         )
         inference_state = {}
-        inference_state["image_size"] = self.image_size
         inference_state["num_frames"] = len(images)
         # the original video height and width, used for resizing final output scores
         inference_state["orig_height"] = orig_height
@@ -89,6 +93,11 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         # values that don't change across frames (so we only need to hold one copy of them)
         inference_state["constants"] = {}
         # inputs on each frame
+
+        inference_state["previous_stages_out"] = [None] * num_frames
+        inference_state["text_prompt"] = None
+        inference_state["per_frame_visual_prompt"] = [None] * num_frames
+        inference_state["per_frame_geometric_prompt"] = [None] * num_frames
         self._construct_initial_input_batch(inference_state, images)
         # initialize extra states
         inference_state["tracker_inference_states"] = []
@@ -107,16 +116,14 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         find_text_batch = ["<text placeholder>", "visual"]
 
         # 3) find_inputs
-        input_box_embedding_dim = 258  # historical default
-        input_points_embedding_dim = 257  # historical default
         stages = [
             FindStage(
                 img_ids=[stage_id],
                 text_ids=[0],
-                input_boxes=[torch.zeros(input_box_embedding_dim)],
+                input_boxes=[torch.zeros(258)],
                 input_boxes_mask=[torch.empty(0, dtype=torch.bool)],
                 input_boxes_label=[torch.empty(0, dtype=torch.long)],
-                input_points=[torch.empty(0, input_points_embedding_dim)],
+                input_points=[torch.empty(0, 257)],
                 input_points_mask=[torch.empty(0)],
                 object_ids=[],
             )
@@ -146,12 +153,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             point_mask=torch.zeros(bs, 0, device=device, dtype=torch.bool),
             point_labels=torch.zeros(0, bs, device=device, dtype=torch.long),
         )
-
-        # constructing an output list in inference state (we start with an empty list)
-        inference_state["previous_stages_out"] = [None] * num_frames
-        inference_state["text_prompt"] = None
-        inference_state["per_frame_visual_prompt"] = [None] * num_frames
-        inference_state["per_frame_geometric_prompt"] = [None] * num_frames
 
     @torch.inference_mode()
     def reset_state(self, inference_state):
@@ -188,7 +189,7 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
                     f"visual prompts (box as an initial prompt) should only have one box, but got {boxes_cxcywh.shape=}"
                 )
             if not box_labels.item():
-                logger.warning("A negative box is added as a visual prompt.")
+                LOGGER.warning("A negative box is added as a visual prompt.")
             # take the first box prompt as a visual prompt
             device = self.device
             new_visual_prompt = Prompt(
@@ -465,11 +466,11 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
     @torch.inference_mode()
     def add_prompt(
         self,
-        inference_state,
         frame_idx,
         text_str=None,
         boxes_xywh=None,
         box_labels=None,
+        inference_state=None,
     ):
         """
         Add text, point or box prompts on a single frame. This method returns the inference
@@ -478,7 +479,7 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         Note that text prompts are NOT associated with a particular frame (i.e. they apply
         to all frames). However, we only run inference on the frame specified in `frame_idx`.
         """
-        logger.debug("Running add_prompt on frame %d", frame_idx)
+        LOGGER.debug("Running add_prompt on frame %d", frame_idx)
 
         num_frames = inference_state["num_frames"]
         assert text_str is not None or boxes_xywh is not None, (

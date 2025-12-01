@@ -1461,6 +1461,8 @@ class NMSModel(torch.nn.Module):
 
         from torchvision.ops import nms
 
+        from ultralytics.utils.ops import xywh2xyxy
+
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
         kwargs = dict(device=pred.device, dtype=pred.dtype)
@@ -1471,6 +1473,9 @@ class NMSModel(torch.nn.Module):
             pad = torch.zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:], **kwargs)
             pred = torch.cat((pred, pad))
         boxes, scores, extras = pred.split([4, len(self.model.names), extra_shape], dim=2)
+        # Convert xywh to xyxy format for NMS
+        if not self.obb:
+            boxes = xywh2xyxy(boxes)
         scores, classes = scores.max(dim=-1)
         self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).

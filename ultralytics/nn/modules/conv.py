@@ -310,8 +310,7 @@ class Focus(nn.Module):
 
 
 class GhostConv(nn.Module):
-    """
-    Ghost Convolution Module.
+    """Ghost Convolution Module.
 
     Generates more features with fewer parameters by using cheap operations.
 
@@ -327,8 +326,7 @@ class GhostConv(nn.Module):
     """
 
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True, mode="original"):
-        """
-        Initialize Ghost Convolution module with given parameters.
+        """Initialize Ghost Convolution module with given parameters.
 
         Args:
             c1 (int): Number of input channels.
@@ -356,8 +354,7 @@ class GhostConv(nn.Module):
             self.gamma = nn.Parameter(torch.tensor(0.1))
 
     def forward(self, x):
-        """
-        Apply Ghost Convolution to input tensor.
+        """Apply Ghost Convolution to input tensor.
 
         Args:
             x (torch.Tensor): Input tensor.

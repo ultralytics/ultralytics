@@ -68,7 +68,7 @@ To export to SafeTensors format, ensure you have the required packages installed
 
         ```bash
         # Install Ultralytics with SafeTensors support
-        pip install ultralytics safetensors > =0.7.0
+        pip install ultralytics "safetensors>=0.7.0"
         ```
 
 For detailed instructions on installation, check our [YOLO Installation guide](../quickstart.md). If you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions.
@@ -234,7 +234,7 @@ SafeTensors export works with all YOLO task types:
 **Solution**: Install the safetensors package:
 
 ```bash
-pip install safetensors > =0.7.0
+pip install "safetensors>=0.7.0"
 ```
 
 **Issue**: `Model metadata not found`
@@ -289,9 +289,8 @@ yolo export model=yolo11n.pt format=safetensors
 SafeTensors offers several advantages:
 
 1. **Security**: Cannot execute arbitrary code (unlike pickle-based `.pt` files)
-2. **Speed**: 200-500x faster loading via memory-mapped I/O
-3. **Zero-copy**: Direct loading to GPU without CPU intermediary
-4. **Cross-framework**: Works with PyTorch, TensorFlow, JAX, and more
+2. **Zero-copy**: Direct loading to GPU without CPU intermediary
+3. **Cross-framework**: Works with PyTorch, TensorFlow, JAX, and more
 
 ### Can I use SafeTensors models for training?
 
@@ -311,5 +310,5 @@ SafeTensors export requires Python 3.9 or higher. Ensure your environment meets 
 
 ```bash
 python --version # Should be 3.9+
-pip install ultralytics safetensors > =0.7.0
+pip install ultralytics "safetensors>=0.7.0"
 ```

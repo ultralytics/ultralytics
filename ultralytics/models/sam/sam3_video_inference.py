@@ -71,28 +71,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         inference_state["is_image_only"] = False
         return inference_state
 
-    @torch.inference_mode()
-    def reset_state(self, inference_state):
-        """Revert `inference_state` to what it was right after initialization."""
-        inference_state["input_batch"].find_text_batch[0] = "<text placeholder>"
-        inference_state["text_prompt"] = None
-        for t in range(inference_state["num_frames"]):
-            inference_state["input_batch"].find_inputs[t].text_ids[...] = 0
-            # constructing an output list in inference state (we start with an empty list)
-            inference_state["previous_stages_out"][t] = None
-            inference_state["per_frame_raw_point_input"][t] = None
-            inference_state["per_frame_raw_box_input"][t] = None
-            inference_state["per_frame_visual_prompt"][t] = None
-            inference_state["per_frame_geometric_prompt"][t] = None
-            inference_state["per_frame_cur_step"][t] = 0
-
-        inference_state["visual_prompt_embed"] = None
-        inference_state["visual_prompt_mask"] = None
-        inference_state["tracker_inference_states"].clear()
-        inference_state["tracker_metadata"].clear()
-        inference_state["feature_cache"].clear()
-        inference_state["action_history"].clear()  # for logging user actions
-
     def _construct_initial_input_batch(self, inference_state, images):
         """Construct an initial `BatchedDatapoint` instance as input."""
         # 1) img_batch
@@ -157,6 +135,28 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         # (note: currently, a single visual prompt embedding is shared for all frames)
         inference_state["visual_prompt_embed"] = None
         inference_state["visual_prompt_mask"] = None
+
+    @torch.inference_mode()
+    def reset_state(self, inference_state):
+        """Revert `inference_state` to what it was right after initialization."""
+        inference_state["input_batch"].find_text_batch[0] = "<text placeholder>"
+        inference_state["text_prompt"] = None
+        for t in range(inference_state["num_frames"]):
+            inference_state["input_batch"].find_inputs[t].text_ids[...] = 0
+            # constructing an output list in inference state (we start with an empty list)
+            inference_state["previous_stages_out"][t] = None
+            inference_state["per_frame_raw_point_input"][t] = None
+            inference_state["per_frame_raw_box_input"][t] = None
+            inference_state["per_frame_visual_prompt"][t] = None
+            inference_state["per_frame_geometric_prompt"][t] = None
+            inference_state["per_frame_cur_step"][t] = 0
+
+        inference_state["visual_prompt_embed"] = None
+        inference_state["visual_prompt_mask"] = None
+        inference_state["tracker_inference_states"].clear()
+        inference_state["tracker_metadata"].clear()
+        inference_state["feature_cache"].clear()
+        inference_state["action_history"].clear()  # for logging user actions
 
     def _get_visual_prompt(self, inference_state, frame_idx, boxes_cxcywh, box_labels):
         """

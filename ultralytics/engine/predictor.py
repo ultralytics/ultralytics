@@ -31,6 +31,7 @@ Usage - formats:
                               yolo11n_imx_model          # Sony IMX
                               yolo11n_rknn_model         # Rockchip RKNN
                               yolo11n.pte                # PyTorch Executorch
+                              yolo11n.safetensors        # SafeTensors
 """
 
 from __future__ import annotations

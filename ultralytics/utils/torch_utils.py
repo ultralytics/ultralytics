@@ -191,11 +191,13 @@ def select_device(device="", newline=False, verbose=True):
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
     elif device.startswith("xpu"):  # Intel XPU
         index_str = device.split(":", 1)[1] if ":" in device else "0"
-        if "," in index_str:
-            msg = f"Invalid XPU 'device={device}' requested. Use a single index 0-15."
-            LOGGER.warning(msg)
-            raise ValueError(msg)
-        index = int(index_str)
+        index_list = [int(i) for i in index_str.split(",") if i]
+        if not index_list:
+            index_list = [0]
+        if len(index_list) > 1:
+            # Limit visible XPUs to the requested set
+            os.environ["ZE_AFFINITY_MASK"] = ",".join(str(i) for i in index_list)
+        index = index_list[0]
         if verbose:
             info = get_xpu_info(index)
             s += f"XPU:{index} ({info})\n"

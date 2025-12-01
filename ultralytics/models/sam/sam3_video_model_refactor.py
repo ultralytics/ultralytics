@@ -374,33 +374,12 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             # to be passed to `forward_video_grounding_multigpu` for every call
             feature_cache["multigpu_buffer"] = {}
 
-        # Extract max_frame_num_to_track from feature_cache if available
-        tracking_bounds = feature_cache.get("tracking_bounds", {})
-        max_frame_num_to_track = tracking_bounds.get("max_frame_num_to_track")
-        start_frame_idx = tracking_bounds.get("propagate_in_video_start_frame_idx")
-
         sam3_image_out = self.model.forward_grounding(
-            backbone_out={
-                "img_batch_all_stages": input_batch.img_batch,
-                **text_outputs,
-            },
+            backbone_out={"img_batch_all_stages": input_batch.img_batch, **text_outputs},
             find_input=input_batch.find_inputs[frame_idx],
             geometric_prompt=geometric_prompt,
-            # frame_idx=frame_idx,
-            # num_frames=num_frames,
-            # multigpu_buffer=feature_cache["multigpu_buffer"],
-            # track_in_reverse=reverse,
-            # also get the SAM2 backbone features
-            # return_tracker_backbone_feats=True,
-            # run NMS as a part of distributed computation
-            # run_nms=self.det_nms_thresh > 0.0,
-            # nms_prob_thresh=self.score_threshold_detection,
-            # nms_iou_thresh=self.det_nms_thresh,
-            # pass max_frame_num_to_track to respect tracking limits
-            # max_frame_num_to_track=max_frame_num_to_track,
-            # propagate_in_video_start_frame_idx=start_frame_idx,
         )
-        # note: detections in `sam3_image_out` has already gone through NMS
+        # TODO: probably apply nms on boxes
         pred_probs = sam3_image_out["pred_logits"].squeeze(-1).sigmoid()
         if not allow_new_detections:
             pred_probs = pred_probs - 1e8  # make sure no detections are kept
@@ -425,15 +404,11 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         ]
         tracker_backbone_out = {
             "vision_features": tracker_backbone_fpn[-1],  # top-level feature
-            # "vision_pos_enc": sam3_image_out["tracker_backbone_pos_enc"],
             "vision_pos_enc": feats["vision_pos_enc"],
             "backbone_fpn": tracker_backbone_fpn,
         }
         backbone_cache["tracker_backbone_out"] = tracker_backbone_out
-        feature_cache[frame_idx] = (
-            input_batch.img_batch[frame_idx],
-            backbone_cache,
-        )
+        feature_cache[frame_idx] = (input_batch.img_batch[frame_idx], backbone_cache)
         # remove from `feature_cache` old features to save GPU memory
         feature_cache.pop(frame_idx - 1 if not reverse else frame_idx + 1, None)
         return det_out

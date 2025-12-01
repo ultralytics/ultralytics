@@ -85,7 +85,7 @@ class STrack(BaseTrack):
     @staticmethod
     def multi_predict(stracks: list[STrack]):
         """Perform multi-object predictive tracking using Kalman filter for the provided list of STrack instances."""
-        if len(stracks) <= 0:
+        if not stracks:
             return
         multi_mean = np.asarray([st.mean.copy() for st in stracks])
         multi_covariance = np.asarray([st.covariance for st in stracks])
@@ -399,7 +399,7 @@ class BYTETracker:
 
     def init_track(self, results, img: np.ndarray | None = None) -> list[STrack]:
         """Initialize object tracking with given detections, scores, and class labels using the STrack algorithm."""
-        if len(results) == 0:
+        if not results:
             return []
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)

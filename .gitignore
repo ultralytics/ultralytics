@@ -198,4 +198,3 @@ calibration_*.npy
 *.heic
 *.ico
 *.raw
-xpu_multicard_changes.md

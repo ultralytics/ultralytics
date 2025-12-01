@@ -302,12 +302,12 @@ class MuSGD(optim.Optimizer):
                         state["momentum_buffer"] = torch.zeros_like(p)
                         state["momentum_buffer_SGD"] = torch.zeros_like(p)
 
-                    # update = muon_update(
-                    #     grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
-                    # )
-                    update = root_update(
+                    update = muon_update(
                         grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
                     )
+                    # update = root_update(
+                    #     grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
+                    # )
                     # lr = self.adjust_lr(lr, p.shape)
                     p.add_(update.reshape(p.shape), alpha=-(lr * self.muon))
 

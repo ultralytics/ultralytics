@@ -759,9 +759,16 @@ def check_amp(model):
 
     device = next(model.parameters()).device  # get model device
     prefix = colorstr("AMP: ")
-    if hasattr(torch, "xpu") and torch.xpu.is_available() and device.type == "xpu":
-        LOGGER.warning(f"{prefix}Intel XPU detected. AMP is disabled (not supported on XPU).")
-        return False
+    if device.type == "xpu":
+        if not (hasattr(torch, "xpu") and torch.xpu.is_available()):
+            LOGGER.warning(f"{prefix}Intel XPU requested but torch.xpu is not available. Disabling AMP.")
+            return False
+        try:
+            torch.amp.GradScaler("xpu")
+        except Exception:
+            LOGGER.warning(f"{prefix}Intel XPU GradScaler not available. Disabling AMP.")
+            return False
+        return True
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
     else:

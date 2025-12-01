@@ -193,12 +193,11 @@ def select_device(device="", newline=False, verbose=True):
         install = ""
         if not hasattr(torch, "xpu") or not torch.xpu.is_available():
             install = (
-                "See https://intel.github.io/intel-extension-for-pytorch/xpu/latest/ for up-to-date torch install instructions if no "
+                "See https://pytorch-extension.intel.com/installation?platform=gpu for up-to-date torch install instructions if no "
                 "XPU devices are seen by torch.\n"
                 if torch.xpu.device_count() == 0
                 else ""
             )
-            raise RuntimeError("Requested XPU device but torch.xpu is not available.")
         index_str = device.split(":", 1)[1] if ":" in device else "0"
         index_list = [int(i) for i in index_str.split(",") if i]
         if not index_list:

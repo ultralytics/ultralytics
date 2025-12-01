@@ -209,30 +209,6 @@ metrics = model.val(data="coco8.yaml")
 print(f"mAP50-95: {metrics.box.map}")
 ```
 
-### Loading Speed Comparison
-
-SafeTensors provides significantly faster loading times:
-
-```python
-import time
-
-from ultralytics import YOLO
-
-# Time PyTorch loading
-start = time.time()
-pt_model = YOLO("yolo11n.pt")
-pt_time = time.time() - start
-
-# Time SafeTensors loading
-start = time.time()
-st_model = YOLO("yolo11n.safetensors")
-st_time = time.time() - start
-
-print(f"PyTorch loading: {pt_time * 1000:.2f}ms")
-print(f"SafeTensors loading: {st_time * 1000:.2f}ms")
-print(f"SafeTensors is {pt_time / st_time:.1f}x faster")
-```
-
 ## Supported Tasks
 
 SafeTensors export works with all YOLO task types:

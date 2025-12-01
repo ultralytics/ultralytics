@@ -202,10 +202,6 @@ def select_device(device="", newline=False, verbose=True):
             msg = f"Invalid XPU 'device={device}' requested. Use an integer index between 0 and 15."
             LOGGER.warning(msg)
             raise ValueError(msg) from e
-        if not 0 <= index <= 15:
-            msg = f"Invalid XPU index {index}. Supported range is 0-15."
-            LOGGER.warning(msg)
-            raise ValueError(msg)
         if verbose:
             info = get_xpu_info(index)
             s += f"XPU:{index} ({info})\n"

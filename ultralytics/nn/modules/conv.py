@@ -313,9 +313,6 @@ class GhostConv(nn.Module):
     """
     Ghost Convolution Module.
 
-    """
-    Ghost Convolution Module.
-
     Generates more features with fewer parameters by using cheap operations.
 
     Attributes:

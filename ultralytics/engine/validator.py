@@ -255,9 +255,12 @@ class BaseValidator:
             # Reduce loss across all GPUs
             loss = self.loss.clone().detach()
             if trainer.world_size > 1:
-                dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
-                if RANK == 0:
-                    loss /= trainer.world_size
+                if trainer.device.type == "xpu":
+                    dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
+                    if RANK == 0:
+                        loss /= trainer.world_size
+                else:
+                    dist.reduce(loss, dst=0, op=dist.ReduceOp.AVG)
             if RANK > 0:
                 return
             results = {**stats, **trainer.label_loss_items(loss.cpu() / len(self.dataloader), prefix="val")}

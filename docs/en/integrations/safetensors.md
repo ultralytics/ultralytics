@@ -18,13 +18,13 @@ This guide covers how to export [Ultralytics YOLO](https://github.com/ultralytic
 
 SafeTensors was designed to address security vulnerabilities and performance limitations of existing tensor serialization formats. Here's why you should consider using it:
 
-| Feature               | PyTorch (pickle) | SafeTensors |
-| --------------------- | :--------------: | :---------: |
-| Safe (no code execution) | ✗ | ✓ |
-| Zero-copy loading     | ✗ | ✓ |
-| Lazy loading          | ✗ | ✓ |
-| No file size limit    | ✓ | ✓ |
-| Bfloat16/Fp8 support  | ✓ | ✓ |
+| Feature                  | PyTorch (pickle) | SafeTensors |
+| ------------------------ | :--------------: | :---------: |
+| Safe (no code execution) |        ✗         |      ✓      |
+| Zero-copy loading        |        ✗         |      ✓      |
+| Lazy loading             |        ✗         |      ✓      |
+| No file size limit       |        ✓         |      ✓      |
+| Bfloat16/Fp8 support     |        ✓         |      ✓      |
 
 ## Key Features of SafeTensors
 
@@ -68,7 +68,7 @@ To export to SafeTensors format, ensure you have the required packages installed
 
         ```bash
         # Install Ultralytics with SafeTensors support
-        pip install ultralytics safetensors>=0.7.0
+        pip install ultralytics safetensors > =0.7.0
         ```
 
 For detailed instructions on installation, check our [YOLO Installation guide](../quickstart.md). If you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions.
@@ -109,15 +109,15 @@ Exporting YOLO models to SafeTensors is straightforward:
 
 When exporting to SafeTensors format, you can specify the following arguments:
 
-| Argument | Type            | Default | Description                                              |
-| -------- | --------------- | ------- | -------------------------------------------------------- |
-| `format` | `str`           | `None`  | Target format: `'safetensors'`                           |
-| `imgsz`  | `int` or `list` | `640`   | Image size for model input                               |
-| `half`   | `bool`          | `False` | Export model in FP16 (half precision) for smaller size   |
-| `int8`   | `bool`          | `False` | Enable INT8 quantization (requires calibration data)     |
-| `nms`    | `bool`          | `False` | Add NMS (Non-Maximum Suppression) to model for end2end   |
-| `batch`  | `int`           | `1`     | Batch size for export                                    |
-| `device` | `str`           | `None`  | Device to use for export (`'cpu'`, `'cuda:0'`)           |
+| Argument | Type            | Default | Description                                            |
+| -------- | --------------- | ------- | ------------------------------------------------------ |
+| `format` | `str`           | `None`  | Target format: `'safetensors'`                         |
+| `imgsz`  | `int` or `list` | `640`   | Image size for model input                             |
+| `half`   | `bool`          | `False` | Export model in FP16 (half precision) for smaller size |
+| `int8`   | `bool`          | `False` | Enable INT8 quantization (requires calibration data)   |
+| `nms`    | `bool`          | `False` | Add NMS (Non-Maximum Suppression) to model for end2end |
+| `batch`  | `int`           | `1`     | Batch size for export                                  |
+| `device` | `str`           | `None`  | Device to use for export (`'cpu'`, `'cuda:0'`)         |
 
 ### Export Examples
 
@@ -215,6 +215,7 @@ SafeTensors provides significantly faster loading times:
 
 ```python
 import time
+
 from ultralytics import YOLO
 
 # Time PyTorch loading
@@ -227,22 +228,22 @@ start = time.time()
 st_model = YOLO("yolo11n.safetensors")
 st_time = time.time() - start
 
-print(f"PyTorch loading: {pt_time*1000:.2f}ms")
-print(f"SafeTensors loading: {st_time*1000:.2f}ms")
-print(f"SafeTensors is {pt_time/st_time:.1f}x faster")
+print(f"PyTorch loading: {pt_time * 1000:.2f}ms")
+print(f"SafeTensors loading: {st_time * 1000:.2f}ms")
+print(f"SafeTensors is {pt_time / st_time:.1f}x faster")
 ```
 
 ## Supported Tasks
 
 SafeTensors export works with all YOLO task types:
 
-| Task           | Model Example       | Export Command                                        |
-| -------------- | ------------------- | ----------------------------------------------------- |
-| Detection      | `yolo11n.pt`        | `yolo export model=yolo11n.pt format=safetensors`     |
-| Segmentation   | `yolo11n-seg.pt`    | `yolo export model=yolo11n-seg.pt format=safetensors` |
-| Classification | `yolo11n-cls.pt`    | `yolo export model=yolo11n-cls.pt format=safetensors` |
-| Pose           | `yolo11n-pose.pt`   | `yolo export model=yolo11n-pose.pt format=safetensors`|
-| OBB            | `yolo11n-obb.pt`    | `yolo export model=yolo11n-obb.pt format=safetensors` |
+| Task           | Model Example     | Export Command                                         |
+| -------------- | ----------------- | ------------------------------------------------------ |
+| Detection      | `yolo11n.pt`      | `yolo export model=yolo11n.pt format=safetensors`      |
+| Segmentation   | `yolo11n-seg.pt`  | `yolo export model=yolo11n-seg.pt format=safetensors`  |
+| Classification | `yolo11n-cls.pt`  | `yolo export model=yolo11n-cls.pt format=safetensors`  |
+| Pose           | `yolo11n-pose.pt` | `yolo export model=yolo11n-pose.pt format=safetensors` |
+| OBB            | `yolo11n-obb.pt`  | `yolo export model=yolo11n-obb.pt format=safetensors`  |
 
 !!! note
 
@@ -257,7 +258,7 @@ SafeTensors export works with all YOLO task types:
 **Solution**: Install the safetensors package:
 
 ```bash
-pip install safetensors>=0.7.0
+pip install safetensors > =0.7.0
 ```
 
 **Issue**: `Model metadata not found`
@@ -333,6 +334,6 @@ Yes! SafeTensors is the preferred format on Hugging Face Hub. You can upload you
 SafeTensors export requires Python 3.9 or higher. Ensure your environment meets this requirement:
 
 ```bash
-python --version  # Should be 3.9+
-pip install ultralytics safetensors>=0.7.0
+python --version # Should be 3.9+
+pip install ultralytics safetensors > =0.7.0
 ```

@@ -55,7 +55,7 @@ from ultralytics.nn.modules import (
     Index,
     LRPCHead,
     Pose,
-    PoseRLE,
+    Pose26,
     RepC3,
     RepConv,
     RepNCSPELAN4,
@@ -1693,12 +1693,12 @@ def parse_model(d, ch, verbose=True):
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in frozenset(
-            {Detect, WorldDetect, YOLOEDetect, Segment, Segmentv8_add, YOLOESegment, Pose, PoseRLE, OBB, ImagePoolingAttn, v10Detect}
+            {Detect, WorldDetect, YOLOEDetect, Segment, Segmentv8_add, YOLOESegment, Pose, Pose26, OBB, ImagePoolingAttn, v10Detect}
         ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is Segmentv8_add or m is YOLOESegment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, Segmentv8_add, YOLOESegment, Pose, PoseRLE, OBB}:
+            if m in {Detect, YOLOEDetect, Segment, Segmentv8_add, YOLOESegment, Pose, Pose26, OBB}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])

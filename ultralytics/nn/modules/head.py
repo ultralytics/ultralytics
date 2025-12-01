@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
+from torch import distributions
 
 from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
@@ -20,7 +21,7 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "Pose", "RTDETRDecoder", "Segment", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = "OBB", "Classify", "Detect", "Pose", "Pose26", "RTDETRDecoder", "Segment", "YOLOEDetect", "YOLOESegment", "v10Detect"
 
 
 class Detect(nn.Module):
@@ -609,11 +610,11 @@ class Pose(Detect):
                 grid_h, grid_w = self.shape[2], self.shape[3]
                 grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
                 norm = self.strides / (self.stride[0] * grid_size)
-                a = (y[:, :, :2] + self.anchors) * norm
+                a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
             else:
                 # NCNN fix
                 y = kpts.view(bs, *self.kpt_shape, -1)
-                a = (y[:, :, :2] + self.anchors) * self.strides
+                a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
             return a.view(bs, self.nk, -1)
@@ -624,13 +625,10 @@ class Pose(Detect):
                     y[:, 2::ndim].sigmoid_()
                 else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
                     y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
-            y[:, 0::ndim] = (y[:, 0::ndim] + self.anchors[0]) * self.strides
-            y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
+            y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
+            y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
 
-
-from torch import distributions
-import math
 
 class RealNVP(nn.Module):
     """RealNVP: a flow-based generative model
@@ -646,14 +644,14 @@ class RealNVP(nn.Module):
     """
 
     @staticmethod
-    def get_scale_net():
+    def nets():
         """Get the scale model in a single invertable mapping."""
         return nn.Sequential(
             nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64),
             nn.SiLU(), nn.Linear(64, 2), nn.Tanh())
 
     @staticmethod
-    def get_trans_net():
+    def nett():
         """Get the translation model in a single invertable mapping."""
         return nn.Sequential(
             nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64),
@@ -673,9 +671,9 @@ class RealNVP(nn.Module):
             'mask', torch.tensor([[0, 1], [1, 0]] * 3, dtype=torch.float32))
 
         self.s = torch.nn.ModuleList(
-            [self.get_scale_net() for _ in range(len(self.mask))])
+            [self.nets() for _ in range(len(self.mask))])
         self.t = torch.nn.ModuleList(
-            [self.get_trans_net() for _ in range(len(self.mask))])
+            [self.nett() for _ in range(len(self.mask))])
         self.init_weights()
 
     def init_weights(self):
@@ -705,7 +703,7 @@ class RealNVP(nn.Module):
         return self.prior.log_prob(z) + log_det
 
 
-class PoseRLE(Pose):
+class Pose26(Pose):
     """
     YOLO Pose head for keypoints models.
 
@@ -761,20 +759,24 @@ class PoseRLE(Pose):
                 a = (y[:, :, :2] + self.anchors) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
-            return a.view(bs, self.nk, -1)
+            elif ndim == 4:
+                scores = 1 - y[:, :, 2:].sigmoid()
+                scores = scores.mean(dim=2, keepdim=True)
+                a = torch.cat((a, scores), 2)
+            return a.view(bs, a.shape[1] * a.shape[2], -1)
         else:
             y = kpts.clone()
-            if ndim == 3: 
+            if ndim == 3:
                 if NOT_MACOS14:
                     y[:, 2::ndim].sigmoid_()
                 else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
                     y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
             elif ndim == 4:
                 reshaped_tensor = y.view(bs, self.kpt_shape[0], ndim, -1)
-                coords = reshaped_tensor[:, :, :2, :]
-                conf = 1 - reshaped_tensor[:, :, 2:, :].sigmoid()
-                mean_sigma = conf.mean(dim=2, keepdim=True)
-                y = torch.cat((coords, mean_sigma), dim=2).view(bs, self.kpt_shape[0] * 3, -1)
+                coords = reshaped_tensor[:, :, :2]
+                scores = 1 - reshaped_tensor[:, :, 2:].sigmoid()
+                scores = scores.mean(dim=2, keepdim=True)
+                y = torch.cat((coords, scores), dim=2).view(bs, self.kpt_shape[0] * 3, -1)
                 ndim = 3
             y[:, 0::ndim] = (y[:, 0::ndim] + self.anchors[0]) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
@@ -797,7 +799,7 @@ class PoseRLE(Pose):
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         kpts = kpts.gather(dim=1, index=idx.repeat(1, 1, self.kpt_shape[0] * 3))
         return torch.cat([boxes, scores, conf, kpts], dim=-1)
-    
+
 
 class Classify(nn.Module):
     """

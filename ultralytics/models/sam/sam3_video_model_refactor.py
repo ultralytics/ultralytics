@@ -194,6 +194,30 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self.imgsz = [1008, 1008]
         self.tracker.imgsz = [1008, 1008]
 
+    @staticmethod
+    def init_state(predictor):
+        """Initialize an inference state for the predictor.
+
+        This function sets up the initial state required for performing inference on video data. It includes
+        initializing various dictionaries and ordered dictionaries that will store inputs, outputs, and other metadata
+        relevant to the tracking process.
+
+        Args:
+            predictor (SAM2VideoPredictor): The predictor object for which to initialize the state.
+        """
+        if len(predictor.inference_state) > 0:  # means initialized
+            return
+        assert predictor.dataset is not None
+        assert predictor.dataset.mode == "video"
+        images = None
+        inference_state = {
+            "num_frames": predictor.dataset.num_frames,
+            "constants": {},  # values that don't change across frames (so we only need to hold one copy of them)
+        }
+
+        predictor._construct_initial_input_batch(inference_state, images)
+        predictor.inference_state = inference_state
+
     def _det_track_one_frame(
         self,
         frame_idx: int,

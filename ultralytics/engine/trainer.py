@@ -263,7 +263,10 @@ class BaseTrainer:
                 import intel_extension_for_pytorch  # noqa: F401
                 import oneccl_bindings_for_pytorch  # noqa: F401
             except Exception as e:
-                raise RuntimeError("CCL backend for XPU is not available, please install IPEX/oneCCL.See https://intel.github.io/intel-extension-for-pytorch/xpu/latest/ for up-to-date torch install instructions") from e
+                raise RuntimeError(
+                    "CCL backend for XPU is not available, please install IPEX/oneCCL.\n"
+                    "See https://intel.github.io/intel-extension-for-pytorch/xpu/latest/ for up-to-date torch install instructions"
+                ) from e
 
             torch.xpu.set_device(local_rank)
             self.device = torch.device("xpu", local_rank)

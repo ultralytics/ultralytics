@@ -2260,7 +2260,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
                 text = ["visual"]  # bboxes needs this `visual` text prompt if no text passed
         if text is not None and self.model.names != text:
             self.model.set_classes(text=text)
-        self.find_stage = FindStage(
+        find_stage = FindStage(
             img_ids=torch.tensor([0] * nc, device=self.device, dtype=torch.long),
             text_ids=torch.tensor(list(range(nc)), device=self.device, dtype=torch.long),
             input_boxes=None,
@@ -2271,7 +2271,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         )
         outputs = self.model.forward_grounding(
             backbone_out=features,
-            find_input=self.find_stage,
+            find_input=find_stage,
             geometric_prompt=geometric_prompt,
             find_target=None,
         )

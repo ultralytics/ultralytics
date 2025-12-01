@@ -13,7 +13,7 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_9
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_9
 
 
 def test_export_torchscript():
@@ -294,6 +294,7 @@ def test_export_executorch_matrix(task):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
+@pytest.mark.skipif(not TORCH_1_10, reason="requires torch>=1.10")
 @pytest.mark.parametrize("task", TASKS)
 def test_export_safetensors_matrix(task):
     """Test YOLO export to SafeTensors format for various task types."""
@@ -308,7 +309,7 @@ def test_export_safetensors_matrix(task):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
-@pytest.mark.skipif(not TORCH_1_13, reason="NMS export requires torch>=1.13")
+@pytest.mark.skipif(not TORCH_1_10, reason="requires torch>=1.10")
 @pytest.mark.parametrize(
     "task, half, nms, batch",
     [  # generate all combinations except for exclusion cases

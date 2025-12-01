@@ -20,11 +20,11 @@ SafeTensors was designed to address security vulnerabilities and performance lim
 
 | Feature                  | PyTorch (pickle) | SafeTensors |
 | ------------------------ | :--------------: | :---------: |
-| Safe (no code execution) |        ✗         |      ✓      |
-| Zero-copy loading        |        ✗         |      ✓      |
-| Lazy loading             |        ✗         |      ✓      |
-| No file size limit       |        ✓         |      ✓      |
-| Bfloat16/Fp8 support     |        ✓         |      ✓      |
+| Safe (no code execution) |        ❌         |      ✅      |
+| Zero-copy loading        |        ❌         |      ✅      |
+| Lazy loading             |        ❌         |      ✅      |
+| No file size limit       |        ✅         |      ✅      |
+| Bfloat16/Fp8 support     |        ✅         |      ✅      |
 
 ## Key Features of SafeTensors
 

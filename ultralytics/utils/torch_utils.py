@@ -190,18 +190,12 @@ def select_device(device="", newline=False, verbose=True):
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
     elif device.startswith("xpu"):  # Intel XPU
-        parts = device.split(":")
-        index_str = parts[1] if len(parts) > 1 else "0"
+        index_str = device.split(":", 1)[1] if ":" in device else "0"
         if "," in index_str:
-            msg = f"Invalid XPU 'device={device}' requested. Only a single XPU device is supported."
+            msg = f"Invalid XPU 'device={device}' requested. Use a single index 0-15."
             LOGGER.warning(msg)
             raise ValueError(msg)
-        try:
-            index = int(index_str)
-        except ValueError as e:
-            msg = f"Invalid XPU 'device={device}' requested. Use an integer index between 0 and 15."
-            LOGGER.warning(msg)
-            raise ValueError(msg) from e
+        index = int(index_str)
         if verbose:
             info = get_xpu_info(index)
             s += f"XPU:{index} ({info})\n"

@@ -450,7 +450,7 @@ class BaseTrainer:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
-                with autocast(self.amp):
+                with autocast(self.amp, device=self.device.type):
                     batch = self.preprocess_batch(batch)
                     if self.args.compile:
                         # Decouple inference and loss calculations for improved compile performance

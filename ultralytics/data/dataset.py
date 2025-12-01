@@ -45,8 +45,8 @@ from .utils import (
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
 DATASET_CACHE_VERSION = "1.0.3"
 # CACHE_SUFFIX=".cache"
-# CACHE_SUFFIX=".merged.cache" #
-CACHE_SUFFIX=".cache" # refine
+CACHE_SUFFIX=".engine.cache" #
+#CACHE_SUFFIX=".cache" # refine
 
 
 class YOLODataset(BaseDataset):

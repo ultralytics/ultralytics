@@ -92,15 +92,15 @@ class Tuner:
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
-            "lr0": (1e-5, 1e-1),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
-            "lrf": (0.0001, 0.1),  # final OneCycleLR learning rate (lr0 * lrf)
+            "lr0": (1e-5, 1e-2),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
+            "lrf": (0.01, 1.0),  # final OneCycleLR learning rate (lr0 * lrf)
             "momentum": (0.7, 0.98, 0.3),  # SGD momentum/Adam beta1
             "weight_decay": (0.0, 0.001),  # optimizer weight decay 5e-4
             "warmup_epochs": (0.0, 5.0),  # warmup epochs (fractions ok)
             "warmup_momentum": (0.0, 0.95),  # warmup initial momentum
             "box": (1.0, 20.0),  # box loss gain
             "cls": (0.1, 4.0),  # cls loss gain (scale with pixels)
-            "dfl": (0.4, 6.0),  # dfl loss gain
+            "dfl": (0.4, 12.0),  # dfl loss gain
             "hsv_h": (0.0, 0.1),  # image HSV-Hue augmentation (fraction)
             "hsv_s": (0.0, 0.9),  # image HSV-Saturation augmentation (fraction)
             "hsv_v": (0.0, 0.9),  # image HSV-Value augmentation (fraction)
@@ -117,6 +117,11 @@ class Tuner:
             "cutmix": (0.0, 1.0),  # image cutmix (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
             "close_mosaic": (0.0, 10.0),  # close dataloader mosaic (epochs)
+            "o2m": (0.1, 1.0),
+            "muon_w": (0.1, 1.0),
+            "sgd_w": (0.1, 1.0),
+            "cls_w": (1.0, 5.0),
+            "topk": (2.0, 12.0),
         }
         mongodb_uri = args.pop("mongodb_uri", None)
         mongodb_db = args.pop("mongodb_db", "ultralytics")
@@ -345,6 +350,8 @@ class Tuner:
         # Update types
         if "close_mosaic" in hyp:
             hyp["close_mosaic"] = round(hyp["close_mosaic"])
+        if "topk" in hyp:
+            hyp["topk"] = round(hyp["topk"])
 
         return hyp
 

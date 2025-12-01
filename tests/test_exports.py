@@ -313,8 +313,7 @@ def test_export_safetensors_matrix(task):
 @pytest.mark.parametrize(
     "task, half, batch",
     [  # generate all combinations
-        (task, half, batch)
-        for task, half, batch in product(TASKS, [True, False], [1, 2])
+        (task, half, batch) for task, half, batch in product(TASKS, [True, False], [1, 2])
     ],
 )
 def test_export_safetensors_params_matrix(task, half, batch):

@@ -35,8 +35,35 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         self.image_mean = image_mean
         self.image_std = image_std
 
+    @staticmethod
+    def init_state(predictor):
+        """Initialize an inference state for the predictor.
+
+        This function sets up the initial state required for performing inference on video data. It includes
+        initializing various dictionaries and ordered dictionaries that will store inputs, outputs, and other metadata
+        relevant to the tracking process.
+
+        Args:
+            predictor (SAM2VideoPredictor): The predictor object for which to initialize the state.
+        """
+        if len(predictor.inference_state) > 0:  # means initialized
+            return
+        assert predictor.dataset is not None
+        assert predictor.dataset.mode == "video"
+        images = None
+        inference_state = {
+            "num_frames": predictor.dataset.num_frames,
+            "constants": {},  # values that don't change across frames (so we only need to hold one copy of them)
+            "tracker_inference_states": [],
+            "tracker_metadata": {},
+            "feature_cache": {},
+        }
+
+        predictor._construct_initial_input_batch(inference_state, images)
+        predictor.inference_state = inference_state
+
     @torch.inference_mode()
-    def init_state(
+    def init_state_ori(
         self,
         resource_path,
         offload_video_to_cpu=False,

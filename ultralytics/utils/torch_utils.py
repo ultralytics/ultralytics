@@ -190,6 +190,8 @@ def select_device(device="", newline=False, verbose=True):
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
     elif device.startswith("xpu"):  # Intel XPU
+        if not hasattr(torch, "xpu") or not torch.xpu.is_available():
+            raise RuntimeError("Requested XPU device but torch.xpu is not available.")
         index_str = device.split(":", 1)[1] if ":" in device else "0"
         index_list = [int(i) for i in index_str.split(",") if i]
         if not index_list:

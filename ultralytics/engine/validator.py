@@ -164,7 +164,7 @@ class BaseValidator:
                     if not hasattr(torch, "xpu") or not torch.xpu.is_available():
                         raise RuntimeError("Requested XPU device but torch.xpu is not available.")
                     eval_device = torch.device("xpu", RANK)
-                elif device_arg.startswith("cuda") or device_arg == "":
+                elif device_arg.startswith("cuda") or device_arg.isdigit() or device_arg == "":
                     if not torch.cuda.is_available():
                         raise RuntimeError("Requested CUDA device but torch.cuda is not available.")
                     eval_device = torch.device("cuda", RANK)

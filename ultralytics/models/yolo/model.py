@@ -120,10 +120,10 @@ class YOLO(Model):
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
             },
-            # Stereo 3D detection: scaffolded trainer/validator/predictor
+            # Stereo 3D detection: uses new StereoTrainer from engine.stereo
             "stereo3ddet": {
-                "model": yolo.stereo3ddet.Stereo3DDetModel,  # placeholder stereo model class
-                "trainer": yolo.stereo3ddet.Stereo3DDetTrainer,
+                "model": yolo.stereo3ddet.Stereo3DDetModel,
+                "trainer": yolo.stereo3ddet.Stereo3DDetTrainer,  # Uses existing trainer (can be switched to engine.stereo.StereoTrainer if needed)
                 "validator": yolo.stereo3ddet.Stereo3DDetValidator,
                 "predictor": yolo.stereo3ddet.Stereo3DDetPredictor,
             },

@@ -89,6 +89,8 @@ from .head import (
     YOLOESegment,
     v10Detect,
 )
+from .stereo.backbone import StereoConv
+from .stereo.head import StereoCenterNetHead
 from .transformer import (
     AIFI,
     MLP,
@@ -179,4 +181,6 @@ __all__ = (
     "YOLOEDetect",
     "YOLOESegment",
     "v10Detect",
+    "StereoConv",
+    "StereoCenterNetHead",
 )

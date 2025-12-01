@@ -132,17 +132,16 @@ class Stereo3DDetAdapterDataset(Dataset):
         if img6.dtype != torch.uint8:
             img6 = img6.to(torch.uint8)
 
-        # Targets stub (to be populated with heatmaps/offsets etc. by future encoder)
-        # For now, provide empty dict so model can compute forward without targets
-        # TODO: implement target encoding for stereo 3D detection
-        targets: Dict[str, Any] = {}
+        # Pass labels through for target generation in trainer
+        # The trainer will convert these to proper target format
+        labels = labels_aug
 
         image_id = sample.get("image_id")
         im_file = str(self.left_dir / f"{image_id}.png")
 
         return {
             "img": img6,  # uint8 [0,255], shape (6,H,W)
-            "targets": targets,
+            "labels": labels,  # Pass labels for target generation
             "im_file": im_file,
             "ori_shape": (h0, w0),
         }
@@ -150,10 +149,15 @@ class Stereo3DDetAdapterDataset(Dataset):
     @staticmethod
     def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
         imgs = torch.stack([b["img"] for b in batch], 0)  # (B,6,H,W)
-        targets_list = [b["targets"] for b in batch]
+        labels_list = [b.get("labels", []) for b in batch]
+        # Extract class IDs for compatibility with trainer
+        # Trainer expects cls to be a tensor with shape [batch_size]
+        # We'll use the number of objects as a proxy
+        cls_tensor = torch.tensor([len(labels) for labels in labels_list], dtype=torch.long)
         return {
             "img": imgs,
-            "targets": targets_list,
+            "labels": labels_list,  # Pass labels for target generation
+            "cls": cls_tensor,  # Add cls for trainer compatibility (number of objects per image)
             "im_file": [b["im_file"] for b in batch],
             "ori_shape": [b["ori_shape"] for b in batch],
         }

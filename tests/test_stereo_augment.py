@@ -207,12 +207,57 @@ class TestScaleAugmentor:
         assert labels_s == labels
 
     def test_focal_length_scaled(self):
-        # f'_x = s * f_x
-        pass
+        # Verify calibration intrinsics scale with image resize
+        left, right, labels, _ = load_real_sample()
+        from ultralytics.models.yolo.stereo3ddet.augment import StereoCalibration, StereoAugmentationPipeline, PhotometricAugmentor, HorizontalFlipAugmentor, RandomScaleAugmentor, RandomCropAugmentor
+        h, w = left.shape[:2]
+        calib = StereoCalibration(fx=700.0, fy=700.0, cx=w / 2.0, cy=h / 2.0, baseline=0.54, height=h, width=w)
+        s = 1.3
+        pipe = StereoAugmentationPipeline(
+            photometric=PhotometricAugmentor(p_apply=0.0),
+            hflip=HorizontalFlipAugmentor(p_apply=0.0),
+            rscale=RandomScaleAugmentor(scale_range=(s, s), p_apply=1.0),
+            rcrop=RandomCropAugmentor(p_apply=0.0),
+        )
+        left_o, right_o, labels_o, calib_o = pipe.augment(left, right, labels, calibration=calib)
+        assert calib_o is not None
+        # fx, fy, cx, cy scaled by actual integer resize factors
+        sx = calib_o.width / float(calib.width)
+        sy = calib_o.height / float(calib.height)
+        assert pytest.approx(calib_o.fx, 1e-6) == calib.fx * sx
+        assert pytest.approx(calib_o.fy, 1e-6) == calib.fy * sy
+        assert pytest.approx(calib_o.cx, 1e-6) == calib.cx * sx
+        assert pytest.approx(calib_o.cy, 1e-6) == calib.cy * sy
+        assert pytest.approx(calib_o.baseline, 1e-6) == calib.baseline
+        assert calib_o.width == int(round(w * s)) and calib_o.height == int(round(h * s))
 
     def test_depth_preserved_after_scale(self):
-        # z' = (s * f_x * B) / (s * disparity) = z
-        pass
+        # Depth z = f * B / d should be invariant to uniform scaling
+        left, right, labels, _ = load_real_sample()
+        from ultralytics.models.yolo.stereo3ddet.augment import StereoCalibration, StereoAugmentationPipeline, PhotometricAugmentor, HorizontalFlipAugmentor, RandomScaleAugmentor, RandomCropAugmentor
+        h, w = left.shape[:2]
+        calib = StereoCalibration(fx=720.0, fy=720.0, cx=w / 2.0, cy=h / 2.0, baseline=0.54, height=h, width=w)
+        # Use a single object to compute disparity from normalized centers
+        obj = labels[0]
+        disp_norm = obj["left_box"]["center_x"] - obj["right_box"]["center_x"]
+        # Convert normalized disparity to pixels in original image
+        d_px = disp_norm * w
+        z_before = float('inf') if d_px == 0 else (calib.fx * calib.baseline) / d_px
+
+        s = 1.25
+        pipe = StereoAugmentationPipeline(
+            photometric=PhotometricAugmentor(p_apply=0.0),
+            hflip=HorizontalFlipAugmentor(p_apply=0.0),
+            rscale=RandomScaleAugmentor(scale_range=(s, s), p_apply=1.0),
+            rcrop=RandomCropAugmentor(p_apply=0.0),
+        )
+        left_o, right_o, labels_o, calib_o = pipe.augment(left, right, labels, calibration=calib)
+        assert calib_o is not None
+        w_new = left_o.shape[1]
+        disp_norm_after = labels_o[0]["left_box"]["center_x"] - labels_o[0]["right_box"]["center_x"]
+        d_px_after = disp_norm_after * w_new
+        z_after = float('inf') if d_px_after == 0 else (calib_o.fx * calib_o.baseline) / d_px_after
+        assert pytest.approx(z_before, 1e-6) == z_after
 
 def test_random_scale_augmentor():
     ensure_dir(ARTIFACT_DIR)

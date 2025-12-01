@@ -63,6 +63,8 @@ from ultralytics.nn.modules import (
     RTDETRDecoder,
     SCDown,
     Segment,
+    StereoCenterNetHead,
+    StereoConv,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
@@ -1553,6 +1555,7 @@ def parse_model(d, ch, verbose=True):
             SCDown,
             C2fCIB,
             A2C2f,
+            StereoConv,  # Stereo 6-channel input convolution
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments
@@ -1601,7 +1604,7 @@ def parse_model(d, ch, verbose=True):
                 n = 1
             if m is C3k2:  # for M/L/X sizes
                 legacy = False
-                if scale in "mlx":
+                if scale and scale in "mlx":
                     args[3] = True
             if m is A2C2f:
                 legacy = False
@@ -1631,6 +1634,16 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
+        elif m is StereoCenterNetHead:
+            # StereoCenterNetHead takes [num_classes, in_channels] as args
+            # f is the from index (single int), ch[f] is the input channels
+            # args[0] should be num_classes, args[1] should be in_channels
+            if len(args) >= 2:
+                # args already contains [nc, in_channels] from YAML
+                pass
+            else:
+                # Fallback: use ch[f] as in_channels
+                args = [nc, ch[f] if isinstance(f, int) else ch[f[0]]]
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
@@ -1705,11 +1718,15 @@ def guess_model_task(model):
         model (torch.nn.Module | dict): PyTorch model or model configuration in YAML format.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'stereo3ddet').
     """
 
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
+        # Check for stereo flag first (highest priority)
+        if cfg.get("stereo") is True:
+            return "stereo3ddet"
+        
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
@@ -1749,7 +1766,9 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        if "-seg" in model.stem or "segment" in model.parts:
+        if "stereo" in model.stem.lower() or "stereo" in model.parts:
+            return "stereo3ddet"
+        elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"

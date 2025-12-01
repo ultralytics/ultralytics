@@ -192,3 +192,9 @@ calibration_*.npy
 *.heic
 *.ico
 *.raw
+.github/
+DATASET_SETUP_COMPLETE.md
+TRAINING_VALIDATION_REPORT.md
+.cursor/
+.specify/
+specs/

@@ -8,6 +8,7 @@ from typing import Any
 
 import cv2
 import numpy as np
+import torch
 
 from ultralytics.models import yolo
 from ultralytics.utils import DEFAULT_CFG, YAML
@@ -136,17 +137,61 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         """
         try:
             from .stereo_yolo_v11 import StereoYOLOv11Wrapper
-            model = StereoYOLOv11Wrapper()
+            # Get number of classes from dataset config
+            num_classes = self.data.get("nc", 3)
+            model = StereoYOLOv11Wrapper(num_classes=num_classes)
             if verbose:
-                print("Initialized StereoYOLOv11Wrapper for 6-channel input")
+                print(f"Initialized StereoYOLOv11Wrapper for 6-channel input with {num_classes} classes")
             return model
         except Exception as e:
             raise RuntimeError(f"Failed to initialize StereoYOLOv11Wrapper: {e}")
 
     def preprocess_batch(self, batch):
-        """Normalize 6-channel images to float [0,1]."""
+        """Normalize 6-channel images to float [0,1] and generate targets."""
         imgs = batch["img"].to(self.device, non_blocking=True)
         batch["img"] = imgs.float() / 255.0
+        
+        # Generate targets from labels if present
+        if "labels" in batch and batch["labels"]:
+            from ultralytics.data.stereo.target import TargetGenerator
+            
+            # Get image size (needed for both target generator initialization and target generation)
+            imgsz = int(self.args.imgsz) if hasattr(self.args, "imgsz") else 384
+            
+            # Initialize target generator if not already done
+            if not hasattr(self, "target_generator"):
+                num_classes = self.data.get("nc", 3)
+                # Output size is H/32, W/32 (ResNet18 backbone downsamples by 32x)
+                output_h = imgsz // 32
+                output_w = imgsz // 32  # Assuming square for now, adjust if needed
+                self.target_generator = TargetGenerator(
+                    output_size=(output_h, output_w),
+                    num_classes=num_classes,
+                )
+            
+            # Convert labels to target format
+            # The model expects targets to be a single dict (not a list)
+            # We'll use the first sample's targets for now, or batch them properly
+            # For proper batching, we need to stack targets across batch dimension
+            targets_list = []
+            for labels in batch["labels"]:
+                target = self.target_generator.generate_targets(
+                    labels, 
+                    input_size=(imgsz, imgsz)  # Assuming square input
+                )
+                # Move to device
+                target = {k: v.to(self.device) for k, v in target.items()}
+                targets_list.append(target)
+            
+            # Stack targets across batch dimension
+            # Each target is a dict with tensors of shape [C, H, W]
+            # We need to stack to [B, C, H, W]
+            batched_targets = {}
+            for key in targets_list[0].keys():
+                batched_targets[key] = torch.stack([t[key] for t in targets_list], dim=0)
+            
+            batch["targets"] = batched_targets
+        
         return batch
 
     def _forward_train(self, batch):

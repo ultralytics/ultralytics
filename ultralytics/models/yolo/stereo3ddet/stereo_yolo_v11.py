@@ -304,6 +304,10 @@ class StereoCenterNetLoss(nn.Module):
         loss = F.smooth_l1_loss(pred, target, reduction="none")
 
         if mask is not None:
+            # Convert heatmap mask to binary mask
+            # If mask is heatmap [B, num_classes, H, W], sum over classes to get [B, H, W]
+            if mask.dim() == 4 and mask.shape[1] > 1:  # [B, num_classes, H, W]
+                mask = mask.sum(dim=1, keepdim=False)  # [B, H, W] - binary mask
             # Expand mask to pred dims
             if mask.dim() == 3:  # [B, H, W]
                 mask = mask.unsqueeze(1).expand_as(pred)  # [B, C, H, W]
@@ -329,6 +333,9 @@ class StereoCenterNetLoss(nn.Module):
         loss = F.l1_loss(pred_transformed, target, reduction="none")
 
         if mask is not None:
+            # Convert heatmap mask to binary mask
+            if mask.dim() == 4 and mask.shape[1] > 1:  # [B, num_classes, H, W]
+                mask = mask.sum(dim=1, keepdim=False)  # [B, H, W]
             if mask.dim() == 3:
                 mask = mask.unsqueeze(1).expand_as(pred)
 
@@ -361,18 +368,31 @@ class StereoCenterNetLoss(nn.Module):
         angle_target = target[:, 2:6, :, :]  # [B, 4, H, W]
 
         # Bin classification loss
-        bin_loss = F.cross_entropy(bin_pred, bin_target, reduction="none")  # [B, H, W]
+        # Reshape for cross_entropy: [B, C, H, W] -> [B*H*W, C] and [B, H, W] -> [B*H*W]
+        B, C, H, W = bin_pred.shape
+        bin_pred_flat = bin_pred.permute(0, 2, 3, 1).reshape(-1, C)  # [B*H*W, 2]
+        bin_target_flat = bin_target.reshape(-1).long()  # [B*H*W]
+        bin_loss_flat = F.cross_entropy(bin_pred_flat, bin_target_flat, reduction="none")  # [B*H*W]
+        bin_loss = bin_loss_flat.reshape(B, H, W)  # [B, H, W]
 
         # Angle regression loss (sin/cos only, 4 dims)
         angle_loss = F.l1_loss(angle_pred, angle_target, reduction="none")
         angle_loss = angle_loss.mean(dim=1)  # [B, H, W]
 
         # Total loss
-        total_loss = bin_loss + 0.5 * angle_loss
+        total_loss = bin_loss + 0.5 * angle_loss  # [B, H, W]
 
         if mask is not None:
-            if mask.dim() == 3:
+            # Convert heatmap mask to binary mask
+            if mask.dim() == 4 and mask.shape[1] > 1:  # [B, num_classes, H, W]
+                mask = mask.sum(dim=1, keepdim=False)  # [B, H, W]
+            if mask.dim() == 3:  # [B, H, W]
                 mask = mask.float()
+            # Verify shapes match
+            assert total_loss.shape == mask.shape, (
+                f"Shape mismatch: total_loss {total_loss.shape} vs mask {mask.shape}, "
+                f"bin_loss {bin_loss.shape}, angle_loss {angle_loss.shape}"
+            )
             total_loss = total_loss * mask
             num_pos = mask.sum().float()
             num_pos = torch.clamp(num_pos, min=1.0)
@@ -501,10 +521,10 @@ class StereoYOLOv11(nn.Module):
         # 5. Compute loss (training)
         if targets is not None:
             # Per-branch losses
-            total_loss, _loss_dict = self.criterion(predictions, targets)
+            total_loss, loss_dict = self.criterion(predictions, targets)
             # (Optional) apply uncertainty weighting
-            # total_loss = self.uncertainty_loss(_loss_dict)
-            return predictions, total_loss
+            # total_loss = self.uncertainty_loss(loss_dict)
+            return predictions, total_loss, loss_dict
         else:
             return predictions
 
@@ -539,9 +559,24 @@ class StereoYOLOv11Wrapper(nn.Module):
         right = img6[:, 3:6, :, :]
 
         if targets is not None:
-            preds, total_loss = self.core(left, right, targets)
-            # Return a dict with 'loss' key for Ultralytics Trainer compatibility
-            return {"loss": total_loss, "preds": preds}
+            preds, total_loss, loss_dict = self.core(left, right, targets)
+            # Return tuple (loss, loss_items) for Ultralytics Trainer compatibility
+            # loss_items should be a tensor with individual loss components
+            # Create tensor from loss_dict values
+            loss_items_list = [
+                loss_dict.get("heatmap", torch.tensor(0.0, device=total_loss.device)),
+                loss_dict.get("offset", torch.tensor(0.0, device=total_loss.device)),
+                loss_dict.get("bbox_size", torch.tensor(0.0, device=total_loss.device)),
+                loss_dict.get("lr_distance", torch.tensor(0.0, device=total_loss.device)),
+                loss_dict.get("right_width", torch.tensor(0.0, device=total_loss.device)),
+                loss_dict.get("dimensions", torch.tensor(0.0, device=total_loss.device)),
+                loss_dict.get("orientation", torch.tensor(0.0, device=total_loss.device)),
+                loss_dict.get("vertices", torch.tensor(0.0, device=total_loss.device)),
+                loss_dict.get("vertex_offset", torch.tensor(0.0, device=total_loss.device)),
+                loss_dict.get("vertex_dist", torch.tensor(0.0, device=total_loss.device)),
+            ]
+            loss_items = torch.stack(loss_items_list)  # [10]
+            return total_loss, loss_items
         else:
             preds = self.core(left, right, None)
             return preds

@@ -254,7 +254,7 @@ class AutoBackend(nn.Module):
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
-                check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl[torch]", "onnxruntime-extensions"))
+                check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl<1.1.0", "onnxruntime-extensions"))
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq

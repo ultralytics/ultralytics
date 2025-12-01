@@ -206,7 +206,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         feature_cache: Dict,
         orig_vid_height: int,
         orig_vid_width: int,
-        is_image_only: bool = False,
         allow_new_detections: bool = True,
     ):
         """
@@ -269,7 +268,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             tracker_obj_scores_global=tracker_obj_scores_global,
             tracker_metadata_prev=tracker_metadata_prev,
             tracker_states_local=tracker_states_local,
-            is_image_only=is_image_only,
         )
 
         # Get reconditioning info from the update plan
@@ -494,7 +492,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_obj_scores_global: Tensor,
         tracker_metadata_prev: Dict[str, npt.NDArray],
         tracker_states_local: List[Any],
-        is_image_only: bool = False,
     ):
         # initialize new metadata from previous metadata (its values will be updated later)
         tracker_metadata_new = {
@@ -536,7 +533,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             prev_obj_num = np.sum(tracker_metadata_prev["num_obj_per_gpu"])
             new_det_num = len(new_det_fa_inds)
             num_obj_dropped_due_to_limit = 0
-            if not is_image_only and prev_obj_num + new_det_num > self.max_num_objects:
+            if prev_obj_num + new_det_num > self.max_num_objects:
                 LOGGER.warning(f"hitting {self.max_num_objects=} with {new_det_num=} and {prev_obj_num=}")
                 new_det_num_to_keep = self.max_num_objects - prev_obj_num
                 num_obj_dropped_due_to_limit = new_det_num - new_det_num_to_keep

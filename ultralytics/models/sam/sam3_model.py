@@ -121,6 +121,7 @@ class SAM3Model(SAM2Model):
         self.memory_encoder.mask_downsampler.interpol_size = [size // 14 * 16 for size in imgsz]
 
 
+# TODO: clean this up
 class Sam3TrackerPredictor(SAM3Model):
     """
     The demo class that extends the `Sam3TrackerBase` to handle user interactions

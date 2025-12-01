@@ -66,9 +66,7 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         # initialize extra states
         inference_state["tracker_inference_states"] = []
         inference_state["tracker_metadata"] = {}
-        inference_state["feature_cache"] = {}
-        inference_state["action_history"] = []  # for logging user actions
-        inference_state["is_image_only"] = False
+        inference_state["feature_cache"] = {}  # to store backbone out from detector
         return inference_state
 
     def _construct_initial_input_batch(self, inference_state, images):
@@ -125,16 +123,8 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         # constructing an output list in inference state (we start with an empty list)
         inference_state["previous_stages_out"] = [None] * num_frames
         inference_state["text_prompt"] = None
-        inference_state["per_frame_raw_point_input"] = [None] * num_frames
-        inference_state["per_frame_raw_box_input"] = [None] * num_frames
         inference_state["per_frame_visual_prompt"] = [None] * num_frames
         inference_state["per_frame_geometric_prompt"] = [None] * num_frames
-        inference_state["per_frame_cur_step"] = [0] * num_frames
-
-        # placeholders for cached outputs
-        # (note: currently, a single visual prompt embedding is shared for all frames)
-        inference_state["visual_prompt_embed"] = None
-        inference_state["visual_prompt_mask"] = None
 
     @torch.inference_mode()
     def reset_state(self, inference_state):
@@ -145,18 +135,12 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             inference_state["input_batch"].find_inputs[t].text_ids[...] = 0
             # constructing an output list in inference state (we start with an empty list)
             inference_state["previous_stages_out"][t] = None
-            inference_state["per_frame_raw_point_input"][t] = None
-            inference_state["per_frame_raw_box_input"][t] = None
             inference_state["per_frame_visual_prompt"][t] = None
             inference_state["per_frame_geometric_prompt"][t] = None
-            inference_state["per_frame_cur_step"][t] = 0
 
-        inference_state["visual_prompt_embed"] = None
-        inference_state["visual_prompt_mask"] = None
         inference_state["tracker_inference_states"].clear()
         inference_state["tracker_metadata"].clear()
         inference_state["feature_cache"].clear()
-        inference_state["action_history"].clear()  # for logging user actions
 
     def _get_visual_prompt(self, inference_state, frame_idx, boxes_cxcywh, box_labels):
         """
@@ -248,12 +232,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             max_frame_num_to_track,
             reverse=reverse,
         )
-
-        # Store max_frame_num_to_track in feature_cache for downstream methods
-        inference_state["feature_cache"]["tracking_bounds"] = {
-            "max_frame_num_to_track": max_frame_num_to_track,
-            "propagate_in_video_start_frame_idx": start_frame_idx,
-        }
 
         hotstart_buffer = []
         hotstart_removed_obj_ids = set()
@@ -350,7 +328,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             feature_cache=inference_state["feature_cache"],
             orig_vid_height=inference_state["orig_height"],
             orig_vid_width=inference_state["orig_width"],
-            is_image_only=inference_state["is_image_only"],
             allow_new_detections=has_text_prompt or has_geometric_prompt,
         )
         # update inference state
@@ -512,7 +489,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             assert (boxes_cxcywh >= 0).all().item() and (boxes_cxcywh <= 1).all().item()
 
             new_box_input = boxes_cxcywh, box_labels
-            inference_state["per_frame_raw_box_input"][frame_idx] = new_box_input
 
             # handle the case of visual prompt (also added as an input box from the UI)
             boxes_cxcywh, box_labels, geometric_prompt = self._get_visual_prompt(

@@ -1239,7 +1239,6 @@ class Exporter:
         Returns:
             (str): Path to the exported SafeTensors file.
         """
-
         assert IS_PYTHON_MINIMUM_3_9, "Safetensor export requires Python>=3.9"
         check_requirements("safetensors>=0.7.0")
 

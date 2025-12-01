@@ -1285,8 +1285,6 @@ class Exporter:
 
         return str(safetensors_file)
 
-        return str(file_directory)
-
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""
         import zipfile

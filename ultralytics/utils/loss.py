@@ -624,7 +624,7 @@ class v8PoseLoss(v8DetectionLoss):
             self.joint_weights = torch.Tensor([1., 1., 1., 1., 1., 1., 1., 1.2, 1.2, 1.5, 1.5, 1., 1., 
                                                1.2, 1.2, 1.5, 1.5]).to(self.device)
             self.rle_loss = True
-            self.rle_loss_module = RLELoss(q_distribution="laplace").to(self.device)
+            self.rle_loss_module = RLELoss(use_target_weight=True).to(self.device)
             self.flow_model = model.model[-1].flow_model
         else:
             self.rle_loss = False

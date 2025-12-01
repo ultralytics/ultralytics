@@ -69,8 +69,7 @@ def _export_onnx(model, x, path, opset=13, const_fold=True, input_name="input", 
 
 
 class TestGhostConv:
-    """
-    Test suite for GhostConv module.
+    """Test suite for GhostConv module.
 
     Tests the forward pass, TorchScript/ONNX export, BC for old/new APIs, gradient flow, and original-mode equivalence
     regression.

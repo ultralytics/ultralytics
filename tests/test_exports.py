@@ -290,3 +290,46 @@ def test_export_executorch_matrix(task):
     assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found for task '{task}': {metadata_file}"
     # Note: Inference testing skipped as ExecuTorch requires special runtime setup
     shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
+@pytest.mark.parametrize("task", TASKS)
+def test_export_safetensors_matrix(task):
+    """Test YOLO export to SafeTensors format for various task types."""
+    file = YOLO(TASK2MODEL[task]).export(format="safetensors", imgsz=32)
+    assert Path(file).exists(), f"Safetensors export failed for task '{task}', file not found: {file}"
+    # Check that file is a .safetensors file (single file, no directory)
+    assert file.endswith(".safetensors"), f"Expected .safetensors file, got: {file}"
+    # Test inference with exported model
+    YOLO(file)(SOURCE, imgsz=32)
+    Path(file).unlink()  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
+@pytest.mark.skipif(not TORCH_1_13, reason="NMS export requires torch>=1.13")
+@pytest.mark.parametrize(
+    "task, half, nms, batch",
+    [  # generate all combinations except for exclusion cases
+        (task, half, nms, batch)
+        for task, half, nms, batch in product(TASKS, [True, False], [True, False], [1, 2])
+        if not (task == "classify" and nms)  # classify doesn't support nms
+        and not (task == "segment" and nms)  # segment nms has mask shape issues
+        and not (task == "pose" and nms)  # pose nms has keypoint shape issues
+        and not (task == "obb" and nms)  # obb nms has class name issues
+    ],
+)
+def test_export_safetensors_params_matrix(task, half, nms, batch):
+    """Test YOLO export to SafeTensors format with various export parameters including NMS (end2end)."""
+    file = YOLO(TASK2MODEL[task]).export(format="safetensors", imgsz=32, half=half, nms=nms, batch=batch)
+    assert Path(file).exists(), f"Safetensors export failed for task '{task}', file not found: {file}"
+    # Check that filename reflects export parameters
+    filename = Path(file).name
+    if half:
+        assert "fp16" in filename, f"Expected 'fp16' in filename for half=True: {filename}"
+    if nms:
+        assert "nms" in filename, f"Expected 'nms' in filename for nms=True: {filename}"
+    # Test inference with exported model
+    YOLO(file)([SOURCE] * batch, imgsz=32)
+    Path(file).unlink()  # cleanup

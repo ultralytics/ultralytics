@@ -95,6 +95,7 @@ class AutoBackend(nn.Module):
             | RKNN                  | *_rknn_model/     |
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
+            | SafeTensors           | *.safetensors     |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -122,6 +123,7 @@ class AutoBackend(nn.Module):
         rknn (bool): Whether the model is an RKNN model.
         triton (bool): Whether the model is a Triton Inference Server model.
         pte (bool): Whether the model is a PyTorch ExecuTorch model.
+        safetensors (bool): Whether the model is a SafeTensors model.
 
     Methods:
         forward: Run inference on an input image.
@@ -176,9 +178,10 @@ class AutoBackend(nn.Module):
             imx,
             rknn,
             pte,
+            safetensors,
             triton,
         ) = self._model_type("" if nn_module else model)
-        fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
+        fp16 &= pt or jit or onnx or xml or engine or nn_module or triton or safetensors  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride, ch = 32, 3  # default stride and channels
         end2end, dynamic = False, False
@@ -186,7 +189,7 @@ class AutoBackend(nn.Module):
 
         # Set device
         cuda = isinstance(device, torch.device) and torch.cuda.is_available() and device.type != "cpu"  # use CUDA
-        if cuda and not any([nn_module, pt, jit, engine, onnx, paddle]):  # GPU dataloader formats
+        if cuda and not any([nn_module, pt, jit, engine, onnx, paddle, safetensors]):  # GPU dataloader formats
             device = torch.device("cpu")
             cuda = False
 
@@ -218,6 +221,82 @@ class AutoBackend(nn.Module):
             for p in model.parameters():
                 p.requires_grad = False
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
+
+        # SafeTensors
+        elif safetensors:
+            LOGGER.info(f"Loading {w} for SafeTensors inference...")
+            check_requirements("safetensors>=0.7.0")
+            from safetensors.torch import load_file, safe_open
+
+            w_path = Path(w)
+            safetensors_file = w_path
+
+            # Load metadata first (fast operation)
+            with safe_open(str(safetensors_file), framework="pt") as f:
+                metadata = {k: v for k, v in f.metadata().items()} if f.metadata() else {}
+
+            # Check if weights are from a fused model
+            is_fused_weights = metadata.get("fused", "False") == "True"
+
+            # Get model architecture from embedded YAML in metadata
+            if "model_yaml" not in metadata:
+                raise ValueError(
+                    f"SafeTensors file '{safetensors_file}' is missing 'model_yaml' metadata. "
+                    f"Re-export with 'format=safetensors' to include model architecture."
+                )
+
+            # Build model from embedded YAML
+            from ultralytics.nn.tasks import (
+                ClassificationModel,
+                DetectionModel,
+                OBBModel,
+                PoseModel,
+                SegmentationModel,
+            )
+
+            # Parse embedded YAML from JSON string in metadata
+            yaml_dict = json.loads(metadata["model_yaml"])
+            task = metadata.get("task", "detect")
+
+            # Select the appropriate model class based on task
+            model_cls = {
+                "detect": DetectionModel,
+                "segment": SegmentationModel,
+                "classify": ClassificationModel,
+                "pose": PoseModel,
+                "obb": OBBModel,
+            }.get(task, DetectionModel)
+
+            # Build model with verbose=False for speed
+            model = model_cls(yaml_dict, verbose=False)
+
+            if is_fused_weights:
+                # Fuse the model first to match the fused weights structure
+                model = model.fuse(verbose=False)
+
+            # Load SafeTensors weights directly to target device (faster)
+            state_dict = load_file(str(safetensors_file), device=str(device))
+            model.load_state_dict(state_dict, strict=True)
+
+            # Set model attributes from metadata
+            if "names" in metadata:
+                try:
+                    model.names = ast.literal_eval(metadata["names"])
+                except (ValueError, SyntaxError):
+                    pass
+
+            model = model.to(device)
+            # Only fuse if not already fused and fuse is requested
+            if fuse and hasattr(model, "fuse") and not is_fused_weights:
+                model = model.fuse(verbose=verbose)
+            model.half() if fp16 else model.float()
+            model.eval()
+
+            # Extract model attributes from metadata or model
+            names = model.names if hasattr(model, "names") else default_class_names(data)
+            for p in model.parameters():
+                p.requires_grad = False
+            self.model = model
 
         # TorchScript
         elif jit:
@@ -654,7 +733,7 @@ class AutoBackend(nn.Module):
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
 
         # PyTorch
-        if self.pt or self.nn_module:
+        if self.pt or self.nn_module or self.safetensors:
             y = self.model(im, augment=augment, visualize=visualize, embed=embed, **kwargs)
 
         # TorchScript
@@ -871,7 +950,7 @@ class AutoBackend(nn.Module):
         Args:
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
         """
-        warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
+        warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module, self.safetensors
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.jit else 1):

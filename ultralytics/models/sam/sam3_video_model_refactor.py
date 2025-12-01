@@ -236,7 +236,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             allow_new_detections=allow_new_detections,
         )
         self.tracker.backbone_out = feature_cache[frame_idx][1]["tracker_backbone_out"]
-        
+
         # TODO: update `im` for SAM2VideoPredictor, need to be fixed
         # for inference_state in tracker_states_local:
         #     inference_state["im"] = feature_cache[frame_idx][0].unsqueeze(0)
@@ -379,26 +379,26 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         max_frame_num_to_track = tracking_bounds.get("max_frame_num_to_track")
         start_frame_idx = tracking_bounds.get("propagate_in_video_start_frame_idx")
 
-        sam3_image_out, _ = self.model.forward_video_grounding_multigpu(
+        sam3_image_out = self.model.forward_grounding(
             backbone_out={
                 "img_batch_all_stages": input_batch.img_batch,
                 **text_outputs,
             },
-            find_inputs=input_batch.find_inputs,
+            find_input=input_batch.find_inputs[frame_idx],
             geometric_prompt=geometric_prompt,
-            frame_idx=frame_idx,
-            num_frames=num_frames,
-            multigpu_buffer=feature_cache["multigpu_buffer"],
-            track_in_reverse=reverse,
+            # frame_idx=frame_idx,
+            # num_frames=num_frames,
+            # multigpu_buffer=feature_cache["multigpu_buffer"],
+            # track_in_reverse=reverse,
             # also get the SAM2 backbone features
-            return_tracker_backbone_feats=True,
+            # return_tracker_backbone_feats=True,
             # run NMS as a part of distributed computation
-            run_nms=self.det_nms_thresh > 0.0,
-            nms_prob_thresh=self.score_threshold_detection,
-            nms_iou_thresh=self.det_nms_thresh,
+            # run_nms=self.det_nms_thresh > 0.0,
+            # nms_prob_thresh=self.score_threshold_detection,
+            # nms_iou_thresh=self.det_nms_thresh,
             # pass max_frame_num_to_track to respect tracking limits
-            max_frame_num_to_track=max_frame_num_to_track,
-            propagate_in_video_start_frame_idx=start_frame_idx,
+            # max_frame_num_to_track=max_frame_num_to_track,
+            # propagate_in_video_start_frame_idx=start_frame_idx,
         )
         # note: detections in `sam3_image_out` has already gone through NMS
         pred_probs = sam3_image_out["pred_logits"].squeeze(-1).sigmoid()
@@ -417,14 +417,16 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 3: build SAM2 backbone features and store them in `feature_cache`
         backbone_cache = {}
         sam_mask_decoder = self.tracker.model.sam_mask_decoder
+        feats = sam3_image_out["prev_encoder_out"]["backbone_out"]["sam2_backbone_out"]
         tracker_backbone_fpn = [
-            sam_mask_decoder.conv_s0(sam3_image_out["tracker_backbone_fpn_0"]),
-            sam_mask_decoder.conv_s1(sam3_image_out["tracker_backbone_fpn_1"]),
-            sam3_image_out["tracker_backbone_fpn_2"],  # fpn_2 doesn't need conv
+            sam_mask_decoder.conv_s0(feats["backbone_fpn"][0]),
+            sam_mask_decoder.conv_s1(feats["backbone_fpn"][1]),
+            feats["backbone_fpn"][2],  # fpn_2 doesn't need conv
         ]
         tracker_backbone_out = {
             "vision_features": tracker_backbone_fpn[-1],  # top-level feature
-            "vision_pos_enc": sam3_image_out["tracker_backbone_pos_enc"],
+            # "vision_pos_enc": sam3_image_out["tracker_backbone_pos_enc"],
+            "vision_pos_enc": feats["vision_pos_enc"],
             "backbone_fpn": tracker_backbone_fpn,
         }
         backbone_cache["tracker_backbone_out"] = tracker_backbone_out

@@ -408,8 +408,8 @@ class Sam3Image(torch.nn.Module):
         self,
         backbone_out,
         find_input,
-        find_target,
-        geometric_prompt: Prompt,
+        find_target = None,
+        geometric_prompt: Prompt = None,
     ):
         backbone_out.update({k: v.to(self.device) for k, v in self.text_embeddings.items()})
         with torch.profiler.record_function("SAM3Image._encode_prompt"):

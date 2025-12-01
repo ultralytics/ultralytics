@@ -228,7 +228,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # the same as if it is running backbone and detector for every frame on a single GPU.
         det_out = self.run_backbone_and_detection(
             frame_idx=frame_idx,
-            num_frames=num_frames,
             reverse=reverse,
             input_batch=input_batch,
             geometric_prompt=geometric_prompt,
@@ -251,8 +250,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             tracker_metadata_prev.update(self._initialize_metadata())
         tracker_low_res_masks_global, tracker_obj_scores_global = self.run_tracker_propagation(
             frame_idx=frame_idx,
-            num_frames=num_frames,
-            reverse=reverse,
             tracker_states_local=tracker_states_local,
             tracker_metadata_prev=tracker_metadata_prev,
         )
@@ -266,7 +263,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # new masklet metadata `tracker_metadata_new` (based on its previous version `tracker_metadata_prev`).
         tracker_update_plan, tracker_metadata_new = self.run_tracker_update_planning_phase(
             frame_idx=frame_idx,
-            num_frames=num_frames,
             reverse=reverse,
             det_out=det_out,
             tracker_low_res_masks_global=tracker_low_res_masks_global,
@@ -278,18 +274,14 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # Get reconditioning info from the update plan
         reconditioned_obj_ids = tracker_update_plan.get("reconditioned_obj_ids", set())
-        det_to_matched_trk_obj_ids = tracker_update_plan.get("det_to_matched_trk_obj_ids", {})
 
         # Step 4: based on `tracker_update_plan`, each GPU executes the update w.r.t. its local SAM2 inference states
         tracker_states_local_new = self.run_tracker_update_execution_phase(
             frame_idx=frame_idx,
             num_frames=num_frames,
-            reverse=reverse,
             det_out=det_out,
             tracker_states_local=tracker_states_local,
             tracker_update_plan=tracker_update_plan,
-            orig_vid_height=orig_vid_height,
-            orig_vid_width=orig_vid_width,
             feature_cache=feature_cache,
         )
 
@@ -297,18 +289,13 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # only GPU 0 will send outputs to the server).
         if self.rank == 0:
             obj_id_to_mask = self.build_outputs(
-                frame_idx=frame_idx,
-                num_frames=num_frames,
-                reverse=reverse,
                 det_out=det_out,
                 tracker_low_res_masks_global=tracker_low_res_masks_global,
-                tracker_obj_scores_global=tracker_obj_scores_global,
                 tracker_metadata_prev=tracker_metadata_prev,
                 tracker_update_plan=tracker_update_plan,
                 orig_vid_height=orig_vid_height,
                 orig_vid_width=orig_vid_width,
                 reconditioned_obj_ids=reconditioned_obj_ids,
-                det_to_matched_trk_obj_ids=det_to_matched_trk_obj_ids,
             )
             obj_id_to_score = tracker_metadata_new["obj_id_to_score"]
         else:
@@ -352,7 +339,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def run_backbone_and_detection(
         self,
         frame_idx: int,
-        num_frames: int,
         input_batch,
         geometric_prompt: Any,
         feature_cache: Dict,
@@ -416,8 +402,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def run_tracker_propagation(
         self,
         frame_idx: int,
-        num_frames: int,
-        reverse: bool,
         tracker_states_local: List[Any],
         tracker_metadata_prev: Dict[str, npt.NDArray],
     ):
@@ -426,7 +410,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # - obj_ids_local: List[int] -- list of object IDs
         # - low_res_masks_local: Tensor -- (num_local_obj, H_mask, W_mask)
         obj_ids_local, low_res_masks_local, obj_scores_local = self._propogate_tracker_one_frame_local_gpu(
-            tracker_states_local, frame_idx=frame_idx, reverse=reverse
+            tracker_states_local, frame_idx=frame_idx
         )
 
         assert np.all(obj_ids_local == tracker_metadata_prev["obj_ids_per_gpu"][self.rank]), "{} != {}".format(
@@ -504,7 +488,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def run_tracker_update_planning_phase(
         self,
         frame_idx: int,
-        num_frames: int,
         reverse: bool,
         det_out: Dict[str, Tensor],
         tracker_low_res_masks_global: Tensor,
@@ -578,14 +561,12 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
                 obj_ids_newly_removed, rank0_metadata_new = self._process_hotstart(
                     frame_idx=frame_idx,
-                    num_frames=num_frames,
                     reverse=reverse,
                     det_to_matched_trk_obj_ids=det_to_matched_trk_obj_ids,
                     new_det_obj_ids=new_det_obj_ids,
                     empty_trk_obj_ids=empty_trk_obj_ids,
                     unmatched_trk_obj_ids=unmatched_trk_obj_ids,
                     rank0_metadata=rank0_metadata_new,
-                    tracker_metadata=tracker_metadata_prev,
                 )
             else:
                 # if warm-up is not complete, we don't remove any objects
@@ -847,12 +828,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self,
         frame_idx: int,
         num_frames: int,
-        reverse: bool,
         det_out: Dict[str, Tensor],
         tracker_states_local: List[Any],
         tracker_update_plan: Dict[str, npt.NDArray],
-        orig_vid_height: int,
-        orig_vid_width: int,
         feature_cache: Dict,
     ):
         # initialize tracking scores with detection scores
@@ -875,8 +853,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 new_obj_ids=new_det_obj_ids_local,
                 new_obj_masks=new_det_masks,
                 tracker_states_local=tracker_states_local,
-                orig_vid_height=orig_vid_height,
-                orig_vid_width=orig_vid_width,
                 feature_cache=feature_cache,
             )
 
@@ -888,18 +864,13 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
     def build_outputs(
         self,
-        frame_idx: int,
-        num_frames: int,
-        reverse: bool,
         det_out: Dict[str, Tensor],
         tracker_low_res_masks_global: Tensor,
-        tracker_obj_scores_global: Tensor,
         tracker_metadata_prev: Dict[str, npt.NDArray],
         tracker_update_plan: Dict[str, npt.NDArray],
         orig_vid_height: int,
         orig_vid_width: int,
         reconditioned_obj_ids: set = None,
-        det_to_matched_trk_obj_ids: dict = None,
     ):
         new_det_fa_inds: npt.NDArray = tracker_update_plan["new_det_fa_inds"]
         new_det_obj_ids: npt.NDArray = tracker_update_plan["new_det_obj_ids"]
@@ -1033,14 +1004,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         return to_suppress
 
-    def _propogate_tracker_one_frame_local_gpu(
-        self,
-        inference_states: List[Any],
-        frame_idx: int,
-        reverse: bool,
-        # by default, we disable memory encoding until we gather all outputs
-        run_mem_encoder: bool = False,
-    ):
+    def _propogate_tracker_one_frame_local_gpu(self, inference_states: List[Any], frame_idx: int):
         """
         inference_states: List of inference states, each state corresponds to a different set of objects.
         """
@@ -1231,14 +1195,12 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def _process_hotstart(
         self,
         frame_idx: int,
-        num_frames: int,
         reverse: bool,
         det_to_matched_trk_obj_ids: Dict[int, npt.NDArray],
         new_det_obj_ids: npt.NDArray,
         empty_trk_obj_ids: npt.NDArray,
         unmatched_trk_obj_ids: npt.NDArray,
         rank0_metadata: Dict[str, Any],
-        tracker_metadata: Dict[str, Any],
     ):
         """Handle hotstart heuristics to remove unmatched or duplicated objects."""
         # obj_id --> first frame index where the object was detected
@@ -1416,8 +1378,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         new_obj_ids: List[int],
         new_obj_masks: Tensor,
         tracker_states_local: List[Any],
-        orig_vid_height: int,
-        orig_vid_width: int,
         feature_cache: Dict,
     ):
         """Add a new object to SAM2 inference states."""

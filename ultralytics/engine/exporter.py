@@ -163,7 +163,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["SafeTensors", "safetensors", ".safetensors", True, True, ["half", "int8", "nms", "batch"]],
+        ["SafeTensors", "safetensors", ".safetensors", True, True, ["half", "int8", "batch"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 

@@ -292,32 +292,6 @@ class AutoBackend(nn.Module):
             model.half() if fp16 else model.float()
             model.eval()
 
-            args_str = metadata.get("args", "{}")
-            try:
-                export_args = ast.literal_eval(args_str) if isinstance(args_str, str) else args_str
-            except (ValueError, SyntaxError):
-                export_args = {}
-            if export_args.get("nms", False) and task != "classify":
-                from types import SimpleNamespace
-
-                from ultralytics.engine.exporter import NMSModel
-
-                model.task = task
-                nms_args = SimpleNamespace(
-                    conf=export_args.get("conf", 0.25),
-                    iou=export_args.get("iou", 0.7),
-                    max_det=export_args.get("max_det", 300),
-                    agnostic_nms=export_args.get("agnostic_nms", False),
-                    dynamic=export_args.get("dynamic", False),
-                    batch=export_args.get("batch", 1),
-                    format="safetensors",
-                    opset=None,
-                    int8=export_args.get("int8", False),
-                )
-                model = NMSModel(model, nms_args)
-                model.eval()
-                end2end = True
-
             # Extract model attributes from metadata or model
             names = model.names if hasattr(model, "names") else default_class_names(data)
             for p in model.parameters():

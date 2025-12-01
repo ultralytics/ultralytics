@@ -115,7 +115,6 @@ When exporting to SafeTensors format, you can specify the following arguments:
 | `imgsz`  | `int` or `list` | `640`   | Image size for model input                             |
 | `half`   | `bool`          | `False` | Export model in FP16 (half precision) for smaller size |
 | `int8`   | `bool`          | `False` | Enable INT8 quantization (requires calibration data)   |
-| `nms`    | `bool`          | `False` | Add NMS (Non-Maximum Suppression) to model for end2end |
 | `batch`  | `int`           | `1`     | Batch size for export                                  |
 | `device` | `str`           | `None`  | Device to use for export (`'cpu'`, `'cuda:0'`)         |
 
@@ -136,15 +135,15 @@ Export with different configurations:
         # Creates 'yolo11n_fp16.safetensors' file
         ```
 
-    === "With NMS (End-to-End)"
+    === "With Batch Size"
 
         ```python
         from ultralytics import YOLO
 
         model = YOLO("yolo11n.pt")
-        # Export with NMS included in the model
-        model.export(format="safetensors", nms=True)
-        # Creates 'yolo11n_nms.safetensors' file
+        # Export with specific batch size
+        model.export(format="safetensors", batch=4)
+        # Creates 'yolo11n_b4.safetensors' file
         ```
 
     === "Combined Options"
@@ -153,9 +152,9 @@ Export with different configurations:
         from ultralytics import YOLO
 
         model = YOLO("yolo11n.pt")
-        # Export with FP16 and NMS
-        model.export(format="safetensors", half=True, nms=True, batch=2)
-        # Creates 'yolo11n_b2_fp16_nms.safetensors' file
+        # Export with FP16 and batch size
+        model.export(format="safetensors", half=True, batch=2)
+        # Creates 'yolo11n_b2_fp16.safetensors' file
         ```
 
 ### Output Structure
@@ -169,7 +168,7 @@ yolo11n.safetensors    # Model weights with embedded configuration
 For exports with parameters, the naming reflects the configuration:
 
 ```text
-yolo11n_fp16_nms.safetensors    # FP16 weights with NMS (single file)
+yolo11n_fp16.safetensors    # FP16 weights (single file)
 ```
 
 The model configuration (task type, class names, arguments, etc.) is embedded directly in the SafeTensors file metadata, eliminating the need for separate configuration files.
@@ -263,7 +262,7 @@ Key takeaways:
 - **Single file**: Everything is contained in one `.safetensors` file (metadata embedded)
 - **Simple export**: Use `format='safetensors'` to export
 - **Full compatibility**: Works with all YOLO tasks (detect, segment, classify, pose, obb)
-- **Flexible options**: Support for FP16, NMS, and batch size configuration
+- **Flexible options**: Support for FP16 and batch size configuration
 
 ## FAQ
 

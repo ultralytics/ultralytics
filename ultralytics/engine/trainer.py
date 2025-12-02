@@ -732,7 +732,7 @@ class BaseTrainer:
     def build_quantized_model(self):
         """Adds quantization layers to model for QAT training."""
         from ultralytics.data.build import build_dataloader
-        from ultralytics.utils.export import setup_modelopt
+        from ultralytics.utils.torch_utils import setup_modelopt
 
         setup_modelopt()
         import modelopt.torch.quantization as mtq

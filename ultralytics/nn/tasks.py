@@ -1464,7 +1464,7 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     model = ckpt.get("ema") or ckpt["model"]
 
     if "modelopt_state" in ckpt:  # QAT model
-        from ultralytics.utils.export import setup_modelopt
+        from ultralytics.utils.torch_utils import setup_modelopt
 
         setup_modelopt()
         import modelopt.torch.opt as mto

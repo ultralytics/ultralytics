@@ -1,9 +1,8 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
-
-import datetime
+from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
+from ultralytics.utils import DEFAULT_CFG, LOGGER
+import math
 import logging
 import math
-import os
 from collections import defaultdict
 from copy import deepcopy
 from enum import Enum
@@ -16,7 +15,7 @@ import torch.distributed as dist
 import torch.nn.functional as F
 
 from ultralytics.utils import LOGGER
-from torch import nn, Tensor
+from torch import Tensor
 
 import logging
 from collections import defaultdict
@@ -25,10 +24,12 @@ import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn.functional as F
-
 from ultralytics.utils.metrics import box_iou
 
-logger = LOGGER
+
+class MaskletConfirmationStatus(Enum):
+    UNCONFIRMED = 1  # newly added masklet, not confirmed by any detection yet
+    CONFIRMED = 2  # confirmed by at least one detection
 
 
 def mask_iou(pred_masks: torch.Tensor, gt_masks: torch.Tensor) -> torch.Tensor:
@@ -82,16 +83,22 @@ def mask_to_box(masks: torch.Tensor):
     return bbox_coords
 
 
-class MaskletConfirmationStatus(Enum):
-    UNCONFIRMED = 1  # newly added masklet, not confirmed by any detection yet
-    CONFIRMED = 2  # confirmed by at least one detection
+class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
+    """Segment Anything Model 3 (SAM3) Video Semantic Predictor."""
 
+    _bb_feat_sizes = [
+        (288, 288),
+        (144, 144),
+        (72, 72),
+    ]
+    stride = 14
 
-class Sam3VideoBase(nn.Module):
     def __init__(
         self,
-        detector: nn.Module,
-        tracker: nn.Module,
+        cfg=DEFAULT_CFG,
+        overrides=None,
+        _callbacks=None,
+        bpe_path="runs/bpe_simple_vocab_16e6.txt.gz",
         # prob threshold for detection outputs -- only keep detections above this threshold
         # enters NMS and det-to-track matching
         score_threshold_detection=0.5,
@@ -134,9 +141,8 @@ class Sam3VideoBase(nn.Module):
         reconstruction_bbox_iou_thresh=0.0,
         reconstruction_bbox_det_score=0.0,
     ):
-        super().__init__()
-        self.detector = detector
-        self.tracker = tracker
+        overrides = overrides or dict(imgsz=1008, model="sam3.pt", half=True)
+        super().__init__(cfg, overrides, _callbacks, bpe_path=bpe_path)
         self.score_threshold_detection = score_threshold_detection
         self.det_nms_thresh = det_nms_thresh
         self.assoc_iou_thresh = assoc_iou_thresh
@@ -161,9 +167,8 @@ class Sam3VideoBase(nn.Module):
         self.decrease_trk_keep_alive_for_empty_masklets = decrease_trk_keep_alive_for_empty_masklets
         self.o2o_matching_masklets_enable = o2o_matching_masklets_enable
         self.fill_hole_area = fill_hole_area
-        self.eval()
-        self.rank = int(os.getenv("RANK", "0"))
-        self.world_size = int(os.getenv("WORLD_SIZE", "1"))
+        self.rank = 0
+        self.world_size = 1
         self._dist_pg_cpu = None  # CPU process group (lazy-initialized on first use)
 
         # the maximum object number
@@ -172,7 +177,7 @@ class Sam3VideoBase(nn.Module):
         else:
             max_num_objects = 10000  # no limit
             num_obj_for_compile = 16
-        logger.info(f"setting {max_num_objects=} and {num_obj_for_compile=}")
+        LOGGER.info(f"setting {max_num_objects=} and {num_obj_for_compile=}")
         self.max_num_objects = max_num_objects
         self.num_obj_for_compile = num_obj_for_compile
         self.recondition_every_nth_frame = recondition_every_nth_frame
@@ -181,21 +186,13 @@ class Sam3VideoBase(nn.Module):
         self.reconstruction_bbox_iou_thresh = reconstruction_bbox_iou_thresh
         self.reconstruction_bbox_det_score = reconstruction_bbox_det_score
 
-    @property
-    def device(self):
-        self._device = getattr(self, "_device", None) or next(self.parameters()).device
-        return self._device
-
-    def _init_dist_pg_cpu(self):
-        # a short 3-min timeout to quickly detect any synchronization failures
-        timeout_sec = int(os.getenv("SAM3_COLLECTIVE_OP_TIMEOUT_SEC", "180"))
-        timeout = datetime.timedelta(seconds=timeout_sec)
-        self._dist_pg_cpu = dist.new_group(backend="gloo", timeout=timeout)
-
-    def broadcast_python_obj_cpu(self, python_obj_list, src):
-        if self._dist_pg_cpu is None:
-            self._init_dist_pg_cpu()
-        dist.broadcast_object_list(python_obj_list, src=src, group=self._dist_pg_cpu)
+        # build SAM3 tracker
+        self.tracker = SAM3VideoPredictor(overrides=overrides)
+        self.tracker.setup_model()
+        self.setup_model()
+        # TODO
+        self.imgsz = [1008, 1008]
+        self.tracker.imgsz = [1008, 1008]
 
     def _det_track_one_frame(
         self,
@@ -209,7 +206,6 @@ class Sam3VideoBase(nn.Module):
         feature_cache: Dict,
         orig_vid_height: int,
         orig_vid_width: int,
-        is_image_only: bool = False,
         allow_new_detections: bool = True,
     ):
         """
@@ -231,13 +227,17 @@ class Sam3VideoBase(nn.Module):
         # the same as if it is running backbone and detector for every frame on a single GPU.
         det_out = self.run_backbone_and_detection(
             frame_idx=frame_idx,
-            num_frames=num_frames,
             reverse=reverse,
             input_batch=input_batch,
             geometric_prompt=geometric_prompt,
             feature_cache=feature_cache,
             allow_new_detections=allow_new_detections,
         )
+        self.tracker.backbone_out = feature_cache[frame_idx][1]["tracker_backbone_out"]
+
+        # TODO: update `im` for SAM2VideoPredictor, need to be fixed
+        # for inference_state in tracker_states_local:
+        #     inference_state["im"] = feature_cache[frame_idx][0].unsqueeze(0)
 
         # Step 2: each GPU propagates its local SAM2 states to get the SAM2 prediction masks.
         # the returned `tracker_low_res_masks_global` contains the concatenated masklet predictions
@@ -249,8 +249,6 @@ class Sam3VideoBase(nn.Module):
             tracker_metadata_prev.update(self._initialize_metadata())
         tracker_low_res_masks_global, tracker_obj_scores_global = self.run_tracker_propagation(
             frame_idx=frame_idx,
-            num_frames=num_frames,
-            reverse=reverse,
             tracker_states_local=tracker_states_local,
             tracker_metadata_prev=tracker_metadata_prev,
         )
@@ -264,30 +262,24 @@ class Sam3VideoBase(nn.Module):
         # new masklet metadata `tracker_metadata_new` (based on its previous version `tracker_metadata_prev`).
         tracker_update_plan, tracker_metadata_new = self.run_tracker_update_planning_phase(
             frame_idx=frame_idx,
-            num_frames=num_frames,
             reverse=reverse,
             det_out=det_out,
             tracker_low_res_masks_global=tracker_low_res_masks_global,
             tracker_obj_scores_global=tracker_obj_scores_global,
             tracker_metadata_prev=tracker_metadata_prev,
             tracker_states_local=tracker_states_local,
-            is_image_only=is_image_only,
         )
 
         # Get reconditioning info from the update plan
         reconditioned_obj_ids = tracker_update_plan.get("reconditioned_obj_ids", set())
-        det_to_matched_trk_obj_ids = tracker_update_plan.get("det_to_matched_trk_obj_ids", {})
 
         # Step 4: based on `tracker_update_plan`, each GPU executes the update w.r.t. its local SAM2 inference states
         tracker_states_local_new = self.run_tracker_update_execution_phase(
             frame_idx=frame_idx,
             num_frames=num_frames,
-            reverse=reverse,
             det_out=det_out,
             tracker_states_local=tracker_states_local,
             tracker_update_plan=tracker_update_plan,
-            orig_vid_height=orig_vid_height,
-            orig_vid_width=orig_vid_width,
             feature_cache=feature_cache,
         )
 
@@ -295,18 +287,13 @@ class Sam3VideoBase(nn.Module):
         # only GPU 0 will send outputs to the server).
         if self.rank == 0:
             obj_id_to_mask = self.build_outputs(
-                frame_idx=frame_idx,
-                num_frames=num_frames,
-                reverse=reverse,
                 det_out=det_out,
                 tracker_low_res_masks_global=tracker_low_res_masks_global,
-                tracker_obj_scores_global=tracker_obj_scores_global,
                 tracker_metadata_prev=tracker_metadata_prev,
                 tracker_update_plan=tracker_update_plan,
                 orig_vid_height=orig_vid_height,
                 orig_vid_width=orig_vid_width,
                 reconditioned_obj_ids=reconditioned_obj_ids,
-                det_to_matched_trk_obj_ids=det_to_matched_trk_obj_ids,
             )
             obj_id_to_score = tracker_metadata_new["obj_id_to_score"]
         else:
@@ -350,7 +337,6 @@ class Sam3VideoBase(nn.Module):
     def run_backbone_and_detection(
         self,
         frame_idx: int,
-        num_frames: int,
         input_batch,
         geometric_prompt: Any,
         feature_cache: Dict,
@@ -360,7 +346,7 @@ class Sam3VideoBase(nn.Module):
         # Step 1: if text feature is not cached in `feature_cache`, compute and cache it
         text_batch_key = tuple(input_batch.find_text_batch)
         if "text" not in feature_cache or text_batch_key not in feature_cache["text"]:
-            text_outputs = self.detector.backbone.forward_text(input_batch.find_text_batch)
+            text_outputs = self.model.backbone.forward_text(input_batch.find_text_batch)
             # note: we only cache the text feature of the most recent prompt
             feature_cache["text"] = {text_batch_key: text_outputs}
         else:
@@ -372,33 +358,12 @@ class Sam3VideoBase(nn.Module):
             # to be passed to `forward_video_grounding_multigpu` for every call
             feature_cache["multigpu_buffer"] = {}
 
-        # Extract max_frame_num_to_track from feature_cache if available
-        tracking_bounds = feature_cache.get("tracking_bounds", {})
-        max_frame_num_to_track = tracking_bounds.get("max_frame_num_to_track")
-        start_frame_idx = tracking_bounds.get("propagate_in_video_start_frame_idx")
-
-        sam3_image_out, _ = self.detector.forward_video_grounding_multigpu(
-            backbone_out={
-                "img_batch_all_stages": input_batch.img_batch,
-                **text_outputs,
-            },
-            find_inputs=input_batch.find_inputs,
+        sam3_image_out = self.model.forward_grounding(
+            backbone_out={"img_batch_all_stages": input_batch.img_batch, **text_outputs},
+            find_input=input_batch.find_inputs[0],  # TODO
             geometric_prompt=geometric_prompt,
-            frame_idx=frame_idx,
-            num_frames=num_frames,
-            multigpu_buffer=feature_cache["multigpu_buffer"],
-            track_in_reverse=reverse,
-            # also get the SAM2 backbone features
-            return_tracker_backbone_feats=True,
-            # run NMS as a part of distributed computation
-            run_nms=self.det_nms_thresh > 0.0,
-            nms_prob_thresh=self.score_threshold_detection,
-            nms_iou_thresh=self.det_nms_thresh,
-            # pass max_frame_num_to_track to respect tracking limits
-            max_frame_num_to_track=max_frame_num_to_track,
-            propagate_in_video_start_frame_idx=start_frame_idx,
         )
-        # note: detections in `sam3_image_out` has already gone through NMS
+        # TODO: probably apply nms on boxes
         pred_probs = sam3_image_out["pred_logits"].squeeze(-1).sigmoid()
         if not allow_new_detections:
             pred_probs = pred_probs - 1e8  # make sure no detections are kept
@@ -414,22 +379,20 @@ class Sam3VideoBase(nn.Module):
 
         # Step 3: build SAM2 backbone features and store them in `feature_cache`
         backbone_cache = {}
-        sam_mask_decoder = self.tracker.sam_mask_decoder
+        sam_mask_decoder = self.tracker.model.sam_mask_decoder
+        feats = sam3_image_out["prev_encoder_out"]["backbone_out"]["sam2_backbone_out"]
         tracker_backbone_fpn = [
-            sam_mask_decoder.conv_s0(sam3_image_out["tracker_backbone_fpn_0"]),
-            sam_mask_decoder.conv_s1(sam3_image_out["tracker_backbone_fpn_1"]),
-            sam3_image_out["tracker_backbone_fpn_2"],  # fpn_2 doesn't need conv
+            sam_mask_decoder.conv_s0(feats["backbone_fpn"][0]),
+            sam_mask_decoder.conv_s1(feats["backbone_fpn"][1]),
+            feats["backbone_fpn"][2],  # fpn_2 doesn't need conv
         ]
         tracker_backbone_out = {
             "vision_features": tracker_backbone_fpn[-1],  # top-level feature
-            "vision_pos_enc": sam3_image_out["tracker_backbone_pos_enc"],
+            "vision_pos_enc": feats["vision_pos_enc"],
             "backbone_fpn": tracker_backbone_fpn,
         }
         backbone_cache["tracker_backbone_out"] = tracker_backbone_out
-        feature_cache[frame_idx] = (
-            input_batch.img_batch[frame_idx],
-            backbone_cache,
-        )
+        feature_cache[frame_idx] = (input_batch.img_batch[0], backbone_cache)
         # remove from `feature_cache` old features to save GPU memory
         feature_cache.pop(frame_idx - 1 if not reverse else frame_idx + 1, None)
         return det_out
@@ -437,8 +400,6 @@ class Sam3VideoBase(nn.Module):
     def run_tracker_propagation(
         self,
         frame_idx: int,
-        num_frames: int,
-        reverse: bool,
         tracker_states_local: List[Any],
         tracker_metadata_prev: Dict[str, npt.NDArray],
     ):
@@ -447,7 +408,7 @@ class Sam3VideoBase(nn.Module):
         # - obj_ids_local: List[int] -- list of object IDs
         # - low_res_masks_local: Tensor -- (num_local_obj, H_mask, W_mask)
         obj_ids_local, low_res_masks_local, obj_scores_local = self._propogate_tracker_one_frame_local_gpu(
-            tracker_states_local, frame_idx=frame_idx, reverse=reverse
+            tracker_states_local, frame_idx=frame_idx
         )
 
         assert np.all(obj_ids_local == tracker_metadata_prev["obj_ids_per_gpu"][self.rank]), "{} != {}".format(
@@ -493,15 +454,8 @@ class Sam3VideoBase(nn.Module):
         # Recondition the masklets based on the new detections
         for trk_obj_id, det_idx in trk_id_to_max_iou_high_conf_det.items():
             new_mask = det_out["mask"][det_idx : det_idx + 1]
-            input_mask_res = self.tracker.input_mask_size
             new_mask_binary = (
-                F.interpolate(
-                    new_mask.unsqueeze(1),
-                    size=(input_mask_res, input_mask_res),
-                    mode="bilinear",
-                    align_corners=False,
-                ).squeeze(1)[0]
-                > 0
+                F.interpolate(new_mask.unsqueeze(1), size=[1152, 1152], mode="bilinear", align_corners=False) > 0
             )
             HIGH_CONF_THRESH = 0.8
             reconditioned_states_idx = set()
@@ -514,32 +468,30 @@ class Sam3VideoBase(nn.Module):
                     # Unfortunately, these can get reconditioned anyway due to batching. We should consider removing these heuristics.
                     and obj_score > HIGH_CONF_THRESH
                 ):
-                    logger.debug(
+                    LOGGER.debug(
                         f"Adding new mask for track {trk_obj_id} at frame {frame_idx}. Objects {inference_state['obj_ids']} are all reconditioned."
                     )
-                    self.tracker.add_new_mask(
+                    self.tracker.add_new_prompts(
                         inference_state=inference_state,
                         frame_idx=frame_idx,
                         obj_id=trk_obj_id,
-                        mask=new_mask_binary,
+                        masks=new_mask_binary,
                     )
                     reconditioned_states_idx.add(state_idx)
 
             for idx in reconditioned_states_idx:
-                self.tracker.propagate_in_video_preflight(tracker_states_local[idx], run_mem_encoder=True)
+                self.tracker.propagate_in_video_preflight(tracker_states_local[idx])
         return tracker_states_local
 
     def run_tracker_update_planning_phase(
         self,
         frame_idx: int,
-        num_frames: int,
         reverse: bool,
         det_out: Dict[str, Tensor],
         tracker_low_res_masks_global: Tensor,
         tracker_obj_scores_global: Tensor,
         tracker_metadata_prev: Dict[str, npt.NDArray],
         tracker_states_local: List[Any],
-        is_image_only: bool = False,
     ):
         # initialize new metadata from previous metadata (its values will be updated later)
         tracker_metadata_new = {
@@ -581,8 +533,8 @@ class Sam3VideoBase(nn.Module):
             prev_obj_num = np.sum(tracker_metadata_prev["num_obj_per_gpu"])
             new_det_num = len(new_det_fa_inds)
             num_obj_dropped_due_to_limit = 0
-            if not is_image_only and prev_obj_num + new_det_num > self.max_num_objects:
-                logger.warning(f"hitting {self.max_num_objects=} with {new_det_num=} and {prev_obj_num=}")
+            if prev_obj_num + new_det_num > self.max_num_objects:
+                LOGGER.warning(f"hitting {self.max_num_objects=} with {new_det_num=} and {prev_obj_num=}")
                 new_det_num_to_keep = self.max_num_objects - prev_obj_num
                 num_obj_dropped_due_to_limit = new_det_num - new_det_num_to_keep
                 new_det_fa_inds = self._drop_new_det_with_obj_limit(new_det_fa_inds, det_scores_np, new_det_num_to_keep)
@@ -606,14 +558,12 @@ class Sam3VideoBase(nn.Module):
             if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
                 obj_ids_newly_removed, rank0_metadata_new = self._process_hotstart(
                     frame_idx=frame_idx,
-                    num_frames=num_frames,
                     reverse=reverse,
                     det_to_matched_trk_obj_ids=det_to_matched_trk_obj_ids,
                     new_det_obj_ids=new_det_obj_ids,
                     empty_trk_obj_ids=empty_trk_obj_ids,
                     unmatched_trk_obj_ids=unmatched_trk_obj_ids,
                     rank0_metadata=rank0_metadata_new,
-                    tracker_metadata=tracker_metadata_prev,
                 )
             else:
                 # if warm-up is not complete, we don't remove any objects
@@ -640,10 +590,8 @@ class Sam3VideoBase(nn.Module):
             assert len(update_plan) == NUM_BROADCAST_ITEMS, (
                 f"Manually update NUM_BROADCAST_ITEMS to be: {len(update_plan)}"
             )
-            self.broadcast_python_obj_cpu(update_plan, src=0)
         elif self.rank > 0 and self.world_size > 1:
             update_plan = [None] * NUM_BROADCAST_ITEMS  # other ranks receive the plan from rank 0
-            self.broadcast_python_obj_cpu(update_plan, src=0)
             (
                 new_det_fa_inds,
                 new_det_obj_ids,
@@ -877,12 +825,9 @@ class Sam3VideoBase(nn.Module):
         self,
         frame_idx: int,
         num_frames: int,
-        reverse: bool,
         det_out: Dict[str, Tensor],
         tracker_states_local: List[Any],
         tracker_update_plan: Dict[str, npt.NDArray],
-        orig_vid_height: int,
-        orig_vid_width: int,
         feature_cache: Dict,
     ):
         # initialize tracking scores with detection scores
@@ -905,8 +850,6 @@ class Sam3VideoBase(nn.Module):
                 new_obj_ids=new_det_obj_ids_local,
                 new_obj_masks=new_det_masks,
                 tracker_states_local=tracker_states_local,
-                orig_vid_height=orig_vid_height,
-                orig_vid_width=orig_vid_width,
                 feature_cache=feature_cache,
             )
 
@@ -918,18 +861,13 @@ class Sam3VideoBase(nn.Module):
 
     def build_outputs(
         self,
-        frame_idx: int,
-        num_frames: int,
-        reverse: bool,
         det_out: Dict[str, Tensor],
         tracker_low_res_masks_global: Tensor,
-        tracker_obj_scores_global: Tensor,
         tracker_metadata_prev: Dict[str, npt.NDArray],
         tracker_update_plan: Dict[str, npt.NDArray],
         orig_vid_height: int,
         orig_vid_width: int,
         reconditioned_obj_ids: set = None,
-        det_to_matched_trk_obj_ids: dict = None,
     ):
         new_det_fa_inds: npt.NDArray = tracker_update_plan["new_det_fa_inds"]
         new_det_obj_ids: npt.NDArray = tracker_update_plan["new_det_obj_ids"]
@@ -1037,7 +975,7 @@ class Sam3VideoBase(nn.Module):
         to_suppress = suppress_i_mask.any(dim=1) | suppress_j_mask.any(dim=0)
 
         # Log for debugging
-        if self.rank == 0 and logger.isEnabledFor(logging.DEBUG) and frame_idx is not None:
+        if self.rank == 0 and LOGGER.isEnabledFor(logging.DEBUG) and frame_idx is not None:
             suppress_i_mask = suppress_i_mask.cpu().numpy()
             suppress_j_mask = suppress_j_mask.cpu().numpy()
             last_occluded = last_occluded.cpu().numpy()
@@ -1049,7 +987,7 @@ class Sam3VideoBase(nn.Module):
             for i in range(batch_size):
                 for j in range(batch_size):
                     if suppress_i_mask[i, j]:
-                        logger.debug(
+                        LOGGER.debug(
                             f"{frame_idx=}: Suppressing obj {obj_ids[i]} last occluded {last_occluded[i]} in favor of {obj_ids[j]} last occluded {last_occluded[j]}"
                         )
 
@@ -1057,20 +995,13 @@ class Sam3VideoBase(nn.Module):
             for i in range(batch_size):
                 for j in range(batch_size):
                     if suppress_j_mask[i, j]:
-                        logger.debug(
+                        LOGGER.debug(
                             f"{frame_idx=}: Suppressing obj {obj_ids[j]} last occluded {last_occluded[j]} in favor of {obj_ids[i]} last occluded {last_occluded[i]}"
                         )
 
         return to_suppress
 
-    def _propogate_tracker_one_frame_local_gpu(
-        self,
-        inference_states: List[Any],
-        frame_idx: int,
-        reverse: bool,
-        # by default, we disable memory encoding until we gather all outputs
-        run_mem_encoder: bool = False,
-    ):
+    def _propogate_tracker_one_frame_local_gpu(self, inference_states: List[Any], frame_idx: int):
         """
         inference_states: List of inference states, each state corresponds to a different set of objects.
         """
@@ -1081,24 +1012,8 @@ class Sam3VideoBase(nn.Module):
             if len(inference_state["obj_ids"]) == 0:
                 continue  # skip propagation on empty inference states
 
-            # propagate one frame
-            num_frames_propagated = 0
-            for out in self.tracker.propagate_in_video(
-                inference_state,
-                start_frame_idx=frame_idx,
-                # end_frame_idx = start_frame_idx + max_frame_num_to_track
-                # (i.e. propagating 1 frame since end_frame_idx is inclusive)
-                max_frame_num_to_track=0,
-                reverse=reverse,
-                tqdm_disable=True,
-                run_mem_encoder=run_mem_encoder,
-            ):
-                out_frame_idx, out_obj_ids, out_low_res_masks, _, out_obj_scores = out
-                num_frames_propagated += 1
-
-            # only 1 frames should be propagated
-            assert num_frames_propagated == 1 and out_frame_idx == frame_idx, (
-                f"num_frames_propagated: {num_frames_propagated}, out_frame_idx: {out_frame_idx}, frame_idx: {frame_idx}"
+            out_obj_ids, out_low_res_masks, out_obj_scores = self.tracker.propagate_in_video(
+                inference_state, frame_idx=frame_idx
             )
             assert isinstance(out_obj_ids, list)
             obj_ids_local.extend(out_obj_ids)
@@ -1106,11 +1021,9 @@ class Sam3VideoBase(nn.Module):
             obj_scores_list.append(out_obj_scores.squeeze(1))
 
         # concatenate the output masklets from all local inference states
-        H_mask = W_mask = self.tracker.low_res_mask_size
         if len(low_res_masks_list) > 0:
             low_res_masks_local = torch.cat(low_res_masks_list, dim=0)
             obj_scores_local = torch.cat(obj_scores_list, dim=0)
-            assert low_res_masks_local.shape[1:] == (H_mask, W_mask)
 
             # Apply hole filling to the masks
             # NOTE
@@ -1122,7 +1035,7 @@ class Sam3VideoBase(nn.Module):
             # )
             low_res_masks_local = low_res_masks_local.squeeze(1)
         else:
-            low_res_masks_local = torch.zeros(0, H_mask, W_mask, device=self.device)
+            low_res_masks_local = torch.zeros(0, *self._bb_feat_sizes[0], device=self.device)
             obj_scores_local = torch.zeros(0, device=self.device)
 
         return obj_ids_local, low_res_masks_local, obj_scores_local
@@ -1279,14 +1192,12 @@ class Sam3VideoBase(nn.Module):
     def _process_hotstart(
         self,
         frame_idx: int,
-        num_frames: int,
         reverse: bool,
         det_to_matched_trk_obj_ids: Dict[int, npt.NDArray],
         new_det_obj_ids: npt.NDArray,
         empty_trk_obj_ids: npt.NDArray,
         unmatched_trk_obj_ids: npt.NDArray,
         rank0_metadata: Dict[str, Any],
-        tracker_metadata: Dict[str, Any],
     ):
         """Handle hotstart heuristics to remove unmatched or duplicated objects."""
         # obj_id --> first frame index where the object was detected
@@ -1342,7 +1253,7 @@ class Sam3VideoBase(nn.Module):
                 )
                 if is_within_hotstart:
                     obj_ids_newly_removed.add(obj_id)
-                    logger.debug(
+                    LOGGER.debug(
                         f"Removing object {obj_id} at frame {frame_idx} "
                         f"since it is unmatched for frames: {frame_indices}"
                     )
@@ -1352,7 +1263,7 @@ class Sam3VideoBase(nn.Module):
                 and obj_id not in removed_obj_ids
                 and obj_id not in obj_ids_newly_removed
             ):
-                logger.debug(f"Suppressing object {obj_id} at frame {frame_idx}, due to being unmatched")
+                LOGGER.debug(f"Suppressing object {obj_id} at frame {frame_idx}, due to being unmatched")
                 suppressed_obj_ids.add(obj_id)
 
         # Step 3: removed tracks that overlaps with another track for `hotstart_dup_thresh` frames
@@ -1382,7 +1293,7 @@ class Sam3VideoBase(nn.Module):
             ):
                 if len(frame_indices) >= self.hotstart_dup_thresh:
                     obj_ids_newly_removed.add(obj_id)
-                    logger.debug(
+                    LOGGER.debug(
                         f"Removing object {obj_id} at frame {frame_idx} "
                         f"since it overlaps with another track {first_obj_id} at frames: {frame_indices}"
                     )
@@ -1403,7 +1314,7 @@ class Sam3VideoBase(nn.Module):
         if len(tracker_inference_states) == 0:
             return
         # Avoid an extra interpolation step by directly interpolating to `interpol_size`
-        high_res_H, high_res_W = self.tracker.memory_encoder.mask_downsampler.interpol_size
+        high_res_H, high_res_W = self.tracker.model.memory_encoder.mask_downsampler.interpol_size
         # NOTE: inspect this part if we observe OOMs in the demo
         high_res_masks = F.interpolate(
             low_res_masks.unsqueeze(1),
@@ -1412,8 +1323,9 @@ class Sam3VideoBase(nn.Module):
             align_corners=False,
         )
         # We first apply non-overlapping constraints before memory encoding. This may include some suppression heuristics.
-        if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
-            high_res_masks = self.tracker._suppress_object_pw_area_shrinkage(high_res_masks)
+        # TODO
+        # if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
+        #     high_res_masks = self.tracker._suppress_object_pw_area_shrinkage(high_res_masks)
         # Instead of gathering the predicted object scores, we use mask areas as a proxy.
         object_score_logits = torch.where((high_res_masks > 0).any(dim=(-1, -2)), 10.0, -10.0)
 
@@ -1432,12 +1344,11 @@ class Sam3VideoBase(nn.Module):
             # Run Sam2 memory encoder. Note that we do not re-enforce the non-overlapping constraint as it is turned off by default
 
             encoded_mem = self.tracker._run_memory_encoder(
-                tracker_state,
-                frame_idx,
                 local_batch_size,
                 local_high_res_masks,
                 local_object_score_logits,
                 is_mask_from_pts=False,
+                inference_state=tracker_state,
             )
             local_maskmem_features, local_maskmem_pos_enc = encoded_mem
             # Store encoded memories in the local inference state
@@ -1464,8 +1375,6 @@ class Sam3VideoBase(nn.Module):
         new_obj_ids: List[int],
         new_obj_masks: Tensor,
         tracker_states_local: List[Any],
-        orig_vid_height: int,
-        orig_vid_width: int,
         feature_cache: Dict,
     ):
         """Add a new object to SAM2 inference states."""
@@ -1474,22 +1383,18 @@ class Sam3VideoBase(nn.Module):
         # prepare inference_state
         # batch objects that first appear on the same frame together
         # Clear inference state. Keep the cached image features if available.
-        new_tracker_state = self.tracker.init_state(
-            cached_features=feature_cache,
-            video_height=orig_vid_height,
-            video_width=orig_vid_width,
-            num_frames=num_frames,
-        )
+        new_tracker_state = self.tracker._init_state(num_frames=num_frames)
+        # TODO: adding image placeholder
+        new_tracker_state["im"] = feature_cache[frame_idx][0].unsqueeze(0)
         new_tracker_state["backbone_out"] = (
             prev_tracker_state.get("backbone_out", None) if prev_tracker_state is not None else None
         )
 
         assert len(new_obj_ids) == new_obj_masks.size(0)
         assert new_obj_masks.is_floating_point()
-        input_mask_res = self.tracker.input_mask_size
         new_obj_masks = F.interpolate(
             new_obj_masks.unsqueeze(1),
-            size=(input_mask_res, input_mask_res),
+            size=[1152, 1152],
             mode="bilinear",
             align_corners=False,
         ).squeeze(1)
@@ -1497,15 +1402,14 @@ class Sam3VideoBase(nn.Module):
 
         # add object one by one
         for new_obj_id, new_mask in zip(new_obj_ids, new_obj_masks):
-            self.tracker.add_new_mask(
+            self.tracker.add_new_prompts(
                 inference_state=new_tracker_state,
                 frame_idx=frame_idx,
                 obj_id=new_obj_id,
-                mask=new_mask,
-                add_mask_to_memory=True,
+                masks=new_mask[None, None],  # add bs, channel
             )
         # NOTE: we skip enforcing the non-overlapping constraint **globally** when adding new objects.
-        self.tracker.propagate_in_video_preflight(new_tracker_state, run_mem_encoder=True)
+        self.tracker.propagate_in_video_preflight(new_tracker_state)
         tracker_states_local.append(new_tracker_state)
         return tracker_states_local
 
@@ -1519,9 +1423,7 @@ class Sam3VideoBase(nn.Module):
         for tracker_inference_state in tracker_states_local_before_removal:
             # we try to remove `obj_id` on every inference state with `strict=False`
             # it will not do anything if an inference state doesn't contain `obj_id`
-            new_obj_ids, _ = self.tracker.remove_object(
-                tracker_inference_state, obj_id, strict=False, need_output=False
-            )
+            new_obj_ids = self.tracker.remove_object(tracker_inference_state, obj_id, strict=False)
             # only keep an inference state if it's non-empty after object removal
             if len(new_obj_ids) > 0:
                 tracker_states_local.append(tracker_inference_state)
@@ -1625,12 +1527,12 @@ class Sam3VideoBase(nn.Module):
         sd = torch.load(ckpt_path, map_location="cpu", weights_only=True)["model"]
         missing_keys, unexpected_keys = self.load_state_dict(sd, strict=strict)
         if len(missing_keys) > 0 or len(unexpected_keys) > 0:
-            logger.warning(f"Loaded ckpt with {missing_keys=}, {unexpected_keys=}")
+            LOGGER.warning(f"Loaded ckpt with {missing_keys=}, {unexpected_keys=}")
         else:
-            logger.info("Loaded ckpt successfully without missing or unexpected keys")
+            LOGGER.info("Loaded ckpt successfully without missing or unexpected keys")
 
     def _encode_prompt(self, **kwargs):
-        return self.detector._encode_prompt(**kwargs)
+        return self.model._encode_prompt(**kwargs)
 
     def _drop_new_det_with_obj_limit(self, new_det_fa_inds, det_scores_np, num_to_keep):
         """

@@ -18,7 +18,6 @@ from .modules.blocks import PositionEmbeddingSine, RoPEAttention
 from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 from .modules.encoders import MemoryEncoder
 from .sam3_model import SAM3Model, Sam3TrackerPredictor
-from .sam3_video_model import Sam3VideoBase
 from .sam3_video_inference import Sam3VideoInference
 
 

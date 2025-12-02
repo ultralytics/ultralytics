@@ -9,7 +9,7 @@ from .sam3.geometry_encoders import SequenceGeometryEncoder
 from .sam3.maskformer_segmentation import PixelDecoder, UniversalSegmentationHead
 from .sam3.model_misc import DotProductScoring, TransformerWrapper
 from .sam3.necks import Sam3DualViTDetNeck
-from .sam3.sam3_image import Sam3Image, Sam3ImageOnVideoMultiGPU
+from .sam3.sam3_image import Sam3Image
 from .sam3.text_encoder_ve import VETextEncoder
 from .sam3.tokenizer_ve import SimpleTokenizer
 from .sam3.vitdet import ViT
@@ -194,7 +194,7 @@ def _create_sam3_model(
     }
 
     # TODO: fix this
-    model = Sam3ImageOnVideoMultiGPU(**common_params)
+    model = Sam3Image(**common_params)
     return model
 
 
@@ -532,13 +532,8 @@ def build_tracker(checkpoint_path: str, compile_mode=None) -> SAM3Model:
     return model
 
 
-def build_sam3_video_model(
-    checkpoint_path: str = None,
-    bpe_path: str = None,
-    has_presence_token: bool = True,
-    strict_state_dict_loading: bool = False,
-    apply_temporal_disambiguation: bool = True,
-):
+# TODO: remove this
+def build_sam3_video_model(apply_temporal_disambiguation: bool = True):
     """
     Build SAM3 dense tracking model.
 
@@ -549,56 +544,9 @@ def build_sam3_video_model(
     Returns:
         Sam3VideoInferenceWithInstanceInteractivity: The instantiated dense tracking model
     """
-    if bpe_path is None:
-        bpe_path = os.path.join(os.path.dirname(__file__), "..", "assets", "bpe_simple_vocab_16e6.txt.gz")
-
-    # Build Tracker module
-    tracker = build_tracker(checkpoint_path=checkpoint_path)
-
-    # Build Detector components
-    visual_neck = _create_vision_backbone()
-    text_encoder = VETextEncoder(
-        tokenizer=SimpleTokenizer(bpe_path=bpe_path),
-        d_model=256,
-        width=1024,
-        heads=16,
-        layers=24,
-    )
-    backbone = SAM3VLBackbone(scalp=1, visual=visual_neck, text=text_encoder)
-    transformer = _create_sam3_transformer()
-    segmentation_head: UniversalSegmentationHead = _create_segmentation_head()
-    input_geometry_encoder = _create_geometry_encoder()
-
-    # Create main dot product scoring
-    main_dot_prod_mlp = MLP(
-        input_dim=256,
-        hidden_dim=2048,
-        output_dim=256,
-        num_layers=2,
-        residual=True,
-        out_norm=nn.LayerNorm(256),
-    )
-    main_dot_prod_scoring = DotProductScoring(d_model=256, d_proj=256, prompt_mlp=main_dot_prod_mlp)
-
-    # Build Detector module
-    detector = Sam3ImageOnVideoMultiGPU(
-        num_feature_levels=1,
-        backbone=backbone,
-        transformer=transformer,
-        segmentation_head=segmentation_head,
-        semantic_segmentation_head=None,
-        input_geometry_encoder=input_geometry_encoder,
-        use_early_fusion=True,
-        use_dot_prod_scoring=True,
-        dot_prod_scoring=main_dot_prod_scoring,
-        supervise_joint_box_scores=has_presence_token,
-    )
-
     # Build the main SAM3 video model
     if apply_temporal_disambiguation:
         model = Sam3VideoInference(
-            # detector=detector,
-            # tracker=tracker,
             score_threshold_detection=0.5,
             assoc_iou_thresh=0.1,
             det_nms_thresh=0.1,
@@ -623,8 +571,6 @@ def build_sam3_video_model(
     else:
         # a version without any heuristics for ablation studies
         model = Sam3VideoInference(
-            # detector=detector,
-            # tracker=tracker,
             score_threshold_detection=0.5,
             assoc_iou_thresh=0.1,
             det_nms_thresh=0.1,
@@ -647,17 +593,4 @@ def build_sam3_video_model(
             image_std=(0.5, 0.5, 0.5),
         )
 
-    # Load checkpoint if provided
-    # if checkpoint_path is not None:
-    #     with open(checkpoint_path, "rb") as f:
-    #         ckpt = torch_load(f, map_location="cpu", weights_only=True)
-    #     if "model" in ckpt and isinstance(ckpt["model"], dict):
-    #         ckpt = ckpt["model"]
-    #     # ckpt = {k: v for k, v in ckpt.items() if "tracker" not in k}
-    #     missing_keys, unexpected_keys = model.load_state_dict(ckpt, strict=strict_state_dict_loading)
-        # if missing_keys:
-        # print(f"Missing keys: {missing_keys}")
-        # if unexpected_keys:
-        # print(f"Unexpected keys: {unexpected_keys}")
-    # model.eval()
     return model

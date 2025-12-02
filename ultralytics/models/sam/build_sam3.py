@@ -17,7 +17,6 @@ from .sam3.vl_combiner import SAM3VLBackbone
 from .modules.blocks import PositionEmbeddingSine, RoPEAttention
 from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 from .modules.encoders import MemoryEncoder
-from .sam3_model import SAM3Model, Sam3TrackerPredictor
 from .sam3_video_inference import Sam3VideoInference
 
 
@@ -437,98 +436,6 @@ def _load_checkpoint(model, checkpoint, interactive=False):
         )
         sam3_image_ckpt.update({k.replace("tracker.", ""): v for k, v in ckpt.items() if "tracker." in k})
     model.load_state_dict(sam3_image_ckpt, strict=False)
-    return model
-
-
-def build_tracker(checkpoint_path: str, compile_mode=None) -> SAM3Model:
-    """
-    Build the SAM3 Tracker module for video tracking.
-
-    Returns:
-        Sam3TrackerPredictor: Wrapped SAM3 Tracker module
-    """
-
-    # Create model components
-    memory_encoder = MemoryEncoder(out_dim=64, interpol_size=[1152, 1152])
-    memory_attention = MemoryAttention(
-        batch_first=True,
-        d_model=256,
-        pos_enc_at_input=True,
-        layer=MemoryAttentionLayer(
-            dim_feedforward=2048,
-            dropout=0.1,
-            pos_enc_at_attn=False,
-            pos_enc_at_cross_attn_keys=True,
-            pos_enc_at_cross_attn_queries=False,
-            self_attn=RoPEAttention(
-                embedding_dim=256,
-                num_heads=1,
-                downsample_rate=1,
-                rope_theta=10000.0,
-                feat_sizes=[72, 72],
-            ),
-            d_model=256,
-            cross_attn=RoPEAttention(
-                embedding_dim=256,
-                num_heads=1,
-                downsample_rate=1,
-                kv_in_dim=64,
-                rope_theta=10000.0,
-                feat_sizes=[72, 72],
-                rope_k_repeat=True,
-            ),
-        ),
-        num_layers=4,
-    )
-
-    # backbone = SAM3VLBackbone(scalp=1, visual=_create_vision_backbone(compile_mode=compile_mode), text=None)
-    backbone = None
-    model = Sam3TrackerPredictor(
-        image_size=1008,
-        image_encoder=backbone,
-        memory_attention=memory_attention,
-        memory_encoder=memory_encoder,
-        backbone_stride=14,
-        num_maskmem=7,
-        sigmoid_scale_for_mem_enc=20.0,
-        sigmoid_bias_for_mem_enc=-10.0,
-        use_mask_input_as_output_without_sam=True,
-        directly_add_no_mem_embed=True,
-        use_high_res_features_in_sam=True,
-        multimask_output_in_sam=True,
-        iou_prediction_use_sigmoid=True,
-        use_obj_ptrs_in_encoder=True,
-        add_tpos_enc_to_obj_ptrs=True,
-        only_obj_ptrs_in_the_past_for_eval=True,
-        pred_obj_scores=True,
-        pred_obj_scores_mlp=True,
-        fixed_no_obj_ptr=True,
-        multimask_output_for_tracking=True,
-        use_multimask_token_for_obj_ptr=True,
-        multimask_min_pt_num=0,
-        multimask_max_pt_num=1,
-        use_mlp_for_obj_ptr_proj=True,
-        compile_image_encoder=False,
-        no_obj_embed_spatial=True,
-        proj_tpos_enc_in_obj_ptrs=True,
-        use_signed_tpos_enc_to_obj_ptrs=True,
-        sam_mask_decoder_extra_args=dict(
-            dynamic_multimask_via_stability=True,
-            dynamic_multimask_stability_delta=0.05,
-            dynamic_multimask_stability_thresh=0.98,
-        ),
-        clear_non_cond_mem_around_input=True,
-        fill_hole_area=0,
-        use_memory_selection=True,  # TODO
-        max_cond_frames_in_attn=4,
-        non_overlap_masks_for_output=False,
-    )
-
-    # Load checkpoint if provided
-    model = _load_checkpoint(model, checkpoint_path, interactive=True)
-
-    # Setup device and mode
-    model.eval()
     return model
 
 

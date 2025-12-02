@@ -498,6 +498,7 @@ nav:
       - Gradio: integrations/gradio.md
       - Roboflow: integrations/roboflow.md
       - ExecuTorch: integrations/executorch.md
+      - Safetensors: integrations/safetensors.md
   - HUB:
       - HUB: hub/index.md
       - Web:

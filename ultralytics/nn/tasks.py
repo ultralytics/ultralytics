@@ -1749,6 +1749,19 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
+
+        # For SafeTensors files, read task from embedded metadata
+        if model.suffix == ".safetensors" and model.is_file():
+            try:
+                from safetensors import safe_open
+
+                with safe_open(str(model), framework="pt") as f:
+                    metadata = f.metadata()
+                    if metadata and "task" in metadata:
+                        return metadata["task"]
+            except Exception:
+                pass
+
         if "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:

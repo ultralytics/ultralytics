@@ -26,6 +26,7 @@ NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
 ExecuTorch              | `executorch`              | yolo11n_executorch_model/
+SafeTensors             | `safetensors`             | yolo11n.safetensors
 """
 
 from __future__ import annotations
@@ -156,6 +157,8 @@ def benchmark(
             if format == "executorch":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 ExecuTorch exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by ExecuTorch yet"
+            if format == "safetensors":
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 SafeTensors exports not supported yet"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:

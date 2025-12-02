@@ -254,13 +254,11 @@ class AutoBackend(nn.Module):
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
-                check_requirements(
-                    ("model-compression-toolkit>=2.4.1", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions")
-                )
+                check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl<1.1.0", "onnxruntime-extensions"))
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq
-                from sony_custom_layers.pytorch.nms import nms_ort  # noqa
+                from edgemdt_cl.pytorch.nms import nms_ort  # noqa - register custom NMS ops
 
                 session_options = mctq.get_ort_session_options()
                 session_options.enable_mem_reuse = False  # fix the shape mismatch from onnxruntime
@@ -606,7 +604,7 @@ class AutoBackend(nn.Module):
                 if k in {"stride", "batch", "channels"}:
                     metadata[k] = int(v)
                 elif k in {"imgsz", "names", "kpt_shape", "kpt_names", "args"} and isinstance(v, str):
-                    metadata[k] = eval(v)
+                    metadata[k] = ast.literal_eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
             batch = metadata["batch"]
@@ -691,7 +689,12 @@ class AutoBackend(nn.Module):
                     y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
                 elif self.task == "pose":
                     # boxes, conf, kpts
-                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1)
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1, dtype=y[0].dtype)
+                elif self.task == "segment":
+                    y = (
+                        np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1, dtype=y[0].dtype),
+                        y[4],
+                    )
 
         # OpenVINO
         elif self.xml:

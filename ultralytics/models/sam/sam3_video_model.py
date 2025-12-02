@@ -204,8 +204,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_states_local: List[Any],
         tracker_metadata_prev: Dict[str, Any],
         feature_cache: Dict,
-        orig_vid_height: int,
-        orig_vid_width: int,
         allow_new_detections: bool = True,
     ):
         """
@@ -291,8 +289,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 tracker_low_res_masks_global=tracker_low_res_masks_global,
                 tracker_metadata_prev=tracker_metadata_prev,
                 tracker_update_plan=tracker_update_plan,
-                orig_vid_height=orig_vid_height,
-                orig_vid_width=orig_vid_width,
                 reconditioned_obj_ids=reconditioned_obj_ids,
             )
             obj_id_to_score = tracker_metadata_new["obj_id_to_score"]
@@ -360,7 +356,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         sam3_image_out = self.model.forward_grounding(
             backbone_out={"img_batch_all_stages": input_batch.img_batch, **text_outputs},
-            find_input=input_batch.find_inputs[0],  # TODO
+            find_input=input_batch.find_inputs,
             geometric_prompt=geometric_prompt,
         )
         # TODO: probably apply nms on boxes
@@ -865,19 +861,18 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_low_res_masks_global: Tensor,
         tracker_metadata_prev: Dict[str, npt.NDArray],
         tracker_update_plan: Dict[str, npt.NDArray],
-        orig_vid_height: int,
-        orig_vid_width: int,
         reconditioned_obj_ids: set = None,
     ):
         new_det_fa_inds: npt.NDArray = tracker_update_plan["new_det_fa_inds"]
         new_det_obj_ids: npt.NDArray = tracker_update_plan["new_det_obj_ids"]
         obj_id_to_mask = {}  # obj_id --> output mask tensor
+        ori_size = self.batch[1][0].shape[:2]
 
         # Part 1: masks from previous SAM2 propagation
         existing_masklet_obj_ids = tracker_metadata_prev["obj_ids_all_gpu"]
         existing_masklet_video_res_masks = F.interpolate(
             tracker_low_res_masks_global.unsqueeze(1),
-            size=(orig_vid_height, orig_vid_width),
+            size=ori_size,
             mode="bilinear",
             align_corners=False,
         )  # (num_obj, 1, H_video, W_video)
@@ -898,7 +893,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # )
         new_masklet_video_res_masks = F.interpolate(
             new_det_low_res_masks,
-            size=(orig_vid_height, orig_vid_width),
+            size=ori_size,
             mode="bilinear",
             align_corners=False,
         )  # (num_obj, 1, H_video, W_video)
@@ -921,7 +916,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     det_mask_resized = (
                         F.interpolate(
                             det_mask.float(),
-                            size=(orig_vid_height, orig_vid_width),
+                            size=ori_size,
                             mode="bilinear",
                             align_corners=False,
                         )

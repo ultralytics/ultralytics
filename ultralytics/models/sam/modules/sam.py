@@ -474,7 +474,7 @@ class SAM2Model(torch.nn.Module):
             assert len(mask_inputs.shape) == 4 and mask_inputs.shape[:2] == (B, 1)
             if mask_inputs.shape[-2:] != self.sam_prompt_encoder.mask_input_size:
                 sam_mask_prompt = F.interpolate(
-                    mask_inputs.float(),
+                    mask_inputs.to(backbone_features.dtype),
                     size=self.sam_prompt_encoder.mask_input_size,
                     align_corners=False,
                     mode="bilinear",
@@ -1011,4 +1011,5 @@ class SAM2Model(torch.nn.Module):
         self.image_size = imgsz[0]
         self.sam_prompt_encoder.input_image_size = imgsz
         self.sam_prompt_encoder.image_embedding_size = [x // self.backbone_stride for x in imgsz]  # fixed ViT patch size of 16
+        self.sam_prompt_encoder.mask_input_size = [x // self.backbone_stride * 4 for x in imgsz]  # fixed ViT patch size of 16
         self.sam_image_embedding_size = self.image_size // self.backbone_stride  # update image embedding size

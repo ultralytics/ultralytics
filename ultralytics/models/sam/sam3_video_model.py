@@ -139,11 +139,19 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # build SAM3 tracker
         self.tracker = SAM3VideoPredictor(overrides=overrides)
+
+    def setup_model(self, model=None, verbose=True):
+        """Setup the SAM3VideoSemanticPredictor model."""
+        super().setup_model(model, verbose)
         self.tracker.setup_model()
-        self.setup_model()
-        # TODO
-        self.imgsz = [1008, 1008]
-        self.tracker.imgsz = [1008, 1008]
+
+    def setup_source(self, source):
+        """Setup the source for the SAM3VideoSemanticPredictor model."""
+        super().setup_source(source)
+        self.tracker.imgsz = self.imgsz
+        self.tracker.model.set_imgsz(self.imgsz)
+        self.tracker._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
+        self.interpol_size = self.tracker.model.memory_encoder.mask_downsampler.interpol_size
 
     def _det_track_one_frame(
         self,
@@ -402,7 +410,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         for trk_obj_id, det_idx in trk_id_to_max_iou_high_conf_det.items():
             new_mask = det_out["mask"][det_idx : det_idx + 1]
             new_mask_binary = (
-                F.interpolate(new_mask.unsqueeze(1), size=[1152, 1152], mode="bilinear", align_corners=False) > 0
+                F.interpolate(new_mask.unsqueeze(1), size=self.interpol_size, mode="bilinear", align_corners=False) > 0
             )
             HIGH_CONF_THRESH = 0.8
             reconditioned_states_idx = set()
@@ -1259,12 +1267,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         """
         if len(tracker_inference_states) == 0:
             return
-        # Avoid an extra interpolation step by directly interpolating to `interpol_size`
-        high_res_H, high_res_W = self.tracker.model.memory_encoder.mask_downsampler.interpol_size
         # NOTE: inspect this part if we observe OOMs in the demo
         high_res_masks = F.interpolate(
             low_res_masks.unsqueeze(1),
-            size=(high_res_H, high_res_W),
+            size=self.interpol_size,
             mode="bilinear",
             align_corners=False,
         )
@@ -1340,7 +1346,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         assert new_obj_masks.is_floating_point()
         new_obj_masks = F.interpolate(
             new_obj_masks.unsqueeze(1),
-            size=[1152, 1152],
+            size=self.interpol_size,
             mode="bilinear",
             align_corners=False,
         ).squeeze(1)

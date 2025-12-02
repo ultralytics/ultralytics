@@ -559,14 +559,14 @@ class Predictor(BasePredictor):
         """Set up the data source for SAM inference."""
         if source is None:  # handle the situation when set_imgsz in advance
             return
-        return super().setup_source(source, self.stride)
-
-    def get_im_features(self, im):
-        """Extract image features using the SAM model's image encoder for subsequent mask prediction."""
+        super().setup_source(source, self.stride)
         assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
             f"SAM models only support square image size, but got {self.imgsz}."
         )
         self.model.set_imgsz(self.imgsz)
+
+    def get_im_features(self, im):
+        """Extract image features using the SAM model's image encoder for subsequent mask prediction."""
         return self.model.image_encoder(im)
 
     def set_prompts(self, prompts):
@@ -753,14 +753,13 @@ class SAM2Predictor(Predictor):
                 points, labels = bboxes, bbox_labels
         return points, labels, masks
 
-    def get_im_features(self, im):
-        """Extract image features from the SAM image encoder for subsequent processing."""
-        assert isinstance(self.imgsz, (tuple, list)) and self.imgsz[0] == self.imgsz[1], (
-            f"SAM 2 models only support square image size, but got {self.imgsz}."
-        )
-        self.model.set_imgsz(self.imgsz)
+    def setup_source(self, source):
+        """"Set up the data source and image size for SAM2 inference."""
+        super().setup_source(source)
         self._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
 
+    def get_im_features(self, im):
+        """Extract image features from the SAM image encoder for subsequent processing."""
         backbone_out = self.model.forward_image(im)
         _, vision_feats, _, _ = self.model._prepare_backbone_features(backbone_out)
         if self.model.directly_add_no_mem_embed:
@@ -1241,8 +1240,6 @@ class SAM2VideoPredictor(SAM2Predictor):
             - If `batch` is greater than 1, the features are expanded to fit the batch size.
             - The method leverages the model's `_prepare_backbone_features` method to prepare the backbone features.
         """
-        self.model.set_imgsz(self.imgsz)
-        self._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
         backbone_out = self.model.forward_image(im)
         if batch > 1:  # expand features if there's more than one prompt
             for i, feat in enumerate(backbone_out["backbone_fpn"]):
@@ -2194,7 +2191,6 @@ class SAM3SemanticPredictor(SAM3Predictor):
     @smart_inference_mode()
     def get_im_features(self, im):
         """Extract image features using the model's backbone."""
-        self.model.backbone.set_imgsz(self.imgsz)
         return self.model.backbone.forward_image(im)
 
     def pre_transform(self, im):

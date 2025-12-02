@@ -51,7 +51,7 @@ class Sam3Image(torch.nn.Module):
         detach_presence_in_joint_score: bool = False,  # only relevant if using presence token/score
         separate_scorer_for_instance: bool = False,
         num_interactive_steps_val: int = 0,
-        inst_interactive_predictor = None,
+        inst_interactive_predictor=None,
         **kwargs,
     ):
         super().__init__()
@@ -408,7 +408,7 @@ class Sam3Image(torch.nn.Module):
         self,
         backbone_out,
         find_input,
-        find_target = None,
+        find_target=None,
         geometric_prompt: Prompt = None,
     ):
         backbone_out.update({k: v.to(self.device) for k, v in self.text_embeddings.items()})
@@ -626,3 +626,7 @@ class Sam3Image(torch.nn.Module):
         """Set the text embeddings for the given class names."""
         self.text_embeddings = self.backbone.forward_text(text)
         self.names = text
+
+    def set_imgsz(self, imgsz: tuple[int, int]):
+        """Set the image size for the model."""
+        self.backbone.set_imgsz(imgsz)

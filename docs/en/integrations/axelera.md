@@ -1,202 +1,205 @@
 ---
 comments: true
-description: Deploy Ultralytics YOLO models on Axelera AI's Metis and Europa hardware. Learn how to export, compile, and run high-performance edge inference.
-keywords: Axelera AI, Metis AIPU, Europa, Voyager SDK, Edge AI, YOLOv8, YOLO11, Model Export, Computer Vision, PCIe, M.2, Object Detection, Generative AI
+description: Export Ultralytics YOLO models to Axelera format for high-performance edge AI deployment on Metis AIPU and Europa platforms. Optimize inference with up to 856 TOPS.
+keywords: Ultralytics, YOLO11, Axelera AI, model export, edge AI, Metis AIPU, Europa, Voyager SDK, deployment, computer vision, INT8 quantization
 ---
 
-# Axelera AI Acceleration
+# Deploy YOLO11 on Axelera
 
-!!! note "Coming soon — Q1 2026"
+Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge devices requires hardware acceleration to achieve real-time performance while maintaining energy efficiency. Axelera AI's dedicated hardware accelerators provide the perfect solution for running advanced computer vision tasks at the edge with exceptional throughput.
 
-    Axelera support in `ultralytics` is **in progress**. The examples here show the planned UI/UX and will become runnable once the Axelera runtime package is released.
+The export to Axelera format feature allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for Axelera's Metis® AIPU. In this guide, we'll walk you through how to convert your models to the Axelera format, enabling deployment on devices ranging from embedded systems to edge servers with up to 856 TOPS of computing power.
 
-Ultralytics partners with **Axelera AI** to streamline high-performance, energy-efficient inference on [Edge AI](https://www.ultralytics.com/glossary/edge-ai) devices. This integration allows users to export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** and **Europa®** platforms using the **Voyager SDK**.
+## Why should you export to Axelera?
 
-![Axelera AI Ecosystem](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
+<p align="center">
+  <img width="100%" src="https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a" alt="Axelera AI Ecosystem">
+</p>
 
-**Axelera AI** provides dedicated hardware acceleration for computer vision and Generative AI at the edge. Their technology leverages a proprietary dataflow architecture and [in-memory computing](https://www.ultralytics.com/glossary/edge-computing) to deliver high throughput (up to **856 TOPS**) within a low power envelope.
+[Axelera AI](https://www.axelera.ai/) provides dedicated hardware acceleration for computer vision and Generative AI at the edge. Their technology leverages a proprietary dataflow architecture and [in-memory computing](https://www.ultralytics.com/glossary/edge-computing) to deliver high throughput (up to 856 TOPS) within a low power envelope, making it ideal for [Edge AI](https://www.ultralytics.com/glossary/edge-ai) deployments.
 
-For Ultralytics users, this offers a scalable path to deploy [object detection](https://docs.ultralytics.com/tasks/detect/), [pose estimation](https://docs.ultralytics.com/tasks/pose/), and other YOLO tasks on devices ranging from embedded drones to edge servers.
+Axelera's hardware is specifically optimized for running [neural networks](https://www.ultralytics.com/glossary/neural-network-nn) efficiently on edge devices, enabling rapid deployment of [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models across various platforms including PCIe cards, M.2 modules, and integrated systems.
 
-## Selecting the Right Hardware
+## Key Features of Axelera Models
 
-Axelera AI offers various form factors to suit different deployment constraints. The chart below helps identify the optimal hardware for your Ultralytics YOLO deployment.
+Axelera models offer powerful features that enable high-performance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) on edge devices:
 
-```mermaid
-graph TD
-    A[Start: Select Deployment Target] --> B{Device Type?}
-    B -->|Edge Server / Workstation| C{Throughput Needs?}
-    B -->|Embedded / Robotics| D{Space Constraints?}
-    B -->|Standalone / R&D| E[Dev Kits & Systems]
+- **High Performance and Efficiency**: Axelera models deliver exceptional throughput (up to 856 TOPS) while maintaining low power consumption, optimized for edge deployment with high [accuracy](https://www.ultralytics.com/glossary/accuracy) on computer vision tasks.
 
-    C -->|Max Density <br> 30+ Streams| F[**Metis PCIe x4**<br>856 TOPS]
-    C -->|Standard PC <br> Low Profile| G[**Metis PCIe x1**<br>214 TOPS]
+- **INT8 Quantization**: Axelera models leverage automatic INT8 quantization through the Voyager SDK, reducing model size and improving inference speed while maintaining model [precision](https://www.ultralytics.com/glossary/precision).
 
-    D -->|Drones & Handhelds| H[**Metis M.2**<br>2280 M-Key]
-    D -->|High Performance Embedded| I[**Metis M.2 MAX**<br>Extended Thermal]
+- **Flexible Deployment Options**: Axelera offers various form factors (PCIe, M.2, integrated systems) to suit different deployment constraints, from embedded devices to edge servers.
 
-    E -->|ARM-based All-in-One| J[**Metis Compute Board**<br>RK3588 + AIPU]
-    E -->|Prototyping| K[**Arduino Portenta x8**<br>Integration Kit]
+- **Voyager SDK Integration**: The Voyager SDK provides seamless compilation, quantization, and runtime execution, making it easy to deploy existing YOLO models on Axelera hardware.
 
-    click F "https://store.axelera.ai/"
-    click G "https://store.axelera.ai/"
-    click H "https://store.axelera.ai/"
-    click J "https://store.axelera.ai/"
-```
+## Deployment Options with Axelera
 
-## Hardware Portfolio
+Before we look at the code for exporting YOLO11 models to the Axelera format, let's understand how Axelera models are typically deployed.
 
-The Axelera hardware lineup is optimized to run [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) and legacy versions with high FPS-per-watt efficiency.
+Axelera models support multiple deployment scenarios:
 
-### Accelerator Cards
+- **Edge Servers and Workstations**: PCIe cards (x1 and x4) for high-density video analytics and smart city applications.
 
-These cards enable AI acceleration in existing host devices, facilitating [brownfield deployments](https://www.ultralytics.com/glossary/edge-computing).
+- **Embedded Systems**: M.2 modules for drones, robotics, and portable devices requiring efficient on-device inference.
 
-| Product           | Form Factor    | Compute            | Performance (INT8) | Target Application                                                                                                                         |
-| :---------------- | :------------- | :----------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Metis PCIe x4** | PCIe Gen3 x16  | **4x** Metis AIPUs | **856 TOPS**       | High-density [video analytics](https://docs.ultralytics.com/guides/analytics/), smart cities                                               |
-| **Metis PCIe x1** | PCIe Gen3 x1   | **1x** Metis AIPU  | **214 TOPS**       | Industrial PCs, retail [queue management](https://docs.ultralytics.com/guides/queue-management/)                                           |
-| **Metis M.2**     | M.2 2280 M-Key | **1x** Metis AIPU  | **214 TOPS**       | [Drones](https://www.ultralytics.com/blog/build-ai-powered-drone-applications-with-ultralytics-yolo11), robotics, portable medical devices |
-| **Metis M.2 MAX** | M.2 2280       | **1x** Metis AIPU  | **214 TOPS**       | Environments requiring advanced thermal management                                                                                         |
+- **Integrated Solutions**: Complete systems like the Metis Compute Board combining Axelera AIPU with ARM processors for standalone edge deployments.
 
-### Integrated Systems
+- **Industrial Applications**: Ruggedized systems for manufacturing automation and industrial safety monitoring.
 
-For turnkey solutions, Axelera partners with manufacturers to provide systems pre-validated for the Metis AIPU.
+## Export to Axelera: Converting Your YOLO11 Model
 
-- **Metis Compute Board**: A standalone edge device pairing the Metis AIPU with a Rockchip RK3588 ARM CPU.
-- **Workstations**: Enterprise towers from **Dell** (Precision 3460XE) and **Lenovo** (ThinkStation P360 Ultra).
-- **Industrial PCs**: Ruggedized systems from **Advantech** and **Aetina** designed for [manufacturing automation](https://www.ultralytics.com/solutions/ai-in-manufacturing).
+You can optimize your YOLO11 models for Axelera hardware by converting them to the Axelera format.
 
-## Voyager SDK Integration
+### Requirements
 
-The **Voyager SDK** serves as the bridge between Ultralytics models and Axelera hardware. It handles the compilation, quantization, and runtime execution of neural networks.
+!!! warning "Platform Requirements"
 
-Key features for Ultralytics users:
+    Export to Axelera format and model inference have specific platform and hardware requirements:
+    
+    - **Operating System**: Linux only (Ubuntu 20.04/22.04 recommended)
+    - **Hardware**: Axelera AI accelerator required (Metis AIPU or Europa platform)
+    - **Drivers**: Axelera PCIe/M.2 drivers must be installed and configured
+    - **Python**: Version 3.10 or higher
 
-1. **Seamless Export**: The SDK's compiler optimizes YOLO models for the Metis dataflow architecture.
-2. **Quantization Engine**: Automatically converts FP32 models to [INT8 precision](https://www.ultralytics.com/glossary/model-quantization) with minimal accuracy loss.
-3. **Pipeline Builder**: A YAML-based framework to chain multiple models (e.g., detection + [pose estimation](https://docs.ultralytics.com/tasks/pose/)) without writing complex C++ code.
+### Installation
 
-## Installation & Setup
+To install the required packages, run:
 
-To use Axelera acceleration, you need the `ultralytics` package installed. Note that the Voyager SDK is a separate system-level installation required to interface with the hardware. Runtime wheels are expected in **Q1 2026**; the commands below reflect the intended setup flow.
+!!! tip "Installation"
 
-```bash
-# Install Ultralytics
-pip install ultralytics
+    === "CLI"
+    ```bash
+    # Install Ultralytics package
+    pip install ultralytics
+    ```
 
-# Note: Download and install the Axelera Voyager SDK from the Axelera Developer Portal
-# to enable the 'axelera' export format and runtime.
-```
+For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
-## Exporting YOLO Models to Axelera
+### Usage
 
-When the Axelera runtime package ships (target Q1 2026), you will export your trained YOLO models to the Axelera format using the standard Ultralytics export command. This process generates the artifacts required by the Voyager compiler.
-
-!!! warning "Voyager SDK Required"
-
-    The `format='axelera'` export requires the Axelera libraries to be available in your environment. Alternatively, you can export to [ONNX](https://docs.ultralytics.com/integrations/onnx/) and manually compile using the Voyager toolchain.
-
-### Export Examples
-
-Convert a YOLO11 model for Metis deployment.
-
-!!! example "Export to Axelera Format"
-
-    !!! note "Future example — will work when runtime is released"
-
-        This code block demonstrates the planned flow. It will require the upcoming Axelera runtime package (ETA Q1 2026) to execute successfully.
+!!! example "Usage"
 
     === "Python"
-
         ```python
         from ultralytics import YOLO
 
-        # Load a standard or custom trained YOLO11 model
+        # Load the YOLO11 model
         model = YOLO("yolo11n.pt")
 
-        # Export to Axelera format
-        # int8=True enables quantization for the NPU
-        model.export(format="axelera", int8=True, imgsz=640)
+        # Export the model to Axelera format
+        model.export(format="axelera", int8=True)  # creates optimized Axelera model
+
+        # Load the exported Axelera model
+        axelera_model = YOLO("yolo11n_axelera_model")
+
+        # Run inference
+        results = axelera_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
-
         ```bash
-        # Export a model via CLI
-        yolo export model=yolo11n.pt format=axelera int8=True imgsz=640
+        # Export a YOLO11n PyTorch model to Axelera format
+        yolo export model=yolo11n.pt format=axelera int8=True
+
+        # Run inference with the exported model
+        yolo predict model='yolo11n_axelera_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
-For available arguments, refer to the [Export Mode documentation](https://docs.ultralytics.com/modes/export/).
+### Export Arguments
 
-## Running Inference
+| Argument | Type             | Default     | Description                                                                                                                             |
+| -------- | ---------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'axelera'` | Target format for the exported model, optimized for Axelera Metis AIPU hardware.                                                      |
+| `imgsz`  | `int` or `tuple` | `640`       | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.     |
+| `int8`   | `bool`           | `True`      | Enables INT8 quantization for optimal performance on Axelera NPUs.                                                                    |
+| `batch`  | `int`            | `1`         | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.|
+| `data`   | `str`            | `None`      | Path to a custom dataset for calibration during INT8 quantization. If not provided, default calibration data will be used.             |
 
-Once exported, you will be able to load the Axelera-compiled model directly with the `ultralytics` API (similar to loading [ONNX](https://docs.ultralytics.com/integrations/onnx/) models). The example below shows the expected usage pattern for running inference and saving results after the runtime package ships.
+For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-!!! example "Inference with Axelera Format"
+### Benchmarks
 
-    !!! note "Future example — will work when runtime is released"
+Coming soon: Performance benchmarks comparing inference speed and accuracy of YOLO11 models on Axelera hardware versus other edge AI platforms.
 
-        This code block demonstrates the planned flow. It will require the upcoming Axelera runtime package (ETA Q1 2026) to execute successfully.
+## Deploying Exported YOLO11 Axelera Models
 
-    === "Python"
+After successfully exporting your Ultralytics YOLO11 models to Axelera format, you can now deploy them. The primary and recommended first step for running an Axelera model is to utilize the YOLO("yolo11n_axelera_model") method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your Axelera models in various settings, take a look at the following resources:
 
-        ```python
-        from ultralytics import YOLO
+- **[PCIe Deployment](https://www.axelera.ai/)**: Learn how to deploy models on Metis PCIe cards for high-density video analytics.
 
-        # Load the Axelera-compiled model (example path; same flow as ONNX)
-        model = YOLO("yolo11n_axelera.axmodel")  # will work once Axelera runtime is released
+- **[M.2 Module Integration](https://www.axelera.ai/)**: Understand deployment on M.2 modules for embedded systems and drones.
 
-        # Run inference; you can pass a file, folder, glob, or list of sources
-        results = model("path/to/images", imgsz=640, save=True)
+- **[Voyager SDK Documentation](https://www.axelera.ai/)**: Comprehensive guide for using the Voyager SDK compiler and runtime.
 
-        # Iterate over result objects to inspect or render detections
-        for r in results:
-            boxes = r.boxes  # bounding boxes tensor + metadata
-            print(f"Detected {len(boxes)} objects")
+- **[Industrial Systems](https://www.axelera.ai/)**: Deploy on ruggedized industrial PCs for manufacturing and safety applications.
 
-            # Save visuals per result (files saved alongside inputs)
-            r.save()  # saves annotated image(s) to disk
-            # Or display interactively (desktop environments)
-            # r.show()
-        ```
+## Summary
 
-## Inference Performance
+In this guide, we've covered exporting Ultralytics YOLO11 models to the Axelera format. This conversion enables deployment on Axelera's high-performance edge AI hardware, achieving up to 856 TOPS while maintaining energy efficiency, making it ideal for demanding edge computing applications.
 
-The Metis AIPU is designed to maximize throughput while minimizing energy consumption. The benchmarks below illustrate the performance achievable with standard Ultralytics models.
+For detailed instructions on usage, please refer to the [official Axelera documentation](https://www.axelera.ai/).
 
-| Metric              | Metis PCIe x4 | Metis M.2    | Note                    |
-| :------------------ | :------------ | :----------- | :---------------------- |
-| **Peak Throughput** | **856 TOPS**  | 214 TOPS     | INT8 Precision          |
-| **YOLOv5m FPS**     | **~1539 FPS** | ~326 FPS     | 640x640 Input           |
-| **YOLOv5s FPS**     | N/A           | **~827 FPS** | 640x640 Input           |
-| **Efficiency**      | High          | Very High    | Ideal for battery power |
-
-_Benchmarks based on Axelera AI data (Sept 2025). Actual FPS depends on model size, batching, and input resolution._
-
-## Real-World Applications
-
-Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
-
-- **Smart Retail**: Real-time [object counting](https://docs.ultralytics.com/guides/object-counting/) and [heatmap analytics](https://docs.ultralytics.com/guides/heatmaps/) for store optimization.
-- **Industrial Safety**: Low-latency [PPE detection](https://docs.ultralytics.com/datasets/detect/construction-ppe/) in manufacturing environments.
-- **Drone Analytics**: High-speed [object detection](https://docs.ultralytics.com/tasks/detect/) on UAVs for [agriculture](https://www.ultralytics.com/solutions/ai-in-agriculture) and search-and-rescue.
-- **Traffic Systems**: Edge-based [license plate recognition](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-automatic-number-plate-recognition) and [speed estimation](https://docs.ultralytics.com/guides/speed-estimation/).
+Also, if you're interested in exploring other integration options for Ultralytics YOLO11, be sure to visit our [integration guide page](index.md) for further insights and information.
 
 ## FAQ
 
-### What YOLO versions are supported on Axelera?
+### How do I export Ultralytics YOLO11 models to Axelera format?
 
-The Voyager SDK and Ultralytics integration support the export of [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/) models.
+To export your Ultralytics YOLO11 model to Axelera format (available Q1 2026), follow these steps:
 
-### Can I deploy custom trained models?
+- **Python**: Use the `export` function from the YOLO class.
+```python
+    from ultralytics import YOLO
 
-Yes. Any model trained using [Ultralytics Train Mode](https://docs.ultralytics.com/modes/train/) can be exported to the Axelera format, provided it uses supported layers and operations.
+    # Load the YOLO11 model
+    model = YOLO("yolo11n.pt")
 
-### How does INT8 quantization affect accuracy?
+    # Export to Axelera format with INT8 quantization
+    model.export(format="axelera", int8=True)
+```
 
-Axelera's quantization engine uses advanced calibration techniques to minimize accuracy drop. For most detection tasks, the performance gain significantly outweighs the negligible impact on [mAP](https://docs.ultralytics.com/guides/yolo-performance-metrics/).
+- **CLI**: Use the `yolo` command with the `export` argument.
+```bash
+    yolo export model=yolo11n.pt format=axelera int8=True
+```
 
-### Where can I find the Voyager SDK?
+For detailed export options, check the [Export](../modes/export.md) page in the documentation.
 
-The SDK, drivers, and compiler tools are available via the [Axelera Developer Portal](https://www.axelera.ai/).
+### What are the advantages of exporting YOLO11 models to Axelera?
+
+Exporting your Ultralytics YOLO11 models to Axelera offers several benefits:
+
+- **High Performance**: Up to 856 TOPS throughput for real-time edge AI applications.
+- **Energy Efficiency**: Optimized dataflow architecture for low power consumption.
+- **Flexible Deployment**: Multiple form factors (PCIe, M.2, integrated systems) for various use cases.
+- **Automatic Quantization**: INT8 quantization through Voyager SDK for improved speed and reduced memory usage.
+
+For more details, see the [Why should you export to Axelera](#why-should-you-export-to-axelera) section in the documentation.
+
+### Which Axelera hardware should I choose for my YOLO11 deployment?
+
+Axelera offers various hardware options depending on your needs:
+
+- **Metis PCIe x4**: For maximum throughput (856 TOPS) in edge servers handling 30+ video streams.
+- **Metis PCIe x1**: For standard PCs requiring 214 TOPS in a low-profile form factor.
+- **Metis M.2**: For embedded systems like drones and robotics.
+- **Metis Compute Board**: For standalone edge deployments with integrated ARM CPU.
+
+Refer to the hardware selection chart in the documentation for detailed guidance.
+
+### What platforms are supported for Axelera [model deployment](https://www.ultralytics.com/glossary/model-deployment)?
+
+Axelera models can be deployed across various platforms:
+
+- **Edge Servers**: High-density video analytics using PCIe cards.
+- **Embedded Systems**: Drones, robotics, and IoT devices using M.2 modules.
+- **Industrial PCs**: Ruggedized systems for manufacturing automation.
+- **Integrated Solutions**: Standalone systems combining AIPU with ARM processors.
+
+Each platform offers specific advantages for different edge AI applications.
+
+### How does INT8 quantization affect YOLO11 model accuracy on Axelera?
+
+Axelera's Voyager SDK uses advanced calibration techniques to minimize accuracy loss during INT8 quantization. For most [object detection](https://www.ultralytics.com/glossary/object-detection) tasks, the performance gains (higher FPS, lower power) significantly outweigh the negligible impact on mAP. The quantization process is automatic and optimized for maintaining model quality while maximizing hardware efficiency.
+
+For more advanced deployment scenarios and optimization techniques, visit the [Ultralytics documentation page](../guides/model-deployment-options.md).

@@ -95,6 +95,7 @@ class AutoBackend(nn.Module):
             | RKNN                  | *_rknn_model/     |
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
+            | Axelera               | *_axelera_model/  |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -122,6 +123,7 @@ class AutoBackend(nn.Module):
         rknn (bool): Whether the model is an RKNN model.
         triton (bool): Whether the model is a Triton Inference Server model.
         pte (bool): Whether the model is a PyTorch ExecuTorch model.
+        axelera (bool): Whether the model is an Axelera model.
 
     Methods:
         forward: Run inference on an input image.
@@ -176,6 +178,7 @@ class AutoBackend(nn.Module):
             imx,
             rknn,
             pte,
+            axelera,
             triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -568,6 +571,24 @@ class AutoBackend(nn.Module):
             rknn_model.init_runtime()
             metadata = w.parent / "metadata.yaml"
 
+        # Axelera
+        elif axelera:
+            try:
+                from axelera.runtime import op
+            except ImportError:
+                check_requirements(
+                    "axelera_runtime2==0.1.1",
+                    cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc6/build-packages-ubuntu-22.04/python",
+                )
+            from axelera.runtime import op
+
+            w = Path(w)
+            if not w.is_file():  # if not *.axm
+                w = next(w.rglob("*.axm"))  # get *.axm file from *_axelera_model dir
+
+            ax_model = op.load(str(w))
+            metadata = w.parent / "metadata.yaml"
+
         # ExecuTorch
         elif pte:
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
@@ -793,6 +814,11 @@ class AutoBackend(nn.Module):
             im = (im.cpu().numpy() * 255).astype("uint8")
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im)
+
+        # Axelera
+        elif self.axelera:
+            im = im.cpu()
+            y = self.ax_model(im)
 
         # ExecuTorch
         elif self.pte:

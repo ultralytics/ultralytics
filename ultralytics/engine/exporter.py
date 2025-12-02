@@ -21,6 +21,7 @@ NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
 ExecuTorch              | `executorch`              | yolo11n_executorch_model/
+Axelera                 | `axelera`                 | yolo11n_axelera_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -50,6 +51,7 @@ Inference:
                          yolo11n_imx_model          # IMX
                          yolo11n_rknn_model         # RKNN
                          yolo11n_executorch_model   # ExecuTorch
+                         yolo11n_axelera_model      # Axelera
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -103,6 +105,8 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
+    IS_PYTHON_3_12,
+    check_apt_requirements,
     IS_PYTHON_MINIMUM_3_9,
     check_imgsz,
     check_requirements,
@@ -161,6 +165,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
+        ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -340,6 +345,7 @@ class Exporter:
             imx,
             rknn,
             executorch,
+            axelera,
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
@@ -361,6 +367,12 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
         validate_args(fmt, self.args, fmt_keys)
+        if axelera:
+            if not self.args.int8:
+                LOGGER.warning("Axelera export requires int8=True, setting int8=True.")
+                self.args.int8 = True
+            if model.task not in {"detect"}:
+                raise ValueError("Axelera export only supported for detection models.")
         if imx:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
@@ -565,6 +577,8 @@ class Exporter:
             f[14] = self.export_rknn()
         if executorch:
             f[15] = self.export_executorch()
+        if axelera:
+            f[16] = self.export_axelera()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1077,6 +1091,76 @@ class Exporter:
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
         return str(f)
+
+    @try_export
+    def export_axelera(self, prefix=colorstr("Axelera:")):
+        """YOLO Axelera export."""
+        # TODO: Make this a function to use also with imx
+        try:
+            from axelera import compiler
+        except ImportError:
+            check_apt_requirements(["libllvm14", "libgirepository1.0-dev", "pkg-config", "libcairo2-dev"])
+
+            check_requirements(
+                "axelera-voyager-sdk==1.5.0-rc6",
+                cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc6/build-packages-ubuntu-22.04/python",
+            )
+
+        from axelera import compiler
+        from axelera.compiler import CompilerConfig
+
+        self.args.opset = 17
+        onnx_path = self.export_onnx()
+        model_name = f"{Path(onnx_path).stem}"
+        export_path = Path(f"{model_name}_axelera_model")
+        export_path.mkdir(exist_ok=True)
+
+        def transform_fn(data_item) -> np.ndarray:
+            data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
+            assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
+            im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+            return np.expand_dims(im, 0) if im.ndim == 3 else im
+
+        if "C2PSA" in self.model.__str__():  # YOLO11
+            config = CompilerConfig(
+                ptq_scheme="per_tensor_min_max",
+                ignore_weight_buffers=False,
+                resources_used=0.25,
+                aipu_cores_used=1,
+                multicore_mode="batch",
+                output_axm_format=True,
+                model_name=model_name,
+            )
+        else:  # YOLOv8
+            config = CompilerConfig(
+                tiling_depth=6,
+                split_buffer_promotion=True,
+                resources_used=0.25,
+                aipu_cores_used=1,
+                multicore_mode="batch",
+                output_axm_format=True,
+                model_name=model_name,
+            )
+
+        qmodel = compiler.quantize(
+            model=onnx_path,
+            calibration_dataset=self.get_int8_calibration_dataloader(prefix),
+            config=config,
+            transform_fn=transform_fn,
+        )
+
+        compiler.compile(model=qmodel, config=config, output_dir=export_path)
+
+        axm_name = f"{model_name}.axm"
+        axm_src = Path(axm_name)
+        axm_dst = export_path / axm_name
+
+        if axm_src.exists():
+            axm_src.replace(axm_dst)
+
+        YAML.save(export_path / "metadata.yaml", self.metadata)
+
+        return export_path
 
     @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):

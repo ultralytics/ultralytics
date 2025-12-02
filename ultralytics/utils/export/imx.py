@@ -9,8 +9,9 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.nn.modules import Detect, Pose
+from ultralytics.nn.modules import Detect, Pose, Segment
 from ultralytics.utils import LOGGER
+from ultralytics.utils.patches import onnx_export_patch
 from ultralytics.utils.tal import make_anchors
 from ultralytics.utils.torch_utils import copy_attr
 
@@ -28,6 +29,7 @@ MCT_CONFIG = {
             "n_layers": 257,
         },
         "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 112},
+        "segment": {"layer_names": ["sub", "mul_2", "add_14", "cat_22"], "weights_memory": 2466604.8, "n_layers": 265},
     },
     "YOLOv8": {
         "detect": {"layer_names": ["sub", "mul", "add_6", "cat_17"], "weights_memory": 2550540.8, "n_layers": 168},
@@ -37,6 +39,7 @@ MCT_CONFIG = {
             "n_layers": 187,
         },
         "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 73},
+        "segment": {"layer_names": ["sub", "mul", "add_6", "cat_18"], "weights_memory": 2580060.0, "n_layers": 195},
     },
 }
 
@@ -92,6 +95,8 @@ class FXModel(torch.nn.Module):
                 )
             if type(m) is Pose:
                 m.forward = types.MethodType(pose_forward, m)  # bind method to Detect
+            if type(m) is Segment:
+                m.forward = types.MethodType(segment_forward, m)  # bind method to Detect
             x = m(x)  # run
             y.append(x)  # save output
         return x
@@ -114,8 +119,17 @@ def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tenso
     return (*x, pred_kpt.permute(0, 2, 1))
 
 
+def segment_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Forward pass for imx segmentation."""
+    p = self.proto(x[0])  # mask protos
+    bs = p.shape[0]  # batch size
+    mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
+    x = Detect.forward(self, x)
+    return (*x, mc.transpose(1, 2), p)
+
+
 class NMSWrapper(torch.nn.Module):
-    """Wrap PyTorch Module with multiclass_nms layer from sony_custom_layers."""
+    """Wrap PyTorch Module with multiclass_nms layer from edge-mdt-cl."""
 
     def __init__(
         self,
@@ -143,7 +157,7 @@ class NMSWrapper(torch.nn.Module):
 
     def forward(self, images):
         """Forward pass with model inference and NMS post-processing."""
-        from sony_custom_layers.pytorch import multiclass_nms_with_indices
+        from edgemdt_cl.pytorch.nms.nms_with_indices import multiclass_nms_with_indices
 
         # model inference
         outputs = self.model(images)
@@ -159,6 +173,10 @@ class NMSWrapper(torch.nn.Module):
             kpts = outputs[2]  # (bs, max_detections, kpts 17*3)
             out_kpts = torch.gather(kpts, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
             return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_kpts
+        if self.task == "segment":
+            mc, proto = outputs[2], outputs[3]
+            out_mc = torch.gather(mc, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, mc.size(-1)))
+            return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_mc, proto
         return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, nms_outputs.n_valid
 
 
@@ -202,7 +220,7 @@ def torch2imx(
         >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.45, max_det=300)
 
     Notes:
-        - Requires model_compression_toolkit, onnx, edgemdt_tpc, and sony_custom_layers packages
+        - Requires model_compression_toolkit, onnx, edgemdt_tpc, and edge-mdt-cl packages
         - Only supports YOLOv8n and YOLO11n models (detection and pose tasks)
         - Output includes quantized ONNX model, IMX binary, and labels.txt file
     """
@@ -218,6 +236,7 @@ def torch2imx(
             img = img / 255.0
             yield [img]
 
+    # NOTE: need tpc_version to be "4.0" for IMX500 Pose estimation models
     tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
 
     bit_cfg = mct.core.BitWidthConfig()
@@ -271,9 +290,11 @@ def torch2imx(
     f = Path(str(file).replace(file.suffix, "_imx_model"))
     f.mkdir(exist_ok=True)
     onnx_model = f / Path(str(file.name).replace(file.suffix, "_imx.onnx"))  # js dir
-    mct.exporter.pytorch_export_model(
-        model=quant_model, save_model_path=onnx_model, repr_dataset=representative_dataset_gen
-    )
+
+    with onnx_export_patch():
+        mct.exporter.pytorch_export_model(
+            model=quant_model, save_model_path=onnx_model, repr_dataset=representative_dataset_gen
+        )
 
     model_onnx = onnx.load(onnx_model)  # load onnx model
     for k, v in metadata.items():

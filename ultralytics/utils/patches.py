@@ -160,6 +160,25 @@ def arange_patch(args):
 
 
 @contextmanager
+def onnx_export_patch():
+    """Workaround for ONNX export issues in PyTorch 2.9+ with Dynamo enabled."""
+    from ultralytics.utils.torch_utils import TORCH_2_9
+
+    if TORCH_2_9:
+        func = torch.onnx.export
+
+        def torch_export(*args, **kwargs):
+            """Return a 1-D tensor of size with values from the interval and common difference."""
+            return func(*args, **kwargs, dynamo=False)  # cast to dtype instead of passing dtype
+
+        torch.onnx.export = torch_export  # patch
+        yield
+        torch.onnx.export = func  # unpatch
+    else:
+        yield
+
+
+@contextmanager
 def override_configs(args, overrides: dict[str, Any] | None = None):
     """Context manager to temporarily override configurations in args.
 

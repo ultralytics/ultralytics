@@ -104,7 +104,6 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
-    IS_PYTHON_3_12,
     IS_PYTHON_MINIMUM_3_9,
     check_imgsz,
     check_requirements,

@@ -175,13 +175,12 @@ default_callbacks = {
 
 
 def get_default_callbacks():
-    """
-    Get the default callbacks for Ultralytics training, validation, prediction, and export processes.
+    """Get the default callbacks for Ultralytics training, validation, prediction, and export processes.
 
     Returns:
         (dict): Dictionary of default callbacks for various training events. Each key represents an event during the
-            training process, and the corresponding value is a list of callback functions executed when that event
-            occurs.
+            training process, and the corresponding value is a list of callback functions executed when that
+            event occurs.
 
     Examples:
         >>> callbacks = get_default_callbacks()
@@ -192,17 +191,16 @@ def get_default_callbacks():
 
 
 def add_integration_callbacks(instance):
-    """
-    Add integration callbacks to the instance's callbacks dictionary.
+    """Add integration callbacks to the instance's callbacks dictionary.
 
     This function loads and adds various integration callbacks to the provided instance. The specific callbacks added
     depend on the type of instance provided. All instances receive HUB callbacks, while Trainer instances also receive
-    additional callbacks for various integrations like ClearML, Comet, DVC, MLflow, Neptune, Ray Tune, TensorBoard,
-    and Weights & Biases.
+    additional callbacks for various integrations like ClearML, Comet, DVC, MLflow, Neptune, Ray Tune, TensorBoard, and
+    Weights & Biases.
 
     Args:
-        instance (Trainer | Predictor | Validator | Exporter): The object instance to which callbacks will be added.
-            The type of instance determines which callbacks are loaded.
+        instance (Trainer | Predictor | Validator | Exporter): The object instance to which callbacks will be added. The
+            type of instance determines which callbacks are loaded.
 
     Examples:
         >>> from ultralytics.engine.trainer import BaseTrainer

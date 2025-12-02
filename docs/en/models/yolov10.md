@@ -205,7 +205,7 @@ For training YOLOv10 on a custom dataset:
 
 ## Supported Tasks and Modes
 
-The YOLOv10 models series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
+The YOLOv10 model series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
 | Model   | Filenames                                                             | Tasks                                  | Inference | Validation | Training | Export |
 | ------- | --------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
@@ -234,7 +234,7 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 
 YOLOv10 sets a new standard in real-time object detection by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its ability to deliver high accuracy with low computational cost makes it an ideal choice for a wide range of [real-world applications](https://www.ultralytics.com/solutions) including [manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing), [retail](https://www.ultralytics.com/blog/ai-in-fashion-retail), and [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-automotive).
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We would like to acknowledge the YOLOv10 authors from [Tsinghua University](https://www.tsinghua.edu.cn/en/) for their extensive research and significant contributions to the [Ultralytics](https://www.ultralytics.com/) framework:
 

@@ -18,8 +18,7 @@ from ultralytics.utils.checks import check_requirements
 
 
 def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.ndarray:
-    """
-    Calculate Intersection over Foreground (IoF) between polygons and bounding boxes.
+    """Calculate Intersection over Foreground (IoF) between polygons and bounding boxes.
 
     Args:
         polygon1 (np.ndarray): Polygon coordinates with shape (N, 8).
@@ -65,8 +64,7 @@ def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.n
 
 
 def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]:
-    """
-    Load DOTA dataset annotations and image information.
+    """Load DOTA dataset annotations and image information.
 
     Args:
         data_root (str): Data root directory.
@@ -107,8 +105,7 @@ def get_windows(
     im_rate_thr: float = 0.6,
     eps: float = 0.01,
 ) -> np.ndarray:
-    """
-    Get the coordinates of sliding windows for image cropping.
+    """Get the coordinates of sliding windows for image cropping.
 
     Args:
         im_size (tuple[int, int]): Original image size, (H, W).
@@ -118,7 +115,7 @@ def get_windows(
         eps (float, optional): Epsilon value for math operations.
 
     Returns:
-        (np.ndarray): Array of window coordinates with shape (N, 4) where each row is [x_start, y_start, x_stop, y_stop].
+        (np.ndarray): Array of window coordinates of shape (N, 4) where each row is [x_start, y_start, x_stop, y_stop].
     """
     h, w = im_size
     windows = []
@@ -175,8 +172,7 @@ def crop_and_save(
     lb_dir: str,
     allow_background_images: bool = True,
 ) -> None:
-    """
-    Crop images and save new labels for each window.
+    """Crop images and save new labels for each window.
 
     Args:
         anno (dict[str, Any]): Annotation dict, including 'filepath', 'label', 'ori_size' as its keys.
@@ -226,8 +222,7 @@ def split_images_and_labels(
     crop_sizes: tuple[int, ...] = (1024,),
     gaps: tuple[int, ...] = (200,),
 ) -> None:
-    """
-    Split both images and labels for a given dataset split.
+    """Split both images and labels for a given dataset split.
 
     Args:
         data_root (str): Root directory of the dataset.
@@ -265,8 +260,7 @@ def split_images_and_labels(
 def split_trainval(
     data_root: str, save_dir: str, crop_size: int = 1024, gap: int = 200, rates: tuple[float, ...] = (1.0,)
 ) -> None:
-    """
-    Split train and val sets of DOTA dataset with multiple scaling rates.
+    """Split train and val sets of DOTA dataset with multiple scaling rates.
 
     Args:
         data_root (str): Root directory of the dataset.
@@ -304,8 +298,7 @@ def split_trainval(
 def split_test(
     data_root: str, save_dir: str, crop_size: int = 1024, gap: int = 200, rates: tuple[float, ...] = (1.0,)
 ) -> None:
-    """
-    Split test set of DOTA dataset, labels are not included within this set.
+    """Split test set of DOTA dataset, labels are not included within this set.
 
     Args:
         data_root (str): Root directory of the dataset.

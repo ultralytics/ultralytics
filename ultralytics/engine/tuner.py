@@ -34,12 +34,11 @@ from ultralytics.utils.plotting import plot_tune_results
 
 
 class Tuner:
-    """
-    A class for hyperparameter tuning of YOLO models.
+    """A class for hyperparameter tuning of YOLO models.
 
     The class evolves YOLO model hyperparameters over a given number of iterations by mutating them according to the
-    search space and retraining the model to evaluate their performance. Supports both local CSV storage and
-    distributed MongoDB Atlas coordination for multi-machine hyperparameter optimization.
+    search space and retraining the model to evaluate their performance. Supports both local CSV storage and distributed
+    MongoDB Atlas coordination for multi-machine hyperparameter optimization.
 
     Attributes:
         space (dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
@@ -83,8 +82,7 @@ class Tuner:
     """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks: list | None = None):
-        """
-        Initialize the Tuner with configurations.
+        """Initialize the Tuner with configurations.
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
@@ -142,8 +140,7 @@ class Tuner:
         )
 
     def _connect(self, uri: str = "mongodb+srv://username:password@cluster.mongodb.net/", max_retries: int = 3):
-        """
-        Create MongoDB client with exponential backoff retry on connection failures.
+        """Create MongoDB client with exponential backoff retry on connection failures.
 
         Args:
             uri (str): MongoDB connection string with credentials and cluster information.
@@ -183,12 +180,10 @@ class Tuner:
                 time.sleep(wait_time)
 
     def _init_mongodb(self, mongodb_uri="", mongodb_db="", mongodb_collection=""):
-        """
-        Initialize MongoDB connection for distributed tuning.
+        """Initialize MongoDB connection for distributed tuning.
 
-        Connects to MongoDB Atlas for distributed hyperparameter optimization across multiple machines.
-        Each worker saves results to a shared collection and reads the latest best hyperparameters
-        from all workers for evolution.
+        Connects to MongoDB Atlas for distributed hyperparameter optimization across multiple machines. Each worker
+        saves results to a shared collection and reads the latest best hyperparameters from all workers for evolution.
 
         Args:
             mongodb_uri (str): MongoDB connection string, e.g. 'mongodb+srv://username:password@cluster.mongodb.net/'.
@@ -206,8 +201,7 @@ class Tuner:
         LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
 
     def _get_mongodb_results(self, n: int = 5) -> list:
-        """
-        Get top N results from MongoDB sorted by fitness.
+        """Get top N results from MongoDB sorted by fitness.
 
         Args:
             n (int): Number of top results to retrieve.
@@ -221,8 +215,7 @@ class Tuner:
             return []
 
     def _save_to_mongodb(self, fitness: float, hyperparameters: dict[str, float], metrics: dict, iteration: int):
-        """
-        Save results to MongoDB with proper type conversion.
+        """Save results to MongoDB with proper type conversion.
 
         Args:
             fitness (float): Fitness score achieved with these hyperparameters.
@@ -233,7 +226,7 @@ class Tuner:
         try:
             self.collection.insert_one(
                 {
-                    "fitness": float(fitness),
+                    "fitness": fitness,
                     "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
                     "metrics": metrics,
                     "timestamp": datetime.now(),
@@ -244,8 +237,7 @@ class Tuner:
             LOGGER.warning(f"{self.prefix}MongoDB save failed: {e}")
 
     def _sync_mongodb_to_csv(self):
-        """
-        Sync MongoDB results to CSV for plotting compatibility.
+        """Sync MongoDB results to CSV for plotting compatibility.
 
         Downloads all results from MongoDB and writes them to the local CSV file in chronological order. This enables
         the existing plotting functions to work seamlessly with distributed MongoDB data.
@@ -257,13 +249,13 @@ class Tuner:
                 return
 
             # Write to CSV
-            headers = ",".join(["fitness"] + list(self.space.keys())) + "\n"
+            headers = ",".join(["fitness", *list(self.space.keys())]) + "\n"
             with open(self.tune_csv, "w", encoding="utf-8") as f:
                 f.write(headers)
                 for result in all_results:
                     fitness = result["fitness"]
                     hyp_values = [result["hyperparameters"][k] for k in self.space.keys()]
-                    log_row = [round(fitness, 5)] + hyp_values
+                    log_row = [round(fitness, 5), *hyp_values]
                     f.write(",".join(map(str, log_row)) + "\n")
 
         except Exception as e:
@@ -288,8 +280,7 @@ class Tuner:
         mutation: float = 0.5,
         sigma: float = 0.2,
     ) -> dict[str, float]:
-        """
-        Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
+        """Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
             parent (str): Parent selection method (kept for API compatibility, unused in BLX mode).
@@ -304,8 +295,7 @@ class Tuner:
 
         # Try MongoDB first if available
         if self.mongodb:
-            results = self._get_mongodb_results(n)
-            if results:
+            if results := self._get_mongodb_results(n):
                 # MongoDB already sorted by fitness DESC, so results[0] is best
                 x = np.array([[r["fitness"]] + [r["hyperparameters"][k] for k in self.space.keys()] for r in results])
             elif self.collection.name in self.collection.database.list_collection_names():  # Tuner started elsewhere
@@ -344,13 +334,12 @@ class Tuner:
 
         # Update types
         if "close_mosaic" in hyp:
-            hyp["close_mosaic"] = int(round(hyp["close_mosaic"]))
+            hyp["close_mosaic"] = round(hyp["close_mosaic"])
 
         return hyp
 
     def __call__(self, model=None, iterations: int = 10, cleanup: bool = True):
-        """
-        Execute the hyperparameter evolution process when the Tuner instance is called.
+        """Execute the hyperparameter evolution process when the Tuner instance is called.
 
         This method iterates through the specified number of iterations, performing the following steps:
         1. Sync MongoDB results to CSV (if using distributed mode)
@@ -421,7 +410,7 @@ class Tuner:
             else:
                 # Save to CSV only if no MongoDB
                 log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]
-                headers = "" if self.tune_csv.exists() else (",".join(["fitness"] + list(self.space.keys())) + "\n")
+                headers = "" if self.tune_csv.exists() else (",".join(["fitness", *list(self.space.keys())]) + "\n")
                 with open(self.tune_csv, "a", encoding="utf-8") as f:
                     f.write(headers + ",".join(map(str, log_row)) + "\n")
 
@@ -429,7 +418,7 @@ class Tuner:
             x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
             fitness = x[:, 0]  # first column
             best_idx = fitness.argmax()
-            best_is_current = best_idx == (i - start)
+            best_is_current = best_idx == i
             if best_is_current:
                 best_save_dir = str(save_dir)
                 best_metrics = {k: round(v, 5) for k, v in metrics.items()}

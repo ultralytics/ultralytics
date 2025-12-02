@@ -49,7 +49,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         cfg=DEFAULT_CFG,
         overrides=None,
         _callbacks=None,
-        bpe_path="runs/bpe_simple_vocab_16e6.txt.gz",
+        bpe_path="",
         # prob threshold for detection outputs -- only keep detections above this threshold
         # enters NMS and det-to-track matching
         score_threshold_detection=0.5,
@@ -92,7 +92,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         reconstruction_bbox_iou_thresh=0.0,
         reconstruction_bbox_det_score=0.0,
     ):
-        overrides = overrides or dict(imgsz=1008, model="sam3.pt", half=True)
         super().__init__(cfg, overrides, _callbacks, bpe_path=bpe_path)
         self.score_threshold_detection = score_threshold_detection
         self.det_nms_thresh = det_nms_thresh
@@ -143,7 +142,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3VideoSemanticPredictor model."""
         super().setup_model(model, verbose)
-        self.tracker.setup_model()
+        self.tracker.setup_model(verbose=False)
 
     def setup_source(self, source):
         """Setup the source for the SAM3VideoSemanticPredictor model."""

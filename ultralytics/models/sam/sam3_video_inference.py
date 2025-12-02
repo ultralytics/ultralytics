@@ -168,19 +168,17 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             "obj_id_to_tracker_score": tracker_metadata_new["obj_id_to_tracker_score_frame_wise"][frame_idx],
         }
         # removed_obj_ids is only needed on rank 0 to handle hotstart delay buffer
-        if self.rank == 0:
-            rank0_metadata = tracker_metadata_new["rank0_metadata"]
-            removed_obj_ids = rank0_metadata["removed_obj_ids"]
-            out["removed_obj_ids"] = removed_obj_ids
-            out["suppressed_obj_ids"] = rank0_metadata["suppressed_obj_ids"][frame_idx]
-            out["frame_stats"] = frame_stats
-            if self.masklet_confirmation_enable:
-                status = rank0_metadata["masklet_confirmation"]["status"]
-                is_unconfirmed = status == MaskletConfirmationStatus.UNCONFIRMED.value
-                out["unconfirmed_obj_ids"] = tracker_metadata_new["obj_ids_all_gpu"][is_unconfirmed].tolist()
-            else:
-                out["unconfirmed_obj_ids"] = []
-
+        rank0_metadata = tracker_metadata_new["rank0_metadata"]
+        removed_obj_ids = rank0_metadata["removed_obj_ids"]
+        out["removed_obj_ids"] = removed_obj_ids
+        out["suppressed_obj_ids"] = rank0_metadata["suppressed_obj_ids"][frame_idx]
+        out["frame_stats"] = frame_stats
+        if self.masklet_confirmation_enable:
+            status = rank0_metadata["masklet_confirmation"]["status"]
+            is_unconfirmed = status == MaskletConfirmationStatus.UNCONFIRMED.value
+            out["unconfirmed_obj_ids"] = tracker_metadata_new["obj_ids_all_gpu"][is_unconfirmed].tolist()
+        else:
+            out["unconfirmed_obj_ids"] = []
         return out
 
     @torch.inference_mode()

@@ -105,7 +105,7 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
                         for obj_id in curr_obj_ids
                     ],
                     device=pred_masks.device,
-                )
+                )[keep]
                 pred_masks = (
                     self._apply_object_wise_non_overlapping_constraints(
                         pred_masks.unsqueeze(1),

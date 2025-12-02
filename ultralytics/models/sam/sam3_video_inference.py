@@ -73,22 +73,46 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         frame = frame - 1
         if frame == 0:  # TODO: more stable check
             self.add_prompt(frame_idx=frame, text_str=text, bboxes=bboxes, labels=labels)
-        out = self._run_single_frame_inference(frame, reverse=False)
-        return self._postprocess_output(out)
+        return self._run_single_frame_inference(frame, reverse=False)
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process the predictions to apply non-overlapping constraints if required."""
-        pred_boxes = preds["out_boxes_xywh"]  # (nc, num_query, 4)
-        pred_masks = preds["out_binary_masks"]
-        pred_scores = preds["out_probs"]
-        pred_id = preds["out_obj_ids"]
-        pred_cls = torch.zeros(pred_scores.shape[0], dtype=pred_scores.dtype, device=pred_scores.device)
-        pred_boxes = torch.cat([pred_boxes, pred_id[:, None], pred_scores[..., None], pred_cls[..., None]], dim=-1)
-
-        keep = pred_scores > self.args.conf
-        pred_masks = pred_masks[keep]
-        pred_boxes = pred_boxes[keep]
-        pred_boxes[:, :4] = ops.ltwh2xyxy(pred_boxes[:, :4])
+        obj_id_to_mask = preds["obj_id_to_mask"]  # low res masks
+        curr_obj_ids = sorted(obj_id_to_mask.keys())
+        if len(curr_obj_ids) == 0:
+            pred_masks, pred_boxes = None, torch.zeros((0, 6), device=pred_masks.device)
+        else:
+            pred_masks = torch.cat([obj_id_to_mask[obj_id] for obj_id in curr_obj_ids], dim=0)
+            pred_ids = torch.tensor(curr_obj_ids, dtype=torch.int32, device=pred_masks.device)
+            pred_scores = torch.tensor(
+                [preds["obj_id_to_score"][obj_id] for obj_id in curr_obj_ids], device=pred_masks.device
+            )
+            pred_cls = torch.zeros(pred_scores.shape[0], dtype=pred_scores.dtype, device=pred_scores.device)
+            keep = (pred_scores > self.args.conf) & pred_masks.any(dim=(1, 2))
+            pred_masks = pred_masks[keep]
+            pred_boxes = masks_to_boxes(pred_masks)
+            pred_boxes = torch.cat(
+                [pred_boxes, pred_ids[keep][:, None], pred_scores[keep][..., None], pred_cls[keep][..., None]], dim=-1
+            )
+            if pred_masks.shape[0] > 1:
+                tracker_scores = torch.tensor(
+                    [
+                        (
+                            preds["obj_id_to_tracker_score"][obj_id]
+                            if obj_id in preds["obj_id_to_tracker_score"]
+                            else 0.0
+                        )
+                        for obj_id in curr_obj_ids
+                    ],
+                    device=pred_masks.device,
+                )
+                pred_masks = (
+                    self._apply_object_wise_non_overlapping_constraints(
+                        pred_masks.unsqueeze(1),
+                        tracker_scores.unsqueeze(1),
+                        background_value=0,
+                    ).squeeze(1)
+                ) > 0
 
         # names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
         names = dict(enumerate(str(i) for i in range(pred_masks.shape[0])))
@@ -97,14 +121,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
         results = []
         for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):
-            if masks.shape[0] == 0:
-                masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
-            else:
-                pass
-                # boxes[..., 0] *= orig_img.shape[1]
-                # boxes[..., 1] *= orig_img.shape[0]
-                # boxes[..., 2] *= orig_img.shape[1]
-                # boxes[..., 3] *= orig_img.shape[0]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         return results
 
@@ -167,77 +183,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
 
         return out
 
-    def _postprocess_output(
-        self,
-        out,
-        removed_obj_ids=None,
-        suppressed_obj_ids=None,
-        unconfirmed_obj_ids=None,
-    ):
-        obj_id_to_mask = out["obj_id_to_mask"]  # low res masks
-        curr_obj_ids = sorted(obj_id_to_mask.keys())
-        if len(curr_obj_ids) == 0:
-            out_obj_ids = torch.zeros(0, dtype=torch.int64)
-            out_probs = torch.zeros(0, dtype=torch.float32)
-            out_binary_masks = torch.zeros(0, *self.batch[1][0].shape[:2], dtype=torch.bool)
-            out_boxes_xywh = torch.zeros(0, 4, dtype=torch.float32)
-        else:
-            out_obj_ids = torch.tensor(curr_obj_ids, dtype=torch.int64)
-            out_probs = torch.tensor([out["obj_id_to_score"][obj_id] for obj_id in curr_obj_ids])
-            out_tracker_probs = torch.tensor(
-                [
-                    (out["obj_id_to_tracker_score"][obj_id] if obj_id in out["obj_id_to_tracker_score"] else 0.0)
-                    for obj_id in curr_obj_ids
-                ]
-            )
-            out_binary_masks = torch.cat([obj_id_to_mask[obj_id] for obj_id in curr_obj_ids], dim=0)
-
-            assert out_binary_masks.dtype == torch.bool
-            keep = out_binary_masks.any(dim=(1, 2)).cpu()  # remove masks with 0 areas
-            # hide outputs for those object IDs in `obj_ids_to_hide`
-            obj_ids_to_hide = []
-            if suppressed_obj_ids is not None:
-                obj_ids_to_hide.extend(suppressed_obj_ids)
-            if removed_obj_ids is not None:
-                obj_ids_to_hide.extend(removed_obj_ids)
-            if unconfirmed_obj_ids is not None:
-                obj_ids_to_hide.extend(unconfirmed_obj_ids)
-            if len(obj_ids_to_hide) > 0:
-                obj_ids_to_hide_t = torch.tensor(obj_ids_to_hide, dtype=torch.int64)
-                keep &= ~torch.isin(out_obj_ids, obj_ids_to_hide_t)
-
-            # slice those valid entries from the original outputs
-            keep_idx = torch.nonzero(keep, as_tuple=True)[0]
-            keep_idx_gpu = keep_idx.pin_memory().to(device=out_binary_masks.device, non_blocking=True)
-
-            out_obj_ids = torch.index_select(out_obj_ids, 0, keep_idx)
-            out_probs = torch.index_select(out_probs, 0, keep_idx)
-            out_tracker_probs = torch.index_select(out_tracker_probs, 0, keep_idx)
-            out_binary_masks = torch.index_select(out_binary_masks, 0, keep_idx_gpu)
-
-            out_boxes_xyxy = masks_to_boxes(out_binary_masks)
-            out_boxes_xywh = xyxy2ltwh(out_boxes_xyxy)  # convert to xywh format
-
-        # apply non-overlapping constraints on the existing masklets
-        if out_binary_masks.shape[0] > 1:
-            assert len(out_binary_masks) == len(out_tracker_probs)
-            out_binary_masks = (
-                self._apply_object_wise_non_overlapping_constraints(
-                    out_binary_masks.unsqueeze(1),
-                    out_tracker_probs.unsqueeze(1).to(out_binary_masks.device),
-                    background_value=0,
-                ).squeeze(1)
-            ) > 0
-
-        outputs = {
-            "out_obj_ids": out_obj_ids.to(out_boxes_xywh.device),
-            "out_probs": out_probs.to(out_boxes_xywh.device),
-            "out_boxes_xywh": out_boxes_xywh,
-            "out_binary_masks": out_binary_masks,
-            "frame_stats": out.get("frame_stats", None),
-        }
-        return outputs
-
     @torch.inference_mode()
     def add_prompt(
         self,
@@ -287,9 +232,8 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
 
             inference_state["per_frame_geometric_prompt"][frame_idx] = geometric_prompt
         out = self._run_single_frame_inference(frame_idx, reverse=False, inference_state=inference_state)
-        return frame_idx, self._postprocess_output(out)
+        return frame_idx, out
 
-    # TODO: handle this
     def _apply_object_wise_non_overlapping_constraints(self, pred_masks, obj_scores, background_value=-10.0):
         """
         Applies non-overlapping constraints object wise (i.e. only one object can claim the overlapping region)
@@ -297,7 +241,9 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         # Replace pixel scores with object scores
         pred_masks_single_score = torch.where(pred_masks > 0, obj_scores[..., None, None], background_value)
         # Apply pixel-wise non-overlapping constraint based on mask scores
-        pixel_level_non_overlapping_masks = self.tracker.model._apply_non_overlapping_constraints(pred_masks_single_score)
+        pixel_level_non_overlapping_masks = self.tracker.model._apply_non_overlapping_constraints(
+            pred_masks_single_score
+        )
         # Replace object scores with pixel scores. Note, that now only one object can claim the overlapping region
         pred_masks = torch.where(
             pixel_level_non_overlapping_masks > 0,

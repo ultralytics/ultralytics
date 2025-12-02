@@ -370,6 +370,8 @@ class Exporter:
             if not self.args.int8:
                 LOGGER.warning("Axelera export requires int8=True, setting int8=True.")
                 self.args.int8 = True
+            if model.task not in {"detect"}:
+                raise ValueError("Axelera export only supported for detection models.")
         if imx:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")

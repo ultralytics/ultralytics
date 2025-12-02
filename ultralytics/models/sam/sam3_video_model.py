@@ -15,6 +15,8 @@ import torch.distributed as dist
 import torch.nn.functional as F
 
 from ultralytics.utils import LOGGER
+from ultralytics.utils.metrics import mask_iou
+from .amg import batched_mask_to_box
 from torch import Tensor
 
 import logging
@@ -30,57 +32,6 @@ from ultralytics.utils.metrics import box_iou
 class MaskletConfirmationStatus(Enum):
     UNCONFIRMED = 1  # newly added masklet, not confirmed by any detection yet
     CONFIRMED = 2  # confirmed by at least one detection
-
-
-def mask_iou(pred_masks: torch.Tensor, gt_masks: torch.Tensor) -> torch.Tensor:
-    """
-    Compute the IoU (Intersection over Union) between predicted masks and ground truth masks.
-    Args:
-      - pred_masks: (N, H, W) bool Tensor, containing binary predicted segmentation masks
-      - gt_masks: (M, H, W) bool Tensor, containing binary ground truth segmentation masks
-    Returns:
-      - ious: (N, M) float Tensor, containing IoUs for each pair of predicted and ground truth masks
-    """
-    assert pred_masks.dtype == gt_masks.dtype == torch.bool
-    N, H, W = pred_masks.shape
-    M, _, _ = gt_masks.shape
-
-    # Flatten masks: (N, 1, H*W) and (1, M, H*W)
-    pred_flat = pred_masks.view(N, 1, H * W)
-    gt_flat = gt_masks.view(1, M, H * W)
-
-    # Compute intersection and union: (N, M)
-    intersection = (pred_flat & gt_flat).sum(dim=2).float()
-    union = (pred_flat | gt_flat).sum(dim=2).float()
-    ious = intersection / union.clamp(min=1)
-    return ious  # shape: (N, M)
-
-
-def mask_to_box(masks: torch.Tensor):
-    """
-    compute bounding box given an input mask
-
-    Inputs:
-    - masks: [B, 1, H, W] tensor
-
-    Returns:
-    - box_coords: [B, 1, 4], contains (x, y) coordinates of top left and bottom right box corners, dtype=torch.Tensor
-    """
-    B, _, h, w = masks.shape
-    device = masks.device
-    mask_area = masks.sum(dim=(-1, -2))
-    xs = torch.arange(w, device=device, dtype=torch.int32)
-    ys = torch.arange(h, device=device, dtype=torch.int32)
-    grid_xs, grid_ys = torch.meshgrid(xs, ys, indexing="xy")
-    grid_xs = grid_xs[None, None, ...].expand(B, 1, h, w)
-    grid_ys = grid_ys[None, None, ...].expand(B, 1, h, w)
-    min_xs, _ = torch.min(torch.where(masks, grid_xs, w).flatten(-2), dim=-1)
-    max_xs, _ = torch.max(torch.where(masks, grid_xs, -1).flatten(-2), dim=-1)
-    min_ys, _ = torch.min(torch.where(masks, grid_ys, h).flatten(-2), dim=-1)
-    max_ys, _ = torch.max(torch.where(masks, grid_ys, -1).flatten(-2), dim=-1)
-    bbox_coords = torch.stack((min_xs, min_ys, max_xs, max_ys), dim=-1)
-    bbox_coords = torch.where(mask_area[..., None] > 0, bbox_coords, torch.zeros_like(bbox_coords))
-    return bbox_coords
 
 
 class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
@@ -643,7 +594,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     continue  # Skip tracklets with zero mask area
 
                 # Get bounding box from SAM2 mask and convert to normalized coordinates
-                tracker_box_pixels = mask_to_box(mask_binary.unsqueeze(0).unsqueeze(0)).squeeze(0).squeeze(0)
+                tracker_box_pixels = batched_mask_to_box(mask_binary.unsqueeze(0)).squeeze(0)
                 mask_height, mask_width = tracker_mask.shape[-2:]
                 tracker_box_normalized = torch.tensor(
                     [
@@ -946,7 +897,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if len(obj_ids) <= 1:
             return to_suppress
 
-        iou = mask_iou(binary_low_res_masks, binary_low_res_masks)  # [N,N]
+        iou = mask_iou(binary_low_res_masks.flatten(1), binary_low_res_masks.flatten(1))  # [N,N]
 
         # Create masks for upper triangular matrix (i < j) and IoU threshold
         mask_iou_thresh = iou >= self.suppress_overlapping_based_on_recent_occlusion_threshold
@@ -1118,7 +1069,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         det_masks_binary = det_masks > 0
         trk_masks_binary = trk_masks > 0
-        ious = mask_iou(det_masks_binary, trk_masks_binary)  # (N, M)
+        ious = mask_iou(det_masks_binary.flatten(1).float(), trk_masks_binary.flatten(1).float())  # (N, M)
 
         ious_np = ious.cpu().numpy()
         if self.o2o_matching_masklets_enable:

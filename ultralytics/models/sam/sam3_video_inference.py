@@ -118,9 +118,9 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         pred_boxes = preds["out_boxes_xywh"]  # (nc, num_query, 4)
         pred_masks = preds["out_binary_masks"]
         pred_scores = preds["out_probs"]
-        # pred_cls = preds["out_obj_ids"]
-        pred_cls = torch.tensor(list(range(pred_scores.shape[0])), dtype=pred_scores.dtype, device=pred_scores.device)
-        pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
+        pred_id = preds["out_obj_ids"]
+        pred_cls = torch.zeros(pred_scores.shape[0], dtype=pred_scores.dtype, device=pred_scores.device)
+        pred_boxes = torch.cat([pred_boxes, pred_id[:, None], pred_scores[..., None], pred_cls[..., None]], dim=-1)
 
         keep = pred_scores > self.args.conf
         pred_masks = pred_masks[keep]

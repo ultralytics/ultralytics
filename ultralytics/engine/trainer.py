@@ -126,7 +126,11 @@ class BaseTrainer:
         original_device_arg = self.args.device
         self.device = select_device(self.args.device)
         # Update "-1" devices so post-training val does not repeat search
-        if isinstance(original_device_arg, str) and original_device_arg.lower().startswith("xpu") and "," in original_device_arg:
+        if (
+            isinstance(original_device_arg, str)
+            and original_device_arg.lower().startswith("xpu")
+            and "," in original_device_arg
+        ):
             # Preserve explicit multi-XPU request for world size calculation
             self.args.device = original_device_arg.replace(" ", "")
         else:

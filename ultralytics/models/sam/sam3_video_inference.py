@@ -1,12 +1,11 @@
 import torch
 from .sam3_video_model import SAM3VideoSemanticPredictor, MaskletConfirmationStatus
 from ultralytics.utils.ops import xyxy2xywhn, xyxy2ltwh
-from .sam3.data_misc import BatchedDatapoint, convert_my_tensors, FindStage
+from .sam3.data_misc import Datapoint, convert_my_tensors, FindStage
 from .sam3.geometry_encoders import Prompt
 from ultralytics.utils import LOGGER, ops
 from ultralytics.engine.results import Results
 from torchvision.ops import masks_to_boxes
-from tqdm.auto import tqdm
 
 
 class Sam3VideoInference(SAM3VideoSemanticPredictor):
@@ -61,30 +60,20 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         self.inference_state["orig_width"] = width
 
         find_text_batch = ["<text placeholder>", "visual"]
-        stages = [
-            FindStage(
-                img_ids=[stage_id],
-                text_ids=[0],
-                input_boxes=[torch.zeros(258, device=self.device)],
-                input_boxes_mask=[torch.empty(0, dtype=torch.bool, device=self.device)],
-                input_boxes_label=[torch.empty(0, dtype=torch.long, device=self.device)],
-                input_points=[torch.empty(0, 257, device=self.device)],
-                input_points_mask=[torch.empty(0, device=self.device)],
-                object_ids=[],
-            )
-            for stage_id in range(1)
-        ]
-        for i in range(len(stages)):
-            stages[i] = convert_my_tensors(stages[i])  # TODO
+        stages = FindStage(
+            img_ids=[0],
+            text_ids=[0],
+            input_boxes=[torch.zeros(258, device=self.device)],
+            input_boxes_mask=[torch.empty(0, dtype=torch.bool, device=self.device)],
+            input_boxes_label=[torch.empty(0, dtype=torch.long, device=self.device)],
+            input_points=[torch.empty(0, 257, device=self.device)],
+            input_points_mask=[torch.empty(0, device=self.device)],
+            object_ids=[],
+        )
+        stages = convert_my_tensors(stages)
 
         # construct the final `BatchedDatapoint` and cast to GPU
-        input_batch = BatchedDatapoint(
-            img_batch=im,
-            find_text_batch=find_text_batch,
-            find_inputs=stages,
-            find_targets=[None] * 1,
-            find_metadatas=[None] * 1,
-        )
+        input_batch = Datapoint(img_batch=im, find_text_batch=find_text_batch, find_inputs=stages)
         self.inference_state["input_batch"] = input_batch
         frame = frame - 1
         if frame == 0:  # TODO: more stable check
@@ -122,20 +111,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
                 boxes[..., 3] *= orig_img.shape[0]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         return results
-
-    @torch.inference_mode()
-    def reset_state(self, inference_state):
-        """Revert `inference_state` to what it was right after initialization."""
-        inference_state["input_batch"].find_text_batch[0] = "<text placeholder>"
-        inference_state["text_prompt"] = None
-        for t in range(0):  # TODO
-            inference_state["input_batch"].find_inputs[t].text_ids[...] = 0
-            # constructing an output list in inference state (we start with an empty list)
-            inference_state["per_frame_geometric_prompt"][t] = None
-
-        inference_state["tracker_inference_states"].clear()
-        inference_state["tracker_metadata"].clear()
-        inference_state["feature_cache"].clear()
 
     def _run_single_frame_inference(self, frame_idx, reverse, inference_state=None):
         """
@@ -274,9 +249,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             "out_binary_masks": out_binary_masks,
             "frame_stats": out.get("frame_stats", None),
         }
-        # for k, v in outputs.items():
-        #     if isinstance(v, torch.Tensor):
-        #         print(k, v.shape, v.device)
         return outputs
 
     @torch.inference_mode()
@@ -304,9 +276,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         )
         assert 0 <= frame_idx < num_frames, f"{frame_idx=} is out of range for a total of {num_frames} frames"
 
-        # since it's a semantic prompt, we start over
-        self.reset_state(inference_state)
-
         # 1) add text prompt
         if text_str is not None and text_str != "visual":
             inference_state["text_prompt"] = text_str
@@ -316,8 +285,7 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             inference_state["text_prompt"] = None
             inference_state["input_batch"].find_text_batch[0] = "<text placeholder>"
             text_id = self.TEXT_ID_FOR_VISUAL
-        for t in range(1):  # TODO
-            inference_state["input_batch"].find_inputs[t].text_ids[...] = text_id
+        inference_state["input_batch"].find_inputs.text_ids[...] = text_id
 
         # 2) handle box prompt
         assert (boxes_xywh is not None) == (box_labels is not None)

@@ -360,7 +360,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         sam3_image_out = self.model.forward_grounding(
             backbone_out={"img_batch_all_stages": input_batch.img_batch, **text_outputs},
-            find_input=input_batch.find_inputs[frame_idx],
+            find_input=input_batch.find_inputs[0],  # TODO
             geometric_prompt=geometric_prompt,
         )
         # TODO: probably apply nms on boxes
@@ -392,7 +392,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "backbone_fpn": tracker_backbone_fpn,
         }
         backbone_cache["tracker_backbone_out"] = tracker_backbone_out
-        feature_cache[frame_idx] = (input_batch.img_batch[frame_idx], backbone_cache)
+        feature_cache[frame_idx] = (input_batch.img_batch[0], backbone_cache)
         # remove from `feature_cache` old features to save GPU memory
         feature_cache.pop(frame_idx - 1 if not reverse else frame_idx + 1, None)
         return det_out

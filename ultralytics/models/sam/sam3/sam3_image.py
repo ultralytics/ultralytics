@@ -146,7 +146,7 @@ class Sam3Image(torch.nn.Module):
         else:
             image = torch.stack([img_batch[i] for i in unique_ids.tolist()])
         # `img_batch` might be fp16 and offloaded to CPU
-        image = image.to(dtype=torch.float32, device=self.device)
+        # image = image.to(dtype=torch.float32, device=self.device)
         # Next time we call this function, we want to remember which indices we computed
         id_mapping = torch.full((len(img_batch),), -1, dtype=torch.long, device=self.device)
         id_mapping[unique_ids] = torch.arange(len(unique_ids), device=self.device)

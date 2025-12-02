@@ -5,9 +5,11 @@ from ultralytics.utils.ops import xyxy2xywhn, xyxy2ltwh
 from .sam3.data_misc import BatchedDatapoint, convert_my_tensors, FindStage
 from .sam3.geometry_encoders import Prompt
 from .sam3.io_utils import load_resource_as_video_frames
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, ops
+from ultralytics.engine.results import Results
 from .sam3.misc import copy_data_to_device
 from torchvision.ops import masks_to_boxes
+import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 
@@ -16,23 +18,28 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
     TEXT_ID_FOR_TEXT = 0
     TEXT_ID_FOR_VISUAL = 1
 
-    def __init__(
-        self,
-        image_size=1008,
-        image_mean=(0.5, 0.5, 0.5),
-        image_std=(0.5, 0.5, 0.5),
-        **kwargs,
-    ):
-        """
-        hotstart_delay: int, the delay (in #frames) before the model starts to yield output, 0 to disable hotstart delay.
-        hotstart_unmatch_thresh: int, remove the object if it has this many unmatched frames within its hotstart_delay period.
-            If `hotstart_delay` is set to 0, this parameter is ignored.
-        hotstart_dup_thresh: int, remove the object if it has overlapped with another object this many frames within its hotstart_delay period.
-        """
-        super().__init__(**kwargs)
-        self.image_size = image_size
-        self.image_mean = image_mean
-        self.image_std = image_std
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.inference_state = {}
+        self.callbacks["on_predict_start"].append(self.init_state)
+
+    # def __init__(
+    #     self,
+    #     image_size=1008,
+    #     image_mean=(0.5, 0.5, 0.5),
+    #     image_std=(0.5, 0.5, 0.5),
+    #     **kwargs,
+    # ):
+    #     """
+    #     hotstart_delay: int, the delay (in #frames) before the model starts to yield output, 0 to disable hotstart delay.
+    #     hotstart_unmatch_thresh: int, remove the object if it has this many unmatched frames within its hotstart_delay period.
+    #         If `hotstart_delay` is set to 0, this parameter is ignored.
+    #     hotstart_dup_thresh: int, remove the object if it has overlapped with another object this many frames within its hotstart_delay period.
+    #     """
+    #     super().__init__(**kwargs)
+    #     self.image_size = image_size
+    #     self.image_mean = image_mean
+    #     self.image_std = image_std
 
     @staticmethod
     def init_state(predictor):
@@ -50,13 +57,18 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
         images = None
+        num_frames = predictor.dataset.frames
         inference_state = {
-            "num_frames": predictor.dataset.num_frames,
+            "num_frames": num_frames,
             "constants": {},  # values that don't change across frames (so we only need to hold one copy of them)
             "tracker_inference_states": [],
             "tracker_metadata": {},
             "feature_cache": {},
         }
+        inference_state["previous_stages_out"] = [None] * num_frames
+        inference_state["text_prompt"] = None
+        inference_state["per_frame_visual_prompt"] = [None] * num_frames
+        inference_state["per_frame_geometric_prompt"] = [None] * num_frames
 
         predictor._construct_initial_input_batch(inference_state, images)
         predictor.inference_state = inference_state
@@ -66,6 +78,88 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         height, width = self.batch[1][0].shape[:2]
         self.inference_state["orig_height"] = height
         self.inference_state["orig_width"] = width
+
+        find_text_batch = ["<text placeholder>", "visual"]
+        stages = [
+            FindStage(
+                img_ids=[stage_id],
+                text_ids=[0],
+                input_boxes=[torch.zeros(258, device=self.device)],
+                input_boxes_mask=[torch.empty(0, dtype=torch.bool, device=self.device)],
+                input_boxes_label=[torch.empty(0, dtype=torch.long, device=self.device)],
+                input_points=[torch.empty(0, 257, device=self.device)],
+                input_points_mask=[torch.empty(0, device=self.device)],
+                object_ids=[],
+            )
+            for stage_id in range(1)
+        ]
+        for i in range(len(stages)):
+            stages[i] = convert_my_tensors(stages[i])  # TODO
+
+        # construct the final `BatchedDatapoint` and cast to GPU
+        input_batch = BatchedDatapoint(
+            img_batch=im,
+            find_text_batch=find_text_batch,
+            find_inputs=stages,
+            find_targets=[None] * 1,
+            find_metadatas=[None] * 1,
+        )
+        self.inference_state["input_batch"] = input_batch
+        if frame == 1:  # TODO: more stable check
+            self.add_prompt(frame_idx=frame, text_str=text)
+        out = self._run_single_frame_inference(frame, reverse=False)
+        # TODO: add hotstart_delay
+        unconfirmed_obj_ids_per_frame = {}  # frame_idx -> hidden_obj_ids
+        hotstart_removed_obj_ids = set()
+
+        unconfirmed_status_delay = self.masklet_confirmation_consecutive_det_thresh - 1
+        suppressed_obj_ids = out["suppressed_obj_ids"]
+        unconfirmed_status_frame_idx = frame + unconfirmed_status_delay
+
+        # Clamp the frame index to stay within video bounds
+        num_frames = self.inference_state["num_frames"]
+        unconfirmed_status_frame_idx = max(0, min(unconfirmed_status_frame_idx, num_frames - 1))
+
+        unconfirmed_obj_ids = unconfirmed_obj_ids_per_frame.get(unconfirmed_status_frame_idx, None)
+        return self._postprocess_output(
+            self.inference_state,
+            out,
+            hotstart_removed_obj_ids,
+            suppressed_obj_ids,
+            unconfirmed_obj_ids,
+        )
+
+    def postprocess(self, preds, img, orig_imgs):
+        """Post-process the predictions to apply non-overlapping constraints if required."""
+        pred_boxes = preds["out_boxes_xywh"]  # (nc, num_query, 4)
+        pred_masks = preds["out_binary_masks"]
+        pred_scores = preds["out_probs"]
+        # pred_cls = preds["out_obj_ids"]
+        pred_cls = torch.tensor(list(range(pred_scores.shape[0])), dtype=pred_scores.dtype, device=pred_scores.device)
+        pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
+
+        keep = pred_scores > self.args.conf
+        pred_masks = pred_masks[keep]
+        pred_boxes = pred_boxes[keep]
+        pred_boxes[:, :4] = ops.ltwh2xyxy(pred_boxes[:, :4])
+
+        # names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
+        names = dict(enumerate(str(i) for i in range(pred_masks.shape[0])))
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+        results = []
+        for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):
+            if masks.shape[0] == 0:
+                masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
+            else:
+                # masks = F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.5
+                boxes[..., 0] *= orig_img.shape[1]
+                boxes[..., 1] *= orig_img.shape[0]
+                boxes[..., 2] *= orig_img.shape[1]
+                boxes[..., 3] *= orig_img.shape[0]
+            results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
+        return results
 
     @torch.inference_mode()
     def init_state_ori(
@@ -94,10 +188,10 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         inference_state["constants"] = {}
         # inputs on each frame
 
-        inference_state["previous_stages_out"] = [None] * num_frames
+        inference_state["previous_stages_out"] = [None] * len(images)
         inference_state["text_prompt"] = None
-        inference_state["per_frame_visual_prompt"] = [None] * num_frames
-        inference_state["per_frame_geometric_prompt"] = [None] * num_frames
+        inference_state["per_frame_visual_prompt"] = [None] * len(images)
+        inference_state["per_frame_geometric_prompt"] = [None] * len(images)
         self._construct_initial_input_batch(inference_state, images)
         # initialize extra states
         inference_state["tracker_inference_states"] = []
@@ -108,48 +202,48 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
     def _construct_initial_input_batch(self, inference_state, images):
         """Construct an initial `BatchedDatapoint` instance as input."""
         # 1) img_batch
-        num_frames = len(images)
+        # num_frames = len(images)
         device = self.device
-
-        # 2) find_text_batch
-        # "<text placeholder>" will be replaced by the actual text prompt when adding prompts
-        find_text_batch = ["<text placeholder>", "visual"]
-
-        # 3) find_inputs
-        stages = [
-            FindStage(
-                img_ids=[stage_id],
-                text_ids=[0],
-                input_boxes=[torch.zeros(258)],
-                input_boxes_mask=[torch.empty(0, dtype=torch.bool)],
-                input_boxes_label=[torch.empty(0, dtype=torch.long)],
-                input_points=[torch.empty(0, 257)],
-                input_points_mask=[torch.empty(0)],
-                object_ids=[],
-            )
-            for stage_id in range(num_frames)
-        ]
-        for i in range(len(stages)):
-            stages[i] = convert_my_tensors(stages[i])
-
-        # construct the final `BatchedDatapoint` and cast to GPU
-        input_batch = BatchedDatapoint(
-            img_batch=images,
-            find_text_batch=find_text_batch,
-            find_inputs=stages,
-            find_targets=[None] * num_frames,
-            find_metadatas=[None] * num_frames,
-        )
-        input_batch = copy_data_to_device(input_batch, device, non_blocking=True)
-        inference_state["input_batch"] = input_batch
+        #
+        # # 2) find_text_batch
+        # # "<text placeholder>" will be replaced by the actual text prompt when adding prompts
+        # find_text_batch = ["<text placeholder>", "visual"]
+        #
+        # # 3) find_inputs
+        # stages = [
+        #     FindStage(
+        #         img_ids=[stage_id],
+        #         text_ids=[0],
+        #         input_boxes=[torch.zeros(258)],
+        #         input_boxes_mask=[torch.empty(0, dtype=torch.bool)],
+        #         input_boxes_label=[torch.empty(0, dtype=torch.long)],
+        #         input_points=[torch.empty(0, 257)],
+        #         input_points_mask=[torch.empty(0)],
+        #         object_ids=[],
+        #     )
+        #     for stage_id in range(num_frames)
+        # ]
+        # for i in range(len(stages)):
+        #     stages[i] = convert_my_tensors(stages[i])
+        #
+        # # construct the final `BatchedDatapoint` and cast to GPU
+        # input_batch = BatchedDatapoint(
+        #     img_batch=images,
+        #     find_text_batch=find_text_batch,
+        #     find_inputs=stages,
+        #     find_targets=[None] * num_frames,
+        #     find_metadatas=[None] * num_frames,
+        # )
+        # input_batch = copy_data_to_device(input_batch, device, non_blocking=True)
+        # inference_state["input_batch"] = input_batch
 
         # construct the placeholder interactive prompts and tracking queries
         bs = 1
         inference_state["constants"]["empty_geometric_prompt"] = Prompt(
-            box_embeddings=torch.zeros(0, bs, 4, device=device),
+            box_embeddings=torch.zeros(0, bs, 4, device=device, dtype=self.torch_dtype),
             box_mask=torch.zeros(bs, 0, device=device, dtype=torch.bool),
             box_labels=torch.zeros(0, bs, device=device, dtype=torch.long),
-            point_embeddings=torch.zeros(0, bs, 2, device=device),
+            point_embeddings=torch.zeros(0, bs, 2, device=device, dtype=self.torch_dtype),
             point_mask=torch.zeros(bs, 0, device=device, dtype=torch.bool),
             point_labels=torch.zeros(0, bs, device=device, dtype=torch.long),
         )
@@ -159,7 +253,7 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         """Revert `inference_state` to what it was right after initialization."""
         inference_state["input_batch"].find_text_batch[0] = "<text placeholder>"
         inference_state["text_prompt"] = None
-        for t in range(inference_state["num_frames"]):
+        for t in range(0):  # TODO
             inference_state["input_batch"].find_inputs[t].text_ids[...] = 0
             # constructing an output list in inference state (we start with an empty list)
             inference_state["previous_stages_out"][t] = None
@@ -323,11 +417,12 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
                     postprocessed_out = None  # no output on other GPUs
                 yield yield_frame_idx, postprocessed_out
 
-    def _run_single_frame_inference(self, inference_state, frame_idx, reverse):
+    def _run_single_frame_inference(self, frame_idx, reverse, inference_state=None):
         """
         Perform inference on a single frame and get its inference results. This would
         also update `inference_state`.
         """
+        inference_state = inference_state or self.inference_state
         # prepare inputs
         input_batch = inference_state["input_batch"]
         tracker_states_local = inference_state["tracker_inference_states"]
@@ -455,12 +550,15 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             ) > 0
 
         outputs = {
-            "out_obj_ids": out_obj_ids.cpu().numpy(),
-            "out_probs": out_probs.cpu().numpy(),
-            "out_boxes_xywh": out_boxes_xywh.cpu().numpy(),
-            "out_binary_masks": out_binary_masks.cpu().numpy(),
+            "out_obj_ids": out_obj_ids.to(out_boxes_xywh.device),
+            "out_probs": out_probs.to(out_boxes_xywh.device),
+            "out_boxes_xywh": out_boxes_xywh,
+            "out_binary_masks": out_binary_masks,
             "frame_stats": out.get("frame_stats", None),
         }
+        # for k, v in outputs.items():
+        #     if isinstance(v, torch.Tensor):
+        #         print(k, v.shape, v.device)
         return outputs
 
     @torch.inference_mode()
@@ -481,6 +579,7 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         """
         LOGGER.debug("Running add_prompt on frame %d", frame_idx)
 
+        inference_state = inference_state or self.inference_state
         num_frames = inference_state["num_frames"]
         assert text_str is not None or boxes_xywh is not None, (
             "at least one type of prompt (text, boxes) must be provided"
@@ -499,13 +598,13 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             inference_state["text_prompt"] = None
             inference_state["input_batch"].find_text_batch[0] = "<text placeholder>"
             text_id = self.TEXT_ID_FOR_VISUAL
-        for t in range(inference_state["num_frames"]):
+        for t in range(1):  # TODO
             inference_state["input_batch"].find_inputs[t].text_ids[...] = text_id
 
         # 2) handle box prompt
         assert (boxes_xywh is not None) == (box_labels is not None)
         if boxes_xywh is not None:
-            boxes_xywh = torch.as_tensor(boxes_xywh, dtype=torch.float32)
+            boxes_xywh = torch.as_tensor(boxes_xywh, dtype=self.torch_dtype)
             box_labels = torch.as_tensor(box_labels, dtype=torch.long)
             # input boxes are expected to be [xmin, ymin, width, height] format
             # in normalized coordinates of range 0~1, similar to FA
@@ -525,7 +624,7 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
 
             inference_state["per_frame_geometric_prompt"][frame_idx] = geometric_prompt
 
-        out = self._run_single_frame_inference(inference_state, frame_idx, reverse=False)
+        out = self._run_single_frame_inference(frame_idx, reverse=False, inference_state=inference_state)
         return frame_idx, self._postprocess_output(inference_state, out)
 
     # TODO: handle this

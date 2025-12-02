@@ -572,7 +572,7 @@ class SAM2Model(torch.nn.Module):
             # produce an object pointer using the SAM decoder from the mask input
             _, _, _, _, _, obj_ptr, _ = self._forward_sam_heads(
                 backbone_features=backbone_features,
-                mask_inputs=self.mask_downsample(mask_inputs_float),
+                mask_inputs=self.mask_downsample(mask_inputs_float.to(backbone_features.dtype)),
                 high_res_features=high_res_features,
             )
         # In this method, we are treating mask_input as output, e.g. using it directly to create spatial mem;

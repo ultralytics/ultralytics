@@ -512,6 +512,7 @@ class Exporter:
             "imgsz": self.imgsz,
             "names": model.names,
             "args": {k: v for k, v in self.args if k in fmt_keys},
+            "end2end": getattr(model, "end2end", False),
             "channels": model.yaml.get("channels", 3),
         }  # model metadata
         if dla is not None:

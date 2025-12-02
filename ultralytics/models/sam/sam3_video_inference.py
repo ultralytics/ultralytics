@@ -7,9 +7,7 @@ from .sam3.geometry_encoders import Prompt
 from .sam3.io_utils import load_resource_as_video_frames
 from ultralytics.utils import LOGGER, ops
 from ultralytics.engine.results import Results
-from .sam3.misc import copy_data_to_device
 from torchvision.ops import masks_to_boxes
-import torch.nn.functional as F
 from tqdm.auto import tqdm
 
 
@@ -22,24 +20,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         super().__init__(*args, **kwargs)
         self.inference_state = {}
         self.callbacks["on_predict_start"].append(self.init_state)
-
-    # def __init__(
-    #     self,
-    #     image_size=1008,
-    #     image_mean=(0.5, 0.5, 0.5),
-    #     image_std=(0.5, 0.5, 0.5),
-    #     **kwargs,
-    # ):
-    #     """
-    #     hotstart_delay: int, the delay (in #frames) before the model starts to yield output, 0 to disable hotstart delay.
-    #     hotstart_unmatch_thresh: int, remove the object if it has this many unmatched frames within its hotstart_delay period.
-    #         If `hotstart_delay` is set to 0, this parameter is ignored.
-    #     hotstart_dup_thresh: int, remove the object if it has overlapped with another object this many frames within its hotstart_delay period.
-    #     """
-    #     super().__init__(**kwargs)
-    #     self.image_size = image_size
-    #     self.image_mean = image_mean
-    #     self.image_std = image_std
 
     @staticmethod
     def init_state(predictor):
@@ -56,7 +36,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             return
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
-        images = None
         num_frames = predictor.dataset.frames
         inference_state = {
             "num_frames": num_frames,
@@ -70,7 +49,14 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         inference_state["per_frame_visual_prompt"] = [None] * num_frames
         inference_state["per_frame_geometric_prompt"] = [None] * num_frames
 
-        predictor._construct_initial_input_batch(inference_state, images)
+        inference_state["constants"]["empty_geometric_prompt"] = Prompt(
+            box_embeddings=torch.zeros(0, 1, 4, device=predictor.device, dtype=predictor.torch_dtype),
+            box_mask=torch.zeros(1, 0, device=predictor.device, dtype=torch.bool),
+            box_labels=torch.zeros(0, 1, device=predictor.device, dtype=torch.long),
+            point_embeddings=torch.zeros(0, 1, 2, device=predictor.device, dtype=predictor.torch_dtype),
+            point_mask=torch.zeros(1, 0, device=predictor.device, dtype=torch.bool),
+            point_labels=torch.zeros(0, 1, device=predictor.device, dtype=torch.long),
+        )
         predictor.inference_state = inference_state
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] = None, *args, **kwargs):
@@ -105,8 +91,9 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             find_metadatas=[None] * 1,
         )
         self.inference_state["input_batch"] = input_batch
-        if frame == 1:  # TODO: more stable check
-            self.add_prompt(frame_idx=frame, text_str=text)
+        frame = frame - 1
+        if frame == 0:  # TODO: more stable check
+            self.add_prompt(frame_idx=frame, text_str=text, boxes_xywh=bboxes, box_labels=labels)
         out = self._run_single_frame_inference(frame, reverse=False)
         # TODO: add hotstart_delay
         unconfirmed_obj_ids_per_frame = {}  # frame_idx -> hidden_obj_ids
@@ -153,100 +140,12 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             if masks.shape[0] == 0:
                 masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
-                # masks = F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0] > 0.5
                 boxes[..., 0] *= orig_img.shape[1]
                 boxes[..., 1] *= orig_img.shape[0]
                 boxes[..., 2] *= orig_img.shape[1]
                 boxes[..., 3] *= orig_img.shape[0]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         return results
-
-    @torch.inference_mode()
-    def init_state_ori(
-        self,
-        resource_path,
-        offload_video_to_cpu=False,
-        async_loading_frames=False,
-        video_loader_type="cv2",
-    ):
-        """Initialize an inference state from `resource_path` (an image or a video)."""
-        images, orig_height, orig_width = load_resource_as_video_frames(
-            resource_path=resource_path,
-            image_size=self.image_size,
-            offload_video_to_cpu=offload_video_to_cpu,
-            img_mean=self.image_mean,
-            img_std=self.image_std,
-            async_loading_frames=async_loading_frames,
-            video_loader_type=video_loader_type,
-        )
-        inference_state = {}
-        inference_state["num_frames"] = len(images)
-        # the original video height and width, used for resizing final output scores
-        inference_state["orig_height"] = orig_height
-        inference_state["orig_width"] = orig_width
-        # values that don't change across frames (so we only need to hold one copy of them)
-        inference_state["constants"] = {}
-        # inputs on each frame
-
-        inference_state["previous_stages_out"] = [None] * len(images)
-        inference_state["text_prompt"] = None
-        inference_state["per_frame_visual_prompt"] = [None] * len(images)
-        inference_state["per_frame_geometric_prompt"] = [None] * len(images)
-        self._construct_initial_input_batch(inference_state, images)
-        # initialize extra states
-        inference_state["tracker_inference_states"] = []
-        inference_state["tracker_metadata"] = {}
-        inference_state["feature_cache"] = {}  # to store backbone out from detector
-        return inference_state
-
-    def _construct_initial_input_batch(self, inference_state, images):
-        """Construct an initial `BatchedDatapoint` instance as input."""
-        # 1) img_batch
-        # num_frames = len(images)
-        device = self.device
-        #
-        # # 2) find_text_batch
-        # # "<text placeholder>" will be replaced by the actual text prompt when adding prompts
-        # find_text_batch = ["<text placeholder>", "visual"]
-        #
-        # # 3) find_inputs
-        # stages = [
-        #     FindStage(
-        #         img_ids=[stage_id],
-        #         text_ids=[0],
-        #         input_boxes=[torch.zeros(258)],
-        #         input_boxes_mask=[torch.empty(0, dtype=torch.bool)],
-        #         input_boxes_label=[torch.empty(0, dtype=torch.long)],
-        #         input_points=[torch.empty(0, 257)],
-        #         input_points_mask=[torch.empty(0)],
-        #         object_ids=[],
-        #     )
-        #     for stage_id in range(num_frames)
-        # ]
-        # for i in range(len(stages)):
-        #     stages[i] = convert_my_tensors(stages[i])
-        #
-        # # construct the final `BatchedDatapoint` and cast to GPU
-        # input_batch = BatchedDatapoint(
-        #     img_batch=images,
-        #     find_text_batch=find_text_batch,
-        #     find_inputs=stages,
-        #     find_targets=[None] * num_frames,
-        #     find_metadatas=[None] * num_frames,
-        # )
-        # input_batch = copy_data_to_device(input_batch, device, non_blocking=True)
-        # inference_state["input_batch"] = input_batch
-
-        # construct the placeholder interactive prompts and tracking queries
-        bs = 1
-        inference_state["constants"]["empty_geometric_prompt"] = Prompt(
-            box_embeddings=torch.zeros(0, bs, 4, device=device, dtype=self.torch_dtype),
-            box_mask=torch.zeros(bs, 0, device=device, dtype=torch.bool),
-            box_labels=torch.zeros(0, bs, device=device, dtype=torch.long),
-            point_embeddings=torch.zeros(0, bs, 2, device=device, dtype=self.torch_dtype),
-            point_mask=torch.zeros(bs, 0, device=device, dtype=torch.bool),
-            point_labels=torch.zeros(0, bs, device=device, dtype=torch.long),
-        )
 
     @torch.inference_mode()
     def reset_state(self, inference_state):

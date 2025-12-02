@@ -1731,11 +1731,6 @@ class SAM2VideoPredictor(SAM2Predictor):
                 out["pred_masks"] = out["pred_masks"][remain_old_obj_inds]
                 out["obj_ptr"] = out["obj_ptr"][remain_old_obj_inds]
                 out["object_score_logits"] = out["object_score_logits"][remain_old_obj_inds]
-                if self.use_memory_selection:
-                    out["iou_score"] = out["iou_score"][remain_old_obj_inds]
-                    out["eff_iou_score"] = self.cal_mem_score(
-                        out["object_score_logits"], out["iou_score"]
-                    )  # recalculate the memory frame score
                 # also update the per-object slices
                 self._add_output_per_object(frame_idx, out, storage_key, inference_state=inference_state)
 
@@ -2393,10 +2388,6 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
 class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Video Predictor for video segmentation tasks."""
-
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        super().__init__(cfg, overrides, _callbacks)
-        self.use_memory_selection = False  # TODO
 
     def propagate_in_video(self, inference_state, frame_idx):
         """Perform image segmentation inference based on the given input cues, using the currently loaded image. This

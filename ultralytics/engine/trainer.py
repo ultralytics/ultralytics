@@ -281,7 +281,7 @@ class BaseTrainer:
             self.device = torch.device("cuda", local_rank)
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
             dist.init_process_group(
-                backend="nccl" if dist.is_nccl_available() else "gloo"
+                backend="nccl" if dist.is_nccl_available() else "gloo",
                 timeout=timedelta(seconds=10800),  # 3 hours
                 rank=RANK,
                 world_size=self.world_size,

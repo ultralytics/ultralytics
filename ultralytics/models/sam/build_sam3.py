@@ -10,6 +10,7 @@ from .sam3.maskformer_segmentation import PixelDecoder, UniversalSegmentationHea
 from .sam3.model_misc import DotProductScoring, TransformerWrapper
 from .sam3.necks import Sam3DualViTDetNeck
 from .sam3.sam3_image import Sam3Image
+from .sam3_model import SAM3Model
 from .sam3.text_encoder_ve import VETextEncoder
 from .sam3.tokenizer_ve import SimpleTokenizer
 from .sam3.vitdet import ViT

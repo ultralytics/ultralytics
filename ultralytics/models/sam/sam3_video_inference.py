@@ -41,9 +41,7 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
             "tracker_metadata": {},
             "feature_cache": {},
         }
-        inference_state["previous_stages_out"] = [None] * num_frames
         inference_state["text_prompt"] = None
-        inference_state["per_frame_visual_prompt"] = [None] * num_frames
         inference_state["per_frame_geometric_prompt"] = [None] * num_frames
 
         inference_state["constants"]["empty_geometric_prompt"] = Prompt(
@@ -133,79 +131,11 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         for t in range(0):  # TODO
             inference_state["input_batch"].find_inputs[t].text_ids[...] = 0
             # constructing an output list in inference state (we start with an empty list)
-            inference_state["previous_stages_out"][t] = None
-            inference_state["per_frame_visual_prompt"][t] = None
             inference_state["per_frame_geometric_prompt"][t] = None
 
         inference_state["tracker_inference_states"].clear()
         inference_state["tracker_metadata"].clear()
         inference_state["feature_cache"].clear()
-
-    def _get_visual_prompt(self, inference_state, frame_idx, boxes_cxcywh, box_labels):
-        """
-        Handle the case of visual prompt. Currently, in the inference API we do not
-        explicitly distinguish between initial box as visual prompt vs subsequent boxes
-        or boxes after inference for refinement.
-        """
-        # If the frame hasn't had any inference results before (prompting or propagation),
-        # we treat the first added box prompt as a visual prompt; otherwise, we treat
-        # the first box just as a refinement prompt.
-        is_new_visual_prompt = (
-            inference_state["per_frame_visual_prompt"][frame_idx] is None
-            and inference_state["previous_stages_out"][frame_idx] is None
-        )
-        if is_new_visual_prompt:
-            if boxes_cxcywh.size(0) != 1:
-                raise RuntimeError(
-                    f"visual prompts (box as an initial prompt) should only have one box, but got {boxes_cxcywh.shape=}"
-                )
-            if not box_labels.item():
-                LOGGER.warning("A negative box is added as a visual prompt.")
-            # take the first box prompt as a visual prompt
-            device = self.device
-            new_visual_prompt = Prompt(
-                box_embeddings=boxes_cxcywh[None, 0:1, :].to(device),  # (seq, bs, 4)
-                box_mask=None,
-                box_labels=box_labels[None, 0:1].to(device),  # (seq, bs)
-                point_embeddings=None,
-                point_mask=None,
-                point_labels=None,
-            )
-            inference_state["per_frame_visual_prompt"][frame_idx] = new_visual_prompt
-        else:
-            new_visual_prompt = None
-
-        # `boxes_cxcywh` and `box_labels` contains all the raw box inputs added so far
-        # strip any visual prompt from the input boxes (for geometric prompt encoding)
-        if inference_state["per_frame_visual_prompt"][frame_idx] is not None:
-            boxes_cxcywh = boxes_cxcywh[1:]
-            box_labels = box_labels[1:]
-
-        return boxes_cxcywh, box_labels, new_visual_prompt
-
-    def _get_processing_order(self, inference_state, start_frame_idx, max_frame_num_to_track, reverse):
-        num_frames = inference_state["num_frames"]
-        previous_stages_out = inference_state["previous_stages_out"]
-        if all(out is None for out in previous_stages_out) and start_frame_idx is None:
-            raise RuntimeError(
-                "No prompts are received on any frames. Please add prompt on at least one frame before propagation."
-            )
-        # set start index, end index, and processing order
-        if start_frame_idx is None:
-            # default: start from the earliest frame with input points
-            start_frame_idx = min(t for t, out in enumerate(previous_stages_out) if out is not None)
-        if max_frame_num_to_track is None:
-            # default: track all the frames in the video
-            max_frame_num_to_track = num_frames
-        if reverse:
-            end_frame_idx = start_frame_idx - max_frame_num_to_track
-            end_frame_idx = max(end_frame_idx, 0)
-            processing_order = range(start_frame_idx - 1, end_frame_idx - 1, -1)
-        else:
-            end_frame_idx = start_frame_idx + max_frame_num_to_track
-            end_frame_idx = min(end_frame_idx, num_frames - 1)
-            processing_order = range(start_frame_idx, end_frame_idx + 1)
-        return processing_order, end_frame_idx
 
     def _run_single_frame_inference(self, frame_idx, reverse, inference_state=None):
         """
@@ -246,8 +176,6 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         # update inference state
         inference_state["tracker_inference_states"] = tracker_states_local_new
         inference_state["tracker_metadata"] = tracker_metadata_new
-        # use a dummy string in "previous_stages_out" to indicate this frame has outputs
-        inference_state["previous_stages_out"][frame_idx] = "_THIS_FRAME_HAS_OUTPUTS_"
 
         out = {
             "obj_id_to_mask": obj_id_to_mask,
@@ -394,22 +322,23 @@ class Sam3VideoInference(SAM3VideoSemanticPredictor):
         # 2) handle box prompt
         assert (boxes_xywh is not None) == (box_labels is not None)
         if boxes_xywh is not None:
-            boxes_xywh = torch.as_tensor(boxes_xywh, dtype=self.torch_dtype)
-            box_labels = torch.as_tensor(box_labels, dtype=torch.long)
+            boxes_xywh = torch.as_tensor(boxes_xywh, dtype=self.torch_dtype, device=self.device)
+            box_labels = torch.as_tensor(box_labels, dtype=torch.long, device=self.device)
             # input boxes are expected to be [xmin, ymin, width, height] format
             # in normalized coordinates of range 0~1, similar to FA
             assert boxes_xywh.dim() == 2
             assert boxes_xywh.size(0) > 0 and boxes_xywh.size(-1) == 4
             assert box_labels.dim() == 1 and box_labels.size(0) == boxes_xywh.size(0)
             boxes_cxcywh = xyxy2xywhn(boxes_xywh, h=inference_state["orig_height"], w=inference_state["orig_width"])
-            # assert (boxes_xywh >= 0).all().item() and (boxes_xywh <= 1).all().item()
             assert (boxes_cxcywh >= 0).all().item() and (boxes_cxcywh <= 1).all().item()
 
-            new_box_input = boxes_cxcywh, box_labels
-
-            # handle the case of visual prompt (also added as an input box from the UI)
-            boxes_cxcywh, box_labels, geometric_prompt = self._get_visual_prompt(
-                inference_state, frame_idx, boxes_cxcywh, box_labels
+            geometric_prompt = Prompt(
+                box_embeddings=boxes_cxcywh[None, 0:1, :],  # (seq, bs, 4)
+                box_mask=None,
+                box_labels=box_labels[None, 0:1],  # (seq, bs)
+                point_embeddings=None,
+                point_mask=None,
+                point_labels=None,
             )
 
             inference_state["per_frame_geometric_prompt"][frame_idx] = geometric_prompt

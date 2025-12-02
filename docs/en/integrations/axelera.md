@@ -55,7 +55,7 @@ You can optimize your YOLO11 models for Axelera hardware by converting them to t
 !!! warning "Platform Requirements"
 
     Export to Axelera format and model inference have specific platform and hardware requirements:
-    
+
     - **Operating System**: Linux only (Ubuntu 20.04/22.04 recommended)
     - **Hardware**: Axelera AI accelerator required (Metis AIPU or Europa platform)
     - **Drivers**: Axelera PCIe/M.2 drivers must be installed and configured
@@ -109,11 +109,11 @@ For detailed instructions and best practices related to the installation process
 
 | Argument | Type             | Default     | Description                                                                                                                             |
 | -------- | ---------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'axelera'` | Target format for the exported model, optimized for Axelera Metis AIPU hardware.                                                      |
-| `imgsz`  | `int` or `tuple` | `640`       | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.     |
-| `int8`   | `bool`           | `True`      | Enables INT8 quantization for optimal performance on Axelera NPUs.                                                                    |
-| `batch`  | `int`            | `1`         | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.|
-| `data`   | `str`            | `None`      | Path to a custom dataset for calibration during INT8 quantization. If not provided, default calibration data will be used.             |
+| `format` | `str`            | `'axelera'` | Target format for the exported model, optimized for Axelera Metis AIPU hardware.                                                        |
+| `imgsz`  | `int` or `tuple` | `640`       | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `int8`   | `bool`           | `True`      | Enables INT8 quantization for optimal performance on Axelera NPUs.                                                                      |
+| `batch`  | `int`            | `1`         | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `data`   | `str`            | `None`      | Path to a custom dataset for calibration during INT8 quantization. If not provided, default calibration data will be used.              |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -148,6 +148,7 @@ Also, if you're interested in exploring other integration options for Ultralytic
 To export your Ultralytics YOLO11 model to Axelera format (available Q1 2026), follow these steps:
 
 - **Python**: Use the `export` function from the YOLO class.
+
 ```python
     from ultralytics import YOLO
 
@@ -159,8 +160,9 @@ To export your Ultralytics YOLO11 model to Axelera format (available Q1 2026), f
 ```
 
 - **CLI**: Use the `yolo` command with the `export` argument.
+
 ```bash
-    yolo export model=yolo11n.pt format=axelera int8=True
+yolo export model=yolo11n.pt format=axelera int8=True
 ```
 
 For detailed export options, check the [Export](../modes/export.md) page in the documentation.

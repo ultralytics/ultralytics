@@ -861,7 +861,7 @@ class Exporter:
         """Export YOLO model to CoreML format."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         check_requirements("coremltools<=9.0")
-        check_requirements("numpy<2.4.0rc1") # latest numpy 2.4.0rc1 breaks coremltools exports
+        check_requirements("numpy<2.4.0rc1")  # latest numpy 2.4.0rc1 breaks coremltools exports
 
         import coremltools as ct
 

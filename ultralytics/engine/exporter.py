@@ -161,6 +161,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
+        ["liteRT", "litert", "_litert_model", True, False, ["batch"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -340,6 +341,7 @@ class Exporter:
             imx,
             rknn,
             executorch,
+            litert
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
@@ -565,6 +567,8 @@ class Exporter:
             f[14] = self.export_rknn()
         if executorch:
             f[15] = self.export_executorch()
+        if litert:
+            f[16] = self.export_litert()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -796,6 +800,22 @@ class Exporter:
         pytorch2paddle(module=self.model, save_dir=f, jit_type="trace", input_examples=[self.im])  # export
         YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
         return f
+    
+    @try_export
+    def export_litert(self, prefix=colorstr("liteRT:")):
+        check_requirements("ai_edge_torch")
+        import ai_edge_torch
+        f = str(self.file.with_suffix(".tflite"))
+        
+        
+        sample_inputs = (torch.randn(1, 3, 640, 640),)
+
+        edge_model = ai_edge_torch.convert(self.model, sample_inputs)
+        edge_model.export(f)
+        YAML.save("metadata.yaml", self.metadata)
+        return f
+        
+
 
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):

@@ -212,7 +212,7 @@ def crop_and_save(
             label[:, 1::2] /= pw
             label[:, 2::2] /= ph
 
-            # Clamp normalized coordinates into [0, 1] 
+            # Clamp normalized coordinates into [0, 1]
             label[:, 1::2] = np.clip(label[:, 1::2], 0.0, 1.0)
             label[:, 2::2] = np.clip(label[:, 2::2], 0.0, 1.0)
 

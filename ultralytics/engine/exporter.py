@@ -1091,7 +1091,7 @@ class Exporter:
         # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
         # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
         check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-        check_requirements(("executorch==1.0.0", "flatbuffers"))
+        check_requirements(("executorch==1.0.1", "flatbuffers"))
 
         import torch
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner

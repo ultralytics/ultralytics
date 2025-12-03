@@ -631,7 +631,6 @@ class Exporter:
             ts.save(str(f), _extra_files=extra_files)
         return f
 
-    
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<=1.20.0"]

@@ -15,7 +15,7 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import unwrap_model
 
 from ..world.train_world import WorldTrainerFromScratch
-from .val import YOLOEDetectValidator
+from .val import YOLOEDetectValidator,YOLOEDetectVpValidator
 
 
 class YOLOETrainer(DetectionTrainer):
@@ -95,7 +95,8 @@ class YOLOETrainer(DetectionTrainer):
         Returns:
             (Dataset): YOLO dataset configured for training or validation.
         """
-        gs = max(int(unwrap_model(self.model).stride.max() if self.model else 0), 32)
+        self.load_vp = False
+        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_yolo_dataset(
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
@@ -269,6 +270,8 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
         Returns:
             (Dataset): YOLO dataset configured for training or validation, with visual prompts for training mode.
         """
+        self.load_vp = True
+        self.refer_data=self.args.refer_data
         dataset = super().build_dataset(img_path, mode, batch)
         if isinstance(dataset, YOLOConcatDataset):
             for d in dataset.datasets:
@@ -285,3 +288,20 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
                 d.transforms.append(LoadVisualPrompt())
         else:
             self.train_loader.dataset.transforms.append(LoadVisualPrompt())
+
+    def preprocess_batch(self, batch):
+        """Preprocess a batch of images for YOLOE training, moving visual prompts to the appropriate device."""
+        batch = super().preprocess_batch(batch)
+        batch["visuals"] = batch["visuals"].to(self.device, non_blocking=True)
+        return batch
+    
+    def get_validator(self):
+        """Return a YOLOEDetectVpValidator for YOLOE model validation with visual prompts.
+
+        Returns:
+            (YOLOEDetectVpValidator): Validator configured for visual prompt-based validation.
+        """
+        self.loss_names = "box", "cls", "dfl"
+        return YOLOEDetectVpValidator(
+            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
+        )

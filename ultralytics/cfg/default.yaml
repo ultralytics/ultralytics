@@ -128,3 +128,4 @@ cfg: # (str, optional) path to a config.yaml that overrides defaults
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker config file: botsort.yaml or bytetrack.yaml
+refer_data: # (str, optional) Path to reference dataset YAML for visual prompt validation during training; used to extract visual embeddings from a different dataset than the training data

@@ -92,7 +92,7 @@ For detailed instructions and best practices related to the installation process
         model = YOLO("yolo11n.pt")
 
         # Export the model to Axelera format
-        model.export(format="axelera")  # creates optimized Axelera model
+        model.export(format="axelera")  # creates 'yolo11n_axelera_model' directory
 
         # Load the exported Axelera model
         axelera_model = YOLO("yolo11n_axelera_model")
@@ -104,7 +104,7 @@ For detailed instructions and best practices related to the installation process
     === "CLI"
         ```bash
         # Export a YOLO11n PyTorch model to Axelera format
-        yolo export model=yolo11n.pt format=axelera
+        yolo export model=yolo11n.pt format=axelera # creates 'yolo11n_axelera_model' directory
 
         # Run inference with the exported model
         yolo predict model='yolo11n_axelera_model' source='https://ultralytics.com/images/bus.jpg'
@@ -118,7 +118,9 @@ For detailed instructions and best practices related to the installation process
 | `imgsz`  | `int` or `tuple` | `640`       | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `int8`   | `bool`           | `True`      | Enables INT8 quantization for optimal performance on Axelera NPUs.                                                                      |
 | `batch`  | `int`            | `1`         | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `data`   | `str`            | `None`      | Path to a custom dataset for calibration during INT8 quantization. If not provided, default calibration data will be used.              |
+| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](https://docs.ultralytics.com/datasets/) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                            |
+| `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
+| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).   
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

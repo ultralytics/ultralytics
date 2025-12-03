@@ -248,8 +248,9 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-                if isinstance(m, Detect) and getattr(m, "end2end", False):
-                    m.fuse()  # remove one2many head
+                # TODO: comment this out for the possibility of exporting non-e2e version
+                # if isinstance(m, Detect) and getattr(m, "end2end", False):
+                #     m.fuse()  # remove one2many head
             self.info(verbose=verbose)
 
         return self
@@ -400,7 +401,7 @@ class DetectionModel(BaseModel):
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
         self.inplace = self.yaml.get("inplace", True)
-        self.end2end = getattr(self.model[-1], "end2end", False)
+        # self.end2end = getattr(self.model[-1], "end2end", False)
 
         # Build strides
         m = self.model[-1]  # Detect()
@@ -429,6 +430,10 @@ class DetectionModel(BaseModel):
         if verbose:
             self.info()
             LOGGER.info("")
+
+    @property
+    def end2end(self):
+        return getattr(self.model[-1], "end2end", False)
 
     def update_detach(self, detach_o2o=True):
         """

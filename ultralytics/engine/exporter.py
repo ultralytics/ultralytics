@@ -470,6 +470,7 @@ class Exporter:
                 m.format = self.args.format
                 m.max_det = self.args.max_det
                 m.xyxy = self.args.nms and not coreml
+                m._end2end = self.args.end2end
                 if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))
             elif isinstance(m, C2f) and not is_tf_format:
@@ -512,7 +513,7 @@ class Exporter:
             "imgsz": self.imgsz,
             "names": model.names,
             "args": {k: v for k, v in self.args if k in fmt_keys},
-            "end2end": getattr(model, "end2end", False),
+            "end2end": getattr(model, "end2end", False) and self.args.end2end,
             "channels": model.yaml.get("channels", 3),
         }  # model metadata
         if dla is not None:

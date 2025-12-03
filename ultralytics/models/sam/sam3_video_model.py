@@ -117,7 +117,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self.decrease_trk_keep_alive_for_empty_masklets = decrease_trk_keep_alive_for_empty_masklets
         self.o2o_matching_masklets_enable = o2o_matching_masklets_enable
         self.fill_hole_area = fill_hole_area
-        self.rank = 0
         self.world_size = 1
         self._dist_pg_cpu = None  # CPU process group (lazy-initialized on first use)
 
@@ -241,17 +240,14 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # Step 5: finally, build the outputs for this frame (it only needs to be done on GPU 0 since
         # only GPU 0 will send outputs to the server).
-        if self.rank == 0:
-            obj_id_to_mask = self.build_outputs(
-                det_out=det_out,
-                tracker_low_res_masks_global=tracker_low_res_masks_global,
-                tracker_metadata_prev=tracker_metadata_prev,
-                tracker_update_plan=tracker_update_plan,
-                reconditioned_obj_ids=reconditioned_obj_ids,
-            )
-            obj_id_to_score = tracker_metadata_new["obj_id_to_score"]
-        else:
-            obj_id_to_mask, obj_id_to_score = {}, {}  # dummy outputs on other GPUs
+        obj_id_to_mask = self.build_outputs(
+            det_out=det_out,
+            tracker_low_res_masks_global=tracker_low_res_masks_global,
+            tracker_metadata_prev=tracker_metadata_prev,
+            tracker_update_plan=tracker_update_plan,
+            reconditioned_obj_ids=reconditioned_obj_ids,
+        )
+        obj_id_to_score = tracker_metadata_new["obj_id_to_score"]
         # a few statistics for the current frame as a part of the output
         frame_stats = {
             "num_obj_tracked": np.sum(tracker_metadata_new["num_obj_per_gpu"]),

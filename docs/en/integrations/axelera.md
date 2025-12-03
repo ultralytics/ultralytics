@@ -4,7 +4,7 @@ description: Export Ultralytics YOLO models to Axelera format for high-performan
 keywords: Ultralytics, YOLO11, Axelera AI, model export, edge AI, Metis AIPU, Europa, Voyager SDK, deployment, computer vision, INT8 quantization
 ---
 
-# Deploy YOLO11 on Axelera
+# Axelera Export and Deployment for Ultralytics YOLO11 Models
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on edge devices requires hardware acceleration to achieve real-time performance while maintaining energy efficiency. Axelera AI's dedicated hardware accelerators provide the perfect solution for running advanced computer vision tasks at the edge with exceptional throughput.
 
@@ -46,6 +46,12 @@ Axelera models support multiple deployment scenarios:
 
 - **Industrial Applications**: Ruggedized systems for manufacturing automation and industrial safety monitoring.
 
+## Supported Tasks
+
+Currently, you can only export models that include the following tasks to Axelera format.
+
+- [Object Detection](https://docs.ultralytics.com/tasks/detect/)
+
 ## Export to Axelera: Converting Your YOLO11 Model
 
 You can optimize your YOLO11 models for Axelera hardware by converting them to the Axelera format.
@@ -58,7 +64,6 @@ You can optimize your YOLO11 models for Axelera hardware by converting them to t
 
     - **Operating System**: Linux only (Ubuntu 20.04/22.04 recommended)
     - **Hardware**: Axelera AI accelerator required (Metis AIPU or Europa platform)
-    - **Drivers**: Axelera PCIe/M.2 drivers must be installed and configured
     - **Python**: Version 3.10 or higher
 
 ### Installation
@@ -87,7 +92,7 @@ For detailed instructions and best practices related to the installation process
         model = YOLO("yolo11n.pt")
 
         # Export the model to Axelera format
-        model.export(format="axelera", int8=True)  # creates optimized Axelera model
+        model.export(format="axelera")  # creates optimized Axelera model
 
         # Load the exported Axelera model
         axelera_model = YOLO("yolo11n_axelera_model")
@@ -99,7 +104,7 @@ For detailed instructions and best practices related to the installation process
     === "CLI"
         ```bash
         # Export a YOLO11n PyTorch model to Axelera format
-        yolo export model=yolo11n.pt format=axelera int8=True
+        yolo export model=yolo11n.pt format=axelera
 
         # Run inference with the exported model
         yolo predict model='yolo11n_axelera_model' source='https://ultralytics.com/images/bus.jpg'
@@ -117,7 +122,17 @@ For detailed instructions and best practices related to the installation process
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-### Benchmarks
+### Output Structure
+
+The Axelera export creates a directory containing the model and metadata:
+
+```text
+yolo11n_axelera_model/
+├── yolo11n.axm              # Axelera model file
+└── metadata.yaml            # Model metadata (classes, image size, etc.)
+```
+
+## Benchmarks
 
 Coming soon: Performance benchmarks comparing inference speed and accuracy of YOLO11 models on Axelera hardware versus other edge AI platforms.
 

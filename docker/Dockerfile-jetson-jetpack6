@@ -35,8 +35,6 @@ RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Pip install numpy, onnxruntime-gpu, torch, torchvision and ultralytics, then remove build files
-# Prevent onnx upgrade to 1.20.0 which has issues with tflite export on Jetson-jetpack6 environment
-RUN sed -i -e 's/"onnx>=1.12.0/"onnx>=1.12.0,<1.20.0/' pyproject.toml
 RUN python3 -m pip install --upgrade pip uv && \
     uv pip install --system \
     numpy==1.26.4 \

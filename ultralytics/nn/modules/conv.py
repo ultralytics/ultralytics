@@ -8,6 +8,7 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 __all__ = (
     "CBAM",
@@ -309,19 +310,22 @@ class Focus(nn.Module):
 
 
 class GhostConv(nn.Module):
-    """Ghost Convolution module.
+    """Ghost Convolution Module.
 
     Generates more features with fewer parameters by using cheap operations.
 
     Attributes:
         cv1 (Conv): Primary convolution.
         cv2 (Conv): Cheap operation convolution.
+        short_conv (nn.Sequential): DFC attention path.
+        gate (nn.Sigmoid): Sigmoid activation for attention.
+        gamma (nn.Parameter): Learnable scaling parameter for attention.
 
     References:
         https://github.com/huawei-noah/Efficient-AI-Backbones
     """
 
-    def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
+    def __init__(self, c1, c2, k=1, s=1, g=1, act=True, mode="original"):
         """Initialize Ghost Convolution module with given parameters.
 
         Args:
@@ -331,11 +335,23 @@ class GhostConv(nn.Module):
             s (int): Stride.
             g (int): Groups.
             act (bool | nn.Module): Activation function.
+            mode (str): Convolution mode.
         """
         super().__init__()
         c_ = c2 // 2  # hidden channels
+        self.mode = mode
         self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
         self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act)
+
+        # DFC Attention mechanism
+        if self.mode == "attn":
+            self.short_conv = nn.Sequential(
+                nn.Conv2d(c1, c2, k, s, padding=k // 2, bias=True),
+                nn.Conv2d(c2, c2, (1, 5), 1, padding=(0, 2), groups=c2, bias=True),
+                nn.Conv2d(c2, c2, (5, 1), 1, padding=(2, 0), groups=c2, bias=True),
+            )
+            self.gate = nn.Sigmoid()
+            self.gamma = nn.Parameter(torch.tensor(0.1))
 
     def forward(self, x):
         """Apply Ghost Convolution to input tensor.
@@ -344,10 +360,19 @@ class GhostConv(nn.Module):
             x (torch.Tensor): Input tensor.
 
         Returns:
-            (torch.Tensor): Output tensor with concatenated features.
+            (torch.Tensor): Output tensor with c2 concatenated features, optionally with attention.
         """
         y = self.cv1(x)
-        return torch.cat((y, self.cv2(y)), 1)
+        out = torch.cat((y, self.cv2(y)), 1)
+
+        if self.mode == "attn":
+            _, _, H, W = x.shape
+            attn = self.short_conv(x if H < 2 or W < 2 else F.avg_pool2d(x, 2, 2))
+            if attn.shape[-2:] != out.shape[-2:]:
+                attn = F.interpolate(attn, size=out.shape[-2:], mode="nearest")
+            attn = self.gate(attn)
+            return out * (1 + self.gamma * (attn - 0.5))
+        return out
 
 
 class RepConv(nn.Module):

@@ -882,16 +882,15 @@ class Exporter:
         classifier_config = None
         if self.model.task == "classify":
             classifier_config = ct.ClassifierConfig(list(self.model.names.values()))
-            source_model = torch.jit.trace(self.model.eval(), self.im, strict=False)
+            model = self.model
         elif self.model.task == "detect":
             model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
-            source_model = torch.jit.trace(model.eval(), self.im, strict=False)
         else:
             if self.args.nms:
                 LOGGER.warning(f"{prefix} 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
                 # TODO CoreML Segment and Pose model pipelining
             model = self.model
-            source_model = torch.jit.trace(model.eval(), self.im, strict=False)
+        ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
 
         if self.args.dynamic:
             input_shape = ct.Shape(
@@ -911,12 +910,11 @@ class Exporter:
         # Setting minimum_depoloyment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
         # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
         ct_model = ct.convert(
-            source_model,
+            ts,
             inputs=inputs,
             classifier_config=classifier_config,
             convert_to="neuralnetwork" if mlmodel else "mlprogram",
         )
-
         bits, mode = (8, "kmeans") if self.args.int8 else (16, "linear") if self.args.half else (32, None)
         if bits < 32:
             if "kmeans" in mode:

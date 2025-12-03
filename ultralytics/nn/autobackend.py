@@ -400,7 +400,7 @@ class AutoBackend(nn.Module):
 
         # CoreML
         elif coreml:
-            check_requirements("coremltools>=9.0")
+            check_requirements("coremltools>=8.0,<10.0")
             LOGGER.info(f"Loading {w} for CoreML inference...")
             import coremltools as ct
 

@@ -117,3 +117,27 @@ class SAM3Model(SAM2Model):
         """Set the image size for the model and mask downsampler."""
         super().set_imgsz(imgsz)
         self.memory_encoder.mask_downsampler.interpol_size = [size // 14 * 16 for size in imgsz]
+
+    @staticmethod
+    def _suppress_shrinked_masks(pred_masks, new_pred_masks, shrink_threshold=0.3):
+        """Suppress masks that shrink in area after applying pixelwise non-overlapping constraints."""
+        area_before = (pred_masks > 0).sum(dim=(-1, -2))
+        area_after = (new_pred_masks > 0).sum(dim=(-1, -2))
+        area_before = torch.clamp(area_before, min=1.0)
+        area_ratio = area_after / area_before
+        keep = area_ratio >= shrink_threshold
+        keep_mask = keep[..., None, None].expand_as(pred_masks)
+        pred_masks_after = torch.where(keep_mask, pred_masks, torch.clamp(pred_masks, max=-10.0))
+        return pred_masks_after
+
+    def _suppress_object_pw_area_shrinkage(self, pred_masks):
+        """
+        This function suppresses masks that shrink in area after applying pixelwise non-overlapping constriants.
+        Note that the final output can still be overlapping.
+        """
+        # Apply pixel-wise non-overlapping constraint based on mask scores
+        pixel_level_non_overlapping_masks = self._apply_non_overlapping_constraints(pred_masks)
+        # Fully suppress masks with high shrinkage (probably noisy) based on the pixel wise non-overlapping constraints
+        # NOTE: The output of this function can be a no op if none of the masks shrinked by a large factor.
+        pred_masks = self._suppress_shrinked_masks(pred_masks, pixel_level_non_overlapping_masks)
+        return pred_masks

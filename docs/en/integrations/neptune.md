@@ -4,6 +4,10 @@ description: Integrate Neptune with Ultralytics YOLO11 to track experiments, vis
 keywords: Neptune, YOLO11, Ultralytics, experiment tracking, MLOps, model registry, visualization, computer vision
 ---
 
+!!! warning "Neptune acquisition and SaaS deprecation"
+
+    Neptune has entered into an agreement to be acquired by OpenAI and will wind down its hosted (SaaS) service after a transition period ending March 4, 2026. Review the [official announcement](https://neptune.ai/blog/we-are-joining-openai) and plan migrations or exports accordingly.
+
 # Experiment Tracking with Neptune
 
 [Neptune](https://neptune.ai/) is a metadata store for MLOps, built for teams that run a lot of experiments. It gives you a single place to log, store, display, organize, compare, and query all your model building metadata.

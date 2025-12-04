@@ -28,9 +28,11 @@ class MaskletConfirmationStatus(Enum):
 class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     """Segment Anything Model 3 (SAM3) Video Semantic Predictor."""
 
-    TEXT_ID_FOR_TEXT = 0
-    TEXT_ID_FOR_VISUAL = 1
-
+    HIGH_CONF_THRESH = 0.8
+    HIGH_IOU_THRESH = 0.8
+    NO_OBJ_LOGIT = -10.0
+    NEVER_OCCLUDED = -1
+    ALWAYS_OCCLUDED = 100000
     _bb_feat_sizes = [
         (288, 288),
         (144, 144),
@@ -494,15 +496,22 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         reverse: bool,
         allow_new_detections: bool,
     ):
+        """Run backbone and detection for a single frame."""
         sam3_image_out = self.model.forward_grounding(
             backbone_out={"img_batch_all_stages": input_batch.img_batch},
             find_input=input_batch,
             geometric_prompt=geometric_prompt,
         )
-        # TODO: probably apply nms on boxes
+        det_out = self._extract_detection_outputs(sam3_image_out, allow_new_detections)
+        self._cache_backbone_features(sam3_image_out, feature_cache, frame_idx, reverse)
+        return det_out
+
+    def _extract_detection_outputs(self, sam3_image_out, allow_new_detections):
+        """Extract and filter detection outputs."""
         pred_probs = sam3_image_out["pred_logits"].squeeze(-1).sigmoid()
         if not allow_new_detections:
-            pred_probs = pred_probs - 1e8  # make sure no detections are kept
+            pred_probs = pred_probs - 1e8
+
         pred_cls = torch.tensor(
             list(range(pred_probs.shape[0])),
             dtype=pred_probs.dtype,
@@ -511,32 +520,31 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         pred_boxes_xyxy = sam3_image_out["pred_boxes_xyxy"]
         pred_masks = sam3_image_out["pred_masks"]
-        # get the positive detection outputs above threshold
+
         keep = pred_probs > self.score_threshold_detection
-        det_out = {
+        return {
             "bbox": pred_boxes_xyxy[keep],
             "mask": pred_masks[keep],
             "scores": pred_probs[keep],
             "cls": pred_cls[keep],
         }
 
-        # Step 3: build SAM2 backbone features and store them in `feature_cache`
+    def _cache_backbone_features(self, sam3_image_out, feature_cache, frame_idx, reverse):
+        """Build and cache SAM2 backbone features."""
         sam_mask_decoder = self.tracker.model.sam_mask_decoder
         feats = sam3_image_out["prev_encoder_out"]["backbone_out"]["sam2_backbone_out"]
         tracker_backbone_fpn = [
             sam_mask_decoder.conv_s0(feats["backbone_fpn"][0]),
             sam_mask_decoder.conv_s1(feats["backbone_fpn"][1]),
-            feats["backbone_fpn"][2],  # fpn_2 doesn't need conv
+            feats["backbone_fpn"][2],
         ]
         tracker_backbone_out = {
-            "vision_features": tracker_backbone_fpn[-1],  # top-level feature
+            "vision_features": tracker_backbone_fpn[-1],
             "vision_pos_enc": feats["vision_pos_enc"],
             "backbone_fpn": tracker_backbone_fpn,
         }
         feature_cache[frame_idx] = tracker_backbone_out
-        # remove from `feature_cache` old features to save GPU memory
         feature_cache.pop(frame_idx - 1 if not reverse else frame_idx + 1, None)
-        return det_out
 
     def run_tracker_propagation(
         self,
@@ -841,15 +849,15 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             assert len(obj_ids_global) == batch_size, (
                 f"Mismatch in number of objects: {len(obj_ids_global)} vs {batch_size}"
             )
-            NEVER_OCCLUDED = -1
-            ALWAYS_OCCLUDED = 100000  # This value should be larger than any possible frame index, indicates that the object was removed by hotstart logic
             last_occluded_prev = torch.cat(
                 [
                     tracker_metadata_prev["obj_id_to_last_occluded"].get(
                         obj_id,
                         torch.full(
                             (1,),
-                            fill_value=(NEVER_OCCLUDED if obj_id not in obj_ids_newly_removed else ALWAYS_OCCLUDED),
+                            fill_value=(
+                                self.NEVER_OCCLUDED if obj_id not in obj_ids_newly_removed else self.ALWAYS_OCCLUDED
+                            ),
                             device=binary_tracker_low_res_masks_global.device,
                             dtype=torch.long,
                         ),
@@ -877,8 +885,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             }
 
             # Zero out suppressed masks before memory encoding
-            NO_OBJ_LOGIT = -10
-            tracker_low_res_masks_global[to_suppress] = NO_OBJ_LOGIT
+            tracker_low_res_masks_global[to_suppress] = self.NO_OBJ_LOGIT
 
         return tracker_low_res_masks_global
 
@@ -1169,11 +1176,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # for each detection, which tracks it matched to (above threshold)
         det_to_matched_trk_obj_ids = {}
         trk_id_to_max_iou_high_conf_det = {}  # trk id --> exactly one detection idx
-        HIGH_CONF_THRESH = 0.8
-        HIGH_IOU_THRESH = 0.8
         det_to_max_iou_trk_idx = np.argmax(ious_np, axis=1)
-        det_is_high_conf = (det_scores_np >= HIGH_CONF_THRESH) & ~is_new_det
-        det_is_high_iou = np.max(ious_np, axis=1) >= HIGH_IOU_THRESH
+        det_is_high_conf = (det_scores_np >= self.HIGH_CONF_THRESH) & ~is_new_det
+        det_is_high_iou = np.max(ious_np, axis=1) >= self.HIGH_IOU_THRESH
         det_is_high_conf_and_iou = set(np.nonzero(det_is_high_conf & det_is_high_iou)[0])
         for d in range(det_masks.size(0)):
             det_to_matched_trk_obj_ids[d] = trk_obj_ids[ious_np[d, :] >= iou_threshold]

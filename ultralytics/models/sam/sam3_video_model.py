@@ -415,11 +415,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             feature_cache=feature_cache,
             allow_new_detections=allow_new_detections,
         )
-        self.tracker.backbone_out = feature_cache[frame_idx][1]["tracker_backbone_out"]
-
-        # TODO: update `im` for SAM2VideoPredictor, need to be fixed
-        # for inference_state in tracker_states_local:
-        #     inference_state["im"] = feature_cache[frame_idx][0].unsqueeze(0)
+        self.tracker.backbone_out = feature_cache[frame_idx]["tracker_backbone_out"]
 
         # Step 2: each GPU propagates its local SAM2 states to get the SAM2 prediction masks.
         # the returned `tracker_low_res_masks_global` contains the concatenated masklet predictions
@@ -529,12 +525,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         else:
             text_outputs = feature_cache["text"][text_batch_key]
 
-        # Step 2: run backbone, detector, and post-processing with NMS
-        if "multigpu_buffer" not in feature_cache:
-            # "multigpu_buffer" is a buffer cache used by `self.detector` and it needs
-            # to be passed to `forward_video_grounding_multigpu` for every call
-            feature_cache["multigpu_buffer"] = {}
-
         sam3_image_out = self.model.forward_grounding(
             backbone_out={"img_batch_all_stages": input_batch.img_batch, **text_outputs},
             find_input=input_batch.find_inputs,
@@ -569,7 +559,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "backbone_fpn": tracker_backbone_fpn,
         }
         backbone_cache["tracker_backbone_out"] = tracker_backbone_out
-        feature_cache[frame_idx] = (input_batch.img_batch[0], backbone_cache)
+        feature_cache[frame_idx] = backbone_cache
         # remove from `feature_cache` old features to save GPU memory
         feature_cache.pop(frame_idx - 1 if not reverse else frame_idx + 1, None)
         return det_out
@@ -943,7 +933,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 new_obj_ids=new_det_obj_ids_local,
                 new_obj_masks=new_det_masks,
                 tracker_states_local=tracker_states_local,
-                feature_cache=feature_cache,
             )
 
         # Step 2: remove from SAM2 inference states those objects removed by heuristics
@@ -1402,7 +1391,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         new_obj_ids: List[int],
         new_obj_masks: Tensor,
         tracker_states_local: List[Any],
-        feature_cache: Dict,
     ):
         """Add a new object to SAM2 inference states."""
         prev_tracker_state = tracker_states_local[0] if len(tracker_states_local) > 0 else None
@@ -1411,8 +1399,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # batch objects that first appear on the same frame together
         # Clear inference state. Keep the cached image features if available.
         new_tracker_state = self.tracker._init_state(num_frames=num_frames)
-        # TODO: adding image placeholder
-        new_tracker_state["im"] = feature_cache[frame_idx][0].unsqueeze(0)
+        # NOTE: adding image placeholder
+        new_tracker_state["im"] = None
         new_tracker_state["backbone_out"] = (
             prev_tracker_state.get("backbone_out", None) if prev_tracker_state is not None else None
         )

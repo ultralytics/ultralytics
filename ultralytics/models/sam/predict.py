@@ -754,7 +754,7 @@ class SAM2Predictor(Predictor):
         return points, labels, masks
 
     def setup_source(self, source):
-        """"Set up the data source and image size for SAM2 inference."""
+        """ "Set up the data source and image size for SAM2 inference."""
         super().setup_source(source)
         self._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
 

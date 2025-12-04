@@ -53,14 +53,8 @@ class StereoTrainer(BaseTrainer):
             "vertex_dist_loss",
         )
 
-        # Initialize target generator after data is loaded
-        if hasattr(self, "data") and self.data is not None:
-            self.target_generator = TargetGenerator(
-                output_size=(96, 320),  # H/4, W/4 for 384×1280 input
-                num_classes=self.data.get("nc", 3),
-            )
-        else:
-            self.target_generator = None
+        # Initialize target generator after data is loaded (will be set in get_dataset)
+        self.target_generator = None
 
     def get_dataset(self):
         """Get train and validation datasets for stereo 3D detection.

@@ -237,6 +237,7 @@ class Results(SimpleClass, DataExportMixin):
         probs: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
+        boxes3d: list | None = None,
         speed: dict[str, float] | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
@@ -250,6 +251,7 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
+            boxes3d (list | None): A list of Box3D objects for 3D detection results (stereo 3D detection).
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Examples:
@@ -276,9 +278,9 @@ class Results(SimpleClass, DataExportMixin):
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "boxes3d"
         # 3D boxes for stereo 3D detection
-        self.boxes3d: list | None = None  # List of Box3D objects
+        self.boxes3d: list | None = boxes3d if boxes3d is not None else None  # List of Box3D objects
 
     @property
     def boxes3d_numpy(self) -> np.ndarray:

@@ -15,6 +15,11 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
 from ultralytics.data.stereo.box3d import Box3D
+
+try:
+    from ultralytics.data.stereo.calib import CalibrationParameters
+except ImportError:
+    CalibrationParameters = None  # type: ignore
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
 from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
@@ -1050,7 +1055,7 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
 
 def project_3d_to_2d(
     box3d: "Box3D",
-    calib: dict[str, float],
+    calib: CalibrationParameters,
 ) -> tuple[float, float, float, float]:
     """Project 3D bounding box to 2D bounding box using camera calibration.
 
@@ -1071,10 +1076,18 @@ def project_3d_to_2d(
     length, width, height = box3d.dimensions
     orientation = box3d.orientation
 
-    fx = calib.get("fx", 721.5377)
-    fy = calib.get("fy", 721.5377)
-    cx = calib.get("cx", 609.5593)
-    cy = calib.get("cy", 172.8540)
+    # Extract calibration parameters (support both dict and CalibrationParameters)
+    if isinstance(calib, CalibrationParameters):
+        fx, fy, cx, cy = calib.fx, calib.fy, calib.cx, calib.cy
+        image_width = calib.image_width
+        image_height = calib.image_height
+    else:
+        fx = calib.get("fx", 721.5377)
+        fy = calib.get("fy", 721.5377)
+        cx = calib.get("cx", 609.5593)
+        cy = calib.get("cy", 172.8540)
+        image_width = calib.get("image_width", 1242)
+        image_height = calib.get("image_height", 375)       
 
     # Generate 8 corners in object coordinate system
     # Coordinate system: x: right, y: down, z: forward

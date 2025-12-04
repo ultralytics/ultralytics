@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
+import torch
 
+from ultralytics.data.stereo.calib import CalibrationParameters, load_kitti_calibration
+from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
+from ultralytics.models.yolo.stereo3ddet.val import decode_stereo3d_outputs
+from ultralytics.utils import LOGGER
 
 
 def load_stereo_pair(
@@ -56,7 +62,232 @@ def load_stereo_pair(
 class Stereo3DDetPredictor(DetectionPredictor):
     """Stereo 3D Detection predictor.
 
-    Reuses the detection predictor for now. Custom stereo visualization can be layered on top.
+    Extends DetectionPredictor to handle stereo image pairs (6-channel input)
+    and decode 3D bounding boxes from 10-branch model outputs.
     """
 
-    pass
+    def __init__(self, cfg=None, overrides: dict[str, Any] | None = None, _callbacks=None):
+        """Initialize Stereo3DDetPredictor.
+
+        Args:
+            cfg: Configuration dictionary or path. Defaults to DEFAULT_CFG if None.
+            overrides: Configuration overrides.
+            _callbacks: Callback functions.
+        """
+        # Ensure task is set in overrides
+        if overrides is None:
+            overrides = {}
+        if "task" not in overrides:
+            overrides["task"] = "stereo3ddet"
+        
+        # Use DEFAULT_CFG if cfg is None (BasePredictor expects this)
+        from ultralytics.utils import DEFAULT_CFG
+        if cfg is None:
+            cfg = DEFAULT_CFG
+        
+        super().__init__(cfg, overrides, _callbacks)
+        self.args.task = "stereo3ddet"
+        # Store calibration parameters for each image
+        self.calib_params: dict[str, CalibrationParameters] = {}
+
+    def setup_source(self, source=None):
+        """Set up input source for stereo prediction.
+
+        For stereo3ddet, source can be:
+        - A tuple/list of (left_path, right_path) for a single stereo pair
+        - A list of tuples/lists for multiple stereo pairs
+        - A single path (raises ValueError - stereo requires both left and right)
+
+        Args:
+            source: Input source(s) for prediction.
+        """
+        if source is None:
+            source = self.args.source
+
+        # Check if source is a single path (not allowed for stereo)
+        if isinstance(source, (str, Path)):
+            raise ValueError(
+                "Stereo3DDetPredictor requires both left and right images. "
+                "Provide source as a tuple/list: (left_path, right_path) or "
+                "[(left1, right1), (left2, right2), ...] for batch prediction."
+            )
+
+        # Convert to list of stereo pairs
+        if isinstance(source, (tuple, list)) and len(source) > 0:
+            # Check if first element is a tuple/list (batch of pairs)
+            if isinstance(source[0], (tuple, list)) and len(source[0]) == 2:
+                # Batch of stereo pairs: [(left1, right1), (left2, right2), ...]
+                stereo_pairs = source
+            elif len(source) == 2:
+                # Single stereo pair: (left, right)
+                stereo_pairs = [source]
+            else:
+                raise ValueError(
+                    f"Invalid source format. Expected (left_path, right_path) or "
+                    f"[(left1, right1), ...], got: {source}"
+                )
+        else:
+            raise ValueError(f"Invalid source type: {type(source)}")
+
+        # Load stereo pairs and create a dataset-like structure
+        self.stereo_pairs = []
+        for left_path, right_path in stereo_pairs:
+            left_img, right_img = load_stereo_pair(left_path, right_path)
+            # Stack left and right to create 6-channel image
+            stereo_img = np.concatenate([left_img, right_img], axis=2)  # [H, W, 6]
+            self.stereo_pairs.append((stereo_img, str(left_path)))
+
+            # Try to load calibration from KITTI format
+            # Look for calib file in same directory as left image
+            left_path_obj = Path(left_path)
+            calib_path = left_path_obj.parent / f"{left_path_obj.stem}.txt"
+            if not calib_path.exists():
+                # Try alternative: calib.txt in parent directory
+                calib_path = left_path_obj.parent / "calib.txt"
+            if calib_path.exists():
+                try:
+                    calib = load_kitti_calibration(calib_path)
+                    self.calib_params[str(left_path)] = calib
+                except Exception as e:
+                    LOGGER.warning(f"Failed to load calibration from {calib_path}: {e}")
+                    # Use default calibration
+                    self.calib_params[str(left_path)] = CalibrationParameters(
+                        fx=721.5377, fy=721.5377, cx=609.5593, cy=172.8540,
+                        baseline=0.54, image_width=stereo_img.shape[1], image_height=stereo_img.shape[0]
+                    )
+            else:
+                # Use default calibration
+                self.calib_params[str(left_path)] = CalibrationParameters(
+                    fx=721.5377, fy=721.5377, cx=609.5593, cy=172.8540,
+                    baseline=0.54, image_width=stereo_img.shape[1], image_height=stereo_img.shape[0]
+                )
+
+        # Set up dataset-like structure for BasePredictor
+        # BasePredictor expects dataset to yield (paths, im0s, s) tuples
+        class StereoDataset:
+            def __init__(self, stereo_pairs):
+                self.stereo_pairs = stereo_pairs
+                self.bs = len(stereo_pairs)  # batch size
+                self.source_type = type("SourceType", (), {
+                    "stream": False,
+                    "tensor": False,
+                    "screenshot": False,
+                })()
+
+            def __iter__(self):
+                # Yield batch as (paths, im0s, s) tuple
+                paths = [path for _, path in self.stereo_pairs]
+                im0s = [img for img, _ in self.stereo_pairs]
+                s = [""] * len(self.stereo_pairs)  # empty strings for now
+                yield (paths, im0s, s)
+
+            def __len__(self):
+                return 1  # Single batch
+
+        self.dataset = StereoDataset(self.stereo_pairs)
+        self.source_type = self.dataset.source_type
+
+    def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
+        """Preprocess stereo image pairs for inference.
+
+        Args:
+            im: List of stereo images (6-channel) or tensor.
+
+        Returns:
+            Preprocessed tensor of shape (N, 6, H, W).
+        """
+        if isinstance(im, torch.Tensor):
+            # Already a tensor, just move to device and normalize
+            im = im.to(self.device)
+            im = im.half() if self.model.fp16 else im.float()
+            if im.dtype == torch.uint8:
+                im /= 255
+            return im
+
+        # Convert list of numpy arrays to tensor
+        # Each image is [H, W, 6] (stereo pair)
+        im = np.stack(im)  # [N, H, W, 6]
+        im = im[..., ::-1]  # BGR to RGB for all 6 channels
+        im = im.transpose((0, 3, 1, 2))  # [N, H, W, 6] -> [N, 6, H, W]
+        im = np.ascontiguousarray(im)
+        im = torch.from_numpy(im)
+
+        im = im.to(self.device)
+        im = im.half() if self.model.fp16 else im.float()
+        im /= 255  # 0-255 to 0.0-1.0
+
+        return im
+
+    def postprocess(self, preds: dict[str, torch.Tensor], img: torch.Tensor, orig_imgs: list[np.ndarray], **kwargs) -> list[Results]:
+        """Post-process model predictions to Results objects with 3D boxes.
+
+        Args:
+            preds: Dictionary of 10-branch model outputs.
+            img: Preprocessed input tensor.
+            orig_imgs: List of original stereo images (6-channel).
+            **kwargs: Additional arguments.
+
+        Returns:
+            List of Results objects with boxes3d attribute.
+        """
+        results = []
+        batch_size = preds["heatmap"].shape[0]
+
+        for i in range(batch_size):
+            # Extract calibration for this image
+            img_path = self.batch[0][i] if self.batch and len(self.batch[0]) > i else f"image_{i}.jpg"
+            calib = self.calib_params.get(img_path)
+
+            # Extract single image predictions
+            single_preds = {k: v[i:i+1] for k, v in preds.items()}
+
+            # Convert CalibrationParameters to dict if needed
+            calib_dict = None
+            if calib is not None:
+                if isinstance(calib, CalibrationParameters):
+                    calib_dict = {
+                        "fx": calib.fx,
+                        "fy": calib.fy,
+                        "cx": calib.cx,
+                        "cy": calib.cy,
+                        "baseline": calib.baseline,
+                    }
+                elif isinstance(calib, dict):
+                    calib_dict = calib
+
+            # Decode 3D boxes
+            boxes3d = decode_stereo3d_outputs(
+                single_preds,
+                conf_threshold=self.args.conf,
+                top_k=self.args.max_det,
+                calib=calib_dict,
+            )
+
+            # Get original left image (first 3 channels of stereo image)
+            orig_img = orig_imgs[i][:, :, :3] if len(orig_imgs) > i else orig_imgs[0][:, :, :3]
+
+            # Create Results object
+            result = Results(
+                orig_img=orig_img,
+                path=img_path,
+                names=self.model.names if hasattr(self.model, "names") else {},
+                boxes3d=boxes3d if boxes3d else [],
+            )
+            results.append(result)
+
+        return results
+
+    def __call__(self, source=None, model=None, stream: bool = False, *args, **kwargs):
+        """Run prediction on stereo image pairs.
+
+        Args:
+            source: Stereo pair(s) as (left_path, right_path) or [(left1, right1), ...].
+            model: Model to use for prediction.
+            stream: Whether to stream results.
+            *args: Additional arguments.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            List of Results objects with boxes3d attribute.
+        """
+        return super().__call__(source=source, model=model, stream=stream, *args, **kwargs)

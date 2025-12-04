@@ -157,7 +157,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         relevant to the tracking process.
 
         Args:
-            predictor (SAM2VideoPredictor): The predictor object for which to initialize the state.
+            predictor (SAM3VideoSemanticPredictor): The predictor object for which to initialize the state.
         """
         if len(predictor.inference_state) > 0:  # means initialized
             return
@@ -185,6 +185,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         predictor.inference_state = inference_state
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] = None, *args, **kwargs):
+        """Perform inference on a video sequence with optional prompts."""
         frame = self.dataset.frame
         find_text_batch = ["<text placeholder>", "visual"]
         stages = FindStage(
@@ -198,7 +199,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             object_ids=[],
         )
 
-        # construct the final `BatchedDatapoint` and cast to GPU
         input_batch = Datapoint(img_batch=im, find_text_batch=find_text_batch, find_inputs=stages)
         self.inference_state["input_batch"] = input_batch
         frame = frame - 1
@@ -256,7 +256,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         return results
 
-    def _run_single_frame_inference(self, frame_idx, reverse, inference_state=None):
+    def _run_single_frame_inference(self, frame_idx, reverse=False, inference_state=None):
         """
         Perform inference on a single frame and get its inference results. This would
         also update `inference_state`.
@@ -329,12 +329,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         Note that text prompts are NOT associated with a particular frame (i.e. they apply
         to all frames). However, we only run inference on the frame specified in `frame_idx`.
         """
-        LOGGER.debug("Running add_prompt on frame %d", frame_idx)
-
         inference_state = inference_state or self.inference_state
-        num_frames = inference_state["num_frames"]
         assert text_str is not None or bboxes is not None, "at least one type of prompt (text, boxes) must be provided"
-        assert 0 <= frame_idx < num_frames, f"{frame_idx=} is out of range for a total of {num_frames} frames"
 
         # 1) add text prompt
         if text_str is not None and text_str != "visual":

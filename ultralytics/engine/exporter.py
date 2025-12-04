@@ -164,7 +164,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8"]],
+        ["Axelera", "axelera", "_axelera_model", True, True, ["batch", "int8"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 

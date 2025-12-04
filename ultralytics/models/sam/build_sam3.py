@@ -18,7 +18,6 @@ from .sam3.vl_combiner import SAM3VLBackbone
 from .modules.blocks import PositionEmbeddingSine, RoPEAttention
 from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 from .modules.encoders import MemoryEncoder
-from .sam3_video_inference import Sam3VideoInference
 
 
 def _create_transformer_encoder() -> TransformerEncoderFusion:
@@ -437,68 +436,4 @@ def _load_checkpoint(model, checkpoint, interactive=False):
         )
         sam3_image_ckpt.update({k.replace("tracker.", ""): v for k, v in ckpt.items() if "tracker." in k})
     model.load_state_dict(sam3_image_ckpt, strict=False)
-    return model
-
-
-# TODO: remove this
-def build_sam3_video_model(apply_temporal_disambiguation: bool = True):
-    """
-    Build SAM3 dense tracking model.
-
-    Args:
-        checkpoint_path: Optional path to checkpoint file
-        bpe_path: Path to the BPE tokenizer file
-
-    Returns:
-        Sam3VideoInferenceWithInstanceInteractivity: The instantiated dense tracking model
-    """
-    # Build the main SAM3 video model
-    if apply_temporal_disambiguation:
-        model = Sam3VideoInference(
-            score_threshold_detection=0.5,
-            assoc_iou_thresh=0.1,
-            det_nms_thresh=0.1,
-            new_det_thresh=0.7,
-            hotstart_delay=15,
-            hotstart_unmatch_thresh=8,
-            hotstart_dup_thresh=8,
-            suppress_unmatched_only_within_hotstart=True,
-            min_trk_keep_alive=-1,
-            max_trk_keep_alive=30,
-            init_trk_keep_alive=30,
-            suppress_overlapping_based_on_recent_occlusion_threshold=0.7,
-            suppress_det_close_to_boundary=False,
-            fill_hole_area=16,
-            recondition_every_nth_frame=16,
-            masklet_confirmation_enable=False,
-            decrease_trk_keep_alive_for_empty_masklets=False,
-            image_size=1008,
-            image_mean=(0.5, 0.5, 0.5),
-            image_std=(0.5, 0.5, 0.5),
-        )
-    else:
-        # a version without any heuristics for ablation studies
-        model = Sam3VideoInference(
-            score_threshold_detection=0.5,
-            assoc_iou_thresh=0.1,
-            det_nms_thresh=0.1,
-            new_det_thresh=0.7,
-            hotstart_delay=0,
-            hotstart_unmatch_thresh=0,
-            hotstart_dup_thresh=0,
-            suppress_unmatched_only_within_hotstart=True,
-            min_trk_keep_alive=-1,
-            max_trk_keep_alive=30,
-            init_trk_keep_alive=30,
-            suppress_overlapping_based_on_recent_occlusion_threshold=0.7,
-            suppress_det_close_to_boundary=False,
-            fill_hole_area=16,
-            recondition_every_nth_frame=0,
-            masklet_confirmation_enable=False,
-            decrease_trk_keep_alive_for_empty_masklets=False,
-            image_size=1008,
-            image_mean=(0.5, 0.5, 0.5),
-            image_std=(0.5, 0.5, 0.5),
-        )
-
     return model

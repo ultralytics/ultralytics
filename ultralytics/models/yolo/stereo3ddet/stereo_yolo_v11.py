@@ -13,6 +13,8 @@ import torch.nn.functional as F
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import MultiStepLR
 
+from ultralytics.utils.loss import FocalLoss
+
 
 # ============================================================================
 # Part 1: Feature Fusion Layer
@@ -173,45 +175,14 @@ class StereoCenterNetHead(nn.Module):
 # Part 4: Loss Functions
 # ============================================================================
 
-class FocalLoss(nn.Module):
-    """Focal loss (for heatmaps) to address class imbalance."""
-
-    def __init__(self, alpha: float = 2.0, beta: float = 4.0):
-        super().__init__()
-        self.alpha = alpha
-        self.beta = beta
-
-    def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        """
-        Focal loss:
-        L = -1/N * Σ [
-            (1-ŷ)^α * log(ŷ)         if y=1
-            (1-y)^β * ŷ^α * log(1-ŷ) if y=0
-        ]
-        """
-        pred = torch.clamp(pred, 1e-4, 1 - 1e-4)
-
-        pos_mask = target.eq(1)
-        neg_mask = target.lt(1)
-
-        pos_loss = -torch.log(pred) * torch.pow(1 - pred, self.alpha) * pos_mask
-        neg_loss = (
-            -torch.log(1 - pred) * torch.pow(pred, self.alpha) * torch.pow(1 - target, self.beta) * neg_mask
-        )
-
-        num_pos = pos_mask.sum().float()
-        num_pos = torch.clamp(num_pos, min=1.0)
-
-        loss = (pos_loss.sum() + neg_loss.sum()) / num_pos
-        return loss
-
-
 class StereoCenterNetLoss(nn.Module):
     """Total loss for Stereo CenterNet."""
 
     def __init__(self, num_classes: int = 3):
         super().__init__()
-        self.focal_loss_fn = FocalLoss(alpha=2.0, beta=4.0)
+        # Use Ultralytics FocalLoss: gamma=2.0 (focusing parameter, similar to old alpha)
+        # alpha=0.25 (balancing factor, default)
+        self.focal_loss_fn = FocalLoss(gamma=2.0, alpha=0.25)
         self.num_classes = num_classes
 
         # Per-branch weights

@@ -400,7 +400,7 @@ class AutoBackend(nn.Module):
 
         # CoreML
         elif coreml:
-            check_requirements("coremltools>=9.0")
+            check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"]) # latest numpy 2.4.0rc1 breaks coremltools exports
             LOGGER.info(f"Loading {w} for CoreML inference...")
             import coremltools as ct
 

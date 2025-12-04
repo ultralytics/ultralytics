@@ -15,7 +15,7 @@ from ultralytics.utils.metrics import box_iou, mask_iou
 from .amg import batched_mask_to_box
 from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
 
-from .sam3.data_misc import Datapoint, FindStage
+from .sam3.data_misc import Datapoint
 from ultralytics.utils import LOGGER
 from ultralytics.engine.results import Results
 from torchvision.ops import masks_to_boxes
@@ -177,7 +177,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         """Perform inference on a video sequence with optional prompts."""
         frame = self.dataset.frame - 1  # align frame index to be 0-based
         if len(self.inference_state["feature_cache"]) == 0:  # no feature cached yet
-            self.inference_state["input_batch"] = Datapoint(img_batch=im, find_inputs=None)
+            self.inference_state["input_batch"] = Datapoint(img_batch=im, text_ids=None, img_ids=None)
             self.add_prompt(frame_idx=frame, text=text, bboxes=bboxes, labels=labels)
         else:
             self.inference_state["input_batch"].img_batch = im  # only pass image for subsequent frames
@@ -260,7 +260,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             reverse=reverse,
             input_batch=inference_state["input_batch"],
             geometric_prompt=(
-                self.model._get_dummy_prompt(num_prompts=len(inference_state["input_batch"].find_inputs.img_ids))
+                self.model._get_dummy_prompt(num_prompts=len(inference_state["input_batch"].img_ids))
                 if not has_geometric_prompt
                 else inference_state["per_frame_geometric_prompt"][frame_idx]
             ),
@@ -318,11 +318,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         text_batch = [text] if isinstance(text, str) else text
         inference_state["text_prompt"] = text if use_text else None
         n = len(text_batch)
-        stage = FindStage(
-            text_ids=torch.arange(n, device=self.device, dtype=torch.long),
-            img_ids=torch.zeros(n, device=self.device, dtype=torch.long),
-        )
-        inference_state["input_batch"].find_inputs = stage
+        text_ids = torch.arange(n, device=self.device, dtype=torch.long)
+        img_ids = torch.zeros(n, device=self.device, dtype=torch.long)
+        inference_state["input_batch"].text_ids = text_ids
+        inference_state["input_batch"].img_ids = img_ids
         if text is not None and self.model.names != text:
             self.model.set_classes(text=text)
 
@@ -498,7 +497,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     ):
         sam3_image_out = self.model.forward_grounding(
             backbone_out={"img_batch_all_stages": input_batch.img_batch},
-            find_input=input_batch.find_inputs,
+            find_input=input_batch,
             geometric_prompt=geometric_prompt,
         )
         # TODO: probably apply nms on boxes

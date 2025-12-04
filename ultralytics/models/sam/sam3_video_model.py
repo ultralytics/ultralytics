@@ -210,10 +210,14 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         """Post-process the predictions to apply non-overlapping constraints if required."""
         obj_id_to_mask = preds["obj_id_to_mask"]  # low res masks
         curr_obj_ids = sorted(obj_id_to_mask.keys())
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+
         if len(curr_obj_ids) == 0:
-            pred_masks, pred_boxes = None, torch.zeros((0, 6), device=pred_masks.device)
+            pred_masks, pred_boxes = None, torch.zeros((0, 7), device=pred_masks.device)
         else:
             pred_masks = torch.cat([obj_id_to_mask[obj_id] for obj_id in curr_obj_ids], dim=0)
+            pred_masks = F.interpolate(pred_masks.float()[None], orig_imgs[0].shape[:2], mode="bilinear")[0] > 0.5
             pred_ids = torch.tensor(curr_obj_ids, dtype=torch.int32, device=pred_masks.device)
             pred_scores = torch.tensor(
                 [preds["obj_id_to_score"][obj_id] for obj_id in curr_obj_ids], device=pred_masks.device
@@ -247,9 +251,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
         names = dict(enumerate(str(i) for i in range(pred_masks.shape[0])))
-
-        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
         results = []
         for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
@@ -966,17 +967,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         new_det_fa_inds: npt.NDArray = tracker_update_plan["new_det_fa_inds"]
         new_det_obj_ids: npt.NDArray = tracker_update_plan["new_det_obj_ids"]
         obj_id_to_mask = {}  # obj_id --> output mask tensor
-        ori_size = self.batch[1][0].shape[:2]
 
         # Part 1: masks from previous SAM2 propagation
         existing_masklet_obj_ids = tracker_metadata_prev["obj_ids"]
-        existing_masklet_video_res_masks = F.interpolate(
-            tracker_low_res_masks_global.unsqueeze(1),
-            size=ori_size,
-            mode="bilinear",
-            align_corners=False,
-        )  # (num_obj, 1, H_video, W_video)
-        existing_masklet_binary = existing_masklet_video_res_masks > 0
+        existing_masklet_binary = tracker_low_res_masks_global.unsqueeze(1)
         assert len(existing_masklet_obj_ids) == len(existing_masklet_binary)
         for obj_id, mask in zip(existing_masklet_obj_ids, existing_masklet_binary):
             obj_id_to_mask[obj_id] = mask  # (1, H_video, W_video)
@@ -984,23 +978,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Part 2: masks from new detections
         new_det_fa_inds_t = torch.from_numpy(new_det_fa_inds)
         new_det_low_res_masks = det_out["mask"][new_det_fa_inds_t].unsqueeze(1)
-        # TODO
-        # new_det_low_res_masks = fill_holes_in_mask_scores(
-        #     new_det_low_res_masks,
-        #     max_area=self.fill_hole_area,
-        #     fill_holes=True,
-        #     remove_sprinkles=True,
-        # )
-        new_masklet_video_res_masks = F.interpolate(
-            new_det_low_res_masks,
-            size=ori_size,
-            mode="bilinear",
-            align_corners=False,
-        )  # (num_obj, 1, H_video, W_video)
-
-        new_masklet_binary = new_masklet_video_res_masks > 0
-        assert len(new_det_obj_ids) == len(new_masklet_video_res_masks)
-        for obj_id, mask in zip(new_det_obj_ids, new_masklet_binary):
+        assert len(new_det_obj_ids) == len(new_det_low_res_masks)
+        for obj_id, mask in zip(new_det_obj_ids, new_det_low_res_masks):
             obj_id_to_mask[obj_id] = mask  # (1, H_video, W_video)
 
         # Part 3: Override masks for reconditioned objects using detection masks
@@ -1011,20 +990,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 det_idx = trk_id_to_max_iou_high_conf_det.get(obj_id)
 
                 if det_idx is not None:
-                    det_mask = det_out["mask"][det_idx]
-                    det_mask = det_mask.unsqueeze(0).unsqueeze(0)
-                    det_mask_resized = (
-                        F.interpolate(
-                            det_mask.float(),
-                            size=ori_size,
-                            mode="bilinear",
-                            align_corners=False,
-                        )
-                        > 0
-                    )
-
-                    det_mask_final = det_mask_resized.squeeze(0)
-                    obj_id_to_mask[obj_id] = det_mask_final
+                    obj_id_to_mask[obj_id] = det_out["mask"][det_idx].unsqueeze(0)
 
         return obj_id_to_mask
 
@@ -1119,15 +1085,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if len(low_res_masks_list) > 0:
             low_res_masks_local = torch.cat(low_res_masks_list, dim=0)
             obj_scores_local = torch.cat(obj_scores_list, dim=0)
-
-            # Apply hole filling to the masks
-            # NOTE
-            # low_res_masks_local = fill_holes_in_mask_scores(
-            #     low_res_masks_local.unsqueeze(1),
-            #     max_area=self.fill_hole_area,
-            #     fill_holes=True,
-            #     remove_sprinkles=True,
-            # )
             low_res_masks_local = low_res_masks_local.squeeze(1)
         else:
             low_res_masks_local = torch.zeros(0, *self._bb_feat_sizes[0], device=self.device)

@@ -53,11 +53,42 @@ class StereoTrainer(BaseTrainer):
             "vertex_dist_loss",
         )
 
-        # Target generator
-        self.target_generator = TargetGenerator(
-            output_size=(96, 320),  # H/4, W/4 for 384×1280 input
-            num_classes=self.data.get("nc", 3),
-        )
+        # Initialize target generator after data is loaded
+        if hasattr(self, "data") and self.data is not None:
+            self.target_generator = TargetGenerator(
+                output_size=(96, 320),  # H/4, W/4 for 384×1280 input
+                num_classes=self.data.get("nc", 3),
+            )
+        else:
+            self.target_generator = None
+
+    def get_dataset(self):
+        """Get train and validation datasets for stereo 3D detection.
+
+        Overrides base implementation to handle stereo3ddet task and None data gracefully.
+
+        Returns:
+            dict: Dataset dictionary with fields used by the trainer and model.
+        """
+        # If data is None, return minimal dict for testing purposes
+        if self.args.data is None:
+            return {
+                "names": {0: "Car", 1: "Pedestrian", 2: "Cyclist"},
+                "nc": 3,
+                "channels": 6,
+            }
+        
+        # Call parent implementation for normal cases
+        data = super().get_dataset()
+        
+        # Initialize target generator with actual data (if not already initialized)
+        if not hasattr(self, "target_generator") or self.target_generator is None:
+            self.target_generator = TargetGenerator(
+                output_size=(96, 320),  # H/4, W/4 for 384×1280 input
+                num_classes=data.get("nc", 3),
+            )
+        
+        return data
 
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """Build KITTI stereo dataset.

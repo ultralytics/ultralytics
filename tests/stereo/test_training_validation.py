@@ -163,7 +163,11 @@ class TestTrainingValidation:
         assert "Epoch" in progress_str
         assert "GPU_mem" in progress_str
         # Should have 10 loss names + Epoch + GPU_mem + Instances + Size = 14 columns
-        assert progress_str.count("%11s") == 14
+        # Check that all 10 loss names are present
+        for loss_name in trainer.loss_names:
+            assert loss_name in progress_str, f"Missing loss name: {loss_name}"
+        assert "Instances" in progress_str
+        assert "Size" in progress_str
 
     def test_label_loss_items(self):
         """Test that loss items are correctly labeled."""

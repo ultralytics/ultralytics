@@ -277,6 +277,34 @@ class Results(SimpleClass, DataExportMixin):
         self.path = path
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb"
+        # 3D boxes for stereo 3D detection
+        self.boxes3d: list | None = None  # List of Box3D objects
+
+    @property
+    def boxes3d_numpy(self) -> np.ndarray:
+        """Get boxes3d as numpy array [N, 9] (x, y, z, l, w, h, orientation, cls, conf).
+
+        Returns:
+            (np.ndarray): Array of shape (N, 9) containing 3D box data, or empty array if no boxes.
+        """
+        if self.boxes3d is None or len(self.boxes3d) == 0:
+            return np.empty((0, 9), dtype=np.float32)
+
+        data = []
+        for box in self.boxes3d:
+            x, y, z = box.center_3d
+            l, w, h = box.dimensions
+            data.append([x, y, z, l, w, h, box.orientation, float(box.class_id), box.confidence])
+        return np.array(data, dtype=np.float32)
+
+    @property
+    def boxes3d_tensor(self) -> torch.Tensor:
+        """Get boxes3d as tensor [N, 9] (x, y, z, l, w, h, orientation, cls, conf).
+
+        Returns:
+            (torch.Tensor): Tensor of shape (N, 9) containing 3D box data, or empty tensor if no boxes.
+        """
+        return torch.from_numpy(self.boxes3d_numpy)
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.

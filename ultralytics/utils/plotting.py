@@ -14,6 +14,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
+from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
 from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
@@ -1045,3 +1046,69 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
             plt.savefig(f, dpi=300, bbox_inches="tight")
             plt.close()
             np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+
+
+def project_3d_to_2d(
+    box3d: "Box3D",
+    calib: dict[str, float],
+) -> tuple[float, float, float, float]:
+    """Project 3D bounding box to 2D bounding box using camera calibration.
+
+    Projects the 8 corners of a 3D box to the 2D image plane and computes
+    the axis-aligned bounding box that contains all projected corners.
+
+    Args:
+        box3d: 3D bounding box (Box3D object).
+        calib: Camera calibration parameters dict with keys:
+            fx, fy, cx, cy (focal lengths and principal point).
+
+    Returns:
+        tuple: 2D bounding box (x_min, y_min, x_max, y_max) in pixels.
+    """
+    from ultralytics.data.stereo.box3d import Box3D
+
+    x, y, z = box3d.center_3d
+    length, width, height = box3d.dimensions
+    orientation = box3d.orientation
+
+    fx = calib.get("fx", 721.5377)
+    fy = calib.get("fy", 721.5377)
+    cx = calib.get("cx", 609.5593)
+    cy = calib.get("cy", 172.8540)
+
+    # Generate 8 corners in object coordinate system
+    # Coordinate system: x: right, y: down, z: forward
+    corners_obj = np.array(
+        [
+            [-width / 2, width / 2, width / 2, -width / 2, -width / 2, width / 2, width / 2, -width / 2],  # x
+            [-height / 2, -height / 2, -height / 2, -height / 2, height / 2, height / 2, height / 2, height / 2],  # y
+            [length / 2, length / 2, -length / 2, -length / 2, length / 2, length / 2, -length / 2, -length / 2],  # z
+        ]
+    )
+
+    # Rotation matrix around y-axis
+    cos_rot = np.cos(orientation)
+    sin_rot = np.sin(orientation)
+    R = np.array([[cos_rot, 0, sin_rot], [0, 1, 0], [-sin_rot, 0, cos_rot]])
+
+    # Rotate and translate to world coordinates
+    corners_world = R @ corners_obj
+    corners_world[0, :] += x
+    corners_world[1, :] += y
+    corners_world[2, :] += z
+
+    # Project to 2D image plane
+    # u = fx × X/Z + cx, v = fy × Y/Z + cy
+    X, Y, Z = corners_world
+    # Avoid division by zero
+    Z = np.maximum(Z, 1e-6)
+    u = fx * X / Z + cx
+    v = fy * Y / Z + cy
+
+    # Compute axis-aligned bounding box
+    x_min = float(np.min(u))
+    y_min = float(np.min(v))
+    x_max = float(np.max(u))
+    y_max = float(np.max(v))
+
+    return (x_min, y_min, x_max, y_max)

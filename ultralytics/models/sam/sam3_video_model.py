@@ -329,20 +329,16 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             inference_state["text_prompt"] = None
             inference_state["input_batch"].find_text_batch = ["visual"]
         text = inference_state["input_batch"].find_text_batch
-        text_ids = list(range(len(text)))
-        inference_state["input_batch"].find_inputs.text_ids = torch.tensor(
-            text_ids, device=self.device, dtype=torch.long
-        )
-        inference_state["input_batch"].find_inputs.img_ids = torch.tensor(
-            [0] * len(text_ids), device=self.device, dtype=torch.long
-        )
+        n = len(text)
+        inference_state["input_batch"].find_inputs.text_ids = torch.arange(n, device=self.device, dtype=torch.long)
+        inference_state["input_batch"].find_inputs.img_ids = torch.zeros(n, device=self.device, dtype=torch.long)
         if text is not None and self.model.names != text:
             self.model.set_classes(text=text)
 
         # 2) handle box prompt
         bboxes, labels = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
         assert (bboxes is not None) == (labels is not None)
-        geometric_prompt = self.model._get_dummy_prompt(num_prompts=len(text))
+        geometric_prompt = self.model._get_dummy_prompt(num_prompts=n)
         if bboxes is not None:
             for i in range(len(bboxes)):
                 geometric_prompt.append_boxes(bboxes[[i]], labels[[i]])

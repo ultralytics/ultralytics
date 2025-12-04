@@ -415,7 +415,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             feature_cache=feature_cache,
             allow_new_detections=allow_new_detections,
         )
-        self.tracker.backbone_out = feature_cache[frame_idx]["tracker_backbone_out"]
+        # cache the SAM2 backbone features for `frame_idx` in the tracker
+        self.tracker.backbone_out = feature_cache[frame_idx]
 
         # Step 2: each GPU propagates its local SAM2 states to get the SAM2 prediction masks.
         # the returned `tracker_low_res_masks_global` contains the concatenated masklet predictions
@@ -545,7 +546,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         }
 
         # Step 3: build SAM2 backbone features and store them in `feature_cache`
-        backbone_cache = {}
         sam_mask_decoder = self.tracker.model.sam_mask_decoder
         feats = sam3_image_out["prev_encoder_out"]["backbone_out"]["sam2_backbone_out"]
         tracker_backbone_fpn = [
@@ -558,8 +558,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "vision_pos_enc": feats["vision_pos_enc"],
             "backbone_fpn": tracker_backbone_fpn,
         }
-        backbone_cache["tracker_backbone_out"] = tracker_backbone_out
-        feature_cache[frame_idx] = backbone_cache
+        feature_cache[frame_idx] = tracker_backbone_out
         # remove from `feature_cache` old features to save GPU memory
         feature_cache.pop(frame_idx - 1 if not reverse else frame_idx + 1, None)
         return det_out

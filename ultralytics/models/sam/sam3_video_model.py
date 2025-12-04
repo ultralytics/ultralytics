@@ -16,7 +16,6 @@ from .amg import batched_mask_to_box
 from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
 
 from .sam3.data_misc import Datapoint, FindStage
-from .sam3.geometry_encoders import Prompt
 from ultralytics.utils import LOGGER
 from ultralytics.engine.results import Results
 from torchvision.ops import masks_to_boxes
@@ -450,7 +449,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             det_out=det_out,
             tracker_states_local=tracker_states_local,
             tracker_update_plan=tracker_update_plan,
-            feature_cache=feature_cache,
         )
 
         # Step 5: finally, build the outputs for this frame (it only needs to be done on GPU 0 since
@@ -914,7 +912,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         det_out: Dict[str, Tensor],
         tracker_states_local: List[Any],
         tracker_update_plan: Dict[str, npt.NDArray],
-        feature_cache: Dict,
     ):
         # initialize tracking scores with detection scores
         new_det_fa_inds: npt.NDArray = tracker_update_plan["new_det_fa_inds"]

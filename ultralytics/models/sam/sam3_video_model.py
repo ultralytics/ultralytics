@@ -522,11 +522,22 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         pred_probs = sam3_image_out["pred_logits"].squeeze(-1).sigmoid()
         if not allow_new_detections:
             pred_probs = pred_probs - 1e8  # make sure no detections are kept
+        pred_cls = torch.tensor(
+            list(range(pred_probs.shape[0])),
+            dtype=pred_probs.dtype,
+            device=pred_probs.device,
+        )[:, None].expand_as(pred_probs)
+
         pred_boxes_xyxy = sam3_image_out["pred_boxes_xyxy"]
         pred_masks = sam3_image_out["pred_masks"]
         # get the positive detection outputs above threshold
         keep = pred_probs > self.score_threshold_detection
-        det_out = {"bbox": pred_boxes_xyxy[keep], "mask": pred_masks[keep], "scores": pred_probs[keep]}
+        det_out = {
+            "bbox": pred_boxes_xyxy[keep],
+            "mask": pred_masks[keep],
+            "scores": pred_probs[keep],
+            "cls": pred_cls[keep],
+        }
 
         # Step 3: build SAM2 backbone features and store them in `feature_cache`
         sam_mask_decoder = self.tracker.model.sam_mask_decoder

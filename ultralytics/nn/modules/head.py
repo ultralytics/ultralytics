@@ -835,11 +835,45 @@ class YOLOEDetect(Detect):
         if self.is_fused:
             return
 
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
-        cv4 = self.cv4 if not self.end2end else self.one2one_cv4
+        # cv3 = self.cv3 if not self.end2end else self.one2one_cv3
+        # cv4 = self.cv4 if not self.end2end else self.one2one_cv4
         assert not self.training
         txt_feats = txt_feats.to(torch.float32).squeeze(0)
-        for cls_head, bn_head in zip(cv3, cv4):
+        for cls_head, bn_head in zip(self.cv3, self.cv4):
+            assert isinstance(cls_head, nn.Sequential)
+            assert isinstance(bn_head, BNContrastiveHead)
+            conv = cls_head[-1]
+            assert isinstance(conv, nn.Conv2d)
+            logit_scale = bn_head.logit_scale
+            bias = bn_head.bias
+            norm = bn_head.norm
+
+            t = txt_feats * logit_scale.exp()
+            conv: nn.Conv2d = fuse_conv_and_bn(conv, norm)
+
+            w = conv.weight.data.squeeze(-1).squeeze(-1)
+            b = conv.bias.data
+
+            w = t @ w
+            b1 = (t @ b.reshape(-1).unsqueeze(-1)).squeeze(-1)
+            b2 = torch.ones_like(b1) * bias
+
+            conv = (
+                nn.Conv2d(
+                    conv.in_channels,
+                    w.shape[0],
+                    kernel_size=1,
+                )
+                .requires_grad_(False)
+                .to(conv.weight.device)
+            )
+
+            conv.weight.data.copy_(w.unsqueeze(-1).unsqueeze(-1))
+            conv.bias.data.copy_(b1 + b2)
+            cls_head[-1] = conv
+
+            bn_head.fuse()
+        for cls_head, bn_head in zip(self.one2one_cv3, self.one2one_cv4):
             assert isinstance(cls_head, nn.Sequential)
             assert isinstance(bn_head, BNContrastiveHead)
             conv = cls_head[-1]
@@ -902,7 +936,7 @@ class YOLOEDetect(Detect):
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
         cv2 = self.cv2 if not self.end2end else self.one2one_cv2
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv2
+        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])

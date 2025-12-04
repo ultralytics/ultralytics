@@ -1108,12 +1108,20 @@ class YOLOEModel(DetectionModel):
         device = next(self.parameters()).device
         self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
 
+
+        if head.end2end:
+            cv3=head.one2one_cv3
+            cv2=head.one2one_cv2
+        else:
+            cv3=head.cv3
+            cv2=head.cv2
+
         # re-parameterization for prompt-free model
         self.model[-1].lrpc = nn.ModuleList(
             LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2)
-            for i, (cls, pf, loc) in enumerate(zip(vocab, head.cv3, head.cv2))
+            for i, (cls, pf, loc) in enumerate(zip(vocab, cv3, cv2))
         )
-        for loc_head, cls_head in zip(head.cv2, head.cv3):
+        for loc_head, cls_head in zip(cv2, cv3):
             assert isinstance(loc_head, nn.Sequential)
             assert isinstance(cls_head, nn.Sequential)
             del loc_head[-1]
@@ -1141,8 +1149,16 @@ class YOLOEModel(DetectionModel):
         device = next(self.model.parameters()).device
         head.fuse(self.pe.to(device))  # fuse prompt embeddings to classify head
 
+
+        if head.end2end:
+            cv3=head.one2one_cv3
+            cv2=head.one2one_cv2
+        else:
+            cv3=head.cv3
+            cv2=head.cv2
+
         vocab = nn.ModuleList()
-        for cls_head in head.cv3:
+        for cls_head in cv3:
             assert isinstance(cls_head, nn.Sequential)
             vocab.append(cls_head[-1])
         return vocab
@@ -1183,6 +1199,7 @@ class YOLOEModel(DetectionModel):
             all_pe.append(vpe)
         if not all_pe:
             all_pe.append(getattr(self, "pe", torch.zeros(1, 80, 512)))
+        # for p in all_pe: print(p.shape)
         return torch.cat(all_pe, dim=1)
 
     def predict(

@@ -24,6 +24,7 @@ from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 from .sam3.data_misc import Datapoint
+from .sam3.geometry_encoders import Prompt
 
 from .amg import (
     batch_iterator,
@@ -2243,7 +2244,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         """Run inference on the extracted features with optional bounding boxes and labels."""
         # NOTE: priority: bboxes > text > pre-set classes
         nc = 1 if bboxes is not None else len(text) if text is not None else len(self.model.names)
-        geometric_prompt = self.model._get_dummy_prompt(nc)
+        geometric_prompt = self._get_dummy_prompt(nc)
         if bboxes is not None:
             for i in range(len(bboxes)):
                 geometric_prompt.append_boxes(bboxes[[i]], labels[[i]])
@@ -2446,3 +2447,11 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
             _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
             return vis_feats, vis_pos_embed, feat_sizes
         return super().get_im_features(im, batch)
+
+    def _get_dummy_prompt(self, num_prompts=1):
+        """Get a dummy geometric prompt with zero boxes."""
+        geometric_prompt = Prompt(
+            box_embeddings=torch.zeros(0, num_prompts, 4, device=self.device),
+            box_mask=torch.zeros(num_prompts, 0, device=self.device, dtype=torch.bool),
+        )
+        return geometric_prompt

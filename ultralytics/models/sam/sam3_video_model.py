@@ -260,7 +260,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             reverse=reverse,
             input_batch=inference_state["input_batch"],
             geometric_prompt=(
-                self.model._get_dummy_prompt(num_prompts=len(inference_state["input_batch"].img_ids))
+                self._get_dummy_prompt(num_prompts=len(inference_state["input_batch"].img_ids))
                 if not has_geometric_prompt
                 else inference_state["per_frame_geometric_prompt"][frame_idx]
             ),
@@ -327,7 +327,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # 2) handle box prompt
         bboxes, labels = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
         assert (bboxes is not None) == (labels is not None)
-        geometric_prompt = self.model._get_dummy_prompt(num_prompts=n)
+        geometric_prompt = self._get_dummy_prompt(num_prompts=n)
         if bboxes is not None:
             for i in range(len(bboxes)):
                 print(bboxes[[i]].shape, labels[[i]].shape, n)

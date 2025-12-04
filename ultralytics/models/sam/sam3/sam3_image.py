@@ -121,7 +121,6 @@ class Sam3Image(torch.nn.Module):
         else:
             image = torch.stack([img_batch[i] for i in unique_ids.tolist()])
         # `img_batch` might be fp16 and offloaded to CPU
-        # image = image.to(dtype=torch.float32, device=self.device)
         # Next time we call this function, we want to remember which indices we computed
         id_mapping = torch.full((len(img_batch),), -1, dtype=torch.long, device=image.device)
         id_mapping[unique_ids] = torch.arange(len(unique_ids), device=image.device)
@@ -143,6 +142,7 @@ class Sam3Image(torch.nn.Module):
         visual_prompt_mask=None,
         prev_mask_pred=None,
     ):
+        """Encode the geometric and visual prompts."""
         if prev_mask_pred is not None:
             img_feats = [img_feats[-1] + prev_mask_pred]
         # Encode geometry
@@ -209,6 +209,7 @@ class Sam3Image(torch.nn.Module):
         prompt_mask,
         encoder_out,
     ):
+        """Run the transformer decoder."""
         bs = memory.shape[1]
         query_embed = self.transformer.decoder.query_embed.weight
         tgt = query_embed.unsqueeze(1).repeat(1, bs, 1)
@@ -251,6 +252,7 @@ class Sam3Image(torch.nn.Module):
         dec_presence_out=None,
         is_instance_prompt=False,
     ):
+        """Update output dict with class scores and box predictions."""
         num_o2o = hs.size(2)
         # score prediction
         if self.use_dot_prod_scoring:
@@ -320,16 +322,6 @@ class Sam3Image(torch.nn.Module):
         else:
             backbone_out.pop("backbone_fpn", None)
 
-    def _get_best_mask(self, out):
-        prev_mask_idx = out["pred_logits"].argmax(dim=1).squeeze(1)
-        batch_idx = torch.arange(out["pred_logits"].shape[0], device=prev_mask_idx.device)
-        prev_mask_pred = out["pred_masks"][batch_idx, prev_mask_idx][:, None]
-        # Downsample mask to match image resolution.
-        prev_mask_pred = self.geometry_encoder.mask_encoder.mask_downsampler(prev_mask_pred)
-        prev_mask_pred = prev_mask_pred.flatten(-2).permute(2, 0, 1)
-
-        return prev_mask_pred
-
     def forward_grounding(self, backbone_out, find_input, geometric_prompt: Prompt = None):
         """Forward pass for grounding (detection + segmentation) given input images and text."""
         backbone_out.update({k: v.to(self.device) for k, v in self.text_embeddings.items()})
@@ -374,35 +366,6 @@ class Sam3Image(torch.nn.Module):
                 hs=hs,
             )
         return out
-
-    def _postprocess_out(self, out: dict, multimask_output: bool = False):
-        # For multimask output, during eval we return the single best mask with the dict keys expected by the evaluators, but also return the multimasks output with new keys.
-        num_mask_boxes = out["pred_boxes"].size(1)
-        if not self.training and multimask_output and num_mask_boxes > 1:
-            out["multi_pred_logits"] = out["pred_logits"]
-            if "pred_masks" in out:
-                out["multi_pred_masks"] = out["pred_masks"]
-            out["multi_pred_boxes"] = out["pred_boxes"]
-            out["multi_pred_boxes_xyxy"] = out["pred_boxes_xyxy"]
-
-            best_mask_idx = out["pred_logits"].argmax(1).squeeze(1)
-            batch_idx = torch.arange(len(best_mask_idx), device=best_mask_idx.device)
-
-            out["pred_logits"] = out["pred_logits"][batch_idx, best_mask_idx].unsqueeze(1)
-            if "pred_masks" in out:
-                out["pred_masks"] = out["pred_masks"][batch_idx, best_mask_idx].unsqueeze(1)
-            out["pred_boxes"] = out["pred_boxes"][batch_idx, best_mask_idx].unsqueeze(1)
-            out["pred_boxes_xyxy"] = out["pred_boxes_xyxy"][batch_idx, best_mask_idx].unsqueeze(1)
-
-        return out
-
-    # TODO
-    def _get_dummy_prompt(self, num_prompts=1):
-        geometric_prompt = Prompt(
-            box_embeddings=torch.zeros(0, num_prompts, 4, device=self.device),
-            box_mask=torch.zeros(num_prompts, 0, device=self.device, dtype=torch.bool),
-        )
-        return geometric_prompt
 
     def set_classes(self, text: list[str]):
         """Set the text embeddings for the given class names."""

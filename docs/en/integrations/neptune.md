@@ -43,28 +43,31 @@ To use Neptune with Ultralytics, you will need to install the `neptune` client p
 Before you start training, you need to connect your local environment to your Neptune project. You will need your **API Token** and **Project Name** from your Neptune dashboard.
 
 ### 1. Get Your Credentials
+
 1. Log in to [Neptune.ai](https://neptune.ai/).
 2. Create a new project (or select an existing one).
 3. Go to your user menu and get your **API Token**.
 
 ### 2. Set Environment Variables
+
 The securest way to handle credentials is via environment variables.
 
 === "Bash (Linux/Mac)"
-    ```bash
+`bash
     export NEPTUNE_API_TOKEN="your_long_api_token_here"
     export NEPTUNE_PROJECT="your_workspace/your_project"
-    ```
+    `
 
 === "PowerShell (Windows)"
-    ```powershell
+`powershell
     $Env:NEPTUNE_API_TOKEN = "your_long_api_token_here"
     $Env:NEPTUNE_PROJECT = "your_workspace/your_project"
-    ```
+    `
 
 === "Python"
-    ```python
-    import os
+```python
+import os
+
     os.environ["NEPTUNE_API_TOKEN"] = "your_long_api_token_here"
     os.environ["NEPTUNE_PROJECT"] = "your_workspace/your_project"
     ```
@@ -87,12 +90,7 @@ Once configured, you can start training your YOLO11 models. The Neptune integrat
 
         # Train the model
         # The 'project' and 'name' arguments help organize runs in Neptune
-        results = model.train(
-            data="coco8.yaml",
-            epochs=10,
-            project="my-yolo-project",
-            name="experiment-1"
-        )
+        results = model.train(data="coco8.yaml", epochs=10, project="my-yolo-project", name="experiment-1")
         ```
 
     === "CLI"
@@ -113,12 +111,12 @@ graph LR
     B -->|Log Images| D[Mosaics, Preds]
     B -->|Log Artifacts| E[Model Weights]
     B -->|Log Metadata| F[Hyperparameters]
-    
+
     C --> G[Neptune Server]
     D --> G
     E --> G
     F --> G
-    
+
     G --> H[Neptune Web Dashboard]
 ```
 
@@ -129,27 +127,31 @@ When you run the training command, the Neptune integration automatically capture
 1.  **Configuration/Hyperparameters**: All training arguments (epochs, lr0, optimizer, etc.) are logged under the Configuration section.
 2.  **Configuration/Model**: The model architecture and definition.
 3.  **Metrics**:
-    *   **Train**: `box_loss`, `cls_loss`, `dfl_loss`, `lr` (learning rate).
-    *   **Metrics**: `precision`, `recall`, `mAP50`, `mAP50-95`.
+    - **Train**: `box_loss`, `cls_loss`, `dfl_loss`, `lr` (learning rate).
+    - **Metrics**: `precision`, `recall`, `mAP50`, `mAP50-95`.
 4.  **Images**:
-    *   `Mosaic`: Training batches showing data augmentation.
-    *   `Validation`: Ground truth labels and model predictions on validation data.
-    *   `Plots`: Confusion matrices, Precision-Recall curves.
+    - `Mosaic`: Training batches showing data augmentation.
+    - `Validation`: Ground truth labels and model predictions on validation data.
+    - `Plots`: Confusion matrices, Precision-Recall curves.
 5.  **Weights**: The final trained model (`best.pt`) is uploaded to the `weights` folder in the Neptune run.
 
 ## Advanced Usage
 
 ### Organizing Runs
-You can use the standard Ultralytics `project` and `name` arguments to organize your runs in Neptune. 
+
+You can use the standard Ultralytics `project` and `name` arguments to organize your runs in Neptune.
+
 - `project`: Maps to a high-level grouping or tag.
 - `name`: Acts as the identifier for the specific run.
 
 ### Custom Logging
+
 If you need to log additional custom metrics alongside the automatic logging, you can access the Neptune run instance. Note that you will need to modify the trainer logic or create a custom callback to access the specific run object, as the Ultralytics integration handles the run lifecycle internally.
 
 ## FAQ
 
 ### How do I disable Neptune logging?
+
 If you have installed `neptune` but wish to disable logging for a specific session or globally, you can modify the YOLO settings.
 
 ```bash
@@ -158,10 +160,13 @@ yolo settings neptune=False
 ```
 
 ### My images are not uploading. What's wrong?
+
 Ensure that your network allows connections to Neptune's servers. Additionally, image logging usually occurs at specific intervals (e.g., end of epochs or end of training). If you interrupt training early using `Ctrl+C`, some final artifacts like confusion matrices or the best model weights might not be uploaded.
 
 ### Can I log to a specific Neptune run ID?
+
 The current integration automatically creates a new run for each training session. To resume logging to an existing run, you would typically need to handle the Neptune initialization manually in Python code, which falls outside the scope of the automatic integration. However, Ultralytics supports resuming training locally, which will create a new run in Neptune to track the resumed epochs.
 
 ### Where can I find the model weights in Neptune?
+
 In your Neptune dashboard, navigate to the **Artifacts** or **All Metadata** section. You will find a `weights` folder containing your `best.pt` file, which you can download for deployment.

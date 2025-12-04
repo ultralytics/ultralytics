@@ -59,7 +59,7 @@ The securest way to handle credentials is via environment variables. Note that t
 === "Bash (Linux/Mac)"
 
     ```bash
-    export NEPTUNE_API_TOKEN="your_long_api_token_here"  # required
+    export NEPTUNE_API_TOKEN="your_long_api_token_here" # required
     ```
 
 === "PowerShell (Windows)"

@@ -717,8 +717,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         new_det_obj_ids: npt.NDArray = tracker_update_plan["new_det_obj_ids"]
         new_det_gpu_ids: npt.NDArray = tracker_update_plan["new_det_gpu_ids"]
         is_on_this_gpu: npt.NDArray = True
-        new_det_obj_ids_local: npt.NDArray = new_det_obj_ids[is_on_this_gpu]
-        new_det_fa_inds_local: npt.NDArray = new_det_fa_inds[is_on_this_gpu]
+        new_det_obj_ids_local: npt.NDArray = new_det_obj_ids
+        new_det_fa_inds_local: npt.NDArray = new_det_fa_inds
         obj_ids_newly_removed: Set[int] = tracker_update_plan["obj_ids_newly_removed"]
 
         # Step 1: add new objects from the detector to SAM2 inference states
@@ -1270,10 +1270,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         )
 
         assert len(new_obj_ids) == new_obj_masks.size(0)
-        # print(new_obj_masks.shape, self.interpol_size)
         assert new_obj_masks.is_floating_point()
         new_obj_masks = F.interpolate(
-            new_obj_masks,
+            new_obj_masks.unsqueeze(0),
             size=self.interpol_size,
             mode="bilinear",
             align_corners=False,
@@ -1282,7 +1281,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # add object one by one
         for new_obj_id, new_mask in zip(new_obj_ids, new_obj_masks):
-            print(new_obj_id)
             self.tracker.add_new_prompts(
                 inference_state=new_tracker_state,
                 frame_idx=frame_idx,

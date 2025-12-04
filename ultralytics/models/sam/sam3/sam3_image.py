@@ -356,7 +356,6 @@ class Sam3Image(torch.nn.Module):
         with torch.profiler.record_function("SAM3Image._run_encoder"):
             encoder_out = self._run_encoder(img_feats, img_pos_embeds, vis_feat_sizes, prompt, prompt_mask)
         out = {
-            "encoder_hidden_states": encoder_out["encoder_hidden_states"],
             "prev_encoder_out": {
                 "encoder_out": encoder_out,
                 "backbone_out": backbone_out,
@@ -367,7 +366,7 @@ class Sam3Image(torch.nn.Module):
         # TODO
         with torch.profiler.record_function("SAM3Image._run_decoder"):
             out, hs = self._run_decoder(
-                memory=out["encoder_hidden_states"],
+                memory=encoder_out["encoder_hidden_states"],
                 pos_embed=encoder_out["pos_embed"],
                 src_mask=encoder_out["padding_mask"],
                 out=out,
@@ -382,7 +381,7 @@ class Sam3Image(torch.nn.Module):
                 out=out,
                 backbone_out=backbone_out,
                 img_ids=find_input.img_ids,
-                encoder_hidden_states=out["encoder_hidden_states"],
+                encoder_hidden_states=encoder_out["encoder_hidden_states"],
                 prompt=prompt,
                 prompt_mask=prompt_mask,
                 hs=hs,

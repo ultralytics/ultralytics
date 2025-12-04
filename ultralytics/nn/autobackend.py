@@ -585,9 +585,9 @@ class AutoBackend(nn.Module):
             from axelera.runtime import op
 
             w = Path(w)
-    if (found := next(w.rglob("*.axm"), None)) is None:
-        raise FileNotFoundError(f"No .axm file found in: {w}")
-    w = found
+            if (found := next(w.rglob("*.axm"), None)) is None:
+                raise FileNotFoundError(f"No .axm file found in: {w}")
+            w = found
 
             ax_model = op.load(str(w))
             metadata = w.parent / "metadata.yaml"

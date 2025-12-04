@@ -2,16 +2,8 @@
 
 from __future__ import annotations
 from copy import deepcopy
-from typing import Dict, List, Optional, Tuple
-import os
-
-import numpy as np
 import torch
-
-from .model_misc import SAM3Output
-
 from .vl_combiner import SAM3VLBackbone
-
 from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.nn.modules.utils import inverse_sigmoid
 from .geometry_encoders import Prompt
@@ -40,7 +32,6 @@ class Sam3Image(torch.nn.Module):
         use_instance_query: bool = True,
         multimask_output: bool = True,
         use_act_checkpoint_seg_head: bool = True,
-        interactivity_in_encoder: bool = True,
         matcher=None,
         use_dot_prod_scoring=True,
         supervise_joint_box_scores: bool = False,  # only relevant if using presence token/score
@@ -62,7 +53,6 @@ class Sam3Image(torch.nn.Module):
 
         self.dot_prod_scoring = dot_prod_scoring
         self.use_act_checkpoint_seg_head = use_act_checkpoint_seg_head
-        self.interactivity_in_encoder = interactivity_in_encoder
         self.matcher = matcher
 
         self.num_interactive_steps_val = num_interactive_steps_val
@@ -96,16 +86,7 @@ class Sam3Image(torch.nn.Module):
         self.text_embeddings = {}
         self.names = []
 
-    @property
-    def device(self):
-        self._device = getattr(self, "_device", None) or next(self.parameters()).device
-        return self._device
-
-    def to(self, *args, **kwargs):
-        # clear cached _device in case the model is moved to a different device
-        self._device = None
-        return super().to(*args, **kwargs)
-
+    # TODO: remove this
     def _get_img_feats(self, backbone_out, img_ids):
         """Retrieve correct image features from backbone output."""
         if "backbone_fpn" in backbone_out:
@@ -203,7 +184,7 @@ class Sam3Image(torch.nn.Module):
         find_input,
         prompt,
         prompt_mask,
-        encoder_extra_kwargs: Optional[Dict] = None,
+        encoder_extra_kwargs: dict = None,
     ):
         feat_tuple = self._get_img_feats(backbone_out, find_input.img_ids)
         backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = feat_tuple
@@ -449,7 +430,7 @@ class Sam3Image(torch.nn.Module):
             self._compute_matching(out, self.back_convert(find_target))
         return out
 
-    def _postprocess_out(self, out: Dict, multimask_output: bool = False):
+    def _postprocess_out(self, out: dict, multimask_output: bool = False):
         # For multimask output, during eval we return the single best mask with the dict keys expected by the evaluators, but also return the multimasks output with new keys.
         num_mask_boxes = out["pred_boxes"].size(1)
         if not self.training and multimask_output and num_mask_boxes > 1:
@@ -497,81 +478,6 @@ class Sam3Image(torch.nn.Module):
             "object_ids_padded": targets.object_ids_padded,
         }
         return batched_targets
-
-    def predict_inst(
-        self,
-        inference_state,
-        **kwargs,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        orig_h, orig_w = (
-            inference_state["original_height"],
-            inference_state["original_width"],
-        )
-        backbone_out = inference_state["backbone_out"]["sam2_backbone_out"]
-        (
-            _,
-            vision_feats,
-            _,
-            _,
-        ) = self.inst_interactive_predictor.model._prepare_backbone_features(backbone_out)
-        # Add no_mem_embed, which is added to the lowest rest feat. map during training on videos
-        vision_feats[-1] = vision_feats[-1] + self.inst_interactive_predictor.model.no_mem_embed
-        feats = [
-            feat.permute(1, 2, 0).view(1, -1, *feat_size)
-            for feat, feat_size in zip(vision_feats[::-1], self.inst_interactive_predictor._bb_feat_sizes[::-1])
-        ][::-1]
-        self.inst_interactive_predictor._features = {
-            "image_embed": feats[-1],
-            "high_res_feats": feats[:-1],
-        }
-        self.inst_interactive_predictor._is_image_set = True
-        self.inst_interactive_predictor._orig_hw = [(orig_h, orig_w)]
-        res = self.inst_interactive_predictor.predict(**kwargs)
-        self.inst_interactive_predictor._features = None
-        self.inst_interactive_predictor._is_image_set = False
-        return res
-
-    def predict_inst_batch(
-        self,
-        inference_state,
-        *args,
-        **kwargs,
-    ) -> Tuple[List[np.ndarray], List[np.ndarray], List[np.ndarray]]:
-        backbone_out = inference_state["backbone_out"]["sam2_backbone_out"]
-        (
-            _,
-            vision_feats,
-            _,
-            _,
-        ) = self.inst_interactive_predictor.model._prepare_backbone_features(backbone_out)
-        # Add no_mem_embed, which is added to the lowest res feat. map during training on videos
-        vision_feats[-1] = vision_feats[-1] + self.inst_interactive_predictor.model.no_mem_embed
-        batch_size = vision_feats[-1].shape[1]
-        orig_heights, orig_widths = (
-            inference_state["original_heights"],
-            inference_state["original_widths"],
-        )
-        assert batch_size == len(orig_heights) == len(orig_widths), (
-            f"Batch size mismatch in predict_inst_batch. Got {batch_size}, {len(orig_heights)}, {len(orig_widths)}"
-        )
-        feats = [
-            feat.permute(1, 2, 0).view(batch_size, -1, *feat_size)
-            for feat, feat_size in zip(vision_feats[::-1], self.inst_interactive_predictor._bb_feat_sizes[::-1])
-        ][::-1]
-        self.inst_interactive_predictor._features = {
-            "image_embed": feats[-1],
-            "high_res_feats": feats[:-1],
-        }
-        self.inst_interactive_predictor._is_image_set = True
-        self.inst_interactive_predictor._is_batch = True
-        self.inst_interactive_predictor._orig_hw = [
-            (orig_h, orig_w) for orig_h, orig_w in zip(orig_heights, orig_widths)
-        ]
-        res = self.inst_interactive_predictor.predict_batch(*args, **kwargs)
-        self.inst_interactive_predictor._features = None
-        self.inst_interactive_predictor._is_image_set = False
-        self.inst_interactive_predictor._is_batch = False
-        return res
 
     def set_classes(self, text: list[str]):
         """Set the text embeddings for the given class names."""

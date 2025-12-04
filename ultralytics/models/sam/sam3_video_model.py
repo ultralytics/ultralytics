@@ -1209,7 +1209,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         object_score_logits = torch.where((high_res_masks > 0).any(dim=(-1, -2)), 10.0, -10.0)
 
         # Run the memory encoder on local slices for each GPU
-        start_idx_gpu = tracker_metadata["num_obj_per_gpu"]
+        start_idx_gpu = 0
         start_idx_state = start_idx_gpu
         for tracker_state in tracker_inference_states:
             num_obj_per_state = len(tracker_state["obj_ids"])

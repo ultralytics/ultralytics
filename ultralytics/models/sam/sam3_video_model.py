@@ -131,7 +131,11 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3VideoSemanticPredictor model."""
         super().setup_model(model, verbose)
-        self.tracker.setup_model(verbose=False)
+        from .build_sam3 import build_interactive_sam3
+
+        # Initialize the SAM3 tracker model without backbone (backbone is handled in the detector)
+        model =  build_interactive_sam3(self.args.model, with_backbone=False)
+        self.tracker.setup_model(model=model, verbose=False)
 
     def setup_source(self, source):
         """Setup the source for the SAM3VideoSemanticPredictor model."""

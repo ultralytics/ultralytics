@@ -54,20 +54,18 @@ Before you start training, you need to connect your local environment to your Ne
 
 ### 2. Set Environment Variables
 
-The securest way to handle credentials is via environment variables.
+The securest way to handle credentials is via environment variables. Note that the Ultralytics Neptune callback reads the YOLO `project` argument and does not use `NEPTUNE_PROJECT`. Pass the full Neptune slug (e.g., `workspace/name`) via `project=` in your training command; otherwise Neptune will try to use the literal default `"Ultralytics"` and the run will fail.
 
 === "Bash (Linux/Mac)"
 
     ```bash
-    export NEPTUNE_API_TOKEN="your_long_api_token_here"
-    export NEPTUNE_PROJECT="your_workspace/your_project"
+    export NEPTUNE_API_TOKEN="your_long_api_token_here"  # required
     ```
 
 === "PowerShell (Windows)"
 
     ```powershell
-    $Env:NEPTUNE_API_TOKEN = "your_long_api_token_here"
-    $Env:NEPTUNE_PROJECT = "your_workspace/your_project"
+    $Env:NEPTUNE_API_TOKEN = "your_long_api_token_here"  # required
     ```
 
 === "Python"
@@ -96,15 +94,16 @@ Once configured, you can start training your YOLO11 models. The Neptune integrat
         model = YOLO("yolo11n.pt")
 
         # Train the model
-        # The 'project' and 'name' arguments help organize runs in Neptune
-        results = model.train(data="coco8.yaml", epochs=10, project="my-yolo-project", name="experiment-1")
+        # Pass the Neptune project slug as the 'project' argument (workspace/name)
+        results = model.train(data="coco8.yaml", epochs=10, project="my-workspace/my-project", name="experiment-1")
         ```
 
     === "CLI"
 
         ```bash
         # Train via CLI
-        yolo train data=coco8.yaml epochs=10 project=my-yolo-project name=experiment-1
+        # project must be the Neptune slug (workspace/name); otherwise run creation will fail
+        yolo train data=coco8.yaml epochs=10 project=my-workspace/my-project name=experiment-1
         ```
 
 ## Understanding the Integration
@@ -148,7 +147,7 @@ When you run the training command, the Neptune integration automatically capture
 
 You can use the standard Ultralytics `project` and `name` arguments to organize your runs in Neptune.
 
-- `project`: Maps to a high-level grouping or tag.
+- `project`: Must be the Neptune project slug `workspace/name`; this is what the callback passes to `neptune.init_run`.
 - `name`: Acts as the identifier for the specific run.
 
 ### Custom Logging

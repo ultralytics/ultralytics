@@ -2377,6 +2377,14 @@ class SAM3SemanticPredictor(SAM3Predictor):
         self.prompts = {}
         self.model.text_embeddings = {}
 
+    def _get_dummy_prompt(self, num_prompts=1):
+        """Get a dummy geometric prompt with zero boxes."""
+        geometric_prompt = Prompt(
+            box_embeddings=torch.zeros(0, num_prompts, 4, device=self.device),
+            box_mask=torch.zeros(num_prompts, 0, device=self.device, dtype=torch.bool),
+        )
+        return geometric_prompt
+
 
 class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Video Predictor for video segmentation tasks."""
@@ -2447,11 +2455,3 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
             _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
             return vis_feats, vis_pos_embed, feat_sizes
         return super().get_im_features(im, batch)
-
-    def _get_dummy_prompt(self, num_prompts=1):
-        """Get a dummy geometric prompt with zero boxes."""
-        geometric_prompt = Prompt(
-            box_embeddings=torch.zeros(0, num_prompts, 4, device=self.device),
-            box_mask=torch.zeros(num_prompts, 0, device=self.device, dtype=torch.bool),
-        )
-        return geometric_prompt

@@ -324,7 +324,8 @@ class Sam3Image(torch.nn.Module):
 
     def forward_grounding(self, backbone_out, find_input, geometric_prompt: Prompt = None):
         """Forward pass for grounding (detection + segmentation) given input images and text."""
-        backbone_out.update({k: v.to(self.device) for k, v in self.text_embeddings.items()})
+        device = backbone_out["vision_features"].device
+        backbone_out.update({k: v.to(device) for k, v in self.text_embeddings.items()})
         backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = self._get_img_feats(backbone_out, find_input.img_ids)
         with torch.profiler.record_function("SAM3Image._encode_prompt"):
             prompt, prompt_mask = self._encode_prompt(img_feats, img_pos_embeds, vis_feat_sizes, geometric_prompt)
@@ -375,8 +376,3 @@ class Sam3Image(torch.nn.Module):
     def set_imgsz(self, imgsz: tuple[int, int]):
         """Set the image size for the model."""
         self.backbone.set_imgsz(imgsz)
-
-    @property  # TODO: remove this
-    def device(self):
-        """Get the device of the model parameters."""
-        return next(self.parameters()).device

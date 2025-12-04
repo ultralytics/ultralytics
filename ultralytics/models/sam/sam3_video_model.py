@@ -205,7 +205,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             pred_scores = torch.tensor(
                 [preds["obj_id_to_score"][obj_id] for obj_id in curr_obj_ids], device=pred_masks.device
             )
-            pred_cls = torch.zeros(pred_scores.shape[0], dtype=pred_scores.dtype, device=pred_scores.device)
+            pred_cls = torch.tensor(
+                [preds["obj_id_to_cls"][obj_id] for obj_id in curr_obj_ids], device=pred_masks.device
+            )
             keep = (pred_scores > self.args.conf) & pred_masks.any(dim=(1, 2))
             pred_masks = pred_masks[keep]
             pred_boxes = masks_to_boxes(pred_masks)
@@ -254,6 +256,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         (
             obj_id_to_mask,
             obj_id_to_score,
+            obj_id_to_cls,
             tracker_states_local_new,
             tracker_metadata_new,
             frame_stats,
@@ -280,6 +283,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         out = {
             "obj_id_to_mask": obj_id_to_mask,
             "obj_id_to_score": obj_id_to_score,  # first frame detection score
+            "obj_id_to_cls": obj_id_to_cls,  # first frame detection score
             "obj_id_to_tracker_score": tracker_metadata_new["obj_id_to_tracker_score_frame_wise"][frame_idx],
         }
         # removed_obj_ids is only needed on rank 0 to handle hotstart delay buffer
@@ -459,6 +463,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             reconditioned_obj_ids=reconditioned_obj_ids,
         )
         obj_id_to_score = tracker_metadata_new["obj_id_to_score"]
+        obj_id_to_cls = tracker_metadata_new["obj_id_to_cls"]
         # a few statistics for the current frame as a part of the output
         frame_stats = {
             "num_obj_tracked": np.sum(tracker_metadata_new["num_obj"]),
@@ -475,6 +480,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         return (
             obj_id_to_mask,  # a dict: obj_id --> output mask
             obj_id_to_score,  # a dict: obj_id --> output score (prob)
+            obj_id_to_cls,  # a dict: obj_id --> output cls (int)
             tracker_states_local_new,
             tracker_metadata_new,
             frame_stats,
@@ -637,6 +643,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "obj_ids": deepcopy(tracker_metadata_prev["obj_ids"]),
             "num_obj": deepcopy(tracker_metadata_prev["num_obj"]),
             "obj_id_to_score": deepcopy(tracker_metadata_prev["obj_id_to_score"]),
+            "obj_id_to_cls": deepcopy(tracker_metadata_prev["obj_id_to_cls"]),
             "obj_id_to_tracker_score_frame_wise": deepcopy(tracker_metadata_prev["obj_id_to_tracker_score_frame_wise"]),
             "obj_id_to_last_occluded": {},  # will be filled later
             "max_obj_id": deepcopy(tracker_metadata_prev["max_obj_id"]),
@@ -648,6 +655,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 1: make the update plan and resolve heuristics on GPU 0
         det_mask_preds: Tensor = det_out["mask"]  # low-res mask logits
         det_scores_np: npt.NDArray = det_out["scores"].float().cpu().numpy()
+        det_cls_np: npt.NDArray = det_out["cls"].float().cpu().numpy()
         det_bbox_xyxy: Tensor = det_out["bbox"]
         # a) match detector and tracker masks and find new objects
         (
@@ -805,6 +813,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # update object scores and the maximum object ID assigned so far
         if len(new_det_obj_ids) > 0:
             tracker_metadata_new["obj_id_to_score"].update(zip(new_det_obj_ids, det_scores_np[new_det_fa_inds]))
+            tracker_metadata_new["obj_id_to_cls"].update(zip(new_det_obj_ids, det_cls_np[new_det_fa_inds]))
             # tracker scores are not available for new objects, use det score instead.
             tracker_metadata_new["obj_id_to_tracker_score_frame_wise"][frame_idx].update(
                 zip(new_det_obj_ids, det_scores_np[new_det_fa_inds])
@@ -1448,6 +1457,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "num_obj": np.zeros(1, np.int32),
             "max_obj_id": -1,
             "obj_id_to_score": {},
+            "obj_id_to_cls": {},
             "obj_id_to_tracker_score_frame_wise": defaultdict(dict),
             "obj_id_to_last_occluded": {},
         }

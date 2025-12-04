@@ -168,7 +168,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "num_frames": num_frames,
             "tracker_inference_states": [],
             "tracker_metadata": {},
-            "feature_cache": {},
         }
         inference_state["text_prompt"] = None
         inference_state["per_frame_geometric_prompt"] = [None] * num_frames
@@ -177,7 +176,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def inference(self, im, bboxes=None, labels=None, text: list[str] = None, *args, **kwargs):
         """Perform inference on a video sequence with optional prompts."""
         frame = self.dataset.frame - 1  # align frame index to be 0-based
-        if len(self.inference_state["feature_cache"]) == 0:  # no feature cached yet
+        if "input_batch" not in self.inference_state:  # first frame processing
             self.inference_state["input_batch"] = Datapoint(img_batch=im, text_ids=None, img_ids=None)
             self.add_prompt(frame_idx=frame, text=text, bboxes=bboxes, labels=labels)
         else:
@@ -267,7 +266,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             ),
             tracker_states_local=tracker_states_local,
             tracker_metadata_prev=inference_state["tracker_metadata"],
-            feature_cache=inference_state["feature_cache"],
             allow_new_detections=has_text_prompt or has_geometric_prompt,
         )
         # update inference state
@@ -365,7 +363,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         geometric_prompt: Any,
         tracker_states_local: List[Any],
         tracker_metadata_prev: Dict[str, Any],
-        feature_cache: Dict,
         allow_new_detections: bool = True,
     ):
         """
@@ -382,19 +379,13 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # Step 1: run backbone and detector in a distributed manner -- this is done via Sam3ImageOnVideoMultiGPU,
         # a MultiGPU model (assigned to `self.detector`) that shards frames in a round-robin manner.
-        # It returns a "det_out" dict for `frame_idx` and fills SAM2 backbone features for `frame_idx`
-        # into `feature_cache`. Despite its distributed inference under the hood, the results would be
-        # the same as if it is running backbone and detector for every frame on a single GPU.
         det_out = self.run_backbone_and_detection(
             frame_idx=frame_idx,
             reverse=reverse,
             input_batch=input_batch,
             geometric_prompt=geometric_prompt,
-            feature_cache=feature_cache,
             allow_new_detections=allow_new_detections,
         )
-        # cache the SAM2 backbone features for `frame_idx` in the tracker
-        self.tracker.backbone_out = feature_cache[frame_idx]
 
         # Step 2: each GPU propagates its local SAM2 states to get the SAM2 prediction masks.
         # the returned `tracker_low_res_masks_global` contains the concatenated masklet predictions
@@ -492,7 +483,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         frame_idx: int,
         input_batch,
         geometric_prompt: Any,
-        feature_cache: Dict,
         reverse: bool,
         allow_new_detections: bool,
     ):
@@ -503,7 +493,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             geometric_prompt=geometric_prompt,
         )
         det_out = self._extract_detection_outputs(sam3_image_out, allow_new_detections)
-        self._cache_backbone_features(sam3_image_out, feature_cache, frame_idx, reverse)
+        self._cache_backbone_features(sam3_image_out, frame_idx, reverse)
         return det_out
 
     def _extract_detection_outputs(self, sam3_image_out, allow_new_detections):
@@ -529,7 +519,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "cls": pred_cls[keep],
         }
 
-    def _cache_backbone_features(self, sam3_image_out, feature_cache, frame_idx, reverse):
+    def _cache_backbone_features(self, sam3_image_out, frame_idx, reverse):
         """Build and cache SAM2 backbone features."""
         sam_mask_decoder = self.tracker.model.sam_mask_decoder
         feats = sam3_image_out["prev_encoder_out"]["backbone_out"]["sam2_backbone_out"]
@@ -543,8 +533,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "vision_pos_enc": feats["vision_pos_enc"],
             "backbone_fpn": tracker_backbone_fpn,
         }
-        feature_cache[frame_idx] = tracker_backbone_out
-        feature_cache.pop(frame_idx - 1 if not reverse else frame_idx + 1, None)
+        # cache the SAM2 backbone features for `frame_idx` in the tracker
+        self.tracker.backbone_out = tracker_backbone_out
 
     def run_tracker_propagation(
         self,

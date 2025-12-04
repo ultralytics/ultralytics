@@ -252,7 +252,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if tracker_obj_scores_global.shape[0] > 0:
             # Convert tracker_obj_scores_global to sigmoid scores before updating
             tracker_obj_scores_global = tracker_obj_scores_global.sigmoid().tolist()
-            tracker_obj_ids = tracker_metadata_prev["obj_ids_all_gpu"]
+            tracker_obj_ids = tracker_metadata_prev["obj_ids_per_gpu"]
             tracker_metadata_new["obj_id_to_tracker_score_frame_wise"][frame_idx].update(
                 dict(zip(tracker_obj_ids, tracker_obj_scores_global))
             )
@@ -383,7 +383,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             )
             HIGH_CONF_THRESH = 0.8
             reconditioned_states_idx = set()
-            obj_idx = np.where(tracker_metadata["obj_ids_all_gpu"] == trk_obj_id)[0].item()
+            obj_idx = np.where(tracker_metadata["obj_ids_per_gpu"] == trk_obj_id)[0].item()
             obj_score = tracker_obj_scores_global[obj_idx]
             for state_idx, inference_state in enumerate(tracker_states_local):
                 if (
@@ -420,7 +420,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # initialize new metadata from previous metadata (its values will be updated later)
         tracker_metadata_new = {
             "obj_ids_per_gpu": deepcopy(tracker_metadata_prev["obj_ids_per_gpu"]),
-            "obj_ids_all_gpu": None,  # will be filled later
             "num_obj_per_gpu": deepcopy(tracker_metadata_prev["num_obj_per_gpu"]),
             "obj_id_to_score": deepcopy(tracker_metadata_prev["obj_id_to_score"]),
             "obj_id_to_tracker_score_frame_wise": deepcopy(tracker_metadata_prev["obj_id_to_tracker_score_frame_wise"]),
@@ -446,7 +445,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             det_masks=det_mask_preds,
             det_scores_np=det_scores_np,
             trk_masks=tracker_low_res_masks_global,
-            trk_obj_ids=tracker_metadata_prev["obj_ids_all_gpu"],
+            trk_obj_ids=tracker_metadata_prev["obj_ids_per_gpu"],
         )
         if self.suppress_det_close_to_boundary:
             keep = self._suppress_detections_close_to_boundary(det_bbox_xyxy[new_det_fa_inds])
@@ -517,7 +516,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 det_score = det_out["scores"][det_idx]
 
                 try:
-                    trk_idx = list(tracker_metadata_prev["obj_ids_all_gpu"]).index(trk_obj_id)
+                    trk_idx = list(tracker_metadata_prev["obj_ids_per_gpu"]).index(trk_obj_id)
                 except ValueError:
                     continue  # Skip if tracklet not found
 
@@ -603,7 +602,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             updated_obj_ids_this_gpu = updated_obj_ids_this_gpu[~is_removed]
         tracker_metadata_new["obj_ids_per_gpu"] = updated_obj_ids_this_gpu
         tracker_metadata_new["num_obj_per_gpu"] = len(updated_obj_ids_this_gpu)
-        tracker_metadata_new["obj_ids_all_gpu"] = tracker_metadata_new["obj_ids_per_gpu"]
         # update object scores and the maximum object ID assigned so far
         if len(new_det_obj_ids) > 0:
             tracker_metadata_new["obj_id_to_score"].update(zip(new_det_obj_ids, det_scores_np[new_det_fa_inds]))
@@ -626,8 +624,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if self.masklet_confirmation_enable:
             rank0_metadata = self.update_masklet_confirmation_status(
                 rank0_metadata=tracker_metadata_new["rank0_metadata"],
-                obj_ids_all_gpu_prev=tracker_metadata_prev["obj_ids_all_gpu"],
-                obj_ids_all_gpu_updated=tracker_metadata_new["obj_ids_all_gpu"],
+                obj_ids_all_gpu_prev=tracker_metadata_prev["obj_ids_per_gpu"],
+                obj_ids_all_gpu_updated=tracker_metadata_new["obj_ids_per_gpu"],
                 det_to_matched_trk_obj_ids=det_to_matched_trk_obj_ids,
                 new_det_obj_ids=new_det_obj_ids,
             )
@@ -655,7 +653,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         Return:
             Tensor: The updated low-resolution masks with some objects suppressed.
         """
-        obj_ids_global = tracker_metadata_prev["obj_ids_all_gpu"]
+        obj_ids_global = tracker_metadata_prev["obj_ids_per_gpu"]
         binary_tracker_low_res_masks_global = tracker_low_res_masks_global > 0
         batch_size = tracker_low_res_masks_global.size(0)
         if batch_size > 0:
@@ -755,7 +753,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         ori_size = self.batch[1][0].shape[:2]
 
         # Part 1: masks from previous SAM2 propagation
-        existing_masklet_obj_ids = tracker_metadata_prev["obj_ids_all_gpu"]
+        existing_masklet_obj_ids = tracker_metadata_prev["obj_ids_per_gpu"]
         existing_masklet_video_res_masks = F.interpolate(
             tracker_low_res_masks_global.unsqueeze(1),
             size=ori_size,
@@ -1320,7 +1318,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # TODO: revisit this part and clean it up
         tracker_metadata = {
             "obj_ids_per_gpu": np.array([], np.int64),
-            "obj_ids_all_gpu": np.array([], np.int64),
             "num_obj_per_gpu": np.zeros(1, np.int64),
             "max_obj_id": -1,
             "obj_id_to_score": {},

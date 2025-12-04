@@ -186,24 +186,24 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] = None, *args, **kwargs):
         """Perform inference on a video sequence with optional prompts."""
-        frame = self.dataset.frame
-        find_text_batch = ["<text placeholder>", "visual"]
-        stages = FindStage(
-            img_ids=torch.tensor([0], device=self.device, dtype=torch.long),
-            text_ids=torch.tensor([0], device=self.device, dtype=torch.long),
-            input_boxes=[torch.zeros(258, device=self.device)],
-            input_boxes_mask=[torch.empty(0, dtype=torch.bool, device=self.device)],
-            input_boxes_label=[torch.empty(0, dtype=torch.long, device=self.device)],
-            input_points=[torch.empty(0, 257, device=self.device)],
-            input_points_mask=[torch.empty(0, device=self.device)],
-            object_ids=[],
-        )
-
-        input_batch = Datapoint(img_batch=im, find_text_batch=find_text_batch, find_inputs=stages)
-        self.inference_state["input_batch"] = input_batch
-        frame = frame - 1
-        if frame == 0:  # TODO: more stable check
+        frame = self.dataset.frame - 1  # align frame index to be 0-based
+        if len(self.inference_state["feature_cache"]) == 0:  # no feature cached yet
+            find_text_batch = ["<text placeholder>", "visual"]
+            stages = FindStage(
+                img_ids=torch.tensor([0], device=self.device, dtype=torch.long),
+                text_ids=torch.tensor([0], device=self.device, dtype=torch.long),
+                input_boxes=[torch.zeros(258, device=self.device)],
+                input_boxes_mask=[torch.empty(0, dtype=torch.bool, device=self.device)],
+                input_boxes_label=[torch.empty(0, dtype=torch.long, device=self.device)],
+                input_points=[torch.empty(0, 257, device=self.device)],
+                input_points_mask=[torch.empty(0, device=self.device)],
+                object_ids=[],
+            )
+            input_batch = Datapoint(img_batch=im, find_text_batch=find_text_batch, find_inputs=stages)
+            self.inference_state["input_batch"] = input_batch
             self.add_prompt(frame_idx=frame, text_str=text, bboxes=bboxes, labels=labels)
+        else:
+            self.inference_state["input_batch"].img_batch = im  # only pass image for subsequent frames
         return self._run_single_frame_inference(frame, reverse=False)
 
     def postprocess(self, preds, img, orig_imgs):

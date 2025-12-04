@@ -11,7 +11,7 @@ keywords: Neptune, YOLO11, Ultralytics, experiment tracking, MLOps, model regist
 Ultralytics YOLO11 integrates with Neptune to streamline [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking). This integration allows you to automatically log training metrics, visualize model predictions, and store model artifacts without writing custom logging code.
 
 <p align="center">
-  <img width="800" src="https://neptune.ai/wp-content/uploads/2023/10/Neptune_product_shot.png" alt="Neptune.ai Dashboard Overview">
+  <img width="800" src="https://docs.neptune.ai/img/app/app_preview.png" alt="Neptune.ai Dashboard Overview">
 </p>
 
 ## Key Features
@@ -127,16 +127,16 @@ graph LR
 
 When you run the training command, the Neptune integration automatically captures the following data structure in your run:
 
-1.  **Configuration/Hyperparameters**: All training arguments (epochs, lr0, optimizer, etc.) are logged under the Configuration section.
-2.  **Configuration/Model**: The model architecture and definition.
-3.  **Metrics**:
+1. **Configuration/Hyperparameters**: All training arguments (epochs, lr0, optimizer, etc.) are logged under the Configuration section.
+2. **Configuration/Model**: The model architecture and definition.
+3. **Metrics**:
     - **Train**: `box_loss`, `cls_loss`, `dfl_loss`, `lr` (learning rate).
     - **Metrics**: `precision`, `recall`, `mAP50`, `mAP50-95`.
-4.  **Images**:
+4. **Images**:
     - `Mosaic`: Training batches showing data augmentation.
     - `Validation`: Ground truth labels and model predictions on validation data.
     - `Plots`: Confusion matrices, Precision-Recall curves.
-5.  **Weights**: The final trained model (`best.pt`) is uploaded to the `weights` folder in the Neptune run.
+5. **Weights**: The final trained model (`best.pt`) is uploaded to the `weights` folder in the Neptune run.
 
 ## Advanced Usage
 

@@ -1122,7 +1122,7 @@ class Exporter:
 
         if "C2PSA" in self.model.__str__():  # YOLO11
             config = CompilerConfig(
-                ptq_scheme="per_tensor_min_max",
+                quantization_scheme="per_tensor_min_max",
                 ignore_weight_buffers=False,
                 resources_used=0.25,
                 aipu_cores_used=1,

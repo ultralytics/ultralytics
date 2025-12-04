@@ -339,6 +339,7 @@ class Sam3Image(torch.nn.Module):
         return prev_mask_pred
 
     def forward_grounding(self, backbone_out, find_input, geometric_prompt: Prompt = None):
+        """Forward pass for grounding (detection + segmentation) given input images and text."""
         backbone_out.update({k: v.to(self.device) for k, v in self.text_embeddings.items()})
         backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = self._get_img_feats(backbone_out, find_input.img_ids)
         with torch.profiler.record_function("SAM3Image._encode_prompt"):
@@ -355,12 +356,7 @@ class Sam3Image(torch.nn.Module):
         # Run the encoder
         with torch.profiler.record_function("SAM3Image._run_encoder"):
             encoder_out = self._run_encoder(img_feats, img_pos_embeds, vis_feat_sizes, prompt, prompt_mask)
-        out = {
-            "prev_encoder_out": {
-                "encoder_out": encoder_out,
-                "backbone_out": backbone_out,
-            },
-        }
+        out = {"backbone_out": backbone_out}
 
         # Run the decoder
         # TODO

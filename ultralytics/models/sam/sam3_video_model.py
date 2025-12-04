@@ -522,7 +522,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def _cache_backbone_features(self, sam3_image_out):
         """Build and cache SAM2 backbone features."""
         sam_mask_decoder = self.tracker.model.sam_mask_decoder
-        feats = sam3_image_out["prev_encoder_out"]["backbone_out"]["sam2_backbone_out"]
+        feats = sam3_image_out["backbone_out"]["sam2_backbone_out"]
         tracker_backbone_fpn = [
             sam_mask_decoder.conv_s0(feats["backbone_fpn"][0]),
             sam_mask_decoder.conv_s1(feats["backbone_fpn"][1]),

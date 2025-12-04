@@ -65,7 +65,8 @@ The securest way to handle credentials is via environment variables.
     `
 
 === "Python"
-```python
+
+````python
 import os
 
     os.environ["NEPTUNE_API_TOKEN"] = "your_long_api_token_here"
@@ -103,7 +104,6 @@ Once configured, you can start training your YOLO11 models. The Neptune integrat
 ## Understanding the Integration
 
 The following diagram illustrates how the Ultralytics Training pipeline interacts with Neptune to log various artifacts and metrics.
-
 ```mermaid
 graph LR
     A[YOLO Training Loop] --> B{Neptune Callback}
@@ -118,7 +118,7 @@ graph LR
     F --> G
 
     G --> H[Neptune Web Dashboard]
-```
+````
 
 ### What is Logged?
 

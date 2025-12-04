@@ -410,7 +410,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         if use_uv:
             base = (
                 f"uv pip install --no-cache-dir {packages} {commands} "
-                f"--index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+                f"--index-strategy=unsafe-best-match --break-system-packages"
             )
             try:
                 return subprocess.check_output(base, shell=True, stderr=subprocess.STDOUT, text=True)

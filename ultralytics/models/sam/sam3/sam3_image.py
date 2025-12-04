@@ -28,10 +28,6 @@ def _update_out(out, out_name, out_value, auxiliary=True, update_aux=True):
 
 
 class Sam3Image(torch.nn.Module):
-    TEXT_ID_FOR_TEXT = 0
-    TEXT_ID_FOR_VISUAL = 1
-    TEXT_ID_FOR_GEOMETRIC = 2
-
     def __init__(
         self,
         backbone: SAM3VLBackbone,

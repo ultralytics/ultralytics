@@ -2254,11 +2254,6 @@ class SAM3SemanticPredictor(SAM3Predictor):
         find_stage = FindStage(
             img_ids=torch.tensor([0] * nc, device=self.device, dtype=torch.long),
             text_ids=torch.tensor(list(range(nc)), device=self.device, dtype=torch.long),
-            input_boxes=None,
-            input_boxes_mask=None,
-            input_boxes_label=None,
-            input_points=None,
-            input_points_mask=None,
         )
         outputs = self.model.forward_grounding(
             backbone_out=features,

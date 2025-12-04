@@ -213,7 +213,6 @@ class Sam3Image(torch.nn.Module):
         query_embed = self.transformer.decoder.query_embed.weight
         tgt = query_embed.unsqueeze(1).repeat(1, bs, 1)
 
-        apply_dac = self.transformer.decoder.dac and self.training
         hs, reference_boxes, dec_presence_out, dec_presence_feats = self.transformer.decoder(
             tgt=tgt,
             memory=memory,
@@ -225,7 +224,7 @@ class Sam3Image(torch.nn.Module):
             tgt_mask=None,
             memory_text=prompt,
             text_attention_mask=prompt_mask,
-            apply_dac=apply_dac,
+            apply_dac=False,
         )
         hs = hs.transpose(1, 2)  # seq-first to batch-first
         reference_boxes = reference_boxes.transpose(1, 2)  # seq-first to batch-first
@@ -254,10 +253,7 @@ class Sam3Image(torch.nn.Module):
         dec_presence_out=None,
         is_instance_prompt=False,
     ):
-        apply_dac = self.transformer.decoder.dac and self.training
-        num_o2o = (hs.size(2) // 2) if apply_dac else hs.size(2)
-        num_o2m = hs.size(2) - num_o2o
-        assert num_o2m == (num_o2o if apply_dac else 0)
+        num_o2o = hs.size(2)
         out["queries"] = hs[-1][:, :num_o2o]  # remove o2m queries if there are any
         # score prediction
         if self.use_dot_prod_scoring:
@@ -301,25 +297,6 @@ class Sam3Image(torch.nn.Module):
             outputs_boxes_xyxy[:, :, :num_o2o],
             update_aux=self.training,
         )
-        if num_o2m > 0 and self.training:
-            _update_out(
-                out,
-                "pred_logits_o2m",
-                outputs_class[:, :, num_o2o:],
-                update_aux=self.training,
-            )
-            _update_out(
-                out,
-                "pred_boxes_o2m",
-                outputs_coord[:, :, num_o2o:],
-                update_aux=self.training,
-            )
-            _update_out(
-                out,
-                "pred_boxes_xyxy_o2m",
-                outputs_boxes_xyxy[:, :, num_o2o:],
-                update_aux=self.training,
-            )
 
     def _run_segmentation_heads(
         self,
@@ -331,10 +308,9 @@ class Sam3Image(torch.nn.Module):
         prompt_mask,
         hs,
     ):
-        apply_dac = self.transformer.decoder.dac and self.training
+        """Run segmentation heads and get masks."""
         if self.segmentation_head is not None:
-            num_o2o = (hs.size(2) // 2) if apply_dac else hs.size(2)
-            num_o2m = hs.size(2) - num_o2o
+            num_o2o = hs.size(2)
             obj_queries = hs if self.o2m_mask_predict else hs[:, :, :num_o2o]
             seg_head_outputs = self.segmentation_head(
                 backbone_feats=backbone_out["backbone_fpn"],
@@ -344,12 +320,9 @@ class Sam3Image(torch.nn.Module):
                 prompt=prompt,
                 prompt_mask=prompt_mask,
             )
-            aux_masks = False  # self.aux_loss and self.segmentation_head.aux_masks
             for k, v in seg_head_outputs.items():
                 if k in self.segmentation_head.instance_keys:
-                    _update_out(out, k, v[:, :num_o2o], auxiliary=aux_masks)
-                    if self.o2m_mask_predict and num_o2m > 0:  # handle o2m mask prediction
-                        _update_out(out, f"{k}_o2m", v[:, num_o2o:], auxiliary=aux_masks)
+                    _update_out(out, k, v[:, :num_o2o], auxiliary=False)
                 else:
                     out[k] = v
         else:
@@ -365,13 +338,7 @@ class Sam3Image(torch.nn.Module):
 
         return prev_mask_pred
 
-    def forward_grounding(
-        self,
-        backbone_out,
-        find_input,
-        find_target=None,
-        geometric_prompt: Prompt = None,
-    ):
+    def forward_grounding(self, backbone_out, find_input, geometric_prompt: Prompt = None):
         backbone_out.update({k: v.to(self.device) for k, v in self.text_embeddings.items()})
         backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = self._get_img_feats(backbone_out, find_input.img_ids)
         with torch.profiler.record_function("SAM3Image._encode_prompt"):
@@ -397,6 +364,7 @@ class Sam3Image(torch.nn.Module):
         }
 
         # Run the decoder
+        # TODO
         with torch.profiler.record_function("SAM3Image._run_decoder"):
             out, hs = self._run_decoder(
                 memory=out["encoder_hidden_states"],

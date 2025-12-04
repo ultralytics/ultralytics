@@ -493,7 +493,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             geometric_prompt=geometric_prompt,
         )
         det_out = self._extract_detection_outputs(sam3_image_out, allow_new_detections)
-        self._cache_backbone_features(sam3_image_out, frame_idx, reverse)
+        self._cache_backbone_features(sam3_image_out)
         return det_out
 
     def _extract_detection_outputs(self, sam3_image_out, allow_new_detections):
@@ -519,7 +519,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "cls": pred_cls[keep],
         }
 
-    def _cache_backbone_features(self, sam3_image_out, frame_idx, reverse):
+    def _cache_backbone_features(self, sam3_image_out):
         """Build and cache SAM2 backbone features."""
         sam_mask_decoder = self.tracker.model.sam_mask_decoder
         feats = sam3_image_out["prev_encoder_out"]["backbone_out"]["sam2_backbone_out"]

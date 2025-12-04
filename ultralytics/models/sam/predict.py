@@ -2260,7 +2260,6 @@ class SAM3SemanticPredictor(SAM3Predictor):
             backbone_out=features,
             find_input=find_stage,
             geometric_prompt=geometric_prompt,
-            find_target=None,
         )
         return outputs
 

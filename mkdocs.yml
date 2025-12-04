@@ -472,6 +472,7 @@ nav:
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
       - MLflow: integrations/mlflow.md
+      - Neptune: integrations/neptune.md
       - Paperspace Gradient: integrations/paperspace.md
       - Ray Tune: integrations/ray-tune.md
       - TensorBoard: integrations/tensorboard.md

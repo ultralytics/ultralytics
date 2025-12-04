@@ -177,7 +177,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         """Perform inference on a video sequence with optional prompts."""
         frame = self.dataset.frame - 1  # align frame index to be 0-based
         if len(self.inference_state["feature_cache"]) == 0:  # no feature cached yet
-            self.inference_state["input_batch"] = Datapoint(img_batch=im, find_text_batch=None, find_inputs=None)
+            self.inference_state["input_batch"] = Datapoint(img_batch=im, find_inputs=None)
             self.add_prompt(frame_idx=frame, text=text, bboxes=bboxes, labels=labels)
         else:
             self.inference_state["input_batch"].img_batch = im  # only pass image for subsequent frames
@@ -242,7 +242,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         """
         inference_state = inference_state or self.inference_state
         # prepare inputs
-        input_batch = inference_state["input_batch"]
         tracker_states_local = inference_state["tracker_inference_states"]
         has_text_prompt = inference_state["text_prompt"] is not None
         has_geometric_prompt = inference_state["per_frame_geometric_prompt"][frame_idx] is not None
@@ -259,9 +258,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             frame_idx=frame_idx,
             num_frames=inference_state["num_frames"],
             reverse=reverse,
-            input_batch=input_batch,
+            input_batch=inference_state["input_batch"],
             geometric_prompt=(
-                self.model._get_dummy_prompt(num_prompts=len(inference_state["input_batch"].find_text_batch))
+                self.model._get_dummy_prompt(num_prompts=len(inference_state["input_batch"].find_inputs.img_ids))
                 if not has_geometric_prompt
                 else inference_state["per_frame_geometric_prompt"][frame_idx]
             ),
@@ -318,7 +317,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         text = text if use_text else "visual"
         text_batch = [text] if isinstance(text, str) else text
         inference_state["text_prompt"] = text if use_text else None
-        inference_state["input_batch"].find_text_batch = text_batch
         n = len(text_batch)
         stage = FindStage(
             text_ids=torch.arange(n, device=self.device, dtype=torch.long),
@@ -498,15 +496,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         reverse: bool,
         allow_new_detections: bool,
     ):
-        # Step 1: if text feature is not cached in `feature_cache`, compute and cache it
-        # text_batch_key = tuple(input_batch.find_text_batch)
-        # if "text" not in feature_cache or text_batch_key not in feature_cache["text"]:
-        #     text_outputs = self.model.backbone.forward_text(input_batch.find_text_batch)
-        #     # note: we only cache the text feature of the most recent prompt
-        #     feature_cache["text"] = {text_batch_key: text_outputs}
-        # else:
-        #     text_outputs = feature_cache["text"][text_batch_key]
-
         sam3_image_out = self.model.forward_grounding(
             backbone_out={"img_batch_all_stages": input_batch.img_batch},
             find_input=input_batch.find_inputs,

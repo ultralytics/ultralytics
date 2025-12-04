@@ -477,51 +477,6 @@ class Sam3Image(torch.nn.Module):
         )
         return geometric_prompt
 
-    def forward(self, input):
-        backbone_out = {"img_batch_all_stages": input.img_batch}
-        backbone_out.update(self.backbone.forward_image(input.img_batch))
-        num_frames = len(input.find_inputs)
-        assert num_frames == 1
-
-        text_outputs = self.backbone.forward_text(input.find_text_batch)
-        backbone_out.update(text_outputs)
-
-        previous_stages_out = SAM3Output(iter_mode=SAM3Output.IterMode.LAST_STEP_PER_STAGE)
-
-        find_input = input.find_inputs[0]
-        find_target = input.find_targets[0]
-
-        if find_input.input_points is not None and find_input.input_points.numel() > 0:
-            print("Warning: Point prompts are ignored in PCS.")
-
-        num_interactive_steps = 0 if self.training else self.num_interactive_steps_val
-        geometric_prompt = Prompt(
-            box_embeddings=find_input.input_boxes,
-            box_mask=find_input.input_boxes_mask,
-            box_labels=find_input.input_boxes_label,
-        )
-
-        # Init vars that are shared across the loop.
-        stage_outs = []
-        for cur_step in range(num_interactive_steps + 1):
-            if cur_step > 0:
-                # We sample interactive geometric prompts (boxes, points)
-                geometric_prompt, _ = self.interactive_prompt_sampler.sample(
-                    geo_prompt=geometric_prompt,
-                    find_target=find_target,
-                    previous_out=stage_outs[-1],
-                )
-            out = self.forward_grounding(
-                backbone_out=backbone_out,
-                find_input=find_input,
-                find_target=find_target,
-                geometric_prompt=geometric_prompt.clone(),
-            )
-            stage_outs.append(out)
-
-        previous_stages_out.append(stage_outs)
-        return previous_stages_out
-
     def _compute_matching(self, out, targets):
         out["indices"] = self.matcher(out, targets)
         for aux_out in out.get("aux_outputs", []):

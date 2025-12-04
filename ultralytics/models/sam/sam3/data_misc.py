@@ -22,5 +22,4 @@ class FindStage:
 @dataclass
 class Datapoint:
     img_batch: torch.Tensor
-    find_text_batch: List[str]
     find_inputs: FindStage

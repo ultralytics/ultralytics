@@ -1,8 +1,6 @@
 from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
 from ultralytics.utils import DEFAULT_CFG, LOGGER
-import math
 import logging
-import math
 from collections import defaultdict
 from copy import deepcopy
 from enum import Enum
@@ -11,7 +9,6 @@ from typing import Any, Dict, List, Set
 import numpy as np
 import numpy.typing as npt
 import torch
-import torch.distributed as dist
 import torch.nn.functional as F
 
 from ultralytics.utils import LOGGER
@@ -24,7 +21,6 @@ from collections import defaultdict
 
 import numpy as np
 import torch
-import torch.distributed as dist
 import torch.nn.functional as F
 from ultralytics.utils.metrics import box_iou
 
@@ -463,13 +459,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             new_det_num = len(new_det_fa_inds)
 
         # assign object IDs to new detections and decide which GPU to place them
-        new_det_start_obj_id = tracker_metadata_prev["max_obj_id"] + 1
-        new_det_obj_ids = new_det_start_obj_id + np.arange(new_det_num)
-        prev_workload_per_gpu = tracker_metadata_prev["num_obj"]
-        # new_det_gpu_ids = self._assign_new_det_to_gpus(
-        #     new_det_num=new_det_num,
-        #     prev_workload_per_gpu=prev_workload_per_gpu,
-        # )
+        new_det_obj_ids = tracker_metadata_prev["max_obj_id"] + 1 + np.arange(new_det_num)
 
         # b) handle hotstart heuristics to remove objects
         # here `metadata` contains metadata stored on (and only accessible to) GPU 0;
@@ -589,13 +579,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             )
 
         # Step 4: update the SAM2 metadata based on the update plan
-        # note: except for "metadata" (that is only available on GPU 0),
-        # the updated `tracker_metadata_new` should be identical on all GPUs
-        # TODO: revisit this part to clean up
-        new_det_obj_ids_this_gpu = new_det_obj_ids
         updated_obj_ids_this_gpu = tracker_metadata_new["obj_ids"]
-        if len(new_det_obj_ids_this_gpu) > 0:
-            updated_obj_ids_this_gpu = np.concatenate([updated_obj_ids_this_gpu, new_det_obj_ids_this_gpu])
+        if len(new_det_obj_ids) > 0:
+            updated_obj_ids_this_gpu = np.concatenate([updated_obj_ids_this_gpu, new_det_obj_ids])
         if len(obj_ids_newly_removed) > 0:
             is_removed = np.isin(updated_obj_ids_this_gpu, list(obj_ids_newly_removed))
             updated_obj_ids_this_gpu = updated_obj_ids_this_gpu[~is_removed]
@@ -608,10 +594,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             tracker_metadata_new["obj_id_to_tracker_score_frame_wise"][frame_idx].update(
                 zip(new_det_obj_ids, det_scores_np[new_det_fa_inds])
             )
-            tracker_metadata_new["max_obj_id"] = max(
-                tracker_metadata_new["max_obj_id"],
-                np.max(new_det_obj_ids),
-            )
+            tracker_metadata_new["max_obj_id"] = max(tracker_metadata_new["max_obj_id"], np.max(new_det_obj_ids))
         # for removed objects, we set their scores to a very low value (-1e4) but still
         # keep them in "obj_id_to_score" (it's easier to handle outputs this way)
         for obj_id in obj_ids_newly_removed:
@@ -1054,19 +1037,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             empty_trk_obj_ids,
         )
 
-    def _assign_new_det_to_gpus(self, new_det_num, prev_workload_per_gpu):
-        """Distribute the new objects to the GPUs with the least workload."""
-        workload_per_gpu: npt.NDArray = prev_workload_per_gpu.copy()
-        new_det_gpu_ids = np.zeros(new_det_num, np.int64)
-
-        # assign the objects one by one
-        for i in range(len(new_det_gpu_ids)):
-            # find the GPU with the least workload
-            min_gpu = np.argmin(workload_per_gpu)
-            new_det_gpu_ids[i] = min_gpu
-            workload_per_gpu[min_gpu] += 1
-        return new_det_gpu_ids
-
     def _process_hotstart(
         self,
         frame_idx: int,
@@ -1314,7 +1284,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
     def _initialize_metadata(self):
         """Initialize metadata for the masklets."""
-        # TODO: revisit this part and clean it up
         tracker_metadata = {
             "obj_ids": np.array([], np.int32),
             "num_obj": np.zeros(1, np.int32),

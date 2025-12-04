@@ -861,7 +861,7 @@ class Exporter:
         """Export YOLO model to CoreML format."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         check_requirements("coremltools>=9.0", cmds="--upgrade")
-        check_requirements("numpy<2.4.0rc1")  # latest numpy 2.4.0rc1 breaks coremltools exports
+        check_requirements("numpy<=2.3.5")  # latest numpy 2.4.0rc1 breaks coremltools exports
 
         import coremltools as ct
 
@@ -911,7 +911,6 @@ class Exporter:
         # Internally based on the model conversion and output type.
         # Setting minimum_depoloyment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
         # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
-
         ct_model = ct.convert(
             ts,
             inputs=inputs,

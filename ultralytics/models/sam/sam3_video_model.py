@@ -1,28 +1,19 @@
-from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
-from ultralytics.utils import DEFAULT_CFG, LOGGER
-import logging
 from collections import defaultdict
 from copy import deepcopy
 from enum import Enum
 from typing import Any, Dict, List, Set
+import logging
 
 import numpy as np
 import numpy.typing as npt
 import torch
 import torch.nn.functional as F
-
-from ultralytics.utils import LOGGER
-from ultralytics.utils.metrics import mask_iou
-from .amg import batched_mask_to_box
 from torch import Tensor
 
-import logging
-from collections import defaultdict
-
-import numpy as np
-import torch
-import torch.nn.functional as F
-from ultralytics.utils.metrics import box_iou
+from ultralytics.utils import DEFAULT_CFG, LOGGER
+from ultralytics.utils.metrics import box_iou, mask_iou
+from .amg import batched_mask_to_box
+from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
 
 
 class MaskletConfirmationStatus(Enum):
@@ -134,7 +125,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         from .build_sam3 import build_interactive_sam3
 
         # Initialize the SAM3 tracker model without backbone (backbone is handled in the detector)
-        model =  build_interactive_sam3(self.args.model, with_backbone=False)
+        model = build_interactive_sam3(self.args.model, with_backbone=False)
         self.tracker.setup_model(model=model, verbose=False)
 
     def setup_source(self, source):
@@ -575,12 +566,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                         reverse,
                     )
 
-            self._tracker_update_memories(
-                tracker_states_local,
-                frame_idx,
-                tracker_metadata=tracker_metadata_prev,
-                low_res_masks=tracker_low_res_masks_global,
-            )
+            self._tracker_update_memories(tracker_states_local, frame_idx, low_res_masks=tracker_low_res_masks_global)
 
         # Step 4: update the SAM2 metadata based on the update plan
         updated_obj_ids_this_gpu = tracker_metadata_new["obj_ids"]
@@ -700,7 +686,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         new_det_fa_inds: npt.NDArray = tracker_update_plan["new_det_fa_inds"]
         new_det_obj_ids: npt.NDArray = tracker_update_plan["new_det_obj_ids"]
         # new_det_gpu_ids: npt.NDArray = tracker_update_plan["new_det_gpu_ids"]
-        is_on_this_gpu: npt.NDArray = True
         new_det_obj_ids_local: npt.NDArray = new_det_obj_ids
         new_det_fa_inds_local: npt.NDArray = new_det_fa_inds
         obj_ids_newly_removed: Set[int] = tracker_update_plan["obj_ids_newly_removed"]
@@ -1153,13 +1138,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         removed_obj_ids.update(obj_ids_newly_removed)
         return obj_ids_newly_removed, metadata
 
-    def _tracker_update_memories(
-        self,
-        tracker_inference_states: List[Any],
-        frame_idx: int,
-        tracker_metadata: Dict[str, Any],
-        low_res_masks: Tensor,
-    ):
+    def _tracker_update_memories(self, tracker_inference_states: List[Any], frame_idx: int, low_res_masks: Tensor):
         """
         Run Sam2 memory encoder, enforcing non-overlapping constraints globally.
         """

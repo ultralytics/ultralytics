@@ -16,7 +16,6 @@ from .amg import batched_mask_to_box
 from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
 
 from .sam3.data_misc import Datapoint
-from ultralytics.utils import LOGGER
 from ultralytics.engine.results import Results
 from torchvision.ops import masks_to_boxes
 

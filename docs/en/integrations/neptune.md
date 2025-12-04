@@ -53,20 +53,23 @@ Before you start training, you need to connect your local environment to your Ne
 The securest way to handle credentials is via environment variables.
 
 === "Bash (Linux/Mac)"
-`bash
+
+    ```bash
     export NEPTUNE_API_TOKEN="your_long_api_token_here"
     export NEPTUNE_PROJECT="your_workspace/your_project"
-    `
+    ```
 
 === "PowerShell (Windows)"
-`powershell
+
+    ```powershell
     $Env:NEPTUNE_API_TOKEN = "your_long_api_token_here"
     $Env:NEPTUNE_PROJECT = "your_workspace/your_project"
-    `
+    ```
 
 === "Python"
-```python
-import os
+
+    ```python
+    import os
 
     os.environ["NEPTUNE_API_TOKEN"] = "your_long_api_token_here"
     os.environ["NEPTUNE_PROJECT"] = "your_workspace/your_project"

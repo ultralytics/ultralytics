@@ -468,10 +468,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         new_det_start_obj_id = tracker_metadata_prev["max_obj_id"] + 1
         new_det_obj_ids = new_det_start_obj_id + np.arange(new_det_num)
         prev_workload_per_gpu = tracker_metadata_prev["num_obj_per_gpu"]
-        new_det_gpu_ids = self._assign_new_det_to_gpus(
-            new_det_num=new_det_num,
-            prev_workload_per_gpu=prev_workload_per_gpu,
-        )
+        # new_det_gpu_ids = self._assign_new_det_to_gpus(
+        #     new_det_num=new_det_num,
+        #     prev_workload_per_gpu=prev_workload_per_gpu,
+        # )
 
         # b) handle hotstart heuristics to remove objects
         # here `rank0_metadata` contains metadata stored on (and only accessible to) GPU 0;
@@ -497,7 +497,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_update_plan = {
             "new_det_fa_inds": new_det_fa_inds,  # npt.NDArray
             "new_det_obj_ids": new_det_obj_ids,  # npt.NDArray
-            "new_det_gpu_ids": new_det_gpu_ids,  # npt.NDArray
+            # "new_det_gpu_ids": new_det_gpu_ids,  # npt.NDArray
             "unmatched_trk_obj_ids": unmatched_trk_obj_ids,  # npt.NDArray
             "det_to_matched_trk_obj_ids": det_to_matched_trk_obj_ids,  # dict
             "obj_ids_newly_removed": obj_ids_newly_removed,  # set
@@ -715,7 +715,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # initialize tracking scores with detection scores
         new_det_fa_inds: npt.NDArray = tracker_update_plan["new_det_fa_inds"]
         new_det_obj_ids: npt.NDArray = tracker_update_plan["new_det_obj_ids"]
-        new_det_gpu_ids: npt.NDArray = tracker_update_plan["new_det_gpu_ids"]
+        # new_det_gpu_ids: npt.NDArray = tracker_update_plan["new_det_gpu_ids"]
         is_on_this_gpu: npt.NDArray = True
         new_det_obj_ids_local: npt.NDArray = new_det_obj_ids
         new_det_fa_inds_local: npt.NDArray = new_det_fa_inds
@@ -1276,7 +1276,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             size=self.interpol_size,
             mode="bilinear",
             align_corners=False,
-        ).squeeze(1)
+        ).squeeze(0)
         new_obj_masks = new_obj_masks > 0
 
         # add object one by one

@@ -1037,8 +1037,14 @@ class YOLOEModel(DetectionModel):
             (torch.nn.Module): CLIP model.
         """
         from ultralytics.nn.text_model import build_text_model
-        clip_weight=self.args.get("clip_weight_name")
 
+        if  hasattr(self, "args"):
+        
+            clip_weight=self.args.get("clip_weight_name")
+        else:
+            clip_weight="mobileclip2:b"
+            
+        clip_weight="mobileclip2:b"
 
         if cache_clip_model:
             if not getattr(self, "clip_model", None):

@@ -165,15 +165,14 @@ class Sam3Image(torch.nn.Module):
 
     def _run_encoder(
         self,
-        backbone_out,
-        find_input,
+        img_feats,
+        img_pos_embeds,
+        vis_feat_sizes,
         prompt,
         prompt_mask,
         encoder_extra_kwargs: dict = None,
     ):
-        feat_tuple = self._get_img_feats(backbone_out, find_input.img_ids)
-        backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = feat_tuple
-
+        """Run the transformer encoder."""
         # Run the encoder
         # make a copy of the image feature lists since the encoder may modify these lists in-place
         memory = self.transformer.encoder(
@@ -198,7 +197,7 @@ class Sam3Image(torch.nn.Module):
             "prompt_after_enc": memory.get("memory_text", prompt),
             "prompt_mask": prompt_mask,
         }
-        return backbone_out, encoder_out, feat_tuple
+        return encoder_out
 
     def _run_decoder(
         self,
@@ -388,7 +387,7 @@ class Sam3Image(torch.nn.Module):
 
         # Run the encoder
         with torch.profiler.record_function("SAM3Image._run_encoder"):
-            backbone_out, encoder_out, _ = self._run_encoder(backbone_out, find_input, prompt, prompt_mask)
+            encoder_out = self._run_encoder(img_feats, img_pos_embeds, vis_feat_sizes, prompt, prompt_mask)
         out = {
             "encoder_hidden_states": encoder_out["encoder_hidden_states"],
             "prev_encoder_out": {
@@ -420,9 +419,6 @@ class Sam3Image(torch.nn.Module):
                 prompt_mask=prompt_mask,
                 hs=hs,
             )
-
-        if self.training or self.num_interactive_steps_val > 0:
-            self._compute_matching(out, self.back_convert(find_target))
         return out
 
     def _postprocess_out(self, out: dict, multimask_output: bool = False):
@@ -453,27 +449,6 @@ class Sam3Image(torch.nn.Module):
             box_mask=torch.zeros(num_prompts, 0, device=self.device, dtype=torch.bool),
         )
         return geometric_prompt
-
-    def _compute_matching(self, out, targets):
-        out["indices"] = self.matcher(out, targets)
-        for aux_out in out.get("aux_outputs", []):
-            aux_out["indices"] = self.matcher(aux_out, targets)
-
-    def back_convert(self, targets):
-        batched_targets = {
-            "boxes": targets.boxes.view(-1, 4),
-            "boxes_xyxy": xywh2xyxy(targets.boxes.view(-1, 4)),
-            "boxes_padded": targets.boxes_padded,
-            "positive_map": targets.boxes.new_ones(len(targets.boxes), 1),
-            "num_boxes": targets.num_boxes,
-            "masks": targets.segments,
-            "semantic_masks": targets.semantic_segments,
-            "is_valid_mask": targets.is_valid_segment,
-            "is_exhaustive": targets.is_exhaustive,
-            "object_ids_packed": targets.object_ids,
-            "object_ids_padded": targets.object_ids_padded,
-        }
-        return batched_targets
 
     def set_classes(self, text: list[str]):
         """Set the text embeddings for the given class names."""

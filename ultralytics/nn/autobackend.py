@@ -201,7 +201,10 @@ class AutoBackend(nn.Module):
                     if IS_JETSON and is_jetson(jetpack=5):
                         # Jetson Jetpack5 requires device before fuse https://github.com/ultralytics/ultralytics/pull/21028
                         model = model.to(device)
-                    model = model.fuse(verbose=verbose)
+                    if hasattr(model, "fuse"):
+                        model = model.fuse(verbose=verbose)
+                    elif verbose:
+                        LOGGER.warning("Model does not support fusion (fuse method not found). Skipping fusion.")
                 model = model.to(device)
             else:  # pt file
                 from ultralytics.nn.tasks import load_checkpoint
@@ -214,7 +217,7 @@ class AutoBackend(nn.Module):
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
-            ch = model.yaml.get("channels", 3)
+            # ch = model.yaml.get("channels", 3)
             for p in model.parameters():
                 p.requires_grad = False
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()

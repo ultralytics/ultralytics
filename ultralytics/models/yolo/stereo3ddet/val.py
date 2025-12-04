@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -11,7 +12,7 @@ import torch
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.models.yolo.stereo3ddet.metrics import Stereo3DDetMetrics
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.metrics import compute_3d_iou
 
 
@@ -290,6 +291,61 @@ class Stereo3DDetValidator(BaseValidator):
         self.niou = len(self.iouv)
         self.metrics = Stereo3DDetMetrics()
 
+    def get_dataset(self) -> dict[str, Any]:
+        """Parse stereo dataset YAML and return metadata for KITTIStereoDataset.
+
+        This overrides the base implementation to avoid the default YOLO detection dataset checks
+        and instead wire up paths/splits intended for the custom `KITTIStereoDataset` loader.
+
+        Returns:
+            dict: Dataset dictionary with fields used by the validator and model.
+        """
+        # Load YAML if a path is provided; accept dicts directly
+        data_cfg = self.args.data
+        if isinstance(data_cfg, (str, Path)):
+            data_cfg = YAML.load(str(data_cfg))
+
+        if not isinstance(data_cfg, dict):
+            raise RuntimeError("stereo3ddet: data must be a YAML path or dict")
+
+        # Root path and splits
+        root_path = data_cfg.get("path") or "."
+        root = Path(str(root_path)).resolve()
+        # Accept either directory-style train/val or txt; KITTIStereoDataset uses split names
+        train_split = data_cfg.get("train_split", "train")
+        val_split = data_cfg.get("val_split", "val")
+
+        # Names/nc fallback
+        names = data_cfg.get("names") or {
+            0: "Car",
+            1: "Van",
+            2: "Truck",
+            3: "Pedestrian",
+            4: "Person_sitting",
+            5: "Cyclist",
+            6: "Tram",
+            7: "Misc",
+        }
+        nc = data_cfg.get("nc", len(names))
+
+        # Return a dict compatible with BaseValidator expectations, plus stereo descriptors
+        return {
+            "yaml_file": str(self.args.data) if isinstance(self.args.data, (str, Path)) else None,
+            "path": str(root),
+            # Channels for model input (6 = left+right stacked)
+            "channels": 6,
+            # Signal to our get_dataloader/build_dataset that this is a stereo dataset
+            "train": {"type": "kitti_stereo", "root": str(root), "split": train_split},
+            "val": {"type": "kitti_stereo", "root": str(root), "split": val_split},
+            "names": names,
+            "nc": nc,
+            # carry over optional stereo metadata if present
+            "stereo": data_cfg.get("stereo", True),
+            "image_size": data_cfg.get("image_size", [375, 1242]),
+            "baseline": data_cfg.get("baseline"),
+            "focal_length": data_cfg.get("focal_length"),
+        }
+
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess stereo batch for validation.
 
@@ -476,15 +532,93 @@ class Stereo3DDetValidator(BaseValidator):
         Returns:
             Dictionary of validation metrics.
         """
-        # This will be called by BaseValidator.__call__ which handles the full validation loop
-        # We override to ensure our metrics are properly initialized and returned
+        # Initialize metrics if model is provided
         if model is not None:
             self.init_metrics(model)
 
         # Call parent implementation which handles the validation loop
+        # BaseValidator.__call__ will see self.data is already set and skip the dataset loading logic
         result = super().__call__(trainer=trainer, model=model)
 
         # Return metrics
         if hasattr(self.metrics, "results_dict"):
             return self.metrics.results_dict
         return result if result else {}
+
+    def build_dataset(self, img_path: str | dict[str, Any], mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
+        """Build Stereo3DDetAdapterDataset for validation.
+
+        Args:
+            img_path: Path to dataset root directory, or a descriptor dict from self.data.get(split).
+            mode: 'train' or 'val' mode.
+            batch: Batch size (unused, kept for compatibility).
+
+        Returns:
+            Stereo3DDetAdapterDataset: Dataset instance for validation.
+        """
+        from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetAdapterDataset
+        # img_path should be a dir 
+        if isinstance(img_path, str) and not os.path.isdir(img_path):
+            # means it's a file instead of the path, return it's parent directory
+            img_path = Path(img_path).parent
+
+
+        # Handle descriptor dict from self.data.get(self.args.split)
+        desc = img_path if isinstance(img_path, dict) else self.data.get(mode) if hasattr(self, "data") else None
+        
+        if isinstance(desc, dict) and desc.get("type") == "kitti_stereo":
+            # Get image size from args, default to 384
+            imgsz = getattr(self.args, "imgsz", 384)
+            if isinstance(imgsz, (list, tuple)):
+                imgsz = imgsz[0] if len(imgsz) > 0 else 384
+            
+            return Stereo3DDetAdapterDataset(
+                root=str(desc.get("root", ".")),
+                split=str(desc.get("split", mode)),
+                imgsz=imgsz,
+                names=self.data.get("names") if hasattr(self, "data") else None,
+            )
+        
+        # Fallback: if img_path is a string, try to use it directly
+        if isinstance(img_path, str) or isinstance(img_path, Path):
+            imgsz = getattr(self.args, "imgsz", 384)
+            if isinstance(imgsz, (list, tuple)):
+                imgsz = imgsz[0] if len(imgsz) > 0 else 384
+            
+            return Stereo3DDetAdapterDataset(
+                root=img_path,
+                split=mode,
+                imgsz=imgsz,
+                names=self.data.get("names") if hasattr(self, "data") else None,
+            )
+        
+        # If we can't determine the dataset, raise an error
+        raise ValueError(
+            f"Cannot build dataset from img_path={img_path} (type: {type(img_path)}). "
+            f"Expected a string path or a descriptor dict with type='kitti_stereo'."
+        )
+
+    def get_dataloader(self, dataset_path: str | dict[str, Any], batch_size: int) -> torch.utils.data.DataLoader:
+        """Construct and return dataloader for validation.
+
+        Args:
+            dataset_path: Path to the dataset, or a descriptor dict from self.data.get(split).
+            batch_size: Size of each batch.
+
+        Returns:
+            torch.utils.data.DataLoader: Dataloader for validation.
+        """
+        from ultralytics.data import build_dataloader
+
+        dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        
+        # build_dataloader automatically uses dataset.collate_fn if available
+        return build_dataloader(
+            dataset,
+            batch=batch_size,
+            workers=self.args.workers,
+            shuffle=False,  # No shuffling for validation
+            rank=-1,  # Single GPU validation
+            drop_last=False,  # Don't drop last batch in validation
+            pin_memory=self.device.type == "cuda" if hasattr(self, "device") else True,
+        )

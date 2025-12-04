@@ -54,6 +54,58 @@
                 "batch=2",
                 "workers=0"
             ],
+        },
+        {
+            "name": "validate with trained weights",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/root/miniconda3/bin/yolo",
+            "args": [
+                "task=stereo3ddet",
+                "mode=val",
+                "model=/root/ultralytics/runs/stereo3ddet/train68/weights/best.pt",
+                "data=/root/autodl-tmp/converted_kitti_3dop/dataset.yaml",
+                "imgsz=384",
+                "batch=4",
+                "workers=0",
+                "plots=True",
+                "save_json=False"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "predict single stereo pair",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/root/miniconda3/bin/yolo",
+            "args": [
+                "task=stereo3ddet",
+                "mode=predict",
+                "model=/root/ultralytics/runs/stereo3ddet/train68/weights/best.pt",
+                "source=/root/autodl-tmp/converted_kitti_3dop/images/val",
+                "imgsz=384",
+                "conf=0.25",
+                "save=True",
+                "show=False"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "predict with custom source",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/root/miniconda3/bin/yolo",
+            "args": [
+                "task=stereo3ddet",
+                "mode=predict",
+                "model=/root/ultralytics/runs/stereo3ddet/train68/weights/best.pt",
+                "source=/root/autodl-tmp/converted_kitti_3dop/images/val/000000_left.png",
+                "imgsz=384",
+                "conf=0.25",
+                "save=True",
+                "show=False"
+            ],
+            "console": "integratedTerminal"
         }
     ]
 }

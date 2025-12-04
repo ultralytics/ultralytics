@@ -368,7 +368,7 @@ class Exporter:
         validate_args(fmt, self.args, fmt_keys)
         if axelera:
             if not self.args.int8:
-                LOGGER.warning("Axelera export requires int8=True, setting int8=True.")
+                LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
                 self.args.int8 = True
             if model.task not in {"detect"}:
                 raise ValueError("Axelera export only supported for detection models.")

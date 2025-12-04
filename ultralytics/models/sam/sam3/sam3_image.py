@@ -213,7 +213,7 @@ class Sam3Image(torch.nn.Module):
         query_embed = self.transformer.decoder.query_embed.weight
         tgt = query_embed.unsqueeze(1).repeat(1, bs, 1)
 
-        hs, reference_boxes, dec_presence_out, dec_presence_feats = self.transformer.decoder(
+        hs, reference_boxes, dec_presence_out, _ = self.transformer.decoder(
             tgt=tgt,
             memory=memory,
             memory_key_padding_mask=src_mask,
@@ -231,8 +231,6 @@ class Sam3Image(torch.nn.Module):
         if dec_presence_out is not None:
             # seq-first to batch-first
             dec_presence_out = dec_presence_out.transpose(1, 2)
-
-        out["presence_feats"] = dec_presence_feats
         self._update_scores_and_boxes(
             out,
             hs,
@@ -254,7 +252,6 @@ class Sam3Image(torch.nn.Module):
         is_instance_prompt=False,
     ):
         num_o2o = hs.size(2)
-        out["queries"] = hs[-1][:, :num_o2o]  # remove o2m queries if there are any
         # score prediction
         if self.use_dot_prod_scoring:
             dot_prod_scoring_head = self.dot_prod_scoring
@@ -277,7 +274,7 @@ class Sam3Image(torch.nn.Module):
         outputs_boxes_xyxy = xywh2xyxy(outputs_coord)
 
         if dec_presence_out is not None:
-            _update_out(out, "presence_logit_dec", dec_presence_out, update_aux=self.training)
+            _update_out(out, "presence_logit_dec", dec_presence_out, update_aux=False)
 
         if self.supervise_joint_box_scores:
             assert dec_presence_out is not None
@@ -289,14 +286,9 @@ class Sam3Image(torch.nn.Module):
                 min=-10.0, max=10.0
             )
 
-        _update_out(out, "pred_logits", outputs_class[:, :, :num_o2o], update_aux=self.training)
-        _update_out(out, "pred_boxes", outputs_coord[:, :, :num_o2o], update_aux=self.training)
-        _update_out(
-            out,
-            "pred_boxes_xyxy",
-            outputs_boxes_xyxy[:, :, :num_o2o],
-            update_aux=self.training,
-        )
+        _update_out(out, "pred_logits", outputs_class[:, :, :num_o2o], update_aux=False)
+        _update_out(out, "pred_boxes", outputs_coord[:, :, :num_o2o], update_aux=False)
+        _update_out(out, "pred_boxes_xyxy", outputs_boxes_xyxy[:, :, :num_o2o], update_aux=False)
 
     def _run_segmentation_heads(
         self,
@@ -359,7 +351,6 @@ class Sam3Image(torch.nn.Module):
         out = {"backbone_out": backbone_out}
 
         # Run the decoder
-        # TODO
         with torch.profiler.record_function("SAM3Image._run_decoder"):
             out, hs = self._run_decoder(
                 memory=encoder_out["encoder_hidden_states"],

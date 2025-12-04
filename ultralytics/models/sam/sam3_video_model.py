@@ -380,8 +380,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 1: run backbone and detector in a distributed manner -- this is done via Sam3ImageOnVideoMultiGPU,
         # a MultiGPU model (assigned to `self.detector`) that shards frames in a round-robin manner.
         det_out = self.run_backbone_and_detection(
-            frame_idx=frame_idx,
-            reverse=reverse,
             input_batch=input_batch,
             geometric_prompt=geometric_prompt,
             allow_new_detections=allow_new_detections,
@@ -478,14 +476,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         return keep
 
-    def run_backbone_and_detection(
-        self,
-        frame_idx: int,
-        input_batch,
-        geometric_prompt: Any,
-        reverse: bool,
-        allow_new_detections: bool,
-    ):
+    def run_backbone_and_detection(self, input_batch, geometric_prompt: Any, allow_new_detections: bool):
         """Run backbone and detection for a single frame."""
         sam3_image_out = self.model.forward_grounding(
             backbone_out={"img_batch_all_stages": input_batch.img_batch},

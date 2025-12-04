@@ -1242,28 +1242,26 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_states_local.append(new_tracker_state)
         return tracker_states_local
 
-    def _tracker_remove_object(self, tracker_states_local: List[Any], obj_id: int):
-        """
-        Remove an object from SAM2 inference states. This would remove the object from
-        all frames in the video.
-        """
-        tracker_states_local_before_removal = tracker_states_local.copy()
-        tracker_states_local.clear()
-        for tracker_inference_state in tracker_states_local_before_removal:
-            # we try to remove `obj_id` on every inference state with `strict=False`
-            # it will not do anything if an inference state doesn't contain `obj_id`
-            new_obj_ids = self.tracker.remove_object(tracker_inference_state, obj_id, strict=False)
-            # only keep an inference state if it's non-empty after object removal
-            if len(new_obj_ids) > 0:
-                tracker_states_local.append(tracker_inference_state)
-
     def _tracker_remove_objects(self, tracker_states_local: List[Any], obj_ids: list[int]):
         """
         Remove an object from SAM2 inference states. This would remove the object from
         all frames in the video.
         """
-        for obj_id in obj_ids:
-            self._tracker_remove_object(tracker_states_local, obj_id)
+        if not obj_ids:
+            return
+        # Filter out states that become empty after removal
+        active_states = []
+        for state in tracker_states_local:
+            for obj_id in obj_ids:
+                # we try to remove `obj_id` on every inference state with `strict=False`
+                # it will not do anything if an inference state doesn't contain `obj_id`
+                self.tracker.remove_object(state, obj_id, strict=False)
+
+            if len(state["obj_ids"]) > 0:
+                active_states.append(state)
+
+        # Update the list in-place
+        tracker_states_local[:] = active_states
 
     def _initialize_metadata(self):
         """Initialize metadata for the masklets."""

@@ -41,7 +41,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [MLFlow](mlflow.md): Streamline the entire ML lifecycle of Ultralytics models, from experimentation and reproducibility to deployment.
 
-- [Neptune](https://neptune.ai/): Maintain a comprehensive log of your ML experiments with Ultralytics in this metadata store designed for MLOps.
+- [Neptune](neptune.md): Maintain a comprehensive log of your ML experiments with Ultralytics in this metadata store designed for MLOps.
 
 - [Paperspace Gradient](paperspace.md): Paperspace Gradient simplifies working on YOLO11 projects by providing easy-to-use cloud tools for training, testing, and deploying your models quickly.
 

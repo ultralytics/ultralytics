@@ -184,7 +184,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             )
             input_batch = Datapoint(img_batch=im, find_text_batch=[], find_inputs=stages)
             self.inference_state["input_batch"] = input_batch
-            self.add_prompt(frame_idx=frame, text_str=text, bboxes=bboxes, labels=labels)
+            self.add_prompt(frame_idx=frame, text=text, bboxes=bboxes, labels=labels)
         else:
             self.inference_state["input_batch"].img_batch = im  # only pass image for subsequent frames
         return self._run_single_frame_inference(frame, reverse=False)
@@ -264,7 +264,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             reverse=reverse,
             input_batch=input_batch,
             geometric_prompt=(
-                self.model._get_dummy_prompt(num_prompts=len(inference_state["text_prompt"]))
+                self.model._get_dummy_prompt(num_prompts=len(inference_state["input_batch"].find_text_batch))
                 if not has_geometric_prompt
                 else inference_state["per_frame_geometric_prompt"][frame_idx]
             ),
@@ -300,7 +300,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def add_prompt(
         self,
         frame_idx,
-        text_str=None,
+        text=None,
         bboxes=None,
         labels=None,
         inference_state=None,
@@ -313,40 +313,37 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         to all frames). However, we only run inference on the frame specified in `frame_idx`.
         """
         inference_state = inference_state or self.inference_state
-        assert text_str is not None or bboxes is not None, "at least one type of prompt (text, boxes) must be provided"
+        assert text is not None or bboxes is not None, "at least one type of prompt (text, boxes) must be provided"
 
-        if isinstance(text_str, str):
-            text_str = [text_str]
+        if isinstance(text, str):
+            text = [text]
 
         # 1) add text prompt
-        if text_str is not None and text_str != "visual":
-            inference_state["text_prompt"] = text_str
-            inference_state["input_batch"].find_text_batch = text_str
+        if text is not None and text != "visual":
+            inference_state["text_prompt"] = text
+            inference_state["input_batch"].find_text_batch = text
         else:
             inference_state["text_prompt"] = None
             inference_state["input_batch"].find_text_batch = ["visual"]
-        text_ids = list(range(len(inference_state["input_batch"].find_text_batch)))
+        text = inference_state["input_batch"].find_text_batch
+        text_ids = list(range(len(text)))
         inference_state["input_batch"].find_inputs.text_ids = torch.tensor(
             text_ids, device=self.device, dtype=torch.long
         )
         inference_state["input_batch"].find_inputs.img_ids = torch.tensor(
             [0] * len(text_ids), device=self.device, dtype=torch.long
         )
+        if text is not None and self.model.names != text:
+            self.model.set_classes(text=text)
 
         # 2) handle box prompt
         bboxes, labels = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
         assert (bboxes is not None) == (labels is not None)
+        geometric_prompt = self.model._get_dummy_prompt(num_prompts=len(text))
         if bboxes is not None:
-            geometric_prompt = Prompt(
-                box_embeddings=bboxes,  # (seq, bs, 4)
-                box_mask=None,
-                box_labels=labels,  # (seq, bs)
-                point_embeddings=None,
-                point_mask=None,
-                point_labels=None,
-            )
-
-            inference_state["per_frame_geometric_prompt"][frame_idx] = geometric_prompt
+            for i in range(len(bboxes)):
+                geometric_prompt.append_boxes(bboxes[[i]], labels[[i]])
+        inference_state["per_frame_geometric_prompt"][frame_idx] = geometric_prompt
         out = self._run_single_frame_inference(frame_idx, reverse=False, inference_state=inference_state)
         return frame_idx, out
 
@@ -508,16 +505,16 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         allow_new_detections: bool,
     ):
         # Step 1: if text feature is not cached in `feature_cache`, compute and cache it
-        text_batch_key = tuple(input_batch.find_text_batch)
-        if "text" not in feature_cache or text_batch_key not in feature_cache["text"]:
-            text_outputs = self.model.backbone.forward_text(input_batch.find_text_batch)
-            # note: we only cache the text feature of the most recent prompt
-            feature_cache["text"] = {text_batch_key: text_outputs}
-        else:
-            text_outputs = feature_cache["text"][text_batch_key]
+        # text_batch_key = tuple(input_batch.find_text_batch)
+        # if "text" not in feature_cache or text_batch_key not in feature_cache["text"]:
+        #     text_outputs = self.model.backbone.forward_text(input_batch.find_text_batch)
+        #     # note: we only cache the text feature of the most recent prompt
+        #     feature_cache["text"] = {text_batch_key: text_outputs}
+        # else:
+        #     text_outputs = feature_cache["text"][text_batch_key]
 
         sam3_image_out = self.model.forward_grounding(
-            backbone_out={"img_batch_all_stages": input_batch.img_batch, **text_outputs},
+            backbone_out={"img_batch_all_stages": input_batch.img_batch},
             find_input=input_batch.find_inputs,
             geometric_prompt=geometric_prompt,
         )

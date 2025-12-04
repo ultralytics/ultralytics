@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.utils.metrics import OKS_SIGMA
+from ultralytics.utils.metrics import OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
@@ -623,11 +623,8 @@ class v8PoseLoss(v8DetectionLoss):
             self.flow_model = model.model[-1].flow_model if hasattr(model.model[-1], 'flow_model') else None
             if self.flow_model is not None:
                 self.rle_loss = RLELoss(use_target_weight=True).to(self.device)
-                if is_pose:
-                    self.joint_weights = torch.Tensor([1., 1., 1., 1., 1., 1., 1., 1.2, 1.2, 1.5, 1.5, 1., 1., 
-                                                    1.2, 1.2, 1.5, 1.5]).to(self.device)
-                else:
-                    self.joint_weights = torch.ones(nkpt, device=self.device)
+                self.target_weights = torch.from_numpy(RLE_WEIGHT).to(self.device) if is_pose \
+                    else torch.ones(nkpt, device=self.device)
         else:
             self.rle_loss = None
             self.bce_pose = nn.BCEWithLogitsLoss()
@@ -754,13 +751,13 @@ class v8PoseLoss(v8DetectionLoss):
                 pred_sigma = pred_kpt_visible[:, 2:4]  # Nx2
                 gt_kpt_visible = gt_kpt_visible[:, 0:2]  # Nx2
 
-                target_weight = self.joint_weights.unsqueeze(0).repeat(kpt_mask.shape[0], 1)
-                target_weight = target_weight[kpt_mask]
+                target_weights = self.target_weights.unsqueeze(0).repeat(kpt_mask.shape[0], 1)
+                target_weights = target_weights[kpt_mask]
 
                 pred_sigma = pred_sigma.sigmoid()
                 error = (pred_coords - gt_kpt_visible) / (pred_sigma + 1e-9)
                 log_phi = self.flow_model.log_prob(error)
-                rle_loss = self.rle_loss(pred_sigma, log_phi, error, target_weight)  # pose loss
+                rle_loss = self.rle_loss(pred_sigma, log_phi, error, target_weights)  # pose loss
             else:
                 if pred_kpt.shape[-1] == 3:
                     kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss

@@ -166,40 +166,23 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         num_frames = predictor.dataset.frames
         inference_state = {
             "num_frames": num_frames,
-            "constants": {},  # values that don't change across frames (so we only need to hold one copy of them)
             "tracker_inference_states": [],
             "tracker_metadata": {},
             "feature_cache": {},
         }
         inference_state["text_prompt"] = None
         inference_state["per_frame_geometric_prompt"] = [None] * num_frames
-
-        inference_state["constants"]["empty_geometric_prompt"] = Prompt(
-            box_embeddings=torch.zeros(0, 1, 4, device=predictor.device, dtype=predictor.torch_dtype),
-            box_mask=torch.zeros(1, 0, device=predictor.device, dtype=torch.bool),
-            box_labels=torch.zeros(0, 1, device=predictor.device, dtype=torch.long),
-            point_embeddings=torch.zeros(0, 1, 2, device=predictor.device, dtype=predictor.torch_dtype),
-            point_mask=torch.zeros(1, 0, device=predictor.device, dtype=torch.bool),
-            point_labels=torch.zeros(0, 1, device=predictor.device, dtype=torch.long),
-        )
         predictor.inference_state = inference_state
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] = None, *args, **kwargs):
         """Perform inference on a video sequence with optional prompts."""
         frame = self.dataset.frame - 1  # align frame index to be 0-based
         if len(self.inference_state["feature_cache"]) == 0:  # no feature cached yet
-            find_text_batch = ["<text placeholder>", "visual"]
             stages = FindStage(
                 img_ids=torch.tensor([0], device=self.device, dtype=torch.long),
                 text_ids=torch.tensor([0], device=self.device, dtype=torch.long),
-                input_boxes=[torch.zeros(258, device=self.device)],
-                input_boxes_mask=[torch.empty(0, dtype=torch.bool, device=self.device)],
-                input_boxes_label=[torch.empty(0, dtype=torch.long, device=self.device)],
-                input_points=[torch.empty(0, 257, device=self.device)],
-                input_points_mask=[torch.empty(0, device=self.device)],
-                object_ids=[],
             )
-            input_batch = Datapoint(img_batch=im, find_text_batch=find_text_batch, find_inputs=stages)
+            input_batch = Datapoint(img_batch=im, find_text_batch=[], find_inputs=stages)
             self.inference_state["input_batch"] = input_batch
             self.add_prompt(frame_idx=frame, text_str=text, bboxes=bboxes, labels=labels)
         else:
@@ -281,7 +264,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             reverse=reverse,
             input_batch=input_batch,
             geometric_prompt=(
-                inference_state["constants"]["empty_geometric_prompt"]
+                self.model._get_dummy_prompt(num_prompts=len(inference_state["text_prompt"]))
                 if not has_geometric_prompt
                 else inference_state["per_frame_geometric_prompt"][frame_idx]
             ),
@@ -332,16 +315,23 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         inference_state = inference_state or self.inference_state
         assert text_str is not None or bboxes is not None, "at least one type of prompt (text, boxes) must be provided"
 
+        if isinstance(text_str, str):
+            text_str = [text_str]
+
         # 1) add text prompt
         if text_str is not None and text_str != "visual":
             inference_state["text_prompt"] = text_str
-            inference_state["input_batch"].find_text_batch[0] = text_str
-            text_id = self.TEXT_ID_FOR_TEXT
+            inference_state["input_batch"].find_text_batch = text_str
         else:
             inference_state["text_prompt"] = None
-            inference_state["input_batch"].find_text_batch[0] = "<text placeholder>"
-            text_id = self.TEXT_ID_FOR_VISUAL
-        inference_state["input_batch"].find_inputs.text_ids[...] = text_id
+            inference_state["input_batch"].find_text_batch = ["visual"]
+        text_ids = list(range(len(inference_state["input_batch"].find_text_batch)))
+        inference_state["input_batch"].find_inputs.text_ids = torch.tensor(
+            text_ids, device=self.device, dtype=torch.long
+        )
+        inference_state["input_batch"].find_inputs.img_ids = torch.tensor(
+            [0] * len(text_ids), device=self.device, dtype=torch.long
+        )
 
         # 2) handle box prompt
         bboxes, labels = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)

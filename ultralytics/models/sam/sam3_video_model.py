@@ -121,7 +121,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         max_num_objects = 10000  # no limit
         num_obj_for_compile = 16
-        LOGGER.info(f"setting {max_num_objects=} and {num_obj_for_compile=}")
         self.max_num_objects = max_num_objects
         self.num_obj_for_compile = num_obj_for_compile
         self.recondition_every_nth_frame = recondition_every_nth_frame
@@ -245,14 +244,14 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         obj_id_to_score = tracker_metadata_new["obj_id_to_score"]
         # a few statistics for the current frame as a part of the output
         frame_stats = {
-            "num_obj_tracked": np.sum(tracker_metadata_new["num_obj_per_gpu"]),
+            "num_obj_tracked": np.sum(tracker_metadata_new["num_obj"]),
             "num_obj_dropped": tracker_update_plan["num_obj_dropped_due_to_limit"],
         }
         # add tracker scores to metadata, it should be fired for frames except the first frame
         if tracker_obj_scores_global.shape[0] > 0:
             # Convert tracker_obj_scores_global to sigmoid scores before updating
             tracker_obj_scores_global = tracker_obj_scores_global.sigmoid().tolist()
-            tracker_obj_ids = tracker_metadata_prev["obj_ids_per_gpu"]
+            tracker_obj_ids = tracker_metadata_prev["obj_ids"]
             tracker_metadata_new["obj_id_to_tracker_score_frame_wise"][frame_idx].update(
                 dict(zip(tracker_obj_ids, tracker_obj_scores_global))
             )
@@ -356,8 +355,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             tracker_states_local, frame_idx=frame_idx
         )
 
-        assert np.all(obj_ids_local == tracker_metadata_prev["obj_ids_per_gpu"]), "{} != {}".format(
-            obj_ids_local, tracker_metadata_prev["obj_ids_per_gpu"]
+        assert np.all(obj_ids_local == tracker_metadata_prev["obj_ids"]), "{} != {}".format(
+            obj_ids_local, tracker_metadata_prev["obj_ids"]
         )
 
         # Step 2: all-gather `low_res_masks_local` into `low_res_masks_global`
@@ -383,7 +382,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             )
             HIGH_CONF_THRESH = 0.8
             reconditioned_states_idx = set()
-            obj_idx = np.where(tracker_metadata["obj_ids_per_gpu"] == trk_obj_id)[0].item()
+            obj_idx = np.where(tracker_metadata["obj_ids"] == trk_obj_id)[0].item()
             obj_score = tracker_obj_scores_global[obj_idx]
             for state_idx, inference_state in enumerate(tracker_states_local):
                 if (
@@ -419,8 +418,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     ):
         # initialize new metadata from previous metadata (its values will be updated later)
         tracker_metadata_new = {
-            "obj_ids_per_gpu": deepcopy(tracker_metadata_prev["obj_ids_per_gpu"]),
-            "num_obj_per_gpu": deepcopy(tracker_metadata_prev["num_obj_per_gpu"]),
+            "obj_ids": deepcopy(tracker_metadata_prev["obj_ids"]),
+            "num_obj": deepcopy(tracker_metadata_prev["num_obj"]),
             "obj_id_to_score": deepcopy(tracker_metadata_prev["obj_id_to_score"]),
             "obj_id_to_tracker_score_frame_wise": deepcopy(tracker_metadata_prev["obj_id_to_tracker_score_frame_wise"]),
             "obj_id_to_last_occluded": {},  # will be filled later
@@ -445,14 +444,14 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             det_masks=det_mask_preds,
             det_scores_np=det_scores_np,
             trk_masks=tracker_low_res_masks_global,
-            trk_obj_ids=tracker_metadata_prev["obj_ids_per_gpu"],
+            trk_obj_ids=tracker_metadata_prev["obj_ids"],
         )
         if self.suppress_det_close_to_boundary:
             keep = self._suppress_detections_close_to_boundary(det_bbox_xyxy[new_det_fa_inds])
             new_det_fa_inds = new_det_fa_inds[keep.cpu().numpy()]
 
         # check whether we've hit the maximum number of objects we can track (and if so, drop some detections)
-        prev_obj_num = np.sum(tracker_metadata_prev["num_obj_per_gpu"])
+        prev_obj_num = np.sum(tracker_metadata_prev["num_obj"])
         new_det_num = len(new_det_fa_inds)
         num_obj_dropped_due_to_limit = 0
         if prev_obj_num + new_det_num > self.max_num_objects:
@@ -466,31 +465,31 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # assign object IDs to new detections and decide which GPU to place them
         new_det_start_obj_id = tracker_metadata_prev["max_obj_id"] + 1
         new_det_obj_ids = new_det_start_obj_id + np.arange(new_det_num)
-        prev_workload_per_gpu = tracker_metadata_prev["num_obj_per_gpu"]
+        prev_workload_per_gpu = tracker_metadata_prev["num_obj"]
         # new_det_gpu_ids = self._assign_new_det_to_gpus(
         #     new_det_num=new_det_num,
         #     prev_workload_per_gpu=prev_workload_per_gpu,
         # )
 
         # b) handle hotstart heuristics to remove objects
-        # here `rank0_metadata` contains metadata stored on (and only accessible to) GPU 0;
+        # here `metadata` contains metadata stored on (and only accessible to) GPU 0;
         # we avoid broadcasting them to other GPUs to save communication cost, assuming
-        # that `rank0_metadata` is not needed by other GPUs
-        rank0_metadata_new = deepcopy(tracker_metadata_prev["rank0_metadata"])
+        # that `metadata` is not needed by other GPUs
+        metadata_new = deepcopy(tracker_metadata_prev["metadata"])
         if not hasattr(self, "_warm_up_complete") or self._warm_up_complete:
-            obj_ids_newly_removed, rank0_metadata_new = self._process_hotstart(
+            obj_ids_newly_removed, metadata_new = self._process_hotstart(
                 frame_idx=frame_idx,
                 reverse=reverse,
                 det_to_matched_trk_obj_ids=det_to_matched_trk_obj_ids,
                 new_det_obj_ids=new_det_obj_ids,
                 empty_trk_obj_ids=empty_trk_obj_ids,
                 unmatched_trk_obj_ids=unmatched_trk_obj_ids,
-                rank0_metadata=rank0_metadata_new,
+                metadata=metadata_new,
             )
         else:
             # if warm-up is not complete, we don't remove any objects
             obj_ids_newly_removed = set()
-        tracker_metadata_new["rank0_metadata"] = rank0_metadata_new
+        tracker_metadata_new["metadata"] = metadata_new
 
         # `tracker_update_plan` should be identical on all GPUs after broadcasting
         tracker_update_plan = {
@@ -516,7 +515,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 det_score = det_out["scores"][det_idx]
 
                 try:
-                    trk_idx = list(tracker_metadata_prev["obj_ids_per_gpu"]).index(trk_obj_id)
+                    trk_idx = list(tracker_metadata_prev["obj_ids"]).index(trk_obj_id)
                 except ValueError:
                     continue  # Skip if tracklet not found
 
@@ -590,18 +589,18 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             )
 
         # Step 4: update the SAM2 metadata based on the update plan
-        # note: except for "rank0_metadata" (that is only available on GPU 0),
+        # note: except for "metadata" (that is only available on GPU 0),
         # the updated `tracker_metadata_new` should be identical on all GPUs
         # TODO: revisit this part to clean up
         new_det_obj_ids_this_gpu = new_det_obj_ids
-        updated_obj_ids_this_gpu = tracker_metadata_new["obj_ids_per_gpu"]
+        updated_obj_ids_this_gpu = tracker_metadata_new["obj_ids"]
         if len(new_det_obj_ids_this_gpu) > 0:
             updated_obj_ids_this_gpu = np.concatenate([updated_obj_ids_this_gpu, new_det_obj_ids_this_gpu])
         if len(obj_ids_newly_removed) > 0:
             is_removed = np.isin(updated_obj_ids_this_gpu, list(obj_ids_newly_removed))
             updated_obj_ids_this_gpu = updated_obj_ids_this_gpu[~is_removed]
-        tracker_metadata_new["obj_ids_per_gpu"] = updated_obj_ids_this_gpu
-        tracker_metadata_new["num_obj_per_gpu"] = len(updated_obj_ids_this_gpu)
+        tracker_metadata_new["obj_ids"] = updated_obj_ids_this_gpu
+        tracker_metadata_new["num_obj"] = len(updated_obj_ids_this_gpu)
         # update object scores and the maximum object ID assigned so far
         if len(new_det_obj_ids) > 0:
             tracker_metadata_new["obj_id_to_score"].update(zip(new_det_obj_ids, det_scores_np[new_det_fa_inds]))
@@ -619,17 +618,17 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             tracker_metadata_new["obj_id_to_score"][obj_id] = -1e4
             tracker_metadata_new["obj_id_to_tracker_score_frame_wise"][frame_idx][obj_id] = -1e4
             tracker_metadata_new["obj_id_to_last_occluded"].pop(obj_id, None)
-        # check that "rank0_metadata" is in tracker_metadata_new if and only if it's GPU 0
-        assert "rank0_metadata" in tracker_metadata_new
+        # check that "metadata" is in tracker_metadata_new if and only if it's GPU 0
+        assert "metadata" in tracker_metadata_new
         if self.masklet_confirmation_enable:
-            rank0_metadata = self.update_masklet_confirmation_status(
-                rank0_metadata=tracker_metadata_new["rank0_metadata"],
-                obj_ids_all_gpu_prev=tracker_metadata_prev["obj_ids_per_gpu"],
-                obj_ids_all_gpu_updated=tracker_metadata_new["obj_ids_per_gpu"],
+            metadata = self.update_masklet_confirmation_status(
+                metadata=tracker_metadata_new["metadata"],
+                obj_ids_all_gpu_prev=tracker_metadata_prev["obj_ids"],
+                obj_ids_all_gpu_updated=tracker_metadata_new["obj_ids"],
                 det_to_matched_trk_obj_ids=det_to_matched_trk_obj_ids,
                 new_det_obj_ids=new_det_obj_ids,
             )
-            tracker_metadata_new["rank0_metadata"] = rank0_metadata
+            tracker_metadata_new["metadata"] = metadata
 
         return tracker_update_plan, tracker_metadata_new
 
@@ -653,7 +652,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         Return:
             Tensor: The updated low-resolution masks with some objects suppressed.
         """
-        obj_ids_global = tracker_metadata_prev["obj_ids_per_gpu"]
+        obj_ids_global = tracker_metadata_prev["obj_ids"]
         binary_tracker_low_res_masks_global = tracker_low_res_masks_global > 0
         batch_size = tracker_low_res_masks_global.size(0)
         if batch_size > 0:
@@ -753,7 +752,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         ori_size = self.batch[1][0].shape[:2]
 
         # Part 1: masks from previous SAM2 propagation
-        existing_masklet_obj_ids = tracker_metadata_prev["obj_ids_per_gpu"]
+        existing_masklet_obj_ids = tracker_metadata_prev["obj_ids"]
         existing_masklet_video_res_masks = F.interpolate(
             tracker_low_res_masks_global.unsqueeze(1),
             size=ori_size,
@@ -1076,19 +1075,19 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         new_det_obj_ids: npt.NDArray,
         empty_trk_obj_ids: npt.NDArray,
         unmatched_trk_obj_ids: npt.NDArray,
-        rank0_metadata: Dict[str, Any],
+        metadata: Dict[str, Any],
     ):
         """Handle hotstart heuristics to remove unmatched or duplicated objects."""
         # obj_id --> first frame index where the object was detected
-        obj_first_frame_idx = rank0_metadata["obj_first_frame_idx"]
+        obj_first_frame_idx = metadata["obj_first_frame_idx"]
         # obj_id --> [mismatched frame indices]
-        unmatched_frame_inds = rank0_metadata["unmatched_frame_inds"]
-        trk_keep_alive = rank0_metadata["trk_keep_alive"]
+        unmatched_frame_inds = metadata["unmatched_frame_inds"]
+        trk_keep_alive = metadata["trk_keep_alive"]
         # (first_appear_obj_id, obj_id) --> [overlap frame indices]
-        overlap_pair_to_frame_inds = rank0_metadata["overlap_pair_to_frame_inds"]
+        overlap_pair_to_frame_inds = metadata["overlap_pair_to_frame_inds"]
         # removed_obj_ids: object IDs that are suppressed via hot-start
-        removed_obj_ids = rank0_metadata["removed_obj_ids"]
-        suppressed_obj_ids = rank0_metadata["suppressed_obj_ids"][frame_idx]
+        removed_obj_ids = metadata["removed_obj_ids"]
+        suppressed_obj_ids = metadata["suppressed_obj_ids"][frame_idx]
 
         obj_ids_newly_removed = set()  # object IDs to be newly removed on this frame
         hotstart_diff = frame_idx - self.hotstart_delay if not reverse else frame_idx + self.hotstart_delay
@@ -1178,7 +1177,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     )
 
         removed_obj_ids.update(obj_ids_newly_removed)
-        return obj_ids_newly_removed, rank0_metadata
+        return obj_ids_newly_removed, metadata
 
     def _tracker_update_memories(
         self,
@@ -1317,50 +1316,49 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         """Initialize metadata for the masklets."""
         # TODO: revisit this part and clean it up
         tracker_metadata = {
-            "obj_ids_per_gpu": np.array([], np.int64),
-            "num_obj_per_gpu": np.zeros(1, np.int64),
+            "obj_ids": np.array([], np.int32),
+            "num_obj": np.zeros(1, np.int32),
             "max_obj_id": -1,
             "obj_id_to_score": {},
             "obj_id_to_tracker_score_frame_wise": defaultdict(dict),
             "obj_id_to_last_occluded": {},
         }
-        # "rank0_metadata" contains metadata that is only stored on (and accessible to) GPU 0
+        # "metadata" contains metadata that is only stored on (and accessible to) GPU 0
         # - obj_first_frame_idx: obj_id --> first frame index where the object was detected
         # - unmatched_frame_inds: obj_id --> [mismatched frame indices]
         # - overlap_pair_to_frame_inds: (first_appear_obj_id, obj_id) --> [overlap frame indices]
         # - removed_obj_ids: object IDs that are suppressed via hot-start
-        rank0_metadata = {
+        metadata = {
             "obj_first_frame_idx": {},
             "unmatched_frame_inds": defaultdict(list),
             "trk_keep_alive": defaultdict(int),  # This is used only for object suppression not for removal
             "overlap_pair_to_frame_inds": defaultdict(list),
             "removed_obj_ids": set(),
-            "suppressed_obj_ids": defaultdict(
-                set
-            ),  # frame_idx --> set of objects with suppressed outputs, but still continue to be tracked
+            # frame_idx --> set of objects with suppressed outputs, but still continue to be tracked
+            "suppressed_obj_ids": defaultdict(set),
         }
         if self.masklet_confirmation_enable:
             # all the following are npt.NDArray with the same shape as `obj_ids_all_gpu`
-            rank0_metadata["masklet_confirmation"] = {
+            metadata["masklet_confirmation"] = {
                 # "status" is the confirmation status of each masklet (in `MaskletConfirmationStatus`)
                 "status": np.array([], np.int64),
                 # "consecutive_det_num" is the number of consecutive frames where the masklet is
                 # detected by the detector (with a matched detection)
                 "consecutive_det_num": np.array([], np.int64),
             }
-        tracker_metadata["rank0_metadata"] = rank0_metadata
+        tracker_metadata["metadata"] = metadata
 
         return tracker_metadata
 
     def update_masklet_confirmation_status(
         self,
-        rank0_metadata: Dict[str, Any],
+        metadata: Dict[str, Any],
         obj_ids_all_gpu_prev: npt.NDArray,
         obj_ids_all_gpu_updated: npt.NDArray,
         det_to_matched_trk_obj_ids: Dict[int, npt.NDArray],
         new_det_obj_ids: npt.NDArray,
     ):
-        confirmation_data = rank0_metadata["masklet_confirmation"]
+        confirmation_data = metadata["masklet_confirmation"]
 
         # a) first, expand "confirmation_data" to include new masklets added in this frame
         status_prev = confirmation_data["status"]
@@ -1397,7 +1395,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         confirmation_data["status"] = status
         confirmation_data["consecutive_det_num"] = consecutive_det_num
-        return rank0_metadata
+        return metadata
 
     def _load_checkpoint(self, ckpt_path: str, strict: bool = True):
         sd = torch.load(ckpt_path, map_location="cpu", weights_only=True)["model"]

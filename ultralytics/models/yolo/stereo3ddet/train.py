@@ -72,17 +72,9 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         train_split = data_cfg.get("train_split", "train")
         val_split = data_cfg.get("val_split", "val")
 
-        # Names/nc fallback
-        names = data_cfg.get("names") or {
-            0: "Car",
-            1: "Van",
-            2: "Truck",
-            3: "Pedestrian",
-            4: "Person_sitting",
-            5: "Cyclist",
-            6: "Tram",
-            7: "Misc",
-        }
+        # Names/nc fallback - use paper classes (3 classes: Car, Pedestrian, Cyclist)
+        from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
+        names = data_cfg.get("names") or get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
         nc = data_cfg.get("nc", len(names))
 
         # Return a dict compatible with BaseTrainer expectations, plus stereo descriptors

@@ -54,8 +54,9 @@ def decode_stereo3d_outputs(
     References:
         Stereo CenterNet paper: Section 3.2 (Decoding)
     """
-    # Class names and mean dimensions (KITTI dataset statistics)
-    class_names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+    # Class names and mean dimensions (Paper uses 3 classes: Car, Pedestrian, Cyclist)
+    from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
+    class_names = get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
     # Mean dimensions: (height, width, length) in meters
     mean_dims = {
         0: (1.52, 1.73, 3.89),  # Car
@@ -193,19 +194,34 @@ def decode_stereo3d_outputs(
 def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] | None = None) -> list[Box3D]:
     """Convert label dictionaries to Box3D objects.
 
+    Filters and remaps class IDs to paper classes (Car, Pedestrian, Cyclist) if needed.
+
     Args:
         labels: List of label dictionaries from dataset.
-        calib: Calibration parameters.
+        calib: Calibration parameters (dict or CalibrationParameters object).
 
     Returns:
-        List of Box3D objects.
+        List of Box3D objects with filtered and remapped class IDs.
     """
+    from ultralytics.models.yolo.stereo3ddet.utils import (
+        filter_and_remap_class_id,
+        get_paper_class_names,
+    )
+
     boxes3d = []
-    class_names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+    class_names = get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
 
     for label in labels:
         try:
-            class_id = label.get("class_id", 0)
+            original_class_id = label.get("class_id", 0)
+            
+            # Filter and remap class ID to paper classes
+            remapped_class_id = filter_and_remap_class_id(original_class_id)
+            if remapped_class_id is None:
+                # Class is not in paper set, skip it
+                continue
+            
+            class_id = remapped_class_id
             if class_id not in class_names:
                 continue
 
@@ -222,11 +238,29 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             # For validation, we'll use a simplified approach: estimate depth from 2D box height
             left_box = label.get("left_box", {})
             box_h = left_box.get("height", 0.1)
+            
+            # Handle both dict and CalibrationParameters objects
+            from ultralytics.data.stereo.calib import CalibrationParameters
+            if isinstance(calib, CalibrationParameters):
+                fx_val = calib.fx
+                fy_val = calib.fy
+                cx_val = calib.cx
+                cy_val = calib.cy
+            elif isinstance(calib, dict):
+                fx_val = calib.get("fx", 721.5377)
+                fy_val = calib.get("fy", 721.5377)
+                cx_val = calib.get("cx", 609.5593)
+                cy_val = calib.get("cy", 172.8540)
+            else:
+                fx_val = 721.5377
+                fy_val = 721.5377
+                cx_val = 609.5593
+                cy_val = 172.8540
+            
             # Rough depth estimation: Z ≈ (f × H_3d) / h_2d
             if calib and box_h > 0:
-                fy = calib.get("fy", 721.5377)
                 # Estimate depth from box height
-                depth = (fy * height) / (box_h * 375.0)  # Assuming original image height ~375
+                depth = (fy_val * height) / (box_h * 375.0)  # Assuming original image height ~375
             else:
                 depth = 30.0  # Default depth
 
@@ -234,14 +268,10 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             center_x_2d = left_box.get("center_x", 0.5) * 1242.0  # Assuming original width
             center_y_2d = left_box.get("center_y", 0.5) * 375.0  # Assuming original height
 
-            if calib:
-                cx = calib.get("cx", 609.5593)
-                cy = calib.get("cy", 172.8540)
-                fx = calib.get("fx", 721.5377)
-                fy = calib.get("fy", 721.5377)
-            else:
-                cx, cy = 609.5593, 172.8540
-                fx, fy = 721.5377, 721.5377
+            cx = cx_val
+            cy = cy_val
+            fx = fx_val
+            fy = fy_val
 
             x_3d = (center_x_2d - cx) * depth / fx
             y_3d = (center_y_2d - cy) * depth / fy
@@ -315,17 +345,9 @@ class Stereo3DDetValidator(BaseValidator):
         train_split = data_cfg.get("train_split", "train")
         val_split = data_cfg.get("val_split", "val")
 
-        # Names/nc fallback
-        names = data_cfg.get("names") or {
-            0: "Car",
-            1: "Van",
-            2: "Truck",
-            3: "Pedestrian",
-            4: "Person_sitting",
-            5: "Cyclist",
-            6: "Tram",
-            7: "Misc",
-        }
+        # Names/nc fallback - use paper classes (3 classes: Car, Pedestrian, Cyclist)
+        from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
+        names = data_cfg.get("names") or get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
         nc = data_cfg.get("nc", len(names))
 
         # Return a dict compatible with BaseValidator expectations, plus stereo descriptors

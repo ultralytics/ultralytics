@@ -51,7 +51,7 @@
                 "model=yolo11-stereo3ddet.yaml",
                 "mode=train",
                 "epochs=1",
-                "batch=2",
+                "batch=64",
                 "workers=0"
             ],
         },

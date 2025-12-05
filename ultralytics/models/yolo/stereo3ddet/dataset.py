@@ -41,7 +41,12 @@ class Stereo3DDetAdapterDataset(Dataset):
         # Determine if we should filter classes based on names parameter
         # If names contains only 3 classes (Car, Pedestrian, Cyclist), enable filtering
         from ultralytics.models.yolo.stereo3ddet.utils import PAPER_CLASS_NAMES
-        self.filter_classes = set(self.names.values()) != set(PAPER_CLASS_NAMES.values())
+        # Fix filter_classes logic bug: should be == not != (T125)
+        self.filter_classes = set(self.names.values()) == set(PAPER_CLASS_NAMES.values())
+
+        # Validate that names parameter matches actual label classes (T123)
+        if self.names:
+            self._validate_names_against_labels()
 
         # Initialize base dataset with class filtering if needed
         self.base = KITTIStereoDataset(root=self.root, split=self.split, filter_classes=self.filter_classes)
@@ -50,6 +55,94 @@ class Stereo3DDetAdapterDataset(Dataset):
         self._aug = StereoAugmentationPipeline(
             photometric=PhotometricAugmentor(p_apply=0.9)
         )
+
+    def _get_actual_label_classes(self) -> set[int]:
+        """Scan label files and extract unique class IDs from dataset (T120).
+        
+        Returns:
+            set[int]: Set of unique original class IDs found in label files.
+        """
+        label_dir = self.root / "labels" / self.split
+        if not label_dir.exists():
+            return set()
+        
+        actual_classes = set()
+        for label_file in label_dir.glob("*.txt"):
+            try:
+                with open(label_file, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        parts = line.split()
+                        if len(parts) >= 1:
+                            try:
+                                class_id = int(float(parts[0]))  # Handle float format
+                                actual_classes.add(class_id)
+                            except (ValueError, IndexError):
+                                continue
+            except (IOError, OSError):
+                continue
+        
+        return actual_classes
+
+    def _map_class_ids_to_names(self, class_ids: set[int]) -> dict[int, str]:
+        """Map actual class IDs to class names using ORIGINAL_TO_PAPER mapping (T121).
+        
+        Args:
+            class_ids: Set of original class IDs from label files.
+            
+        Returns:
+            dict[int, str]: Mapping from paper class ID to class name for classes found in labels.
+        """
+        from ultralytics.models.yolo.stereo3ddet.utils import ORIGINAL_TO_PAPER, PAPER_CLASS_NAMES
+        
+        mapped_names = {}
+        for original_id in class_ids:
+            # Check if this class is in the paper set
+            if original_id in ORIGINAL_TO_PAPER:
+                paper_id = ORIGINAL_TO_PAPER[original_id]
+                if paper_id in PAPER_CLASS_NAMES:
+                    mapped_names[paper_id] = PAPER_CLASS_NAMES[paper_id]
+        
+        return mapped_names
+
+    def _validate_names_against_labels(self) -> None:
+        """Compare names parameter with actual label classes and raise ValueError if mismatch (T122, T124).
+        
+        Raises:
+            ValueError: If names parameter doesn't match actual label classes.
+        """
+        # Get actual class IDs from label files
+        actual_class_ids = self._get_actual_label_classes()
+        
+        # If no labels found, skip validation (edge case: empty dataset)
+        if not actual_class_ids:
+            return
+        
+        # Map actual class IDs to paper class names
+        actual_names = self._map_class_ids_to_names(actual_class_ids)
+        
+        # If no paper classes found in labels (all filtered out), skip validation
+        # This handles the edge case where labels only contain non-paper classes
+        if not actual_names:
+            return
+        
+        # Compare with provided names parameter
+        expected_names_set = set(self.names.values())
+        actual_names_set = set(actual_names.values())
+        
+        if expected_names_set != actual_names_set:
+            # Build clear error message (T124)
+            expected_str = ", ".join(sorted(expected_names_set)) if expected_names_set else "(none)"
+            actual_str = ", ".join(sorted(actual_names_set)) if actual_names_set else "(none)"
+            
+            raise ValueError(
+                f"names parameter does not match actual label classes. "
+                f"Expected classes in names: {expected_str}, "
+                f"but found classes in labels: {actual_str}. "
+                f"Please ensure the names parameter matches the classes present in your label files."
+            )
 
     def __len__(self) -> int:
         return len(self.base)
@@ -63,7 +156,6 @@ class Stereo3DDetAdapterDataset(Dataset):
         # Import class mapping utilities if filtering is enabled
         if self.filter_classes:
             from ultralytics.models.yolo.stereo3ddet.utils import filter_and_remap_class_id
-            from ultralytics.utils import LOGGER
 
         for obj in labels:
             try:

@@ -15,7 +15,6 @@ from ultralytics.utils.metrics import box_iou, mask_iou
 from .amg import batched_mask_to_box
 from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
 
-from .sam3.data_misc import Datapoint
 from .sam3.geometry_encoders import Prompt
 from ultralytics.engine.results import Results
 from torchvision.ops import masks_to_boxes

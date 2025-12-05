@@ -1,10 +1,8 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 # Based on https://github.com/IDEA-Research/GroundingDINO
 
-from typing import Dict, List, Optional, Tuple
-
 import torch
-from torch import nn, Tensor
+from torch import nn
 from ultralytics.nn.modules.utils import _get_clones
 
 from .model_misc import get_valid_ratio
@@ -78,16 +76,16 @@ class TransformerEncoderLayer(nn.Module):
 
     def forward_post(
         self,
-        tgt: Tensor,
-        memory: Tensor,
-        tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
-        tgt_key_padding_mask: Optional[Tensor] = None,
-        memory_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
-        query_pos: Optional[Tensor] = None,
+        tgt: torch.Tensor,
+        memory: torch.Tensor,
+        tgt_mask: torch.Tensor = None,
+        memory_mask: torch.Tensor = None,
+        tgt_key_padding_mask: torch.Tensor = None,
+        memory_key_padding_mask: torch.Tensor = None,
+        pos: torch.Tensor = None,
+        query_pos: torch.Tensor = None,
         **kwargs,
-    ) -> Tensor:
+    ) -> torch.Tensor:
         """
         Forward pass for post-norm architecture.
 
@@ -136,18 +134,17 @@ class TransformerEncoderLayer(nn.Module):
 
     def forward_pre(
         self,
-        tgt: Tensor,
-        memory: Tensor,
+        tgt: torch.Tensor,
+        memory: torch.Tensor,
         dac: bool = False,
-        tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
-        tgt_key_padding_mask: Optional[Tensor] = None,
-        memory_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
-        query_pos: Optional[Tensor] = None,
-        # attn_bias: Optional[Tensor] = None,
+        tgt_mask: torch.Tensor = None,
+        memory_mask: torch.Tensor = None,
+        tgt_key_padding_mask: torch.Tensor = None,
+        memory_key_padding_mask: torch.Tensor = None,
+        pos: torch.Tensor = None,
+        query_pos: torch.Tensor = None,
         # **kwargs,
-    ) -> Tensor:
+    ) -> torch.Tensor:
         """
         Forward pass for pre-norm architecture.
 
@@ -198,16 +195,15 @@ class TransformerEncoderLayer(nn.Module):
 
     def forward(
         self,
-        tgt: Tensor,
-        memory: Tensor,
+        tgt: torch.Tensor,
+        memory: torch.Tensor,
         dac: bool = False,
-        tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
-        tgt_key_padding_mask: Optional[Tensor] = None,
-        memory_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
-        query_pos: Optional[Tensor] = None,
-        # attn_bias: Optional[Tensor] = None,
+        tgt_mask: torch.Tensor = None,
+        memory_mask: torch.Tensor = None,
+        tgt_key_padding_mask: torch.Tensor = None,
+        memory_key_padding_mask: torch.Tensor = None,
+        pos: torch.Tensor = None,
+        query_pos: torch.Tensor = None,
         # **kwds: Any,
     ) -> torch.Tensor:
         """
@@ -348,13 +344,13 @@ class TransformerEncoder(nn.Module):
 
     def forward(
         self,
-        src: List[Tensor],
-        src_key_padding_masks: Optional[List[Tensor]] = None,
-        pos: Optional[List[Tensor]] = None,
-        prompt: Optional[Tensor] = None,
-        prompt_key_padding_mask: Optional[Tensor] = None,
-        encoder_extra_kwargs: Optional[Dict] = None,
-    ) -> Tuple[Tensor, Optional[Tensor], Tensor, Tensor, Tensor, Tensor]:
+        src: list[torch.Tensor],
+        src_key_padding_masks: list[torch.Tensor] = None,
+        pos: list[torch.Tensor] = None,
+        prompt: torch.Tensor = None,
+        prompt_key_padding_mask: torch.Tensor = None,
+        encoder_extra_kwargs: dict = None,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Process multi-level features through the transformer encoder.
 
@@ -444,7 +440,7 @@ class TransformerEncoderFusion(TransformerEncoder):
         num_feature_levels: int,
         add_pooled_text_to_img_feat: bool = True,
         pool_text_with_mask: bool = False,
-        compile_mode: Optional[str] = None,
+        compile_mode: str = None,
         **kwargs,
     ):
         super().__init__(
@@ -463,13 +459,13 @@ class TransformerEncoderFusion(TransformerEncoder):
 
     def forward(
         self,
-        src: List[Tensor],
-        prompt: Tensor,
-        src_key_padding_mask: Optional[List[Tensor]] = None,
-        src_pos: Optional[List[Tensor]] = None,
-        prompt_key_padding_mask: Optional[Tensor] = None,
-        feat_sizes: Optional[List[int]] = None,
-        encoder_extra_kwargs: Optional[Dict] = None,
+        src: list[torch.Tensor],
+        prompt: torch.Tensor,
+        src_key_padding_mask: list[torch.Tensor] = None,
+        src_pos: list[torch.Tensor] = None,
+        prompt_key_padding_mask: torch.Tensor = None,
+        feat_sizes: list[int] = None,
+        encoder_extra_kwargs: dict = None,
     ):
         # Restore spatial shapes of vision
         bs = src[0].shape[1]  # seq first

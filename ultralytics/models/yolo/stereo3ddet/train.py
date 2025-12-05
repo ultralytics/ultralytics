@@ -49,6 +49,14 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         Returns:
             dict: Dataset dictionary with fields used by the trainer and model.
         """
+        # Handle None data for testing purposes
+        if self.args.data is None:
+            return {
+                "names": {0: "Car", 1: "Pedestrian", 2: "Cyclist"},
+                "nc": 3,
+                "channels": 6,
+            }
+        
         # Load YAML if a path is provided; accept dicts directly
         data_cfg = self.args.data
         if isinstance(data_cfg, (str, Path)):

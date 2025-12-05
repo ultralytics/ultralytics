@@ -536,9 +536,28 @@ class Stereo3DDetValidator(BaseValidator):
         if model is not None:
             self.init_metrics(model)
 
+        # CRITICAL FIX (T088, T089): Set self.data with channels=6 BEFORE calling super().__call__()
+        # BaseValidator.__call__ will now preserve self.data with channels=6 for stereo3ddet task
+        # (see BaseValidator.__call__ modification). This ensures warmup uses channels=6.
+        if trainer is None:
+            # Get stereo dataset config with channels=6
+            if self.args.data is not None:
+                self.data = self.get_dataset()  # Returns dict with channels=6
+            elif hasattr(self.args, "data") and self.args.data is None:
+                # Fallback: create minimal data dict with channels=6 for testing
+                self.data = {
+                    "channels": 6,
+                    "names": {0: "Car", 1: "Pedestrian", 2: "Cyclist"},
+                    "nc": 3,
+                }
+
         # Call parent implementation which handles the validation loop
-        # BaseValidator.__call__ will see self.data is already set and skip the dataset loading logic
+        # BaseValidator.__call__ will now preserve self.data with channels=6 for stereo3ddet
         result = super().__call__(trainer=trainer, model=model)
+        
+        # After super().__call__() completes, ensure self.data has channels=6 for consistency
+        if trainer is None and hasattr(self, "data") and isinstance(self.data, dict):
+            self.data["channels"] = 6
 
         # Return metrics
         if hasattr(self.metrics, "results_dict"):

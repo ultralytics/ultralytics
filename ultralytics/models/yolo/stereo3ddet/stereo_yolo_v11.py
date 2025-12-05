@@ -515,8 +515,27 @@ class StereoYOLOv11Wrapper(nn.Module):
         self.yaml = {"channels": 6}  # 6-channel input (left + right)
         self.model = self.core  # For compatibility with BaseModel.fuse() pattern
 
-    def forward(self, x, targets: Optional[Dict] = None, augment: bool = False):
-        """Accepts either a tensor [B,6,H,W] or a dict with keys 'img' and optional 'targets'."""
+    def forward(
+        self,
+        x,
+        targets: Optional[Dict] = None,
+        augment: bool = False,
+        visualize=False,
+        embed=None,
+        profile=False,
+        **kwargs,
+    ):
+        """Accepts either a tensor [B,6,H,W] or a dict with keys 'img' and optional 'targets'.
+        
+        Args:
+            x: Input tensor [B,6,H,W] or dict with 'img' key.
+            targets: Optional ground truth targets for training.
+            augment: Whether to apply augmentation (not used currently).
+            visualize: Path to save feature visualizations (for AutoBackend compatibility).
+            embed: List of layer indices to return embeddings (for AutoBackend compatibility).
+            profile: Whether to profile computation time (for AutoBackend compatibility).
+            **kwargs: Additional keyword arguments for AutoBackend compatibility.
+        """
         # Unpack input
         if isinstance(x, dict):
             img6 = x.get("img", None)

@@ -868,23 +868,25 @@ def verify_image_and_mask(args: tuple) -> list:
             masks.append(mask_i)
         nl = len(segments)
 
-        assert nl > 0
+        if (nl > 0):
+            h, w, _ = img_shape
+            lb = np.zeros((nl, 5), dtype=np.float32)
+            lb[:, 0] = np.array(categoris)
+            lb[:, 1:] = get_boundingbox_from_polygons(segments, format="xyxy")
 
-        h, w, _ = img_shape
-        lb = np.zeros((nl, 5), dtype=np.float32)
-        lb[:, 0] = np.array(categoris)
-        lb[:, 1:] = get_boundingbox_from_polygons(segments, format="xyxy")
+            for segment in segments:
+                segment[:, 0] = segment[:, 0] / w
+                segment[:, 1] = segment[:, 1] / h
+            lb[:, 1] = lb[:, 1] / w
+            lb[:, 2] = lb[:, 2] / h
+            lb[:, 3] = lb[:, 3] / w
+            lb[:, 4] = lb[:, 4] / h
 
-        for segment in segments:
-            segment[:, 0] = segment[:, 0] / w
-            segment[:, 1] = segment[:, 1] / h
-        lb[:, 1] = lb[:, 1] / w
-        lb[:, 2] = lb[:, 2] / h
-        lb[:, 3] = lb[:, 3] / w
-        lb[:, 4] = lb[:, 4] / h
-
-        lb[:, 3] = lb[:, 3] - lb[:, 1]  # to [xmin, ymin, w, h] (normalized => 1.0)
-        lb[:, 4] = lb[:, 4] - lb[:, 2]
+            lb[:, 3] = lb[:, 3] - lb[:, 1]  # to [xmin, ymin, w, h] (normalized => 1.0)
+            lb[:, 4] = lb[:, 4] - lb[:, 2]
+        else:
+            ne = 1
+            lb = np.zeros((nl, 5), dtype=np.float32)
 
         return im_file, lb_file, lb, img_shape, segments, keypoints, nm, nf, ne, nc, msg
 

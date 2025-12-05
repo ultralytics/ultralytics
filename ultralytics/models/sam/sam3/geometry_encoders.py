@@ -8,7 +8,7 @@ from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.nn.modules.utils import _get_clones
 
 
-def is_right_padded(mask):
+def is_right_padded(mask: torch.Tensor):
     """Given a padding mask (following pytorch convention, 1s for padded values),
     returns whether the padding is on the right or not."""
     return (mask.long() == torch.sort(mask.long(), dim=-1)[0]).all()

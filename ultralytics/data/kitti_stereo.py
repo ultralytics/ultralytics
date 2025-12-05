@@ -35,7 +35,7 @@ class KITTIStereoDataset:
         >>> calib = sample["calib"]
     """
 
-    def __init__(self, root: str | Path, split: str = "train"):
+    def __init__(self, root: str | Path, split: str = "train", filter_classes: bool = False):
         """Initialize KITTI Stereo Dataset.
 
         Args:
@@ -44,9 +44,12 @@ class KITTIStereoDataset:
                 - labels/{split}/
                 - calib/{split}/
             split (str): Dataset split, either 'train' or 'val'. Defaults to 'train'.
+            filter_classes (bool): If True, filter to only paper classes (Car, Pedestrian, Cyclist)
+                and remap class IDs from 0,3,5 to 0,1,2. Defaults to False.
         """
         self.root = Path(root)
         self.split = split
+        self.filter_classes = filter_classes
 
         # Set up directory paths
         self.left_img_dir = self.root / "images" / split / "left"
@@ -192,7 +195,8 @@ class KITTIStereoDataset:
 
         Returns:
             list[dict[str, Any]]: List of label dictionaries, each containing:
-                - class_id: Class ID (int)
+                - class_id: Class ID (int) - remapped if filter_classes=True
+                - original_class_id: Original class ID (int) - only if filter_classes=True
                 - left_box: Left image 2D box [center_x, center_y, width, height] (normalized)
                 - right_box: Right image 2D box [center_x, width] (normalized)
                 - dimensions: 3D dimensions [height, width, length] in meters
@@ -201,6 +205,10 @@ class KITTIStereoDataset:
         """
         if not label_file.exists():
             return []
+
+        # Import class mapping utilities
+        if self.filter_classes:
+            from ultralytics.models.yolo.stereo3ddet.utils import filter_and_remap_class_id
 
         labels = []
         with open(label_file, "r") as f:
@@ -216,9 +224,21 @@ class KITTIStereoDataset:
 
                 try:
                     values = [float(x) for x in parts]
+                    original_class_id = int(values[0])
+
+                    # Filter and remap class ID if filtering is enabled
+                    if self.filter_classes:
+                        remapped_class_id = filter_and_remap_class_id(original_class_id)
+                        if remapped_class_id is None:
+                            # Class is not in paper set, skip it
+                            # LOGGER.warning(f"Filtering out class {original_class_id} (not in paper set: Car, Pedestrian, Cyclist)")
+                            continue
+                        class_id = remapped_class_id
+                    else:
+                        class_id = original_class_id
 
                     label_dict = {
-                        "class_id": int(values[0]),
+                        "class_id": class_id,
                         "left_box": {
                             "center_x": values[1],
                             "center_y": values[2],
@@ -242,6 +262,10 @@ class KITTIStereoDataset:
                             "v4": [values[17], values[18]],
                         },
                     }
+
+                    # Store original class ID if filtering is enabled
+                    if self.filter_classes:
+                        label_dict["original_class_id"] = original_class_id
 
                     labels.append(label_dict)
                 except (ValueError, IndexError) as e:

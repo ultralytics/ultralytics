@@ -38,7 +38,13 @@ class Stereo3DDetAdapterDataset(Dataset):
         self.imgsz = int(imgsz)
         self.names = names or {}
 
-        self.base = KITTIStereoDataset(root=self.root, split=self.split)
+        # Determine if we should filter classes based on names parameter
+        # If names contains only 3 classes (Car, Pedestrian, Cyclist), enable filtering
+        from ultralytics.models.yolo.stereo3ddet.utils import PAPER_CLASS_NAMES
+        self.filter_classes = set(self.names.values()) != set(PAPER_CLASS_NAMES.values())
+
+        # Initialize base dataset with class filtering if needed
+        self.base = KITTIStereoDataset(root=self.root, split=self.split, filter_classes=self.filter_classes)
         self.left_dir = self.root / "images" / split / "left"
         # Full stereo augmentation pipeline (photometric + geometric)
         self._aug = StereoAugmentationPipeline(
@@ -54,11 +60,31 @@ class Stereo3DDetAdapterDataset(Dataset):
         cls_list: List[float] = []
         bboxes_list: List[List[float]] = []
 
+        # Import class mapping utilities if filtering is enabled
+        if self.filter_classes:
+            from ultralytics.models.yolo.stereo3ddet.utils import filter_and_remap_class_id
+            from ultralytics.utils import LOGGER
+
         for obj in labels:
             try:
-                cid = int(obj.get("class_id", -1))
-                if cid < 0:
+                original_cid = int(obj.get("class_id", -1))
+                if original_cid < 0:
                     continue
+
+                # Filter and remap class ID if filtering is enabled
+                if self.filter_classes:
+                    # If base dataset already filtered, class_id is already remapped
+                    # But we should double-check it's in the paper set
+                    remapped_cid = filter_and_remap_class_id(original_cid)
+                    if remapped_cid is None:
+                        # This shouldn't happen if base dataset filtered correctly, but log if it does
+                        from ultralytics.utils import LOGGER
+                        LOGGER.warning(f"Filtering out class {original_cid} in adapter dataset (not in paper set: Car, Pedestrian, Cyclist)")
+                        continue
+                    cid = remapped_cid
+                else:
+                    cid = original_cid
+
                 lb = obj.get("left_box", {})
                 cx, cy, bw, bh = float(lb.get("center_x", 0)), float(lb.get("center_y", 0)), float(
                     lb.get("width", 0)
@@ -131,17 +157,13 @@ class Stereo3DDetAdapterDataset(Dataset):
         img6 = torch.cat([left_t, right_t], dim=0)
         if img6.dtype != torch.uint8:
             img6 = img6.to(torch.uint8)
-
-        # Pass labels through for target generation in trainer
-        # The trainer will convert these to proper target format
         labels = labels_aug
-
         image_id = sample.get("image_id")
         im_file = str(self.left_dir / f"{image_id}.png")
 
         return {
             "img": img6,  # uint8 [0,255], shape (6,H,W)
-            "labels": labels,  # Pass labels for target generation
+            "labels": labels,  # Pass labels for target generation (filtered and remapped if needed)
             "im_file": im_file,
             "ori_shape": (h0, w0),
         }
@@ -150,6 +172,24 @@ class Stereo3DDetAdapterDataset(Dataset):
     def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
         imgs = torch.stack([b["img"] for b in batch], 0)  # (B,6,H,W)
         labels_list = [b.get("labels", []) for b in batch]
+        
+        # Final safety check: ensure all class IDs are in [0, 1, 2] range
+        # This should not be needed if filtering works correctly in __getitem__, but provides a safety net
+        # Filter out any labels with invalid class IDs to prevent training errors
+        filtered_labels_list = []
+        for labels in labels_list:
+            filtered_labels = []
+            for label in labels:
+                class_id = label.get("class_id", -1)
+                if class_id in [0, 1, 2]:
+                    filtered_labels.append(label)
+                else:
+                    from ultralytics.utils import LOGGER
+                    LOGGER.warning(f"Filtering out label with invalid class_id {class_id} in collate_fn. This should not happen if filtering works correctly in __getitem__.")
+            filtered_labels_list.append(filtered_labels)
+        
+        labels_list = filtered_labels_list
+        
         # Extract class IDs for compatibility with trainer
         # Trainer expects cls to be a tensor with shape [batch_size]
         # We'll use the number of objects as a proxy

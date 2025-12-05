@@ -6,7 +6,6 @@ from typing import Any
 import logging
 
 import numpy as np
-import numpy.typing as npt
 import torch
 import torch.nn.functional as F
 from torch import Tensor
@@ -529,7 +528,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self,
         frame_idx: int,
         tracker_states_local: list[Any],
-        tracker_metadata_prev: dict[str, npt.NDArray],
+        tracker_metadata_prev: dict[str, np.ndarray],
     ):
         # Step 1: propagate the local SAM2 states to get the current frame's prediction
         # `low_res_masks_local` of the existing masklets on this GPU
@@ -555,7 +554,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         det_out: dict[str, Tensor],
         trk_id_to_max_iou_high_conf_det: list[int],
         tracker_states_local: list[Any],
-        tracker_metadata: dict[str, npt.NDArray],
+        tracker_metadata: dict[str, np.ndarray],
         tracker_obj_scores_global: Tensor,
     ):
         # Recondition the masklets based on the new detections
@@ -597,7 +596,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         det_out: dict[str, Tensor],
         tracker_low_res_masks_global: Tensor,
         tracker_obj_scores_global: Tensor,
-        tracker_metadata_prev: dict[str, npt.NDArray],
+        tracker_metadata_prev: dict[str, np.ndarray],
         tracker_states_local: list[Any],
     ):
         # initialize new metadata from previous metadata (its values will be updated later)
@@ -616,8 +615,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # Step 1: make the update plan and resolve heuristics on GPU 0
         det_mask_preds: Tensor = det_out["mask"]  # low-res mask logits
-        det_scores_np: npt.NDArray = det_out["scores"].float().cpu().numpy()
-        det_cls_np: npt.NDArray = det_out["cls"].float().cpu().numpy()
+        det_scores_np: np.ndarray = det_out["scores"].float().cpu().numpy()
+        det_cls_np: np.ndarray = det_out["cls"].float().cpu().numpy()
         det_bbox_xyxy: Tensor = det_out["bbox"]
         # a) match detector and tracker masks and find new objects
         (
@@ -673,10 +672,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # `tracker_update_plan` should be identical on all GPUs after broadcasting
         tracker_update_plan = {
-            "new_det_fa_inds": new_det_fa_inds,  # npt.NDArray
-            "new_det_obj_ids": new_det_obj_ids,  # npt.NDArray
-            # "new_det_gpu_ids": new_det_gpu_ids,  # npt.NDArray
-            "unmatched_trk_obj_ids": unmatched_trk_obj_ids,  # npt.NDArray
+            "new_det_fa_inds": new_det_fa_inds,  # np.ndarray
+            "new_det_obj_ids": new_det_obj_ids,  # np.ndarray
+            # "new_det_gpu_ids": new_det_gpu_ids,  # np.ndarray
+            "unmatched_trk_obj_ids": unmatched_trk_obj_ids,  # np.ndarray
             "det_to_matched_trk_obj_ids": det_to_matched_trk_obj_ids,  # dict
             "obj_ids_newly_removed": obj_ids_newly_removed,  # set
             "num_obj_dropped_due_to_limit": num_obj_dropped_due_to_limit,  # int
@@ -874,14 +873,14 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         num_frames: int,
         det_out: dict[str, Tensor],
         tracker_states_local: list[Any],
-        tracker_update_plan: dict[str, npt.NDArray],
+        tracker_update_plan: dict[str, np.ndarray],
     ):
         # initialize tracking scores with detection scores
-        new_det_fa_inds: npt.NDArray = tracker_update_plan["new_det_fa_inds"]
-        new_det_obj_ids: npt.NDArray = tracker_update_plan["new_det_obj_ids"]
-        # new_det_gpu_ids: npt.NDArray = tracker_update_plan["new_det_gpu_ids"]
-        new_det_obj_ids_local: npt.NDArray = new_det_obj_ids
-        new_det_fa_inds_local: npt.NDArray = new_det_fa_inds
+        new_det_fa_inds: np.ndarray = tracker_update_plan["new_det_fa_inds"]
+        new_det_obj_ids: np.ndarray = tracker_update_plan["new_det_obj_ids"]
+        # new_det_gpu_ids: np.ndarray = tracker_update_plan["new_det_gpu_ids"]
+        new_det_obj_ids_local: np.ndarray = new_det_obj_ids
+        new_det_fa_inds_local: np.ndarray = new_det_fa_inds
         obj_ids_newly_removed: set[int] = tracker_update_plan["obj_ids_newly_removed"]
 
         # Step 1: add new objects from the detector to SAM2 inference states
@@ -907,12 +906,12 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self,
         det_out: dict[str, Tensor],
         tracker_low_res_masks_global: Tensor,
-        tracker_metadata_prev: dict[str, npt.NDArray],
-        tracker_update_plan: dict[str, npt.NDArray],
+        tracker_metadata_prev: dict[str, np.ndarray],
+        tracker_update_plan: dict[str, np.ndarray],
         reconditioned_obj_ids: set = None,
     ):
-        new_det_fa_inds: npt.NDArray = tracker_update_plan["new_det_fa_inds"]
-        new_det_obj_ids: npt.NDArray = tracker_update_plan["new_det_obj_ids"]
+        new_det_fa_inds: np.ndarray = tracker_update_plan["new_det_fa_inds"]
+        new_det_obj_ids: np.ndarray = tracker_update_plan["new_det_obj_ids"]
         obj_id_to_mask = {}  # obj_id --> output mask tensor
 
         # Part 1: masks from previous SAM2 propagation
@@ -1042,9 +1041,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def _associate_det_trk(
         self,
         det_masks: Tensor,
-        det_scores_np: npt.NDArray,
+        det_scores_np: np.ndarray,
         trk_masks: Tensor,
-        trk_obj_ids: npt.NDArray,
+        trk_obj_ids: np.ndarray,
     ):
         """
         Match detections on the current frame with the existing masklets.
@@ -1059,7 +1058,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
           - new_det_fa_inds: array of new object indices.
           - unmatched_trk_obj_ids: array of existing masklet object IDs that are not matched
             to any detections on this frame (for unmatched, we only count masklets with >0 area)
-          - det_to_matched_trk_obj_ids: dict[int, npt.NDArray]: mapping from detector's detection indices
+          - det_to_matched_trk_obj_ids: dict[int, np.ndarray]: mapping from detector's detection indices
             to the list of matched tracklet object IDs
           - empty_trk_obj_ids: array of existing masklet object IDs with zero area in SAM2 prediction
         """
@@ -1177,10 +1176,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self,
         frame_idx: int,
         reverse: bool,
-        det_to_matched_trk_obj_ids: dict[int, npt.NDArray],
-        new_det_obj_ids: npt.NDArray,
-        empty_trk_obj_ids: npt.NDArray,
-        unmatched_trk_obj_ids: npt.NDArray,
+        det_to_matched_trk_obj_ids: dict[int, np.ndarray],
+        new_det_obj_ids: np.ndarray,
+        empty_trk_obj_ids: np.ndarray,
+        unmatched_trk_obj_ids: np.ndarray,
         metadata: dict[str, Any],
     ):
         """Handle hotstart heuristics to remove unmatched or duplicated objects."""
@@ -1434,7 +1433,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "suppressed_obj_ids": defaultdict(set),
         }
         if self.masklet_confirmation_enable:
-            # all the following are npt.NDArray with the same shape as `obj_ids_all_gpu`
+            # all the following are np.ndarray with the same shape as `obj_ids_all_gpu`
             metadata["masklet_confirmation"] = {
                 # "status" is the confirmation status of each masklet
                 "status": np.array([], np.int64),
@@ -1449,10 +1448,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def update_masklet_confirmation_status(
         self,
         metadata: dict[str, Any],
-        obj_ids_all_gpu_prev: npt.NDArray,
-        obj_ids_all_gpu_updated: npt.NDArray,
-        det_to_matched_trk_obj_ids: dict[int, npt.NDArray],
-        new_det_obj_ids: npt.NDArray,
+        obj_ids_all_gpu_prev: np.ndarray,
+        obj_ids_all_gpu_updated: np.ndarray,
+        det_to_matched_trk_obj_ids: dict[int, np.ndarray],
+        new_det_obj_ids: np.ndarray,
     ):
         confirmation_data = metadata["masklet_confirmation"]
 

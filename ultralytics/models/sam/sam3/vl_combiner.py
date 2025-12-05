@@ -3,13 +3,10 @@
 """Provides utility to combine a vision backbone with a language backbone."""
 
 from copy import copy
-from typing import List, Optional
-
 import torch
 import torch.nn as nn
 
 from torch.nn.attention import sdpa_kernel, SDPBackend
-
 from .necks import Sam3DualViTDetNeck
 
 
@@ -45,9 +42,9 @@ class SAM3VLBackbone(nn.Module):
     def forward(
         self,
         samples: torch.Tensor,
-        captions: List[str],
-        input_boxes: Optional[torch.Tensor] = None,
-        additional_text: Optional[List[str]] = None,
+        captions: list[str],
+        input_boxes: torch.Tensor = None,
+        additional_text: list[str] = None,
     ):
         """Forward pass of the backbone combiner.
 

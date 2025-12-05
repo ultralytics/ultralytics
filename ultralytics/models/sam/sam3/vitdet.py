@@ -478,6 +478,7 @@ class ViT(nn.Module):
                 torch._dynamo.config.optimize_ddp = False
 
     def _init_weights(self, m: nn.Module) -> None:
+        """Initialize the weights."""
         if isinstance(m, nn.Linear):
             nn.init.trunc_normal_(m.weight, std=0.02)
             if isinstance(m, nn.Linear) and m.bias is not None:
@@ -487,6 +488,7 @@ class ViT(nn.Module):
             nn.init.constant_(m.weight, 1.0)
 
     def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
+        """Vit forward path and get feature maps."""
         x = self.patch_embed(x)
         h, w = x.shape[1], x.shape[2]
 
@@ -529,26 +531,6 @@ class ViT(nn.Module):
                 outputs.append(feats)
 
         return outputs
-
-    def get_layer_id(self, layer_name: str) -> int:
-        # https://github.com/microsoft/unilm/blob/master/beit/optim_factory.py#L33
-        num_layers = self.get_num_layers()
-
-        if layer_name.find("rel_pos") != -1:
-            return num_layers + 1
-        elif layer_name.find("ln_pre") != -1:
-            return 0
-        elif layer_name.find("pos_embed") != -1 or layer_name.find("cls_token") != -1:
-            return 0
-        elif layer_name.find("patch_embed") != -1:
-            return 0
-        elif layer_name.find("blocks") != -1:
-            return int(layer_name.split("blocks")[1].split(".")[1]) + 1
-        else:
-            return num_layers + 1
-
-    def get_num_layers(self) -> int:
-        return len(self.blocks)
 
     def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
         """Setup rel pos embeddings and rope freqs for a new input image size."""

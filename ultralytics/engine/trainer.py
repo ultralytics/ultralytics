@@ -252,14 +252,13 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
+        torch.cuda.set_device(LOCAL_RANK)
+        self.device = torch.device("cuda", LOCAL_RANK)
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
             backend="nccl" if dist.is_nccl_available() else "gloo",
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
-            world_size=self.world_size,
         )
 
     def _setup_train(self):
@@ -776,12 +775,13 @@ class BaseTrainer:
     def final_eval(self):
         """Perform final evaluation and validation for object detection YOLO model."""
         model = self.best if self.best.exists() else None
-        with torch_distributed_zero_first(LOCAL_RANK):  # strip only on GPU 0; other GPUs should wait
-            if RANK in {-1, 0}:
-                ckpt = strip_optimizer(self.last) if self.last.exists() else {}
-                if model:
-                    # update best.pt train_metrics from last.pt
-                    strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
+        # strip only on GPU 0; other GPUs should wait
+        if RANK in {-1, 0}:
+            ckpt = strip_optimizer(self.last) if self.last.exists() else {}
+            if model:
+                # update best.pt train_metrics from last.pt
+                strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
+        dist.barrier()  # wait for GPU 0 to strip
         if model:
             LOGGER.info(f"\nValidating {model}...")
             self.validator.args.plots = self.args.plots

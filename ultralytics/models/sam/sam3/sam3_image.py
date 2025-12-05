@@ -84,6 +84,25 @@ class Sam3Image(torch.nn.Module):
         self.text_embeddings = {}
         self.names = []
 
+    def _prepare_backbone_features(self, backbone_out, num_prompts=1):
+        """Prepare and flatten visual features from the image backbone output for further processing."""
+        if num_prompts > 1:  # expand features if there's more than one prompt
+            for i, feat in enumerate(backbone_out["backbone_fpn"]):
+                backbone_out["backbone_fpn"][i] = feat.expand(num_prompts, -1, -1, -1)
+            for i, pos in enumerate(backbone_out["vision_pos_enc"]):
+                pos = pos.expand(num_prompts, -1, -1, -1)
+                backbone_out["vision_pos_enc"][i] = pos
+        assert len(backbone_out["backbone_fpn"]) == len(backbone_out["vision_pos_enc"])
+        assert len(backbone_out["backbone_fpn"]) >= self.num_feature_levels
+
+        feature_maps = backbone_out["backbone_fpn"][-self.num_feature_levels :]
+        vision_pos_embeds = backbone_out["vision_pos_enc"][-self.num_feature_levels :]
+        feat_sizes = [(x.shape[-2], x.shape[-1]) for x in vision_pos_embeds]
+        # flatten NxCxHxW to HWxNxC
+        vision_feats = [x.flatten(2).permute(2, 0, 1) for x in feature_maps]
+        vision_pos_embeds = [x.flatten(2).permute(2, 0, 1) for x in vision_pos_embeds]
+        return backbone_out, vision_feats, vision_pos_embeds, feat_sizes
+
     # TODO: remove this
     def _get_img_feats(self, backbone_out, img_ids):
         """Retrieve correct image features from backbone output."""
@@ -296,7 +315,6 @@ class Sam3Image(torch.nn.Module):
         self,
         out,
         backbone_out,
-        img_ids,
         encoder_hidden_states,
         prompt,
         prompt_mask,
@@ -309,7 +327,6 @@ class Sam3Image(torch.nn.Module):
             seg_head_outputs = self.segmentation_head(
                 backbone_feats=backbone_out["backbone_fpn"],
                 obj_queries=obj_queries,
-                image_ids=img_ids,
                 encoder_hidden_states=encoder_hidden_states,
                 prompt=prompt,
                 prompt_mask=prompt_mask,
@@ -322,17 +339,20 @@ class Sam3Image(torch.nn.Module):
         else:
             backbone_out.pop("backbone_fpn", None)
 
-    def forward_grounding(self, backbone_out, find_input, geometric_prompt: Prompt = None):
+    def forward_grounding(
+        self, backbone_out: dict[str, torch.Tensor], text_ids: torch.Tensor, geometric_prompt: Prompt = None
+    ):
         """Forward pass for grounding (detection + segmentation) given input images and text."""
+        backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = self._prepare_backbone_features(
+            backbone_out, num_prompts=len(text_ids)
+        )
         backbone_out.update({k: v for k, v in self.text_embeddings.items()})
-        backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = self._get_img_feats(backbone_out, find_input.img_ids)
         with torch.profiler.record_function("SAM3Image._encode_prompt"):
             prompt, prompt_mask = self._encode_prompt(img_feats, img_pos_embeds, vis_feat_sizes, geometric_prompt)
         # index text features (note that regardless of early or late fusion, the batch size of
         # `txt_feats` is always the number of *prompts* in the encoder)
-        txt_ids = find_input.text_ids
-        txt_feats = backbone_out["language_features"][:, txt_ids]
-        txt_masks = backbone_out["language_mask"][txt_ids]
+        txt_feats = backbone_out["language_features"][:, text_ids]
+        txt_masks = backbone_out["language_mask"][text_ids]
         # encode text
         prompt = torch.cat([txt_feats, prompt], dim=0)
         prompt_mask = torch.cat([txt_masks, prompt_mask], dim=1)
@@ -359,7 +379,6 @@ class Sam3Image(torch.nn.Module):
             self._run_segmentation_heads(
                 out=out,
                 backbone_out=backbone_out,
-                img_ids=find_input.img_ids,
                 encoder_hidden_states=encoder_out["encoder_hidden_states"],
                 prompt=prompt,
                 prompt_mask=prompt_mask,

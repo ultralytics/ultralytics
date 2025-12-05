@@ -16,6 +16,7 @@ from .amg import batched_mask_to_box
 from .predict import SAM3VideoPredictor, SAM3SemanticPredictor
 
 from .sam3.data_misc import Datapoint
+from .sam3.geometry_encoders import Prompt
 from ultralytics.engine.results import Results
 from torchvision.ops import masks_to_boxes
 
@@ -176,11 +177,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def inference(self, im, bboxes=None, labels=None, text: list[str] = None, *args, **kwargs):
         """Perform inference on a video sequence with optional prompts."""
         frame = self.dataset.frame - 1  # align frame index to be 0-based
-        if "input_batch" not in self.inference_state:  # first frame processing
-            self.inference_state["input_batch"] = Datapoint(img_batch=im, text_ids=None, img_ids=None)
+        self.inference_state["im"] = im  # only pass image for subsequent frames
+        if "text_ids" not in self.inference_state:  # first frame processing
             self.add_prompt(frame_idx=frame, text=text, bboxes=bboxes, labels=labels)
-        else:
-            self.inference_state["input_batch"].img_batch = im  # only pass image for subsequent frames
         return self._run_single_frame_inference(frame, reverse=False)
 
     def postprocess(self, preds, img, orig_imgs):
@@ -258,9 +257,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             frame_idx=frame_idx,
             num_frames=inference_state["num_frames"],
             reverse=reverse,
-            input_batch=inference_state["input_batch"],
+            im=inference_state["im"],
+            text_ids=inference_state["text_ids"],
             geometric_prompt=(
-                self._get_dummy_prompt(num_prompts=len(inference_state["input_batch"].img_ids))
+                self._get_dummy_prompt(num_prompts=len(inference_state["text_ids"]))
                 if not has_geometric_prompt
                 else inference_state["per_frame_geometric_prompt"][frame_idx]
             ),
@@ -318,9 +318,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         inference_state["text_prompt"] = text if use_text else None
         n = len(text_batch)
         text_ids = torch.arange(n, device=self.device, dtype=torch.long)
-        img_ids = torch.zeros(n, device=self.device, dtype=torch.long)
-        inference_state["input_batch"].text_ids = text_ids
-        inference_state["input_batch"].img_ids = img_ids
+        inference_state["text_ids"] = text_ids
         if text is not None and self.model.names != text:
             self.model.set_classes(text=text)
 
@@ -356,11 +354,12 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
     def _det_track_one_frame(
         self,
+        im: torch.Tensor,
+        text_ids: torch.Tensor,
         frame_idx: int,
         num_frames: int,
         reverse: bool,
-        input_batch,
-        geometric_prompt: Any,
+        geometric_prompt: Prompt,
         tracker_states_local: List[Any],
         tracker_metadata_prev: Dict[str, Any],
         allow_new_detections: bool = True,
@@ -380,7 +379,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 1: run backbone and detector in a distributed manner -- this is done via Sam3ImageOnVideoMultiGPU,
         # a MultiGPU model (assigned to `self.detector`) that shards frames in a round-robin manner.
         det_out = self.run_backbone_and_detection(
-            input_batch=input_batch,
+            im=im,
+            text_ids=text_ids,
             geometric_prompt=geometric_prompt,
             allow_new_detections=allow_new_detections,
         )
@@ -476,12 +476,13 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         return keep
 
-    def run_backbone_and_detection(self, input_batch, geometric_prompt: Any, allow_new_detections: bool):
+    def run_backbone_and_detection(
+        self, im: torch.Tensor, text_ids: torch.Tensor, geometric_prompt: Prompt, allow_new_detections: bool
+    ):
         """Run backbone and detection for a single frame."""
+        features = self.get_im_features(im)
         sam3_image_out = self.model.forward_grounding(
-            backbone_out={"img_batch_all_stages": input_batch.img_batch},
-            find_input=input_batch,
-            geometric_prompt=geometric_prompt,
+            backbone_out=features, text_ids=text_ids, geometric_prompt=geometric_prompt
         )
         det_out = self._extract_detection_outputs(sam3_image_out, allow_new_detections)
         self._cache_backbone_features(sam3_image_out)

@@ -88,25 +88,10 @@ class SegmentationHead(nn.Module):
         self._device = None
         return super().to(*args, **kwargs)
 
-    def _embed_pixels(
-        self,
-        backbone_feats: List[torch.Tensor],
-        image_ids,
-        encoder_hidden_states,
-    ) -> torch.Tensor:
-        feature_device = backbone_feats[0].device  # features could be on CPU
+    def _embed_pixels(self, backbone_feats: List[torch.Tensor], encoder_hidden_states) -> torch.Tensor:
         model_device = self.device
-        image_ids_ = image_ids.to(feature_device)
         if self.use_encoder_inputs:
-            if backbone_feats[0].shape[0] > 1:
-                # For bs > 1, we construct the per query backbone features
-                backbone_visual_feats = []
-                for feat in backbone_feats:
-                    # Copy the img features per query (pixel decoder won't share img feats)
-                    backbone_visual_feats.append(feat[image_ids_, ...].to(model_device))
-            else:
-                # Bs=1, we rely on broadcasting for query-based processing
-                backbone_visual_feats = [bb_feat.clone() for bb_feat in backbone_feats]
+            backbone_visual_feats = [bb_feat.clone() for bb_feat in backbone_feats]
             # Extract visual embeddings
             encoder_hidden_states = encoder_hidden_states.permute(1, 2, 0)
             spatial_dim = math.prod(backbone_feats[-1].shape[-2:])
@@ -124,25 +109,20 @@ class SegmentationHead(nn.Module):
                 # For batch_size=1 training, we can avoid the indexing to save memory
                 pixel_embed = pixel_embed.squeeze(0)
             else:
-                pixel_embed = pixel_embed[image_ids, ...]
+                pixel_embed = pixel_embed[[0], ...]
         return pixel_embed
 
     def forward(
         self,
         backbone_feats: List[torch.Tensor],
         obj_queries: torch.Tensor,
-        image_ids,
         encoder_hidden_states: Optional[torch.Tensor] = None,
         **kwargs,
     ) -> Dict[str, torch.Tensor]:
         if self.use_encoder_inputs:
             assert encoder_hidden_states is not None
 
-        pixel_embed = self._embed_pixels(
-            backbone_feats=backbone_feats,
-            image_ids=image_ids,
-            encoder_hidden_states=encoder_hidden_states,
-        )
+        pixel_embed = self._embed_pixels(backbone_feats=backbone_feats, encoder_hidden_states=encoder_hidden_states)
 
         if self.no_dec:
             mask_pred = self.mask_predictor(pixel_embed)
@@ -246,7 +226,6 @@ class UniversalSegmentationHead(SegmentationHead):
         self,
         backbone_feats: List[torch.Tensor],
         obj_queries: torch.Tensor,
-        image_ids,
         encoder_hidden_states: Optional[torch.Tensor] = None,
         prompt: Optional[torch.Tensor] = None,
         prompt_mask: Optional[torch.Tensor] = None,
@@ -279,11 +258,7 @@ class UniversalSegmentationHead(SegmentationHead):
                 .squeeze(1)
             )
 
-        pixel_embed = self._embed_pixels(
-            backbone_feats=backbone_feats,
-            image_ids=image_ids,
-            encoder_hidden_states=encoder_hidden_states,
-        )
+        pixel_embed = self._embed_pixels(backbone_feats=backbone_feats, encoder_hidden_states=encoder_hidden_states)
 
         instance_embeds = self.instance_seg_head(pixel_embed)
 

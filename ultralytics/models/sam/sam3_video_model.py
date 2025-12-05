@@ -327,7 +327,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         geometric_prompt = self._get_dummy_prompt(num_prompts=n)
         if bboxes is not None:
             for i in range(len(bboxes)):
-                print(bboxes[[i]].shape, labels[[i]].shape, n)
                 geometric_prompt.append_boxes(bboxes[[i]], labels[[i]])
         inference_state["per_frame_geometric_prompt"][frame_idx] = geometric_prompt
         out = self._run_single_frame_inference(frame_idx, reverse=False, inference_state=inference_state)

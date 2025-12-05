@@ -1,7 +1,8 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
+from __future__ import annotations
 from collections import OrderedDict
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Union
 
 import torch
 import torch.nn as nn
@@ -16,7 +17,7 @@ class ResidualAttentionBlock(nn.Module):
         d_model: int,
         n_head: int,
         mlp_ratio: float = 4.0,
-        ls_init_value: Optional[float] = None,
+        ls_init_value: float = None,
         act_layer: Callable[[], nn.Module] = nn.GELU,
         norm_layer: Callable[[int], nn.Module] = nn.LayerNorm,
     ):
@@ -46,9 +47,9 @@ class ResidualAttentionBlock(nn.Module):
     def attention(
         self,
         q_x: torch.Tensor,
-        k_x: Optional[torch.Tensor] = None,
-        v_x: Optional[torch.Tensor] = None,
-        attn_mask: Optional[torch.Tensor] = None,
+        k_x: torch.Tensor = None,
+        v_x: torch.Tensor = None,
+        attn_mask: torch.Tensor = None,
     ) -> torch.Tensor:
         k_x = k_x if k_x is not None else q_x
         v_x = v_x if v_x is not None else q_x
@@ -62,9 +63,9 @@ class ResidualAttentionBlock(nn.Module):
     def forward(
         self,
         q_x: torch.Tensor,
-        k_x: Optional[torch.Tensor] = None,
-        v_x: Optional[torch.Tensor] = None,
-        attn_mask: Optional[torch.Tensor] = None,
+        k_x: torch.Tensor = None,
+        v_x: torch.Tensor = None,
+        attn_mask: torch.Tensor = None,
     ) -> torch.Tensor:
         k_x = self.ln_1_kv(k_x) if hasattr(self, "ln_1_kv") and k_x is not None else None
         v_x = self.ln_1_kv(v_x) if hasattr(self, "ln_1_kv") and v_x is not None else None
@@ -80,10 +81,10 @@ class Transformer(nn.Module):
         layers: int,
         heads: int,
         mlp_ratio: float = 4.0,
-        ls_init_value: Optional[float] = None,
+        ls_init_value: float = None,
         act_layer: Callable[[], nn.Module] = nn.GELU,
         norm_layer: Callable[[int], nn.Module] = nn.LayerNorm,
-        compile_mode: Optional[str] = None,
+        compile_mode: str = None,
         use_act_checkpoint: bool = False,
     ):
         super().__init__()
@@ -112,7 +113,7 @@ class Transformer(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        attn_mask: Optional[torch.Tensor] = None,
+        attn_mask: torch.Tensor = None,
     ) -> torch.Tensor:
         for _, r in enumerate(self.resblocks):
             if self.grad_checkpointing and not torch.jit.is_scripting() and self.training:
@@ -126,8 +127,8 @@ class Transformer(nn.Module):
 
 
 def text_global_pool(
-    x: torch.Tensor, text: Optional[torch.Tensor] = None, pool_type: str = "argmax"
-) -> Tuple[torch.Tensor, torch.Tensor]:
+    x: torch.Tensor, text: torch.Tensor = None, pool_type: str = "argmax"
+) -> tuple[torch.Tensor, torch.Tensor]:
     if pool_type == "first":
         pooled, tokens = x[:, 0], x[:, 1:]
     elif pool_type == "last":
@@ -150,7 +151,7 @@ class TextTransformer(nn.Module):
         heads: int = 8,
         layers: int = 12,
         mlp_ratio: float = 4.0,
-        ls_init_value: Optional[float] = None,
+        ls_init_value: float = None,
         output_dim: int = 512,
         no_causal_mask: bool = False,
         pool_type: str = "none",  # no pooling
@@ -159,7 +160,7 @@ class TextTransformer(nn.Module):
         norm_layer: Callable = nn.LayerNorm,
         output_tokens: bool = False,
         use_ln_post: bool = True,
-        compile_mode: Optional[str] = None,
+        compile_mode: str = None,
         use_act_checkpoint: bool = False,
     ):
         super().__init__()
@@ -203,7 +204,7 @@ class TextTransformer(nn.Module):
         mask.triu_(1)  # zero out the lower diagonal
         return mask
 
-    def forward(self, text: torch.Tensor) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    def forward(self, text: torch.Tensor) -> Union[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
         seq_len = text.shape[1]
         x = self.token_embedding(text)  # [batch_size, n_ctx, d_model]
 
@@ -237,7 +238,7 @@ class VETextEncoder(nn.Module):
         context_length: int = 32,
         vocab_size: int = 49408,
         use_ln_post: bool = True,
-        compile_mode: Optional[str] = None,
+        compile_mode: str = None,
         use_act_checkpoint: bool = True,
     ):
         super().__init__()
@@ -260,8 +261,8 @@ class VETextEncoder(nn.Module):
         self.resizer = nn.Linear(self.encoder.width, d_model)
 
     def forward(
-        self, text: Union[List[str], Tuple[torch.Tensor, torch.Tensor, dict]], input_boxes: Optional[List] = None
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        self, text: Union[list[str], tuple[torch.Tensor, torch.Tensor, dict]], input_boxes: list = None
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         if isinstance(text[0], str):
             # no use case for this
             assert input_boxes is None or len(input_boxes) == 0, "not supported"

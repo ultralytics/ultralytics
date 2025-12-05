@@ -23,7 +23,6 @@ from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
-from .sam3.data_misc import Datapoint
 from .sam3.geometry_encoders import Prompt
 
 from .amg import (
@@ -2252,14 +2251,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
                 text = ["visual"]  # bboxes needs this `visual` text prompt if no text passed
         if text is not None and self.model.names != text:
             self.model.set_classes(text=text)
-        find_stage = Datapoint(
-            img_batch=None,
-            img_ids=torch.tensor([0] * nc, device=self.device, dtype=torch.long),
-            text_ids=torch.tensor(list(range(nc)), device=self.device, dtype=torch.long),
-        )
         outputs = self.model.forward_grounding(
             backbone_out=features,
-            find_input=find_stage,
+            text_ids=torch.arange(nc, device=self.device, dtype=torch.long),
             geometric_prompt=geometric_prompt,
         )
         return outputs

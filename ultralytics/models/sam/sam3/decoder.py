@@ -4,12 +4,10 @@ Transformer decoder.
 Inspired from Pytorch's version, adds the pre-norm variant
 """
 
-from typing import Dict, Optional
-
 import numpy as np
 
 import torch
-from torch import nn, Tensor
+from torch import nn
 from torchvision.ops.roi_align import RoIAlign
 
 from ultralytics.utils.ops import xywh2xyxy
@@ -69,17 +67,17 @@ class TransformerDecoderLayer(nn.Module):
     def forward(
         self,
         # for tgt
-        tgt: Optional[Tensor],  # nq, bs, d_model
-        tgt_query_pos: Optional[Tensor] = None,  # pos for query. MLP(Sine(pos))
-        memory_text: Optional[Tensor] = None,  # num_token, bs, d_model
-        text_attention_mask: Optional[Tensor] = None,  # bs, num_token
+        tgt: torch.Tensor,  # nq, bs, d_model
+        tgt_query_pos: torch.Tensor = None,  # pos for query. MLP(Sine(pos))
+        memory_text: torch.Tensor = None,  # num_token, bs, d_model
+        text_attention_mask: torch.Tensor = None,  # bs, num_token
         # for memory
-        memory: Optional[Tensor] = None,  # hw, bs, d_model
-        memory_key_padding_mask: Optional[Tensor] = None,
-        memory_pos: Optional[Tensor] = None,  # pos for memory
+        memory: torch.Tensor = None,  # hw, bs, d_model
+        memory_key_padding_mask: torch.Tensor = None,
+        memory_pos: torch.Tensor = None,  # pos for memory
         # sa
-        self_attn_mask: Optional[Tensor] = None,  # mask used for self-attention
-        cross_attn_mask: Optional[Tensor] = None,  # mask used for cross-attention
+        self_attn_mask: torch.Tensor = None,  # mask used for self-attention
+        cross_attn_mask: torch.Tensor = None,  # mask used for cross-attention
         # dac
         dac=False,
         dac_use_selfatt_ln=True,
@@ -369,21 +367,21 @@ class TransformerDecoder(nn.Module):
         self,
         tgt,
         memory,
-        tgt_mask: Optional[Tensor] = None,
-        memory_mask: Optional[Tensor] = None,
-        memory_key_padding_mask: Optional[Tensor] = None,
-        pos: Optional[Tensor] = None,
-        reference_boxes: Optional[Tensor] = None,  # num_queries, bs, 4
+        tgt_mask: torch.Tensor = None,
+        memory_mask: torch.Tensor = None,
+        memory_key_padding_mask: torch.Tensor = None,
+        pos: torch.Tensor = None,
+        reference_boxes: torch.Tensor = None,  # num_queries, bs, 4
         # for memory
-        spatial_shapes: Optional[Tensor] = None,  # bs, num_levels, 2
-        valid_ratios: Optional[Tensor] = None,
+        spatial_shapes: torch.Tensor = None,  # bs, num_levels, 2
+        valid_ratios: torch.Tensor = None,
         # for text
-        memory_text: Optional[Tensor] = None,
-        text_attention_mask: Optional[Tensor] = None,
+        memory_text: torch.Tensor = None,
+        text_attention_mask: torch.Tensor = None,
         # if `apply_dac` is None, it will default to `self.dac`
-        apply_dac: Optional[bool] = None,
+        apply_dac: bool = None,
         is_instance_prompt=False,
-        decoder_extra_kwargs: Optional[Dict] = None,
+        decoder_extra_kwargs: dict = None,
         # ROI memory bank
         obj_roi_memory_feat=None,
         obj_roi_memory_mask=None,

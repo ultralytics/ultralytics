@@ -35,7 +35,7 @@ class KITTIStereoDataset:
         >>> calib = sample["calib"]
     """
 
-    def __init__(self, root: str | Path, split: str = "train", filter_classes: bool = False):
+    def __init__(self, root: str | Path, split: str = "train", filter_classes: bool = False, max_samples: int | None = None):
         """Initialize KITTI Stereo Dataset.
 
         Args:
@@ -46,6 +46,8 @@ class KITTIStereoDataset:
             split (str): Dataset split, either 'train' or 'val'. Defaults to 'train'.
             filter_classes (bool): If True, filter to only paper classes (Car, Pedestrian, Cyclist)
                 and remap class IDs from 0,3,5 to 0,1,2. Defaults to False.
+            max_samples (int | None): Maximum number of samples to load. If None, loads all available samples.
+                If specified, only the first max_samples samples will be loaded. Defaults to None.
         """
         self.root = Path(root)
         self.split = split
@@ -70,6 +72,15 @@ class KITTIStereoDataset:
 
         if len(self.image_ids) == 0:
             raise ValueError(f"No images found in {self.left_img_dir}")
+
+        # Apply max_samples limit if specified (T188, T189, T190, T191)
+        if max_samples is not None:
+            if max_samples <= 0:
+                raise ValueError(f"max_samples must be > 0, got {max_samples}")
+            total_samples = len(self.image_ids)
+            self.image_ids = self.image_ids[:max_samples]
+            if len(self.image_ids) < total_samples:
+                LOGGER.info(f"Limited dataset to {len(self.image_ids)} samples (from {total_samples} total)")
 
         LOGGER.info(f"KITTI Stereo Dataset initialized: {len(self.image_ids)} samples in '{split}' split")
 

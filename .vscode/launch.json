@@ -51,7 +51,7 @@
                 "model=yolo11-stereo3ddet.yaml",
                 "mode=train",
                 "epochs=1",
-                "batch=64",
+                "batch=32",
                 "workers=0"
             ],
         },
@@ -98,7 +98,7 @@
             "args": [
                 "task=stereo3ddet",
                 "mode=predict",
-                "model=/root/ultralytics/runs/stereo3ddet/train68/weights/best.pt",
+                "model=/root/ultralytics/runs/stereo3ddet/train68/weights/best.pt@",
                 "source=/root/autodl-tmp/converted_kitti_3dop/images/val/000000_left.png",
                 "imgsz=384",
                 "conf=0.25",

@@ -232,3 +232,58 @@ class TestTrainingValidation:
         task_from_path = guess_model_task(str(path))
         assert task_from_path == "stereo3ddet"
 
+    def test_final_eval_converts_path_to_string(self, tmp_path):
+        """Test that Stereo3DDetTrainer.final_eval converts Path to string before passing to validator.
+        
+        This test verifies T161: final_eval should convert Path object to string for AutoBackend compatibility.
+        """
+        from unittest.mock import MagicMock, patch
+
+        overrides = {
+            "task": "stereo3ddet",
+            "model": "yolo11n.yaml",
+            "data": None,
+            "epochs": 1,
+            "save": False,
+            "val": False,
+        }
+        trainer = Stereo3DDetTrainer(overrides=overrides)
+
+        # Create a mock Path object for best checkpoint
+        best_path = tmp_path / "best.pt"
+        best_path.touch()  # Create the file so exists() returns True
+        trainer.best = best_path
+
+        # Create a mock Path object for last checkpoint
+        last_path = tmp_path / "last.pt"
+        last_path.touch()
+        trainer.last = last_path
+
+        # Mock validator
+        mock_validator = MagicMock()
+        mock_validator.args = MagicMock()
+        mock_validator.args.plots = False
+        mock_validator.args.compile = False
+        mock_validator.return_value = {"ap3d_50": 0.5, "ap3d_70": 0.4}
+        trainer.validator = mock_validator
+
+        # Mock strip_optimizer to avoid actual file operations
+        with patch("ultralytics.models.yolo.stereo3ddet.train.strip_optimizer") as mock_strip:
+            mock_strip.return_value = {}
+            # Mock torch_distributed_zero_first context manager
+            with patch("ultralytics.models.yolo.stereo3ddet.train.torch_distributed_zero_first"):
+                # Mock RANK to be -1 (single GPU)
+                with patch("ultralytics.models.yolo.stereo3ddet.train.RANK", -1):
+                    # Mock run_callbacks
+                    trainer.run_callbacks = MagicMock()
+                    # Call final_eval
+                    trainer.final_eval()
+
+        # Verify validator was called with a string, not a Path object
+        assert mock_validator.called, "Validator should have been called"
+        call_args = mock_validator.call_args
+        assert "model" in call_args.kwargs, "Validator should be called with 'model' keyword argument"
+        model_arg = call_args.kwargs["model"]
+        assert isinstance(model_arg, str), f"Model argument should be string, got {type(model_arg)}"
+        assert model_arg == str(best_path), f"Model argument should be string path, got {model_arg}"
+

@@ -37,7 +37,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             names: Class name mapping {0: "Car", 1: "Pedestrian", 2: "Cyclist"}.
         """
         self.names = names
-        self.nc = len(names)
+        self.nc = len(names) if names else 0
         self.ap3d_50 = {}
         self.ap3d_70 = {}
         self.precision = {}
@@ -190,15 +190,45 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
 
     @property
     def results_dict(self) -> dict[str, Any]:
-        """Return results as dictionary."""
+        """Return results as dictionary with flat scalar values (T148, T149).
+        
+        Flattens nested precision/recall/f1 dictionaries and ap3d dictionaries
+        into scalar mean values to be compatible with BaseValidator's rounding logic.
+        """
+        # Flatten nested metric dict to scalar mean value
+        def flatten_metric(metric_dict: dict) -> float:
+            """Flatten nested metric dict to scalar mean value."""
+            if not metric_dict:
+                return 0.0
+            # Collect all values from nested dict
+            all_values = []
+            for key, value in metric_dict.items():
+                if isinstance(value, dict):
+                    # Nested dict: {0.5: {class_id: value}, 0.7: {class_id: value}}
+                    all_values.extend([v for v in value.values() if isinstance(v, (int, float))])
+                elif isinstance(value, (int, float)):
+                    # Flat dict: {class_name: value}
+                    all_values.append(value)
+            return float(np.mean(all_values)) if all_values else 0.0
+        
+        # Flatten precision, recall, f1 from nested dict {0.5: {class_id: value}, 0.7: {class_id: value}}
+        # to scalar mean values across all IoU thresholds and classes
+        precision_scalar = flatten_metric(self.precision) if isinstance(self.precision, dict) else (float(self.precision) if isinstance(self.precision, (int, float)) else 0.0)
+        recall_scalar = flatten_metric(self.recall) if isinstance(self.recall, dict) else (float(self.recall) if isinstance(self.recall, (int, float)) else 0.0)
+        f1_scalar = flatten_metric(self.f1) if isinstance(self.f1, dict) else (float(self.f1) if isinstance(self.f1, (int, float)) else 0.0)
+        
+        # Flatten ap3d_50 and ap3d_70 from dict {class_name: value} to scalar mean values
+        ap3d_50_scalar = flatten_metric(self.ap3d_50) if isinstance(self.ap3d_50, dict) else (float(self.ap3d_50) if isinstance(self.ap3d_50, (int, float)) else 0.0)
+        ap3d_70_scalar = flatten_metric(self.ap3d_70) if isinstance(self.ap3d_70, dict) else (float(self.ap3d_70) if isinstance(self.ap3d_70, (int, float)) else 0.0)
+        
         return {
-            "ap3d_50": self.ap3d_50,
-            "ap3d_70": self.ap3d_70,
+            "ap3d_50": ap3d_50_scalar,
+            "ap3d_70": ap3d_70_scalar,
             "maps3d_50": self.maps3d_50,
             "maps3d_70": self.maps3d_70,
-            "precision": self.precision,
-            "recall": self.recall,
-            "f1": self.f1,
+            "precision": precision_scalar,
+            "recall": recall_scalar,
+            "f1": f1_scalar,
         }
 
     @property

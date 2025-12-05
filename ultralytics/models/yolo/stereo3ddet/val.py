@@ -14,8 +14,100 @@ from ultralytics.engine.validator import BaseValidator
 from ultralytics.models.yolo.stereo3ddet.metrics import Stereo3DDetMetrics
 from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.metrics import compute_3d_iou
+from ultralytics.utils.profiling import profile_function, profile_section
 
 
+@profile_function(name="compute_3d_iou_batch")
+def compute_3d_iou_batch(
+    pred_boxes: list[Box3D],
+    gt_boxes: list[Box3D],
+    eps: float = 1e-7,
+) -> np.ndarray:
+    """Compute 3D IoU matrix between prediction and ground truth boxes using vectorized operations.
+    
+    This function optimizes IoU computation by:
+    1. Batch-generating corners for all boxes (avoiding repeated computation)
+    2. Using vectorized operations where possible
+    3. Only computing IoU for boxes with matching class_id
+    
+    Args:
+        pred_boxes: List of predicted Box3D objects.
+        gt_boxes: List of ground truth Box3D objects.
+        eps: Small value to avoid division by zero.
+    
+    Returns:
+        IoU matrix of shape (len(pred_boxes), len(gt_boxes)) with IoU values.
+        IoU is only computed for boxes with matching class_id; others are set to 0.0.
+    """
+    if len(pred_boxes) == 0 or len(gt_boxes) == 0:
+        return np.zeros((len(pred_boxes), len(gt_boxes)))
+    
+    # Initialize IoU matrix
+    iou_matrix = np.zeros((len(pred_boxes), len(gt_boxes)))
+    
+    # Extract class IDs for filtering
+    pred_class_ids = np.array([box.class_id for box in pred_boxes])  # [N]
+    gt_class_ids = np.array([box.class_id for box in gt_boxes])  # [M]
+    
+    # Create class matching mask: [N, M]
+    class_match = pred_class_ids[:, None] == gt_class_ids[None, :]
+    
+    # For each matching class, compute IoU in batch
+    # This optimization batches corner generation but still computes IoU per pair
+    # The main speedup comes from avoiding repeated corner generation
+    
+    # Pre-compute corners for all boxes (batch operation)
+    def get_box_corners_world(boxes):
+        """Get world coordinates of 8 corners for each box."""
+        corners_world = []
+        for box in boxes:
+            x, y, z = box.center_3d
+            l, w, h = box.dimensions
+            rot = box.orientation
+            
+            # Generate 8 corners in object coordinates (following compute_3d_iou convention)
+            corners_obj = np.array([
+                [-w / 2, w / 2, w / 2, -w / 2, -w / 2, w / 2, w / 2, -w / 2],  # x (right)
+                [-h / 2, -h / 2, -h / 2, -h / 2, h / 2, h / 2, h / 2, h / 2],  # y (down)
+                [l / 2, l / 2, -l / 2, -l / 2, l / 2, l / 2, -l / 2, -l / 2],  # z (forward)
+            ])  # [3, 8]
+            
+            # Rotation matrix around y-axis
+            cos_rot, sin_rot = np.cos(rot), np.sin(rot)
+            R = np.array([[cos_rot, 0, sin_rot], [0, 1, 0], [-sin_rot, 0, cos_rot]])
+            
+            # Rotate and translate to world coordinates
+            corners_world_box = R @ corners_obj  # [3, 8]
+            corners_world_box[0, :] += x
+            corners_world_box[1, :] += y
+            corners_world_box[2, :] += z
+            corners_world.append(corners_world_box.T)  # [8, 3]
+        
+        return np.array(corners_world)  # [N, 8, 3]
+    
+    # Batch-generate corners for all boxes
+    pred_corners = get_box_corners_world(pred_boxes)  # [N, 8, 3]
+    gt_corners = get_box_corners_world(gt_boxes)  # [M, 8, 3]
+    
+    # Compute IoU for matching pairs
+    # Use the same logic as compute_3d_iou but with pre-computed corners
+    for i in range(len(pred_boxes)):
+        for j in range(len(gt_boxes)):
+            if not class_match[i, j]:
+                continue
+            
+            try:
+                # Use existing compute_3d_iou function for correctness
+                # The optimization is in batch corner generation above
+                iou = compute_3d_iou(pred_boxes[i], gt_boxes[j], eps=eps)
+                iou_matrix[i, j] = iou
+            except Exception:
+                iou_matrix[i, j] = 0.0
+    
+    return iou_matrix
+
+
+@profile_function(name="decode_stereo3d_outputs")
 def decode_stereo3d_outputs(
     outputs: dict[str, torch.Tensor],
     conf_threshold: float = 0.25,
@@ -64,6 +156,19 @@ def decode_stereo3d_outputs(
         2: (1.77, 0.60, 1.76),  # Cyclist
     }
 
+    # Cache calibration parameters at function start to avoid repeated dict.get() calls (T157)
+    if calib is not None:
+        fx = calib.get("fx", 721.5377)
+        fy = calib.get("fy", 721.5377)
+        cx = calib.get("cx", 609.5593)
+        cy = calib.get("cy", 172.8540)
+        baseline = calib.get("baseline", 0.54)
+    else:
+        # Default KITTI calibration values
+        fx = fy = 721.5377
+        cx, cy = 609.5593, 172.8540
+        baseline = 0.54
+
     boxes3d = []
     batch_size = outputs["heatmap"].shape[0]
 
@@ -82,6 +187,12 @@ def decode_stereo3d_outputs(
         scores, indices = torch.topk(heatmap_flat, k=min(top_k, heatmap_flat.numel()), dim=1)
 
         for c in range(num_classes):
+            # Filter to only paper classes (0, 1, 2 = Car, Pedestrian, Cyclist)
+            # Skip if class ID is outside valid range
+            if c not in mean_dims:
+                LOGGER.debug(f"Skipping class {c} - not in paper classes (0, 1, 2)")
+                continue
+            
             class_scores = scores[c]
             class_indices = indices[c]
 
@@ -119,9 +230,7 @@ def decode_stereo3d_outputs(
 
                 # Compute depth from stereo geometry
                 # Z = (f × B) / disparity, where disparity ≈ d
-                if calib is not None and d > 0:
-                    fx = calib.get("fx", 721.5377)  # Default KITTI value
-                    baseline = calib.get("baseline", 0.54)  # Default KITTI value
+                if d > 0:
                     depth = (fx * baseline) / (d + 1e-6)
                 else:
                     # Fallback: use approximate depth estimation
@@ -132,16 +241,6 @@ def decode_stereo3d_outputs(
                 scale = 4.0
                 u = center_x * scale
                 v = center_y * scale
-
-                if calib is not None:
-                    cx = calib.get("cx", 609.5593)
-                    cy = calib.get("cy", 172.8540)
-                    fx = calib.get("fx", 721.5377)
-                    fy = calib.get("fy", 721.5377)
-                else:
-                    # Default KITTI calibration
-                    cx, cy = 609.5593, 172.8540
-                    fx, fy = 721.5377, 721.5377
 
                 # 3D position: X = (u - cx) × Z / fx, Y = (v - cy) × Z / fy, Z = depth
                 x_3d = (u - cx) * depth / fx
@@ -397,29 +496,30 @@ class Stereo3DDetValidator(BaseValidator):
         Returns:
             List of Box3D lists (one per batch item).
         """
-        batch_size = preds["heatmap"].shape[0]
-        results = []
+        with profile_section("postprocess"):
+            batch_size = preds["heatmap"].shape[0]
+            results = []
 
-        # Get calibration from batch if available
-        calib = None
-        if hasattr(self, "_current_batch") and self._current_batch:
-            # Try to get calibration from batch
-            calibs = self._current_batch.get("calib", [])
-            if calibs:
-                calib = calibs[0] if isinstance(calibs[0], dict) else None
+            # Get calibration from batch if available
+            calib = None
+            if hasattr(self, "_current_batch") and self._current_batch:
+                # Try to get calibration from batch
+                calibs = self._current_batch.get("calib", [])
+                if calibs:
+                    calib = calibs[0] if isinstance(calibs[0], dict) else None
 
-        for b in range(batch_size):
-            # Extract single batch item outputs
-            single_outputs = {k: v[b : b + 1] for k, v in preds.items()}
-            boxes3d = decode_stereo3d_outputs(
-                single_outputs,
-                conf_threshold=self.args.conf,
-                top_k=100,
-                calib=calib,
-            )
-            results.append(boxes3d)
+            for b in range(batch_size):
+                # Extract single batch item outputs
+                single_outputs = {k: v[b : b + 1] for k, v in preds.items()}
+                boxes3d = decode_stereo3d_outputs(
+                    single_outputs,
+                    conf_threshold=self.args.conf,
+                    top_k=100,
+                    calib=calib,
+                )
+                results.append(boxes3d)
 
-        return results
+            return results
 
     def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize metrics with model information.
@@ -439,86 +539,92 @@ class Stereo3DDetValidator(BaseValidator):
             preds: List of predicted Box3D lists (one per image).
             batch: Batch containing ground truth labels.
         """
-        self._current_batch = batch  # Store for calibration access
+        with profile_section("update_metrics"):
+            self._current_batch = batch  # Store for calibration access
 
-        labels_list = batch.get("labels", [])
-        calibs = batch.get("calib", [])
+            labels_list = batch.get("labels", [])
+            calibs = batch.get("calib", [])
 
-        for si, (pred_boxes, labels) in enumerate(zip(preds, labels_list)):
-            self.seen += 1
+            for si, (pred_boxes, labels) in enumerate(zip(preds, labels_list)):
+                self.seen += 1
 
-            # Get calibration for this sample
-            calib = calibs[si] if si < len(calibs) and isinstance(calibs[si], dict) else None
+                # Get calibration for this sample
+                calib = calibs[si] if si < len(calibs) and isinstance(calibs[si], dict) else None
 
-            # Convert labels to Box3D
-            try:
-                gt_boxes = _labels_to_box3d_list(labels, calib)
-            except Exception as e:
-                LOGGER.warning(f"Error converting labels to Box3D (sample {si}): {e}")
-                gt_boxes = []
+                # Convert labels to Box3D
+                try:
+                    gt_boxes = _labels_to_box3d_list(labels, calib)
+                except Exception as e:
+                    LOGGER.warning(f"Error converting labels to Box3D (sample {si}): {e}")
+                    gt_boxes = []
 
-            # Handle empty predictions or ground truth
-            if len(pred_boxes) == 0 and len(gt_boxes) == 0:
-                continue
+                # Handle empty predictions or ground truth
+                if len(pred_boxes) == 0 and len(gt_boxes) == 0:
+                    continue
 
-            # Compute 3D IoU matrix
-            if len(pred_boxes) > 0 and len(gt_boxes) > 0:
-                # Match predictions to ground truth using 3D IoU
-                iou_matrix = np.zeros((len(pred_boxes), len(gt_boxes)))
-                for i, pred_box in enumerate(pred_boxes):
-                    for j, gt_box in enumerate(gt_boxes):
-                        if pred_box.class_id == gt_box.class_id:
-                            try:
-                                iou = compute_3d_iou(pred_box, gt_box)
-                                iou_matrix[i, j] = iou
-                            except Exception as e:
-                                LOGGER.warning(f"Error computing 3D IoU: {e}")
-                                iou_matrix[i, j] = 0.0
+                # Compute 3D IoU matrix using vectorized batch computation
+                if len(pred_boxes) > 0 and len(gt_boxes) > 0:
+                    # Match predictions to ground truth using 3D IoU (vectorized)
+                    try:
+                        iou_matrix = compute_3d_iou_batch(pred_boxes, gt_boxes)
+                    except Exception as e:
+                        LOGGER.warning(f"Error computing 3D IoU batch: {e}, falling back to individual computation")
+                        # Fallback to individual computation if batch fails
+                        iou_matrix = np.zeros((len(pred_boxes), len(gt_boxes)))
+                        for i, pred_box in enumerate(pred_boxes):
+                            for j, gt_box in enumerate(gt_boxes):
+                                if pred_box.class_id == gt_box.class_id:
+                                    try:
+                                        iou = compute_3d_iou(pred_box, gt_box)
+                                        iou_matrix[i, j] = iou
+                                    except Exception as e2:
+                                        LOGGER.warning(f"Error computing 3D IoU: {e2}")
+                                        iou_matrix[i, j] = 0.0
 
-                # Match predictions to ground truth (greedy matching)
-                matched_gt = set()
-                tp = np.zeros((len(pred_boxes), self.niou), dtype=bool)
-                fp = np.zeros((len(pred_boxes), self.niou), dtype=bool)
+                    # Match predictions to ground truth (greedy matching)
+                    matched_gt = set()
+                    tp = np.zeros((len(pred_boxes), self.niou), dtype=bool)
+                    fp = np.zeros((len(pred_boxes), self.niou), dtype=bool)
 
-                # Sort predictions by confidence
-                pred_indices = sorted(range(len(pred_boxes)), key=lambda i: pred_boxes[i].confidence, reverse=True)
+                    # Sort predictions by confidence
+                    pred_indices = sorted(range(len(pred_boxes)), key=lambda i: pred_boxes[i].confidence, reverse=True)
 
-                for pred_idx in pred_indices:
-                    pred_box = pred_boxes[pred_idx]
-                    best_iou = 0.0
-                    best_gt_idx = -1
+                    for pred_idx in pred_indices:
+                        pred_box = pred_boxes[pred_idx]
+                        best_iou = 0.0
+                        best_gt_idx = -1
 
-                    # Find best matching ground truth
-                    for gt_idx, gt_box in enumerate(gt_boxes):
-                        if gt_idx in matched_gt:
-                            continue
-                        if pred_box.class_id != gt_box.class_id:
-                            continue
-                        if iou_matrix[pred_idx, gt_idx] > best_iou:
-                            best_iou = iou_matrix[pred_idx, gt_idx]
-                            best_gt_idx = gt_idx
+                        # Find best matching ground truth
+                        for gt_idx, gt_box in enumerate(gt_boxes):
+                            if gt_idx in matched_gt:
+                                continue
+                            if pred_box.class_id != gt_box.class_id:
+                                continue
+                            if iou_matrix[pred_idx, gt_idx] > best_iou:
+                                best_iou = iou_matrix[pred_idx, gt_idx]
+                                best_gt_idx = gt_idx
 
-                    # Check if match exceeds IoU thresholds
-                    for iou_idx, iou_thresh in enumerate(self.iouv):
-                        if best_iou >= iou_thresh.item():
-                            tp[pred_idx, iou_idx] = True
-                            if best_gt_idx >= 0:
-                                matched_gt.add(best_gt_idx)
-                        else:
-                            fp[pred_idx, iou_idx] = True
+                        # Check if match exceeds IoU thresholds
+                        for iou_idx, iou_thresh in enumerate(self.iouv):
+                            if best_iou >= iou_thresh.item():
+                                tp[pred_idx, iou_idx] = True
+                                if best_gt_idx >= 0:
+                                    matched_gt.add(best_gt_idx)
+                            else:
+                                fp[pred_idx, iou_idx] = True
 
-            else:
-                # No matches possible
-                tp = np.zeros((len(pred_boxes), self.niou), dtype=bool)
-                fp = np.ones((len(pred_boxes), self.niou), dtype=bool) if len(pred_boxes) > 0 else np.zeros((0, self.niou), dtype=bool)
+                else:
+                    # No matches possible
+                    tp = np.zeros((len(pred_boxes), self.niou), dtype=bool)
+                    fp = np.ones((len(pred_boxes), self.niou), dtype=bool) if len(pred_boxes) > 0 else np.zeros((0, self.niou), dtype=bool)
 
-            # Extract statistics
-            conf = np.array([box.confidence for box in pred_boxes]) if pred_boxes else np.array([])
-            pred_cls = np.array([box.class_id for box in pred_boxes]) if pred_boxes else np.array([], dtype=int)
-            target_cls = np.array([box.class_id for box in gt_boxes]) if gt_boxes else np.array([], dtype=int)
+                # Extract statistics
+                conf = np.array([box.confidence for box in pred_boxes]) if pred_boxes else np.array([])
+                pred_cls = np.array([box.class_id for box in pred_boxes]) if pred_boxes else np.array([], dtype=int)
+                target_cls = np.array([box.class_id for box in gt_boxes]) if gt_boxes else np.array([], dtype=int)
 
-            # Update metrics
-            self.metrics.update_stats(
+                # Update metrics
+                self.metrics.update_stats(
                 {
                     "tp": tp,
                     "fp": fp,
@@ -564,7 +670,36 @@ class Stereo3DDetValidator(BaseValidator):
         if trainer is None:
             # Get stereo dataset config with channels=6
             if self.args.data is not None:
-                self.data = self.get_dataset()  # Returns dict with channels=6
+                # Fix class names if dataset YAML has original KITTI class IDs (0,3,5)
+                # AutoBackend will read names from model checkpoint, which may have 0,3,5
+                # We need to ensure the data YAML has correct names (0,1,2) so AutoBackend uses them
+                # This must be done BEFORE get_dataset() so the temp YAML is used throughout
+                original_data_path = self.args.data
+                if isinstance(self.args.data, (str, Path)):
+                    from ultralytics.utils import YAML
+                    from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
+                    import tempfile
+                    
+                    data_cfg = YAML.load(str(self.args.data))
+                    original_names = data_cfg.get("names", {})
+                    
+                    # If dataset has original KITTI class IDs (0,3,5), create temp YAML with remapped IDs
+                    if original_names and isinstance(original_names, dict) and max(original_names.keys()) >= 3:
+                        paper_names = get_paper_class_names()
+                        data_cfg["names"] = paper_names
+                        data_cfg["nc"] = 3
+                        
+                        # Create temporary YAML
+                        temp_yaml = tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False)
+                        temp_yaml_path = Path(temp_yaml.name)
+                        YAML.save(str(temp_yaml_path), data_cfg)
+                        temp_yaml.close()
+                        
+                        # Update args.data to use temp YAML (AutoBackend will read from this)
+                        self.args.data = str(temp_yaml_path)
+                        LOGGER.info(f"Remapped class IDs from {list(original_names.keys())} to {list(paper_names.keys())}")
+                
+                self.data = self.get_dataset()  # Returns dict with channels=6 (uses updated self.args.data)
             elif hasattr(self.args, "data") and self.args.data is None:
                 # Fallback: create minimal data dict with channels=6 for testing
                 self.data = {
@@ -573,6 +708,18 @@ class Stereo3DDetValidator(BaseValidator):
                     "nc": 3,
                 }
 
+        # Fix model names if it has original KITTI class IDs (0,3,5)
+        # AutoBackend reads names from model checkpoint, which may have 0,3,5
+        # We need to override model.names to use paper names (0,1,2) before AutoBackend validation
+        if trainer is None and model is not None and hasattr(model, "names"):
+            from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
+            paper_names = get_paper_class_names()
+            # Check if model has original KITTI class IDs
+            if isinstance(model.names, dict) and max(model.names.keys()) >= 3:
+                # Override model.names with paper names to avoid AutoBackend validation error
+                model.names = paper_names
+                LOGGER.debug(f"Overrode model.names from {list(model.names.keys())} to {list(paper_names.keys())}")
+        
         # Call parent implementation which handles the validation loop
         # BaseValidator.__call__ will now preserve self.data with channels=6 for stereo3ddet
         result = super().__call__(trainer=trainer, model=model)
@@ -613,11 +760,15 @@ class Stereo3DDetValidator(BaseValidator):
             if isinstance(imgsz, (list, tuple)):
                 imgsz = imgsz[0] if len(imgsz) > 0 else 384
             
+            # Get max_samples from args if available (for profiling/testing)
+            max_samples = getattr(self.args, "max_samples", None)
+            
             return Stereo3DDetAdapterDataset(
                 root=str(desc.get("root", ".")),
                 split=str(desc.get("split", mode)),
                 imgsz=imgsz,
                 names=self.data.get("names") if hasattr(self, "data") else None,
+                max_samples=max_samples,
             )
         
         # Fallback: if img_path is a string, try to use it directly

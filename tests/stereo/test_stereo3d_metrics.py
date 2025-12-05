@@ -144,3 +144,75 @@ class TestStereo3DDetMetrics:
         assert metrics.maps3d_50 == 0.0
         assert metrics.maps3d_70 == 0.0
 
+
+class TestResultsDictionaryStructure:
+    """Test suite for results_dict structure (T146-T147)."""
+
+    def test_results_dict_returns_flat_scalar_values(self):
+        """Test that results_dict returns flat dictionary with scalar values (not nested dicts) for precision, recall, f1 (T146)."""
+        metrics = Stereo3DDetMetrics(names={0: "Car", 1: "Pedestrian", 2: "Cyclist"})
+        metrics.ap3d_50 = {"Car": 0.5, "Pedestrian": 0.3, "Cyclist": 0.2}
+        metrics.ap3d_70 = {"Car": 0.4, "Pedestrian": 0.25, "Cyclist": 0.15}
+        
+        # Set nested precision, recall, f1 (old format)
+        metrics.precision = {0.5: {0: 0.8, 1: 0.7, 2: 0.6}, 0.7: {0: 0.7, 1: 0.6, 2: 0.5}}
+        metrics.recall = {0.5: {0: 0.9, 1: 0.8, 2: 0.7}, 0.7: {0: 0.8, 1: 0.7, 2: 0.6}}
+        metrics.f1 = {0.5: {0: 0.85, 1: 0.75, 2: 0.65}, 0.7: {0: 0.75, 1: 0.65, 2: 0.55}}
+        
+        results = metrics.results_dict
+        
+        # Verify all values are scalar (not nested dicts)
+        assert isinstance(results["precision"], (int, float)), "precision should be a scalar, not a dict"
+        assert isinstance(results["recall"], (int, float)), "recall should be a scalar, not a dict"
+        assert isinstance(results["f1"], (int, float)), "f1 should be a scalar, not a dict"
+        
+        # Verify other values are also scalars (all should be scalars for BaseValidator compatibility)
+        assert isinstance(results["ap3d_50"], (int, float)), "ap3d_50 should be a scalar (mean value)"
+        assert isinstance(results["ap3d_70"], (int, float)), "ap3d_70 should be a scalar (mean value)"
+        assert isinstance(results["maps3d_50"], (int, float)), "maps3d_50 should be a scalar"
+        assert isinstance(results["maps3d_70"], (int, float)), "maps3d_70 should be a scalar"
+        
+        # Verify all values can be converted to float (all should be scalars)
+        for key, value in results.items():
+            assert isinstance(value, (int, float)), f"{key} should be a scalar, got {type(value)}"
+
+    def test_validator_can_round_results_dict_values(self):
+        """Test that BaseValidator can successfully round all values in results_dict to 5 decimal places (T147)."""
+        from ultralytics.models.yolo.stereo3ddet.val import Stereo3DDetValidator
+        from unittest.mock import MagicMock
+        
+        # Create validator
+        args = {"task": "stereo3ddet", "imgsz": 384, "data": None}
+        validator = Stereo3DDetValidator(args=args)
+        validator.device = torch.device("cpu")
+        validator.data = {
+            "channels": 6,
+            "names": {0: "Car", 1: "Pedestrian", 2: "Cyclist"},
+            "nc": 3,
+        }
+        
+        # Initialize metrics
+        validator.init_metrics(MagicMock())
+        
+        # Set up metrics with processed results
+        validator.metrics.ap3d_50 = {"Car": 0.5, "Pedestrian": 0.3, "Cyclist": 0.2}
+        validator.metrics.ap3d_70 = {"Car": 0.4, "Pedestrian": 0.25, "Cyclist": 0.15}
+        # Set nested precision, recall, f1 (old format)
+        validator.metrics.precision = {0.5: {0: 0.8, 1: 0.7, 2: 0.6}, 0.7: {0: 0.7, 1: 0.6, 2: 0.5}}
+        validator.metrics.recall = {0.5: {0: 0.9, 1: 0.8, 2: 0.7}, 0.7: {0: 0.8, 1: 0.7, 2: 0.6}}
+        validator.metrics.f1 = {0.5: {0: 0.85, 1: 0.75, 2: 0.65}, 0.7: {0: 0.75, 1: 0.65, 2: 0.55}}
+        
+        # Get stats (which calls results_dict)
+        stats = validator.get_stats()
+        
+        # Verify BaseValidator can round all values
+        try:
+            # This is what BaseValidator does at line 254
+            rounded_results = {k: round(float(v), 5) for k, v in stats.items()}
+            assert isinstance(rounded_results, dict), "rounded_results should be a dict"
+            # Verify all values are floats
+            for k, v in rounded_results.items():
+                assert isinstance(v, float), f"{k} should be a float after rounding, got {type(v)}"
+        except (TypeError, ValueError) as e:
+            pytest.fail(f"BaseValidator should be able to round all values: {e}")
+

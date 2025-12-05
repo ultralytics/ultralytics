@@ -575,6 +575,122 @@ class StereoYOLOv11Wrapper(nn.Module):
             preds = self.core(left, right, None)
             return preds
 
+    def loss(self, batch, preds=None):
+        """Compute loss for validation.
+        
+        This method is called by BaseValidator during validation to compute loss.
+        It extracts labels from batch, converts them to targets format, computes
+        predictions if needed, and returns (total_loss, loss_items) tuple.
+        
+        Args:
+            batch: Dict with 'img' (6-channel tensor [B, 6, H, W]) and 'labels' (list of label dicts per image).
+            preds: Optional precomputed predictions dict with 10 branch outputs.
+            
+        Returns:
+            Tuple of (total_loss, loss_items) where:
+                - total_loss: Scalar tensor with total loss value
+                - loss_items: Tensor with shape [10] containing individual loss components:
+                  [heatmap, offset, bbox_size, lr_distance, right_width, dimensions,
+                   orientation, vertices, vertex_offset, vertex_dist]
+        """
+        # Extract inputs from batch (T131)
+        img = batch.get("img")
+        labels_list = batch.get("labels", [])
+        
+        if img is None:
+            raise ValueError("batch must contain 'img' key with 6-channel tensor")
+        
+        # Split img into left and right (T132)
+        assert img.shape[1] == 6, "StereoYOLOv11Wrapper expects a 6-channel input (left+right)."
+        left = img[:, 0:3, :, :]
+        right = img[:, 3:6, :, :]
+        
+        # Get image size for TargetGenerator
+        _, _, h, w = img.shape
+        imgsz = h  # Assuming square images
+        
+        # Import TargetGenerator and initialize it (T133)
+        from ultralytics.data.stereo.target import TargetGenerator
+        
+        # Initialize target generator if not already done
+        if not hasattr(self, "_target_generator"):
+            num_classes = len(self.names) if isinstance(self.names, dict) else 3
+            # Output size is H/32, W/32 (ResNet18 backbone downsamples by 32x)
+            output_h = imgsz // 32
+            output_w = imgsz // 32
+            self._target_generator = TargetGenerator(
+                output_size=(output_h, output_w),
+                num_classes=num_classes,
+            )
+        
+        # Convert labels to targets format (T134)
+        targets_list = []
+        for labels in labels_list:
+            target = self._target_generator.generate_targets(
+                labels,
+                input_size=(imgsz, imgsz)
+            )
+            # Move to same device as img
+            target = {k: v.to(img.device) for k, v in target.items()}
+            targets_list.append(target)
+        
+        # Stack targets across batch dimension (T135)
+        # Each target is a dict with tensors of shape [C, H, W]
+        # We need to stack to [B, C, H, W]
+        if targets_list:
+            batched_targets = {}
+            for key in targets_list[0].keys():
+                batched_targets[key] = torch.stack([t[key] for t in targets_list], dim=0)
+        else:
+            # Empty batch - create zero targets
+            output_h = imgsz // 32
+            output_w = imgsz // 32
+            num_classes = len(self.names) if isinstance(self.names, dict) else 3
+            batched_targets = {
+                "heatmap": torch.zeros(img.shape[0], num_classes, output_h, output_w, device=img.device),
+                "offset": torch.zeros(img.shape[0], 2, output_h, output_w, device=img.device),
+                "bbox_size": torch.zeros(img.shape[0], 2, output_h, output_w, device=img.device),
+                "lr_distance": torch.zeros(img.shape[0], 1, output_h, output_w, device=img.device),
+                "right_width": torch.zeros(img.shape[0], 1, output_h, output_w, device=img.device),
+                "dimensions": torch.zeros(img.shape[0], 3, output_h, output_w, device=img.device),
+                "orientation": torch.zeros(img.shape[0], 8, output_h, output_w, device=img.device),
+                "vertices": torch.zeros(img.shape[0], 8, output_h, output_w, device=img.device),
+                "vertex_offset": torch.zeros(img.shape[0], 8, output_h, output_w, device=img.device),
+                "vertex_dist": torch.zeros(img.shape[0], 4, output_h, output_w, device=img.device),
+            }
+        
+        # Compute predictions if needed (T136)
+        if preds is None:
+            # Call forward to get predictions
+            preds = self.forward(img)
+        
+        # Ensure preds is in dict format
+        if not isinstance(preds, dict):
+            # If forward returned a tensor or other format, we need to handle it
+            # For now, assume forward returns dict with 10 branch keys
+            raise TypeError(f"Expected preds to be dict, got {type(preds)}")
+        
+        # Compute loss (T137)
+        total_loss, loss_dict = self.core.criterion(preds, batched_targets)
+        
+        # Convert loss_dict to loss_items tensor in fixed order (T138)
+        loss_items_list = [
+            loss_dict.get("heatmap", torch.tensor(0.0, device=total_loss.device)),
+            loss_dict.get("offset", torch.tensor(0.0, device=total_loss.device)),
+            loss_dict.get("bbox_size", torch.tensor(0.0, device=total_loss.device)),
+            loss_dict.get("lr_distance", torch.tensor(0.0, device=total_loss.device)),
+            loss_dict.get("right_width", torch.tensor(0.0, device=total_loss.device)),
+            loss_dict.get("dimensions", torch.tensor(0.0, device=total_loss.device)),
+            loss_dict.get("orientation", torch.tensor(0.0, device=total_loss.device)),
+            loss_dict.get("vertices", torch.tensor(0.0, device=total_loss.device)),
+            loss_dict.get("vertex_offset", torch.tensor(0.0, device=total_loss.device)),
+            loss_dict.get("vertex_dist", torch.tensor(0.0, device=total_loss.device)),
+        ]
+        loss_items = torch.stack(loss_items_list)  # [10]
+        
+        # Return tuple (T139)
+        return total_loss, loss_items
+
     def fuse(self, verbose=True):
         """Fuse Conv2d and BatchNorm2d layers for optimized inference.
         

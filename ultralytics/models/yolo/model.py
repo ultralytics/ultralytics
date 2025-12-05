@@ -79,12 +79,14 @@ class YOLO(Model):
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
-            if hasattr(self.model, "model") and "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
-                from ultralytics import RTDETR
+            # Check if model has a subscriptable 'model' attribute before accessing with [-1]
+            if hasattr(self.model, "model") and isinstance(self.model.model, (list, tuple)) and len(self.model.model) > 0:
+                if "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
+                    from ultralytics import RTDETR
 
-                new_instance = RTDETR(self)
-                self.__class__ = type(new_instance)
-                self.__dict__ = new_instance.__dict__
+                    new_instance = RTDETR(self)
+                    self.__class__ = type(new_instance)
+                    self.__dict__ = new_instance.__dict__
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

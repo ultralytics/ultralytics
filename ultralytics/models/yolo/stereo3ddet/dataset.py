@@ -32,7 +32,17 @@ class Stereo3DDetAdapterDataset(Dataset):
     - Converts normalized left 2D boxes to resized+letterboxed normalized xywh.
     """
 
-    def __init__(self, root: str | Path, split: str, imgsz: int, names: Dict[int, str] | List[str] | None = None):
+    def __init__(self, root: str | Path, split: str, imgsz: int, names: Dict[int, str] | List[str] | None = None, max_samples: int | None = None):
+        """Initialize Stereo3DDetAdapterDataset.
+
+        Args:
+            root (str | Path): Root directory of the dataset.
+            split (str): Dataset split ('train' or 'val').
+            imgsz (int): Target image size for letterboxing.
+            names (Dict[int, str] | List[str] | None): Class names mapping. If None, uses default.
+            max_samples (int | None): Maximum number of samples to load. If None, loads all available samples.
+                If specified, only the first max_samples samples will be loaded. Defaults to None.
+        """
         self.root = Path(root)
         self.split = split
         self.imgsz = int(imgsz)
@@ -45,19 +55,28 @@ class Stereo3DDetAdapterDataset(Dataset):
         self.filter_classes = set(self.names.values()) == set(PAPER_CLASS_NAMES.values())
 
         # Validate that names parameter matches actual label classes (T123)
+        # Pass max_samples to validation so it only checks the files that will be loaded
         if self.names:
-            self._validate_names_against_labels()
+            self._validate_names_against_labels(max_samples=max_samples)
 
-        # Initialize base dataset with class filtering if needed
-        self.base = KITTIStereoDataset(root=self.root, split=self.split, filter_classes=self.filter_classes)
+        # Initialize base dataset with class filtering and max_samples if needed (T193, T194)
+        self.base = KITTIStereoDataset(
+            root=self.root,
+            split=self.split,
+            filter_classes=self.filter_classes,
+            max_samples=max_samples
+        )
         self.left_dir = self.root / "images" / split / "left"
         # Full stereo augmentation pipeline (photometric + geometric)
         self._aug = StereoAugmentationPipeline(
             photometric=PhotometricAugmentor(p_apply=0.9)
         )
 
-    def _get_actual_label_classes(self) -> set[int]:
+    def _get_actual_label_classes(self, max_samples: int | None = None) -> set[int]:
         """Scan label files and extract unique class IDs from dataset (T120).
+        
+        Args:
+            max_samples: If specified, only scan the first max_samples label files.
         
         Returns:
             set[int]: Set of unique original class IDs found in label files.
@@ -67,7 +86,13 @@ class Stereo3DDetAdapterDataset(Dataset):
             return set()
         
         actual_classes = set()
-        for label_file in label_dir.glob("*.txt"):
+        label_files = sorted(label_dir.glob("*.txt"))
+        
+        # If max_samples is specified, only check the first max_samples files
+        if max_samples is not None:
+            label_files = label_files[:max_samples]
+        
+        for label_file in label_files:
             try:
                 with open(label_file, "r") as f:
                     for line in f:
@@ -107,14 +132,17 @@ class Stereo3DDetAdapterDataset(Dataset):
         
         return mapped_names
 
-    def _validate_names_against_labels(self) -> None:
+    def _validate_names_against_labels(self, max_samples: int | None = None) -> None:
         """Compare names parameter with actual label classes and raise ValueError if mismatch (T122, T124).
+        
+        Args:
+            max_samples: If specified, only validate against the first max_samples label files.
         
         Raises:
             ValueError: If names parameter doesn't match actual label classes.
         """
-        # Get actual class IDs from label files
-        actual_class_ids = self._get_actual_label_classes()
+        # Get actual class IDs from label files (only check files that will be loaded)
+        actual_class_ids = self._get_actual_label_classes(max_samples=max_samples)
         
         # If no labels found, skip validation (edge case: empty dataset)
         if not actual_class_ids:
@@ -221,9 +249,11 @@ class Stereo3DDetAdapterDataset(Dataset):
         right_img: np.ndarray = sample["right_img"]
         h0, w0 = left_img.shape[:2]
 
+        # Get calibration (needed for both train and val) (T143)
+        calib = sample.get("calib", {})
+        
         # Optional stereo augmentation (train split only)
         if self.split == "train":
-            calib = sample.get("calib", {})
             calib_obj = StereoCalibration(
                 fx=float(calib.get("fx", 0.0)),
                 fy=float(calib.get("fy", 0.0)),
@@ -256,6 +286,7 @@ class Stereo3DDetAdapterDataset(Dataset):
         return {
             "img": img6,  # uint8 [0,255], shape (6,H,W)
             "labels": labels,  # Pass labels for target generation (filtered and remapped if needed)
+            "calib": calib,  # Add calib for validation metrics computation (T144)
             "im_file": im_file,
             "ori_shape": (h0, w0),
         }
@@ -264,6 +295,7 @@ class Stereo3DDetAdapterDataset(Dataset):
     def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
         imgs = torch.stack([b["img"] for b in batch], 0)  # (B,6,H,W)
         labels_list = [b.get("labels", []) for b in batch]
+        calibs = [b.get("calib", {}) for b in batch]  # Collect calib for each sample (T145)
         
         # Final safety check: ensure all class IDs are in [0, 1, 2] range
         # This should not be needed if filtering works correctly in __getitem__, but provides a safety net
@@ -289,6 +321,7 @@ class Stereo3DDetAdapterDataset(Dataset):
         return {
             "img": imgs,
             "labels": labels_list,  # Pass labels for target generation
+            "calib": calibs,  # Add calib for validation metrics computation (T145)
             "cls": cls_tensor,  # Add cls for trainer compatibility (number of objects per image)
             "im_file": [b["im_file"] for b in batch],
             "ori_shape": [b["ori_shape"] for b in batch],

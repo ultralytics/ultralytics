@@ -5,7 +5,6 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 import torchvision
-from typing_extensions import override
 
 from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.nn.modules.utils import _get_clones
@@ -271,8 +270,6 @@ class SequenceGeometryEncoder(nn.Module):
 
     def _encode_points(self, points, points_mask, points_labels, img_feats):
         """Encode points (used when boxes are converted to corner points)."""
-        n_points, bs = points.shape[:2]
-
         # Direct projection of coordinates
         points_embed = self.points_direct_project(points.to(img_feats.dtype))
 

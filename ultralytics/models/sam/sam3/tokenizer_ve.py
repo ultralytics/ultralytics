@@ -57,33 +57,39 @@ def get_pairs(word):
 
 
 def basic_clean(text):
+    """Basic text cleaning: fix unicode and unescape HTML entities."""
     text = ftfy.fix_text(text)
     text = html.unescape(html.unescape(text))
     return text.strip()
 
 
 def whitespace_clean(text):
+    """Remove redundant whitespace."""
     text = re.sub(r"\s+", " ", text)
     text = text.strip()
     return text
 
 
 def _clean_canonicalize(x):
+    """Clean text and canonicalize it."""
     # basic, remove whitespace, remove punctuation, lower case
     return canonicalize_text(basic_clean(x))
 
 
 def _clean_lower(x):
+    """Clean text and return lowercase"""
     # basic, remove whitespace, lower case
     return whitespace_clean(basic_clean(x)).lower()
 
 
 def _clean_whitespace(x):
+    """Clean text and remove redundant whitespace."""
     # basic, remove whitespace
     return whitespace_clean(basic_clean(x))
 
 
 def get_clean_fn(type: str):
+    """Get text cleaning function by name."""
     if type == "canonicalize":
         return _clean_canonicalize
     elif type == "lower":

@@ -2,6 +2,7 @@
 
 """Necks are the interface between a vision backbone and the rest of the detection model"""
 
+from __future__ import annotations
 from copy import deepcopy
 
 import torch

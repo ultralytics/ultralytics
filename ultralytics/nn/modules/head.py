@@ -734,9 +734,36 @@ class Pose26(Pose):
             kpt_shape (tuple): Number of keypoints, number of dims (2 for x,y or 3 for x,y,visible).
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
-        kpt_shape = (kpt_shape[0], 4)
         super().__init__(nc, kpt_shape, reg_max, end2end, ch)
         self.flow_model = RealNVP()
+        
+        self.nk_output = kpt_shape[0] * (kpt_shape[1] + 2)
+        c4 = max(ch[0] // 4, self.nk_output)
+        self.cv4 = nn.ModuleList(
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nk_output, 1)) for x in ch
+        )
+        if end2end:
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
+
+    def forward_head(
+        self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, pose_head: torch.nn.Module
+    ) -> torch.Tensor:
+        """Concatenates and returns predicted bounding boxes, class probabilities, and keypoints."""
+        preds = Detect.forward_head(self, x, box_head, cls_head)
+        if pose_head is not None:
+            bs = x[0].shape[0]  # batch size
+            preds["kpts"] = torch.cat([pose_head[i](x[i]).view(bs, self.nk_output, -1) for i in range(self.nl)], 2)
+        return preds
+
+    def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
+        """Decode predicted bounding boxes and class probabilities, concatenated with keypoints."""
+        preds = Detect._inference(self, x)
+        kpts = x["kpts"]
+        bs, _, hw = kpts.shape
+        kpts = kpts.view(bs, self.kpt_shape[0], self.kpt_shape[1] + 2, hw)  # (bs, 17, 5, hw)
+        kpts = kpts[:, :, :-2, :]  # Remove sigma_x, sigma_y
+        kpts = kpts.reshape(bs, self.nk, hw)
+        return torch.cat([preds, self.kpts_decode(kpts)], dim=1)
 
     def kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
         """Decode keypoints from predictions."""
@@ -759,11 +786,7 @@ class Pose26(Pose):
                 a = (y[:, :, :2] + self.anchors) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
-            elif ndim == 4:
-                scores = 1 - y[:, :, 2:].sigmoid()
-                scores = scores.mean(dim=2, keepdim=True)
-                a = torch.cat((a, scores), 2)
-            return a.view(bs, a.shape[1] * a.shape[2], -1)
+            return a.view(bs, self.nk, -1)
         else:
             y = kpts.clone()
             if ndim == 3:
@@ -771,34 +794,9 @@ class Pose26(Pose):
                     y[:, 2::ndim].sigmoid_()
                 else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
                     y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
-            elif ndim == 4:
-                reshaped_tensor = y.view(bs, self.kpt_shape[0], ndim, -1)
-                coords = reshaped_tensor[:, :, :2]
-                scores = 1 - reshaped_tensor[:, :, 2:].sigmoid()
-                scores = scores.mean(dim=2, keepdim=True)
-                y = torch.cat((coords, scores), dim=2).view(bs, self.kpt_shape[0] * 3, -1)
-                ndim = 3
             y[:, 0::ndim] = (y[:, 0::ndim] + self.anchors[0]) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
             return y
-
-    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
-        """
-        Post-process YOLO model predictions.
-
-        Args:
-            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nk) with last dimension
-                format [x, y, w, h, class_probs, keypoints].
-
-        Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + self.nk) and last
-                dimension format [x, y, w, h, max_class_prob, class_index, keypoints].
-        """
-        boxes, scores, kpts = preds.split([4, self.nc, self.kpt_shape[0] * 3], dim=-1)
-        scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
-        kpts = kpts.gather(dim=1, index=idx.repeat(1, 1, self.kpt_shape[0] * 3))
-        return torch.cat([boxes, scores, conf, kpts], dim=-1)
 
 
 class Classify(nn.Module):

@@ -212,7 +212,7 @@ class MuSGD(optim.Optimizer):
             with torch.enable_grad():
                 loss = closure()
 
-        pattern = r'(cv3.*2\.weight|cv3.*2\.bias|cv4|proto|flow_model)'
+        pattern = r'(cv3.*2\.weight|cv3.*2\.bias|cv4|proto|flow_model)'  # only apply to cv3.*2.weight/bias and ...
         for group in self.param_groups:
             # Muon
             if group["use_muon"]:

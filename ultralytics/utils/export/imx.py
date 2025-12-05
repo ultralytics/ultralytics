@@ -111,7 +111,17 @@ def _inference(self, x: list[torch.Tensor]) -> tuple[torch.Tensor]:
 def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Forward pass for imx pose estimation, including keypoint decoding."""
     bs = x[0].shape[0]  # batch size
-    kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
+    
+    nk_out = getattr(self, 'nk_output', self.nk)
+    kpt = torch.cat([self.cv4[i](x[i]).view(bs, nk_out, -1) for i in range(self.nl)], -1)
+    
+    # If using Pose26 with 5 dims, convert to 3 dims for export
+    if hasattr(self, 'nk_output') and self.nk_output != self.nk:
+        spatial = kpt.shape[-1]
+        kpt = kpt.view(bs, self.kpt_shape[0], self.kpt_shape[1] + 2, spatial)
+        kpt = kpt[:, :, :-2, :]  # Remove sigma_x, sigma_y
+        kpt = kpt.view(bs, self.nk, spatial)
+    
     x = Detect.forward(self, x)
     pred_kpt = self.kpts_decode(bs, kpt)
     return (*x, pred_kpt.permute(0, 2, 1))

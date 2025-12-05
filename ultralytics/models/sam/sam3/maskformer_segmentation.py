@@ -78,18 +78,7 @@ class SegmentationHead(nn.Module):
         # used to update the output dictionary
         self.instance_keys = ["pred_masks"]
 
-    @property
-    def device(self):
-        self._device = getattr(self, "_device", None) or next(self.parameters()).device
-        return self._device
-
-    def to(self, *args, **kwargs):
-        # clear cached _device in case the model is moved to a different device
-        self._device = None
-        return super().to(*args, **kwargs)
-
     def _embed_pixels(self, backbone_feats: List[torch.Tensor], encoder_hidden_states) -> torch.Tensor:
-        model_device = self.device
         if self.use_encoder_inputs:
             backbone_visual_feats = [bb_feat.clone() for bb_feat in backbone_feats]
             # Extract visual embeddings
@@ -103,7 +92,7 @@ class SegmentationHead(nn.Module):
             else:
                 pixel_embed = self.pixel_decoder(backbone_visual_feats)
         else:
-            backbone_feats = [x.to(model_device) for x in backbone_feats]
+            backbone_feats = [x for x in backbone_feats]
             pixel_embed = self.pixel_decoder(backbone_feats)
             if pixel_embed.shape[0] == 1:
                 # For batch_size=1 training, we can avoid the indexing to save memory

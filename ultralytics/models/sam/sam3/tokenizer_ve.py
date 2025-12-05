@@ -130,6 +130,7 @@ class SimpleTokenizer(object):
         context_length: int = 77,
         clean: str = "lower",
     ):
+        """The tokenizer for text inputs."""
         self.byte_encoder = bytes_to_unicode()
         self.byte_decoder = {v: k for k, v in self.byte_encoder.items()}
         with g_pathmgr.open(bpe_path, "rb") as fh:
@@ -163,6 +164,7 @@ class SimpleTokenizer(object):
         self.clean_fn = get_clean_fn(clean)
 
     def bpe(self, token):
+        """Byte Pair Encoding."""
         if token in self.cache:
             return self.cache[token]
         word = tuple(token[:-1]) + (token[-1] + "</w>",)
@@ -201,6 +203,7 @@ class SimpleTokenizer(object):
         return word
 
     def encode(self, text):
+        """Encode text to a sequence of BPE tokens."""
         bpe_tokens = []
         text = self.clean_fn(text)
         for token in re.findall(self.pat, text):
@@ -209,6 +212,7 @@ class SimpleTokenizer(object):
         return bpe_tokens
 
     def decode(self, tokens):
+        """Decodes a sequence of tokens back into a text string."""
         text = "".join([self.decoder[token] for token in tokens])
         text = bytearray([self.byte_decoder[c] for c in text]).decode("utf-8", errors="replace").replace("</w>", " ")
         return text

@@ -871,7 +871,7 @@ def verify_image_and_mask(args: tuple) -> list:
             masks.append(mask_i)
         nl = len(segments)
 
-        if (nl > 0):
+        if nl > 0:
             h, w, _ = img_shape
             lb = np.zeros((nl, 5), dtype=np.float32)
             lb[:, 0] = np.array(categoris)

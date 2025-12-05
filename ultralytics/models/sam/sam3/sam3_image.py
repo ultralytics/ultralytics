@@ -103,54 +103,6 @@ class Sam3Image(torch.nn.Module):
         vision_pos_embeds = [x.flatten(2).permute(2, 0, 1) for x in vision_pos_embeds]
         return backbone_out, vision_feats, vision_pos_embeds, feat_sizes
 
-    # TODO: remove this
-    def _get_img_feats(self, backbone_out, img_ids):
-        """Retrieve correct image features from backbone output."""
-        if "backbone_fpn" in backbone_out:
-            if "id_mapping" in backbone_out and backbone_out["id_mapping"] is not None:
-                img_ids = backbone_out["id_mapping"][img_ids]
-                # If this assert fails, it likely means we're requesting different img_ids (perhaps a different frame?)
-                # We currently don't expect this to happen. We could technically trigger a recompute here,
-                # but likely at the cost of a cpu<->gpu sync point, which would deteriorate perf
-                torch._assert_async((img_ids >= 0).all())
-
-            vis_feats = backbone_out["backbone_fpn"][-self.num_feature_levels :]
-            vis_pos_enc = backbone_out["vision_pos_enc"][-self.num_feature_levels :]
-            vis_feat_sizes = [x.shape[-2:] for x in vis_pos_enc]  # (H, W) shapes
-            # index and flatten visual features NxCxHxW => HWxNxC (batch-first => seq-first)
-            img_feats = [x[img_ids].flatten(2).permute(2, 0, 1) for x in vis_feats]
-            img_pos_embeds = [x[img_ids].flatten(2).permute(2, 0, 1) for x in vis_pos_enc]
-            return backbone_out, img_feats, img_pos_embeds, vis_feat_sizes
-
-        # Image features not available in backbone output, so we compute them on the fly
-        # This case likely occurs for video. In that case, we want to forward only the current frame
-        img_batch = backbone_out["img_batch_all_stages"]
-        if img_ids.numel() > 1:
-            # Only forward backbone on unique image ids to avoid repetitive computation
-            unique_ids, _ = torch.unique(img_ids, return_inverse=True)
-        else:
-            unique_ids, _ = img_ids, slice(None)
-        # Compute the image features on those unique image ids
-        # note: we allow using a list (or other indexable types) of tensors as img_batch
-        # (e.g. for async frame loading in demo). In this case we index img_batch.tensors directly
-        if isinstance(img_batch, torch.Tensor):
-            image = img_batch[unique_ids]
-        elif unique_ids.numel() == 1:
-            image = img_batch[unique_ids.item()].unsqueeze(0)
-        else:
-            image = torch.stack([img_batch[i] for i in unique_ids.tolist()])
-        # `img_batch` might be fp16 and offloaded to CPU
-        # Next time we call this function, we want to remember which indices we computed
-        id_mapping = torch.full((len(img_batch),), -1, dtype=torch.long, device=image.device)
-        id_mapping[unique_ids] = torch.arange(len(unique_ids), device=image.device)
-        backbone_out = {
-            **backbone_out,
-            **self.backbone.forward_image(image),
-            "id_mapping": id_mapping,
-        }
-        assert "backbone_fpn" in backbone_out
-        return self._get_img_feats(backbone_out, img_ids=img_ids)
-
     def _encode_prompt(
         self,
         img_feats,

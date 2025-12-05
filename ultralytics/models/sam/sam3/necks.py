@@ -98,6 +98,7 @@ class Sam3DualViTDetNeck(nn.Module):
     def forward(
         self, tensor_list: list[torch.Tensor]
     ) -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor], list[torch.Tensor]]:
+        """Get the feature maps and positional encodings from the neck"""
         xs = self.trunk(tensor_list)
         sam3_out, sam3_pos = [], []
         sam2_out, sam2_pos = None, None

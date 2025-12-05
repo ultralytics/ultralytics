@@ -1,7 +1,5 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
-from typing import Tuple
-
 import torch
 import torch.nn as nn
 import torchvision

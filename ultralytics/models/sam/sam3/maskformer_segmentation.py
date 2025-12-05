@@ -1,7 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
+from __future__ import annotations
 import math
-from typing import Dict, List, Optional
 
 import torch
 import torch.nn as nn
@@ -11,20 +11,28 @@ from ultralytics.nn.modules.transformer import MLP
 
 
 class LinearPresenceHead(nn.Sequential):
+    """Linear presence head for predicting the presence of classes in an image."""
+
     def __init__(self, d_model):
+        """Initializes the LinearPresenceHead."""
         # a hack to make `LinearPresenceHead` compatible with old checkpoints
         super().__init__(nn.Identity(), nn.Identity(), nn.Linear(d_model, 1))
 
     def forward(self, hs, prompt, prompt_mask):
+        """Forward pass of the presence head."""
         return super().forward(hs)
 
 
 class MaskPredictor(nn.Module):
+    """Predicts masks from object queries and pixel embeddings."""
+
     def __init__(self, hidden_dim, mask_dim):
+        """Initializes the MaskPredictor."""
         super().__init__()
         self.mask_embed = MLP(hidden_dim, hidden_dim, mask_dim, 3)
 
     def forward(self, obj_queries, pixel_embed):
+        """Predicts masks from object queries and pixel embeddings."""
         if len(obj_queries.shape) == 3:
             if pixel_embed.ndim == 3:
                 # batch size was omitted
@@ -55,6 +63,7 @@ class SegmentationHead(nn.Module):
         shared_conv=False,
         compile_mode_pixel_decoder=None,
     ):
+        """Initializes the SegmentationHead."""
         super().__init__()
         self.use_encoder_inputs = use_encoder_inputs
         self.aux_masks = aux_masks
@@ -78,7 +87,8 @@ class SegmentationHead(nn.Module):
         # used to update the output dictionary
         self.instance_keys = ["pred_masks"]
 
-    def _embed_pixels(self, backbone_feats: List[torch.Tensor], encoder_hidden_states) -> torch.Tensor:
+    def _embed_pixels(self, backbone_feats: list[torch.Tensor], encoder_hidden_states) -> torch.Tensor:
+        """Embeds pixels using the pixel decoder."""
         if self.use_encoder_inputs:
             backbone_visual_feats = [bb_feat.clone() for bb_feat in backbone_feats]
             # Extract visual embeddings
@@ -103,11 +113,12 @@ class SegmentationHead(nn.Module):
 
     def forward(
         self,
-        backbone_feats: List[torch.Tensor],
+        backbone_feats: list[torch.Tensor],
         obj_queries: torch.Tensor,
-        encoder_hidden_states: Optional[torch.Tensor] = None,
+        encoder_hidden_states: torch.Tensor = None,
         **kwargs,
-    ) -> Dict[str, torch.Tensor]:
+    ) -> dict[str, torch.Tensor]:
+        """Forward pass of the SegmentationHead."""
         if self.use_encoder_inputs:
             assert encoder_hidden_states is not None
 
@@ -132,6 +143,7 @@ class PixelDecoder(nn.Module):
         shared_conv=False,
         compile_mode=None,
     ):
+        """Initializes the PixelDecoder."""
         super().__init__()
         self.hidden_dim = hidden_dim
         self.num_upsampling_stages = num_upsampling_stages
@@ -152,9 +164,8 @@ class PixelDecoder(nn.Module):
             # Needed to make checkpointing happy. But we don't know if the module is checkpointed, so we disable it by default.
             torch._dynamo.config.optimize_ddp = False
 
-    def forward(self, backbone_feats: List[torch.Tensor]):
-        # Assumes backbone features are already projected (C == hidden dim)
-
+    def forward(self, backbone_feats: list[torch.Tensor]):
+        """Forward pass of the PixelDecoder."""
         prev_fpn = backbone_feats[-1]
         fpn_feats = backbone_feats[:-1]
         for layer_idx, bb_feat in enumerate(fpn_feats[::-1]):
@@ -184,6 +195,7 @@ class UniversalSegmentationHead(SegmentationHead):
         dot_product_scorer=None,
         cross_attend_prompt=None,
     ):
+        """Initializes the UniversalSegmentationHead."""
         super().__init__(
             hidden_dim=hidden_dim,
             upsampling_stages=upsampling_stages,
@@ -213,13 +225,14 @@ class UniversalSegmentationHead(SegmentationHead):
 
     def forward(
         self,
-        backbone_feats: List[torch.Tensor],
+        backbone_feats: list[torch.Tensor],
         obj_queries: torch.Tensor,
-        encoder_hidden_states: Optional[torch.Tensor] = None,
-        prompt: Optional[torch.Tensor] = None,
-        prompt_mask: Optional[torch.Tensor] = None,
+        encoder_hidden_states: torch.Tensor = None,
+        prompt: torch.Tensor = None,
+        prompt_mask: torch.Tensor = None,
         **kwargs,
-    ) -> Dict[str, Optional[torch.Tensor]]:
+    ) -> dict[str, torch.Tensor]:
+        """Forward pass of the UniversalSegmentationHead."""
         assert encoder_hidden_states is not None
         bs = encoder_hidden_states.shape[1]
 

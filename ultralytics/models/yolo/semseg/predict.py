@@ -162,7 +162,7 @@ class SemSegPredictor(DetectionPredictor):
         if isinstance(masks.data, torch.Tensor):
             masks = masks.data.cpu().numpy()
 
-        if isinstance(masks.data, np.array):
+        if isinstance(masks.data, np.ndarray):
             masks = masks.data
 
         if np.max(image) <= 1:

@@ -3,10 +3,8 @@
 """Necks are the interface between a vision backbone and the rest of the detection model"""
 
 from copy import deepcopy
-from typing import List, Optional, Tuple
 
 import torch
-
 import torch.nn as nn
 
 
@@ -98,13 +96,8 @@ class Sam3DualViTDetNeck(nn.Module):
             self.sam2_convs = deepcopy(self.convs)
 
     def forward(
-        self, tensor_list: List[torch.Tensor]
-    ) -> Tuple[
-        List[torch.Tensor],
-        List[torch.Tensor],
-        Optional[List[torch.Tensor]],
-        Optional[List[torch.Tensor]],
-    ]:
+        self, tensor_list: list[torch.Tensor]
+    ) -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor], list[torch.Tensor]]:
         xs = self.trunk(tensor_list)
         sam3_out, sam3_pos = [], []
         sam2_out, sam2_pos = None, None

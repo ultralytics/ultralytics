@@ -135,7 +135,7 @@ class BaseTrainer:
         self.save_dir = get_save_dir(self.args)
         self.args.name = self.save_dir.name  # update name for loggers
         self.wdir = self.save_dir / "weights"  # weights dir
-        if LOCAL_RANK in {-1, 0}:
+        if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
             # Save run args, serializing augmentations as reprs for resume compatibility
@@ -486,6 +486,7 @@ class BaseTrainer:
                 self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
                 if self.args.time:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
+
                 # Save model
                 if self.args.save or final_epoch:
                     self.save_model()

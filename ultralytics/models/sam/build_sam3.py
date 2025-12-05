@@ -3,6 +3,7 @@
 import torch.nn as nn
 from ultralytics.utils.patches import torch_load
 from ultralytics.nn.modules.transformer import MLP
+from .modules.sam import SAM3Model
 from .sam3.decoder import TransformerDecoder, TransformerDecoderLayer
 from .sam3.encoder import TransformerEncoderFusion, TransformerEncoderLayer
 from .sam3.geometry_encoders import SequenceGeometryEncoder
@@ -10,7 +11,6 @@ from .sam3.maskformer_segmentation import PixelDecoder, UniversalSegmentationHea
 from .sam3.model_misc import DotProductScoring, TransformerWrapper
 from .sam3.necks import Sam3DualViTDetNeck
 from .sam3.sam3_image import Sam3Image
-from .modules.sam import SAM3Model
 from .sam3.text_encoder_ve import VETextEncoder
 from .sam3.tokenizer_ve import SimpleTokenizer
 from .sam3.vitdet import ViT

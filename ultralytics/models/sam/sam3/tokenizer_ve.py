@@ -13,17 +13,12 @@ import io
 import os
 import string
 from functools import lru_cache
-from typing import List, Optional, Union
+from typing import Union
 
 import ftfy
 import regex as re
 import torch
 from iopath.common.file_io import g_pathmgr
-
-
-# https://stackoverflow.com/q/62691279
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-DEFAULT_CONTEXT_LENGTH = 77
 
 
 @lru_cache()
@@ -37,11 +32,7 @@ def bytes_to_unicode():
     To avoid that, we want lookup tables between utf-8 bytes and unicode strings.
     And avoids mapping to whitespace/control characters the bpe code barfs on.
     """
-    bs = (
-        list(range(ord("!"), ord("~") + 1))
-        + list(range(ord("¡"), ord("¬") + 1))
-        + list(range(ord("®"), ord("ÿ") + 1))
-    )
+    bs = list(range(ord("!"), ord("~") + 1)) + list(range(ord("¡"), ord("¬") + 1)) + list(range(ord("®"), ord("ÿ") + 1))
     cs = bs[:]
     n = 0
     for b in range(2**8):
@@ -129,8 +120,8 @@ class SimpleTokenizer(object):
     def __init__(
         self,
         bpe_path: Union[str, os.PathLike],
-        additional_special_tokens: Optional[List[str]] = None,
-        context_length: Optional[int] = DEFAULT_CONTEXT_LENGTH,
+        additional_special_tokens: list[str] = None,
+        context_length: int = 77,
         clean: str = "lower",
     ):
         self.byte_encoder = bytes_to_unicode()
@@ -208,27 +199,19 @@ class SimpleTokenizer(object):
         text = self.clean_fn(text)
         for token in re.findall(self.pat, text):
             token = "".join(self.byte_encoder[b] for b in token.encode("utf-8"))
-            bpe_tokens.extend(
-                self.encoder[bpe_token] for bpe_token in self.bpe(token).split(" ")
-            )
+            bpe_tokens.extend(self.encoder[bpe_token] for bpe_token in self.bpe(token).split(" "))
         return bpe_tokens
 
     def decode(self, tokens):
         text = "".join([self.decoder[token] for token in tokens])
-        text = (
-            bytearray([self.byte_decoder[c] for c in text])
-            .decode("utf-8", errors="replace")
-            .replace("</w>", " ")
-        )
+        text = bytearray([self.byte_decoder[c] for c in text]).decode("utf-8", errors="replace").replace("</w>", " ")
         return text
 
-    def __call__(
-        self, texts: Union[str, List[str]], context_length: Optional[int] = None
-    ) -> torch.LongTensor:
+    def __call__(self, texts: Union[str, list[str]], context_length: int = None) -> torch.LongTensor:
         """Returns the tokenized representation of given input string(s)
         Parameters
         ----------
-        texts : Union[str, List[str]]
+        texts : Union[str, list[str]]
             An input string or a list of input strings to tokenize
         context_length : int
             The context length to use; all CLIP models use 77 as the context length
@@ -240,10 +223,7 @@ class SimpleTokenizer(object):
             texts = [texts]
         context_length = context_length or self.context_length
         assert context_length, "Please set a valid context length"
-        all_tokens = [
-            [self.sot_token_id] + self.encode(text) + [self.eot_token_id]
-            for text in texts
-        ]
+        all_tokens = [[self.sot_token_id] + self.encode(text) + [self.eot_token_id] for text in texts]
         result = torch.zeros(len(all_tokens), context_length, dtype=torch.long)
         for i, tokens in enumerate(all_tokens):
             if len(tokens) > context_length:

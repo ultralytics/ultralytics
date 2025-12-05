@@ -72,6 +72,7 @@ class SAM3VLBackbone(nn.Module):
         return output
 
     def forward_image(self, samples: torch.Tensor):
+        """Forward pass of the vision backbone and get both SAM3 and SAM2 features."""
         # Forward through backbone
         sam3_features, sam3_pos, sam2_features, sam2_pos = self.vision_backbone.forward(samples)
         if self.scalp > 0:
@@ -107,6 +108,7 @@ class SAM3VLBackbone(nn.Module):
         return output
 
     def forward_image_sam2(self, samples: torch.Tensor):
+        """Forward pass of the vision backbone to get SAM2 features only."""
         xs = self.vision_backbone.trunk(samples)
         sam2_features, sam2_pos = [], []
         x = xs[-1]  # simpleFPN
@@ -132,6 +134,7 @@ class SAM3VLBackbone(nn.Module):
         }
 
     def forward_text(self, captions, input_boxes=None, additional_text=None):
+        """Forward pass of the text encoder."""
         output = {}
 
         # Forward through text_encoder

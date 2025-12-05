@@ -158,6 +158,7 @@ class TextTransformer(nn.Module):
         compile_mode: str = None,
         use_act_checkpoint: bool = False,
     ):
+        """Initialize text transformer with embedding layers, transformer blocks, and pooling options."""
         super().__init__()
         assert pool_type in ("first", "last", "argmax", "none")
         self.output_tokens = output_tokens
@@ -192,6 +193,7 @@ class TextTransformer(nn.Module):
             self.text_projection = nn.Parameter(torch.empty(width, output_dim))
 
     def build_causal_mask(self) -> torch.Tensor:
+        """Create a causal attention mask to prevent attention to future tokens."""
         # lazily create causal attention mask, with full attention between the tokens
         # pytorch uses additive attention mask; fill with -inf
         mask = torch.empty(self.num_pos, self.num_pos)
@@ -200,6 +202,7 @@ class TextTransformer(nn.Module):
         return mask
 
     def forward(self, text: torch.Tensor) -> Union[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
+        """Forward pass through the text transformer, returning pooled output and optionally token embeddings."""
         seq_len = text.shape[1]
         x = self.token_embedding(text)  # [batch_size, n_ctx, d_model]
 
@@ -236,6 +239,7 @@ class VETextEncoder(nn.Module):
         compile_mode: str = None,
         use_act_checkpoint: bool = True,
     ):
+        """Initialize VE text encoder with a text transformer and a linear resizer to match decoder dimensions."""
         super().__init__()
         self.context_length = context_length
         self.use_ln_post = use_ln_post
@@ -258,6 +262,7 @@ class VETextEncoder(nn.Module):
     def forward(
         self, text: Union[list[str], tuple[torch.Tensor, torch.Tensor, dict]], input_boxes: list = None
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Encode text input, either raw strings or pre-encoded tensors, and resize to match decoder dimensions."""
         if isinstance(text[0], str):
             # no use case for this
             assert input_boxes is None or len(input_boxes) == 0, "not supported"

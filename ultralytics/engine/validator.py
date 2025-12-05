@@ -34,7 +34,7 @@ import torch.distributed as dist
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, RANK, TQDM, callbacks, colorstr, emojis
+from ultralytics.utils import LOGGER, LOCAL_RANK, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
@@ -158,7 +158,7 @@ class BaseValidator:
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
                 model=model or self.args.model,
-                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
+                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", LOCAL_RANK),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,

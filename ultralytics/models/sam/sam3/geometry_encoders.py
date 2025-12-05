@@ -294,120 +294,6 @@ class Prompt:
         self.box_labels = self.box_labels.squeeze(-1)
         self.box_embeddings, self.box_mask = concat_padded_sequences(self.box_embeddings, self.box_mask, boxes, mask)
 
-    def append_points(self, points, labels, mask=None):
-        if self.point_embeddings is None:
-            self.point_embeddings = points
-            self.point_labels = labels
-            self.point_mask = mask
-            return
-
-        bs = self.point_embeddings.shape[1]
-        assert points.shape[1] == labels.shape[1] == bs
-        assert list(points.shape[:2]) == list(labels.shape[:2])
-        if mask is None:
-            mask = torch.zeros(bs, points.shape[0], dtype=torch.bool, device=points.device)
-
-        self.point_labels, _ = concat_padded_sequences(
-            self.point_labels.unsqueeze(-1), self.point_mask, labels.unsqueeze(-1), mask
-        )
-        self.point_labels = self.point_labels.squeeze(-1)
-        self.point_embeddings, self.point_mask = concat_padded_sequences(
-            self.point_embeddings, self.point_mask, points, mask
-        )
-
-    def append_masks(self, masks, labels=None, attn_mask=None):
-        if labels is not None:
-            assert list(masks.shape[:2]) == list(labels.shape[:2])
-        if self.mask_embeddings is None:
-            self.mask_embeddings = masks
-            mask_seq_len, bs = masks.shape[:2]
-            if labels is None:
-                self.mask_labels = torch.ones(mask_seq_len, bs, device=masks.device, dtype=torch.long)
-            else:
-                self.mask_labels = labels
-            if attn_mask is None:
-                self.mask_mask = torch.zeros(bs, mask_seq_len, device=masks.device, dtype=torch.bool)
-            else:
-                self.mask_mask = attn_mask
-        else:
-            raise NotImplementedError("Only one mask per prompt is supported.")
-
-    def clone(self):
-        return Prompt(
-            box_embeddings=(None if self.box_embeddings is None else self.box_embeddings.clone()),
-            box_mask=None if self.box_mask is None else self.box_mask.clone(),
-            point_embeddings=(None if self.point_embeddings is None else self.point_embeddings.clone()),
-            point_mask=None if self.point_mask is None else self.point_mask.clone(),
-            box_labels=None if self.box_labels is None else self.box_labels.clone(),
-            point_labels=(None if self.point_labels is None else self.point_labels.clone()),
-        )
-
-
-class MaskEncoder(nn.Module):
-    """
-    Base class for mask encoders.
-    """
-
-    def __init__(
-        self,
-        mask_downsampler: nn.Module,
-        position_encoding: nn.Module,
-    ):
-        super().__init__()
-        self.mask_downsampler = mask_downsampler
-        self.position_encoding = position_encoding
-
-    def forward(self, masks, *args, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
-        masks = self.mask_downsampler(masks)
-        masks_pos = self.position_encoding(masks).to(masks.dtype)
-
-        return masks, masks_pos
-
-
-class FusedMaskEncoder(MaskEncoder):
-    """
-    Identical to memory.SimpleMaskEncoder but follows the interface of geometry_encoders.MaskEncoder.
-    We also remove the `skip_mask_sigmoid` option (to be handled outside the MaskEncoder).
-    Fuses backbone image features with mask features.
-    """
-
-    def __init__(
-        self,
-        mask_downsampler: nn.Module,
-        position_encoding: nn.Module,
-        fuser: nn.Module,
-        in_dim: int = 256,
-        out_dim: int = 256,
-    ):
-        super().__init__(mask_downsampler, position_encoding)
-        self.fuser = fuser
-        self.out_proj = nn.Identity()
-        if out_dim != in_dim:
-            self.out_proj = nn.Conv2d(in_dim, out_dim, kernel_size=1)
-        self.pix_feat_proj = nn.Conv2d(in_dim, in_dim, kernel_size=1)
-
-    @override
-    def forward(
-        self,
-        masks: torch.Tensor,
-        pix_feat: torch.Tensor,
-        **kwargs,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        masks = self.mask_downsampler(masks)
-
-        ## Fuse pix_feats and downsampled masks
-        # in case the visual features are on CPU, cast them to CUDA
-        pix_feat = pix_feat.to(masks.device)
-
-        x = self.pix_feat_proj(pix_feat)
-        x = x + masks
-        x = self.fuser(x)
-        x = self.out_proj(x)
-
-        pos = self.position_encoding(x).to(x.dtype)
-
-        return x, pos
-
 
 class SequenceGeometryEncoder(nn.Module):
     """
@@ -446,7 +332,7 @@ class SequenceGeometryEncoder(nn.Module):
         roi_size: int = 7,  # for boxes pool
         add_cls: bool = True,
         add_post_encode_proj: bool = True,
-        mask_encoder: MaskEncoder = None,
+        mask_encoder = None,
         add_mask_label: bool = False,
         use_act_ckpt: bool = False,
     ):
@@ -510,9 +396,6 @@ class SequenceGeometryEncoder(nn.Module):
             self.encode_norm = nn.LayerNorm(self.d_model)
 
         if mask_encoder is not None:
-            assert isinstance(mask_encoder, MaskEncoder), (
-                f"Expected mask_encoder of type MaskEncoder. Got {type(mask_encoder)}."
-            )
             if add_mask_label:
                 self.mask_label_embed = torch.nn.Embedding(2, self.d_model)
         self.add_mask_label = add_mask_label

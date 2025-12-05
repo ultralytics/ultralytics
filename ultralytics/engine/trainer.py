@@ -135,7 +135,7 @@ class BaseTrainer:
         self.save_dir = get_save_dir(self.args)
         self.args.name = self.save_dir.name  # update name for loggers
         self.wdir = self.save_dir / "weights"  # weights dir
-        if RANK in {-1, 0}:
+        if LOCAL_RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
             # Save run args, serializing augmentations as reprs for resume compatibility
@@ -252,8 +252,8 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
+        torch.cuda.set_device(LOCAL_RANK)
+        self.device = torch.device("cuda", LOCAL_RANK)
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
             backend="nccl" if dist.is_nccl_available() else "gloo",
@@ -488,10 +488,13 @@ class BaseTrainer:
                 if self.args.time:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
 
+            if LOCAL_RANK in {-1, 0}:
                 # Save model
                 if self.args.save or final_epoch:
                     self.save_model()
-                    self.run_callbacks("on_model_save")
+
+            if RANK in {-1, 0}:
+                self.run_callbacks("on_model_save")
 
             # Scheduler
             t = time.time()
@@ -777,7 +780,7 @@ class BaseTrainer:
         """Perform final evaluation and validation for object detection YOLO model."""
         model = self.best if self.best.exists() else None
         with torch_distributed_zero_first(LOCAL_RANK):  # strip only on GPU 0; other GPUs should wait
-            if RANK in {-1, 0}:
+            if LOCAL_RANK in {-1, 0}:
                 ckpt = strip_optimizer(self.last) if self.last.exists() else {}
                 if model:
                     # update best.pt train_metrics from last.pt

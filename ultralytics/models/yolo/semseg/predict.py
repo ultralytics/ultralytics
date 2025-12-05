@@ -157,7 +157,7 @@ class SemSegPredictor(DetectionPredictor):
         if isinstance(masks.data, torch.Tensor):
             masks = masks.data.cpu().numpy()
 
-        if isinstance(masks.data, np.array):
+        if isinstance(masks.data, np.ndarray):
             masks = masks.data
 
         if np.max(image) <= 1:
@@ -188,7 +188,7 @@ class SemSegPredictor(DetectionPredictor):
 
 def predict(cfg=DEFAULT_CFG):
     """Train a YOLO segmentation model based on passed arguments."""
-    model = cfg.model or "yolov11n-semseg.pt"
+    model = cfg.model or "yolo11n-semseg.pt"
     data = cfg.data or "CityscapesYOLO.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ""
     cfg.name = os.path.join(cfg.name, "predict")

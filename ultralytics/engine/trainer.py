@@ -486,14 +486,10 @@ class BaseTrainer:
                 self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
                 if self.args.time:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
-
-            if LOCAL_RANK in {-1, 0}:
                 # Save model
                 if self.args.save or final_epoch:
                     self.save_model()
-
-            if RANK in {-1, 0}:
-                self.run_callbacks("on_model_save")
+                    self.run_callbacks("on_model_save")
 
             # Scheduler
             t = time.time()
@@ -778,12 +774,13 @@ class BaseTrainer:
     def final_eval(self):
         """Perform final evaluation and validation for object detection YOLO model."""
         model = self.best if self.best.exists() else None
-        with torch_distributed_zero_first(LOCAL_RANK):  # strip only on GPU 0; other GPUs should wait
-            if LOCAL_RANK in {-1, 0}:
-                ckpt = strip_optimizer(self.last) if self.last.exists() else {}
-                if model:
-                    # update best.pt train_metrics from last.pt
-                    strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
+        # strip only on GPU 0; other GPUs should wait
+        if RANK in {-1, 0}:
+            ckpt = strip_optimizer(self.last) if self.last.exists() else {}
+            if model:
+                # update best.pt train_metrics from last.pt
+                strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
+        dist.barrier()  # wait for GPU 0 to strip
         if model:
             LOGGER.info(f"\nValidating {model}...")
             self.validator.args.plots = self.args.plots

@@ -154,9 +154,6 @@ def _create_geometry_encoder():
     input_geometry_encoder = SequenceGeometryEncoder(
         pos_enc=geo_pos_enc,
         encode_boxes_as_points=False,
-        points_direct_project=True,
-        points_pool=True,
-        points_pos_enc=True,
         boxes_direct_project=True,
         boxes_pool=True,
         boxes_pos_enc=True,

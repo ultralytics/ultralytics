@@ -34,11 +34,94 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         overrides.setdefault("plots", False)
         overrides.setdefault("val", False)
         super().__init__(cfg, overrides, _callbacks)
+        # T204: Determine loss names after model is initialized (will be set in set_model_attributes or get_validator)
+        # Don't set here as model may not be available yet
 
     def get_validator(self):
         """Return a Stereo3DDetValidator, currently extending DetectionValidator."""
+        # T204: Determine loss names dynamically from model before creating validator
+        self._determine_loss_names()
         return yolo.stereo3ddet.Stereo3DDetValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
+        )
+
+    def _determine_loss_names(self):
+        """T204: Determine loss names dynamically from model's loss dictionary keys or loss_names attribute.
+        
+        Priority order:
+        1. Check if model has loss_names attribute
+        2. Check if model.core.criterion returns loss_dict with keys (StereoYOLOv11Wrapper)
+        3. Fallback to hardcoded list if model structure unknown
+        
+        Sets self.loss_names as tuple matching DetectionTrainer pattern.
+        """
+        # Default loss names for stereo 3D detection (10 branches)
+        # Order matches stereo_yolo_v11.py:677-688
+        default_loss_names = (
+            "heatmap",
+            "offset",
+            "bbox_size",
+            "lr_distance",
+            "right_width",
+            "dimensions",
+            "orientation",
+            "vertices",
+            "vertex_offset",
+            "vertex_dist",
+        )
+        
+        # Check if loss_names is already set to stereo 3D detection names (10 branches)
+        if hasattr(self, "loss_names") and self.loss_names:
+            if isinstance(self.loss_names, (tuple, list)) and len(self.loss_names) == 10:
+                expected_set = set(default_loss_names)
+                current_set = set(self.loss_names)
+                if expected_set == current_set:
+                    return  # Already set correctly to stereo loss names
+        
+        # Try to get from model
+        if hasattr(self, "model") and self.model is not None:
+            # Option 1: Check if model has loss_names attribute
+            if hasattr(self.model, "loss_names") and self.model.loss_names:
+                self.loss_names = tuple(self.model.loss_names) if isinstance(self.model.loss_names, (list, tuple)) else (self.model.loss_names,)
+                return
+            
+            # Option 2: Check if model is StereoYOLOv11Wrapper and has core.criterion
+            # The criterion returns loss_dict with keys matching default_loss_names
+            if hasattr(self.model, "core") and hasattr(self.model.core, "criterion"):
+                # StereoYOLOv11Wrapper uses StereoCenterNetLoss which returns loss_dict with 10 keys
+                # We can use the default loss names directly
+                self.loss_names = default_loss_names
+                return
+            
+            # Option 3: Try to extract from model.loss() return value
+            # Note: StereoYOLOv11Wrapper.loss() returns (total_loss, loss_items) not (total_loss, loss_dict)
+            # So we need to check the model structure instead
+            if hasattr(self.model, "core") and hasattr(self.model.core, "criterion"):
+                # Already handled above
+                pass
+        
+        # Option 4: Fallback to default loss names for stereo 3D detection
+        self.loss_names = default_loss_names
+
+    def progress_string(self):
+        """T205: Return a formatted string showing training progress with dynamically determined loss branches.
+        
+        Follows DetectionTrainer pattern from detect/train.py:187-195.
+        Format: ("\n" + "%11s" * (4 + len(self.loss_names))) % ("Epoch", "GPU_mem", *self.loss_names, "Instances", "Size")
+        
+        Returns:
+            str: Formatted progress string with column headers.
+        """
+        # Ensure loss_names is determined
+        if not hasattr(self, "loss_names") or not self.loss_names:
+            self._determine_loss_names()
+        
+        return ("\n" + "%11s" * (4 + len(self.loss_names))) % (
+            "Epoch",
+            "GPU_mem",
+            *self.loss_names,
+            "Instances",
+            "Size",
         )
 
     def get_dataset(self) -> dict[str, Any]:
@@ -146,6 +229,12 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             return model
         except Exception as e:
             raise RuntimeError(f"Failed to initialize StereoYOLOv11Wrapper: {e}")
+
+    def set_model_attributes(self):
+        """Set model attributes based on dataset information."""
+        super().set_model_attributes()
+        # T204: Determine loss names after model is set
+        self._determine_loss_names()
 
     def preprocess_batch(self, batch):
         """Normalize 6-channel images to float [0,1] and generate targets."""
@@ -294,26 +383,33 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         """
         return
 
-    def final_eval(self):
-        """Perform final evaluation and validation for stereo 3D detection model.
+    # def final_eval(self):
+    #     """Perform final evaluation and validation for stereo 3D detection model.
         
-        Overrides BaseTrainer.final_eval() to convert Path to string for AutoBackend compatibility.
-        This is required because AutoBackend expects a string path, not a Path object.
+    #     Overrides BaseTrainer.final_eval() to convert Path to string for AutoBackend compatibility.
+    #     This is required because AutoBackend expects a string path, not a Path object.
         
-        Note: This override is constitution-compliant - we do not modify BaseTrainer.
-        """
-        model_path = self.best if self.best.exists() else None
-        with torch_distributed_zero_first(LOCAL_RANK):
-            if RANK in {-1, 0}:
-                ckpt = strip_optimizer(self.last) if self.last.exists() else {}
-                if model_path:
-                    # update best.pt train_metrics from last.pt
-                    strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
-        if model_path:
-            LOGGER.info(f"\nValidating {model_path}...")
-            self.validator.args.plots = self.args.plots
-            self.validator.args.compile = False  # disable final val compile as too slow
-            # Convert Path to string for AutoBackend compatibility
-            self.metrics = self.validator(model=str(model_path))
-            self.metrics.pop("fitness", None)
-            self.run_callbacks("on_fit_epoch_end")
+    #     Note: This override is constitution-compliant - we do not modify BaseTrainer.
+    #     """
+    #     model_path = self.best if self.best.exists() else None
+    #     if isinstance(model_path, Path):
+    #         # load the model from the path
+    #         model = torch.load(model_path, weights_only=False)
+    #         model_path = str(model_path)
+    #     else:
+    #         model_path = str(model_path)
+
+    #     with torch_distributed_zero_first(LOCAL_RANK):
+    #         if RANK in {-1, 0}:
+    #             ckpt = strip_optimizer(self.last) if self.last.exists() else {}
+    #             if model_path:
+    #                 # update best.pt train_metrics from last.pt
+    #                 strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
+    #     if model_path:
+    #         LOGGER.info(f"\nValidating {model_path}...")
+    #         self.validator.args.plots = self.args.plots
+    #         self.validator.args.compile = False  # disable final val compile as too slow
+    #         # Convert Path to string for AutoBackend compatibility
+    #         self.metrics = self.validator(model=model)
+    #         self.metrics.pop("fitness", None)
+    #         self.run_callbacks("on_fit_epoch_end")

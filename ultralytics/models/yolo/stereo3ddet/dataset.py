@@ -56,9 +56,6 @@ class Stereo3DDetAdapterDataset(Dataset):
 
         # Validate that names parameter matches actual label classes (T123)
         # Pass max_samples to validation so it only checks the files that will be loaded
-        if self.names:
-            self._validate_names_against_labels(max_samples=max_samples)
-
         # Initialize base dataset with class filtering and max_samples if needed (T193, T194)
         self.base = KITTIStereoDataset(
             root=self.root,

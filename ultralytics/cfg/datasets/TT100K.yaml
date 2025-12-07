@@ -265,7 +265,7 @@ download: |
       for img_id, img_data in data['imgs'].items():
           for obj in img_data.get('objects', []):
               classes.add(obj['category'])
-      classes = sorted(list(classes))
+      class_to_idx = {cls: idx for idx, cls in enumerate(yaml["names"]) if cls in classes}
       class_to_idx = {cls: idx for idx, cls in enumerate(classes)}
       
       print(f"Found {len(classes)} traffic sign classes")

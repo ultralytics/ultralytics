@@ -335,27 +335,6 @@ download: |
       print(f"Conversion complete!")
       print(f"Found {len(classes)} classes: {classes[:10]}..." if len(classes) > 10 else f"Classes: {classes}")
       
-      # Update the yaml file with actual classes
-      yaml_path = dir / 'TT100K.yaml'
-      if yaml_path.exists():
-          with open(yaml_path, 'r', encoding='utf-8') as f:
-              yaml_content = f.read()
-          
-          # Update nc (number of classes)
-          yaml_content = yaml_content.replace('nc: 45', f'nc: {len(classes)}')
-          
-          # Update names section
-          names_str = 'names:\n' + '\n'.join([f'  {i}: {cls}' for i, cls in enumerate(classes)])
-          
-          # Replace the names section
-          import re
-          yaml_content = re.sub(r'names:.*?(?=\n\n|\ndownload:|\Z)', names_str, yaml_content, flags=re.DOTALL)
-          
-          with open(yaml_path, 'w', encoding='utf-8') as f:
-              f.write(yaml_content)
-          
-          print(f"Updated {yaml_path} with {len(classes)} classes")
-      
       return classes
 
   # Download dataset

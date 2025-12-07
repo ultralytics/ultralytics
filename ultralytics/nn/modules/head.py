@@ -736,14 +736,18 @@ class Pose26(Pose):
         """
         super().__init__(nc, kpt_shape, reg_max, end2end, ch)
         self.flow_model = RealNVP()
-        
-        self.nk_output = kpt_shape[0] * (kpt_shape[1] + 2)
-        c4 = max(ch[0] // 4, self.nk_output)
-        self.cv4 = nn.ModuleList(
-            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nk_output, 1)) for x in ch
-        )
+
+        c4 = max(ch[0] // 4, kpt_shape[0] * (kpt_shape[1] + 2))
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3)) for x in ch)
+
+        self.cv4_kpts = nn.ModuleList(nn.Conv2d(c4, self.nk, 1) for _ in ch)        
+        self.nk_sigma = kpt_shape[0] * 2  # sigma_x, sigma_y for each keypoint
+        self.cv4_sigma = nn.ModuleList(nn.Conv2d(c4, self.nk_sigma, 1) for _ in ch)
+
         if end2end:
             self.one2one_cv4 = copy.deepcopy(self.cv4)
+            self.one2one_cv4_kpts = copy.deepcopy(self.cv4_kpts)
+            self.one2one_cv4_sigma = copy.deepcopy(self.cv4_sigma)
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, pose_head: torch.nn.Module
@@ -752,18 +756,15 @@ class Pose26(Pose):
         preds = Detect.forward_head(self, x, box_head, cls_head)
         if pose_head is not None:
             bs = x[0].shape[0]  # batch size
-            preds["kpts"] = torch.cat([pose_head[i](x[i]).view(bs, self.nk_output, -1) for i in range(self.nl)], 2)
-        return preds
+            features = [pose_head[i](x[i]) for i in range(self.nl)]
 
-    def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Decode predicted bounding boxes and class probabilities, concatenated with keypoints."""
-        preds = Detect._inference(self, x)
-        kpts = x["kpts"]
-        bs, _, hw = kpts.shape
-        kpts = kpts.view(bs, self.kpt_shape[0], self.kpt_shape[1] + 2, hw)  # (bs, 17, 5, hw)
-        kpts = kpts[:, :, :-2, :]  # Remove sigma_x, sigma_y
-        kpts = kpts.reshape(bs, self.nk, hw)
-        return torch.cat([preds, self.kpts_decode(kpts)], dim=1)
+            kpts_head = self.cv4_kpts if not self.end2end else self.one2one_cv4_kpts
+            preds["kpts"] = torch.cat([kpts_head[i](features[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
+
+            if self.training:
+                sigma_head = self.cv4_sigma if not self.end2end else self.one2one_cv4_sigma
+                preds["kpts_sigma"] = torch.cat([sigma_head[i](features[i]).view(bs, self.nk_sigma, -1) for i in range(self.nl)], 2)
+        return preds
 
     def kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
         """Decode keypoints from predictions."""

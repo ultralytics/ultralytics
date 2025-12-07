@@ -639,11 +639,16 @@ class v8PoseLoss(v8DetectionLoss):
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 
-        batch_size, _, nk_output = pred_kpts.shape
+        batch_size = pred_kpts.shape[0]
         imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=pred_kpts.dtype)  # image size (h,w)
 
-        ndim = nk_output // self.kpt_shape[0]
-        pred_kpts = pred_kpts.view(batch_size, -1, self.kpt_shape[0], ndim) # (b, h*w, 17, 5 or 3)
+        pred_kpts = pred_kpts.view(batch_size, -1, *self.kpt_shape)  # (b, h*w, 17, 3)
+        
+        if self.rle_loss and preds.get("kpts_sigma", None) is not None:
+            pred_sigma = preds["kpts_sigma"].permute(0, 2, 1).contiguous()
+            pred_sigma = pred_sigma.view(batch_size, -1, self.kpt_shape[0], 2)  # (b, h*w, 17, 2)
+            pred_kpts = torch.cat([pred_kpts, pred_sigma], dim=-1)  # (b, h*w, 17, 5)
+        
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts)
         pred_kpts[..., :2] *= stride_tensor.view(1, -1, 1, 1)
 

@@ -330,7 +330,7 @@ download: |
           
           # Write label file
           if lines:
-              label_file.write_text("".join(lines), encoding='utf-8')
+              label_file.write_text("".join(lines), encoding="utf-8")
       
       print(f"Conversion complete!")
       print(f"Found {len(classes)} classes: {classes[:10]}..." if len(classes) > 10 else f"Classes: {classes}")

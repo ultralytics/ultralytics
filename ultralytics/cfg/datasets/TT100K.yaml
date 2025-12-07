@@ -10,10 +10,10 @@
 #     └── TT100K  ← downloads here (~30 GB with images)
 
 # Train/val/test sets
-path: TT100K  # dataset root dir
-train: images/train  # train images (relative to 'path')
-val: images/val  # val images (relative to 'path')
-test: images/test  # test images (relative to 'path')
+path: TT100K # dataset root dir
+train: images/train # train images (relative to 'path')
+val: images/val # val images (relative to 'path')
+test: images/test # test images (relative to 'path')
 
 # Classes
 nc: 221
@@ -248,7 +248,7 @@ download: |
   from pathlib import Path
   from ultralytics.utils.downloads import download
   from ultralytics.utils import TQDM
-  
+
   def tt100k2yolo(dir):
       """Convert TT100K annotations to YOLO format."""
       from PIL import Image
@@ -357,21 +357,21 @@ download: |
           print(f"Updated {yaml_path} with {len(classes)} classes")
       
       return classes
-  
+
   # Download dataset
   dir = Path(yaml['path'])  # dataset root dir
-  
+
   # TT100K dataset URLs
   urls = [
       'https://cg.cs.tsinghua.edu.cn/traffic-sign/data_model_code/data.zip',  # Main dataset with annotations
   ]
-  
+
   print("Downloading TT100K dataset...")
   print("Note: This dataset is large (~30GB). Download may take some time.")
   print("Dataset is under CC-BY-NC license for non-commercial use only.")
-  
+
   # Download and extract
   download(urls, dir=dir, unzip=True, delete=False, curl=False, threads=1)
-  
+
   # Convert dataset in YOLO format
   classes = tt100k2yolo(dir)

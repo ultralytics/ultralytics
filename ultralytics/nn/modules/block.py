@@ -52,6 +52,9 @@ __all__ = (
     "ResNetLayer",
     "SCDown",
     "TorchVision",
+    "SPDConv",
+    "TBD",
+    "CPA"
 )
 
 
@@ -1943,3 +1946,63 @@ class SAVPE(nn.Module):
         aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
 
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
+
+class SPDConv(nn.Module):
+    # Space-to-Depth Convolution để bảo toàn thông tin hạt mịn
+    def __init__(self, inc, outc, dimension=1):
+        super().__init__()
+        self.d = 2
+        # Sau khi space-to-depth, số kênh tăng gấp 4 (c1 * 4)
+        self.conv = Conv(inc * 4, outc, 3, 1) # Conv tiêu chuẩn của Ultralytics
+
+    def forward(self, x):
+        # Cắt ảnh thành 4 phần và xếp chồng lên kênh chiều sâu
+        return self.conv(torch.cat([
+            x[..., ::2, ::2], 
+            x[..., 1::2, ::2], 
+            x[..., ::2, 1::2], 
+            x[..., 1::2, 1::2]
+        ], 1))
+class TBD(nn.Module):
+    def __init__(self, c1, c2):
+        super().__init__()
+        self.maxpool = nn.MaxPool2d(2, 2)
+        self.avgpool = nn.AvgPool2d(2, 2)
+        self.conv = Conv(c1, c1, 3, 2) # Stride 2 conv
+        # Hợp nhất 3 nhánh: c1 (max) + c1 (avg) + c1 (conv) -> c2
+        self.fusion = Conv(c1 * 3, c2, 1, 1)
+
+    def forward(self, x):
+        x_max = self.maxpool(x)
+        x_avg = self.avgpool(x)
+        x_conv = self.conv(x)
+        return self.fusion(torch.cat([x_max, x_avg, x_conv], 1))
+class CPA(nn.Module):
+    def __init__(self, c1, c2, reduction=16):
+        super().__init__()
+        # Color Branch (Channel Attention)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(c1, c1 // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(c1 // reduction, c1, bias=False),
+            nn.Sigmoid()
+        )
+        # Position Branch (Spatial Attention)
+        self.conv_spatial = nn.Conv2d(2, 1, 7, padding=3, bias=False)
+        self.sigmoid_spatial = nn.Sigmoid()
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        # Channel attention (Color focus)
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        x_color = x * y.expand_as(x)
+        
+        # Spatial attention (Position focus)
+        avg_out = torch.mean(x_color, dim=1, keepdim=True)
+        max_out, _ = torch.max(x_color, dim=1, keepdim=True)
+        spatial = torch.cat([avg_out, max_out], dim=1)
+        spatial = self.sigmoid_spatial(self.conv_spatial(spatial))
+        
+        return x_color * spatial

@@ -22,7 +22,7 @@
 </div>
 <br>
 
-[Ultralytics](https://www.ultralytics.com/) 基于多年在计算机视觉和人工智能领域的基础研究，创造了尖端的、最先进的（SOTA）[YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型不断更新以提高性能和灵活性，具有**速度快**、**精度高**和**易于使用**的特点。它们在[目标检测](https://docs.ultralytics.com/tasks/detect/)、[跟踪](https://docs.ultralytics.com/modes/track/)、[实例分割](https://docs.ultralytics.com/tasks/segment/)、[图像分类](https://docs.ultralytics.com/tasks/classify/)和[姿态估计](https://docs.ultralytics.com/tasks/pose/)任务中表现出色。
+[Ultralytics](https://www.ultralytics.com/) 基于多年在计算机视觉和人工智能领域的基础研究，创造了尖端的、最先进的 (SOTA) [YOLO 模型](https://www.ultralytics.com/yolo)。我们的模型不断更新以提高性能和灵活性，具有**速度快**、**精度高**和**易于使用**的特点。它们在[目标检测](https://docs.ultralytics.com/tasks/detect/)、[跟踪](https://docs.ultralytics.com/modes/track/)、[实例分割](https://docs.ultralytics.com/tasks/segment/)、[图像分类](https://docs.ultralytics.com/tasks/classify/)和[姿态估计](https://docs.ultralytics.com/tasks/pose/)任务中表现出色。
 
 在 [Ultralytics 文档](https://docs.ultralytics.com/)中查找详细文档。通过 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues/new/choose) 获取支持。加入 [Discord](https://discord.com/invite/ultralytics)、[Reddit](https://www.reddit.com/r/ultralytics/) 和 [Ultralytics 社区论坛](https://community.ultralytics.com/)参与讨论！
 
@@ -39,7 +39,7 @@
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="space">
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="2%" alt="Ultralytics Twitter"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="space">
-  <a href="https://youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="2%" alt="Ultralytics YouTube"></a>
+  <a href="https://www.youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="2%" alt="Ultralytics YouTube"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="space">
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="2%" alt="Ultralytics TikTok"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="space">
@@ -74,10 +74,10 @@ pip install ultralytics
 
 ### CLI
 
-您可以直接通过命令行界面（CLI）使用 `yolo` 命令来运行 Ultralytics YOLO：
+您可以直接通过命令行界面 (CLI) 使用 `yolo` 命令来运行 Ultralytics YOLO：
 
 ```bash
-# 使用预训练的 YOLO 模型（例如 YOLO11n）对图像进行预测
+# 使用预训练的 YOLO 模型 (例如 YOLO11n) 对图像进行预测
 yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
@@ -98,7 +98,7 @@ train_results = model.train(
     data="coco8.yaml",  # 数据集配置文件路径
     epochs=100,  # 训练周期数
     imgsz=640,  # 训练图像尺寸
-    device="cpu",  # 运行设备（例如 'cpu', 0, [0,1,2,3]）
+    device="cpu",  # 运行设备 (例如 'cpu', 0, [0,1,2,3])
 )
 
 # 评估模型在验证集上的性能
@@ -260,7 +260,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 
 Ultralytics 提供两种许可选项以满足不同需求：
 
-- **AGPL-3.0 许可证**：这种经 [OSI 批准](https://opensource.org/license)的开源许可证非常适合学生、研究人员和爱好者。它鼓励开放协作和知识共享。有关完整详细信息，请参阅 [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件。
+- **AGPL-3.0 许可证**：这种经 [OSI 批准](https://opensource.org/license/agpl-v3)的开源许可证非常适合学生、研究人员和爱好者。它鼓励开放协作和知识共享。有关完整详细信息，请参阅 [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件。
 - **Ultralytics 企业许可证**：专为商业用途设计，此许可证允许将 Ultralytics 软件和 AI 模型无缝集成到商业产品和服务中，绕过 AGPL-3.0 的开源要求。如果您的使用场景涉及商业部署，请通过 [Ultralytics 授权许可](https://www.ultralytics.com/license)与我们联系。
 
 ## 📞 联系方式
@@ -275,7 +275,7 @@ Ultralytics 提供两种许可选项以满足不同需求：
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
+  <a href="https://www.youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">

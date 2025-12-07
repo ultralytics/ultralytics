@@ -16,9 +16,9 @@ The IMX500 model format is designed to use minimal power while delivering fast p
   <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/ai-camera.avif" alt="Raspberry Pi AI Camera">
 </p>
 
-## Why Should You Export to IMX500
+## Why Should You Export to IMX500?
 
-Sony's [IMX500 Intelligent Vision Sensor](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera) is a game-changing piece of hardware in edge AI processing. It's the world's first intelligent vision sensor with on-chip AI capabilities. This sensor helps overcome many challenges in edge AI, including data processing bottlenecks, privacy concerns, and performance limitations.
+Sony's [IMX500 Intelligent Vision Sensor](https://www.aitrios.sony-semicon.com/edge-ai-devices/raspberry-pi-ai-camera) is a game-changing piece of hardware in edge AI processing. It's the world's first intelligent vision sensor with on-chip AI capabilities. This sensor helps overcome many challenges in edge AI, including data processing bottlenecks, privacy concerns, and performance limitations.
 While other sensors merely pass along images and frames, the IMX500 tells a whole story. It processes data directly on the sensor, allowing devices to generate insights in real-time.
 
 ## Sony's IMX500 Export for YOLO11 Models
@@ -39,9 +39,10 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 
 Currently, you can only export models that include the following tasks to IMX500 format.
 
-- [Object detection](https://docs.ultralytics.com/tasks/detect/)
-- [Pose estimation](https://docs.ultralytics.com/tasks/pose/)
+- [Object Detection](https://docs.ultralytics.com/tasks/detect/)
+- [Pose Estimation](https://docs.ultralytics.com/tasks/pose/)
 - [Classification](https://docs.ultralytics.com/tasks/classify/)
+- [Instance segmentation](https://docs.ultralytics.com/tasks/segment/)
 
 ## Usage Examples
 
@@ -141,6 +142,36 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          yolo predict model=yolo11n-cls_imx_model source='https://ultralytics.com/images/bus.jpg' imgsz=224
          ```
 
+!!! example "Instance Segmentation"
+
+    === "Python"
+
+         ```python
+         from ultralytics import YOLO
+
+         # Load a YOLO11n-seg PyTorch model
+         model = YOLO("yolo11n-seg.pt")
+
+         # Export the model
+         model.export(format="imx", data="coco8-seg.yaml")  # exports with PTQ quantization by default
+
+         # Load the exported model
+         imx_model = YOLO("yolo11n-seg_imx_model")
+
+         # Run inference
+         results = imx_model("https://ultralytics.com/images/bus.jpg")
+         ```
+
+    === "CLI"
+
+         ```bash
+         # Export a YOLO11n-seg PyTorch model to imx format with Post-Training Quantization (PTQ)
+         yolo export model=yolo11n-seg.pt format=imx data=coco8-seg.yaml
+
+         # Run inference with the exported model
+         yolo predict model=yolo11n-seg_imx_model source='https://ultralytics.com/images/bus.jpg'
+         ```
+
 !!! warning
 
     The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
@@ -202,6 +233,18 @@ The export process will create an ONNX model for quantization validation, along 
         └── yolo11n-cls_imx.pbtxt
         ```
 
+    === "Instance Segmentation"
+
+        ```bash
+        yolo11n-seg_imx_model
+        ├── dnnParams.xml
+        ├── labels.txt
+        ├── packerOut.zip
+        ├── yolo11n-seg_imx.onnx
+        ├── yolo11n-seg_imx_MemoryReport.json
+        └── yolo11n-seg_imx.pbtxt
+        ```
+
 ## Using IMX500 Export in Deployment
 
 After exporting Ultralytics YOLO11n model to IMX500 format, it can be deployed to Raspberry Pi AI Camera for inference.
@@ -245,7 +288,7 @@ Step 4: Install [Aitrios Raspberry Pi application module library](https://github
 pip install git+https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library.git
 ```
 
-Step 5: Run YOLO11 object detection and pose estimation by using the below scripts which are available in [aitrios-rpi-application-module-library examples](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library/tree/main/examples/aicam).
+Step 5: Run YOLO11 object detection, pose estimation, classification and segmentation by using the below scripts which are available in [aitrios-rpi-application-module-library examples](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library/tree/main/examples/aicam).
 
 !!! note
 
@@ -387,6 +430,55 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
                 frame.display()
         ```
 
+    === "Instance Segmentation"
+
+        ```python
+        import numpy as np
+
+        from modlib.apps import Annotator
+        from modlib.devices import AiCamera
+        from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
+        from modlib.models.post_processors import pp_yolo_segment_ultralytics
+
+        class YOLOSegment(Model):
+        """YOLO segmentation model for IMX500 deployment."""
+
+            def __init__(self):
+                """Initialize the YOLO segmentation model for IMX500 deployment."""
+
+                super().__init__(
+                    model_file="yolo11n-seg_imx_model/packerOut.zip",  # replace with proper directory
+                    model_type=MODEL_TYPE.CONVERTED,
+                    color_format=COLOR_FORMAT.RGB,
+                    preserve_aspect_ratio=False,
+                )
+
+                self.labels = np.genfromtxt(
+                    "yolo11n-seg_imx_model/labels.txt",  # replace with proper directory
+                    dtype=str,
+                    delimiter="\n",
+                )
+
+            def post_process(self, output_tensors):
+                """Post-process the output tensors for instance segmentation."""
+                return pp_yolo_segment_ultralytics(output_tensors)
+
+        device = AiCamera(frame_rate=17) # Optimal frame rate for maximum DPS of the YOLO-seg model running on the AI Camera
+        model = YOLOSegment()
+        device.deploy(model)
+
+        annotator = Annotator()
+
+        with device as stream:
+            for frame in stream:
+                detections = frame.detections[frame.detections.confidence > 0.4]
+
+                labels = [f"{model.labels[c]}" for m, c, s, _, _ in detections]
+                annotator.annotate_instance_segments(frame, detections)
+                annotator.annotate_boxes(frame, detections, labels=labels)
+                frame.display()
+        ```
+
 ## Benchmarks
 
 YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
@@ -473,7 +565,7 @@ Export to IMX500 format has wide applicability across industries. Here are some 
 
 Exporting Ultralytics YOLO11 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. By leveraging advanced quantization techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
 
-For more information and detailed guidelines, refer to Sony's [IMX500 website](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera).
+For more information and detailed guidelines, refer to Sony's [IMX500 website](https://www.aitrios.sony-semicon.com/edge-ai-devices/raspberry-pi-ai-camera).
 
 ## FAQ
 

@@ -147,7 +147,7 @@ In this case the model will be composed of pretrained weights **except for** the
 
 ### Force Reload
 
-If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and force a fresh download of the latest YOLOv5 version from PyTorch Hub.
+If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and force a fresh download of the latest YOLOv5 version from PyTorch Hub. Cached copies live in `~/.cache/torch/hub`; deleting that folder achieves the same effect.
 
 ```python
 model = torch.hub.load("ultralytics/yolov5", "yolov5s", force_reload=True)  # force reload
@@ -269,15 +269,6 @@ results = model(im)  # inference
 results.pandas().xyxy[0].sort_values("xmin")  # sorted left-right
 ```
 
-### Box-Cropped Results
-
-Results can be returned and saved as detection crops:
-
-```python
-results = model(im)  # inference
-crops = results.crop(save=True)  # cropped detections dictionary
-```
-
 ### JSON Results
 
 Results can be returned in JSON format once converted to `.pandas()` dataframes using the `.to_json()` method. The JSON format can be modified using the `orient` argument. See pandas `.to_json()` [documentation](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html) for details.
@@ -366,7 +357,7 @@ model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s_paddle_mode
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)

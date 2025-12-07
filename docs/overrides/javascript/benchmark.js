@@ -3,14 +3,14 @@
 // Auto-load chart-widget.js if not already loaded
 const loadChartWidget = () =>
   new Promise((resolve) => {
-    if (window.ChartWidget) return resolve();
+    if (window.ChartWidget) {
+      return resolve();
+    }
     const s = document.createElement("script");
     const base =
-      (
-        document.currentScript ||
-        document.querySelector('script[src*="benchmark.js"]')
-      )?.src.replace(/[^/]*$/, "") || "./";
-    s.src = base + "chart-widget.js";
+      (document.currentScript || document.querySelector('script[src*="benchmark.js"]'))?.src.replace(/[^/]*$/, "") ||
+      "./";
+    s.src = `${base}chart-widget.js`;
     s.onload = s.onerror = resolve;
     document.head.appendChild(s);
   });
@@ -125,7 +125,7 @@ let chart = null;
 let chartWidget = null;
 
 const lighten = (hex, amt = 0.6) => {
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
   return `#${[r, g, b]
     .map((c) =>
       Math.min(255, Math.round(c + (255 - c) * amt))
@@ -209,14 +209,9 @@ const updateChart = async (activeModels = []) => {
   chart?.destroy();
   chartWidget?.destroy();
 
-  chartConfig.data.datasets = Object.keys(data).map((algo, i) =>
-    createDataset(algo, i, activeModels),
-  );
+  chartConfig.data.datasets = Object.keys(data).map((algo, i) => createDataset(algo, i, activeModels));
 
-  chart = new Chart(
-    document.getElementById("modelComparisonChart").getContext("2d"),
-    chartConfig,
-  );
+  chart = new Chart(document.getElementById("modelComparisonChart").getContext("2d"), chartConfig);
 
   // Load widget and add to chart
   await loadChartWidget();
@@ -229,15 +224,12 @@ const updateChart = async (activeModels = []) => {
 // e.g. <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv8", "YOLO11"]'></canvas>
 const initChart = () => {
   const activeModels = JSON.parse(
-    document
-      .getElementById("modelComparisonChart")
-      .getAttribute("active-models") || "[]",
+    document.getElementById("modelComparisonChart").getAttribute("active-models") || "[]",
   );
   updateChart(activeModels);
 };
 
 document$.subscribe(() => {
-  const init = () =>
-    typeof Chart !== "undefined" ? initChart() : setTimeout(init, 50);
+  const init = () => (typeof Chart !== "undefined" ? initChart() : setTimeout(init, 50));
   init();
 });

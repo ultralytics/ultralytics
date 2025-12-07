@@ -84,13 +84,16 @@ from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_COLAB,
+    IS_DEBIAN_BOOKWORM,
+    IS_DEBIAN_TRIXIE,
     IS_JETSON,
+    IS_RASPBERRYPI,
+    IS_UBUNTU,
     LINUX,
     LOGGER,
     MACOS,
     MACOS_VERSION,
     RKNN_CHIPS,
-    ROOT,
     SETTINGS,
     TORCH_VERSION,
     WINDOWS,
@@ -100,14 +103,13 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
+    IS_PYTHON_MINIMUM_3_9,
     check_imgsz,
-    check_is_path_safe,
     check_requirements,
     check_version,
     is_intel,
     is_sudo_available,
 )
-from ultralytics.utils.downloads import get_github_assets, safe_download
 from ultralytics.utils.export import (
     keras2pb,
     onnx2engine,
@@ -165,12 +167,12 @@ def export_formats():
 
 def best_onnx_opset(onnx, cuda=False) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
-    version = ".".join(TORCH_VERSION.split(".")[:2])
     if TORCH_2_4:  # _constants.ONNX_MAX_OPSET first defined in torch 1.13
         opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
         if cuda:
             opset -= 2  # fix CUDA ONNXRuntime NMS squeeze op errors
     else:
+        version = ".".join(TORCH_VERSION.split(".")[:2])
         opset = {
             "1.8": 12,
             "1.9": 12,
@@ -363,11 +365,13 @@ class Exporter:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
                 self.args.int8 = True
-            if not self.args.nms and model.task in {"detect", "pose"}:
+            if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True
-            if model.task not in {"detect", "pose", "classify"}:
-                raise ValueError("IMX export only supported for detection, pose estimation, and classification models.")
+            if model.task not in {"detect", "pose", "classify", "segment"}:
+                raise ValueError(
+                    "IMX export only supported for detection, pose estimation, classification, and segmentation models."
+                )
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -532,7 +536,7 @@ class Exporter:
             f[0] = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
             f[1] = self.export_engine(dla=dla)
-        if onnx or ncnn:  # ONNX
+        if onnx:  # ONNX
             f[2] = self.export_onnx()
         if xml:  # OpenVINO
             f[3] = self.export_openvino()
@@ -630,7 +634,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0"]
+        requirements = ["onnx>=1.12.0,<=1.19.1"]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
@@ -822,65 +826,31 @@ class Exporter:
     def export_ncnn(self, prefix=colorstr("NCNN:")):
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
         check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
+        check_requirements("pnnx")
         import ncnn
+        import pnnx
 
-        LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
+        LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__} and PNNX {pnnx.__version__}...")
         f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
-        f_onnx = self.file.with_suffix(".onnx")
 
-        name = Path("pnnx.exe" if WINDOWS else "pnnx")  # PNNX filename
-        pnnx = name if name.is_file() else (ROOT / name)
-        if not pnnx.is_file():
-            LOGGER.warning(
-                f"{prefix} PNNX not found. Attempting to download binary file from "
-                "https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory "
-                f"or in {ROOT}. See PNNX repo for full installation instructions."
-            )
-            system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
-            try:
-                release, assets = get_github_assets(repo="pnnx/pnnx")
-                asset = next(x for x in assets if f"{system}.zip" in x)
-                assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20250930-macos.zip
-                LOGGER.info(f"{prefix} successfully found latest PNNX asset file {asset}")
-            except Exception as e:
-                release = "20250930"
-                asset = f"pnnx-{release}-{system}.zip"
-                LOGGER.warning(f"{prefix} PNNX GitHub assets not found: {e}, using default {asset}")
-            unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)
-            if check_is_path_safe(Path.cwd(), unzip_dir):  # avoid path traversal security vulnerability
-                shutil.move(src=unzip_dir / name, dst=pnnx)  # move binary to ROOT
-                pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
-                shutil.rmtree(unzip_dir)  # delete unzip dir
+        ncnn_args = dict(
+            ncnnparam=(f / "model.ncnn.param").as_posix(),
+            ncnnbin=(f / "model.ncnn.bin").as_posix(),
+            ncnnpy=(f / "model_ncnn.py").as_posix(),
+        )
 
-        ncnn_args = [
-            f"ncnnparam={f / 'model.ncnn.param'}",
-            f"ncnnbin={f / 'model.ncnn.bin'}",
-            f"ncnnpy={f / 'model_ncnn.py'}",
-        ]
+        pnnx_args = dict(
+            ptpath=(f / "model.pt").as_posix(),
+            pnnxparam=(f / "model.pnnx.param").as_posix(),
+            pnnxbin=(f / "model.pnnx.bin").as_posix(),
+            pnnxpy=(f / "model_pnnx.py").as_posix(),
+            pnnxonnx=(f / "model.pnnx.onnx").as_posix(),
+        )
 
-        pnnx_args = [
-            f"pnnxparam={f / 'model.pnnx.param'}",
-            f"pnnxbin={f / 'model.pnnx.bin'}",
-            f"pnnxpy={f / 'model_pnnx.py'}",
-            f"pnnxonnx={f / 'model.pnnx.onnx'}",
-        ]
-
-        cmd = [
-            str(pnnx),
-            str(f_onnx),
-            *ncnn_args,
-            *pnnx_args,
-            f"fp16={int(self.args.half)}",
-            f"device={self.device.type}",
-            f'inputshape="{[self.args.batch, 3, *self.imgsz]}"',
-        ]
         f.mkdir(exist_ok=True)  # make ncnn_model directory
-        LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
-        subprocess.run(cmd, check=True)
+        pnnx.export(self.model, inputs=self.im, **ncnn_args, **pnnx_args, fp16=self.args.half, device=self.device.type)
 
-        # Remove debug files
-        pnnx_files = [x.rsplit("=", 1)[-1] for x in pnnx_args]
-        for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_files):
+        for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_args.values()):
             Path(f_debug).unlink(missing_ok=True)
 
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
@@ -890,7 +860,9 @@ class Exporter:
     def export_coreml(self, prefix=colorstr("CoreML:")):
         """Export YOLO model to CoreML format."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
-        check_requirements("coremltools>=8.0")
+        check_requirements(
+            ["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"]
+        )  # latest numpy 2.4.0rc1 breaks coremltools exports
         import coremltools as ct
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
@@ -1032,7 +1004,7 @@ class Exporter:
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
-                "onnx>=1.12.0",
+                "onnx>=1.12.0,<=1.19.1",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.71",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
@@ -1118,7 +1090,7 @@ class Exporter:
         # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
         # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
         check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-        check_requirements(("executorch==1.0.0", "flatbuffers"))
+        check_requirements(("executorch==1.0.1", "flatbuffers"))
 
         import torch
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
@@ -1149,14 +1121,15 @@ class Exporter:
         assert LINUX, f"export only supported on Linux. See {help_url}"
         if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
+            sudo = "sudo " if is_sudo_available() else ""
             for c in (
-                "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -",
-                'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '
-                "sudo tee /etc/apt/sources.list.d/coral-edgetpu.list",
-                "sudo apt-get update",
-                "sudo apt-get install edgetpu-compiler",
+                f"{sudo}mkdir -p /etc/apt/keyrings",
+                f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --dearmor -o /etc/apt/keyrings/google.gpg",
+                f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
+                f"{sudo}apt-get update",
+                f"{sudo}apt-get install -y edgetpu-compiler",
             ):
-                subprocess.run(c if is_sudo_available() else c.replace("sudo ", ""), shell=True, check=True)
+                subprocess.run(c, shell=True, check=True)
 
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
@@ -1208,16 +1181,24 @@ class Exporter:
     def export_imx(self, prefix=colorstr("IMX:")):
         """Export YOLO model to IMX format."""
         assert LINUX, (
-            "export only supported on Linux. "
-            "See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
+            "Export only supported on Linux."
+            "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
+        assert not ARM64, "IMX export is not supported on ARM64 architectures."
+        assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
+
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(
-            ("model-compression-toolkit>=2.4.1", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0", "pydantic<=2.11.7")
+            (
+                "model-compression-toolkit>=2.4.1",
+                "edge-mdt-cl<1.1.0",
+                "edge-mdt-tpc>=1.2.0",
+                "pydantic<=2.11.7",
+            )
         )
-        check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
-        check_requirements("mct-quantizers>=1.6.0")  # Separate for compatibility with model-compression-toolkit
+
+        check_requirements("imx500-converter[pt]>=3.17.3")
 
         # Install Java>=17
         try:
@@ -1226,8 +1207,16 @@ class Exporter:
             java_version = int(version_match.group(1)) if version_match else 0
             assert java_version >= 17, "Java version too old"
         except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
-            cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "openjdk-21-jre"]
-            subprocess.run(cmd, check=True)
+            cmd = None
+            if IS_UBUNTU or IS_DEBIAN_TRIXIE:
+                LOGGER.info(f"\n{prefix} installing Java 21 for Ubuntu...")
+                cmd = (["sudo"] if is_sudo_available() else []) + ["apt-get", "install", "-y", "openjdk-21-jre"]
+            elif IS_RASPBERRYPI or IS_DEBIAN_BOOKWORM:
+                LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
+                cmd = (["sudo"] if is_sudo_available() else []) + ["apt-get", "install", "-y", "openjdk-17-jre"]
+
+            if cmd:
+                subprocess.run(cmd, check=True)
 
         return torch2imx(
             self.model,
@@ -1441,7 +1430,7 @@ class NMSModel(torch.nn.Module):
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
-            multiplier = (8 if self.obb else 1) / max(len(self.model.names), 1)
+            multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
             if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier

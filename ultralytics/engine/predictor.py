@@ -38,9 +38,9 @@ from __future__ import annotations
 import platform
 import re
 import threading
+import time
 from pathlib import Path
 from typing import Any
-import time
 
 import cv2
 import numpy as np
@@ -490,15 +490,18 @@ class BasePredictor:
     def show(self, p: str = ""):
         """Display an image in a window with FPS overlay if enabled."""
         im = self.plotted_img
-        
+
         # FPS calculation
         if self.args.show_fps:
             current_frame_process_time = time.time()
-            fps = 1 / (current_frame_process_time - self.last_frame_process_time) if current_frame_process_time != self.last_frame_process_time else 0
+            fps = (
+                1 / (current_frame_process_time - self.last_frame_process_time)
+                if current_frame_process_time != self.last_frame_process_time
+                else 0
+            )
             self.last_frame_process_time = current_frame_process_time
-            cv2.putText(im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
-                        1.0, (0, 255, 0), 2, cv2.LINE_AA)
-        
+            cv2.putText(im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2, cv2.LINE_AA)
+
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)

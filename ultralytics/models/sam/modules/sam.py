@@ -1057,7 +1057,7 @@ class SAM3Model(SAM2Model):
         sam_mask_decoder_extra_args=None,
         compile_image_encoder: bool = False,
     ):
-        """SAM3 model with SAMv3 mask decoder for video object segmentation."""
+        """SAM3Model class for Segment Anything Model 3 with memory-based video object segmentation capabilities."""
         super().__init__(
             image_encoder,
             memory_attention,

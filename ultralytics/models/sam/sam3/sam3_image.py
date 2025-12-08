@@ -28,6 +28,7 @@ def _update_out(out, out_name, out_value, auxiliary=True, update_aux=True):
 
 class SAM3SemanticModel(torch.nn.Module):
     """SAM3 model for semantic segmentation with vision-language backbone."""
+
     def __init__(
         self,
         backbone: SAM3VLBackbone,

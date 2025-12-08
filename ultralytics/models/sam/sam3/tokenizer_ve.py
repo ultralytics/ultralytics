@@ -124,6 +124,7 @@ def canonicalize_text(text, *, keep_punctuation_exact_string=None):
 
 class SimpleTokenizer:
     """A simple tokenizer for text inputs."""
+
     def __init__(
         self,
         bpe_path: str | os.PathLike,

@@ -15,6 +15,7 @@ from torch import Tensor, nn
 
 class DotProductScoring(torch.nn.Module):
     """A module that computes dot-product scores between a set of query features and a."""
+
     def __init__(
         self,
         d_model,
@@ -76,6 +77,7 @@ class DotProductScoring(torch.nn.Module):
 
 class LayerScale(nn.Module):
     """LayerScale module as introduced in "Meta Pseudo Labels" and used in."""
+
     def __init__(
         self,
         dim: int,
@@ -94,6 +96,7 @@ class LayerScale(nn.Module):
 
 class TransformerWrapper(nn.Module):
     """A wrapper for the transformer consisting of an encoder and a decoder."""
+
     def __init__(
         self,
         encoder,
@@ -138,19 +141,18 @@ def get_valid_ratio(mask):
 def gen_sineembed_for_position(pos_tensor: torch.Tensor, num_feats: int = 256):
     """Generate sinusoidal position embeddings for 2D or 4D coordinate tensors.
 
-    This function creates sinusoidal embeddings using sine and cosine functions at different
-    frequencies, similar to the positional encoding used in Transformer models. It supports
-    both 2D position tensors (x, y) and 4D tensors (x, y, w, h) for bounding box coordinates.
+    This function creates sinusoidal embeddings using sine and cosine functions at different frequencies, similar to the
+    positional encoding used in Transformer models. It supports both 2D position tensors (x, y) and 4D tensors (x, y, w,
+    h) for bounding box coordinates.
 
     Args:
-        pos_tensor (torch.Tensor): Input position tensor of shape (n_query, bs, 2) for 2D
-            coordinates or (n_query, bs, 4) for 4D coordinates (bounding boxes).
-        num_feats (int): Number of feature dimensions for the output embedding. Must be even.
-            Defaults to 256.
+        pos_tensor (torch.Tensor): Input position tensor of shape (n_query, bs, 2) for 2D coordinates or (n_query, bs,
+            4) for 4D coordinates (bounding boxes).
+        num_feats (int): Number of feature dimensions for the output embedding. Must be even. Defaults to 256.
 
     Returns:
-        (torch.Tensor): Sinusoidal position embeddings of shape (n_query, bs, num_feats) for
-            2D input or (n_query, bs, num_feats * 2) for 4D input.
+        (torch.Tensor): Sinusoidal position embeddings of shape (n_query, bs, num_feats) for 2D input or (n_query, bs,
+            num_feats * 2) for 4D input.
 
     Raises:
         AssertionError: If num_feats is not even.

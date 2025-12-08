@@ -14,6 +14,7 @@ import torch.nn as nn
 
 class Sam3DualViTDetNeck(nn.Module):
     """A neck that implements a simple FPN as in ViTDet, with support for dual necks (for SAM3 and SAM2)."""
+
     def __init__(
         self,
         trunk: nn.Module,

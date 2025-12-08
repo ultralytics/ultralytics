@@ -144,6 +144,7 @@ def text_global_pool(
 
 class TextTransformer(nn.Module):
     """Text transformer encoder with causal masking and flexible pooling strategies."""
+
     def __init__(
         self,
         context_length: int = 77,
@@ -233,6 +234,7 @@ class TextTransformer(nn.Module):
 
 class VETextEncoder(nn.Module):
     """Text encoder for Vision Encoder (VE) models, combining a text transformer and a linear resizer."""
+
     def __init__(
         self,
         d_model: int,

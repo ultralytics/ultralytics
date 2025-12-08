@@ -87,19 +87,32 @@ For detailed instructions and best practices related to the installation process
 
 1. Download and add the key to the system keyring
 
-`sudo sh -c "curl -fsSL https://software.axelera.ai/artifactory/api/security/keypair/axelera/public | gpg --dearmor -o /etc/apt/keyrings/axelera.gpg"`
+    ```bash
+    sudo sh -c "curl -fsSL https://software.axelera.ai/artifactory/api/security/keypair/axelera/public | gpg --dearmor -o /etc/apt/keyrings/axelera.gpg"
+    ```
 
 2. Add the repository to apt
 
-- Ubuntu 22.04: `sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/releases/v1.5.2/build-packages-ubuntu-22.04/apt-repo ubuntu22 main' > /etc/apt/sources.list.d/axelera.list"`
-- Ubuntu 24.04: `sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/releases/v1.5.2/build-packages-ubuntu-24.04/apt-repo ubuntu24 main' > /etc/apt/sources.list.d/axelera.list"`
+    - Ubuntu 22.04: 
+
+    ```bash
+    sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/releases/v1.5.2/build-packages-ubuntu-22.04/apt-repo ubuntu22 main' > /etc/apt/sources.list.d/axelera.list"
+    ```
+
+    - Ubuntu 24.04:
+    
+    ```bash
+    sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/releases/v1.5.2/build-packages-ubuntu-24.04/apt-repo ubuntu24 main' > /etc/apt/sources.list.d/axelera.list"
+    ```
 
 3. Update packages, install and hook the driver
 
-- `sudo apt update`
-- `sudo apt install -y axelera-voyager-sdk-base`
-- `sudo modprobe metis`
-- `yes | sudo /opt/axelera/sdk/latest/axelera_fix_groups.sh $USER`
+    ```bash
+    sudo apt update
+    sudo apt install -y axelera-voyager-sdk-base
+    sudo modprobe metis
+    yes | sudo /opt/axelera/sdk/latest/axelera_fix_groups.sh $USER
+    ```
 
 ### Usage
 

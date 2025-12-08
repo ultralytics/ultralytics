@@ -2670,7 +2670,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         return results
 
     def _run_single_frame_inference(self, frame_idx, reverse=False, inference_state=None):
-        """Perform inference on a single frame and get its inference results. This would also update `inference_state`."""
+        """Perform inference on a single frame and get its inference results. This would also update `inference_state`.
+        """
         inference_state = inference_state or self.inference_state
         # prepare inputs
         tracker_states_local = inference_state["tracker_inference_states"]
@@ -3484,10 +3485,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         Returns:
             new_det_fa_inds: array of new object indices.
-            unmatched_trk_obj_ids: array of existing masklet object IDs that are not matched
-            to any detections on this frame (for unmatched, we only count masklets with >0 area)
-            det_to_matched_trk_obj_ids: dict[int, np.ndarray]: mapping from detector's detection indices
-            to the list of matched tracklet object IDs
+            unmatched_trk_obj_ids: array of existing masklet object IDs that are not matched to any detections on this
+                frame (for unmatched, we only count masklets with >0 area)
+            det_to_matched_trk_obj_ids: dict[int, np.ndarray]: mapping from detector's detection indices to the list of
+                matched tracklet object IDs
             empty_trk_obj_ids: array of existing masklet object IDs with zero area in SAM2 prediction
         """
         iou_threshold = self.assoc_iou_thresh

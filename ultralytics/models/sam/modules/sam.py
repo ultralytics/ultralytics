@@ -13,7 +13,7 @@ from torch.nn.init import trunc_normal_
 from ultralytics.nn.modules import MLP
 from ultralytics.utils import LOGGER
 
-from .blocks import SAM2TwoWayTransformer
+from .blocks import SAM2TwoWayTransformer, TwoWayTransformer
 from .decoders import MaskDecoder, SAM2MaskDecoder
 from .encoders import ImageEncoderViT, PromptEncoder
 from .utils import get_1d_sine_pe, select_closest_cond_frames
@@ -329,6 +329,7 @@ class SAM2Model(torch.nn.Module):
 
         self._build_sam_heads()
         self.max_cond_frames_in_attn = max_cond_frames_in_attn
+        self.add_all_frames_to_correct_as_cond = True
 
         # Model compilation
         if compile_image_encoder:
@@ -473,7 +474,7 @@ class SAM2Model(torch.nn.Module):
             assert len(mask_inputs.shape) == 4 and mask_inputs.shape[:2] == (B, 1)
             if mask_inputs.shape[-2:] != self.sam_prompt_encoder.mask_input_size:
                 sam_mask_prompt = F.interpolate(
-                    mask_inputs.float(),
+                    mask_inputs.to(backbone_features.dtype),
                     size=self.sam_prompt_encoder.mask_input_size,
                     align_corners=False,
                     mode="bilinear",
@@ -571,7 +572,7 @@ class SAM2Model(torch.nn.Module):
             # produce an object pointer using the SAM decoder from the mask input
             _, _, _, _, _, obj_ptr, _ = self._forward_sam_heads(
                 backbone_features=backbone_features,
-                mask_inputs=self.mask_downsample(mask_inputs_float),
+                mask_inputs=self.mask_downsample(mask_inputs_float.to(backbone_features.dtype)),
                 high_res_features=high_res_features,
             )
         # In this method, we are treating mask_input as output, e.g. using it directly to create spatial mem;
@@ -818,7 +819,6 @@ class SAM2Model(torch.nn.Module):
             mask_for_mem = mask_for_mem + self.sigmoid_bias_for_mem_enc
         maskmem_out = self.memory_encoder(pix_feat, mask_for_mem, skip_mask_sigmoid=True)  # sigmoid already applied
         maskmem_features = maskmem_out["vision_features"]
-        maskmem_pos_enc = maskmem_out["vision_pos_enc"]
         # add a no-object embedding to the spatial memory to indicate that the frame
         # is predicted to be occluded (i.e. no object is appearing in the frame)
         if self.no_obj_embed_spatial is not None:
@@ -827,7 +827,7 @@ class SAM2Model(torch.nn.Module):
                 ..., None, None
             ].expand(*maskmem_features.shape)
 
-        return maskmem_features, maskmem_pos_enc
+        return maskmem_features, maskmem_out["vision_pos_enc"]
 
     def _track_step(
         self,
@@ -1005,7 +1005,151 @@ class SAM2Model(torch.nn.Module):
 
     def set_imgsz(self, imgsz):
         """Set image size to make model compatible with different image sizes."""
+        if hasattr(self.image_encoder, "set_imgsz"):
+            self.image_encoder.set_imgsz(imgsz)
         self.image_size = imgsz[0]
         self.sam_prompt_encoder.input_image_size = imgsz
-        self.sam_prompt_encoder.image_embedding_size = [x // 16 for x in imgsz]  # fixed ViT patch size of 16
+        self.sam_prompt_encoder.image_embedding_size = [
+            x // self.backbone_stride for x in imgsz
+        ]  # fixed ViT patch size of 16
+        self.sam_prompt_encoder.mask_input_size = [
+            x // self.backbone_stride * 4 for x in imgsz
+        ]  # fixed ViT patch size of 16
         self.sam_image_embedding_size = self.image_size // self.backbone_stride  # update image embedding size
+
+
+class SAM3Model(SAM2Model):
+    """SAM3Model class for Segment Anything Model 3 with memory-based video object segmentation capabilities."""
+
+    def __init__(
+        self,
+        image_encoder,
+        memory_attention,
+        memory_encoder,
+        num_maskmem=7,
+        image_size=1008,
+        backbone_stride=14,
+        sigmoid_scale_for_mem_enc=1,
+        sigmoid_bias_for_mem_enc=0,
+        binarize_mask_from_pts_for_mem_enc=False,
+        use_mask_input_as_output_without_sam=False,
+        max_cond_frames_in_attn=-1,
+        directly_add_no_mem_embed=False,
+        use_high_res_features_in_sam=False,
+        multimask_output_in_sam=False,
+        multimask_min_pt_num=1,
+        multimask_max_pt_num=1,
+        multimask_output_for_tracking=False,
+        use_multimask_token_for_obj_ptr: bool = False,
+        iou_prediction_use_sigmoid=False,
+        memory_temporal_stride_for_eval=1,
+        non_overlap_masks_for_mem_enc=False,
+        use_obj_ptrs_in_encoder=False,
+        max_obj_ptrs_in_encoder=16,
+        add_tpos_enc_to_obj_ptrs=True,
+        proj_tpos_enc_in_obj_ptrs=False,
+        use_signed_tpos_enc_to_obj_ptrs=False,
+        only_obj_ptrs_in_the_past_for_eval=False,
+        pred_obj_scores: bool = False,
+        pred_obj_scores_mlp: bool = False,
+        fixed_no_obj_ptr: bool = False,
+        soft_no_obj_ptr: bool = False,
+        use_mlp_for_obj_ptr_proj: bool = False,
+        no_obj_embed_spatial: bool = False,
+        sam_mask_decoder_extra_args=None,
+        compile_image_encoder: bool = False,
+    ):
+        """SAM3Model class for Segment Anything Model 3 with memory-based video object segmentation capabilities."""
+        super().__init__(
+            image_encoder,
+            memory_attention,
+            memory_encoder,
+            num_maskmem,
+            image_size,
+            backbone_stride,
+            sigmoid_scale_for_mem_enc,
+            sigmoid_bias_for_mem_enc,
+            binarize_mask_from_pts_for_mem_enc,
+            use_mask_input_as_output_without_sam,
+            max_cond_frames_in_attn,
+            directly_add_no_mem_embed,
+            use_high_res_features_in_sam,
+            multimask_output_in_sam,
+            multimask_min_pt_num,
+            multimask_max_pt_num,
+            multimask_output_for_tracking,
+            use_multimask_token_for_obj_ptr,
+            iou_prediction_use_sigmoid,
+            memory_temporal_stride_for_eval,
+            non_overlap_masks_for_mem_enc,
+            use_obj_ptrs_in_encoder,
+            max_obj_ptrs_in_encoder,
+            add_tpos_enc_to_obj_ptrs,
+            proj_tpos_enc_in_obj_ptrs,
+            use_signed_tpos_enc_to_obj_ptrs,
+            only_obj_ptrs_in_the_past_for_eval,
+            pred_obj_scores,
+            pred_obj_scores_mlp,
+            fixed_no_obj_ptr,
+            soft_no_obj_ptr,
+            use_mlp_for_obj_ptr_proj,
+            no_obj_embed_spatial,
+            sam_mask_decoder_extra_args,
+            compile_image_encoder,
+        )
+        self.sam_mask_decoder = SAM2MaskDecoder(
+            num_multimask_outputs=3,
+            transformer=TwoWayTransformer(
+                depth=2,
+                embedding_dim=self.sam_prompt_embed_dim,
+                mlp_dim=2048,
+                num_heads=8,
+            ),
+            transformer_dim=self.sam_prompt_embed_dim,
+            iou_head_depth=3,
+            iou_head_hidden_dim=256,
+            use_high_res_features=self.use_high_res_features_in_sam,
+            iou_prediction_use_sigmoid=self.iou_prediction_use_sigmoid,
+            pred_obj_scores=self.pred_obj_scores,
+            pred_obj_scores_mlp=self.pred_obj_scores_mlp,
+            use_multimask_token_for_obj_ptr=self.use_multimask_token_for_obj_ptr,
+            **(self.sam_mask_decoder_extra_args or {}),
+        )
+
+    def forward_image(self, img_batch: torch.Tensor):
+        """Process image batch through encoder to extract multi-level features for SAM model."""
+        backbone_out = self.image_encoder.forward_image_sam2(img_batch)
+        if self.use_high_res_features_in_sam:
+            # precompute projected level 0 and level 1 features in SAM decoder
+            # to avoid running it again on every SAM click
+            backbone_out["backbone_fpn"][0] = self.sam_mask_decoder.conv_s0(backbone_out["backbone_fpn"][0])
+            backbone_out["backbone_fpn"][1] = self.sam_mask_decoder.conv_s1(backbone_out["backbone_fpn"][1])
+        return backbone_out
+
+    def set_imgsz(self, imgsz: tuple[int, int]):
+        """Set the image size for the model and mask downsampler."""
+        super().set_imgsz(imgsz)
+        self.memory_encoder.mask_downsampler.interpol_size = [size // 14 * 16 for size in imgsz]
+
+    @staticmethod
+    def _suppress_shrinked_masks(pred_masks, new_pred_masks, shrink_threshold=0.3):
+        """Suppress masks that shrink in area after applying pixelwise non-overlapping constraints."""
+        area_before = (pred_masks > 0).sum(dim=(-1, -2))
+        area_after = (new_pred_masks > 0).sum(dim=(-1, -2))
+        area_before = torch.clamp(area_before, min=1.0)
+        area_ratio = area_after / area_before
+        keep = area_ratio >= shrink_threshold
+        keep_mask = keep[..., None, None].expand_as(pred_masks)
+        pred_masks_after = torch.where(keep_mask, pred_masks, torch.clamp(pred_masks, max=-10.0))
+        return pred_masks_after
+
+    def _suppress_object_pw_area_shrinkage(self, pred_masks):
+        """This function suppresses masks that shrink in area after applying pixelwise non-overlapping constraints. Note
+        that the final output can still be overlapping.
+        """
+        # Apply pixel-wise non-overlapping constraint based on mask scores
+        pixel_level_non_overlapping_masks = self._apply_non_overlapping_constraints(pred_masks)
+        # Fully suppress masks with high shrinkage (probably noisy) based on the pixel wise non-overlapping constraints
+        # NOTE: The output of this function can be a no op if none of the masks shrinked by a large factor.
+        pred_masks = self._suppress_shrinked_masks(pred_masks, pixel_level_non_overlapping_masks)
+        return pred_masks

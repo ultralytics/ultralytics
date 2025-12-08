@@ -18,7 +18,6 @@ import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torchvision.ops import masks_to_boxes
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
@@ -2638,7 +2637,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             )
             keep = (pred_scores > self.args.conf) & pred_masks.any(dim=(1, 2))
             pred_masks = pred_masks[keep]
-            pred_boxes = masks_to_boxes(pred_masks)
+            pred_boxes = batched_mask_to_box(pred_masks)
             pred_boxes = torch.cat(
                 [pred_boxes, pred_ids[keep][:, None], pred_scores[keep][..., None], pred_cls[keep][..., None]], dim=-1
             )

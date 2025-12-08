@@ -61,15 +61,13 @@ def _create_vision_backbone(compile_mode=None, enable_inst_interactivity=True) -
         bias_patch_embed=False,
         compile_mode=compile_mode,
     )
-    vit_neck = Sam3DualViTDetNeck(
+    return Sam3DualViTDetNeck(
         position_encoding=position_encoding,
         d_model=256,
         scale_factors=[4.0, 2.0, 1.0, 0.5],
         trunk=vit_backbone,
         add_sam2_neck=enable_inst_interactivity,
     )
-    # Visual neck
-    return vit_neck
 
 
 def _create_sam3_transformer() -> TransformerWrapper:

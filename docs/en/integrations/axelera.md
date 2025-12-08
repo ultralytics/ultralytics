@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Export Ultralytics YOLO models to Axelera format for high-performance edge AI deployment on Metis devices. Optimize inference with up to 856 TOPS.
-keywords: Ultralytics, YOLO11, Axelera AI, model export, edge AI, Metis AIPU, Europa, Voyager SDK, deployment, computer vision, INT8 quantization
+keywords: Ultralytics, YOLO11, YOLOv8, Axelera AI, model export, edge AI, Metis AIPU, Voyager SDK, deployment, computer vision, quantization, mix-precision quantization
 ---
 
 # Axelera Export and Deployment for Ultralytics YOLO11 Models

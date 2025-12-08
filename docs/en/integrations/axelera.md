@@ -51,9 +51,9 @@ Axelera models support multiple deployment scenarios:
 Currently, you can only export models that include the following tasks to Axelera format.
 
 - [Object Detection](https://docs.ultralytics.com/tasks/detect/)
-- [Pose Estimation](https://docs.ultralytics.com/tasks/pose/) *(coming soon)*
-- [Segmentation](https://docs.ultralytics.com/tasks/segment/) *(coming soon)*
-- [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb/) *(coming soon)*
+- [Pose Estimation](https://docs.ultralytics.com/tasks/pose/) _(coming soon)_
+- [Segmentation](https://docs.ultralytics.com/tasks/segment/) _(coming soon)_
+- [Oriented Bounding Boxes](https://docs.ultralytics.com/tasks/obb/) _(coming soon)_
 
 ## Export to Axelera: Converting Your YOLO11 Model
 

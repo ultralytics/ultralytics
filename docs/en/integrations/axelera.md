@@ -20,7 +20,7 @@ The export to Axelera format feature allows you to optimize your [Ultralytics YO
 
 Axelera's hardware is specifically optimized for running [neural networks](https://www.ultralytics.com/glossary/neural-network-nn) efficiently on edge devices, enabling rapid deployment of [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models across various platforms including PCIe cards, M.2 modules, and integrated systems.
 
-## Key Features of Axelera Models
+## Key Features of Models on Axelera Devices
 
 Axelera models offer powerful features that enable high-performance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) on edge devices:
 

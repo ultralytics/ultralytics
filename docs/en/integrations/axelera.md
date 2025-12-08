@@ -246,6 +246,7 @@ For most [object detection](https://www.ultralytics.com/glossary/object-detectio
 # About This Release
 
 This release is an experimental version demonstrating how easily you can deploy models to Axelera Metis hardware within your existing Ultralytics projects. We anticipate full integration by February 2026, which will provide:
+
 - Model export capabilities without requiring Axelera hardware
 - Standard pip installation (not dependent on our proprietary service URL)
 - Automatic compiler configuration supporting multiple VoyagerSDK versions
@@ -261,6 +262,7 @@ We recommend leveraging the powerful Ultralytics `train` capabilities in this re
 **Unlocking Maximum Performance**
 
 The integration shown here prioritizes ease of use and quick deployment. For production environments requiring maximum throughput, we recommend you to explore the [Axelera Voyager SDK](https://github.com/axelera-ai-hub/voyager-sdk) or [reach out to our team](https://axelera.ai/contact-us). The Voyager SDK offers advanced optimizations including:
+
 - Multi-core utilization (quad-core Metis AIPU)
 - Streaming inference pipelines
 - Tiled inferencing for higher-resolution cameras

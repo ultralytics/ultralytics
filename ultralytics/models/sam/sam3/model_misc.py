@@ -14,7 +14,7 @@ from torch import Tensor, nn
 
 
 class DotProductScoring(torch.nn.Module):
-    """ A module that computes dot-product scores between a set of query features and a"""
+    """A module that computes dot-product scores between a set of query features and a."""
     def __init__(
         self,
         d_model,
@@ -36,7 +36,7 @@ class DotProductScoring(torch.nn.Module):
             self.clamp_max_val = clamp_max_val
 
     def mean_pool_text(self, prompt, prompt_mask):
-        """ Mean-pool the prompt embeddings over the valid tokens only."""
+        """Mean-pool the prompt embeddings over the valid tokens only."""
         # is_valid has shape (seq, bs, 1), where 1 is valid and 0 is padding
         is_valid = (~prompt_mask).to(prompt.dtype).permute(1, 0)[..., None]
         # num_valid has shape (bs, 1)
@@ -46,7 +46,7 @@ class DotProductScoring(torch.nn.Module):
         return pooled_prompt
 
     def forward(self, hs, prompt, prompt_mask):
-        """ Compute dot-product scores between hs and prompt."""
+        """Compute dot-product scores between hs and prompt."""
         # hs has shape (num_layer, bs, num_query, d_model)
         # prompt has shape (seq, bs, d_model)
         # prompt_mask has shape (bs, seq), where 1 is valid and 0 is padding
@@ -75,7 +75,7 @@ class DotProductScoring(torch.nn.Module):
 
 
 class LayerScale(nn.Module):
-    """ LayerScale module as introduced in "Meta Pseudo Labels" and used in"""
+    """LayerScale module as introduced in "Meta Pseudo Labels" and used in."""
     def __init__(
         self,
         dim: int,
@@ -93,7 +93,7 @@ class LayerScale(nn.Module):
 
 
 class TransformerWrapper(nn.Module):
-    """ A wrapper for the transformer consisting of an encoder and a decoder."""
+    """A wrapper for the transformer consisting of an encoder and a decoder."""
     def __init__(
         self,
         encoder,

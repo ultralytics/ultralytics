@@ -858,6 +858,9 @@ def verify_image_and_mask(args: tuple) -> list:
             mb = mask_b == b
             mg = mask_g == g
             mr = mask_r == r
+            #jump background color
+            if b == 0 and g == 0 and r == 0:
+                continue
             mask_i = (mb * mg * mr).astype(np.uint8) * 255
 
             segment = mask2polygon(mask_i)

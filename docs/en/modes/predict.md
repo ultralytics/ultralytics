@@ -14,13 +14,13 @@ In the world of [machine learning](https://www.ultralytics.com/glossary/machine-
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YKbBXWBJloY"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLO Model for Custom Projects.
+  <strong>Watch:</strong> How to Extract Results from Ultralytics YOLO11 Tasks for Custom Projects 🚀
 </p>
 
 ## Real-world Applications

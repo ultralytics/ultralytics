@@ -2983,6 +2983,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_metadata: dict[str, np.ndarray],
         tracker_obj_scores_global: torch.Tensor,
     ):
+        """ Recondition masklets based on new high-confidence detections."""
         # Recondition the masklets based on the new detections
         for trk_obj_id, det_idx in trk_id_to_max_iou_high_conf_det.items():
             new_mask = det_out["mask"][det_idx : det_idx + 1]
@@ -3025,6 +3026,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_metadata_prev: dict[str, np.ndarray],
         tracker_states_local: list[Any],
     ):
+        """Run the tracker update planning phase for a single frame in an SPMD manner."""
         # initialize new metadata from previous metadata (its values will be updated later)
         tracker_metadata_new = {
             "obj_ids": deepcopy(tracker_metadata_prev["obj_ids"]),

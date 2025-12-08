@@ -87,6 +87,7 @@ class Prompt:
     """
 
     def __init__(self, box_embeddings=None, box_mask=None, box_labels=None):
+        """Initialize the Prompt object."""
         # Check for null prompt
         # Check for null prompt
         if box_embeddings is None:
@@ -205,6 +206,7 @@ class SequenceGeometryEncoder(nn.Module):
         add_post_encode_proj: bool = True,
         use_act_ckpt: bool = False,
     ):
+        """Initialize the SequenceGeometryEncoder."""
         super().__init__()
 
         self.d_model = d_model

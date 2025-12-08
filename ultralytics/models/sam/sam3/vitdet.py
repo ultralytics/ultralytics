@@ -64,7 +64,7 @@ class Attention(nn.Module):
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads.
-            qkv_bias (bool: If True, add a learnable bias to query, key, value.
+            qkv_bias (bool): If True, add a learnable bias to query, key, value.
             rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
             input_size (int or None): Input resolution for calculating the relative positional parameter size or rope
@@ -72,6 +72,7 @@ class Attention(nn.Module):
             attn_type: Type of attention operation, e.g. "vanilla", "vanilla-xformer".
             cls_token: whether a cls_token is present.
             use_rope: whether to use rope 2d (indep of use_rel_pos, as it can be used together)
+            use_rel_pos: whether to use relative positional embeddings
             rope_theta: control frequencies of rope
             rope_pt_size: size of rope in previous stage of training, needed for interpolation or tiling
             rope_interp: whether to interpolate (or extrapolate) rope to match input size.
@@ -260,6 +261,7 @@ class Block(nn.Module):
             rope_pt_size: size of rope in previous stage of training, needed for interpolation or tiling
             rope_interp: whether to interpolate (or extrapolate) rope to match target input size, expected to specify
                 source size as rope_pt_size.
+            init_values: layer scale init, None for no layer scale.
         """
         super().__init__()
         self.norm1 = norm_layer(dim)
@@ -290,6 +292,7 @@ class Block(nn.Module):
         self.window_size = window_size
 
     def forward(self, x: Tensor) -> Tensor:
+        """Forward pass of the transformer block."""
         shortcut = x
         x = self.norm1(x)
         # Window partition

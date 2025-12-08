@@ -21,6 +21,8 @@ from .model_misc import gen_sineembed_for_position
 
 
 class TransformerDecoderLayer(nn.Module):
+    """TransformerDecoderLayer is made up of self-attn, cross-attn, and feedforward network (FFN)."""
+
     def __init__(
         self,
         d_model: int,
@@ -59,9 +61,11 @@ class TransformerDecoderLayer(nn.Module):
 
     @staticmethod
     def with_pos_embed(tensor, pos):
+        """Add positional embedding to the tensor."""
         return tensor if pos is None else tensor + pos
 
     def forward_ffn(self, tgt):
+        """Feedforward network forward pass."""
         tgt2 = self.linear2(self.dropout3(self.activation(self.linear1(tgt))))
         tgt = tgt + self.dropout4(tgt2)
         tgt = self.norm3(tgt)
@@ -175,6 +179,8 @@ class TransformerDecoderLayer(nn.Module):
 
 
 class TransformerDecoder(nn.Module):
+    """Transformer Decoder consisting of multiple layers."""
+
     def __init__(
         self,
         d_model: int,
@@ -203,6 +209,7 @@ class TransformerDecoder(nn.Module):
         separate_box_head_instance: bool = False,
         separate_norm_instance: bool = False,
     ):
+        """Initialize the TransformerDecoder."""
         super().__init__()
         self.d_model = d_model
         self.layers = _get_clones(layer, num_layers)
@@ -299,11 +306,13 @@ class TransformerDecoder(nn.Module):
 
     @staticmethod
     def _get_coords(H, W, device, dtype):
+        """Get normalized coordinates for height and width."""
         coords_h = torch.arange(0, H, dtype=dtype, device=device) / H
         coords_w = torch.arange(0, W, dtype=dtype, device=device) / W
         return coords_h, coords_w
 
     def _get_rpb_matrix(self, reference_boxes, feat_size):
+        """Get the relative position bias (RPB) matrix for box-relative position bias."""
         H, W = feat_size
         boxes_xyxy = xywh2xyxy(reference_boxes).transpose(0, 1)
         bs, num_queries, _ = boxes_xyxy.shape
@@ -388,9 +397,7 @@ class TransformerDecoder(nn.Module):
         obj_roi_memory_mask=None,
         box_head_trk=None,
     ):
-        r"""Input: - tgt: nq, bs, d_model - memory: \\sum{hw}, bs, d_model - pos: \\sum{hw}, bs, d_model -
-        reference_boxes: nq, bs, 4 (after sigmoid) - valid_ratios/spatial_shapes: bs, nlevel, 2.
-        """
+        """Forward pass of the TransformerDecoder."""
         if memory_mask is not None:
             assert self.boxRPB == "none", (
                 "inputting a memory_mask in the presence of boxRPB is unexpected/not implemented"

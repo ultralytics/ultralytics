@@ -91,19 +91,6 @@ def _create_transformer_decoder() -> TransformerDecoder:
     return decoder
 
 
-def _create_dot_product_scoring():
-    """Create dot product scoring module."""
-    prompt_mlp = MLP(
-        input_dim=256,
-        hidden_dim=2048,
-        output_dim=256,
-        num_layers=2,
-        residual=True,
-        out_norm=nn.LayerNorm(256),
-    )
-    return DotProductScoring(d_model=256, d_proj=256, prompt_mlp=prompt_mlp)
-
-
 def _create_segmentation_head(compile_mode=None):
     """Create segmentation head with pixel decoder."""
     pixel_decoder = PixelDecoder(
@@ -285,7 +272,18 @@ def build_sam3_image_model(
     transformer = _create_sam3_transformer()
 
     # Create dot product scoring
-    dot_prod_scoring = _create_dot_product_scoring()
+    dot_prod_scoring = DotProductScoring(
+        d_model=256,
+        d_proj=256,
+        prompt_mlp=MLP(
+            input_dim=256,
+            hidden_dim=2048,
+            output_dim=256,
+            num_layers=2,
+            residual=True,
+            out_norm=nn.LayerNorm(256),
+        ),
+    )
 
     # Create segmentation head if enabled
     segmentation_head = _create_segmentation_head(compile_mode=compile_mode) if enable_segmentation else None

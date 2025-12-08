@@ -142,7 +142,7 @@ def build_sam3_image_model(
         checkpoint_path: Optional path to model checkpoint
         bpe_path: Path to the BPE tokenizer vocabulary
         enable_segmentation: Whether to enable segmentation head
-        compile_mode: To enable compilation, set to "default"
+        compile: To enable compilation, set to "default"
 
     Returns:
         A SAM3 image model

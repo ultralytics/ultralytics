@@ -243,4 +243,33 @@ Each platform offers specific advantages for different edge AI applications.
 Axelera's Voyager SDK uses advanced calibration techniques to automatically quantize models for our mixed-precision AIPU architecture. Our accuracy-preserving hardware-software co-design delivers best-in-class performance while maintaining model accuracy. The SDK intelligently determines the optimal quantization strategy to maximize hardware throughput.
 For most [object detection](https://www.ultralytics.com/glossary/object-detection) tasks, the performance gains (higher FPS, lower power) significantly outweigh the negligible impact on mAP. The quantization process is fully automatic—no manual tuning required. Quantization takes from seconds to several hours depending on model size and configuration. Once complete, you get optimal inference performance and a portable AXM package ready for deployment. Simply run yolo val to validate and discover the remarkably minimal accuracy loss.
 
-For more advanced deployment scenarios and optimization techniques, visit the [Ultralytics documentation page](../guides/model-deployment-options.md).
+# About This Release
+
+This release is an experimental version demonstrating how easily you can deploy models to Axelera Metis hardware within your existing Ultralytics projects. We anticipate full integration by February 2026, which will provide:
+- Model export capabilities without requiring Axelera hardware
+- Standard pip installation (not dependent on our proprietary service URL)
+- Automatic compiler configuration supporting multiple VoyagerSDK versions
+
+**Current Implementation**
+
+This integration focuses on providing an accessible, straightforward workflow for developers to get started quickly with Axelera acceleration. The current version uses a single-core configuration to ensure compatibility and ease of setup across different environments.
+
+**Recommended Workflow**
+
+We recommend leveraging the powerful Ultralytics `train` capabilities in this repository to develop and `export` your models, then using the `predict` and `val` functions for quantitative and qualitative validation. This streamlined approach allows you to seamlessly experiment with hardware acceleration on your custom-trained models.
+
+**Unlocking Maximum Performance**
+
+The integration shown here prioritizes ease of use and quick deployment. For production environments requiring maximum throughput, we recommend you to explore the [Axelera Voyager SDK](https://github.com/axelera-ai-hub/voyager-sdk) or [reach out to our team](https://axelera.ai/contact-us). The Voyager SDK offers advanced optimizations including:
+- Multi-core utilization (quad-core Metis AIPU)
+- Streaming inference pipelines
+- Tiled inferencing for higher-resolution cameras
+- Enhanced performance configurations
+
+Visit our [model-zoo page](https://github.com/axelera-ai-hub/voyager-sdk/blob/release/v1.5/docs/reference/model_zoo.md) for reference FPS benchmarks, and stay tuned for upcoming examples demonstrating advanced pipeline configurations within the Ultralytics repository.
+
+**Known Issues**
+
+When using M.2 accelerators, you may encounter runtime errors with large or extra-large models due to power supply limitations.
+
+If you encounter unexpected Axelera device usage or API issues, please visit the [Axelera Community](https://community.axelera.ai/) for solutions and support.

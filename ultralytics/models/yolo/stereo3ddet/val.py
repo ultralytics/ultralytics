@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 from pathlib import Path
 from typing import Any
@@ -19,6 +20,7 @@ from ultralytics.utils import LOGGER, RANK, TQDM, YAML, callbacks, colorstr, emo
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.metrics import compute_3d_iou
 from ultralytics.utils.ops import Profile
+from ultralytics.utils.plotting import plot_stereo3d_boxes
 from ultralytics.utils.profiling import profile_function, profile_section
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
 
@@ -898,7 +900,7 @@ class Stereo3DDetValidator(BaseValidator):
                 }
             )
             
-            # Update progress bar with intermediate metrics (every batch for real-time feedback)
+                # Update progress bar with intermediate metrics (every batch for real-time feedback)
             if hasattr(self, '_progress_bar') and self._progress_bar is not None and RANK in {-1, 0}:
                 # Update progress bar periodically to avoid performance impact
                 if hasattr(self, '_batch_count'):
@@ -914,6 +916,13 @@ class Stereo3DDetValidator(BaseValidator):
                             self._progress_bar.set_description(metrics_str)
                     except Exception as e:
                         LOGGER.debug(f"Error updating progress bar: {e}")
+
+            # Generate visualization images if plots enabled (only for first 3 batches, matching Detect task style)
+            if self.args.plots and hasattr(self, 'batch_i') and self.batch_i < 3:
+                try:
+                    self.plot_validation_samples(batch, preds, self.batch_i)
+                except Exception as e:
+                    LOGGER.warning(f"Error generating validation visualizations: {e}")
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing validation metrics header for progress bar.
@@ -944,6 +953,211 @@ class Stereo3DDetValidator(BaseValidator):
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         return self.metrics.results_dict
+
+    def plot_validation_samples(
+        self,
+        batch: dict[str, Any],
+        pred_boxes3d: list[list[Box3D]],
+        batch_idx: int,
+    ) -> None:
+        """Generate and save validation visualization images with 3D bounding boxes in grid layout.
+        
+        Follows Detect task style: creates a grid of up to 16 samples in a single image file,
+        saved as val_batch{batch_idx}_pred.jpg (one file per batch).
+
+        Args:
+            batch: Batch dictionary containing images, labels, and calibration data.
+            pred_boxes3d: List of predicted Box3D lists (one per image).
+            batch_idx: Batch index for file naming.
+        """
+        if not self.args.plots:
+            return
+
+        try:
+            import cv2
+
+            img_tensor = batch.get("img")  # [B, 6, H, W] tensor
+            labels_list = batch.get("labels", [])
+            calibs = batch.get("calib", [])
+            im_files = batch.get("im_file", [])
+            ori_shapes = batch.get("ori_shape", [])  # Original image shapes before letterboxing
+
+            if img_tensor is None:
+                LOGGER.warning("No images in batch for visualization")
+                return
+
+            # Limit to max 16 samples per grid (matching plot_images max_subplots)
+            max_subplots = 16
+            batch_size = img_tensor.shape[0]
+            num_samples = min(batch_size, max_subplots)
+
+            # Collect all combined stereo images
+            combined_images = []
+            valid_indices = []
+
+            for si in range(num_samples):
+                # Extract left and right images from 6-channel tensor
+                # Channels 0-2: left RGB, Channels 3-5: right RGB
+                left_tensor = img_tensor[si, 0:3, :, :]  # [3, H, W]
+                right_tensor = img_tensor[si, 3:6, :, :]  # [3, H, W]
+
+                # Convert to numpy and transpose from CHW to HWC
+                left_img = left_tensor.detach().cpu().numpy().transpose(1, 2, 0)  # [H, W, 3]
+                right_img = right_tensor.detach().cpu().numpy().transpose(1, 2, 0)  # [H, W, 3]
+
+                # Denormalize from [0, 1] to [0, 255] and convert to uint8
+                # Images are normalized in preprocess() by dividing by 255.0
+                # Handle both float32 and float16 (half precision) cases
+                if left_img.dtype in (np.float32, np.float16):
+                    left_img = np.clip(left_img * 255.0, 0, 255).astype(np.uint8)
+                elif left_img.dtype != np.uint8:
+                    left_img = np.clip(left_img, 0, 255).astype(np.uint8)
+                
+                if right_img.dtype in (np.float32, np.float16):
+                    right_img = np.clip(right_img * 255.0, 0, 255).astype(np.uint8)
+                elif right_img.dtype != np.uint8:
+                    right_img = np.clip(right_img, 0, 255).astype(np.uint8)
+
+                # Convert from RGB to BGR for OpenCV
+                left_img = cv2.cvtColor(left_img, cv2.COLOR_RGB2BGR)
+                right_img = cv2.cvtColor(right_img, cv2.COLOR_RGB2BGR)
+
+                # Get predictions and ground truth for this sample
+                pred_boxes = pred_boxes3d[si] if si < len(pred_boxes3d) else []
+                labels = labels_list[si] if si < len(labels_list) else []
+                calib = calibs[si] if si < len(calibs) and isinstance(calibs[si], dict) else None
+
+                # Skip visualization if no calibration available
+                if calib is None:
+                    continue
+
+                # Calculate letterbox parameters to adjust 3D box coordinates
+                # Images are letterboxed: resized and padded to square
+                letterbox_scale = None
+                letterbox_pad_left = None
+                letterbox_pad_top = None
+                
+                if ori_shapes and si < len(ori_shapes):
+                    ori_h, ori_w = ori_shapes[si]  # Original image dimensions
+                    curr_h, curr_w = left_img.shape[:2]  # Current (letterboxed) image dimensions
+                    
+                    # Calculate letterbox parameters (matching dataset._letterbox logic)
+                    # scale = min(new_shape / h, new_shape / w)
+                    # new_unpad = (int(round(w * scale)), int(round(h * scale)))
+                    # dw, dh = new_shape - new_unpad[0], new_shape - new_unpad[1]
+                    # pad_left = dw // 2, pad_top = dh // 2
+                    imgsz = max(curr_h, curr_w)  # Letterboxed size (should be square)
+                    scale = min(imgsz / ori_h, imgsz / ori_w)
+                    new_unpad_w = int(round(ori_w * scale))
+                    new_unpad_h = int(round(ori_h * scale))
+                    dw = imgsz - new_unpad_w
+                    dh = imgsz - new_unpad_h
+                    letterbox_pad_left = dw // 2
+                    letterbox_pad_top = dh // 2
+                    letterbox_scale = scale
+
+                # Convert labels to Box3D for ground truth
+                gt_boxes = []
+                if labels:
+                    try:
+                        gt_boxes = _labels_to_box3d_list(labels, calib)
+                    except Exception as e:
+                        LOGGER.debug(f"Error converting labels to Box3D for visualization (sample {si}): {e}")
+
+                # Generate visualization
+                try:
+                    _, _, combined = plot_stereo3d_boxes(
+                        left_img=left_img,
+                        right_img=right_img,
+                        pred_boxes3d=pred_boxes,
+                        gt_boxes3d=gt_boxes,
+                        left_calib=calib,
+                        letterbox_scale=letterbox_scale,
+                        letterbox_pad_left=letterbox_pad_left,
+                        letterbox_pad_top=letterbox_pad_top,
+                    )
+                    combined_images.append(combined)
+                    valid_indices.append(si)
+                except Exception as e:
+                    LOGGER.debug(f"Error generating visualization for sample {si}: {e}")
+
+            if not combined_images:
+                LOGGER.warning("No valid visualizations generated for batch")
+                return
+
+            # Create grid layout (matching plot_images style)
+            num_valid = len(combined_images)
+            
+            # Ensure all images have the same dimensions (resize to first image's size)
+            # This prevents artifacts from dimension mismatches
+            h, w = combined_images[0].shape[:2]  # Height and width of combined stereo image
+            normalized_images = []
+            for combined_img in combined_images:
+                if combined_img.shape[:2] != (h, w):
+                    # Resize to match first image dimensions
+                    normalized_img = cv2.resize(combined_img, (w, h), interpolation=cv2.INTER_LINEAR)
+                    normalized_images.append(normalized_img)
+                else:
+                    # Make a copy to ensure we don't modify the original
+                    normalized_images.append(combined_img.copy())
+            
+            # Calculate grid dimensions (square grid)
+            ns = math.ceil(math.sqrt(num_valid))  # number of subplots per side
+            
+            # Build mosaic image (white background)
+            mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)
+            
+            for i, combined_img in enumerate(normalized_images):
+                # Verify image dimensions match expected size
+                img_h, img_w = combined_img.shape[:2]
+                if img_h != h or img_w != w:
+                    # Force resize if dimensions don't match (shouldn't happen after normalization)
+                    combined_img = cv2.resize(combined_img, (w, h), interpolation=cv2.INTER_LINEAR)
+                
+                x = int(w * (i // ns))  # block x origin
+                y = int(h * (i % ns))   # block y origin
+                
+                # Ensure we don't exceed mosaic bounds
+                if y + h <= mosaic.shape[0] and x + w <= mosaic.shape[1]:
+                    # Copy image data directly (images are already normalized to same size)
+                    mosaic[y:y+h, x:x+w, :] = combined_img
+                else:
+                    # Fallback: copy only what fits
+                    copy_h = min(h, mosaic.shape[0] - y)
+                    copy_w = min(w, mosaic.shape[1] - x)
+                    if copy_h > 0 and copy_w > 0:
+                        mosaic[y:y+copy_h, x:x+copy_w, :] = combined_img[:copy_h, :copy_w, :]
+                
+                # Add border and filename (matching plot_images style)
+                cv2.rectangle(mosaic, (x, y), (x + w, y + h), (255, 255, 255), 2)
+                if im_files and valid_indices[i] < len(im_files):
+                    filename = Path(im_files[valid_indices[i]]).name[:40]
+                    cv2.putText(
+                        mosaic,
+                        filename,
+                        (x + 5, y + 20),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        (220, 220, 220),
+                        1,
+                    )
+
+            # Resize if too large (matching plot_images max_size=1920)
+            max_size = 1920
+            scale = max_size / ns / max(h, w)
+            if scale < 1:
+                new_h = math.ceil(scale * h)
+                new_w = math.ceil(scale * w)
+                mosaic = cv2.resize(mosaic, (int(ns * new_w), int(ns * new_h)))
+
+            # Save single grid image per batch (matching Detect task style)
+            save_path = self.save_dir / f"val_batch{batch_idx}_pred.jpg"
+            cv2.imwrite(str(save_path), mosaic)
+            if self.on_plot:
+                self.on_plot(save_path)
+
+        except Exception as e:
+            LOGGER.warning(f"Error in plot_validation_samples: {e}")
 
     def print_results(self) -> None:
         """Print training/validation set metrics per class."""
@@ -1083,124 +1297,7 @@ class Stereo3DDetValidator(BaseValidator):
             LOGGER.debug(f"Error formatting progress metrics: {e}")
             return ("%11i" + "%11s" * 4) % (int(self.seen), "-", "-", "-", "-")
 
-    def __call__bak(self, trainer=None, model=None):
-        """Run validation loop.
 
-        Args:
-            trainer: Trainer object (optional).
-            model: Model to validate (optional).
-
-        Returns:
-            Dictionary of validation metrics.
-        """
-        # Initialize metrics if model is provided
-        if model is not None:
-            self.init_metrics(model)
-
-        # CRITICAL FIX (T088, T089): Set self.data with channels=6 BEFORE calling super().__call__()
-        # BaseValidator.__call__ will now preserve self.data with channels=6 for stereo3ddet task
-        # (see BaseValidator.__call__ modification). This ensures warmup uses channels=6.
-        if trainer is None:
-            # Get stereo dataset config with channels=6
-            if self.args.data is not None:
-                # Fix class names if dataset YAML has original KITTI class IDs (0,3,5)
-                # AutoBackend will read names from model checkpoint, which may have 0,3,5
-                # We need to ensure the data YAML has correct names (0,1,2) so AutoBackend uses them
-                # This must be done BEFORE get_dataset() so the temp YAML is used throughout
-                original_data_path = self.args.data
-                if isinstance(self.args.data, (str, Path)):
-                    from ultralytics.utils import YAML
-                    from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
-                    import tempfile
-                    
-                    data_cfg = YAML.load(str(self.args.data))
-                    original_names = data_cfg.get("names", {})
-                    
-                    # If dataset has original KITTI class IDs (0,3,5), create temp YAML with remapped IDs
-                    if original_names and isinstance(original_names, dict) and max(original_names.keys()) >= 3:
-                        paper_names = get_paper_class_names()
-                        data_cfg["names"] = paper_names
-                        data_cfg["nc"] = 3
-                        
-                        # Create temporary YAML
-                        temp_yaml = tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False)
-                        temp_yaml_path = Path(temp_yaml.name)
-                        YAML.save(str(temp_yaml_path), data_cfg)
-                        temp_yaml.close()
-                        
-                        # Update args.data to use temp YAML (AutoBackend will read from this)
-                        self.args.data = str(temp_yaml_path)
-                        LOGGER.info(f"Remapped class IDs from {list(original_names.keys())} to {list(paper_names.keys())}")
-                
-                self.data = self.get_dataset()  # Returns dict with channels=6 (uses updated self.args.data)
-            elif hasattr(self.args, "data") and self.args.data is None:
-                # Fallback: create minimal data dict with channels=6 for testing
-                self.data = {
-                    "channels": 6,
-                    "names": {0: "Car", 1: "Pedestrian", 2: "Cyclist"},
-                    "nc": 3,
-                }
-
-        # Fix model names if it has original KITTI class IDs (0,3,5)
-        # AutoBackend reads names from model checkpoint, which may have 0,3,5
-        # We need to override model.names to use paper names (0,1,2) before AutoBackend validation
-        if trainer is None and model is not None and hasattr(model, "names"):
-            from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
-            paper_names = get_paper_class_names()
-            # Check if model has original KITTI class IDs
-            if isinstance(model.names, dict) and max(model.names.keys()) >= 3:
-                # Override model.names with paper names to avoid AutoBackend validation error
-                model.names = paper_names
-                LOGGER.debug(f"Overrode model.names from {list(model.names.keys())} to {list(paper_names.keys())}")
-        
-        # Store progress bar reference for updates during validation
-        # Patch TQDM in validator module to capture progress bar instance
-        import ultralytics.engine.validator as validator_module
-        original_tqdm = validator_module.TQDM
-        
-        # Create wrapper class that stores reference
-        class ProgressBarWrapper(original_tqdm):
-            def __init__(self, *args, **kwargs):
-                super().__init__(*args, **kwargs)
-                # Store reference in validator instance if available
-                # We'll set this via a closure
-                pass
-        
-        # Store validator reference in closure
-        validator_self = self
-        def make_tqdm_wrapper():
-            class WrappedTQDM(original_tqdm):
-                def __init__(self, *args, **kwargs):
-                    super().__init__(*args, **kwargs)
-                    validator_self._progress_bar = self
-                    if hasattr(validator_self, 'dataloader') and validator_self.dataloader:
-                        validator_self._total_batches = len(validator_self.dataloader)
-            return WrappedTQDM
-        
-        # Temporarily replace TQDM in validator module
-        validator_module.TQDM = make_tqdm_wrapper()
-        self._progress_bar = None
-        self._batch_count = 0
-        
-        # Call parent implementation which handles the validation loop
-        # BaseValidator.__call__ will now preserve self.data with channels=6 for stereo3ddet
-        try:
-            result = super().__call__(trainer=trainer, model=model)
-        finally:
-            # Restore original TQDM
-            validator_module.TQDM = original_tqdm
-            # Clear progress bar reference
-            self._progress_bar = None
-            self._batch_count = 0
-        
-        # After super().__call__() completes, ensure self.data has channels=6 for consistency
-        if trainer is None and hasattr(self, "data") and isinstance(self.data, dict):
-            self.data["channels"] = 6
-
-        # Return metrics
-        if hasattr(self.metrics, "results_dict"):
-            return self.metrics.results_dict
-        return result if result else {}
 
     def build_dataset(self, img_path: str | dict[str, Any], mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build Stereo3DDetAdapterDataset for validation.

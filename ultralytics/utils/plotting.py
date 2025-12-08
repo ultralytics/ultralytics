@@ -5,8 +5,9 @@ from __future__ import annotations
 import math
 import warnings
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import cv2
 import numpy as np
@@ -14,7 +15,8 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.data.stereo.box3d import Box3D
+if TYPE_CHECKING:
+    from ultralytics.data.stereo.box3d import Box3D
 
 try:
     from ultralytics.data.stereo.calib import CalibrationParameters
@@ -170,6 +172,55 @@ class Colors:
 
 
 colors = Colors()  # create instance for 'from utils.plots import colors'
+
+
+@dataclass
+class VisualizationConfig:
+    """Configuration container for stereo 3D visualization helpers."""
+
+    line_width: int = 2
+    font_size: float = 0.5
+    show_labels: bool = True
+    show_conf: bool = True
+    camera_view: str = "both"
+    pred_color_scheme: dict[int, tuple[int, int, int]] = field(
+        default_factory=lambda: {
+            0: (0, 128, 255),  # Car - orange tone in BGR
+            1: (64, 64, 255),  # Pedestrian - reddish in BGR
+            2: (221, 111, 255),  # Cyclist - magenta
+        }
+    )
+    gt_color_scheme: dict[int, tuple[int, int, int]] = field(
+        default_factory=lambda: {
+            0: (0, 255, 0),  # Car - green
+            1: (255, 180, 0),  # Pedestrian - cyan/blue tone
+            2: (0, 223, 183),  # Cyclist - teal
+        }
+    )
+
+    def __post_init__(self) -> None:
+        if self.camera_view not in {"left", "right", "both"}:
+            raise ValueError(f"camera_view must be 'left', 'right', or 'both', got '{self.camera_view}'")
+        if self.line_width <= 0:
+            raise ValueError("line_width must be positive")
+        if self.font_size <= 0:
+            raise ValueError("font_size must be positive")
+
+
+EDGE_CONNECTIONS = (
+    (0, 1),
+    (1, 2),
+    (2, 3),
+    (3, 0),
+    (4, 5),
+    (5, 6),
+    (6, 7),
+    (7, 4),
+    (0, 4),
+    (1, 5),
+    (2, 6),
+    (3, 7),
+)
 
 
 class Annotator:
@@ -1125,3 +1176,253 @@ def project_3d_to_2d(
     y_max = float(np.max(v))
 
     return (x_min, y_min, x_max, y_max)
+
+
+def project_box3d_corners(
+    box3d: "Box3D",
+    calib: CalibrationParameters | dict[str, float],
+    letterbox_scale: float | None = None,
+    letterbox_pad_left: float | None = None,
+    letterbox_pad_top: float | None = None,
+) -> np.ndarray:
+    """Project the eight corners of a 3D bounding box to 2D pixel coordinates.
+    
+    Args:
+        box3d: 3D bounding box to project
+        calib: Camera calibration parameters (for original image size)
+        letterbox_scale: Scale factor from letterboxing (if images were letterboxed)
+        letterbox_pad_left: Left padding from letterboxing (if images were letterboxed)
+        letterbox_pad_top: Top padding from letterboxing (if images were letterboxed)
+    
+    Returns:
+        Array of 2D pixel coordinates [8, 2] with shape (u, v) for each corner
+    """
+    from ultralytics.data.stereo.box3d import Box3D  # Import here to avoid circular import
+
+    def _get_calib_params(cal: CalibrationParameters | dict[str, float]) -> tuple[float, float, float, float]:
+        if isinstance(cal, dict):
+            return cal["fx"], cal["fy"], cal["cx"], cal["cy"]
+        # Assume it's a CalibrationParameters object
+        return cal.fx, cal.fy, cal.cx, cal.cy
+
+    fx, fy, cx, cy = _get_calib_params(calib)
+
+    x, y, z = box3d.center_3d
+    length, width, height = box3d.dimensions
+    orientation = box3d.orientation
+
+    corners_obj = np.array(
+        [
+            [-width / 2, width / 2, width / 2, -width / 2, -width / 2, width / 2, width / 2, -width / 2],
+            [-height / 2, -height / 2, -height / 2, -height / 2, height / 2, height / 2, height / 2, height / 2],
+            [length / 2, length / 2, -length / 2, -length / 2, length / 2, length / 2, -length / 2, -length / 2],
+        ]
+    )
+
+    cos_rot = np.cos(orientation)
+    sin_rot = np.sin(orientation)
+    rotation = np.array([[cos_rot, 0, sin_rot], [0, 1, 0], [-sin_rot, 0, cos_rot]])
+
+    corners_world = rotation @ corners_obj
+    corners_world[0, :] += x
+    corners_world[1, :] += y
+    corners_world[2, :] += z
+
+    X, Y, Z = corners_world
+    Z = np.maximum(Z, 1e-6)
+    
+    # Project to original image coordinates
+    u_orig = fx * X / Z + cx
+    v_orig = fy * Y / Z + cy
+    
+    # Adjust for letterboxing if provided
+    if letterbox_scale is not None and letterbox_pad_left is not None and letterbox_pad_top is not None:
+        u = u_orig * letterbox_scale + letterbox_pad_left
+        v = v_orig * letterbox_scale + letterbox_pad_top
+    else:
+        u = u_orig
+        v = v_orig
+
+    return np.stack((u, v), axis=-1).astype(np.float32)
+
+
+def _select_color(
+    class_id: int,
+    scheme: dict[int, tuple[int, int, int]],
+) -> tuple[int, int, int]:
+    color = scheme.get(class_id)
+    if color is None:
+        color = colors(class_id, bgr=True)
+    return tuple(int(c) for c in color)
+
+
+def plot_boxes3d(
+    img: np.ndarray,
+    boxes3d: list["Box3D"] | None,
+    calib: CalibrationParameters | dict[str, float],
+    config: VisualizationConfig | None = None,
+    is_ground_truth: bool = False,
+    letterbox_scale: float | None = None,
+    letterbox_pad_left: float | None = None,
+    letterbox_pad_top: float | None = None,
+) -> np.ndarray:
+    """Draw wireframe representations of Box3D objects onto an image.
+    
+    Args:
+        img: Image to draw on (may be letterboxed)
+        boxes3d: List of 3D bounding boxes to draw
+        calib: Camera calibration parameters (for original image size)
+        config: Visualization configuration
+        is_ground_truth: Whether boxes are ground truth (affects color scheme)
+        letterbox_scale: Scale factor from letterboxing (if images were letterboxed)
+        letterbox_pad_left: Left padding from letterboxing (if images were letterboxed)
+        letterbox_pad_top: Top padding from letterboxing (if images were letterboxed)
+    """
+    from ultralytics.data.stereo.box3d import Box3D  # Import here to avoid circular import
+
+    config = config or VisualizationConfig()
+    
+    # Ensure input image is uint8 and properly initialized
+    if img.dtype != np.uint8:
+        img = np.clip(img, 0, 255).astype(np.uint8)
+    
+    # Create a properly initialized copy of the image
+    canvas = img.copy().astype(np.uint8)
+    
+    if not boxes3d:
+        return canvas
+
+    height, width = canvas.shape[:2]
+    rect = (0, 0, width - 1, height - 1)
+    line_width = max(1, config.line_width)
+    scheme = config.gt_color_scheme if is_ground_truth else config.pred_color_scheme
+
+    for box in boxes3d:
+        try:
+            corners = project_box3d_corners(
+                box, 
+                calib,
+                letterbox_scale=letterbox_scale,
+                letterbox_pad_left=letterbox_pad_left,
+                letterbox_pad_top=letterbox_pad_top,
+            )
+        except Exception as exc:  # noqa: BLE001
+            LOGGER.warning("Skipping invalid Box3D during visualization: %s", exc)
+            continue
+
+        color = _select_color(getattr(box, "class_id", 0), scheme)
+
+        for start, end in EDGE_CONNECTIONS:
+            pt1 = (int(round(corners[start][0])), int(round(corners[start][1])))
+            pt2 = (int(round(corners[end][0])), int(round(corners[end][1])))
+            clipped, clip_pt1, clip_pt2 = cv2.clipLine(rect, pt1, pt2)
+            if clipped:
+                cv2.line(canvas, clip_pt1, clip_pt2, color, line_width, lineType=cv2.LINE_AA)
+
+        if config.show_labels:
+            label = getattr(box, "class_label", "object")
+            if config.show_conf and hasattr(box, "confidence"):
+                label = f"{label} {box.confidence:.2f}"
+            anchor = (
+                int(np.clip(corners[0][0], 0, width - 1)),
+                int(np.clip(corners[0][1], 0, height - 1)),
+            )
+            cv2.putText(
+                canvas,
+                label,
+                anchor,
+                cv2.FONT_HERSHEY_SIMPLEX,
+                config.font_size,
+                color,
+                max(1, line_width // 2),
+                cv2.LINE_AA,
+            )
+
+    return canvas
+
+
+def plot_stereo3d_boxes(
+    left_img: np.ndarray,
+    right_img: np.ndarray,
+    pred_boxes3d: list["Box3D"] | None = None,
+    gt_boxes3d: list["Box3D"] | None = None,
+    left_calib: CalibrationParameters | dict[str, float] | None = None,
+    right_calib: CalibrationParameters | dict[str, float] | None = None,
+    config: VisualizationConfig | None = None,
+    letterbox_scale: float | None = None,
+    letterbox_pad_left: float | None = None,
+    letterbox_pad_top: float | None = None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Draw predictions and ground truth on stereo image pairs.
+    
+    Args:
+        left_img: Left camera image (may be letterboxed)
+        right_img: Right camera image (may be letterboxed)
+        pred_boxes3d: List of predicted 3D bounding boxes
+        gt_boxes3d: List of ground truth 3D bounding boxes
+        left_calib: Left camera calibration parameters (for original image size)
+        right_calib: Right camera calibration parameters (defaults to left_calib)
+        config: Visualization configuration
+        letterbox_scale: Scale factor from letterboxing (if images were letterboxed)
+        letterbox_pad_left: Left padding from letterboxing (if images were letterboxed)
+        letterbox_pad_top: Top padding from letterboxing (if images were letterboxed)
+    """
+    from ultralytics.data.stereo.box3d import Box3D  # Import here to avoid circular import
+
+    if left_calib is None:
+        raise ValueError("left_calib is required for stereo visualization")
+    config = config or VisualizationConfig()
+    right_calib = right_calib or left_calib
+
+    left_canvas = plot_boxes3d(
+        left_img, pred_boxes3d, left_calib, config, is_ground_truth=False,
+        letterbox_scale=letterbox_scale, letterbox_pad_left=letterbox_pad_left, letterbox_pad_top=letterbox_pad_top
+    )
+    left_canvas = plot_boxes3d(
+        left_canvas, gt_boxes3d, left_calib, config, is_ground_truth=True,
+        letterbox_scale=letterbox_scale, letterbox_pad_left=letterbox_pad_left, letterbox_pad_top=letterbox_pad_top
+    )
+
+    right_canvas = plot_boxes3d(
+        right_img, pred_boxes3d, right_calib, config, is_ground_truth=False,
+        letterbox_scale=letterbox_scale, letterbox_pad_left=letterbox_pad_left, letterbox_pad_top=letterbox_pad_top
+    )
+    right_canvas = plot_boxes3d(
+        right_canvas, gt_boxes3d, right_calib, config, is_ground_truth=True,
+        letterbox_scale=letterbox_scale, letterbox_pad_left=letterbox_pad_left, letterbox_pad_top=letterbox_pad_top
+    )
+
+    combined = combine_stereo_views(left_canvas, right_canvas)
+    return left_canvas, right_canvas, combined
+
+
+def combine_stereo_views(
+    left_img: np.ndarray,
+    right_img: np.ndarray,
+    pad_value: int = 0,
+) -> np.ndarray:
+    """Horizontally stack stereo images, padding the shorter view if necessary."""
+
+    if left_img.ndim != 3 or right_img.ndim != 3:
+        raise ValueError("Stereo images must be rank-3 tensors shaped [H, W, C].")
+
+    # Ensure images are uint8 and properly initialized
+    if left_img.dtype != np.uint8:
+        left_img = np.clip(left_img, 0, 255).astype(np.uint8)
+    if right_img.dtype != np.uint8:
+        right_img = np.clip(right_img, 0, 255).astype(np.uint8)
+
+    max_height = max(left_img.shape[0], right_img.shape[0])
+
+    def _pad_to_height(img: np.ndarray) -> np.ndarray:
+        if img.shape[0] == max_height:
+            return img.copy()  # Make a copy to avoid modifying original
+        pad_rows = max_height - img.shape[0]
+        # Create a new array with proper initialization
+        padded = np.full((max_height, img.shape[1], img.shape[2]), pad_value, dtype=np.uint8)
+        padded[:img.shape[0], :, :] = img
+        return padded
+
+    left_padded = _pad_to_height(left_img)
+    right_padded = _pad_to_height(right_img)
+    return np.hstack((left_padded, right_padded))

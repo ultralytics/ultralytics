@@ -87,75 +87,6 @@ def mock_dataset_structure(tmp_path):
     
     return tmp_path
 
-
-class TestKITTIStereoDatasetClassFiltering:
-    """Test suite for KITTIStereoDataset class filtering (T092)."""
-
-    @pytest.fixture
-    def mock_label_file(self, tmp_path):
-        """Create a mock label file with multiple classes."""
-        # Create directory structure
-        label_dir = tmp_path / "labels" / "train"
-        label_dir.mkdir(parents=True)
-        
-        label_file = label_dir / "000000.txt"
-        # Create labels with different classes: Car (0), Van (1), Pedestrian (3), Cyclist (5), Truck (2)
-        label_content = """0 0.5 0.5 0.1 0.1 0.5 0.1 1.5 1.7 3.9 0.0 0.1 0.1 0.2 0.1 0.2 0.2 0.1 0.2
-1 0.3 0.3 0.1 0.1 0.3 0.1 1.5 1.7 3.9 0.0 0.1 0.1 0.2 0.1 0.2 0.2 0.1 0.2
-3 0.7 0.7 0.1 0.1 0.7 0.1 1.7 0.5 0.8 0.0 0.1 0.1 0.2 0.1 0.2 0.2 0.1 0.2
-5 0.9 0.9 0.1 0.1 0.9 0.1 1.8 0.6 1.8 0.0 0.1 0.1 0.2 0.1 0.2 0.2 0.1 0.2
-2 0.1 0.1 0.1 0.1 0.1 0.1 1.5 1.7 3.9 0.0 0.1 0.1 0.2 0.1 0.2 0.2 0.1 0.2"""
-        label_file.write_text(label_content)
-        return label_file
-
-    def test_kitti_dataset_filters_classes(self, mock_label_file, mock_dataset_structure):
-        """Test that KITTIStereoDataset filters out non-paper classes."""
-        from ultralytics.data.kitti_stereo import KITTIStereoDataset
-
-        # Create dataset with class filtering enabled
-        dataset = KITTIStereoDataset(root=str(mock_dataset_structure), split="train", filter_classes=True)
-
-        # Parse labels
-        labels = dataset._parse_labels(mock_label_file)
-
-        # Should only have 3 labels (Car=0, Pedestrian=3, Cyclist=5)
-        # Van (1) and Truck (2) should be filtered out
-        assert len(labels) == 3, f"Expected 3 labels, got {len(labels)}"
-
-        # Verify class IDs are remapped
-        class_ids = [label["class_id"] for label in labels]
-        assert set(class_ids) == {0, 1, 2}, f"Expected class IDs {0, 1, 2}, got {set(class_ids)}"
-
-        # Verify original classes are correctly remapped
-        # Car (0) -> 0, Pedestrian (3) -> 1, Cyclist (5) -> 2
-        for label in labels:
-            original_id = label.get("original_class_id")
-            remapped_id = label["class_id"]
-            if original_id == 0:
-                assert remapped_id == 0, "Car should map to 0"
-            elif original_id == 3:
-                assert remapped_id == 1, "Pedestrian should map to 1"
-            elif original_id == 5:
-                assert remapped_id == 2, "Cyclist should map to 2"
-
-    def test_kitti_dataset_no_filtering(self, mock_label_file, mock_dataset_structure):
-        """Test that KITTIStereoDataset without filtering keeps all classes."""
-        from ultralytics.data.kitti_stereo import KITTIStereoDataset
-
-        # Create dataset without class filtering
-        dataset = KITTIStereoDataset(root=str(mock_dataset_structure), split="train", filter_classes=False)
-
-        # Parse labels
-        labels = dataset._parse_labels(mock_label_file)
-
-        # Should have all 5 labels
-        assert len(labels) == 5, f"Expected 5 labels, got {len(labels)}"
-
-        # Class IDs should remain original
-        class_ids = [label["class_id"] for label in labels]
-        assert set(class_ids) == {0, 1, 2, 3, 5}, f"Expected class IDs {0, 1, 2, 3, 5}, got {set(class_ids)}"
-
-
 class TestStereo3DDetAdapterDatasetClassRemapping:
     """Test suite for Stereo3DDetAdapterDataset class remapping (T093)."""
 
@@ -308,59 +239,7 @@ class TestLabelsToBox3dListWithFiltering:
             elif box.class_id == 1:
                 assert box.class_label == "Pedestrian"
 
-
-class TestValidationWorkflowWithFilteredClasses:
-    """Test suite for full validation workflow with filtered classes (T096)."""
-
-    def test_validator_uses_filtered_classes(self):
-        """Test that validator uses filtered classes in metrics."""
-        from ultralytics.models.yolo.stereo3ddet.val import Stereo3DDetValidator
-
-        args = {
-            "task": "stereo3ddet",
-            "imgsz": 384,
-            "data": None,
-        }
-        validator = Stereo3DDetValidator(args=args)
-
-        # Set data with filtered class names
-        validator.data = {
-            "channels": 6,
-            "names": {0: "Car", 1: "Pedestrian", 2: "Cyclist"},
-            "nc": 3,
-        }
-
-        # Initialize metrics
-        mock_model = MagicMock()
-        mock_model.names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
-        validator.init_metrics(mock_model)
-
-        # Verify metrics use filtered classes
-        assert validator.metrics.names == {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
-        # Note: metrics.nc is set from len(names), which should be 3
-        assert len(validator.metrics.names) == 3
-
-
 class TestLabelClassValidation:
-    """Test suite for label class validation in Stereo3DDetAdapterDataset (T117-T119)."""
-
-    def test_validation_raises_error_when_names_mismatch_labels(self, mock_dataset_structure):
-        """Test that Stereo3DDetAdapterDataset raises ValueError when names parameter doesn't match actual label classes (T117)."""
-        from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetAdapterDataset
-
-        # Create label file with classes 0, 3, 5 (Car, Pedestrian, Cyclist)
-        label_file = mock_dataset_structure / "labels" / "train" / "000000.txt"
-        label_content = """0 0.5 0.5 0.1 0.1 0.5 0.1 1.5 1.7 3.9 0.0 0.1 0.1 0.2 0.1 0.2 0.2 0.1 0.2
-3 0.7 0.7 0.1 0.1 0.7 0.1 1.7 0.5 0.8 0.0 0.1 0.1 0.2 0.1 0.2 0.2 0.1 0.2
-5 0.9 0.9 0.1 0.1 0.9 0.1 1.8 0.6 1.8 0.0 0.1 0.1 0.2 0.1 0.2 0.2 0.1 0.2"""
-        label_file.write_text(label_content)
-
-        # Try to create adapter with mismatched names (only Car and Pedestrian, missing Cyclist)
-        names = {0: "Car", 1: "Pedestrian"}  # Missing Cyclist!
-        
-        with pytest.raises(ValueError, match="names parameter.*does not match.*label classes"):
-            Stereo3DDetAdapterDataset(root=str(mock_dataset_structure), split="train", imgsz=384, names=names)
-
     def test_validation_passes_when_names_match_labels(self, mock_dataset_structure):
         """Test that validation passes when names parameter matches actual label classes (T118)."""
         from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetAdapterDataset

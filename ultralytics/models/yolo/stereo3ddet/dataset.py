@@ -58,7 +58,7 @@ class Stereo3DDetAdapterDataset(Dataset):
         # Pass max_samples to validation so it only checks the files that will be loaded
         # Initialize base dataset with class filtering and max_samples if needed (T193, T194)
         # DEBUG: MAX_SAMPLES = 1000
-        MAX_SAMPLES = 200
+        MAX_SAMPLES = max_samples
         self.base = KITTIStereoDataset(
             root=self.root,
             split=self.split,

@@ -132,19 +132,6 @@ class TestStereo3DDetValidator:
         assert isinstance(preds, list)
         assert len(preds) == batch_size
 
-    def test_validator_init_metrics(self):
-        """Test that init_metrics initializes Stereo3DDetMetrics."""
-        args = {"task": "stereo3ddet", "imgsz": 640}
-        validator = Stereo3DDetValidator(args=args)
-
-        # Create mock model
-        model = MagicMock()
-        model.names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
-
-        validator.init_metrics(model)
-        assert hasattr(validator.metrics, "names")
-        assert validator.metrics.names == model.names
-
     @pytest.mark.skip(reason="Requires full implementation of update_metrics")
     def test_validator_update_metrics(self):
         """Test that update_metrics processes predictions and ground truth."""

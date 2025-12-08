@@ -57,7 +57,7 @@ Currently, you can only export models that include the following tasks to Axeler
 
 ## Export to Axelera: Converting Your YOLO11 Model
 
-You can optimize your YOLO11 models for Axelera hardware by converting them to the Axelera format.
+You can optimize your YOLO11 and YOLOv8 models for Axelera hardware by converting them to the Axelera format.
 
 ### Requirements
 

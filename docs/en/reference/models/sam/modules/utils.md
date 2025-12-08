@@ -49,4 +49,12 @@ keywords: Ultralytics, SAM, SAM 2, API Reference, models, window partition, data
 
 ## ::: ultralytics.models.sam.modules.utils.add_decomposed_rel_pos
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.modules.utils.get_abs_pos
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.modules.utils.concat_rel_pos
+
 <br><br>

@@ -92,15 +92,14 @@ For detailed instructions and best practices related to the installation process
     ```
 
 2. Add the repository to apt
-
-    - Ubuntu 22.04: 
+    - Ubuntu 22.04:
 
     ```bash
     sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/releases/v1.5.2/build-packages-ubuntu-22.04/apt-repo ubuntu22 main' > /etc/apt/sources.list.d/axelera.list"
     ```
 
     - Ubuntu 24.04:
-    
+
     ```bash
     sudo sh -c "echo 'deb [signed-by=/etc/apt/keyrings/axelera.gpg] https://software.axelera.ai/releases/v1.5.2/build-packages-ubuntu-24.04/apt-repo ubuntu24 main' > /etc/apt/sources.list.d/axelera.list"
     ```

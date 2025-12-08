@@ -99,6 +99,7 @@ class Attention(nn.Module):
         self._setup_rope_freqs(input_size)
 
     def _setup_rel_pos(self, rel_pos_zero_init: bool = True, input_size: tuple[int, int] | None = None) -> None:
+        """Setup relative positional embeddings."""
         if not self.use_rel_pos:
             self.rel_pos_h = None
             self.rel_pos_w = None
@@ -122,6 +123,7 @@ class Attention(nn.Module):
         self.relative_coords = relative_coords.long()
 
     def _setup_rope_freqs(self, input_size: tuple[int, int] | None = None) -> None:
+        """Setup 2d-rope frequencies."""
         if not self.use_rope:
             self.freqs_cis = None
             return
@@ -160,6 +162,7 @@ class Attention(nn.Module):
         self.freqs_cis = freqs_cis
 
     def _apply_rope(self, q, k) -> tuple[Tensor, Tensor]:
+        """Apply 2d-rope to q and k."""
         if not self.use_rope:
             return q, k
 
@@ -167,6 +170,7 @@ class Attention(nn.Module):
         return apply_rotary_enc(q, k, freqs_cis=self.freqs_cis.to(q.device))
 
     def forward(self, x: Tensor) -> Tensor:
+        """Forward pass of attention block."""
         s = 1 if self.cls_token else 0  # used to exclude cls_token
         if x.ndim == 4:
             B, H, W, _ = x.shape

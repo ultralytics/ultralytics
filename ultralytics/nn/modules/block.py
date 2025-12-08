@@ -131,7 +131,7 @@ class Proto26(Proto):
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
         if self.training:
-            semseg = self.semseg(x[0])
+            semseg = self.semseg(feat)
             return (p, semseg)
         return p
 

@@ -14,6 +14,7 @@ from torch import Tensor, nn
 
 
 class DotProductScoring(torch.nn.Module):
+    """ A module that computes dot-product scores between a set of query features and a"""
     def __init__(
         self,
         d_model,
@@ -22,6 +23,7 @@ class DotProductScoring(torch.nn.Module):
         clamp_logits=True,
         clamp_max_val=12.0,
     ):
+        """Initialize the DotProductScoring module."""
         super().__init__()
         self.d_proj = d_proj
         assert isinstance(prompt_mlp, torch.nn.Module) or prompt_mlp is None
@@ -34,6 +36,7 @@ class DotProductScoring(torch.nn.Module):
             self.clamp_max_val = clamp_max_val
 
     def mean_pool_text(self, prompt, prompt_mask):
+        """ Mean-pool the prompt embeddings over the valid tokens only."""
         # is_valid has shape (seq, bs, 1), where 1 is valid and 0 is padding
         is_valid = (~prompt_mask).to(prompt.dtype).permute(1, 0)[..., None]
         # num_valid has shape (bs, 1)
@@ -43,6 +46,7 @@ class DotProductScoring(torch.nn.Module):
         return pooled_prompt
 
     def forward(self, hs, prompt, prompt_mask):
+        """ Compute dot-product scores between hs and prompt."""
         # hs has shape (num_layer, bs, num_query, d_model)
         # prompt has shape (seq, bs, d_model)
         # prompt_mask has shape (bs, seq), where 1 is valid and 0 is padding
@@ -71,21 +75,25 @@ class DotProductScoring(torch.nn.Module):
 
 
 class LayerScale(nn.Module):
+    """ LayerScale module as introduced in "Meta Pseudo Labels" and used in"""
     def __init__(
         self,
         dim: int,
         init_values: float | Tensor = 1e-5,
         inplace: bool = False,
     ) -> None:
+        """Initialize the LayerScale module."""
         super().__init__()
         self.inplace = inplace
         self.gamma = nn.Parameter(init_values * torch.ones(dim))
 
     def forward(self, x: Tensor) -> Tensor:
+        """Apply LayerScale to the input tensor."""
         return x.mul_(self.gamma) if self.inplace else x * self.gamma
 
 
 class TransformerWrapper(nn.Module):
+    """ A wrapper for the transformer consisting of an encoder and a decoder."""
     def __init__(
         self,
         encoder,
@@ -94,8 +102,8 @@ class TransformerWrapper(nn.Module):
         two_stage_type="none",  # ["none"] only for now
         pos_enc_at_input_dec=True,
     ):
+        """Initialize the TransformerWrapper."""
         super().__init__()
-
         self.encoder = encoder
         self.decoder = decoder
         self.num_queries = decoder.num_queries if decoder is not None else None
@@ -109,6 +117,7 @@ class TransformerWrapper(nn.Module):
         self.d_model = d_model
 
     def _reset_parameters(self):
+        """Initialize the parameters of the model."""
         for n, p in self.named_parameters():
             if p.dim() > 1:
                 if "box_embed" not in n and "query_embed" not in n and "reference_points" not in n:
@@ -116,6 +125,7 @@ class TransformerWrapper(nn.Module):
 
 
 def get_valid_ratio(mask):
+    """Compute the valid ratio of height and width from the mask."""
     _, H, W = mask.shape
     valid_H = torch.sum(~mask[:, :, 0], 1)
     valid_W = torch.sum(~mask[:, 0, :], 1)
@@ -125,7 +135,37 @@ def get_valid_ratio(mask):
     return valid_ratio
 
 
-def gen_sineembed_for_position(pos_tensor, num_feats=256):
+def gen_sineembed_for_position(pos_tensor: torch.Tensor, num_feats: int = 256):
+    """Generate sinusoidal position embeddings for 2D or 4D coordinate tensors.
+
+    This function creates sinusoidal embeddings using sine and cosine functions at different
+    frequencies, similar to the positional encoding used in Transformer models. It supports
+    both 2D position tensors (x, y) and 4D tensors (x, y, w, h) for bounding box coordinates.
+
+    Args:
+        pos_tensor (torch.Tensor): Input position tensor of shape (n_query, bs, 2) for 2D
+            coordinates or (n_query, bs, 4) for 4D coordinates (bounding boxes).
+        num_feats (int): Number of feature dimensions for the output embedding. Must be even.
+            Defaults to 256.
+
+    Returns:
+        (torch.Tensor): Sinusoidal position embeddings of shape (n_query, bs, num_feats) for
+            2D input or (n_query, bs, num_feats * 2) for 4D input.
+
+    Raises:
+        AssertionError: If num_feats is not even.
+        ValueError: If pos_tensor.size(-1) is not 2 or 4.
+
+    Examples:
+        >>> pos_2d = torch.rand(100, 8, 2)  # 100 queries, batch size 8, 2D coordinates
+        >>> embeddings_2d = gen_sineembed_for_position(pos_2d, num_feats=256)
+        >>> embeddings_2d.shape
+        torch.Size([100, 8, 256])
+        >>> pos_4d = torch.rand(50, 4, 4)  # 50 queries, batch size 4, 4D coordinates
+        >>> embeddings_4d = gen_sineembed_for_position(pos_4d, num_feats=128)
+        >>> embeddings_4d.shape
+        torch.Size([50, 4, 256])
+    """
     assert num_feats % 2 == 0
     num_feats = num_feats // 2
     # n_query, bs, _ = pos_tensor.size()

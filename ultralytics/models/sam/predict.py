@@ -2983,7 +2983,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_metadata: dict[str, np.ndarray],
         tracker_obj_scores_global: torch.Tensor,
     ):
-        """ Recondition masklets based on new high-confidence detections."""
+        """Recondition masklets based on new high-confidence detections."""
         # Recondition the masklets based on the new detections
         for trk_obj_id, det_idx in trk_id_to_max_iou_high_conf_det.items():
             new_mask = det_out["mask"][det_idx : det_idx + 1]

@@ -2668,8 +2668,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         return results
 
     def _run_single_frame_inference(self, frame_idx, reverse=False, inference_state=None):
-        """Perform inference on a single frame and get its inference results. This would also update `inference_state`.
-        """
+        """Perform inference on a single frame and get its inference results. This would also update `inference_state`."""
         inference_state = inference_state or self.inference_state
         # prepare inputs
         tracker_states_local = inference_state["tracker_inference_states"]

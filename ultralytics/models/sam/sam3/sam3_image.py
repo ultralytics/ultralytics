@@ -27,6 +27,7 @@ def _update_out(out, out_name, out_value, auxiliary=True, update_aux=True):
 
 
 class SAM3SemanticModel(torch.nn.Module):
+    """SAM3 model for semantic segmentation with vision-language backbone."""
     def __init__(
         self,
         backbone: SAM3VLBackbone,
@@ -46,6 +47,7 @@ class SAM3SemanticModel(torch.nn.Module):
         separate_scorer_for_instance: bool = False,
         num_interactive_steps_val: int = 0,
     ):
+        """Initialize the SAM3SemanticModel."""
         super().__init__()
         self.backbone = backbone
         self.geometry_encoder = input_geometry_encoder

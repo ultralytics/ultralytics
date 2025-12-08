@@ -123,6 +123,7 @@ def canonicalize_text(text, *, keep_punctuation_exact_string=None):
 
 
 class SimpleTokenizer:
+    """A simple tokenizer for text inputs."""
     def __init__(
         self,
         bpe_path: str | os.PathLike,
@@ -183,7 +184,7 @@ class SimpleTokenizer:
                     j = word.index(first, i)
                     new_word.extend(word[i:j])
                     i = j
-                except:
+                except Exception as e:
                     new_word.extend(word[i:])
                     break
                 if word[i] == first and i < len(word) - 1 and word[i + 1] == second:

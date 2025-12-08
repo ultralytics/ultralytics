@@ -50,7 +50,7 @@
                 "data=/root/autodl-tmp/converted_kitti_3dop/dataset.yaml",
                 "model=yolo11-stereo3ddet.yaml",
                 "mode=train",
-                "epochs=1",
+                "epochs=200",
                 "batch=32",
                 "workers=0"
             ],
@@ -63,7 +63,7 @@
             "args": [
                 "task=stereo3ddet",
                 "mode=val",
-                "model=/root/ultralytics/runs/stereo3ddet/train68/weights/best.pt",
+                "model=/root/ultralytics/runs/stereo3ddet/train146/weights/best.pt",
                 "data=/root/autodl-tmp/converted_kitti_3dop/dataset.yaml",
                 "imgsz=384",
                 "batch=4",

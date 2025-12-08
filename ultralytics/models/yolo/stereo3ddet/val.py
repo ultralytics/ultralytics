@@ -2,19 +2,25 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import torch
+import torch.distributed as dist
 
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.models.yolo.stereo3ddet.metrics import Stereo3DDetMetrics
-from ultralytics.utils import LOGGER, YAML
+from ultralytics.nn.autobackend import AutoBackend
+from ultralytics.utils import LOGGER, RANK, TQDM, YAML, callbacks, colorstr, emojis
+from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.metrics import compute_3d_iou
+from ultralytics.utils.ops import Profile
 from ultralytics.utils.profiling import profile_function, profile_section
+from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
 
 
 @profile_function(name="compute_3d_iou_batch")
@@ -108,12 +114,159 @@ def compute_3d_iou_batch(
 
 
 @profile_function(name="decode_stereo3d_outputs")
-def decode_stereo3d_outputs(
+def _decode_stereo3d_outputs_per_sample(
     outputs: dict[str, torch.Tensor],
     conf_threshold: float = 0.25,
     top_k: int = 100,
     calib: dict[str, float] | None = None,
 ) -> list[Box3D]:
+    """T213: Original per-sample implementation for backward compatibility.
+    
+    This function processes a single sample (batch_size=1) using the original
+    per-detection loop implementation.
+    """
+    # Class names and mean dimensions (Paper uses 3 classes: Car, Pedestrian, Cyclist)
+    from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
+    class_names = get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+    # Mean dimensions: (height, width, length) in meters
+    mean_dims = {
+        0: (1.52, 1.73, 3.89),  # Car
+        1: (1.73, 0.50, 0.80),  # Pedestrian
+        2: (1.77, 0.60, 1.76),  # Cyclist
+    }
+
+    # T210: Cache calibration parameters at function start
+    if calib is not None:
+        fx = calib.get("fx", 721.5377)
+        fy = calib.get("fy", 721.5377)
+        cx = calib.get("cx", 609.5593)
+        cy = calib.get("cy", 172.8540)
+        baseline = calib.get("baseline", 0.54)
+    else:
+        # Default KITTI calibration values
+        fx = fy = 721.5377
+        cx, cy = 609.5593, 172.8540
+        baseline = 0.54
+
+    boxes3d = []
+    batch_size = outputs["heatmap"].shape[0]
+    assert batch_size == 1, "This function only handles single sample"
+
+    b = 0
+    heatmap = outputs["heatmap"][b]  # [C, H, W]
+    offset = outputs["offset"][b]  # [2, H, W]
+    bbox_size = outputs["bbox_size"][b]  # [2, H, W]
+    lr_distance = outputs["lr_distance"][b]  # [1, H, W]
+    dimensions = outputs["dimensions"][b]  # [3, H, W]
+    orientation = outputs["orientation"][b]  # [8, H, W]
+
+    num_classes, h, w = heatmap.shape
+
+    # Flatten heatmap and get top-k detections
+    heatmap_flat = heatmap.reshape(num_classes, -1)  # [C, H*W]
+    scores, indices = torch.topk(heatmap_flat, k=min(top_k, heatmap_flat.numel()), dim=1)
+
+    for c in range(num_classes):
+        # Filter to only paper classes (0, 1, 2 = Car, Pedestrian, Cyclist)
+        if c not in mean_dims:
+            LOGGER.debug(f"Skipping class {c} - not in paper classes (0, 1, 2)")
+            continue
+        
+        class_scores = scores[c]
+        class_indices = indices[c]
+
+        for score, idx in zip(class_scores, class_indices):
+            # Clamp confidence to [0, 1] range
+            if score < 0 or score > 1:
+                score_normalized = torch.sigmoid(score)
+            else:
+                score_normalized = score
+            confidence = float(torch.clamp(score_normalized, 0.0, 1.0).item())
+            
+            if confidence < conf_threshold:
+                continue
+
+            # Convert flat index to (y, x) coordinates
+            y_idx = idx // w
+            x_idx = idx % w
+
+            # Get sub-pixel offset
+            dx = offset[0, y_idx, x_idx].item()
+            dy = offset[1, y_idx, x_idx].item()
+
+            # Refined 2D center (in feature map coordinates)
+            center_x = x_idx + dx
+            center_y = y_idx + dy
+
+            # Get 2D box size
+            box_w = bbox_size[0, y_idx, x_idx].item()
+            box_h = bbox_size[1, y_idx, x_idx].item()
+
+            # Get left-right distance
+            d = lr_distance[0, y_idx, x_idx].item()
+
+            # Compute depth from stereo geometry
+            if d > 0:
+                depth = (fx * baseline) / (d + 1e-6)
+            else:
+                depth = 50.0  # Default depth
+
+            # Convert 2D center to 3D position
+            scale = 4.0
+            u = center_x * scale
+            v = center_y * scale
+
+            # 3D position
+            x_3d = (u - cx) * depth / fx
+            y_3d = (v - cy) * depth / fy
+            z_3d = depth
+
+            # Decode dimensions (offsets + class mean)
+            dim_offsets = dimensions[:, y_idx, x_idx].cpu().numpy()
+            mean_h, mean_w, mean_l = mean_dims[c]
+            height = mean_h + dim_offsets[0]
+            width = mean_w + dim_offsets[1]
+            length = mean_l + dim_offsets[2]
+
+            # Ensure positive dimensions
+            height = max(0.1, height)
+            width = max(0.1, width)
+            length = max(0.1, length)
+
+            # Decode orientation from Multi-Bin representation
+            orient_bins = orientation[:, y_idx, x_idx].cpu().numpy()
+            bin_confidences = orient_bins[::2] ** 2 + orient_bins[1::2] ** 2
+            bin_idx = np.argmax(bin_confidences)
+            sin_val = orient_bins[bin_idx * 2]
+            cos_val = orient_bins[bin_idx * 2 + 1]
+            angle = np.arctan2(sin_val, cos_val)
+
+            # Create Box3D object
+            box3d = Box3D(
+                center_3d=(float(x_3d), float(y_3d), float(z_3d)),
+                dimensions=(float(length), float(width), float(height)),
+                orientation=float(angle),
+                class_label=class_names[c],
+                class_id=c,
+                confidence=confidence,
+                bbox_2d=(
+                    float((center_x - box_w / 2) * scale),
+                    float((center_y - box_h / 2) * scale),
+                    float((center_x + box_w / 2) * scale),
+                    float((center_y + box_h / 2) * scale),
+                ),
+            )
+            boxes3d.append(box3d)
+
+    return boxes3d
+
+
+def decode_stereo3d_outputs(
+    outputs: dict[str, torch.Tensor],
+    conf_threshold: float = 0.25,
+    top_k: int = 100,
+    calib: dict[str, float] | list[dict[str, float]] | None = None,
+) -> list[Box3D] | list[list[Box3D]]:
     """Decode 10-branch model outputs to 3D bounding boxes.
 
     Decodes Stereo CenterNet 10-branch outputs following the paper methodology:
@@ -138,14 +291,27 @@ def decode_stereo3d_outputs(
             - vertex_dist: [B, 4, H/4, W/4] - center to vertex distances
         conf_threshold: Confidence threshold for filtering detections.
         top_k: Maximum number of detections to extract.
-        calib: Calibration parameters dict with keys: fx, fy, cx, cy, baseline.
+        calib: Calibration parameters. Can be:
+            - Single dict (shared across batch): dict with keys: fx, fy, cx, cy, baseline
+            - List of dicts (one per batch item): list[dict] with same keys
 
     Returns:
-        List of Box3D objects with decoded 3D bounding boxes.
+        - If batch_size == 1: list[Box3D] (backward compatibility)
+        - If batch_size > 1: list[list[Box3D]] (one list per batch item)
 
     References:
         Stereo CenterNet paper: Section 3.2 (Decoding)
     """
+    # T213: Backward compatibility - detect single sample and use fallback
+    batch_size = outputs["heatmap"].shape[0]
+    is_single_sample = batch_size == 1
+    
+    # T213: Fallback to original per-sample processing for single sample or edge cases
+    if is_single_sample:
+        # Use original implementation for single sample (backward compatibility)
+        return _decode_stereo3d_outputs_per_sample(outputs, conf_threshold, top_k, calib)
+    
+    # T206-T211: Batch processing implementation
     # Class names and mean dimensions (Paper uses 3 classes: Car, Pedestrian, Cyclist)
     from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
     class_names = get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
@@ -156,138 +322,226 @@ def decode_stereo3d_outputs(
         2: (1.77, 0.60, 1.76),  # Cyclist
     }
 
-    # Cache calibration parameters at function start to avoid repeated dict.get() calls (T157)
+    # T210, T211: Cache calibration parameters and handle batch calibration
     if calib is not None:
-        fx = calib.get("fx", 721.5377)
-        fy = calib.get("fy", 721.5377)
-        cx = calib.get("cx", 609.5593)
-        cy = calib.get("cy", 172.8540)
-        baseline = calib.get("baseline", 0.54)
+        if isinstance(calib, list):
+            # List of dicts - one per batch item
+            calibs_list = calib
+            # Extract calibration values for each batch item
+            fx_list = [c.get("fx", 721.5377) for c in calibs_list]
+            fy_list = [c.get("fy", 721.5377) for c in calibs_list]
+            cx_list = [c.get("cx", 609.5593) for c in calibs_list]
+            cy_list = [c.get("cy", 172.8540) for c in calibs_list]
+            baseline_list = [c.get("baseline", 0.54) for c in calibs_list]
+            # Convert to tensors for batch processing
+            device = outputs["heatmap"].device
+            fx_tensor = torch.tensor(fx_list, device=device, dtype=torch.float32)
+            fy_tensor = torch.tensor(fy_list, device=device, dtype=torch.float32)
+            cx_tensor = torch.tensor(cx_list, device=device, dtype=torch.float32)
+            cy_tensor = torch.tensor(cy_list, device=device, dtype=torch.float32)
+            baseline_tensor = torch.tensor(baseline_list, device=device, dtype=torch.float32)
+            shared_calib = False
+        else:
+            # Single dict - shared across batch
+            fx = calib.get("fx", 721.5377)
+            fy = calib.get("fy", 721.5377)
+            cx = calib.get("cx", 609.5593)
+            cy = calib.get("cy", 172.8540)
+            baseline = calib.get("baseline", 0.54)
+            shared_calib = True
     else:
         # Default KITTI calibration values
         fx = fy = 721.5377
         cx, cy = 609.5593, 172.8540
         baseline = 0.54
+        shared_calib = True
 
-    boxes3d = []
-    batch_size = outputs["heatmap"].shape[0]
+    # T206: Batch processing - extract all tensors at once
+    device = outputs["heatmap"].device
+    heatmap = outputs["heatmap"]  # [B, C, H, W]
+    offset = outputs["offset"]  # [B, 2, H, W]
+    bbox_size = outputs["bbox_size"]  # [B, 2, H, W]
+    lr_distance = outputs["lr_distance"]  # [B, 1, H, W]
+    dimensions = outputs["dimensions"]  # [B, 3, H, W]
+    orientation = outputs["orientation"]  # [B, 8, H, W]
 
+    num_classes, h, w = heatmap.shape[1], heatmap.shape[2], heatmap.shape[3]
+
+    # T207: Vectorize heatmap peak detection for batch
+    # Flatten heatmap: [B, C, H*W]
+    heatmap_flat = heatmap.reshape(batch_size, num_classes, -1)  # [B, C, H*W]
+    
+    # Get top-k scores and indices for each batch and class
+    # Use torch.topk across the spatial dimension
+    topk_scores, topk_indices = torch.topk(heatmap_flat, k=min(top_k, heatmap_flat.shape[2]), dim=2)  # [B, C, K]
+
+    # T207, T208, T209: Vectorized batch processing
+    # Process each batch item with optimized operations
+    batch_results = []
+    scale = 4.0  # Feature map to image scale
+    
     for b in range(batch_size):
-        heatmap = outputs["heatmap"][b]  # [C, H, W]
-        offset = outputs["offset"][b]  # [2, H, W]
-        bbox_size = outputs["bbox_size"][b]  # [2, H, W]
-        lr_distance = outputs["lr_distance"][b]  # [1, H, W]
-        dimensions = outputs["dimensions"][b]  # [3, H, W]
-        orientation = outputs["orientation"][b]  # [8, H, W]
-
-        num_classes, h, w = heatmap.shape
-
-        # Flatten heatmap and get top-k detections
-        heatmap_flat = heatmap.reshape(num_classes, -1)  # [C, H*W]
-        scores, indices = torch.topk(heatmap_flat, k=min(top_k, heatmap_flat.numel()), dim=1)
-
+        boxes3d_batch = []
+        
+        # Get calibration for this batch item
+        if shared_calib:
+            fx_b = fx
+            fy_b = fy
+            cx_b = cx
+            cy_b = cy
+            baseline_b = baseline
+        else:
+            fx_b = fx_tensor[b].item()
+            fy_b = fy_tensor[b].item()
+            cx_b = cx_tensor[b].item()
+            cy_b = cy_tensor[b].item()
+            baseline_b = baseline_tensor[b].item()
+        
+        # T207: Use pre-computed top-k scores and indices for this batch item
+        batch_scores = topk_scores[b]  # [C, K]
+        batch_indices = topk_indices[b]  # [C, K]
+        
+        # T209: Keep tensors on GPU, only move to CPU when creating Box3D
+        batch_offset = offset[b]  # [2, H, W] - keep on GPU
+        batch_bbox_size = bbox_size[b]  # [2, H, W] - keep on GPU
+        batch_lr_distance = lr_distance[b]  # [1, H, W] - keep on GPU
+        batch_dimensions = dimensions[b]  # [3, H, W] - keep on GPU
+        batch_orientation = orientation[b]  # [8, H, W] - keep on GPU
+        
         for c in range(num_classes):
             # Filter to only paper classes (0, 1, 2 = Car, Pedestrian, Cyclist)
-            # Skip if class ID is outside valid range
             if c not in mean_dims:
-                LOGGER.debug(f"Skipping class {c} - not in paper classes (0, 1, 2)")
                 continue
             
-            class_scores = scores[c]
-            class_indices = indices[c]
+            class_scores = batch_scores[c]  # [K]
+            class_indices = batch_indices[c]  # [K]
+            mean_h, mean_w, mean_l = mean_dims[c]
 
-            for score, idx in zip(class_scores, class_indices):
-                # Clamp confidence to [0, 1] range (heatmap values may be unnormalized)
-                # Apply sigmoid if score is likely unnormalized (outside [0, 1]), otherwise clamp
-                if score < 0 or score > 1:
-                    # Apply sigmoid to normalize unnormalized scores
-                    score_normalized = torch.sigmoid(score)
-                else:
-                    score_normalized = score
-                confidence = float(torch.clamp(score_normalized, 0.0, 1.0).item())
-                
-                if confidence < conf_threshold:
-                    continue
-
-                # Convert flat index to (y, x) coordinates
-                y_idx = idx // w
-                x_idx = idx % w
-
-                # Get sub-pixel offset
-                dx = offset[0, y_idx, x_idx].item()
-                dy = offset[1, y_idx, x_idx].item()
-
-                # Refined 2D center (in feature map coordinates)
-                center_x = x_idx + dx
-                center_y = y_idx + dy
-
-                # Get 2D box size
-                box_w = bbox_size[0, y_idx, x_idx].item()
-                box_h = bbox_size[1, y_idx, x_idx].item()
-
-                # Get left-right distance
-                d = lr_distance[0, y_idx, x_idx].item()
-
-                # Compute depth from stereo geometry
-                # Z = (f × B) / disparity, where disparity ≈ d
-                if d > 0:
-                    depth = (fx * baseline) / (d + 1e-6)
-                else:
-                    # Fallback: use approximate depth estimation
-                    depth = 50.0  # Default depth in meters
-
-                # Convert 2D center to 3D position
-                # Scale to original image coordinates (assuming 4x downsampling)
-                scale = 4.0
-                u = center_x * scale
-                v = center_y * scale
-
-                # 3D position: X = (u - cx) × Z / fx, Y = (v - cy) × Z / fy, Z = depth
-                x_3d = (u - cx) * depth / fx
-                y_3d = (v - cy) * depth / fy
-                z_3d = depth
-
-                # Decode dimensions (offsets + class mean)
-                dim_offsets = dimensions[:, y_idx, x_idx].cpu().numpy()
-                mean_h, mean_w, mean_l = mean_dims[c]
-                height = mean_h + dim_offsets[0]
-                width = mean_w + dim_offsets[1]
-                length = mean_l + dim_offsets[2]
-
-                # Ensure positive dimensions
-                height = max(0.1, height)
-                width = max(0.1, width)
-                length = max(0.1, length)
-
-                # Decode orientation from Multi-Bin representation
-                # Multi-Bin: 8 values representing 4 bins (2 per bin: sin, cos)
-                orient_bins = orientation[:, y_idx, x_idx].cpu().numpy()
-                # Find bin with maximum confidence
-                bin_confidences = orient_bins[::2] ** 2 + orient_bins[1::2] ** 2
-                bin_idx = np.argmax(bin_confidences)
-                sin_val = orient_bins[bin_idx * 2]
-                cos_val = orient_bins[bin_idx * 2 + 1]
-                # Convert to angle
-                angle = np.arctan2(sin_val, cos_val)
-
-                # Create Box3D object
+            # T207: Vectorize confidence computation
+            # Apply sigmoid where needed, clamp to [0, 1]
+            scores_normalized = torch.where(
+                (class_scores < 0) | (class_scores > 1),
+                torch.sigmoid(class_scores),
+                class_scores
+            )
+            confidences = torch.clamp(scores_normalized, 0.0, 1.0)
+            
+            # Filter by confidence threshold
+            valid_mask = confidences >= conf_threshold
+            if not valid_mask.any():
+                continue
+            
+            valid_scores = confidences[valid_mask]
+            valid_indices = class_indices[valid_mask]
+            
+            # T207: Vectorize coordinate conversion
+            y_indices = valid_indices // w  # [K_valid]
+            x_indices = valid_indices % w   # [K_valid]
+            
+            # T208: Vectorize offset and bbox_size extraction using gather
+            # Gather offset values: [K_valid, 2]
+            offset_yx = torch.stack([
+                batch_offset[0, y_indices, x_indices],  # dx
+                batch_offset[1, y_indices, x_indices],  # dy
+            ], dim=1)  # [K_valid, 2]
+            
+            # Gather bbox_size values: [K_valid, 2]
+            bbox_size_yx = torch.stack([
+                batch_bbox_size[0, y_indices, x_indices],  # w
+                batch_bbox_size[1, y_indices, x_indices],  # h
+            ], dim=1)  # [K_valid, 2]
+            
+            # Gather lr_distance: [K_valid]
+            d_values = batch_lr_distance[0, y_indices, x_indices]  # [K_valid]
+            
+            # T208: Vectorize dimension decoding
+            # Gather dimension offsets: [K_valid, 3]
+            dim_offsets = batch_dimensions[:, y_indices, x_indices].t()  # [K_valid, 3]
+            
+            # T208: Vectorize orientation decoding
+            # Gather orientation bins: [K_valid, 8]
+            orient_bins = batch_orientation[:, y_indices, x_indices].t()  # [K_valid, 8]
+            
+            # T209: Compute all values on GPU before moving to CPU
+            # Refined 2D centers
+            center_x = x_indices.float() + offset_yx[:, 0]  # [K_valid]
+            center_y = y_indices.float() + offset_yx[:, 1]  # [K_valid]
+            
+            # Compute depth from stereo geometry (vectorized)
+            fx_b_tensor = torch.tensor(fx_b, device=device, dtype=d_values.dtype)
+            baseline_b_tensor = torch.tensor(baseline_b, device=device, dtype=d_values.dtype)
+            depth_values = torch.where(
+                d_values > 0,
+                (fx_b_tensor * baseline_b_tensor) / (d_values + 1e-6),
+                torch.tensor(50.0, device=device, dtype=d_values.dtype)  # Default depth
+            )  # [K_valid]
+            
+            # Convert 2D centers to 3D positions (vectorized)
+            scale_tensor = torch.tensor(scale, device=device, dtype=center_x.dtype)
+            u_values = center_x * scale_tensor  # [K_valid]
+            v_values = center_y * scale_tensor  # [K_valid]
+            
+            cx_b_tensor = torch.tensor(cx_b, device=device, dtype=u_values.dtype)
+            cy_b_tensor = torch.tensor(cy_b, device=device, dtype=v_values.dtype)
+            fy_b_tensor = torch.tensor(fy_b, device=device, dtype=depth_values.dtype)
+            x_3d_values = (u_values - cx_b_tensor) * depth_values / fx_b_tensor  # [K_valid]
+            y_3d_values = (v_values - cy_b_tensor) * depth_values / fy_b_tensor  # [K_valid]
+            z_3d_values = depth_values  # [K_valid]
+            
+            # Decode dimensions (vectorized)
+            mean_h_tensor = torch.tensor(mean_h, device=device, dtype=dim_offsets.dtype)
+            mean_w_tensor = torch.tensor(mean_w, device=device, dtype=dim_offsets.dtype)
+            mean_l_tensor = torch.tensor(mean_l, device=device, dtype=dim_offsets.dtype)
+            height_values = torch.clamp(mean_h_tensor + dim_offsets[:, 0], min=0.1)  # [K_valid]
+            width_values = torch.clamp(mean_w_tensor + dim_offsets[:, 1], min=0.1)  # [K_valid]
+            length_values = torch.clamp(mean_l_tensor + dim_offsets[:, 2], min=0.1)  # [K_valid]
+            
+            # Decode orientation from Multi-Bin (vectorized)
+            # orient_bins: [K_valid, 8] -> bin_confidences: [K_valid, 4]
+            bin_confidences = orient_bins[:, ::2] ** 2 + orient_bins[:, 1::2] ** 2  # [K_valid, 4]
+            bin_indices = torch.argmax(bin_confidences, dim=1)  # [K_valid]
+            
+            # Gather sin/cos values for selected bins
+            sin_vals = orient_bins[torch.arange(len(bin_indices), device=device), bin_indices * 2]
+            cos_vals = orient_bins[torch.arange(len(bin_indices), device=device), bin_indices * 2 + 1]
+            angle_values = torch.atan2(sin_vals, cos_vals)  # [K_valid]
+            
+            # T209: Move to CPU only when creating Box3D objects
+            # Convert to numpy/cpu for Box3D creation
+            x_3d_cpu = x_3d_values.cpu().numpy()
+            y_3d_cpu = y_3d_values.cpu().numpy()
+            z_3d_cpu = z_3d_values.cpu().numpy()
+            length_cpu = length_values.cpu().numpy()
+            width_cpu = width_values.cpu().numpy()
+            height_cpu = height_values.cpu().numpy()
+            angle_cpu = angle_values.cpu().numpy()
+            confidence_cpu = valid_scores.cpu().numpy()
+            box_w_cpu = bbox_size_yx[:, 0].cpu().numpy()
+            box_h_cpu = bbox_size_yx[:, 1].cpu().numpy()
+            center_x_cpu = center_x.cpu().numpy()
+            center_y_cpu = center_y.cpu().numpy()
+            
+            # Create Box3D objects
+            for i in range(len(valid_scores)):
                 box3d = Box3D(
-                    center_3d=(float(x_3d), float(y_3d), float(z_3d)),
-                    dimensions=(float(length), float(width), float(height)),
-                    orientation=float(angle),
+                    center_3d=(float(x_3d_cpu[i]), float(y_3d_cpu[i]), float(z_3d_cpu[i])),
+                    dimensions=(float(length_cpu[i]), float(width_cpu[i]), float(height_cpu[i])),
+                    orientation=float(angle_cpu[i]),
                     class_label=class_names[c],
                     class_id=c,
-                    confidence=confidence,
+                    confidence=float(confidence_cpu[i]),
                     bbox_2d=(
-                        float((center_x - box_w / 2) * scale),
-                        float((center_y - box_h / 2) * scale),
-                        float((center_x + box_w / 2) * scale),
-                        float((center_y + box_h / 2) * scale),
+                        float((center_x_cpu[i] - box_w_cpu[i] / 2) * scale),
+                        float((center_y_cpu[i] - box_h_cpu[i] / 2) * scale),
+                        float((center_x_cpu[i] + box_w_cpu[i] / 2) * scale),
+                        float((center_y_cpu[i] + box_h_cpu[i] / 2) * scale),
                     ),
                 )
-                boxes3d.append(box3d)
+                boxes3d_batch.append(box3d)
+        
+        batch_results.append(boxes3d_batch)
 
-    return boxes3d
+    return batch_results
 
 
 def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] | None = None) -> list[Box3D]:
@@ -498,27 +752,35 @@ class Stereo3DDetValidator(BaseValidator):
         """
         with profile_section("postprocess"):
             batch_size = preds["heatmap"].shape[0]
-            results = []
 
-            # Get calibration from batch if available
+            # T212: Get calibration from batch if available
             calib = None
             if hasattr(self, "_current_batch") and self._current_batch:
                 # Try to get calibration from batch
                 calibs = self._current_batch.get("calib", [])
                 if calibs:
-                    calib = calibs[0] if isinstance(calibs[0], dict) else None
+                    # T211: Handle batch calibration - pass list if different per sample, single dict if shared
+                    if len(calibs) == batch_size and all(isinstance(c, dict) for c in calibs):
+                        # Different calibration per sample
+                        calib = calibs
+                    elif len(calibs) > 0 and isinstance(calibs[0], dict):
+                        # Shared calibration (use first one)
+                        calib = calibs[0]
 
-            for b in range(batch_size):
-                # Extract single batch item outputs
-                single_outputs = {k: v[b : b + 1] for k, v in preds.items()}
-                boxes3d = decode_stereo3d_outputs(
-                    single_outputs,
-                    conf_threshold=self.args.conf,
-                    top_k=100,
-                    calib=calib,
-                )
-                results.append(boxes3d)
-
+            # T212: Call decode_stereo3d_outputs once with entire batch
+            results = decode_stereo3d_outputs(
+                preds,
+                conf_threshold=self.args.conf,
+                top_k=100,
+                calib=calib,
+            )
+            
+            # T212: Return list of Box3D lists directly
+            # decode_stereo3d_outputs returns list[list[Box3D]] for batch_size > 1
+            # or list[Box3D] for batch_size == 1 (backward compatibility)
+            if batch_size == 1 and isinstance(results, list) and len(results) > 0 and isinstance(results[0], Box3D):
+                # Single sample result - wrap in list for consistency
+                return [results]
             return results
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -527,10 +789,10 @@ class Stereo3DDetValidator(BaseValidator):
         Args:
             model: Model being validated.
         """
-        self.names = model.names
-        self.nc = len(model.names)
+        self.names = self.metrics.results_dict
+        self.nc = len(self.names.keys())
         self.seen = 0
-        self.metrics.names = model.names
+        self.metrics.names = self.names
 
     def update_metrics(self, preds: list[list[Box3D]], batch: dict[str, Any]) -> None:
         """Update metrics with predictions and ground truth.
@@ -635,6 +897,39 @@ class Stereo3DDetValidator(BaseValidator):
                     "boxes3d_target": gt_boxes,
                 }
             )
+            
+            # Update progress bar with intermediate metrics (every batch for real-time feedback)
+            if hasattr(self, '_progress_bar') and self._progress_bar is not None and RANK in {-1, 0}:
+                # Update progress bar periodically to avoid performance impact
+                if hasattr(self, '_batch_count'):
+                    self._batch_count += 1
+                else:
+                    self._batch_count = 1
+                
+                # Update every 5 batches or if we're near the end (more frequent than before)
+                if self._batch_count % 5 == 0 or (hasattr(self, '_total_batches') and self._batch_count >= self._total_batches - 1):
+                    try:
+                        metrics_str = self._format_progress_metrics()
+                        if metrics_str:
+                            self._progress_bar.set_description(metrics_str)
+                    except Exception as e:
+                        LOGGER.debug(f"Error updating progress bar: {e}")
+
+    def get_desc(self) -> str:
+        """Return a formatted string summarizing validation metrics header for progress bar.
+        
+        Returns:
+            Formatted header string matching the progress bar format.
+        """
+        # Right-align header strings to match right-aligned numeric values
+        # Format: right-align strings in 11-char fields to match %11i and %11.4g alignment
+        return ("%11s" + "%11s" * 4) % (
+            "Images".rjust(11),
+            "AP3D@0.5".rjust(11),
+            "AP3D@0.7".rjust(11),
+            "Precision".rjust(11),
+            "Recall".rjust(11),
+        )
 
     def finalize_metrics(self) -> None:
         """Finalize metrics computation."""
@@ -650,7 +945,145 @@ class Stereo3DDetValidator(BaseValidator):
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         return self.metrics.results_dict
 
-    def __call__(self, trainer=None, model=None):
+    def print_results(self) -> None:
+        """Print training/validation set metrics per class."""
+        if not self.metrics.stats:
+            LOGGER.warning(f"no labels found in {self.args.task} set, can not compute metrics without labels")
+            return
+
+        # Count ground truth objects per class
+        all_target_cls = np.concatenate([s["target_cls"] for s in self.metrics.stats if len(s["target_cls"]) > 0], axis=0) if self.metrics.stats else np.array([], dtype=int)
+        if len(all_target_cls) == 0:
+            LOGGER.warning(f"no labels found in {self.args.task} set, can not compute metrics without labels")
+            return
+
+        nt_per_class = np.bincount(all_target_cls.astype(int), minlength=self.metrics.nc) if len(all_target_cls) > 0 else np.zeros(self.metrics.nc, dtype=int)
+        total_gt = int(nt_per_class.sum())
+
+        # Get mean metrics
+        maps3d_50 = self.metrics.maps3d_50
+        maps3d_70 = self.metrics.maps3d_70
+        
+        # Get precision and recall (flatten nested dicts to get mean values)
+        precision_mean = 0.0
+        recall_mean = 0.0
+        if isinstance(self.metrics.precision, dict) and self.metrics.precision:
+            all_precisions = []
+            for iou_dict in self.metrics.precision.values():
+                if isinstance(iou_dict, dict):
+                    all_precisions.extend([v for v in iou_dict.values() if isinstance(v, (int, float))])
+            precision_mean = float(np.mean(all_precisions)) if all_precisions else 0.0
+        
+        if isinstance(self.metrics.recall, dict) and self.metrics.recall:
+            all_recalls = []
+            for iou_dict in self.metrics.recall.values():
+                if isinstance(iou_dict, dict):
+                    all_recalls.extend([v for v in iou_dict.values() if isinstance(v, (int, float))])
+            recall_mean = float(np.mean(all_recalls)) if all_recalls else 0.0
+
+        # Print format: class name, images, AP3D@0.5, AP3D@0.7, precision, recall (matches progress bar format)
+        # Note: labels (total_gt) is shown in verbose per-class output, not in main summary
+        pf = "%22s" + "%11i" + "%11.3g" * 4
+        LOGGER.info(pf % ("all", self.seen, maps3d_50, maps3d_70, precision_mean, recall_mean))
+
+        # Print results per class if verbose and multiple classes
+        if self.args.verbose and not self.training and self.metrics.nc > 1 and self.metrics.ap3d_50:
+            for class_id, class_name in self.metrics.names.items():
+                ap3d_50_class = self.metrics.ap3d_50.get(class_name, 0.0)
+                ap3d_70_class = self.metrics.ap3d_70.get(class_name, 0.0)
+                
+                # Get class-specific precision and recall (average across IoU thresholds)
+                prec_class = 0.0
+                recall_class = 0.0
+                if isinstance(self.metrics.precision, dict):
+                    prec_values = []
+                    for iou_dict in self.metrics.precision.values():
+                        if isinstance(iou_dict, dict) and class_id in iou_dict:
+                            prec_values.append(iou_dict[class_id])
+                    prec_class = float(np.mean(prec_values)) if prec_values else 0.0
+                
+                if isinstance(self.metrics.recall, dict):
+                    recall_values = []
+                    for iou_dict in self.metrics.recall.values():
+                        if isinstance(iou_dict, dict) and class_id in iou_dict:
+                            recall_values.append(iou_dict[class_id])
+                    recall_class = float(np.mean(recall_values)) if recall_values else 0.0
+                
+                nt_class = int(nt_per_class[class_id]) if class_id < len(nt_per_class) else 0
+                # Use same format as main summary (without labels column to match progress bar)
+                LOGGER.info(
+                    pf
+                    % (
+                        class_name,
+                        self.seen,  # images (same for all classes)
+                        ap3d_50_class,
+                        ap3d_70_class,
+                        prec_class,
+                        recall_class,
+                    )
+                )
+
+    def _format_progress_metrics(self) -> str:
+        """Format current metrics for progress bar display.
+        
+        Returns:
+            Formatted string with key metrics in training-style format.
+        """
+        if not hasattr(self.metrics, 'stats') or len(self.metrics.stats) == 0:
+            return ("%11i" + "%11s" * 4) % (int(self.seen), "-", "-", "-", "-")
+        
+        # Compute intermediate metrics on accumulated stats
+        try:
+            # Save current stats
+            saved_stats = self.metrics.stats.copy()
+            # Process to get metrics
+            temp_results = self.metrics.process(save_dir=self.save_dir, plot=False)
+            # Restore stats for final processing
+            self.metrics.stats = saved_stats
+            
+            if not temp_results:
+                return ("%11i" + "%11s" * 4) % (int(self.seen), "-", "-", "-", "-")
+            
+            # Get AP3D metrics (use mean values)
+            ap50 = temp_results.get('maps3d_50', 0.0)
+            if isinstance(ap50, dict):
+                ap50 = float(np.mean([v for v in ap50.values() if isinstance(v, (int, float))])) if ap50 else 0.0
+            ap70 = temp_results.get('maps3d_70', 0.0)
+            if isinstance(ap70, dict):
+                ap70 = float(np.mean([v for v in ap70.values() if isinstance(v, (int, float))])) if ap70 else 0.0
+            
+            # Get precision and recall (flatten nested dicts)
+            precision = temp_results.get('precision', 0.0)
+            if isinstance(precision, dict):
+                all_precisions = []
+                for iou_dict in precision.values():
+                    if isinstance(iou_dict, dict):
+                        all_precisions.extend([v for v in iou_dict.values() if isinstance(v, (int, float))])
+                precision = float(np.mean(all_precisions)) if all_precisions else 0.0
+            
+            recall = temp_results.get('recall', 0.0)
+            if isinstance(recall, dict):
+                all_recalls = []
+                for iou_dict in recall.values():
+                    if isinstance(iou_dict, dict):
+                        all_recalls.extend([v for v in iou_dict.values() if isinstance(v, (int, float))])
+                recall = float(np.mean(all_recalls)) if all_recalls else 0.0
+            
+            # Format similar to training: Images, AP3D@0.5, AP3D@0.7, Precision, Recall
+            # Use same width format as training for consistency (matches get_desc header)
+            # Use %11i for Images (integer count) and %11.4g for float metrics
+            return ("%11i" + "%11.4g" * 4) % (
+                int(self.seen),  # Images (integer)
+                ap50,  # AP3D@0.5
+                ap70,  # AP3D@0.7
+                precision,  # Precision
+                recall,  # Recall
+            )
+        except Exception as e:
+            LOGGER.debug(f"Error formatting progress metrics: {e}")
+            return ("%11i" + "%11s" * 4) % (int(self.seen), "-", "-", "-", "-")
+
+    def __call__bak(self, trainer=None, model=None):
         """Run validation loop.
 
         Args:
@@ -720,9 +1153,45 @@ class Stereo3DDetValidator(BaseValidator):
                 model.names = paper_names
                 LOGGER.debug(f"Overrode model.names from {list(model.names.keys())} to {list(paper_names.keys())}")
         
+        # Store progress bar reference for updates during validation
+        # Patch TQDM in validator module to capture progress bar instance
+        import ultralytics.engine.validator as validator_module
+        original_tqdm = validator_module.TQDM
+        
+        # Create wrapper class that stores reference
+        class ProgressBarWrapper(original_tqdm):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                # Store reference in validator instance if available
+                # We'll set this via a closure
+                pass
+        
+        # Store validator reference in closure
+        validator_self = self
+        def make_tqdm_wrapper():
+            class WrappedTQDM(original_tqdm):
+                def __init__(self, *args, **kwargs):
+                    super().__init__(*args, **kwargs)
+                    validator_self._progress_bar = self
+                    if hasattr(validator_self, 'dataloader') and validator_self.dataloader:
+                        validator_self._total_batches = len(validator_self.dataloader)
+            return WrappedTQDM
+        
+        # Temporarily replace TQDM in validator module
+        validator_module.TQDM = make_tqdm_wrapper()
+        self._progress_bar = None
+        self._batch_count = 0
+        
         # Call parent implementation which handles the validation loop
         # BaseValidator.__call__ will now preserve self.data with channels=6 for stereo3ddet
-        result = super().__call__(trainer=trainer, model=model)
+        try:
+            result = super().__call__(trainer=trainer, model=model)
+        finally:
+            # Restore original TQDM
+            validator_module.TQDM = original_tqdm
+            # Clear progress bar reference
+            self._progress_bar = None
+            self._batch_count = 0
         
         # After super().__call__() completes, ensure self.data has channels=6 for consistency
         if trainer is None and hasattr(self, "data") and isinstance(self.data, dict):

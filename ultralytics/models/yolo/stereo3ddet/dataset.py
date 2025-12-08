@@ -57,11 +57,13 @@ class Stereo3DDetAdapterDataset(Dataset):
         # Validate that names parameter matches actual label classes (T123)
         # Pass max_samples to validation so it only checks the files that will be loaded
         # Initialize base dataset with class filtering and max_samples if needed (T193, T194)
+        # DEBUG: MAX_SAMPLES = 1000
+        MAX_SAMPLES = 200
         self.base = KITTIStereoDataset(
             root=self.root,
             split=self.split,
             filter_classes=self.filter_classes,
-            max_samples=max_samples
+            max_samples=MAX_SAMPLES
         )
         self.left_dir = self.root / "images" / split / "left"
         # Full stereo augmentation pipeline (photometric + geometric)

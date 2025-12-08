@@ -179,7 +179,8 @@ class DetectionTrainer(BaseTrainer):
         """
         keys = [f"{prefix}/{x}" for x in self.loss_names]
         if loss_items is not None:
-            loss_items = [round(float(x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats
+            # Detach tensors before converting to float to avoid gradient warning
+            loss_items = [round(float(x.detach() if isinstance(x, torch.Tensor) else x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats
             return dict(zip(keys, loss_items))
         else:
             return keys

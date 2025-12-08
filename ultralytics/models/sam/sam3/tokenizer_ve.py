@@ -6,6 +6,7 @@ Text Tokenizer.
 Copied and lightly adapted from VE repo, which in turn copied
 from open_clip and openAI CLIP.
 """
+from __future__ import annotations
 
 import gzip
 import html
@@ -13,7 +14,6 @@ import io
 import os
 import string
 from functools import lru_cache
-from typing import Union
 
 import ftfy
 import regex as re
@@ -21,7 +21,7 @@ import torch
 from iopath.common.file_io import g_pathmgr
 
 
-@lru_cache()
+@lru_cache
 def bytes_to_unicode():
     """
     Returns list of utf-8 byte and a corresponding list of unicode strings.
@@ -77,7 +77,7 @@ def _clean_canonicalize(x):
 
 
 def _clean_lower(x):
-    """Clean text and return lowercase"""
+    """Clean text and return lowercase."""
     # basic, remove whitespace, lower case
     return whitespace_clean(basic_clean(x)).lower()
 
@@ -122,11 +122,11 @@ def canonicalize_text(text, *, keep_punctuation_exact_string=None):
     return text.strip()
 
 
-class SimpleTokenizer(object):
+class SimpleTokenizer:
     def __init__(
         self,
-        bpe_path: Union[str, os.PathLike],
-        additional_special_tokens: list[str] = None,
+        bpe_path: str | os.PathLike,
+        additional_special_tokens: list[str] | None = None,
         context_length: int = 77,
         clean: str = "lower",
     ):
@@ -167,7 +167,7 @@ class SimpleTokenizer(object):
         """Byte Pair Encoding."""
         if token in self.cache:
             return self.cache[token]
-        word = tuple(token[:-1]) + (token[-1] + "</w>",)
+        word = (*tuple(token[:-1]), token[-1] + "</w>")
         pairs = get_pairs(word)
         if not pairs:
             return token + "</w>"
@@ -217,15 +217,16 @@ class SimpleTokenizer(object):
         text = bytearray([self.byte_decoder[c] for c in text]).decode("utf-8", errors="replace").replace("</w>", " ")
         return text
 
-    def __call__(self, texts: Union[str, list[str]], context_length: int = None) -> torch.LongTensor:
+    def __call__(self, texts: str | list[str], context_length: int | None = None) -> torch.LongTensor:
         """Returns the tokenized representation of given input string(s)
-        Parameters
+        Parameters.
         ----------
         texts : Union[str, list[str]]
             An input string or a list of input strings to tokenize
         context_length : int
             The context length to use; all CLIP models use 77 as the context length
-        Returns
+
+        Returns:
         -------
         A two-dimensional tensor containing the resulting tokens, shape = [number of input strings, context_length]
         """
@@ -233,7 +234,7 @@ class SimpleTokenizer(object):
             texts = [texts]
         context_length = context_length or self.context_length
         assert context_length, "Please set a valid context length"
-        all_tokens = [[self.sot_token_id] + self.encode(text) + [self.eot_token_id] for text in texts]
+        all_tokens = [[self.sot_token_id, *self.encode(text), self.eot_token_id] for text in texts]
         result = torch.zeros(len(all_tokens), context_length, dtype=torch.long)
         for i, tokens in enumerate(all_tokens):
             if len(tokens) > context_length:

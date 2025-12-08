@@ -1,12 +1,16 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 from __future__ import annotations
+
 from copy import deepcopy
+
 import torch
-from .vl_combiner import SAM3VLBackbone
-from ultralytics.utils.ops import xywh2xyxy
+
 from ultralytics.nn.modules.utils import inverse_sigmoid
+from ultralytics.utils.ops import xywh2xyxy
+
 from .geometry_encoders import Prompt
+from .vl_combiner import SAM3VLBackbone
 
 
 def _update_out(out, out_name, out_value, auxiliary=True, update_aux=True):
@@ -141,7 +145,7 @@ class SAM3SemanticModel(torch.nn.Module):
         vis_feat_sizes,
         prompt,
         prompt_mask,
-        encoder_extra_kwargs: dict = None,
+        encoder_extra_kwargs: dict | None = None,
     ):
         """Run the transformer encoder."""
         # Run the encoder

@@ -1,8 +1,9 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 from __future__ import annotations
+
 from collections import OrderedDict
-from typing import Callable, Union
+from typing import Callable
 
 import torch
 import torch.nn as nn
@@ -19,7 +20,7 @@ class ResidualAttentionBlock(nn.Module):
         d_model: int,
         n_head: int,
         mlp_ratio: float = 4.0,
-        ls_init_value: float = None,
+        ls_init_value: float | None = None,
         act_layer: Callable[[], nn.Module] = nn.GELU,
         norm_layer: Callable[[int], nn.Module] = nn.LayerNorm,
     ):
@@ -80,10 +81,10 @@ class Transformer(nn.Module):
         layers: int,
         heads: int,
         mlp_ratio: float = 4.0,
-        ls_init_value: float = None,
+        ls_init_value: float | None = None,
         act_layer: Callable[[], nn.Module] = nn.GELU,
         norm_layer: Callable[[int], nn.Module] = nn.LayerNorm,
-        compile_mode: str = None,
+        compile_mode: str | None = None,
         use_act_checkpoint: bool = False,
     ):
         """Initialize transformer with configurable depth, width, and optional compilation/checkpointing."""
@@ -146,7 +147,7 @@ class TextTransformer(nn.Module):
         heads: int = 8,
         layers: int = 12,
         mlp_ratio: float = 4.0,
-        ls_init_value: float = None,
+        ls_init_value: float | None = None,
         output_dim: int = 512,
         no_causal_mask: bool = False,
         pool_type: str = "none",  # no pooling
@@ -155,7 +156,7 @@ class TextTransformer(nn.Module):
         norm_layer: Callable = nn.LayerNorm,
         output_tokens: bool = False,
         use_ln_post: bool = True,
-        compile_mode: str = None,
+        compile_mode: str | None = None,
         use_act_checkpoint: bool = False,
     ):
         """Initialize text transformer with embedding layers, transformer blocks, and pooling options."""
@@ -201,7 +202,7 @@ class TextTransformer(nn.Module):
         mask.triu_(1)  # zero out the lower diagonal
         return mask
 
-    def forward(self, text: torch.Tensor) -> Union[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
+    def forward(self, text: torch.Tensor) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """Forward pass through the text transformer, returning pooled output and optionally token embeddings."""
         seq_len = text.shape[1]
         x = self.token_embedding(text)  # [batch_size, n_ctx, d_model]
@@ -236,7 +237,7 @@ class VETextEncoder(nn.Module):
         context_length: int = 32,
         vocab_size: int = 49408,
         use_ln_post: bool = True,
-        compile_mode: str = None,
+        compile_mode: str | None = None,
         use_act_checkpoint: bool = True,
     ):
         """Initialize VE text encoder with a text transformer and a linear resizer to match decoder dimensions."""
@@ -260,7 +261,7 @@ class VETextEncoder(nn.Module):
         self.resizer = nn.Linear(self.encoder.width, d_model)
 
     def forward(
-        self, text: Union[list[str], tuple[torch.Tensor, torch.Tensor, dict]], input_boxes: list = None
+        self, text: list[str] | tuple[torch.Tensor, torch.Tensor, dict], input_boxes: list | None = None
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Encode text input, either raw strings or pre-encoded tensors, and resize to match decoder dimensions."""
         if isinstance(text[0], str):

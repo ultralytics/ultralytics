@@ -361,7 +361,7 @@ class MemoryEncoder(nn.Module):
         self,
         out_dim,
         in_dim=256,  # in_dim of pix_feats
-        interpol_size: tuple[int, int] = None,
+        interpol_size: tuple[int, int] | None = None,
     ):
         """Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
 

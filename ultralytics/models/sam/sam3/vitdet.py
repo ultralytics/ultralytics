@@ -9,10 +9,11 @@ Rope embedding code adopted from:
 2. https://github.com/naver-ai/rope-vit
 3. https://github.com/lucidrains/rotary-embedding-torch
 """
+from __future__ import annotations
 
 import math
 from functools import partial
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable
 
 import torch
 import torch.nn as nn
@@ -25,14 +26,15 @@ except ModuleNotFoundError:
     # compatibility for older timm versions
     from timm.models.layers import DropPath, Mlp
 from torch import Tensor
+
 from ultralytics.models.sam.modules.blocks import PatchEmbed
 from ultralytics.models.sam.modules.utils import (
     apply_rotary_enc,
     compute_axial_cis,
-    window_partition,
-    window_unpartition,
     concat_rel_pos,
     get_abs_pos,
+    window_partition,
+    window_unpartition,
 )
 
 from .model_misc import LayerScale
@@ -48,11 +50,11 @@ class Attention(nn.Module):
         qkv_bias: bool = True,
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
-        input_size: Optional[Tuple[int, int]] = None,
+        input_size: tuple[int, int] | None = None,
         cls_token: bool = False,
         use_rope: bool = False,
         rope_theta: float = 10000.0,
-        rope_pt_size: Optional[Tuple[int, int]] = None,
+        rope_pt_size: tuple[int, int] | None = None,
         rope_interp: bool = False,
     ):
         """
@@ -69,7 +71,7 @@ class Attention(nn.Module):
             use_rope: whether to use rope 2d (indep of use_rel_pos, as it can be used together)
             rope_theta: control frequencies of rope
             rope_pt_size: size of rope in previous stage of training, needed for interpolation or tiling
-            rope_interp: whether to interpolate (or extrapolate) rope to match input size
+            rope_interp: whether to interpolate (or extrapolate) rope to match input size.
         """
         super().__init__()
         self.num_heads = num_heads
@@ -93,7 +95,7 @@ class Attention(nn.Module):
         self._setup_rel_pos(rel_pos_zero_init, input_size)
         self._setup_rope_freqs(input_size)
 
-    def _setup_rel_pos(self, rel_pos_zero_init: bool = True, input_size: Optional[Tuple[int, int]] = None) -> None:
+    def _setup_rel_pos(self, rel_pos_zero_init: bool = True, input_size: tuple[int, int] | None = None) -> None:
         if not self.use_rel_pos:
             self.rel_pos_h = None
             self.rel_pos_w = None
@@ -116,7 +118,7 @@ class Attention(nn.Module):
         relative_coords = (q_coords - k_coords) + (H - 1)
         self.relative_coords = relative_coords.long()
 
-    def _setup_rope_freqs(self, input_size: Optional[Tuple[int, int]] = None) -> None:
+    def _setup_rope_freqs(self, input_size: tuple[int, int] | None = None) -> None:
         if not self.use_rope:
             self.freqs_cis = None
             return
@@ -154,7 +156,7 @@ class Attention(nn.Module):
 
         self.freqs_cis = freqs_cis
 
-    def _apply_rope(self, q, k) -> Tuple[Tensor, Tensor]:
+    def _apply_rope(self, q, k) -> tuple[Tensor, Tensor]:
         if not self.use_rope:
             return q, k
 
@@ -210,7 +212,7 @@ class Attention(nn.Module):
 
 
 class Block(nn.Module):
-    """Transformer blocks with support of window attention"""
+    """Transformer blocks with support of window attention."""
 
     def __init__(
         self,
@@ -224,13 +226,13 @@ class Block(nn.Module):
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
         window_size: int = 0,
-        input_size: Optional[Tuple[int, int]] = None,
+        input_size: tuple[int, int] | None = None,
         use_rope: bool = False,
-        rope_pt_size: Optional[Tuple[int, int]] = None,
+        rope_pt_size: tuple[int, int] | None = None,
         rope_interp: bool = False,
         cls_token: bool = False,
         dropout: float = 0.0,
-        init_values: Optional[float] = None,
+        init_values: float | None = None,
     ):
         """
         Args:
@@ -305,7 +307,7 @@ class ViT(nn.Module):
     """
     This module implements Vision Transformer (ViT) backbone in :paper:`vitdet`.
     "Exploring Plain Vision Transformer Backbones for Object Detection",
-    https://arxiv.org/abs/2203.16527
+    https://arxiv.org/abs/2203.16527.
     """
 
     def __init__(
@@ -319,27 +321,27 @@ class ViT(nn.Module):
         mlp_ratio: float = 4.0,
         qkv_bias: bool = True,
         drop_path_rate: float = 0.0,
-        norm_layer: Union[Callable[..., nn.Module], str] = "LayerNorm",
+        norm_layer: Callable[..., nn.Module] | str = "LayerNorm",
         act_layer: Callable[..., nn.Module] = nn.GELU,
         use_abs_pos: bool = True,
         tile_abs_pos: bool = True,
-        rel_pos_blocks: Union[Tuple[int, ...], bool] = (2, 5, 8, 11),
+        rel_pos_blocks: tuple[int, ...] | bool = (2, 5, 8, 11),
         rel_pos_zero_init: bool = True,
         window_size: int = 14,
-        global_att_blocks: Tuple[int, ...] = (2, 5, 8, 11),
+        global_att_blocks: tuple[int, ...] = (2, 5, 8, 11),
         use_rope: bool = False,
-        rope_pt_size: Optional[int] = None,
+        rope_pt_size: int | None = None,
         use_interp_rope: bool = False,
         pretrain_img_size: int = 224,
         pretrain_use_cls_token: bool = True,
         retain_cls_token: bool = True,
         dropout: float = 0.0,
         return_interm_layers: bool = False,
-        init_values: Optional[float] = None,  # for layerscale
+        init_values: float | None = None,  # for layerscale
         ln_pre: bool = False,
         ln_post: bool = False,
         bias_patch_embed: bool = True,
-        compile_mode: Optional[str] = None,
+        compile_mode: str | None = None,
         use_act_checkpoint: bool = True,
     ):
         """
@@ -487,7 +489,7 @@ class ViT(nn.Module):
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
 
-    def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
         """Vit forward path and get feature maps."""
         x = self.patch_embed(x)
         h, w = x.shape[1], x.shape[2]

@@ -1,8 +1,9 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
-"""Necks are the interface between a vision backbone and the rest of the detection model"""
+"""Necks are the interface between a vision backbone and the rest of the detection model."""
 
 from __future__ import annotations
+
 from copy import deepcopy
 
 import torch
@@ -21,7 +22,7 @@ class Sam3DualViTDetNeck(nn.Module):
         """
         SimpleFPN neck a la ViTDet
         (From detectron2, very lightly adapted)
-        It supports a "dual neck" setting, where we have two identical necks (for SAM3 and SAM2), with different weights
+        It supports a "dual neck" setting, where we have two identical necks (for SAM3 and SAM2), with different weights.
 
         :param trunk: the backbone
         :param position_encoding: the positional encoding to use
@@ -99,7 +100,7 @@ class Sam3DualViTDetNeck(nn.Module):
     def forward(
         self, tensor_list: list[torch.Tensor]
     ) -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor], list[torch.Tensor]]:
-        """Get the feature maps and positional encodings from the neck"""
+        """Get the feature maps and positional encodings from the neck."""
         xs = self.trunk(tensor_list)
         sam3_out, sam3_pos = [], []
         sam2_out, sam2_pos = None, None
@@ -120,5 +121,5 @@ class Sam3DualViTDetNeck(nn.Module):
         return sam3_out, sam3_pos, sam2_out, sam2_pos
 
     def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
-        """Set the image size for the trunk backbone"""
+        """Set the image size for the trunk backbone."""
         self.trunk.set_imgsz(imgsz)

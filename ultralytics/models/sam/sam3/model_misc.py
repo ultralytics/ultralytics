@@ -1,13 +1,13 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
-"""Various utility models"""
+"""Various utility models."""
+from __future__ import annotations
 
 import math
-from typing import Union
 
 import numpy as np
 import torch
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 
 class DotProductScoring(torch.nn.Module):
@@ -71,7 +71,7 @@ class LayerScale(nn.Module):
     def __init__(
         self,
         dim: int,
-        init_values: Union[float, Tensor] = 1e-5,
+        init_values: float | Tensor = 1e-5,
         inplace: bool = False,
     ) -> None:
         super().__init__()
@@ -99,7 +99,7 @@ class TransformerWrapper(nn.Module):
         self.pos_enc_at_input_dec = pos_enc_at_input_dec
 
         # for two stage
-        assert two_stage_type in ["none"], "unknown param {} of two_stage_type".format(two_stage_type)
+        assert two_stage_type in ["none"], f"unknown param {two_stage_type} of two_stage_type"
         self.two_stage_type = two_stage_type
 
         self._reset_parameters()
@@ -149,5 +149,5 @@ def gen_sineembed_for_position(pos_tensor, num_feats=256):
 
         pos = torch.cat((pos_y, pos_x, pos_w, pos_h), dim=2)
     else:
-        raise ValueError("Unknown pos_tensor shape(-1):{}".format(pos_tensor.size(-1)))
+        raise ValueError(f"Unknown pos_tensor shape(-1):{pos_tensor.size(-1)}")
     return pos

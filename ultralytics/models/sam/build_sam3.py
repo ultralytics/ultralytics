@@ -1,8 +1,13 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 import torch.nn as nn
-from ultralytics.utils.patches import torch_load
+
 from ultralytics.nn.modules.transformer import MLP
+from ultralytics.utils.patches import torch_load
+
+from .modules.blocks import PositionEmbeddingSine, RoPEAttention
+from .modules.encoders import MemoryEncoder
+from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 from .modules.sam import SAM3Model
 from .sam3.decoder import TransformerDecoder, TransformerDecoderLayer
 from .sam3.encoder import TransformerEncoderFusion, TransformerEncoderLayer
@@ -15,9 +20,6 @@ from .sam3.text_encoder_ve import VETextEncoder
 from .sam3.tokenizer_ve import SimpleTokenizer
 from .sam3.vitdet import ViT
 from .sam3.vl_combiner import SAM3VLBackbone
-from .modules.blocks import PositionEmbeddingSine, RoPEAttention
-from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
-from .modules.encoders import MemoryEncoder
 
 
 def _create_vision_backbone(compile_mode=None, enable_inst_interactivity=True) -> Sam3DualViTDetNeck:
@@ -135,7 +137,7 @@ def build_sam3_image_model(
     checkpoint_path: str, bpe_path: str, enable_segmentation: bool = True, compile: bool = False
 ):
     """
-    Build SAM3 image model
+    Build SAM3 image model.
 
     Args:
         checkpoint_path: Optional path to model checkpoint
@@ -258,7 +260,6 @@ def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=Tru
     Returns:
         Sam3TrackerPredictor: Wrapped SAM3 Tracker module
     """
-
     # Create model components
     memory_encoder = MemoryEncoder(out_dim=64, interpol_size=[1152, 1152])
     memory_attention = MemoryAttention(

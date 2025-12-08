@@ -1,19 +1,19 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 """
 Transformer decoder.
-Inspired from Pytorch's version, adds the pre-norm variant
+Inspired from Pytorch's version, adds the pre-norm variant.
 """
+from __future__ import annotations
 
 import numpy as np
-
 import torch
 from torch import nn
 from torchvision.ops.roi_align import RoIAlign
 
+from ultralytics.nn.modules.transformer import MLP
+from ultralytics.nn.modules.utils import _get_clones, inverse_sigmoid
 from ultralytics.utils.ops import xywh2xyxy
 
-from ultralytics.nn.modules.utils import _get_clones, inverse_sigmoid
-from ultralytics.nn.modules.transformer import MLP
 from .model_misc import gen_sineembed_for_position
 
 
@@ -87,7 +87,7 @@ class TransformerDecoderLayer(nn.Module):
     ):
         """
         Input:
-            - tgt/tgt_query_pos: nq, bs, d_model
+            - tgt/tgt_query_pos: nq, bs, d_model.
             -
         """
         # self attention
@@ -379,21 +379,21 @@ class TransformerDecoder(nn.Module):
         memory_text: torch.Tensor = None,
         text_attention_mask: torch.Tensor = None,
         # if `apply_dac` is None, it will default to `self.dac`
-        apply_dac: bool = None,
+        apply_dac: bool | None = None,
         is_instance_prompt=False,
-        decoder_extra_kwargs: dict = None,
+        decoder_extra_kwargs: dict | None = None,
         # ROI memory bank
         obj_roi_memory_feat=None,
         obj_roi_memory_mask=None,
         box_head_trk=None,
     ):
-        """
+        r"""
         Input:
             - tgt: nq, bs, d_model
             - memory: \\sum{hw}, bs, d_model
             - pos: \\sum{hw}, bs, d_model
             - reference_boxes: nq, bs, 4 (after sigmoid)
-            - valid_ratios/spatial_shapes: bs, nlevel, 2
+            - valid_ratios/spatial_shapes: bs, nlevel, 2.
         """
         if memory_mask is not None:
             assert self.boxRPB == "none", (

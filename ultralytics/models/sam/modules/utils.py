@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
-import math
 import torch
 import torch.nn.functional as F
 
@@ -391,15 +391,17 @@ def get_abs_pos(
     """
     Calculate absolute positional embeddings. If needed, resize embeddings and remove cls_token
         dimension for the original embeddings.
+
     Args:
         abs_pos (Tensor): absolute positional embeddings with (1, num_position, C).
         has_cls_token (bool): If true, has 1 embedding in abs_pos for cls token.
         hw (Tuple): size of input image tokens.
         retain_cls_token: whether to retain the cls_token
         tiling: whether to tile the embeddings, *instead* of interpolation (a la abs_win)
+
     Returns:
         Absolute positional embeddings after processing with shape (1, H, W, C),
-        if retain_cls_token is False, otherwise (1, 1+H*W, C)
+        if retain_cls_token is False, otherwise (1, 1+H*W, C).
     """
     if retain_cls_token:
         assert has_cls_token
@@ -458,6 +460,7 @@ def concat_rel_pos(
     """
     Concatenate rel pos coeffs to the q & k tensors, so that qk^T is now
     effectively including rel pos biases.
+
     Args:
         q (Tensor): q tensor with shape (B, L_q, C).
         k (Tensor): k tensor with shape (B, L_k, C).
@@ -465,8 +468,9 @@ def concat_rel_pos(
         rel_pos_h, rel_pos_w: These are relative pos embeddings/params of height, width.
         rescale (bool): whether to rescale. e.g. for use when using sdpa, pytorch will
             scale by the wrong factor due to the concat.
+
     Returns:
-        q, k: But, padded so that qk^T accounts for rel pos biases
+        q, k: But, padded so that qk^T accounts for rel pos biases.
     """
     q_h, q_w = q_hw
     k_h, k_w = k_hw

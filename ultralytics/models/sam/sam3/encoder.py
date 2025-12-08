@@ -1,8 +1,10 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 # Based on https://github.com/IDEA-Research/GroundingDINO
+from __future__ import annotations
 
 import torch
 from torch import nn
+
 from ultralytics.nn.modules.utils import _get_clones
 
 from .model_misc import get_valid_ratio
@@ -345,11 +347,11 @@ class TransformerEncoder(nn.Module):
     def forward(
         self,
         src: list[torch.Tensor],
-        src_key_padding_masks: list[torch.Tensor] = None,
-        pos: list[torch.Tensor] = None,
+        src_key_padding_masks: list[torch.Tensor] | None = None,
+        pos: list[torch.Tensor] | None = None,
         prompt: torch.Tensor = None,
         prompt_key_padding_mask: torch.Tensor = None,
-        encoder_extra_kwargs: dict = None,
+        encoder_extra_kwargs: dict | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Process multi-level features through the transformer encoder.
@@ -440,7 +442,7 @@ class TransformerEncoderFusion(TransformerEncoder):
         num_feature_levels: int,
         add_pooled_text_to_img_feat: bool = True,
         pool_text_with_mask: bool = False,
-        compile_mode: str = None,
+        compile_mode: str | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -461,11 +463,11 @@ class TransformerEncoderFusion(TransformerEncoder):
         self,
         src: list[torch.Tensor],
         prompt: torch.Tensor,
-        src_key_padding_mask: list[torch.Tensor] = None,
-        src_pos: list[torch.Tensor] = None,
+        src_key_padding_mask: list[torch.Tensor] | None = None,
+        src_pos: list[torch.Tensor] | None = None,
         prompt_key_padding_mask: torch.Tensor = None,
-        feat_sizes: list[int] = None,
-        encoder_extra_kwargs: dict = None,
+        feat_sizes: list[int] | None = None,
+        encoder_extra_kwargs: dict | None = None,
     ):
         # Restore spatial shapes of vision
         bs = src[0].shape[1]  # seq first

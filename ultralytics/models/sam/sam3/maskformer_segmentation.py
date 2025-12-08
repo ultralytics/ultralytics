@@ -1,12 +1,14 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 from __future__ import annotations
+
 import math
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
+
 from ultralytics.nn.modules.transformer import MLP
 
 
@@ -181,7 +183,7 @@ class PixelDecoder(nn.Module):
 
 
 class UniversalSegmentationHead(SegmentationHead):
-    """This module handles semantic+instance segmentation"""
+    """This module handles semantic+instance segmentation."""
 
     def __init__(
         self,

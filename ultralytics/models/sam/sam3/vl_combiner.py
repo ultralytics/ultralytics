@@ -1,12 +1,14 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 """Provides utility to combine a vision backbone with a language backbone."""
+from __future__ import annotations
 
 from copy import copy
+
 import torch
 import torch.nn as nn
+from torch.nn.attention import SDPBackend, sdpa_kernel
 
-from torch.nn.attention import sdpa_kernel, SDPBackend
 from .necks import Sam3DualViTDetNeck
 
 
@@ -44,7 +46,7 @@ class SAM3VLBackbone(nn.Module):
         samples: torch.Tensor,
         captions: list[str],
         input_boxes: torch.Tensor = None,
-        additional_text: list[str] = None,
+        additional_text: list[str] | None = None,
     ):
         """Forward pass of the backbone combiner.
 
@@ -156,5 +158,5 @@ class SAM3VLBackbone(nn.Module):
         return output
 
     def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
-        """Set the image size for the vision backbone"""
+        """Set the image size for the vision backbone."""
         self.vision_backbone.set_imgsz(imgsz)

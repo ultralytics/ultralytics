@@ -244,7 +244,7 @@ class BasePredictor:
         for _ in gen:  # sourcery skip: remove-empty-nested-block, noqa
             pass
 
-    def setup_source(self, source, stride:int =None):
+    def setup_source(self, source, stride:int | None =None):
         """Set up source and inference mode.
 
         Args:

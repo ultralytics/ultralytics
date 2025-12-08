@@ -79,7 +79,7 @@ class MaskDownSampler(nn.Module):
         padding: int = 0,
         total_stride: int = 16,
         activation: type[nn.Module] = nn.GELU,
-        interpol_size: tuple[int, int] = None,
+        interpol_size: tuple[int, int] | None = None,
     ):
         """Initialize a mask downsampler module for progressive downsampling and channel expansion."""
         super().__init__()

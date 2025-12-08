@@ -55,6 +55,7 @@ class MaskPredictor(nn.Module):
 
 
 class SegmentationHead(nn.Module):
+    """Segmentation head that predicts masks from backbone features and object queries."""
     def __init__(
         self,
         hidden_dim,
@@ -139,6 +140,7 @@ class SegmentationHead(nn.Module):
 
 
 class PixelDecoder(nn.Module):
+    """Pixel decoder module that upsamples backbone features."""
     def __init__(
         self,
         hidden_dim,

@@ -265,6 +265,7 @@ class TransformerEncoder(nn.Module):
         frozen: bool = False,
         use_act_checkpoint: bool = False,
     ):
+        """Initialize the transformer encoder."""
         super().__init__()
         self.layers = _get_clones(layer, num_layers)
         self.num_layers = num_layers
@@ -287,6 +288,7 @@ class TransformerEncoder(nn.Module):
             layer.layer_idx = layer_idx
 
     def _prepare_multilevel_features(self, srcs, masks, pos_embeds):
+        """Prepare multi-level features for transformer encoder."""
         assert len(srcs) == self.num_feature_levels, "mismatch between expected and received # of feature levels"
 
         src_flatten = []
@@ -439,6 +441,7 @@ class TransformerEncoderFusion(TransformerEncoder):
         compile_mode: str | None = None,
         **kwargs,
     ):
+        """Initialize the transformer encoder with text-image fusion."""
         super().__init__(
             layer,
             num_layers,
@@ -463,6 +466,7 @@ class TransformerEncoderFusion(TransformerEncoder):
         feat_sizes: list[int] | None = None,
         encoder_extra_kwargs: dict | None = None,
     ):
+        """Forward pass for the transformer encoder with text-image fusion."""
         # Restore spatial shapes of vision
         bs = src[0].shape[1]  # seq first
         if feat_sizes is not None:
@@ -514,6 +518,7 @@ class TransformerEncoderFusion(TransformerEncoder):
 
 
 def pool_text_feat(prompt, prompt_mask, pool_with_mask):
+    """Mean-pool the prompt embeddings over the valid tokens only."""
     # prompt has shape (seq, bs, dim)
     if not pool_with_mask:
         return prompt.mean(dim=0)

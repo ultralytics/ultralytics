@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 import torch.nn as nn
@@ -136,8 +138,7 @@ def _create_sam3_transformer() -> TransformerWrapper:
 def build_sam3_image_model(
     checkpoint_path: str, bpe_path: str, enable_segmentation: bool = True, compile: bool = False
 ):
-    """
-    Build SAM3 image model.
+    """Build SAM3 image model.
 
     Args:
         checkpoint_path: Optional path to model checkpoint
@@ -254,8 +255,7 @@ def build_sam3_image_model(
 
 
 def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=True) -> SAM3Model:
-    """
-    Build the SAM3 Tracker module for video tracking.
+    """Build the SAM3 Tracker module for video tracking.
 
     Returns:
         Sam3TrackerPredictor: Wrapped SAM3 Tracker module

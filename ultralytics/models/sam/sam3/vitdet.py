@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 """
@@ -9,6 +11,7 @@ Rope embedding code adopted from:
 2. https://github.com/naver-ai/rope-vit
 3. https://github.com/lucidrains/rotary-embedding-torch
 """
+
 from __future__ import annotations
 
 import math
@@ -61,11 +64,11 @@ class Attention(nn.Module):
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads.
-            qkv_bias (bool:  If True, add a learnable bias to query, key, value.
+            qkv_bias (bool: If True, add a learnable bias to query, key, value.
             rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            input_size (int or None): Input resolution for calculating the relative positional
-                parameter size or rope size.
+            input_size (int or None): Input resolution for calculating the relative positional parameter size or rope
+                size.
             attn_type: Type of attention operation, e.g. "vanilla", "vanilla-xformer".
             cls_token: whether a cls_token is present.
             use_rope: whether to use rope 2d (indep of use_rel_pos, as it can be used together)
@@ -245,16 +248,14 @@ class Block(nn.Module):
             act_layer (nn.Module): Activation layer.
             use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            window_size (int): Window size for window attention blocks. If it equals 0, then not
-                use window attention.
-            input_size (int or None): Input resolution for calculating the relative positional
-                parameter size.
+            window_size (int): Window size for window attention blocks. If it equals 0, then not use window attention.
+            input_size (int or None): Input resolution for calculating the relative positional parameter size.
             dropout (float): Dropout rate.
             cls_token: whether a cls_token is present.
             use_rope: whether to use rope 2d (indep of use_rel_pos, as it can be used together)
             rope_pt_size: size of rope in previous stage of training, needed for interpolation or tiling
-            rope_interp: whether to interpolate (or extrapolate) rope to match target input size,
-                expected to specify source size as rope_pt_size.
+            rope_interp: whether to interpolate (or extrapolate) rope to match target input size, expected to specify
+                source size as rope_pt_size.
         """
         super().__init__()
         self.norm1 = norm_layer(dim)
@@ -304,10 +305,8 @@ class Block(nn.Module):
 
 
 class ViT(nn.Module):
-    """
-    This module implements Vision Transformer (ViT) backbone in :paper:`vitdet`.
-    "Exploring Plain Vision Transformer Backbones for Object Detection",
-    https://arxiv.org/abs/2203.16527.
+    """This module implements Vision Transformer (ViT) backbone in :paper:`vitdet`. "Exploring Plain Vision Transformer
+    Backbones for Object Detection", https://arxiv.org/abs/2203.16527.
     """
 
     def __init__(
@@ -365,17 +364,15 @@ class ViT(nn.Module):
             global_att_blocks (list): Indexes for blocks using global attention (other blocks use window attention).
             use_rope (bool): whether to use rope 2d (indep of rel_pos_blocks, as it can be used together).
             rope_pt_size (int): size of rope in previous stage of training, needed for interpolation or tiling.
-            use_interp_rope: whether to interpolate (or extrapolate) rope to match target input size,
-                expected to specify source size as rope_pt_size.
+            use_interp_rope: whether to interpolate (or extrapolate) rope to match target input size, expected to
+                specify source size as rope_pt_size.
             use_act_checkpoint (bool): If True, use activation checkpointing.
             pretrain_img_size (int): input image size for pretraining models.
             pretrain_use_cls_token (bool): If True, pretraining models use class token.
             retain_cls_token: whether cls_token should be retained.
             dropout (float): Dropout rate. Applied in residual blocks of attn, mlp and inside the mlp.
-
             return_interm_layers (bool): Whether to return intermediate layers (all global attention blocks).
             init_values: layer scale init, None for no layer scale.
-
             ln_pre (bool): If True, apply layer norm before transformer blocks.
             ln_post (bool): If True, apply layer norm after transformer blocks.
             bias_patch_embed (bool): bias in conv for patch embed?

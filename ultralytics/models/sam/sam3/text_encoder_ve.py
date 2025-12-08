@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 from __future__ import annotations
@@ -124,7 +126,9 @@ class Transformer(nn.Module):
 def text_global_pool(
     x: torch.Tensor, text: torch.Tensor = None, pool_type: str = "argmax"
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Extract pooled representation and tokens from text embeddings using specified pooling strategy (first/last/argmax/none)."""
+    """Extract pooled representation and tokens from text embeddings using specified pooling strategy
+    (first/last/argmax/none).
+    """
     if pool_type == "first":
         pooled, tokens = x[:, 0], x[:, 1:]
     elif pool_type == "last":

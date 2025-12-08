@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 """
@@ -6,6 +8,7 @@ Text Tokenizer.
 Copied and lightly adapted from VE repo, which in turn copied
 from open_clip and openAI CLIP.
 """
+
 from __future__ import annotations
 
 import gzip
@@ -23,14 +26,11 @@ from iopath.common.file_io import g_pathmgr
 
 @lru_cache
 def bytes_to_unicode():
-    """
-    Returns list of utf-8 byte and a corresponding list of unicode strings.
-    The reversible bpe codes work on unicode strings.
-    This means you need a large # of unicode characters in your vocab if you want to avoid UNKs.
-    When you're at something like a 10B token dataset you end up needing around 5K for decent coverage.
-    This is a significant percentage of your normal, say, 32K bpe vocab.
-    To avoid that, we want lookup tables between utf-8 bytes and unicode strings.
-    And avoids mapping to whitespace/control characters the bpe code barfs on.
+    """Returns list of utf-8 byte and a corresponding list of unicode strings. The reversible bpe codes work on unicode
+    strings. This means you need a large # of unicode characters in your vocab if you want to avoid UNKs. When
+    you're at something like a 10B token dataset you end up needing around 5K for decent coverage. This is a
+    significant percentage of your normal, say, 32K bpe vocab. To avoid that, we want lookup tables between utf-8
+    bytes and unicode strings. And avoids mapping to whitespace/control characters the bpe code barfs on.
     """
     bs = list(range(ord("!"), ord("~") + 1)) + list(range(ord("¡"), ord("¬") + 1)) + list(range(ord("®"), ord("ÿ") + 1))
     cs = bs[:]
@@ -45,8 +45,8 @@ def bytes_to_unicode():
 
 
 def get_pairs(word):
-    """Return set of symbol pairs in a word.
-    Word is represented as tuple of symbols (symbols being variable-length strings).
+    """Return set of symbol pairs in a word. Word is represented as tuple of symbols (symbols being variable-length
+    strings).
     """
     pairs = set()
     prev_char = word[0]
@@ -101,13 +101,13 @@ def get_clean_fn(type: str):
 
 
 def canonicalize_text(text, *, keep_punctuation_exact_string=None):
-    """Returns canonicalized `text` (lowercase and punctuation removed).
-    From: https://github.com/google-research/big_vision/blob/53f18caf27a9419231bbf08d3388b07671616d3d/big_vision/evaluators/proj/image_text/prompt_engineering.py#L94
+    """Returns canonicalized `text` (lowercase and punctuation removed). From:
+    https://github.com/google-research/big_vision/blob/53f18caf27a9419231bbf08d3388b07671616d3d/big_vision/evaluators/proj/image_text/prompt_engineering.py#L94.
+
     Args:
-      text: string to be canonicalized.
-      keep_punctuation_exact_string: If provided, then this exact string kept.
-        For example providing '{}' will keep any occurrences of '{}' (but will
-        still remove '{' and '}' that appear separately).
+        text: string to be canonicalized.
+        keep_punctuation_exact_string: If provided, then this exact string kept. For example providing '{}' will keep
+            any occurrences of '{}' (but will still remove '{' and '}' that appear separately).
     """
     text = text.replace("_", " ")
     if keep_punctuation_exact_string:
@@ -218,17 +218,13 @@ class SimpleTokenizer:
         return text
 
     def __call__(self, texts: str | list[str], context_length: int | None = None) -> torch.LongTensor:
-        """Returns the tokenized representation of given input string(s)
-        Parameters.
-        ----------
-        texts : Union[str, list[str]]
-            An input string or a list of input strings to tokenize
-        context_length : int
-            The context length to use; all CLIP models use 77 as the context length
+        """Returns the tokenized representation of given input string(s) Parameters. ---------- texts : Union[str,
+        list[str]] An input string or a list of input strings to tokenize context_length : int The context
+        length to use; all CLIP models use 77 as the context length.
 
         Returns:
-        -------
-        A two-dimensional tensor containing the resulting tokens, shape = [number of input strings, context_length]
+            -------: A two-dimensional tensor containing the resulting tokens, shape = [number of input strings,
+                context_length]
         """
         if isinstance(texts, str):
             texts = [texts]

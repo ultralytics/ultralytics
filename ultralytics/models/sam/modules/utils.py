@@ -388,9 +388,8 @@ def get_abs_pos(
     retain_cls_token: bool = False,
     tiling: bool = False,
 ) -> torch.Tensor:
-    """
-    Calculate absolute positional embeddings. If needed, resize embeddings and remove cls_token
-        dimension for the original embeddings.
+    """Calculate absolute positional embeddings. If needed, resize embeddings and remove cls_token dimension for the
+    original embeddings.
 
     Args:
         abs_pos (Tensor): absolute positional embeddings with (1, num_position, C).
@@ -400,8 +399,8 @@ def get_abs_pos(
         tiling: whether to tile the embeddings, *instead* of interpolation (a la abs_win)
 
     Returns:
-        Absolute positional embeddings after processing with shape (1, H, W, C),
-        if retain_cls_token is False, otherwise (1, 1+H*W, C).
+        Absolute positional embeddings after processing with shape (1, H, W, C),: if retain_cls_token is False,
+            otherwise (1, 1+H*W, C).
     """
     if retain_cls_token:
         assert has_cls_token
@@ -457,17 +456,15 @@ def concat_rel_pos(
     rescale: bool = False,
     relative_coords: torch.Tensor = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """
-    Concatenate rel pos coeffs to the q & k tensors, so that qk^T is now
-    effectively including rel pos biases.
+    """Concatenate rel pos coeffs to the q & k tensors, so that qk^T is now effectively including rel pos biases.
 
     Args:
         q (Tensor): q tensor with shape (B, L_q, C).
         k (Tensor): k tensor with shape (B, L_k, C).
         q_hw, k_hw: These are spatial size of q & k tensors.
         rel_pos_h, rel_pos_w: These are relative pos embeddings/params of height, width.
-        rescale (bool): whether to rescale. e.g. for use when using sdpa, pytorch will
-            scale by the wrong factor due to the concat.
+        rescale (bool): whether to rescale. e.g. for use when using sdpa, pytorch will scale by the wrong factor due to
+            the concat.
 
     Returns:
         q, k: But, padded so that qk^T accounts for rel pos biases.

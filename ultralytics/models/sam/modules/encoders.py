@@ -371,7 +371,8 @@ class MemoryEncoder(nn.Module):
         Args:
             out_dim (int): Output dimension of the encoded features.
             in_dim (int): Input dimension of the pixel features.
-            interpol_size (tuple[int, int] | None): Size to interpolate masks to. If None, uses the size of pixel features.
+            interpol_size (tuple[int, int] | None): Size to interpolate masks to. If None, uses the size of pixel
+                features.
         """
         super().__init__()
 

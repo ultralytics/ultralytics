@@ -1142,9 +1142,8 @@ class SAM3Model(SAM2Model):
         return pred_masks_after
 
     def _suppress_object_pw_area_shrinkage(self, pred_masks):
-        """
-        This function suppresses masks that shrink in area after applying pixelwise non-overlapping constriants.
-        Note that the final output can still be overlapping.
+        """This function suppresses masks that shrink in area after applying pixelwise non-overlapping constraints. Note
+        that the final output can still be overlapping.
         """
         # Apply pixel-wise non-overlapping constraint based on mask scores
         pixel_level_non_overlapping_masks = self._apply_non_overlapping_constraints(pred_masks)

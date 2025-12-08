@@ -155,11 +155,11 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
             task="segment",
             mode="predict",
             model="sam3.pt",
-            half=True  # Use FP16 for faster inference
+            half=True,  # Use FP16 for faster inference
         )
         predictor = SAM3SemanticPredictor(
             overrides=overrides,
-            bpe_path="path/to/bpe_simple_vocab_16e6.txt.gz"  # Required for text encoding
+            bpe_path="path/to/bpe_simple_vocab_16e6.txt.gz",  # Required for text encoding
         )
 
         # Set image once for multiple queries
@@ -170,13 +170,13 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
         # Works with descriptive phrases
         results = predictor(text=["person with red cloth", "person with blue cloth"], save=True)
-        
+
         # Query with a single concept
         results = predictor(text=["a person"], save=True)
         ```
 
     !!! note "Text Encoding Requirement"
-    
+
         The `bpe_path` parameter is required for text prompt encoding. Download the BPE vocabulary file from the [bpe_simple_vocab_16e6.txt.gz](https://github.com/facebookresearch/sam3/blob/main/assets/bpe_simple_vocab_16e6.txt.gz).
 
 #### Segment with Image Exemplars
@@ -191,17 +191,8 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam.predict import SAM3SemanticPredictor
 
         # Initialize predictor
-        overrides = dict(
-            conf=0.25,
-            task="segment",
-            mode="predict",
-            model="sam3.pt",
-            half=True
-        )
-        predictor = SAM3SemanticPredictor(
-            overrides=overrides,
-            bpe_path="path/to/bpe_simple_vocab_16e6.txt.gz"
-        )
+        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True)
+        predictor = SAM3SemanticPredictor(overrides=overrides, bpe_path="path/to/bpe_simple_vocab_16e6.txt.gz")
 
         # Set image
         predictor.set_image("path/to/image.jpg")
@@ -222,26 +213,15 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
     === "Python"
 
         ```python
-        from ultralytics.models.sam.predict import SAM3SemanticPredictor
-        from ultralytics.utils.plotting import Annotator, colors
         import cv2
 
+        from ultralytics.models.sam.predict import SAM3SemanticPredictor
+        from ultralytics.utils.plotting import Annotator, colors
+
         # Initialize predictors
-        overrides = dict(
-            conf=0.50,
-            task="segment",
-            mode="predict",
-            model="sam3.pt",
-            verbose=False
-        )
-        predictor = SAM3SemanticPredictor(
-            overrides=overrides,
-            bpe_path="path/to/bpe_simple_vocab_16e6.txt.gz"
-        )
-        predictor2 = SAM3SemanticPredictor(
-            overrides=overrides,
-            bpe_path="path/to/bpe_simple_vocab_16e6.txt.gz"
-        )
+        overrides = dict(conf=0.50, task="segment", mode="predict", model="sam3.pt", verbose=False)
+        predictor = SAM3SemanticPredictor(overrides=overrides, bpe_path="path/to/bpe_simple_vocab_16e6.txt.gz")
+        predictor2 = SAM3SemanticPredictor(overrides=overrides, bpe_path="path/to/bpe_simple_vocab_16e6.txt.gz")
 
         # Extract features from the first predictor
         source = "path/to/image.jpg"
@@ -252,18 +232,10 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         predictor2.setup_model()
 
         # Perform inference using shared features with text prompt
-        masks, boxes = predictor2.inference_features(
-            predictor.features,
-            src_shape=src_shape,
-            text=["person"]
-        )
+        masks, boxes = predictor2.inference_features(predictor.features, src_shape=src_shape, text=["person"])
 
         # Perform inference using shared features with bounding box prompt
-        masks, boxes = predictor2.inference_features(
-            predictor.features,
-            src_shape=src_shape,
-            bboxes=[439, 437, 524, 709]
-        )
+        masks, boxes = predictor2.inference_features(predictor.features, src_shape=src_shape, bboxes=[439, 437, 524, 709])
 
         # Visualize results
         masks, boxes = masks.cpu().numpy(), boxes.cpu().numpy()
@@ -289,21 +261,11 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam.predict import SAM3VideoPredictor
 
         # Create video predictor
-        overrides = dict(
-            conf=0.25,
-            task="segment",
-            mode="predict",
-            model="sam3.pt",
-            half=True
-        )
+        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True)
         predictor = SAM3VideoPredictor(overrides=overrides)
 
         # Track objects using bounding box prompts
-        results = predictor(
-            source="path/to/video.mp4",
-            bboxes=[[706.5, 442.5, 905.25, 555], [598, 635, 725, 750]],
-            stream=True
-        )
+        results = predictor(source="path/to/video.mp4", bboxes=[[706.5, 442.5, 905.25, 555], [598, 635, 725, 750]], stream=True)
 
         # Process and display results
         for r in results:
@@ -322,26 +284,11 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam.sam3_video_model import SAM3VideoSemanticPredictor
 
         # Initialize semantic video predictor
-        overrides = dict(
-            conf=0.25,
-            task="segment",
-            mode="predict",
-            imgsz=640,
-            model="sam3.pt",
-            half=True
-        )
-        predictor = SAM3VideoSemanticPredictor(
-            overrides=overrides,
-            bpe_path="path/to/bpe_simple_vocab_16e6.txt.gz"
-        )
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=640, model="sam3.pt", half=True)
+        predictor = SAM3VideoSemanticPredictor(overrides=overrides, bpe_path="path/to/bpe_simple_vocab_16e6.txt.gz")
 
         # Track concepts using text prompts
-        results = predictor(
-            source="path/to/video.mp4",
-            text=["person", "bicycle"],
-            stream=True,
-            save=True
-        )
+        results = predictor(source="path/to/video.mp4", text=["person", "bicycle"], stream=True, save=True)
 
         # Process results
         for r in results:
@@ -353,7 +300,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
             bboxes=[[864, 383, 975, 620], [705, 229, 782, 402]],
             labels=[1, 1],  # Positive labels
             stream=True,
-            save=True
+            save=True,
         )
         ```
 
@@ -385,7 +332,7 @@ SAM 3 maintains full backward compatibility with SAM 2's visual prompting for si
         ```
 
     !!! warning "Visual Prompts vs Concept Segmentation"
-    
+
         Using `SAM("sam3.pt")` with visual prompts (points/boxes/masks) will segment **only the specific object** at that location, just like SAM 2. To segment **all instances of a concept**, use `SAM3SemanticPredictor` with text or exemplar prompts as shown above.
 
 ## Performance Benchmarks

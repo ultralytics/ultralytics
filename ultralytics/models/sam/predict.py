@@ -757,7 +757,7 @@ class SAM2Predictor(Predictor):
         return points, labels, masks
 
     def setup_source(self, source):
-        """ "Set up the data source and image size for SAM2 inference."""
+        """"Set up the data source and image size for SAM2 inference."""
         super().setup_source(source)
         self._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
 
@@ -1009,7 +1009,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             labels (torch.Tensor, optional): The labels corresponding to the points.
             masks (torch.Tensor, optional): Binary masks for the object.
             frame_idx (int, optional): The index of the frame to which the prompts are applied.
-            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's inference state.
+            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's
+                inference state.
 
         Returns:
             pred_masks (torch.Tensor): The flattened predicted masks.
@@ -1104,7 +1105,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         inputs.
 
         Args:
-            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's inference state.
+            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's
+                inference state.
         """
         inference_state = inference_state or self.inference_state
         # Tracking has started and we don't allow adding new objects until session is reset.
@@ -1258,7 +1260,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             obj_id (int): The unique identifier of the object provided by the client side.
-            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's inference state.
+            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's
+                inference state.
 
         Returns:
             (int): The index of the object on the model side.
@@ -1331,7 +1334,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             reverse (bool): Indicates if the tracking should be performed in reverse order.
             run_mem_encoder (bool): Indicates if the memory encoder should be executed.
             prev_sam_mask_logits (torch.Tensor | None): Previous mask logits for the current object.
-            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's inference state.
+            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's
+                inference state.
 
         Returns:
             (dict): A dictionary containing the output of the tracking step, including updated features and predictions.
@@ -1395,7 +1399,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         Args:
             out_maskmem_pos_enc (list[torch.Tensor] | None): The positional encoding for mask memory. Should be a list
                 of tensors or None.
-            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's inference state.
+            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's
+                inference state.
 
         Returns:
             (list[torch.Tensor]): The positional encoding for mask memory, either cached or expanded.
@@ -1442,7 +1447,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             is_cond (bool, optional): Indicates if the frame is considered a conditioning frame.
             run_mem_encoder (bool, optional): Specifies whether to run the memory encoder after consolidating the
                 outputs.
-            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's inference state.
+            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's
+                inference state.
 
         Returns:
             (dict): A consolidated output dictionary containing the combined results for all objects.
@@ -1538,7 +1544,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             frame_idx (int): The index of the current frame for which to generate the dummy object pointer.
-            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's inference state.
+            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's
+                inference state.
 
         Returns:
             (torch.Tensor): A tensor representing the dummy object pointer generated from the empty mask.
@@ -1583,7 +1590,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             high_res_masks (torch.Tensor): High-resolution masks for which to compute the memory.
             object_score_logits (torch.Tensor): Logits representing the object scores.
             is_mask_from_pts (bool): Indicates if the mask is derived from point interactions.
-            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's inference state.
+            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's
+                inference state.
 
         Returns:
             maskmem_features (torch.Tensor): The encoded mask features.
@@ -1606,7 +1614,9 @@ class SAM2VideoPredictor(SAM2Predictor):
             dtype=torch.float16, device=self.device, non_blocking=self.device.type == "cuda"
         ), maskmem_pos_enc
 
-    def _add_output_per_object(self, frame_idx, current_out, storage_key, inference_state: dict[str, Any] | None = None):
+    def _add_output_per_object(
+        self, frame_idx, current_out, storage_key, inference_state: dict[str, Any] | None = None
+    ):
         """Split a multi-object output into per-object output slices and add them into Output_Dict_Per_Obj.
 
         The resulting slices share the same tensor storage.
@@ -1615,7 +1625,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             frame_idx (int): The index of the current frame.
             current_out (dict): The current output dictionary containing multi-object outputs.
             storage_key (str): The key used to store the output in the per-object output dictionary.
-            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's inference state.
+            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's
+                inference state.
         """
         inference_state = inference_state or self.inference_state
         maskmem_features = current_out["maskmem_features"]
@@ -1648,7 +1659,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             frame_idx (int): The index of the current frame where user interaction occurred.
-            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's inference state.
+            inference_state (dict[str, Any], optional): The current inference state. If None, uses the instance's
+                inference state.
         """
         inference_state = inference_state or self.inference_state
         r = self.model.memory_temporal_stride_for_eval
@@ -1661,9 +1673,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     @torch.inference_mode()
     def remove_object(self, inference_state, obj_id, strict=False):
-        """
-        Remove an object id from the tracking state. If strict is True, we check whether
-        the object id actually exists and raise an error if it doesn't exist.
+        """Remove an object id from the tracking state. If strict is True, we check whether the object id actually
+        exists and raise an error if it doesn't exist.
         """
         old_obj_idx_to_rm = inference_state["obj_id_to_idx"].get(obj_id, None)
         # Check whether this object_id to remove actually exists and possibly raise an error.
@@ -2318,8 +2329,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         Args:
             features (dict[str, Any]): Extracted image features from the SAM3 model image encoder.
             src_shape (tuple[int, int]): The source shape (height, width) of the input image.
-            bboxes (np.ndarray | list[list[float]] | None): Bounding boxes in xyxy format with shape (N, 4).
-                pixels.
+            bboxes (np.ndarray | list[list[float]] | None): Bounding boxes in xyxy format with shape (N, 4). pixels.
             labels (np.ndarray | list[int] | None): Point prompt labels with shape (N, ).
             text (list[str] | None): List of text prompts corresponding to the classes.
 
@@ -2658,9 +2668,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         return results
 
     def _run_single_frame_inference(self, frame_idx, reverse=False, inference_state=None):
-        """
-        Perform inference on a single frame and get its inference results. This would
-        also update `inference_state`.
+        """Perform inference on a single frame and get its inference results. This would also update `inference_state`.
         """
         inference_state = inference_state or self.inference_state
         # prepare inputs
@@ -2724,9 +2732,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         labels=None,
         inference_state=None,
     ):
-        """
-        Add text, point or box prompts on a single frame. This method returns the inference
-        outputs only on the prompted frame.
+        """Add text, point or box prompts on a single frame. This method returns the inference outputs only on the
+        prompted frame.
 
         Note that text prompts are NOT associated with a particular frame (i.e. they apply
         to all frames). However, we only run inference on the frame specified in `frame_idx`.
@@ -2784,11 +2791,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_metadata_prev: dict[str, Any],
         allow_new_detections: bool = True,
     ):
-        """
-        This function handles one-step inference for the DenseTracking model in an SPMD manner.
-        At a high-level, all GPUs execute the same function calls as if it's done on a single GPU,
-        while under the hood, some function calls involve distributed computation based on sharded
-        SAM2 states.
+        """This function handles one-step inference for the DenseTracking model in an SPMD manner. At a high-level, all
+        GPUs execute the same function calls as if it's done on a single GPU, while under the hood, some
+        function calls involve distributed computation based on sharded SAM2 states.
 
         - `input_batch` contains image and other inputs on the entire video; it should be identical across GPUs
         - `tracker_states_local` holds the local masklet information in this GPU shard
@@ -2882,8 +2887,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         )
 
     def _suppress_detections_close_to_boundary(self, boxes, margin=0.025):
-        """
-        Suppress detections too close to image edges (for normalized boxes).
+        """Suppress detections too close to image edges (for normalized boxes).
 
         boxes: (N, 4) in xyxy format, normalized [0,1]
         margin: fraction of image
@@ -3232,8 +3236,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         obj_ids_newly_removed: set[int],
         reverse: bool = False,
     ):
-        """
-        Suppress overlapping masks based on the most recent occlusion information. If an object is removed by hotstart, we always suppress it if it overlaps with any other object.
+        """Suppress overlapping masks based on the most recent occlusion information. If an object is removed by
+        hotstart, we always suppress it if it overlaps with any other object.
 
         Args:
             frame_idx (int): The current frame index.
@@ -3242,7 +3246,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             tracker_metadata_new (dict[str, Any]): The metadata for the current frame.
             obj_ids_newly_removed (set[int]): The object IDs that have been removed.
 
-        Return:
+        Returns:
             torch.Tensor: The updated low-resolution masks with some objects suppressed.
         """
         obj_ids_global = tracker_metadata_prev["obj_ids"]
@@ -3434,7 +3438,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         return to_suppress
 
     def _propogate_tracker_one_frame_local_gpu(self, inference_states: list[Any], frame_idx: int):
-        """inference_states: list of inference states, each state corresponds to a different set of objects."""
+        """Inference_states: list of inference states, each state corresponds to a different set of objects."""
         obj_ids_local = []
         low_res_masks_list = []
         obj_scores_list = []
@@ -3468,8 +3472,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         trk_masks: torch.Tensor,
         trk_obj_ids: np.ndarray,
     ):
-        """
-        Match detections on the current frame with the existing masklets.
+        """Match detections on the current frame with the existing masklets.
 
         Args:
           - det_masks: (N, H, W) tensor of predicted masks
@@ -3810,9 +3813,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         return tracker_states_local
 
     def _tracker_remove_objects(self, tracker_states_local: list[Any], obj_ids: list[int]):
-        """
-        Remove an object from SAM2 inference states. This would remove the object from
-        all frames in the video.
+        """Remove an object from SAM2 inference states. This would remove the object from all frames in the video.
         """
         if not obj_ids:
             return
@@ -3927,9 +3928,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         return self.model._encode_prompt(**kwargs)
 
     def _drop_new_det_with_obj_limit(self, new_det_fa_inds, det_scores_np, num_to_keep):
-        """
-        Drop a few new detections based on the maximum number of objects. We drop new objects based
-        on their detection scores, keeping the high-scoring ones and dropping the low-scoring ones.
+        """Drop a few new detections based on the maximum number of objects. We drop new objects based on their
+        detection scores, keeping the high-scoring ones and dropping the low-scoring ones.
         """
         assert 0 <= num_to_keep <= len(new_det_fa_inds)
         if num_to_keep == 0:

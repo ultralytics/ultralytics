@@ -1,8 +1,11 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 """
 Transformer decoder.
 Inspired from Pytorch's version, adds the pre-norm variant.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -85,13 +88,12 @@ class TransformerDecoderLayer(nn.Module):
         # skip inside deformable attn
         **kwargs,  # additional kwargs for compatibility
     ):
-        """
-        Input:
-            - tgt/tgt_query_pos: nq, bs, d_model.
-            -
+        """Input: - tgt/tgt_query_pos: nq, bs, d_model. -.
         """
         # self attention
-        tgt, tgt_query_pos = self._apply_self_attention(tgt, tgt_query_pos, dac, dac_use_selfatt_ln, presence_token, self_attn_mask)
+        tgt, tgt_query_pos = self._apply_self_attention(
+            tgt, tgt_query_pos, dac, dac_use_selfatt_ln, presence_token, self_attn_mask
+        )
 
         if self.use_text_cross_attention:
             tgt2 = self.ca_text(
@@ -387,13 +389,8 @@ class TransformerDecoder(nn.Module):
         obj_roi_memory_mask=None,
         box_head_trk=None,
     ):
-        r"""
-        Input:
-            - tgt: nq, bs, d_model
-            - memory: \\sum{hw}, bs, d_model
-            - pos: \\sum{hw}, bs, d_model
-            - reference_boxes: nq, bs, 4 (after sigmoid)
-            - valid_ratios/spatial_shapes: bs, nlevel, 2.
+        r"""Input: - tgt: nq, bs, d_model - memory: \\sum{hw}, bs, d_model - pos: \\sum{hw}, bs, d_model -
+        reference_boxes: nq, bs, 4 (after sigmoid) - valid_ratios/spatial_shapes: bs, nlevel, 2.
         """
         if memory_mask is not None:
             assert self.boxRPB == "none", (

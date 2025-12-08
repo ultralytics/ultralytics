@@ -1,6 +1,9 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 """Provides utility to combine a vision backbone with a language backbone."""
+
 from __future__ import annotations
 
 from copy import copy
@@ -13,8 +16,8 @@ from .necks import Sam3DualViTDetNeck
 
 
 class SAM3VLBackbone(nn.Module):
-    """This backbone combines a vision backbone and a language backbone without fusion.
-    As such it is more of a convenience wrapper to handle the two backbones together.
+    """This backbone combines a vision backbone and a language backbone without fusion. As such it is more of a
+    convenience wrapper to handle the two backbones together.
 
     It adds support for activation checkpointing and compilation.
     """

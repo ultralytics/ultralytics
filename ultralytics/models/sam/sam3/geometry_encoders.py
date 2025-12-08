@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 import torch
@@ -9,8 +11,8 @@ from ultralytics.utils.ops import xywh2xyxy
 
 
 def is_right_padded(mask: torch.Tensor):
-    """Given a padding mask (following pytorch convention, 1s for padded values),
-    returns whether the padding is on the right or not.
+    """Given a padding mask (following pytorch convention, 1s for padded values), returns whether the padding is on the
+    right or not.
     """
     return (mask.long() == torch.sort(mask.long(), dim=-1)[0]).all()
 
@@ -73,20 +75,15 @@ def concat_padded_sequences(seq1, mask1, seq2, mask2, return_index: bool = False
 class Prompt:
     """Utility class to manipulate geometric prompts.
 
-    We expect the sequences in pytorch convention, that is sequence first, batch second
-    The dimensions are expected as follows:
-    box_embeddings shape: N_boxes x B x C_box
-    box_mask shape: B x N_boxes. Can be None if nothing is masked out
-    point_embeddings shape: N_points x B x C_point
-    point_mask shape: B x N_points. Can be None if nothing is masked out
-    mask_embeddings shape: N_masks x B x 1 x H_mask x W_mask
-    mask_mask shape: B x N_masks. Can be None if nothing is masked out
+    We expect the sequences in pytorch convention, that is sequence first, batch second The dimensions are expected as
+    follows: box_embeddings shape: N_boxes x B x C_box box_mask shape: B x N_boxes. Can be None if nothing is masked out
+    point_embeddings shape: N_points x B x C_point point_mask shape: B x N_points. Can be None if nothing is masked out
+    mask_embeddings shape: N_masks x B x 1 x H_mask x W_mask mask_mask shape: B x N_masks. Can be None if nothing is
+    masked out
 
-    We also store positive/negative labels. These tensors are also stored batch-first
-    If they are None, we'll assume positive labels everywhere
-    box_labels: long tensor of shape N_boxes x B
-    point_labels: long tensor of shape N_points x B
-    mask_labels: long tensor of shape N_masks x B
+    We also store positive/negative labels. These tensors are also stored batch-first If they are None, we'll assume
+    positive labels everywhere box_labels: long tensor of shape N_boxes x B point_labels: long tensor of shape N_points
+    x B mask_labels: long tensor of shape N_masks x B
     """
 
     def __init__(self, box_embeddings=None, box_mask=None, box_labels=None):
@@ -179,14 +176,12 @@ class Prompt:
 
 
 class SequenceGeometryEncoder(nn.Module):
-    """
-    Encoder for geometric box prompts.
-    Assumes boxes are passed in the "normalized CxCyWH" format.
+    """Encoder for geometric box prompts. Assumes boxes are passed in the "normalized CxCyWH" format.
 
     Boxes can be encoded with any of the three possibilities:
-     - direct projection: linear projection from coordinate space to d_model
-     - pooling: RoI align features from the backbone
-     - pos encoder: position encoding of the box center
+    - direct projection: linear projection from coordinate space to d_model
+    - pooling: RoI align features from the backbone
+    - pos encoder: position encoding of the box center
 
     These three options are mutually compatible and will be summed if multiple are selected.
 

@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 # Based on https://github.com/IDEA-Research/GroundingDINO
 from __future__ import annotations
@@ -11,15 +13,14 @@ from .model_misc import get_valid_ratio
 
 
 class TransformerEncoderLayer(nn.Module):
-    """
-    Transformer encoder layer that performs self-attention followed by cross-attention.
+    """Transformer encoder layer that performs self-attention followed by cross-attention.
 
-    This layer was previously called TransformerDecoderLayer but was renamed to better
-    reflect its role in the architecture. It processes input sequences through self-attention
-    and then cross-attention with another input (typically image features).
+    This layer was previously called TransformerDecoderLayer but was renamed to better reflect its role in the
+    architecture. It processes input sequences through self-attention and then cross-attention with another input
+    (typically image features).
 
-    The layer supports both pre-norm and post-norm configurations, as well as
-    positional encoding at different stages of the attention mechanism.
+    The layer supports both pre-norm and post-norm configurations, as well as positional encoding at different stages of
+    the attention mechanism.
     """
 
     def __init__(
@@ -34,8 +35,7 @@ class TransformerEncoderLayer(nn.Module):
         self_attention: nn.Module = None,
         cross_attention: nn.Module = None,
     ):
-        """
-        Initialize a transformer encoder layer.
+        """Initialize a transformer encoder layer.
 
         Args:
             cross_attention: Cross-attention module for attending to image features
@@ -88,8 +88,7 @@ class TransformerEncoderLayer(nn.Module):
         query_pos: torch.Tensor = None,
         **kwargs,
     ) -> torch.Tensor:
-        """
-        Forward pass for post-norm architecture.
+        """Forward pass for post-norm architecture.
 
         In post-norm architecture, normalization is applied after attention and feedforward operations.
 
@@ -147,8 +146,7 @@ class TransformerEncoderLayer(nn.Module):
         query_pos: torch.Tensor = None,
         # **kwargs,
     ) -> torch.Tensor:
-        """
-        Forward pass for pre-norm architecture.
+        """Forward pass for pre-norm architecture.
 
         In pre-norm architecture, normalization is applied before attention and feedforward operations.
 
@@ -208,8 +206,7 @@ class TransformerEncoderLayer(nn.Module):
         query_pos: torch.Tensor = None,
         # **kwds: Any,
     ) -> torch.Tensor:
-        """
-        Forward pass for the transformer encoder layer.
+        """Forward pass for the transformer encoder layer.
 
         Args:
             tgt: Input tensor to be processed
@@ -244,13 +241,11 @@ class TransformerEncoderLayer(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    """
-    Transformer encoder that processes multi-level features.
+    """Transformer encoder that processes multi-level features.
 
-    This encoder takes multi-level features (e.g., from a backbone network) and processes
-    them through a stack of transformer encoder layers. It supports features from multiple
-    levels (e.g., different resolutions) and can apply activation checkpointing for memory
-    efficiency during training.
+    This encoder takes multi-level features (e.g., from a backbone network) and processes them through a stack of
+    transformer encoder layers. It supports features from multiple levels (e.g., different resolutions) and can apply
+    activation checkpointing for memory efficiency during training.
 
     Args:
         layer: The encoder layer to be stacked multiple times
@@ -353,13 +348,14 @@ class TransformerEncoder(nn.Module):
         prompt_key_padding_mask: torch.Tensor = None,
         encoder_extra_kwargs: dict | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Process multi-level features through the transformer encoder.
+        """Process multi-level features through the transformer encoder.
 
         Args:
             src: List of multi-level features, each with shape (batch_size, channels, height, width)
-            src_key_padding_masks: List of padding masks for each feature level, each with shape (batch_size, height, width)
-            pos: List of positional embeddings for each feature level, each with shape (batch_size, channels, height, width)
+            src_key_padding_masks: List of padding masks for each feature level, each with shape (batch_size, height,
+                width)
+            pos: List of positional embeddings for each feature level, each with shape (batch_size, channels, height,
+                width)
             prompt: Optional text/prompt features to attend to, with shape (seq_len, batch_size, d_model)
             prompt_key_padding_mask: Optional padding mask for prompt, with shape (batch_size, seq_len)
             encoder_extra_kwargs: Optional additional arguments to pass to each encoder layer
@@ -416,12 +412,10 @@ class TransformerEncoder(nn.Module):
 
 
 class TransformerEncoderFusion(TransformerEncoder):
-    """
-    Transformer encoder that fuses text and image features.
+    """Transformer encoder that fuses text and image features.
 
-    This encoder extends TransformerEncoder to handle both text and image features,
-    with the ability to add pooled text features to image features for better
-    cross-modal fusion. It supports torch.compile for performance optimization.
+    This encoder extends TransformerEncoder to handle both text and image features, with the ability to add pooled text
+    features to image features for better cross-modal fusion. It supports torch.compile for performance optimization.
 
     Args:
         layer: The encoder layer to be stacked multiple times

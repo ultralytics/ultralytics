@@ -95,14 +95,12 @@ class SAM3VLBackbone(nn.Module):
             }
 
         sam3_src = sam3_features[-1]
-        output = {
+        return {
             "vision_features": sam3_src,
             "vision_pos_enc": sam3_pos,
             "backbone_fpn": sam3_features,
             "sam2_backbone_out": sam2_output,
         }
-
-        return output
 
     def forward_image_sam2(self, samples: torch.Tensor):
         """Forward pass of the vision backbone to get SAM2 features only."""
@@ -141,15 +139,7 @@ class SAM3VLBackbone(nn.Module):
             # They'll be used later for output alignment
             text_to_encode += additional_text
 
-        sdpa_context = sdpa_kernel(
-            [
-                SDPBackend.MATH,
-                SDPBackend.EFFICIENT_ATTENTION,
-                SDPBackend.FLASH_ATTENTION,
-            ]
-        )
-
-        with sdpa_context:
+        with sdpa_kernel([SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION, SDPBackend.FLASH_ATTENTION]):
             text_attention_mask, text_memory, text_embeds = self.language_backbone(text_to_encode, input_boxes)
 
         if additional_text is not None:

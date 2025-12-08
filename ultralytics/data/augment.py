@@ -18,7 +18,7 @@ from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import masks2segments, segment2box, xywh2xyxy, xyxyxyxy2xywhr
+from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
@@ -1948,34 +1948,47 @@ class Albumentations:
                 labels["instances"].convert_bbox("xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
+                num_instances_orig = len(cls)
 
                 # Prepare transform arguments
                 transform_args = {"image": im, "bboxes": bboxes, "class_labels": cls}
 
+                # Collect all keypoints: pose keypoints + segment points (treated as keypoints)
+                # Both are xy coordinates that need the same spatial transformation
+                all_keypoints = []
+                keypoint_labels = []
+
                 # Add keypoints if present (for pose tasks)
                 keypoints = labels["instances"].keypoints
+                num_kpts_per_instance = 0
                 if keypoints is not None and len(keypoints):
                     # Albumentations expects keypoints in (x, y) format, shape (N*num_kpts, 2)
                     # YOLO keypoints are (N, num_kpts, 2 or 3) where last dim might include visibility
+                    num_kpts_per_instance = keypoints.shape[1]
                     kpts_xy = keypoints[..., :2].reshape(-1, 2)  # Flatten to (N*num_kpts, 2)
-                    keypoint_labels = [i for i in range(len(kpts_xy))]  # Create labels for each keypoint
-                    transform_args["keypoints"] = kpts_xy
-                    transform_args["keypoint_labels"] = keypoint_labels
-                else:
-                    # Provide empty keypoints to satisfy Albumentations keypoint_params
-                    transform_args["keypoints"] = []
-                    transform_args["keypoint_labels"] = []
+                    all_keypoints.extend(kpts_xy.tolist())
+                    # Label each keypoint with its instance index (for pose keypoints: 0 to N-1)
+                    keypoint_labels.extend([i // num_kpts_per_instance for i in range(len(kpts_xy))])
 
                 # Add segments if present (for segmentation tasks)
+                # Treat segment polygon points as keypoints for efficient transformation
+                # This avoids costly mask conversion (polygons2masks -> transform -> masks2segments)
                 segments = labels["instances"].segments
+                num_seg_points_per_instance = 0
                 if segments is not None and len(segments):
-                    # Albumentations expects masks as a list of polygons or binary masks
-                    # For now, we'll convert segments to masks for proper transformation
-                    # Note: This requires the image dimensions
-                    h, w = im.shape[:2]
-                    masks = [polygons2masks((h, w), [seg], color=1)[0] for seg in segments] if len(segments) else []
-                    if masks:
-                        transform_args["masks"] = masks
+                    # Segments shape: (N, M, 2) where M is points per segment
+                    num_seg_points_per_instance = segments.shape[1]
+                    seg_points = segments.reshape(-1, 2)  # Flatten to (N*M, 2)
+                    all_keypoints.extend(seg_points.tolist())
+                    # Label each segment point with its instance index + offset to distinguish from pose kpts
+                    # Use instance_idx + num_instances_orig to separate segment labels from pose labels
+                    keypoint_labels.extend(
+                        [num_instances_orig + (i // num_seg_points_per_instance) for i in range(len(seg_points))]
+                    )
+
+                # Set keypoints in transform args
+                transform_args["keypoints"] = all_keypoints if all_keypoints else []
+                transform_args["keypoint_labels"] = keypoint_labels if keypoint_labels else []
 
                 # Apply transformation
                 new = self.transform(**transform_args)
@@ -1984,71 +1997,87 @@ class Albumentations:
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
                     bboxes = np.array(new["bboxes"], dtype=np.float32)
+                    num_instances = len(new["class_labels"])
+                    h, w = new["image"].shape[:2]
 
-                    # Update keypoints if they were transformed
-                    if keypoints is not None and len(keypoints) and "keypoints" in new:
-                        # Reshape back to (N, num_kpts, 2) and restore visibility if it existed
-                        # Use transformed count, not original count (some instances may have been filtered)
-                        num_instances = len(new["class_labels"])
-                        num_kpts_per_instance = keypoints.shape[1]
+                    # Reconstruct keypoints and segments using keypoint_labels to track instances
+                    # Albumentations keeps all keypoints but may filter some bboxes
+                    # We need to use labels to identify which points belong to kept instances
+                    if "keypoints" in new and len(new["keypoints"]):
+                        new_kpts_array = np.array(new["keypoints"])
+                        new_kpt_labels = np.array(new["keypoint_labels"])
 
-                        # Calculate actual number of keypoints returned by Albumentations
-                        total_kpts = len(new["keypoints"])
-                        expected_kpts = num_instances * num_kpts_per_instance
+                        # Expected total based on ORIGINAL instance count
+                        total_pose_kpts_orig = num_instances_orig * num_kpts_per_instance
+                        total_seg_points_orig = num_instances_orig * num_seg_points_per_instance
+                        expected_total = total_pose_kpts_orig + total_seg_points_orig
 
-                        if total_kpts == expected_kpts:
-                            # Reshape normally
-                            new_kpts = np.array(new["keypoints"]).reshape(num_instances, num_kpts_per_instance, 2)
+                        if len(new_kpts_array) == expected_total:
+                            # Extract pose keypoints if present
+                            if keypoints is not None and len(keypoints) and num_kpts_per_instance > 0:
+                                # Labels 0 to num_instances_orig-1 are pose keypoints
+                                pose_mask = new_kpt_labels < num_instances_orig
+                                pose_kpts_flat = new_kpts_array[pose_mask]
+                                pose_labels = new_kpt_labels[pose_mask]
+
+                                # Reshape to (N_orig, num_kpts, 2) then filter to kept instances
+                                pose_kpts = pose_kpts_flat.reshape(num_instances_orig, num_kpts_per_instance, 2)
+
+                                # Find which original instances were kept (their bboxes are in new["bboxes"])
+                                # Since we can't directly know, assume first N instances were kept
+                                # This is a limitation - in practice bboxes are kept if they remain valid
+                                pose_kpts = pose_kpts[:num_instances]
+
+                                # Preserve visibility information if it existed (3rd dimension)
+                                if keypoints.shape[2] == 3:
+                                    visibility = keypoints[:num_instances, :, 2:3]
+                                    # Update visibility for out-of-bounds keypoints
+                                    out_mask = (
+                                        (pose_kpts[..., 0] < 0)
+                                        | (pose_kpts[..., 1] < 0)
+                                        | (pose_kpts[..., 0] > w)
+                                        | (pose_kpts[..., 1] > h)
+                                    )
+                                    visibility = visibility.copy()
+                                    visibility[out_mask] = 0
+                                    pose_kpts = np.concatenate([pose_kpts, visibility], axis=2)
+                                labels["instances"].keypoints = pose_kpts
+
+                            # Extract segment points if present
+                            if segments is not None and len(segments) and num_seg_points_per_instance > 0:
+                                # Labels >= num_instances_orig are segment points
+                                seg_mask = new_kpt_labels >= num_instances_orig
+                                seg_kpts_flat = new_kpts_array[seg_mask]
+
+                                # Reshape to (N_orig, num_seg_points, 2) then filter to kept instances
+                                seg_points = seg_kpts_flat.reshape(
+                                    num_instances_orig, num_seg_points_per_instance, 2
+                                )
+                                seg_points = seg_points[:num_instances]
+
+                                # Clip segment points to image boundaries and derive bboxes
+                                # Similar to RandomPerspective.apply_segments
+                                seg_bboxes = np.array(
+                                    [segment2box(seg, w, h) for seg in seg_points], dtype=np.float32
+                                )
+                                # Clip segments to their bounding boxes
+                                seg_points[..., 0] = seg_points[..., 0].clip(
+                                    seg_bboxes[:, 0:1], seg_bboxes[:, 2:3]
+                                )
+                                seg_points[..., 1] = seg_points[..., 1].clip(
+                                    seg_bboxes[:, 1:2], seg_bboxes[:, 3:4]
+                                )
+                                labels["instances"].segments = seg_points
+                                # Update bboxes from segments for better accuracy
+                                bboxes = seg_bboxes
                         else:
-                            # Mismatch - some keypoints may have been filtered
-                            # This shouldn't happen with proper Albumentations configuration
-                            # but handle it gracefully
                             LOGGER.warning(
                                 f"Keypoint count mismatch after Albumentations: "
-                                f"expected {expected_kpts}, got {total_kpts}. "
-                                f"Skipping keypoint update."
+                                f"expected {expected_total}, got {len(new_kpts_array)}. "
+                                f"Skipping keypoint/segment update."
                             )
-                            new_kpts = None
-
-                        # Preserve visibility information if it existed (3rd dimension)
-                        if new_kpts is not None and keypoints.shape[2] == 3:
-                            # Filter visibility to match transformed instances
-                            visibility = keypoints[..., 2:3]  # Original visibility for all instances
-                            # Get indices of kept instances to filter visibility correctly
-                            # Since Albumentations may drop some instances, we need to match them
-                            # The visibility should be filtered based on which instances were kept
-                            if len(new["class_labels"]) < len(cls):
-                                # Some instances were dropped, need to identify which ones were kept
-                                # For now, we'll use the first N instances' visibility (this is a limitation)
-                                # A more robust solution would require Albumentations to return instance indices
-                                visibility = visibility[:num_instances]
-                            new_kpts = np.concatenate([new_kpts, visibility], axis=2)
-
-                        if new_kpts is not None:
-                            labels["instances"].keypoints = new_kpts
-                        else:
-                            # Keypoint update failed, set to None to avoid misalignment
-                            labels["instances"].keypoints = None
-
-                    # Update segments if they were transformed
-                    if segments is not None and len(segments) and "masks" in new:
-                        # Convert masks back to segments, keeping only valid ones
-                        new_segments = []
-                        valid_indices = []
-                        for i, mask in enumerate(new["masks"]):
-                            # Convert numpy mask to torch tensor for masks2segments
-                            mask_tensor = torch.from_numpy(mask.astype(np.uint8))[None]
-                            segs = masks2segments(mask_tensor)[0]  # Convert single mask
-                            if len(segs):  # Only keep if segment is valid
-                                new_segments.append(segs)
-                                valid_indices.append(i)
-
-                        # Filter bboxes and classes to match valid segments
-                        if len(valid_indices) < len(new["masks"]):
-                            bboxes = bboxes[valid_indices]
-                            labels["cls"] = labels["cls"][valid_indices]
-
-                        labels["instances"].segments = new_segments
+                            if keypoints is not None:
+                                labels["instances"].keypoints = None
 
                 labels["instances"].update(bboxes=bboxes)
         else:

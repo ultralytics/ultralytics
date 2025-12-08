@@ -99,6 +99,10 @@ This structured approach ensures that the model can effectively learn from well-
         yolo classify train data=path/to/data model=yolo11n-cls.pt epochs=100 imgsz=640
         ```
 
+!!! tip
+
+    Most built-in dataset names (for example `cifar10`, `imagenette`, or `mnist160`) will automatically download and cache the data the first time you reference them. Point `data` to a folder path only when you have curated a custom dataset.
+
 ## Supported Datasets
 
 Ultralytics supports the following datasets with automatic download:

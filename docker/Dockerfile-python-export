@@ -15,8 +15,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install export dependencies and run exports to AutoInstall packages
-# Prevent torch upgrade to 2.9.0 which has issues with imx export
-RUN sed -i -e 's/"torch>=1.8.0/"torch>=1.8.0,<=2.8.0/' pyproject.toml
 RUN uv pip install --system -e ".[export]" && \
     # Need lower version of 'numpy' for Sony IMX export
     uv pip install --system numpy==1.26.4 && \

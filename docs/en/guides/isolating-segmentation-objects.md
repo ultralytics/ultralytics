@@ -9,10 +9,17 @@ keywords: Ultralytics, segmentation, object isolation, Predict Mode, YOLO11, mac
 After performing the [Segment Task](../tasks/segment.md), it's sometimes desirable to extract the isolated objects from the inference results. This guide provides a generic recipe on how to accomplish this using the Ultralytics [Predict Mode](../modes/predict.md).
 
 <p align="center">
-  <img src="https://github.com/ultralytics/docs/releases/download/0/isolated-object-segmentation.avif" alt="Example Isolated Object Segmentation">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/5HBB5IBuJ6c"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Remove Background and Isolate Objects with Ultralytics YOLO Segmentation & OpenCV in Python 🚀
 </p>
 
-## Recipe Walk Through
+## Recipe Walkthrough
 
 1.  See the [Ultralytics Quickstart Installation section](../quickstart.md) for a quick walkthrough on installing the required libraries.
 
@@ -169,11 +176,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 iso_crop = isolated[y1:y2, x1:x2]
                 ```
 
-                1.  For more information on [bounding box](https://www.ultralytics.com/glossary/bounding-box) results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
+                1.  For more information on [bounding box](https://www.ultralytics.com/glossary/bounding-box) results, see [Boxes Section from Predict Mode](../modes/predict.md#boxes)
 
                 ??? question "What does this code do?"
 
-                    - The `c.boxes.xyxy.cpu().numpy()` call retrieves the bounding boxes as a NumPy array in the `xyxy` format, where `xmin`, `ymin`, `xmax`, and `ymax` represent the coordinates of the bounding box rectangle. See [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more details.
+                    - The `c.boxes.xyxy.cpu().numpy()` call retrieves the bounding boxes as a NumPy array in the `xyxy` format, where `xmin`, `ymin`, `xmax`, and `ymax` represent the coordinates of the bounding box rectangle. See [Boxes Section from Predict Mode](../modes/predict.md#boxes) for more details.
 
                     - The `squeeze()` operation removes any unnecessary dimensions from the NumPy array, ensuring it has the expected shape.
 
@@ -215,11 +222,11 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 iso_crop = isolated[y1:y2, x1:x2]
                 ```
 
-                1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md/#boxes)
+                1.  For more information on bounding box results, see [Boxes Section from Predict Mode](../modes/predict.md#boxes)
 
                 ??? question "What does this code do?"
 
-                    - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a NumPy array, using the `xyxy` box coordinates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md/#boxes) for more information.
+                    - When using `c.boxes.xyxy.cpu().numpy()`, the bounding boxes are returned as a NumPy array, using the `xyxy` box coordinates format, which correspond to the points `xmin, ymin, xmax, ymax` for the bounding box (rectangle), see [Boxes Section from Predict Mode](../modes/predict.md#boxes) for more information.
 
                     - Adding `squeeze()` ensures that any extraneous dimensions are removed from the NumPy array.
 
@@ -229,7 +236,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
     ??? question "What if I want the cropped object **including** the background?"
 
-        This is a built in feature for the Ultralytics library. See the `save_crop` argument for  [Predict Mode Inference Arguments](../modes/predict.md/#inference-arguments) for details.
+        This is a built-in feature for the Ultralytics library. See the `save_crop` argument for [Predict Mode Inference Arguments](../modes/predict.md#inference-arguments) for details.
 
     ***
 

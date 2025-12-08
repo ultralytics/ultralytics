@@ -8,7 +8,24 @@ keywords: DOTA8 dataset, Ultralytics, YOLO11, object detection, debugging, train
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) DOTA8 is a small, but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of the first 8 images of the split DOTAv1 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com/) DOTA8 is a small but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of the first 8 images of the split DOTAv1 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging object detection models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+
+## Dataset Structure
+
+- **Images**: 8 aerial tiles (4 train, 4 val) sourced from DOTAv1.
+- **Classes**: Inherits the 15 DOTAv1 categories such as plane, ship, and large vehicle.
+- **Labels**: YOLO-format oriented bounding boxes saved as `.txt` files beside each image.
+- **Recommended layout**:
+
+    ```
+    datasets/dota8/
+    ├── images/
+    │   ├── train/
+    │   └── val/
+    └── labels/
+        ├── train/
+        └── val/
+    ```
 
 This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics).
 

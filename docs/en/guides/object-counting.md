@@ -51,6 +51,8 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         yolo solutions count region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
+        The `region` argument accepts either two points (for a line) or a polygon with three or more points. Define the coordinates in the order they should be connected so the counter knows exactly where entries and exits occur.
+
     === "Python"
 
         ```python
@@ -62,7 +64,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         assert cap.isOpened(), "Error reading video file"
 
         # region_points = [(20, 400), (1080, 400)]                                      # line counting
-        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # rectangle region
+        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # rectangular region
         # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon region
 
         # Video writer
@@ -74,7 +76,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             show=True,  # display the output
             region=region_points,  # pass region points
             model="yolo11n.pt",  # model="yolo11n-obb.pt" for object counting with OBB model.
-            # classes=[0, 2],  # count specific classes i.e. person and car with COCO pretrained model.
+            # classes=[0, 2],  # count specific classes, i.e., person and car with the COCO pretrained model.
             # tracker="botsort.yaml",  # choose trackers i.e "bytetrack.yaml"
         )
 

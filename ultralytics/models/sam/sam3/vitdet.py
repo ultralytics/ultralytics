@@ -22,12 +22,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
-
-try:
-    from timm.layers import DropPath, Mlp
-except ModuleNotFoundError:
-    # compatibility for older timm versions
-    from timm.models.layers import DropPath, Mlp
+from ultralytics.utils.checks import check_requirements
 from torch import Tensor
 
 from ultralytics.models.sam.modules.blocks import PatchEmbed
@@ -264,6 +259,10 @@ class Block(nn.Module):
             init_values: layer scale init, None for no layer scale.
         """
         super().__init__()
+
+        check_requirements("timm")
+        from timm.layers import DropPath, Mlp
+
         self.norm1 = norm_layer(dim)
         self.attn = Attention(
             dim,

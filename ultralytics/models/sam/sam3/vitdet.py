@@ -376,7 +376,7 @@ class ViT(nn.Module):
             ln_pre (bool): If True, apply layer norm before transformer blocks.
             ln_post (bool): If True, apply layer norm after transformer blocks.
             bias_patch_embed (bool): bias in conv for patch embed?
-            compile_mode (str): mode to compile the forward
+            compile_mode (str): mode to compile the forward.
         """
         super().__init__()
         self.pretrain_use_cls_token = pretrain_use_cls_token

@@ -2668,8 +2668,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         return results
 
     def _run_single_frame_inference(self, frame_idx, reverse=False, inference_state=None):
-        """Perform inference on a single frame and get its inference results. This would also update `inference_state`.
-        """
+        """Perform inference on a single frame and get its inference results. This would also update `inference_state`."""
         inference_state = inference_state or self.inference_state
         # prepare inputs
         tracker_states_local = inference_state["tracker_inference_states"]
@@ -3813,8 +3812,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         return tracker_states_local
 
     def _tracker_remove_objects(self, tracker_states_local: list[Any], obj_ids: list[int]):
-        """Remove an object from SAM2 inference states. This would remove the object from all frames in the video.
-        """
+        """Remove an object from SAM2 inference states. This would remove the object from all frames in the video."""
         if not obj_ids:
             return
         # Filter out states that become empty after removal

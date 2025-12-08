@@ -32,8 +32,8 @@ class TransformerDecoderLayer(nn.Module):
         n_heads: int,
         use_text_cross_attention: bool = False,
     ):
+        """Initialize the TransformerDecoderLayer."""
         super().__init__()
-
         # cross attention
         self.cross_attn = cross_attention
         self.dropout1 = nn.Dropout(dropout) if dropout > 0 else nn.Identity()

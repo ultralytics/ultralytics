@@ -10,7 +10,7 @@ from .sam3.geometry_encoders import SequenceGeometryEncoder
 from .sam3.maskformer_segmentation import PixelDecoder, UniversalSegmentationHead
 from .sam3.model_misc import DotProductScoring, TransformerWrapper
 from .sam3.necks import Sam3DualViTDetNeck
-from .sam3.sam3_image import Sam3Image
+from .sam3.sam3_image import SAM3SemanticModel
 from .sam3.text_encoder_ve import VETextEncoder
 from .sam3.tokenizer_ve import SimpleTokenizer
 from .sam3.vitdet import ViT
@@ -232,8 +232,8 @@ def build_sam3_image_model(
         add_post_encode_proj=True,
     )
 
-    # Create the SAM3 model
-    model = Sam3Image(
+    # Create the SAM3SemanticModel model
+    model = SAM3SemanticModel(
         backbone=backbone,
         transformer=transformer,
         input_geometry_encoder=input_geometry_encoder,

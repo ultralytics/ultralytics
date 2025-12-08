@@ -19,7 +19,7 @@ def _update_out(out, out_name, out_value, auxiliary=True, update_aux=True):
             aux_output[out_name] = aux_value
 
 
-class Sam3Image(torch.nn.Module):
+class SAM3SemanticModel(torch.nn.Module):
     def __init__(
         self,
         backbone: SAM3VLBackbone,

@@ -20,167 +20,6 @@ from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 from .modules.encoders import MemoryEncoder
 
 
-def _create_transformer_encoder() -> TransformerEncoderFusion:
-    """Create transformer encoder with its layer."""
-    encoder_layer = TransformerEncoderLayer(
-        d_model=256,
-        dim_feedforward=2048,
-        dropout=0.1,
-        pos_enc_at_attn=True,
-        pos_enc_at_cross_attn_keys=False,
-        pos_enc_at_cross_attn_queries=False,
-        pre_norm=True,
-        self_attention=nn.MultiheadAttention(
-            num_heads=8,
-            dropout=0.1,
-            embed_dim=256,
-            batch_first=True,
-        ),
-        cross_attention=nn.MultiheadAttention(
-            num_heads=8,
-            dropout=0.1,
-            embed_dim=256,
-            batch_first=True,
-        ),
-    )
-
-    encoder = TransformerEncoderFusion(
-        layer=encoder_layer,
-        num_layers=6,
-        d_model=256,
-        num_feature_levels=1,
-        frozen=False,
-        use_act_checkpoint=True,
-        add_pooled_text_to_img_feat=False,
-        pool_text_with_mask=True,
-    )
-    return encoder
-
-
-def _create_transformer_decoder() -> TransformerDecoder:
-    """Create transformer decoder with its layer."""
-    decoder_layer = TransformerDecoderLayer(
-        d_model=256,
-        dim_feedforward=2048,
-        dropout=0.1,
-        cross_attention=nn.MultiheadAttention(
-            num_heads=8,
-            dropout=0.1,
-            embed_dim=256,
-        ),
-        n_heads=8,
-        use_text_cross_attention=True,
-    )
-
-    decoder = TransformerDecoder(
-        layer=decoder_layer,
-        num_layers=6,
-        num_queries=200,
-        return_intermediate=True,
-        box_refine=True,
-        num_o2m_queries=0,
-        dac=True,
-        boxRPB="log",
-        d_model=256,
-        frozen=False,
-        interaction_layer=None,
-        dac_use_selfatt_ln=True,
-        use_act_checkpoint=True,
-        presence_token=True,
-    )
-    return decoder
-
-
-def _create_segmentation_head(compile_mode=None):
-    """Create segmentation head with pixel decoder."""
-    pixel_decoder = PixelDecoder(
-        num_upsampling_stages=3,
-        interpolation_mode="nearest",
-        hidden_dim=256,
-        compile_mode=compile_mode,
-    )
-
-    segmentation_head = UniversalSegmentationHead(
-        hidden_dim=256,
-        upsampling_stages=3,
-        aux_masks=False,
-        presence_head=False,
-        dot_product_scorer=None,
-        act_ckpt=True,
-        cross_attend_prompt=nn.MultiheadAttention(
-            num_heads=8,
-            dropout=0,
-            embed_dim=256,
-        ),
-        pixel_decoder=pixel_decoder,
-    )
-    return segmentation_head
-
-
-def _create_geometry_encoder():
-    """Create geometry encoder with all its components."""
-    # Create position encoding for geometry encoder
-    geo_pos_enc = PositionEmbeddingSine(
-        num_pos_feats=256,
-        normalize=True,
-        scale=None,
-        temperature=10000,
-    )
-    # Create geometry encoder layer
-    geo_layer = TransformerEncoderLayer(
-        d_model=256,
-        dim_feedforward=2048,
-        dropout=0.1,
-        pos_enc_at_attn=False,
-        pre_norm=True,
-        pos_enc_at_cross_attn_queries=False,
-        pos_enc_at_cross_attn_keys=True,
-    )
-
-    # Create geometry encoder
-    input_geometry_encoder = SequenceGeometryEncoder(
-        pos_enc=geo_pos_enc,
-        encode_boxes_as_points=False,
-        boxes_direct_project=True,
-        boxes_pool=True,
-        boxes_pos_enc=True,
-        d_model=256,
-        num_layers=3,
-        layer=geo_layer,
-        use_act_ckpt=True,
-        add_cls=True,
-        add_post_encode_proj=True,
-    )
-    return input_geometry_encoder
-
-
-def _create_sam3_model(
-    backbone,
-    transformer,
-    input_geometry_encoder,
-    segmentation_head,
-    dot_prod_scoring,
-):
-    """Create the SAM3 image model."""
-    common_params = {
-        "backbone": backbone,
-        "transformer": transformer,
-        "input_geometry_encoder": input_geometry_encoder,
-        "segmentation_head": segmentation_head,
-        "num_feature_levels": 1,
-        "o2m_mask_predict": True,
-        "dot_prod_scoring": dot_prod_scoring,
-        "use_instance_query": False,
-        "multimask_output": True,
-        "inst_interactive_predictor": None,
-        "matcher": None,
-    }
-
-    # TODO: fix this
-    model = Sam3Image(**common_params)
-    return model
-
-
 def _create_vision_backbone(compile_mode=None, enable_inst_interactivity=True) -> Sam3DualViTDetNeck:
     """Create SAM3 visual backbone with ViT and neck."""
     # Position encoding
@@ -231,8 +70,63 @@ def _create_vision_backbone(compile_mode=None, enable_inst_interactivity=True) -
 
 def _create_sam3_transformer() -> TransformerWrapper:
     """Create SAM3 detector encoder and decoder."""
-    encoder: TransformerEncoderFusion = _create_transformer_encoder()
-    decoder: TransformerDecoder = _create_transformer_decoder()
+    encoder: TransformerEncoderFusion = TransformerEncoderFusion(
+        layer=TransformerEncoderLayer(
+            d_model=256,
+            dim_feedforward=2048,
+            dropout=0.1,
+            pos_enc_at_attn=True,
+            pos_enc_at_cross_attn_keys=False,
+            pos_enc_at_cross_attn_queries=False,
+            pre_norm=True,
+            self_attention=nn.MultiheadAttention(
+                num_heads=8,
+                dropout=0.1,
+                embed_dim=256,
+                batch_first=True,
+            ),
+            cross_attention=nn.MultiheadAttention(
+                num_heads=8,
+                dropout=0.1,
+                embed_dim=256,
+                batch_first=True,
+            ),
+        ),
+        num_layers=6,
+        d_model=256,
+        num_feature_levels=1,
+        frozen=False,
+        use_act_checkpoint=True,
+        add_pooled_text_to_img_feat=False,
+        pool_text_with_mask=True,
+    )
+    decoder: TransformerDecoder = TransformerDecoder(
+        layer=TransformerDecoderLayer(
+            d_model=256,
+            dim_feedforward=2048,
+            dropout=0.1,
+            cross_attention=nn.MultiheadAttention(
+                num_heads=8,
+                dropout=0.1,
+                embed_dim=256,
+            ),
+            n_heads=8,
+            use_text_cross_attention=True,
+        ),
+        num_layers=6,
+        num_queries=200,
+        return_intermediate=True,
+        box_refine=True,
+        num_o2m_queries=0,
+        dac=True,
+        boxRPB="log",
+        d_model=256,
+        frozen=False,
+        interaction_layer=None,
+        dac_use_selfatt_ln=True,
+        use_act_checkpoint=True,
+        presence_token=True,
+    )
 
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
@@ -286,26 +180,74 @@ def build_sam3_image_model(
     )
 
     # Create segmentation head if enabled
-    segmentation_head = _create_segmentation_head(compile_mode=compile_mode) if enable_segmentation else None
-
-    # Create geometry encoder
-    input_geometry_encoder = _create_geometry_encoder()
-
-    # Create the SAM3 model
-    model = _create_sam3_model(
-        backbone,
-        transformer,
-        input_geometry_encoder,
-        segmentation_head,
-        dot_prod_scoring,
+    segmentation_head = (
+        UniversalSegmentationHead(
+            hidden_dim=256,
+            upsampling_stages=3,
+            aux_masks=False,
+            presence_head=False,
+            dot_product_scorer=None,
+            act_ckpt=True,
+            cross_attend_prompt=nn.MultiheadAttention(
+                num_heads=8,
+                dropout=0,
+                embed_dim=256,
+            ),
+            pixel_decoder=PixelDecoder(
+                num_upsampling_stages=3,
+                interpolation_mode="nearest",
+                hidden_dim=256,
+                compile_mode=compile_mode,
+            ),
+        )
+        if enable_segmentation
+        else None
     )
 
-    # Load checkpoint if provided
+    # Create geometry encoder
+    input_geometry_encoder = SequenceGeometryEncoder(
+        pos_enc=PositionEmbeddingSine(
+            num_pos_feats=256,
+            normalize=True,
+            scale=None,
+            temperature=10000,
+        ),
+        encode_boxes_as_points=False,
+        boxes_direct_project=True,
+        boxes_pool=True,
+        boxes_pos_enc=True,
+        d_model=256,
+        num_layers=3,
+        layer=TransformerEncoderLayer(
+            d_model=256,
+            dim_feedforward=2048,
+            dropout=0.1,
+            pos_enc_at_attn=False,
+            pre_norm=True,
+            pos_enc_at_cross_attn_queries=False,
+            pos_enc_at_cross_attn_keys=True,
+        ),
+        use_act_ckpt=True,
+        add_cls=True,
+        add_post_encode_proj=True,
+    )
+
+    # Create the SAM3 model
+    model = Sam3Image(
+        backbone=backbone,
+        transformer=transformer,
+        input_geometry_encoder=input_geometry_encoder,
+        segmentation_head=segmentation_head,
+        num_feature_levels=1,
+        o2m_mask_predict=True,
+        dot_prod_scoring=dot_prod_scoring,
+        use_instance_query=False,
+        multimask_output=True,
+    )
+
+    # Load checkpoint
     model = _load_checkpoint(model, checkpoint_path)
-
-    # Setup device and mode
     model.eval()
-
     return model
 
 

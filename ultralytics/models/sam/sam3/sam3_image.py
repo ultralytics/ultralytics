@@ -38,7 +38,6 @@ class Sam3Image(torch.nn.Module):
         detach_presence_in_joint_score: bool = False,  # only relevant if using presence token/score
         separate_scorer_for_instance: bool = False,
         num_interactive_steps_val: int = 0,
-        **kwargs,
     ):
         super().__init__()
         self.backbone = backbone

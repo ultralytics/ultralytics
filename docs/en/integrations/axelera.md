@@ -143,7 +143,7 @@ Coming soon: Performance benchmarks comparing inference speed and accuracy of YO
 
 ## Deploying Exported YOLO11 Axelera Models
 
-After successfully exporting your Ultralytics YOLO11 models to Axelera format, you can now deploy them. The primary and recommended first step for running an Axelera model is to utilize the YOLO("yolo11n_axelera_model") method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your Axelera models in various settings, take a look at the following resources:
+After successfully exporting your Ultralytics YOLO11 models to Axelera format, you can now run them on Axelera hardware. The primary and recommended first step for running an Axelera model is to utilize the YOLO("yolo11n_axelera_model") method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your Axelera models in various settings, take a look at the following resources:
 
 - **[PCIe Deployment](https://www.axelera.ai/)**: Learn how to deploy models on Metis PCIe cards for high-density video analytics.
 

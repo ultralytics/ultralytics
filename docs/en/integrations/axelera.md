@@ -240,6 +240,7 @@ Each platform offers specific advantages for different edge AI applications.
 
 ### How does INT8 quantization affect YOLO11 model accuracy on Axelera?
 
-Axelera's Voyager SDK uses advanced calibration techniques to minimize accuracy loss during INT8 quantization. For most [object detection](https://www.ultralytics.com/glossary/object-detection) tasks, the performance gains (higher FPS, lower power) significantly outweigh the negligible impact on mAP. The quantization process is automatic and optimized for maintaining model quality while maximizing hardware efficiency.
+Axelera's Voyager SDK uses advanced calibration techniques to automatically quantize models for our mixed-precision AIPU architecture. Our accuracy-preserving hardware-software co-design delivers best-in-class performance while maintaining model accuracy. The SDK intelligently determines the optimal quantization strategy to maximize hardware throughput.
+For most [object detection](https://www.ultralytics.com/glossary/object-detection) tasks, the performance gains (higher FPS, lower power) significantly outweigh the negligible impact on mAP. The quantization process is fully automatic—no manual tuning required. Quantization takes from seconds to several hours depending on model size and configuration. Once complete, you get optimal inference performance and a portable AXM package ready for deployment. Simply run yolo val to validate and discover the remarkably minimal accuracy loss.
 
 For more advanced deployment scenarios and optimization techniques, visit the [Ultralytics documentation page](../guides/model-deployment-options.md).

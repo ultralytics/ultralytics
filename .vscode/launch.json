@@ -106,6 +106,18 @@
                 "show=False"
             ],
             "console": "integratedTerminal"
+        },
+        {
+            "name": "test visualization",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "test_visualization.py",
+            "args": [
+                "--dataset-root",
+                "/root/autodl-tmp/converted_kitti_3dop",
+                "--output-dir",
+                "/root/autodl-tmp/converted_kitti_3dop/visualization"
+            ]
         }
     ]
 }

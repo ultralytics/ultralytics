@@ -917,8 +917,10 @@ class Stereo3DDetValidator(BaseValidator):
                     except Exception as e:
                         LOGGER.debug(f"Error updating progress bar: {e}")
 
-            # Generate visualization images if plots enabled (only for first 3 batches, matching Detect task style)
-            if self.args.plots and hasattr(self, 'batch_i') and self.batch_i < 3:
+            # Generate visualization images if plots enabled
+            # Default to 3 batches (matching Detect task style), but can be overridden via max_plot_batches arg
+            max_plot_batches = getattr(self.args, 'max_plot_batches', 3)
+            if self.args.plots and hasattr(self, 'batch_i') and self.batch_i < max_plot_batches:
                 try:
                     self.plot_validation_samples(batch, preds, self.batch_i)
                 except Exception as e:

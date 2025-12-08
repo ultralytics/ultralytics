@@ -181,41 +181,6 @@ Also, if you're interested in exploring other integration options for Ultralytic
 
 ## FAQ
 
-### How do I export Ultralytics YOLO11 models to Axelera format?
-
-To export your Ultralytics YOLO11 model to Axelera format (available Q1 2026), follow these steps:
-
-- **Python**: Use the `export` function from the YOLO class.
-
-```python
-    from ultralytics import YOLO
-
-    # Load the YOLO11 model
-    model = YOLO("yolo11n.pt")
-
-    # Export to Axelera format with INT8 quantization
-    model.export(format="axelera", int8=True)
-```
-
-- **CLI**: Use the `yolo` command with the `export` argument.
-
-```bash
-yolo export model=yolo11n.pt format=axelera int8=True
-```
-
-For detailed export options, check the [Export](../modes/export.md) page in the documentation.
-
-### What are the advantages of exporting YOLO11 models to Axelera?
-
-Exporting your Ultralytics YOLO11 models to Axelera offers several benefits:
-
-- **High Performance**: Up to 856 TOPS throughput for real-time edge AI applications.
-- **Energy Efficiency**: Optimized dataflow architecture for low power consumption.
-- **Flexible Deployment**: Multiple form factors (PCIe, M.2, integrated systems) for various use cases.
-- **Automatic Quantization**: INT8 quantization through Voyager SDK for improved speed and reduced memory usage.
-
-For more details, see the [Why should you export to Axelera](#why-should-you-export-to-axelera) section in the documentation.
-
 ### Which Axelera hardware should I choose for my YOLO11 deployment?
 
 Axelera offers various hardware options depending on your needs:

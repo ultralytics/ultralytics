@@ -459,12 +459,15 @@ def concat_rel_pos(
     """Concatenate rel pos coeffs to the q & k tensors, so that qk^T is now effectively including rel pos biases.
 
     Args:
-        q (Tensor): q tensor with shape (B, L_q, C).
-        k (Tensor): k tensor with shape (B, L_k, C).
-        q_hw, k_hw: These are spatial size of q & k tensors.
-        rel_pos_h, rel_pos_w: These are relative pos embeddings/params of height, width.
+        q (torch.Tensor): q tensor with shape (B, L_q, C).
+        k (torch.Tensor): k tensor with shape (B, L_k, C).
+        q_hw: These are spatial size of q tensors.
+        k_hw: These are spatial size of k tensors.
+        rel_pos_h: These are relative pos embeddings/params of height.
+        rel_pos_w: These are relative pos embeddings/params of width.
         rescale (bool): whether to rescale. e.g. for use when using sdpa, pytorch will scale by the wrong factor due to
             the concat.
+        relative_coords (torch.Tensor, optional): Precomputed relative coords index tensor.
 
     Returns:
         q, k: But, padded so that qk^T accounts for rel pos biases.

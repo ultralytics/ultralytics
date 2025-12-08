@@ -1056,6 +1056,7 @@ class PatchEmbed(nn.Module):
             padding (tuple[int, int]): Padding applied to the input before convolution.
             in_chans (int): Number of input image channels.
             embed_dim (int): Dimensionality of the output patch embeddings.
+            bias (bool): Whether to include a bias term in the convolutional layer.
         """
         super().__init__()
 

@@ -1019,6 +1019,7 @@ class SAM2Model(torch.nn.Module):
 
 
 class SAM3Model(SAM2Model):
+    """SAM3Model class for Segment Anything Model 3 with memory-based video object segmentation capabilities."""
     def __init__(
         self,
         image_encoder,

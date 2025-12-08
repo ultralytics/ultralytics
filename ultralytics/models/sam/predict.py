@@ -757,7 +757,7 @@ class SAM2Predictor(Predictor):
         return points, labels, masks
 
     def setup_source(self, source):
-        """"Set up the data source and image size for SAM2 inference."""
+        """Set up the data source and image size for SAM2 inference."""
         super().setup_source(source)
         self._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
 
@@ -2193,6 +2193,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, bpe_path=None):
+        """Initialize the SAM3SemanticPredictor with configuration and optional overrides."""
         super().__init__(cfg, overrides, _callbacks)
         self.bpe_path = bpe_path
 
@@ -2522,6 +2523,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         reconstruction_bbox_iou_thresh=0.0,
         reconstruction_bbox_det_score=0.0,
     ):
+        """Initialize the SAM3VideoSemanticPredictor with configuration and optional overrides."""
         super().__init__(cfg, overrides, _callbacks, bpe_path=bpe_path)
         self.score_threshold_detection = score_threshold_detection
         self.det_nms_thresh = det_nms_thresh
@@ -2623,7 +2625,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         if len(curr_obj_ids) == 0:
-            pred_masks, pred_boxes = None, torch.zeros((0, 7), device=pred_masks.device)
+            pred_masks, pred_boxes = None, torch.zeros((0, 7), device=self.device)
         else:
             pred_masks = torch.cat([obj_id_to_mask[obj_id] for obj_id in curr_obj_ids], dim=0)
             pred_masks = F.interpolate(pred_masks.float()[None], orig_imgs[0].shape[:2], mode="bilinear")[0] > 0.5
@@ -2951,11 +2953,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self.tracker.backbone_out = tracker_backbone_out
 
     def run_tracker_propagation(
-        self,
-        frame_idx: int,
-        tracker_states_local: list[Any],
-        tracker_metadata_prev: dict[str, np.ndarray],
+        self, frame_idx: int, tracker_states_local: list[Any], tracker_metadata_prev: dict[str, np.ndarray]
     ):
+        """Run the tracker propagation phase for a single frame in an SPMD manner."""
         # Step 1: propagate the local SAM2 states to get the current frame's prediction
         # `low_res_masks_local` of the existing masklets on this GPU
         # - obj_ids_local: list[int] -- list of object IDs
@@ -3244,9 +3244,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             tracker_metadata_prev (dict[str, Any]): The metadata from the previous frame.
             tracker_metadata_new (dict[str, Any]): The metadata for the current frame.
             obj_ids_newly_removed (set[int]): The object IDs that have been removed.
+            reverse (bool): Whether the tracking is in reverse order.
 
         Returns:
-            torch.Tensor: The updated low-resolution masks with some objects suppressed.
+            (torch.Tensor): The updated low-resolution masks with some objects suppressed.
         """
         obj_ids_global = tracker_metadata_prev["obj_ids"]
         binary_tracker_low_res_masks_global = tracker_low_res_masks_global > 0
@@ -3303,6 +3304,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_states_local: list[Any],
         tracker_update_plan: dict[str, np.ndarray],
     ):
+        """Execute the tracker update plan for a single frame in an SPMD manner."""
         # initialize tracking scores with detection scores
         new_det_fa_inds: np.ndarray = tracker_update_plan["new_det_fa_inds"]
         new_det_obj_ids: np.ndarray = tracker_update_plan["new_det_obj_ids"]
@@ -3338,6 +3340,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         tracker_update_plan: dict[str, np.ndarray],
         reconditioned_obj_ids: set | None = None,
     ):
+        """Build the output masks for the current frame."""
         new_det_fa_inds: np.ndarray = tracker_update_plan["new_det_fa_inds"]
         new_det_obj_ids: np.ndarray = tracker_update_plan["new_det_obj_ids"]
         obj_id_to_mask = {}  # obj_id --> output mask tensor
@@ -3474,18 +3477,18 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         """Match detections on the current frame with the existing masklets.
 
         Args:
-          - det_masks: (N, H, W) tensor of predicted masks
-          - det_scores_np: (N,) array of detection scores
-          - trk_masks: (M, H, W) tensor of track masks
-          - trk_obj_ids: (M,) array of object IDs corresponding to trk_masks
+            det_masks: (N, H, W) tensor of predicted masks
+            det_scores_np: (N,) array of detection scores
+            trk_masks: (M, H, W) tensor of track masks
+            trk_obj_ids: (M,) array of object IDs corresponding to trk_masks
 
         Returns:
-          - new_det_fa_inds: array of new object indices.
-          - unmatched_trk_obj_ids: array of existing masklet object IDs that are not matched
+            new_det_fa_inds: array of new object indices.
+            unmatched_trk_obj_ids: array of existing masklet object IDs that are not matched
             to any detections on this frame (for unmatched, we only count masklets with >0 area)
-          - det_to_matched_trk_obj_ids: dict[int, np.ndarray]: mapping from detector's detection indices
+            det_to_matched_trk_obj_ids: dict[int, np.ndarray]: mapping from detector's detection indices
             to the list of matched tracklet object IDs
-          - empty_trk_obj_ids: array of existing masklet object IDs with zero area in SAM2 prediction
+            empty_trk_obj_ids: array of existing masklet object IDs with zero area in SAM2 prediction
         """
         iou_threshold = self.assoc_iou_thresh
         iou_threshold_trk = self.trk_assoc_iou_thresh
@@ -3875,6 +3878,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         det_to_matched_trk_obj_ids: dict[int, np.ndarray],
         new_det_obj_ids: np.ndarray,
     ):
+        """Update the confirmation status of masklets based on the current frame's detection results."""
         confirmation_data = metadata["masklet_confirmation"]
 
         # a) first, expand "confirmation_data" to include new masklets added in this frame

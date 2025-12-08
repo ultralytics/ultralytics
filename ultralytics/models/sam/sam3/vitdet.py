@@ -22,7 +22,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
-from ultralytics.utils.checks import check_requirements
 from torch import Tensor
 
 from ultralytics.models.sam.modules.blocks import PatchEmbed
@@ -34,6 +33,7 @@ from ultralytics.models.sam.modules.utils import (
     window_partition,
     window_unpartition,
 )
+from ultralytics.utils.checks import check_requirements
 
 from .model_misc import LayerScale
 

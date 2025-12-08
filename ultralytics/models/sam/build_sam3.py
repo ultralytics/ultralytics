@@ -267,7 +267,6 @@ def build_sam3_image_model(
     """
     # Create visual components
     compile_mode = "default" if compile else None
-    # TODO
     vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=True)
 
     # Create text components
@@ -312,7 +311,7 @@ def build_sam3_image_model(
     return model
 
 
-def build_interactive_sam3(checkpoint_path: str, compile_mode=None, with_backbone=True) -> SAM3Model:
+def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=True) -> SAM3Model:
     """
     Build the SAM3 Tracker module for video tracking.
 
@@ -354,7 +353,7 @@ def build_interactive_sam3(checkpoint_path: str, compile_mode=None, with_backbon
     )
 
     backbone = (
-        SAM3VLBackbone(scalp=1, visual=_create_vision_backbone(compile_mode=compile_mode), text=None)
+        SAM3VLBackbone(scalp=1, visual=_create_vision_backbone(compile_mode=compile), text=None)
         if with_backbone
         else None
     )

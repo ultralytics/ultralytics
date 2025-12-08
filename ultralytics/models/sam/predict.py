@@ -2175,7 +2175,7 @@ class SAM3Predictor(SAM2Predictor):
         """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
         from .build_sam3 import build_interactive_sam3  # slow import
 
-        return build_interactive_sam3(self.args.model)
+        return build_interactive_sam3(self.args.model, compile=self.args.compile)
 
 
 class SAM3SemanticPredictor(SAM3Predictor):
@@ -2189,7 +2189,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
         from .build_sam3 import build_sam3_image_model  # slow import
 
-        return build_sam3_image_model(self.args.model, bpe_path=self.bpe_path)
+        return build_sam3_image_model(self.args.model, bpe_path=self.bpe_path, compile=self.args.compile)
 
     @smart_inference_mode()
     def get_im_features(self, im):
@@ -2477,7 +2477,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         cfg=DEFAULT_CFG,
         overrides=None,
         _callbacks=None,
-        bpe_path="",
+        bpe_path="bpe_simple_vocab_16e6.txt.gz",
         # prob threshold for detection outputs -- only keep detections above this threshold
         # enters NMS and det-to-track matching
         score_threshold_detection=0.5,

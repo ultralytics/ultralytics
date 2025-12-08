@@ -2018,7 +2018,7 @@ class Albumentations:
                                 # Labels 0 to num_instances_orig-1 are pose keypoints
                                 pose_mask = new_kpt_labels < num_instances_orig
                                 pose_kpts_flat = new_kpts_array[pose_mask]
-                                pose_labels = new_kpt_labels[pose_mask]
+                                new_kpt_labels[pose_mask]
 
                                 # Reshape to (N_orig, num_kpts, 2) then filter to kept instances
                                 pose_kpts = pose_kpts_flat.reshape(num_instances_orig, num_kpts_per_instance, 2)

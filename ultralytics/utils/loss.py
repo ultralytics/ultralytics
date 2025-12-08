@@ -832,7 +832,7 @@ class TVPDetectLoss:
         """Calculate the loss for text-visual prompt detection."""
         assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
-        if self.ori_nc == preds["scores"].shape[1]:
+        if self.ori_reg_max * 4 == preds["scores"].shape[1]:
             loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()
 
@@ -844,13 +844,17 @@ class TVPDetectLoss:
     def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""
         # NOTE: remove empty placeholder
-        scores = preds["scores"][:, self.ori_nc :, :]
+        scores = preds["scores"]
         vnc = scores.shape[1]
 
         self.vp_criterion.nc = vnc
         self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
         self.vp_criterion.assigner.num_classes = vnc
         return scores
+        # return [
+        #     torch.cat((box, cls_vp), dim=1)
+        #     for box, cls_vp in [xi.split((self.ori_reg_max * 4, vnc), dim=1) for xi in preds["scores"]]
+        # ]
 
 
 class TVPSegmentLoss(TVPDetectLoss):
@@ -870,7 +874,7 @@ class TVPSegmentLoss(TVPDetectLoss):
         """Calculate the loss for text-visual prompt detection."""
         assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
-        if self.ori_nc == preds["scores"].shape[1]:
+        if self.ori_reg_max * 4 == preds["scores"].shape[1]:
             loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()
 

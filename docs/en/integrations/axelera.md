@@ -65,9 +65,9 @@ You can optimize your YOLO11 and YOLOv8 models for Axelera hardware by convertin
 
     Export to Axelera format and model inference have specific platform and hardware requirements:
 
-    - **Operating System**: Linux only (Ubuntu 20.04/22.04 recommended)
-    - **Hardware**: Axelera AI accelerator required (Metis AIPU or Europa platform)
-    - **Python**: Version 3.10 or higher
+    - **Operating System**: Linux only (Ubuntu 22.04/24.04 recommended)
+    - **Hardware**: Axelera AI accelerator required ([Metis devices](https://store.axelera.ai/))
+    - **Python**: Version 3.10, 3.11, or 3.12
 
 ### Installation
 

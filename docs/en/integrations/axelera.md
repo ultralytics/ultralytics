@@ -26,7 +26,7 @@ Axelera models offer powerful features that enable high-performance [machine lea
 
 - **High Performance and Efficiency**: Axelera models deliver exceptional throughput (up to 856 TOPS) while maintaining low power consumption, optimized for edge deployment with high [accuracy](https://www.ultralytics.com/glossary/accuracy) on computer vision tasks.
 
-- **INT8 Quantization**: Axelera models leverage automatic INT8 quantization through the Voyager SDK, reducing model size and improving inference speed while maintaining model [precision](https://www.ultralytics.com/glossary/precision).
+- **INT8 Quantization**: Axelera's mixed-precision AIPU architecture enables automatic quantization through the Voyager SDK,
 
 - **Flexible Deployment Options**: Axelera offers various form factors (PCIe, M.2, integrated systems) to suit different deployment constraints, from embedded devices to edge servers.
 

@@ -2050,23 +2050,15 @@ class Albumentations:
                                 seg_kpts_flat = new_kpts_array[seg_mask]
 
                                 # Reshape to (N_orig, num_seg_points, 2) then filter to kept instances
-                                seg_points = seg_kpts_flat.reshape(
-                                    num_instances_orig, num_seg_points_per_instance, 2
-                                )
+                                seg_points = seg_kpts_flat.reshape(num_instances_orig, num_seg_points_per_instance, 2)
                                 seg_points = seg_points[:num_instances]
 
                                 # Clip segment points to image boundaries and derive bboxes
                                 # Similar to RandomPerspective.apply_segments
-                                seg_bboxes = np.array(
-                                    [segment2box(seg, w, h) for seg in seg_points], dtype=np.float32
-                                )
+                                seg_bboxes = np.array([segment2box(seg, w, h) for seg in seg_points], dtype=np.float32)
                                 # Clip segments to their bounding boxes
-                                seg_points[..., 0] = seg_points[..., 0].clip(
-                                    seg_bboxes[:, 0:1], seg_bboxes[:, 2:3]
-                                )
-                                seg_points[..., 1] = seg_points[..., 1].clip(
-                                    seg_bboxes[:, 1:2], seg_bboxes[:, 3:4]
-                                )
+                                seg_points[..., 0] = seg_points[..., 0].clip(seg_bboxes[:, 0:1], seg_bboxes[:, 2:3])
+                                seg_points[..., 1] = seg_points[..., 1].clip(seg_bboxes[:, 1:2], seg_bboxes[:, 3:4])
                                 labels["instances"].segments = seg_points
                                 # Update bboxes from segments for better accuracy
                                 bboxes = seg_bboxes

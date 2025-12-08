@@ -73,12 +73,13 @@ class SAM(Model):
             >>> sam = SAM("sam_b.pt")
             >>> sam._load("path/to/custom_weights.pt")
         """
-        from .build import build_sam  # slow import
-        from .build_sam3 import build_interactive_sam3
-
         if self.is_sam3:
+            from .build_sam3 import build_interactive_sam3
+
             self.model = build_interactive_sam3(weights)
         else:
+            from .build import build_sam  # slow import
+
             self.model = build_sam(weights)
 
     def predict(self, source, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
@@ -163,4 +164,6 @@ class SAM(Model):
             >>> print(task_map)
             {'segment': {'predictor': <class 'ultralytics.models.sam.predict.Predictor'>}}
         """
-        return {"segment": {"predictor": SAM2Predictor if self.is_sam2 else SAM3Predictor if self.is_sam3 else Predictor}}
+        return {
+            "segment": {"predictor": SAM2Predictor if self.is_sam2 else SAM3Predictor if self.is_sam3 else Predictor}
+        }

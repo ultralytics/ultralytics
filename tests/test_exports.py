@@ -258,6 +258,16 @@ def test_export_imx():
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
 
+@pytest.mark.skipif(TORCH_2_9, reason="Axelera export requires torch 2.8")
+@pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
+@pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="Requires Python==3.10")
+def test_export_axelera():
+    """Test YOLO export to Axelera format."""
+    model = YOLO(MODEL)
+    file = model.export(format="axelera", imgsz=32)
+    assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
+
 
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")

@@ -360,8 +360,10 @@ class YOLOE(Model):
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
-        validator(model=self.model, load_vp=load_vp, refer_data=refer_data)
+        stats = validator(model=self.model, load_vp=load_vp, refer_data=refer_data)
         self.metrics = validator.metrics
+        self.validator = validator
+        self.val_stats = stats
         return validator.metrics
 
     def predict(

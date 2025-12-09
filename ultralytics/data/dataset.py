@@ -874,16 +874,14 @@ class SemanticDataset(BaseDataset):
         mask_b = mask[:, :, 0]
         mask_g = mask[:, :, 1]
         mask_r = mask[:, :, 2]
-        fore = np.zeros_like(mask_b).astype(np.bool_)
+
         for i in range(nc):
             r, g, b = colors[i]
             mb = (mask_b == b).astype(np.uint8)
             mg = (mask_g == g).astype(np.uint8)
             mr = (mask_r == r).astype(np.uint8)
             results[:, :, i] = mb * mg * mr
-            fore = np.logical_or(fore, (mb * mg * mr).astype(np.bool_))
-        bg = np.logical_not(fore)
-        results[:, :, -1] = bg.astype(np.uint8)
+
         return results
 
     def update_labels_info(self, label):

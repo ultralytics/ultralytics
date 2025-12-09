@@ -1096,7 +1096,7 @@ class Exporter:
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """YOLO Axelera export."""
-        # TODO: Make this a function to use also with imx
+        os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
         try:
             from axelera import compiler
         except ImportError:

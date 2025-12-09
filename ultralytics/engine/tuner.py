@@ -352,6 +352,8 @@ class Tuner:
             hyp["close_mosaic"] = round(hyp["close_mosaic"])
         if "topk" in hyp:
             hyp["topk"] = round(hyp["topk"])
+        if "epochs" in hyp:
+            hyp["epochs"] = round(hyp["epochs"])
 
         return hyp
 

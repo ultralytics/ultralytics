@@ -258,6 +258,7 @@ def test_export_imx():
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
 
+
 @pytest.mark.skipif(TORCH_2_9, reason="Axelera export requires torch 2.8")
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
 @pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="Requires Python==3.10")

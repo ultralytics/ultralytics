@@ -258,9 +258,9 @@ def test_export_imx():
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
 
-@pytest.mark.skipif(True, reason="Axelera export is experimental skipping tests")
+@pytest.mark.skipif(TORCH_2_9, reason="Axelera export requires torch 2.8")
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
-@pytest.mark.skipif(checks.IS_PYTHON_MINIMUM_3_12, reason="Requires Python==3.12")
+@pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="Requires Python==3.10")
 def test_export_axelera():
     """Test YOLO export to Axelera format."""
     model = YOLO(MODEL)

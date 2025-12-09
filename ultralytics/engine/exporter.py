@@ -1103,8 +1103,10 @@ class Exporter:
             check_apt_requirements(["libllvm14", "libgirepository1.0-dev", "pkg-config", "libcairo2-dev"])
 
             check_requirements(
-                "axelera-voyager-sdk==1.5.0-rc6",
-                cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc6/build-packages-ubuntu-22.04/python",
+                "axelera-voyager-sdk==1.5.2",
+                cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi/ "
+                           "--extra-index-url https://software.axelera.ai/artifactory/axelera-dev-pypi/"
+             )
             )
 
         from axelera import compiler

@@ -7,7 +7,7 @@ print("set workspace:", workspace)
 
 from ultralytics import YOLOE,YOLO
 from ultralytics.models.yolo.yoloe import YOLOETrainerFromScratch,YOLOEVPTrainer,YOLOEPEFreeTrainer
-
+from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
 
 
 
@@ -26,7 +26,7 @@ parser.add_argument("--close_mosaic", type=int, default=0)
 parser.add_argument("--batch", type=int, default=32)
 parser.add_argument("--project", type=str, default="../runs/train_tp")
 #device
-parser.add_argument("--device", type=str, default="0")
+parser.add_argument("--device", type=str, default="7")
 # val
 parser.add_argument("--val", type=bool, default=True)
 parser.add_argument("--name", type=str, default="yoloe_vp")
@@ -54,8 +54,8 @@ parser.add_argument("--o2m", type=float, default=0.1)
  # mobileclip2b
 #
 args = parser.parse_args()
-assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeTrainer"], \
-    "trainer must be YOLOETrainerFromScratch, YOLOEVPTrainer, or YOLOEPEFreeTrainer"
+assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeTrainer","YOLOESegTrainerFromScratch"], \
+    "trainer must be YOLOETrainerFromScratch, YOLOEVPTrainer, YOLOEPEFreeTrainer, or YOLOESegTrainerFromScratch"
 
 
 
@@ -126,12 +126,12 @@ else:
 
 
 ###################################################################
-# args.trainer="YOLOEVPTrainer"
+# args.trainer="YOLOESegTrainerFromScratch"
 # args.project="runs/quick_verfiy"
-
+# args.model_version="26s-seg"
 # data = dict(
 #     train=dict(
-#         yolo_data=["coco128.yaml"]
+#         yolo_data=["coco128-seg.yaml"]
 #     ),
 #     val=dict(yolo_data=[os.path.abspath("../datasets/lvis.yaml")]),
 # )
@@ -141,7 +141,7 @@ model = YOLO("yoloe-{}.yaml".format(args.model_version))
 model=model.load(args.weight_path)
 
 
-if args.trainer == "YOLOETrainerFromScratch":
+if args.trainer == "YOLOETrainerFromScratch" or args.trainer== "YOLOESegTrainerFromScratch":
     print("Using YOLOETrainerFromScratch for training.")
     freeze = []
     refer_data=None
@@ -180,7 +180,6 @@ elif args.trainer == "YOLOEPEFreeTrainer":
             f"{head_index}.cv3.2.1",
         ]
     )
-
     freeze.extend(
         [
             f"{head_index}.one2one_cv3.0.0",

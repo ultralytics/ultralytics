@@ -260,6 +260,7 @@ def test_export_imx():
 
 
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
+@pytest.mark.skipif(checks.IS_PYTHON_MINIMUM_3_12, reason="Requires Python==3.12")
 def test_export_axelera():
     """Test YOLO export to Axelera format."""
     model = YOLO(MODEL)

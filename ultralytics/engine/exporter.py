@@ -1100,12 +1100,12 @@ class Exporter:
         try:
             from axelera import compiler
         except ImportError:
-            check_apt_requirements(["libllvm14", "libgirepository1.0-dev", "pkg-config", "libcairo2-dev"])
+            check_apt_requirements(["libllvm14", "libgirepository1.0-dev", "pkg-config", "libcairo2-dev", "build-essential", "cmake"])
 
             check_requirements(
                 "axelera-voyager-sdk==1.5.2",
-                cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi/",
-            )
+                cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi "
+                "--extra-index-url https://software.axelera.ai/artifactory/axelera-dev-pypi")
 
         from axelera import compiler
         from axelera.compiler import CompilerConfig

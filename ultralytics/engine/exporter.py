@@ -106,7 +106,6 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_9,
-    IS_PYTHON_3_10,
     check_apt_requirements,
     check_imgsz,
     check_requirements,
@@ -368,8 +367,6 @@ class Exporter:
         fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
         validate_args(fmt, self.args, fmt_keys)
         if axelera:
-            if not IS_PYTHON_3_10:
-                SystemError("Axelera export only supported on Python 3.10.")
             if not self.args.int8:
                 LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
                 self.args.int8 = True

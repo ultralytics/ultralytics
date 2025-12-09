@@ -1104,10 +1104,8 @@ class Exporter:
 
             check_requirements(
                 "axelera-voyager-sdk==1.5.2",
-                cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi/ "
-                           "--extra-index-url https://software.axelera.ai/artifactory/axelera-dev-pypi/"
-             )
-            )
+                cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi/")
+            
 
         from axelera import compiler
         from axelera.compiler import CompilerConfig

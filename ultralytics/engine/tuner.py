@@ -312,7 +312,7 @@ class Tuner:
             results = self._get_mongodb_results(n)
             if results:
                 # MongoDB already sorted by fitness DESC, so results[0] is best
-                x = np.array([[r["fitness"]] + [r["hyperparameters"][k] for k in self.space.keys()] for r in results])
+                x = np.array([[r["fitness"]] + [r["hyperparameters"].get(k, self.space[k]) for k in self.space.keys()] for r in results])
             elif self.collection.name in self.collection.database.list_collection_names():  # Tuner started elsewhere
                 x = np.array([[0.0] + [getattr(self.args, k) for k in self.space.keys()]])
 

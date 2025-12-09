@@ -579,8 +579,8 @@ class AutoBackend(nn.Module):
                 from axelera.runtime import op
             except ImportError:
                 check_requirements(
-                    "axelera_runtime2==0.1.1",
-                    cmds="--extra-index-url https://media.axelera.ai/releases/v1.5.0-rc6/build-packages-ubuntu-22.04/python",
+                    "axelera_runtime2==0.1.2",
+                    cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi",
                 )
             from axelera.runtime import op
 

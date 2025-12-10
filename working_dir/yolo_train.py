@@ -60,25 +60,26 @@ def main():
     # Train using YAML configuration
     results = model.train(**train_kwargs)
 
-    # Print training results
-    print("\n" + "="*50)
-    print("Training completed!")
-    print("="*50)
-    print(f"Best mAP50: {results.results_dict['metrics/mAP50(B)']:.4f}")
-    print(f"Best mAP50-95: {results.results_dict['metrics/mAP50-95(B)']:.4f}")
+    if results is not None:
+        # Print training results
+        print("\n" + "="*50)
+        print("Training completed!")
+        print("="*50)
+        print(f"Best mAP50: {results.results_dict['metrics/mAP50(B)']:.4f}")
+        print(f"Best mAP50-95: {results.results_dict['metrics/mAP50-95(B)']:.4f}")
 
-    # Validate the trained model
-    print("\n" + "="*50)
-    print("Running validation...")
-    print("="*50)
-    metrics = model.val()
+        # Validate the trained model
+        print("\n" + "="*50)
+        print("Running validation...")
+        print("="*50)
+        metrics = model.val()
 
-    # Print validation metrics
-    print(f"Validation mAP50: {metrics.box.map50:.4f}")
-    print(f"Validation mAP50-95: {metrics.box.map:.4f}")
+        # Print validation metrics
+        print(f"Validation mAP50: {metrics.box.map50:.4f}")
+        print(f"Validation mAP50-95: {metrics.box.map:.4f}")
 
-    print("\nTraining pipeline completed successfully!")
-    print(f"Results saved to: {results.save_dir}")
+        print("\nTraining pipeline completed successfully!")
+        print(f"Results saved to: {results.save_dir}")
 
 
 if __name__ == '__main__':

@@ -1,0 +1,79 @@
+# RT-DETR Training Configuration
+# Use with: model.train(cfg='rtdetr_train_config.yaml')
+
+# Task (model is loaded in Python code, not here)
+# task: detect
+mode: train
+
+# Dataset
+data: coco8.yaml  # COCO8 dataset (small subset for testing)
+# datasets_dir: /Users/esat/datasets  # Base directory for datasets
+
+# Training hyperparameters
+epochs: 3
+batch: 8
+imgsz: 640
+
+# Device configuration
+device: cpu  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
+workers: 8
+
+# Output and logging
+project: rtdetr_training
+name: coco8_train
+exist_ok: True
+verbose: True
+
+# Optimizer settings
+optimizer: AdamW
+lr0: 0.0001
+lrf: 0.01
+momentum: 0.937
+weight_decay: 0.0005
+
+# Learning rate scheduler
+warmup_epochs: 3.0
+warmup_momentum: 0.8
+warmup_bias_lr: 0.1
+
+# Loss function weights
+box: 7.5
+cls: 0.5
+dfl: 1.5
+
+# Augmentation settings
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+shear: 0.0
+perspective: 0.0
+flipud: 0.0
+fliplr: 0.5
+mosaic: 1.0
+mixup: 0.0
+copy_paste: 0.0
+
+# Training optimization
+# amp: True  # Uncomment for GPU training with Automatic Mixed Precision
+fraction: 1.0
+
+# Checkpointing and validation
+save: True
+save_period: -1
+cache: False
+val: True
+patience: 50
+
+# Visualization
+plots: True
+
+# Resume training
+resume: False
+
+# Advanced settings
+close_mosaic: 10
+seed: 0
+deterministic: True

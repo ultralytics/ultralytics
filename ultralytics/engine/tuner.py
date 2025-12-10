@@ -285,6 +285,8 @@ class Tuner:
         parents_mat = np.stack([x[i][1:] for i in idxs], 0)  # (k, ng) strip fitness
         lo, hi = parents_mat.min(0), parents_mat.max(0)
         span = hi - lo
+        # given a small value when span is zero to avoid no mutation
+        span = np.where(span == 0, np.random.uniform(0.01, 0.1, span.shape), span)
         return np.random.uniform(lo - alpha * span, hi + alpha * span)
 
     def _mutate(

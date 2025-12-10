@@ -630,6 +630,9 @@ def main():
         subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml")], check=True)
         LOGGER.info(f"Site built at {SITE}")
 
+        # Remove search index JSON files to disable search
+        Path(SITE / "search.json").unlink(missing_ok=True)
+
         # Update docs HTML pages
         update_docs_html()
 

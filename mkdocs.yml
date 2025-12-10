@@ -733,6 +733,8 @@ nav:
 
 # Plugins --------------------------------------------------------------------------------------------------------------
 plugins:
+  - search:
+      enabled: false
   # Macros are handled by minijinja in build_docs.py
   #  - macros:
   #      include_yaml:

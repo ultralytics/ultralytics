@@ -629,11 +629,10 @@ class Exporter:
                 f"The calibration dataset ({n} images) must have at least as many images as the batch size "
                 f"('batch={self.args.batch}')."
             )
-        elif n < 300:
-            if self.args.format == "axelera":
-                LOGGER.warning(f"{prefix} >100 images required for Axelera calibration, found {n} images.")
-            else:
-                LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
+        elif self.args.format == "axelera" and n < 100:
+            LOGGER.warning(f"{prefix} >100 images required for Axelera calibration, found {n} images.")
+        elif self.args.format != "axelera" and n < 300:
+            LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
         return build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)  # required for batch loading
 
     @try_export

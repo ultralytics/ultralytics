@@ -107,6 +107,7 @@ def onnx2saved_model(
         enable_batchmatmul_unfold=True and not int8,  # fix lower no. of detected objects on GPU delegate
         output_signaturedefs=True,  # fix error with Attention block group convolution
         disable_group_convolution=disable_group_convolution,  # fix error with group convolution
+        optimize_for_gpu_delegate=True,  # fix GPU delegate crash
     )
 
     # Remove/rename TFLite models

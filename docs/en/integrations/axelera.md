@@ -262,4 +262,3 @@ axdevice
 - When using M.2 accelerators, you may encounter runtime errors with large or extra-large models due to power supply limitations.
 
 If you encounter unexpected Axelera device usage or API issues, please visit the [Axelera Community](https://community.axelera.ai/) for solutions and support.
-

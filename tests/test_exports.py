@@ -267,7 +267,8 @@ def test_export_axelera():
     """Test YOLO export to Axelera format."""
     model = YOLO(MODEL)
     # For faster testing, use a smaller calibration dataset
-    file = model.export(format="axelera", imgsz=32, data="coco8.yaml")
+    # 32 image size crashes axelera export, so use 64
+    file = model.export(format="axelera", imgsz=64, data="coco8.yaml")
     assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 

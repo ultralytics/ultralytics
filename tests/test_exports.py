@@ -13,7 +13,7 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_8, TORCH_2_9, TORCH_VERSION
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 
 def test_export_torchscript():
@@ -259,13 +259,10 @@ def test_export_imx():
     YOLO(file)(SOURCE, imgsz=32)
 
 
-@pytest.mark.skipif(
-    checks.check_version(TORCH_VERSION, "<2.0") or checks.check_version(TORCH_VERSION, ">=2.9"),
-    reason="Axelera export requires torch >=2.0 and <2.9",
-)
-@pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
-@pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="Requires Python==3.10")
-@pytest.mark.skipif(not TORCH_2_8, reason="Axelera export requires torch<=2.8.0")
+@pytest.mark.slow
+@pytest.mark.skipif(not TORCH_2_8, reason="Axelera export requires torch>=2.8.0")
+@pytest.mark.skipif(not LINUX, reason="Axelera export only supported on Linux")
+@pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="Axelera export requires Python 3.10")
 def test_export_axelera():
     """Test YOLO export to Axelera format."""
     model = YOLO(MODEL)

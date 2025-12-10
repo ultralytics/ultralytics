@@ -42,7 +42,6 @@ def main():
 
     print(f"\nModel: {args.model}")
     print(f"Config: {args.config}")
-    print(f"W&B enabled: {args.wandb}")
 
     # Check available devices
     print(f"\nCUDA available: {torch.cuda.is_available()}")

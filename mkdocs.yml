@@ -142,7 +142,7 @@ extra_css:
   - stylesheets/style.css
 
 extra_javascript:
-  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.1.4/js/chat.min.js
+  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.1.6/js/chat.min.js
   - https://unpkg.com/tablesort@5.6.0/dist/tablesort.min.js
   - javascript/extra.js
   - javascript/giscus.js
@@ -325,43 +325,43 @@ nav:
       - Datasets: datasets/index.md
       - Detection:
           - datasets/detect/index.md
+          - African-wildlife: datasets/detect/african-wildlife.md
           - Argoverse: datasets/detect/argoverse.md
+          - Brain-tumor: datasets/detect/brain-tumor.md
           - COCO: datasets/detect/coco.md
           - COCO8: datasets/detect/coco8.md
           - COCO8-Grayscale: datasets/detect/coco8-grayscale.md
           - COCO8-Multispectral: datasets/detect/coco8-multispectral.md
           - COCO128: datasets/detect/coco128.md
-          - LVIS: datasets/detect/lvis.md
+          - Construction-PPE: datasets/detect/construction-ppe.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
+          - HomeObjects-3K: datasets/detect/homeobjects-3k.md
+          - KITTI: datasets/detect/kitti.md
+          - LVIS: datasets/detect/lvis.md
+          - Medical-pills: datasets/detect/medical-pills.md
           - Objects365: datasets/detect/objects365.md
           - OpenImagesV7: datasets/detect/open-images-v7.md
+          - RF100: datasets/detect/roboflow-100.md
+          - Signature: datasets/detect/signature.md
           - SKU-110K: datasets/detect/sku-110k.md
-          - HomeObjects-3K: datasets/detect/homeobjects-3k.md
-          - Construction-PPE: datasets/detect/construction-ppe.md
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
-          - RF100: datasets/detect/roboflow-100.md
-          - Brain-tumor: datasets/detect/brain-tumor.md
-          - African-wildlife: datasets/detect/african-wildlife.md
-          - Signature: datasets/detect/signature.md
-          - Medical-pills: datasets/detect/medical-pills.md
-          - KITTI: datasets/detect/kitti.md
       - Segmentation:
           - datasets/segment/index.md
+          - Carparts-seg: datasets/segment/carparts-seg.md
           - COCO: datasets/segment/coco.md
           - COCO8-seg: datasets/segment/coco8-seg.md
           - COCO128-seg: datasets/segment/coco128-seg.md
           - Crack-seg: datasets/segment/crack-seg.md
-          - Carparts-seg: datasets/segment/carparts-seg.md
           - Package-seg: datasets/segment/package-seg.md
       - Pose:
           - datasets/pose/index.md
           - COCO: datasets/pose/coco.md
           - COCO8-pose: datasets/pose/coco8-pose.md
-          - Tiger-pose: datasets/pose/tiger-pose.md
-          - Hand-keypoints: datasets/pose/hand-keypoints.md
           - Dog-pose: datasets/pose/dog-pose.md
+          - Hand-keypoints: datasets/pose/hand-keypoints.md
+          - Tiger-pose: datasets/pose/tiger-pose.md
       - Classification:
           - datasets/classify/index.md
           - Caltech 101: datasets/classify/caltech101.md
@@ -376,62 +376,62 @@ nav:
           - MNIST: datasets/classify/mnist.md
       - Oriented Bounding Boxes (OBB):
           - datasets/obb/index.md
-          - DOTAv2: datasets/obb/dota-v2.md
           - DOTA8: datasets/obb/dota8.md
+          - DOTAv2: datasets/obb/dota-v2.md
       - Multi-Object Tracking:
           - datasets/track/index.md
   - Solutions:
       - Solutions: solutions/index.md
-      - Object Counting: guides/object-counting.md
-      - Object Cropping: guides/object-cropping.md
-      - Object Blurring: guides/object-blurring.md
-      - Workouts Monitoring: guides/workouts-monitoring.md
-      - Objects Counting in Regions: guides/region-counting.md
-      - Security Alarm System: guides/security-alarm-system.md
+      - Analytics: guides/analytics.md
+      - Distance Calculation: guides/distance-calculation.md
       - Heatmaps: guides/heatmaps.md
       - Instance Segmentation with Object Tracking: guides/instance-segmentation-and-tracking.md
-      - VisionEye View Objects Mapping: guides/vision-eye.md
-      - Speed Estimation: guides/speed-estimation.md
-      - Distance Calculation: guides/distance-calculation.md
-      - Queue Management: guides/queue-management.md
-      - Parking Management: guides/parking-management.md
-      - Analytics: guides/analytics.md
       - Live Inference: guides/streamlit-live-inference.md
+      - Object Blurring: guides/object-blurring.md
+      - Object Counting: guides/object-counting.md
+      - Object Cropping: guides/object-cropping.md
+      - Objects Counting in Regions: guides/region-counting.md
+      - Parking Management: guides/parking-management.md
+      - Queue Management: guides/queue-management.md
+      - Security Alarm System: guides/security-alarm-system.md
+      - Similarity Search: guides/similarity-search.md
+      - Speed Estimation: guides/speed-estimation.md
       - Track Objects in Zone: guides/trackzone.md
-      - Similarity Search 🚀 NEW: guides/similarity-search.md
+      - VisionEye View Objects Mapping: guides/vision-eye.md
+      - Workouts Monitoring: guides/workouts-monitoring.md
   - Guides:
       - Guides: guides/index.md
-      - YOLO Common Issues: guides/yolo-common-issues.md
-      - YOLO Performance Metrics: guides/yolo-performance-metrics.md
-      - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
-      - YOLO Data Augmentation: guides/yolo-data-augmentation.md
+      - A Guide on Model Testing: guides/model-testing.md
+      - AzureML Quickstart: guides/azureml-quickstart.md
+      - Best Practices for Model Deployment: guides/model-deployment-practices.md
+      - Conda Quickstart: guides/conda-quickstart.md
+      - Data Collection and Annotation: guides/data-collection-and-annotation.md
+      - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
+      - Defining A Computer Vision Project's Goals: guides/defining-project-goals.md
+      - Deploying YOLO on Vertex AI in Docker container: guides/vertex-ai-deployment-with-docker.md
+      - Docker Quickstart: guides/docker-quickstart.md
+      - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
+      - Hyperparameter Tuning: guides/hyperparameter-tuning.md
+      - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
+      - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
+      - K-Fold Cross Validation: guides/kfold-cross-validation.md
+      - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Model Deployment Options: guides/model-deployment-options.md
       - Model YAML Configuration Guide: guides/model-yaml-config.md
-      - K-Fold Cross Validation: guides/kfold-cross-validation.md
-      - Hyperparameter Tuning: guides/hyperparameter-tuning.md
-      - SAHI Tiled Inference: guides/sahi-tiled-inference.md
-      - AzureML Quickstart: guides/azureml-quickstart.md
-      - Conda Quickstart: guides/conda-quickstart.md
-      - Docker Quickstart: guides/docker-quickstart.md
-      - Raspberry Pi: guides/raspberry-pi.md
       - NVIDIA Jetson: guides/nvidia-jetson.md
-      - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
-      - Triton Inference Server: guides/triton-inference-server.md
-      - Isolating Segmentation Objects: guides/isolating-segmentation-objects.md
-      - Edge TPU on Raspberry Pi: guides/coral-edge-tpu-on-raspberry-pi.md
-      - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
-      - ROS Quickstart: guides/ros-quickstart.md
-      - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md
-      - Defining A Computer Vision Project's Goals: guides/defining-project-goals.md
-      - Data Collection and Annotation: guides/data-collection-and-annotation.md
       - Preprocessing Annotated Data: guides/preprocessing_annotated_data.md
+      - Raspberry Pi: guides/raspberry-pi.md
+      - ROS Quickstart: guides/ros-quickstart.md
+      - SAHI Tiled Inference: guides/sahi-tiled-inference.md
+      - Steps of a Computer Vision Project: guides/steps-of-a-cv-project.md
       - Tips for Model Training: guides/model-training-tips.md
-      - Insights on Model Evaluation and Fine-Tuning: guides/model-evaluation-insights.md
-      - A Guide on Model Testing: guides/model-testing.md
-      - Best Practices for Model Deployment: guides/model-deployment-practices.md
-      - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
-      - Deploying YOLO on Vertex AI in Docker container: guides/vertex-ai-deployment-with-docker.md
+      - Triton Inference Server: guides/triton-inference-server.md
+      - Viewing Inference Images in a Terminal: guides/view-results-in-terminal.md
+      - YOLO Common Issues: guides/yolo-common-issues.md
+      - YOLO Data Augmentation: guides/yolo-data-augmentation.md
+      - YOLO Performance Metrics: guides/yolo-performance-metrics.md
+      - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
@@ -462,43 +462,43 @@ nav:
               - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Integrations:
       - Integrations: integrations/index.md
-      - SONY IMX500: integrations/sony-imx500.md
+      - Albumentations: integrations/albumentations.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
+      - Axelera: integrations/axelera.md
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
+      - CoreML: integrations/coreml.md
       - DVC: integrations/dvc.md
+      - ExecuTorch: integrations/executorch.md
       - Google Colab: integrations/google-colab.md
+      - Gradio: integrations/gradio.md
       - IBM Watsonx: integrations/ibm-watsonx.md
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
       - MLflow: integrations/mlflow.md
-      - Neptune: integrations/neptune.md
-      - Paperspace Gradient: integrations/paperspace.md
-      - Ray Tune: integrations/ray-tune.md
-      - TensorBoard: integrations/tensorboard.md
-      - VS Code: integrations/vscode.md
-      - Weights & Biases: integrations/weights-biases.md
-      - Albumentations: integrations/albumentations.md
-      - TorchScript: integrations/torchscript.md
-      - ONNX: integrations/onnx.md
-      - OpenVINO: integrations/openvino.md
-      - TensorRT: integrations/tensorrt.md
-      - CoreML: integrations/coreml.md
-      - TF SavedModel: integrations/tf-savedmodel.md
-      - TF GraphDef: integrations/tf-graphdef.md
-      - TFLite: integrations/tflite.md
-      - TFLite Edge TPU: integrations/edge-tpu.md
-      - TF.js: integrations/tfjs.md
-      - PaddlePaddle: integrations/paddlepaddle.md
       - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md
-      - Rockchip RKNN: integrations/rockchip-rknn.md
-      - Axelera: integrations/axelera.md
+      - Neptune: integrations/neptune.md
       - Neural Magic: integrations/neural-magic.md
-      - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
-      - Gradio: integrations/gradio.md
+      - ONNX: integrations/onnx.md
+      - OpenVINO: integrations/openvino.md
+      - PaddlePaddle: integrations/paddlepaddle.md
+      - Paperspace Gradient: integrations/paperspace.md
+      - Ray Tune: integrations/ray-tune.md
       - Roboflow: integrations/roboflow.md
-      - ExecuTorch: integrations/executorch.md
+      - Rockchip RKNN: integrations/rockchip-rknn.md
+      - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
+      - SONY IMX500: integrations/sony-imx500.md
+      - TensorBoard: integrations/tensorboard.md
+      - TensorRT: integrations/tensorrt.md
+      - TF GraphDef: integrations/tf-graphdef.md
+      - TF SavedModel: integrations/tf-savedmodel.md
+      - TF.js: integrations/tfjs.md
+      - TFLite: integrations/tflite.md
+      - TFLite Edge TPU: integrations/edge-tpu.md
+      - TorchScript: integrations/torchscript.md
+      - VS Code: integrations/vscode.md
+      - Weights & Biases: integrations/weights-biases.md
   - HUB:
       - HUB: hub/index.md
       - Web:
@@ -733,6 +733,8 @@ nav:
 
 # Plugins --------------------------------------------------------------------------------------------------------------
 plugins:
+  - search:
+      enabled: false
   # Macros are handled by minijinja in build_docs.py
   #  - macros:
   #      include_yaml:

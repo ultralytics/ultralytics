@@ -1,5 +1,43 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+// Block sitemap.xml fetches triggered by Weglot's hreflang tags detected by MkDocs Material
+(() => {
+  const EMPTY_SITEMAP = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`;
+
+  const originalFetch = window.fetch;
+  window.fetch = function (url, options) {
+    if (typeof url === "string" && url.includes("/sitemap.xml")) {
+      return Promise.resolve(
+        new Response(EMPTY_SITEMAP, { status: 200, headers: { "Content-Type": "application/xml" } }),
+      );
+    }
+    return originalFetch.apply(this, arguments);
+  };
+
+  const originalXHROpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function (method, url) {
+    if (typeof url === "string" && url.includes("/sitemap.xml")) {
+      this._blockRequest = true;
+    }
+    return originalXHROpen.apply(this, arguments);
+  };
+
+  const originalXHRSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.send = function () {
+    if (this._blockRequest) {
+      Object.defineProperty(this, "status", { value: 200 });
+      Object.defineProperty(this, "responseText", { value: EMPTY_SITEMAP });
+      Object.defineProperty(this, "response", { value: EMPTY_SITEMAP });
+      Object.defineProperty(this, "responseXML", {
+        value: new DOMParser().parseFromString(EMPTY_SITEMAP, "application/xml"),
+      });
+      this.dispatchEvent(new Event("load"));
+      return;
+    }
+    return originalXHRSend.apply(this, arguments);
+  };
+})();
+
 // Apply theme colors based on dark/light mode
 const applyTheme = (isDark) => {
   document.body.setAttribute("data-md-color-scheme", isDark ? "slate" : "default");

@@ -91,8 +91,10 @@ class RTDETR:
         self.iou_thres = iou_thres
         self.classes = class_names
 
-        # Set up the ONNX runtime session with CUDA and CPU execution providers
-        self.session = ort.InferenceSession(model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+        # Set up the ONNX runtime session with available execution providers
+        available = ort.get_available_providers()
+        providers = [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in available]
+        self.session = ort.InferenceSession(model_path, providers=providers or available)
 
         self.model_input = self.session.get_inputs()
         self.input_width = self.model_input[0].shape[2]

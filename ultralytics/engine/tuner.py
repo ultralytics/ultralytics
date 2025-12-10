@@ -267,7 +267,7 @@ class Tuner:
                 f.write(headers)
                 for result in all_results:
                     fitness = result["fitness"]
-                    hyp_values = [result["hyperparameters"][k] for k in self.space.keys()]
+                    hyp_values = [result["hyperparameters"].get(k, self.args.get(k)) for k in self.space.keys()]
                     log_row = [round(fitness, 5), *hyp_values]
                     f.write(",".join(map(str, log_row)) + "\n")
 

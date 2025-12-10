@@ -885,8 +885,6 @@ def verify_image_and_mask(args: tuple) -> list:
             lb[:, 3] = lb[:, 3] / w
             lb[:, 4] = lb[:, 4] / h
 
-            lb[:, 3] = lb[:, 3] - lb[:, 1]  # to [xmin, ymin, w, h] (normalized => 1.0)
-            lb[:, 4] = lb[:, 4] - lb[:, 2]
         else:
             ne = 1
             lb = np.zeros((nl, 5), dtype=np.float32)

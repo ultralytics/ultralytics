@@ -151,7 +151,6 @@ class SemSegPredictor(DetectionPredictor):
         Returns:
             None
         """
-
         if isinstance(image, torch.Tensor):
             image = image.cpu().float().numpy()
 

@@ -514,6 +514,7 @@ class StereoYOLOv11Wrapper(nn.Module):
         self.stride = torch.tensor([32.0])  # Default stride for stereo models
         self.yaml = {"channels": 6}  # 6-channel input (left + right)
         self.model = self.core  # For compatibility with BaseModel.fuse() pattern
+        self.ch = 6
 
     def forward(
         self,

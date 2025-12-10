@@ -217,7 +217,8 @@ class AutoBackend(nn.Module):
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
-            # ch = model.yaml.get("channels", 3)
+            if hasattr(model, "yaml"):
+                ch = model.yaml.get("channels", 3)
             for p in model.parameters():
                 p.requires_grad = False
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
@@ -622,7 +623,6 @@ class AutoBackend(nn.Module):
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"Metadata not found for 'model={w}'")
-
         # Check names
         if "names" not in locals():  # names missing
             names = default_class_names(data)

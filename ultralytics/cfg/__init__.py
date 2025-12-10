@@ -79,7 +79,7 @@ TASK2METRIC = {
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
     # Placeholder metric; to be customized for stereo 3D later
-    "stereo3ddet": "metrics/mAP50-95(B)",
+    "stereo3ddet": "metrics/mAP3D",
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []

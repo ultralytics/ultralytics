@@ -14,6 +14,7 @@ from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.models.yolo.stereo3ddet.val import decode_stereo3d_outputs
 from ultralytics.utils import LOGGER
+from ultralytics.utils.checks import check_imgsz
 
 
 def load_stereo_pair(
@@ -101,19 +102,24 @@ class Stereo3DDetPredictor(DetectionPredictor):
         Args:
             source: Input source(s) for prediction.
         """
+        self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
         if source is None:
             source = self.args.source
 
         # Check if source is a single path (not allowed for stereo)
         if isinstance(source, (str, Path)):
-            raise ValueError(
-                "Stereo3DDetPredictor requires both left and right images. "
-                "Provide source as a tuple/list: (left_path, right_path) or "
-                "[(left1, right1), (left2, right2), ...] for batch prediction."
-            )
+            try:
+                left_path, right_path = source.split(",")
+                stereo_pairs = [(left_path, right_path)]
+            except ValueError:
+                raise ValueError(
+                    "Stereo3DDetPredictor requires both left and right images. "
+                    "Provide source as a tuple/list: (left_path, right_path) or "
+                    "[(left1, right1), (left2, right2), ...] for batch prediction."
+                )
 
         # Convert to list of stereo pairs
-        if isinstance(source, (tuple, list)) and len(source) > 0:
+        elif isinstance(source, (tuple, list)) and len(source) > 0:
             # Check if first element is a tuple/list (batch of pairs)
             if isinstance(source[0], (tuple, list)) and len(source[0]) == 2:
                 # Batch of stereo pairs: [(left1, right1), (left2, right2), ...]
@@ -168,10 +174,12 @@ class Stereo3DDetPredictor(DetectionPredictor):
             def __init__(self, stereo_pairs):
                 self.stereo_pairs = stereo_pairs
                 self.bs = len(stereo_pairs)  # batch size
+                self.mode = "image"  # Stereo pairs are image files
                 self.source_type = type("SourceType", (), {
                     "stream": False,
                     "tensor": False,
                     "screenshot": False,
+                    "from_img": False,
                 })()
 
             def __iter__(self):

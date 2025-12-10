@@ -196,7 +196,7 @@ To train a YOLO11 semantic segmentation model on a custom dataset, you first nee
     === "CLI"
 
         ```bash
-        yolo segment train data=path/to/your_dataset.yaml model=yolo11n-seg.pt epochs=100 imgsz=512
+        yolo semseg train data=path/to/your_dataset.yaml model=yolo11n-seg.pt epochs=100 imgsz=512
         ```
 
 Check the [Configuration](../usage/cfg.md) page for more available arguments.
@@ -233,7 +233,7 @@ Loading and validating a pretrained YOLO semantic segmentation model is straight
     === "CLI"
 
         ```bash
-        yolo segment val model=yolo11n-semseg.pt
+        yolo semseg val model=yolo11n-semseg.pt
         ```
 
 ### How can I export a YOLO semantic segmentation model to ONNX format?

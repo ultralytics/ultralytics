@@ -860,7 +860,9 @@ class Exporter:
     def export_coreml(self, prefix=colorstr("CoreML:")):
         """Export YOLO model to CoreML format."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
-        check_requirements("coremltools>=8.0")
+        check_requirements(
+            ["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"]
+        )  # latest numpy 2.4.0rc1 breaks coremltools exports
         import coremltools as ct
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
@@ -1088,7 +1090,7 @@ class Exporter:
         # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
         # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
         check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-        check_requirements(("executorch==1.0.0", "flatbuffers"))
+        check_requirements(("executorch==1.0.1", "flatbuffers"))
 
         import torch
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner

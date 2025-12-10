@@ -257,7 +257,7 @@ axdevice
 
 **Known Issues**
 
-- If you have an existing Ultralytics environment with PyTorch 2.9, the first yolo export format=axelera command will fail. This occurs because PyTorch automatically downgrades to version 2.8 but requires a reload to function properly. Simply run the export command a second time—it will succeed. The error message provides clear instructions for this workaround.
+- If you have an existing Ultralytics environment with PyTorch 2.9, the first `yolo export format=axelera` command will fail. This occurs because PyTorch automatically downgrades to version 2.8 but requires a reload to function properly. Simply run the export command a second time, it will succeed. The error message provides clear instructions for this workaround.
 
 - When using M.2 accelerators, you may encounter runtime errors with large or extra-large models due to power supply limitations.
 

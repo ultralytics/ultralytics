@@ -216,11 +216,11 @@ class YOLOv8:
         indices = cv2.dnn.NMSBoxes(boxes, scores, self.confidence_thres, self.iou_thres)
 
         # Iterate over the selected indices after non-maximum suppression
-        for i in indices:
+        for i in np.array(indices).flatten():
             # Get the box, score, and class ID corresponding to the index
-            box = boxes[i]
-            score = scores[i]
-            class_id = class_ids[i]
+            box = boxes[int(i)]
+            score = scores[int(i)]
+            class_id = class_ids[int(i)]
 
             # Draw the detection on the input image
             self.draw_detections(input_image, box, score, class_id)
@@ -234,8 +234,9 @@ class YOLOv8:
         Returns:
             (np.ndarray): The output image with drawn detections.
         """
-        # Create an inference session using the ONNX model and specify execution providers
-        session = ort.InferenceSession(self.onnx_model, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+        available = ort.get_available_providers()
+        providers = [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in available]
+        session = ort.InferenceSession(self.onnx_model, providers=providers or available)
 
         # Get the model inputs
         model_inputs = session.get_inputs()

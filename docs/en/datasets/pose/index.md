@@ -99,14 +99,14 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Additional Notes**: COCO8-Pose is ideal for sanity checks and [CI checks](https://docs.ultralytics.com/help/CI/).
 - [Read more about COCO8-Pose](coco8-pose.md)
 
-### Tiger-Pose
+### Dog-Pose
 
-- **Description**: The [Ultralytics](https://www.ultralytics.com/) Tiger Pose dataset comprises 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), with 210 images allocated for training and 53 for validation.
-- **Label Format**: Same as Ultralytics YOLO format as described above, with 12 keypoints for animal pose and no visible dimension.
-- **Number of Classes**: 1 (Tiger).
-- **Keypoints**: 12 keypoints.
-- **Usage**: Great for animal pose or any other pose that is not human-based.
-- [Read more about Tiger-Pose](tiger-pose.md)
+- **Description**: The Dog Pose dataset contains 6,773 training and 1,703 test images, providing a diverse and extensive resource for canine keypoint estimation.
+- **Label Format**: Follows the Ultralytics YOLO format, with annotations for multiple keypoints specific to dog anatomy.
+- **Number of Classes**: 1 (Dog).
+- **Keypoints**: Includes 24 keypoints tailored to dog poses, such as limbs, joints, and head positions.
+- **Usage**: Ideal for training models to estimate dog poses in various scenarios, from research to [real-world applications](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation).
+- [Read more about Dog-Pose](dog-pose.md)
 
 ### Hand Keypoints
 
@@ -117,14 +117,14 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 - **Usage**: Great for human hand pose estimation and [gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11).
 - [Read more about Hand Keypoints](hand-keypoints.md)
 
-### Dog-Pose
+### Tiger-Pose
 
-- **Description**: The Dog Pose dataset contains 6,773 training and 1,703 test images, providing a diverse and extensive resource for canine keypoint estimation.
-- **Label Format**: Follows the Ultralytics YOLO format, with annotations for multiple keypoints specific to dog anatomy.
-- **Number of Classes**: 1 (Dog).
-- **Keypoints**: Includes 24 keypoints tailored to dog poses, such as limbs, joints, and head positions.
-- **Usage**: Ideal for training models to estimate dog poses in various scenarios, from research to [real-world applications](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation).
-- [Read more about Dog-Pose](dog-pose.md)
+- **Description**: The [Ultralytics](https://www.ultralytics.com/) Tiger Pose dataset comprises 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), with 210 images allocated for training and 53 for validation.
+- **Label Format**: Same as Ultralytics YOLO format as described above, with 12 keypoints for animal pose and no visible dimension.
+- **Number of Classes**: 1 (Tiger).
+- **Keypoints**: 12 keypoints.
+- **Usage**: Great for animal pose or any other pose that is not human-based.
+- [Read more about Tiger-Pose](tiger-pose.md)
 
 ### Adding your own dataset
 

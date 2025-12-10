@@ -254,7 +254,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     detector = YOLOv8TFLite(args.model, args.conf, args.iou, args.metadata)
-    result = detector.detect(str(ASSETS / "bus.jpg"))
+    result = detector.detect(args.img)
 
     cv2.imshow("Output", result)
     cv2.waitKey(0)

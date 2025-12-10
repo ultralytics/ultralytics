@@ -1048,6 +1048,7 @@ class Exporter:
             int8=self.args.int8,
             images=images,
             disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},
+            optimize_for_gpu_delegate=True,  # fix GPU delegate crash
             prefix=prefix,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml

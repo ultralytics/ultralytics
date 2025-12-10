@@ -44,7 +44,7 @@ To train a YOLO11n-semseg model on the Cityscaps dataset for 100 [epochs](https:
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo obb train data=CityscapeYOLO.yaml model=yolo11n-semseg.pt epochs=100 imgsz=512
+        yolo semseg train data=CityscapeYOLO.yaml model=yolo11n-semseg.pt epochs=100 imgsz=512
         ```
 
 ## Sample Images and Annotations
@@ -106,7 +106,7 @@ To train a YOLO11n-semseg model on the Cityscape dataset for 100 epochs with an 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo obb train data=CityscapesYOLO.yaml model=yolo11n-semseg.pt epochs=100 imgsz=640
+        yolo semseg train data=CityscapesYOLO.yaml model=yolo11n-semseg.pt epochs=100 imgsz=640
         ```
 
 ### What are the key features of the Cityscaps dataset and where can I access the YAML file?

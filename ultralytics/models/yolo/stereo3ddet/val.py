@@ -791,10 +791,111 @@ class Stereo3DDetValidator(BaseValidator):
         Args:
             model: Model being validated.
         """
-        self.names = self.metrics.results_dict
-        self.nc = len(self.names.keys())
+        # Get class names from dataset, not from metrics results_dict (which contains metric keys, not class names)
+        # This fixes the bug where self.nc was set to number of metric keys (6-7) instead of number of classes (3)
+        if hasattr(self, "data") and self.data and "names" in self.data:
+            self.names = self.data["names"]
+        elif hasattr(model, "names") and model.names:
+            self.names = model.names
+        else:
+            # Fallback to paper class names
+            from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
+            self.names = get_paper_class_names()
+        
+        self.nc = len(self.names) if isinstance(self.names, dict) else len(self.names) if isinstance(self.names, (list, tuple)) else 0
         self.seen = 0
         self.metrics.names = self.names
+        self.metrics.nc = self.nc  # Also update metrics.nc to match the correct number of classes
+
+    def _diagnostic_log_iou_matrix(
+        self, iou_matrix: np.ndarray, pred_boxes: list[Box3D], gt_boxes: list[Box3D], sample_idx: int
+    ) -> None:
+        """Log IoU matrix computation results for diagnostic purposes.
+
+        Args:
+            iou_matrix: IoU matrix of shape [N, M] with IoU values between predictions and ground truth.
+            pred_boxes: List of N predicted boxes.
+            gt_boxes: List of M ground truth boxes.
+            sample_idx: Index of current sample in batch.
+        """
+        try:
+            n, m = iou_matrix.shape
+            non_zero_count = np.count_nonzero(iou_matrix)
+            total = n * m
+            iou_min = float(np.min(iou_matrix)) if total > 0 else 0.0
+            iou_max = float(np.max(iou_matrix)) if total > 0 else 0.0
+            iou_mean = float(np.mean(iou_matrix)) if total > 0 else 0.0
+
+            LOGGER.info(f"[DIAG] Sample {sample_idx}: IoU Matrix")
+            LOGGER.info(f"  Shape: [{n}, {m}]")
+            LOGGER.info(f"  Non-zero count: {non_zero_count} / {total}")
+            LOGGER.info(f"  Value range: [{iou_min:.4f}, {iou_max:.4f}]")
+            LOGGER.info(f"  Mean: {iou_mean:.4f}")
+
+            # Sample values (first few predictions vs first few ground truth)
+            sample_size = min(3, n, m)
+            if sample_size > 0:
+                LOGGER.info("  Sample values:")
+                for i in range(min(3, n)):
+                    for j in range(min(3, m)):
+                        iou_val = float(iou_matrix[i, j])
+                        if iou_val > 0.0:
+                            LOGGER.info(f"    Pred[{i}] vs GT[{j}]: {iou_val:.4f}")
+        except Exception as e:
+            LOGGER.warning(f"Diagnostic logging failed (_diagnostic_log_iou_matrix): {e}")
+
+    def _diagnostic_log_tp_fp_assignment(
+        self, tp: np.ndarray, fp: np.ndarray, pred_boxes: list[Box3D], iou_thresholds: torch.Tensor, sample_idx: int
+    ) -> None:
+        """Log TP/FP assignment results for diagnostic purposes.
+
+        Args:
+            tp: True positives array of shape [N, 2] per prediction per threshold.
+            fp: False positives array of shape [N, 2] per prediction per threshold.
+            pred_boxes: List of N predicted boxes.
+            iou_thresholds: IoU thresholds tensor [0.5, 0.7].
+            sample_idx: Index of current sample in batch.
+        """
+        try:
+            n = tp.shape[0] if len(tp.shape) > 0 else 0
+            LOGGER.info(f"[DIAG] Sample {sample_idx}: TP/FP Assignment")
+            LOGGER.info(f"  Arrays shape: [{n}, {tp.shape[1] if len(tp.shape) > 1 else 0}]")
+
+            for iou_idx, iou_thresh in enumerate(iou_thresholds):
+                if iou_idx < tp.shape[1]:
+                    tp_count = int(np.sum(tp[:, iou_idx]))
+                    fp_count = int(np.sum(fp[:, iou_idx]))
+                    tp_indices = np.where(tp[:, iou_idx])[0].tolist()[:10]  # First 10 TP indices
+                    fp_indices = np.where(fp[:, iou_idx])[0].tolist()[:10]  # First 10 FP indices
+
+                    LOGGER.info(f"  IoU Threshold {iou_thresh.item():.1f}: TP={tp_count}, FP={fp_count}")
+                    if tp_indices:
+                        LOGGER.info(f"  TP indices (threshold {iou_thresh.item():.1f}): {tp_indices}")
+                    if fp_indices:
+                        LOGGER.info(f"  FP indices (threshold {iou_thresh.item():.1f}): {fp_indices}")
+        except Exception as e:
+            LOGGER.warning(f"Diagnostic logging failed (_diagnostic_log_tp_fp_assignment): {e}")
+
+    def _diagnostic_log_statistics_extraction(
+        self, conf: np.ndarray, pred_cls: np.ndarray, target_cls: np.ndarray, sample_idx: int
+    ) -> None:
+        """Log extracted statistics arrays for diagnostic purposes.
+
+        Args:
+            conf: Confidence scores array of shape [N].
+            pred_cls: Predicted class IDs array of shape [N].
+            target_cls: Target class IDs array of shape [M].
+            sample_idx: Index of current sample in batch.
+        """
+        try:
+            LOGGER.info(f"[DIAG] Sample {sample_idx}: Statistics Extraction")
+            LOGGER.info(f"  conf: shape={conf.shape}, dtype={conf.dtype}, range=[{float(np.min(conf)) if len(conf) > 0 else 0.0:.4f}, {float(np.max(conf)) if len(conf) > 0 else 0.0:.4f}], non-zero={np.count_nonzero(conf)}")
+            unique_pred_cls = np.unique(pred_cls).tolist() if len(pred_cls) > 0 else []
+            LOGGER.info(f"  pred_cls: shape={pred_cls.shape}, dtype={pred_cls.dtype}, unique={unique_pred_cls}")
+            unique_target_cls = np.unique(target_cls).tolist() if len(target_cls) > 0 else []
+            LOGGER.info(f"  target_cls: shape={target_cls.shape}, dtype={target_cls.dtype}, unique={unique_target_cls}")
+        except Exception as e:
+            LOGGER.warning(f"Diagnostic logging failed (_diagnostic_log_statistics_extraction): {e}")
 
     def update_metrics(self, preds: list[list[Box3D]], batch: dict[str, Any]) -> None:
         """Update metrics with predictions and ground truth.
@@ -845,6 +946,10 @@ class Stereo3DDetValidator(BaseValidator):
                                         LOGGER.warning(f"Error computing 3D IoU: {e2}")
                                         iou_matrix[i, j] = 0.0
 
+                    # DIAGNOSTIC START
+                    # self._diagnostic_log_iou_matrix(iou_matrix, pred_boxes, gt_boxes, si)
+                    # DIAGNOSTIC END
+
                     # Match predictions to ground truth (greedy matching)
                     matched_gt = set()
                     tp = np.zeros((len(pred_boxes), self.niou), dtype=bool)
@@ -877,6 +982,10 @@ class Stereo3DDetValidator(BaseValidator):
                             else:
                                 fp[pred_idx, iou_idx] = True
 
+                    # DIAGNOSTIC START
+                    # self._diagnostic_log_tp_fp_assignment(tp, fp, pred_boxes, self.iouv, si)
+                    # DIAGNOSTIC END
+
                 else:
                     # No matches possible
                     tp = np.zeros((len(pred_boxes), self.niou), dtype=bool)
@@ -886,6 +995,10 @@ class Stereo3DDetValidator(BaseValidator):
                 conf = np.array([box.confidence for box in pred_boxes]) if pred_boxes else np.array([])
                 pred_cls = np.array([box.class_id for box in pred_boxes]) if pred_boxes else np.array([], dtype=int)
                 target_cls = np.array([box.class_id for box in gt_boxes]) if gt_boxes else np.array([], dtype=int)
+
+                # DIAGNOSTIC START
+                # self._diagnostic_log_statistics_extraction(conf, pred_cls, target_cls, si)
+                # DIAGNOSTIC END
 
                 # Update metrics
                 self.metrics.update_stats(
@@ -899,6 +1012,10 @@ class Stereo3DDetValidator(BaseValidator):
                     "boxes3d_target": gt_boxes,
                 }
             )
+
+                # DIAGNOSTIC START
+                # self.metrics._diagnostic_log_statistics_accumulation(self.metrics.stats, self.batch_i if hasattr(self, 'batch_i') else 0)
+                # DIAGNOSTIC END
             
                 # Update progress bar with intermediate metrics (every batch for real-time feedback)
             if hasattr(self, '_progress_bar') and self._progress_bar is not None and RANK in {-1, 0}:
@@ -919,7 +1036,7 @@ class Stereo3DDetValidator(BaseValidator):
 
             # Generate visualization images if plots enabled
             # Default to 3 batches (matching Detect task style), but can be overridden via max_plot_batches arg
-            max_plot_batches = getattr(self.args, 'max_plot_batches', 3)
+            max_plot_batches = getattr(self.args, 'max_plot_batches', 30)
             if self.args.plots and hasattr(self, 'batch_i') and self.batch_i < max_plot_batches:
                 try:
                     self.plot_validation_samples(batch, preds, self.batch_i)

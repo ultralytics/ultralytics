@@ -1670,7 +1670,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             for obj_output_dict in inference_state["output_dict_per_obj"].values():
                 obj_output_dict["non_cond_frame_outputs"].pop(t, None)
 
-    @torch.inference_mode()
+    @smart_inference_mode()
     def remove_object(self, inference_state, obj_id, strict=False):
         """Remove an object id from the tracking state. If strict is True, we check whether the object id actually
         exists and raise an error if it doesn't exist.
@@ -1749,7 +1749,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         return inference_state["obj_ids"]
 
-    @torch.inference_mode()
+    @smart_inference_mode()
     def clear_all_points_in_frame(self, inference_state, frame_idx, obj_id):
         """Remove all input points or mask in a specific frame for a given object."""
         obj_idx = self._obj_id_to_idx(obj_id, inference_state)
@@ -1798,7 +1798,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             if len(output_dict["cond_frame_outputs"]) == 0:
                 self._reset_tracking_results(inference_state)
 
-    @torch.inference_mode()
+    @smart_inference_mode()
     def clear_all_points_in_video(self, inference_state):
         """Remove all input points or mask in all frames throughout the video."""
         self._reset_tracking_results(inference_state)
@@ -2723,7 +2723,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             out["unconfirmed_obj_ids"] = []
         return out
 
-    @torch.inference_mode()
+    @smart_inference_mode()
     def add_prompt(
         self,
         frame_idx,

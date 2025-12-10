@@ -136,6 +136,10 @@ For detailed instructions and best practices related to the installation process
         yolo predict model='yolo11n_axelera_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
+!!! warning "Known Issue"
+
+    The first time you run inference, it will throw an `ImportError`. Subsequent runs of this will not have this error. This issue will be addressed in a future release.
+
 ### Export Arguments
 
 | Argument   | Type             | Default          | Description                                                                                                                                                                                                                                                      |

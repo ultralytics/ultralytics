@@ -69,19 +69,6 @@ class RTDETRDataset(YOLODataset):
         """
         return super().load_image(i=i, rect_mode=rect_mode)
 
-    def get_image_and_label(self, index):
-        """Get and return label information from the dataset.
-
-        Args:
-            index (int): Index of the image to retrieve.
-
-        Returns:
-            (dict[str, Any]): Label dictionary with image and metadata.
-        """
-        labels = super().get_image_and_label(index)
-        labels["ratio_pad"] = [labels["ratio_pad"], [0, 0]]
-        return labels
-
     def build_transforms(self, hyp=None):
         """Build transformation pipeline for the dataset.
 
@@ -162,6 +149,10 @@ class RTDETRValidator(DetectionValidator):
             prefix=colorstr(f"{mode}: "),
             data=self.data,
         )
+
+    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
+        """Scales predictions to the original image size."""
+        return predn
 
     def postprocess(
         self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]

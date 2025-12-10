@@ -260,7 +260,7 @@ def test_export_imx():
 
 
 @pytest.mark.skipif(
-    checks.check_version(TORCH_VERSION, "<2.0") or checks.check_version(TORCH_VERSION, ">2.9"),
+    checks.check_version(TORCH_VERSION, "<2.0") or checks.check_version(TORCH_VERSION, ">=2.9"),
     reason="Axelera export requires torch >=2.0 and <2.9",
 )
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")

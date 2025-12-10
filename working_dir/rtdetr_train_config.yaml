@@ -19,8 +19,8 @@ device: cpu  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
 workers: 8
 
 # Output and logging
-project: rtdetr_training
-name: coco8_train
+project: /Users/esat/workspace/detr_trainings
+name: yolo11_rtdetr_res50_coco8
 exist_ok: True
 verbose: True
 

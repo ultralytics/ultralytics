@@ -575,6 +575,9 @@ class AutoBackend(nn.Module):
 
         # Axelera
         elif axelera:
+            import os
+            if not os.environ.get('AXELERA_RUNTIME_DIR'):  
+                LOGGER.warning("The Axelera runtime environment does not appear to be activated.\nPlease run: source /opt/axelera/sdk/latest/axelera_activate.sh")
             try:
                 from axelera.runtime import op
             except ImportError:

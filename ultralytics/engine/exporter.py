@@ -392,8 +392,8 @@ class Exporter:
         if self.args.half and self.args.int8:
             LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
             self.args.half = False
-        if self.args.half and (onnx or jit) and self.device.type == "cpu":
-            LOGGER.warning("half=True only compatible with GPU export, i.e. use device=0, setting half=False.")
+        if self.args.half and jit and self.device.type == "cpu":
+            LOGGER.warning("half=True only compatible with GPU export for TorchScript, i.e. use device=0, setting half=False.")
             self.args.half = False
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
@@ -715,6 +715,16 @@ class Exporter:
         if getattr(model_onnx, "ir_version", 0) > 10:
             LOGGER.info(f"{prefix} limiting IR version {model_onnx.ir_version} to 10 for ONNXRuntime compatibility...")
             model_onnx.ir_version = 10
+
+        # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
+        if self.args.half and self.device.type == "cpu":
+            try:
+                from onnxruntime.transformers import float16
+
+                LOGGER.info(f"{prefix} converting to FP16...")
+                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
+            except Exception as e:
+                LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
         onnx.save(model_onnx, f)
         return f

@@ -16,7 +16,7 @@ imgsz: 640
 
 # Device configurations
 device: [0,1,2,3,4,5,6,7]  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
-workers: 8
+workers: 4
 amp: False  # Explicitly False for CPU training (set to True for GPU with mixed precision)
 
 # Output and logging

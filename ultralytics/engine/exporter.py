@@ -393,7 +393,9 @@ class Exporter:
             LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
             self.args.half = False
         if self.args.half and jit and self.device.type == "cpu":
-            LOGGER.warning("half=True only compatible with GPU export for TorchScript, i.e. use device=0, setting half=False.")
+            LOGGER.warning(
+                "half=True only compatible with GPU export for TorchScript, i.e. use device=0, setting half=False."
+            )
             self.args.half = False
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:

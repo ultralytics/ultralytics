@@ -825,6 +825,7 @@ class YOLOEDetect(Detect):
         self.reprta = Residual(SwiGLUFFN(embed, embed))
         self.savpe = SAVPE(ch, c3, embed)
         self.embed = embed
+        self._fixed_nc=None 
 
     @smart_inference_mode()
     def fuse(self, txt_feats: torch.Tensor = None):
@@ -962,6 +963,13 @@ class YOLOEDetect(Detect):
             dbox = dbox if self.export and not self.dynamic else dbox[..., x["index"]]
         return dbox
 
+    def set_fixed_nc(self, value):
+        self._fixed_nc = value
+
+    @property
+    def fixed_nc(self):
+        return self._fixed_nc
+
     @property
     def one2many(self):
         """Returns the one-to-many head components, here for v5/v5/v8/v9/11 backward compatibility."""
@@ -978,8 +986,9 @@ class YOLOEDetect(Detect):
             return dict()
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        self.nc = x[-1].shape[1]
-        # self.nc=1
+
+        self.nc=self.fixed_nc if self.fixed_nc else x[-1].shape[1] # update self.nc
+
         scores = torch.cat(
             [contrastive_head[i](cls_head[i](x[i]), x[-1]).reshape(bs, self.nc, -1) for i in range(self.nl)], dim=-1
         )

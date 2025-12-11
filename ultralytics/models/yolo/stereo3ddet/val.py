@@ -237,10 +237,36 @@ def _decode_stereo3d_outputs_per_sample(
 
             # Decode orientation from Multi-Bin representation
             orient_bins = orientation[:, y_idx, x_idx].cpu().numpy()
-            bin_confidences = orient_bins[::2] ** 2 + orient_bins[1::2] ** 2
-            bin_idx = np.argmax(bin_confidences)
-            sin_val = orient_bins[bin_idx * 2]
-            cos_val = orient_bins[bin_idx * 2 + 1]
+            
+            # #region agent log
+            import json
+            with open('/root/ultralytics/.cursor/debug.log', 'a') as f:
+                f.write(json.dumps({
+                    "sessionId": "debug-session",
+                    "runId": "pre-fix",
+                    "hypothesisId": "A",
+                    "location": "val.py:239",
+                    "message": "Orientation bins format verification",
+                    "data": {
+                        "orient_bins": orient_bins.tolist(),
+                        "orient_bins_shape": orient_bins.shape,
+                        "first_2_values": orient_bins[:2].tolist(),
+                        "values_2_6": orient_bins[2:6].tolist()
+                    },
+                    "timestamp": int(__import__('time').time() * 1000)
+                }) + '\n')
+            # #endregion
+            
+            # Correct format: [conf1, conf2, sin1, cos1, sin2, cos2, pad, pad]
+            # Extract bin confidences from indices 0 and 1
+            bin_confidences = orient_bins[:2]  # [conf1, conf2]
+            bin_idx = np.argmax(bin_confidences)  # Select bin with max confidence
+            
+            # Get sin/cos for selected bin
+            # Bin 0: sin at index 2, cos at index 3
+            # Bin 1: sin at index 4, cos at index 5
+            sin_val = orient_bins[2 + bin_idx * 2]  # 2 + 0*2 = 2 for bin0, 2 + 1*2 = 4 for bin1
+            cos_val = orient_bins[3 + bin_idx * 2]  # 3 + 0*2 = 3 for bin0, 3 + 1*2 = 5 for bin1
             angle = np.arctan2(sin_val, cos_val)
 
             # Create Box3D object
@@ -499,13 +525,19 @@ def decode_stereo3d_outputs(
             length_values = torch.clamp(mean_l_tensor + dim_offsets[:, 2], min=0.1)  # [K_valid]
             
             # Decode orientation from Multi-Bin (vectorized)
-            # orient_bins: [K_valid, 8] -> bin_confidences: [K_valid, 4]
-            bin_confidences = orient_bins[:, ::2] ** 2 + orient_bins[:, 1::2] ** 2  # [K_valid, 4]
-            bin_indices = torch.argmax(bin_confidences, dim=1)  # [K_valid]
+            # Correct format: [conf1, conf2, sin1, cos1, sin2, cos2, pad, pad]
+            # orient_bins: [K_valid, 8]
+            # Extract bin confidences from indices 0 and 1
+            bin_confidences = orient_bins[:, :2]  # [K_valid, 2] - [conf1, conf2] for each detection
+            bin_indices = torch.argmax(bin_confidences, dim=1)  # [K_valid] - which bin (0 or 1)
             
             # Gather sin/cos values for selected bins
-            sin_vals = orient_bins[torch.arange(len(bin_indices), device=device), bin_indices * 2]
-            cos_vals = orient_bins[torch.arange(len(bin_indices), device=device), bin_indices * 2 + 1]
+            # Bin 0: sin at index 2, cos at index 3
+            # Bin 1: sin at index 4, cos at index 5
+            sin_indices = 2 + bin_indices * 2  # [K_valid] - sin indices: 2 for bin0, 4 for bin1
+            cos_indices = 3 + bin_indices * 2  # [K_valid] - cos indices: 3 for bin0, 5 for bin1
+            sin_vals = orient_bins[torch.arange(len(bin_indices), device=device), sin_indices]
+            cos_vals = orient_bins[torch.arange(len(bin_indices), device=device), cos_indices]
             angle_values = torch.atan2(sin_vals, cos_vals)  # [K_valid]
             
             # T209: Move to CPU only when creating Box3D objects

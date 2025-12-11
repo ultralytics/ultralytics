@@ -1220,10 +1220,9 @@ class Exporter:
                 f"{sudo}mkdir -p /etc/apt/keyrings",
                 f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --dearmor -o /etc/apt/keyrings/google.gpg",
                 f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
-                f"{sudo}apt-get update",
-                f"{sudo}apt-get install -y edgetpu-compiler",
             ):
                 subprocess.run(c, shell=True, check=True)
+            check_apt_requirements("edgetpu-compiler")
 
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
@@ -1300,17 +1299,17 @@ class Exporter:
             version_match = re.search(r"(?:openjdk|java) (\d+)", java_output)
             java_version = int(version_match.group(1)) if version_match else 0
             assert java_version >= 17, "Java version too old"
-        except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
-            cmd = None
+        except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):           
             if IS_UBUNTU or IS_DEBIAN_TRIXIE:
                 LOGGER.info(f"\n{prefix} installing Java 21 for Ubuntu...")
-                cmd = (["sudo"] if is_sudo_available() else []) + ["apt-get", "install", "-y", "openjdk-21-jre"]
+                check_apt_requirements(
+                ["openjdk-21-jre"]
+                )
             elif IS_RASPBERRYPI or IS_DEBIAN_BOOKWORM:
                 LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
-                cmd = (["sudo"] if is_sudo_available() else []) + ["apt-get", "install", "-y", "openjdk-17-jre"]
-
-            if cmd:
-                subprocess.run(cmd, check=True)
+                check_apt_requirements(
+                ["openjdk-17-jre"]
+                )
 
         return torch2imx(
             self.model,

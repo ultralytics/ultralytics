@@ -143,14 +143,14 @@ Export your trained YOLO models using the standard Ultralytics export command.
 
 ### Export Arguments
 
-| Argument   | Type             | Default          | Description                                                                                       |
-| :--------- | :--------------- | :--------------- | :------------------------------------------------------------------------------------------------ |
-| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware                                                     |
-| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input                                                                        |
-| `int8`     | `bool`           | `True`           | Enable [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) for AIPU      |
-| `data`     | `str`            | `'coco128.yaml'` | [Dataset](https://docs.ultralytics.com/datasets/) config for quantization calibration             |
-| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended)                                  |
-| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`)                                             |
+| Argument   | Type             | Default          | Description                                                                                  |
+| :--------- | :--------------- | :--------------- | :------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'axelera'`      | Target format for Axelera Metis AIPU hardware                                                |
+| `imgsz`    | `int` or `tuple` | `640`            | Image size for model input                                                                   |
+| `int8`     | `bool`           | `True`           | Enable [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization) for AIPU |
+| `data`     | `str`            | `'coco128.yaml'` | [Dataset](https://docs.ultralytics.com/datasets/) config for quantization calibration        |
+| `fraction` | `float`          | `1.0`            | Fraction of dataset for calibration (100-400 images recommended)                             |
+| `device`   | `str`            | `None`           | Export device: GPU (`device=0`) or CPU (`device=cpu`)                                        |
 
 For all export options, see the [Export Mode documentation](https://docs.ultralytics.com/modes/export/).
 
@@ -256,7 +256,6 @@ See the [model-zoo](https://github.com/axelera-ai-hub/voyager-sdk/blob/release/v
     - **First inference ImportError**: The first inference run may throw an `ImportError`. Subsequent runs work correctly.
 
 For support, visit the [Axelera Community](https://community.axelera.ai/).
-
 
 ## FAQ
 

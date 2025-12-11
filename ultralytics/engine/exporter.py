@@ -1222,7 +1222,7 @@ class Exporter:
                 f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
             ):
                 subprocess.run(c, shell=True, check=True)
-            check_apt_requirements("edgetpu-compiler")
+            check_apt_requirements(["edgetpu-compiler"])
 
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")

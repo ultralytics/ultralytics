@@ -579,9 +579,9 @@ class AutoBackend(nn.Module):
 
             if not os.environ.get("AXELERA_RUNTIME_DIR"):
                 LOGGER.warning(
-                    "The Axelera runtime environment does not appear to be activated."
-                    "\nPlease install driver first: https://docs.ultralytics.com/integrations/axelera/#axelera-driver-installation"
-                    "\nThen run: source /opt/axelera/sdk/latest/axelera_activate.sh"
+                    "Axelera runtime environment is not activated."
+                    "\nPlease run: source /opt/axelera/sdk/latest/axelera_activate.sh"
+                    "\n\nIf this fails, verify driver installation: https://docs.ultralytics.com/integrations/axelera/#axelera-driver-installation"
                 )
             try:
                 from axelera.runtime import op

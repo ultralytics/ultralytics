@@ -191,29 +191,55 @@ class TargetGenerator:
     def _encode_orientation(self, alpha: float) -> torch.Tensor:
         """Encode orientation angle into multi-bin format.
 
+        Multi-Bin encoding (2 bins):
+        - Bin 0: α ∈ [-π, 0], center = -π/2
+        - Bin 1: α ∈ [0, π], center = +π/2
+        
+        Output format: [conf_0, conf_1, sin_0, cos_0, sin_1, cos_1, pad, pad]
+
         Args:
-            alpha: Observation angle in radians.
+            alpha: Observation angle in radians, range [-π, π].
 
         Returns:
-            Orientation encoding [8] = [bin_logits[2], sin[2], cos[2], ...].
+            Orientation encoding tensor of shape [8].
         """
-        # Simplified: use 2 bins
-        # Bin 0: [-π/2, π/2], Bin 1: [π/2, 3π/2]
-        bin_idx = 0 if -math.pi / 2 <= alpha < math.pi / 2 else 1
-
-        # One-hot encoding for bin
-        bin_logits = torch.zeros(2)
-        bin_logits[bin_idx] = 1.0
-
-        # Sin/cos encoding (simplified - would need proper bin-specific encoding)
-        sin_val = math.sin(alpha)
-        cos_val = math.cos(alpha)
-
-        # Return [bin_logits, sin, cos] for 2 bins
+        # Normalize alpha to [-π, π]
+        alpha = math.atan2(math.sin(alpha), math.cos(alpha))
+        
+        # Determine bin based on angle sign
+        # Bin 0: [-π, 0), center = -π/2
+        # Bin 1: [0, π], center = +π/2
+        if alpha < 0:
+            bin_idx = 0
+            bin_center = -math.pi / 2
+        else:
+            bin_idx = 1
+            bin_center = math.pi / 2
+        
+        # Compute residual angle within bin
+        residual = alpha - bin_center
+        
+        # Initialize encoding
         encoding = torch.zeros(8)
-        encoding[:2] = bin_logits
-        encoding[2:4] = torch.tensor([sin_val, cos_val])  # Bin 0
-        encoding[4:6] = torch.tensor([sin_val, cos_val])  # Bin 1 (same for simplicity)
-
+        
+        # Set bin confidence (one-hot)
+        encoding[0] = 1.0 if bin_idx == 0 else 0.0
+        encoding[1] = 1.0 if bin_idx == 1 else 0.0
+        
+        # Set sin/cos for the ACTIVE bin only
+        sin_val = math.sin(residual)
+        cos_val = math.cos(residual)
+        
+        if bin_idx == 0:
+            encoding[2] = sin_val  # sin_0
+            encoding[3] = cos_val  # cos_0
+            # encoding[4:6] stays 0 for inactive bin
+        else:
+            # encoding[2:4] stays 0 for inactive bin
+            encoding[4] = sin_val  # sin_1
+            encoding[5] = cos_val  # cos_1
+        
+        # Channels 6-7 are padding (remain 0)
+        
         return encoding
 

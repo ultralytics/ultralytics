@@ -1299,17 +1299,13 @@ class Exporter:
             version_match = re.search(r"(?:openjdk|java) (\d+)", java_output)
             java_version = int(version_match.group(1)) if version_match else 0
             assert java_version >= 17, "Java version too old"
-        except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):           
+        except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
             if IS_UBUNTU or IS_DEBIAN_TRIXIE:
                 LOGGER.info(f"\n{prefix} installing Java 21 for Ubuntu...")
-                check_apt_requirements(
-                ["openjdk-21-jre"]
-                )
+                check_apt_requirements(["openjdk-21-jre"])
             elif IS_RASPBERRYPI or IS_DEBIAN_BOOKWORM:
                 LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
-                check_apt_requirements(
-                ["openjdk-17-jre"]
-                )
+                check_apt_requirements(["openjdk-17-jre"])
 
         return torch2imx(
             self.model,

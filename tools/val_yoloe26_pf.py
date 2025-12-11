@@ -72,9 +72,20 @@ def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight):
 version='26s'
 weight_path_tp="./runs/yoloe26s_tp_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_exp/weights/best.pt"
 model_weight="/home/louis/ultra_louis_work/ultralytics/runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf_bn_o2m0.1_pfA/weights/best.pt"
-# model_weight="runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_o2m0.1_pf2/weights/best.pt"
-model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",weight_path_tp)
 
 
-metrics = model.val(data="lvis.yaml",split="minival", single_cls=False ,max_det=1000) # map 0
+single_cls=True
 
+if single_cls:
+    model=YOLOE(model_weight)
+    head=model.model.model[-1]
+    head.set_fixed_nc(1)  # stop the dynamic update of YOLOEDetect.nc
+
+    metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= False) # map 0
+
+else:
+    # model_weight="runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_o2m0.1_pf2/weights/best.pt"
+    model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",weight_path_tp)
+
+
+    metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= (not single_cls)) # map 0

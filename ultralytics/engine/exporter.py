@@ -84,7 +84,11 @@ from ultralytics.utils import (
     ARM64,
     DEFAULT_CFG,
     IS_COLAB,
+    IS_DEBIAN_BOOKWORM,
+    IS_DEBIAN_TRIXIE,
     IS_JETSON,
+    IS_RASPBERRYPI,
+    IS_UBUNTU,
     LINUX,
     LOGGER,
     MACOS,
@@ -99,7 +103,7 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
-    IS_PYTHON_3_12,
+    IS_PYTHON_MINIMUM_3_9,
     check_imgsz,
     check_requirements,
     check_version,
@@ -361,11 +365,13 @@ class Exporter:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
                 self.args.int8 = True
-            if not self.args.nms and model.task in {"detect", "pose"}:
+            if not self.args.nms and model.task in {"detect", "pose", "segment"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True
-            if model.task not in {"detect", "pose", "classify"}:
-                raise ValueError("IMX export only supported for detection, pose estimation, and classification models.")
+            if model.task not in {"detect", "pose", "classify", "segment"}:
+                raise ValueError(
+                    "IMX export only supported for detection, pose estimation, classification, and segmentation models."
+                )
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -854,7 +860,9 @@ class Exporter:
     def export_coreml(self, prefix=colorstr("CoreML:")):
         """Export YOLO model to CoreML format."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
-        check_requirements("coremltools>=8.0")
+        check_requirements(
+            ["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"]
+        )  # latest numpy 2.4.0rc1 breaks coremltools exports
         import coremltools as ct
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
@@ -1082,7 +1090,7 @@ class Exporter:
         # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
         # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
         check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-        check_requirements(("executorch==1.0.0", "flatbuffers"))
+        check_requirements(("executorch==1.0.1", "flatbuffers"))
 
         import torch
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
@@ -1173,18 +1181,24 @@ class Exporter:
     def export_imx(self, prefix=colorstr("IMX:")):
         """Export YOLO model to IMX format."""
         assert LINUX, (
-            "export only supported on Linux. "
-            "See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
+            "Export only supported on Linux."
+            "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
-        assert not IS_PYTHON_3_12, "IMX export requires Python>=3.8;<3.12"
-        assert not TORCH_2_9, f"IMX export requires PyTorch<2.9. Current PyTorch version is {TORCH_VERSION}."
+        assert not ARM64, "IMX export is not supported on ARM64 architectures."
+        assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
+
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(
-            ("model-compression-toolkit>=2.4.1", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0", "pydantic<=2.11.7")
+            (
+                "model-compression-toolkit>=2.4.1",
+                "edge-mdt-cl<1.1.0",
+                "edge-mdt-tpc>=1.2.0",
+                "pydantic<=2.11.7",
+            )
         )
-        check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
-        check_requirements("mct-quantizers>=1.6.0")  # Separate for compatibility with model-compression-toolkit
+
+        check_requirements("imx500-converter[pt]>=3.17.3")
 
         # Install Java>=17
         try:
@@ -1193,8 +1207,16 @@ class Exporter:
             java_version = int(version_match.group(1)) if version_match else 0
             assert java_version >= 17, "Java version too old"
         except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
-            cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "openjdk-21-jre"]
-            subprocess.run(cmd, check=True)
+            cmd = None
+            if IS_UBUNTU or IS_DEBIAN_TRIXIE:
+                LOGGER.info(f"\n{prefix} installing Java 21 for Ubuntu...")
+                cmd = (["sudo"] if is_sudo_available() else []) + ["apt-get", "install", "-y", "openjdk-21-jre"]
+            elif IS_RASPBERRYPI or IS_DEBIAN_BOOKWORM:
+                LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
+                cmd = (["sudo"] if is_sudo_available() else []) + ["apt-get", "install", "-y", "openjdk-17-jre"]
+
+            if cmd:
+                subprocess.run(cmd, check=True)
 
         return torch2imx(
             self.model,
@@ -1408,7 +1430,7 @@ class NMSModel(torch.nn.Module):
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
-            multiplier = (8 if self.obb else 1) / max(len(self.model.names), 1)
+            multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
             if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier

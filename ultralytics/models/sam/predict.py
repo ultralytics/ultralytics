@@ -90,11 +90,6 @@ class Predictor(BasePredictor):
             cfg (dict): Configuration dictionary containing default settings.
             overrides (dict | None): Dictionary of values to override default configuration.
             _callbacks (dict | None): Dictionary of callback functions to customize behavior.
-
-        Examples:
-            >>> predictor_example = Predictor(cfg=DEFAULT_CFG)
-            >>> predictor_example_with_imgsz = Predictor(overrides={"imgsz": 640})
-            >>> predictor_example_with_callback = Predictor(_callbacks={"on_predict_start": custom_callback})
         """
         if overrides is None:
             overrides = {}
@@ -918,11 +913,6 @@ class SAM2VideoPredictor(SAM2Predictor):
             cfg (dict): Configuration dictionary containing default settings.
             overrides (dict | None): Dictionary of values to override default configuration.
             _callbacks (dict | None): Dictionary of callback functions to customize behavior.
-
-        Examples:
-            >>> predictor = SAM2VideoPredictor(cfg=DEFAULT_CFG)
-            >>> predictor_example_with_imgsz = SAM2VideoPredictor(overrides={"imgsz": 640})
-            >>> predictor_example_with_callback = SAM2VideoPredictor(_callbacks={"on_predict_start": custom_callback})
         """
         super().__init__(cfg, overrides, _callbacks)
         self.inference_state = {}
@@ -1710,13 +1700,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             max_obj_num (int): Maximum number of objects to track. Default is 3. this is set to keep fix feature size
                 for the model.
             _callbacks (dict[str, Any] | None): Dictionary of callback functions to customize behavior.
-
-        Examples:
-            >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)
-            >>> predictor_example_with_imgsz = SAM2DynamicInteractivePredictor(overrides={"imgsz": 640})
-            >>> predictor_example_with_callback = SAM2DynamicInteractivePredictor(
-            ...     _callbacks={"on_predict_start": custom_callback}
-            ... )
         """
         super().__init__(cfg, overrides, _callbacks)
         self.non_overlap_masks = True

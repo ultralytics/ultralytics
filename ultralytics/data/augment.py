@@ -2208,7 +2208,7 @@ class Format:
         labels["img"] = self._format_img(img)
         labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl, 1)
         labels["bboxes"] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
-        if self.semseg_loss:
+        if self.return_mask and self.semseg_loss:
             if nl:
                 # onehot binary mask
                 sem_masks = labels["cls"].squeeze(1)[labels["masks"].long() - 1]  # 1xHxW

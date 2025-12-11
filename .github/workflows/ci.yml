@@ -245,6 +245,10 @@ jobs:
             torch: "1.13.0"
             torchvision: "0.14.0"
           - os: ubuntu-latest
+            python: "3.10"
+            torch: "2.8.0"
+            torchvision: "0.23.0"
+          - os: ubuntu-latest
             python: "3.11"
             torch: "2.0.0"
             torchvision: "0.15.0"

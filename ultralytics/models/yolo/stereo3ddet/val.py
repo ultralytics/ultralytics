@@ -219,9 +219,9 @@ def _decode_stereo3d_outputs_per_sample(
             v = center_y * scale
 
             # 3D position
-            x_3d = (u - cx) * depth / fx
-            y_3d = (v - cy) * depth / fy
-            z_3d = depth
+            x_3d = float((u - cx) * depth / fx)
+            y_3d = float((v - cy) * depth / fy)
+            z_3d = float(depth)
 
             # Decode dimensions (offsets + class mean)
             dim_offsets = dimensions[:, y_idx, x_idx].cpu().numpy()
@@ -238,25 +238,6 @@ def _decode_stereo3d_outputs_per_sample(
             # Decode orientation from Multi-Bin representation
             orient_bins = orientation[:, y_idx, x_idx].cpu().numpy()
             
-            # #region agent log
-            import json
-            with open('/root/ultralytics/.cursor/debug.log', 'a') as f:
-                f.write(json.dumps({
-                    "sessionId": "debug-session",
-                    "runId": "pre-fix",
-                    "hypothesisId": "A",
-                    "location": "val.py:239",
-                    "message": "Orientation bins format verification",
-                    "data": {
-                        "orient_bins": orient_bins.tolist(),
-                        "orient_bins_shape": orient_bins.shape,
-                        "first_2_values": orient_bins[:2].tolist(),
-                        "values_2_6": orient_bins[2:6].tolist()
-                    },
-                    "timestamp": int(__import__('time').time() * 1000)
-                }) + '\n')
-            # #endregion
-            
             # Correct format: [conf1, conf2, sin1, cos1, sin2, cos2, pad, pad]
             # Extract bin confidences from indices 0 and 1
             bin_confidences = orient_bins[:2]  # [conf1, conf2]
@@ -267,13 +248,30 @@ def _decode_stereo3d_outputs_per_sample(
             # Bin 1: sin at index 4, cos at index 5
             sin_val = orient_bins[2 + bin_idx * 2]  # 2 + 0*2 = 2 for bin0, 2 + 1*2 = 4 for bin1
             cos_val = orient_bins[3 + bin_idx * 2]  # 3 + 0*2 = 3 for bin0, 3 + 1*2 = 5 for bin1
-            angle = np.arctan2(sin_val, cos_val)
+            
+            # Bin centers: Bin 0 covers [-π, 0] centered at -π/2
+            #              Bin 1 covers [0, π] centered at +π/2
+            bin_centers = np.array([-np.pi/2, np.pi/2])
+            
+            # Compute residual angle
+            residual = np.arctan2(sin_val, cos_val)  # This is the residual within the bin
+            
+            # Alpha = bin_center + residual (observation angle)
+            alpha = bin_centers[bin_idx] + residual
+            
+            # Convert observation angle α to global yaw θ
+            # θ = α + arctan(x/z)
+            ray_angle = np.arctan2(x_3d, z_3d)
+            theta = alpha + ray_angle
+            
+            # Normalize to [-π, π]
+            theta = np.arctan2(np.sin(theta), np.cos(theta))
 
             # Create Box3D object
             box3d = Box3D(
                 center_3d=(float(x_3d), float(y_3d), float(z_3d)),
                 dimensions=(float(length), float(width), float(height)),
-                orientation=float(angle),
+                orientation=float(theta),
                 class_label=class_names[c],
                 class_id=c,
                 confidence=confidence,
@@ -538,7 +536,24 @@ def decode_stereo3d_outputs(
             cos_indices = 3 + bin_indices * 2  # [K_valid] - cos indices: 3 for bin0, 5 for bin1
             sin_vals = orient_bins[torch.arange(len(bin_indices), device=device), sin_indices]
             cos_vals = orient_bins[torch.arange(len(bin_indices), device=device), cos_indices]
-            angle_values = torch.atan2(sin_vals, cos_vals)  # [K_valid]
+            
+            # Bin centers: Bin 0 covers [-π, 0] centered at -π/2
+            #              Bin 1 covers [0, π] centered at +π/2
+            bin_centers = torch.tensor([-np.pi/2, np.pi/2], device=device, dtype=orient_bins.dtype)
+            
+            # Compute residual angle
+            residual = torch.atan2(sin_vals, cos_vals)  # This is the residual within the bin
+            
+            # Alpha = bin_center + residual (observation angle)
+            alpha_values = bin_centers[bin_indices] + residual  # [K_valid]
+            
+            # Convert observation angle α to global yaw θ
+            # θ = α + arctan(x/z)
+            ray_angle = torch.atan2(x_3d_values, z_3d_values)  # [K_valid]
+            theta_values = alpha_values + ray_angle  # [K_valid] - global yaw
+            
+            # Normalize to [-π, π]
+            theta_values = torch.atan2(torch.sin(theta_values), torch.cos(theta_values))
             
             # T209: Move to CPU only when creating Box3D objects
             # Convert to numpy/cpu for Box3D creation
@@ -548,7 +563,7 @@ def decode_stereo3d_outputs(
             length_cpu = length_values.cpu().numpy()
             width_cpu = width_values.cpu().numpy()
             height_cpu = height_values.cpu().numpy()
-            angle_cpu = angle_values.cpu().numpy()
+            theta_cpu = theta_values.cpu().numpy()
             confidence_cpu = valid_scores.cpu().numpy()
             box_w_cpu = bbox_size_yx[:, 0].cpu().numpy()
             box_h_cpu = bbox_size_yx[:, 1].cpu().numpy()
@@ -560,7 +575,7 @@ def decode_stereo3d_outputs(
                 box3d = Box3D(
                     center_3d=(float(x_3d_cpu[i]), float(y_3d_cpu[i]), float(z_3d_cpu[i])),
                     dimensions=(float(length_cpu[i]), float(width_cpu[i]), float(height_cpu[i])),
-                    orientation=float(angle_cpu[i]),
+                    orientation=float(theta_cpu[i]),
                     class_label=class_names[c],
                     class_id=c,
                     confidence=float(confidence_cpu[i]),

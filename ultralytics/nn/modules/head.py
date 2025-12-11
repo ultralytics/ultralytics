@@ -16,12 +16,12 @@ from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
-from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Residual, SwiGLUFFN, Protov4_add_semseg
+from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Residual, SwiGLUFFN, Proto26
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "Pose", "Pose26", "RTDETRDecoder", "Segment", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = "OBB", "Classify", "Detect", "Pose", "Pose26", "RTDETRDecoder", "Segment", "Segment26", "YOLOEDetect", "YOLOESegment", "v10Detect"
 
 
 class Detect(nn.Module):
@@ -358,9 +358,9 @@ class Segment(Detect):
         self.cv2 = self.cv3 = self.cv4 = None
 
 
-class Segmentv8_add(Segment):
+class Segment26(Segment):
     """
-    YOLO Segment head for segmentation models.
+    YOLO26 Segment head for segmentation models.
 
     This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
 
@@ -375,7 +375,7 @@ class Segmentv8_add(Segment):
 
     Examples:
         Create a segmentation head
-        >>> segment = Segment(nc=80, nm=32, npr=256, ch=(256, 512, 1024))
+        >>> segment = Segment26(nc=80, nm=32, npr=256, ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
         >>> outputs = segment(x)
     """
@@ -391,7 +391,7 @@ class Segmentv8_add(Segment):
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, nm, npr, reg_max, end2end, ch)
-        self.proto = Protov4_add_semseg(ch, self.npr, self.nm, nc)  # protos
+        self.proto = Proto26(ch, self.npr, self.nm, nc)  # protos
 
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""

@@ -105,8 +105,8 @@ class Proto(nn.Module):
         return self.cv3(self.cv2(self.upsample(self.cv1(x))))
 
 
-class Protov4_add_semseg(Proto):
-    """Ultralytics YOLO models mask Proto module for segmentation models."""
+class Proto26(Proto):
+    """Ultralytics YOLO26 models mask Proto module for segmentation models."""
 
     def __init__(self, ch: tuple = (), c_: int = 256, c2: int = 32, nc: int = 80):
         """
@@ -131,7 +131,7 @@ class Protov4_add_semseg(Proto):
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
         if self.training:
-            semseg = self.semseg(x[0])
+            semseg = self.semseg(feat)
             return (p, semseg)
         return p
 

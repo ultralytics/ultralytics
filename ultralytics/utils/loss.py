@@ -350,22 +350,24 @@ class v8DetectionLoss:
 
 
 class MultiChannelDiceLoss(nn.Module):
-    def __init__(self, smooth=1e-6, reduction='mean'):
+    def __init__(self, smooth=1e-6, reduction="mean"):
         super(MultiChannelDiceLoss, self).__init__()
         self.smooth = smooth
         self.reduction = reduction
 
     def forward(self, pred, target):
         assert pred.size() == target.size(), "the size of predict and target must be equal."
+
         pred = torch.sigmoid(pred)
         intersection = (pred * target).sum(dim=(2, 3))
         union = pred.sum(dim=(2, 3)) + target.sum(dim=(2, 3))
-        dice = (2. * intersection + self.smooth) / (union + self.smooth)
-        dice_loss = 1. - dice
+        dice = (2.0 * intersection + self.smooth) / (union + self.smooth)
+        dice_loss = 1.0 - dice
         dice_loss = dice_loss.mean(dim=1)
-        if self.reduction == 'mean':
+
+        if self.reduction == "mean":
             return dice_loss.mean()
-        elif self.reduction == 'sum':
+        elif self.reduction == "sum":
             return dice_loss.sum()
         else:
             return dice_loss
@@ -380,7 +382,7 @@ class BCEDiceLoss(nn.Module):
         self.dice = MultiChannelDiceLoss(smooth=1)
 
     def forward(self, pred, target):
-        b, _, mask_h, mask_w = pred.shape
+        _, __, mask_h, mask_w = pred.shape
         if tuple(target.shape[-2:]) != (mask_h, mask_w):  # downsample to the same size as pred
             target = F.interpolate(target, (mask_h, mask_w), mode="nearest")
         bce_loss = self.bce(pred, target)
@@ -402,9 +404,11 @@ class v8SegmentationLoss(v8DetectionLoss):
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = preds["mask_coefficient"].permute(0, 2, 1).contiguous(), preds["proto"]
         loss = torch.zeros(5 if self.semseg_loss else 4, device=self.device)  # box, seg, cls, dfl
-        if self.semseg_loss and len(proto) == 2:
+        if len(proto) == 2:
             proto, pred_semseg = proto
         else:
+            pred_semseg = None
+        if not self.semseg_loss:
             pred_semseg = None
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
@@ -433,7 +437,10 @@ class v8SegmentationLoss(v8DetectionLoss):
             )
 
             if self.semseg_loss and pred_semseg is not None:
-                sem_masks = batch["sem_masks"].to(self.device).float()
+                sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
+                mask_zero = sem_masks == 0  # NxHxW
+                sem_masks = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2).float()  # NxCxHxW
+                sem_masks[mask_zero.unsqueeze(1).expand_as(sem_masks)] = 0
                 loss[4] = self.bcedice_loss(pred_semseg, sem_masks)
                 loss[4] *= self.hyp.box  # seg gain
 
@@ -441,7 +448,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         else:
             loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
             if self.semseg_loss:
-                loss[4] += (proto * 0).sum() + (pred_masks * 0).sum()
+                loss[4] += (pred_semseg * 0).sum() + (sem_masks * 0).sum()
 
         loss[1] *= self.hyp.box  # seg gain
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)

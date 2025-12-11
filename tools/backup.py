@@ -105,3 +105,34 @@ class BNContrastiveHead(nn.Module):
         
         # Switch to open-end forward mode
         self.forward = self.forward_open_end
+
+
+
+
+def read_pf_det_from_seg_fused(model_path,yaml_name):
+    """
+        read pd_det from a fused seg model
+    """
+
+    # load the most model weights
+    det_model = YOLOE(yaml_name).load(model_path)
+    import copy
+    seg_model=YOLOE(model_path)
+
+    # copy the lrpc model ()
+    det_model.model.model[-1].lrpc =copy.deepcopy(seg_model.model.model[-1].lrpc)
+    det_model.model.model[-1].is_fused = True
+    det_model.model.model[-1].conf = 0.001
+    det_model.model.model[-1].max_det = 1000
+
+    # del the last layer of loc and cls head (which is copied from the set_vocab function)
+    import torch.nn as nn
+    for loc_head, cls_head in zip(det_model.model.model[-1].cv2, det_model.model.model[-1].cv3):
+        assert isinstance(loc_head, nn.Sequential)
+        assert isinstance(cls_head, nn.Sequential)
+        del loc_head[-1]
+        del cls_head[-1]
+
+    det_model.model.names=seg_model.model.names
+
+    return det_model

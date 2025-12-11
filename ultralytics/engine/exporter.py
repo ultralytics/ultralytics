@@ -1220,6 +1220,7 @@ class Exporter:
                 f"{sudo}mkdir -p /etc/apt/keyrings",
                 f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --dearmor -o /etc/apt/keyrings/google.gpg",
                 f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
+                f"{sudo}apt-get update",
             ):
                 subprocess.run(c, shell=True, check=True)
             check_apt_requirements(["edgetpu-compiler"])

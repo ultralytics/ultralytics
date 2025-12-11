@@ -14,8 +14,8 @@ class FocalLoss(nn.Module):
 
     Follows constitution formula:
     L = -1/N Σ {
-        (1-ŷ)^α log(ŷ)           if y=1 (正样本)
-        (1-y)^β ŷ^α log(1-ŷ)     otherwise (负样本)
+        (1-ŷ)^α log(ŷ)           if y=1 (positive sample)
+        (1-y)^β ŷ^α log(1-ŷ)     otherwise (negative sample)
     }
 
     Args:

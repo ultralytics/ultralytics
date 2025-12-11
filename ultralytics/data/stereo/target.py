@@ -203,6 +203,8 @@ class TargetGenerator:
         Returns:
             Orientation encoding tensor of shape [8].
         """
+        # validate input
+        assert -np.pi <= alpha <= np.pi, f"alpha is out of range: {alpha}, {math.degrees(alpha)}"
         # Normalize alpha to [-π, π]
         alpha = math.atan2(math.sin(alpha), math.cos(alpha))
         

@@ -21,7 +21,7 @@ Once you've [trained](./model-training-tips.md) your computer vision model, eval
   <strong>Watch:</strong> Insights into Model Evaluation and Fine-Tuning | Tips for Improving Mean Average Precision
 </p>
 
-In this guide, we'll share insights on model evaluation and fine-tuning that'll make this [step of a computer vision project](./steps-of-a-cv-project.md) more approachable. We'll discuss how to understand evaluation metrics and implement fine-tuning techniques, giving you the knowledge to elevate your model's capabilities.
+In this guide, we share insights on model evaluation and fine-tuning to make this [step of a computer vision project](./steps-of-a-cv-project.md) more approachable. We discuss how to understand evaluation metrics and implement fine-tuning techniques, giving you the knowledge to elevate your model's capabilities.
 
 ## Evaluating Model Performance Using Metrics
 

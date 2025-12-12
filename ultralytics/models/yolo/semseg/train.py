@@ -78,7 +78,7 @@ class SemSegTrainer(yolo.detect.DetectionTrainer):
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         gs = max(int(unwrap_model(self.model).stride.max() if self.model else 0), 32)
-        return build_semantic_dataset(self.args, img_path, batch, self.data, mode=mode, rect=False, stride=gs)
+        return build_semantic_dataset(self.args, img_path, batch, self.data, mode=mode, rect=self.args.rect, stride=gs)
 
     def get_validator(self):
         """Return an instance of SegmentationValidator for validation of YOLO model."""

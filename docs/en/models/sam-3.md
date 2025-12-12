@@ -111,7 +111,7 @@ SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotat
 SAM 3 is available directly in the Ultralytics package. Install or upgrade with:
 
 ```bash
-pip install ultralytics
+pip install -U ultralytics
 ```
 
 !!! warning "SAM 3 Model Weights Required"

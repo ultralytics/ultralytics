@@ -111,7 +111,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     [:octicons-arrow-right-24: YOLO11 Models 🚀](models/yolo11.md)
 
-- :material-segment:{ .lg .middle } &nbsp; **SAM 3: Segment Anything with Concepts**
+- :material-select-all:{ .lg .middle } &nbsp; **SAM 3: Segment Anything with Concepts 🚀 NEW**
 
     ***
 

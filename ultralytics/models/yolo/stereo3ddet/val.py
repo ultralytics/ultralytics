@@ -1265,6 +1265,14 @@ class Stereo3DDetValidator(BaseValidator):
                     except Exception as e:
                         LOGGER.debug(f"Error converting labels to Box3D for visualization (sample {si}): {e}")
 
+                # Filter out predictions with confidence == 0 or below threshold before visualization
+                if pred_boxes:
+                    conf_threshold = getattr(self.args, 'conf', 0.25)
+                    pred_boxes = [
+                        box for box in pred_boxes 
+                        if hasattr(box, 'confidence') and box.confidence > conf_threshold
+                    ]
+
                 # Generate visualization
                 try:
                     _, _, combined = plot_stereo3d_boxes(

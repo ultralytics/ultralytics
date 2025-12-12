@@ -103,7 +103,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         yolo predict model=sam_b.pt source=path/to/image.jpg
         ```
 
-- The logic here is to segment the whole image if you don't pass any prompts(bboxes/points/masks).
+- The logic here is to segment the whole image if you don't pass any prompts (bboxes/points/masks).
 
 !!! example "SAMPredictor example"
 

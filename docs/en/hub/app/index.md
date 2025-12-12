@@ -46,10 +46,10 @@ Welcome to the Ultralytics HUB App! This powerful mobile application allows you 
 
 Getting started with the Ultralytics HUB App is simple:
 
-1. Download the app from the [App Store](https://apps.apple.com/xk/app/ultralytics-hub/id1583935240) (iOS) or [Google Play](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) (Android)
-2. Sign in with your Ultralytics account (or create one if you don't have it)
-3. Select a pre-trained model or one of your custom models
-4. Start detecting objects in real-time using your device's camera
+1. Download the app from the [App Store](https://apps.apple.com/xk/app/ultralytics-hub/id1583935240) (iOS) or [Google Play](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) (Android).
+2. Sign in with your Ultralytics account (or create one if you don't have it).
+3. Select a pre-trained model or one of your custom models.
+4. Start detecting objects in real-time using your device's camera.
 
 ## App Documentation
 

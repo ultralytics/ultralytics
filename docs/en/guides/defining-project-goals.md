@@ -21,7 +21,7 @@ The first step in any computer vision project is defining what you want to achie
   <strong>Watch:</strong> How to define Computer Vision Project's Goal | Problem Statement and VisionAI Tasks Connection 🚀
 </p>
 
-If you need a quick refresher on the basics of a computer vision project, take a moment to read our guide on [the key steps in a computer vision project](./steps-of-a-cv-project.md). It'll give you a solid overview of the whole process. Once you're caught up, come back here to dive into how exactly you can define and refine the goals for your project.
+If you need a quick refresher on the basics of a computer vision project, take a moment to read our guide on [the key steps in a computer vision project](./steps-of-a-cv-project.md). It will give you a solid overview of the whole process. Once you're caught up, come back here to dive into how exactly you can define and refine the goals for your project.
 
 Now, let's get to the heart of defining a clear problem statement for your project and exploring the key decisions you'll need to make along the way.
 

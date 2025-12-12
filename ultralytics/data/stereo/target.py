@@ -160,33 +160,48 @@ class TargetGenerator:
     def _add_gaussian_heatmap(
         self, heatmap: torch.Tensor, cx: float, cy: float, width: float, height: float
     ):
-        """Add Gaussian heatmap for an object center.
-
-        Args:
-            heatmap: Heatmap tensor to update [H, W].
-            cx: Center x coordinate.
-            cy: Center y coordinate.
-            width: Object width (for sigma calculation).
-            height: Object height (for sigma calculation).
-        """
-        # Calculate sigma based on object size
-        sigma_x = 0.6 * width / 6.0
-        sigma_y = 0.6 * height / 6.0
-
-        # Create coordinate grids
-        y_coords, x_coords = torch.meshgrid(
-            torch.arange(heatmap.shape[0], dtype=torch.float32),
-            torch.arange(heatmap.shape[1], dtype=torch.float32),
-            indexing="ij",
-        )
-
-        # Compute Gaussian
+        """Add Gaussian heatmap for an object center."""
+        
+        # Integer center location
+        cx_int = int(cx)
+        cy_int = int(cy)
+        
+        # Bounds check
+        if not (0 <= cx_int < heatmap.shape[1] and 0 <= cy_int < heatmap.shape[0]):
+            return
+        
+        # Calculate sigma based on object size (with minimum)
+        sigma_x = max(0.6 * width / 6.0, 1.0)  # Minimum sigma = 1
+        sigma_y = max(0.6 * height / 6.0, 1.0)
+        
+        # Determine the Gaussian radius (how far to compute)
+        # Use 3-sigma rule: 99.7% of values within 3 sigma
+        radius_x = int(3 * sigma_x)
+        radius_y = int(3 * sigma_y)
+        
+        # Compute Gaussian only in local region (more efficient)
+        y_min = max(0, cy_int - radius_y)
+        y_max = min(heatmap.shape[0], cy_int + radius_y + 1)
+        x_min = max(0, cx_int - radius_x)
+        x_max = min(heatmap.shape[1], cx_int + radius_x + 1)
+        
+        # Create local coordinate grids CENTERED on integer location
+        y_coords = torch.arange(y_min, y_max, dtype=torch.float32)
+        x_coords = torch.arange(x_min, x_max, dtype=torch.float32)
+        yy, xx = torch.meshgrid(y_coords, x_coords, indexing="ij")
+        
+        # Compute Gaussian centered on INTEGER center (not float!)
+        # This ensures the peak is exactly 1.0 at (cx_int, cy_int)
         gaussian = torch.exp(
-            -((x_coords - cx) ** 2 / (2 * sigma_x**2) + (y_coords - cy) ** 2 / (2 * sigma_y**2))
+            -((xx - cx_int) ** 2 / (2 * sigma_x ** 2) + 
+            (yy - cy_int) ** 2 / (2 * sigma_y ** 2))
         )
-
-        # Update heatmap (take maximum)
-        heatmap[:] = torch.maximum(heatmap, gaussian)
+        
+        # Update heatmap with element-wise maximum
+        heatmap[y_min:y_max, x_min:x_max] = torch.maximum(
+            heatmap[y_min:y_max, x_min:x_max], 
+            gaussian
+        )
 
     def _encode_orientation(self, alpha: float) -> torch.Tensor:
         """Encode orientation angle into multi-bin format.

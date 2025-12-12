@@ -95,12 +95,11 @@ weight_decay=0.0007
 o2m=0.1
 
 exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_vpseg
-device=6,7
+device=2,3
 
-# screen train3 
-# tail -f -n 50 ./runs/20251211_204558.log
-# ultralytics/runs/yoloe26s_tp_seg_ultra6/mobileclip2:b_26s-seg_bs128_epo30_close2_opMuSGD_o2m0.1_vpseg
-
+# using the following command to check the log:\n tail -f -n 50 ./runs/20251212_064820.log
+# Current screen: 359138.train2
+# exp name: mobileclip2:b_26s-seg_bs128_epo30_close2_opMuSGD_o2m0.1_vpseg3
 
  ##############################################################################################
 pyfile=ultralytics/finetune_yoloe26.py

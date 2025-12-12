@@ -152,7 +152,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         # Identify the head layer index
         head_index = len(model.model.model) - 1
 
-        # Freeze all backbone and neck layers (i.e. everything before the head)
+        # Freeze all backbone and neck layers (i.e., everything before the head)
         freeze = [str(i) for i in range(0, head_index)]
 
         # Freeze parts of the segmentation head, keeping only the classification branch trainable
@@ -199,7 +199,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         # Identify the head layer index
         head_index = len(model.model.model) - 1
 
-        # Freeze all backbone and neck layers (i.e. everything before the head)
+        # Freeze all backbone and neck layers (i.e., everything before the head)
         freeze = [str(i) for i in range(0, head_index)]
 
         # Freeze parts of the segmentation head, keeping only the classification branch trainable

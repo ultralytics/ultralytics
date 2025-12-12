@@ -142,18 +142,24 @@ class TargetGenerator:
 
             # 8-10. Vertices (simplified - would need full 3D geometry)
             # For now, use normalized vertex coordinates
-            for i, (vx, vy) in enumerate(
-                [
-                    vertices["v1"],
-                    vertices["v2"],
-                    vertices["v3"],
-                    vertices["v4"],
-                ]
-            ):
+            vertex_list = [vertices["v1"], vertices["v2"], vertices["v3"], vertices["v4"]]
+            for i, (vx, vy) in enumerate(vertex_list):
                 vx_out = vx * input_w * scale_w
                 vy_out = vy * input_h * scale_h
                 targets["vertices"][i * 2, center_y_int, center_x_int] = vx_out
                 targets["vertices"][i * 2 + 1, center_y_int, center_x_int] = vy_out
+
+                # vertex offset (sub-pixel refinement like center offset)
+                vx_int = int(vx_out)
+                vy_int = int(vy_out)
+                targets["vertex_offset"][i * 2, center_y_int, center_x_int] = vx_out - vx_int
+                targets["vertex_offset"][i * 2 + 1, center_y_int, center_x_int] = vy_out - vy_int
+
+                # vertex distance (distance from center to vertex in feature map space)
+                dx = vx_out - center_x_int
+                dy = vy_out - center_y_int
+                dist = (dx ** 2 + dy ** 2) ** 0.5
+                targets["vertex_dist"][i, center_y_int, center_x_int] = dist
 
         return targets
 

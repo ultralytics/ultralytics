@@ -44,6 +44,36 @@ mkdir -p $project_dir
 
 
 
+# project_dir=runs/yoloe26s_tp_seg_ultra6
+# weight_path="yolo26s-objv1.pt"
+# trainer="YOLOESegTrainerFromScratch"
+# model=26s-seg
+# epo=30
+# close_mosaic=2
+# batch_size=128
+# ag=True
+
+# clip_weight_name="mobileclip2:b" # mobileclip2b
+# ptw="object365v1" 
+
+
+# lr0=0.002
+# lrf=0.01
+# optimizer="AdamW"
+# momentum=0.9
+# weight_decay=0.025
+# o2m=0.1
+
+# exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_lr0${lr0}_lrf${lrf}_bn_o2m${o2m}_vpseg
+# device=4,5
+
+#  /ultralytics/runs/yoloe26s_tp_seg_ultra6/mobileclip2:b_26s-seg_bs128_epo30_close2_lr00.002_lrf0.01_bn_o2m0.1_vpseg5
+
+
+###############################################default args #######################################
+
+
+
 project_dir=runs/yoloe26s_tp_seg_ultra6
 weight_path="yolo26s-objv1.pt"
 trainer="YOLOESegTrainerFromScratch"
@@ -57,18 +87,22 @@ clip_weight_name="mobileclip2:b" # mobileclip2b
 ptw="object365v1" 
 
 
-lr0=0.002
-lrf=0.01
-optimizer="AdamW"
+optimizer="MuSGD"
+lr0=0.00125
+lrf=0.5
 momentum=0.9
-weight_decay=0.025
+weight_decay=0.0007
 o2m=0.1
 
-exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_lr0${lr0}_lrf${lrf}_bn_o2m${o2m}_vpseg
-device=4,5
+exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_vpseg
+device=6,7
+
+# screen train3 
+# tail -f -n 50 ./runs/20251211_204558.log
+# ultralytics/runs/yoloe26s_tp_seg_ultra6/mobileclip2:b_26s-seg_bs128_epo30_close2_opMuSGD_o2m0.1_vpseg
 
 
-
+ ##############################################################################################
 pyfile=ultralytics/finetune_yoloe26.py
 
 timestamp=$(date +%Y%m%d_%H%M%S)
@@ -91,8 +125,12 @@ nohup python $pyfile \
     --weight_path $weight_path \
     --trainer $trainer \
     > "./runs/$timestamp.log" 2>&1 &
-echo "using the following command to check the log:\n tail -f -n 50 ./runs/$timestamp.log"
 
+ ##############################################################################################
+echo "using the following command to check the log:\n tail -f -n 50 ./runs/$timestamp.log"
+current_screen=$(echo $STY) # get the current screen 
+echo "Current screen: $current_screen"
+echo "exp name: $exp_name"
 
 
 

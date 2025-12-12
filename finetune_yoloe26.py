@@ -28,12 +28,12 @@ parser.add_argument("--project", type=str, default="../runs/train_tp")
 #device
 parser.add_argument("--device", type=str, default="7")
 # val
-parser.add_argument("--val", type=bool, default=True)
+parser.add_argument("--val", type=str, default="True", choices=["True", "False"])
 parser.add_argument("--name", type=str, default="yoloe_vp")
 parser.add_argument("--clip_weight_name", type=str, default="mobileclip:blt") 
 parser.add_argument("--scale", type=float, default=0.9)
 
-parser.add_argument("--ag", type=bool, default=False) # all grounding
+parser.add_argument("--ag", type=str, default="False", choices=["True", "False"]) # all grounding
 
 parser.add_argument("--weight_path", type=str,default="yolo26s-objv1.pt")  # model weight path
 parser.add_argument("--trainer", type=str,default="YOLOETrainerFromScratch")  # model weight path
@@ -51,9 +51,15 @@ parser.add_argument("--lrf", type=float, default=0.5)
 parser.add_argument("--lr0", type=float, default=0.00125)  # initial learning rate
 parser.add_argument("--o2m", type=float, default=0.1)
 
+
  # mobileclip2b
 #
 args = parser.parse_args()
+
+# Convert string to bool
+args.val = args.val == "True"
+args.ag = args.ag == "True"
+
 assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeTrainer","YOLOESegTrainerFromScratch"], \
     "trainer must be YOLOETrainerFromScratch, YOLOEVPTrainer, YOLOEPEFreeTrainer, or YOLOESegTrainerFromScratch"
 
@@ -198,6 +204,8 @@ else:
     raise ValueError("trainer_class must be YOLOETrainerFromScratch or YOLOEVPTrainer")
 
 trainer_class =eval( args.trainer)
+
+
 
 model.train(
     data=data,

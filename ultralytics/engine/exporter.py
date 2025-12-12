@@ -21,6 +21,7 @@ NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
 ExecuTorch              | `executorch`              | yolo11n_executorch_model/
+Axelera                 | `axelera`                 | yolo11n_axelera_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -50,6 +51,7 @@ Inference:
                          yolo11n_imx_model          # IMX
                          yolo11n_rknn_model         # RKNN
                          yolo11n_executorch_model   # ExecuTorch
+                         yolo11n_axelera_model      # Axelera
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -103,7 +105,9 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
+    IS_PYTHON_3_10,
     IS_PYTHON_MINIMUM_3_9,
+    check_apt_requirements,
     check_imgsz,
     check_requirements,
     check_version,
@@ -161,6 +165,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
+        ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -340,6 +345,7 @@ class Exporter:
             imx,
             rknn,
             executorch,
+            axelera,
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
@@ -361,6 +367,14 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
         validate_args(fmt, self.args, fmt_keys)
+        if axelera:
+            if not IS_PYTHON_3_10:
+                SystemError("Axelera export only supported on Python 3.10.")
+            if not self.args.int8:
+                LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
+                self.args.int8 = True
+            if model.task not in {"detect"}:
+                raise ValueError("Axelera export only supported for detection models.")
         if imx:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
@@ -378,8 +392,10 @@ class Exporter:
         if self.args.half and self.args.int8:
             LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
             self.args.half = False
-        if self.args.half and (onnx or jit) and self.device.type == "cpu":
-            LOGGER.warning("half=True only compatible with GPU export, i.e. use device=0, setting half=False.")
+        if self.args.half and jit and self.device.type == "cpu":
+            LOGGER.warning(
+                "half=True only compatible with GPU export for TorchScript, i.e. use device=0, setting half=False."
+            )
             self.args.half = False
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
@@ -426,7 +442,10 @@ class Exporter:
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
         if self.args.int8 and not self.args.data:
-            self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
+            if axelera:
+                self.args.data = "coco128.yaml"  # Axelera default to coco128.yaml
+            else:
+                self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
@@ -565,6 +584,8 @@ class Exporter:
             f[14] = self.export_rknn()
         if executorch:
             f[15] = self.export_executorch()
+        if axelera:
+            f[16] = self.export_axelera()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -610,7 +631,9 @@ class Exporter:
                 f"The calibration dataset ({n} images) must have at least as many images as the batch size "
                 f"('batch={self.args.batch}')."
             )
-        elif n < 300:
+        elif self.args.format == "axelera" and n < 100:
+            LOGGER.warning(f"{prefix} >100 images required for Axelera calibration, found {n} images.")
+        elif self.args.format != "axelera" and n < 300:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
         return build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)  # required for batch loading
 
@@ -694,6 +717,16 @@ class Exporter:
         if getattr(model_onnx, "ir_version", 0) > 10:
             LOGGER.info(f"{prefix} limiting IR version {model_onnx.ir_version} to 10 for ONNXRuntime compatibility...")
             model_onnx.ir_version = 10
+
+        # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
+        if self.args.half and self.device.type == "cpu":
+            try:
+                from onnxruntime.transformers import float16
+
+                LOGGER.info(f"{prefix} converting to FP16...")
+                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
+            except Exception as e:
+                LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
         onnx.save(model_onnx, f)
         return f
@@ -1081,6 +1114,79 @@ class Exporter:
         return str(f)
 
     @try_export
+    def export_axelera(self, prefix=colorstr("Axelera:")):
+        """YOLO Axelera export."""
+        os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+        try:
+            from axelera import compiler
+        except ImportError:
+            check_apt_requirements(
+                ["libllvm14", "libgirepository1.0-dev", "pkg-config", "libcairo2-dev", "build-essential", "cmake"]
+            )
+
+            check_requirements(
+                "axelera-voyager-sdk==1.5.2",
+                cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi "
+                "--extra-index-url https://software.axelera.ai/artifactory/axelera-dev-pypi",
+            )
+
+        from axelera import compiler
+        from axelera.compiler import CompilerConfig
+
+        self.args.opset = 17
+        onnx_path = self.export_onnx()
+        model_name = f"{Path(onnx_path).stem}"
+        export_path = Path(f"{model_name}_axelera_model")
+        export_path.mkdir(exist_ok=True)
+
+        def transform_fn(data_item) -> np.ndarray:
+            data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
+            assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
+            im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+            return np.expand_dims(im, 0) if im.ndim == 3 else im
+
+        if "C2PSA" in self.model.__str__():  # YOLO11
+            config = CompilerConfig(
+                quantization_scheme="per_tensor_min_max",
+                ignore_weight_buffers=False,
+                resources_used=0.25,
+                aipu_cores_used=1,
+                multicore_mode="batch",
+                output_axm_format=True,
+                model_name=model_name,
+            )
+        else:  # YOLOv8
+            config = CompilerConfig(
+                tiling_depth=6,
+                split_buffer_promotion=True,
+                resources_used=0.25,
+                aipu_cores_used=1,
+                multicore_mode="batch",
+                output_axm_format=True,
+                model_name=model_name,
+            )
+
+        qmodel = compiler.quantize(
+            model=onnx_path,
+            calibration_dataset=self.get_int8_calibration_dataloader(prefix),
+            config=config,
+            transform_fn=transform_fn,
+        )
+
+        compiler.compile(model=qmodel, config=config, output_dir=export_path)
+
+        axm_name = f"{model_name}.axm"
+        axm_src = Path(axm_name)
+        axm_dst = export_path / axm_name
+
+        if axm_src.exists():
+            axm_src.replace(axm_dst)
+
+        YAML.save(export_path / "metadata.yaml", self.metadata)
+
+        return export_path
+
+    @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):
         """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
         following Ultralytics conventions.
@@ -1126,10 +1232,9 @@ class Exporter:
                 f"{sudo}mkdir -p /etc/apt/keyrings",
                 f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --dearmor -o /etc/apt/keyrings/google.gpg",
                 f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
-                f"{sudo}apt-get update",
-                f"{sudo}apt-get install -y edgetpu-compiler",
             ):
                 subprocess.run(c, shell=True, check=True)
+            check_apt_requirements(["edgetpu-compiler"])
 
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
@@ -1207,16 +1312,12 @@ class Exporter:
             java_version = int(version_match.group(1)) if version_match else 0
             assert java_version >= 17, "Java version too old"
         except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
-            cmd = None
             if IS_UBUNTU or IS_DEBIAN_TRIXIE:
                 LOGGER.info(f"\n{prefix} installing Java 21 for Ubuntu...")
-                cmd = (["sudo"] if is_sudo_available() else []) + ["apt-get", "install", "-y", "openjdk-21-jre"]
+                check_apt_requirements(["openjdk-21-jre"])
             elif IS_RASPBERRYPI or IS_DEBIAN_BOOKWORM:
                 LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
-                cmd = (["sudo"] if is_sudo_available() else []) + ["apt-get", "install", "-y", "openjdk-17-jre"]
-
-            if cmd:
-                subprocess.run(cmd, check=True)
+                check_apt_requirements(["openjdk-17-jre"])
 
         return torch2imx(
             self.model,

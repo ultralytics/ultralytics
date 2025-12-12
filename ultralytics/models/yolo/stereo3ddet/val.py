@@ -165,6 +165,7 @@ def _decode_stereo3d_outputs_per_sample(
     num_classes, h, w = heatmap.shape
 
     # Flatten heatmap and get top-k detections
+    heatmap = torch.sigmoid(heatmap)
     heatmap_flat = heatmap.reshape(num_classes, -1)  # [C, H*W]
     scores, indices = torch.topk(heatmap_flat, k=min(top_k, heatmap_flat.numel()), dim=1)
 
@@ -178,12 +179,10 @@ def _decode_stereo3d_outputs_per_sample(
         class_indices = indices[c]
 
         for score, idx in zip(class_scores, class_indices):
-            # Clamp confidence to [0, 1] range
-            if score < 0 or score > 1:
-                score_normalized = torch.sigmoid(score)
-            else:
-                score_normalized = score
-            confidence = float(torch.clamp(score_normalized, 0.0, 1.0).item())
+            # debug
+            assert score.min() >= 0 and score.max() <= 1, "score is not normalized"
+            
+            confidence = float(score.item())
             
             if confidence < conf_threshold:
                 continue
@@ -395,6 +394,7 @@ def decode_stereo3d_outputs(
 
     # T207: Vectorize heatmap peak detection for batch
     # Flatten heatmap: [B, C, H*W]
+    heatmap = torch.sigmoid(heatmap)
     heatmap_flat = heatmap.reshape(batch_size, num_classes, -1)  # [B, C, H*W]
     
     # Get top-k scores and indices for each batch and class
@@ -443,21 +443,12 @@ def decode_stereo3d_outputs(
             class_indices = batch_indices[c]  # [K]
             mean_h, mean_w, mean_l = mean_dims[c]
 
-            # T207: Vectorize confidence computation
-            # Apply sigmoid where needed, clamp to [0, 1]
-            scores_normalized = torch.where(
-                (class_scores < 0) | (class_scores > 1),
-                torch.sigmoid(class_scores),
-                class_scores
-            )
-            confidences = torch.clamp(scores_normalized, 0.0, 1.0)
-            
-            # Filter by confidence threshold
-            valid_mask = confidences >= conf_threshold
+            # debug
+            assert class_scores.min() >= 0 and class_scores.max() <= 1, "class_scores are not normalized"
+            valid_mask = class_scores >= conf_threshold
             if not valid_mask.any():
                 continue
-            
-            valid_scores = confidences[valid_mask]
+            valid_scores = class_scores[valid_mask]
             valid_indices = class_indices[valid_mask]
             
             # T207: Vectorize coordinate conversion

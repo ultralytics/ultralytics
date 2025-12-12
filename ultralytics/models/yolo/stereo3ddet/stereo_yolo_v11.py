@@ -139,23 +139,6 @@ class StereoCenterNetHead(nn.Module):
         final_conv = heatmap_branch[-1]
         if hasattr(final_conv, 'bias') and final_conv.bias is not None:
             nn.init.constant_(final_conv.bias, -2.19)
-            # #region agent log
-            import json
-            import time
-            with open('/root/ultralytics/.cursor/debug.log', 'a') as f:
-                f.write(json.dumps({
-                    "sessionId": "debug-session",
-                    "runId": "pre-fix",
-                    "hypothesisId": "E",
-                    "location": "stereo_yolo_v11.py:_init_heatmap_bias",
-                    "message": "Heatmap bias initialization",
-                    "data": {
-                        "bias_value": float(final_conv.bias[0].item()),
-                        "bias_shape": list(final_conv.bias.shape)
-                    },
-                    "timestamp": int(time.time() * 1000)
-                }) + '\n')
-            # #endregion
 
     def _build_shared_head(self, in_channels: int) -> nn.Sequential:
         """Shared feature extraction head."""
@@ -191,29 +174,6 @@ class StereoCenterNetHead(nn.Module):
         outputs = {}
         for branch_name, branch_module in self.branches.items():
             outputs[branch_name] = branch_module(shared_feat)
-
-        # #region agent log
-        if "heatmap" in outputs:
-            import json
-            import time
-            heatmap_out = outputs["heatmap"]
-            with open('/root/ultralytics/.cursor/debug.log', 'a') as f:
-                f.write(json.dumps({
-                    "sessionId": "debug-session",
-                    "runId": "pre-fix",
-                    "hypothesisId": "A",
-                    "location": "stereo_yolo_v11.py:169",
-                    "message": "Heatmap head output stats",
-                    "data": {
-                        "shape": list(heatmap_out.shape),
-                        "min": float(heatmap_out.min().item()),
-                        "max": float(heatmap_out.max().item()),
-                        "mean": float(heatmap_out.mean().item()),
-                        "std": float(heatmap_out.std().item())
-                    },
-                    "timestamp": int(time.time() * 1000)
-                }) + '\n')
-        # #endregion
 
         return outputs
 
@@ -258,49 +218,7 @@ class StereoCenterNetLoss(nn.Module):
         # ===== Task A: Stereo 2D Detection =====
 
         # 1. Heatmap (Focal Loss)
-        # #region agent log
-        import json
-        import time
-        heatmap_pred = predictions["heatmap"]
-        heatmap_target = targets["heatmap"]
-        with open('/root/ultralytics/.cursor/debug.log', 'a') as f:
-            f.write(json.dumps({
-                "sessionId": "debug-session",
-                "runId": "pre-fix",
-                "hypothesisId": "B",
-                "location": "stereo_yolo_v11.py:217",
-                "message": "Heatmap loss inputs",
-                "data": {
-                    "pred_shape": list(heatmap_pred.shape),
-                    "pred_min": float(heatmap_pred.min().item()),
-                    "pred_max": float(heatmap_pred.max().item()),
-                    "pred_mean": float(heatmap_pred.mean().item()),
-                    "target_shape": list(heatmap_target.shape),
-                    "target_min": float(heatmap_target.min().item()),
-                    "target_max": float(heatmap_target.max().item()),
-                    "target_mean": float(heatmap_target.mean().item()),
-                    "target_gt_0.5_count": int((heatmap_target > 0.5).sum().item()),
-                    "target_eq_1_count": int((heatmap_target == 1.0).sum().item())
-                },
-                "timestamp": int(time.time() * 1000)
-            }) + '\n')
-        # #endregion
         losses["heatmap"] = self.centernet_focal_loss(predictions["heatmap"], targets["heatmap"])
-        # #region agent log
-        with open('/root/ultralytics/.cursor/debug.log', 'a') as f:
-            f.write(json.dumps({
-                "sessionId": "debug-session",
-                "runId": "pre-fix",
-                "hypothesisId": "C",
-                "location": "stereo_yolo_v11.py:217",
-                "message": "Heatmap loss output",
-                "data": {
-                    "loss_value": float(losses["heatmap"].item()),
-                    "loss_shape": list(losses["heatmap"].shape) if hasattr(losses["heatmap"], 'shape') else "scalar"
-                },
-                "timestamp": int(time.time() * 1000)
-            }) + '\n')
-        # #endregion
 
         # 2. Center offset (L1, only at heatmap points)
         losses["offset"] = self.masked_l1_loss(
@@ -384,6 +302,8 @@ class StereoCenterNetLoss(nn.Module):
         
         # Count number of positive samples for normalization
         num_pos = pos_mask.sum()
+        # debug
+        assert num_pos > 0, "No positive samples found"
         num_pos = torch.clamp(num_pos, min=1.0)  # Avoid division by zero
         
         # Positive loss: (1 - Ŷ)^α * log(Ŷ)

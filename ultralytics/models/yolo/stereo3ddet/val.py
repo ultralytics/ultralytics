@@ -138,6 +138,11 @@ def _decode_stereo3d_outputs_per_sample(
     }
 
     # T210: Cache calibration parameters at function start
+    # KITTI original image size
+    # TODO: get from calib
+    original_width = 1242.0
+    original_height = 375.0
+    
     if calib is not None:
         fx = calib.get("fx", 721.5377)
         fy = calib.get("fy", 721.5377)
@@ -163,6 +168,13 @@ def _decode_stereo3d_outputs_per_sample(
     orientation = outputs["orientation"][b]  # [8, H, W]
 
     num_classes, h, w = heatmap.shape
+    
+    # Compute actual scale from feature map to original image
+    # Feature map is at 1/4 of input resolution, but input was resized from original
+    # scale = original_size / feature_map_size
+    scale_w = original_width / w
+    scale_h = original_height / h
+    scale = (scale_w + scale_h) / 2.0  # Average scale factor
 
     # Flatten heatmap and get top-k detections
     heatmap = torch.sigmoid(heatmap)
@@ -203,19 +215,21 @@ def _decode_stereo3d_outputs_per_sample(
             box_w = bbox_size[0, y_idx, x_idx].item()
             box_h = bbox_size[1, y_idx, x_idx].item()
 
-            # Get left-right distance
+            # Get left-right distance (in feature map space)
             d = lr_distance[0, y_idx, x_idx].item()
 
+            # Convert 2D center to original image space
+            u = center_x * scale_w
+            v = center_y * scale_h
+            
             # Compute depth from stereo geometry
-            if d > 0:
-                depth = (fx * baseline) / (d + 1e-6)
+            # IMPORTANT: d is in feature map space, must scale to original image space
+            d_image = d * scale_w  # Scale disparity to original image width
+            
+            if d_image > 0:
+                depth = (fx * baseline) / (d_image + 1e-6)
             else:
                 depth = 50.0  # Default depth
-
-            # Convert 2D center to 3D position
-            scale = 4.0
-            u = center_x * scale
-            v = center_y * scale
 
             # 3D position
             x_3d = float((u - cx) * depth / fx)
@@ -346,6 +360,11 @@ def decode_stereo3d_outputs(
         1: (1.73, 0.50, 0.80),  # Pedestrian
         2: (1.77, 0.60, 1.76),  # Cyclist
     }
+    
+    # TODO: get from calib
+    # KITTI original image size
+    original_width = 1242.0
+    original_height = 375.0
 
     # T210, T211: Cache calibration parameters and handle batch calibration
     if calib is not None:
@@ -391,6 +410,11 @@ def decode_stereo3d_outputs(
     orientation = outputs["orientation"]  # [B, 8, H, W]
 
     num_classes, h, w = heatmap.shape[1], heatmap.shape[2], heatmap.shape[3]
+    
+    # Compute actual scale from feature map to original image
+    # scale = original_size / feature_map_size
+    scale_w = original_width / w
+    scale_h = original_height / h
 
     # T207: Vectorize heatmap peak detection for batch
     # Flatten heatmap: [B, C, H*W]
@@ -404,7 +428,6 @@ def decode_stereo3d_outputs(
     # T207, T208, T209: Vectorized batch processing
     # Process each batch item with optimized operations
     batch_results = []
-    scale = 4.0  # Feature map to image scale
     
     for b in range(batch_size):
         boxes3d_batch = []
@@ -484,19 +507,22 @@ def decode_stereo3d_outputs(
             center_x = x_indices.float() + offset_yx[:, 0]  # [K_valid]
             center_y = y_indices.float() + offset_yx[:, 1]  # [K_valid]
             
+            # Convert 2D centers to original image space (vectorized)
+            scale_w_tensor = torch.tensor(scale_w, device=device, dtype=center_x.dtype)
+            scale_h_tensor = torch.tensor(scale_h, device=device, dtype=center_y.dtype)
+            u_values = center_x * scale_w_tensor  # [K_valid]
+            v_values = center_y * scale_h_tensor  # [K_valid]
+            
             # Compute depth from stereo geometry (vectorized)
+            # IMPORTANT: d_values is in feature map space, must scale to original image space
             fx_b_tensor = torch.tensor(fx_b, device=device, dtype=d_values.dtype)
             baseline_b_tensor = torch.tensor(baseline_b, device=device, dtype=d_values.dtype)
+            d_values_image = d_values * scale_w_tensor  # Scale disparity to original image width
             depth_values = torch.where(
-                d_values > 0,
-                (fx_b_tensor * baseline_b_tensor) / (d_values + 1e-6),
+                d_values_image > 0,
+                (fx_b_tensor * baseline_b_tensor) / (d_values_image + 1e-6),
                 torch.tensor(50.0, device=device, dtype=d_values.dtype)  # Default depth
             )  # [K_valid]
-            
-            # Convert 2D centers to 3D positions (vectorized)
-            scale_tensor = torch.tensor(scale, device=device, dtype=center_x.dtype)
-            u_values = center_x * scale_tensor  # [K_valid]
-            v_values = center_y * scale_tensor  # [K_valid]
             
             cx_b_tensor = torch.tensor(cx_b, device=device, dtype=u_values.dtype)
             cy_b_tensor = torch.tensor(cy_b, device=device, dtype=v_values.dtype)
@@ -571,10 +597,10 @@ def decode_stereo3d_outputs(
                     class_id=c,
                     confidence=float(confidence_cpu[i]),
                     bbox_2d=(
-                        float((center_x_cpu[i] - box_w_cpu[i] / 2) * scale),
-                        float((center_y_cpu[i] - box_h_cpu[i] / 2) * scale),
-                        float((center_x_cpu[i] + box_w_cpu[i] / 2) * scale),
-                        float((center_y_cpu[i] + box_h_cpu[i] / 2) * scale),
+                        float((center_x_cpu[i] - box_w_cpu[i] / 2) * scale_w),
+                        float((center_y_cpu[i] - box_h_cpu[i] / 2) * scale_h),
+                        float((center_x_cpu[i] + box_w_cpu[i] / 2) * scale_w),
+                        float((center_y_cpu[i] + box_h_cpu[i] / 2) * scale_h),
                     ),
                 )
                 boxes3d_batch.append(box3d)
@@ -627,10 +653,9 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             # Get orientation (alpha is observation angle, convert to rotation_y)
             alpha = label.get("alpha", 0.0)
 
-            # Reconstruct 3D center from 2D box and depth estimation
-            # For validation, we'll use a simplified approach: estimate depth from 2D box height
+            # Reconstruct 3D center from stereo disparity (matching prediction pipeline)
             left_box = label.get("left_box", {})
-            box_h = left_box.get("height", 0.1)
+            right_box = label.get("right_box", {})
             
             # Handle both dict and CalibrationParameters objects
             from ultralytics.data.stereo.calib import CalibrationParameters
@@ -639,39 +664,58 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
                 fy_val = calib.fy
                 cx_val = calib.cx
                 cy_val = calib.cy
+                baseline_val = calib.baseline
             elif isinstance(calib, dict):
                 fx_val = calib.get("fx", 721.5377)
                 fy_val = calib.get("fy", 721.5377)
                 cx_val = calib.get("cx", 609.5593)
                 cy_val = calib.get("cy", 172.8540)
+                baseline_val = calib.get("baseline", 0.54)
             else:
                 fx_val = 721.5377
                 fy_val = 721.5377
                 cx_val = 609.5593
                 cy_val = 172.8540
+                baseline_val = 0.54
             
-            # Rough depth estimation: Z ≈ (f × H_3d) / h_2d
-            if calib and box_h > 0:
-                # Estimate depth from box height
-                depth = (fy_val * height) / (box_h * 375.0)  # Assuming original image height ~375
+            # Compute depth from stereo disparity (same as prediction pipeline)
+            # Get 2D center positions (normalized coordinates)
+            left_center_x = left_box.get("center_x", 0.5)
+            right_center_x = right_box.get("center_x", 0.5)
+            
+            # Assuming original image width = 1242 pixels (KITTI standard)
+            img_width = 1242.0
+            img_height = 375.0
+            
+            # Convert normalized to pixel coordinates
+            left_u = left_center_x * img_width
+            right_u = right_center_x * img_width
+            
+            # Compute disparity (left-right distance in pixels)
+            disparity = left_u - right_u
+            
+            # Compute depth from disparity: Z = (f × baseline) / disparity
+            if disparity > 0:
+                depth = (fx_val * baseline_val) / disparity
             else:
-                depth = 30.0  # Default depth
+                # Fallback to a reasonable default if disparity is invalid
+                depth = 30.0
 
             # Convert 2D center to 3D
-            center_x_2d = left_box.get("center_x", 0.5) * 1242.0  # Assuming original width
-            center_y_2d = left_box.get("center_y", 0.5) * 375.0  # Assuming original height
+            center_x_2d = left_u
+            center_y_2d = left_box.get("center_y", 0.5) * img_height
 
-            cx = cx_val
-            cy = cy_val
-            fx = fx_val
-            fy = fy_val
-
-            x_3d = (center_x_2d - cx) * depth / fx
-            y_3d = (center_y_2d - cy) * depth / fy
+            x_3d = (center_x_2d - cx_val) * depth / fx_val
+            y_3d = (center_y_2d - cy_val) * depth / fy_val
             z_3d = depth
 
-            # Convert alpha to rotation_y (simplified)
-            rotation_y = alpha
+            # Convert alpha (observation angle) to rotation_y (global yaw)
+            # θ = α + arctan(x/z)
+            import math
+            ray_angle = math.atan2(x_3d, z_3d)
+            rotation_y = alpha + ray_angle
+            # Normalize to [-π, π]
+            rotation_y = math.atan2(math.sin(rotation_y), math.cos(rotation_y))
 
             box3d = Box3D(
                 center_3d=(float(x_3d), float(y_3d), float(z_3d)),

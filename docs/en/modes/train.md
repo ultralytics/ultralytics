@@ -43,7 +43,7 @@ The following are some notable features of YOLO11's Train mode:
 
 !!! tip
 
-    * YOLO11 datasets like COCO, VOC, ImageNet, and many others automatically download on first use, i.e. `yolo train data=coco.yaml`
+    * YOLO11 datasets like COCO, VOC, ImageNet, and many others automatically download on first use, i.e., `yolo train data=coco.yaml`
 
 ## Usage Examples
 

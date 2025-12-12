@@ -1438,7 +1438,7 @@ class Stereo3DDetValidator(BaseValidator):
                     pf
                     % (
                         class_name,
-                        self.seen,  # images (same for all classes)
+                        nt_class,  # number of ground truth labels for this class
                         ap3d_50_class,
                         ap3d_70_class,
                         prec_class,

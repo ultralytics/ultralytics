@@ -28,7 +28,7 @@ YOLOv5u represents an advancement in [object detection](https://www.ultralytics.
 
 The YOLOv5u models, with various pretrained weights, excel in [Object Detection](../tasks/detect.md) tasks. They support a comprehensive range of modes, making them suitable for diverse applications, from development to deployment.
 
-| Model Type | Pretrained Weights                                                                                                         | Task                                   | Inference | Validation | Training | Export |
+| Model Type | Pretrained Weights                                                                                                          | Task                                   | Inference | Validation | Training | Export |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOv5u    | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 

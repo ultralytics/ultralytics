@@ -29,7 +29,7 @@ MobileSAM was trained on a single GPU using a 100k image dataset (1% of the orig
 
 The table below outlines the available MobileSAM model, its pretrained weights, supported tasks, and compatibility with different operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Supported modes are indicated by ✅ and unsupported modes by ❌.
 
-| Model Type | Pretrained Weights                                                                           | Tasks Supported                              | Inference | Validation | Training | Export |
+| Model Type | Pretrained Weights                                                                            | Tasks Supported                              | Inference | Validation | Training | Export |
 | ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | MobileSAM  | [mobile_sam.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/mobile_sam.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 

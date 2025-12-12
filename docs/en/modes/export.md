@@ -57,7 +57,7 @@ Export a YOLO11n model to a different format like ONNX or TensorRT. See the Argu
 
         # Load a model
         model = YOLO("yolo11n.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained model
+        model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
         model.export(format="onnx")
@@ -67,7 +67,7 @@ Export a YOLO11n model to a different format like ONNX or TensorRT. See the Argu
 
         ```bash
         yolo export model=yolo11n.pt format=onnx      # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
 ## Arguments
@@ -80,7 +80,7 @@ Adjusting these parameters allows for customization of the export process to fit
 
 ## Export Formats
 
-Available YOLO11 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO11 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo11n.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -99,7 +99,7 @@ Exporting a YOLO11 model to ONNX format is straightforward with Ultralytics. It 
 
         # Load a model
         model = YOLO("yolo11n.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained model
+        model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
         model.export(format="onnx")
@@ -109,7 +109,7 @@ Exporting a YOLO11 model to ONNX format is straightforward with Ultralytics. It 
 
         ```bash
         yolo export model=yolo11n.pt format=onnx      # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
 For more details on the process, including advanced options like handling different input sizes, refer to the [ONNX integration guide](../integrations/onnx.md).

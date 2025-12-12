@@ -148,12 +148,12 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 
 </details>
 
-| GPUs<br>A100 | batch-size | CUDA_mem<br><sup>device0 (G) | COCO<br><sup>train | COCO<br><sup>val |
-| ------------ | ---------- | ---------------------------- | ------------------ | ---------------- |
-| 1x           | 16         | 26GB                         | 20:39              | 0:55             |
-| 2x           | 32         | 26GB                         | 11:43              | 0:57             |
-| 4x           | 64         | 26GB                         | 5:57               | 0:55             |
-| 8x           | 128        | 26GB                         | 3:09               | 0:57             |
+| GPUs<br>A100 | batch-size | CUDA_mem<br><sup>device0 (G)</sup> | COCO<br><sup>train</sup> | COCO<br><sup>val</sup> |
+| ------------ | ---------- | ---------------------------------- | ------------------------ | ---------------------- |
+| 1x           | 16         | 26GB                               | 20:39                    | 0:55                   |
+| 2x           | 32         | 26GB                               | 11:43                    | 0:57                   |
+| 4x           | 64         | 26GB                               | 5:57                     | 0:55                   |
+| 8x           | 128        | 26GB                               | 3:09                     | 0:57                   |
 
 As shown in the results, using [DistributedDataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) with multiple GPUs provides nearly linear scaling in training speed. With 8 GPUs, training completes approximately 6.5 times faster than with a single GPU, while maintaining the same memory usage per device.
 

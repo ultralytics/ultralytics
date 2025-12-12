@@ -68,7 +68,7 @@ In this step, you have to choose the project in which you want to create your mo
 
     You can read more about the available [YOLO models](https://docs.ultralytics.com/models/) and architectures in our documentation.
 
-By default, your model will use a pre-trained model (trained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset) to reduce training time. You can change this behavior and tweak your model's configuration by opening the **Advanced Model Configuration** accordion.
+By default, your model will use a pretrained model (trained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset) to reduce training time. You can change this behavior and tweak your model's configuration by opening the **Advanced Model Configuration** accordion.
 
 ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the Advanced Model Configuration accordion](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-train-model-dialog-2.avif)
 

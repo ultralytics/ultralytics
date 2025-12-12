@@ -54,7 +54,7 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
         # Initialize security alarm object
         securityalarm = solutions.SecurityAlarm(
             show=True,  # display the output
-            model="yolo11n.pt",  # i.e. yolo11s.pt, yolo11m.pt
+            model="yolo11n.pt",  # e.g., yolo11s.pt, yolo11m.pt
             records=1,  # total detections count to send an email
         )
 
@@ -79,7 +79,7 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-That's it! When you execute the code, you'll receive a single notification on your email if any object is detected. The notification is sent immediately, not repeatedly. However, feel free to customize the code to suit your project requirements.
+When you run the code, you will receive a single email notification if any object is detected. The notification is sent immediately, not repeatedly. You can customize the code to suit your project requirements.
 
 #### Email Received Sample
 

@@ -8,9 +8,9 @@ keywords: Ultralytics Explorer GUI, semantic search, vector similarity, SQL quer
 
 !!! warning "Community Note ⚠️"
 
-    As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don't worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
+    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics HUB](https://hub.ultralytics.com/).
 
-Explorer GUI is like a playground built using [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries and even search using natural language using our ask AI feature powered by LLMs.
+Explorer GUI is built on the [Ultralytics Explorer API](api.md). It allows you to run semantic/vector similarity search, SQL queries, and natural language queries using the Ask AI feature powered by LLMs.
 
 <p>
     <img width="1709" alt="Explorer Dashboard Screenshot 1" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-1.avif">
@@ -35,21 +35,20 @@ pip install ultralytics[explorer]
 
 !!! note
 
-    Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
-    You can set it like this - `yolo settings openai_api_key="..."`
+    The Ask AI feature uses OpenAI, so you will be prompted to set the OpenAI API key when you first run the GUI.
+    Set it with `yolo settings openai_api_key="..."`.
 
 ## Vector Semantic Similarity Search
 
 [Semantic search](https://www.ultralytics.com/glossary/semantic-search) is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar [embeddings](https://www.ultralytics.com/glossary/embeddings). In the UI, you can select one or more images and search for the images similar to them. This can be useful when you want to find images similar to a given image or a set of images that don't perform as expected.
 
-For example:
-In this VOC Exploration dashboard, user selects a couple airplane images like this:
+For example, in this VOC Exploration dashboard, the user selects a few airplane images:
 
 <p>
 <img width="1710" alt="Explorer Dashboard Screenshot 2" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-2.avif">
 </p>
 
-On performing similarity search, you should see a similar result:
+After running the similarity search, you should see similar results:
 
 <p>
 <img width="1710" alt="Explorer Dashboard Screenshot 3" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-3.avif">
@@ -57,17 +56,17 @@ On performing similarity search, you should see a similar result:
 
 ## Ask AI
 
-This allows you to write how you want to filter your dataset using natural language. You don't have to be proficient in writing SQL queries. Our AI powered query generator will automatically do that under the hood. For example - you can say - "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it'll internally generate the query and show you those results. Here's an example output when asked to "Show 10 images with exactly 5 persons" and you'll see a result like this:
+This feature lets you filter your dataset using natural language, without writing SQL. The AI-powered query generator converts your prompt into a query and returns matching results. For example, you can ask: "show me 100 images with exactly one person and 2 dogs. There can be other objects too" and it will generate the query and show you those results. Here is an example output when asked: "Show 10 images with exactly 5 persons":
 
 <p>
 <img width="1709" alt="Explorer Dashboard Screenshot 4" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-4.avif">
 </p>
 
-Note: This works using [Large Language Models](https://www.ultralytics.com/glossary/large-language-model-llm) under the hood so the results are probabilistic and might get things wrong sometimes
+Note: This feature uses [Large Language Models](https://www.ultralytics.com/glossary/large-language-model-llm), so results are probabilistic and may be inaccurate.
 
 ## Run SQL queries on your CV datasets
 
-You can run SQL queries on your dataset to filter it. It also works if you only provide the WHERE clause. Example SQL query would show only the images that have at least one 1 person and 1 dog in them:
+You can run SQL queries on your dataset to filter it. It also works if you only provide the WHERE clause. For example, the following WHERE clause returns images that contain at least one person and one dog:
 
 ```sql
 WHERE labels LIKE '%person%' AND labels LIKE '%dog%'

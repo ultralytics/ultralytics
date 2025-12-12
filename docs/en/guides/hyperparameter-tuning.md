@@ -172,7 +172,7 @@ After you've successfully completed the hyperparameter tuning process, you will 
 
 ### File Structure
 
-Here's what the directory structure of the results will look like. Training directories like `train1/` contain individual tuning iterations, i.e. one model trained with one set of hyperparameters. The `tune/` directory contains tuning results from all the individual model trainings:
+Here's what the directory structure of the results will look like. Training directories like `train1/` contain individual tuning iterations, i.e., one model trained with one set of hyperparameters. The `tune/` directory contains tuning results from all the individual model trainings:
 
 ```plaintext
 runs/

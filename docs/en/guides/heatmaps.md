@@ -79,7 +79,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
             model="yolo11n.pt",  # path to the YOLO11 model file
             colormap=cv2.COLORMAP_PARULA,  # colormap of heatmap
             # region=region_points,  # object counting with heatmaps, you can pass region_points
-            # classes=[0, 2],  # generate heatmap for specific classes i.e person and car.
+            # classes=[0, 2],  # generate heatmap for specific classes, e.g., person and car.
         )
 
         # Process video

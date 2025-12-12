@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore the ultralytics.models.sam.sam3.tokenizer_ve module for tokenizer utilities used by SAM3 vision-language components.
+keywords: Ultralytics, SAM3, tokenizer, BPE, text, vision-language, utilities, Python
 ---
 
 # Reference for `ultralytics/models/sam/sam3/tokenizer_ve.py`

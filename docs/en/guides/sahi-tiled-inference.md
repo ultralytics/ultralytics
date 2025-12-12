@@ -186,7 +186,7 @@ predict(
 )
 ```
 
-That's it! Now you're equipped to use YOLO11 with SAHI for both standard and sliced inference.
+You are now ready to use YOLO11 with SAHI for both standard and sliced inference.
 
 ## Citations and Acknowledgments
 

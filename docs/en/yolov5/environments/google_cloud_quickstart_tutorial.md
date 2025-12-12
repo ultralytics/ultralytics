@@ -60,7 +60,7 @@ python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos
 python export.py --weights yolov5s.pt --include onnx coreml tflite
 ```
 
-Using just a few commands, YOLOv5 enables you to train custom [object detection](https://docs.ultralytics.com/tasks/detect/) models tailored to your specific needs or utilize pre-trained weights for rapid results across various tasks. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.
+Using just a few commands, YOLOv5 enables you to train custom [object detection](https://docs.ultralytics.com/tasks/detect/) models tailored to your specific needs or utilize pretrained weights for rapid results across various tasks. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.
 
 ![Terminal command image illustrating model training on a GCP Deep Learning VM](https://github.com/ultralytics/docs/releases/download/0/terminal-command-model-training.avif)
 
@@ -92,7 +92,7 @@ To train YOLOv5 on your custom dataset within GCP, follow these general steps:
 1.  Prepare your dataset according to the YOLOv5 format (images and corresponding label files). See our [datasets overview](../../datasets/index.md) for guidance.
 2.  Upload your dataset to your GCP VM using `gcloud compute scp` or the web console's SSH feature.
 3.  Create a dataset configuration YAML file (`custom_dataset.yaml`) that specifies the paths to your training and validation data, the number of classes, and class names.
-4.  Begin the [training process](../../modes/train.md) using your custom dataset YAML and potentially starting from pre-trained weights:
+4.  Begin the [training process](../../modes/train.md) using your custom dataset YAML and potentially starting from pretrained weights:
 
     ```bash
     # Example: Train YOLOv5s on a custom dataset for 100 epochs

@@ -51,7 +51,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TensorBoard](tensorboard.md): Visualize your Ultralytics ML workflows, monitor model metrics, and foster team collaboration.
 
-- [Ultralytics HUB](https://hub.ultralytics.com/): Access and contribute to a community of pre-trained Ultralytics models.
+- [Ultralytics HUB](https://hub.ultralytics.com/): Access and contribute to a community of pretrained Ultralytics models.
 
 - [VS Code](vscode.md): An extension for VS Code that provides code snippets to accelerate Ultralytics development workflows and offers examples to help anyone learn or get started.
 

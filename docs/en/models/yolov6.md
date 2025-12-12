@@ -27,7 +27,7 @@ keywords: Meituan YOLOv6, object detection, real-time applications, BiC module, 
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv6-3.0"]'></canvas>
 
-YOLOv6 provides various pre-trained models with different scales:
+YOLOv6 provides various pretrained models with different scales:
 
 - YOLOv6-N: 37.5% AP on COCO val2017 at 1187 FPS with NVIDIA T4 GPU.
 - YOLOv6-S: 45.0% AP at 484 FPS.

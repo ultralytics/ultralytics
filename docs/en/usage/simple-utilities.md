@@ -483,7 +483,7 @@ Also see the [`Annotator` Reference Page](../reference/utils/plotting.md/#ultral
 
     # User defined video path and model file
     cap = cv2.VideoCapture("path/to/video.mp4")
-    model = YOLO(model="yolo11s-seg.pt")  # Model file i.e. yolo11s.pt or yolo11m-seg.pt
+    model = YOLO(model="yolo11s-seg.pt")  # Model file, e.g., yolo11s.pt or yolo11m-seg.pt
 
     if not cap.isOpened():
         print("Error: Could not open video.")
@@ -717,7 +717,7 @@ The Ultralytics package includes utilities designed to streamline and optimize m
 
 ### How can I use Ultralytics to auto-label my dataset?
 
-If you have a pre-trained Ultralytics YOLO object detection model, you can use it with the [SAM](../models/sam.md) model to auto-annotate your dataset in segmentation format. Here's an example:
+If you have a pretrained Ultralytics YOLO object detection model, you can use it with the [SAM](../models/sam.md) model to auto-annotate your dataset in segmentation format. Here's an example:
 
 ```python
 from ultralytics.data.annotator import auto_annotate

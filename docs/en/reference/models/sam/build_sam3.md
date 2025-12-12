@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore the ultralytics.models.sam.build_sam3 module for building SAM3 image models, including backbone and transformer components.
+keywords: Ultralytics, SAM3, SAM, segmentation, transformer, ViTDet, model builder, Python
 ---
 
 # Reference for `ultralytics/models/sam/build_sam3.py`

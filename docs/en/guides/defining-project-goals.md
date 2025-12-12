@@ -21,7 +21,7 @@ The first step in any computer vision project is defining what you want to achie
   <strong>Watch:</strong> How to define Computer Vision Project's Goal | Problem Statement and VisionAI Tasks Connection 🚀
 </p>
 
-If you need a quick refresher on the basics of a computer vision project, take a moment to read our guide on [the key steps in a computer vision project](./steps-of-a-cv-project.md). It'll give you a solid overview of the whole process. Once you're caught up, come back here to dive into how exactly you can define and refine the goals for your project.
+If you need a quick refresher on the basics of a computer vision project, take a moment to read our guide on [the key steps in a computer vision project](./steps-of-a-cv-project.md). It will give you a solid overview of the whole process. Once you're caught up, come back here to dive into how exactly you can define and refine the goals for your project.
 
 Now, let's get to the heart of defining a clear problem statement for your project and exploring the key decisions you'll need to make along the way.
 
@@ -77,7 +77,7 @@ The order of model selection, dataset preparation, and training approach depends
     - **Example**: Start by selecting a model for a traffic monitoring system that estimates vehicle speeds. Choose an object tracking model, gather and annotate highway videos, and then train the model with techniques for real-time video processing.
 
 - **Unique or Limited Data**: If your project is constrained by unique or limited data, begin with dataset preparation. For instance, if you have a rare dataset of medical images, annotate and prepare the data first. Then, select a model that performs well on such data, followed by choosing a suitable training approach.
-    - **Example**: Prepare the data first for a facial recognition system with a small dataset. Annotate it, then select a model that works well with limited data, such as a pre-trained model for [transfer learning](https://www.ultralytics.com/glossary/transfer-learning). Finally, decide on a training approach, including [data augmentation](https://www.ultralytics.com/glossary/data-augmentation), to expand the dataset.
+    - **Example**: Prepare the data first for a facial recognition system with a small dataset. Annotate it, then select a model that works well with limited data, such as a pretrained model for [transfer learning](https://www.ultralytics.com/glossary/transfer-learning). Finally, decide on a training approach, including [data augmentation](https://www.ultralytics.com/glossary/data-augmentation), to expand the dataset.
 
 - **Need for Experimentation**: In projects where experimentation is crucial, start with the training approach. This is common in research projects where you might initially test different training techniques. Refine your model selection after identifying a promising method and prepare the dataset based on your findings.
     - **Example**: In a project exploring new methods for detecting manufacturing defects, start with experimenting on a small data subset. Once you find a promising technique, select a model tailored to those findings and prepare a comprehensive dataset.
@@ -96,15 +96,15 @@ The most popular computer vision tasks include [image classification](https://ww
 
 For a detailed explanation of various tasks, please take a look at the Ultralytics Docs page on [YOLO11 Tasks](../tasks/index.md).
 
-### Can a Pre-trained Model Remember Classes It Knew Before Custom Training?
+### Can a Pretrained Model Remember Classes It Knew Before Custom Training?
 
-No, pre-trained models don't "remember" classes in the traditional sense. They learn patterns from massive datasets, and during custom training (fine-tuning), these patterns are adjusted for your specific task. The model's capacity is limited, and focusing on new information can overwrite some previous learnings.
+No, pretrained models don't "remember" classes in the traditional sense. They learn patterns from massive datasets, and during custom training (fine-tuning), these patterns are adjusted for your specific task. The model's capacity is limited, and focusing on new information can overwrite some previous learnings.
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-transfer-learning.avif" alt="Overview of Transfer Learning">
 </p>
 
-If you want to use the classes the model was pre-trained on, a practical approach is to use two models: one retains the original performance, and the other is fine-tuned for your specific task. This way, you can combine the outputs of both models. There are other options like freezing layers, using the pre-trained model as a feature extractor, and task-specific branching, but these are more complex solutions and require more expertise.
+If you want to use the classes the model was pretrained on, a practical approach is to use two models: one retains the original performance, and the other is fine-tuned for your specific task. This way, you can combine the outputs of both models. There are other options like freezing layers, using the pretrained model as a feature extractor, and task-specific branching, but these are more complex solutions and require more expertise.
 
 ### How Do Deployment Options Affect My Computer Vision Project?
 

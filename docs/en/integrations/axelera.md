@@ -263,7 +263,7 @@ For support, visit the [Axelera Community](https://community.axelera.ai/).
 
 The Voyager SDK supports export of [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/) models.
 
-### Can I deploy custom trained models?
+### Can I deploy custom-trained models?
 
 Yes. Any model trained using [Ultralytics Train Mode](https://docs.ultralytics.com/modes/train/) can be exported to the Axelera format, provided it uses supported layers and operations.
 

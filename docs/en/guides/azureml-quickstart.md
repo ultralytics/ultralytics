@@ -159,7 +159,7 @@ Running YOLO11 on AzureML for model training involves several steps:
 
 1. **Create a Compute Instance**: From your AzureML workspace, navigate to Compute > Compute instances > New, and select the required instance.
 
-2. **Setup Environment**: Start your compute instance, open a terminal, and create a conda environment, and don't forget to set your python version (python 3.13.1 is not supported yet) :
+2. **Set Up the Environment**: Start your compute instance, open a terminal, and create a Conda environment. Set your Python version (Python 3.13.1 is not supported yet):
 
     ```bash
     conda create --name yolo11env -y python=3.12

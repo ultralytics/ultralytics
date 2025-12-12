@@ -34,7 +34,7 @@ Ultralytics provides support for various datasets to facilitate computer vision 
 - [Construction-PPE](detect/construction-ppe.md): A dataset of construction site imagery annotated with key safety gear such as helmets, vests, gloves, boots, and goggles, along with labels for missing equipment, supporting the development of AI models for compliance and worker protection.
 - [Global Wheat 2020](detect/globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [HomeObjects-3K](detect/homeobjects-3k.md): A dataset of annotated indoor scenes featuring 12 common household items, ideal for developing and testing computer vision models in smart home systems, robotics, and augmented reality.
-- [KITTI](detect/kitti.md) New 🚀: A well-known autonomous driving dataset featuring stereo, LiDAR, and GPS/IMU inputs, used for 2D object detection in varied road scenes.
+- [KITTI](detect/kitti.md) New: A well-known autonomous driving dataset featuring stereo, LiDAR, and GPS/IMU inputs, used for 2D object detection in varied road scenes.
 - [LVIS](detect/lvis.md): A large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
 - [Medical-pills](detect/medical-pills.md): A dataset containing labeled images of medical pills, designed to aid in tasks like pharmaceutical quality control, sorting, and ensuring compliance with industry standards.
 - [Objects365](detect/objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 600K annotated images.
@@ -109,7 +109,7 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Contribute to Ultralytics Datasets 🚀
+  <strong>Watch:</strong> How to Contribute to Ultralytics Datasets
 </p>
 
 ### Steps to Contribute a New Dataset

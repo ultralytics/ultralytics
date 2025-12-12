@@ -33,7 +33,7 @@ We enable private vulnerability reporting, allowing users to discreetly report p
 
 If you suspect or discover a security vulnerability in any of our repositories, please let us know immediately. You can reach out to us directly via our [contact form](https://www.ultralytics.com/contact) or via [security@ultralytics.com](mailto:security@ultralytics.com). Our security team will investigate and respond as soon as possible.
 
-We appreciate your help in keeping all Ultralytics open-source projects secure and safe for everyone 🙏.
+We appreciate your help in keeping all Ultralytics open-source projects secure and safe for everyone.
 
 ## FAQ
 

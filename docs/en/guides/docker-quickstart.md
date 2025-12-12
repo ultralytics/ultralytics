@@ -285,7 +285,7 @@ yolo predict model=yolo11n.pt show=True
 
 ---
 
-Congratulations! You're now set up to use Ultralytics with Docker and ready to take advantage of its powerful capabilities. For alternate installation methods, feel free to explore the [Ultralytics quickstart documentation](../quickstart.md).
+You are now set up to use Ultralytics with Docker and ready to take advantage of its capabilities. For alternative installation methods, see the [Ultralytics quickstart documentation](../quickstart.md).
 
 ## FAQ
 

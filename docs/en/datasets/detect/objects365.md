@@ -24,7 +24,7 @@ The [Objects365](https://www.objects365.org/) dataset is a large-scale, high-qua
 - Objects365 contains 365 object categories, with 2 million images and over 30 million bounding boxes.
 - The dataset includes diverse objects in various scenarios, providing a rich and challenging benchmark for object detection tasks.
 - Annotations include bounding boxes for objects, making it suitable for training and evaluating object detection models.
-- Objects365 pre-trained models significantly outperform ImageNet pre-trained models, leading to better generalization on various tasks.
+- Objects365 pretrained models significantly outperform ImageNet pretrained models, leading to better generalization on various tasks.
 
 ## Dataset Structure
 
@@ -141,7 +141,7 @@ The Objects365 dataset offers several advantages for object detection tasks:
 
 1. **Diversity**: It includes 2 million images with objects in diverse scenarios, covering 365 categories.
 2. **High-quality Annotations**: Over 30 million bounding boxes provide comprehensive ground truth data.
-3. **Performance**: Models pre-trained on Objects365 significantly outperform those trained on datasets like [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/), leading to better generalization.
+3. **Performance**: Models pretrained on Objects365 significantly outperform those trained on datasets like [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/), leading to better generalization.
 
 ### Where can I find the YAML configuration file for the Objects365 dataset?
 

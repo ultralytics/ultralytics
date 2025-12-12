@@ -47,7 +47,7 @@ This guide assumes that you already have a working Raspberry Pi OS install and h
 ### Installing the Edge TPU runtime
 
 First, we need to install the Edge TPU runtime. There are many different versions available, so you need to choose the right version for your operating system.
-The high frequency version runs the Edge TPU at a higher clock speed, which improves performance. However, it might result in the Edge TPU thermal throttling, so it is recommended to have some sort of cooling mechanism in place.
+The high-frequency version runs the Edge TPU at a higher clock speed, which improves performance. However, it might result in Edge TPU thermal throttling, so it is recommended to have some sort of cooling mechanism in place.
 
 | Raspberry Pi OS | High frequency mode | Version to download                        |
 | --------------- | :-----------------: | ------------------------------------------ |
@@ -78,7 +78,7 @@ After installing the runtime, plug your Coral Edge TPU into a USB 3.0 port on th
     # If you installed the standard version
     sudo apt remove libedgetpu1-std
 
-    # If you installed the high frequency version
+    # If you installed the high-frequency version
     sudo apt remove libedgetpu1-max
     ```
 
@@ -180,7 +180,7 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
     === "Raspberry Pi 4B 2GB"
 
-        | Image Size | Model   | Standard Inference Time (ms) | High Frequency Inference Time (ms) |
+        | Image Size | Model   | Standard Inference Time (ms) | High-Frequency Inference Time (ms) |
         |------------|---------|------------------------------|------------------------------------|
         | 320        | YOLOv8n | 32.2                         | 26.7                               |
         | 320        | YOLOv8s | 47.1                         | 39.8                               |
@@ -199,8 +199,8 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
     On average:
 
     - The Raspberry Pi 5 is 22% faster with the standard mode than the Raspberry Pi 4B.
-    - The Raspberry Pi 5 is 30.2% faster with the high frequency mode than the Raspberry Pi 4B.
-    - The high frequency mode is 28.4% faster than the standard mode.
+    - The Raspberry Pi 5 is 30.2% faster with the high-frequency mode than the Raspberry Pi 4B.
+    - The high-frequency mode is 28.4% faster than the standard mode.
 
 ## FAQ
 

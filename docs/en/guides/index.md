@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Master YOLO with Ultralytics tutorials covering training, deployment and optimization. Find solutions, improve metrics, and deploy with ease!
+description: Master YOLO with Ultralytics tutorials covering training, deployment and optimization. Find solutions, improve metrics, and deploy with ease.
 keywords: Ultralytics, YOLO, tutorials, guides, object detection, deep learning, PyTorch, training, deployment, optimization, computer vision
 ---
 
 # Comprehensive Tutorials for Ultralytics YOLO
 
-Welcome to Ultralytics' YOLO 🚀 Guides! Our comprehensive tutorials cover various aspects of the YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model, ranging from training and prediction to deployment. Built on [PyTorch](https://www.ultralytics.com/glossary/pytorch), YOLO stands out for its exceptional speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) in real-time object detection tasks.
+Welcome to Ultralytics' YOLO Guides. Our comprehensive tutorials cover various aspects of the YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model, ranging from training and prediction to deployment. Built on [PyTorch](https://www.ultralytics.com/glossary/pytorch), YOLO stands out for its exceptional speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) in real-time object detection tasks.
 
-Whether you're a beginner or an expert in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl), our tutorials offer valuable insights into the implementation and optimization of YOLO for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects. Let's dive in!
+Whether you're a beginner or an expert in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl), our tutorials offer valuable insights into the implementation and optimization of YOLO for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects.
 
 <p align="center">
   <br>
@@ -48,7 +48,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [ROS Quickstart](ros-quickstart.md): Learn how to integrate YOLO with the Robot Operating System (ROS) for real-time object detection in robotics applications, including Point Cloud and Depth images.
 - [SAHI Tiled Inference](sahi-tiled-inference.md): Comprehensive guide on leveraging SAHI's sliced inference capabilities with YOLO11 for object detection in high-resolution images.
 - [Steps of a Computer Vision Project](steps-of-a-cv-project.md): Learn about the key steps involved in a computer vision project, including defining goals, selecting models, preparing data, and evaluating results.
-- [Tips for Model Training](model-training-tips.md): Explore tips on optimizing [batch sizes](https://www.ultralytics.com/glossary/batch-size), using [mixed precision](https://www.ultralytics.com/glossary/mixed-precision), applying pre-trained weights, and more to make training your computer vision model a breeze.
+- [Tips for Model Training](model-training-tips.md): Explore tips on optimizing [batch sizes](https://www.ultralytics.com/glossary/batch-size), using [mixed precision](https://www.ultralytics.com/glossary/mixed-precision), applying pretrained weights, and more to make training your computer vision model a breeze.
 - [Triton Inference Server Integration](triton-inference-server.md): Dive into the integration of Ultralytics YOLO11 with NVIDIA's Triton Inference Server for scalable and efficient deep learning inference deployments.
 - [Vertex AI Deployment with Docker](vertex-ai-deployment-with-docker.md): Streamlined guide to containerizing YOLO models with Docker and deploying them on Google Cloud Vertex AI—covering build, push, autoscaling, and monitoring.
 - [View Inference Images in a Terminal](view-results-in-terminal.md): Use VSCode's integrated terminal to view inference results when using Remote Tunnel or SSH sessions.
@@ -61,9 +61,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 
 We welcome contributions from the community! If you've mastered a particular aspect of Ultralytics YOLO that's not yet covered in our guides, we encourage you to share your expertise. Writing a guide is a great way to give back to the community and help us make our documentation more comprehensive and user-friendly.
 
-To get started, please read our [Contributing Guide](../help/contributing.md) for guidelines on how to open a Pull Request (PR) 🛠️. We look forward to your contributions!
-
-Let's work together to make the Ultralytics YOLO ecosystem more robust and versatile 🙏!
+To get started, please read our [Contributing Guide](../help/contributing.md) for guidelines on how to open a Pull Request (PR). We look forward to your contributions.
 
 ## FAQ
 
@@ -78,7 +76,7 @@ Training a custom object detection model with Ultralytics YOLO is straightforwar
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")  # Load a pre-trained YOLO model
+        model = YOLO("yolo11n.pt")  # Load a pretrained YOLO model
         model.train(data="path/to/dataset.yaml", epochs=50)  # Train on custom dataset
         ```
 

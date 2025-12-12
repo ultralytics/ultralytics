@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to deploy pre-trained YOLO11 models on Google Cloud Vertex AI using Docker containers and FastAPI for scalable inference with complete control over preprocessing and postprocessing.
+description: Learn how to deploy pretrained YOLO11 models on Google Cloud Vertex AI using Docker containers and FastAPI for scalable inference with complete control over preprocessing and postprocessing.
 keywords: YOLO11, Vertex AI, Docker, FastAPI, deployment, container, GCP, Artifact Registry, Ultralytics, cloud deployment
 ---
 
-# Deploy a pre-trained YOLO model with Ultralytics on Vertex AI for inference
+# Deploy a pretrained YOLO model with Ultralytics on Vertex AI for inference
 
-This guide will show you how to containerize a pre-trained YOLO11 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO11, but the same principles will apply for using [other YOLO modes](../modes/index.md).
+This guide will show you how to containerize a pretrained YOLO11 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO11, but the same principles will apply for using [other YOLO modes](../modes/index.md).
 
 Before we start, you will need to create a Google Cloud Platform (GCP) project. You get $300 in GCP credits to use for free as a new user, and this amount is enough to test a running setup that you can later extend for any other YOLO11 use case, including training, or batch and streaming inference.
 
@@ -52,7 +52,7 @@ Vertex AI expects your container to implement two specific endpoints:
 
 ### Project folder structure
 
-The bulk of our build will be happening inside the Docker container, and Ultralytics will also load a pre-trained YOLO11 model, so you can keep the local folder structure simple:
+The bulk of our build will be happening inside the Docker container, and Ultralytics will also load a pretrained YOLO11 model, so you can keep the local folder structure simple:
 
 ```txt
 YOUR_PROJECT/
@@ -115,7 +115,7 @@ def _initialize_model():
     global model_yolo, _model_ready
 
     try:
-        # Use pre-trained YOLO11n model from Ultralytics base image
+        # Use pretrained YOLO11n model from Ultralytics base image
         model_yolo = YOLO("yolo11n.pt")
         _model_ready = True
 
@@ -571,15 +571,15 @@ To test remote inference, you can use the provided cURL command or create anothe
 
     Similarly to the local testing, expect a short delay on the first request, as Ultralytics will need to pull and load the YOLO11 model in the running container.
 
-Congratulations! You have successfully deployed a pre-trained YOLO11 model with Ultralytics on Google Cloud Vertex AI.
+You have successfully deployed a pretrained YOLO11 model with Ultralytics on Google Cloud Vertex AI.
 
 ## FAQ
 
 ### Can I use Ultralytics YOLO models on Vertex AI without Docker?
 
-Yes, however you will first need to export the model to a format compatible with Vertex AI, such as TensorFlow, Scikit-learn, or XGBoost. Google Cloud provides a guide on running `.pt` models on Vertex with a complete overview of the conversion process: [Run PyTorch models on Vertex AI](https://cloud.google.com/blog/topics/developers-practitioners/pytorch-google-cloud-how-deploy-pytorch-models-vertex-ai).
+Yes; however, you will first need to export the model to a format compatible with Vertex AI, such as TensorFlow, Scikit-learn, or XGBoost. Google Cloud provides a guide on running `.pt` models on Vertex with a complete overview of the conversion process: [Run PyTorch models on Vertex AI](https://cloud.google.com/blog/topics/developers-practitioners/pytorch-google-cloud-how-deploy-pytorch-models-vertex-ai).
 
-Please note that the resulting setup will rely only on Vertex AI standard serving layer and will not support the advanced Ultralytics framework features. Since Vertex AI fully supports containerized models and is able to scale them automatically according to your deployment configuration, it allows you to leverage the full capabilities of Ultralytics YOLO models without needing to convert them to a different format.
+Please note that the resulting setup will rely only on the Vertex AI standard serving layer and will not support the advanced Ultralytics framework features. Since Vertex AI fully supports containerized models and can scale them automatically according to your deployment configuration, it allows you to leverage the full capabilities of Ultralytics YOLO models without needing to convert them to a different format.
 
 ### Why is FastAPI a good choice for serving YOLO11 inference?
 
@@ -595,4 +595,4 @@ FastAPI also supports SSE (Server-Sent Events), which is useful for streaming in
 
 This is actually a versatility feature of Google Cloud Platform, where you need to select a region for every service you use. For the task of deploying a containerized model on Vertex AI, your most important region selection is the one for the Model Registry. It will determine the availability of machine types and quotas for your model deployment.
 
-Additionally, if you will be extending the setup and storing prediction data or results in Cloud Storage or BigQuery, you will need to use the same region as for Model Registry, to minimize latency and ensure high throughput for data access.
+Additionally, if you will be extending the setup and storing prediction data or results in Cloud Storage or BigQuery, you will need to use the same region as for Model Registry to minimize latency and ensure high throughput for data access.

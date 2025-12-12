@@ -154,7 +154,7 @@ The dataset's richness offers invaluable insights into object detection challeng
 
 ## Citations and Acknowledgments
 
-For those leveraging DOTA in their endeavors, it's pertinent to cite the relevant research papers:
+If you use DOTA in your work, please cite the relevant research papers:
 
 !!! quote ""
 

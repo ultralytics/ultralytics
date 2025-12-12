@@ -21,12 +21,12 @@ The output of an instance segmentation model is a set of masks or contours that 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Run Segmentation with Pre-Trained Ultralytics YOLO Model in Python.
+  <strong>Watch:</strong> Run Segmentation with Pretrained Ultralytics YOLO Model in Python.
 </p>
 
 !!! tip
 
-    YOLO11 Segment models use the `-seg` suffix, i.e. `yolo11n-seg.pt` and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
+    YOLO11 Segment models use the `-seg` suffix, i.e., `yolo11n-seg.pt`, and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11)
 
@@ -157,7 +157,7 @@ Export a YOLO11n-seg model to a different format like ONNX, CoreML, etc.
 
         # Load a model
         model = YOLO("yolo11n-seg.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained model
+        model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
         model.export(format="onnx")
@@ -167,10 +167,10 @@ Export a YOLO11n-seg model to a different format like ONNX, CoreML, etc.
 
         ```bash
         yolo export model=yolo11n-seg.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
-Available YOLO11-seg export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-seg.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO11-seg export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo11n-seg.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 

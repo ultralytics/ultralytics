@@ -77,7 +77,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained model
+        # Load a pretrained model
         model = YOLO("yolo11n.pt")
 
         # Train the model
@@ -216,7 +216,7 @@ Yes, you can use TensorBoard in a Google Colab environment to train YOLO11 model
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained model
+        # Load a pretrained model
         model = YOLO("yolo11n.pt")
 
         # Train the model

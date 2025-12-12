@@ -45,9 +45,9 @@ FastSAM is designed to address the limitations of the [Segment Anything Model (S
 
 ## Available Models, Supported Tasks, and Operating Modes
 
-This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
+This table presents the available models with their specific pretrained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
-| Model Type | Pre-trained Weights                                                                         | Tasks Supported                              | Inference | Validation | Training | Export |
+| Model Type | Pretrained Weights                                                                          | Tasks Supported                              | Inference | Validation | Training | Export |
 | ---------- | ------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
 | FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
@@ -139,7 +139,7 @@ To perform [object detection](https://www.ultralytics.com/glossary/object-detect
         yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
         ```
 
-This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
+This snippet demonstrates the simplicity of loading a pretrained model and running a prediction on an image.
 
 !!! example "FastSAMPredictor example"
 

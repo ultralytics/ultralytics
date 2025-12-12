@@ -237,88 +237,88 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
     === "Detection (COCO)"
 
-        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
+        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
 
         !!! note
 
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 0.52         | 0.51 \| 0.56       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val | 0.52         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP32      | COCO<sup>val</sup> | 0.52         |                    | 0.52                 | 0.37                    | 1       | 640                   |
         | FP16      | Predict      | 0.34         | 0.34 \| 0.41       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val | 0.33         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP16      | COCO<sup>val</sup> | 0.33         |                    | 0.52                 | 0.37                    | 1       | 640                   |
         | INT8      | Predict      | 0.28         | 0.27 \| 0.31       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val | 0.29         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+        | INT8      | COCO<sup>val</sup> | 0.29         |                    | 0.47                 | 0.33                    | 1       | 640                   |
 
     === "Segmentation (COCO)"
 
-        See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pre-trained classes.
+        See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pretrained classes.
 
         !!! note
 
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-seg.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-seg.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(M) | mAP<sup>val<br>50-95(M) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | mAP<sup>val</sup><br>50(M) | mAP<sup>val</sup><br>50-95(M) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 0.62         | 0.61 \| 0.68       |                      |                         |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val | 0.63         |                    | 0.52                 | 0.36                    | 0.49                 | 0.31                    | 1       | 640                   |
+        | FP32      | COCO<sup>val</sup> | 0.63         |                    | 0.52                 | 0.36                    | 0.49                 | 0.31                    | 1       | 640                   |
         | FP16      | Predict      | 0.40         | 0.39 \| 0.44       |                      |                         |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val | 0.43         |                    | 0.52                 | 0.36                    | 0.49                 | 0.30                    | 1       | 640                   |
+        | FP16      | COCO<sup>val</sup> | 0.43         |                    | 0.52                 | 0.36                    | 0.49                 | 0.30                    | 1       | 640                   |
         | INT8      | Predict      | 0.34         | 0.33 \| 0.37       |                      |                         |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val | 0.36         |                    | 0.46                 | 0.32                    | 0.43                 | 0.27                    | 1       | 640                   |
+        | INT8      | COCO<sup>val</sup> | 0.36         |                    | 0.46                 | 0.32                    | 0.43                 | 0.27                    | 1       | 640                   |
 
     === "Classification (ImageNet)"
 
-        See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pre-trained classes.
+        See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pretrained classes.
 
         !!! note
 
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-cls.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-cls.engine`
 
-        | Precision | Eval test        | mean<br>(ms) | min \| max<br>(ms) | top-1 | top-5 | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test        | mean<br>(ms) | min \| max<br>(ms) | top-1 | top-5 | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|------------------|--------------|--------------------|-------|-------|---------|-----------------------|
         | FP32      | Predict          | 0.26         | 0.25 \| 0.28       |       |       | 8       | 640                   |
-        | FP32      | ImageNet<sup>val | 0.26         |                    | 0.35  | 0.61  | 1       | 640                   |
+        | FP32      | ImageNet<sup>val</sup> | 0.26         |                    | 0.35  | 0.61  | 1       | 640                   |
         | FP16      | Predict          | 0.18         | 0.17 \| 0.19       |       |       | 8       | 640                   |
-        | FP16      | ImageNet<sup>val | 0.18         |                    | 0.35  | 0.61  | 1       | 640                   |
+        | FP16      | ImageNet<sup>val</sup> | 0.18         |                    | 0.35  | 0.61  | 1       | 640                   |
         | INT8      | Predict          | 0.16         | 0.15 \| 0.57       |       |       | 8       | 640                   |
-        | INT8      | ImageNet<sup>val | 0.15         |                    | 0.32  | 0.59  | 1       | 640                   |
+        | INT8      | ImageNet<sup>val</sup> | 0.15         |                    | 0.32  | 0.59  | 1       | 640                   |
 
     === "Pose (COCO)"
 
-        See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pre-trained class, "person".
+        See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pretrained class, "person".
 
         !!! note
 
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-pose.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-pose.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(P) | mAP<sup>val<br>50-95(P) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | mAP<sup>val</sup><br>50(P) | mAP<sup>val</sup><br>50-95(P) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 0.54         | 0.53 \| 0.58       |                      |                         |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val | 0.55         |                    | 0.91                 | 0.69                    | 0.80                 | 0.51                    | 1       | 640                   |
+        | FP32      | COCO<sup>val</sup> | 0.55         |                    | 0.91                 | 0.69                    | 0.80                 | 0.51                    | 1       | 640                   |
         | FP16      | Predict      | 0.37         | 0.35 \| 0.41       |                      |                         |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val | 0.36         |                    | 0.91                 | 0.69                    | 0.80                 | 0.51                    | 1       | 640                   |
+        | FP16      | COCO<sup>val</sup> | 0.36         |                    | 0.91                 | 0.69                    | 0.80                 | 0.51                    | 1       | 640                   |
         | INT8      | Predict      | 0.29         | 0.28 \| 0.33       |                      |                         |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val | 0.30         |                    | 0.90                 | 0.68                    | 0.78                 | 0.47                    | 1       | 640                   |
+        | INT8      | COCO<sup>val</sup> | 0.30         |                    | 0.90                 | 0.68                    | 0.78                 | 0.47                    | 1       | 640                   |
 
     === "OBB (DOTAv1)"
 
-        See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pre-trained classes.
+        See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pretrained classes.
 
         !!! note
 
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-obb.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-obb.engine`
 
-        | Precision | Eval test      | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test      | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|----------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict        | 0.52         | 0.51 \| 0.59       |                      |                         | 8       | 640                   |
-        | FP32      | DOTAv1<sup>val | 0.76         |                    | 0.50                 | 0.36                    | 1       | 640                   |
+        | FP32      | DOTAv1<sup>val</sup> | 0.76         |                    | 0.50                 | 0.36                    | 1       | 640                   |
         | FP16      | Predict        | 0.34         | 0.33 \| 0.42       |                      |                         | 8       | 640                   |
-        | FP16      | DOTAv1<sup>val | 0.59         |                    | 0.50                 | 0.36                    | 1       | 640                   |
+        | FP16      | DOTAv1<sup>val</sup> | 0.59         |                    | 0.50                 | 0.36                    | 1       | 640                   |
         | INT8      | Predict        | 0.29         | 0.28 \| 0.33       |                      |                         | 8       | 640                   |
-        | INT8      | DOTAv1<sup>val | 0.32         |                    | 0.45                 | 0.32                    | 1       | 640                   |
+        | INT8      | DOTAv1<sup>val</sup> | 0.32         |                    | 0.45                 | 0.32                    | 1       | 640                   |
 
 ### Consumer GPUs
 
@@ -330,16 +330,16 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         !!! note
 
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 1.06         | 0.75 \| 1.88       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val | 1.37         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP32      | COCO<sup>val</sup> | 1.37         |                    | 0.52                 | 0.37                    | 1       | 640                   |
         | FP16      | Predict      | 0.62         | 0.75 \| 1.13       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val | 0.85         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP16      | COCO<sup>val</sup> | 0.85         |                    | 0.52                 | 0.37                    | 1       | 640                   |
         | INT8      | Predict      | 0.52         | 0.38 \| 1.00       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val | 0.74         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+        | INT8      | COCO<sup>val</sup> | 0.74         |                    | 0.47                 | 0.33                    | 1       | 640                   |
 
     === "RTX 3060 12 GB"
 
@@ -347,17 +347,17 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         !!! note
 
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 1.76         | 1.69 \| 1.87       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val | 1.94         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP32      | COCO<sup>val</sup> | 1.94         |                    | 0.52                 | 0.37                    | 1       | 640                   |
         | FP16      | Predict      | 0.86         | 0.75 \| 1.00       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val | 1.43         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP16      | COCO<sup>val</sup> | 1.43         |                    | 0.52                 | 0.37                    | 1       | 640                   |
         | INT8      | Predict      | 0.80         | 0.75 \| 1.00       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val | 1.35         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+        | INT8      | COCO<sup>val</sup> | 1.35         |                    | 0.47                 | 0.33                    | 1       | 640                   |
 
     === "RTX 2060 6 GB"
 
@@ -365,16 +365,16 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         !!! note
 
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 2.84         | 2.84 \| 2.85       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val | 2.94         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP32      | COCO<sup>val</sup> | 2.94         |                    | 0.52                 | 0.37                    | 1       | 640                   |
         | FP16      | Predict      | 1.09         | 1.09 \| 1.10       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val | 1.20         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP16      | COCO<sup>val</sup> | 1.20         |                    | 0.52                 | 0.37                    | 1       | 640                   |
         | INT8      | Predict      | 0.75         | 0.74 \| 0.75       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val | 0.76         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+        | INT8      | COCO<sup>val</sup> | 0.76         |                    | 0.47                 | 0.33                    | 1       | 640                   |
 
 ### Embedded Devices
 
@@ -386,16 +386,16 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         !!! note
 
-            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
+            Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 6.11         | 6.10 \| 6.29       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val | 6.17         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP32      | COCO<sup>val</sup> | 6.17         |                    | 0.52                 | 0.37                    | 1       | 640                   |
         | FP16      | Predict      | 3.18         | 3.18 \| 3.20       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val | 3.19         |                    | 0.52                 | 0.37                    | 1       | 640                   |
+        | FP16      | COCO<sup>val</sup> | 3.19         |                    | 0.52                 | 0.37                    | 1       | 640                   |
         | INT8      | Predict      | 2.30         | 2.29 \| 2.35       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val | 2.32         |                    | 0.46                 | 0.32                    | 1       | 640                   |
+        | INT8      | COCO<sup>val</sup> | 2.32         |                    | 0.46                 | 0.32                    | 1       | 640                   |
 
 !!! info
 

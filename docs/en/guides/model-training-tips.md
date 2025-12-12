@@ -93,11 +93,11 @@ To implement mixed precision training, you'll need to modify your training scrip
 
 Mixed precision training is straightforward when working with YOLO11. You can use the `amp` flag in your training configuration. Setting `amp=True` enables Automatic Mixed Precision (AMP) training. Mixed precision training is a simple yet effective way to optimize your model training process.
 
-### Pre-trained Weights
+### Pretrained Weights
 
-Using pretrained weights is a smart way to speed up your model's training process. Pretrained weights come from models already trained on large datasets, giving your model a head start. [Transfer learning](https://www.ultralytics.com/glossary/transfer-learning) adapts pretrained models to new, related tasks. Fine-tuning a pre-trained model involves starting with these weights and then continuing training on your specific dataset. This method of training results in faster training times and often better performance because the model starts with a solid understanding of basic features.
+Using pretrained weights is a smart way to speed up your model's training process. Pretrained weights come from models already trained on large datasets, giving your model a head start. [Transfer learning](https://www.ultralytics.com/glossary/transfer-learning) adapts pretrained models to new, related tasks. Fine-tuning a pretrained model involves starting with these weights and then continuing training on your specific dataset. This method of training results in faster training times and often better performance because the model starts with a solid understanding of basic features.
 
-The `pretrained` parameter makes transfer learning easy with YOLO11. Setting `pretrained=True` will use default pre-trained weights, or you can specify a path to a custom pre-trained model. Using pre-trained weights and transfer learning effectively boosts your model's capabilities and reduces training costs.
+The `pretrained` parameter makes transfer learning easy with YOLO11. Setting `pretrained=True` will use default pretrained weights, or you can specify a path to a custom pretrained model. Using pretrained weights and transfer learning effectively boosts your model's capabilities and reduces training costs.
 
 ### Other Techniques to Consider When Handling a Large Dataset
 
@@ -177,7 +177,7 @@ Using these resources will help you solve challenges and stay up-to-date with th
 
 ## Key Takeaways
 
-Training computer vision models involves following good practices, optimizing your strategies, and solving problems as they arise. Techniques like adjusting batch sizes, mixed [precision](https://www.ultralytics.com/glossary/precision) training, and starting with pre-trained weights can make your models work better and train faster. Methods like subset training and early stopping help you save time and resources. Staying connected with the community and keeping up with new trends will help you keep improving your model training skills.
+Training computer vision models involves following good practices, optimizing your strategies, and solving problems as they arise. Techniques like adjusting batch sizes, mixed [precision](https://www.ultralytics.com/glossary/precision) training, and starting with pretrained weights can make your models work better and train faster. Methods like subset training and early stopping help you save time and resources. Staying connected with the community and keeping up with new trends will help you keep improving your model training skills.
 
 ## FAQ
 
@@ -193,9 +193,9 @@ Mixed precision training utilizes both 16-bit (FP16) and 32-bit (FP32) floating-
 
 Multiscale training enhances model performance by training on images of varying sizes, allowing the model to better generalize across different scales and distances. In YOLO11, you can enable multiscale training by setting the `scale` parameter in the training configuration. For example, `scale=0.5` reduces the image size by half, while `scale=2.0` doubles it. This technique simulates objects at different distances, making the model more robust across various scenarios. For settings and more details, check out the [training configuration](../modes/train.md).
 
-### How can I use pre-trained weights to speed up training in YOLO11?
+### How can I use pretrained weights to speed up training in YOLO11?
 
-Using pre-trained weights can greatly accelerate training and enhance model accuracy by leveraging a model already familiar with foundational visual features. In YOLO11, simply set the `pretrained` parameter to `True` or provide a path to your custom pre-trained weights in the training configuration. This method, called transfer learning, allows models trained on large datasets to be effectively adapted to your specific application. Learn more about how to use pre-trained weights and their benefits in the [training configuration guide](../modes/train.md).
+Using pretrained weights can greatly accelerate training and enhance model accuracy by leveraging a model already familiar with foundational visual features. In YOLO11, simply set the `pretrained` parameter to `True` or provide a path to your custom pretrained weights in the training configuration. This method, called transfer learning, allows models trained on large datasets to be effectively adapted to your specific application. Learn more about how to use pretrained weights and their benefits in the [training configuration guide](../modes/train.md).
 
 ### What is the recommended number of epochs for training a model, and how do I set this in YOLO11?
 

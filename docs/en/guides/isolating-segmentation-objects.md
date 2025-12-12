@@ -265,7 +265,7 @@ import numpy as np
 from ultralytics import YOLO
 
 m = YOLO("yolo11n-seg.pt")  # (4)!
-res = m.predict()  # (3)!
+res = m.predict(source="path/to/image.jpg")  # (3)!
 
 # Iterate detection results (5)
 for r in res:
@@ -295,7 +295,7 @@ for r in res:
         x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
         iso_crop = isolated[y1:y2, x1:x2]
 
-        # TODO your actions go here (2)
+        # Add your custom post-processing here (2)
 ```
 
 1. The line populating `contour` is combined into a single line here, where it was split to multiple above.

@@ -75,7 +75,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
         trackzone = solutions.TrackZone(
             show=True,  # display the output
             region=region_points,  # pass region points
-            model="yolo11n.pt",  # use any model that Ultralytics support, i.e. YOLOv9, YOLOv10
+            model="yolo11n.pt",  # use any model that Ultralytics supports, e.g., YOLOv9, YOLOv10
             # line_width=2,  # adjust the line width for bounding boxes and text display
         )
 

@@ -8,7 +8,7 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segm
 
 !!! success "Now Available in Ultralytics"
 
-    SAM 3 is fully integrated into the Ultralytics package as of **December 2025** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Install or upgrade with `pip install -U ultralytics` to access all SAM 3 features including text-based concept segmentation, image exemplar prompts, and video tracking.
+    SAM 3 is fully integrated into the Ultralytics package as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Install or upgrade with `pip install -U ultralytics` to access all SAM 3 features including text-based concept segmentation, image exemplar prompts, and video tracking.
 
 ![SAM 3 Overview](https://github.com/ultralytics/docs/releases/download/0/sam-3-overview.webp)
 
@@ -108,7 +108,7 @@ SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotat
 
 ## Installation
 
-SAM 3 is available directly in the Ultralytics package. Install or upgrade with:
+SAM 3 is available in Ultralytics **version 8.3.237** and later. Install or upgrade with:
 
 ```bash
 pip install -U ultralytics
@@ -537,7 +537,7 @@ While SAM 3 represents a major advancement, it has certain limitations:
 
 ### When Was SAM 3 Released?
 
-SAM 3 was released by Meta on **November 20th, 2025** and is now fully integrated into Ultralytics as of **December 2025** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Full support is available for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
+SAM 3 was released by Meta on **November 20th, 2025** and is fully integrated into Ultralytics as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Full support is available for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
 
 ### Is SAM 3 Integrated Into Ultralytics?
 

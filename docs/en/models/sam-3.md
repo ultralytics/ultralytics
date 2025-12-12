@@ -6,15 +6,14 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segm
 
 # SAM 3: Segment Anything with Concepts
 
-!!! note "Released — Ultralytics integration in progress"
+!!! note "Released and supported in Ultralytics."
 
-    Meta released SAM-3 on **November 20th, 2025**. Ultralytics is integrating the models now and will ship a package update with native support soon. In the meantime, you can follow the official SAM 3 README steps below to try the upstream release.
+    Meta released SAM-3 on November 20th, 2025, and Ultralytics now provides native support, enabling promptable concept segmentation workflows.
 
 ![SAM 3 Overview](https://github.com/ultralytics/docs/releases/download/0/sam-3-overview.webp)
 
 **SAM 3** (Segment Anything Model 3) is Meta's released foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
 
-Ultralytics is actively integrating SAM-3 into the `ultralytics` package. Until that release lands, you can experiment with the upstream Meta implementation using the official installation and usage steps below.
 
 ## Overview
 
@@ -108,7 +107,7 @@ SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotat
 
 ## Installation
 
-SAM 3 will be available directly in the Ultralytics package once integration lands. Installation will remain:
+SAM 3 is available directly in the Ultralytics package. Installation remains unchanged:
 
 ```bash
 pip install ultralytics
@@ -408,7 +407,7 @@ Here we compare SAM 3's capabilities with SAM 2 and [YOLO11](../models/yolo11.md
 | **LVIS Mask AP (zero-shot)** | **47.0**                              | N/A                  | N/A                |
 | **MOSEv2 J&F**               | **60.1**                              | 47.9                 | N/A                |
 | **Inference Speed (H200)**   | **30 ms** (100+ objects)              | ~23 ms (per object)  | **2-3 ms** (image) |
-| **Model Size**               | Large (~400+ MB expected)             | 162 MB (base)        | **5.9 MB**         |
+| **Model Size**               | 3.4GB                                 | 162 MB (base)        | **5.9 MB**         |
 
 **Key Takeaways**:
 
@@ -535,17 +534,14 @@ While SAM 3 represents a major advancement, it has certain limitations:
 
 ## FAQ
 
-### When Will SAM 3 Be Released?
+### When Was SAM 3 Released?
 
-SAM 3 was released by Meta on **November 20th, 2025**. Ultralytics support is in progress and will ship in an upcoming package update with full docs for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
+SAM 3 was released by Meta on **November 20th, 2025**, and is now supported within the Ultralytics ecosystem.
 
-### Will SAM 3 Be Integrated Into Ultralytics?
+### Is SAM 3 Integrated Into Ultralytics?
 
-Yes. SAM 3 will be supported in the Ultralytics Python package upon release, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. You will be able to [export](../modes/export.md) to formats like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md) for deployment, with streamlined [Python](../usage/python.md) and [CLI](../usage/cli.md) workflows.
+Yes. Ultralytics provides native support for SAM-3, allowing users to run promptable concept segmentation using text and image prompts, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. You can [export](../modes/export.md) to formats like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md) for deployment, with streamlined [Python](../usage/python.md) and [CLI](../usage/cli.md) workflows.
 
-!!! warning "Implementation Timeline"
-
-    Code examples in this documentation are preview versions showing intended usage patterns. Actual implementation will be available after Ultralytics completes integration.
 
 ### What Is Promptable Concept Segmentation (PCS)?
 
@@ -605,7 +601,7 @@ SAM 3 and YOLO11 serve different use cases:
 **YOLO11 Advantages**:
 
 - **Speed**: 10-15× faster inference (2-3ms vs 30ms per image)
-- **Efficiency**: 70× smaller models (5.9MB vs ~400MB expected)
+- **Efficiency**: 576× smaller models (5.9MB vs 3.4GB)
 - **Resource-friendly**: Runs on edge devices and mobile
 - **Real-time**: Optimized for production deployments
 

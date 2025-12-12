@@ -268,8 +268,6 @@ Troubleshooting is an integral part of any development process, and being equipp
 
 Remember, the Ultralytics community is a valuable resource. Engaging with fellow developers and experts can provide additional insights and solutions that might not be covered in standard documentation. Always keep learning, experimenting, and sharing your experiences to contribute to the collective knowledge of the community.
 
-Happy troubleshooting!
-
 ## FAQ
 
 ### How do I resolve installation errors with YOLO11?

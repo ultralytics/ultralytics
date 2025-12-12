@@ -571,7 +571,7 @@ To test remote inference, you can use the provided cURL command or create anothe
 
     Similarly to the local testing, expect a short delay on the first request, as Ultralytics will need to pull and load the YOLO11 model in the running container.
 
-Congratulations! You have successfully deployed a pre-trained YOLO11 model with Ultralytics on Google Cloud Vertex AI.
+You have successfully deployed a pre-trained YOLO11 model with Ultralytics on Google Cloud Vertex AI.
 
 ## FAQ
 

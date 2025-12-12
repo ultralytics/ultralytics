@@ -13,7 +13,7 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_9
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 
 def test_export_torchscript():
@@ -257,6 +257,20 @@ def test_export_imx():
     model = YOLO(MODEL)
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not TORCH_2_8, reason="Axelera export requires torch>=2.8.0")
+@pytest.mark.skipif(not LINUX, reason="Axelera export only supported on Linux")
+@pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="Axelera export requires Python 3.10")
+def test_export_axelera():
+    """Test YOLO export to Axelera format."""
+    model = YOLO(MODEL)
+    # For faster testing, use a smaller calibration dataset
+    # 32 image size crashes axelera export, so use 64
+    file = model.export(format="axelera", imgsz=64, data="coco8.yaml")
+    assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")

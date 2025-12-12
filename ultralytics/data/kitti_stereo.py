@@ -275,7 +275,7 @@ class KITTIStereoDataset:
                     }
                     # assertion
                     assert label_dict['alpha'] >= -np.pi and label_dict['alpha'] <= np.pi, f"alpha is out of range: {label_dict['alpha']}"
-                    assert 0.1 < label_dict['dimensions']['height'] < 5 and 0.1 < label_dict['dimensions']['width'] < 5 and 0.1 < label_dict['dimensions']['length'] < 5, f"dimensions are out of range: {label_dict['dimensions']}"
+                    assert 0.1 < label_dict['dimensions']['height'] < 5 and 0.1 < label_dict['dimensions']['width'] < 3 and 0.1 < label_dict['dimensions']['length'] < 20, f"dimensions are out of range: {label_dict['dimensions']}"
 
                     
                     # Store original class ID if filtering is enabled

@@ -63,8 +63,6 @@ from ultralytics.nn.modules import (
     RTDETRDecoder,
     SCDown,
     Segment,
-    StereoCenterNetHead,
-    StereoConv,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
@@ -1555,7 +1553,6 @@ def parse_model(d, ch, verbose=True):
             SCDown,
             C2fCIB,
             A2C2f,
-            StereoConv,  # Stereo 6-channel input convolution
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments
@@ -1634,16 +1631,6 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
-        elif m is StereoCenterNetHead:
-            # StereoCenterNetHead takes [num_classes, in_channels] as args
-            # f is the from index (single int), ch[f] is the input channels
-            # args[0] should be num_classes, args[1] should be in_channels
-            if len(args) >= 2:
-                # args already contains [nc, in_channels] from YAML
-                pass
-            else:
-                # Fallback: use ch[f] as in_channels
-                args = [nc, ch[f] if isinstance(f, int) else ch[f[0]]]
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:

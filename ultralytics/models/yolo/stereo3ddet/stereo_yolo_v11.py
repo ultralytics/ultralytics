@@ -267,7 +267,7 @@ class StereoCenterNetLoss(nn.Module):
         total_loss = sum(self.loss_weights[k] * v for k, v in losses.items())
 
         return total_loss, losses
-
+    
     def masked_l1_loss(
         self, pred: torch.Tensor, target: torch.Tensor, mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
@@ -276,9 +276,16 @@ class StereoCenterNetLoss(nn.Module):
 
         if mask is not None:
             # Convert heatmap mask to binary mask
-            # If mask is heatmap [B, num_classes, H, W], sum over classes to get [B, H, W]
+            # Heatmap contains Gaussian values [0, 1], need to threshold first
             if mask.dim() == 4 and mask.shape[1] > 1:  # [B, num_classes, H, W]
-                mask = mask.sum(dim=1, keepdim=False)  # [B, H, W] - binary mask
+                # Threshold first to create binary mask, then sum over classes
+                # This ensures we only compute loss at object center locations
+                mask = (mask > 0.5).float().sum(dim=1, keepdim=False)  # [B, H, W] - binary mask
+                # Clamp to [0, 1] in case multiple classes overlap at same location
+                mask = torch.clamp(mask, 0.0, 1.0)
+            elif mask.dim() == 4 and mask.shape[1] == 1:  # [B, 1, H, W]
+                # Single channel, threshold and squeeze
+                mask = (mask > 0.5).float().squeeze(1)  # [B, H, W]
             # Expand mask to pred dims
             if mask.dim() == 3:  # [B, H, W]
                 mask = mask.unsqueeze(1).expand_as(pred)  # [B, C, H, W]
@@ -346,12 +353,36 @@ class StereoCenterNetLoss(nn.Module):
         bin_loss_flat = F.cross_entropy(bin_pred_flat, bin_target_flat, reduction="none")  # [B*H*W]
         bin_loss = bin_loss_flat.reshape(B, H, W)  # [B, H, W]
 
-        # Angle regression loss (sin/cos only, 4 dims)
-        angle_loss = F.l1_loss(angle_pred, angle_target, reduction="none")
-        angle_loss = angle_loss.mean(dim=1)  # [B, H, W]
+        # Angle regression loss - only for active bin's residual
+        # Format: [conf1, conf2, sin1, cos1, sin2, cos2, pad, pad]
+        # angle_pred: [B, 4, H, W] contains [sin1, cos1, sin2, cos2]
+        # Bin 0: sin at index 0, cos at index 1
+        # Bin 1: sin at index 2, cos at index 3
+        
+        # Create indices to gather sin/cos for active bin
+        # For each (b, h, w), get sin/cos indices: bin0 -> [0, 1], bin1 -> [2, 3]
+        sin_indices = bin_target * 2  # [B, H, W] - 0 for bin0, 2 for bin1
+        cos_indices = bin_target * 2 + 1  # [B, H, W] - 1 for bin0, 3 for bin1
+        
+        # Gather sin/cos predictions for active bin using torch.gather
+        # angle_pred: [B, 4, H, W], indices: [B, H, W] -> need [B, 1, H, W] for gather
+        sin_indices_expanded = sin_indices.unsqueeze(1)  # [B, 1, H, W]
+        cos_indices_expanded = cos_indices.unsqueeze(1)  # [B, 1, H, W]
+        
+        sin_pred_active = torch.gather(angle_pred, dim=1, index=sin_indices_expanded).squeeze(1)  # [B, H, W]
+        cos_pred_active = torch.gather(angle_pred, dim=1, index=cos_indices_expanded).squeeze(1)  # [B, H, W]
+        
+        # Gather sin/cos targets for active bin
+        sin_target_active = torch.gather(angle_target, dim=1, index=sin_indices_expanded).squeeze(1)  # [B, H, W]
+        cos_target_active = torch.gather(angle_target, dim=1, index=cos_indices_expanded).squeeze(1)  # [B, H, W]
+        
+        # Compute L1 loss on active bin's sin/cos residual
+        sin_loss = F.l1_loss(sin_pred_active, sin_target_active, reduction="none")
+        cos_loss = F.l1_loss(cos_pred_active, cos_target_active, reduction="none")
+        angle_loss = (sin_loss + cos_loss) / 2.0  # Average of sin and cos loss
 
         # Total loss
-        total_loss = bin_loss + 0.5 * angle_loss  # [B, H, W]
+        total_loss = bin_loss + angle_loss  # [B, H, W]
 
         if mask is not None:
             # Convert heatmap mask to binary mask

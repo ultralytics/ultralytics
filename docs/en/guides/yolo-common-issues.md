@@ -86,7 +86,7 @@ This section will address common issues faced while training and their respectiv
 **Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with multiple GPUs, follow these steps:
 
 - Ensure that you have multiple GPUs available.
-- Modify your .yaml configuration file to specify the number of GPUs to use, e.g., gpus: 4.
+- Modify your `.yaml` configuration file to specify the number of GPUs to use, e.g., `gpus: 4`.
 - Increase the batch size accordingly to fully utilize the multiple GPUs without exceeding memory limits.
 - Modify your training command to utilize multiple GPUs:
 

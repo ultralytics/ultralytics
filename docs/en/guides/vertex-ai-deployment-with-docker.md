@@ -577,9 +577,9 @@ Congratulations! You have successfully deployed a pre-trained YOLO11 model with 
 
 ### Can I use Ultralytics YOLO models on Vertex AI without Docker?
 
-Yes, however you will first need to export the model to a format compatible with Vertex AI, such as TensorFlow, Scikit-learn, or XGBoost. Google Cloud provides a guide on running `.pt` models on Vertex with a complete overview of the conversion process: [Run PyTorch models on Vertex AI](https://cloud.google.com/blog/topics/developers-practitioners/pytorch-google-cloud-how-deploy-pytorch-models-vertex-ai).
+Yes; however, you will first need to export the model to a format compatible with Vertex AI, such as TensorFlow, Scikit-learn, or XGBoost. Google Cloud provides a guide on running `.pt` models on Vertex with a complete overview of the conversion process: [Run PyTorch models on Vertex AI](https://cloud.google.com/blog/topics/developers-practitioners/pytorch-google-cloud-how-deploy-pytorch-models-vertex-ai).
 
-Please note that the resulting setup will rely only on Vertex AI standard serving layer and will not support the advanced Ultralytics framework features. Since Vertex AI fully supports containerized models and is able to scale them automatically according to your deployment configuration, it allows you to leverage the full capabilities of Ultralytics YOLO models without needing to convert them to a different format.
+Please note that the resulting setup will rely only on the Vertex AI standard serving layer and will not support the advanced Ultralytics framework features. Since Vertex AI fully supports containerized models and can scale them automatically according to your deployment configuration, it allows you to leverage the full capabilities of Ultralytics YOLO models without needing to convert them to a different format.
 
 ### Why is FastAPI a good choice for serving YOLO11 inference?
 
@@ -595,4 +595,4 @@ FastAPI also supports SSE (Server-Sent Events), which is useful for streaming in
 
 This is actually a versatility feature of Google Cloud Platform, where you need to select a region for every service you use. For the task of deploying a containerized model on Vertex AI, your most important region selection is the one for the Model Registry. It will determine the availability of machine types and quotas for your model deployment.
 
-Additionally, if you will be extending the setup and storing prediction data or results in Cloud Storage or BigQuery, you will need to use the same region as for Model Registry, to minimize latency and ensure high throughput for data access.
+Additionally, if you will be extending the setup and storing prediction data or results in Cloud Storage or BigQuery, you will need to use the same region as for Model Registry to minimize latency and ensure high throughput for data access.

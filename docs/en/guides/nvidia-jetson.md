@@ -397,7 +397,7 @@ YOLO11 benchmarks were run by the Ultralytics team on 11 different model formats
 
 ### Comparison Charts
 
-Even though all model exports are working with NVIDIA Jetson, we have only included **PyTorch, TorchScript, TensorRT** for the comparison chart below because, they make use of the GPU on the Jetson and are guaranteed to produce the best results. All the other exports only utilize the CPU and the performance is not as good as the above three. You can find benchmarks for all exports in the section after this chart.
+Even though all model exports work on NVIDIA Jetson, we have only included **PyTorch, TorchScript, TensorRT** for the comparison chart below because they make use of the GPU on the Jetson and are guaranteed to produce the best results. All the other exports only utilize the CPU and the performance is not as good as the above three. You can find benchmarks for all exports in the section after this chart.
 
 #### NVIDIA Jetson AGX Thor Developer Kit
 

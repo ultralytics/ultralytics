@@ -10,10 +10,6 @@ from typing import Dict, Tuple, Optional, List
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.optim import AdamW
-from torch.optim.lr_scheduler import MultiStepLR
-
-from ultralytics.utils.loss import FocalLoss
 
 
 # ============================================================================
@@ -132,6 +128,34 @@ class StereoCenterNetHead(nn.Module):
                 "vertex_dist": self._build_branch(in_channels, 4),
             }
         )
+        
+        # Initialize heatmap branch bias for focal loss (bias=-2.19 gives sigmoid(-2.19) ≈ 0.1)
+        self._init_heatmap_bias()
+    
+    def _init_heatmap_bias(self):
+        """Initialize heatmap branch bias to -2.19 for focal loss prior."""
+        heatmap_branch = self.branches["heatmap"]
+        # Get the final conv layer (1x1 conv)
+        final_conv = heatmap_branch[-1]
+        if hasattr(final_conv, 'bias') and final_conv.bias is not None:
+            nn.init.constant_(final_conv.bias, -2.19)
+            # #region agent log
+            import json
+            import time
+            with open('/root/ultralytics/.cursor/debug.log', 'a') as f:
+                f.write(json.dumps({
+                    "sessionId": "debug-session",
+                    "runId": "pre-fix",
+                    "hypothesisId": "E",
+                    "location": "stereo_yolo_v11.py:_init_heatmap_bias",
+                    "message": "Heatmap bias initialization",
+                    "data": {
+                        "bias_value": float(final_conv.bias[0].item()),
+                        "bias_shape": list(final_conv.bias.shape)
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }) + '\n')
+            # #endregion
 
     def _build_shared_head(self, in_channels: int) -> nn.Sequential:
         """Shared feature extraction head."""
@@ -168,6 +192,29 @@ class StereoCenterNetHead(nn.Module):
         for branch_name, branch_module in self.branches.items():
             outputs[branch_name] = branch_module(shared_feat)
 
+        # #region agent log
+        if "heatmap" in outputs:
+            import json
+            import time
+            heatmap_out = outputs["heatmap"]
+            with open('/root/ultralytics/.cursor/debug.log', 'a') as f:
+                f.write(json.dumps({
+                    "sessionId": "debug-session",
+                    "runId": "pre-fix",
+                    "hypothesisId": "A",
+                    "location": "stereo_yolo_v11.py:169",
+                    "message": "Heatmap head output stats",
+                    "data": {
+                        "shape": list(heatmap_out.shape),
+                        "min": float(heatmap_out.min().item()),
+                        "max": float(heatmap_out.max().item()),
+                        "mean": float(heatmap_out.mean().item()),
+                        "std": float(heatmap_out.std().item())
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }) + '\n')
+        # #endregion
+
         return outputs
 
 
@@ -180,9 +227,6 @@ class StereoCenterNetLoss(nn.Module):
 
     def __init__(self, num_classes: int = 3):
         super().__init__()
-        # Use Ultralytics FocalLoss: gamma=2.0 (focusing parameter, similar to old alpha)
-        # alpha=0.25 (balancing factor, default)
-        self.focal_loss_fn = FocalLoss(gamma=2.0, alpha=0.25)
         self.num_classes = num_classes
 
         # Per-branch weights
@@ -214,7 +258,49 @@ class StereoCenterNetLoss(nn.Module):
         # ===== Task A: Stereo 2D Detection =====
 
         # 1. Heatmap (Focal Loss)
-        losses["heatmap"] = self.focal_loss_fn(predictions["heatmap"], targets["heatmap"])
+        # #region agent log
+        import json
+        import time
+        heatmap_pred = predictions["heatmap"]
+        heatmap_target = targets["heatmap"]
+        with open('/root/ultralytics/.cursor/debug.log', 'a') as f:
+            f.write(json.dumps({
+                "sessionId": "debug-session",
+                "runId": "pre-fix",
+                "hypothesisId": "B",
+                "location": "stereo_yolo_v11.py:217",
+                "message": "Heatmap loss inputs",
+                "data": {
+                    "pred_shape": list(heatmap_pred.shape),
+                    "pred_min": float(heatmap_pred.min().item()),
+                    "pred_max": float(heatmap_pred.max().item()),
+                    "pred_mean": float(heatmap_pred.mean().item()),
+                    "target_shape": list(heatmap_target.shape),
+                    "target_min": float(heatmap_target.min().item()),
+                    "target_max": float(heatmap_target.max().item()),
+                    "target_mean": float(heatmap_target.mean().item()),
+                    "target_gt_0.5_count": int((heatmap_target > 0.5).sum().item()),
+                    "target_eq_1_count": int((heatmap_target == 1.0).sum().item())
+                },
+                "timestamp": int(time.time() * 1000)
+            }) + '\n')
+        # #endregion
+        losses["heatmap"] = self.centernet_focal_loss(predictions["heatmap"], targets["heatmap"])
+        # #region agent log
+        with open('/root/ultralytics/.cursor/debug.log', 'a') as f:
+            f.write(json.dumps({
+                "sessionId": "debug-session",
+                "runId": "pre-fix",
+                "hypothesisId": "C",
+                "location": "stereo_yolo_v11.py:217",
+                "message": "Heatmap loss output",
+                "data": {
+                    "loss_value": float(losses["heatmap"].item()),
+                    "loss_shape": list(losses["heatmap"].shape) if hasattr(losses["heatmap"], 'shape') else "scalar"
+                },
+                "timestamp": int(time.time() * 1000)
+            }) + '\n')
+        # #endregion
 
         # 2. Center offset (L1, only at heatmap points)
         losses["offset"] = self.masked_l1_loss(
@@ -268,6 +354,50 @@ class StereoCenterNetLoss(nn.Module):
 
         return total_loss, losses
     
+    def centernet_focal_loss(self, pred: torch.Tensor, target: torch.Tensor, 
+                          alpha: float = 2.0, beta: float = 4.0) -> torch.Tensor:
+        """
+        CenterNet-style Focal Loss for heatmap regression.
+        
+        Paper Equation 1:
+        - For positive locations (Y=1): (1 - Ŷ)^α * log(Ŷ)
+        - For negative locations (Y<1): (1 - Y)^β * Ŷ^α * log(1 - Ŷ)
+        
+        Args:
+            pred: [B, C, H, W] - raw network output (before sigmoid)
+            target: [B, C, H, W] - Gaussian heatmap target [0, 1]
+            alpha: focusing parameter (default 2)
+            beta: down-weighting factor for negatives near centers (default 4)
+        
+        Returns:
+            Scalar loss value
+        """
+        # Apply sigmoid to get probabilities [0, 1]
+        pred = torch.sigmoid(pred)
+        
+        # Numerical stability - clamp predictions
+        pred = torch.clamp(pred, min=1e-4, max=1 - 1e-4)
+        
+        # Identify positive locations (peak of Gaussian, Y = 1)
+        pos_mask = target.eq(1).float()
+        neg_mask = target.lt(1).float()
+        
+        # Count number of positive samples for normalization
+        num_pos = pos_mask.sum()
+        num_pos = torch.clamp(num_pos, min=1.0)  # Avoid division by zero
+        
+        # Positive loss: (1 - Ŷ)^α * log(Ŷ)
+        pos_loss = torch.pow(1 - pred, alpha) * torch.log(pred) * pos_mask
+        
+        # Negative loss: (1 - Y)^β * Ŷ^α * log(1 - Ŷ)
+        # The (1 - Y)^β term down-weights locations near object centers
+        neg_loss = torch.pow(1 - target, beta) * torch.pow(pred, alpha) * torch.log(1 - pred) * neg_mask
+        
+        # Sum and normalize by number of positive samples
+        loss = -(pos_loss.sum() + neg_loss.sum()) / num_pos
+        
+        return loss
+
     def masked_l1_loss(
         self, pred: torch.Tensor, target: torch.Tensor, mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:

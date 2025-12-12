@@ -244,14 +244,15 @@ class BasePredictor:
         for _ in gen:  # sourcery skip: remove-empty-nested-block, noqa
             pass
 
-    def setup_source(self, source):
+    def setup_source(self, source, stride: int | None = None):
         """Set up source and inference mode.
 
         Args:
             source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor): Source for
                 inference.
+            stride (int, optional): Model stride for image size checking.
         """
-        self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+        self.imgsz = check_imgsz(self.args.imgsz, stride=stride or self.model.stride, min_dim=2)  # check image size
         self.dataset = load_inference_source(
             source=source,
             batch=self.args.batch,

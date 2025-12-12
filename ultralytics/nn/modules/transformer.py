@@ -359,7 +359,15 @@ class MLP(nn.Module):
     """
 
     def __init__(
-        self, input_dim: int, hidden_dim: int, output_dim: int, num_layers: int, act=nn.ReLU, sigmoid: bool = False
+        self,
+        input_dim: int,
+        hidden_dim: int,
+        output_dim: int,
+        num_layers: int,
+        act=nn.ReLU,
+        sigmoid: bool = False,
+        residual: bool = False,
+        out_norm: nn.Module = None,
     ):
         """Initialize the MLP with specified input, hidden, output dimensions and number of layers.
 
@@ -370,6 +378,8 @@ class MLP(nn.Module):
             num_layers (int): Number of layers.
             act (nn.Module): Activation function.
             sigmoid (bool): Whether to apply sigmoid to the output.
+            residual (bool): Whether to use residual connections.
+            out_norm (nn.Module, optional): Normalization layer for the output.
         """
         super().__init__()
         self.num_layers = num_layers
@@ -377,6 +387,12 @@ class MLP(nn.Module):
         self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim, *h], [*h, output_dim]))
         self.sigmoid = sigmoid
         self.act = act()
+        if residual and input_dim != output_dim:
+            raise ValueError("residual is only supported if input_dim == output_dim")
+        self.residual = residual
+        # whether to apply a normalization layer to the output
+        assert isinstance(out_norm, nn.Module) or out_norm is None
+        self.out_norm = out_norm or nn.Identity()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass for the entire MLP.
@@ -387,8 +403,12 @@ class MLP(nn.Module):
         Returns:
             (torch.Tensor): Output tensor after MLP.
         """
+        orig_x = x
         for i, layer in enumerate(self.layers):
             x = getattr(self, "act", nn.ReLU())(layer(x)) if i < self.num_layers - 1 else layer(x)
+        if getattr(self, "residual", False):
+            x = x + orig_x
+        x = getattr(self, "out_norm", nn.Identity())(x)
         return x.sigmoid() if getattr(self, "sigmoid", False) else x
 
 

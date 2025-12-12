@@ -79,6 +79,7 @@ class MaskDownSampler(nn.Module):
         padding: int = 0,
         total_stride: int = 16,
         activation: type[nn.Module] = nn.GELU,
+        interpol_size: tuple[int, int] | None = None,
     ):
         """Initialize a mask downsampler module for progressive downsampling and channel expansion."""
         super().__init__()
@@ -102,9 +103,24 @@ class MaskDownSampler(nn.Module):
             mask_in_chans = mask_out_chans
 
         self.encoder.append(nn.Conv2d(mask_out_chans, embed_dim, kernel_size=1))
+        self.interpol_size = interpol_size
+        if self.interpol_size is not None:
+            assert isinstance(self.interpol_size, (list, tuple)), (
+                f"Unsupported type {type(self.interpol_size)}. Should be a list or tuple."
+            )
+            self.interpol_size = list(interpol_size)
+            assert len(self.interpol_size) == 2
 
     def forward(self, x: Tensor) -> Tensor:
         """Downsample and encode input mask to embed_dim channels using convolutional layers and LayerNorm2d."""
+        if self.interpol_size is not None and self.interpol_size != list(x.shape[-2:]):
+            x = F.interpolate(
+                x.float(),
+                size=self.interpol_size,
+                align_corners=False,
+                mode="bilinear",
+                antialias=True,
+            ).to(x.dtype)
         return self.encoder(x)
 
 
@@ -429,13 +445,7 @@ class RoPEAttention(Attention):
         )
 
         # Attention
-        _, _, _, c_per_head = q.shape
-        attn = q @ k.permute(0, 1, 3, 2)  # B x N_heads x N_tokens x N_tokens
-        attn = attn / math.sqrt(c_per_head)
-        attn = torch.softmax(attn, dim=-1)
-
-        # Get output
-        out = attn @ v
+        out = F.scaled_dot_product_attention(q, k, v)
 
         out = self._recombine_heads(out)
         out = self.out_proj(out)
@@ -1033,6 +1043,7 @@ class PatchEmbed(nn.Module):
         padding: tuple[int, int] = (0, 0),
         in_chans: int = 3,
         embed_dim: int = 768,
+        bias: bool = True,
     ) -> None:
         """Initialize the PatchEmbed module for converting image patches to embeddings.
 
@@ -1045,10 +1056,11 @@ class PatchEmbed(nn.Module):
             padding (tuple[int, int]): Padding applied to the input before convolution.
             in_chans (int): Number of input image channels.
             embed_dim (int): Dimensionality of the output patch embeddings.
+            bias (bool): Whether to include a bias term in the convolutional layer.
         """
         super().__init__()
 
-        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Compute patch embedding by applying convolution and transposing resulting tensor."""

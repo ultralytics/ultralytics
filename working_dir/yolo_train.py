@@ -23,11 +23,11 @@ def parse_args():
         help='Path to training configuration YAML file'
     )
 
-    # W&B flag
     parser.add_argument(
-        '--wandb',
-        action='store_true',
-        help='Enable Weights & Biases logging'
+        '--name',
+        type=str,
+        default='rtdetr_res50_pretrained',
+        help='Name for the training run'
     )
 
     return parser.parse_args()
@@ -54,7 +54,7 @@ def main():
     model = RTDETR(args.model)
 
     # Prepare training kwargs
-    train_kwargs = {'cfg': args.config}
+    train_kwargs = {'cfg': args.config, 'name': args.name}
 
     # Train using YAML configuration
     results = model.train(**train_kwargs)

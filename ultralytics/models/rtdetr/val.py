@@ -85,7 +85,7 @@ class RTDETRDataset(YOLODataset):
             transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
         else:
             # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
-            transforms = Compose([lambda x: {**x, **{"ratio_pad": [x["ratio_pad"], [0, 0]]}}])
+            transforms = Compose([])
         transforms.append(
             Format(
                 bbox_format="xywh",
@@ -149,6 +149,10 @@ class RTDETRValidator(DetectionValidator):
             prefix=colorstr(f"{mode}: "),
             data=self.data,
         )
+
+    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
+        """Scales predictions to the original image size."""
+        return predn
 
     def postprocess(
         self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]

@@ -129,7 +129,7 @@ You can run the following command to start the validation:
 
         ```bash
         # Validate a YOLO model from the command line
-        yolo val data=path/to/validation.yaml
+        yolo val model=yolo11n.pt data=path/to/validation.yaml
         ```
 
 Refer to the [Validation Guide](../modes/val.md) for further details.

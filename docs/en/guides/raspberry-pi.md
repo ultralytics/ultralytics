@@ -243,13 +243,13 @@ rpicam-hello
 
 ### Inference with Camera
 
-There are 2 methods of using the Raspberry Pi Camera to inference YOLO11 models.
+There are 2 methods of using the Raspberry Pi Camera to run inference on YOLO11 models.
 
 !!! usage
 
     === "Method 1"
 
-        We can use `picamera2` which comes pre-installed with Raspberry Pi OS to access the camera and inference YOLO11 models.
+        We can use `picamera2` which comes pre-installed with Raspberry Pi OS to access the camera and run inference on YOLO11 models.
 
         !!! example
 

@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore the ultralytics.models.sam.sam3.vitdet module for ViTDet building blocks used as vision backbones in SAM3.
+keywords: Ultralytics, SAM3, ViTDet, vision transformer, backbone, attention, deep learning, Python
 ---
 
 # Reference for `ultralytics/models/sam/sam3/vitdet.py`

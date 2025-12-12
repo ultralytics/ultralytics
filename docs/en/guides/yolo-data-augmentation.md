@@ -191,7 +191,7 @@ Then launch the training with the Python API:
 
 ### Scale (`scale`)
 
-- **Range**: ≥`0.0`
+- **Range**: `0.0` - `1.0`
 - **Default**: `{{ scale }}`
 - **Usage**: Resizes images by a random factor within the specified range. The `scale` hyperparameter defines the scaling factor, with the final adjustment randomly chosen between `1-scale` and `1+scale`. For example, with `scale=0.5`, the scaling is randomly selected within`0.5` to `1.5`.
 - **Purpose**: Enables models to handle objects at different distances and sizes. For example, in autonomous driving applications, vehicles can appear at various distances from the camera, requiring the model to recognize them regardless of their size.

@@ -96,6 +96,7 @@ class AutoBackend(nn.Module):
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
             | SafeTensors           | *.safetensors     |
+            | Axelera               | *_axelera_model/  |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -124,6 +125,7 @@ class AutoBackend(nn.Module):
         triton (bool): Whether the model is a Triton Inference Server model.
         pte (bool): Whether the model is a PyTorch ExecuTorch model.
         safetensors (bool): Whether the model is a SafeTensors model.
+        axelera (bool): Whether the model is an Axelera model.
 
     Methods:
         forward: Run inference on an input image.
@@ -179,6 +181,7 @@ class AutoBackend(nn.Module):
             rknn,
             pte,
             safetensors,
+            axelera,
             triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton or safetensors  # FP16
@@ -649,6 +652,33 @@ class AutoBackend(nn.Module):
             rknn_model.init_runtime()
             metadata = w.parent / "metadata.yaml"
 
+        # Axelera
+        elif axelera:
+            import os
+
+            if not os.environ.get("AXELERA_RUNTIME_DIR"):
+                LOGGER.warning(
+                    "Axelera runtime environment is not activated."
+                    "\nPlease run: source /opt/axelera/sdk/latest/axelera_activate.sh"
+                    "\n\nIf this fails, verify driver installation: https://docs.ultralytics.com/integrations/axelera/#axelera-driver-installation"
+                )
+            try:
+                from axelera.runtime import op
+            except ImportError:
+                check_requirements(
+                    "axelera_runtime2==0.1.2",
+                    cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi",
+                )
+            from axelera.runtime import op
+
+            w = Path(w)
+            if (found := next(w.rglob("*.axm"), None)) is None:
+                raise FileNotFoundError(f"No .axm file found in: {w}")
+            w = found
+
+            ax_model = op.load(str(w))
+            metadata = w.parent / "metadata.yaml"
+
         # ExecuTorch
         elif pte:
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
@@ -874,6 +904,11 @@ class AutoBackend(nn.Module):
             im = (im.cpu().numpy() * 255).astype("uint8")
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im)
+
+        # Axelera
+        elif self.axelera:
+            im = im.cpu()
+            y = self.ax_model(im)
 
         # ExecuTorch
         elif self.pte:

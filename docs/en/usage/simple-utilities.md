@@ -483,7 +483,7 @@ Also see the [`Annotator` Reference Page](../reference/utils/plotting.md/#ultral
 
     # User defined video path and model file
     cap = cv2.VideoCapture("path/to/video.mp4")
-    model = YOLO(model="yolo11s-seg.pt")  # Model file i.e. yolo11s.pt or yolo11m-seg.pt
+    model = YOLO(model="yolo11s-seg.pt")  # Model file, e.g., yolo11s.pt or yolo11m-seg.pt
 
     if not cap.isOpened():
         print("Error: Could not open video.")

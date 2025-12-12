@@ -63,7 +63,7 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
             show=True,  # display the output
             model="yolo11n.pt",  # model for object blurring, e.g., yolo11m.pt
             # line_width=2,  # width of bounding box.
-            # classes=[0, 2],  # blur specific classes, i.e., person and car with COCO pretrained model.
+            # classes=[0, 2],  # blur specific classes, e.g., person and car with the COCO pretrained model.
             # blur_ratio=0.5,  # adjust percentage of blur intensity, value in range 0.1 - 1.0
         )
 
@@ -147,9 +147,9 @@ video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fou
 blurrer = solutions.ObjectBlurrer(
     show=True,  # display the output
     model="yolo11n.pt",  # model="yolo11n-obb.pt" for object blurring using YOLO11 OBB model.
-    blur_ratio=0.5,  # set blur percentage i.e 0.7 for 70% blurred detected objects
+    blur_ratio=0.5,  # set blur percentage, e.g., 0.7 for 70% blur on detected objects
     # line_width=2,  # width of bounding box.
-    # classes=[0, 2],  # count specific classes i.e, person and car with COCO pretrained model.
+    # classes=[0, 2],  # count specific classes, e.g., person and car with the COCO pretrained model.
 )
 
 # Process video

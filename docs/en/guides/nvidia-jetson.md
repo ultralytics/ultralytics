@@ -54,13 +54,13 @@ For a more detailed comparison table, please visit the **Compare Specifications*
 
 ## Flash JetPack to NVIDIA Jetson
 
-The first step after getting your hands on an NVIDIA Jetson device is to flash NVIDIA JetPack to the device. There are several different way of flashing NVIDIA Jetson devices.
+The first step after getting your hands on an NVIDIA Jetson device is to flash NVIDIA JetPack to the device. There are several different ways of flashing NVIDIA Jetson devices.
 
 1. If you own an official NVIDIA Development Kit such as the Jetson AGX Thor Developer Kit, you can [download an image and prepare a bootable USB stick to flash JetPack to the included SSD](https://docs.nvidia.com/jetson/agx-thor-devkit/user-guide/latest/quick_start.html).
 2. If you own an official NVIDIA Development Kit such as the Jetson Orin Nano Developer Kit, you can [download an image and prepare an SD card with JetPack for booting the device](https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit).
 3. If you own any other NVIDIA Development Kit, you can [flash JetPack to the device using SDK Manager](https://docs.nvidia.com/sdk-manager/install-with-sdkm-jetson/index.html).
 4. If you own a Seeed Studio reComputer J4012 device, you can [flash JetPack to the included SSD](https://wiki.seeedstudio.com/reComputer_J4012_Flash_Jetpack/) and if you own a Seeed Studio reComputer J1020 v2 device, you can [flash JetPack to the eMMC/ SSD](https://wiki.seeedstudio.com/reComputer_J2021_J202_Flash_Jetpack/).
-5. If you own any other third party device powered by the NVIDIA Jetson module, it is recommended to follow [command-line flashing](https://docs.nvidia.com/jetson/archives/r35.5.0/DeveloperGuide/IN/QuickStart.html).
+5. If you own any other third-party device powered by the NVIDIA Jetson module, it is recommended to follow [command-line flashing](https://docs.nvidia.com/jetson/archives/r35.5.0/DeveloperGuide/IN/QuickStart.html).
 
 !!! note
 
@@ -108,7 +108,7 @@ The fastest way to get started with Ultralytics YOLO11 on NVIDIA Jetson is to ru
 
 === "JetPack 7"
 
-    Coming soon! Stay tuned!
+    Coming soon.
 
 After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorrt-on-nvidia-jetson).
 
@@ -832,18 +832,18 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         # Load a YOLO11n PyTorch model
         model = YOLO("yolo11n.pt")
 
-        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all all export formats
+        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all export formats
         results = model.benchmark(data="coco128.yaml", imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all all export formats
+        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all export formats
         yolo benchmark model=yolo11n.pt data=coco128.yaml imgsz=640
         ```
 
-    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco.yaml'` (5000 val images).
+    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results, use a dataset with a large number of images, e.g., `data='coco.yaml'` (5000 val images).
 
 ## Best Practices when using NVIDIA Jetson
 
@@ -880,7 +880,7 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 
 ## Next Steps
 
-Congratulations on successfully setting up YOLO11 on your NVIDIA Jetson! For further learning and support, visit more guide at [Ultralytics YOLO11 Docs](../index.md)!
+For further learning and support, see the [Ultralytics YOLO11 Docs](../index.md).
 
 ## FAQ
 

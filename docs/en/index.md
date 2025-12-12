@@ -111,6 +111,16 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     [:octicons-arrow-right-24: YOLO11 Models 🚀](models/yolo11.md)
 
+- :material-select-all:{ .lg .middle } &nbsp; **SAM 3: Segment Anything with Concepts 🚀 NEW**
+
+    ***
+
+    Meta's latest SAM 3 with Promptable Concept Segmentation - segment all instances using text or image exemplars
+
+    ***
+
+    [:octicons-arrow-right-24: SAM 3 Models](models/sam-3.md)
+
 - :material-scale-balance:{ .lg .middle } &nbsp; **Open Source, AGPL-3.0**
 
     ***

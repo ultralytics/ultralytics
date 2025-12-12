@@ -82,7 +82,7 @@ To use Ultralytics YOLO11 for object detection, follow these steps:
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLO model (adjust model type as needed)
+        # Load a pretrained YOLO model (adjust model type as needed)
         model = YOLO("yolo11n.pt")  # n, s, m, l, x versions available
 
         # Perform object detection on an image

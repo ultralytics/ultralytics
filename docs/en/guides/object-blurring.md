@@ -180,7 +180,7 @@ For more detailed applications, check the [advantages of object blurring section
 
 ### Can I use Ultralytics YOLO11 to blur faces in a video for privacy reasons?
 
-Yes, Ultralytics YOLO11 can be configured to detect and blur faces in videos to protect privacy. By training or using a pre-trained model to specifically recognize faces, the detection results can be processed with [OpenCV](https://www.ultralytics.com/glossary/opencv) to apply a blur effect. Refer to our guide on [object detection with YOLO11](https://docs.ultralytics.com/models/yolo11/) and modify the code to target face detection.
+Yes, Ultralytics YOLO11 can be configured to detect and blur faces in videos to protect privacy. By training or using a pretrained model to specifically recognize faces, the detection results can be processed with [OpenCV](https://www.ultralytics.com/glossary/opencv) to apply a blur effect. Refer to our guide on [object detection with YOLO11](https://docs.ultralytics.com/models/yolo11/) and modify the code to target face detection.
 
 ### How does YOLO11 compare to other object detection models like Faster R-CNN for object blurring?
 

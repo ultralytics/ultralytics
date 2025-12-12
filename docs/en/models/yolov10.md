@@ -160,7 +160,7 @@ For predicting new images with YOLOv10:
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLOv10n model
+        # Load a pretrained YOLOv10n model
         model = YOLO("yolov10n.pt")
 
         # Perform object detection on an image
@@ -272,7 +272,7 @@ For easy inference, you can use the Ultralytics YOLO Python library or the comma
         ```python
         from ultralytics import YOLO
 
-        # Load the pre-trained YOLOv10n model
+        # Load the pretrained YOLOv10n model
         model = YOLO("yolov10n.pt")
         results = model("image.jpg")
         results[0].show()

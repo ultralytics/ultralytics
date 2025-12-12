@@ -20,7 +20,7 @@ The output of an object detector is a set of bounding boxes that enclose the obj
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Detection with Pre-trained Ultralytics YOLO Model.
+  <strong>Watch:</strong> Object Detection with Pretrained Ultralytics YOLO Model.
 </p>
 
 !!! tip
@@ -181,7 +181,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 Training a YOLO11 model on a custom dataset involves a few steps:
 
 1. **Prepare the Dataset**: Ensure your dataset is in the YOLO format. For guidance, refer to our [Dataset Guide](../datasets/detect/index.md).
-2. **Load the Model**: Use the Ultralytics YOLO library to load a pre-trained model or create a new model from a YAML file.
+2. **Load the Model**: Use the Ultralytics YOLO library to load a pretrained model or create a new model from a YAML file.
 3. **Train the Model**: Execute the `train` method in Python or the `yolo detect train` command in CLI.
 
 !!! example

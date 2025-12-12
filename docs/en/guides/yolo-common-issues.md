@@ -209,7 +209,7 @@ yolo task=detect mode=segment model=yolo11n-seg.pt source='path/to/car.mp4' show
 ```python
 from ultralytics import YOLO
 
-# Load a pre-trained YOLO11 model
+# Load a pretrained YOLO11 model
 model = YOLO("yolo11n.pt")
 
 # Specify the source image

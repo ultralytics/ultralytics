@@ -48,7 +48,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [ROS Quickstart](ros-quickstart.md): Learn how to integrate YOLO with the Robot Operating System (ROS) for real-time object detection in robotics applications, including Point Cloud and Depth images.
 - [SAHI Tiled Inference](sahi-tiled-inference.md): Comprehensive guide on leveraging SAHI's sliced inference capabilities with YOLO11 for object detection in high-resolution images.
 - [Steps of a Computer Vision Project](steps-of-a-cv-project.md): Learn about the key steps involved in a computer vision project, including defining goals, selecting models, preparing data, and evaluating results.
-- [Tips for Model Training](model-training-tips.md): Explore tips on optimizing [batch sizes](https://www.ultralytics.com/glossary/batch-size), using [mixed precision](https://www.ultralytics.com/glossary/mixed-precision), applying pre-trained weights, and more to make training your computer vision model a breeze.
+- [Tips for Model Training](model-training-tips.md): Explore tips on optimizing [batch sizes](https://www.ultralytics.com/glossary/batch-size), using [mixed precision](https://www.ultralytics.com/glossary/mixed-precision), applying pretrained weights, and more to make training your computer vision model a breeze.
 - [Triton Inference Server Integration](triton-inference-server.md): Dive into the integration of Ultralytics YOLO11 with NVIDIA's Triton Inference Server for scalable and efficient deep learning inference deployments.
 - [Vertex AI Deployment with Docker](vertex-ai-deployment-with-docker.md): Streamlined guide to containerizing YOLO models with Docker and deploying them on Google Cloud Vertex AI—covering build, push, autoscaling, and monitoring.
 - [View Inference Images in a Terminal](view-results-in-terminal.md): Use VSCode's integrated terminal to view inference results when using Remote Tunnel or SSH sessions.
@@ -76,7 +76,7 @@ Training a custom object detection model with Ultralytics YOLO is straightforwar
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")  # Load a pre-trained YOLO model
+        model = YOLO("yolo11n.pt")  # Load a pretrained YOLO model
         model.train(data="path/to/dataset.yaml", epochs=50)  # Train on custom dataset
         ```
 

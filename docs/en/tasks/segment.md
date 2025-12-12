@@ -21,7 +21,7 @@ The output of an instance segmentation model is a set of masks or contours that 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Run Segmentation with Pre-Trained Ultralytics YOLO Model in Python.
+  <strong>Watch:</strong> Run Segmentation with Pretrained Ultralytics YOLO Model in Python.
 </p>
 
 !!! tip

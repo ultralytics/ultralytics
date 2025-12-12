@@ -85,7 +85,7 @@ Training a custom object detection model with Ultralytics YOLO11 involves using 
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLO model (you can choose n, s, m, l, or x versions)
+        # Load a pretrained YOLO model (you can choose n, s, m, l, or x versions)
         model = YOLO("yolo11n.pt")
 
         # Start training on your custom dataset
@@ -118,7 +118,7 @@ You can run the following command to start the validation:
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained or custom YOLO model
+        # Load a pretrained or custom YOLO model
         model = YOLO("yolo11n.pt")
 
         # Run validation on your dataset
@@ -198,7 +198,7 @@ Real-time object tracking can be achieved using the track mode in Ultralytics YO
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLO model
+        # Load a pretrained YOLO model
         model = YOLO("yolo11n.pt")
 
         # Start tracking objects in a video

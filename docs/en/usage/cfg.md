@@ -40,7 +40,9 @@ Ultralytics commands use the following syntax:
         model = YOLO("yolo11n.pt")
 
         # Run the model in MODE using custom ARGS
-        model.MODE(ARGS)
+        MODE = "predict"
+        ARGS = {"source": "image.jpg", "imgsz": 640}
+        getattr(model, MODE)(**ARGS)
         ```
 
 Where:

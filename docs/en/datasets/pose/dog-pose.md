@@ -151,7 +151,7 @@ The Dog-pose dataset offers several benefits:
 
 **Real-World Scenarios**: Includes images from varied environments, enhancing the model's ability to generalize to real-world applications like [pet monitoring](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation) and behavior analysis.
 
-**Transfer Learning Advantage**: The dataset works well with [transfer learning](https://www.ultralytics.com/blog/understanding-few-shot-zero-shot-and-transfer-learning) techniques, allowing models pre-trained on human pose datasets to adapt to dog-specific features.
+**Transfer Learning Advantage**: The dataset works well with [transfer learning](https://www.ultralytics.com/blog/understanding-few-shot-zero-shot-and-transfer-learning) techniques, allowing models pretrained on human pose datasets to adapt to dog-specific features.
 
 For more about its features and usage, see the [Dataset Introduction](#introduction) section.
 

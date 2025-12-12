@@ -214,7 +214,7 @@ Here's example code for the Object Detection Task:
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLO model (you can choose n, s, m, l, or x versions)
+        # Load a pretrained YOLO model (you can choose n, s, m, l, or x versions)
         model = YOLO("yolo11n.pt")
 
         # Start training on your custom dataset
@@ -250,7 +250,7 @@ Ultralytics YOLO supports efficient and customizable multi-object tracking. To u
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLO model
+        # Load a pretrained YOLO model
         model = YOLO("yolo11n.pt")
 
         # Start tracking objects in a video

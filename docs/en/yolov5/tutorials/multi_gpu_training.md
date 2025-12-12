@@ -148,7 +148,7 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 
 </details>
 
-| GPUs<br>A100 | batch-size | CUDA_mem<br><sup>device0 (G) | COCO<br><sup>train | COCO<br><sup>val |
+| GPUs<br>A100 | batch-size | CUDA_mem<br><sup>device0 (G)</sup> | COCO<br><sup>train</sup> | COCO<br><sup>val</sup> |
 | ------------ | ---------- | ---------------------------- | ------------------ | ---------------- |
 | 1x           | 16         | 26GB                         | 20:39              | 0:55             |
 | 2x           | 32         | 26GB                         | 11:43              | 0:57             |

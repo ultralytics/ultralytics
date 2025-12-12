@@ -116,13 +116,13 @@ class SemSegPredictor(DetectionPredictor):
             os.mkdir(mask_dir) if not os.path.exists(mask_dir) else None
             self.plot_predict_samples(
                 result.orig_img,
-                result.masks,
+                result.masks.data,
                 nc=YAML.load(self.data)["nc"],
                 colors=YAML.load(self.data)["colors"],
                 fname=self.save_dir / "image" / imagename,
                 mname=self.save_dir / "mask" / imagename,
                 one_hot=True,
-                overlap=True,
+                overlap=False,
             )
 
         # Save results
@@ -154,11 +154,8 @@ class SemSegPredictor(DetectionPredictor):
         if isinstance(image, torch.Tensor):
             image = image.cpu().float().numpy()
 
-        if isinstance(masks.data, torch.Tensor):
-            masks = masks.data.cpu().numpy()
-
-        if isinstance(masks.data, np.ndarray):
-            masks = masks.data
+        if isinstance(masks, torch.Tensor):
+            masks = masks.cpu().numpy()
 
         if np.max(image) <= 1:
             image *= 255  # de-normalise (optional)

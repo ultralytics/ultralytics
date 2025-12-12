@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore the ultralytics.models.sam.sam3.text_encoder_ve module for SAM3 text-encoder components used in vision-language pipelines.
+keywords: Ultralytics, SAM3, SAM, text encoder, vision-language, transformer, tokenizer, Python
 ---
 
 # Reference for `ultralytics/models/sam/sam3/text_encoder_ve.py`

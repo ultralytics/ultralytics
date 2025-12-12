@@ -6,15 +6,15 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segm
 
 # SAM 3: Segment Anything with Concepts
 
-!!! note "Released — Ultralytics integration in progress"
+!!! success "Now Available in Ultralytics"
 
-    Meta released SAM-3 on **November 20th, 2025**. Ultralytics is integrating the models now and will ship a package update with native support soon. In the meantime, you can follow the official SAM 3 README steps below to try the upstream release.
+    SAM 3 is fully integrated into the Ultralytics package as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Install or upgrade with `pip install -U ultralytics` to access all SAM 3 features including text-based concept segmentation, image exemplar prompts, and video tracking.
 
 ![SAM 3 Overview](https://github.com/ultralytics/docs/releases/download/0/sam-3-overview.webp)
 
 **SAM 3** (Segment Anything Model 3) is Meta's released foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
 
-Ultralytics is actively integrating SAM-3 into the `ultralytics` package. Until that release lands, you can experiment with the upstream Meta implementation using the official installation and usage steps below.
+SAM 3 is now fully integrated into the `ultralytics` package, providing native support for concept segmentation with text prompts, image exemplar prompts, and video tracking capabilities.
 
 ## Overview
 
@@ -108,10 +108,10 @@ SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotat
 
 ## Installation
 
-SAM 3 will be available directly in the Ultralytics package once integration lands. Installation will remain:
+SAM 3 is available in Ultralytics **version 8.3.237** and later. Install or upgrade with:
 
 ```bash
-pip install ultralytics
+pip install -U ultralytics
 ```
 
 !!! warning "SAM 3 Model Weights Required"
@@ -535,17 +535,13 @@ While SAM 3 represents a major advancement, it has certain limitations:
 
 ## FAQ
 
-### When Will SAM 3 Be Released?
+### When Was SAM 3 Released?
 
-SAM 3 was released by Meta on **November 20th, 2025**. Ultralytics support is in progress and will ship in an upcoming package update with full docs for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
+SAM 3 was released by Meta on **November 20th, 2025** and is fully integrated into Ultralytics as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Full support is available for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
 
-### Will SAM 3 Be Integrated Into Ultralytics?
+### Is SAM 3 Integrated Into Ultralytics?
 
-Yes. SAM 3 will be supported in the Ultralytics Python package upon release, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. You will be able to [export](../modes/export.md) to formats like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md) for deployment, with streamlined [Python](../usage/python.md) and [CLI](../usage/cli.md) workflows.
-
-!!! warning "Implementation Timeline"
-
-    Code examples in this documentation are preview versions showing intended usage patterns. Actual implementation will be available after Ultralytics completes integration.
+Yes! SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. You can [export](../modes/export.md) to formats like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md) for deployment, with streamlined [Python](../usage/python.md) and [CLI](../usage/cli.md) workflows.
 
 ### What Is Promptable Concept Segmentation (PCS)?
 

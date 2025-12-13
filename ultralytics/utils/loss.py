@@ -636,7 +636,7 @@ class v8ClassificationLoss:
 class v8OBBLoss(v8DetectionLoss):
     """Calculates losses for object detection, classification, and box distribution in rotated YOLO models."""
 
-    def __init__(self, model, tal_topk=10):
+    def __init__(self, model, tal_topk=10, tal_topk2: int = None):
         """Initialize v8OBBLoss with model, assigner, and rotated bbox loss; model must be de-paralleled."""
         super().__init__(model, tal_topk=tal_topk)
         self.assigner = RotatedTaskAlignedAssigner(
@@ -646,6 +646,7 @@ class v8OBBLoss(v8DetectionLoss):
             beta=6.0,
             stride=self.stride.tolist(),
             stride_ratio=self.hyp.stride_ratio,
+            topk2=tal_topk2,
         )
         self.bbox_loss = RotatedBboxLoss(self.reg_max).to(self.device)
 

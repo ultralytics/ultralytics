@@ -59,8 +59,8 @@ class BOTrack(STrack):
         """Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
 
         Args:
-            xywh (np.ndarray): Bounding box in `(x, y, w, h, idx)` or `(x, y, w, h, angle, idx)` format, where (x, y)
-                is the center, (w, h) are width and height, and `idx` is the detection index.
+            xywh (np.ndarray): Bounding box in `(x, y, w, h, idx)` or `(x, y, w, h, angle, idx)` format, where (x, y) is
+                the center, (w, h) are width and height, and `idx` is the detection index.
             score (float): Confidence score of the detection.
             cls (int): Class ID of the detected object.
             feat (np.ndarray, optional): Feature vector associated with the detection.

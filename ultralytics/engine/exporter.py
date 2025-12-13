@@ -836,6 +836,7 @@ class Exporter:
 
     @try_export
     def export_litert(self, prefix=colorstr("liteRT:")):
+        """Export YOLO model to liteRT format using ai_edge_torch."""
         check_requirements("ai_edge_torch")
         import ai_edge_torch
 

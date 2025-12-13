@@ -16,7 +16,7 @@ The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-
     allowfullscreen>
   </iframe>
   <br> 
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the VisDrone Dataset | Aerial Detection | Complete Tutorial 🚁🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the VisDrone Dataset | Aerial Detection | Complete Tutorial 🚀
 </p>
 
 VisDrone is composed of 288 video clips with 261,908 frames and 10,209 static images, captured by various drone-mounted cameras. The dataset covers a wide range of aspects, including location (14 different cities across China), environment (urban and rural), objects (pedestrians, vehicles, bicycles, etc.), and density (sparse and crowded scenes). The dataset was collected using various drone platforms under different scenarios and weather and lighting conditions. These frames are manually annotated with over 2.6 million bounding boxes of targets such as pedestrians, cars, bicycles, and tricycles. Attributes like scene visibility, object class, and occlusion are also provided for better data utilization.

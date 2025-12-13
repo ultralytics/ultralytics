@@ -22,7 +22,7 @@ keywords: Ultralytics, YOLO11, MNN, model export, machine learning, deployment, 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Export Ultralytics YOLO11 to MNN Format | Speed up Inference on Mobile Devices📱🚀
+  <strong>Watch:</strong> How to Export Ultralytics YOLO11 to MNN Format | Speed up Inference on Mobile Devices📱
 </p>
 
 ## Export to MNN: Converting Your YOLO11 Model

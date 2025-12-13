@@ -348,8 +348,8 @@ class TaskAlignedAssigner(nn.Module):
                     #     exit()
                 # cost_metric = torch.stack(cost_metric, dim=0)
                 cost_metric = metric[:idx1.max() + 1, idx2]
-                match_idx1, match_idx2 = linear_sum_assignment(cost_metric.cpu())
-                mask_pos_[i, idx1[match_idx1], idx2[match_idx2]] = 1
+                match_idx1, match_idx2 = linear_sum_assignment(-cost_metric.cpu())
+                mask_pos_[i, match_idx1, idx2[match_idx2]] = 1
             fg_mask = mask_pos_.sum(-2)
             target_gt_idx = mask_pos_.argmax(-2)  # (b, h*w)
         else:

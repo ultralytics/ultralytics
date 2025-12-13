@@ -15,7 +15,7 @@ The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
-  <br> 
+  <br>
   <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the VisDrone Dataset | Aerial Detection | Complete Tutorial 🚀
 </p>
 

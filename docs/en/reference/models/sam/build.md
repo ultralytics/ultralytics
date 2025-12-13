@@ -11,6 +11,10 @@ keywords: Ultralytics, SAM model, Segment Anything Model, SAM 2 model, Segment A
 
 <br>
 
+## ::: ultralytics.models.sam.build._load_checkpoint
+
+<br><br><hr><br>
+
 ## ::: ultralytics.models.sam.build.build_sam_vit_h
 
 <br><br><hr><br>

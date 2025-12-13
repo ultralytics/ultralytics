@@ -104,7 +104,7 @@ class Analytics(BaseSolution):
                 and 'classwise_count' (dict, per-class object count).
 
         Raises:
-            ModuleNotFoundError: If an unsupported chart type is specified.
+            ValueError: If an unsupported chart type is specified.
 
         Examples:
             >>> analytics = Analytics(analytics_type="line")

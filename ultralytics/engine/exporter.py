@@ -362,7 +362,7 @@ class Exporter:
         if engine and "dla" in str(self.args.device):  # convert int/list to str first
             dla = self.args.device.rsplit(":", 1)[-1]
             self.args.device = "0"  # update device to "0"
-            assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
+            assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1', but got {self.args.device}."
         if imx and self.args.device is None and torch.cuda.is_available():
             LOGGER.warning("Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
             self.args.device = "0"  # update device to "0"
@@ -373,7 +373,7 @@ class Exporter:
         validate_args(fmt, self.args, fmt_keys)
         if axelera:
             if not IS_PYTHON_3_10:
-                SystemError("Axelera export only supported on Python 3.10.")
+                raise SystemError("Axelera export only supported on Python 3.10.")
             if not self.args.int8:
                 LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
                 self.args.int8 = True
@@ -946,7 +946,7 @@ class Exporter:
 
         # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
         # Internally based on the model conversion and output type.
-        # Setting minimum_depoloyment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
+        # Setting minimum_deployment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
         # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
         ct_model = ct.convert(
             ts,

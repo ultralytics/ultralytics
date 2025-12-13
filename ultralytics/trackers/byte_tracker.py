@@ -389,7 +389,7 @@ class BYTETracker:
         self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
         self.removed_stracks.extend(removed_stracks)
         if len(self.removed_stracks) > 1000:
-            self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
+            self.removed_stracks = self.removed_stracks[-1000:]  # clip removed stracks to 1000 maximum
 
         return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
 

@@ -283,7 +283,6 @@ class Tuner:
         """Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
-            parent (str): Parent selection method (kept for API compatibility, unused in BLX mode).
             n (int): Number of top parents to consider.
             mutation (float): Probability of a parameter mutation in any given iteration.
             sigma (float): Standard deviation for Gaussian random number generator.

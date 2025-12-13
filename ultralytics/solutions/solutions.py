@@ -416,21 +416,40 @@ class SolutionAnnotator(Annotator):
             text_y_offset = rect_y2
 
     @staticmethod
+    def _point_xy(point: Any) -> tuple[float, float]:
+        """Convert a keypoint-like object to an (x, y) tuple of floats."""
+        if hasattr(point, "detach"):  # torch.Tensor
+            point = point.detach()
+        if hasattr(point, "cpu"):  # torch.Tensor
+            point = point.cpu()
+        if hasattr(point, "numpy"):  # torch.Tensor
+            point = point.numpy()
+        if hasattr(point, "tolist"):  # numpy / torch
+            point = point.tolist()
+        return float(point[0]), float(point[1])
+
+    @staticmethod
     @lru_cache(maxsize=256)
-    def estimate_pose_angle(a: list[float], b: list[float], c: list[float]) -> float:
+    def _estimate_pose_angle_cached(a: tuple[float, float], b: tuple[float, float], c: tuple[float, float]) -> float:
+        """Calculate the angle between three points for workout monitoring (cached)."""
+        radians = math.atan2(c[1] - b[1], c[0] - b[0]) - math.atan2(a[1] - b[1], a[0] - b[0])
+        angle = abs(radians * 180.0 / math.pi)
+        return angle if angle <= 180.0 else (360 - angle)
+
+    @staticmethod
+    def estimate_pose_angle(a: Any, b: Any, c: Any) -> float:
         """Calculate the angle between three points for workout monitoring.
 
         Args:
-            a (list[float]): The coordinates of the first point.
-            b (list[float]): The coordinates of the second point (vertex).
-            c (list[float]): The coordinates of the third point.
+            a (Any): The coordinates of the first point (e.g. list/tuple/NumPy array/torch tensor).
+            b (Any): The coordinates of the second point (vertex).
+            c (Any): The coordinates of the third point.
 
         Returns:
             (float): The angle in degrees between the three points.
         """
-        radians = math.atan2(c[1] - b[1], c[0] - b[0]) - math.atan2(a[1] - b[1], a[0] - b[0])
-        angle = abs(radians * 180.0 / math.pi)
-        return angle if angle <= 180.0 else (360 - angle)
+        a_xy, b_xy, c_xy = SolutionAnnotator._point_xy(a), SolutionAnnotator._point_xy(b), SolutionAnnotator._point_xy(c)
+        return SolutionAnnotator._estimate_pose_angle_cached(a_xy, b_xy, c_xy)
 
     def draw_specific_kpts(
         self,

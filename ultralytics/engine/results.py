@@ -733,10 +733,10 @@ class Results(SimpleClass, DataExportMixin):
             - Original image is copied before cropping to avoid modifying the original.
         """
         if self.probs is not None:
-            LOGGER.warning("Classify task do not support `save_crop`.")
+            LOGGER.warning("Classify task does not support `save_crop`.")
             return
         if self.obb is not None:
-            LOGGER.warning("OBB task do not support `save_crop`.")
+            LOGGER.warning("OBB task does not support `save_crop`.")
             return
         for d in self.boxes:
             save_one_box(

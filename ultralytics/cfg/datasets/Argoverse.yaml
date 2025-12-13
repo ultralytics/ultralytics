@@ -36,7 +36,7 @@ download: |
   def argoverse2yolo(annotation_file):
       """Convert Argoverse dataset annotations to YOLO format for object detection tasks."""
       labels = {}
-      with open(annotation_file, "rb") as f:
+      with open(annotation_file, encoding="utf-8") as f:
           a = json.load(f)
       for annot in TQDM(a["annotations"], desc=f"Converting {annotation_file} to YOLO format..."):
           img_id = annot["image_id"]

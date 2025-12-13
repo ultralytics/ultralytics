@@ -536,7 +536,7 @@ class Annotator:
         cv2.imwrite(filename, np.asarray(self.im))
 
     @staticmethod
-    def get_bbox_dimension(bbox: tuple | list | None = None):
+    def get_bbox_dimension(bbox: tuple | list):
         """Calculate the dimensions and area of a bounding box.
 
         Args:
@@ -553,8 +553,6 @@ class Annotator:
             >>> annotator = Annotator(im0, line_width=10)
             >>> annotator.get_bbox_dimension(bbox=[10, 20, 30, 40])
         """
-        if bbox is None:
-            raise ValueError("bbox must be provided as (x_min, y_min, x_max, y_max)")
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min
         height = y_max - y_min

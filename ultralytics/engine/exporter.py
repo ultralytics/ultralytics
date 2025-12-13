@@ -306,7 +306,11 @@ class Exporter:
         callbacks.add_integration_callbacks(self)
 
     def __call__(self, model=None) -> str:
-        """Return list of exported files/dirs after running callbacks."""
+        """Export a model and return the final exported path as a string.
+
+        Returns:
+            (str): Path to the exported file or directory (the last export artifact).
+        """
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
@@ -610,7 +614,7 @@ class Exporter:
             )
 
         self.run_callbacks("on_export_end")
-        return f  # return list of exported files/dirs
+        return f  # path to final export artifact
 
     def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader for calibration of INT8 models."""

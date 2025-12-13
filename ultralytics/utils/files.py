@@ -29,14 +29,14 @@ class WorkingDirectory(contextlib.ContextDecorator):
     Examples:
         Using as a context manager:
         >>> with WorkingDirectory('/path/to/new/dir'):
-        >>> # Perform operations in the new directory
-        >>>     pass
+        ...     # Perform operations in the new directory
+        ...     pass
 
         Using as a decorator:
         >>> @WorkingDirectory('/path/to/new/dir')
-        >>> def some_function():
-        >>> # Perform operations in the new directory
-        >>>     pass
+        ... def some_function():
+        ...     # Perform operations in the new directory
+        ...     pass
     """
 
     def __init__(self, new_dir: str | Path):
@@ -68,8 +68,8 @@ def spaces_in_path(path: str | Path):
 
     Examples:
         >>> with spaces_in_path('/path/with spaces') as new_path:
-        >>> # Your code here
-        >>>     pass
+        ...     # Your code here
+        ...     pass
     """
     # If path has spaces, replace them with underscores
     if " " in str(path):

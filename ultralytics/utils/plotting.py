@@ -511,7 +511,7 @@ class Annotator:
             cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):
-        """Update self.im from a numpy array."""
+        """Update `self.im` from a NumPy array or PIL image."""
         self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
         self.draw = ImageDraw.Draw(self.im)
 
@@ -522,7 +522,7 @@ class Annotator:
 
     def show(self, title: str | None = None):
         """Show the annotated image."""
-        im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
+        im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert BGR NumPy array to RGB PIL Image
         if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
             try:
                 display(im)  # noqa - display() function only available in ipython environments
@@ -536,11 +536,11 @@ class Annotator:
         cv2.imwrite(filename, np.asarray(self.im))
 
     @staticmethod
-    def get_bbox_dimension(bbox: tuple | None = None):
+    def get_bbox_dimension(bbox: tuple | list | None = None):
         """Calculate the dimensions and area of a bounding box.
 
         Args:
-            bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
+            bbox (tuple | list): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
 
         Returns:
             width (float): Width of the bounding box.
@@ -553,6 +553,8 @@ class Annotator:
             >>> annotator = Annotator(im0, line_width=10)
             >>> annotator.get_bbox_dimension(bbox=[10, 20, 30, 40])
         """
+        if bbox is None:
+            raise ValueError("bbox must be provided as (x_min, y_min, x_max, y_max)")
         x_min, y_min, x_max, y_max = bbox
         width = x_max - x_min
         height = y_max - y_min

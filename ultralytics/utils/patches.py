@@ -105,8 +105,8 @@ def torch_load(*args, **kwargs):
         (Any): The loaded PyTorch object.
 
     Notes:
-        For PyTorch versions 2.0 and above, this function automatically sets 'weights_only=False'
-        if the argument is not provided, to avoid deprecation warnings.
+        For PyTorch versions 1.13 and above, this function automatically sets `weights_only=False` if the argument is
+        not provided, to avoid deprecation warnings.
     """
     from ultralytics.utils.torch_utils import TORCH_1_13
 

@@ -335,7 +335,7 @@ class TaskAlignedAssigner(nn.Module):
         """
         if self.topk2 != self.topk:
             mask_pos_ = torch.zeros_like(mask_pos)
-            for i, (pos, metric) in enumerate(zip(mask_pos, align_metric)):
+            for i, (pos, metric) in enumerate(zip(mask_pos, overlaps)):
                 idx1, idx2 = torch.where(pos > 0)
                 if len(idx1) == 0:
                     continue

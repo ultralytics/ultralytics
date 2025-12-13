@@ -640,7 +640,7 @@ class v8OBBLoss(v8DetectionLoss):
         """Initialize v8OBBLoss with model, assigner, and rotated bbox loss; model must be de-paralleled."""
         super().__init__(model, tal_topk=tal_topk)
         self.assigner = RotatedTaskAlignedAssigner(
-            topk=10,
+            topk=tal_topk,
             num_classes=self.nc,
             alpha=0.5,
             beta=6.0,

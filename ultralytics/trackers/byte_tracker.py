@@ -56,8 +56,8 @@ class STrack(BaseTrack):
         """Initialize a new STrack instance.
 
         Args:
-            xywh (list[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where (x,
-                y) is the center, (w, h) are width and height, [a] is optional aspect ratio, and idx is the id.
+            xywh (list[float]): Bounding box in `(x, y, w, h, idx)` or `(x, y, w, h, angle, idx)` format, where (x, y)
+                is the center, (w, h) are width and height, and `idx` is the detection index.
             score (float): Confidence score of the detection.
             cls (Any): Class label for the detected object.
         """
@@ -338,7 +338,7 @@ class BYTETracker:
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
         detections_second = self.init_track(results_second, feats_second)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
-        # TODO
+        # TODO: consider fusing scores or appearance features for second association.
         dists = matching.iou_distance(r_tracked_stracks, detections_second)
         matches, u_track, _u_detection_second = matching.linear_assignment(dists, thresh=0.5)
         for itracked, idet in matches:

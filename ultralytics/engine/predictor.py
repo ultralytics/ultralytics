@@ -316,7 +316,8 @@ class BasePredictor:
                 ops.Profile(device=self.device),
             )
             self.run_callbacks("on_predict_start")
-            for self.batch in self.dataset:
+            for batch in self.dataset:
+                self.batch = batch
                 self.run_callbacks("on_predict_batch_start")
                 paths, im0s, s = self.batch
 

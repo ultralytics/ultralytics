@@ -69,7 +69,7 @@ fraction: 1.0
 # Checkpointing and validation
 save: True
 save_period: -1
-cache: False
+cache: disk
 val: True
 patience: 100  # Increased from 50 (DETR converges slowly)
 # Visualization

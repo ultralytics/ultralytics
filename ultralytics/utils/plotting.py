@@ -523,7 +523,7 @@ class Annotator:
     def show(self, title: str | None = None):
         """Show the annotated image."""
         im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert BGR NumPy array to RGB PIL Image
-        if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
+        if IS_COLAB or IS_KAGGLE:  # cannot use IS_JUPYTER as it runs for all IPython environments
             try:
                 display(im)  # noqa - display() function only available in ipython environments
             except ImportError as e:

@@ -196,13 +196,14 @@ def update_models(model_names: tuple = ("yolo11n.pt",), source_dir: Path = Path(
     """
     from ultralytics import YOLO
     from ultralytics.nn.autobackend import default_class_names
+    from ultralytics.utils import LOGGER
 
     target_dir = source_dir / "updated_models"
     target_dir.mkdir(parents=True, exist_ok=True)  # Ensure target directory exists
 
     for model_name in model_names:
         model_path = source_dir / model_name
-        print(f"Loading model from {model_path}")
+        LOGGER.info(f"Loading model from {model_path}")
 
         # Load model
         model = YOLO(model_path)
@@ -214,5 +215,5 @@ def update_models(model_names: tuple = ("yolo11n.pt",), source_dir: Path = Path(
         save_path = target_dir / model_name
 
         # Save model using model.save()
-        print(f"Re-saving {model_name} model to {save_path}")
+        LOGGER.info(f"Re-saving {model_name} model to {save_path}")
         model.save(save_path)

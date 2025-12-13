@@ -91,7 +91,7 @@ class BaseTensor(SimpleClass):
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu(), self.orig_shape)
 
     def numpy(self):
-        """Return a copy of the tensor as a numpy array.
+        """Return a copy of the tensor with data as a NumPy array.
 
         Returns:
             (np.ndarray): A numpy array containing the same data as the original tensor.

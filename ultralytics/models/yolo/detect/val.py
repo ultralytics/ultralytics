@@ -46,7 +46,7 @@ class DetectionValidator(BaseValidator):
         """Initialize detection validator with necessary variables and settings.
 
         Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
+            dataloader (torch.utils.data.DataLoader, optional): DataLoader to use for validation.
             save_dir (Path, optional): Directory to save results.
             args (dict[str, Any], optional): Arguments for the validator.
             _callbacks (list[Any], optional): List of callback functions.
@@ -256,7 +256,7 @@ class DetectionValidator(BaseValidator):
         pf = "%22s" + "%11i" * 2 + "%11.3g" * len(self.metrics.keys)  # print format
         LOGGER.info(pf % ("all", self.seen, self.metrics.nt_per_class.sum(), *self.metrics.mean_results()))
         if self.metrics.nt_per_class.sum() == 0:
-            LOGGER.warning(f"no labels found in {self.args.task} set, can not compute metrics without labels")
+            LOGGER.warning(f"no labels found in {self.args.task} set, cannot compute metrics without labels")
 
         # Print results per class
         if self.args.verbose and not self.training and self.nc > 1 and len(self.metrics.stats):
@@ -308,7 +308,7 @@ class DetectionValidator(BaseValidator):
             batch_size (int): Size of each batch.
 
         Returns:
-            (torch.utils.data.DataLoader): Dataloader for validation.
+            (torch.utils.data.DataLoader): DataLoader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
         return build_dataloader(

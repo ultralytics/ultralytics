@@ -25,7 +25,7 @@ class FastSAMValidator(SegmentationValidator):
         """Initialize the FastSAMValidator class, setting the task to 'segment' and metrics to SegmentMetrics.
 
         Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
+            dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (Path, optional): Directory to save results.
             args (SimpleNamespace, optional): Configuration for the validator.
             _callbacks (list, optional): List of callback functions to be invoked during validation.

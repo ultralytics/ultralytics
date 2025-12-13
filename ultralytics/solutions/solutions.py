@@ -448,7 +448,11 @@ class SolutionAnnotator(Annotator):
         Returns:
             (float): The angle in degrees between the three points.
         """
-        a_xy, b_xy, c_xy = SolutionAnnotator._point_xy(a), SolutionAnnotator._point_xy(b), SolutionAnnotator._point_xy(c)
+        a_xy, b_xy, c_xy = (
+            SolutionAnnotator._point_xy(a),
+            SolutionAnnotator._point_xy(b),
+            SolutionAnnotator._point_xy(c),
+        )
         return SolutionAnnotator._estimate_pose_angle_cached(a_xy, b_xy, c_xy)
 
     def draw_specific_kpts(

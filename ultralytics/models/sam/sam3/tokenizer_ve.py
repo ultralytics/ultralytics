@@ -18,10 +18,19 @@ import os
 import string
 from functools import lru_cache
 
-import ftfy
-import regex as re
 import torch
-from iopath.common.file_io import g_pathmgr
+
+from ultralytics.utils import checks
+
+try:
+    import ftfy
+    import regex as re
+    from iopath.common.file_io import g_pathmgr
+except ImportError:
+    checks.check_requirements(["ftfy", "regex", "iopath"])
+    import ftfy
+    import regex as re
+    from iopath.common.file_io import g_pathmgr
 
 
 @lru_cache

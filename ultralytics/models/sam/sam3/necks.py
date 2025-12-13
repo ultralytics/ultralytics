@@ -106,23 +106,21 @@ class Sam3DualViTDetNeck(nn.Module):
     ) -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor], list[torch.Tensor]]:
         """Get the feature maps and positional encodings from the neck."""
         xs = self.trunk(tensor_list)
-        sam3_out, sam3_pos = [], []
-        sam2_out, sam2_pos = None, None
-        if self.sam2_convs is not None:
-            sam2_out, sam2_pos = [], []
         x = xs[-1]  # simpleFPN
-        for i in range(len(self.convs)):
-            sam3_x_out = self.convs[i](x)
-            sam3_pos_out = self.position_encoding(sam3_x_out).to(sam3_x_out.dtype)
-            sam3_out.append(sam3_x_out)
-            sam3_pos.append(sam3_pos_out)
-
-            if self.sam2_convs is not None:
-                sam2_x_out = self.sam2_convs[i](x)
-                sam2_pos_out = self.position_encoding(sam2_x_out).to(sam2_x_out.dtype)
-                sam2_out.append(sam2_x_out)
-                sam2_pos.append(sam2_pos_out)
+        sam3_out, sam3_pos = self._forward_convs(x, self.convs)
+        if self.sam2_convs is None:
+            return sam3_out, sam3_pos, None, None
+        sam2_out, sam2_pos = self._forward_convs(x, self.sam2_convs)
         return sam3_out, sam3_pos, sam2_out, sam2_pos
+
+    def _forward_convs(self, x: torch.Tensor, convs: nn.ModuleList) -> tuple[list[torch.Tensor], list[torch.Tensor]]:
+        """Run neck convs and compute positional encodings for each feature level."""
+        outs, poss = [], []
+        for conv in convs:
+            feat = conv(x)
+            outs.append(feat)
+            poss.append(self.position_encoding(feat).to(feat.dtype))
+        return outs, poss
 
     def set_imgsz(self, imgsz: list[int] = [1008, 1008]):
         """Set the image size for the trunk backbone."""

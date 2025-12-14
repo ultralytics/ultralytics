@@ -727,7 +727,7 @@ class Exporter:
             model_onnx.ir_version = 10
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
-        if self.args.half and self.device.type == "cpu":
+        if self.args.half and self.args.format == "onnx" and self.device.type == "cpu":
             try:
                 from onnxruntime.transformers import float16
 

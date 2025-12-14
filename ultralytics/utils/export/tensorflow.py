@@ -94,6 +94,20 @@ def onnx2saved_model(
             np.save(str(tmp_file), images)  # BHWC
             np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
 
+    # Patch onnx.helper for onnx_graphsurgeon compatibility with ONNX>=1.17
+    # The float32_to_bfloat16 function was removed in ONNX 1.17, but onnx_graphsurgeon still uses it
+    import onnx.helper
+
+    if not hasattr(onnx.helper, "float32_to_bfloat16"):
+        import struct
+
+        def float32_to_bfloat16(fval):
+            """Convert float32 to bfloat16 (truncates lower 16 bits of mantissa)."""
+            ival = struct.unpack("=I", struct.pack("=f", fval))[0]
+            return ival >> 16
+
+        onnx.helper.float32_to_bfloat16 = float32_to_bfloat16
+
     import onnx2tf  # scoped for after ONNX export for reduced conflict during import
 
     LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")

@@ -3552,6 +3552,8 @@ class SemSegRandomPerspective(RandomPerspective):
                         new_msk[:, :, i] = cv2.warpAffine(
                             msk[:, :, i], M[:2], dsize=self.size, borderValue=1, flags=cv2.INTER_NEAREST
                         )
+        else:
+            new_msk = msk
 
         return img, new_msk, M, s
 
@@ -3755,7 +3757,7 @@ class SemSegFormat:
             if nl:
                 _, instances, cls = self._format_segments(instances, cls, w, h)
             else:
-                torch.zeros(
+                mask = torch.zeros(
                     1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio
                 )
         labels["img"] = self._format_img(img)

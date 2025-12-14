@@ -735,7 +735,7 @@ class Exporter:
                 # When NMS is enabled, block additional ops to prevent dtype mismatches in onnx2tf conversion
                 blocks = float16.DEFAULT_OP_BLOCK_LIST
                 if self.args.nms:
-                    blocks = blocks + ["Gather", "GatherElements", "GatherND", "Where", "Concat", "Cast"]
+                    blocks = [*blocks, "Gather", "GatherElements", "GatherND", "Where", "Concat", "Cast"]
                 model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True, op_block_list=blocks)
             except Exception as e:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")

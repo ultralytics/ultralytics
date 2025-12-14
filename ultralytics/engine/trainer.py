@@ -813,6 +813,14 @@ class BaseTrainer:
                     "device",
                     "close_mosaic",
                     "augmentations",
+                    "save_period",
+                    "workers",
+                    "cache",
+                    "patience",
+                    "time",
+                    "freeze",
+                    "val",
+                    "plots",
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])

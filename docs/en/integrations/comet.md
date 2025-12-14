@@ -55,7 +55,7 @@ After installing the required packages, you'll need to sign up, get a [Comet API
     === "CLI"
 
         ```bash
-        # Set your Comet Api Key
+        # Set your Comet API Key
         export COMET_API_KEY=YOUR_API_KEY
         ```
 
@@ -108,7 +108,7 @@ Let's dive into what you'll see on the Comet ML dashboard once your YOLO11 model
 
 **Experiment Panels**
 
-The experiment panels section of the Comet ML dashboard organize and present the different runs and their metrics, such as segment mask loss, class loss, precision, and [mean average precision](https://www.ultralytics.com/glossary/mean-average-precision-map).
+The experiment panels section of the Comet ML dashboard organizes and presents the different runs and their metrics, such as segment mask loss, class loss, precision, and [mean average precision](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
 <p align="center">
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-dashboard-overview.avif" alt="Comet ML Overview">
@@ -186,7 +186,7 @@ os.environ["COMET_MODE"] = "offline"
 
 This guide has walked you through integrating Comet ML with Ultralytics' YOLO11. From installation to customization, you've learned to streamline experiment management, gain real-time insights, and adapt logging to your project's needs.
 
-Explore [Comet ML's official documentation](https://www.comet.com/docs/v2/integrations/third-party-tools/yolov8/) for more insights on integrating with YOLO11.
+Explore [Comet ML's official YOLOv8 integration documentation](https://www.comet.com/docs/v2/integrations/third-party-tools/yolov8/), which also applies to YOLO11 projects.
 
 Furthermore, if you're looking to dive deeper into the practical applications of YOLO11, specifically for [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks, this detailed guide on [fine-tuning YOLO11 with Comet ML](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) offers valuable insights and step-by-step instructions to enhance your model's performance.
 

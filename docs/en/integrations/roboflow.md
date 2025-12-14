@@ -54,7 +54,7 @@ For compatibility with Ultralytics [YOLO11](../models/yolo11.md), select "YOLO11
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe-dataset-export-1.avif" alt="Roboflow Universe dataset export format selection" width="800">
 </p>
 
-Universe also features a page aggregating public fine-tuned YOLO models uploaded to Roboflow. This can be useful for exploring pre-trained models for testing or automated data labeling.
+Universe also features a page aggregating public fine-tuned YOLO models uploaded to Roboflow. This can be useful for exploring pretrained models for testing or automated data labeling.
 
 ### Roboflow Collect
 
@@ -189,9 +189,10 @@ project = rf.workspace(WORKSPACE_ID).project(PROJECT_ID)
 dataset = project.version(VERSION)
 
 # Upload model weights for deployment
-# Ensure model_path points to the directory containing 'best.pt'
-project.version(dataset.version).deploy(
-    model_type="yolov8", model_path=MODEL_PATH
+# Ensure MODEL_PATH points to the directory containing 'best.pt'
+dataset.deploy(
+    model_type="yolov8",
+    model_path=MODEL_PATH,
 )  # Note: Use "yolov8" as model_type for YOLO11 compatibility in Roboflow deployment
 
 print(f"Model from {MODEL_PATH} uploaded to Roboflow project {PROJECT_ID}, version {VERSION}.")

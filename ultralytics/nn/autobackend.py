@@ -95,6 +95,7 @@ class AutoBackend(nn.Module):
             | RKNN                  | *_rknn_model/     |
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
+            | Axelera               | *_axelera_model/  |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -122,6 +123,7 @@ class AutoBackend(nn.Module):
         rknn (bool): Whether the model is an RKNN model.
         triton (bool): Whether the model is a Triton Inference Server model.
         pte (bool): Whether the model is a PyTorch ExecuTorch model.
+        axelera (bool): Whether the model is an Axelera model.
 
     Methods:
         forward: Run inference on an input image.
@@ -176,6 +178,7 @@ class AutoBackend(nn.Module):
             imx,
             rknn,
             pte,
+            axelera,
             triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -254,13 +257,11 @@ class AutoBackend(nn.Module):
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
-                check_requirements(
-                    ("model-compression-toolkit>=2.4.1", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions")
-                )
+                check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl<1.1.0", "onnxruntime-extensions"))
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq
-                from sony_custom_layers.pytorch.nms import nms_ort  # noqa
+                from edgemdt_cl.pytorch.nms import nms_ort  # noqa - register custom NMS ops
 
                 session_options = mctq.get_ort_session_options()
                 session_options.enable_mem_reuse = False  # fix the shape mismatch from onnxruntime
@@ -377,7 +378,7 @@ class AutoBackend(nn.Module):
                     if is_input:
                         if -1 in tuple(model.get_tensor_shape(name)):
                             dynamic = True
-                            context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[1]))
+                            context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[2]))
                         if dtype == np.float16:
                             fp16 = True
                     else:
@@ -402,7 +403,9 @@ class AutoBackend(nn.Module):
 
         # CoreML
         elif coreml:
-            check_requirements("coremltools>=8.0")
+            check_requirements(
+                ["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"]
+            )  # latest numpy 2.4.0rc1 breaks coremltools exports
             LOGGER.info(f"Loading {w} for CoreML inference...")
             import coremltools as ct
 
@@ -570,12 +573,39 @@ class AutoBackend(nn.Module):
             rknn_model.init_runtime()
             metadata = w.parent / "metadata.yaml"
 
+        # Axelera
+        elif axelera:
+            import os
+
+            if not os.environ.get("AXELERA_RUNTIME_DIR"):
+                LOGGER.warning(
+                    "Axelera runtime environment is not activated."
+                    "\nPlease run: source /opt/axelera/sdk/latest/axelera_activate.sh"
+                    "\n\nIf this fails, verify driver installation: https://docs.ultralytics.com/integrations/axelera/#axelera-driver-installation"
+                )
+            try:
+                from axelera.runtime import op
+            except ImportError:
+                check_requirements(
+                    "axelera_runtime2==0.1.2",
+                    cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi",
+                )
+            from axelera.runtime import op
+
+            w = Path(w)
+            if (found := next(w.rglob("*.axm"), None)) is None:
+                raise FileNotFoundError(f"No .axm file found in: {w}")
+            w = found
+
+            ax_model = op.load(str(w))
+            metadata = w.parent / "metadata.yaml"
+
         # ExecuTorch
         elif pte:
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
             # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
             check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-            check_requirements(("executorch==1.0.0", "flatbuffers"))
+            check_requirements(("executorch==1.0.1", "flatbuffers"))
             from executorch.runtime import Runtime
 
             w = Path(w)
@@ -606,7 +636,7 @@ class AutoBackend(nn.Module):
                 if k in {"stride", "batch", "channels"}:
                     metadata[k] = int(v)
                 elif k in {"imgsz", "names", "kpt_shape", "kpt_names", "args"} and isinstance(v, str):
-                    metadata[k] = eval(v)
+                    metadata[k] = ast.literal_eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
             batch = metadata["batch"]
@@ -691,7 +721,12 @@ class AutoBackend(nn.Module):
                     y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
                 elif self.task == "pose":
                     # boxes, conf, kpts
-                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1)
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1, dtype=y[0].dtype)
+                elif self.task == "segment":
+                    y = (
+                        np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1, dtype=y[0].dtype),
+                        y[4],
+                    )
 
         # OpenVINO
         elif self.xml:
@@ -790,6 +825,11 @@ class AutoBackend(nn.Module):
             im = (im.cpu().numpy() * 255).astype("uint8")
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im)
+
+        # Axelera
+        elif self.axelera:
+            im = im.cpu()
+            y = self.ax_model(im)
 
         # ExecuTorch
         elif self.pte:

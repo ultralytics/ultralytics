@@ -42,12 +42,12 @@ The [existing guide](https://gweb-coral-full.uc.r.appspot.com/docs/accelerator/g
 
 ## Installation Walkthrough
 
-This guide assumes that you already have a working Raspberry Pi OS install and have installed `ultralytics` and all dependencies. To get `ultralytics` installed, visit the [quickstart guide](../quickstart.md) to get setup before continuing here.
+This guide assumes that you already have a working Raspberry Pi OS install and have installed `ultralytics` and all dependencies. To get `ultralytics` installed, visit the [quickstart guide](../quickstart.md) to get set up before continuing here.
 
 ### Installing the Edge TPU runtime
 
 First, we need to install the Edge TPU runtime. There are many different versions available, so you need to choose the right version for your operating system.
-The high frequency version runs the Edge TPU at a higher clock speed, which improves performance. However, it might result in the Edge TPU thermal throttling, so it is recommended to have some sort of cooling mechanism in place.
+The high-frequency version runs the Edge TPU at a higher clock speed, which improves performance. However, it might result in Edge TPU thermal throttling, so it is recommended to have some sort of cooling mechanism in place.
 
 | Raspberry Pi OS | High frequency mode | Version to download                        |
 | --------------- | :-----------------: | ------------------------------------------ |
@@ -68,7 +68,7 @@ After downloading the file, you can install it with the following command:
 sudo dpkg -i path/to/package.deb
 ```
 
-After installing the runtime, you need to plug in your Coral Edge TPU into a USB 3.0 port on your Raspberry Pi. This is because, according to the official guide, a new `udev` rule needs to take effect after installation.
+After installing the runtime, plug your Coral Edge TPU into a USB 3.0 port on the Raspberry Pi so the new `udev` rule can take effect.
 
 ???+ warning "Important"
 
@@ -78,7 +78,7 @@ After installing the runtime, you need to plug in your Coral Edge TPU into a USB
     # If you installed the standard version
     sudo apt remove libedgetpu1-std
 
-    # If you installed the high frequency version
+    # If you installed the high-frequency version
     sudo apt remove libedgetpu1-max
     ```
 
@@ -106,19 +106,19 @@ To use the Edge TPU, you need to convert your model into a compatible format. It
         yolo export model=path/to/model.pt format=edgetpu # Export an official model or custom model
         ```
 
-The exported model will be saved in the `<model_name>_saved_model/` folder with the name `<model_name>_full_integer_quant_edgetpu.tflite`. It is important that your model ends with the suffix `_edgetpu.tflite`, otherwise ultralytics doesn't know that you're using an Edge TPU model.
+The exported model will be saved in the `<model_name>_saved_model/` folder with the name `<model_name>_full_integer_quant_edgetpu.tflite`. Make sure the file name ends with the `_edgetpu.tflite` suffix; otherwise, Ultralytics will not detect that you're using an Edge TPU model.
 
 ## Running the model
 
 Before you can actually run the model, you will need to install the correct libraries.
 
-If `tensorflow` is installed, uninstall tensorflow with the following command:
+If you already have TensorFlow installed, uninstall it with the following command:
 
 ```bash
 pip uninstall tensorflow tensorflow-aarch64
 ```
 
-Then install/update `tflite-runtime`:
+Then install or update `tflite-runtime`:
 
 ```bash
 pip install -U tflite-runtime
@@ -150,7 +150,7 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
 !!! note "Inference with multiple Edge TPUs"
 
-    If you have multiple Edge TPUs you can use the following code to select a specific TPU.
+    If you have multiple Edge TPUs, you can use the following code to select a specific TPU.
 
     === "Python"
 
@@ -172,14 +172,15 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
 !!! tip "Benchmarks"
 
-    Tested with Raspberry Pi Os Bookworm 64-Bit and a USB Coral Edge TPU.
+    Tested with Raspberry Pi OS Bookworm 64-bit and a USB Coral Edge TPU.
 
     !!! note
+
         Shown is the inference time, pre-/postprocessing is not included.
 
     === "Raspberry Pi 4B 2GB"
 
-        | Image Size | Model   | Standard Inference Time (ms) | High Frequency Inference Time (ms) |
+        | Image Size | Model   | Standard Inference Time (ms) | High-Frequency Inference Time (ms) |
         |------------|---------|------------------------------|------------------------------------|
         | 320        | YOLOv8n | 32.2                         | 26.7                               |
         | 320        | YOLOv8s | 47.1                         | 39.8                               |
@@ -198,8 +199,8 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
     On average:
 
     - The Raspberry Pi 5 is 22% faster with the standard mode than the Raspberry Pi 4B.
-    - The Raspberry Pi 5 is 30.2% faster with the high frequency mode than the Raspberry Pi 4B.
-    - The high frequency mode is 28.4% faster than the standard mode.
+    - The Raspberry Pi 5 is 30.2% faster with the high-frequency mode than the Raspberry Pi 4B.
+    - The high-frequency mode is 28.4% faster than the standard mode.
 
 ## FAQ
 

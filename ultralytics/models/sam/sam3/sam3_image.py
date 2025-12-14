@@ -96,11 +96,12 @@ class SAM3SemanticModel(torch.nn.Module):
     def _prepare_backbone_features(self, backbone_out, num_prompts=1):
         """Prepare and flatten visual features from the image backbone output for further processing."""
         if num_prompts > 1:  # expand features if there's more than one prompt
-            for i, feat in enumerate(backbone_out["backbone_fpn"]):
-                backbone_out["backbone_fpn"][i] = feat.expand(num_prompts, -1, -1, -1)
-            for i, pos in enumerate(backbone_out["vision_pos_enc"]):
-                pos = pos.expand(num_prompts, -1, -1, -1)
-                backbone_out["vision_pos_enc"][i] = pos
+            # Create a shallow copy to avoid modifying the original cached features
+            backbone_out = {
+                **backbone_out,
+                "backbone_fpn": [feat.expand(num_prompts, -1, -1, -1) for feat in backbone_out["backbone_fpn"]],
+                "vision_pos_enc": [pos.expand(num_prompts, -1, -1, -1) for pos in backbone_out["vision_pos_enc"]],
+            }
         assert len(backbone_out["backbone_fpn"]) == len(backbone_out["vision_pos_enc"])
         assert len(backbone_out["backbone_fpn"]) >= self.num_feature_levels
 

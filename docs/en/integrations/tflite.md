@@ -119,7 +119,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO11 TFLite Models
 
-After successfully exporting your Ultralytics YOLO11 models to TFLite format, you can now deploy them. The primary and recommended first step for running a TFLite model is to utilize the `YOLO("model.tflite")` method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
+After successfully exporting your Ultralytics YOLO11 models to TFLite format, you can now deploy them. The primary and recommended first step for running a TFLite model is to use the `YOLO("model.tflite")` method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
 
 - **[Android](https://ai.google.dev/edge/litert/android)**: A quick start guide for integrating [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite into Android applications, providing easy-to-follow steps for setting up and running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
 
@@ -133,7 +133,7 @@ In this guide, we focused on how to export to TFLite format. By converting your 
 
 For further details on usage, visit the [TFLite official documentation](https://ai.google.dev/edge/litert).
 
-Also, if you're curious about other Ultralytics YOLO11 integrations, make sure to check out our [integration guide page](../integrations/index.md). You'll find tons of helpful info and insights waiting for you there.
+Also, if you're curious about other Ultralytics YOLO11 integrations, check out our [integration guide page](../integrations/index.md). You'll find plenty of helpful information and insights there.
 
 ## FAQ
 

@@ -95,6 +95,7 @@ class AutoBackend(nn.Module):
             | RKNN                  | *_rknn_model/     |
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
+            | Axelera               | *_axelera_model/  |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -122,10 +123,11 @@ class AutoBackend(nn.Module):
         rknn (bool): Whether the model is an RKNN model.
         triton (bool): Whether the model is a Triton Inference Server model.
         pte (bool): Whether the model is a PyTorch ExecuTorch model.
+        axelera (bool): Whether the model is an Axelera model.
 
     Methods:
         forward: Run inference on an input image.
-        from_numpy: Convert numpy array to tensor.
+        from_numpy: Convert NumPy arrays to tensors on the model device.
         warmup: Warm up the model with a dummy input.
         _model_type: Determine the model type from file path.
 
@@ -176,10 +178,11 @@ class AutoBackend(nn.Module):
             imx,
             rknn,
             pte,
+            axelera,
             triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
-        nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
+        nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCHW)
         stride, ch = 32, 3  # default stride and channels
         end2end, dynamic = False, False
         metadata, task = None, None
@@ -570,6 +573,33 @@ class AutoBackend(nn.Module):
             rknn_model.init_runtime()
             metadata = w.parent / "metadata.yaml"
 
+        # Axelera
+        elif axelera:
+            import os
+
+            if not os.environ.get("AXELERA_RUNTIME_DIR"):
+                LOGGER.warning(
+                    "Axelera runtime environment is not activated."
+                    "\nPlease run: source /opt/axelera/sdk/latest/axelera_activate.sh"
+                    "\n\nIf this fails, verify driver installation: https://docs.ultralytics.com/integrations/axelera/#axelera-driver-installation"
+                )
+            try:
+                from axelera.runtime import op
+            except ImportError:
+                check_requirements(
+                    "axelera_runtime2==0.1.2",
+                    cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi",
+                )
+            from axelera.runtime import op
+
+            w = Path(w)
+            if (found := next(w.rglob("*.axm"), None)) is None:
+                raise FileNotFoundError(f"No .axm file found in: {w}")
+            w = found
+
+            ax_model = op.load(str(w))
+            metadata = w.parent / "metadata.yaml"
+
         # ExecuTorch
         elif pte:
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
@@ -796,6 +826,11 @@ class AutoBackend(nn.Module):
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im)
 
+        # Axelera
+        elif self.axelera:
+            im = im.cpu()
+            y = self.ax_model(im)
+
         # ExecuTorch
         elif self.pte:
             y = self.model.execute([im])
@@ -859,14 +894,14 @@ class AutoBackend(nn.Module):
         else:
             return self.from_numpy(y)
 
-    def from_numpy(self, x: np.ndarray) -> torch.Tensor:
-        """Convert a numpy array to a tensor.
+    def from_numpy(self, x: np.ndarray | torch.Tensor) -> torch.Tensor:
+        """Convert a NumPy array to a torch tensor on the model device.
 
         Args:
-            x (np.ndarray): The array to be converted.
+            x (np.ndarray | torch.Tensor): Input array or tensor.
 
         Returns:
-            (torch.Tensor): The converted tensor
+            (torch.Tensor): Tensor on `self.device`.
         """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
@@ -874,7 +909,7 @@ class AutoBackend(nn.Module):
         """Warm up the model by running one forward pass with a dummy input.
 
         Args:
-            imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
+            imgsz (tuple[int, int, int, int]): Dummy input shape in (batch, channels, height, width) format.
         """
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
@@ -896,8 +931,8 @@ class AutoBackend(nn.Module):
             (list[bool]): List of booleans indicating the model type.
 
         Examples:
-            >>> model = AutoBackend(model="path/to/model.onnx")
-            >>> model_type = model._model_type()  # returns "onnx"
+            >>> types = AutoBackend._model_type("path/to/model.onnx")
+            >>> assert types[2]  # onnx
         """
         from ultralytics.engine.exporter import export_formats
 

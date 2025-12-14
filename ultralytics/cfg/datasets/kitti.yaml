@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Kitti dataset by Karlsruhe Institute of Technology and Toyota Technological Institute at Chicago
+# KITTI dataset by Karlsruhe Institute of Technology and Toyota Technological Institute at Chicago
 # Documentation: https://docs.ultralytics.com/datasets/detect/kitti/
 # Example usage: yolo train data=kitti.yaml
 # parent

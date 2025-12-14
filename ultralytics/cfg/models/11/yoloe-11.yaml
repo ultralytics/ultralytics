@@ -1,10 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO11 object detection model with P3-P5 outputs. For Usage examples see https://docs.ultralytics.com/tasks/detect
+# Ultralytics YOLOE-11 object detection model with P3/8 - P5/32 outputs. For usage examples, see https://docs.ultralytics.com/tasks/detect
 
 # Parameters
 nc: 80 # number of classes
-scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call yolo11.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=yoloe-11n.yaml' will call yoloe-11.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024] # summary: 319 layers, 2624080 parameters, 2624064 gradients, 6.6 GFLOPs
   s: [0.50, 0.50, 1024] # summary: 319 layers, 9458752 parameters, 9458736 gradients, 21.7 GFLOPs

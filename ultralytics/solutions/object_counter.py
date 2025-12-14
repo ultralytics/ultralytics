@@ -19,7 +19,7 @@ class ObjectCounter(BaseSolution):
         in_count (int): Counter for objects moving inward.
         out_count (int): Counter for objects moving outward.
         counted_ids (list[int]): List of IDs of objects that have been counted.
-        classwise_counts (dict[str, dict[str, int]]): Dictionary for counts, categorized by object class.
+        classwise_count (dict[str, dict[str, int]]): Dictionary for counts, categorized by object class.
         region_initialized (bool): Flag indicating whether the counting region has been initialized.
         show_in (bool): Flag to control display of inward count.
         show_out (bool): Flag to control display of outward count.

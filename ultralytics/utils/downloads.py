@@ -81,7 +81,7 @@ def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_St
         >>> delete_dsstore("path/to/dir")
 
     Notes:
-        ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
+        ".DS_Store" files are created by the Apple operating system and contain metadata about folders and files. They
         are hidden system files and can cause issues when transferring files between different operating systems.
     """
     for file in files_to_delete:

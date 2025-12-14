@@ -35,7 +35,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
     if filename.endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         if success:
-            # Handle RGB images in tif/tiff format
+            # Handle multi-frame TIFFs and color images
             return frames[0] if len(frames) == 1 and frames[0].ndim == 3 else np.stack(frames, axis=2)
         return None
     else:
@@ -105,8 +105,8 @@ def torch_load(*args, **kwargs):
         (Any): The loaded PyTorch object.
 
     Notes:
-        For PyTorch versions 2.0 and above, this function automatically sets 'weights_only=False'
-        if the argument is not provided, to avoid deprecation warnings.
+        For PyTorch versions 1.13 and above, this function automatically sets `weights_only=False` if the argument is
+        not provided, to avoid deprecation warnings.
     """
     from ultralytics.utils.torch_utils import TORCH_1_13
 

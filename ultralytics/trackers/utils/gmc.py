@@ -34,11 +34,10 @@ class GMC:
     Examples:
         Create a GMC object and apply it to a frame
         >>> gmc = GMC(method="sparseOptFlow", downscale=2)
-        >>> frame = np.array([[1, 2, 3], [4, 5, 6]])
-        >>> processed_frame = gmc.apply(frame)
-        >>> print(processed_frame)
-        array([[1, 2, 3],
-               [4, 5, 6]])
+        >>> frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+        >>> warp = gmc.apply(frame)
+        >>> print(warp.shape)
+        (2, 3)
     """
 
     def __init__(self, method: str = "sparseOptFlow", downscale: int = 2) -> None:
@@ -85,7 +84,7 @@ class GMC:
         self.initializedFirstFrame = False
 
     def apply(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:
-        """Apply object detection on a raw frame using the specified method.
+        """Estimate a 2×3 motion compensation warp for a frame.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
@@ -145,7 +144,7 @@ class GMC:
         try:
             (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
         except Exception as e:
-            LOGGER.warning(f"find transform failed. Set warp as identity {e}")
+            LOGGER.warning(f"findTransformECC failed; using identity warp. {e}")
 
         return H
 

@@ -90,7 +90,7 @@ def onnx2saved_model(
     if int8:
         tmp_file = output_dir / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
         if images is not None:
-            output_dir.mkdir()
+            output_dir.mkdir(parents=True, exist_ok=True)
             np.save(str(tmp_file), images)  # BHWC
             np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
 
@@ -210,7 +210,7 @@ def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = Fals
     LOGGER.info(f"\n{prefix} output node names: {outputs}")
 
     quantization = "--quantize_float16" if half else "--quantize_uint8" if int8 else ""
-    with spaces_in_path(pb_file) as fpb_, spaces_in_path(output_dir) as f_:  # exporter can not handle spaces in path
+    with spaces_in_path(pb_file) as fpb_, spaces_in_path(output_dir) as f_:  # exporter cannot handle spaces in paths
         cmd = (
             "tensorflowjs_converter "
             f'--input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'

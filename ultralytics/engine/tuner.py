@@ -8,7 +8,7 @@ that yield the best model performance. This is particularly crucial in deep lear
 where small changes in hyperparameters can lead to significant differences in model accuracy and efficiency.
 
 Examples:
-    Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
+    Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=10 for 300 tuning iterations.
     >>> from ultralytics import YOLO
     >>> model = YOLO("yolo11n.pt")
     >>> model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
@@ -55,7 +55,7 @@ class Tuner:
         __call__: Execute the hyperparameter evolution across multiple iterations.
 
     Examples:
-        Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
+        Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=10 for 300 tuning iterations.
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
         >>> model.tune(
@@ -283,7 +283,6 @@ class Tuner:
         """Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
-            parent (str): Parent selection method (kept for API compatibility, unused in BLX mode).
             n (int): Number of top parents to consider.
             mutation (float): Probability of a parameter mutation in any given iteration.
             sigma (float): Standard deviation for Gaussian random number generator.

@@ -714,11 +714,11 @@ class BaseTrainer:
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):
-        """Return a NotImplementedError when the get_validator function is called."""
+        """Raise NotImplementedError (must be implemented by subclasses)."""
         raise NotImplementedError("get_validator function not implemented in trainer")
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
-        """Return dataloader derived from torch.data.Dataloader."""
+        """Raise NotImplementedError (must return a `torch.utils.data.DataLoader` in subclasses)."""
         raise NotImplementedError("get_dataloader function not implemented in trainer")
 
     def build_dataset(self, img_path, mode="train", batch=None):

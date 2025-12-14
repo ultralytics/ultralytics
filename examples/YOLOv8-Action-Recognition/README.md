@@ -66,7 +66,7 @@ python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgX
 ## 🛠️ Usage Options
 
 - `--weights`: Path to the YOLO [model weights](https://www.ultralytics.com/glossary/model-weights) file (default: `"yolov8n.pt"`). You can choose other models like `yolov8s.pt`, `yolov8m.pt`, etc.
-- `--device`: Cuda device identifier (e.g., `0` or `0,1,2,3`) or `cpu` to run on the [CPU](https://www.ultralytics.com/glossary/cpu) (default: auto-detects available [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
+- `--device`: CUDA device identifier (e.g., `0` or `0,1,2,3`) or `cpu` to run on the [CPU](https://www.ultralytics.com/glossary/cpu) (default: auto-detects available [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
 - `--source`: Path to a local video file or a YouTube URL (default: "[rickroll](https://www.youtube.com/watch?v=dQw4w9WgXcQ)").
 - `--output-path`: Path to save the output video file (e.g., `output.mp4`). If not specified, the video is displayed in a window.
 - `--crop-margin-percentage`: Percentage of margin to add around detected objects before cropping for classification (default: `10`).

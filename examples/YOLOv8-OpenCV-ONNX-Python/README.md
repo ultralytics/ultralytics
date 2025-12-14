@@ -22,7 +22,7 @@ Follow these simple steps to get the example running on your local machine.
     ```
 
 3.  **Run the Detection Script:**
-    Execute the main Python script, specifying the ONNX model path and the input image. A pre-exported `yolov8n.onnx` model is included for convenience.
+    Execute the main Python script, specifying the ONNX model path and the input image.
     ```bash
     python main.py --model yolov8n.onnx --img image.jpg
     ```

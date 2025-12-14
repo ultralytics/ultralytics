@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Tests Ultralytics Solutions: https://docs.ultralytics.com/solutions/,
-# including every solution excluding DistanceCalculation and Security Alarm System.
+# Includes all solutions except DistanceCalculation and the Security Alarm System.
 
 import os
 from unittest.mock import patch
@@ -16,7 +16,7 @@ from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, checks
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_2_4
 
-# Pre-defined arguments values
+# Predefined argument values
 SHOW = False
 DEMO_VIDEO = "solutions_ci_demo.mp4"  # for all the solutions, except workout, object cropping and parking management
 CROP_VIDEO = "decelera_landscape_min.mov"  # for object cropping solution
@@ -243,13 +243,13 @@ def test_parking_json_none():
 
 
 def test_analytics_graph_not_supported():
-    """Test that unsupported analytics type raises ModuleNotFoundError."""
+    """Test that unsupported analytics type raises ValueError."""
     try:
         analytics = solutions.Analytics(analytics_type="test")  # 'test' is unsupported
         analytics.process(im0=np.zeros((640, 480, 3), dtype=np.uint8), frame_number=0)
-        assert False, "Expected ModuleNotFoundError for unsupported chart type"
-    except ModuleNotFoundError as e:
-        assert "test chart is not supported" in str(e)
+        assert False, "Expected ValueError for unsupported chart type"
+    except ValueError as e:
+        assert "Unsupported analytics_type" in str(e)
 
 
 def test_area_chart_padding():

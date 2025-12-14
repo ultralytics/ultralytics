@@ -142,7 +142,7 @@ class DataExportMixin:
 
     This class provides utilities to export performance metrics (e.g., mAP, precision, recall) or prediction results
     from classification, object detection, segmentation, or pose estimation tasks into various formats: Polars
-    DataFrame, CSV and JSON.
+    DataFrame, CSV, and JSON.
 
     Methods:
         to_df: Convert summary to a Polars DataFrame.
@@ -159,14 +159,14 @@ class DataExportMixin:
     """
 
     def to_df(self, normalize=False, decimals=5):
-        """Create a polars DataFrame from the prediction results summary or validation metrics.
+        """Create a Polars DataFrame from the prediction results summary or validation metrics.
 
         Args:
             normalize (bool, optional): Normalize numerical values for easier comparison.
             decimals (int, optional): Decimal places to round floats.
 
         Returns:
-            (DataFrame): DataFrame containing the summary data.
+            (polars.DataFrame): Polars DataFrame containing the summary data.
         """
         import polars as pl  # scope for faster 'import ultralytics'
 

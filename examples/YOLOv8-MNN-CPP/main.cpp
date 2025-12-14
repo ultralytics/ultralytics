@@ -184,7 +184,7 @@ public:
             rectangle(originalImage, { x1, y1 }, { x2, y2 }, { 0, 255, 0 }, 2);
         }
         if (imwrite("mnn_yolov8_cpp.jpg", originalImage)) {
-            MNN_PRINT("Result image write to `mnn_yolov8_cpp.jpg`.\n");
+            MNN_PRINT("Result image written to `mnn_yolov8_cpp.jpg`.\n");
         }
     }
 

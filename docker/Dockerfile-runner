@@ -22,7 +22,9 @@ RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
     # Install runner dependencies \
     uv pip install --system pytest-cov && \
     ./bin/installdependencies.sh && \
-    apt-get -y install libicu-dev
+    apt-get update && \
+    apt-get -y install libicu-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # JSON ENTRYPOINT command to configure and start runner with default TOKEN and NAME
 ENTRYPOINT ["sh", "-c", "./config.sh --url https://github.com/ultralytics/ultralytics --token ${GITHUB_RUNNER_TOKEN:-TOKEN} --name ${GITHUB_RUNNER_NAME:-NAME} --labels gpu-latest --replace && ./run.sh"]

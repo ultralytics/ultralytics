@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# DIUx xView 2018 Challenge https://challenge.xviewdataset.org by U.S. National Geospatial-Intelligence Agency (NGA)
-# --------  DOWNLOAD DATA MANUALLY and jar xf val_images.zip to 'datasets/xView' before running train command!  --------
+# DIUx xView 2018 Challenge dataset https://challenge.xviewdataset.org by U.S. National Geospatial-Intelligence Agency (NGA)
+# --------  Download and extract data manually to `datasets/xView` before running the train command.  --------
 # Documentation: https://docs.ultralytics.com/datasets/detect/xview/
 # Example usage: yolo train data=xView.yaml
 # parent
@@ -12,7 +12,7 @@
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: xView # dataset root dir
 train: images/autosplit_train.txt # train images (relative to 'path') 90% of 847 train images
-val: images/autosplit_val.txt # train images (relative to 'path') 10% of 847 train images
+val: images/autosplit_val.txt # val images (relative to 'path') 10% of 847 train images
 
 # Classes
 names:
@@ -80,8 +80,8 @@ names:
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
   import json
-  import os
   from pathlib import Path
+  import shutil
 
   import numpy as np
   from PIL import Image
@@ -92,15 +92,15 @@ download: |
 
 
   def convert_labels(fname=Path("xView/xView_train.geojson")):
-      """Converts xView geoJSON labels to YOLO format, mapping classes to indices 0-59 and saving as text files."""
+      """Convert xView GeoJSON labels to YOLO format (classes 0-59) and save them as text files."""
       path = fname.parent
       with open(fname, encoding="utf-8") as f:
           print(f"Loading {fname}...")
           data = json.load(f)
 
       # Make dirs
-      labels = Path(path / "labels" / "train")
-      os.system(f"rm -rf {labels}")
+      labels = path / "labels" / "train"
+      shutil.rmtree(labels, ignore_errors=True)
       labels.mkdir(parents=True, exist_ok=True)
 
       # xView classes 11-94 to 0-59
@@ -113,24 +113,24 @@ download: |
       for feature in TQDM(data["features"], desc=f"Converting {fname}"):
           p = feature["properties"]
           if p["bounds_imcoords"]:
-              id = p["image_id"]
-              file = path / "train_images" / id
-              if file.exists():  # 1395.tif missing
+              image_id = p["image_id"]
+              image_file = path / "train_images" / image_id
+              if image_file.exists():  # 1395.tif missing
                   try:
                       box = np.array([int(num) for num in p["bounds_imcoords"].split(",")])
                       assert box.shape[0] == 4, f"incorrect box shape {box.shape[0]}"
                       cls = p["type_id"]
-                      cls = xview_class2index[int(cls)]  # xView class to 0-60
+                      cls = xview_class2index[int(cls)]  # xView class to 0-59
                       assert 59 >= cls >= 0, f"incorrect class index {cls}"
 
                       # Write YOLO label
-                      if id not in shapes:
-                          shapes[id] = Image.open(file).size
-                      box = xyxy2xywhn(box[None].astype(np.float), w=shapes[id][0], h=shapes[id][1], clip=True)
-                      with open((labels / id).with_suffix(".txt"), "a", encoding="utf-8") as f:
+                      if image_id not in shapes:
+                          shapes[image_id] = Image.open(image_file).size
+                      box = xyxy2xywhn(box[None].astype(float), w=shapes[image_id][0], h=shapes[image_id][1], clip=True)
+                      with open((labels / image_id).with_suffix(".txt"), "a", encoding="utf-8") as f:
                           f.write(f"{cls} {' '.join(f'{x:.6f}' for x in box[0])}\n")  # write label.txt
                   except Exception as e:
-                      print(f"WARNING: skipping one label for {file}: {e}")
+                      print(f"WARNING: skipping one label for {image_file}: {e}")
 
 
   # Download manually from https://challenge.xviewdataset.org

@@ -69,7 +69,7 @@ class LoadStreams:
         shape (list[tuple[int, int, int]]): List of shapes for each stream.
         caps (list[cv2.VideoCapture]): List of cv2.VideoCapture objects for each stream.
         bs (int): Batch size for processing.
-        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
+        cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
 
     Methods:
         update: Read stream frames in daemon thread.
@@ -98,14 +98,14 @@ class LoadStreams:
             sources (str): Path to streams file or single stream URL.
             vid_stride (int): Video frame-rate stride.
             buffer (bool): Whether to buffer input streams.
-            channels (int): Number of image channels (1 for grayscale, 3 for RGB).
+            channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.buffer = buffer  # buffer input streams
         self.running = True  # running flag for Thread
         self.mode = "stream"
         self.vid_stride = vid_stride  # video frame-rate stride
-        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or RGB
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
@@ -242,7 +242,7 @@ class LoadScreenshots:
         bs (int): Batch size, set to 1.
         fps (int): Frames per second, set to 30.
         monitor (dict[str, int]): Monitor configuration details.
-        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
+        cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
 
     Methods:
         __iter__: Returns an iterator object.
@@ -259,7 +259,7 @@ class LoadScreenshots:
 
         Args:
             source (str): Screen capture source string in format "screen_num left top width height".
-            channels (int): Number of image channels (1 for grayscale, 3 for RGB).
+            channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         check_requirements("mss")
         import mss
@@ -277,7 +277,7 @@ class LoadScreenshots:
         self.sct = mss.mss()
         self.bs = 1
         self.fps = 30
-        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or RGB
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
         # Parse monitor shape
         monitor = self.sct.monitors[self.screen]
@@ -319,7 +319,7 @@ class LoadImagesAndVideos:
         frames (int): Total number of frames in the video.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
-        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
+        cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
 
     Methods:
         __init__: Initialize the LoadImagesAndVideos object.
@@ -347,7 +347,7 @@ class LoadImagesAndVideos:
             path (str | Path | list): Path to images/videos, directory, or list of paths.
             batch (int): Batch size for processing.
             vid_stride (int): Video frame-rate stride.
-            channels (int): Number of image channels (1 for grayscale, 3 for RGB).
+            channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         parent = None
         if isinstance(path, str) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
@@ -385,7 +385,7 @@ class LoadImagesAndVideos:
         self.mode = "video" if ni == 0 else "image"  # default to video if no images
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
-        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or RGB
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
         if any(videos):
             self._new_video(videos[0])  # new video
         else:
@@ -513,7 +513,7 @@ class LoadPilAndNumpy:
 
         Args:
             im0 (PIL.Image.Image | np.ndarray | list): Single image or list of images in PIL or numpy format.
-            channels (int): Number of image channels (1 for grayscale, 3 for RGB).
+            channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         if not isinstance(im0, list):
             im0 = [im0]
@@ -526,11 +526,16 @@ class LoadPilAndNumpy:
 
     @staticmethod
     def _single_check(im: Image.Image | np.ndarray, flag: str = "RGB") -> np.ndarray:
-        """Validate and format an image to numpy array, ensuring RGB order and contiguous memory."""
+        """Validate and format an image to a NumPy array.
+
+        Notes:
+            - PIL inputs are converted to NumPy and returned in OpenCV-compatible BGR order for color images.
+            - NumPy inputs are returned as-is (no channel-order conversion is applied).
+        """
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
             im = np.asarray(im.convert(flag))
-            # adding new axis if it's grayscale, and converting to BGR if it's RGB
+            # Add a new axis if grayscale; convert RGB -> BGR for OpenCV compatibility.
             im = im[..., None] if flag == "L" else im[..., ::-1]
             im = np.ascontiguousarray(im)  # contiguous
         elif im.ndim == 2:  # grayscale in numpy form

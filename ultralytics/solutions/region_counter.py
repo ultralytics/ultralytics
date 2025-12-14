@@ -67,7 +67,7 @@ class RegionCounter(BaseSolution):
             text_color (tuple[int, int, int]): BGR color for the text within the region.
 
         Returns:
-            (dict[str, any]): Returns a dictionary including the region information i.e. name, region_color etc.
+            (dict[str, Any]): Region information including name, polygon, and display colors.
         """
         region = self.region_template.copy()
         region.update(
@@ -82,7 +82,7 @@ class RegionCounter(BaseSolution):
         return region
 
     def initialize_regions(self):
-        """Initialize regions only once."""
+        """Initialize regions from `self.region` only once."""
         if self.region is None:
             self.initialize_region()
         if not isinstance(self.region, dict):  # Ensure self.region is initialized and structured as a dictionary

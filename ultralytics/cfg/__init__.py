@@ -89,13 +89,13 @@ SOLUTIONS_HELP_MSG = f"""
     1. Call object counting solution
         yolo solutions count source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
 
-    2. Call heatmaps solution
+    2. Call heatmap solution
         yolo solutions heatmap colormap=cv2.COLORMAP_PARULA model=yolo11n.pt
 
     3. Call queue management solution
         yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" model=yolo11n.pt
 
-    4. Call workouts monitoring solution for push-ups
+    4. Call workout monitoring solution for push-ups
         yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
 
     5. Generate analytical graphs
@@ -123,14 +123,14 @@ CLI_HELP_MSG = f"""
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
         yolo predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
-    3. Val a pretrained detection model at batch-size 1 and image size 640:
+    3. Validate a pretrained detection model at batch-size 1 and image size 640:
         yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
 
     4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
 
     5. Ultralytics solutions usage
-        yolo solutions count or in {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video.mp4"
+        yolo solutions count or any of {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video.mp4"
 
     6. Run special commands:
         yolo help

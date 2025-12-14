@@ -26,9 +26,10 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
         use_lap (bool): Use lap.lapjv for the assignment. If False, scipy.optimize.linear_sum_assignment is used.
 
     Returns:
-        matched_indices (np.ndarray): Array of matched indices of shape (K, 2), where K is the number of matches.
-        unmatched_a (np.ndarray): Array of unmatched indices from the first set, with shape (L,).
-        unmatched_b (np.ndarray): Array of unmatched indices from the second set, with shape (M,).
+        matched_indices (list[list[int]] | np.ndarray): Matched indices of shape (K, 2), where K is the number of
+            matches.
+        unmatched_a (np.ndarray): Unmatched indices from the first set, with shape (L,).
+        unmatched_b (np.ndarray): Unmatched indices from the second set, with shape (M,).
 
     Examples:
         >>> cost_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])

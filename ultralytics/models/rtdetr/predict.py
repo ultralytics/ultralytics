@@ -75,11 +75,10 @@ class RTDETRPredictor(BasePredictor):
     def pre_transform(self, im):
         """Pre-transform input images before feeding them into the model for inference.
 
-        The input images are letterboxed to ensure a square aspect ratio and scale-filled. The size must be square (640)
-        and scale_filled.
+        The input images are letterboxed to ensure a square aspect ratio and scale-filled.
 
         Args:
-            im (list[np.ndarray]  | torch.Tensor): Input images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for
+            im (list[np.ndarray] | torch.Tensor): Input images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for
                 list.
 
         Returns:

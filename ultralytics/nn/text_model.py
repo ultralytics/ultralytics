@@ -308,7 +308,7 @@ class MobileCLIPTS(TextModel):
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).
 
         Examples:
-            >>> model = MobileCLIPTS("cpu")
+            >>> model = MobileCLIPTS(device=torch.device("cpu"))
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
             >>> strict_tokens = model.tokenize(
             ...     ["a very long caption"], truncate=False

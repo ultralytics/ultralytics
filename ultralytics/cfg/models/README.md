@@ -2,22 +2,22 @@
 
 # Ultralytics Model Configurations
 
-Welcome to the [Ultralytics](https://www.ultralytics.com/) Models configuration directory! This directory contains a comprehensive collection of pre-configured model configuration files (`*.yaml`). These files serve as blueprints for creating custom [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/) models, meticulously crafted and fine-tuned by the Ultralytics team. Our goal is to provide optimal performance across a diverse range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks, including [object detection](https://docs.ultralytics.com/tasks/detect/), [image segmentation](https://docs.ultralytics.com/tasks/segment/), pose estimation, and [object tracking](https://docs.ultralytics.com/modes/track/).
+Welcome to the [Ultralytics](https://www.ultralytics.com/) models configuration directory. This folder contains a collection of model configuration files (`*.yaml`) that define Ultralytics YOLO model architectures. These configurations are used across common [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [object detection](https://docs.ultralytics.com/tasks/detect/), [image segmentation](https://docs.ultralytics.com/tasks/segment/), pose estimation, oriented bounding boxes (OBB), and image classification.
 
-These configurations cater to various scenarios and are engineered for efficiency, running smoothly on different hardware platforms, from standard [CPUs](https://en.wikipedia.org/wiki/Central_processing_unit) to powerful [GPUs](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit). Whether you're an experienced [machine learning](https://en.wikipedia.org/wiki/Machine_learning) practitioner or new to the YOLO ecosystem, this directory offers an excellent starting point for your custom model development journey.
+Configurations are designed to run efficiently on a range of hardware, from standard [CPUs](https://en.wikipedia.org/wiki/Central_processing_unit) to modern [GPUs](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit). Pick a base model that matches your constraints (latency, memory, and accuracy), then customize it as needed.
 
-To begin, explore the models within this directory and select one that aligns with your project requirements. You can then use the corresponding `*.yaml` file (learn more about the [YAML format](https://www.ultralytics.com/glossary/yaml)) to [train](https://docs.ultralytics.com/modes/train/) and deploy your custom YOLO model effortlessly. For detailed guidance, refer to the Ultralytics [Documentation](https://docs.ultralytics.com/), and don't hesitate to reach out to the community via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) if you need support. Start building your custom YOLO model today!
+To get started, choose a `*.yaml` file (see the [YAML format](https://www.ultralytics.com/glossary/yaml)) and use it to [train](https://docs.ultralytics.com/modes/train/) or export your model. For more details, see the Ultralytics [Documentation](https://docs.ultralytics.com/) or open a question on [GitHub Issues](https://github.com/ultralytics/ultralytics/issues).
 
 ## 🚀 Usage
 
-Model `*.yaml` configuration files can be directly utilized in the [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli/) using the `yolo` command:
+Model configuration files (`*.yaml`) can be used directly from the [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli/) via the `yolo` command:
 
 ```bash
 # Train a YOLO11n detection model using the coco8 dataset for 100 epochs
 yolo task=detect mode=train model=yolo11n.yaml data=coco8.yaml epochs=100 imgsz=640
 ```
 
-These files are [Python](https://www.python.org/)-compatible, accepting the same [configuration arguments](https://docs.ultralytics.com/usage/cfg/) as shown in the CLI example:
+The same YAML files can be used from [Python](https://www.python.org/), with the same [configuration arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI:
 
 ```python
 from ultralytics import YOLO
@@ -42,7 +42,7 @@ results = model("path/to/image.jpg")
 
 ## 🏗️ Pre-trained Model Architectures
 
-Ultralytics supports a variety of cutting-edge model architectures. Visit the [Ultralytics Models](https://docs.ultralytics.com/models/) documentation page for in-depth information and usage examples for each model, including:
+Ultralytics supports a variety of model architectures. Visit the [Ultralytics Models](https://docs.ultralytics.com/models/) documentation page for details and usage examples, including:
 
 - [YOLO12](https://docs.ultralytics.com/models/yolo12/)
 - [YOLO11](https://docs.ultralytics.com/models/yolo11/)
@@ -60,6 +60,6 @@ Have you developed a novel YOLO variant, experimented with a unique architecture
 
 Sharing your work here allows others to benefit from your insights and expands the range of available model choices. It's an excellent way to showcase your expertise and make the Ultralytics YOLO platform even more versatile and powerful.
 
-To contribute, please review our [Contributing Guide](https://docs.ultralytics.com/help/contributing/) for detailed instructions on submitting a [Pull Request (PR)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) 🛠️. We eagerly await your contributions!
+To contribute, review the [Contributing Guide](https://docs.ultralytics.com/help/contributing/) for instructions on submitting a [Pull Request (PR)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
 
-Let's collaborate to enhance the capabilities and diversity of the Ultralytics YOLO models 🙏!
+Thank you for helping improve the Ultralytics model zoo.

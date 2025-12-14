@@ -13,7 +13,7 @@ class AIGym(BaseSolution):
     repetitions of exercises based on predefined angle thresholds for up and down positions.
 
     Attributes:
-        states (dict[float, int, str]): Stores per-track angle, count, and stage for workout monitoring.
+        states (dict[int, dict[str, float | int | str]]): Per-track angle, rep count, and stage for workout monitoring.
         up_angle (float): Angle threshold for considering the 'up' position of an exercise.
         down_angle (float): Angle threshold for considering the 'down' position of an exercise.
         kpts (list[int]): Indices of keypoints used for angle calculation.

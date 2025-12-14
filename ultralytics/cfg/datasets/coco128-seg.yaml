@@ -2,7 +2,7 @@
 
 # COCO128-seg dataset https://www.kaggle.com/datasets/ultralytics/coco128 (first 128 images from COCO train2017) by Ultralytics
 # Documentation: https://docs.ultralytics.com/datasets/segment/coco/
-# Example usage: yolo train data=coco128.yaml
+# Example usage: yolo train data=coco128-seg.yaml
 # parent
 # ├── ultralytics
 # └── datasets

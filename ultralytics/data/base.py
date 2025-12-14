@@ -33,7 +33,8 @@ class BaseDataset(Dataset):
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
         fraction (float): Fraction of dataset to utilize.
-        channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
+        channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with OpenCV
+            are in BGR channel order.
         cv2_flag (int): OpenCV flag for reading images.
         im_files (list[str]): List of image file paths.
         labels (list[dict]): List of label data dictionaries.
@@ -101,7 +102,8 @@ class BaseDataset(Dataset):
             single_cls (bool): If True, single class training is used.
             classes (list[int], optional): List of included classes.
             fraction (float): Fraction of dataset to utilize.
-            channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
+            channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
+                OpenCV are in BGR channel order.
         """
         super().__init__()
         self.img_path = img_path

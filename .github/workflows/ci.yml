@@ -7,6 +7,10 @@ name: CI
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
 env:
   PYTHONFAULTHANDLER: 1
 

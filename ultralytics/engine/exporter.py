@@ -1045,7 +1045,7 @@ class Exporter:
         )
         # Install onnx-graphsurgeon from git (with onnx>=1.20 fix) separately as uv fails with #subdirectory URLs
         check_requirements(
-            "onnx_graphsurgeon @ git+https://github.com/NVIDIA/TensorRT.git@fbb76a32d4ff271e77d83ebfba442f90b96f0599#subdirectory=tools/onnx-graphsurgeon",
+            "git+https://github.com/NVIDIA/TensorRT.git@fbb76a32d4ff271e77d83ebfba442f90b96f0599#subdirectory=tools/onnx-graphsurgeon",
         )
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")

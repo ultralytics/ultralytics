@@ -112,8 +112,9 @@ class SAM3VLBackbone(nn.Module):
         xs = self.vision_backbone.trunk(samples)
         x = xs[-1]  # simpleFPN
 
-        assert self.vision_backbone.sam2_convs is not None, "SAM2 neck is not available."
-        sam2_features, sam2_pos = self.vision_backbone._forward_convs(x, self.vision_backbone.sam2_convs)
+        if self.vision_backbone.sam2_convs is None:
+            raise RuntimeError("SAM2 neck is not available. Ensure 'add_sam2_neck=True' during initialization.")
+        sam2_features, sam2_pos = self.vision_backbone.sam_forward_feature_levels(x, self.vision_backbone.sam2_convs)
 
         if self.scalp > 0:
             # Discard the lowest resolution features

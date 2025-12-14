@@ -128,7 +128,15 @@ from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_4, TORCH_2_9, select_device
+from ultralytics.utils.torch_utils import (
+    TORCH_1_10,
+    TORCH_1_11,
+    TORCH_1_13,
+    TORCH_2_1,
+    TORCH_2_4,
+    TORCH_2_9,
+    select_device,
+)
 
 
 def export_formats():
@@ -662,7 +670,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0,<=1.19.1"]
+        requirements = ["onnx>=1.12.0,<=1.19.1"]  # pin until onnx_graphsurgeon supports onnx>=1.20
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
@@ -724,7 +732,7 @@ class Exporter:
             model_onnx.ir_version = 10
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
-        if self.args.half and self.device.type == "cpu":
+        if self.args.half and self.args.format == "onnx" and self.device.type == "cpu":
             try:
                 from onnxruntime.transformers import float16
 
@@ -838,6 +846,7 @@ class Exporter:
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
+        assert TORCH_1_10, "MNN export requires torch>=1.10.0 to avoid segmentation faults"
         f_onnx = self.export_onnx()  # get onnx model first
 
         check_requirements("MNN>=2.9.6")
@@ -1042,7 +1051,7 @@ class Exporter:
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
-                "onnx>=1.12.0,<=1.19.1",
+                "onnx>=1.12.0,<=1.19.1",  # pin until onnx_graphsurgeon releases onnx>=1.20 fix
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.71",
                 "onnxruntime-gpu" if cuda else "onnxruntime",

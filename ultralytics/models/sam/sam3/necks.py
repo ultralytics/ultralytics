@@ -104,12 +104,7 @@ class Sam3DualViTDetNeck(nn.Module):
     def forward(
         self, tensor_list: list[torch.Tensor]
     ) -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor] | None, list[torch.Tensor] | None]:
-        """Get the feature maps and positional encodings from the neck.
-
-        Returns:
-            Tuple of (sam3_features, sam3_pos, sam2_features, sam2_pos).
-            SAM2 outputs are None when add_sam2_neck=False.
-        """
+        """Get feature maps and positional encodings from the neck."""
         xs = self.trunk(tensor_list)
         x = xs[-1]  # simpleFPN
         sam3_out, sam3_pos = self.sam_forward_feature_levels(x, self.convs)
@@ -121,15 +116,7 @@ class Sam3DualViTDetNeck(nn.Module):
     def sam_forward_feature_levels(
         self, x: torch.Tensor, convs: nn.ModuleList
     ) -> tuple[list[torch.Tensor], list[torch.Tensor]]:
-        """Run SAM neck convolutions and compute positional encodings for each feature level.
-
-        Args:
-            x: Input feature tensor from the trunk backbone (single shared input for all conv levels).
-            convs: Module list of convolution sequences to apply.
-
-        Returns:
-            Tuple of (features, positional_encodings) lists for each conv level.
-        """
+        """Run neck convolutions and compute positional encodings for each feature level."""
         outs, poss = [], []
         for conv in convs:
             feat = conv(x)

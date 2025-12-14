@@ -868,7 +868,7 @@ class WorldModel(DetectionModel):
         self.model[-1].nc = len(text)
 
     def get_text_pe(self, text, batch=80, cache_clip_model=True):
-        """Set classes in advance so that model could do offline-inference without clip model.
+        """Get text positional embeddings for offline inference without CLIP model.
 
         Args:
             text (list[str]): List of class names.
@@ -989,13 +989,13 @@ class YOLOEModel(DetectionModel):
 
     @smart_inference_mode()
     def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):
-        """Set classes in advance so that model could do offline-inference without clip model.
+        """Get text positional embeddings for offline inference without CLIP model.
 
         Args:
             text (list[str]): List of class names.
             batch (int): Batch size for processing text tokens.
             cache_clip_model (bool): Whether to cache the CLIP model.
-            without_reprta (bool): Whether to return text embeddings cooperated with reprta module.
+            without_reprta (bool): Whether to return text embeddings without reprta module processing.
 
         Returns:
             (torch.Tensor): Text positional embeddings.
@@ -1732,10 +1732,10 @@ def guess_model_task(model):
     if isinstance(model, torch.nn.Module):  # PyTorch model
         for x in "model.args", "model.model.args", "model.model.model.args":
             with contextlib.suppress(Exception):
-                return eval(x)["task"]
+                return eval(x)["task"]  # nosec B307: safe eval of known attribute paths
         for x in "model.yaml", "model.model.yaml", "model.model.model.yaml":
             with contextlib.suppress(Exception):
-                return cfg2task(eval(x))
+                return cfg2task(eval(x))  # nosec B307: safe eval of known attribute paths
         for m in model.modules():
             if isinstance(m, (Segment, YOLOESegment)):
                 return "segment"

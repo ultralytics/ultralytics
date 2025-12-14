@@ -727,14 +727,16 @@ class Exporter:
             model_onnx.ir_version = 10
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
-        # Skip FP16 conversion for TF formats with NMS as it causes dtype mismatch in onnx2tf conversion
-        is_tf = self.args.format in frozenset({"saved_model", "pb", "tflite", "edgetpu", "tfjs"})
-        if self.args.half and self.device.type == "cpu" and not (is_tf and self.args.nms):
+        if self.args.half and self.device.type == "cpu":
             try:
                 from onnxruntime.transformers import float16
 
                 LOGGER.info(f"{prefix} converting to FP16...")
-                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
+                # When NMS is enabled, block additional ops to prevent dtype mismatches in onnx2tf conversion
+                blocks = float16.DEFAULT_OP_BLOCK_LIST
+                if self.args.nms:
+                    blocks = blocks + ["Gather", "GatherElements", "GatherND", "Where", "Concat", "Cast"]
+                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True, op_block_list=blocks)
             except Exception as e:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 

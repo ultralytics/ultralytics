@@ -56,16 +56,10 @@ class STrack(BaseTrack):
         """Initialize a new STrack instance.
 
         Args:
-            xywh (list[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where (x,
-                y) is the center, (w, h) are width and height, [a] is optional aspect ratio, and idx is the id.
+            xywh (list[float]): Bounding box in `(x, y, w, h, idx)` or `(x, y, w, h, angle, idx)` format, where (x, y)
+                is the center, (w, h) are width and height, and `idx` is the detection index.
             score (float): Confidence score of the detection.
             cls (Any): Class label for the detected object.
-
-        Examples:
-            >>> xywh = [100.0, 150.0, 50.0, 75.0, 1]
-            >>> score = 0.9
-            >>> cls = "person"
-            >>> track = STrack(xywh, score, cls)
         """
         super().__init__()
         # xywh+idx or xywha+idx
@@ -275,11 +269,6 @@ class BYTETracker:
         Args:
             args (Namespace): Command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video sequence.
-
-        Examples:
-            Initialize BYTETracker with command-line arguments and a frame rate of 30
-            >>> args = Namespace(track_buffer=30)
-            >>> tracker = BYTETracker(args, frame_rate=30)
         """
         self.tracked_stracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]
@@ -349,7 +338,7 @@ class BYTETracker:
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
         detections_second = self.init_track(results_second, feats_second)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
-        # TODO
+        # TODO: consider fusing scores or appearance features for second association.
         dists = matching.iou_distance(r_tracked_stracks, detections_second)
         matches, u_track, _u_detection_second = matching.linear_assignment(dists, thresh=0.5)
         for itracked, idet in matches:
@@ -400,7 +389,7 @@ class BYTETracker:
         self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
         self.removed_stracks.extend(removed_stracks)
         if len(self.removed_stracks) > 1000:
-            self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
+            self.removed_stracks = self.removed_stracks[-1000:]  # clip removed stracks to 1000 maximum
 
         return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
 

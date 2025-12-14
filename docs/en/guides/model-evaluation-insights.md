@@ -21,7 +21,7 @@ Once you've [trained](./model-training-tips.md) your computer vision model, eval
   <strong>Watch:</strong> Insights into Model Evaluation and Fine-Tuning | Tips for Improving Mean Average Precision
 </p>
 
-In this guide, we'll share insights on model evaluation and fine-tuning that'll make this [step of a computer vision project](./steps-of-a-cv-project.md) more approachable. We'll discuss how to understand evaluation metrics and implement fine-tuning techniques, giving you the knowledge to elevate your model's capabilities.
+In this guide, we share insights on model evaluation and fine-tuning to make this [step of a computer vision project](./steps-of-a-cv-project.md) more approachable. We discuss how to understand evaluation metrics and implement fine-tuning techniques, giving you the knowledge to elevate your model's capabilities.
 
 ## Evaluating Model Performance Using Metrics
 
@@ -116,7 +116,7 @@ The results object also includes speed metrics like preprocess time, inference t
 
 ## How Does Fine-Tuning Work?
 
-Fine-tuning involves taking a pre-trained model and adjusting its parameters to improve performance on a specific task or dataset. The process, also known as model retraining, allows the model to better understand and predict outcomes for the specific data it will encounter in real-world applications. You can retrain your model based on your model evaluation to achieve optimal results.
+Fine-tuning involves taking a pretrained model and adjusting its parameters to improve performance on a specific task or dataset. The process, also known as model retraining, allows the model to better understand and predict outcomes for the specific data it will encounter in real-world applications. You can retrain your model based on your model evaluation to achieve optimal results.
 
 ## Tips for Fine-Tuning Your Model
 
@@ -155,9 +155,9 @@ Evaluating and fine-tuning your computer vision model are important steps for su
 
 To evaluate YOLO11 model performance, important metrics include Confidence Score, Intersection over Union (IoU), and Mean Average Precision (mAP). Confidence Score measures the model's certainty for each detected object class. IoU evaluates how well the predicted bounding box overlaps with the ground truth. Mean Average Precision (mAP) aggregates precision scores across classes, with mAP@.5 and mAP@.5:.95 being two common types for varying IoU thresholds. Learn more about these metrics in our [YOLO11 performance metrics guide](./yolo-performance-metrics.md).
 
-### How can I fine-tune a pre-trained YOLO11 model for my specific dataset?
+### How can I fine-tune a pretrained YOLO11 model for my specific dataset?
 
-Fine-tuning a pre-trained YOLO11 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model using metrics, then set a higher initial learning rate by adjusting the `warmup_epochs` parameter to 0 for immediate stability. Use parameters like `rect=true` for handling varied image sizes effectively. For more detailed guidance, refer to our section on [fine-tuning YOLO11 models](#how-does-fine-tuning-work).
+Fine-tuning a pretrained YOLO11 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model using metrics, then set a higher initial learning rate by adjusting the `warmup_epochs` parameter to 0 for immediate stability. Use parameters like `rect=true` for handling varied image sizes effectively. For more detailed guidance, refer to our section on [fine-tuning YOLO11 models](#how-does-fine-tuning-work).
 
 ### How can I handle variable image sizes when evaluating my YOLO11 model?
 

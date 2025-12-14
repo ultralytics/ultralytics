@@ -46,7 +46,7 @@ This architecture supports zero-shot search, meaning you don't need labels or ca
 
         app = solutions.SearchApp(
             # data = "path/to/img/directory" # Optional, build search engine with your own images
-            device="cpu"  # configure the device for processing i.e "cpu" or "cuda"
+            device="cpu"  # configure the device for processing, e.g., "cpu" or "cuda"
         )
 
         app.run(debug=False)  # You can also use `debug=True` argument for testing
@@ -73,7 +73,7 @@ This class performs all the backend operations:
 
         searcher = solutions.VisualAISearch(
             # data = "path/to/img/directory" # Optional, build search engine with your own images
-            device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
+            device="cuda"  # configure the device for processing, e.g., "cpu" or "cuda"
         )
 
         results = searcher("a dog sitting on a bench")
@@ -140,7 +140,7 @@ While CLIP and FAISS are developed by OpenAI and Meta respectively, the [Ultraly
 
         searcher = solutions.VisualAISearch(
             # data = "path/to/img/directory" # Optional, build search engine with your own images
-            device="cuda"  # configure the device for processing i.e "cpu" or "cuda"
+            device="cuda"  # configure the device for processing, e.g., "cpu" or "cuda"
         )
 
         results = searcher("a dog sitting on a bench")
@@ -162,8 +162,8 @@ This high-level implementation handles:
 
 ### Can I customize the frontend of this app?
 
-Yes, you absolutely can. The current setup uses Flask with a basic HTML frontend, but you're free to swap in your own HTML or even build something more dynamic with React, Vue, or another frontend framework. Flask can easily serve as the backend API for your custom interface.
+Yes. The current setup uses Flask with a basic HTML frontend, but you can replace it with your own HTML or build a more dynamic UI with React, Vue, or another frontend framework. Flask can serve as the backend API for your custom interface.
 
 ### Is it possible to search through videos instead of static images?
 
-Not directly—but there's a simple workaround. You can extract individual frames from your videos (e.g., one every second), treat them as standalone images, and feed those into the system. This way, the search engine can semantically index visual moments from your videos.
+Not directly. A simple workaround is to extract individual frames from your videos (e.g., one every second), treat them as standalone images, and feed those into the system. This way, the search engine can semantically index visual moments from your videos.

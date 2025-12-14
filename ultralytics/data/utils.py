@@ -840,10 +840,12 @@ def verify_image_and_mask(args: tuple) -> list:
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
         image = cv2.imread(im_file)
+        assert image is not None
         img_shape = image.shape
 
         # verify mask
         mask = cv2.imread(lb_file)
+        assert mask is not None
         msk_shape = mask.shape
         assert msk_shape == img_shape
 

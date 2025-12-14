@@ -132,7 +132,7 @@ In this guide, we explored how to export Ultralytics YOLO11 models to the TF Gra
 
 For further details on usage, visit the [TF GraphDef official documentation](https://www.tensorflow.org/api_docs/python/tf/Graph).
 
-For more information on integrating Ultralytics YOLO11 with other platforms and frameworks, don't forget to check out our [integration guide page](index.md). It has great resources and insights to help you make the most of YOLO11 in your projects.
+For more information on integrating Ultralytics YOLO11 with other platforms and frameworks, see our [integration guide page](index.md).
 
 ## FAQ
 

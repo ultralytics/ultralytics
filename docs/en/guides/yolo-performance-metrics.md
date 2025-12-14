@@ -172,8 +172,6 @@ In this guide, we've taken a close look at the essential performance metrics for
 
 Remember, the YOLO11 and Ultralytics community is an invaluable asset. Engaging with fellow developers and experts can open doors to insights and solutions not found in standard documentation. As you journey through object detection, keep the spirit of learning alive, experiment with new strategies, and share your findings. By doing so, you contribute to the community's collective wisdom and ensure its growth.
 
-Happy object detecting!
-
 ## FAQ
 
 ### What is the significance of Mean Average Precision (mAP) in evaluating YOLO11 model performance?

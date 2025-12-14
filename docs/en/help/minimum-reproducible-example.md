@@ -74,7 +74,7 @@ RuntimeError: Expected input[1, 0, 640, 640] to have 3 channels, but got 0 chann
 - `torch==2.3.0`
 - `ultralytics==8.2.0`
 
-In this example, the MRE demonstrates the issue with a minimal amount of code, uses a public model (`"yolov8n.pt"`), includes all necessary dependencies, and provides a clear description of the problem along with the error message.
+In this example, the MRE demonstrates the issue with a minimal amount of code, uses a public model (`"yolo11n.pt"`), includes all necessary dependencies, and provides a clear description of the problem along with the error message.
 
 By following these guidelines, you'll help the maintainers and [contributors](https://github.com/ultralytics/ultralytics/graphs/contributors) of Ultralytics YOLO repositories to understand and resolve your issue more efficiently.
 
@@ -85,7 +85,7 @@ By following these guidelines, you'll help the maintainers and [contributors](ht
 To create an effective Minimum Reproducible Example (MRE) for bug reports in Ultralytics YOLO repositories, follow these steps:
 
 1. **Isolate the Problem**: Remove any code or dependencies that are not directly related to the issue.
-2. **Use Public Models and Datasets**: Utilize public resources like `yolov8n.pt` and `coco8.yaml` for easier reproducibility.
+2. **Use Public Models and Datasets**: Utilize public resources like `yolo11n.pt` and `coco8.yaml` for easier reproducibility.
 3. **Include All Necessary Dependencies**: Specify required packages and their versions. You can list dependencies using `yolo checks` if you have `ultralytics` installed or `pip list`.
 4. **Write a Clear Description of the Issue**: Explain the expected and actual behavior, including any error messages or logs.
 5. **Format Your Code Properly**: Use code blocks to format your code, making it easier to read.
@@ -95,7 +95,7 @@ For a detailed guide, see [Creating a Minimum Reproducible Example](#creating-a-
 
 ### Why should I use publicly available models and datasets in my MRE for Ultralytics YOLO bug reports?
 
-Using publicly available models and datasets in your MRE ensures that maintainers can easily run your example without needing access to proprietary data. This allows for quicker and more efficient issue resolution. For instance, using the `yolov8n.pt` model and `coco8.yaml` dataset helps standardize and simplify the debugging process. Learn more about public models and datasets in the [Use Public Models and Datasets](#2-use-public-models-and-datasets) section.
+Using publicly available models and datasets in your MRE ensures that maintainers can easily run your example without needing access to proprietary data. This allows for quicker and more efficient issue resolution. For instance, using the `yolo11n.pt` model and `coco8.yaml` dataset helps standardize and simplify the debugging process. Learn more about public models and datasets in the [Use Public Models and Datasets](#2-use-public-models-and-datasets) section.
 
 ### What information should I include in my bug report for Ultralytics YOLO?
 

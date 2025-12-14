@@ -59,4 +59,4 @@ colors:
   18: [119, 11, 32]
 
 # Download script/URL (optional)
-download: https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/v1.0/CityEcapse-YOLO-512-small.zip
+download: https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/datasets/Cityscapes-YOLO-512-small.zip

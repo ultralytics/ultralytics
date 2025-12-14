@@ -128,7 +128,15 @@ from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_4, TORCH_2_9, select_device
+from ultralytics.utils.torch_utils import (
+    TORCH_1_10,
+    TORCH_1_11,
+    TORCH_1_13,
+    TORCH_2_1,
+    TORCH_2_4,
+    TORCH_2_9,
+    select_device,
+)
 
 
 def export_formats():
@@ -833,6 +841,7 @@ class Exporter:
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
+        assert TORCH_1_10, "MNN export requires torch>=1.10.0 to avoid segmentation faults"
         f_onnx = self.export_onnx()  # get onnx model first
 
         check_requirements("MNN>=2.9.6")

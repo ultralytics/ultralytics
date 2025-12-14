@@ -727,7 +727,9 @@ class Exporter:
             model_onnx.ir_version = 10
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
-        if self.args.half and self.device.type == "cpu":
+        # Skip FP16 conversion for TF formats with NMS as it causes dtype mismatch in onnx2tf conversion
+        is_tf = self.args.format in frozenset({"saved_model", "pb", "tflite", "edgetpu", "tfjs"})
+        if self.args.half and self.device.type == "cpu" and not (is_tf and self.args.nms):
             try:
                 from onnxruntime.transformers import float16
 

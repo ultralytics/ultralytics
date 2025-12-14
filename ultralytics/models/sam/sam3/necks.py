@@ -107,8 +107,8 @@ class Sam3DualViTDetNeck(nn.Module):
         """Get the feature maps and positional encodings from the neck.
 
         Returns:
-            Tuple of (sam3_features, sam3_pos, sam2_features, sam2_pos).
-            SAM2 outputs are None when add_sam2_neck=False.
+            Tuple of (sam3_features, sam3_pos, sam2_features, sam2_pos).: SAM2 outputs are None when
+                add_sam2_neck=False.
         """
         xs = self.trunk(tensor_list)
         x = xs[-1]  # simpleFPN

@@ -244,7 +244,7 @@ jobs:
             python: "3.10"
             torch: "1.13.0"
             torchvision: "0.14.0"
-          - os: ubuntu-latest
+          - os: ubuntu-latest  # Axelera exports
             python: "3.10"
             torch: "2.8.0"
             torchvision: "0.23.0"
@@ -514,11 +514,11 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
+    needs: [HUB, Benchmarks, Tests, SlowTests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook-type: incoming-webhook

@@ -41,13 +41,13 @@ YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection
 
 ## Available Models, Supported Tasks, and Operating Modes
 
-This section details the models available with their specific pre-trained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
+This section details the models available with their specific pretrained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
 
 !!! note
 
     All the YOLOv8-World weights have been directly migrated from the official [YOLO-World](https://github.com/AILab-CVC/YOLO-World) repository, highlighting their excellent contributions.
 
-| Model Type      | Pre-trained Weights                                                                                     | Tasks Supported                        | Inference | Validation | Training | Export |
+| Model Type      | Pretrained Weights                                                                                      | Tasks Supported                        | Inference | Validation | Training | Export |
 | --------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOv8s-world   | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8s-world.pt)     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
 | YOLOv8s-worldv2 | [yolov8s-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8s-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
@@ -152,7 +152,7 @@ Object detection is straightforward with the `predict` method, as illustrated be
         yolo predict model=yolov8s-world.pt source=path/to/image.jpg imgsz=640
         ```
 
-This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
+This snippet demonstrates the simplicity of loading a pretrained model and running a prediction on an image.
 
 ### Val Usage
 
@@ -257,7 +257,7 @@ You can also save a model after setting custom classes. By doing this you create
         model.save("custom_yolov8s.pt")
         ```
 
-        After saving, the custom_yolov8s.pt model behaves like any other pre-trained YOLOv8 model but with a key difference: it is now optimized to detect only the classes you have defined. This customization can significantly improve detection performance and efficiency for your specific application scenarios.
+        After saving, the custom_yolov8s.pt model behaves like any other pretrained YOLOv8 model but with a key difference: it is now optimized to detect only the classes you have defined. This customization can significantly improve detection performance and efficiency for your specific application scenarios.
 
         ```python
         from ultralytics import YOLO
@@ -407,11 +407,11 @@ Or using CLI:
 yolo train model=yolov8s-worldv2.yaml data=coco8.yaml epochs=100 imgsz=640
 ```
 
-### What are the available pre-trained YOLO-World models and their supported tasks?
+### What are the available pretrained YOLO-World models and their supported tasks?
 
-Ultralytics offers multiple pre-trained YOLO-World models supporting various tasks and operating modes:
+Ultralytics offers multiple pretrained YOLO-World models supporting various tasks and operating modes:
 
-| Model Type      | Pre-trained Weights                                                                                     | Tasks Supported                        | Inference | Validation | Training | Export |
+| Model Type      | Pretrained Weights                                                                                      | Tasks Supported                        | Inference | Validation | Training | Export |
 | --------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOv8s-world   | [yolov8s-world.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8s-world.pt)     | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ❌     |
 | YOLOv8s-worldv2 | [yolov8s-worldv2.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8s-worldv2.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |

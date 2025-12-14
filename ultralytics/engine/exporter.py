@@ -1035,7 +1035,6 @@ class Exporter:
             (
                 "tf_keras<=2.19.0",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
-                "onnx_graphsurgeon @ git+https://github.com/NVIDIA/TensorRT.git@fbb76a32d4ff271e77d83ebfba442f90b96f0599#subdirectory=tools/onnx-graphsurgeon",
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
@@ -1043,7 +1042,10 @@ class Exporter:
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),
-            # cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
+        )
+        # Install onnx-graphsurgeon from git (with onnx>=1.20 fix) separately as uv fails with #subdirectory URLs
+        check_requirements(
+            "onnx_graphsurgeon @ git+https://github.com/NVIDIA/TensorRT.git@fbb76a32d4ff271e77d83ebfba442f90b96f0599#subdirectory=tools/onnx-graphsurgeon",
         )
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")

@@ -227,12 +227,12 @@ def _build_sam(
 
 def _build_sam2(
     encoder_embed_dim=1280,
-    encoder_stages=[2, 6, 36, 4],
+    encoder_stages=(2, 6, 36, 4),
     encoder_num_heads=2,
-    encoder_global_att_blocks=[7, 15, 23, 31],
-    encoder_backbone_channel_list=[1152, 576, 288, 144],
-    encoder_window_spatial_size=[7, 7],
-    encoder_window_spec=[8, 4, 16, 8],
+    encoder_global_att_blocks=(7, 15, 23, 31),
+    encoder_backbone_channel_list=(1152, 576, 288, 144),
+    encoder_window_spatial_size=(7, 7),
+    encoder_window_spec=(8, 4, 16, 8),
     checkpoint=None,
 ):
     """Build and return a Segment Anything Model 2 (SAM2) with specified architecture parameters.

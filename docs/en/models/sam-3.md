@@ -124,11 +124,9 @@ pip install -U ultralytics
 
 ## How to Use SAM 3: Versatility in Concept Segmentation
 
-SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks through different predictor interfaces.
+SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks through different predictor interfaces:
 
 ### Supported Tasks and Models
-
-SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks:
 
 | Task Type                      | Prompt Types                               | Output                                      |
 | ------------------------------ | ------------------------------------------ | ------------------------------------------- |
@@ -147,7 +145,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
     === "Python"
 
         ```python
-        from ultralytics.models.sam.predict import SAM3SemanticPredictor
+        from ultralytics.models.sam import SAM3SemanticPredictor
 
         # Initialize predictor with configuration
         overrides = dict(
@@ -188,7 +186,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
     === "Python"
 
         ```python
-        from ultralytics.models.sam.predict import SAM3SemanticPredictor
+        from ultralytics.models.sam import SAM3SemanticPredictor
 
         # Initialize predictor
         overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True)
@@ -215,7 +213,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         ```python
         import cv2
 
-        from ultralytics.models.sam.predict import SAM3SemanticPredictor
+        from ultralytics.models.sam import SAM3SemanticPredictor
         from ultralytics.utils.plotting import Annotator, colors
 
         # Initialize predictors
@@ -235,16 +233,17 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         masks, boxes = predictor2.inference_features(predictor.features, src_shape=src_shape, text=["person"])
 
         # Perform inference using shared features with bounding box prompt
-        masks, boxes = predictor2.inference_features(predictor.features, src_shape=src_shape, bboxes=[439, 437, 524, 709])
+        masks, boxes = predictor2.inference_features(predictor.features, src_shape=src_shape, bboxes=[[439, 437, 524, 709]])
 
         # Visualize results
-        masks, boxes = masks.cpu().numpy(), boxes.cpu().numpy()
-        im = cv2.imread(source)
-        annotator = Annotator(im, pil=False)
-        annotator.masks(masks, [colors(x, True) for x in range(len(masks))])
+        if masks is not None:
+            masks, boxes = masks.cpu().numpy(), boxes.cpu().numpy()
+            im = cv2.imread(source)
+            annotator = Annotator(im, pil=False)
+            annotator.masks(masks, [colors(x, True) for x in range(len(masks))])
 
-        cv2.imshow("result", annotator.result())
-        cv2.waitKey(0)
+            cv2.imshow("result", annotator.result())
+            cv2.waitKey(0)
         ```
 
 ### Video Concept Segmentation
@@ -258,7 +257,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
     === "Python"
 
         ```python
-        from ultralytics.models.sam.predict import SAM3VideoPredictor
+        from ultralytics.models.sam import SAM3VideoPredictor
 
         # Create video predictor
         overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True)
@@ -281,7 +280,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
     === "Python"
 
         ```python
-        from ultralytics.models.sam.sam3_video_model import SAM3VideoSemanticPredictor
+        from ultralytics.models.sam import SAM3VideoSemanticPredictor
 
         # Initialize semantic video predictor
         overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=640, model="sam3.pt", half=True)

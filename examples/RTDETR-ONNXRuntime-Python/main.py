@@ -25,9 +25,12 @@ def download_file(url: str, local_path: str) -> str:
         return local_path
     # Download the file from the URL
     print(f"Downloading {url} to {local_path}...")
-    response = requests.get(url)
+    response = requests.get(url, stream=True, timeout=30)
+    response.raise_for_status()
     with open(local_path, "wb") as f:
-        f.write(response.content)
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
+            if chunk:
+                f.write(chunk)
 
     return local_path
 
@@ -103,8 +106,7 @@ class RTDETR:
         if self.classes is None:
             # Load class names from the COCO dataset YAML file
             self.classes = download_file(
-                "https://raw.githubusercontent.com/ultralytics/"
-                "ultralytics/refs/heads/main/ultralytics/cfg/datasets/coco8.yaml",
+                "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco8.yaml",
                 "coco8.yaml",
             )
 
@@ -166,6 +168,8 @@ class RTDETR:
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.img_path)
+        if self.img is None:
+            raise FileNotFoundError(f"Image not found or unreadable: '{self.img_path}'")
 
         # Get the height and width of the input image
         self.img_height, self.img_width = self.img.shape[:2]
@@ -244,9 +248,14 @@ class RTDETR:
         boxes[:, 0::2] *= self.img_width
         boxes[:, 1::2] *= self.img_height
 
+        # Apply non-maximum suppression (optional for RT-DETR, but useful for filtering overlaps)
+        xywh_boxes = [[float(b[0]), float(b[1]), float(b[2] - b[0]), float(b[3] - b[1])] for b in boxes]
+        indices = cv2.dnn.NMSBoxes(xywh_boxes, scores.tolist(), self.conf_thres, self.iou_thres)
+        indices = indices.flatten().tolist() if len(indices) else []
+
         # Draw detections on the image
-        for box, score, label in zip(boxes, scores, labels):
-            self.draw_detections(box, score, label)
+        for i in indices:
+            self.draw_detections(boxes[i], float(scores[i]), int(labels[i]))
 
         return self.img
 

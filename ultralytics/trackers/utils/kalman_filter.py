@@ -42,10 +42,6 @@ class KalmanFilterXYAH:
         represents the bounding box center position, 'a' is the aspect ratio, 'h' is the height, and their respective
         velocities are (vx, vy, va, vh). The filter uses a constant velocity model for object motion and a linear
         observation model for bounding box location.
-
-        Examples:
-            Initialize a Kalman filter for tracking:
-            >>> kf = KalmanFilterXYAH()
         """
         ndim, dt = 4, 1.0
 
@@ -171,9 +167,10 @@ class KalmanFilterXYAH:
             covariance (np.ndarray): Covariance matrix of the predicted states with shape (N, 8, 8).
 
         Examples:
+            >>> kf = KalmanFilterXYAH()
             >>> mean = np.random.rand(10, 8)  # 10 object states
             >>> covariance = np.random.rand(10, 8, 8)  # Covariance matrices for 10 object states
-            >>> predicted_mean, predicted_covariance = kalman_filter.multi_predict(mean, covariance)
+            >>> predicted_mean, predicted_covariance = kf.multi_predict(mean, covariance)
         """
         std_pos = [
             self._std_weight_position * mean[:, 3],

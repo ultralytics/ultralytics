@@ -47,10 +47,6 @@ class TritonRemoteModel:
             url (str): The URL of the Triton server.
             endpoint (str, optional): The name of the model on the Triton server.
             scheme (str, optional): The communication scheme ('http' or 'grpc').
-
-        Examples:
-            >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
-            >>> model = TritonRemoteModel(url="http://localhost:8000/yolov8")
         """
         if not endpoint and not scheme:  # Parse all args from URL string
             splits = urlsplit(url)

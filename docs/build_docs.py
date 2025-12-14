@@ -70,7 +70,7 @@ def prepare_docs_markdown(clone_repos: bool = True):
         repo = "https://github.com/ultralytics/hub-sdk"
         local_dir = DOCS / "repos" / Path(repo).name
         subprocess.run(
-            ["git", "clone", repo, str(local_dir), "--depth", "1", "--single-branch", "--branch", "main"], check=True
+            ["git", "clone", "-q", "--depth=1", "--single-branch", "-b", "main", repo, str(local_dir)], check=True
         )
         shutil.rmtree(DOCS / "en/hub/sdk", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")  # for docs
@@ -80,7 +80,7 @@ def prepare_docs_markdown(clone_repos: bool = True):
         repo = "https://github.com/ultralytics/docs"
         local_dir = DOCS / "repos" / Path(repo).name
         subprocess.run(
-            ["git", "clone", repo, str(local_dir), "--depth", "1", "--single-branch", "--branch", "main"], check=True
+            ["git", "clone", "-q", "--depth=1", "--single-branch", "-b", "main", repo, str(local_dir)], check=True
         )
         shutil.rmtree(DOCS / "en/compare", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "docs/en/compare", DOCS / "en/compare")  # for docs
@@ -629,6 +629,9 @@ def main():
         LOGGER.info(f"Building docs from {DOCS}")
         subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml")], check=True)
         LOGGER.info(f"Site built at {SITE}")
+
+        # Remove search index JSON files to disable search
+        Path(SITE / "search.json").unlink(missing_ok=True)
 
         # Update docs HTML pages
         update_docs_html()

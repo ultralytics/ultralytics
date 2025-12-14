@@ -72,10 +72,10 @@ Start by initializing the Weights & Biases environment in your workspace. You ca
 
         ```bash
         # Initialize your Weights & Biases environment
-        wandb login YOUR_API_KEY
+        wandb login
         ```
 
-Navigate to the [Weights & Biases authorization page](https://wandb.ai/authorize) to create and retrieve your API key. Use this key to authenticate your environment with W&B.
+Navigate to the [Weights & Biases authorization page](https://wandb.ai/authorize) to create and retrieve your API key. Use this key when prompted to authenticate your environment with W&B.
 
 ## Usage: Training YOLO11 with Weights & Biases
 

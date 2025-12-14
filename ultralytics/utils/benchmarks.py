@@ -423,12 +423,6 @@ class ProfileModels:
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
 
-        Examples:
-            Initialize and profile models
-            >>> from ultralytics.utils.benchmarks import ProfileModels
-            >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
-            >>> profiler.run()
-
         Notes:
             FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
         """

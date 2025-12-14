@@ -12,7 +12,7 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ydGdibB5Mds"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/J1BaCqytBmA"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -58,13 +58,13 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-        # Initialize object blurrer object
+        # Initialize object blurrer
         blurrer = solutions.ObjectBlurrer(
             show=True,  # display the output
-            model="yolo11n.pt",  # model for object blurring i.e. yolo11m.pt
+            model="yolo11n.pt",  # model for object blurring, e.g., yolo11m.pt
             # line_width=2,  # width of bounding box.
-            # classes=[0, 2],  # count specific classes i.e, person and car with COCO pretrained model.
-            # blur_ratio=0.5,  # adjust percentage of blur intensity, the value in range 0.1 - 1.0
+            # classes=[0, 2],  # blur specific classes, e.g., person and car with the COCO pretrained model.
+            # blur_ratio=0.5,  # adjust percentage of blur intensity, value in range 0.1 - 1.0
         )
 
         # Process video
@@ -77,7 +77,7 @@ Object blurring with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
 
             results = blurrer(im0)
 
-            # print(results")  # access the output
+            # print(results)  # access the output
 
             video_writer.write(results.plot_im)  # write the processed frame.
 
@@ -147,9 +147,9 @@ video_writer = cv2.VideoWriter("object_blurring_output.avi", cv2.VideoWriter_fou
 blurrer = solutions.ObjectBlurrer(
     show=True,  # display the output
     model="yolo11n.pt",  # model="yolo11n-obb.pt" for object blurring using YOLO11 OBB model.
-    blur_ratio=0.5,  # set blur percentage i.e 0.7 for 70% blurred detected objects
+    blur_ratio=0.5,  # set blur percentage, e.g., 0.7 for 70% blur on detected objects
     # line_width=2,  # width of bounding box.
-    # classes=[0, 2],  # count specific classes i.e, person and car with COCO pretrained model.
+    # classes=[0, 2],  # count specific classes, e.g., person and car with the COCO pretrained model.
 )
 
 # Process video
@@ -180,7 +180,7 @@ For more detailed applications, check the [advantages of object blurring section
 
 ### Can I use Ultralytics YOLO11 to blur faces in a video for privacy reasons?
 
-Yes, Ultralytics YOLO11 can be configured to detect and blur faces in videos to protect privacy. By training or using a pre-trained model to specifically recognize faces, the detection results can be processed with [OpenCV](https://www.ultralytics.com/glossary/opencv) to apply a blur effect. Refer to our guide on [object detection with YOLO11](https://docs.ultralytics.com/models/yolo11/) and modify the code to target face detection.
+Yes, Ultralytics YOLO11 can be configured to detect and blur faces in videos to protect privacy. By training or using a pretrained model to specifically recognize faces, the detection results can be processed with [OpenCV](https://www.ultralytics.com/glossary/opencv) to apply a blur effect. Refer to our guide on [object detection with YOLO11](https://docs.ultralytics.com/models/yolo11/) and modify the code to target face detection.
 
 ### How does YOLO11 compare to other object detection models like Faster R-CNN for object blurring?
 

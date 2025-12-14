@@ -65,7 +65,7 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
          regioncounter = solutions.RegionCounter(
              show=True,  # display the frame
              region=region_points,  # pass region points
-             model="yolo11n.pt",  # model for counting in regions i.e yolo11s.pt
+             model="yolo11n.pt",  # model for counting in regions, e.g., yolo11s.pt
          )
 
          # Process video

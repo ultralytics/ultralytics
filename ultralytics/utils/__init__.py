@@ -142,7 +142,7 @@ class DataExportMixin:
 
     This class provides utilities to export performance metrics (e.g., mAP, precision, recall) or prediction results
     from classification, object detection, segmentation, or pose estimation tasks into various formats: Polars
-    DataFrame, CSV and JSON.
+    DataFrame, CSV, and JSON.
 
     Methods:
         to_df: Convert summary to a Polars DataFrame.
@@ -159,14 +159,14 @@ class DataExportMixin:
     """
 
     def to_df(self, normalize=False, decimals=5):
-        """Create a polars DataFrame from the prediction results summary or validation metrics.
+        """Create a Polars DataFrame from the prediction results summary or validation metrics.
 
         Args:
             normalize (bool, optional): Normalize numerical values for easier comparison.
             decimals (int, optional): Decimal places to round floats.
 
         Returns:
-            (DataFrame): DataFrame containing the summary data.
+            (polars.DataFrame): Polars DataFrame containing the summary data.
         """
         import polars as pl  # scope for faster 'import ultralytics'
 
@@ -652,6 +652,32 @@ def is_ubuntu() -> bool:
         return False
 
 
+def is_debian(codenames: list[str] | None | str = None) -> list[bool] | bool:
+    """Check if the OS is Debian.
+
+    Args:
+        codenames (list[str] | None | str): Specific Debian codename to check for (e.g., 'buster', 'bullseye'). If None,
+            only checks for Debian.
+
+    Returns:
+        (list[bool] | bool): List of booleans indicating if OS matches each Debian codename, or a single boolean if no
+            codenames provided.
+    """
+    try:
+        with open("/etc/os-release") as f:
+            content = f.read()
+            if codenames is None:
+                return "ID=debian" in content
+            if isinstance(codenames, str):
+                codenames = [codenames]
+            return [
+                f"VERSION_CODENAME={codename}" in content if codename else "ID=debian" in content
+                for codename in codenames
+            ]
+    except FileNotFoundError:
+        return [False] * len(codenames) if codenames else False
+
+
 def is_colab():
     """Check if the current script is running inside a Google Colab notebook.
 
@@ -880,6 +906,8 @@ IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
+IS_DEBIAN, IS_DEBIAN_BOOKWORM, IS_DEBIAN_TRIXIE = is_debian([None, "bookworm", "trixie"])
+IS_UBUNTU = is_ubuntu()
 GIT = GitRepo()
 USER_CONFIG_DIR = get_user_config_dir()  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
@@ -1182,7 +1210,8 @@ class JSONDict(dict):
         try:
             if self.file_path.exists():
                 with open(self.file_path) as f:
-                    self.update(json.load(f))
+                    # Use the base dict update to avoid persisting during reads
+                    super().update(json.load(f))
         except json.JSONDecodeError:
             LOGGER.warning(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
         except Exception as e:

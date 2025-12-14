@@ -68,10 +68,10 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
     === "Detection (COCO)"
 
-        Trained on [COCO](../datasets/detect/coco.md) with 80 pre-trained classes.
+        Trained on [COCO](../datasets/detect/coco.md) with 80 pretrained classes.
         See [Detection Docs](../tasks/detect.md) for usage once models are released.
 
-        | Model   | size<br><sup>(pixels) | mAP<sup>val<br>50-95(e2e) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms)  | Speed<br><sup>T4 TensorRT10<br>(ms)  | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        | Model   | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95(e2e)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup>  | Speed<br><sup>T4 TensorRT10<br>(ms)</sup>  | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | -----   | --------------------- | --------------------      | -------------------- | ------------------------------- | ------------------------------------ | ------------------ | ----------------- |
         | YOLO26n | 640                   | 39.8                      | 40.3                 | 38.90 ± 0.7                     | 1.7 ± 0.0                            | 2.4                | 5.4               |
         | YOLO26s | 640                   | 47.2                      | 47.6                 | 87.16 ± 0.9                     | 2.7 ± 0.0                            | 9.5                | 20.7              |

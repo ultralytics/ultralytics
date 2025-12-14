@@ -65,7 +65,7 @@ class DetectionPredictor(BasePredictor):
         )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         if save_feats:
             obj_feats = self.get_obj_feats(self._feats, preds[1])

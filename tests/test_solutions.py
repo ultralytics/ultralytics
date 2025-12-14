@@ -243,13 +243,13 @@ def test_parking_json_none():
 
 
 def test_analytics_graph_not_supported():
-    """Test that unsupported analytics type raises ModuleNotFoundError."""
+    """Test that unsupported analytics type raises ValueError."""
     try:
         analytics = solutions.Analytics(analytics_type="test")  # 'test' is unsupported
         analytics.process(im0=np.zeros((640, 480, 3), dtype=np.uint8), frame_number=0)
-        assert False, "Expected ModuleNotFoundError for unsupported chart type"
-    except ModuleNotFoundError as e:
-        assert "test chart is not supported" in str(e)
+        assert False, "Expected ValueError for unsupported chart type"
+    except ValueError as e:
+        assert "Unsupported analytics_type" in str(e)
 
 
 def test_area_chart_padding():

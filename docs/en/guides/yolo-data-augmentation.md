@@ -130,7 +130,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ hsv_h }}`
-- **Usage**: Shifts image colors while preserving their relationships. The `hsv_h` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_h` and `hsv_h`. For example, with `hsv_h=0.3`, the shift is randomly selected within`-0.3` to `0.3`. For values above `0.5`, the hue shift wraps around the color wheel, that's why the augmentations look the same between `0.5` and `-0.5`.
+- **Usage**: Shifts image colors while preserving their relationships. The `hsv_h` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_h` and `hsv_h`. For example, with `hsv_h=0.3`, the shift is randomly selected within `-0.3` to `0.3`. For values above `0.5`, the hue shift wraps around the color wheel, that's why the augmentations look the same between `0.5` and `-0.5`.
 - **Purpose**: Particularly useful for outdoor scenarios where lighting conditions can dramatically affect object appearance. For example, a banana might look more yellow under bright sunlight but more greenish indoors.
 - **Ultralytics' implementation**: [RandomHSV](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomHSV)
 
@@ -142,7 +142,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ hsv_s }}`
-- **Usage**: Modifies the intensity of colors in the image. The `hsv_s` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_s` and `hsv_s`. For example, with `hsv_s=0.7`, the intensity is randomly selected within`-0.7` to `0.7`.
+- **Usage**: Modifies the intensity of colors in the image. The `hsv_s` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_s` and `hsv_s`. For example, with `hsv_s=0.7`, the intensity is randomly selected within `-0.7` to `0.7`.
 - **Purpose**: Helps models handle varying weather conditions and camera settings. For example, a red traffic sign might appear highly vivid on a sunny day but look dull and faded in foggy conditions.
 - **Ultralytics' implementation**: [RandomHSV](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomHSV)
 
@@ -154,7 +154,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ hsv_v }}`
-- **Usage**: Changes the brightness of the image. The `hsv_v` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_v` and `hsv_v`. For example, with `hsv_v=0.4`, the intensity is randomly selected within`-0.4` to `0.4`.
+- **Usage**: Changes the brightness of the image. The `hsv_v` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_v` and `hsv_v`. For example, with `hsv_v=0.4`, the intensity is randomly selected within `-0.4` to `0.4`.
 - **Purpose**: Essential for training models that need to perform in different lighting conditions. For example, a red apple might look bright in sunlight but much darker in the shade.
 - **Ultralytics' implementation**: [RandomHSV](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomHSV)
 
@@ -168,7 +168,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` to `180`
 - **Default**: `{{ degrees }}`
-- **Usage**: Rotates images randomly within the specified range. The `degrees` hyperparameter defines the rotation angle, with the final adjustment randomly chosen between `-degrees` and `degrees`. For example, with `degrees=10.0`, the rotation is randomly selected within`-10.0` to `10.0`.
+- **Usage**: Rotates images randomly within the specified range. The `degrees` hyperparameter defines the rotation angle, with the final adjustment randomly chosen between `-degrees` and `degrees`. For example, with `degrees=10.0`, the rotation is randomly selected within `-10.0` to `10.0`.
 - **Purpose**: Crucial for applications where objects can appear at different orientations. For example, in aerial drone imagery, vehicles can be oriented in any direction, requiring models to recognize objects regardless of their rotation.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 
@@ -180,7 +180,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ translate }}`
-- **Usage**: Shifts images horizontally and vertically by a random fraction of the image size. The `translate` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen twice (once for each axis) within the range `-translate` and `translate`. For example, with `translate=0.5`, the translation is randomly selected within`-0.5` to `0.5` on the x-axis, and another independent random value is selected within the same range on the y-axis.
+- **Usage**: Shifts images horizontally and vertically by a random fraction of the image size. The `translate` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen twice (once for each axis) within the range `-translate` and `translate`. For example, with `translate=0.5`, the translation is randomly selected within `-0.5` to `0.5` on the x-axis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Helps models learn to detect partially visible objects and improves robustness to object position. For example, in vehicle damage assessment applications, car parts may appear fully or partially in frame depending on the photographer's position and distance, the translation augmentation will teach the model to recognize these features regardless of their completeness or position.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 - **Note**: For simplicity, the translations applied below are the same each time for both `x` and `y` axes. Values `-1.0` and `1.0`are not shown as they would translate the image completely out of the frame.
@@ -191,15 +191,15 @@ Then launch the training with the Python API:
 
 ### Scale (`scale`)
 
-- **Range**: ≥`0.0`
+- **Range**: `0.0` - `1.0`
 - **Default**: `{{ scale }}`
-- **Usage**: Resizes images by a random factor within the specified range. The `scale` hyperparameter defines the scaling factor, with the final adjustment randomly chosen between `1-scale` and `1+scale`. For example, with `scale=0.5`, the scaling is randomly selected within`0.5` to `1.5`.
+- **Usage**: Resizes images by a random factor within the specified range. The `scale` hyperparameter defines the scaling factor, with the final adjustment randomly chosen between `1-scale` and `1+scale`. For example, with `scale=0.5`, the scaling is randomly selected within `0.5` to `1.5`.
 - **Purpose**: Enables models to handle objects at different distances and sizes. For example, in autonomous driving applications, vehicles can appear at various distances from the camera, requiring the model to recognize them regardless of their size.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 - **Note**:
     - The value `-1.0` is not shown as it would make the image disappear, while `1.0` simply results in a 2x zoom.
     - The values displayed in the table below are the ones applied through the hyperparameter `scale`, not the final scale factor.
-    - If `scale` is greater than `1.0`, the image can be either very small or flipped, as the scaling factor is randomly chosen between `1-scale` and `1+scale`. For example, with `scale=3.0`, the scaling is randomly selected within`-2.0` to `4.0`. If a negative value is chosen, the image is flipped.
+    - If `scale` is greater than `1.0`, the image can be either very small or flipped, as the scaling factor is randomly chosen between `1-scale` and `1+scale`. For example, with `scale=3.0`, the scaling is randomly selected within `-2.0` to `4.0`. If a negative value is chosen, the image is flipped.
 
 |                                                                **`-0.5`**                                                                 |                                                                 **`-0.25`**                                                                 |                                                          **`0.0`**                                                          |                                                                **`0.25`**                                                                 |                                                                **`0.5`**                                                                |
 | :---------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
@@ -209,7 +209,7 @@ Then launch the training with the Python API:
 
 - **Range**: `-180` to `+180`
 - **Default**: `{{ shear }}`
-- **Usage**: Introduces a geometric transformation that skews the image along both x-axis and y-axis, effectively shifting parts of the image in one direction while maintaining parallel lines. The `shear` hyperparameter defines the shear angle, with the final adjustment randomly chosen between `-shear` and `shear`. For example, with `shear=10.0`, the shear is randomly selected within`-10` to `10` on the x-axis, and another independent random value is selected within the same range on the y-axis.
+- **Usage**: Introduces a geometric transformation that skews the image along both x-axis and y-axis, effectively shifting parts of the image in one direction while maintaining parallel lines. The `shear` hyperparameter defines the shear angle, with the final adjustment randomly chosen between `-shear` and `shear`. For example, with `shear=10.0`, the shear is randomly selected within `-10` to `10` on the x-axis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Helps models generalize to variations in viewing angles caused by slight tilts or oblique viewpoints. For instance, in traffic monitoring, objects like cars and road signs may appear slanted due to non-perpendicular camera placements. Applying shear augmentation ensures the model learns to recognize objects despite such skewed distortions.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 - **Note**:
@@ -224,7 +224,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `0.001`
 - **Default**: `{{ perspective }}`
-- **Usage**: Applies a full perspective transformation along both x-axis and y-axis, simulating how objects appear when viewed from different depths or angles. The `perspective` hyperparameter defines the perspective magnitude, with the final adjustment randomly chosen between `-perspective` and `perspective`. For example, with `perspective=0.001`, the perspective is randomly selected within`-0.001` to `0.001` on the x-axis, and another independent random value is selected within the same range on the y-axis.
+- **Usage**: Applies a full perspective transformation along both x-axis and y-axis, simulating how objects appear when viewed from different depths or angles. The `perspective` hyperparameter defines the perspective magnitude, with the final adjustment randomly chosen between `-perspective` and `perspective`. For example, with `perspective=0.001`, the perspective is randomly selected within `-0.001` to `0.001` on the x-axis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Perspective augmentation is crucial for handling extreme viewpoint changes, especially in scenarios where objects appear foreshortened or distorted due to perspective shifts. For example, in drone-based object detection, buildings, roads, and vehicles can appear stretched or compressed depending on the drone's tilt and altitude. By applying perspective transformations, models learn to recognize objects despite these perspective-induced distortions, improving their robustness in real-world deployments.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 

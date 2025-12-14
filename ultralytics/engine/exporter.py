@@ -657,7 +657,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0,<=1.19.1"]
+        requirements = ["onnx>=1.12.0,<1.20.0"]  # pin until onnx_graphsurgeon supports onnx>=1.20
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
@@ -1035,17 +1035,15 @@ class Exporter:
             (
                 "tf_keras<=2.19.0",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
+                "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
-                "onnx>=1.12.0",
+                "onnx>=1.12.0,<1.20.0",  # pin until onnx_graphsurgeon releases onnx>=1.20 fix
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.71",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),
-        )
-        # Install onnx-graphsurgeon from git (with onnx>=1.20 fix) separately as uv fails with #subdirectory URLs
-        check_requirements(
-            "git+https://github.com/NVIDIA/TensorRT.git@fbb76a32d4ff271e77d83ebfba442f90b96f0599#subdirectory=tools/onnx-graphsurgeon",
+            cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")

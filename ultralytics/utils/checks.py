@@ -476,7 +476,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                use_uv = not ARM64 and "#subdirectory" not in s and check_uv()  # uv fails on ARM64 and #subdirectory
+                use_uv = not ARM64 and check_uv()  # uv fails on ARM64
                 LOGGER.info(attempt_install(s, cmds, use_uv=use_uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")

@@ -91,17 +91,17 @@ class BaseTensor(SimpleClass):
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu(), self.orig_shape)
 
     def numpy(self):
-        """Return a copy of the tensor as a numpy array.
+        """Return a copy of this object with its data converted to a NumPy array.
 
         Returns:
-            (np.ndarray): A numpy array containing the same data as the original tensor.
+            (BaseTensor): A new instance with `data` as a NumPy array.
 
         Examples:
             >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
             >>> orig_shape = (720, 1280)
             >>> base_tensor = BaseTensor(data, orig_shape)
-            >>> numpy_array = base_tensor.numpy()
-            >>> print(type(numpy_array))
+            >>> numpy_tensor = base_tensor.numpy()
+            >>> print(type(numpy_tensor.data))
             <class 'numpy.ndarray'>
         """
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.numpy(), self.orig_shape)
@@ -110,8 +110,7 @@ class BaseTensor(SimpleClass):
         """Move the tensor to GPU memory.
 
         Returns:
-            (BaseTensor): A new BaseTensor instance with the data moved to GPU memory if it's not already a numpy array,
-                otherwise returns self.
+            (BaseTensor): A new BaseTensor instance with the data moved to GPU memory.
 
         Examples:
             >>> import torch
@@ -201,14 +200,14 @@ class Results(SimpleClass, DataExportMixin):
         cuda: Move all tensors in the Results object to GPU memory.
         to: Move all tensors to the specified device and dtype.
         new: Create a new Results object with the same image, path, names, and speed attributes.
-        plot: Plot detection results on an input RGB image.
+        plot: Plot detection results on an input BGR image.
         show: Display the image with annotated inference results.
         save: Save annotated inference results image to file.
         verbose: Return a log string for each task in the results.
         save_txt: Save detection results to a text file.
         save_crop: Save cropped detection images to specified directory.
         summary: Convert inference results to a summarized dictionary.
-        to_df: Convert detection results to a Polars Dataframe.
+        to_df: Convert detection results to a Polars DataFrame.
         to_json: Convert detection results to JSON format.
         to_csv: Convert detection results to a CSV format.
 
@@ -461,7 +460,7 @@ class Results(SimpleClass, DataExportMixin):
         color_mode: str = "class",
         txt_color: tuple[int, int, int] = (255, 255, 255),
     ) -> np.ndarray:
-        """Plot detection results on an input RGB image.
+        """Plot detection results on an input BGR image.
 
         Args:
             conf (bool): Whether to plot detection confidence scores.
@@ -481,10 +480,10 @@ class Results(SimpleClass, DataExportMixin):
             save (bool): Whether to save the annotated image.
             filename (str | None): Filename to save image if save is True.
             color_mode (str): Specify the color mode, e.g., 'instance' or 'class'.
-            txt_color (tuple[int, int, int]): Specify the RGB text color for classification task.
+            txt_color (tuple[int, int, int]): Text color in BGR format for classification output.
 
         Returns:
-            (np.ndarray): Annotated image as a numpy array.
+            (np.ndarray | PIL.Image.Image): Annotated image as a NumPy array (BGR) or PIL image (RGB) if `pil=True`.
 
         Examples:
             >>> results = model("image.jpg")
@@ -734,10 +733,10 @@ class Results(SimpleClass, DataExportMixin):
             - Original image is copied before cropping to avoid modifying the original.
         """
         if self.probs is not None:
-            LOGGER.warning("Classify task do not support `save_crop`.")
+            LOGGER.warning("Classify task does not support `save_crop`.")
             return
         if self.obb is not None:
-            LOGGER.warning("OBB task do not support `save_crop`.")
+            LOGGER.warning("OBB task does not support `save_crop`.")
             return
         for d in self.boxes:
             save_one_box(

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore YOLOv5u, an advanced object detection model with optimized accuracy-speed tradeoff, featuring anchor-free Ultralytics head and various pre-trained models.
-keywords: YOLOv5, YOLOv5u, object detection, Ultralytics, anchor-free, pre-trained models, accuracy, speed, real-time detection
+description: Explore YOLOv5u, an advanced object detection model with optimized accuracy-speed tradeoff, featuring anchor-free Ultralytics head and various pretrained models.
+keywords: YOLOv5, YOLOv5u, object detection, Ultralytics, anchor-free, pretrained models, accuracy, speed, real-time detection
 ---
 
 # Ultralytics YOLOv5
@@ -22,13 +22,13 @@ YOLOv5u represents an advancement in [object detection](https://www.ultralytics.
 
 - **Optimized Accuracy-Speed Tradeoff:** Speed and accuracy often pull in opposite directions. But YOLOv5u challenges this tradeoff. It offers a calibrated balance, ensuring real-time detections without compromising on accuracy. This feature is particularly invaluable for applications that demand swift responses, such as [autonomous vehicles](https://www.ultralytics.com/glossary/autonomous-vehicles), [robotics](https://www.ultralytics.com/glossary/robotics), and real-time video analytics.
 
-- **Variety of Pre-trained Models:** Understanding that different tasks require different toolsets, YOLOv5u provides a plethora of pre-trained models. Whether you're focusing on Inference, Validation, or Training, there's a tailor-made model awaiting you. This variety ensures you're not just using a one-size-fits-all solution, but a model specifically fine-tuned for your unique challenge.
+- **Variety of Pretrained Models:** Understanding that different tasks require different toolsets, YOLOv5u provides a plethora of pretrained models. Whether you're focusing on Inference, Validation, or Training, there's a tailor-made model awaiting you. This variety ensures you're not just using a one-size-fits-all solution, but a model specifically fine-tuned for your unique challenge.
 
 ## Supported Tasks and Modes
 
-The YOLOv5u models, with various pre-trained weights, excel in [Object Detection](../tasks/detect.md) tasks. They support a comprehensive range of modes, making them suitable for diverse applications, from development to deployment.
+The YOLOv5u models, with various pretrained weights, excel in [Object Detection](../tasks/detect.md) tasks. They support a comprehensive range of modes, making them suitable for diverse applications, from development to deployment.
 
-| Model Type | Pre-trained Weights                                                                                                         | Task                                   | Inference | Validation | Training | Export |
+| Model Type | Pretrained Weights                                                                                                          | Task                                   | Inference | Validation | Training | Export |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOv5u    | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
@@ -45,9 +45,9 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 
     === "Detection (COCO)"
 
-    See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
+    See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
 
-    | Model                                                                                       | YAML                                                                                                           | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+    | Model                                                                                       | YAML                                                                                                           | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
     |---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
     | [yolov5nu.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov5nu.pt)   | [yolov5n.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 34.3                 | 73.6                           | 1.06                                | 2.6                | 7.7               |
     | [yolov5su.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov5su.pt)   | [yolov5s.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 43.0                 | 120.7                          | 1.27                                | 9.1                | 24.0              |
@@ -136,9 +136,9 @@ Ultralytics YOLOv5u is an advanced version of YOLOv5, integrating the anchor-fre
 
 The anchor-free Ultralytics head in YOLOv5u improves object detection performance by eliminating the dependency on predefined anchor boxes. This results in a more flexible and adaptive detection mechanism that can handle various object sizes and shapes with greater efficiency. This enhancement directly contributes to a balanced tradeoff between accuracy and speed, making YOLOv5u suitable for real-time applications. Learn more about its architecture in the [Key Features](#key-features) section.
 
-### Can I use pre-trained YOLOv5u models for different tasks and modes?
+### Can I use pretrained YOLOv5u models for different tasks and modes?
 
-Yes, you can use pre-trained YOLOv5u models for various tasks such as [Object Detection](../tasks/detect.md). These models support multiple modes, including [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This flexibility allows users to leverage the capabilities of YOLOv5u models across different operational requirements. For a detailed overview, check the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
+Yes, you can use pretrained YOLOv5u models for various tasks such as [Object Detection](../tasks/detect.md). These models support multiple modes, including [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This flexibility allows users to leverage the capabilities of YOLOv5u models across different operational requirements. For a detailed overview, check the [Supported Tasks and Modes](#supported-tasks-and-modes) section.
 
 ### How do the performance metrics of YOLOv5u models compare on different platforms?
 
@@ -146,7 +146,7 @@ The performance metrics of YOLOv5u models vary depending on the platform and har
 
 ### How can I train a YOLOv5u model using the Ultralytics Python API?
 
-You can train a YOLOv5u model by loading a pre-trained model and running the training command with your dataset. Here's a quick example:
+You can train a YOLOv5u model by loading a pretrained model and running the training command with your dataset. Here's a quick example:
 
 !!! example
 

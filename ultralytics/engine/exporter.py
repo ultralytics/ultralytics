@@ -1074,7 +1074,7 @@ class Exporter:
             self.args.opset = self.args.opset or 19
             assert 16 <= self.args.opset <= 19, "RTDETR export requires opset>=16;<=19"
         self.args.simplify = True
-        self.args.half = False
+        self.args.half = self.args.format == "tflite"
         f_onnx = self.export_onnx()  # ensure ONNX is available
         keras_model = onnx2saved_model(
             f_onnx,

@@ -1,6 +1,6 @@
 {%set tip1 = ':material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }' %}
 {%set tip2 = ':material-information-outline:{ title="conf, iou are also available when nms=True" }' %}
-{%set tip3 = ':material-information-outline:{ title="imx format only supported for YOLOv8n and yolo11n model currently" }' %}
+{%set tip3 = ':material-information-outline:{ title="IMX format is currently only supported for YOLOv8n and YOLO11n models" }' %}
 
 | Format                                             | `format` Argument | Model                                             | Metadata | Arguments                                                                                                           |
 | -------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -21,3 +21,4 @@
 | [IMX500](../integrations/sony-imx500.md){{ tip3 }} | `imx`             | `{{ model_name or "yolo11n" }}_imx_model/`        | ✅       | `imgsz`, `int8`, `data`, `fraction`, `device`                                                                       |
 | [RKNN](../integrations/rockchip-rknn.md)           | `rknn`            | `{{ model_name or "yolo11n" }}_rknn_model/`       | ✅       | `imgsz`, `batch`, `name`, `device`                                                                                  |
 | [ExecuTorch](../integrations/executorch.md)        | `executorch`      | `{{ model_name or "yolo11n" }}_executorch_model/` | ✅       | `imgsz`, `device`                                                                                                   |
+| [Axelera](../integrations/axelera.md)              | `axelera`         | `{{ model_name or "yolo11n" }}_axelera_model/`    | ✅       | `imgsz`, `int8`, `data`, `fraction`, `device`                                                                       |

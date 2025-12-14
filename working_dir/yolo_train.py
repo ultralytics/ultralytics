@@ -30,6 +30,13 @@ def parse_args():
         help='Name for the training run'
     )
 
+    parser.add_argument(
+        '--project',
+        type=str,
+        default='/Users/esat/workspace/detr_trainings',
+        help='Project directory to save training results'
+    )
+
     return parser.parse_args()
 
 
@@ -54,7 +61,7 @@ def main():
     model = RTDETR(args.model)
 
     # Prepare training kwargs
-    train_kwargs = {'cfg': args.config, 'name': args.name}
+    train_kwargs = {'cfg': args.config, 'name': args.name, 'project': args.project}
 
     # Train using YAML configuration
     results = model.train(**train_kwargs)

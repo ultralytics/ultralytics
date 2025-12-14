@@ -8,7 +8,7 @@
 #     └── CityEcapse-YOLO  ← downloads here (1 MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: Cityscapse-YOLO-256-tiny # dataset root dir
+path: Cityscapes-YOLO-256-tiny # dataset root dir
 train: train/image # train images (relative to 'path') 4 images
 val: val/image # val images (relative to 'path') 4 images
 test: test/image # test images (optional)
@@ -59,4 +59,4 @@ colors:
   18: [119, 11, 32]
 
 # Download script/URL (optional)
-download: https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/dataset/CityEcapse-YOLO-256-tiny.zip
+download: https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/v2.0/Cityscapes-YOLO-256-tiny.zip

@@ -1,7 +1,17 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import gc
 import shutil
 from pathlib import Path
+
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def cleanup_memory():
+    """Clean up memory after each test to prevent OOM issues in CI."""
+    yield  # Run the test
+    gc.collect()
 
 
 def pytest_addoption(parser):

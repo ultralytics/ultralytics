@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, help center, documentation, guides, FAQ, contributi
 
 # Help
 
-Welcome to the Ultralytics Help page! We are dedicated to providing you with detailed resources to enhance your experience with the Ultralytics YOLO models and repositories. This page serves as your portal to guides and documentation designed to assist you with various tasks and answer questions you may encounter while engaging with our repositories.
+Welcome to the Ultralytics Help page. This page brings together practical guides, policies, and FAQs to support your work with Ultralytics YOLO models and repositories.
 
 - [Frequently Asked Questions (FAQ)](FAQ.md): Find answers to common questions and issues encountered by the community of Ultralytics YOLO users and contributors.
 - [Contributing Guide](contributing.md): Discover the protocols for making contributions, including how to submit pull requests, report bugs, and more.
@@ -18,7 +18,7 @@ Welcome to the Ultralytics Help page! We are dedicated to providing you with det
 - [Security Policy](security.md): Familiarize yourself with our security protocols and the procedure for reporting vulnerabilities.
 - [Privacy Policy](privacy.md): Read our privacy policy to understand how we protect your data and respect your privacy in all our services and operations.
 
-We encourage you to review these resources for a seamless and productive experience. Our aim is to foster a helpful and friendly environment for everyone in the Ultralytics community. Should you require additional support, please feel free to reach out via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or our official discussion forums. Happy coding!
+We encourage you to review these resources for a smooth and productive experience. If you need additional support, reach out via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Community](https://community.ultralytics.com/).
 
 ## FAQ
 

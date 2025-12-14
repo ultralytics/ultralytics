@@ -59,6 +59,8 @@ class MemoryAttentionLayer(nn.Module):
         pos_enc_at_attn: bool = False,
         pos_enc_at_cross_attn_keys: bool = True,
         pos_enc_at_cross_attn_queries: bool = False,
+        self_attn: nn.Module | None = None,
+        cross_attn: nn.Module | None = None,
     ):
         """Initialize a memory attention layer with self-attention, cross-attention, and feedforward components.
 
@@ -69,13 +71,15 @@ class MemoryAttentionLayer(nn.Module):
             pos_enc_at_attn (bool): Whether to add positional encoding at attention.
             pos_enc_at_cross_attn_keys (bool): Whether to add positional encoding to cross-attention keys.
             pos_enc_at_cross_attn_queries (bool): Whether to add positional encoding to cross-attention queries.
+            self_attn (nn.Module | None): Custom self-attention module. If None, a default RoPEAttention is used.
+            cross_attn (nn.Module | None): Custom cross-attention module. If None, a default RoPEAttention is used.
         """
         super().__init__()
         self.d_model = d_model
         self.dim_feedforward = dim_feedforward
         self.dropout_value = dropout
-        self.self_attn = RoPEAttention(embedding_dim=256, num_heads=1, downsample_rate=1)
-        self.cross_attn_image = RoPEAttention(
+        self.self_attn = self_attn or RoPEAttention(embedding_dim=256, num_heads=1, downsample_rate=1)
+        self.cross_attn_image = cross_attn or RoPEAttention(
             rope_k_repeat=True,
             embedding_dim=256,
             num_heads=1,
@@ -213,18 +217,6 @@ class MemoryAttention(nn.Module):
             layer (nn.Module): The attention layer to be used in the module.
             num_layers (int): The number of attention layers.
             batch_first (bool): Whether the input tensors are in batch-first format.
-
-        Examples:
-            >>> d_model = 256
-            >>> layer = MemoryAttentionLayer(d_model)
-            >>> attention = MemoryAttention(d_model, pos_enc_at_input=True, layer=layer, num_layers=3)
-            >>> curr = torch.randn(10, 32, d_model)  # (seq_len, batch_size, d_model)
-            >>> memory = torch.randn(20, 32, d_model)  # (mem_len, batch_size, d_model)
-            >>> curr_pos = torch.randn(10, 32, d_model)
-            >>> memory_pos = torch.randn(20, 32, d_model)
-            >>> output = attention(curr, memory, curr_pos, memory_pos)
-            >>> print(output.shape)
-            torch.Size([10, 32, 256])
         """
         super().__init__()
         self.d_model = d_model

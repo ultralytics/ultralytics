@@ -54,6 +54,8 @@ Additionally, here are some common installation issues users have encountered, a
 
     - **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
 
+    - **Check GPU compatibility**: Support for GPU architectures earlier than Turing and compute capability (SM) < 7.5 was abandoned since cuDNN 9.11.0. So if you have an older GPU - like 1080Ti - you may have to use a version of PyTorch built against an older version of CUDA/cuDNN. You can check this by running `import torch; cap = torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0, 0); cudnn = torch.backends.cudnn.version() or 0; ok = "not compatible" if cudnn >= 91100 and (cap[0] < 7 or (cap[0] == 7 and cap[1] < 5)) else "should be ok"; print(f"Compute capability: SM {cap[0]}.{cap[1]}, cuDNN: {cudnn} => {ok}")`
+
     - **Environment Activation**: Ensure you're in the correct environment where all necessary packages are installed.
 
     - **Update Your Packages**: Outdated packages might not be compatible with your GPU. Keep them updated.
@@ -84,7 +86,7 @@ This section will address common issues faced while training and their respectiv
 **Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with multiple GPUs, follow these steps:
 
 - Ensure that you have multiple GPUs available.
-- Modify your .yaml configuration file to specify the number of GPUs to use, e.g., gpus: 4.
+- Modify your `.yaml` configuration file to specify the number of GPUs to use, e.g., `gpus: 4`.
 - Increase the batch size accordingly to fully utilize the multiple GPUs without exceeding memory limits.
 - Modify your training command to utilize multiple GPUs:
 
@@ -207,7 +209,7 @@ yolo task=detect mode=segment model=yolo11n-seg.pt source='path/to/car.mp4' show
 ```python
 from ultralytics import YOLO
 
-# Load a pre-trained YOLO11 model
+# Load a pretrained YOLO11 model
 model = YOLO("yolo11n.pt")
 
 # Specify the source image
@@ -265,8 +267,6 @@ These resources should provide a solid foundation for troubleshooting and improv
 Troubleshooting is an integral part of any development process, and being equipped with the right knowledge can significantly reduce the time and effort spent in resolving issues. This guide aimed to address the most common challenges faced by users of the YOLO11 model within the Ultralytics ecosystem. By understanding and addressing these common issues, you can ensure smoother project progress and achieve better results with your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
 Remember, the Ultralytics community is a valuable resource. Engaging with fellow developers and experts can provide additional insights and solutions that might not be covered in standard documentation. Always keep learning, experimenting, and sharing your experiences to contribute to the collective knowledge of the community.
-
-Happy troubleshooting!
 
 ## FAQ
 

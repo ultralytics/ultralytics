@@ -1035,15 +1035,15 @@ class Exporter:
             (
                 "tf_keras<=2.19.0",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
-                "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
+                "onnx_graphsurgeon @ git+https://github.com/NVIDIA/TensorRT.git#subdirectory=tools/onnx-graphsurgeon",
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
-                "onnx>=1.12.0,<=1.19.1",
+                "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.71",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),
-            cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
+            # cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
         )
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")

@@ -85,7 +85,7 @@ div.highlight {
 }
 .md-header label[for="__search"],
 .md-search {
-  display: none !important;
+  display: none;
 }
 .ult-header-search {
   transform: scale(0.7);
@@ -170,8 +170,8 @@ div.highlight {
   background-repeat: no-repeat;
 }
 .md-banner__inner {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .banner-wrapper,
 .banner-wrapper > .banner-content-wrapper {
@@ -328,7 +328,7 @@ div.highlight {
 
 /* Remove underlines from links */
 .md-typeset a {
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 /* Remove language switcher */
@@ -336,5 +336,5 @@ div.highlight {
 .weglot_switcher,
 [id^="weglot-switcher"],
 .weglot-container[id^="weglot-switcher"] {
-  display: none !important;
+  display: none;
 }

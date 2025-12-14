@@ -27,22 +27,22 @@ function loadGiscus() {
   giscusContainer.appendChild(script);
 
   // Synchronize Giscus theme with palette
-  var palette = __md_get("__palette");
+  const palette = __md_get("__palette");
   if (palette && typeof palette.color === "object") {
-    var theme = palette.color.scheme === "slate" ? "dark" : "light";
+    const theme = palette.color.scheme === "slate" ? "dark" : "light";
     script.setAttribute("data-theme", theme);
   }
 
   // Register event handlers for theme changes
   var ref = document.querySelector("[data-md-component=palette]");
   if (ref) {
-    ref.addEventListener("change", function () {
-      var palette = __md_get("__palette");
+    ref.addEventListener("change", () => {
+      const palette = __md_get("__palette");
       if (palette && typeof palette.color === "object") {
-        var theme = palette.color.scheme === "slate" ? "dark" : "light";
+        const theme = palette.color.scheme === "slate" ? "dark" : "light";
 
         // Instruct Giscus to change theme
-        var frame = document.querySelector(".giscus-frame");
+        const frame = document.querySelector(".giscus-frame");
         if (frame) {
           frame.contentWindow.postMessage({ giscus: { setConfig: { theme } } }, "https://giscus.app");
         }

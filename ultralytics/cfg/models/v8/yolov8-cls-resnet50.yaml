@@ -6,7 +6,7 @@
 
 # Parameters
 nc: 1000 # number of classes
-scales: # model compound scaling constants, i.e. 'model=yolov8n-cls.yaml' will call yolov8-cls.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=yolov8n-cls-resnet50.yaml' will call yolov8-cls-resnet50.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.33, 0.25, 1024]
   s: [0.33, 0.50, 1024]

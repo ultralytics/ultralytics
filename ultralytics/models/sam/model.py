@@ -21,7 +21,7 @@ from pathlib import Path
 from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info
 
-from .predict import Predictor, SAM2Predictor
+from .predict import Predictor, SAM2Predictor, SAM3Predictor
 
 
 class SAM(Model):
@@ -44,7 +44,7 @@ class SAM(Model):
         >>> sam = SAM("sam_b.pt")
         >>> results = sam.predict("image.jpg", points=[[500, 375]])
         >>> for r in results:
-        >>>     print(f"Detected {len(r.masks)} masks")
+        ...     print(f"Detected {len(r.masks)} masks")
     """
 
     def __init__(self, model: str = "sam_b.pt") -> None:
@@ -59,6 +59,7 @@ class SAM(Model):
         if model and Path(model).suffix not in {".pt", ".pth"}:
             raise NotImplementedError("SAM prediction requires pre-trained *.pt or *.pth model.")
         self.is_sam2 = "sam2" in Path(model).stem
+        self.is_sam3 = "sam3" in Path(model).stem
         super().__init__(model=model, task="segment")
 
     def _load(self, weights: str, task=None):
@@ -72,9 +73,14 @@ class SAM(Model):
             >>> sam = SAM("sam_b.pt")
             >>> sam._load("path/to/custom_weights.pt")
         """
-        from .build import build_sam  # slow import
+        if self.is_sam3:
+            from .build_sam3 import build_interactive_sam3
 
-        self.model = build_sam(weights)
+            self.model = build_interactive_sam3(weights)
+        else:
+            from .build import build_sam  # slow import
+
+            self.model = build_sam(weights)
 
     def predict(self, source, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
         """Perform segmentation prediction on the given image or video source.
@@ -158,4 +164,6 @@ class SAM(Model):
             >>> print(task_map)
             {'segment': {'predictor': <class 'ultralytics.models.sam.predict.Predictor'>}}
         """
-        return {"segment": {"predictor": SAM2Predictor if self.is_sam2 else Predictor}}
+        return {
+            "segment": {"predictor": SAM2Predictor if self.is_sam2 else SAM3Predictor if self.is_sam3 else Predictor}
+        }

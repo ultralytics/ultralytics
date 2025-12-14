@@ -53,12 +53,6 @@ class BaseTensor(SimpleClass):
         Args:
             data (torch.Tensor | np.ndarray): Prediction data such as bounding boxes, masks, or keypoints.
             orig_shape (tuple[int, int]): Original shape of the image in (height, width) format.
-
-        Examples:
-            >>> import torch
-            >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
-            >>> orig_shape = (720, 1280)
-            >>> base_tensor = BaseTensor(data, orig_shape)
         """
         assert isinstance(data, (torch.Tensor, np.ndarray)), "data must be torch.Tensor or np.ndarray"
         self.data = data
@@ -97,17 +91,17 @@ class BaseTensor(SimpleClass):
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu(), self.orig_shape)
 
     def numpy(self):
-        """Return a copy of the tensor as a numpy array.
+        """Return a copy of this object with its data converted to a NumPy array.
 
         Returns:
-            (np.ndarray): A numpy array containing the same data as the original tensor.
+            (BaseTensor): A new instance with `data` as a NumPy array.
 
         Examples:
             >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
             >>> orig_shape = (720, 1280)
             >>> base_tensor = BaseTensor(data, orig_shape)
-            >>> numpy_array = base_tensor.numpy()
-            >>> print(type(numpy_array))
+            >>> numpy_tensor = base_tensor.numpy()
+            >>> print(type(numpy_tensor.data))
             <class 'numpy.ndarray'>
         """
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.numpy(), self.orig_shape)
@@ -116,8 +110,7 @@ class BaseTensor(SimpleClass):
         """Move the tensor to GPU memory.
 
         Returns:
-            (BaseTensor): A new BaseTensor instance with the data moved to GPU memory if it's not already a numpy array,
-                otherwise returns self.
+            (BaseTensor): A new BaseTensor instance with the data moved to GPU memory.
 
         Examples:
             >>> import torch
@@ -207,14 +200,14 @@ class Results(SimpleClass, DataExportMixin):
         cuda: Move all tensors in the Results object to GPU memory.
         to: Move all tensors to the specified device and dtype.
         new: Create a new Results object with the same image, path, names, and speed attributes.
-        plot: Plot detection results on an input RGB image.
+        plot: Plot detection results on an input BGR image.
         show: Display the image with annotated inference results.
         save: Save annotated inference results image to file.
         verbose: Return a log string for each task in the results.
         save_txt: Save detection results to a text file.
         save_crop: Save cropped detection images to specified directory.
         summary: Convert inference results to a summarized dictionary.
-        to_df: Convert detection results to a Polars Dataframe.
+        to_df: Convert detection results to a Polars DataFrame.
         to_json: Convert detection results to JSON format.
         to_csv: Convert detection results to a CSV format.
 
@@ -251,12 +244,6 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
-
-        Examples:
-            >>> results = model("path/to/image.jpg")
-            >>> result = results[0]  # Get the first result
-            >>> boxes = result.boxes  # Get the boxes for the first result
-            >>> masks = result.masks  # Get the masks for the first result
 
         Notes:
             For the default pose model, keypoint indices for human body pose estimation are:
@@ -473,7 +460,7 @@ class Results(SimpleClass, DataExportMixin):
         color_mode: str = "class",
         txt_color: tuple[int, int, int] = (255, 255, 255),
     ) -> np.ndarray:
-        """Plot detection results on an input RGB image.
+        """Plot detection results on an input BGR image.
 
         Args:
             conf (bool): Whether to plot detection confidence scores.
@@ -493,10 +480,10 @@ class Results(SimpleClass, DataExportMixin):
             save (bool): Whether to save the annotated image.
             filename (str | None): Filename to save image if save is True.
             color_mode (str): Specify the color mode, e.g., 'instance' or 'class'.
-            txt_color (tuple[int, int, int]): Specify the RGB text color for classification task.
+            txt_color (tuple[int, int, int]): Text color in BGR format for classification output.
 
         Returns:
-            (np.ndarray): Annotated image as a numpy array.
+            (np.ndarray | PIL.Image.Image): Annotated image as a NumPy array (BGR) or PIL image (RGB) if `pil=True`.
 
         Examples:
             >>> results = model("image.jpg")
@@ -590,7 +577,7 @@ class Results(SimpleClass, DataExportMixin):
         if save:
             annotator.save(filename or f"results_{Path(self.path).name}")
 
-        return annotator.im if pil else annotator.result()
+        return annotator.result(pil)
 
     def show(self, *args, **kwargs):
         """Display the image with annotated inference results.
@@ -747,10 +734,10 @@ class Results(SimpleClass, DataExportMixin):
             - Original image is copied before cropping to avoid modifying the original.
         """
         if self.probs is not None:
-            LOGGER.warning("Classify task do not support `save_crop`.")
+            LOGGER.warning("Classify task does not support `save_crop`.")
             return
         if self.obb is not None:
-            LOGGER.warning("OBB task do not support `save_crop`.")
+            LOGGER.warning("OBB task does not support `save_crop`.")
             return
         for d in self.boxes:
             save_one_box(
@@ -873,19 +860,6 @@ class Boxes(BaseTensor):
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape (num_boxes, 6) or
                 (num_boxes, 7). Columns should contain [x1, y1, x2, y2, (optional) track_id, confidence, class].
             orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
-
-        Attributes:
-            data (torch.Tensor): The raw tensor containing detection boxes and their associated data.
-            orig_shape (tuple[int, int]): The original image size, used for normalization.
-            is_track (bool): Indicates whether tracking IDs are included in the box data.
-
-        Examples:
-            >>> import torch
-            >>> boxes = torch.tensor([[100, 50, 150, 100, 0.9, 0]])
-            >>> orig_shape = (480, 640)
-            >>> detection_boxes = Boxes(boxes, orig_shape)
-            >>> print(detection_boxes.xyxy)
-            tensor([[100.,  50., 150., 100.]])
         """
         if boxes.ndim == 1:
             boxes = boxes[None, :]
@@ -1066,13 +1040,6 @@ class Masks(BaseTensor):
         Args:
             masks (torch.Tensor | np.ndarray): Detection masks with shape (num_masks, height, width).
             orig_shape (tuple): The original image shape as (height, width). Used for normalization.
-
-        Examples:
-            >>> import torch
-            >>> from ultralytics.engine.results import Masks
-            >>> masks = torch.rand(10, 160, 160)  # 10 masks of 160x160 resolution
-            >>> orig_shape = (720, 1280)  # Original image shape
-            >>> mask_obj = Masks(masks, orig_shape)
         """
         if masks.ndim == 2:
             masks = masks[None, :]
@@ -1169,11 +1136,6 @@ class Keypoints(BaseTensor):
                 - (num_objects, num_keypoints, 2) for x, y coordinates only
                 - (num_objects, num_keypoints, 3) for x, y coordinates and confidence scores
             orig_shape (tuple[int, int]): The original image dimensions (height, width).
-
-        Examples:
-            >>> kpts = torch.rand(1, 17, 3)  # 1 object, 17 keypoints (COCO format), x,y,conf
-            >>> orig_shape = (720, 1280)  # Original image height, width
-            >>> keypoints = Keypoints(kpts, orig_shape)
         """
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
@@ -1284,24 +1246,6 @@ class Probs(BaseTensor):
             probs (torch.Tensor | np.ndarray): A 1D tensor or array of classification probabilities.
             orig_shape (tuple | None): The original image shape as (height, width). Not used in this class but kept for
                 consistency with other result classes.
-
-        Attributes:
-            data (torch.Tensor | np.ndarray): The raw tensor or array containing classification probabilities.
-            top1 (int): Index of the top 1 class.
-            top5 (list[int]): Indices of the top 5 classes.
-            top1conf (torch.Tensor | np.ndarray): Confidence of the top 1 class.
-            top5conf (torch.Tensor | np.ndarray): Confidences of the top 5 classes.
-
-        Examples:
-            >>> import torch
-            >>> probs = torch.tensor([0.1, 0.3, 0.2, 0.4])
-            >>> p = Probs(probs)
-            >>> print(p.top1)
-            3
-            >>> print(p.top1conf)
-            tensor(0.4000)
-            >>> print(p.top5)
-            [3, 1, 2, 0]
         """
         super().__init__(probs, orig_shape)
 
@@ -1420,20 +1364,8 @@ class OBB(BaseTensor):
                 the third last column contains track IDs, and the fifth column contains rotation.
             orig_shape (tuple[int, int]): Original image size, in the format (height, width).
 
-        Attributes:
-            data (torch.Tensor | np.ndarray): The raw OBB tensor.
-            orig_shape (tuple[int, int]): The original image shape.
-            is_track (bool): Whether the boxes include tracking IDs.
-
         Raises:
             AssertionError: If the number of values per box is not 7 or 8.
-
-        Examples:
-            >>> import torch
-            >>> boxes = torch.rand(3, 7)  # 3 boxes with 7 values each
-            >>> orig_shape = (640, 480)
-            >>> obb = OBB(boxes, orig_shape)
-            >>> print(obb.xywhr)  # Access the boxes in xywhr format
         """
         if boxes.ndim == 1:
             boxes = boxes[None, :]

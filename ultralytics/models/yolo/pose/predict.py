@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
-from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
+from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class PosePredictor(DetectionPredictor):
@@ -35,21 +35,9 @@ class PosePredictor(DetectionPredictor):
             cfg (Any): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
             _callbacks (list, optional): List of callback functions to be invoked during prediction.
-
-        Examples:
-            >>> from ultralytics.utils import ASSETS
-            >>> from ultralytics.models.yolo.pose import PosePredictor
-            >>> args = dict(model="yolo11n-pose.pt", source=ASSETS)
-            >>> predictor = PosePredictor(overrides=args)
-            >>> predictor.predict_cli()
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "pose"
-        if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
-            LOGGER.warning(
-                "Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
-                "See https://github.com/ultralytics/ultralytics/issues/4031."
-            )
 
     def construct_result(self, pred, img, orig_img, img_path):
         """Construct the result object from the prediction, including keypoints.

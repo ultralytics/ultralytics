@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
+import os
 
 import cv2
 from sahi import AutoDetectionModel
@@ -43,8 +44,11 @@ class SAHIInference:
         """
         from ultralytics.utils.torch_utils import select_device
 
-        yolo11_model_path = f"models/{weights}"
-        download_model_weights(yolo11_model_path)  # Download model if not present
+        if weights and os.path.exists(weights):
+            yolo11_model_path = weights
+        else:
+            yolo11_model_path = f"models/{weights}"
+            download_model_weights(yolo11_model_path)  # Download model if not present
         self.detection_model = AutoDetectionModel.from_pretrained(
             model_type="ultralytics", model_path=yolo11_model_path, device=select_device(device)
         )
@@ -79,11 +83,13 @@ class SAHIInference:
         """
         # Video setup
         cap = cv2.VideoCapture(source)
-        assert cap.isOpened(), "Error reading video file"
+        if not cap.isOpened():
+            raise FileNotFoundError(f"Unable to open video source: '{source}'")
 
-        # Output setup
-        save_dir = increment_path("runs/detect/predict", exist_ok)
-        save_dir.mkdir(parents=True, exist_ok=True)
+        save_dir = None
+        if save_img:
+            save_dir = increment_path("runs/detect/predict", exist_ok)
+            save_dir.mkdir(parents=True, exist_ok=True)
 
         # Load model
         self.load_model(weights, device)
@@ -106,7 +112,7 @@ class SAHIInference:
                 cv2.imshow("Ultralytics YOLO Inference", frame)
 
             # Save results if requested
-            if save_img:
+            if save_img and save_dir is not None:
                 idx += 1
                 results.export_visuals(export_dir=save_dir, file_name=f"img_{idx}", hide_conf=hide_conf)
 

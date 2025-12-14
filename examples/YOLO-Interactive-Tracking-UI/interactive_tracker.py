@@ -14,7 +14,7 @@ enable_gpu = False  # Set True if running with CUDA
 model_file = "yolo11s.pt"  # Path to model file
 show_fps = True  # If True, shows current FPS in top-left corner
 show_conf = False  # Display or hide the confidence score
-save_video = True  # Set True to save output video
+save_video = False  # Set True to save output video
 video_output_path = "interactive_tracker_output.avi"  # Output video file name
 
 
@@ -42,16 +42,15 @@ else:
 classes = model.names  # Store model class names
 
 cap = cv2.VideoCapture(0)  # Replace with video path if needed
+if not cap.isOpened():
+    raise SystemError("Failed to open video source.")
 
-# Initialize video writer
-vw = None
-if save_video:
-    w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-    vw = cv2.VideoWriter(video_output_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+vw = None  # Initialized lazily after the first frame is read
 
 selected_object_id = None
 selected_bbox = None
 selected_center = None
+latest_detections: list[list[float]] = []
 
 
 def get_center(x1: int, y1: int, x2: int, y2: int) -> tuple[int, int]:
@@ -125,26 +124,26 @@ def click_event(event: int, x: int, y: int, flags: int, param) -> None:
         flags (int): Any relevant flags passed by OpenCV.
         param (Any): Additional parameters (not used).
     """
-    global selected_object_id
+    global selected_object_id, latest_detections
     if event == cv2.EVENT_LBUTTONDOWN:
-        detections = results[0].boxes.data if results[0].boxes is not None else []
-        if detections is not None:
-            min_area = float("inf")
-            best_match = None
-            for track in detections:
-                track = track.tolist()
-                if len(track) >= 6:
-                    x1, y1, x2, y2 = map(int, track[:4])
-                    if x1 <= x <= x2 and y1 <= y <= y2:
-                        area = (x2 - x1) * (y2 - y1)
-                        if area < min_area:
-                            class_id = int(track[-1])
-                            track_id = int(track[4]) if len(track) == 7 else -1
-                            min_area = area
-                            best_match = (track_id, model.names[class_id])
-            if best_match:
-                selected_object_id, label = best_match
-                print(f"🔵 TRACKING STARTED: {label} (ID {selected_object_id})")
+        if not latest_detections:
+            return
+        min_area = float("inf")
+        best_match = None
+        for track in latest_detections:
+            if len(track) < 6:
+                continue
+            x1, y1, x2, y2 = map(int, track[:4])
+            if x1 <= x <= x2 and y1 <= y <= y2:
+                area = max(0, x2 - x1) * max(0, y2 - y1)
+                if area < min_area:
+                    track_id = int(track[4]) if len(track) >= 7 else -1
+                    class_id = int(track[6]) if len(track) >= 7 else int(track[5])
+                    min_area = area
+                    best_match = (track_id, classes.get(class_id, str(class_id)))
+        if best_match:
+            selected_object_id, label = best_match
+            LOGGER.info(f"Tracking started: {label} (ID {selected_object_id})")
 
 
 cv2.namedWindow(window_name)
@@ -160,7 +159,8 @@ while cap.isOpened():
     results = model.track(im, conf=conf, iou=iou, max_det=max_det, tracker=tracker, **track_args)
     annotator = Annotator(im)
     detections = results[0].boxes.data if results[0].boxes is not None else []
-    detected_objects = []
+    latest_detections = detections.cpu().tolist() if hasattr(detections, "cpu") else list(detections)  # type: ignore[arg-type]
+    detected_objects: list[str] = []
     for track in detections:
         track = track.tolist()
         if len(track) < 6:
@@ -170,10 +170,13 @@ while cap.isOpened():
         track_id = int(track[4]) if len(track) == 7 else -1
         color = colors(track_id, True)
         txt_color = annotator.get_txt_color(color)
-        label = f"{classes[class_id]} ID {track_id}" + (f" ({float(track[5]):.2f})" if show_conf else "")
+        conf_score = float(track[5]) if len(track) >= 7 else 0.0
+        class_name = classes.get(class_id, str(class_id))
+        label = f"{class_name} ID {track_id}" + (f" ({conf_score:.2f})" if show_conf else "")
+        center = get_center(x1, y1, x2, y2)
+        detected_objects.append(f"{class_name}#{track_id}@{center[0]},{center[1]}")
         if track_id == selected_object_id:
             draw_tracking_scope(im, (x1, y1, x2, y2), color)
-            center = get_center(x1, y1, x2, y2)
             cv2.circle(im, center, 6, color, -1)
 
             # Pulsing circle for attention
@@ -203,22 +206,33 @@ while cap.isOpened():
 
         # Draw FPS text with background
         fps_text = f"FPS: {fps_display}"
-        cv2.putText(im, fps_text, (10, 25), 0, 0.7, (255, 255, 255), 1)
         (tw, th), bl = cv2.getTextSize(fps_text, 0, 0.7, 2)
         cv2.rectangle(im, (10 - 5, 25 - th - 5), (10 + tw + 5, 25 + bl), (255, 255, 255), -1)
         cv2.putText(im, fps_text, (10, 25), 0, 0.7, (104, 31, 17), 1, cv2.LINE_AA)
+
+    if save_video and vw is None:
+        h, w = im.shape[:2]
+        fps = cap.get(cv2.CAP_PROP_FPS) or 0
+        fps = float(fps) if fps and fps > 0 else 30.0
+        ext = video_output_path.lower()
+        fourcc = cv2.VideoWriter_fourcc(*("MJPG" if ext.endswith(".avi") else "mp4v"))
+        vw = cv2.VideoWriter(video_output_path, fourcc, fps, (w, h))
 
     cv2.imshow(window_name, im)
     if save_video and vw is not None:
         vw.write(im)
     # Terminal logging
-    LOGGER.info(f"🟡 DETECTED {len(detections)} OBJECT(S): {' | '.join(detected_objects)}")
+    LOGGER.info(
+        f"Detected {len(detections)} object(s): {' | '.join(detected_objects)}"
+        if detected_objects
+        else f"Detected {len(detections)} object(s)."
+    )
 
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):
         break
     elif key == ord("c"):
-        LOGGER.info("🟢 TRACKING RESET")
+        LOGGER.info("Tracking reset.")
         selected_object_id = None
 
 cap.release()

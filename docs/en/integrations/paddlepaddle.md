@@ -55,7 +55,7 @@ PaddlePaddle provides a range of options, each offering a distinct balance of ea
 
 - **Paddle Lite**: Paddle Lite is designed for deployment on mobile and embedded devices where resources are limited. It optimizes models for smaller sizes and faster inference on ARM CPUs, GPUs, and other specialized hardware.
 
-- **Paddle.js**: Paddle.js enables you to deploy PaddlePaddle models directly within web browsers. Paddle.js can either load a pre-trained model or transform a model from [paddle-hub](https://github.com/PaddlePaddle/PaddleHub) with model transforming tools provided by Paddle.js. It can run in browsers that support WebGL/WebGPU/WebAssembly.
+- **Paddle.js**: Paddle.js enables you to deploy PaddlePaddle models directly within web browsers. Paddle.js can either load a pretrained model or transform a model from [paddle-hub](https://github.com/PaddlePaddle/PaddleHub) with model transforming tools provided by Paddle.js. It can run in browsers that support WebGL/WebGPU/WebAssembly.
 
 ## Export to PaddlePaddle: Converting Your YOLO11 Model
 

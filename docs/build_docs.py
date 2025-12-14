@@ -516,12 +516,9 @@ def render_jinja_macros() -> None:
     reserved_keys = {"name"}
     base_context = {**extra_vars, "page": {"meta": {}}, "config": {"site_name": site_name}}
 
-    # Build the main documentation
-    LOGGER.info(f"Building docs from {DOCS}")
-    # subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
-    subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml")], check=True)
-    remove_macros()
-    LOGGER.info(f"Site built at {SITE}")
+    files_processed = 0
+    files_with_macros = 0
+    macros_total = 0
 
     pbar = TQDM((DOCS / "en").rglob("*.md"), desc="MiniJinja: 0 macros, 0 pages")
     for md_file in pbar:

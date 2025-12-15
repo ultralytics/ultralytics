@@ -37,6 +37,13 @@ def parse_args():
         help='Project directory to save training results'
     )
 
+    parser.add_argument(
+        '--pretrained',
+        type=str,
+        default=None,
+        help='Path to pretrained weights file'
+    )
+
     return parser.parse_args()
 
 
@@ -59,6 +66,8 @@ def main():
 
     # Load RT-DETR model
     model = RTDETR(args.model)
+    if args.pretrained:
+        model.load(args.pretrained)
 
     # Prepare training kwargs
     train_kwargs = {'cfg': args.config, 'name': args.name, 'project': args.project}

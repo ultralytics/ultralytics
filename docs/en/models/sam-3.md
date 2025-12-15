@@ -400,7 +400,7 @@ Here we compare SAM 3's capabilities with SAM 2 and [YOLO11](../models/yolo11.md
 | **LVIS Mask AP (zero-shot)** | **47.0**                              | N/A                  | N/A                |
 | **MOSEv2 J&F**               | **60.1**                              | 47.9                 | N/A                |
 | **Inference Speed (H200)**   | **30 ms** (100+ objects)              | ~23 ms (per object)  | **2-3 ms** (image) |
-| **Model Size**               | Large (~400+ MB expected)             | 162 MB (base)        | **5.9 MB**         |
+| **Model Size**               | 3.4GB                                 | 162 MB (base)        | **5.9 MB**         |
 
 **Key Takeaways**:
 
@@ -593,7 +593,7 @@ SAM 3 and YOLO11 serve different use cases:
 **YOLO11 Advantages**:
 
 - **Speed**: 10-15× faster inference (2-3ms vs 30ms per image)
-- **Efficiency**: 70× smaller models (5.9MB vs ~400MB expected)
+- **Efficiency**: 576× smaller models (5.9MB vs 3.4GB)
 - **Resource-friendly**: Runs on edge devices and mobile
 - **Real-time**: Optimized for production deployments
 

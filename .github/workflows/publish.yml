@@ -70,7 +70,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - run: uv pip install --system --no-cache build
       - run: python -m build
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: dist
           path: dist/

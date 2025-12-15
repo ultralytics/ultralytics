@@ -237,7 +237,6 @@ class Results(SimpleClass, DataExportMixin):
         probs: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
-        boxes3d: list | None = None,
         speed: dict[str, float] | None = None,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
@@ -251,7 +250,6 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
-            boxes3d (list | None): A list of Box3D objects for 3D detection results (stereo 3D detection).
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Examples:
@@ -278,35 +276,7 @@ class Results(SimpleClass, DataExportMixin):
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "boxes3d"
-        # 3D boxes for stereo 3D detection
-        self.boxes3d: list | None = boxes3d if boxes3d is not None else None  # List of Box3D objects
-
-    @property
-    def boxes3d_numpy(self) -> np.ndarray:
-        """Get boxes3d as numpy array [N, 9] (x, y, z, l, w, h, orientation, cls, conf).
-
-        Returns:
-            (np.ndarray): Array of shape (N, 9) containing 3D box data, or empty array if no boxes.
-        """
-        if self.boxes3d is None or len(self.boxes3d) == 0:
-            return np.empty((0, 9), dtype=np.float32)
-
-        data = []
-        for box in self.boxes3d:
-            x, y, z = box.center_3d
-            l, w, h = box.dimensions
-            data.append([x, y, z, l, w, h, box.orientation, float(box.class_id), box.confidence])
-        return np.array(data, dtype=np.float32)
-
-    @property
-    def boxes3d_tensor(self) -> torch.Tensor:
-        """Get boxes3d as tensor [N, 9] (x, y, z, l, w, h, orientation, cls, conf).
-
-        Returns:
-            (torch.Tensor): Tensor of shape (N, 9) containing 3D box data, or empty tensor if no boxes.
-        """
-        return torch.from_numpy(self.boxes3d_numpy)
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb"
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.

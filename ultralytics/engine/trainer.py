@@ -449,14 +449,12 @@ class BaseTrainer:
                 # Log
                 if RANK in {-1, 0}:
                     loss_length = self.tloss.shape[0] if len(self.tloss.shape) else 1
-                    # Detach loss for display to avoid gradient warning (backward uses self.loss, not self.tloss)
-                    tloss_detached = self.tloss.detach()
                     pbar.set_description(
                         ("%11s" * 2 + "%11.4g" * (2 + loss_length))
                         % (
                             f"{epoch + 1}/{self.epochs}",
                             f"{self._get_memory():.3g}G",  # (GB) GPU memory util
-                            *(tloss_detached if loss_length > 1 else torch.unsqueeze(tloss_detached, 0)),  # losses
+                            *(self.tloss if loss_length > 1 else torch.unsqueeze(self.tloss, 0)),  # losses
                             batch["cls"].shape[0],  # batch size, i.e. 8
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
@@ -631,9 +629,6 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
-            if self.args.data is None:
-                raise RuntimeError(emojis(f"Dataset not specified for task '{self.args.task}' ❌"))
-            
             if self.args.task == "classify":
                 data = check_cls_dataset(self.args.data)
             elif str(self.args.data).rsplit(".", 1)[-1] == "ndjson":
@@ -650,14 +645,10 @@ class BaseTrainer:
                 "segment",
                 "pose",
                 "obb",
-                "stereo3ddet",
             }:
                 data = check_det_dataset(self.args.data)
                 if "yaml_file" in data:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
-            else:
-                # Try to load as YAML anyway
-                data = check_det_dataset(self.args.data)
         except Exception as e:
             raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
         if self.args.single_cls:

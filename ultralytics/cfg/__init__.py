@@ -53,15 +53,13 @@ SOLUTION_MAP = {
 
 # Define valid tasks and modes
 MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "stereo3ddet"})
+TASKS = frozenset({"detect", "segment", "classify", "pose", "obb"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
-    # Default example dataset for stereo 3D detection (user should override path)
-    "stereo3ddet": "kitti-stereo.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo11n.pt",
@@ -69,8 +67,6 @@ TASK2MODEL = {
     "classify": "yolo11n-cls.pt",
     "pose": "yolo11n-pose.pt",
     "obb": "yolo11n-obb.pt",
-    # Temporary default backbone until a dedicated stereo head is added
-    "stereo3ddet": "yolo11n.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
@@ -78,8 +74,6 @@ TASK2METRIC = {
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
-    # Placeholder metric; to be customized for stereo 3D later
-    "stereo3ddet": "metrics/mAP3D",
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []

@@ -201,10 +201,7 @@ class AutoBackend(nn.Module):
                     if IS_JETSON and is_jetson(jetpack=5):
                         # Jetson Jetpack5 requires device before fuse https://github.com/ultralytics/ultralytics/pull/21028
                         model = model.to(device)
-                    if hasattr(model, "fuse"):
-                        model = model.fuse(verbose=verbose)
-                    elif verbose:
-                        LOGGER.warning("Model does not support fusion (fuse method not found). Skipping fusion.")
+                    model = model.fuse(verbose=verbose)
                 model = model.to(device)
             else:  # pt file
                 from ultralytics.nn.tasks import load_checkpoint
@@ -217,8 +214,7 @@ class AutoBackend(nn.Module):
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
-            if hasattr(model, "yaml"):
-                ch = model.yaml.get("channels", 3)
+            ch = model.yaml.get("channels", 3)
             for p in model.parameters():
                 p.requires_grad = False
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
@@ -381,7 +377,7 @@ class AutoBackend(nn.Module):
                     if is_input:
                         if -1 in tuple(model.get_tensor_shape(name)):
                             dynamic = True
-                            context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[2]))
+                            context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[1]))
                         if dtype == np.float16:
                             fp16 = True
                     else:
@@ -623,6 +619,7 @@ class AutoBackend(nn.Module):
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"Metadata not found for 'model={w}'")
+
         # Check names
         if "names" not in locals():  # names missing
             names = default_class_names(data)

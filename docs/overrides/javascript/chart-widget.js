@@ -155,7 +155,10 @@ class ChartWidget {
     });
 
     const headers = Object.keys(data[0]);
-    const csv = [headers.join(","), ...data.map((row) => headers.map((h) => `"${row[h] || ""}"`).join(","))].join("\n");
+    const csv = [
+      headers.join(","),
+      ...data.map((row) => headers.map((h) => `"${row[h] || ""}"`).join(",")),
+    ].join("\n");
 
     const a = document.createElement("a");
     a.download = `chart-data-${Date.now()}.csv`;

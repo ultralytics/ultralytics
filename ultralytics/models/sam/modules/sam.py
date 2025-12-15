@@ -1155,6 +1155,6 @@ class SAM3Model(SAM2Model):
         # Apply pixel-wise non-overlapping constraint based on mask scores
         pixel_level_non_overlapping_masks = self._apply_non_overlapping_constraints(pred_masks)
         # Fully suppress masks with high shrinkage (probably noisy) based on the pixel wise non-overlapping constraints
-        # NOTE: The output of this function can be a no op if none of the masks shrinked by a large factor.
+        # NOTE: The output of this function can be a no op if none of the masks shrink by a large factor.
         pred_masks = self._suppress_shrinked_masks(pred_masks, pixel_level_non_overlapping_masks)
         return pred_masks

@@ -19,6 +19,7 @@ from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
 from urllib.parse import unquote
+import warnings
 
 import cv2
 import numpy as np
@@ -131,6 +132,13 @@ os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
+
+# Centralized warning suppression
+warnings.filterwarnings("ignore", message="torch.distributed.reduce_op is deprecated")  # PyTorch deprecation
+warnings.filterwarnings("ignore", message="The figure layout has changed to tight")  # matplotlib>=3.7.2
+warnings.filterwarnings("ignore", message=".*is deprecated and slated for removal.*")  # mobileclip and others
+warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/TorchScript export tracer warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="torch.jit")  # JIT trace warnings
 
 # Precompiled type tuples for faster isinstance() checks
 FLOAT_OR_INT = (float, int)

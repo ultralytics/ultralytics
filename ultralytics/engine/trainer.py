@@ -428,8 +428,6 @@ class BaseTrainer:
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= self.world_size
-                    if isinstance(self.loss_items, torch.Tensor):
-                        self.loss_items = self.loss_items.detach()
                     self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
 
                 # Backward
@@ -437,15 +435,6 @@ class BaseTrainer:
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni
-
-                    # MPS-specific memory cleanup after optimizer step
-                    if self.device.type == "mps":
-                        torch.mps.synchronize()  # Ensure all operations complete before cleanup
-                        torch.mps.empty_cache()
-                        # More aggressive GC in early epochs to prevent initial memory buildup
-                        gc_interval = 1 if epoch < 5 else (5 if epoch < 10 else 10)
-                        if (ni + 1) % gc_interval == 0:
-                            gc.collect()
 
                     # Timed stopping
                     if self.args.time:
@@ -524,7 +513,7 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            self._clear_memory(0.5)  # clear if memory utilization > 50%
+            self._clear_memory(None if self.device.type == "mps" else 0.5)  # clear if memory utilization > 50% or if MPS
 
             # Early Stopping
             if RANK != -1:  # if DDP training

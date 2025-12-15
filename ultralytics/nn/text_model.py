@@ -196,12 +196,7 @@ class MobileCLIP(TextModel):
             device (torch.device): Device to load the model on.
         """
         try:
-            import warnings
-
-            # Suppress 'timm.models.layers is deprecated, please import via timm.layers' warning from mobileclip usage
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=FutureWarning)
-                import mobileclip
+            import mobileclip
         except ImportError:
             # Ultralytics fork preferred since Apple MobileCLIP repo has incorrect version of torchvision
             checks.check_requirements("git+https://github.com/ultralytics/mobileclip.git")

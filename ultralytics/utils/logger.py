@@ -290,11 +290,10 @@ class SystemLogger:
         statistics, and GPU metrics (if available).
 
         Args:
-            rates (bool): If True, return MB/s rates for disk and network I/O instead of cumulative MB.
-                When False (default), returns cumulative MB since initialization.
-                When True, returns MB/s rates calculated from delta since last call.
-
-        Example output (rates=False, default):
+            rates (bool): If True, return MB/s rates for disk and network I/O instead of cumulative MB. When False
+                (default), returns cumulative MB since initialization. When True, returns MB/s rates calculated from
+                delta since last call.
+            Example output (rates=False, default):
 
         ```python
         {
@@ -303,13 +302,10 @@ class SystemLogger:
             "disk": {"read_mb": 156.7, "write_mb": 89.3, "used_gb": 256.8},
             "network": {"recv_mb": 157.2, "sent_mb": 89.1},
             "gpus": {
-                "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
-                "1": {"usage": 94.1, "memory": 82.7, "temp": 70, "power": 278},
-            },
-        }
+            "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
+            "1": {"usage": 94.1, "memory": 82.7, "temp": 70, "power": 278}, }, }
         ```
-
-        Example output (rates=True):
+            Example output (rates=True):
 
         ```python
         {
@@ -318,9 +314,7 @@ class SystemLogger:
             "disk": {"read_mbs": 12.5, "write_mbs": 8.3, "used_gb": 256.8},
             "network": {"recv_mbs": 5.2, "sent_mbs": 1.1},
             "gpus": {
-                "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
-            },
-        }
+            "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285}, }, }
         ```
 
         Returns:

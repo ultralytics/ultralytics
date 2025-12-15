@@ -1246,13 +1246,14 @@ class SAM2VideoPredictor(SAM2Predictor):
             - If `batch` is greater than 1, the features are expanded to fit the batch size.
             - The method leverages the model's `_prepare_backbone_features` method to prepare the backbone features.
         """
-        backbone_out = self.model.forward_image(im)
+        # check if there's cached backbone output
+        backbone_out = getattr(self, "backbone_out", self.model.forward_image(im))
         if batch > 1:  # expand features if there's more than one prompt
-            for i, feat in enumerate(backbone_out["backbone_fpn"]):
-                backbone_out["backbone_fpn"][i] = feat.expand(batch, -1, -1, -1)
-            for i, pos in enumerate(backbone_out["vision_pos_enc"]):
-                pos = pos.expand(batch, -1, -1, -1)
-                backbone_out["vision_pos_enc"][i] = pos
+            backbone_out = {
+                **backbone_out,
+                "backbone_fpn": [feat.expand(batch, -1, -1, -1) for feat in backbone_out["backbone_fpn"]],
+                "vision_pos_enc": [pos.expand(batch, -1, -1, -1) for pos in backbone_out["vision_pos_enc"]],
+            }
         _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
         return vis_feats, vis_pos_embed, feat_sizes
 
@@ -2439,24 +2440,6 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
         obj_scores = current_out["object_score_logits"]
 
         return obj_ids, pred_masks, obj_scores
-
-    def get_im_features(self, im, batch=1):
-        """A wrapper to get image features, supporting pre-extracted backbone outputs."""
-        if getattr(self, "backbone_out", None):
-            backbone_out = self.backbone_out
-            if batch > 1:  # expand features if there's more than one prompt
-                backbone_out = {
-                    "backbone_fpn": backbone_out["backbone_fpn"].copy(),
-                    "vision_pos_enc": backbone_out["vision_pos_enc"].copy(),
-                }
-                for i, feat in enumerate(backbone_out["backbone_fpn"]):
-                    backbone_out["backbone_fpn"][i] = feat.expand(batch, -1, -1, -1)
-                for i, pos in enumerate(backbone_out["vision_pos_enc"]):
-                    pos = pos.expand(batch, -1, -1, -1)
-                    backbone_out["vision_pos_enc"][i] = pos
-            _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
-            return vis_feats, vis_pos_embed, feat_sizes
-        return super().get_im_features(im, batch)
 
 
 class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):

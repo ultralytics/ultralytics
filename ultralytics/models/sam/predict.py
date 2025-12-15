@@ -1247,7 +1247,9 @@ class SAM2VideoPredictor(SAM2Predictor):
             - The method leverages the model's `_prepare_backbone_features` method to prepare the backbone features.
         """
         # check if there's cached backbone output
-        backbone_out = getattr(self, "backbone_out", self.model.forward_image(im))
+        backbone_out = getattr(self, "backbone_out", None)
+        if backbone_out is None:
+            backbone_out = self.model.forward_image(im)
         if batch > 1:  # expand features if there's more than one prompt
             backbone_out = {
                 **backbone_out,

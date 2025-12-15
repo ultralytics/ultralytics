@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import gc
 import math
-import osFcler
+import os
 import subprocess
 import time
 import warnings

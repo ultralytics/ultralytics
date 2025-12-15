@@ -1,0 +1,119 @@
+# Install with the command $singularity build --fakeroot --nv ~/containers/ultra_deformable.sif <definition_file_location>/ultra_deformable.def
+Bootstrap: docker
+From: nvcr.io/nvidia/pytorch:25.10-py3
+Stage: build
+
+%labels
+    Author esat
+    Version v1.0
+    Description "Ultralytics with Deformable-DETR operators on NVIDIA PyTorch base"
+
+%environment
+    export DEBIAN_FRONTEND=noninteractive
+    export PYTHONUNBUFFERED=1
+    export PYTHONDONTWRITEBYTECODE=1
+    export PIP_NO_CACHE_DIR=1
+    export PIP_BREAK_SYSTEM_PACKAGES=1
+    export MKL_THREADING_LAYER=GNU
+    export OMP_NUM_THREADS=1
+    export TF_CPP_MIN_LOG_LEVEL=3
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    export PYTHONUNBUFFERED=1
+    export PYTHONDONTWRITEBYTECODE=1
+    export PIP_NO_CACHE_DIR=1
+    export PIP_BREAK_SYSTEM_PACKAGES=1
+    export MKL_THREADING_LAYER=GNU
+    export OMP_NUM_THREADS=1
+    export TF_CPP_MIN_LOG_LEVEL=3
+
+    # Update and install linux packages
+    apt-get update && \
+    apt-get install -y \
+    nano tigervnc-standalone-server ffmpeg build-essential git ninja-build libsm6 libxext6 libglib2.0-0 libxrender-dev libeigen3-dev gdb gnupg libgl1 \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+    # Install pip packages for Ultralytics
+    # pip install --upgrade pip setuptools wheel
+    pip install albumentations faster-coco-eval wandb opencv-python-headless polars ultralytics-thop 
+
+    # Download YOLO model
+    # wget -q https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt \
+    #      -O /ultralytics/yolo11n.pt
+
+    # Deformable DETR installation - PyTorch 2.x + CUDA 12 compatible fork
+#     cd /opt && \
+#     git clone https://github.com/Norman-Ou/Deformable-DETR-Torch2.x-cuda12.git Deformable-DETR && \
+#     cd /opt/Deformable-DETR && \
+#     python setup.py build install
+
+%runscript
+    # OCI-compatible runscript for NVIDIA PyTorch base image
+    OCI_ENTRYPOINT='"/opt/nvidia/nvidia_entrypoint.sh"'
+    OCI_CMD=''
+
+    # When SINGULARITY_NO_EVAL set, use OCI compatible behavior
+    if [ -n "$SINGULARITY_NO_EVAL" ]; then
+            # ENTRYPOINT only - run entrypoint plus args
+            if [ -z "$OCI_CMD" ] && [ -n "$OCI_ENTRYPOINT" ]; then
+                    set -- '/opt/nvidia/nvidia_entrypoint.sh' "$@"
+                    exec "$@"
+            fi
+
+            # CMD only - run CMD or override with args
+            if [ -n "$OCI_CMD" ] && [ -z "$OCI_ENTRYPOINT" ]; then
+                    if [ $# -eq 0 ]; then
+                            :
+                    fi
+                    exec "$@"
+            fi
+
+            # ENTRYPOINT and CMD - run ENTRYPOINT with CMD as default args
+            if [ $# -gt 0 ]; then
+                    set -- '/opt/nvidia/nvidia_entrypoint.sh' "$@"
+                    :
+            else
+                    set -- '/opt/nvidia/nvidia_entrypoint.sh' "$@"
+                    :
+            fi
+            exec "$@"
+    fi
+
+    # Standard Singularity behavior evaluates CMD / ENTRYPOINT / ARGS
+    CMDLINE_ARGS=""
+    for arg in "$@"; do
+            CMDLINE_ARGS="${CMDLINE_ARGS} \"$arg\""
+    done
+
+    # ENTRYPOINT only - run entrypoint plus args
+    if [ -z "$OCI_CMD" ] && [ -n "$OCI_ENTRYPOINT" ]; then
+            if [ $# -gt 0 ]; then
+                    SINGULARITY_OCI_RUN="${OCI_ENTRYPOINT} ${CMDLINE_ARGS}"
+            else
+                    SINGULARITY_OCI_RUN="${OCI_ENTRYPOINT}"
+            fi
+    fi
+
+    # CMD only - run CMD or override with args
+    if [ -n "$OCI_CMD" ] && [ -z "$OCI_ENTRYPOINT" ]; then
+            if [ $# -gt 0 ]; then
+                    SINGULARITY_OCI_RUN="${CMDLINE_ARGS}"
+            else
+                    SINGULARITY_OCI_RUN="${OCI_CMD}"
+            fi
+    fi
+
+    # ENTRYPOINT and CMD - run ENTRYPOINT with CMD as default args
+    if [ $# -gt 0 ]; then
+            SINGULARITY_OCI_RUN="${OCI_ENTRYPOINT} ${CMDLINE_ARGS}"
+    else
+            SINGULARITY_OCI_RUN="${OCI_ENTRYPOINT} ${OCI_CMD}"
+    fi
+
+    # Evaluate shell expressions and execute
+    eval "set ${SINGULARITY_OCI_RUN}"
+    echo "Ultralytics container with Deformable-DETR initialized on NVIDIA PyTorch base (25.10-py3)"
+
+    exec "$@"

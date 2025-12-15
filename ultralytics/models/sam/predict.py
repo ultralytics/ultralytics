@@ -1246,7 +1246,10 @@ class SAM2VideoPredictor(SAM2Predictor):
             - If `batch` is greater than 1, the features are expanded to fit the batch size.
             - The method leverages the model's `_prepare_backbone_features` method to prepare the backbone features.
         """
-        backbone_out = self.model.forward_image(im)
+        # check if there's precomputed backbone output
+        backbone_out = getattr(self, "backbone_out", None)
+        if backbone_out is None:
+            backbone_out = self.model.forward_image(im)
         _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out, batch=batch)
         return vis_feats, vis_pos_embed, feat_sizes
 

@@ -171,7 +171,7 @@ class TransformerEncoderLayer(nn.Module):
             assert tgt.shape[0] % 2 == 0
             other_tgt = tgt[tgt.shape[0] // 2 :]
             tgt = tgt[: tgt.shape[0] // 2]
-        tgt2 = self.norm1(tgt)
+        tgt2 = self.norm1(tgt).contiguous()
         q = k = tgt2 + query_pos if self.pos_enc_at_attn else tgt2
         tgt2 = self.self_attn(q, k, value=tgt2, attn_mask=tgt_mask, key_padding_mask=tgt_key_padding_mask)[0]
         tgt = tgt + self.dropout1(tgt2)
@@ -179,13 +179,13 @@ class TransformerEncoderLayer(nn.Module):
             # Recombine
             tgt = torch.cat((tgt, other_tgt), dim=0)
         tgt2 = self.norm2(tgt)
+        memory = memory.to(tgt2.dtype).contiguous()
         tgt2 = self.cross_attn_image(
             query=tgt2 + query_pos if self.pos_enc_at_cross_attn_queries else tgt2,
-            key=memory.to(tgt2.dtype) + pos if self.pos_enc_at_cross_attn_keys else memory.to(tgt2.dtype),
-            value=memory.to(tgt2.dtype),
+            key=memory + pos if self.pos_enc_at_cross_attn_keys else memory,
+            value=memory,
             attn_mask=memory_mask,
             key_padding_mask=memory_key_padding_mask,
-            # attn_bias=attn_bias,
         )[0]
         tgt = tgt + self.dropout2(tgt2)
         tgt2 = self.norm3(tgt)

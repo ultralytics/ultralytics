@@ -42,8 +42,8 @@ def concat_padded_sequences(seq1, mask1, seq2, mask2, return_index: bool = False
     assert seq1_length == mask1.size(1)
     assert seq2_length == mask2.size(1)
 
-    torch._assert_async(is_right_padded(mask1))
-    torch._assert_async(is_right_padded(mask2))
+    torch._assert(is_right_padded(mask1), "Mask is not right padded")
+    torch._assert(is_right_padded(mask2), "Mask is not right padded")
 
     actual_seq1_lengths = (~mask1).sum(dim=-1)
     actual_seq2_lengths = (~mask2).sum(dim=-1)
@@ -288,7 +288,7 @@ class SequenceGeometryEncoder(nn.Module):
             # Convert boxes to xyxy format and denormalize
             boxes_xyxy = xywh2xyxy(boxes.to(img_feats.dtype))
             scale = torch.tensor([W, H, W, H], dtype=boxes_xyxy.dtype)
-            scale = scale.pin_memory().to(device=boxes_xyxy.device, non_blocking=True)
+            scale = scale.to(device=boxes_xyxy.device, non_blocking=True)
             scale = scale.view(1, 1, 4)
             boxes_xyxy = boxes_xyxy * scale
 

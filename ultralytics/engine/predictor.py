@@ -32,7 +32,7 @@ Usage - formats:
                               yolo11n_rknn_model         # Rockchip RKNN
                               yolo11n.pte                # PyTorch Executorch
                               yolo11n.safetensors        # SafeTensors
-                              yolo11n_axelera_model       # Axelera
+                              yolo11n_axelera_model      # Axelera
 """
 
 from __future__ import annotations

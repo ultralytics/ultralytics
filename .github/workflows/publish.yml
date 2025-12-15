@@ -86,7 +86,7 @@ jobs:
     permissions:
       id-token: write # for PyPI trusted publishing
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: dist
           path: dist/

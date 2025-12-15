@@ -2191,7 +2191,7 @@ class SAM3Predictor(SAM2Predictor):
 class SAM3SemanticPredictor(SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, bpe_path=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, bpe_path="bpe_simple_vocab_16e6.txt.gz"):
         """Initialize the SAM3SemanticPredictor with configuration and optional overrides."""
         super().__init__(cfg, overrides, _callbacks)
         self.bpe_path = bpe_path

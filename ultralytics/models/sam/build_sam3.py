@@ -5,6 +5,7 @@
 import torch.nn as nn
 
 from ultralytics.nn.modules.transformer import MLP
+from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.patches import torch_load
 
 from .modules.blocks import PositionEmbeddingSine, RoPEAttention
@@ -152,6 +153,7 @@ def build_sam3_image_model(
     vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=True)
 
     # Create text components
+    attempt_download_asset(bpe_path, release="v0.0.0", unzip=False)
     text_encoder = VETextEncoder(
         tokenizer=SimpleTokenizer(bpe_path=bpe_path),
         d_model=256,

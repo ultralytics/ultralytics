@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Benchmark a YOLO model formats for speed and accuracy.
+Benchmark YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
@@ -79,7 +79,7 @@ def benchmark(
         **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
-        (polars.DataFrame): A polars DataFrame with benchmark results for each format, including file size, metric, and
+        (polars.DataFrame): A Polars DataFrame with benchmark results for each format, including file size, metric, and
             inference time.
 
     Examples:

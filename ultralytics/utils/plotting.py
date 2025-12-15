@@ -511,7 +511,7 @@ class Annotator:
             cv2.putText(self.im, text, xy, 0, self.sf, txt_color, thickness=self.tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):
-        """Update self.im from a numpy array."""
+        """Update `self.im` from a NumPy array or PIL image."""
         self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
         self.draw = ImageDraw.Draw(self.im)
 
@@ -522,8 +522,8 @@ class Annotator:
 
     def show(self, title: str | None = None):
         """Show the annotated image."""
-        im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
-        if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
+        im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert BGR NumPy array to RGB PIL Image
+        if IS_COLAB or IS_KAGGLE:  # cannot use IS_JUPYTER as it runs for all IPython environments
             try:
                 display(im)  # noqa - display() function only available in ipython environments
             except ImportError as e:
@@ -536,11 +536,11 @@ class Annotator:
         cv2.imwrite(filename, np.asarray(self.im))
 
     @staticmethod
-    def get_bbox_dimension(bbox: tuple | None = None):
+    def get_bbox_dimension(bbox: tuple | list):
         """Calculate the dimensions and area of a bounding box.
 
         Args:
-            bbox (tuple): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
+            bbox (tuple | list): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
 
         Returns:
             width (float): Width of the bounding box.
@@ -600,8 +600,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         ax[0].set_xlabel("classes")
     boxes = np.column_stack([0.5 - boxes[:, 2:4] / 2, 0.5 + boxes[:, 2:4] / 2]) * 1000
     img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
-    for cls, box in zip(cls[:500], boxes[:500]):
-        ImageDraw.Draw(img).rectangle(box.tolist(), width=1, outline=colors(cls))  # plot
+    for class_id, box in zip(cls[:500], boxes[:500]):
+        ImageDraw.Draw(img).rectangle(box.tolist(), width=1, outline=colors(class_id))  # plot
     ax[1].imshow(img)
     ax[1].axis("off")
 

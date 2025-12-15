@@ -129,7 +129,7 @@ class AutoBackend(nn.Module):
 
     Methods:
         forward: Run inference on an input image.
-        from_numpy: Convert numpy array to tensor.
+        from_numpy: Convert NumPy arrays to tensors on the model device.
         warmup: Warm up the model with a dummy input.
         _model_type: Determine the model type from file path.
 
@@ -185,7 +185,7 @@ class AutoBackend(nn.Module):
             triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton or safetensors  # FP16
-        nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
+        nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCHW)
         stride, ch = 32, 3  # default stride and channels
         end2end, dynamic = False, False
         metadata, task = None, None
@@ -973,14 +973,14 @@ class AutoBackend(nn.Module):
         else:
             return self.from_numpy(y)
 
-    def from_numpy(self, x: np.ndarray) -> torch.Tensor:
-        """Convert a numpy array to a tensor.
+    def from_numpy(self, x: np.ndarray | torch.Tensor) -> torch.Tensor:
+        """Convert a NumPy array to a torch tensor on the model device.
 
         Args:
-            x (np.ndarray): The array to be converted.
+            x (np.ndarray | torch.Tensor): Input array or tensor.
 
         Returns:
-            (torch.Tensor): The converted tensor
+            (torch.Tensor): Tensor on `self.device`.
         """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
@@ -988,7 +988,7 @@ class AutoBackend(nn.Module):
         """Warm up the model by running one forward pass with a dummy input.
 
         Args:
-            imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
+            imgsz (tuple[int, int, int, int]): Dummy input shape in (batch, channels, height, width) format.
         """
         warmup_types = (
             self.pt,
@@ -1020,8 +1020,8 @@ class AutoBackend(nn.Module):
             (list[bool]): List of booleans indicating the model type.
 
         Examples:
-            >>> model = AutoBackend(model="path/to/model.onnx")
-            >>> model_type = model._model_type()  # returns "onnx"
+            >>> types = AutoBackend._model_type("path/to/model.onnx")
+            >>> assert types[2]  # onnx
         """
         from ultralytics.engine.exporter import export_formats
 

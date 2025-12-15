@@ -210,6 +210,7 @@ def test_export_paddle():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 def test_export_mnn():
     """Test YOLO export to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(MODEL).export(format="mnn", imgsz=32)
@@ -217,6 +218,7 @@ def test_export_mnn():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 @pytest.mark.parametrize(
     "task, int8, half, batch",
     [  # generate all combinations except for exclusion cases

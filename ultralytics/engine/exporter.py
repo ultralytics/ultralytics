@@ -129,7 +129,15 @@ from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_4, TORCH_2_9, select_device
+from ultralytics.utils.torch_utils import (
+    TORCH_1_10,
+    TORCH_1_11,
+    TORCH_1_13,
+    TORCH_2_1,
+    TORCH_2_4,
+    TORCH_2_9,
+    select_device,
+)
 
 
 def export_formats():
@@ -308,7 +316,11 @@ class Exporter:
         callbacks.add_integration_callbacks(self)
 
     def __call__(self, model=None) -> str:
-        """Return list of exported files/dirs after running callbacks."""
+        """Export a model and return the final exported path as a string.
+
+        Returns:
+            (str): Path to the exported file or directory (the last export artifact).
+        """
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
@@ -359,9 +371,10 @@ class Exporter:
             LOGGER.warning("TensorRT requires GPU export, automatically assigning device=0")
             self.args.device = "0"
         if engine and "dla" in str(self.args.device):  # convert int/list to str first
-            dla = self.args.device.rsplit(":", 1)[-1]
+            device_str = str(self.args.device)
+            dla = device_str.rsplit(":", 1)[-1]
             self.args.device = "0"  # update device to "0"
-            assert dla in {"0", "1"}, f"Expected self.args.device='dla:0' or 'dla:1, but got {self.args.device}."
+            assert dla in {"0", "1"}, f"Expected device 'dla:0' or 'dla:1', but got {device_str}."
         if imx and self.args.device is None and torch.cuda.is_available():
             LOGGER.warning("Exporting on CPU while CUDA is available, setting device=0 for faster export on GPU.")
             self.args.device = "0"  # update device to "0"
@@ -372,7 +385,7 @@ class Exporter:
         validate_args(fmt, self.args, fmt_keys)
         if axelera:
             if not IS_PYTHON_3_10:
-                SystemError("Axelera export only supported on Python 3.10.")
+                raise SystemError("Axelera export only supported on Python 3.10.")
             if not self.args.int8:
                 LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
                 self.args.int8 = True
@@ -615,7 +628,7 @@ class Exporter:
             )
 
         self.run_callbacks("on_export_end")
-        return f  # return list of exported files/dirs
+        return f  # path to final export artifact
 
     def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader for calibration of INT8 models."""
@@ -662,7 +675,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0,<=1.19.1"]
+        requirements = ["onnx>=1.12.0,<2.0.0"]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
@@ -724,7 +737,7 @@ class Exporter:
             model_onnx.ir_version = 10
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
-        if self.args.half and self.device.type == "cpu":
+        if self.args.half and self.args.format == "onnx" and self.device.type == "cpu":
             try:
                 from onnxruntime.transformers import float16
 
@@ -838,6 +851,7 @@ class Exporter:
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
+        assert TORCH_1_10, "MNN export requires torch>=1.10.0 to avoid segmentation faults"
         f_onnx = self.export_onnx()  # get onnx model first
 
         check_requirements("MNN>=2.9.6")
@@ -947,7 +961,7 @@ class Exporter:
 
         # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
         # Internally based on the model conversion and output type.
-        # Setting minimum_depoloyment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
+        # Setting minimum_deployment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
         # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
         ct_model = ct.convert(
             ts,
@@ -1042,7 +1056,7 @@ class Exporter:
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
-                "onnx>=1.12.0,<=1.19.1",
+                "onnx>=1.12.0,<2.0.0",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.71",
                 "onnxruntime-gpu" if cuda else "onnxruntime",

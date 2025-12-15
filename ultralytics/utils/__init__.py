@@ -136,9 +136,10 @@ os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output
 # Centralized warning suppression
 warnings.filterwarnings("ignore", message="torch.distributed.reduce_op is deprecated")  # PyTorch deprecation
 warnings.filterwarnings("ignore", message="The figure layout has changed to tight")  # matplotlib>=3.7.2
-warnings.filterwarnings("ignore", message=".*is deprecated and slated for removal.*")  # mobileclip and others
+warnings.filterwarnings("ignore", category=FutureWarning, module="timm")  # mobileclip timm.layers deprecation
 warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/TorchScript export tracer warnings
-warnings.filterwarnings("ignore", category=UserWarning, module="torch.jit")  # JIT trace warnings
+warnings.filterwarnings("ignore", category=UserWarning, message=".*prim::Constant.*")  # ONNX shape warning
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="coremltools")  # CoreML np.bool deprecation
 
 # Precompiled type tuples for faster isinstance() checks
 FLOAT_OR_INT = (float, int)

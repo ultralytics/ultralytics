@@ -66,7 +66,7 @@ def _log_tensorboard_graph(trainer) -> None:
         WRITER.add_graph(torch.jit.trace(torch_utils.unwrap_model(trainer.model), im, strict=False), [])
         LOGGER.info(f"{PREFIX}model graph visualization added ✅")
         return
-    except Exception:
+    except Exception as e1:
         # Fallback to TorchScript export steps (RTDETR)
         try:
             model = deepcopy(torch_utils.unwrap_model(trainer.model))
@@ -79,8 +79,8 @@ def _log_tensorboard_graph(trainer) -> None:
             model(im)  # dry run
             WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
-        except Exception as e:
-            LOGGER.warning(f"{PREFIX}TensorBoard graph visualization failure {e}")
+        except Exception as e2:
+            LOGGER.warning(f"{PREFIX}TensorBoard graph visualization failure: {e1} -> {e2}")
 
 
 def on_pretrain_routine_start(trainer) -> None:

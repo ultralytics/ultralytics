@@ -320,7 +320,7 @@ class SystemLogger:
             rates (bool): If True, return disk/network as MB/s rates instead of cumulative MB.
 
         Returns:
-            (dict): Metrics dictionary. Example
+            (dict): Metrics dictionary with cpu, ram, disk, network, and gpus keys.
 
         Examples:
             >>> logger = SystemLogger()

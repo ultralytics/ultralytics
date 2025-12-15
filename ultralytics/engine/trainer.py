@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import gc
 import math
-import os
+import osFcler
 import subprocess
 import time
 import warnings
@@ -464,15 +464,6 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
-
-                # MPS-specific: Clear batch data to prevent accumulation
-                # More aggressive cleanup in early epochs
-                if self.device.type == "mps":
-                    batch_interval = 1 if nb < 5 else (5 if nb < 25 else 25)
-                    if (i + 1) % batch_interval == 0:
-                        gc.collect()
-                        torch.mps.synchronize()  # Ensure all operations complete before cleanup
-                        torch.mps.empty_cache()
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
 

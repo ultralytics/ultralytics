@@ -284,18 +284,12 @@ class SystemLogger:
             return False
 
     def get_metrics(self, rates=False):
-        """Get current system metrics.
+        """Get current system metrics including CPU, RAM, disk, network, and GPU usage.
 
         Collects comprehensive system metrics including CPU usage, RAM usage, disk I/O statistics, network I/O
         statistics, and GPU metrics (if available).
 
-        Args:
-            rates (bool): If True, return MB/s rates for disk and network I/O instead of cumulative MB.
-                When False (default), returns cumulative MB since initialization.
-                When True, returns MB/s rates calculated from delta since last call.
-
         Example output (rates=False, default):
-
         ```python
         {
             "cpu": 45.2,
@@ -310,7 +304,6 @@ class SystemLogger:
         ```
 
         Example output (rates=True):
-
         ```python
         {
             "cpu": 45.2,
@@ -323,8 +316,17 @@ class SystemLogger:
         }
         ```
 
+
+        Args:
+            rates (bool): If True, return disk/network as MB/s rates instead of cumulative MB.
+
         Returns:
-            (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with usage data.
+            (dict): Metrics dictionary. Example
+
+        Examples:
+            >>> logger = SystemLogger()
+            >>> logger.get_metrics()["cpu"]  # CPU percentage
+            >>> logger.get_metrics(rates=True)["network"]["recv_mbs"]  # MB/s download rate
         """
         import psutil  # scoped as slow import
 

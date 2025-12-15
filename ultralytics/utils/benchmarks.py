@@ -26,6 +26,7 @@ NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
 ExecuTorch              | `executorch`              | yolo11n_executorch_model/
+Axelera                 | `axelera`                 | yolo11n_axelera_model/
 SafeTensors             | `safetensors`             | yolo11n.safetensors
 """
 

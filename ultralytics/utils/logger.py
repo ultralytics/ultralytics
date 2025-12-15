@@ -316,7 +316,6 @@ class SystemLogger:
         }
         ```
 
-
         Args:
             rates (bool): If True, return disk/network as MB/s rates instead of cumulative MB.
 

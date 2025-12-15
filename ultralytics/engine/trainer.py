@@ -504,7 +504,9 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            self._clear_memory(None if self.device.type == "mps" else 0.5)  # clear if memory utilization > 50% or if MPS
+            self._clear_memory(
+                None if self.device.type == "mps" else 0.5
+            )  # clear if memory utilization > 50% or if MPS
 
             # Early Stopping
             if RANK != -1:  # if DDP training

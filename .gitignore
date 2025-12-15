@@ -198,3 +198,4 @@ TRAINING_VALIDATION_REPORT.md
 .cursor/
 .specify/
 specs/
+preds_debug_tmp_array/

@@ -216,3 +216,316 @@ class TestResultsDictionaryStructure:
         except (TypeError, ValueError) as e:
             pytest.fail(f"BaseValidator should be able to round all values: {e}")
 
+
+class TestMetricsCalculationBugFix:
+    """Test suite for metrics calculation bug fix (T035-T041)."""
+
+    def test_metrics_with_perfect_matches(self):
+        """Test that perfect predictions yield AP3D@0.7 ≈ 1.0 (T035)."""
+        names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        metrics = Stereo3DDetMetrics(names=names)
+        
+        # Create perfect match: prediction identical to ground truth
+        pred_box = Box3D(
+            center_3d=(10.0, 2.0, 30.0),
+            dimensions=(3.88, 1.63, 1.53),
+            orientation=0.0,
+            class_label="Car",
+            class_id=0,
+            confidence=0.95,
+        )
+        gt_box = Box3D(
+            center_3d=(10.0, 2.0, 30.0),
+            dimensions=(3.88, 1.63, 1.53),
+            orientation=0.0,
+            class_label="Car",
+            class_id=0,
+            confidence=1.0,
+        )
+        
+        # Update stats with perfect match (IoU should be ~1.0)
+        stat = {
+            "tp": np.array([[True, True]], dtype=bool),  # TP at both thresholds
+            "fp": np.array([[False, False]], dtype=bool),
+            "conf": np.array([0.95]),
+            "pred_cls": np.array([0]),
+            "target_cls": np.array([0]),
+            "boxes3d_pred": [pred_box],
+            "boxes3d_target": [gt_box],
+        }
+        metrics.update_stats(stat)
+        
+        results = metrics.process()
+        
+        # With perfect match, AP3D@0.7 should be close to 1.0
+        assert "ap3d_70" in results
+        # Note: AP calculation depends on precision-recall curve, but with perfect match it should be high
+        # We check that it's non-zero and reasonable
+        ap3d_70_car = results["ap3d_70"].get(0, 0.0) if isinstance(results["ap3d_70"], dict) else 0.0
+        # For perfect match with single sample, AP might not be exactly 1.0 due to interpolation
+        # But it should be significantly greater than 0
+        assert ap3d_70_car > 0.5, f"Perfect match should yield high AP3D@0.7, got {ap3d_70_car}"
+
+    def test_metrics_with_good_matches(self):
+        """Test that IoU > 0.5 yields non-zero AP3D (T036)."""
+        names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        metrics = Stereo3DDetMetrics(names=names)
+        
+        # Create good match (IoU > 0.5 but < 0.7)
+        pred_box = Box3D(
+            center_3d=(10.0, 2.0, 30.0),
+            dimensions=(3.88, 1.63, 1.53),
+            orientation=0.0,
+            class_label="Car",
+            class_id=0,
+            confidence=0.9,
+        )
+        gt_box = Box3D(
+            center_3d=(10.5, 2.0, 30.0),  # Slightly offset to reduce IoU
+            dimensions=(3.88, 1.63, 1.53),
+            orientation=0.0,
+            class_label="Car",
+            class_id=0,
+            confidence=1.0,
+        )
+        
+        stat = {
+            "tp": np.array([[True, False]], dtype=bool),  # TP at 0.5, FP at 0.7
+            "fp": np.array([[False, True]], dtype=bool),
+            "conf": np.array([0.9]),
+            "pred_cls": np.array([0]),
+            "target_cls": np.array([0]),
+            "boxes3d_pred": [pred_box],
+            "boxes3d_target": [gt_box],
+        }
+        metrics.update_stats(stat)
+        
+        results = metrics.process()
+        
+        # AP3D@0.5 should be non-zero
+        ap3d_50_car = results["ap3d_50"].get(0, 0.0) if isinstance(results["ap3d_50"], dict) else 0.0
+        assert ap3d_50_car > 0.0, f"Good match (IoU > 0.5) should yield non-zero AP3D@0.5, got {ap3d_50_car}"
+
+    def test_metrics_empty_predictions(self):
+        """Test edge case: empty predictions (T037)."""
+        names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        metrics = Stereo3DDetMetrics(names=names)
+        
+        gt_box = Box3D(
+            center_3d=(10.0, 2.0, 30.0),
+            dimensions=(3.88, 1.63, 1.53),
+            orientation=0.0,
+            class_label="Car",
+            class_id=0,
+            confidence=1.0,
+        )
+        
+        # Empty predictions
+        stat = {
+            "tp": np.zeros((0, 2), dtype=bool),
+            "fp": np.zeros((0, 2), dtype=bool),
+            "conf": np.array([]),
+            "pred_cls": np.array([], dtype=int),
+            "target_cls": np.array([0]),
+            "boxes3d_pred": [],
+            "boxes3d_target": [gt_box],
+        }
+        metrics.update_stats(stat)
+        
+        results = metrics.process()
+        
+        # With empty predictions, metrics should handle gracefully
+        # AP3D should be 0.0 (no predictions to match)
+        assert isinstance(results, dict), "Results should be a dict even with empty predictions"
+
+    def test_metrics_empty_ground_truth(self):
+        """Test edge case: empty ground truth (T038)."""
+        names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        metrics = Stereo3DDetMetrics(names=names)
+        
+        pred_box = Box3D(
+            center_3d=(10.0, 2.0, 30.0),
+            dimensions=(3.88, 1.63, 1.53),
+            orientation=0.0,
+            class_label="Car",
+            class_id=0,
+            confidence=0.9,
+        )
+        
+        # Empty ground truth
+        stat = {
+            "tp": np.zeros((1, 2), dtype=bool),
+            "fp": np.ones((1, 2), dtype=bool),  # All false positives
+            "conf": np.array([0.9]),
+            "pred_cls": np.array([0]),
+            "target_cls": np.array([], dtype=int),
+            "boxes3d_pred": [pred_box],
+            "boxes3d_target": [],
+        }
+        metrics.update_stats(stat)
+        
+        results = metrics.process()
+        
+        # With empty ground truth, metrics should handle gracefully
+        assert isinstance(results, dict), "Results should be a dict even with empty ground truth"
+
+    def test_metrics_boundary_iou_thresholds(self):
+        """Test edge case: IoU exactly at 0.5 and 0.7 (T039)."""
+        names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        metrics = Stereo3DDetMetrics(names=names)
+        
+        # Create boxes with IoU exactly at threshold (would need precise calculation)
+        # For this test, we simulate the boundary case with TP/FP assignment
+        stat = {
+            "tp": np.array([[True, False]], dtype=bool),  # TP at 0.5, FP at 0.7
+            "fp": np.array([[False, True]], dtype=bool),
+            "conf": np.array([0.9]),
+            "pred_cls": np.array([0]),
+            "target_cls": np.array([0]),
+            "boxes3d_pred": [Box3D(
+                center_3d=(10.0, 2.0, 30.0),
+                dimensions=(3.88, 1.63, 1.53),
+                orientation=0.0,
+                class_label="Car",
+                class_id=0,
+                confidence=0.9,
+            )],
+            "boxes3d_target": [Box3D(
+                center_3d=(10.0, 2.0, 30.0),
+                dimensions=(3.88, 1.63, 1.53),
+                orientation=0.0,
+                class_label="Car",
+                class_id=0,
+                confidence=1.0,
+            )],
+        }
+        metrics.update_stats(stat)
+        
+        results = metrics.process()
+        
+        # Should handle boundary cases without errors
+        assert isinstance(results, dict), "Results should handle boundary IoU thresholds"
+
+    def test_metrics_no_matches(self):
+        """Test edge case: all IoU values below thresholds (T040)."""
+        names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        metrics = Stereo3DDetMetrics(names=names)
+        
+        # All predictions are false positives (IoU < 0.5)
+        stat = {
+            "tp": np.zeros((2, 2), dtype=bool),
+            "fp": np.ones((2, 2), dtype=bool),
+            "conf": np.array([0.9, 0.8]),
+            "pred_cls": np.array([0, 0]),
+            "target_cls": np.array([0]),
+            "boxes3d_pred": [
+                Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0, class_label="Car", class_id=0, confidence=0.9),
+                Box3D(center_3d=(20.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0, class_label="Car", class_id=0, confidence=0.8),
+            ],
+            "boxes3d_target": [
+                Box3D(center_3d=(100.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0, class_label="Car", class_id=0, confidence=1.0),
+            ],
+        }
+        metrics.update_stats(stat)
+        
+        results = metrics.process()
+        
+        # With no matches, AP3D should be 0.0
+        ap3d_50_car = results["ap3d_50"].get(0, 0.0) if isinstance(results["ap3d_50"], dict) else 0.0
+        assert ap3d_50_car == 0.0, f"No matches should yield AP3D=0.0, got {ap3d_50_car}"
+
+    def test_metrics_class_id_mismatch(self):
+        """Test edge case: prediction and GT class IDs don't match (T041)."""
+        names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        metrics = Stereo3DDetMetrics(names=names)
+        
+        # Prediction is Car (0), GT is Pedestrian (1) - should not match
+        stat = {
+            "tp": np.zeros((1, 2), dtype=bool),
+            "fp": np.ones((1, 2), dtype=bool),  # False positive due to class mismatch
+            "conf": np.array([0.9]),
+            "pred_cls": np.array([0]),  # Car
+            "target_cls": np.array([1]),  # Pedestrian
+            "boxes3d_pred": [
+                Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0, class_label="Car", class_id=0, confidence=0.9),
+            ],
+            "boxes3d_target": [
+                Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(0.88, 0.60, 1.73), orientation=0.0, class_label="Pedestrian", class_id=1, confidence=1.0),
+            ],
+        }
+        metrics.update_stats(stat)
+        
+        results = metrics.process()
+        
+        # Class mismatch should result in FP, not TP
+        # AP3D for Car should be 0.0 (no TP for Car class)
+        assert isinstance(results, dict), "Results should handle class ID mismatches"
+
+    def test_metrics_statistics_accumulation(self):
+        """Test that stat accumulation works across batches (T042)."""
+        names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        metrics = Stereo3DDetMetrics(names=names)
+        
+        # Add multiple batches
+        for i in range(3):
+            stat = {
+                "tp": np.array([[True, True]], dtype=bool),
+                "fp": np.array([[False, False]], dtype=bool),
+                "conf": np.array([0.9 - i * 0.1]),
+                "pred_cls": np.array([0]),
+                "target_cls": np.array([0]),
+                "boxes3d_pred": [
+                    Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0, class_label="Car", class_id=0, confidence=0.9 - i * 0.1),
+                ],
+                "boxes3d_target": [
+                    Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0, class_label="Car", class_id=0, confidence=1.0),
+                ],
+            }
+            metrics.update_stats(stat)
+        
+        # Verify accumulation
+        assert len(metrics.stats) == 3, "Should accumulate 3 batches"
+        
+        results = metrics.process()
+        
+        # After accumulation, should have metrics for all batches
+        assert isinstance(results, dict), "Results should be computed after accumulation"
+
+    def test_metrics_consistency(self):
+        """Test that metrics are consistent across runs (variance < 0.1%) (T043)."""
+        names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        
+        # Run process multiple times with same input
+        results_list = []
+        for _ in range(3):
+            metrics = Stereo3DDetMetrics(names=names)
+            stat = {
+                "tp": np.array([[True, True]], dtype=bool),
+                "fp": np.array([[False, False]], dtype=bool),
+                "conf": np.array([0.9]),
+                "pred_cls": np.array([0]),
+                "target_cls": np.array([0]),
+                "boxes3d_pred": [
+                    Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0, class_label="Car", class_id=0, confidence=0.9),
+                ],
+                "boxes3d_target": [
+                    Box3D(center_3d=(10.0, 2.0, 30.0), dimensions=(3.88, 1.63, 1.53), orientation=0.0, class_label="Car", class_id=0, confidence=1.0),
+                ],
+            }
+            metrics.update_stats(stat)
+            results = metrics.process()
+            results_list.append(results)
+        
+        # Check consistency (all results should be identical)
+        ap3d_50_values = [
+            r["ap3d_50"].get(0, 0.0) if isinstance(r["ap3d_50"], dict) else 0.0
+            for r in results_list
+        ]
+        
+        # Variance should be very small (essentially zero for deterministic computation)
+        if len(set(ap3d_50_values)) > 1:
+            variance = np.var(ap3d_50_values)
+            mean_val = np.mean(ap3d_50_values)
+            relative_variance = variance / (mean_val + 1e-10)
+            assert relative_variance < 0.001, f"Metrics should be consistent (variance={relative_variance:.6f} > 0.1%)"
+

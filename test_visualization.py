@@ -24,7 +24,7 @@ from ultralytics.models.yolo.stereo3ddet.val import Stereo3DDetValidator, _label
 from ultralytics.utils.plotting import plot_stereo3d_boxes
 
 
-def load_sample_data(dataset_root: str | Path, split: str = "val", num_samples: int = 3):
+def load_sample_data(dataset_root: str | Path, split: str = "val", num_samples: int = 30):
     """Load real stereo image pairs and labels from the dataset.
     
     Args:
@@ -96,7 +96,105 @@ def labels_to_box3d_list(labels: list, calib: dict):
     Returns:
         List of Box3D objects
     """
-    return _labels_to_box3d_list(labels, calib)
+    from ultralytics.models.yolo.stereo3ddet.utils import (
+        filter_and_remap_class_id,
+        get_paper_class_names,
+    )
+    from ultralytics.data.stereo.box3d import Box3D
+    from ultralytics.data.stereo.calib import CalibrationParameters
+    
+    boxes3d = []
+    class_names = get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+
+    for label in labels:
+        try:
+            original_class_id = label.get("class_id", 0)
+            
+            # Filter and remap class ID to paper classes
+            remapped_class_id = filter_and_remap_class_id(original_class_id)
+            if remapped_class_id is None:
+                continue
+            
+            class_id = remapped_class_id
+            if class_id not in class_names:
+                continue
+
+            # Get dimensions
+            dims = label.get("dimensions", {})
+            height = dims.get("height", 1.5)
+            width = dims.get("width", 1.5)
+            length = dims.get("length", 3.0)
+
+            # Get orientation (alpha is observation angle, convert to rotation_y)
+            alpha = label.get("alpha", 0.0)
+
+            # Reconstruct 3D center from 2D box and depth estimation
+            left_box = label.get("left_box", {})
+            box_h = left_box.get("height", 0.1)
+            
+            # Handle both dict and CalibrationParameters objects
+            if isinstance(calib, CalibrationParameters):
+                fx_val = calib.fx
+                fy_val = calib.fy
+                cx_val = calib.cx
+                cy_val = calib.cy
+            elif isinstance(calib, dict):
+                fx_val = calib.get("fx", 721.5377)
+                fy_val = calib.get("fy", 721.5377)
+                cx_val = calib.get("cx", 609.5593)
+                cy_val = calib.get("cy", 172.8540)
+            else:
+                fx_val = 721.5377
+                fy_val = 721.5377
+                cx_val = 609.5593
+                cy_val = 172.8540
+            
+            # Rough depth estimation: Z ≈ (f × H_3d) / h_2d
+            if calib and box_h > 0:
+                # Estimate depth from box height
+                depth = (fy_val * height) / (box_h * 375.0)  # Assuming original image height ~375
+            else:
+                depth = 30.0  # Default depth
+
+            # Convert 2D center to 3D
+            center_x_2d = left_box.get("center_x", 0.5) * 1242.0  # Assuming original width
+            center_y_2d = left_box.get("center_y", 0.5) * 375.0  # Assuming original height
+
+            cx = cx_val
+            cy = cy_val
+            fx = fx_val
+            fy = fy_val
+
+            x_3d = (center_x_2d - cx) * depth / fx
+            y_3d = (center_y_2d - cy) * depth / fy
+            z_3d = depth
+
+            # Convert alpha to rotation_y correctly
+            # In KITTI: alpha = rotation_y - arctan2(x, z)
+            # So: rotation_y = alpha + arctan2(x, z)
+            rotation_y = alpha + np.arctan2(x_3d, z_3d)
+            
+            # The rotation matrix convention might need adjustment
+            # Try negating the orientation to match the visualization convention
+            rotation_y = -rotation_y
+
+            box3d = Box3D(
+                center_3d=(float(x_3d), float(y_3d), float(z_3d)),
+                dimensions=(float(length), float(width), float(height)),
+                orientation=float(rotation_y),
+                class_label=class_names[class_id],
+                class_id=class_id,
+                confidence=1.0,  # Ground truth has confidence 1.0
+                bbox_2d=None,
+                truncated=label.get("truncated"),
+                occluded=label.get("occluded"),
+            )
+            boxes3d.append(box3d)
+        except Exception as e:
+            print(f"  WARNING: Error converting label to Box3D: {e}")
+            continue
+    
+    return boxes3d
 
 
 def test_visualization(dataset_root: str | Path, output_dir: str | Path = "test_visualization_output"):
@@ -114,7 +212,7 @@ def test_visualization(dataset_root: str | Path, output_dir: str | Path = "test_
     print(f"Output directory: {output_dir}")
     
     # Load three sample pairs
-    samples = load_sample_data(dataset_root, split="val", num_samples=3)
+    samples = load_sample_data(dataset_root, split="val", num_samples=30)
     
     if not samples:
         print("ERROR: No samples loaded. Please check dataset path.")

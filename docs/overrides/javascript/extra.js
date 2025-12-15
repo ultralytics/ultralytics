@@ -1,5 +1,43 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+// Block sitemap.xml fetches triggered by Weglot's hreflang tags detected by MkDocs Material
+(() => {
+  const EMPTY_SITEMAP = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`;
+
+  const originalFetch = window.fetch;
+  window.fetch = function (url, options) {
+    if (typeof url === "string" && url.includes("/sitemap.xml")) {
+      return Promise.resolve(
+        new Response(EMPTY_SITEMAP, { status: 200, headers: { "Content-Type": "application/xml" } }),
+      );
+    }
+    return originalFetch.apply(this, arguments);
+  };
+
+  const originalXHROpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function (method, url) {
+    if (typeof url === "string" && url.includes("/sitemap.xml")) {
+      this._blockRequest = true;
+    }
+    return originalXHROpen.apply(this, arguments);
+  };
+
+  const originalXHRSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.send = function () {
+    if (this._blockRequest) {
+      Object.defineProperty(this, "status", { value: 200 });
+      Object.defineProperty(this, "responseText", { value: EMPTY_SITEMAP });
+      Object.defineProperty(this, "response", { value: EMPTY_SITEMAP });
+      Object.defineProperty(this, "responseXML", {
+        value: new DOMParser().parseFromString(EMPTY_SITEMAP, "application/xml"),
+      });
+      this.dispatchEvent(new Event("load"));
+      return;
+    }
+    return originalXHRSend.apply(this, arguments);
+  };
+})();
+
 // Apply theme colors based on dark/light mode
 const applyTheme = (isDark) => {
   document.body.setAttribute("data-md-color-scheme", isDark ? "slate" : "default");
@@ -42,10 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Ultralytics Chat Widget ---------------------------------------------------------------------------------------------
-let ultralyticsChat = null;
-
 document.addEventListener("DOMContentLoaded", () => {
-  ultralyticsChat = new UltralyticsChat({
+  new UltralyticsChat({
     welcome: {
       title: "Hello 👋",
       message: "Ask about YOLO, tutorials, training, export, deployment, or troubleshooting.",
@@ -60,101 +96,92 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   });
 
-  // Add search bar to header
   const headerElement = document.querySelector(".md-header__inner");
   const searchContainer = headerElement?.querySelector(".md-header__source");
 
   if (headerElement && searchContainer) {
     const searchBar = document.createElement("div");
     searchBar.className = "ult-header-search";
+    const hotkey = /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl+K";
     searchBar.innerHTML = `
-      <button class="ult-search-button" title="Search documentation (⌘K)">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="m21 21-4.35-4.35"/>
+      <button class="ult-search-button" title="Search documentation (${hotkey})" aria-label="Search documentation">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
         </svg>
         <span>Search</span>
+        <span class="ult-search-hotkey" aria-hidden="true">${hotkey}</span>
       </button>
     `;
     headerElement.insertBefore(searchBar, searchContainer);
+
+    const defaultSearchToggle = headerElement.querySelector('label[for="__search"]');
+    const defaultSearchInput = document.getElementById("__search");
+    const defaultSearchDialog = document.querySelector(".md-search");
+    if (defaultSearchToggle) {
+      defaultSearchToggle.setAttribute("aria-hidden", "true");
+      defaultSearchToggle.style.display = "none";
+    }
+    if (defaultSearchInput) {
+      defaultSearchInput.setAttribute("tabindex", "-1");
+      defaultSearchInput.setAttribute("aria-hidden", "true");
+    }
+    if (defaultSearchDialog) defaultSearchDialog.style.display = "none";
 
     searchBar.querySelector(".ult-search-button").addEventListener("click", () => {
       ultralyticsChat?.toggle(true, "search");
     });
   }
-
-  // Keyboard shortcuts
-  document.addEventListener("keydown", (e) => {
-    if (
-      (e.metaKey || e.ctrlKey) &&
-      e.key === "k" &&
-      !/input|textarea/i.test(e.target.tagName) &&
-      !e.target.isContentEditable
-    ) {
-      e.preventDefault();
-      ultralyticsChat?.toggle(true, "search");
-    }
-  });
 });
 
-// Fix language switcher links
-(function () {
+// Fix language switcher links to preserve current page path, query string, and hash
+(() => {
   function fixLanguageLinks() {
     const path = location.pathname;
-    const links = document.querySelectorAll(".md-select__link");
-    if (!links.length) {
-      return;
-    }
+    const links = document.querySelectorAll(".md-select__link[hreflang]");
+    if (!links.length) return;
 
-    const langs = [];
-    let defaultLink = null;
+    // Derive language codes from the actual links (config-driven)
+    const langCodes = Array.from(links)
+      .map((link) => link.getAttribute("hreflang"))
+      .filter(Boolean);
+    const defaultLang =
+      Array.from(links)
+        .find((link) => link.getAttribute("href") === "/")
+        ?.getAttribute("hreflang") || "en";
 
-    // Extract language codes
-    links.forEach((link) => {
-      const href = link.getAttribute("href");
-      if (!href) {
-        return;
+    // Extract base path (without leading slash and language prefix)
+    let basePath = path.startsWith("/") ? path.slice(1) : path;
+    for (const code of langCodes) {
+      if (code === defaultLang) continue;
+      const prefix = `${code}/`;
+      if (basePath === code || basePath === prefix) {
+        basePath = "";
+        break;
       }
-
-      const url = new URL(href, location.origin);
-      const match = url.pathname.match(/^\/([a-z]{2})\/?$/);
-
-      if (match) {
-        langs.push({ code: match[1], link });
-      } else if (url.pathname === "/" || url.pathname === "") {
-        defaultLink = link;
-      }
-    });
-
-    // Find current language and base path
-    let basePath = path;
-    for (const lang of langs) {
-      if (path.startsWith("/" + lang.code + "/")) {
-        basePath = path.substring(lang.code.length + 1);
+      if (basePath.startsWith(prefix)) {
+        basePath = basePath.slice(prefix.length);
         break;
       }
     }
 
-    // Update links
-    langs.forEach((lang) => (lang.link.href = location.origin + "/" + lang.code + basePath));
-    if (defaultLink) {
-      defaultLink.href = location.origin + basePath;
-    }
+    // Preserve query string and hash
+    const suffix = location.search + location.hash;
+
+    // Update all language links
+    links.forEach((link) => {
+      const lang = link.getAttribute("hreflang");
+      link.href =
+        lang === defaultLang
+          ? `${location.origin}/${basePath}${suffix}`
+          : `${location.origin}/${lang}/${basePath}${suffix}`;
+    });
   }
 
-  // Run immediately
+  // Run on load and navigation
   fixLanguageLinks();
 
-  // Handle SPA navigation
   if (typeof document$ !== "undefined") {
     document$.subscribe(() => setTimeout(fixLanguageLinks, 50));
-  } else {
-    let lastPath = location.pathname;
-    setInterval(() => {
-      if (location.pathname !== lastPath) {
-        lastPath = location.pathname;
-        setTimeout(fixLanguageLinks, 50);
-      }
-    }, 200);
   }
 })();

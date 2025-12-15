@@ -2182,7 +2182,7 @@ class SAM3Predictor(SAM2Predictor):
         self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
 
     def get_model(self):
-        """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
+        """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
         from .build_sam3 import build_interactive_sam3  # slow import
 
         return build_interactive_sam3(self.args.model, compile=self.args.compile)

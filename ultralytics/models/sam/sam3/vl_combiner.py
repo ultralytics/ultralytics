@@ -110,15 +110,10 @@ class SAM3VLBackbone(nn.Module):
     def forward_image_sam2(self, samples: torch.Tensor):
         """Forward pass of the vision backbone to get SAM2 features only."""
         xs = self.vision_backbone.trunk(samples)
-        sam2_features, sam2_pos = [], []
         x = xs[-1]  # simpleFPN
 
         assert self.vision_backbone.sam2_convs is not None, "SAM2 neck is not available."
-        for i in range(len(self.vision_backbone.sam2_convs)):
-            sam2_x_out = self.vision_backbone.sam2_convs[i](x)
-            sam2_pos_out = self.vision_backbone.position_encoding(sam2_x_out).to(sam2_x_out.dtype)
-            sam2_features.append(sam2_x_out)
-            sam2_pos.append(sam2_pos_out)
+        sam2_features, sam2_pos = self.vision_backbone.sam_forward_feature_levels(x, self.vision_backbone.sam2_convs)
 
         if self.scalp > 0:
             # Discard the lowest resolution features

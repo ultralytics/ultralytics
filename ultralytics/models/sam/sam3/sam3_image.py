@@ -10,8 +10,8 @@ import torch
 
 from ultralytics.nn.modules.utils import inverse_sigmoid
 from ultralytics.utils.ops import xywh2xyxy
-from ..modules.sam import SAM2Model
 
+from ..modules.sam import SAM2Model
 from .geometry_encoders import Prompt
 from .vl_combiner import SAM3VLBackbone
 

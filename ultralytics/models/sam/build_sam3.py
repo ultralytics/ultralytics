@@ -158,7 +158,6 @@ def build_sam3_image_model(
     vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=True)
 
     # Create text components
-    attempt_download_asset(bpe_path, release="v0.0.0", unzip=False)
     text_encoder = VETextEncoder(
         tokenizer=clip.simple_tokenizer.SimpleTokenizer(),
         d_model=256,

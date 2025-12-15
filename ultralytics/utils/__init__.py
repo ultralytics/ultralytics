@@ -14,12 +14,12 @@ import socket
 import sys
 import threading
 import time
+import warnings
 from functools import lru_cache
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
 from urllib.parse import unquote
-import warnings
 
 import cv2
 import numpy as np

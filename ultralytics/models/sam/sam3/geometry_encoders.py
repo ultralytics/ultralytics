@@ -288,7 +288,7 @@ class SequenceGeometryEncoder(nn.Module):
             # Convert boxes to xyxy format and denormalize
             boxes_xyxy = xywh2xyxy(boxes.to(img_feats.dtype))
             scale = torch.tensor([W, H, W, H], dtype=boxes_xyxy.dtype)
-            scale = scale.pin_memory().to(device=boxes_xyxy.device, non_blocking=True)
+            scale = scale.to(device=boxes_xyxy.device, non_blocking=True)
             scale = scale.view(1, 1, 4)
             boxes_xyxy = boxes_xyxy * scale
 

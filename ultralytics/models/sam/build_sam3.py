@@ -133,14 +133,11 @@ def _create_sam3_transformer() -> TransformerWrapper:
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
 
-def build_sam3_image_model(
-    checkpoint_path: str, bpe_path: str, enable_segmentation: bool = True, compile: bool = False
-):
+def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = True, compile: bool = False):
     """Build SAM3 image model.
 
     Args:
         checkpoint_path: Optional path to model checkpoint
-        bpe_path: Path to the BPE tokenizer vocabulary
         enable_segmentation: Whether to enable segmentation head
         compile: To enable compilation, set to "default"
 
@@ -151,6 +148,7 @@ def build_sam3_image_model(
         import clip
     except ImportError:
         from ultralytics.utils.checks import check_requirements
+
         check_requirements("git+https://github.com/ultralytics/CLIP.git")
         import clip
     # Create visual components

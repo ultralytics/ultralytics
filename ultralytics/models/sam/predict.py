@@ -2191,16 +2191,11 @@ class SAM3Predictor(SAM2Predictor):
 class SAM3SemanticPredictor(SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, bpe_path="bpe_simple_vocab_16e6.txt.gz"):
-        """Initialize the SAM3SemanticPredictor with configuration and optional overrides."""
-        super().__init__(cfg, overrides, _callbacks)
-        self.bpe_path = bpe_path
-
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
         from .build_sam3 import build_sam3_image_model  # slow import
 
-        return build_sam3_image_model(self.args.model, bpe_path=self.bpe_path, compile=self.args.compile)
+        return build_sam3_image_model(self.args.model, compile=self.args.compile)
 
     @smart_inference_mode()
     def get_im_features(self, im):
@@ -2461,7 +2456,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         cfg=DEFAULT_CFG,
         overrides=None,
         _callbacks=None,
-        bpe_path="bpe_simple_vocab_16e6.txt.gz",
         # prob threshold for detection outputs -- only keep detections above this threshold
         # enters NMS and det-to-track matching
         score_threshold_detection=0.5,
@@ -2505,7 +2499,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         reconstruction_bbox_det_score=0.0,
     ):
         """Initialize the SAM3VideoSemanticPredictor with configuration and optional overrides."""
-        super().__init__(cfg, overrides, _callbacks, bpe_path=bpe_path)
+        super().__init__(cfg, overrides, _callbacks)
         self.score_threshold_detection = score_threshold_detection
         self.det_nms_thresh = det_nms_thresh
         self.assoc_iou_thresh = assoc_iou_thresh

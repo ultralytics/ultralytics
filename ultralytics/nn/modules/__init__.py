@@ -180,4 +180,6 @@ __all__ = (
     "YOLOEDetect",
     "YOLOESegment",
     "v10Detect",
+    "StereoConv",
+    "StereoCenterNetHead",
 )

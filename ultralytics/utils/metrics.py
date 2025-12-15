@@ -248,6 +248,117 @@ def probiou(obb1: torch.Tensor, obb2: torch.Tensor, CIoU: bool = False, eps: flo
     return iou
 
 
+def compute_3d_iou(
+    box1: Any | np.ndarray,
+    box2: Any | np.ndarray,
+    eps: float = 1e-7,
+) -> float:
+    """Compute 3D Intersection over Union (IoU) between two 3D bounding boxes.
+
+    Uses 3D box corner computation method following KITTI evaluation standard.
+    Computes intersection volume by generating 8 corners for each box and calculating
+    the axis-aligned bounding box of intersection.
+
+    Args:
+        box1: First 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).
+        box2: Second 3D box (Box3D object or array [x, y, z, l, w, h, orientation]).
+        eps: Small value to avoid division by zero.
+
+    Returns:
+        (float): 3D IoU value in range [0.0, 1.0].
+
+    References:
+        KITTI Object Detection Evaluation: http://www.cvlibs.net/datasets/kitti/eval_object.php
+    """
+    from ultralytics.data.stereo.box3d import Box3D
+
+    # Convert Box3D to arrays if needed (type: ignore for forward reference)
+    if isinstance(box1, Box3D):
+        x1, y1, z1 = box1.center_3d
+        l1, w1, h1 = box1.dimensions
+        rot1 = box1.orientation
+    else:
+        x1, y1, z1, l1, w1, h1, rot1 = box1[:7]
+
+    if isinstance(box2, Box3D):
+        x2, y2, z2 = box2.center_3d
+        l2, w2, h2 = box2.dimensions
+        rot2 = box2.orientation
+    else:
+        x2, y2, z2, l2, w2, h2, rot2 = box2[:7]
+
+    # Generate 8 corners for each box in object coordinate system
+    # Order: [front-left-top, front-right-top, back-right-top, back-left-top,
+    #         front-left-bottom, front-right-bottom, back-right-bottom, back-left-bottom]
+    # Coordinate system: x: right, y: down, z: forward
+    corners1_obj = np.array(
+        [
+            [-w1 / 2, w1 / 2, w1 / 2, -w1 / 2, -w1 / 2, w1 / 2, w1 / 2, -w1 / 2],  # x (right)
+            [-h1 / 2, -h1 / 2, -h1 / 2, -h1 / 2, h1 / 2, h1 / 2, h1 / 2, h1 / 2],  # y (down)
+            [l1 / 2, l1 / 2, -l1 / 2, -l1 / 2, l1 / 2, l1 / 2, -l1 / 2, -l1 / 2],  # z (forward)
+        ]
+    )
+
+    corners2_obj = np.array(
+        [
+            [-w2 / 2, w2 / 2, w2 / 2, -w2 / 2, -w2 / 2, w2 / 2, w2 / 2, -w2 / 2],  # x (right)
+            [-h2 / 2, -h2 / 2, -h2 / 2, -h2 / 2, h2 / 2, h2 / 2, h2 / 2, h2 / 2],  # y (down)
+            [l2 / 2, l2 / 2, -l2 / 2, -l2 / 2, l2 / 2, l2 / 2, -l2 / 2, -l2 / 2],  # z (forward)
+        ]
+    )
+
+    # Rotation matrices around y-axis
+    cos1, sin1 = np.cos(rot1), np.sin(rot1)
+    R1 = np.array([[cos1, 0, sin1], [0, 1, 0], [-sin1, 0, cos1]])
+
+    cos2, sin2 = np.cos(rot2), np.sin(rot2)
+    R2 = np.array([[cos2, 0, sin2], [0, 1, 0], [-sin2, 0, cos2]])
+
+    # Rotate and translate corners to world coordinates
+    corners1_world = R1 @ corners1_obj
+    corners1_world[0, :] += x1
+    corners1_world[1, :] += y1
+    corners1_world[2, :] += z1
+
+    corners2_world = R2 @ corners2_obj
+    corners2_world[0, :] += x2
+    corners2_world[1, :] += y2
+    corners2_world[2, :] += z2
+
+    # Compute axis-aligned bounding box of intersection
+    # Find min/max for each axis
+    min1_x, max1_x = corners1_world[0, :].min(), corners1_world[0, :].max()
+    min1_y, max1_y = corners1_world[1, :].min(), corners1_world[1, :].max()
+    min1_z, max1_z = corners1_world[2, :].min(), corners1_world[2, :].max()
+
+    min2_x, max2_x = corners2_world[0, :].min(), corners2_world[0, :].max()
+    min2_y, max2_y = corners2_world[1, :].min(), corners2_world[1, :].max()
+    min2_z, max2_z = corners2_world[2, :].min(), corners2_world[2, :].max()
+
+    # Check if boxes overlap
+    if max1_x < min2_x or max2_x < min1_x:
+        return 0.0
+    if max1_y < min2_y or max2_y < min1_y:
+        return 0.0
+    if max1_z < min2_z or max2_z < min1_z:
+        return 0.0
+
+    # Compute intersection volume (axis-aligned approximation)
+    inter_x = max(0, min(max1_x, max2_x) - max(min1_x, min2_x))
+    inter_y = max(0, min(max1_y, max2_y) - max(min1_y, min2_y))
+    inter_z = max(0, min(max1_z, max2_z) - max(min1_z, min2_z))
+    intersection = inter_x * inter_y * inter_z
+
+    # Compute volumes
+    volume1 = l1 * w1 * h1
+    volume2 = l2 * w2 * h2
+    union = volume1 + volume2 - intersection
+
+    # Compute IoU
+    iou = intersection / (union + eps)
+    return float(iou)
+
+
 def batch_probiou(obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.ndarray, eps: float = 1e-7) -> torch.Tensor:
     """Calculate the probabilistic IoU between oriented bounding boxes.
 

@@ -1601,7 +1601,7 @@ def parse_model(d, ch, verbose=True):
                 n = 1
             if m is C3k2:  # for M/L/X sizes
                 legacy = False
-                if scale in "mlx":
+                if scale and scale in "mlx":
                     args[3] = True
             if m is A2C2f:
                 legacy = False
@@ -1705,11 +1705,15 @@ def guess_model_task(model):
         model (torch.nn.Module | dict): PyTorch model or model configuration in YAML format.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'stereo3ddet').
     """
 
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
+        # Check for stereo flag first (highest priority)
+        if cfg.get("stereo") is True:
+            return "stereo3ddet"
+        
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
@@ -1749,7 +1753,9 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
-        if "-seg" in model.stem or "segment" in model.parts:
+        if "stereo" in model.stem.lower() or "stereo" in model.parts:
+            return "stereo3ddet"
+        elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"

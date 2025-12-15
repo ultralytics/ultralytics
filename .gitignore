@@ -123,7 +123,7 @@ venv.bak/
 .spyproject
 
 # VSCode project settings
-.vscode/
+# .vscode/
 .devcontainer/
 
 # Rope project settings
@@ -198,4 +198,3 @@ TRAINING_VALIDATION_REPORT.md
 .cursor/
 .specify/
 specs/
-preds_debug_tmp_array/

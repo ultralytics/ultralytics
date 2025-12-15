@@ -14,7 +14,8 @@
 #     └── kitti-stereo ← downloads here (~175 GB for full dataset)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: kitti-stereo # dataset root dir
+# NOTE: Overridden to use pre-converted dataset; no downloads.
+path: /root/autodl-tmp/converted_kitti_3dop # dataset root dir (pre-converted, skip downloads)
 train: images/train/left # train images (left stereo) (relative to 'path') 
 val: images/val/left # val images (left stereo) (relative to 'path')
 
@@ -42,6 +43,12 @@ download: |
   from ultralytics.utils import LOGGER, TQDM
   from ultralytics.utils.downloads import download, safe_download
   
+    # Early exit: if converted dataset already exists at yaml["path"], skip any download/convert
+    dir = Path(yaml["path"]).resolve()
+    if (dir / "images" / "train" / "left").exists():
+            LOGGER.info(f"Using existing KITTI Stereo dataset at: {dir} (skipping download/convert)")
+            raise SystemExit(0)
+  
   def convert_kitti_to_yolo_stereo(kitti_root: Path, output_dir: Path, split: str = "training"):
       """Convert KITTI dataset to YOLO format with stereo support.
       
@@ -56,18 +63,11 @@ download: |
           return
       
       # Create output directories
-      if split == "training":
-          # For training split, create train/val directories
-          for subset in ["train", "val"]:
-              for side in ["left", "right"]:
-                  (output_dir / "images" / subset / side).mkdir(parents=True, exist_ok=True)
-              (output_dir / "labels" / subset).mkdir(parents=True, exist_ok=True)
-              (output_dir / "calib" / subset).mkdir(parents=True, exist_ok=True)
-      else:
-          # For testing split, create test directories (no labels)
+      for subset in ["train", "val"]:
           for side in ["left", "right"]:
-              (output_dir / "images" / "test" / side).mkdir(parents=True, exist_ok=True)
-          (output_dir / "calib" / "test").mkdir(parents=True, exist_ok=True)
+              (output_dir / "images" / subset / side).mkdir(parents=True, exist_ok=True)
+          (output_dir / "labels" / subset).mkdir(parents=True, exist_ok=True)
+          (output_dir / "calib" / subset).mkdir(parents=True, exist_ok=True)
       
       # Get all image files
       left_images = sorted((kitti_dir / "image_2").glob("*.png"))
@@ -77,93 +77,62 @@ download: |
           LOGGER.warning(f"No images found in {kitti_dir / 'image_2'}")
           return
       
-      if split == "training":
-          # Split into train/val (80/20 split)
-          n_total = len(left_images)
-          n_train = int(n_total * 0.8)
-          
-          train_left = left_images[:n_train]
-          train_right = right_images[:n_train] if len(right_images) >= n_train else []
-          val_left = left_images[n_train:]
-          val_right = right_images[n_train:] if len(right_images) > n_train else []
-      else:
-          # For testing, use all images as test set
-          train_left = []
-          train_right = []
-          val_left = []
-          val_right = []
-          test_left = left_images
-          test_right = right_images
+      # Split into train/val (80/20 split)
+      n_total = len(left_images)
+      n_train = int(n_total * 0.8)
       
-      # Process training set (only for training split)
-      if split == "training":
-          LOGGER.info(f"Processing {len(train_left)} training images...")
-          for i, left_img in enumerate(TQDM(train_left, desc="Converting training set")):
-              img_id = left_img.stem
-              
-              # Copy left image
-              shutil.copy2(left_img, output_dir / "images" / "train" / "left" / f"{img_id}.png")
-              
-              # Copy right image if available
-              if i < len(train_right) and train_right[i].exists():
-                  shutil.copy2(train_right[i], output_dir / "images" / "train" / "right" / f"{img_id}.png")
-              
-              # Convert label
-              label_file = kitti_dir / "label_2" / f"{img_id}.txt"
-              calib_file = kitti_dir / "calib" / f"{img_id}.txt"
-              if label_file.exists():
-                  yolo_label = output_dir / "labels" / "train" / f"{img_id}.txt"
-                  convert_kitti_label_to_yolo(label_file, yolo_label, left_img, calib_file)
-              
-              # Copy calibration file
-              if calib_file.exists():
-                  shutil.copy2(calib_file, output_dir / "calib" / "train" / f"{img_id}.txt")
+      train_left = left_images[:n_train]
+      train_right = right_images[:n_train] if len(right_images) >= n_train else []
+      val_left = left_images[n_train:]
+      val_right = right_images[n_train:] if len(right_images) > n_train else []
       
-      # Process validation set (only for training split)
-      if split == "training":
-          LOGGER.info(f"Processing {len(val_left)} validation images...")
-          for i, left_img in enumerate(TQDM(val_left, desc="Converting validation set")):
-              img_id = left_img.stem
-              
-              # Copy left image
-              shutil.copy2(left_img, output_dir / "images" / "val" / "left" / f"{img_id}.png")
-              
-              # Copy right image if available
-              if i < len(val_right) and val_right[i].exists():
-                  shutil.copy2(val_right[i], output_dir / "images" / "val" / "right" / f"{img_id}.png")
-              
-              # Convert label
-              label_file = kitti_dir / "label_2" / f"{img_id}.txt"
-              calib_file = kitti_dir / "calib" / f"{img_id}.txt"
-              if label_file.exists():
-                  yolo_label = output_dir / "labels" / "val" / f"{img_id}.txt"
-                  convert_kitti_label_to_yolo(label_file, yolo_label, left_img, calib_file)
-              
-              # Copy calibration file
-              if calib_file.exists():
-                  shutil.copy2(calib_file, output_dir / "calib" / "val" / f"{img_id}.txt")
+      # Process training set
+      LOGGER.info(f"Processing {len(train_left)} training images...")
+      for i, left_img in enumerate(TQDM(train_left, desc="Converting training set")):
+          img_id = left_img.stem
           
-          LOGGER.info(f"Conversion complete! Train: {len(train_left)}, Val: {len(val_left)}")
+          # Copy left image
+          shutil.copy2(left_img, output_dir / "images" / "train" / "left" / f"{img_id}.png")
+          
+          # Copy right image if available
+          if i < len(train_right) and train_right[i].exists():
+              shutil.copy2(train_right[i], output_dir / "images" / "train" / "right" / f"{img_id}.png")
+          
+          # Convert label
+          label_file = kitti_dir / "label_2" / f"{img_id}.txt"
+          calib_file = kitti_dir / "calib" / f"{img_id}.txt"
+          if label_file.exists():
+              yolo_label = output_dir / "labels" / "train" / f"{img_id}.txt"
+              convert_kitti_label_to_yolo(label_file, yolo_label, left_img, calib_file)
+          
+          # Copy calibration file
+          if calib_file.exists():
+              shutil.copy2(calib_file, output_dir / "calib" / "train" / f"{img_id}.txt")
       
-      # Process testing set (only for testing split)
-      if split == "testing":
-          LOGGER.info(f"Processing {len(test_left)} testing images...")
-          for i, left_img in enumerate(TQDM(test_left, desc="Converting testing set")):
-              img_id = left_img.stem
-              
-              # Copy left image
-              shutil.copy2(left_img, output_dir / "images" / "test" / "left" / f"{img_id}.png")
-              
-              # Copy right image if available
-              if i < len(test_right) and test_right[i].exists():
-                  shutil.copy2(test_right[i], output_dir / "images" / "test" / "right" / f"{img_id}.png")
-              
-              # Copy calibration file (testing has no labels)
-              calib_file = kitti_dir / "calib" / f"{img_id}.txt"
-              if calib_file.exists():
-                  shutil.copy2(calib_file, output_dir / "calib" / "test" / f"{img_id}.txt")
+      # Process validation set
+      LOGGER.info(f"Processing {len(val_left)} validation images...")
+      for i, left_img in enumerate(TQDM(val_left, desc="Converting validation set")):
+          img_id = left_img.stem
           
-          LOGGER.info(f"Testing conversion complete! Test: {len(test_left)}")
+          # Copy left image
+          shutil.copy2(left_img, output_dir / "images" / "val" / "left" / f"{img_id}.png")
+          
+          # Copy right image if available
+          if i < len(val_right) and val_right[i].exists():
+              shutil.copy2(val_right[i], output_dir / "images" / "val" / "right" / f"{img_id}.png")
+          
+          # Convert label
+          label_file = kitti_dir / "label_2" / f"{img_id}.txt"
+          calib_file = kitti_dir / "calib" / f"{img_id}.txt"
+          if label_file.exists():
+              yolo_label = output_dir / "labels" / "val" / f"{img_id}.txt"
+              convert_kitti_label_to_yolo(label_file, yolo_label, left_img, calib_file)
+          
+          # Copy calibration file
+          if calib_file.exists():
+              shutil.copy2(calib_file, output_dir / "calib" / "val" / f"{img_id}.txt")
+      
+      LOGGER.info(f"Conversion complete! Train: {len(train_left)}, Val: {len(val_left)}")
   
   
   def convert_kitti_label_to_yolo(kitti_label: Path, yolo_label: Path, img_path: Path, calib_file: Path = None):
@@ -353,8 +322,9 @@ download: |
           f.writelines(yolo_lines)
   
   
-  # Main download and conversion logic
-  dir = Path(yaml["path"])  # dataset root dir
+    # Main download and conversion logic
+    # (Only reached if early-exit above did not trigger)
+    dir = Path(yaml["path"])  # dataset root dir
   
   LOGGER.info("=" * 60)
   LOGGER.info("KITTI Stereo Dataset Download and Conversion")
@@ -517,16 +487,7 @@ download: |
   
   # Convert dataset
   LOGGER.info(f"Converting KITTI dataset from {kitti_root} to {dir}...")
-  
-  # Convert training split (creates train/val)
   convert_kitti_to_yolo_stereo(kitti_root, dir, split="training")
-  
-  # Convert testing split if it exists (creates test)
-  if (kitti_root / "testing" / "image_2").exists():
-      LOGGER.info("Found testing split, converting...")
-      convert_kitti_to_yolo_stereo(kitti_root, dir, split="testing")
-  else:
-      LOGGER.info("No testing split found (this is normal if only training data was downloaded)")
   
   LOGGER.info("")
   LOGGER.info("=" * 60)

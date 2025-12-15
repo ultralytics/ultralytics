@@ -48,9 +48,9 @@
             "args": [
                 "task=stereo3ddet",
                 "data=/root/autodl-tmp/converted_kitti_3dop/dataset.yaml",
-                "model=/root/ultralytics/runs/stereo3ddet/train19/weights/best.pt",
+                "model=yolo11-stereo3ddet.yaml",
                 "mode=train",
-                "epochs=2",
+                "epochs=200",
                 "batch=32",
                 "workers=0"
             ],
@@ -63,14 +63,13 @@
             "args": [
                 "task=stereo3ddet",
                 "mode=val",
-                "model=/root/ultralytics/runs/stereo3ddet/train22/weights/best.pt",
+                "model=/root/ultralytics/runs/stereo3ddet/train146/weights/best.pt",
                 "data=/root/autodl-tmp/converted_kitti_3dop/dataset.yaml",
                 "imgsz=384",
                 "batch=4",
                 "workers=0",
                 "plots=True",
-                "save_json=False",
-                "conf=0.25"
+                "save_json=False"
             ],
             "console": "integratedTerminal"
         },
@@ -82,7 +81,7 @@
             "args": [
                 "task=stereo3ddet",
                 "mode=predict",
-                "model=/root/ultralytics/runs/stereo3ddet/train2/weights/last.pt",
+                "model=/root/ultralytics/runs/stereo3ddet/train68/weights/best.pt",
                 "source=/root/autodl-tmp/converted_kitti_3dop/images/val",
                 "imgsz=384",
                 "conf=0.25",
@@ -99,15 +98,14 @@
             "args": [
                 "task=stereo3ddet",
                 "mode=predict",
-                "model=/root/ultralytics/runs/stereo3ddet/train3/weights/best.pt",
-                "source=/root/autodl-tmp/converted_kitti_3dop/images/train/left/000001.png,/root/autodl-tmp/converted_kitti_3dop/images/train/right/000001.png",
+                "model=/root/ultralytics/runs/stereo3ddet/train68/weights/best.pt@",
+                "source=/root/autodl-tmp/converted_kitti_3dop/images/val/000000_left.png",
                 "imgsz=384",
                 "conf=0.25",
                 "save=True",
                 "show=False"
             ],
-            "console": "integratedTerminal",
-            "stopOnEntry": false
+            "console": "integratedTerminal"
         },
         {
             "name": "test visualization",

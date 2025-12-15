@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore the ultralytics.models.sam.sam3.encoder module, including transformer encoder layers and fusion blocks for SAM3.
+keywords: Ultralytics, SAM3, SAM, transformer encoder, fusion, attention, deep learning, Python
 ---
 
 # Reference for `ultralytics/models/sam/sam3/encoder.py`

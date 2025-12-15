@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore the ultralytics.models.sam.sam3.model_misc module with helper layers and utilities used in SAM3 model components.
+keywords: Ultralytics, SAM3, SAM, transformer, layers, utilities, deep learning, Python
 ---
 
 # Reference for `ultralytics/models/sam/sam3/model_misc.py`

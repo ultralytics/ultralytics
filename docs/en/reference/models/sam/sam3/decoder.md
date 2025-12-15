@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore the ultralytics.models.sam.sam3.decoder module, including transformer decoder layers used in SAM3 model heads.
+keywords: Ultralytics, SAM3, SAM, transformer decoder, attention, segmentation, deep learning, Python
 ---
 
 # Reference for `ultralytics/models/sam/sam3/decoder.py`

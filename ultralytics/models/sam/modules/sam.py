@@ -607,8 +607,14 @@ class SAM2Model(torch.nn.Module):
             backbone_out["backbone_fpn"][1] = self.sam_mask_decoder.conv_s1(backbone_out["backbone_fpn"][1])
         return backbone_out
 
-    def _prepare_backbone_features(self, backbone_out):
+    def _prepare_backbone_features(self, backbone_out, batch=1):
         """Prepare and flatten visual features from the image backbone output for further processing."""
+        if batch > 1:  # expand features if there's more than one prompt
+            backbone_out = {
+                **backbone_out,
+                "backbone_fpn": [feat.expand(batch, -1, -1, -1) for feat in backbone_out["backbone_fpn"]],
+                "vision_pos_enc": [pos.expand(batch, -1, -1, -1) for pos in backbone_out["vision_pos_enc"]],
+            }
         assert len(backbone_out["backbone_fpn"]) == len(backbone_out["vision_pos_enc"])
         assert len(backbone_out["backbone_fpn"]) >= self.num_feature_levels
 
@@ -619,7 +625,6 @@ class SAM2Model(torch.nn.Module):
         # flatten NxCxHxW to HWxNxC
         vision_feats = [x.flatten(2).permute(2, 0, 1) for x in feature_maps]
         vision_pos_embeds = [x.flatten(2).permute(2, 0, 1) for x in vision_pos_embeds]
-
         return backbone_out, vision_feats, vision_pos_embeds, feat_sizes
 
     def _prepare_memory_conditioned_features(
@@ -782,7 +787,7 @@ class SAM2Model(torch.nn.Module):
             memory_pos=memory_pos_embed,
             num_obj_ptr_tokens=num_obj_ptr_tokens,
         )
-        # reshape the output (HW)BC => BCHW
+        # Reshape output (HW)BC => BCHW
         pix_feat_with_mem = pix_feat_with_mem.permute(1, 2, 0).view(B, C, H, W)
         return pix_feat_with_mem
 
@@ -859,7 +864,7 @@ class SAM2Model(torch.nn.Module):
             pix_feat = pix_feat.view(-1, self.hidden_dim, *feat_sizes[-1])
             sam_outputs = self._use_mask_as_output(mask_inputs, pix_feat, high_res_features)
         else:
-            # fused the visual feature with previous memory features in the memory bank
+            # Fuse visual features with previous memory features in the memory bank
             pix_feat = self._prepare_memory_conditioned_features(
                 frame_idx=frame_idx,
                 is_init_cond_frame=is_init_cond_frame,

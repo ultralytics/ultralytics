@@ -6,14 +6,15 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segm
 
 # SAM 3: Segment Anything with Concepts
 
-!!! note "Released and supported in Ultralytics."
+!!! success "Now Available in Ultralytics"
 
-    Meta released SAM-3 on November 20th, 2025, and Ultralytics now provides native support, enabling promptable concept segmentation workflows.
+    SAM 3 is fully integrated into the Ultralytics package as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Install or upgrade with `pip install -U ultralytics` to access all SAM 3 features including text-based concept segmentation, image exemplar prompts, and video tracking.
 
 ![SAM 3 Overview](https://github.com/ultralytics/docs/releases/download/0/sam-3-overview.webp)
 
 **SAM 3** (Segment Anything Model 3) is Meta's released foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
 
+SAM 3 is now fully integrated into the `ultralytics` package, providing native support for concept segmentation with text prompts, image exemplar prompts, and video tracking capabilities.
 
 ## Overview
 
@@ -107,10 +108,10 @@ SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotat
 
 ## Installation
 
-SAM 3 is available directly in the Ultralytics package. Installation remains unchanged:
+SAM 3 is available in Ultralytics **version 8.3.237** and later. Install or upgrade with:
 
 ```bash
-pip install ultralytics
+pip install -U ultralytics
 ```
 
 !!! warning "SAM 3 Model Weights Required"
@@ -123,11 +124,9 @@ pip install ultralytics
 
 ## How to Use SAM 3: Versatility in Concept Segmentation
 
-SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks through different predictor interfaces.
+SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks through different predictor interfaces:
 
 ### Supported Tasks and Models
-
-SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks:
 
 | Task Type                      | Prompt Types                               | Output                                      |
 | ------------------------------ | ------------------------------------------ | ------------------------------------------- |
@@ -146,7 +145,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
     === "Python"
 
         ```python
-        from ultralytics.models.sam.predict import SAM3SemanticPredictor
+        from ultralytics.models.sam import SAM3SemanticPredictor
 
         # Initialize predictor with configuration
         overrides = dict(
@@ -187,7 +186,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
     === "Python"
 
         ```python
-        from ultralytics.models.sam.predict import SAM3SemanticPredictor
+        from ultralytics.models.sam import SAM3SemanticPredictor
 
         # Initialize predictor
         overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True)
@@ -214,7 +213,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         ```python
         import cv2
 
-        from ultralytics.models.sam.predict import SAM3SemanticPredictor
+        from ultralytics.models.sam import SAM3SemanticPredictor
         from ultralytics.utils.plotting import Annotator, colors
 
         # Initialize predictors
@@ -234,16 +233,17 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         masks, boxes = predictor2.inference_features(predictor.features, src_shape=src_shape, text=["person"])
 
         # Perform inference using shared features with bounding box prompt
-        masks, boxes = predictor2.inference_features(predictor.features, src_shape=src_shape, bboxes=[439, 437, 524, 709])
+        masks, boxes = predictor2.inference_features(predictor.features, src_shape=src_shape, bboxes=[[439, 437, 524, 709]])
 
         # Visualize results
-        masks, boxes = masks.cpu().numpy(), boxes.cpu().numpy()
-        im = cv2.imread(source)
-        annotator = Annotator(im, pil=False)
-        annotator.masks(masks, [colors(x, True) for x in range(len(masks))])
+        if masks is not None:
+            masks, boxes = masks.cpu().numpy(), boxes.cpu().numpy()
+            im = cv2.imread(source)
+            annotator = Annotator(im, pil=False)
+            annotator.masks(masks, [colors(x, True) for x in range(len(masks))])
 
-        cv2.imshow("result", annotator.result())
-        cv2.waitKey(0)
+            cv2.imshow("result", annotator.result())
+            cv2.waitKey(0)
         ```
 
 ### Video Concept Segmentation
@@ -257,7 +257,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
     === "Python"
 
         ```python
-        from ultralytics.models.sam.predict import SAM3VideoPredictor
+        from ultralytics.models.sam import SAM3VideoPredictor
 
         # Create video predictor
         overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True)
@@ -280,7 +280,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
     === "Python"
 
         ```python
-        from ultralytics.models.sam.sam3_video_model import SAM3VideoSemanticPredictor
+        from ultralytics.models.sam import SAM3VideoSemanticPredictor
 
         # Initialize semantic video predictor
         overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=640, model="sam3.pt", half=True)
@@ -536,12 +536,11 @@ While SAM 3 represents a major advancement, it has certain limitations:
 
 ### When Was SAM 3 Released?
 
-SAM 3 was released by Meta on **November 20th, 2025**, and is now supported within the Ultralytics ecosystem.
+SAM 3 was released by Meta on **November 20th, 2025** and is fully integrated into Ultralytics as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Full support is available for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
 
 ### Is SAM 3 Integrated Into Ultralytics?
 
-Yes. Ultralytics provides native support for SAM-3, allowing users to run promptable concept segmentation using text and image prompts, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. You can [export](../modes/export.md) to formats like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md) for deployment, with streamlined [Python](../usage/python.md) and [CLI](../usage/cli.md) workflows.
-
+Yes! SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. You can [export](../modes/export.md) to formats like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md) for deployment, with streamlined [Python](../usage/python.md) and [CLI](../usage/cli.md) workflows.
 
 ### What Is Promptable Concept Segmentation (PCS)?
 

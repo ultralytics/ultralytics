@@ -607,8 +607,14 @@ class SAM2Model(torch.nn.Module):
             backbone_out["backbone_fpn"][1] = self.sam_mask_decoder.conv_s1(backbone_out["backbone_fpn"][1])
         return backbone_out
 
-    def _prepare_backbone_features(self, backbone_out):
+    def _prepare_backbone_features(self, backbone_out, batch=1):
         """Prepare and flatten visual features from the image backbone output for further processing."""
+        if batch > 1:  # expand features if there's more than one prompt
+            backbone_out = {
+                **backbone_out,
+                "backbone_fpn": [feat.expand(batch, -1, -1, -1) for feat in backbone_out["backbone_fpn"]],
+                "vision_pos_enc": [pos.expand(batch, -1, -1, -1) for pos in backbone_out["vision_pos_enc"]],
+            }
         assert len(backbone_out["backbone_fpn"]) == len(backbone_out["vision_pos_enc"])
         assert len(backbone_out["backbone_fpn"]) >= self.num_feature_levels
 
@@ -619,7 +625,6 @@ class SAM2Model(torch.nn.Module):
         # flatten NxCxHxW to HWxNxC
         vision_feats = [x.flatten(2).permute(2, 0, 1) for x in feature_maps]
         vision_pos_embeds = [x.flatten(2).permute(2, 0, 1) for x in vision_pos_embeds]
-
         return backbone_out, vision_feats, vision_pos_embeds, feat_sizes
 
     def _prepare_memory_conditioned_features(

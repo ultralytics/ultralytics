@@ -35,7 +35,7 @@ from ultralytics.utils.torch_utils import TORCH_2_0
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """Dataloader that reuses workers for infinite iteration.
+    """DataLoader that reuses workers for infinite iteration.
 
     This dataloader extends the PyTorch DataLoader to provide infinite recycling of workers, which improves efficiency
     for training loops that need to iterate through the dataset multiple times without recreating workers.
@@ -51,7 +51,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         reset: Reset the iterator, useful when modifying dataset settings during training.
 
     Examples:
-        Create an infinite dataloader for training
+        Create an infinite DataLoader for training
         >>> dataset = YOLODataset(...)
         >>> dataloader = InfiniteDataLoader(dataset, batch_size=16, shuffle=True)
         >>> for batch in dataloader:  # Infinite iteration
@@ -76,7 +76,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
             yield next(self.iterator)
 
     def __del__(self):
-        """Ensure that workers are properly terminated when the dataloader is deleted."""
+        """Ensure that workers are properly terminated when the DataLoader is deleted."""
         try:
             if not hasattr(self.iterator, "_workers"):
                 return
@@ -417,7 +417,7 @@ def load_inference_source(
     source, stream, screenshot, from_img, in_memory, tensor = check_source(source)
     source_type = source.source_type if in_memory else SourceTypes(stream, screenshot, from_img, tensor)
 
-    # Dataloader
+    # DataLoader
     if tensor:
         dataset = LoadTensor(source)
     elif in_memory:

@@ -67,7 +67,6 @@ import re
 import shutil
 import subprocess
 import time
-import warnings
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -520,11 +519,6 @@ class Exporter:
             y = NMSModel(model, self.args)(im) if self.args.nms and not coreml and not imx else model(im)
         if self.args.half and (onnx or jit) and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
-
-        # Filter warnings
-        warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # suppress TracerWarning
-        warnings.filterwarnings("ignore", category=UserWarning)  # suppress shape prim::Constant missing ONNX warning
-        warnings.filterwarnings("ignore", category=DeprecationWarning)  # suppress CoreML np.bool deprecation warning
 
         # Assign
         self.im = im

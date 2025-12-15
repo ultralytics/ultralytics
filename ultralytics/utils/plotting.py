@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-import warnings
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -574,10 +573,6 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import polars
     from matplotlib.colors import LinearSegmentedColormap
-
-    # Filter matplotlib>=3.7.2 warning
-    warnings.filterwarnings("ignore", category=UserWarning, message="The figure layout has changed to tight")
-    warnings.filterwarnings("ignore", category=FutureWarning)
 
     # Plot dataset labels
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")

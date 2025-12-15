@@ -297,7 +297,7 @@ class SystemLogger:
         Example output (rates=False, default):
 
         ```python
-        metrics = {
+        {
             "cpu": 45.2,
             "ram": 78.9,
             "disk": {"read_mb": 156.7, "write_mb": 89.3, "used_gb": 256.8},
@@ -312,17 +312,19 @@ class SystemLogger:
         Example output (rates=True):
 
         ```python
-        metrics = {
+        {
             "cpu": 45.2,
             "ram": 78.9,
             "disk": {"read_mbs": 12.5, "write_mbs": 8.3, "used_gb": 256.8},
             "network": {"recv_mbs": 5.2, "sent_mbs": 1.1},
-            "gpus": {...},
+            "gpus": {
+                "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
+            },
         }
         ```
 
         Returns:
-            metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with usage data.
+            (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with usage data.
         """
         import psutil  # scoped as slow import
 
@@ -338,9 +340,11 @@ class SystemLogger:
             "gpus": {},
         }
 
+        # Calculate elapsed time since last call
+        elapsed = max(0.1, now - self._prev_time)  # Avoid division by zero
+
         if rates:
             # Calculate MB/s rates from delta since last call
-            elapsed = max(0.1, now - self._prev_time)  # Avoid division by zero
             metrics["disk"] = {
                 "read_mbs": round(max(0, (disk.read_bytes - self._prev_disk.read_bytes) / (1 << 20) / elapsed), 3),
                 "write_mbs": round(max(0, (disk.write_bytes - self._prev_disk.write_bytes) / (1 << 20) / elapsed), 3),
@@ -350,10 +354,6 @@ class SystemLogger:
                 "recv_mbs": round(max(0, (net.bytes_recv - self._prev_net.bytes_recv) / (1 << 20) / elapsed), 3),
                 "sent_mbs": round(max(0, (net.bytes_sent - self._prev_net.bytes_sent) / (1 << 20) / elapsed), 3),
             }
-            # Update previous values for next rate calculation
-            self._prev_net = net
-            self._prev_disk = disk
-            self._prev_time = now
         else:
             # Cumulative MB since initialization (original behavior)
             metrics["disk"] = {
@@ -365,6 +365,11 @@ class SystemLogger:
                 "recv_mb": round((net.bytes_recv - self.net_start.bytes_recv) / (1 << 20), 3),
                 "sent_mb": round((net.bytes_sent - self.net_start.bytes_sent) / (1 << 20), 3),
             }
+
+        # Always update previous values for accurate rate calculation on next call
+        self._prev_net = net
+        self._prev_disk = disk
+        self._prev_time = now
 
         # Add GPU metrics (NVIDIA only)
         if self.nvidia_initialized:

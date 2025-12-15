@@ -39,6 +39,7 @@ freeze: # (int | list, optional) freeze first N layers (int) or specific layer i
 multi_scale: False # (bool) multiscale training by varying image size
 compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune-no-cudagraphs"
 semseg_loss: True # (bool | str) enable semantic segmentation auxiliary loss for instance segmentation task
+rle_loss: True
 
 # Segmentation
 overlap_mask: True # (bool) merge instance masks into one mask during training (segment only)
@@ -108,6 +109,7 @@ cls: 0.5 # (float) classification loss gain
 dfl: 1.5 # (float) distribution focal loss gain
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
+rle: 1.0 # (float) rle loss gain (pose tasks)
 nbs: 64 # (int) nominal batch size used for loss normalization
 hsv_h: 0.015 # (float) HSV hue augmentation fraction
 hsv_s: 0.7 # (float) HSV saturation augmentation fraction

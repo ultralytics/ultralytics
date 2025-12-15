@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from typing import Any
+import math
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.utils.metrics import OKS_SIGMA
+from ultralytics.utils.metrics import OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
@@ -542,6 +543,78 @@ class v8SegmentationLoss(v8DetectionLoss):
         return loss / fg_mask.sum()
 
 
+class RLELoss(nn.Module):
+    """RLE Loss.
+
+    `Human Pose Regression With Residual Log-Likelihood Estimation
+    arXiv: <https://arxiv.org/abs/2107.11291>`_.
+
+    Code is modified from `the official implementation
+    <https://github.com/Jeff-sjtu/res-loglikelihood-regression>`_.
+
+    Args:
+        use_target_weight (bool): Option to use weighted loss.
+            Different joint types may have different target weights.
+        size_average (bool): Option to average the loss by the batch_size.
+        residual (bool): Option to add L1 loss and let the flow
+            learn the residual error distribution.
+        q_dis (string): Option for the identity Q(error) distribution,
+            Options: "laplace" or "gaussian"
+    """
+
+    def __init__(self,
+                 use_target_weight=True,
+                 size_average=True,
+                 residual=True,
+                 q_distribution='laplace'):
+        super(RLELoss, self).__init__()
+        self.size_average = size_average
+        self.use_target_weight = use_target_weight
+        self.residual = residual
+        self.q_distribution = q_distribution
+
+    def forward(self, sigma, log_phi, error, target_weight=None):
+        """Forward function.
+
+        Note:
+            - batch_size: N
+            - num_keypoints: K
+            - dimension of keypoints: D (D=2 or D=3)
+
+        Args:
+            pred (Tensor[N, D]): Output regression.
+            sigma (Tensor[N, D]): Output sigma.
+            target (Tensor[N, K, D]): Target regression.
+            target_weight (Tensor[N, K, D]):
+                Weights across different joint types.
+        """
+        log_phi = log_phi.unsqueeze(1)
+        log_sigma = torch.log(sigma)
+        nf_loss = log_sigma - log_phi
+
+        if self.residual:
+            assert self.q_distribution in ['laplace', 'gaussian']
+            if self.q_distribution == 'laplace':
+                loss_q = torch.log(sigma * 2) + torch.abs(error)
+            else:
+                loss_q = torch.log(sigma * math.sqrt(2 * math.pi)) + 0.5 * error**2
+
+            loss = nf_loss + loss_q
+        else:
+            loss = nf_loss
+
+        if self.use_target_weight:
+            assert target_weight is not None
+            if target_weight.dim() == 1:
+                target_weight = target_weight.unsqueeze(1)
+            loss *= target_weight
+
+        if self.size_average:
+            loss /= len(loss)
+
+        return loss.sum()
+
+
 class v8PoseLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 pose estimation."""
 
@@ -549,16 +622,24 @@ class v8PoseLoss(v8DetectionLoss):
         """Initialize v8PoseLoss with model parameters and keypoint-specific loss functions."""
         super().__init__(model, tal_topk)
         self.kpt_shape = model.model[-1].kpt_shape
-        self.bce_pose = nn.BCEWithLogitsLoss()
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]  # number of keypoints
         sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
+        if model.args.rle_loss:
+            self.flow_model = model.model[-1].flow_model if hasattr(model.model[-1], 'flow_model') else None
+            if self.flow_model is not None:
+                self.rle_loss = RLELoss(use_target_weight=True).to(self.device)
+                self.target_weights = torch.from_numpy(RLE_WEIGHT).to(self.device) if is_pose \
+                    else torch.ones(nkpt, device=self.device)
+        else:
+            self.rle_loss = None
+        self.bce_pose = nn.BCEWithLogitsLoss()
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the total loss and detach it for pose estimation."""
         pred_kpts = preds["kpts"].permute(0, 2, 1).contiguous()
-        loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
+        loss = torch.zeros(6 if self.rle_loss else 5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
         (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
             self.get_assigned_targets_and_loss(preds, batch)
         )
@@ -568,8 +649,15 @@ class v8PoseLoss(v8DetectionLoss):
         batch_size = pred_kpts.shape[0]
         imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=pred_kpts.dtype)  # image size (h,w)
 
-        # Pboxes
-        pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)
+        pred_kpts = pred_kpts.view(batch_size, -1, *self.kpt_shape)  # (b, h*w, 17, 3)
+        
+        if self.rle_loss and preds.get("kpts_sigma", None) is not None:
+            pred_sigma = preds["kpts_sigma"].permute(0, 2, 1).contiguous()
+            pred_sigma = pred_sigma.view(batch_size, -1, self.kpt_shape[0], 2)  # (b, h*w, 17, 2)
+            pred_kpts = torch.cat([pred_kpts, pred_sigma], dim=-1)  # (b, h*w, 17, 5)
+        
+        pred_kpts = self.kpts_decode(anchor_points, pred_kpts)
+        pred_kpts[..., :2] *= stride_tensor.view(1, -1, 1, 1)
 
         # Bbox loss
         if fg_mask.sum():
@@ -577,28 +665,38 @@ class v8PoseLoss(v8DetectionLoss):
             keypoints[..., 0] *= imgsz[1]
             keypoints[..., 1] *= imgsz[0]
 
-            loss[1], loss[2] = self.calculate_keypoints_loss(
+            keypoints_loss = self.calculate_keypoints_loss(
                 fg_mask,
                 target_gt_idx,
                 keypoints,
                 batch["batch_idx"].view(-1, 1),
                 stride_tensor,
                 target_bboxes,
-                pred_kpts,
+                pred_kpts
             )
+            loss[1] = keypoints_loss[0]
+            loss[2] = keypoints_loss[1]
+            if self.rle_loss is not None:
+                loss[5] = keypoints_loss[2]
 
         loss[1] *= self.hyp.pose  # pose gain
         loss[2] *= self.hyp.kobj  # kobj gain
+        if self.rle_loss is not None:
+            loss[5] *= self.hyp.rle  # rle gain
 
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     @staticmethod
-    def kpts_decode(anchor_points: torch.Tensor, pred_kpts: torch.Tensor) -> torch.Tensor:
+    def kpts_decode(anchor_points: torch.Tensor, pred_kpts: torch.Tensor, legacy: bool = False) -> torch.Tensor:
         """Decode predicted keypoints to image coordinates."""
         y = pred_kpts.clone()
-        y[..., :2] *= 2.0
-        y[..., 0] += anchor_points[:, [0]] - 0.5
-        y[..., 1] += anchor_points[:, [1]] - 0.5
+        if legacy:
+            y[..., :2] *= 2.0
+            y[..., 0] += anchor_points[:, [0]] - 0.5
+            y[..., 1] += anchor_points[:, [1]] - 0.5
+        else:
+            y[..., 0] += anchor_points[:, [0]]
+            y[..., 1] += anchor_points[:, [1]]
         return y
 
     def calculate_keypoints_loss(
@@ -609,7 +707,7 @@ class v8PoseLoss(v8DetectionLoss):
         batch_idx: torch.Tensor,
         stride_tensor: torch.Tensor,
         target_bboxes: torch.Tensor,
-        pred_kpts: torch.Tensor,
+        pred_kpts: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Calculate the keypoints loss for the model.
@@ -656,11 +754,9 @@ class v8PoseLoss(v8DetectionLoss):
             1, target_gt_idx_expanded.expand(-1, -1, keypoints.shape[1], keypoints.shape[2])
         )
 
-        # Divide coordinates by stride
-        selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)
-
         kpts_loss = 0
         kpts_obj_loss = 0
+        rle_loss = 0
 
         if masks.any():
             gt_kpt = selected_keypoints[masks]
@@ -669,10 +765,24 @@ class v8PoseLoss(v8DetectionLoss):
             kpt_mask = gt_kpt[..., 2] != 0 if gt_kpt.shape[-1] == 3 else torch.full_like(gt_kpt[..., 0], True)
             kpts_loss = self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)  # pose loss
 
-            if pred_kpt.shape[-1] == 3:
+            if self.rle_loss is not None and (pred_kpt.shape[-1] == 4 or pred_kpt.shape[-1] == 5):
+                pred_kpt_visible = pred_kpt[kpt_mask]
+                gt_kpt_visible = gt_kpt[kpt_mask]
+                pred_coords = pred_kpt_visible[:, 0:2]
+                pred_sigma = pred_kpt_visible[:, -2:]
+                gt_kpt_visible = gt_kpt_visible[:, 0:2]
+
+                target_weights = self.target_weights.unsqueeze(0).repeat(kpt_mask.shape[0], 1)
+                target_weights = target_weights[kpt_mask]
+
+                pred_sigma = pred_sigma.sigmoid()
+                error = (pred_coords - gt_kpt_visible) / (pred_sigma + 1e-9)
+                log_phi = self.flow_model.log_prob(error)
+                rle_loss = self.rle_loss(pred_sigma, log_phi, error, target_weights)  # rle loss
+            if pred_kpt.shape[-1] == 3 or pred_kpt.shape[-1] == 5:
                 kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
 
-        return kpts_loss, kpts_obj_loss
+        return kpts_loss, kpts_obj_loss, rle_loss
 
 
 class v8ClassificationLoss:

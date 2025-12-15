@@ -212,7 +212,7 @@ class MuSGD(optim.Optimizer):
             with torch.enable_grad():
                 loss = closure()
 
-        pattern = r'(?=.*23)(?=.*cv3)|proto\.semseg'
+        pattern = r'(?=.*23)(?=.*cv3)|proto\.semseg|flow_model'
         for group in self.param_groups:
             # Muon
             if group["use_muon"]:
@@ -257,6 +257,9 @@ class MuSGD(optim.Optimizer):
                     lr = (
                         group["lr"] * self.cls_w
                         if group["param_names"] is not None
+                        and bool(re.search(pattern, group["param_names"][i]))
+                        # and "cv3" in group["param_names"][i]
+                        # and "23" in group["param_names"][i]
                         and bool(re.search(pattern, group["param_names"][i]))
                         # and "cv3" in group["param_names"][i]
                         # and "23" in group["param_names"][i]

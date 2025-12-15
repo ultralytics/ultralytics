@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
+from torch import distributions
 
 from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
@@ -20,7 +21,7 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "Pose", "RTDETRDecoder", "Segment", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = "OBB", "Classify", "Detect", "Pose", "Pose26", "RTDETRDecoder", "Segment", "Segment26", "YOLOEDetect", "YOLOESegment", "v10Detect"
 
 
 class Detect(nn.Module):
@@ -626,6 +627,181 @@ class Pose(Detect):
                     y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
+            return y
+
+
+class RealNVP(nn.Module):
+    """RealNVP: a flow-based generative model
+
+    `Density estimation using Real NVP
+    arXiv: <https://arxiv.org/abs/1605.08803>`_.
+
+    Code is modified from `the official implementation of RLE
+    <https://github.com/Jeff-sjtu/res-loglikelihood-regression>`_.
+
+    See also `real-nvp-pytorch
+    <https://github.com/senya-ashukha/real-nvp-pytorch>`_.
+    """
+
+    @staticmethod
+    def nets():
+        """Get the scale model in a single invertable mapping."""
+        return nn.Sequential(
+            nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64),
+            nn.SiLU(), nn.Linear(64, 2), nn.Tanh())
+
+    @staticmethod
+    def nett():
+        """Get the translation model in a single invertable mapping."""
+        return nn.Sequential(
+            nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64),
+            nn.SiLU(), nn.Linear(64, 2))
+
+    @property
+    def prior(self):
+        """The prior distribution."""
+        return distributions.MultivariateNormal(self.loc, self.cov)
+
+    def __init__(self):
+        super(RealNVP, self).__init__()
+
+        self.register_buffer('loc', torch.zeros(2))
+        self.register_buffer('cov', torch.eye(2))
+        self.register_buffer(
+            'mask', torch.tensor([[0, 1], [1, 0]] * 3, dtype=torch.float32))
+
+        self.s = torch.nn.ModuleList(
+            [self.nets() for _ in range(len(self.mask))])
+        self.t = torch.nn.ModuleList(
+            [self.nett() for _ in range(len(self.mask))])
+        self.init_weights()
+
+    def init_weights(self):
+        """Initialization model weights."""
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight, gain=0.01)
+
+    def backward_p(self, x):
+        """Apply mapping form the data space to the latent space and calculate
+        the log determinant of the Jacobian matrix."""
+
+        log_det_jacob, z = x.new_zeros(x.shape[0]), x
+        for i in reversed(range(len(self.t))):
+            z_ = self.mask[i] * z
+            s = self.s[i](z_) * (1 - self.mask[i])  # torch.exp(s): betas
+            t = self.t[i](z_) * (1 - self.mask[i])  # gammas
+            z = (1 - self.mask[i]) * (z - t) * torch.exp(-s) + z_
+            log_det_jacob -= s.sum(dim=1)
+        return z, log_det_jacob
+
+    def log_prob(self, x):
+        """Calculate the log probability of given sample in data space."""
+        if x.dtype == torch.float32 and self.s[0][0].weight.dtype != torch.float32:
+            self.float()
+        z, log_det = self.backward_p(x)
+        return self.prior.log_prob(z) + log_det
+
+
+class Pose26(Pose):
+    """
+    YOLO Pose head for keypoints models.
+
+    This class extends the Detect head to include keypoint prediction capabilities for pose estimation tasks.
+
+    Attributes:
+        kpt_shape (tuple): Number of keypoints and dimensions (2 for x,y or 3 for x,y,visible).
+        nk (int): Total number of keypoint values.
+        cv4 (nn.ModuleList): Convolution layers for keypoint prediction.
+
+    Methods:
+        forward: Perform forward pass through YOLO model and return predictions.
+        kpts_decode: Decode keypoints from predictions.
+
+    Examples:
+        Create a pose detection head
+        >>> pose = Pose(nc=80, kpt_shape=(17, 3), ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = pose(x)
+    """
+
+    def __init__(self, nc: int = 80, kpt_shape: tuple = (17, 3), reg_max=16, end2end=False, ch: tuple = ()):
+        """
+        Initialize YOLO network with default parameters and Convolutional Layers.
+
+        Args:
+            nc (int): Number of classes.
+            kpt_shape (tuple): Number of keypoints, number of dims (2 for x,y or 3 for x,y,visible).
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, kpt_shape, reg_max, end2end, ch)
+        self.flow_model = RealNVP()
+
+        c4 = max(ch[0] // 4, kpt_shape[0] * (kpt_shape[1] + 2))
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3)) for x in ch)
+
+        self.cv4_kpts = nn.ModuleList(nn.Conv2d(c4, self.nk, 1) for _ in ch)        
+        self.nk_sigma = kpt_shape[0] * 2  # sigma_x, sigma_y for each keypoint
+        self.cv4_sigma = nn.ModuleList(nn.Conv2d(c4, self.nk_sigma, 1) for _ in ch)
+
+        if end2end:
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
+            self.one2one_cv4_kpts = copy.deepcopy(self.cv4_kpts)
+            self.one2one_cv4_sigma = copy.deepcopy(self.cv4_sigma)
+
+    def forward_head(
+        self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, pose_head: torch.nn.Module
+    ) -> torch.Tensor:
+        """Concatenates and returns predicted bounding boxes, class probabilities, and keypoints."""
+        preds = Detect.forward_head(self, x, box_head, cls_head)
+        if pose_head is not None:
+            bs = x[0].shape[0]  # batch size
+            features = [pose_head[i](x[i]) for i in range(self.nl)]
+
+            kpts_head = self.cv4_kpts if not self.end2end else self.one2one_cv4_kpts
+            preds["kpts"] = torch.cat([kpts_head[i](features[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
+
+            if self.training:
+                sigma_head = self.cv4_sigma if not self.end2end else self.one2one_cv4_sigma
+                preds["kpts_sigma"] = torch.cat([sigma_head[i](features[i]).view(bs, self.nk_sigma, -1) for i in range(self.nl)], 2)
+        return preds
+
+    def fuse(self) -> None:
+        """Remove the one2many head for inference optimization."""
+        super().fuse()
+        self.cv4_kpts = self.cv4_sigma = self.flow_model = self.one2one_cv4_sigma = None
+
+    def kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
+        """Decode keypoints from predictions."""
+        ndim = self.kpt_shape[1]
+        bs = kpts.shape[0]
+        if self.export:
+            if self.format in {
+                "tflite",
+                "edgetpu",
+            }:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
+                # Precompute normalization factor to increase numerical stability
+                y = kpts.view(bs, *self.kpt_shape, -1)
+                grid_h, grid_w = self.shape[2], self.shape[3]
+                grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
+                norm = self.strides / (self.stride[0] * grid_size)
+                a = (y[:, :, :2] + self.anchors) * norm
+            else:
+                # NCNN fix
+                y = kpts.view(bs, *self.kpt_shape, -1)
+                a = (y[:, :, :2] + self.anchors) * self.strides
+            if ndim == 3:
+                a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
+            return a.view(bs, self.nk, -1)
+        else:
+            y = kpts.clone()
+            if ndim == 3:
+                if NOT_MACOS14:
+                    y[:, 2::ndim].sigmoid_()
+                else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+                    y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
+            y[:, 0::ndim] = (y[:, 0::ndim] + self.anchors[0]) * self.strides
+            y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
             return y
 
 

@@ -613,7 +613,6 @@ nav:
                   - necks: reference/models/sam/sam3/necks.md
                   - sam3_image: reference/models/sam/sam3/sam3_image.md
                   - text_encoder_ve: reference/models/sam/sam3/text_encoder_ve.md
-                  - tokenizer_ve: reference/models/sam/sam3/tokenizer_ve.md
                   - vitdet: reference/models/sam/sam3/vitdet.md
                   - vl_combiner: reference/models/sam/sam3/vl_combiner.md
           - utils:

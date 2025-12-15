@@ -5,7 +5,6 @@
 import torch.nn as nn
 
 from ultralytics.nn.modules.transformer import MLP
-from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.patches import torch_load
 
 from .modules.blocks import PositionEmbeddingSine, RoPEAttention

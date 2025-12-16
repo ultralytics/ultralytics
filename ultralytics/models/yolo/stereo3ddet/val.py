@@ -1119,7 +1119,7 @@ class Stereo3DDetValidator(BaseValidator):
 
             # Generate visualization images if plots enabled
             # Default to 3 batches (matching Detect task style), but can be overridden via max_plot_batches arg
-            max_plot_batches = getattr(self.args, 'max_plot_batches', 30)
+            max_plot_batches = getattr(self.args, 'max_plot_batches', 9)
             if self.args.plots and hasattr(self, 'batch_i') and self.batch_i < max_plot_batches:
                 try:
                     self.plot_validation_samples(batch, preds, self.batch_i)
@@ -1162,10 +1162,10 @@ class Stereo3DDetValidator(BaseValidator):
         pred_boxes3d: list[list[Box3D]],
         batch_idx: int,
     ) -> None:
-        """Generate and save validation visualization images with 3D bounding boxes in grid layout.
+        """Generate and save validation visualization images with 3D bounding boxes in up-down layout.
         
-        Follows Detect task style: creates a grid of up to 16 samples in a single image file,
-        saved as val_batch{batch_idx}_pred.jpg (one file per batch).
+        Creates simple up-down layout: predictions on top, ground truth on bottom.
+        Uses original image sizes (not resized/letterboxed).
 
         Args:
             batch: Batch dictionary containing images, labels, and calibration data.
@@ -1178,51 +1178,44 @@ class Stereo3DDetValidator(BaseValidator):
         try:
             import cv2
 
-            img_tensor = batch.get("img")  # [B, 6, H, W] tensor
             labels_list = batch.get("labels", [])
             calibs = batch.get("calib", [])
             im_files = batch.get("im_file", [])
-            ori_shapes = batch.get("ori_shape", [])  # Original image shapes before letterboxing
 
-            if img_tensor is None:
-                LOGGER.warning("No images in batch for visualization")
+            if not im_files:
+                LOGGER.warning("No image files in batch for visualization")
                 return
 
-            # Limit to max 16 samples per grid (matching plot_images max_subplots)
-            max_subplots = 16
-            batch_size = img_tensor.shape[0]
-            num_samples = min(batch_size, max_subplots)
-
-            # Collect all combined stereo images
-            combined_images = []
-            valid_indices = []
+            batch_size = len(im_files)
+            max_samples = getattr(self.args, 'max_plot_samples', batch_size)
+            num_samples = min(batch_size, max_samples)
 
             for si in range(num_samples):
-                # Extract left and right images from 6-channel tensor
-                # Channels 0-2: left RGB, Channels 3-5: right RGB
-                left_tensor = img_tensor[si, 0:3, :, :]  # [3, H, W]
-                right_tensor = img_tensor[si, 3:6, :, :]  # [3, H, W]
+                im_file = im_files[si] if si < len(im_files) else None
+                if not im_file:
+                    continue
 
-                # Convert to numpy and transpose from CHW to HWC
-                left_img = left_tensor.detach().cpu().numpy().transpose(1, 2, 0)  # [H, W, 3]
-                right_img = right_tensor.detach().cpu().numpy().transpose(1, 2, 0)  # [H, W, 3]
+                # Load original images from file paths
+                left_path = Path(im_file)
+                if not left_path.exists():
+                    LOGGER.debug(f"Left image not found: {left_path}, skipping visualization")
+                    continue
 
-                # Denormalize from [0, 1] to [0, 255] and convert to uint8
-                # Images are normalized in preprocess() by dividing by 255.0
-                # Handle both float32 and float16 (half precision) cases
-                if left_img.dtype in (np.float32, np.float16):
-                    left_img = np.clip(left_img * 255.0, 0, 255).astype(np.uint8)
-                elif left_img.dtype != np.uint8:
-                    left_img = np.clip(left_img, 0, 255).astype(np.uint8)
-                
-                if right_img.dtype in (np.float32, np.float16):
-                    right_img = np.clip(right_img * 255.0, 0, 255).astype(np.uint8)
-                elif right_img.dtype != np.uint8:
-                    right_img = np.clip(right_img, 0, 255).astype(np.uint8)
+                # Get right image path (same filename, different directory)
+                # im_file format: images/{split}/left/{image_id}.png
+                # right path: images/{split}/right/{image_id}.png
+                right_path = left_path.parent.parent / "right" / left_path.name
+                if not right_path.exists():
+                    LOGGER.debug(f"Right image not found: {right_path}, skipping visualization")
+                    continue
 
-                # Convert from RGB to BGR for OpenCV
-                left_img = cv2.cvtColor(left_img, cv2.COLOR_RGB2BGR)
-                right_img = cv2.cvtColor(right_img, cv2.COLOR_RGB2BGR)
+                # Load original images (BGR format from OpenCV)
+                left_img = cv2.imread(str(left_path))
+                right_img = cv2.imread(str(right_path))
+
+                if left_img is None or right_img is None:
+                    LOGGER.debug(f"Failed to load images for {left_path}, skipping")
+                    continue
 
                 # Get predictions and ground truth for this sample
                 pred_boxes = pred_boxes3d[si] if si < len(pred_boxes3d) else []
@@ -1232,31 +1225,6 @@ class Stereo3DDetValidator(BaseValidator):
                 # Skip visualization if no calibration available
                 if calib is None:
                     continue
-
-                # Calculate letterbox parameters to adjust 3D box coordinates
-                # Images are letterboxed: resized and padded to square
-                letterbox_scale = None
-                letterbox_pad_left = None
-                letterbox_pad_top = None
-                
-                if ori_shapes and si < len(ori_shapes):
-                    ori_h, ori_w = ori_shapes[si]  # Original image dimensions
-                    curr_h, curr_w = left_img.shape[:2]  # Current (letterboxed) image dimensions
-                    
-                    # Calculate letterbox parameters (matching dataset._letterbox logic)
-                    # scale = min(new_shape / h, new_shape / w)
-                    # new_unpad = (int(round(w * scale)), int(round(h * scale)))
-                    # dw, dh = new_shape - new_unpad[0], new_shape - new_unpad[1]
-                    # pad_left = dw // 2, pad_top = dh // 2
-                    imgsz = max(curr_h, curr_w)  # Letterboxed size (should be square)
-                    scale = min(imgsz / ori_h, imgsz / ori_w)
-                    new_unpad_w = int(round(ori_w * scale))
-                    new_unpad_h = int(round(ori_h * scale))
-                    dw = imgsz - new_unpad_w
-                    dh = imgsz - new_unpad_h
-                    letterbox_pad_left = dw // 2
-                    letterbox_pad_top = dh // 2
-                    letterbox_scale = scale
 
                 # Convert labels to Box3D for ground truth
                 gt_boxes = []
@@ -1270,103 +1238,91 @@ class Stereo3DDetValidator(BaseValidator):
                 if pred_boxes:
                     conf_threshold = self.args.conf
                     if conf_threshold < 0.1:
-                        logging.WARNING(f"The prediction conf threshold is less than 0.1, you can set the conf through CLI.")
+                        LOGGER.warning(f"The prediction conf threshold is less than 0.1, you can set the conf through CLI.")
                     pred_boxes = [
                         box for box in pred_boxes 
                         if hasattr(box, 'confidence') and box.confidence > conf_threshold
                     ]
 
-                # Generate visualization
+                # Generate visualization with predictions only (top image)
                 try:
-                    _, _, combined = plot_stereo3d_boxes(
-                        left_img=left_img,
-                        right_img=right_img,
+                    left_pred, right_pred, combined_pred = plot_stereo3d_boxes(
+                        left_img=left_img.copy(),
+                        right_img=right_img.copy(),
                         pred_boxes3d=pred_boxes,
+                        gt_boxes3d=[],  # No ground truth for prediction visualization
+                        left_calib=calib,
+                        letterbox_scale=None,  # No letterboxing - using original size
+                        letterbox_pad_left=None,
+                        letterbox_pad_top=None,
+                    )
+                except Exception as e:
+                    LOGGER.debug(f"Error generating prediction visualization for sample {si}: {e}")
+                    continue
+
+                # Generate visualization with ground truth only (bottom image)
+                try:
+                    left_gt, right_gt, combined_gt = plot_stereo3d_boxes(
+                        left_img=left_img.copy(),
+                        right_img=right_img.copy(),
+                        pred_boxes3d=[],  # No predictions for ground truth visualization
                         gt_boxes3d=gt_boxes,
                         left_calib=calib,
-                        letterbox_scale=letterbox_scale,
-                        letterbox_pad_left=letterbox_pad_left,
-                        letterbox_pad_top=letterbox_pad_top,
+                        letterbox_scale=None,  # No letterboxing - using original size
+                        letterbox_pad_left=None,
+                        letterbox_pad_top=None,
                     )
-                    combined_images.append(combined)
-                    valid_indices.append(si)
                 except Exception as e:
-                    LOGGER.debug(f"Error generating visualization for sample {si}: {e}")
+                    LOGGER.debug(f"Error generating ground truth visualization for sample {si}: {e}")
+                    continue
 
-            if not combined_images:
-                LOGGER.warning("No valid visualizations generated for batch")
-                return
-
-            # Create grid layout (matching plot_images style)
-            num_valid = len(combined_images)
-            
-            # Ensure all images have the same dimensions (resize to first image's size)
-            # This prevents artifacts from dimension mismatches
-            h, w = combined_images[0].shape[:2]  # Height and width of combined stereo image
-            normalized_images = []
-            for combined_img in combined_images:
-                if combined_img.shape[:2] != (h, w):
-                    # Resize to match first image dimensions
-                    normalized_img = cv2.resize(combined_img, (w, h), interpolation=cv2.INTER_LINEAR)
-                    normalized_images.append(normalized_img)
-                else:
-                    # Make a copy to ensure we don't modify the original
-                    normalized_images.append(combined_img.copy())
-            
-            # Calculate grid dimensions (square grid)
-            ns = math.ceil(math.sqrt(num_valid))  # number of subplots per side
-            
-            # Build mosaic image (white background)
-            mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)
-            
-            for i, combined_img in enumerate(normalized_images):
-                # Verify image dimensions match expected size
-                img_h, img_w = combined_img.shape[:2]
-                if img_h != h or img_w != w:
-                    # Force resize if dimensions don't match (shouldn't happen after normalization)
-                    combined_img = cv2.resize(combined_img, (w, h), interpolation=cv2.INTER_LINEAR)
+                # Stack vertically: predictions on top, ground truth on bottom
+                # Use left image only for simplicity (or combine left+right horizontally first)
+                h_pred, w_pred = combined_pred.shape[:2]
+                h_gt, w_gt = combined_gt.shape[:2]
                 
-                x = int(w * (i // ns))  # block x origin
-                y = int(h * (i % ns))   # block y origin
+                # Ensure both images have the same width
+                if w_pred != w_gt:
+                    target_w = max(w_pred, w_gt)
+                    if w_pred < target_w:
+                        combined_pred = cv2.resize(combined_pred, (target_w, h_pred), interpolation=cv2.INTER_LINEAR)
+                    if w_gt < target_w:
+                        combined_gt = cv2.resize(combined_gt, (target_w, h_gt), interpolation=cv2.INTER_LINEAR)
                 
-                # Ensure we don't exceed mosaic bounds
-                if y + h <= mosaic.shape[0] and x + w <= mosaic.shape[1]:
-                    # Copy image data directly (images are already normalized to same size)
-                    mosaic[y:y+h, x:x+w, :] = combined_img
-                else:
-                    # Fallback: copy only what fits
-                    copy_h = min(h, mosaic.shape[0] - y)
-                    copy_w = min(w, mosaic.shape[1] - x)
-                    if copy_h > 0 and copy_w > 0:
-                        mosaic[y:y+copy_h, x:x+copy_w, :] = combined_img[:copy_h, :copy_w, :]
+                # Stack vertically
+                stacked = np.vstack([combined_pred, combined_gt])
                 
-                # Add border and filename (matching plot_images style)
-                cv2.rectangle(mosaic, (x, y), (x + w, y + h), (255, 255, 255), 2)
-                if im_files and valid_indices[i] < len(im_files):
-                    filename = Path(im_files[valid_indices[i]]).name[:40]
-                    cv2.putText(
-                        mosaic,
-                        filename,
-                        (x + 5, y + 20),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.5,
-                        (220, 220, 220),
-                        1,
-                    )
+                # Add labels
+                label_height = 30
+                stacked_with_labels = np.zeros((stacked.shape[0] + label_height * 2, stacked.shape[1], 3), dtype=np.uint8)
+                stacked_with_labels[label_height:label_height + stacked.shape[0], :, :] = stacked
+                
+                # Add text labels
+                cv2.putText(
+                    stacked_with_labels,
+                    "Predictions",
+                    (10, 25),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (255, 255, 255),
+                    2,
+                )
+                cv2.putText(
+                    stacked_with_labels,
+                    "Ground Truth",
+                    (10, label_height + stacked.shape[0] + 25),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (255, 255, 255),
+                    2,
+                )
 
-            # Resize if too large (matching plot_images max_size=1920)
-            max_size = 1920
-            scale = max_size / ns / max(h, w)
-            if scale < 1:
-                new_h = math.ceil(scale * h)
-                new_w = math.ceil(scale * w)
-                mosaic = cv2.resize(mosaic, (int(ns * new_w), int(ns * new_h)))
-
-            # Save single grid image per batch (matching Detect task style)
-            save_path = self.save_dir / f"val_batch{batch_idx}_pred.jpg"
-            cv2.imwrite(str(save_path), mosaic)
-            if self.on_plot:
-                self.on_plot(save_path)
+                # Save individual image (one file per sample)
+                image_id = left_path.stem
+                save_path = self.save_dir / f"val_batch{batch_idx}_sample{si}_{image_id}.jpg"
+                cv2.imwrite(str(save_path), stacked_with_labels)
+                if self.on_plot:
+                    self.on_plot(save_path)
 
         except Exception as e:
             LOGGER.warning(f"Error in plot_validation_samples: {e}")

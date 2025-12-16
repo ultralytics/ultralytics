@@ -944,6 +944,11 @@ class BaseTrainer:
                 # Check if this is a backbone layer
                 is_backbone = False
                 parts = fullname.split(".")
+
+                # Handle DDP wrapping: "module.model.0.conv.weight" vs "model.0.conv.weight"
+                if parts[0] == "module":
+                    parts = parts[1:]  # Remove "module" prefix for DDP
+
                 if len(parts) > 1 and parts[0] == "model" and parts[1].isdigit():
                     layer_idx = int(parts[1])
                     is_backbone = layer_idx < backbone_len

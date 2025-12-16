@@ -286,7 +286,7 @@ Once your YOLO11 model starts training, you can access a wide range of metrics a
 - **Interactive Confusion Matrix**: Assess classification accuracy with an interactive confusion matrix.
 - **System Metrics**: Monitor GPU and CPU utilization, memory usage, and other system metrics.
 
-For a detailed overview of these features, visit the [Understanding Your Model's Performance with Comet Visualizations](#understanding-your-models-performance-with-comet-ml-visualizations) section.
+For a detailed overview of these features, visit the [Understanding Your Model's Performance with Comet Visualizations](#understanding-your-models-performance-with-comet-visualizations) section.
 
 ### Can I use Comet for offline logging when training YOLO11 models?
 

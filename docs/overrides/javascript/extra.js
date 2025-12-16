@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Ultralytics Chat Widget ---------------------------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-  new UltralyticsChat({
+  const ultralyticsChat = new UltralyticsChat({
     welcome: {
       title: "Hello 👋",
       message: "Ask about YOLO, tutorials, training, export, deployment, or troubleshooting.",

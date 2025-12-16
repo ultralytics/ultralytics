@@ -268,6 +268,7 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
+        self.backbone_len = len(self.model.yaml["backbone"])
         # Compile model
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
@@ -934,7 +935,7 @@ class BaseTrainer:
             name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
-        backbone_len = len(model.yaml.get("backbone", []))
+        backbone_len = self.backbone_len
 
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):

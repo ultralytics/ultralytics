@@ -275,7 +275,7 @@ Comet allows for extensive customization of its logging behavior using environme
     os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
     ```
 
-Refer to the [Customizing Comet Logging](#customizing-comet-ml-logging) section for more customization options.
+Refer to the [Customizing Comet Logging](#customizing-comet-logging) section for more customization options.
 
 ### How do I view detailed metrics and visualizations of my YOLO11 training on Comet?
 

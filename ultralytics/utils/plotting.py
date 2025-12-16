@@ -24,17 +24,6 @@ class Colors:
     This class provides methods to work with the Ultralytics color palette, including converting hex color codes to RGB
     values and accessing predefined color schemes for object detection and pose estimation.
 
-    Attributes:
-        palette (list[tuple]): List of RGB color tuples for general use.
-        n (int): The number of colors in the palette.
-        pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
-
-    Examples:
-        >>> from ultralytics.utils.plotting import Colors
-        >>> colors = Colors()
-        >>> colors(5, True)  # Returns BGR format: (221, 111, 255)
-        >>> colors(5, False)  # Returns RGB format: (255, 111, 221)
-
     ## Ultralytics Color Palette
 
     | Index | Color                                                             | HEX       | RGB               |
@@ -89,6 +78,17 @@ class Colors:
 
         For Ultralytics brand colors see [https://www.ultralytics.com/brand](https://www.ultralytics.com/brand).
         Please use the official Ultralytics colors for all marketing materials.
+
+    Attributes:
+        palette (list[tuple]): List of RGB color tuples for general use.
+        n (int): The number of colors in the palette.
+        pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
+
+    Examples:
+        >>> from ultralytics.utils.plotting import Colors
+        >>> colors = Colors()
+        >>> colors(5, True)  # Returns BGR format: (221, 111, 255)
+        >>> colors(5, False)  # Returns RGB format: (255, 111, 221)
     """
 
     def __init__(self):

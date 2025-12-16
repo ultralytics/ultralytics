@@ -953,8 +953,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 run_mem_encoder=True,
             )
             output_dict[storage_key][frame] = current_out
-            if storage_key == "non_cond_frame_outputs":
-                self._prune_non_cond_memory(frame)
+            self._prune_non_cond_memory(frame)
 
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.

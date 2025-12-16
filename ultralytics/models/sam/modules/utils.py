@@ -210,9 +210,17 @@ def apply_rotary_enc(
         # No keys to rotate, due to dropout
         return xq_out.type_as(xq).to(xq.device), xk
     # Repeat freqs along seq_len dim to match k seq_len
-    if repeat_freqs_k:
+     if repeat_freqs_k:
         r = xk_.shape[-2] // xq_.shape[-2]
-        freqs_cis = freqs_cis.repeat(*([1] * (freqs_cis.ndim - 2)), r, 1)
+        # MPS doesn't support repeat on complex tensors, decompose to real representation
+        if freqs_cis.device.type == "mps":
+            freqs_real = torch.view_as_real(freqs_cis)
+            freqs_real = freqs_real.repeat(*([1] * (freqs_real.ndim - 3)), r, 1, 1)
+            freqs_cis = torch.view_as_complex(freqs_real.contiguous())
+        else:
+            freqs_cis = freqs_cis.repeat(*([1] * (freqs_cis.ndim - 2)), r, 1)
+    xk_out = torch.view_as_real(xk_ * freqs_cis).flatten(3)
+    return xq_out.type_as(xq).to(xq.device), xk_out.type_as(xk).to(xk.device)
     xk_out = torch.view_as_real(xk_ * freqs_cis).flatten(3)
     return xq_out.type_as(xq).to(xq.device), xk_out.type_as(xk).to(xk.device)
 

@@ -865,7 +865,8 @@ class RTDETRDecoder(nn.Module):
         ndl: int = 6,  # num decoder layers
         d_ffn: int = 1024,  # dim of feedforward
         dropout: float = 0.0,
-        act: nn.Module = nn.ReLU(),
+        # act: nn.Module = nn.ReLU(),
+        act: str = "relu",
         eval_idx: int = -1,
         # Training args
         nd: int = 100,  # num denoising
@@ -899,6 +900,15 @@ class RTDETRDecoder(nn.Module):
         self.nc = nc
         self.num_queries = nq
         self.num_decoder_layers = ndl
+
+        if act == "relu":
+            act = nn.ReLU()
+        elif act == "gelu":
+            act = nn.GELU()
+        elif act == "silu":
+            act = nn.SiLU()
+        else:
+            raise ValueError(f"Unsupported activation function: {act}")
 
         # Backbone feature projection
         self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)

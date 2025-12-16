@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover Ultralytics HUB, the all-in-one web tool for training and deploying YOLO models. Get started quickly with pre-trained models and user-friendly features.
+description: Discover Ultralytics HUB, the all-in-one web tool for training and deploying YOLO models. Get started quickly with pretrained models and user-friendly features.
 keywords: Ultralytics HUB, YOLO models, train YOLO, YOLOv5, YOLOv8, YOLO11, object detection, model deployment, machine learning, deep learning, AI tools, dataset upload, model training
 ---
 
@@ -49,7 +49,7 @@ We hope that the resources here will help you get the most out of HUB. Please br
 
 ## Introduction
 
-[Ultralytics HUB](https://www.ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pre-trained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, [object detection](https://www.ultralytics.com/glossary/object-detection), and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks.
+[Ultralytics HUB](https://www.ultralytics.com/hub) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It also offers a range of pretrained models to choose from, making it extremely easy for users to get started. Once a model is trained, it can be effortlessly previewed in the [Ultralytics HUB App](app/index.md) before being deployed for real-time classification, [object detection](https://www.ultralytics.com/glossary/object-detection), and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks.
 
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/qE-dfbB5Sis"
@@ -84,7 +84,7 @@ To get started with [Ultralytics HUB](https://www.ultralytics.com/hub), follow t
 
 1. **Sign Up:** Create an account on [Ultralytics HUB](https://www.ultralytics.com/hub).
 2. **Upload Dataset:** Navigate to the [Datasets](datasets.md) section to upload your custom dataset.
-3. **Train Model:** Go to the [Models](models.md) section and select a pre-trained YOLOv5, YOLOv8, or YOLO11 model to start training.
+3. **Train Model:** Go to the [Models](models.md) section and select a pretrained YOLOv5, YOLOv8, or YOLO11 model to start training.
 4. **Deploy Model:** Once trained, preview and deploy your model using the [Ultralytics HUB App](app/index.md) for real-time tasks.
 
 For a detailed guide, refer to the [Quickstart](quickstart.md) page.
@@ -94,7 +94,7 @@ For a detailed guide, refer to the [Quickstart](quickstart.md) page.
 [Ultralytics HUB](https://www.ultralytics.com/hub) offers several unique benefits:
 
 - **User-Friendly Interface:** Intuitive design for easy dataset uploads and model training.
-- **Pre-Trained Models:** Access to a variety of pre-trained YOLO models including YOLOv5, YOLOv8, and YOLO11.
+- **Pretrained Models:** Access to a variety of pretrained YOLO models including YOLOv5, YOLOv8, and YOLO11.
 - **Cloud Training:** Seamless cloud training capabilities, detailed on the [Cloud Training](cloud-training.md) page.
 - **Real-Time Deployment:** Effortlessly deploy models for real-time applications using the [Ultralytics HUB App](app/index.md).
 - **Team Collaboration:** Collaborate with your team efficiently through the [Teams](teams.md) feature.

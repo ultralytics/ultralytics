@@ -878,6 +878,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.clear_non_cond_mem_around_input = False
         self.clear_non_cond_mem_for_multi_obj = False
         self.callbacks["on_predict_start"].append(self.init_state)
+        self.max_non_cond_frames = -1  # -1 means use model's num_maskmem, 0 means unlimited
 
     def get_model(self):
         """Retrieve and configure the model with binarization enabled.
@@ -952,6 +953,9 @@ class SAM2VideoPredictor(SAM2Predictor):
                 run_mem_encoder=True,
             )
             output_dict[storage_key][frame] = current_out
+            if storage_key == "non_cond_frame_outputs":
+                self._prune_non_cond_memory(frame)
+
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key)
@@ -1830,6 +1834,29 @@ class SAM2VideoPredictor(SAM2Predictor):
         inference_state["frames_already_tracked"].clear()
         inference_state["first_ann_frame_idx"] = None
 
+    def _prune_non_cond_memory(self, frame_idx, inference_state=None):
+        """Prune old non-conditioning frames to bound memory usage."""
+        inference_state = inference_state or self.inference_state
+
+        # Determine window size
+        window = self.max_non_cond_frames
+        if window < 0:
+            window = getattr(self.model, "num_maskmem", 8) * getattr(self.model, "memory_temporal_stride_for_eval", 1)
+        if window == 0:
+            return  # unlimited
+
+        min_frame = frame_idx - window
+        output_dict = inference_state["output_dict"]
+
+        # Prune global non_cond_frame_outputs
+        for f in [k for k in output_dict["non_cond_frame_outputs"] if k < min_frame]:
+            del output_dict["non_cond_frame_outputs"][f]
+
+        # Prune per-object non_cond_frame_outputs
+        for obj_output_dict in inference_state.get("output_dict_per_obj", {}).values():
+            for f in [k for k in obj_output_dict["non_cond_frame_outputs"] if k < min_frame]:
+                del obj_output_dict["non_cond_frame_outputs"][f]
+
 
 class SAM2DynamicInteractivePredictor(SAM2Predictor):
     """SAM2DynamicInteractivePredictor extends SAM2Predictor to support dynamic interactions with video frames or a
@@ -2530,7 +2557,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         num_obj_for_compile = 16
         self.max_num_objects = max_num_objects
         self.num_obj_for_compile = num_obj_for_compile
-        self.memory_bank_max_frames = 16  # Only keep last N frames of memory
         self.recondition_every_nth_frame = recondition_every_nth_frame
         self.masklet_confirmation_enable = masklet_confirmation_enable
         self.masklet_confirmation_consecutive_det_thresh = masklet_confirmation_consecutive_det_thresh
@@ -2677,9 +2703,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             allow_new_detections=has_text_prompt or has_geometric_prompt,
         )
         # prune memory
-        self._prune_memory_bank(tracker_states_local_new, frame_idx)
         self._consolidate_tracker_states(tracker_states_local_new)
-        self._prune_frame_scores(tracker_metadata_new, frame_idx)
+        for state in tracker_states_local_new:
+            self.tracker._prune_non_cond_memory(frame_idx, inference_state=state)
         # update inference state
         inference_state["tracker_inference_states"] = tracker_states_local_new
         inference_state["tracker_metadata"] = tracker_metadata_new
@@ -3807,9 +3833,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 # we try to remove `obj_id` on every inference state with `strict=False`
                 # it will not do anything if an inference state doesn't contain `obj_id`
                 self.tracker.remove_object(state, obj_id, strict=False)
-                # Clear per-object memory
-                if "output_dict_per_obj" in state:
-                    state["output_dict_per_obj"].pop(obj_id, None)
 
             if len(state["obj_ids"]) > 0:
                 active_states.append(state)
@@ -3929,38 +3952,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         new_det_fa_inds = new_det_fa_inds[score_order[:num_to_keep]]
         return new_det_fa_inds
 
-    def _prune_memory_bank(self, tracker_states_local, frame_idx):
-        """Prune old frames from memory bank to prevent VRAM leak."""
-        if self.memory_bank_max_frames <= 0:
-            return
-
-        min_frame = frame_idx - self.memory_bank_max_frames
-
-        for state in tracker_states_local:
-            output_dict = state.get("output_dict", {})
-
-            # only prune non_cond_frame_outputs
-            storage_key = "non_cond_frame_outputs"
-            if storage_key in output_dict:
-                frames_to_remove = [k for k in output_dict[storage_key] if k < min_frame]
-                for f in frames_to_remove:
-                    del output_dict[storage_key][f]
-
-            # Also prune per-object non-cond outputs only
-            for obj_output in state.get("output_dict_per_obj", {}).values():
-                if storage_key in obj_output:
-                    frames_to_remove = [k for k in obj_output[storage_key] if k < min_frame]
-                    for f in frames_to_remove:
-                        del obj_output[storage_key][f]
-
     def _consolidate_tracker_states(self, tracker_states_local):
         """Prevent unbounded growth of tracker_states_local list."""
         # Remove empty states
         tracker_states_local[:] = [s for s in tracker_states_local if len(s.get("obj_ids", [])) > 0]
         return tracker_states_local
-
-    def _prune_frame_scores(self, metadata, frame_idx):
-        """Prune old entries from frame-wise score dict."""
-        scores = metadata.get("obj_id_to_tracker_score_frame_wise", {})
-        for f in [k for k in scores if isinstance(k, int) and k < frame_idx - self.memory_bank_max_frames]:
-            del scores[f]

@@ -88,14 +88,17 @@ If you encounter specific version conflicts, you can pin compatible versions:
 #### Common Error Solutions
 
 **Error: "No module named 'ultralytics'"**
+
 - Solution: Ensure internet is enabled and run the installation command again
 - Restart the kernel after installation
 
 **Error: "ERROR: pip's dependency resolver does not currently take into account..."**
+
 - Solution: This is usually a warning and can be safely ignored. The installation typically succeeds despite the message
 - Alternatively, use Method 2 above to install without dependency resolution
 
 **Error: "ModuleNotFoundError" after installation**
+
 - Solution: Restart the kernel using the restart button in the notebook interface
 - Re-run the import statements in a new cell
 
@@ -105,6 +108,7 @@ After installation, verify that Ultralytics is properly installed by running:
 
 ```python
 import ultralytics
+
 ultralytics.checks()
 ```
 

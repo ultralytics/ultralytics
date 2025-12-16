@@ -31,6 +31,8 @@ Kaggle notebooks require internet access to download packages and dependencies. 
 
 **Note**: Internet access is required for installing the Ultralytics package and downloading pre-trained models or datasets. Without internet enabled, package installations will fail.
 
+![Kaggle Notebook Internet Turn on](./kaggle_installation.avif)
+
 ### Installing Ultralytics
 
 Once internet access is enabled, install the Ultralytics package by running the following command in a notebook cell:

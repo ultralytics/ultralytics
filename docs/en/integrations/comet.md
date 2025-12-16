@@ -234,7 +234,7 @@ To integrate Comet with Ultralytics YOLO11, follow these steps:
     )
     ```
 
-For more detailed instructions, refer to the [Comet configuration section](#configuring-comet-ml).
+For more detailed instructions, refer to the [Comet configuration section](#configuring-comet).
 
 ### What are the benefits of using Comet with YOLO11?
 

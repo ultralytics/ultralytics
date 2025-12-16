@@ -873,6 +873,7 @@ class RTDETRDecoder(nn.Module):
         label_noise_ratio: float = 0.5,
         box_noise_scale: float = 1.0,
         learnt_init_query: bool = False,
+        enable_cuda_acceleration: bool = False,
     ):
         """Initialize the RTDETRDecoder module with the given parameters.
 
@@ -916,7 +917,8 @@ class RTDETRDecoder(nn.Module):
         # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
 
         # Transformer module
-        decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp)
+        decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp, 
+                                                          enable_cuda_acceleration=enable_cuda_acceleration)
         self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx)
 
         # Denoising part

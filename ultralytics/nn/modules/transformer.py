@@ -13,7 +13,7 @@ from torch.nn.init import constant_, xavier_uniform_
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 from .conv import Conv
-from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
+from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch, MSDeformAttnFunction
 
 __all__ = (
     "AIFI",
@@ -456,7 +456,8 @@ class MSDeformAttn(nn.Module):
         https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
 
-    def __init__(self, d_model: int = 256, n_levels: int = 4, n_heads: int = 8, n_points: int = 4):
+    def __init__(self, d_model: int = 256, n_levels: int = 4, n_heads: int = 8, n_points: int = 4, 
+                 enable_cuda_acceleration: bool = False):
         """Initialize MSDeformAttn with the given parameters.
 
         Args:
@@ -464,6 +465,7 @@ class MSDeformAttn(nn.Module):
             n_levels (int): Number of feature levels.
             n_heads (int): Number of attention heads.
             n_points (int): Number of sampling points per attention head per feature level.
+            enable_cuda_acceleration (bool): Whether to enable CUDA acceleration.
         """
         super().__init__()
         if d_model % n_heads != 0:
@@ -484,7 +486,16 @@ class MSDeformAttn(nn.Module):
         self.value_proj = nn.Linear(d_model, d_model)
         self.output_proj = nn.Linear(d_model, d_model)
 
+        self.enable_cuda_acceleration = enable_cuda_acceleration
+
         self._reset_parameters()
+
+    def __setstate__(self, state):
+        """Handle loading from older checkpoints without enable_cuda_acceleration."""
+        self.__dict__.update(state)
+        # Add default value for missing attribute from older checkpoints
+        if 'enable_cuda_acceleration' not in self.__dict__:
+            self.enable_cuda_acceleration = False
 
     def _reset_parameters(self):
         """Reset module parameters."""
@@ -554,7 +565,18 @@ class MSDeformAttn(nn.Module):
             sampling_locations = refer_bbox[:, :, None, :, None, :2] + add
         else:
             raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")
-        output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights)
+        
+        if not self.enable_cuda_acceleration:
+            output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights)
+        else:
+            # Convert value_shapes list to tensor for CUDA kernel
+            input_spatial_shapes = torch.as_tensor(value_shapes, dtype=torch.long, device=value.device)
+            input_level_start_index = torch.cat(
+                (input_spatial_shapes.new_zeros((1,)), input_spatial_shapes.prod(1).cumsum(0)[:-1])
+            )
+            output = MSDeformAttnFunction.apply(
+                value, input_spatial_shapes, input_level_start_index, sampling_locations, attention_weights, self.im2col_step
+            )
         return self.output_proj(output)
 
 
@@ -592,6 +614,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         act: nn.Module = nn.ReLU(),
         n_levels: int = 4,
         n_points: int = 4,
+        enable_cuda_acceleration: bool = False,
     ):
         """Initialize the DeformableTransformerDecoderLayer with the given parameters.
 
@@ -612,7 +635,9 @@ class DeformableTransformerDecoderLayer(nn.Module):
         self.norm1 = nn.LayerNorm(d_model)
 
         # Cross attention
-        self.cross_attn = MSDeformAttn(d_model, n_levels, n_heads, n_points)
+        self.cross_attn = MSDeformAttn(
+            d_model, n_levels, n_heads, n_points, 
+            enable_cuda_acceleration=enable_cuda_acceleration)
         self.dropout2 = nn.Dropout(dropout)
         self.norm2 = nn.LayerNorm(d_model)
 

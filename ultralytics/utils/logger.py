@@ -267,6 +267,11 @@ class SystemLogger:
         self.net_start = psutil.net_io_counters()
         self.disk_start = psutil.disk_io_counters()
 
+        # For rate calculation
+        self._prev_net = self.net_start
+        self._prev_disk = self.disk_start
+        self._prev_time = time.time()
+
     def _init_nvidia(self):
         """Initialize NVIDIA GPU monitoring with pynvml."""
         try:
@@ -278,42 +283,49 @@ class SystemLogger:
         except Exception:
             return False
 
-    def get_metrics(self):
-        """Get current system metrics.
+    def get_metrics(self, rates=False):
+        """Get current system metrics including CPU, RAM, disk, network, and GPU usage.
 
         Collects comprehensive system metrics including CPU usage, RAM usage, disk I/O statistics, network I/O
-        statistics, and GPU metrics (if available). Example output:
+        statistics, and GPU metrics (if available).
 
+        Example output (rates=False, default):
         ```python
-        metrics = {
+        {
             "cpu": 45.2,
             "ram": 78.9,
             "disk": {"read_mb": 156.7, "write_mb": 89.3, "used_gb": 256.8},
             "network": {"recv_mb": 157.2, "sent_mb": 89.1},
             "gpus": {
-                0: {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
-                1: {"usage": 94.1, "memory": 82.7, "temp": 70, "power": 278},
+                "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
+                "1": {"usage": 94.1, "memory": 82.7, "temp": 70, "power": 278},
             },
         }
         ```
 
-        - cpu (float): CPU usage percentage (0-100%)
-        - ram (float): RAM usage percentage (0-100%)
-        - disk (dict):
-            - read_mb (float): Cumulative disk read in MB since initialization
-            - write_mb (float): Cumulative disk write in MB since initialization
-            - used_gb (float): Total disk space used in GB
-        - network (dict):
-            - recv_mb (float): Cumulative network received in MB since initialization
-            - sent_mb (float): Cumulative network sent in MB since initialization
-        - gpus (dict): GPU metrics by device index (e.g., 0, 1) containing:
-            - usage (int): GPU utilization percentage (0-100%)
-            - memory (float): CUDA memory usage percentage (0-100%)
-            - temp (int): GPU temperature in degrees Celsius
-            - power (int): GPU power consumption in watts
+        Example output (rates=True):
+        ```python
+        {
+            "cpu": 45.2,
+            "ram": 78.9,
+            "disk": {"read_mbs": 12.5, "write_mbs": 8.3, "used_gb": 256.8},
+            "network": {"recv_mbs": 5.2, "sent_mbs": 1.1},
+            "gpus": {
+                "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
+            },
+        }
+        ```
+
+        Args:
+            rates (bool): If True, return disk/network as MB/s rates instead of cumulative MB.
 
         Returns:
-            metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with usage data.
+            (dict): Metrics dictionary with cpu, ram, disk, network, and gpus keys.
+
+        Examples:
+            >>> logger = SystemLogger()
+            >>> logger.get_metrics()["cpu"]  # CPU percentage
+            >>> logger.get_metrics(rates=True)["network"]["recv_mbs"]  # MB/s download rate
         """
         import psutil  # scoped as slow import
 
@@ -321,21 +333,44 @@ class SystemLogger:
         disk = psutil.disk_io_counters()
         memory = psutil.virtual_memory()
         disk_usage = shutil.disk_usage("/")
+        now = time.time()
 
         metrics = {
             "cpu": round(psutil.cpu_percent(), 3),
             "ram": round(memory.percent, 3),
-            "disk": {
+            "gpus": {},
+        }
+
+        # Calculate elapsed time since last call
+        elapsed = max(0.1, now - self._prev_time)  # Avoid division by zero
+
+        if rates:
+            # Calculate MB/s rates from delta since last call
+            metrics["disk"] = {
+                "read_mbs": round(max(0, (disk.read_bytes - self._prev_disk.read_bytes) / (1 << 20) / elapsed), 3),
+                "write_mbs": round(max(0, (disk.write_bytes - self._prev_disk.write_bytes) / (1 << 20) / elapsed), 3),
+                "used_gb": round(disk_usage.used / (1 << 30), 3),
+            }
+            metrics["network"] = {
+                "recv_mbs": round(max(0, (net.bytes_recv - self._prev_net.bytes_recv) / (1 << 20) / elapsed), 3),
+                "sent_mbs": round(max(0, (net.bytes_sent - self._prev_net.bytes_sent) / (1 << 20) / elapsed), 3),
+            }
+        else:
+            # Cumulative MB since initialization (original behavior)
+            metrics["disk"] = {
                 "read_mb": round((disk.read_bytes - self.disk_start.read_bytes) / (1 << 20), 3),
                 "write_mb": round((disk.write_bytes - self.disk_start.write_bytes) / (1 << 20), 3),
                 "used_gb": round(disk_usage.used / (1 << 30), 3),
-            },
-            "network": {
+            }
+            metrics["network"] = {
                 "recv_mb": round((net.bytes_recv - self.net_start.bytes_recv) / (1 << 20), 3),
                 "sent_mb": round((net.bytes_sent - self.net_start.bytes_sent) / (1 << 20), 3),
-            },
-            "gpus": {},
-        }
+            }
+
+        # Always update previous values for accurate rate calculation on next call
+        self._prev_net = net
+        self._prev_disk = disk
+        self._prev_time = now
 
         # Add GPU metrics (NVIDIA only)
         if self.nvidia_initialized:

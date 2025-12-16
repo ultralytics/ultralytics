@@ -210,7 +210,7 @@ def apply_rotary_enc(
         # No keys to rotate, due to dropout
         return xq_out.type_as(xq).to(xq.device), xk
     # Repeat freqs along seq_len dim to match k seq_len
-     if repeat_freqs_k:
+    if repeat_freqs_k:
         r = xk_.shape[-2] // xq_.shape[-2]
         # MPS doesn't support repeat on complex tensors, decompose to real representation
         if freqs_cis.device.type == "mps":
@@ -221,9 +221,6 @@ def apply_rotary_enc(
             freqs_cis = freqs_cis.repeat(*([1] * (freqs_cis.ndim - 2)), r, 1)
     xk_out = torch.view_as_real(xk_ * freqs_cis).flatten(3)
     return xq_out.type_as(xq).to(xq.device), xk_out.type_as(xk).to(xk.device)
-    xk_out = torch.view_as_real(xk_ * freqs_cis).flatten(3)
-    return xq_out.type_as(xq).to(xq.device), xk_out.type_as(xk).to(xk.device)
-
 
 def window_partition(x: torch.Tensor, window_size: int):
     """Partition input tensor into non-overlapping windows with padding if needed.

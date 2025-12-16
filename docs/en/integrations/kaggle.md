@@ -16,6 +16,98 @@ Kaggle is a platform that brings together data scientists from around the world 
 
 With more than [10 million users](https://www.kaggle.com/discussions/general/332147) as of 2022, Kaggle provides a rich environment for developing and experimenting with machine learning models. You don't need to worry about your local machine's specs or setup; you can dive right in with just a Kaggle account and a web browser.
 
+## Installation
+
+Before you can start training YOLO11 models on Kaggle, you need to ensure your notebook environment is properly configured. Follow these essential steps:
+
+### Enable Internet Access
+
+Kaggle notebooks require internet access to download packages and dependencies. To enable internet in your Kaggle notebook:
+
+1. Open your Kaggle notebook
+2. Click on the **Settings** panel on the right side of the notebook interface
+3. Scroll down to the **Internet** section
+4. Toggle the switch to **ON** to enable internet connectivity
+
+**Note**: Internet access is required for installing the Ultralytics package and downloading pre-trained models or datasets. Without internet enabled, package installations will fail.
+
+### Installing Ultralytics
+
+Once internet access is enabled, install the Ultralytics package by running the following command in a notebook cell:
+
+```python
+!pip install ultralytics
+```
+
+For the latest development version, you can install directly from GitHub:
+
+```python
+!pip install git+https://github.com/ultralytics/ultralytics.git
+```
+
+### Resolving Dependency Conflicts
+
+During installation, you may encounter dependency conflicts, especially with packages like `opencv-python`, `numpy`, or `torch`. Here are common solutions:
+
+#### Method 1: Force Reinstall with --upgrade
+
+If you encounter conflicts with existing packages, force an upgrade:
+
+```python
+!pip install --upgrade --force-reinstall ultralytics
+```
+
+#### Method 2: Use --no-deps and Install Dependencies Separately
+
+If conflicts persist, install without dependencies first, then manually install required packages:
+
+```python
+!pip install --no-deps ultralytics
+!pip install torch torchvision opencv-python matplotlib pillow pyyaml requests
+```
+
+#### Method 3: Restart Kernel After Installation
+
+Sometimes, you need to restart the kernel after installation to resolve import issues:
+
+```python
+!pip install ultralytics
+# Then click "Restart Kernel" from the notebook menu
+```
+
+#### Method 4: Use Specific Package Versions
+
+If you encounter specific version conflicts, you can pin compatible versions:
+
+```python
+!pip install ultralytics opencv-python==4.8.1.78 numpy==1.24.3
+```
+
+#### Common Error Solutions
+
+**Error: "No module named 'ultralytics'"**
+- Solution: Ensure internet is enabled and run the installation command again
+- Restart the kernel after installation
+
+**Error: "ERROR: pip's dependency resolver does not currently take into account..."**
+- Solution: This is usually a warning and can be safely ignored. The installation typically succeeds despite the message
+- Alternatively, use Method 2 above to install without dependency resolution
+
+**Error: "ModuleNotFoundError" after installation**
+- Solution: Restart the kernel using the restart button in the notebook interface
+- Re-run the import statements in a new cell
+
+### Verifying Installation
+
+After installation, verify that Ultralytics is properly installed by running:
+
+```python
+import ultralytics
+ultralytics.checks()
+```
+
+This will display system information and verify that all dependencies are correctly installed.
+
 ## Training YOLO11 Using Kaggle
 
 Training YOLO11 models on Kaggle is simple and efficient, thanks to the platform's access to powerful GPUs.
@@ -94,6 +186,16 @@ Interested in more YOLO11 integrations? Check out the [Ultralytics integration g
 
 ## FAQ
 
+### How do I install Ultralytics YOLO11 on Kaggle?
+
+To install Ultralytics YOLO11 on Kaggle:
+
+1. **Enable Internet**: Go to Settings panel and turn ON the Internet toggle
+2. **Install Package**: Run `!pip install ultralytics` in a notebook cell
+3. **Verify Installation**: Run `import ultralytics; ultralytics.checks()` to confirm
+
+If you encounter dependency conflicts, try `!pip install --upgrade --force-reinstall ultralytics` or restart the kernel after installation. For detailed troubleshooting, see the [Installation section](#installation) above.
+
 ### How do I train a YOLO11 model on Kaggle?
 
 Training a YOLO11 model on Kaggle is straightforward. First, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO11 Model Training guide](../modes/train.md).
@@ -114,11 +216,13 @@ For more details, visit our [Ultralytics integration guide](https://docs.ultraly
 Common issues include:
 
 - **Access to GPUs**: Ensure you activate a GPU in your notebook settings. Kaggle allows up to 30 hours of GPU usage per week.
+- **Internet Not Enabled**: Make sure to enable internet in the Settings panel before installing packages.
+- **Dependency Conflicts**: Use `!pip install --upgrade --force-reinstall ultralytics` or install without dependencies using `!pip install --no-deps ultralytics`.
 - **Dataset Licenses**: Check the license of each dataset to understand usage restrictions.
 - **Saving and Committing Notebooks**: Click "Save Version" to save your notebook's state and access output files from the Output tab.
 - **Collaboration**: Kaggle supports asynchronous collaboration; multiple users cannot edit a notebook simultaneously.
 
-For more troubleshooting tips, see our [Common Issues guide](../guides/yolo-common-issues.md).
+For more troubleshooting tips, see the [Installation section](#installation) and our [Common Issues guide](../guides/yolo-common-issues.md).
 
 ### Why should I choose Kaggle over other platforms like Google Colab for training YOLO11 models?
 

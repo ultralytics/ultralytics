@@ -11,7 +11,8 @@ data: coco.yaml  # COCO8 dataset (small subset for testing)
 
 # Training hyperparameters
 epochs: 72  # Increased for real training (DETR models need more epochs, use 300+ for production)
-batch: 8  # Consider 16-32 if you have more memory
+batch: 16
+nbs: 16
 imgsz: 640
 
 # Device configurations
@@ -29,8 +30,9 @@ verbose: True
 optimizer: AdamW  # Best for DETR-like models (AdamW, Adam, SGD, etc.)
 lr0: 0.0001  # Initial learning rate
 lrf: 0.01  # Final learning rate = lr0 * lrf = 0.000001
-momentum: 0.0  # Explicitly 0 for AdamW (only used by SGD, ignored by Adam/AdamW)
+momentum: 0.9  # The default value in AdamW implementations
 weight_decay: 0.0001  # L2 regularization (typical for DETR models)
+backbone_lr_ratio: 0.1  # Learning rate ratio for backbone (0.1 means lr0 * 0.1 for backbone)
 
 # Learning rate scheduler
 warmup_epochs: 5.0  # Increased from 3.0 for better DETR convergence

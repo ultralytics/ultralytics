@@ -49,4 +49,4 @@ head:
 
   # RTDETRDecoder - ALL positional arguments must match __init__ signature
   # [nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale, learnt_init_query]
-  - [[16, 19, 22], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0]]
+  - [[16, 19, 22], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0, "relu", -1, 200, 0.5, 1.0, False, False]]

@@ -11,7 +11,8 @@ data: coco8.yaml  # COCO8 dataset (small subset for testing)
 
 # Training hyperparameters
 epochs: 3
-batch: 8
+batch: 16
+nbs: 16
 imgsz: 640
 
 # Device configuration
@@ -24,12 +25,13 @@ name: yolo11_rtdetr_res50_coco8
 exist_ok: True
 verbose: True
 
-# Optimizer settings
-optimizer: AdamW
-lr0: 0.0001
-lrf: 0.01
-momentum: 0.937
-weight_decay: 0.0005
+# Optimizer settings (AdamW for DETR-like models)
+optimizer: AdamW  # Best for DETR-like models (AdamW, Adam, SGD, etc.)
+lr0: 0.0001  # Initial learning rate
+lrf: 0.01  # Final learning rate = lr0 * lrf = 0.000001
+momentum: 0.9  # The default value in AdamW implementations
+weight_decay: 0.0001  # L2 regularization (typical for DETR models)
+backbone_lr_ratio: 0.1  # Learning rate ratio for backbone (0.1 means lr0 * 0.1 for backbone)
 
 # Learning rate scheduler
 warmup_epochs: 3.0

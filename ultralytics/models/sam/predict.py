@@ -2530,7 +2530,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         num_obj_for_compile = 16
         self.max_num_objects = max_num_objects
         self.num_obj_for_compile = num_obj_for_compile
-        self.memory_bank_max_frames = 32  # Only keep last N frames of memory
+        self.memory_bank_max_frames = 16  # Only keep last N frames of memory
         self.recondition_every_nth_frame = recondition_every_nth_frame
         self.masklet_confirmation_enable = masklet_confirmation_enable
         self.masklet_confirmation_consecutive_det_thresh = masklet_confirmation_consecutive_det_thresh
@@ -3953,14 +3953,14 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     for f in frames_to_remove:
                         del obj_output[storage_key][f]
 
-    def _consolidate_tracker_states(self, tracker_states_local, max_states=4):
+    def _consolidate_tracker_states(self, tracker_states_local):
         """Prevent unbounded growth of tracker_states_local list."""
         # Remove empty states
         tracker_states_local[:] = [s for s in tracker_states_local if len(s.get("obj_ids", [])) > 0]
         return tracker_states_local
 
-    def _prune_frame_scores(self, metadata, frame_idx, window=32):
+    def _prune_frame_scores(self, metadata, frame_idx):
         """Prune old entries from frame-wise score dict."""
         scores = metadata.get("obj_id_to_tracker_score_frame_wise", {})
-        for f in [k for k in scores if isinstance(k, int) and k < frame_idx - window]:
+        for f in [k for k in scores if isinstance(k, int) and k < frame_idx - self.memory_bank_max_frames]:
             del scores[f]

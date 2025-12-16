@@ -303,7 +303,7 @@ class StereoCenterNetLoss(nn.Module):
         # Count number of positive samples for normalization
         num_pos = pos_mask.sum()
         # debug
-        assert num_pos > 0, "No positive samples found"
+        assert num_pos > 0, f"No positive samples found. max value of target: {target.max()}, min value of target: {target.min()}"
         num_pos = torch.clamp(num_pos, min=1.0)  # Avoid division by zero
         
         # Positive loss: (1 - Ŷ)^α * log(Ŷ)

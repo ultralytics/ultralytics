@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 from pathlib import Path
@@ -1267,7 +1268,9 @@ class Stereo3DDetValidator(BaseValidator):
 
                 # Filter out predictions with confidence == 0 or below threshold before visualization
                 if pred_boxes:
-                    conf_threshold = getattr(self.args, 'conf', 0.25)
+                    conf_threshold = self.args.conf
+                    if conf_threshold < 0.1:
+                        logging.WARNING(f"The prediction conf threshold is less than 0.1, you can set the conf through CLI.")
                     pred_boxes = [
                         box for box in pred_boxes 
                         if hasattr(box, 'confidence') and box.confidence > conf_threshold

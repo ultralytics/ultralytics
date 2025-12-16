@@ -1,0 +1,92 @@
+# RT-DETR Training Configuration
+# Use with: model.train(cfg='rtdetr_train_config.yaml')
+
+# Task
+task: detect
+mode: train
+
+# Dataset
+data: coco.yaml  # COCO8 dataset (small subset for testing)
+# datasets_dir: /Users/esat/datasets  # Base directory for datasets
+
+# Training hyperparameters
+epochs: 72  # Increased for real training (DETR models need more epochs, use 300+ for production)
+batch: 16
+nbs: 16
+imgsz: 640
+
+# Device configurations
+device: [0,1,2,3]  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
+workers: 4
+amp: False  # Explicitly False for CPU training (set to True for GPU with mixed precision)
+
+# Output and logging
+project: /home/esat/workspace/detr_trainings
+name: yolo11_rtdetr_res50_coco
+exist_ok: True
+verbose: True
+
+# Optimizer settings (AdamW for DETR-like models)
+optimizer: AdamW  # Best for DETR-like models (AdamW, Adam, SGD, etc.)
+lr0: 0.0001  # Initial learning rate
+lrf: 0.01  # Final learning rate = lr0 * lrf = 0.000001
+momentum: 0.9  # The default value in AdamW implementations
+weight_decay: 0.0001  # L2 regularization (typical for DETR models)
+backbone_lr_ratio: 0.1  # Learning rate ratio for backbone (0.1 means lr0 * 0.1 for backbone)
+
+# Learning rate scheduler
+warmup_epochs: 5.0  # Increased from 3.0 for better DETR convergence
+warmup_momentum: 0.8  # Only for SGD, ignored by AdamW
+warmup_bias_lr: 0.0  # Set to 0 for AdamW (0.1 for SGD)
+cos_lr: False  # Use cosine learning rate scheduler
+
+# Loss function weights (based on DETRLoss defaults in loss.py)
+box: 5.0  # L1 loss weight for bounding boxes (DETRLoss default: 5.0)
+cls: 1.0  # Classification loss weight (DETRLoss default: 1.0)
+dfl: 1.5  # Distribution focal loss weight (for DFL-based models)
+# Note: giou weight is 2.0 in DETRLoss, no_object weight is 0.1 (handled internally)
+
+# Augmentation settings (Conservative for DETR - minimal augmentation)
+hsv_h: 0.015  # HSV-Hue augmentation
+hsv_s: 0.7  # HSV-Saturation augmentation
+hsv_v: 0.4  # HSV-Value augmentation
+degrees: 0.0  # Rotation augmentation (disabled)
+translate: 0.1  # Translation augmentation
+scale: 0.5  # Scale augmentation
+shear: 0.0  # Shear augmentation (disabled)
+perspective: 0.0  # Perspective augmentation (disabled)
+flipud: 0.0  # Vertical flip (disabled)
+fliplr: 0.5  # Horizontal flip probability
+mosaic: 0.0  # Mosaic augmentation (disabled for DETR - changed from 1.0)
+mixup: 0.0  # MixUp augmentation (disabled)
+copy_paste: 0.0  # Copy-paste augmentation (disabled)
+auto_augment: False  # AutoAugment (disabled)
+erasing: 0.0  # Random erasing probability
+
+# Training optimizations
+fraction: 1.0
+# overlap_mask: True  # Better mask handling
+# mask_ratio: 4  # For segmentation tasks
+
+# Checkpointing and validation
+save: True
+save_period: -1
+cache: disk
+val: True
+patience: 100  # Increased from 50 (DETR converges slowly)
+# Visualization
+plots: True
+
+# Resume training
+resume: False
+
+# Advanced settings
+close_mosaic: 0  # Set to 0 since mosaic is disabled
+seed: 0
+deterministic: False
+# dropout: 0.0  # Explicit dropout rate
+
+# Additional DETR-specific settings
+# nbs: 64  # Nominal batch size for normalization
+# overlap_mask: True  # Overlap masks during training
+# single_cls: False  # Treat dataset as single-class

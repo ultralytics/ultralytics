@@ -108,6 +108,40 @@ mkdir -p $project_dir
 
 
 
+# project_dir=runs/yoloe26s_tp_ultra6
+# weight_path="yolo26s-objv1.pt"
+# trainer="YOLOETrainerFromScratch"
+# model=26s
+# epo=30
+# close_mosaic=2
+# batch_size=128
+# ag=True
+
+# clip_weight_name="mobileclip2:b" # mobileclip2b
+# ptw="object365v1" 
+
+
+# optimizer="MuSGD"
+# lr0=0.00125
+# lrf=0.5
+# momentum=0.9
+# weight_decay=0.0007
+# o2m=0.1
+
+# exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_nmdata-beta_tp
+# device=6,7
+
+# nmdata: using dataset cache without mask
+# nmdata-beta: add flickr data 
+# CACHE_SUFFIX=".engine.cache"  in. datasets.py
+# using the following command to check the log:\n tail -f -n 50 ./runs/20251214_214854.log
+# Current screen: 1206388.train4
+# exp name: mobileclip2:b_26s_bs128_epo30_close2_opMuSGD_o2m0.1_nmdata-beta_tp
+
+###############################################default args #######################################
+
+
+
 project_dir=runs/yoloe26s_tp_ultra6
 weight_path="yolo26s-objv1.pt"
 trainer="YOLOETrainerFromScratch"
@@ -128,15 +162,11 @@ momentum=0.9
 weight_decay=0.0007
 o2m=0.1
 
-exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_nmdata-beta_tp
-device=6,7
-
-# nmdata: using dataset cache without mask
-# nmdata-beta: add flickr data 
-# CACHE_SUFFIX=".engine.cache"  in. datasets.py
-# using the following command to check the log:\n tail -f -n 50 ./runs/20251214_214854.log
-# Current screen: 1206388.train4
-# exp name: mobileclip2:b_26s_bs128_epo30_close2_opMuSGD_o2m0.1_nmdata-beta_tp
+exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_maskdata_tp
+device=2,3
+# using the following command to check the log:\n tail -f -n 50 ./runs/20251216_062128.log
+# Current screen: 359138.train2
+# exp name: mobileclip2:b_26s_bs128_epo30_close2_opMuSGD_o2m0.1_maskdata_tp
 
 ###############################################default args #######################################
 
@@ -165,11 +195,11 @@ nohup python $pyfile \
     > "./runs/$timestamp.log" 2>&1 &
 
 ##############################################################################################
-echo "using the following command to check the log:\n tail -f -n 50 ./runs/$timestamp.log"
+echo "# using the following command to check the log:"
+echo "tail -f -n 50 ./runs/$timestamp.log"
 current_screen=$(echo $STY) # get the current screen 
-echo "Current screen: $current_screen"
-echo "exp name: $exp_name"
-
+echo "# Current screen: $current_screen"
+echo "# exp name: $exp_name"
 
 
 

@@ -62,6 +62,11 @@ div.highlight {
   max-height: 75vh;
 }
 
+/* Fix tooltips appearing under the sticky header */
+.md-tooltip {
+  z-index: 100 !important;
+}
+
 /* Ultralytics Search Bar ------------------------------------------------------------------------------------------- */
 :root {
   --ult-search-bg: #f5f6f8;

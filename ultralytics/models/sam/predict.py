@@ -954,7 +954,6 @@ class SAM2VideoPredictor(SAM2Predictor):
             )
             output_dict[storage_key][frame] = current_out
             self._prune_non_cond_memory(frame)
-
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key)
@@ -2445,6 +2444,7 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
                 inference_state=inference_state,
             )
             output_dict[storage_key][frame] = current_out
+            self._prune_non_cond_memory(frame, inference_state=inference_state)
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key, inference_state=inference_state)
@@ -3328,9 +3328,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 2: remove from SAM2 inference states those objects removed by heuristics
         if len(obj_ids_newly_removed) > 0:
             self._tracker_remove_objects(tracker_states_local, obj_ids_newly_removed)
-        # Step 3: prune existing tracker state to prevent memory leak
-        for state in tracker_states_local:
-            self.tracker._prune_non_cond_memory(frame_idx, inference_state=state)
         return tracker_states_local
 
     def build_outputs(

@@ -17,7 +17,7 @@ def test_instances_get_obb_from_segments_preserves_tracked_angle_after_clipping(
     from ultralytics.utils.instance import Instances
 
     img_w, img_h = 64, 64
-    theta = np.deg2rad(37.0).astype(np.float32)
+    theta = np.float32(np.deg2rad(37.0))
 
     # Create a rotated box that crosses the right border, then clip points like Instances.clip() does.
     corners = _make_rotated_rect(cx=58, cy=32, w=30, h=12, theta=theta)

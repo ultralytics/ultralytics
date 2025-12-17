@@ -272,10 +272,17 @@ class Stereo3DDetAdapterDataset(Dataset):
         # Letterbox both identically using left's parameters, then reapply to right by computing separately
         left_resized, scale_l, pad_left_l, pad_top_l = _letterbox(left_rgb, self.imgsz)
         right_resized, _, _, _ = _letterbox(right_rgb, self.imgsz)
-        # Stack to 6 channels
+        # Stack to 6 channels (left RGB + right RGB)
         left_t = torch.from_numpy(left_resized).permute(2, 0, 1).contiguous()
         right_t = torch.from_numpy(right_resized).permute(2, 0, 1).contiguous()
         img6 = torch.cat([left_t, right_t], dim=0)
+        
+        # Runtime validation: ensure stereo image has exactly 6 channels
+        assert img6.shape[0] == 6, (
+            f"Stereo image must have 6 channels (left RGB + right RGB), "
+            f"but got {img6.shape[0]} channels. Check image loading."
+        )
+        
         if img6.dtype != torch.uint8:
             img6 = img6.to(torch.uint8)
         labels = labels_aug
@@ -293,6 +300,13 @@ class Stereo3DDetAdapterDataset(Dataset):
     @staticmethod
     def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
         imgs = torch.stack([b["img"] for b in batch], 0)  # (B,6,H,W)
+        
+        # Validate batch has 6 channels (stereo: left RGB + right RGB)
+        assert imgs.shape[1] == 6, (
+            f"Stereo batch must have 6 channels, but got shape {imgs.shape}. "
+            f"Expected (B, 6, H, W) for stereo input."
+        )
+        
         labels_list = [b.get("labels", []) for b in batch]
         calibs = [b.get("calib", {}) for b in batch]  # Collect calib for each sample (T145)
         

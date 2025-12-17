@@ -148,6 +148,15 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         if not isinstance(data_cfg, dict):
             raise RuntimeError("stereo3ddet: data must be a YAML path or dict")
 
+        # Validate channels for stereo (must be 6 = left RGB + right RGB)
+        channels = data_cfg.get("channels", 6)
+        if channels != 6:
+            raise ValueError(
+                f"Stereo3DDet requires 6 input channels (left + right RGB), "
+                f"but dataset config has channels={channels}. "
+                f"Please set 'channels: 6' in your dataset YAML."
+            )
+
         # Root path and splits
         root_path = data_cfg.get("path") or "."
         root = Path(str(root_path)).resolve()

@@ -536,7 +536,7 @@ class Instances:
             return
         if len(self.obbData) == 0:
             return
-        self.obbData[:, 0] = w-self.obbData[:, 1]
+        self.obbData[:, 0] = w - self.obbData[:, 0]
         for box in self.obbData:
             if box[4] == 90:
                 continue

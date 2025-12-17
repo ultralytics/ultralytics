@@ -1840,18 +1840,17 @@ class SAM2VideoPredictor(SAM2Predictor):
         inference_state = inference_state or self.inference_state
 
         # Determine window size
-        window = self.model.num_maskmem * self.model.memory_temporal_stride_for_eval
-        min_frame = frame_idx - window
+        min_frame = frame_idx - self.model.num_maskmem * self.model.memory_temporal_stride_for_eval
         output_dict = inference_state["output_dict"]
 
         # Prune global non_cond_frame_outputs
         for f in [k for k in output_dict["non_cond_frame_outputs"] if k < min_frame]:
-            del output_dict["non_cond_frame_outputs"][f]
+            output_dict["non_cond_frame_outputs"].pop(f, None)
 
         # Prune per-object non_cond_frame_outputs
         for obj_output_dict in inference_state.get("output_dict_per_obj", {}).values():
             for f in [k for k in obj_output_dict["non_cond_frame_outputs"] if k < min_frame]:
-                del obj_output_dict["non_cond_frame_outputs"][f]
+                obj_output_dict["non_cond_frame_outputs"].pop(f, None)
 
 
 class SAM2DynamicInteractivePredictor(SAM2Predictor):

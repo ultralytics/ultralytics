@@ -2697,10 +2697,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             tracker_metadata_prev=inference_state["tracker_metadata"],
             allow_new_detections=has_text_prompt or has_geometric_prompt,
         )
-        # prune memory
-        self._consolidate_tracker_states(tracker_states_local_new)
-        for state in tracker_states_local_new:
-            self.tracker._prune_non_cond_memory(frame_idx, inference_state=state)
         # update inference state
         inference_state["tracker_inference_states"] = tracker_states_local_new
         inference_state["tracker_metadata"] = tracker_metadata_new
@@ -3332,7 +3328,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 2: remove from SAM2 inference states those objects removed by heuristics
         if len(obj_ids_newly_removed) > 0:
             self._tracker_remove_objects(tracker_states_local, obj_ids_newly_removed)
-
+        # Step 3: prune existing tracker state to prevent memory leak
+        for state in tracker_states_local:
+            self.tracker._prune_non_cond_memory(frame_idx, inference_state=state)
         return tracker_states_local
 
     def build_outputs(
@@ -3946,9 +3944,3 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         score_order = np.argsort(det_scores_np[new_det_fa_inds])[::-1]
         new_det_fa_inds = new_det_fa_inds[score_order[:num_to_keep]]
         return new_det_fa_inds
-
-    def _consolidate_tracker_states(self, tracker_states_local):
-        """Prevent unbounded growth of tracker_states_local list."""
-        # Remove empty states
-        tracker_states_local[:] = [s for s in tracker_states_local if len(s.get("obj_ids", [])) > 0]
-        return tracker_states_local

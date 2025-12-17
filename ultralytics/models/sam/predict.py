@@ -878,7 +878,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.clear_non_cond_mem_around_input = False
         self.clear_non_cond_mem_for_multi_obj = False
         self.callbacks["on_predict_start"].append(self.init_state)
-        self.max_non_cond_frames = -1  # -1 means use model's num_maskmem, 0 means unlimited
+        self.clear_non_cond_mem = True  # Whether to clear non-conditioning memory periodically
 
     def get_model(self):
         """Retrieve and configure the model with binarization enabled.
@@ -1835,15 +1835,12 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     def _prune_non_cond_memory(self, frame_idx, inference_state=None):
         """Prune old non-conditioning frames to bound memory usage."""
+        if not self.clear_non_cond_mem:
+            return
         inference_state = inference_state or self.inference_state
 
         # Determine window size
-        window = self.max_non_cond_frames
-        if window < 0:
-            window = getattr(self.model, "num_maskmem", 8) * getattr(self.model, "memory_temporal_stride_for_eval", 1)
-        if window == 0:
-            return  # unlimited
-
+        window = self.model.num_maskmem * self.model.memory_temporal_stride_for_eval
         min_frame = frame_idx - window
         output_dict = inference_state["output_dict"]
 

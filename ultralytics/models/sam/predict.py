@@ -3667,7 +3667,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 and obj_id not in removed_obj_ids
                 and obj_id not in obj_ids_newly_removed
             ):
-                LOGGER.debug(f"Suppressing object {obj_id} at frame {frame_idx}, due to being unmatched")
+                LOGGER.debug(f"Removing object {obj_id} at frame {frame_idx}, due to being unmatched")
                 # directly removed the object instead of suppressing it
                 obj_ids_newly_removed.add(obj_id)
 

@@ -1567,12 +1567,22 @@ class RandomFlip:
         if self.direction == "vertical" and random.random() < self.p:
             img = np.flipud(img)
             instances.flipud(h)
+<<<<<<< HEAD
             instances.flipud_obb(imageH)
         if self.direction == "horizontal" and random.random() < self.p:
             img = np.fliplr(img)
             instances.fliplr(w)
             instances.fliplr_obb(imageW)
             # For keypoints
+=======
+            instances.flipud_obb(h)
+            if self.flip_idx is not None and instances.keypoints is not None:
+                instances.keypoints = np.ascontiguousarray(instances.keypoints[:, self.flip_idx, :])
+        if self.direction == "horizontal" and random.random() < self.p:
+            img = np.fliplr(img)
+            instances.fliplr(w)
+            instances.fliplr_obb(w)
+>>>>>>> 3241cc9d3 (Fix OBB augmentation by tracking orientation through transforms)
             if self.flip_idx is not None and instances.keypoints is not None:
                 instances.keypoints = np.ascontiguousarray(instances.keypoints[:, self.flip_idx, :])
         labels["img"] = np.ascontiguousarray(img)
@@ -2181,11 +2191,16 @@ class Format:
                 labels["keypoints"][..., 0] /= w
                 labels["keypoints"][..., 1] /= h
         if self.return_obb:
+<<<<<<< HEAD
             newboxes = instances.get_obb_boxes(w, h)
             labels["bboxes"] = torch.from_numpy(newboxes)
             #labels["bboxes"] = (
             #    xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros((0, 5))
             #)
+=======
+            obb = instances.get_obb_from_segments()
+            labels["bboxes"] = torch.from_numpy(obb) if len(obb) else torch.zeros((0, 5))
+>>>>>>> 3241cc9d3 (Fix OBB augmentation by tracking orientation through transforms)
         # NOTE: need to normalize obb in xywhr format for width-height consistency
         if self.normalize:
             labels["bboxes"][:, [0, 2]] /= w

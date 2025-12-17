@@ -399,6 +399,8 @@ class Instances:
         return boxesarray
 
     def apply_affine_obb(self, M, scale, rotation):
+        if self.obbData is None or not len(self.obbData):
+            return
         if not len(self.obbData):
             return
         #print()

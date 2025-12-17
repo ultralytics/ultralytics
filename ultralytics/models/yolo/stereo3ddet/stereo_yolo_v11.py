@@ -302,8 +302,16 @@ class StereoCenterNetLoss(nn.Module):
         
         # Count number of positive samples for normalization
         num_pos = pos_mask.sum()
-        # debug
-        assert num_pos > 0, f"No positive samples found. max value of target: {target.max()}, min value of target: {target.min()}"
+        
+        # Handle empty batches gracefully (images with no objects)
+        # This can happen legitimately in KITTI when:
+        # - Image has no annotated objects
+        # - All objects were filtered out (wrong class, truncated, etc.)
+        # - Object centers fall outside feature map bounds
+        if num_pos == 0:
+            # Return zero loss for empty batch - no objects to learn from
+            return torch.tensor(0.0, device=pred.device, requires_grad=True)
+        
         num_pos = torch.clamp(num_pos, min=1.0)  # Avoid division by zero
         
         # Positive loss: (1 - Ŷ)^α * log(Ŷ)
@@ -384,15 +392,22 @@ class StereoCenterNetLoss(nn.Module):
         Orientation angle loss (Multi-Bin encoding).
 
         pred: [B, 8, H, W]
-            layout: [bin_logit_1, bin_logit_2, sin_1, cos_1, sin_2, cos_2, pad, pad]
+            layout: [bin_logit_0, bin_logit_1, sin_0, cos_0, sin_1, cos_1, pad, pad]
         target: [B, 8, H, W]
-            layout: [bin_id, bin_id, sin, cos, ...]
+            layout: [conf_0, conf_1, sin_0, cos_0, sin_1, cos_1, pad, pad]
+            - One-hot bin encoding: [1, 0, ...] for bin 0, [0, 1, ...] for bin 1
+            - bin 0: α ∈ [-π, 0), center = -π/2
+            - bin 1: α ∈ [0, π], center = +π/2
+            - sin/cos: residual from bin center
         """
         # Split bin classification and angle regression
         bin_pred = pred[:, :2, :, :]  # [B, 2, H, W]
         angle_pred = pred[:, 2:6, :, :]  # [B, 4, H, W]
 
-        bin_target = target[:, 0:1, :, :].long().squeeze(1)  # [B, H, W]
+        # Convert one-hot target to class index using argmax
+        # [1, 0] → 0 (bin 0), [0, 1] → 1 (bin 1)
+        bin_target_onehot = target[:, :2, :, :]  # [B, 2, H, W]
+        bin_target = bin_target_onehot.argmax(dim=1)  # [B, H, W] - class indices
         angle_target = target[:, 2:6, :, :]  # [B, 4, H, W]
 
         # Bin classification loss

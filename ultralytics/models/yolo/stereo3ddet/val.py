@@ -74,11 +74,13 @@ def compute_3d_iou_batch(
             l, w, h = box.dimensions
             rot = box.orientation
             
-            # Generate 8 corners in object coordinates (following compute_3d_iou convention)
+            # Generate 8 corners in object coordinates (KITTI convention)
+            # KITTI convention: rotation_y=0 means object faces camera X direction
+            # So object's length (forward direction) should be along X axis
             corners_obj = np.array([
-                [-w / 2, w / 2, w / 2, -w / 2, -w / 2, w / 2, w / 2, -w / 2],  # x (right)
-                [-h / 2, -h / 2, -h / 2, -h / 2, h / 2, h / 2, h / 2, h / 2],  # y (down)
-                [l / 2, l / 2, -l / 2, -l / 2, l / 2, l / 2, -l / 2, -l / 2],  # z (forward)
+                [-l / 2, l / 2, l / 2, -l / 2, -l / 2, l / 2, l / 2, -l / 2],  # x (length)
+                [-h / 2, -h / 2, -h / 2, -h / 2, h / 2, h / 2, h / 2, h / 2],  # y (height)
+                [w / 2, w / 2, -w / 2, -w / 2, w / 2, w / 2, -w / 2, -w / 2],  # z (width)
             ])  # [3, 8]
             
             # Rotation matrix around y-axis
@@ -610,7 +612,6 @@ def decode_stereo3d_outputs(
 
     return batch_results
 
-
 def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] | None = None) -> list[Box3D]:
     """Convert label dictionaries to Box3D objects.
 
@@ -707,9 +708,13 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             center_y_2d = left_box.get("center_y", 0.5) * img_height
 
             x_3d = (center_x_2d - cx_val) * depth / fx_val
+            # y_3d is at geometric center (matching prediction decoder convention)
+            # Note: vis_yolo_kitti.py converts to bottom center, but we use geometric center
+            # for consistency with plotting.py corner generation which uses [-h/2, +h/2]
             y_3d = (center_y_2d - cy_val) * depth / fy_val
             z_3d = depth
 
+            # Compute rotation_y from alpha (matches vis_yolo_kitti.py)
             # Convert alpha (observation angle) to rotation_y (global yaw)
             # θ = α + arctan(x/z)
             import math
@@ -735,7 +740,6 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             continue
 
     return boxes3d
-
 
 class Stereo3DDetValidator(BaseValidator):
     """Stereo 3D Detection Validator.

@@ -96,4 +96,3 @@ class Box3D:
             truncated=data.get("truncated"),
             occluded=data.get("occluded"),
         )
-

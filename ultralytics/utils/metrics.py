@@ -290,20 +290,22 @@ def compute_3d_iou(
     # Generate 8 corners for each box in object coordinate system
     # Order: [front-left-top, front-right-top, back-right-top, back-left-top,
     #         front-left-bottom, front-right-bottom, back-right-bottom, back-left-bottom]
-    # Coordinate system: x: right, y: down, z: forward
+    # KITTI convention: rotation_y=0 means object faces camera X direction
+    # So object's length (forward direction) should be along X axis
+    # Coordinate system: x: length, y: height (down), z: width
     corners1_obj = np.array(
         [
-            [-w1 / 2, w1 / 2, w1 / 2, -w1 / 2, -w1 / 2, w1 / 2, w1 / 2, -w1 / 2],  # x (right)
-            [-h1 / 2, -h1 / 2, -h1 / 2, -h1 / 2, h1 / 2, h1 / 2, h1 / 2, h1 / 2],  # y (down)
-            [l1 / 2, l1 / 2, -l1 / 2, -l1 / 2, l1 / 2, l1 / 2, -l1 / 2, -l1 / 2],  # z (forward)
+            [-l1 / 2, l1 / 2, l1 / 2, -l1 / 2, -l1 / 2, l1 / 2, l1 / 2, -l1 / 2],  # x (length)
+            [-h1 / 2, -h1 / 2, -h1 / 2, -h1 / 2, h1 / 2, h1 / 2, h1 / 2, h1 / 2],  # y (height)
+            [w1 / 2, w1 / 2, -w1 / 2, -w1 / 2, w1 / 2, w1 / 2, -w1 / 2, -w1 / 2],  # z (width)
         ]
     )
 
     corners2_obj = np.array(
         [
-            [-w2 / 2, w2 / 2, w2 / 2, -w2 / 2, -w2 / 2, w2 / 2, w2 / 2, -w2 / 2],  # x (right)
-            [-h2 / 2, -h2 / 2, -h2 / 2, -h2 / 2, h2 / 2, h2 / 2, h2 / 2, h2 / 2],  # y (down)
-            [l2 / 2, l2 / 2, -l2 / 2, -l2 / 2, l2 / 2, l2 / 2, -l2 / 2, -l2 / 2],  # z (forward)
+            [-l2 / 2, l2 / 2, l2 / 2, -l2 / 2, -l2 / 2, l2 / 2, l2 / 2, -l2 / 2],  # x (length)
+            [-h2 / 2, -h2 / 2, -h2 / 2, -h2 / 2, h2 / 2, h2 / 2, h2 / 2, h2 / 2],  # y (height)
+            [w2 / 2, w2 / 2, -w2 / 2, -w2 / 2, w2 / 2, w2 / 2, -w2 / 2, -w2 / 2],  # z (width)
         ]
     )
 

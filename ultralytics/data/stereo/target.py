@@ -32,11 +32,12 @@ class TargetGenerator:
         self.output_h, self.output_w = output_size
         self.num_classes = num_classes
 
-        # Default mean dimensions (KITTI)
+        # Default mean dimensions (KITTI) - format: [L, W, H]
+        # Must match val.py mean_dims = {0: (H, W, L), ...} after reordering
         self.mean_dims = mean_dims or {
-            "Car": [3.88, 1.63, 1.53],
-            "Pedestrian": [0.88, 0.60, 1.73],
-            "Cyclist": [1.72, 0.60, 1.77],
+            "Car": [3.89, 1.73, 1.52],       # L=3.89, W=1.73, H=1.52
+            "Pedestrian": [0.80, 0.50, 1.73], # L=0.80, W=0.50, H=1.73
+            "Cyclist": [1.76, 0.60, 1.77],    # L=1.76, W=0.60, H=1.77
         }
 
     def generate_targets(
@@ -122,16 +123,16 @@ class TargetGenerator:
 
             # 6. Dimensions (offset from mean)
             # Map class_id to class name (KITTI classes: Car=0, Van=1, Truck=2, Pedestrian=3, Person_sitting=4, Cyclist=5, Tram=6, Misc=7)
-            class_names = ["Car", "Van", "Truck", "Pedestrian", "Person_sitting", "Cyclist", "Tram", "Misc"]
-            if class_id < len(class_names):
-                class_name = class_names[class_id]
-            else:
-                class_name = "Car"  # Default fallback
+            # NOTE: After class filtering/remapping, class_id is 0=Car, 1=Pedestrian, 2=Cyclist
+            class_names_map = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+            class_name = class_names_map.get(class_id, "Car")
             mean_dim = self.mean_dims.get(class_name, [1.0, 1.0, 1.0])
+            # mean_dims is [L, W, H], but decoder expects [ΔH, ΔW, ΔL] order
+            # to match val.py which uses mean_dims = {0: (H, W, L), ...}
             dim_offset = [
-                dimensions["length"] - mean_dim[0],
-                dimensions["width"] - mean_dim[1],
-                dimensions["height"] - mean_dim[2],
+                dimensions["height"] - mean_dim[2],   # channel 0 = Δheight
+                dimensions["width"] - mean_dim[1],    # channel 1 = Δwidth
+                dimensions["length"] - mean_dim[0],   # channel 2 = Δlength
             ]
             targets["dimensions"][:, center_y_int, center_x_int] = torch.tensor(dim_offset)
 
@@ -245,7 +246,10 @@ class TargetGenerator:
         # Initialize encoding
         encoding = torch.zeros(8)
         
-        # Set bin confidence (one-hot)
+        # Set bin confidence (one-hot encoding)
+        # Channel 0: conf for bin 0 (1.0 if bin 0 is active, else 0.0)
+        # Channel 1: conf for bin 1 (1.0 if bin 1 is active, else 0.0)
+        # Format: [1, 0, ...] for bin 0, [0, 1, ...] for bin 1
         encoding[0] = 1.0 if bin_idx == 0 else 0.0
         encoding[1] = 1.0 if bin_idx == 1 else 0.0
         

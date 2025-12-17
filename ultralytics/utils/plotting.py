@@ -1141,12 +1141,14 @@ def project_3d_to_2d(
         image_height = calib.get("image_height", 375)       
 
     # Generate 8 corners in object coordinate system
-    # Coordinate system: x: right, y: down, z: forward
+    # KITTI convention: rotation_y=0 means object faces camera X direction
+    # So object's length (forward direction) should be along X axis
+    # Coordinate system: x: right (length), y: down (height), z: forward (width)
     corners_obj = np.array(
         [
-            [-width / 2, width / 2, width / 2, -width / 2, -width / 2, width / 2, width / 2, -width / 2],  # x
-            [-height / 2, -height / 2, -height / 2, -height / 2, height / 2, height / 2, height / 2, height / 2],  # y
-            [length / 2, length / 2, -length / 2, -length / 2, length / 2, length / 2, -length / 2, -length / 2],  # z
+            [-length / 2, length / 2, length / 2, -length / 2, -length / 2, length / 2, length / 2, -length / 2],  # x (length)
+            [-height / 2, -height / 2, -height / 2, -height / 2, height / 2, height / 2, height / 2, height / 2],  # y (height)
+            [width / 2, width / 2, -width / 2, -width / 2, width / 2, width / 2, -width / 2, -width / 2],  # z (width)
         ]
     )
 
@@ -1211,11 +1213,13 @@ def project_box3d_corners(
     length, width, height = box3d.dimensions
     orientation = box3d.orientation
 
+    # KITTI convention: rotation_y=0 means object faces camera X direction
+    # So object's length (forward direction) should be along X axis
     corners_obj = np.array(
         [
-            [-width / 2, width / 2, width / 2, -width / 2, -width / 2, width / 2, width / 2, -width / 2],
-            [-height / 2, -height / 2, -height / 2, -height / 2, height / 2, height / 2, height / 2, height / 2],
-            [length / 2, length / 2, -length / 2, -length / 2, length / 2, length / 2, -length / 2, -length / 2],
+            [-length / 2, length / 2, length / 2, -length / 2, -length / 2, length / 2, length / 2, -length / 2],  # x (length)
+            [-height / 2, -height / 2, -height / 2, -height / 2, height / 2, height / 2, height / 2, height / 2],  # y (height)
+            [width / 2, width / 2, -width / 2, -width / 2, width / 2, width / 2, -width / 2, -width / 2],  # z (width)
         ]
     )
 

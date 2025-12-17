@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn to simplify the logging of YOLO11 training with Comet ML. This guide covers installation, setup, real-time insights, and custom logging.
-keywords: YOLO11, Comet ML, logging, machine learning, training, model checkpoints, metrics, installation, configuration, real-time insights, custom logging
+description: Learn to simplify the logging of YOLO11 training with Comet. This guide covers installation, setup, real-time insights, and custom logging.
+keywords: YOLO11, Comet, Comet ML, logging, machine learning, training, model checkpoints, metrics, installation, configuration, real-time insights, custom logging
 ---
 
-# Elevating YOLO11 Training: Simplify Your Logging Process with Comet ML
+# Elevating YOLO11 Training: Simplify Your Logging Process with Comet
 
 Logging key training details such as parameters, metrics, image predictions, and model checkpoints is essential in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml)—it keeps your project transparent, your progress measurable, and your results repeatable.
 
@@ -16,22 +16,22 @@ Logging key training details such as parameters, metrics, image predictions, and
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Use Comet ML for Ultralytics YOLO Model Training Logs and Metrics 🚀
+  <strong>Watch:</strong> How to Use Comet for Ultralytics YOLO Model Training Logs and Metrics 🚀
 </p>
 
-[Ultralytics YOLO11](https://www.ultralytics.com/) seamlessly integrates with Comet ML, efficiently capturing and optimizing every aspect of your YOLO11 [object detection](https://www.ultralytics.com/glossary/object-detection) model's training process. In this guide, we'll cover the installation process, Comet ML setup, real-time insights, custom logging, and offline usage, ensuring that your YOLO11 training is thoroughly documented and fine-tuned for outstanding results.
+[Ultralytics YOLO11](https://www.ultralytics.com/) seamlessly integrates with Comet (formerly Comet ML), efficiently capturing and optimizing every aspect of your YOLO11 [object detection](https://www.ultralytics.com/glossary/object-detection) model's training process. In this guide, we'll cover the installation process, Comet setup, real-time insights, custom logging, and offline usage, ensuring that your YOLO11 training is thoroughly documented and fine-tuned for outstanding results.
 
-## Comet ML
+## Comet
 
 <p align="center">
-  <img width="640" src="https://www.comet.com/docs/v2/img/landing/home-hero.svg" alt="Comet ML Overview">
+  <img width="640" src="https://www.comet.com/docs/v2/img/landing/home-hero.svg" alt="Comet Overview">
 </p>
 
-[Comet ML](https://www.comet.com/site/) is a platform for tracking, comparing, explaining, and optimizing machine learning models and experiments. It allows you to log metrics, parameters, media, and more during your model training and monitor your experiments through an aesthetically pleasing web interface. Comet ML helps data scientists iterate more rapidly, enhances transparency and reproducibility, and aids in the development of production models.
+[Comet](https://www.comet.com/site/) is a platform for tracking, comparing, explaining, and optimizing machine learning models and experiments. It allows you to log metrics, parameters, media, and more during your model training and monitor your experiments through an aesthetically pleasing web interface. Comet helps data scientists iterate more rapidly, enhances transparency and reproducibility, and aids in the development of production models.
 
-## Harnessing the Power of YOLO11 and Comet ML
+## Harnessing the Power of YOLO11 and Comet
 
-By combining Ultralytics YOLO11 with Comet ML, you unlock a range of benefits. These include simplified experiment management, real-time insights for quick adjustments, flexible and tailored logging options, and the ability to log experiments offline when internet access is limited. This integration empowers you to make data-driven decisions, analyze performance metrics, and achieve exceptional results.
+By combining Ultralytics YOLO11 with Comet, you unlock a range of benefits. These include simplified experiment management, real-time insights for quick adjustments, flexible and tailored logging options, and the ability to log experiments offline when internet access is limited. This integration empowers you to make data-driven decisions, analyze performance metrics, and achieve exceptional results.
 
 ## Installation
 
@@ -42,15 +42,15 @@ To install the required packages, run:
     === "CLI"
 
         ```bash
-        # Install the required packages for YOLO11 and Comet ML
+        # Install the required packages for YOLO11 and Comet
         pip install ultralytics comet_ml torch torchvision
         ```
 
-## Configuring Comet ML
+## Configuring Comet
 
 After installing the required packages, you'll need to sign up, get a [Comet API Key](https://www.comet.com/signup), and configure it.
 
-!!! tip "Configuring Comet ML"
+!!! tip "Configuring Comet"
 
     === "CLI"
 
@@ -98,20 +98,20 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         )
         ```
 
-After running the training code, Comet ML will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLO11 model's training](../modes/train.md) process.
+After running the training code, Comet will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLO11 model's training](../modes/train.md) process.
 
 Comet automatically logs the following data with no additional configuration: metrics such as mAP and loss, hyperparameters, model checkpoints, interactive confusion matrix, and image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions.
 
-## Understanding Your Model's Performance with Comet ML Visualizations
+## Understanding Your Model's Performance with Comet Visualizations
 
-Let's dive into what you'll see on the Comet ML dashboard once your YOLO11 model begins training. The dashboard is where all the action happens, presenting a range of automatically logged information through visuals and statistics. Here's a quick tour:
+Let's dive into what you'll see on the Comet dashboard once your YOLO11 model begins training. The dashboard is where all the action happens, presenting a range of automatically logged information through visuals and statistics. Here's a quick tour:
 
 **Experiment Panels**
 
-The experiment panels section of the Comet ML dashboard organizes and presents the different runs and their metrics, such as segment mask loss, class loss, precision, and [mean average precision](https://www.ultralytics.com/glossary/mean-average-precision-map).
+The experiment panels section of the Comet dashboard organizes and presents the different runs and their metrics, such as segment mask loss, class loss, precision, and [mean average precision](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-dashboard-overview.avif" alt="Comet ML Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-dashboard-overview.avif" alt="Comet Overview">
 </p>
 
 **Metrics**
@@ -119,7 +119,7 @@ The experiment panels section of the Comet ML dashboard organizes and presents t
 In the metrics section, you have the option to examine the metrics in a tabular format as well, which is displayed in a dedicated pane as illustrated here.
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-metrics-tabular.avif" alt="Comet ML Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-metrics-tabular.avif" alt="Comet Overview">
 </p>
 
 **Interactive [Confusion Matrix](https://www.ultralytics.com/glossary/confusion-matrix)**
@@ -127,24 +127,24 @@ In the metrics section, you have the option to examine the metrics in a tabular 
 The confusion matrix, found in the Confusion Matrix tab, provides an interactive way to assess the model's classification [accuracy](https://www.ultralytics.com/glossary/accuracy). It details the correct and incorrect predictions, allowing you to understand the model's strengths and weaknesses.
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-interactive-confusion-matrix.avif" alt="Comet ML Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-interactive-confusion-matrix.avif" alt="Comet Overview">
 </p>
 
 **System Metrics**
 
-Comet ML logs system metrics to help identify any bottlenecks in the training process. It includes metrics such as GPU utilization, GPU memory usage, CPU utilization, and RAM usage. These are essential for monitoring the efficiency of resource usage during model training.
+Comet logs system metrics to help identify any bottlenecks in the training process. It includes metrics such as GPU utilization, GPU memory usage, CPU utilization, and RAM usage. These are essential for monitoring the efficiency of resource usage during model training.
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-system-metrics.avif" alt="Comet ML Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-system-metrics.avif" alt="Comet Overview">
 </p>
 
-## Customizing Comet ML Logging
+## Customizing Comet Logging
 
-Comet ML offers the flexibility to customize its logging behavior by setting environment variables. These configurations allow you to tailor Comet ML to your specific needs and preferences. Here are some helpful customization options:
+Comet offers the flexibility to customize its logging behavior by setting environment variables. These configurations allow you to tailor Comet to your specific needs and preferences. Here are some helpful customization options:
 
 ### Logging Image Predictions
 
-You can control the number of image predictions that Comet ML logs during your experiments. By default, Comet ML logs 100 image predictions from the validation set. However, you can change this number to better suit your requirements. For example, to log 200 image predictions, use the following code:
+You can control the number of image predictions that Comet logs during your experiments. By default, Comet logs 100 image predictions from the validation set. However, you can change this number to better suit your requirements. For example, to log 200 image predictions, use the following code:
 
 ```python
 import os
@@ -154,7 +154,7 @@ os.environ["COMET_MAX_IMAGE_PREDICTIONS"] = "200"
 
 ### Batch Logging Interval
 
-Comet ML allows you to specify how often batches of image predictions are logged. The `COMET_EVAL_BATCH_LOGGING_INTERVAL` environment variable controls this frequency. The default setting is 1, which logs predictions from every validation batch. You can adjust this value to log predictions at a different interval. For instance, setting it to 4 will log predictions from every fourth batch.
+Comet allows you to specify how often batches of image predictions are logged. The `COMET_EVAL_BATCH_LOGGING_INTERVAL` environment variable controls this frequency. The default setting is 1, which logs predictions from every validation batch. You can adjust this value to log predictions at a different interval. For instance, setting it to 4 will log predictions from every fourth batch.
 
 ```python
 import os
@@ -174,7 +174,7 @@ os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
 
 ### Offline Logging
 
-If you find yourself in a situation where internet access is limited, Comet ML provides an offline logging option. You can set the `COMET_MODE` environment variable to "offline" to enable this feature. Your experiment data will be saved locally in a directory that you can later upload to Comet ML when internet connectivity is available.
+If you find yourself in a situation where internet access is limited, Comet provides an offline logging option. You can set the `COMET_MODE` environment variable to "offline" to enable this feature. Your experiment data will be saved locally in a directory that you can later upload to Comet when internet connectivity is available.
 
 ```python
 import os
@@ -184,19 +184,19 @@ os.environ["COMET_MODE"] = "offline"
 
 ## Summary
 
-This guide has walked you through integrating Comet ML with Ultralytics' YOLO11. From installation to customization, you've learned to streamline experiment management, gain real-time insights, and adapt logging to your project's needs.
+This guide has walked you through integrating Comet with Ultralytics' YOLO11. From installation to customization, you've learned to streamline experiment management, gain real-time insights, and adapt logging to your project's needs.
 
-Explore [Comet ML's official YOLOv8 integration documentation](https://www.comet.com/docs/v2/integrations/third-party-tools/yolov8/), which also applies to YOLO11 projects.
+Explore [Comet's official YOLOv8 integration documentation](https://www.comet.com/docs/v2/integrations/third-party-tools/yolov8/), which also applies to YOLO11 projects.
 
-Furthermore, if you're looking to dive deeper into the practical applications of YOLO11, specifically for [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks, this detailed guide on [fine-tuning YOLO11 with Comet ML](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) offers valuable insights and step-by-step instructions to enhance your model's performance.
+Furthermore, if you're looking to dive deeper into the practical applications of YOLO11, specifically for [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks, this detailed guide on [fine-tuning YOLO11 with Comet](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) offers valuable insights and step-by-step instructions to enhance your model's performance.
 
 Additionally, to explore other exciting integrations with Ultralytics, check out the [integration guide page](../integrations/index.md), which offers a wealth of resources and information.
 
 ## FAQ
 
-### How do I integrate Comet ML with Ultralytics YOLO11 for training?
+### How do I integrate Comet with Ultralytics YOLO11 for training?
 
-To integrate Comet ML with Ultralytics YOLO11, follow these steps:
+To integrate Comet with Ultralytics YOLO11, follow these steps:
 
 1. **Install the required packages**:
 
@@ -234,22 +234,22 @@ To integrate Comet ML with Ultralytics YOLO11, follow these steps:
     )
     ```
 
-For more detailed instructions, refer to the [Comet ML configuration section](#configuring-comet-ml).
+For more detailed instructions, refer to the [Comet configuration section](#configuring-comet).
 
-### What are the benefits of using Comet ML with YOLO11?
+### What are the benefits of using Comet with YOLO11?
 
-By integrating Ultralytics YOLO11 with Comet ML, you can:
+By integrating Ultralytics YOLO11 with Comet, you can:
 
 - **Monitor real-time insights**: Get instant feedback on your training results, allowing for quick adjustments.
 - **Log extensive metrics**: Automatically capture essential metrics such as mAP, loss, hyperparameters, and model checkpoints.
 - **Track experiments offline**: Log your training runs locally when internet access is unavailable.
-- **Compare different training runs**: Use the interactive Comet ML dashboard to analyze and compare multiple experiments.
+- **Compare different training runs**: Use the interactive Comet dashboard to analyze and compare multiple experiments.
 
-By leveraging these features, you can optimize your machine learning workflows for better performance and reproducibility. For more information, visit the [Comet ML integration guide](../integrations/index.md).
+By leveraging these features, you can optimize your machine learning workflows for better performance and reproducibility. For more information, visit the [Comet integration guide](../integrations/index.md).
 
-### How do I customize the logging behavior of Comet ML during YOLO11 training?
+### How do I customize the logging behavior of Comet during YOLO11 training?
 
-Comet ML allows for extensive customization of its logging behavior using environment variables:
+Comet allows for extensive customization of its logging behavior using environment variables:
 
 - **Change the number of image predictions logged**:
 
@@ -275,22 +275,22 @@ Comet ML allows for extensive customization of its logging behavior using enviro
     os.environ["COMET_EVAL_LOG_CONFUSION_MATRIX"] = "false"
     ```
 
-Refer to the [Customizing Comet ML Logging](#customizing-comet-ml-logging) section for more customization options.
+Refer to the [Customizing Comet Logging](#customizing-comet-logging) section for more customization options.
 
-### How do I view detailed metrics and visualizations of my YOLO11 training on Comet ML?
+### How do I view detailed metrics and visualizations of my YOLO11 training on Comet?
 
-Once your YOLO11 model starts training, you can access a wide range of metrics and visualizations on the Comet ML dashboard. Key features include:
+Once your YOLO11 model starts training, you can access a wide range of metrics and visualizations on the Comet dashboard. Key features include:
 
 - **Experiment Panels**: View different runs and their metrics, including segment mask loss, class loss, and mean average [precision](https://www.ultralytics.com/glossary/precision).
 - **Metrics**: Examine metrics in tabular format for detailed analysis.
 - **Interactive Confusion Matrix**: Assess classification accuracy with an interactive confusion matrix.
 - **System Metrics**: Monitor GPU and CPU utilization, memory usage, and other system metrics.
 
-For a detailed overview of these features, visit the [Understanding Your Model's Performance with Comet ML Visualizations](#understanding-your-models-performance-with-comet-ml-visualizations) section.
+For a detailed overview of these features, visit the [Understanding Your Model's Performance with Comet Visualizations](#understanding-your-models-performance-with-comet-visualizations) section.
 
-### Can I use Comet ML for offline logging when training YOLO11 models?
+### Can I use Comet for offline logging when training YOLO11 models?
 
-Yes, you can enable offline logging in Comet ML by setting the `COMET_MODE` environment variable to "offline":
+Yes, you can enable offline logging in Comet by setting the `COMET_MODE` environment variable to "offline":
 
 ```python
 import os
@@ -298,4 +298,4 @@ import os
 os.environ["COMET_MODE"] = "offline"
 ```
 
-This feature allows you to log your experiment data locally, which can later be uploaded to Comet ML when internet connectivity is available. This is particularly useful when working in environments with limited internet access. For more details, refer to the [Offline Logging](#offline-logging) section.
+This feature allows you to log your experiment data locally, which can later be uploaded to Comet when internet connectivity is available. This is particularly useful when working in environments with limited internet access. For more details, refer to the [Offline Logging](#offline-logging) section.

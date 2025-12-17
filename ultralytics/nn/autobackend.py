@@ -847,7 +847,8 @@ class AutoBackend(nn.Module):
         else:
             im = im.cpu().numpy()
             if self.saved_model:  # SavedModel
-                y = self.model.serving_default(im)
+                infer = self.model.signatures.get("serving_default") or self.model.serving_default
+                y = infer(im)
                 if not isinstance(y, list):
                     y = [y]
             elif self.pb:  # GraphDef
@@ -892,8 +893,6 @@ class AutoBackend(nn.Module):
                     y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
 
-        # for x in y:
-        #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
         if isinstance(y, (list, tuple)):
             if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined
                 nc = y[0].shape[1] - y[1].shape[1] - 4  # y = (1, 32, 160, 160), (1, 116, 8400)

@@ -878,6 +878,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.clear_non_cond_mem_around_input = False
         self.clear_non_cond_mem_for_multi_obj = False
         self.callbacks["on_predict_start"].append(self.init_state)
+        self.clear_non_cond_mem = True  # Whether to clear non-conditioning memory periodically
 
     def get_model(self):
         """Retrieve and configure the model with binarization enabled.
@@ -952,6 +953,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 run_mem_encoder=True,
             )
             output_dict[storage_key][frame] = current_out
+            self._prune_non_cond_memory(frame)
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key)
@@ -1830,6 +1832,25 @@ class SAM2VideoPredictor(SAM2Predictor):
         inference_state["frames_already_tracked"].clear()
         inference_state["first_ann_frame_idx"] = None
 
+    def _prune_non_cond_memory(self, frame_idx, inference_state=None):
+        """Prune old non-conditioning frames to bound memory usage."""
+        if not self.clear_non_cond_mem:
+            return
+        inference_state = inference_state or self.inference_state
+
+        # Determine window size
+        min_frame = frame_idx - self.model.num_maskmem * self.model.memory_temporal_stride_for_eval
+        output_dict = inference_state["output_dict"]
+
+        # Prune global non_cond_frame_outputs
+        for f in [k for k in output_dict["non_cond_frame_outputs"] if k < min_frame]:
+            output_dict["non_cond_frame_outputs"].pop(f, None)
+
+        # Prune per-object non_cond_frame_outputs
+        for obj_output_dict in inference_state.get("output_dict_per_obj", {}).values():
+            for f in [k for k in obj_output_dict["non_cond_frame_outputs"] if k < min_frame]:
+                obj_output_dict["non_cond_frame_outputs"].pop(f, None)
+
 
 class SAM2DynamicInteractivePredictor(SAM2Predictor):
     """SAM2DynamicInteractivePredictor extends SAM2Predictor to support dynamic interactions with video frames or a
@@ -2423,6 +2444,7 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
                 inference_state=inference_state,
             )
             output_dict[storage_key][frame] = current_out
+            self._prune_non_cond_memory(frame, inference_state=inference_state)
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key, inference_state=inference_state)

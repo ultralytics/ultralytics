@@ -184,7 +184,7 @@ os.environ["COMET_MODE"] = "offline"
 
 ### Logging Model
 
-By default, the model is logged to comet as an artifact. This can be disabled via the following:
+By default, the model is logged to Comet. This can be disabled via the following:
 
 ```python
 import os

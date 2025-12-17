@@ -19,6 +19,7 @@ imgsz: 640
 device: [0,1,2,3,4,5,6,7]  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
 workers: 4
 amp: False  # Explicitly False for CPU training (set to True for GPU with mixed precision)
+sync_bn: True  # Enable SyncBatchNorm for multi-GPU training
 
 # Output and logging
 project: /home/esat/workspace/detr_trainings

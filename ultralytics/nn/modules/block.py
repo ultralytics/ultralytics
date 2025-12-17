@@ -52,6 +52,7 @@ __all__ = (
     "ResNetLayer",
     "SCDown",
     "TorchVision",
+    "Timm",
 )
 
 
@@ -1611,6 +1612,76 @@ class TorchVision(nn.Module):
         else:
             y = self.m(x)
         return y
+
+
+class Timm(nn.Module):
+    """Timm module to allow loading any timm model as a backbone.
+
+    This class provides a way to load a model from the timm library with built-in feature extraction,
+    returning feature maps at specified stages for use in detection/segmentation models.
+
+    Args:
+        model (str): Name of the timm model to load (e.g., "resnet50", "convnext_tiny", "efficientnet_b0").
+        pretrained (bool, optional): Whether to load pre-trained weights. Default is True.
+        out_indices (tuple, optional): Indices of feature maps to return. Default is (2, 3, 4).
+        split (bool, optional): Returns output from intermediate stages as list. Default is True.
+
+    Attributes:
+        m (nn.Module): The loaded timm model with feature extraction enabled.
+
+    Examples:
+        >>> import torch
+        >>> from ultralytics.nn.modules.block import Timm
+        >>> model = Timm("resnet50", pretrained=True)
+        >>> x = torch.randn(1, 3, 640, 640)
+        >>> outputs = model(x)  # Returns list of feature maps
+        >>> for o in outputs:
+        ...     print(o.shape)
+    """
+
+    def __init__(
+        self,
+        model: str,
+        pretrained: bool = True,
+        out_indices: tuple[int, ...] = (2, 3, 4),
+        split: bool = True,
+    ):
+        """Load the model and weights from timm.
+
+        Args:
+            model (str): Name of the timm model to load.
+            pretrained (bool): Whether to load pre-trained weights.
+            out_indices (tuple): Indices of feature maps to return (0=stem, 1=stage1, 2=stage2, etc.).
+            split (bool): Whether to return features as a list (for use with Index module).
+        """
+        import timm  # scope for faster 'import ultralytics'
+
+        super().__init__()
+        self.m = timm.create_model(
+            model,
+            pretrained=pretrained,
+            features_only=True,
+            out_indices=list(out_indices),
+        )
+        self.split = split
+        # Store channel info for downstream modules
+        self.channels = self.m.feature_info.channels()
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Forward pass returning feature maps from specified stages.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (list[torch.Tensor]): List of feature tensors from different stages.
+        """
+        if self.split:
+            # Return as list with input prepended (similar to TorchVision with split=True)
+            y = [x]
+            y.extend(self.m(x))
+            return y
+        return self.m(x)
 
 
 class AAttn(nn.Module):

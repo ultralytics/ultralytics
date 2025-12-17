@@ -37,7 +37,7 @@ Stage: build
 
     # Install pip packages for Ultralytics
     # pip install --upgrade pip setuptools wheel
-    pip install albumentations faster-coco-eval wandb opencv-python-headless polars ultralytics-thop 
+    pip install albumentations faster-coco-eval wandb opencv-python-headless polars ultralytics-thop timm
 
     # Download YOLO model
     # wget -q https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt \

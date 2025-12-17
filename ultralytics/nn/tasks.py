@@ -64,6 +64,7 @@ from ultralytics.nn.modules import (
     SCDown,
     Segment,
     TorchVision,
+    Timm,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
@@ -714,6 +715,35 @@ class RTDETRDetectionModel(DetectionModel):
             verbose (bool): Print additional information during initialization.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+        self.one_to_many_groups = 5  # number of GT repetitions (k)
+        self.use_one_to_many = False  # enable/disable one-to-many
+
+    def one_to_many_targets(self, targets):
+        """Repeat ground truth targets for one-to-many matching.
+
+        Args:
+            targets (dict): Original targets with keys:
+                - cls: class labels [N]
+                - bboxes: bounding boxes [N, 4]
+                - batch_idx: batch indices [N]
+                - gt_groups: list of GT counts per batch
+
+        Returns:
+            dict: Repeated targets for one-to-many matching.
+        """
+        if not self.training or not self.use_one_to_many:
+            return targets
+
+        k = self.one_to_many_groups
+
+        repeated_targets = {
+            "cls": targets["cls"].repeat_interleave(k, dim=0),
+            "bboxes": targets["bboxes"].repeat_interleave(k, dim=0),
+            "batch_idx": targets["batch_idx"].repeat_interleave(k, dim=0),
+            "gt_groups": [g * k for g in targets["gt_groups"]],
+        }
+
+        return repeated_targets
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model that are not parameters or registered buffers.
@@ -777,6 +807,18 @@ class RTDETRDetectionModel(DetectionModel):
         loss = self.criterion(
             (dec_bboxes, dec_scores), targets, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta
         )
+
+        # One-to-many loss (auxiliary)
+        if self.training and self.use_one_to_many:
+            targets_o2m = self.one_to_many_targets(targets)
+            loss_o2m = self.criterion(
+                (dec_bboxes, dec_scores), targets_o2m, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta
+            )
+            # Combine losses (o2m with lower weight)
+            o2m_weight = 0.5
+            for k in loss:
+                loss[k] = loss[k] + o2m_weight * loss_o2m[k]
+
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
         return sum(loss.values()), torch.as_tensor(
             [loss[k].detach() for k in ["loss_giou", "loss_class", "loss_bbox"]], device=img.device
@@ -1639,7 +1681,7 @@ def parse_model(d, ch, verbose=True):
             args = [c1, c2, *args[1:]]
         elif m is CBFuse:
             c2 = ch[f[-1]]
-        elif m in frozenset({TorchVision, Index}):
+        elif m in frozenset({TorchVision, Timm, Index}):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]

@@ -12,7 +12,7 @@ nc: 80
 backbone:
   # [from, repeats, module, args]
   # Timm args: [model_name, pretrained, out_indices, split]
-  - [-1, 1, Timm, [None, resnet50, True, [2, 3, 4], True]]
+  - [-1, 1, Timm, [None, resnet50d.gluon_in1k, True, [2, 3, 4], True]]
   - [0, 1, Index, [512, 1]]     # (1, 512, 80, 80)  - P3
   - [0, 1, Index, [1024, 2]]    # (1, 1024, 40, 40) - P4
   - [0, 1, Index, [2048, 3]]    # (1, 2048, 20, 20) - P5

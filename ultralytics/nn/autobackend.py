@@ -245,20 +245,18 @@ class AutoBackend(nn.Module):
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             import onnxruntime
 
-            providers = ["CPUExecutionProvider"]
-            if cuda:
-                if "CUDAExecutionProvider" in onnxruntime.get_available_providers():
-                    providers.insert(0, ("CUDAExecutionProvider", {"device_id": device.index}))
-                else:  # Only log warning if CUDA was requested but unavailable
-                    LOGGER.warning("Failed to start ONNX Runtime with CUDA. Using CPU...")
-                    device = torch.device("cpu")
-                    cuda = False
-            elif platform.system() == "Darwin":  # macOS
-                # Use CoreMLExecutionProvider for hardware acceleration on macOS (Apple Neural Engine, GPU, or CPU)
-                if "CoreMLExecutionProvider" in onnxruntime.get_available_providers():
-                    providers.insert(0, "CoreMLExecutionProvider")
-            provider_info = providers[0][0] if isinstance(providers[0], tuple) else providers[0]
-            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} {provider_info}")
+            # Select execution provider: CUDA > CoreML > CPU
+            available = onnxruntime.get_available_providers()
+            if cuda and "CUDAExecutionProvider" in available:
+                providers = [("CUDAExecutionProvider", {"device_id": device.index}), "CPUExecutionProvider"]
+            elif "CoreMLExecutionProvider" in available:
+                providers = ["CoreMLExecutionProvider", "CPUExecutionProvider"]
+            else:
+                providers = ["CPUExecutionProvider"]
+                if cuda:
+                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                    device, cuda = torch.device("cpu"), False
+            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {providers[0] if isinstance(providers[0], str) else providers[0][0]}")
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:

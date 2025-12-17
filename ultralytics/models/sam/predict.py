@@ -3328,6 +3328,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         # Step 2: remove from SAM2 inference states those objects removed by heuristics
         if len(obj_ids_newly_removed) > 0:
             self._tracker_remove_objects(tracker_states_local, obj_ids_newly_removed)
+
         return tracker_states_local
 
     def build_outputs(

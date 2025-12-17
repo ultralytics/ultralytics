@@ -393,7 +393,7 @@ class Instances:
         #print(self.obbData)
         #print(boxes)
         boxesarray = np.array(boxes)
-        np.clip(boxesarray[:, 0:1], a_min=0, a_max=imgw)
+        np.clip(boxesarray[:, 0:1], a_min=0, a_max=imgw, out=boxesarray[:, 0:1])
         np.clip(boxesarray[:, 1:2], a_min=0, a_max=imgh)
 
         return boxesarray

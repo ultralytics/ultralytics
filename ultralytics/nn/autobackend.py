@@ -253,7 +253,12 @@ class AutoBackend(nn.Module):
                     LOGGER.warning("Failed to start ONNX Runtime with CUDA. Using CPU...")
                     device = torch.device("cpu")
                     cuda = False
-            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} {providers[0]}")
+            elif platform.system() == "Darwin":  # macOS
+                # Use CoreMLExecutionProvider for hardware acceleration on macOS (Apple Neural Engine, GPU, or CPU)
+                if "CoreMLExecutionProvider" in onnxruntime.get_available_providers():
+                    providers.insert(0, "CoreMLExecutionProvider")
+            provider_info = providers[0][0] if isinstance(providers[0], tuple) else providers[0]
+            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} {provider_info}")
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:

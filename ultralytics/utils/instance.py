@@ -394,7 +394,7 @@ class Instances:
         #print(boxes)
         boxesarray = np.array(boxes)
         np.clip(boxesarray[:, 0:1], a_min=0, a_max=imgw, out=boxesarray[:, 0:1])
-        np.clip(boxesarray[:, 1:2], a_min=0, a_max=imgh)
+        np.clip(boxesarray[:, 1:2], a_min=0, a_max=imgh, out=boxesarray[:, 1:2])
 
         return boxesarray
 

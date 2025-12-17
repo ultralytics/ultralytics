@@ -55,11 +55,13 @@ def _get_comet_mode() -> str:
 
     return "online"
 
+
 def _get_comet_should_log_model() -> bool:
-    """Return whether the comet model should be logged from the environment variable or default to 'true'.
-    Since this is not a standard comet environment variable, the name has a 'COMET_ULTRALYTICS_' prefix, instead of just 'COMET_'.
+    """Return whether the comet model should be logged from the environment variable or default to 'true'. Since this is
+    not a standard comet environment variable, the name has a 'COMET_ULTRALYTICS_' prefix, instead of just 'COMET_'.
     """
     return os.getenv("COMET_ULTRALYTICS_SHOULD_LOG_MODEL", "true").lower() == "true"
+
 
 def _get_comet_model_name() -> str:
     """Return the Comet model name from environment variable or default to 'Ultralytics'."""

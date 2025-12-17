@@ -256,7 +256,9 @@ class AutoBackend(nn.Module):
                 if cuda:
                     LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
                     device, cuda = torch.device("cpu"), False
-            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {providers[0] if isinstance(providers[0], str) else providers[0][0]}")
+            LOGGER.info(
+                f"Using ONNX Runtime {onnxruntime.__version__} with {providers[0] if isinstance(providers[0], str) else providers[0][0]}"
+            )
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:

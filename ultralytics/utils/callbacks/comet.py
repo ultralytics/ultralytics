@@ -55,6 +55,11 @@ def _get_comet_mode() -> str:
 
     return "online"
 
+def _get_comet_should_log_model() -> bool:
+    """Return whether the comet model should be logged from the environment variable or default to 'true'.
+    Since this is not a standard comet environment variable, the name has a 'COMET_ULTRALYTICS_' prefix, instead of just 'COMET_'.
+    """
+    return os.getenv("COMET_ULTRALYTICS_SHOULD_LOG_MODEL", "true").lower() == "true"
 
 def _get_comet_model_name() -> str:
     """Return the Comet model name from environment variable or default to 'Ultralytics'."""
@@ -482,8 +487,9 @@ def _log_plots(experiment, trainer) -> None:
 
 def _log_model(experiment, trainer) -> None:
     """Log the best-trained model to Comet.ml."""
-    model_name = _get_comet_model_name()
-    experiment.log_model(model_name, file_or_folder=str(trainer.best), file_name="best.pt", overwrite=True)
+    if _get_comet_should_log_model():
+        model_name = _get_comet_model_name()
+        experiment.log_model(model_name, file_or_folder=str(trainer.best), file_name="best.pt", overwrite=True)
 
 
 def _log_image_batches(experiment, trainer, curr_step: int) -> None:

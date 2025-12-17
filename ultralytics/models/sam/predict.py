@@ -2497,14 +2497,12 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         hotstart_delay=0,
         hotstart_unmatch_thresh=3,
         hotstart_dup_thresh=3,
-        # Whether to suppress masks only within hotstart. If False, we can suppress masks even if they start before hotstart period.
-        suppress_unmatched_only_within_hotstart=True,
-        init_trk_keep_alive=0,
-        max_trk_keep_alive=8,
+        init_trk_keep_alive=30,
+        max_trk_keep_alive=30,
         min_trk_keep_alive=-4,
         # Threshold for suppressing overlapping objects based on recent occlusion
         suppress_overlapping_based_on_recent_occlusion_threshold=0.0,
-        decrease_trk_keep_alive_for_empty_masklets=False,
+        decrease_trk_keep_alive_for_empty_masklets=True,
         o2o_matching_masklets_enable=False,  # Enable hungarian matching to match existing masklets
         suppress_det_close_to_boundary=False,
         fill_hole_area=16,
@@ -2535,7 +2533,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self.hotstart_delay = hotstart_delay
         self.hotstart_unmatch_thresh = hotstart_unmatch_thresh
         self.hotstart_dup_thresh = hotstart_dup_thresh
-        self.suppress_unmatched_only_within_hotstart = suppress_unmatched_only_within_hotstart
         self.init_trk_keep_alive = init_trk_keep_alive
         self.max_trk_keep_alive = max_trk_keep_alive
         self.min_trk_keep_alive = min_trk_keep_alive
@@ -2660,7 +2657,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 ) > 0
 
         # names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
-        names = dict(enumerate(str(i) for i in range(pred_masks.shape[0])))
+        names = dict(enumerate(str(i) for i in range(pred_boxes.shape[0])))
         results = []
         for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
@@ -2711,7 +2708,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         metadata = tracker_metadata_new["metadata"]
         removed_obj_ids = metadata["removed_obj_ids"]
         out["removed_obj_ids"] = removed_obj_ids
-        out["suppressed_obj_ids"] = metadata["suppressed_obj_ids"][frame_idx]
         out["frame_stats"] = frame_stats
         if self.masklet_confirmation_enable:
             status = metadata["masklet_confirmation"]["status"]
@@ -3619,7 +3615,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         overlap_pair_to_frame_inds = metadata["overlap_pair_to_frame_inds"]
         # removed_obj_ids: object IDs that are suppressed via hot-start
         removed_obj_ids = metadata["removed_obj_ids"]
-        suppressed_obj_ids = metadata["suppressed_obj_ids"][frame_idx]
 
         obj_ids_newly_removed = set()  # object IDs to be newly removed on this frame
         hotstart_diff = frame_idx - self.hotstart_delay if not reverse else frame_idx + self.hotstart_delay
@@ -3669,12 +3664,12 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     )
             if (
                 trk_keep_alive[obj_id] <= 0  # Object has not been matched for too long
-                and not self.suppress_unmatched_only_within_hotstart
                 and obj_id not in removed_obj_ids
                 and obj_id not in obj_ids_newly_removed
             ):
-                LOGGER.debug(f"Suppressing object {obj_id} at frame {frame_idx}, due to being unmatched")
-                suppressed_obj_ids.add(obj_id)
+                LOGGER.debug(f"Removing object {obj_id} at frame {frame_idx}, due to being unmatched")
+                # directly removed the object instead of suppressing it
+                obj_ids_newly_removed.add(obj_id)
 
         # Step 3: removed tracks that overlaps with another track for `hotstart_dup_thresh` frames
         # a) find overlaps tracks -- we consider overlap if they match to the same detection
@@ -3853,8 +3848,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "trk_keep_alive": defaultdict(int),  # This is used only for object suppression not for removal
             "overlap_pair_to_frame_inds": defaultdict(list),
             "removed_obj_ids": set(),
-            # frame_idx --> set of objects with suppressed outputs, but still continue to be tracked
-            "suppressed_obj_ids": defaultdict(set),
         }
         if self.masklet_confirmation_enable:
             # all the following are np.ndarray with the same shape as `obj_ids_all_gpu`

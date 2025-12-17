@@ -49,7 +49,7 @@ def test_randomflip_updates_tracked_obb_angle_sign():
     from ultralytics.utils.instance import Instances
 
     img = np.zeros((20, 30, 3), dtype=np.uint8)
-    theta = np.deg2rad(25.0).astype(np.float32)
+    theta = np.float32(np.deg2rad(25.0))
 
     segments = _make_rotated_rect(cx=10, cy=8, w=8, h=4, theta=theta).reshape(1, 4, 2).astype(np.float32)
     bboxes = np.array([[10, 8, 8, 4]], dtype=np.float32)  # xywh absolute

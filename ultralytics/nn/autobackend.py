@@ -847,8 +847,7 @@ class AutoBackend(nn.Module):
         else:
             im = im.cpu().numpy()
             if self.saved_model:  # SavedModel
-                infer = self.model.signatures.get("serving_default") or self.model.serving_default
-                y = infer(im)
+                y = self.model.serving_default(im)
                 if not isinstance(y, list):
                     y = [y]
             elif self.pb:  # GraphDef

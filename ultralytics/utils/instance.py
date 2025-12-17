@@ -343,6 +343,15 @@ class Instances:
             padw (int): Padding width.
             padh (int): Padding height.
         """
+        if self.obbData is not None and len(self.obbData):
+            self.obbData[:, 0:2] = self.obbData[:, 0:2] + np.array([padw, padh], dtype=np.float32).reshape(1, 2)
+        """
+        Add padding to coordinates.
+
+        Args:
+            padw (int): Padding width.
+            padh (int): Padding height.
+        """
         if len(self.obbData):
             self.obbData[:, 0:2] = self.obbData[:, 0:2]+np.array([padw, padh], dtype=np.float32).reshape(1, 2)
 

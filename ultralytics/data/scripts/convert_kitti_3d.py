@@ -212,11 +212,31 @@ class KITTIToYOLO3D:
 
     def compute_right_box(self, X, Y, Z, h, w, l, ry, calib, left_box_2d):
         """
-        Compute right image 2D box by projecting 3D box.
+        Compute right image 2D box center and width.
+
+        Uses disparity-based formula for center (geometrically correct) and
+        corner projection for width estimation.
 
         Returns:
             center_x_r, width_r (in pixels)
         """
+        x1_l, y1_l, x2_l, y2_l = left_box_2d
+        center_x_l = (x1_l + x2_l) / 2
+        width_l = x2_l - x1_l
+
+        # Use simple disparity formula for center (always correct for stereo geometry)
+        # disparity = (fx * baseline) / depth
+        # In stereo: left camera sees objects more to the right than right camera
+        # So: center_x_r = center_x_l - disparity (disparity > 0 for objects in front)
+        if Z > 0:
+            disparity = (calib["fx"] * calib["baseline"]) / Z
+            center_x_r = center_x_l - disparity
+        else:
+            # Object behind camera, shouldn't happen for valid labels
+            center_x_r = center_x_l
+            return center_x_r, width_l
+
+        # For width, project corners to right image to get accurate width
         # Get all 8 corners of 3D box
         corners_3d_obj = np.array(
             [
@@ -250,26 +270,20 @@ class KITTIToYOLO3D:
             # Right camera sees object shifted by baseline
             X_right = corner[0] - calib["baseline"]
             u_r = calib["fx"] * (X_right / corner[2]) + calib["cx"]
-            v_r = calib["fy"] * (corner[1] / corner[2]) + calib["cy"]
-            corners_2d_right.append([u_r, v_r])
+            corners_2d_right.append(u_r)
 
         if len(corners_2d_right) == 0:
-            # Fallback: simple disparity-based calculation
-            x1_l, y1_l, x2_l, y2_l = left_box_2d
-            center_x_l = (x1_l + x2_l) / 2
-            disparity = (calib["fx"] * calib["baseline"]) / Z
-            center_x_r = center_x_l - disparity
-            width_r = x2_l - x1_l
-            return center_x_r, width_r
+            # Fallback: use same width as left box
+            return center_x_r, width_l
 
-        corners_2d_right = np.array(corners_2d_right)
-
-        # Get bounding box
-        x_min = corners_2d_right[:, 0].min()
-        x_max = corners_2d_right[:, 0].max()
-
-        center_x_r = (x_min + x_max) / 2
+        # Compute width from projected corners
+        x_min = min(corners_2d_right)
+        x_max = max(corners_2d_right)
         width_r = x_max - x_min
+
+        # Sanity check: width should be positive and reasonable
+        if width_r <= 0 or width_r > self.img_width * 2:
+            width_r = width_l
 
         return center_x_r, width_r
 
@@ -573,6 +587,7 @@ class KITTIToYOLO3D:
             "# Calibration",
             "baseline: 0.54  # meters (approximate)",
             "focal_length: 721.5  # pixels (approximate)",
+            "channels: 6",
         ])
         yaml_content = "\n".join(yaml_lines) + "\n"
 

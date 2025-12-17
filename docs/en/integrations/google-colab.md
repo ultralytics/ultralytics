@@ -25,32 +25,32 @@ You can use Google Colab to work on projects related to [Ultralytics YOLO11](htt
 
 Google Colaboratory, commonly known as Google Colab, was developed by Google Research in 2017. It is a free online cloud-based Jupyter Notebook environment that allows you to train your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and deep learning models on CPUs, GPUs, and TPUs. The motivation behind developing Google Colab was Google's broader goals to advance AI technology and educational tools, and encourage the use of cloud services.
 
-You can use Google Colab regardless of the specifications and configurations of your local computer. All you need is a Google account and a web browser, and you're good to go.
+You can use Google Colab regardless of the specifications and configurations of your local computer. All you need is a Google account and a web browser.
 
 ## Training YOLO11 Using Google Colaboratory
 
-Training YOLO11 models on Google Colab is pretty straightforward. Thanks to the integration, you can access the [Google Colab YOLO11 Notebook](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLO11 Model Training guide](../modes/train.md).
+Training YOLO11 models on Google Colab is straightforward. You can access the [Google Colab YOLO11 Notebook](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLO11 Model Training guide](../modes/train.md).
 
 ### Common Questions While Working with Google Colab
 
 When working with Google Colab, you might have a few common questions. Let's answer them.
 
-**Q: Why does my Google Colab session timeout?**  
+**Q: Why does my Google Colab session timeout?**
 A: Google Colab sessions can time out due to inactivity, especially for free users who have a limited session duration.
 
-**Q: Can I increase the session duration in Google Colab?**  
+**Q: Can I increase the session duration in Google Colab?**
 A: Free users face limits, but Google Colab Pro offers extended session durations.
 
-**Q: What should I do if my session closes unexpectedly?**  
+**Q: What should I do if my session closes unexpectedly?**
 A: Regularly save your work to Google Drive or GitHub to avoid losing unsaved progress.
 
-**Q: How can I check my session status and resource usage?**  
+**Q: How can I check my session status and resource usage?**
 A: Colab provides 'RAM Usage' and 'Disk Usage' metrics in the interface to monitor your resources.
 
-**Q: Can I run multiple Colab sessions simultaneously?**  
+**Q: Can I run multiple Colab sessions simultaneously?**
 A: Yes, but be cautious about resource usage to avoid performance issues.
 
-**Q: Does Google Colab have GPU access limitations?**  
+**Q: Does Google Colab have GPU access limitations?**
 A: Yes, free GPU access has limitations, but Google Colab Pro provides more substantial usage options.
 
 ## Key Features of Google Colab
@@ -59,7 +59,7 @@ Now, let's look at some of the standout features that make Google Colab a go-to 
 
 - **Library Support:** Google Colab includes pre-installed libraries for data analysis and machine learning and allows additional libraries to be installed as needed. It also supports various libraries for creating interactive charts and visualizations.
 
-- **Hardware Resources:** Users also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to advanced hardware like Tesla K80 GPUs and TPUs, which are specialized circuits designed specifically for machine learning tasks.
+- **Hardware Resources:** Users can also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to advanced hardware like Tesla K80 GPUs and TPUs, which are specialized circuits designed specifically for machine learning tasks.
 
 ![Runtime Settings](https://github.com/ultralytics/docs/releases/download/0/runtime-settings.avif)
 
@@ -111,7 +111,7 @@ If you'd like to dive deeper into Google Colab, here are a few resources to guid
 
 We've discussed how you can easily experiment with Ultralytics YOLO11 models on Google Colab. You can use Google Colab to train and evaluate your models on GPUs and TPUs with a few clicks, making it an accessible platform for developers without high-end hardware.
 
-For more details, visit [Google Colab's FAQ page](https://research.google.com/colaboratory/intl/en-GB/faq.html).
+For more details, visit [Google Colab's FAQ page](https://research.google.com/colaboratory/faq.html).
 
 Interested in more YOLO11 integrations? Visit the [Ultralytics integration guide page](index.md) to explore additional tools and capabilities that can improve your machine-learning projects, or check out [Kaggle integration](kaggle.md) for another cloud-based alternative.
 
@@ -140,7 +140,7 @@ Google Colab sessions timeout due to inactivity, especially for free users. To h
 2. **Save Progress:** Continuously save your work to Google Drive or GitHub.
 3. **Colab Pro:** Consider upgrading to Google Colab Pro for longer session durations.
 
-For more tips on managing your Colab session, visit the [Google Colab FAQ page](https://research.google.com/colaboratory/intl/en-GB/faq.html).
+For more tips on managing your Colab session, visit the [Google Colab FAQ page](https://research.google.com/colaboratory/faq.html).
 
 ### Can I use custom datasets for training YOLO11 models in Google Colab?
 
@@ -154,4 +154,4 @@ If your Google Colab training session is interrupted:
 2. **Resume Training:** Restart your session and re-run the cells from where the interruption occurred.
 3. **Use Checkpoints:** Incorporate checkpointing in your training script to save progress periodically.
 
-These practices help ensure your progress is secure. Learn more about session management on [Google Colab's FAQ page](https://research.google.com/colaboratory/intl/en-GB/faq.html).
+These practices help ensure your progress is secure. Learn more about session management on [Google Colab's FAQ page](https://research.google.com/colaboratory/faq.html).

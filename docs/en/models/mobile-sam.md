@@ -27,9 +27,9 @@ MobileSAM was trained on a single GPU using a 100k image dataset (1% of the orig
 
 ## Available Models, Supported Tasks, and Operating Modes
 
-The table below outlines the available MobileSAM model, its pre-trained weights, supported tasks, and compatibility with different operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Supported modes are indicated by ✅ and unsupported modes by ❌.
+The table below outlines the available MobileSAM model, its pretrained weights, supported tasks, and compatibility with different operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Supported modes are indicated by ✅ and unsupported modes by ❌.
 
-| Model Type | Pre-trained Weights                                                                           | Tasks Supported                              | Inference | Validation | Training | Export |
+| Model Type | Pretrained Weights                                                                            | Tasks Supported                              | Inference | Validation | Training | Export |
 | ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | MobileSAM  | [mobile_sam.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/mobile_sam.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 
@@ -109,7 +109,7 @@ The performance of MobileSAM and the original SAM is illustrated below using bot
 
 ![Image with Box as Prompt](https://github.com/ultralytics/docs/releases/download/0/mask-box.avif)
 
-MobileSAM is approximately 5 times smaller and 7 times faster than FastSAM. For further details, visit the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM is approximately 7 times smaller and 5 times faster than FastSAM. For further details, visit the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
 
 ## Testing MobileSAM in Ultralytics
 
@@ -187,7 +187,7 @@ To automatically annotate your dataset with the Ultralytics framework, use the `
 
 {% include "macros/sam-auto-annotate.md" %}
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If MobileSAM is helpful in your research or development, please consider citing the following paper:
 
@@ -234,7 +234,7 @@ MobileSAM is ideal for mobile and edge applications due to its lightweight desig
 
 ### How Was MobileSAM Trained, and Is the Training Code Available?
 
-MobileSAM was trained on a single GPU with a 100k image dataset (1% of the original images) in under a day. While the training code will be released in the future, you can currently access pre-trained weights and implementation details from the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM was trained on a single GPU with a 100k image dataset (1% of the original images) in under a day. While the training code will be released in the future, you can currently access pretrained weights and implementation details from the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
 
 ### What Are the Primary Use Cases for MobileSAM?
 

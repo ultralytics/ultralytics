@@ -17,11 +17,11 @@ on:
     inputs:
       Dockerfile:
         type: boolean
-        description: Dockerfile
+        description: Dockerfile (+ runner, export)
         default: true
-      Dockerfile-cpu:
+      Dockerfile-python:
         type: boolean
-        description: Dockerfile-cpu
+        description: Dockerfile-python (+ jupyter, cpu, python-export)
         default: true
       Dockerfile-arm64:
         type: boolean
@@ -39,10 +39,6 @@ on:
         type: boolean
         description: Dockerfile-jetson-jetpack4
         default: true
-      Dockerfile-python:
-        type: boolean
-        description: Dockerfile-python
-        default: true
       Dockerfile-conda:
         type: boolean
         description: Dockerfile-conda
@@ -54,43 +50,48 @@ on:
 jobs:
   docker:
     if: github.repository == 'ultralytics/ultralytics'
-    name: Push
+    name: Build
     strategy:
       fail-fast: false
       max-parallel: 10
       matrix:
         include:
+          # Base images with their derivatives
           - dockerfile: "Dockerfile"
             tags: "latest"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
-          - dockerfile: "Dockerfile-cpu"
-            tags: "latest-cpu"
-            platforms: "linux/amd64"
-            runs_on: "ubuntu-latest"
-          - dockerfile: "Dockerfile-arm64"
-            tags: "latest-arm64"
-            platforms: "linux/arm64"
-            runs_on: "ubuntu-24.04-arm"
-          - dockerfile: "Dockerfile-jetson-jetpack6"
-            tags: "latest-jetson-jetpack6"
-            platforms: "linux/arm64"
-            runs_on: "ubuntu-24.04-arm"
-          - dockerfile: "Dockerfile-jetson-jetpack5"
-            tags: "latest-jetson-jetpack5"
-            platforms: "linux/arm64"
-            runs_on: "ubuntu-24.04-arm"
-          - dockerfile: "Dockerfile-jetson-jetpack4"
-            tags: "latest-jetson-jetpack4"
-            platforms: "linux/arm64"
-            runs_on: "ubuntu-24.04-arm"
+            derivatives: "Dockerfile-runner,Dockerfile-export"
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
+            derivatives: "Dockerfile-jupyter,Dockerfile-cpu,Dockerfile-python-export"
+          # Standalone base images
+          - dockerfile: "Dockerfile-arm64"
+            tags: "latest-arm64"
+            platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
+            derivatives: ""
+          - dockerfile: "Dockerfile-jetson-jetpack6"
+            tags: "latest-jetson-jetpack6"
+            platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
+            derivatives: ""
+          - dockerfile: "Dockerfile-jetson-jetpack5"
+            tags: "latest-jetson-jetpack5"
+            platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
+            derivatives: ""
+          - dockerfile: "Dockerfile-jetson-jetpack4"
+            tags: "latest-jetson-jetpack4"
+            platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
+            derivatives: ""
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
+          #   derivatives: ""
 
     runs-on: ${{ matrix.runs_on }}
     outputs:
@@ -100,7 +101,7 @@ jobs:
         uses: ultralytics/actions/cleanup-disk@main
 
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # copy full .git directory to access full git history in Docker images
 
@@ -119,6 +120,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets._GITHUB_TOKEN }}
+
+      - name: Login to NVIDIA NGC
+        uses: docker/login-action@v3
+        with:
+          registry: nvcr.io
+          username: $oauthtoken
+          password: ${{ secrets.NVIDIA_NGC_API_KEY }}
 
       - name: Retrieve Ultralytics version
         id: get_version
@@ -148,7 +156,7 @@ jobs:
         env:
           VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
 
-      - name: Build Image
+      - name: Build Base Image
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
         uses: ultralytics/actions/retry@main
         with:
@@ -168,32 +176,51 @@ jobs:
               -t ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }} \
               .
 
+      - name: Build Derivative Images
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.derivatives != ''
+        uses: ultralytics/actions/retry@main
+        with:
+          timeout_minutes: 120
+          retry_delay_seconds: 60
+          retries: 2
+          run: |
+            # Build each derivative image using local base image
+            derivatives='${{ matrix.derivatives }}'
+            if [[ -n "$derivatives" ]]; then
+              IFS=',' read -ra derivative_array <<< "$derivatives"
+              for derivative in "${derivative_array[@]}"; do
+                # Determine derivative tags
+                derivative_tag=$(echo "$derivative" | sed 's/Dockerfile-/latest-/')
+                derivative_version_tag=$(echo "$derivative_tag" | sed "s/latest/${{ steps.get_version.outputs.version }}/")
+
+                echo "Building $derivative -> $derivative_tag"
+                docker build \
+                  --platform ${{ matrix.platforms }} \
+                  --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+                  --label "org.opencontainers.image.description=Ultralytics $derivative image" \
+                  --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
+                  -f "docker/$derivative" \
+                  -t "ultralytics/ultralytics:$derivative_tag" \
+                  -t "ultralytics/ultralytics:$derivative_version_tag" \
+                  -t "ghcr.io/ultralytics/ultralytics:$derivative_tag" \
+                  -t "ghcr.io/ultralytics/ultralytics:$derivative_version_tag" \
+                  .
+              done
+            fi
+
       - name: Check Environment
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "yolo checks && uv pip list"
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "yolo checks && uv pip list"
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages pytest && pytest tests"
 
       - name: Run Benchmarks
-        # WARNING: Dockerfile (GPU) error on TF.js export 'module 'numpy' has no attribute 'object'.
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda' # Images for Jetson not supported on GitHub CI runners
-        run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolo11n.pt imgsz=160 verbose=0.309
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} yolo benchmark model=yolo11n.pt imgsz=160 verbose=0.309
 
-      - name: Push Docker Image with Ultralytics version tag
-        if: (github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')) && steps.check_tag.outputs.new_release == 'true' && matrix.dockerfile != 'Dockerfile-conda'
-        uses: ultralytics/actions/retry@main
-        with:
-          timeout_minutes: 15
-          retry_delay_seconds: 300
-          retries: 2
-          run: |
-            t="ultralytics/ultralytics:${{ steps.get_version.outputs.version_tag }}"
-            docker push $t
-            docker push ghcr.io/$t
-
-      - name: Build and Push Additional Images (latest-runner and latest-jupyter)
+      - name: Push All Images
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')
         uses: ultralytics/actions/retry@main
         with:
@@ -201,36 +228,31 @@ jobs:
           retry_delay_seconds: 300
           retries: 2
           run: |
-            t="ultralytics/ultralytics:${{ matrix.tags }}"
-            docker push $t
-            docker push ghcr.io/$t
+            # Create array of all images to push (base + derivatives)
+            images_to_push=("${{ matrix.tags }}")
 
-            if [[ "${{ matrix.tags }}" == "latest" ]]; then
-              t="ultralytics/ultralytics:latest-runner"
-              docker build -f docker/Dockerfile-runner -t $t -t ghcr.io/$t \
-                --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
-                --label "org.opencontainers.image.description=Ultralytics runner image" \
-                --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
-                .
-              docker push $t
-              docker push ghcr.io/$t
+            # Add derivative images to array
+            derivatives='${{ matrix.derivatives }}'
+            if [[ -n "$derivatives" ]]; then
+              IFS=',' read -ra derivative_array <<< "$derivatives"
+              for derivative in "${derivative_array[@]}"; do
+                derivative_tag=$(echo "$derivative" | sed 's/Dockerfile-/latest-/')
+                images_to_push+=("$derivative_tag")
+              done
             fi
 
-            if [[ "${{ matrix.tags }}" == "latest-python" ]]; then
-              t="ultralytics/ultralytics:latest-jupyter"
-              v="ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-jupyter"
-              docker build -f docker/Dockerfile-jupyter -t $t -t ghcr.io/$t -t $v -t ghcr.io/$v \
-                --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
-                --label "org.opencontainers.image.description=Ultralytics Jupyter image" \
-                --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
-                .
-              docker push $t
-              docker push ghcr.io/$t
-              if [[ "${{ steps.check_tag_dockerhub.outputs.new_release }}" == "true" ]]; then
-                docker push $v
-                docker push ghcr.io/$v
+            # Push all images (base + derivatives)
+            for tag in "${images_to_push[@]}"; do
+              docker push "ultralytics/ultralytics:$tag"
+              docker push "ghcr.io/ultralytics/ultralytics:$tag"
+
+              # Push version tag if new release
+              if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" && "${{ matrix.dockerfile }}" != "Dockerfile-conda" ]]; then
+                version_tag=$(echo "$tag" | sed "s/latest/${{ steps.get_version.outputs.version }}/")
+                docker push "ultralytics/ultralytics:$version_tag"
+                docker push "ghcr.io/ultralytics/ultralytics:$version_tag"
               fi
-            fi
+            done
 
   trigger-actions:
     runs-on: ubuntu-latest
@@ -254,7 +276,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

@@ -56,7 +56,6 @@ One of the sections of the output is the class-wise breakdown of performance met
 - **Instances**: This provides the count of how many times the class appears across all images in the validation set.
 
 - **Box(P, R, mAP50, mAP50-95)**: This metric provides insights into the model's performance in detecting objects:
-
     - **P (Precision)**: The accuracy of the detected objects, indicating how many detections were correct.
 
     - **R (Recall)**: The ability of the model to identify all instances of objects in the images.
@@ -172,8 +171,6 @@ Using these resources will not only guide you through any challenges but also ke
 In this guide, we've taken a close look at the essential performance metrics for YOLO11. These metrics are key to understanding how well a model is performing and are vital for anyone aiming to fine-tune their models. They offer the necessary insights for improvements and to make sure the model works effectively in real-life situations.
 
 Remember, the YOLO11 and Ultralytics community is an invaluable asset. Engaging with fellow developers and experts can open doors to insights and solutions not found in standard documentation. As you journey through object detection, keep the spirit of learning alive, experiment with new strategies, and share your findings. By doing so, you contribute to the community's collective wisdom and ensure its growth.
-
-Happy object detecting!
 
 ## FAQ
 

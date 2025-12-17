@@ -66,7 +66,7 @@ python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgX
 ## 🛠️ Usage Options
 
 - `--weights`: Path to the YOLO [model weights](https://www.ultralytics.com/glossary/model-weights) file (default: `"yolov8n.pt"`). You can choose other models like `yolov8s.pt`, `yolov8m.pt`, etc.
-- `--device`: Cuda device identifier (e.g., `0` or `0,1,2,3`) or `cpu` to run on the [CPU](https://www.ultralytics.com/glossary/cpu) (default: auto-detects available [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
+- `--device`: CUDA device identifier (e.g., `0` or `0,1,2,3`) or `cpu` to run on the [CPU](https://www.ultralytics.com/glossary/cpu) (default: auto-detects available [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
 - `--source`: Path to a local video file or a YouTube URL (default: "[rickroll](https://www.youtube.com/watch?v=dQw4w9WgXcQ)").
 - `--output-path`: Path to save the output video file (e.g., `output.mp4`). If not specified, the video is displayed in a window.
 - `--crop-margin-percentage`: Percentage of margin to add around detected objects before cropping for classification (default: `10`).
@@ -74,7 +74,7 @@ python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgX
 - `--skip-frame`: Number of frames to skip between detections to speed up processing (default: `1`).
 - `--video-cls-overlap-ratio`: Overlap ratio between consecutive video sequences sent for classification (default: `0.25`).
 - `--fp16`: Use [FP16 (half-precision)](https://www.ultralytics.com/glossary/half-precision) for inference, potentially speeding it up on compatible hardware (only applicable to Hugging Face models).
-- `--video-classifier-model`: Name or path of the video classifier model (default: `"microsoft/xclip-base-patch32"`). Can be a Hugging Face model name or a [TorchVision model](https://pytorch.org/vision/stable/models.html) name.
+- `--video-classifier-model`: Name or path of the video classifier model (default: `"microsoft/xclip-base-patch32"`). Can be a Hugging Face model name or a [TorchVision model](https://docs.pytorch.org/vision/stable/models.html) name.
 - `--labels`: A list of text labels for zero-shot video classification (default: `["dancing", "singing a song"]`).
 
 ## 🤔 FAQ

@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
+from typing import Any
 
 import cv2
 
@@ -9,20 +10,19 @@ from ultralytics.utils.plotting import colors
 
 
 class DistanceCalculation(BaseSolution):
-    """
-    A class to calculate distance between two objects in a real-time video stream based on their tracks.
+    """A class to calculate distance between two objects in a real-time video stream based on their tracks.
 
-    This class extends BaseSolution to provide functionality for selecting objects and calculating the distance
-    between them in a video stream using YOLO object detection and tracking.
+    This class extends BaseSolution to provide functionality for selecting objects and calculating the distance between
+    them in a video stream using YOLO object detection and tracking.
 
     Attributes:
         left_mouse_count (int): Counter for left mouse button clicks.
-        selected_boxes (Dict[int, List[float]]): Dictionary to store selected bounding boxes and their track IDs.
-        centroids (List[List[int]]): List to store centroids of selected bounding boxes.
+        selected_boxes (dict[int, Any]): Dictionary to store selected bounding boxes keyed by track ID.
+        centroids (list[list[int]]): List to store centroids of selected bounding boxes.
 
     Methods:
-        mouse_event_for_distance: Handles mouse events for selecting objects in the video stream.
-        process: Processes video frames and calculates the distance between selected objects.
+        mouse_event_for_distance: Handle mouse events for selecting objects in the video stream.
+        process: Process video frames and calculate the distance between selected objects.
 
     Examples:
         >>> distance_calc = DistanceCalculation()
@@ -32,18 +32,17 @@ class DistanceCalculation(BaseSolution):
         >>> cv2.waitKey(0)
     """
 
-    def __init__(self, **kwargs):
-        """Initializes the DistanceCalculation class for measuring object distances in video streams."""
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the DistanceCalculation class for measuring object distances in video streams."""
         super().__init__(**kwargs)
 
         # Mouse event information
         self.left_mouse_count = 0
-        self.selected_boxes = {}
-        self.centroids = []  # Store centroids of selected objects
+        self.selected_boxes: dict[int, list[float]] = {}
+        self.centroids: list[list[int]] = []  # Store centroids of selected objects
 
-    def mouse_event_for_distance(self, event, x, y, flags, param):
-        """
-        Handles mouse events to select regions in a real-time video stream for distance calculation.
+    def mouse_event_for_distance(self, event: int, x: int, y: int, flags: int, param: Any) -> None:
+        """Handle mouse events to select regions in a real-time video stream for distance calculation.
 
         Args:
             event (int): Type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN).
@@ -67,19 +66,18 @@ class DistanceCalculation(BaseSolution):
             self.selected_boxes = {}
             self.left_mouse_count = 0
 
-    def process(self, im0):
-        """
-        Processes a video frame and calculates the distance between two selected bounding boxes.
+    def process(self, im0) -> SolutionResults:
+        """Process a video frame and calculate the distance between two selected bounding boxes.
 
-        This method extracts tracks from the input frame, annotates bounding boxes, and calculates the distance
-        between two user-selected objects if they have been chosen.
+        This method extracts tracks from the input frame, annotates bounding boxes, and calculates the distance between
+        two user-selected objects if they have been chosen.
 
         Args:
-            im0 (numpy.ndarray): The input image frame to process.
+            im0 (np.ndarray): The input image frame to process.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im`, `total_tracks` (int) representing the total number
-                of tracked objects, and `pixels_distance` (float) representing the distance between selected objects
+            (SolutionResults): Contains processed image `plot_im`, `total_tracks` (int) representing the total number of
+                tracked objects, and `pixels_distance` (float) representing the distance between selected objects
                 in pixels.
 
         Examples:
@@ -118,7 +116,8 @@ class DistanceCalculation(BaseSolution):
         self.centroids = []  # Reset centroids for next frame
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display output with base class function
-        cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
+        if self.CFG.get("show") and self.env_check:
+            cv2.setMouseCallback("Ultralytics Solutions", self.mouse_event_for_distance)
 
         # Return SolutionResults with processed image and calculated metrics
         return SolutionResults(plot_im=plot_im, pixels_distance=pixels_distance, total_tracks=len(self.track_ids))

@@ -14,7 +14,7 @@ When deploying computer vision models on embedded devices, especially those powe
 
 !!! note
 
-    This guide has been tested with [Radxa Rock 5B](https://radxa.com/products/rock5/5b/) which is based on Rockchip RK3588 and [Radxa Zero 3W](https://radxa.com/products/zeros/zero3w/) which is based on Rockchip RK3566. It is expected to work across other Rockchip-based devices which supports [rknn-toolkit2](https://github.com/airockchip/rknn-toolkit2) such as RK3576, RK3568, RK3562, RV1103, RV1106, RV1103B, RV1106B and RK2118.
+    This guide has been tested with [Radxa Rock 5B](https://radxa.com/products/rock5/5b/) which is based on Rockchip RK3588 and [Radxa Zero 3W](https://radxa.com/products/zeros/zero3w/) which is based on Rockchip RK3566. It is expected to work across other Rockchip-based devices that support [rknn-toolkit2](https://github.com/airockchip/rknn-toolkit2) such as RK3576, RK3568, RK3562, RV1103, RV1106, RV1103B, RV1106B, and RK2118.
 
 ## What is Rockchip?
 
@@ -46,7 +46,7 @@ Export an Ultralytics YOLO11 model to RKNN format and run inference with the exp
 
 !!! note
 
-    Make sure to use an X86-based Linux PC to export the model to RKNN because exporting on Rockchip-based devices (ARM64) are not supported.
+    Make sure to use an X86-based Linux PC to export the model to RKNN because exporting on Rockchip-based devices (ARM64) is not supported.
 
 ### Installation
 
@@ -69,7 +69,7 @@ For detailed instructions and best practices related to the installation process
 
     Export is currently only supported for detection models. More model support will be coming in the future.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -127,7 +127,7 @@ To install the required packages, run:
 
 ### Usage
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -168,17 +168,21 @@ Rockchip-powered devices with YOLO11 RKNN models can be used in various applicat
 
 YOLO11 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based on Rockchip RK3588 with `rknn` model format measuring speed and accuracy.
 
-| Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-| YOLO11n | `rknn` | ✅     | 7.4       | 0.61        | 99.5                   |
-| YOLO11s | `rknn` | ✅     | 20.7      | 0.741       | 122.3                  |
-| YOLO11m | `rknn` | ✅     | 41.9      | 0.764       | 298.0                  |
-| YOLO11l | `rknn` | ✅     | 53.3      | 0.72        | 319.6                  |
-| YOLO11x | `rknn` | ✅     | 114.6     | 0.828       | 632.1                  |
+!!! tip "Performance"
 
-!!! note
+    | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
+    | ------- | ------ | ------ | --------- | ----------- | ---------------------- |
+    | YOLO11n | `rknn` | ✅     | 7.4       | 0.505       | 71.5                   |
+    | YOLO11s | `rknn` | ✅     | 20.7      | 0.578       | 98.9                   |
+    | YOLO11m | `rknn` | ✅     | 41.9      | 0.629       | 235.3                  |
+    | YOLO11l | `rknn` | ✅     | 53.3      | 0.633       | 282.0                  |
+    | YOLO11x | `rknn` | ✅     | 114.6     | 0.687       | 679.2                  |
 
-    Validation for the above benchmark was done using coco8 dataset
+    Benchmarked with `ultralytics 8.3.152`
+
+    !!! note
+
+        Validation for the above benchmarks were done using COCO128 dataset. Inference time does not include pre/ post-processing.
 
 ## Summary
 
@@ -196,7 +200,7 @@ Also, if you'd like to know more about other Ultralytics YOLO11 integrations, vi
 
 You can easily export your Ultralytics YOLO model to RKNN format using the `export()` method in the Ultralytics Python package or via the command-line interface (CLI). Ensure you are using an x86-based Linux PC for the export process, as ARM64 devices like Rockchip are not supported for this operation. You can specify the target Rockchip platform using the `name` argument, such as `rk3588`, `rk3566`, or others. This process generates an optimized RKNN model ready for deployment on your Rockchip device, taking advantage of its Neural Processing Unit (NPU) for accelerated inference.
 
-!!! Example
+!!! example
 
     === "Python"
 

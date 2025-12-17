@@ -21,7 +21,7 @@ Parking management with [Ultralytics YOLO11](https://github.com/ultralytics/ultr
   <strong>Watch:</strong> How to Implement Parking Management Using Ultralytics YOLO 🚀
 </p>
 
-## Advantages of Parking Management System?
+## Advantages of Parking Management System
 
 - **Efficiency**: Parking lot management optimizes the use of parking spaces and reduces congestion.
 - **Safety and Security**: Parking management using YOLO11 improves the safety of both people and vehicles through surveillance and security measures.
@@ -139,7 +139,6 @@ Using Ultralytics YOLO11 for smart parking yields numerous benefits:
 - **Efficiency**: Optimizes the use of parking spaces and decreases congestion.
 - **Safety and Security**: Enhances surveillance and ensures the safety of vehicles and pedestrians.
 - **Environmental Impact**: Helps reduce emissions by minimizing vehicle idle times. Explore more benefits in the [Advantages of Parking Management System section](#advantages-of-parking-management-system).
--
 
 ### How can I define parking spaces using Ultralytics YOLO11?
 

@@ -1,0 +1,16 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Export-optimized derivative of ultralytics/ultralytics:latest for testing and benchmarks
+# Includes all export format dependencies and pre-installed export packages
+
+FROM ultralytics/ultralytics:latest
+
+# Install export dependencies and run exports to AutoInstall packages
+# Numpy 1.26.4 required due to TF export bug with torch 2.8
+# Note tensorrt installed on-demand as depends on runtime environment CUDA version
+RUN uv pip install --system -e ".[export]" "onnxruntime-gpu" paddlepaddle x2paddle numpy==1.26.4 && \
+    # Run exports to AutoInstall packages \
+    yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 && \
+    yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32 && \
+    # Remove temporary files \
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json

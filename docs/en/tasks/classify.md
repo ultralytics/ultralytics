@@ -26,13 +26,13 @@ The output of an image classifier is a single class label and a confidence score
 
 !!! tip
 
-    YOLO11 Classify models use the `-cls` suffix, i.e. `yolo11n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
+    YOLO11 Classify models use the `-cls` suffix, i.e., `yolo11n-cls.pt`, and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11)
 
-YOLO11 pretrained Classify models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+YOLO11 pretrained Classify models are shown here. Detect, Segment, and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) are downloaded automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 {% include "macros/yolo-cls-perf.md" %}
 
@@ -72,6 +72,77 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
         yolo classify train data=mnist160 model=yolo11n-cls.yaml pretrained=yolo11n-cls.pt epochs=100 imgsz=64
         ```
 
+!!! tip
+
+    Ultralytics YOLO classification uses [`torchvision.transforms.RandomResizedCrop`](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.RandomResizedCrop.html) for training and [`torchvision.transforms.CenterCrop`](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.CenterCrop.html) for validation and inference.
+    These cropping-based transforms assume square inputs and may inadvertently crop out important regions from images with extreme aspect ratios, potentially causing loss of critical visual information during training.
+    To preserve the full image while maintaining its proportions, consider using [`torchvision.transforms.Resize`](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) instead of cropping transforms.
+
+    You can implement this by customizing your augmentation pipeline through a custom `ClassificationDataset` and `ClassificationTrainer`.
+
+
+    ```python
+    import torch
+    import torchvision.transforms as T
+
+    from ultralytics import YOLO
+    from ultralytics.data.dataset import ClassificationDataset
+    from ultralytics.models.yolo.classify import ClassificationTrainer, ClassificationValidator
+
+
+    class CustomizedDataset(ClassificationDataset):
+        """A customized dataset class for image classification with enhanced data augmentation transforms."""
+
+        def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
+            """Initialize a customized classification dataset with enhanced data augmentation transforms."""
+            super().__init__(root, args, augment, prefix)
+
+            # Add your custom training transforms here
+            train_transforms = T.Compose(
+                [
+                    T.Resize((args.imgsz, args.imgsz)),
+                    T.RandomHorizontalFlip(p=args.fliplr),
+                    T.RandomVerticalFlip(p=args.flipud),
+                    T.RandAugment(interpolation=T.InterpolationMode.BILINEAR),
+                    T.ColorJitter(brightness=args.hsv_v, contrast=args.hsv_v, saturation=args.hsv_s, hue=args.hsv_h),
+                    T.ToTensor(),
+                    T.Normalize(mean=torch.tensor(0), std=torch.tensor(1)),
+                    T.RandomErasing(p=args.erasing, inplace=True),
+                ]
+            )
+
+            # Add your custom validation transforms here
+            val_transforms = T.Compose(
+                [
+                    T.Resize((args.imgsz, args.imgsz)),
+                    T.ToTensor(),
+                    T.Normalize(mean=torch.tensor(0), std=torch.tensor(1)),
+                ]
+            )
+            self.torch_transforms = train_transforms if augment else val_transforms
+
+
+    class CustomizedTrainer(ClassificationTrainer):
+        """A customized trainer class for YOLO classification models with enhanced dataset handling."""
+
+        def build_dataset(self, img_path: str, mode: str = "train", batch=None):
+            """Build a customized dataset for classification training and the validation during training."""
+            return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
+
+
+    class CustomizedValidator(ClassificationValidator):
+        """A customized validator class for YOLO classification models with enhanced dataset handling."""
+
+        def build_dataset(self, img_path: str, mode: str = "train"):
+            """Build a customized dataset for classification standalone validation."""
+            return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=self.args.split)
+
+
+    model = YOLO("yolo11n-cls.pt")
+    model.train(data="imagenet1000", trainer=CustomizedTrainer, epochs=10, imgsz=224, batch=64)
+    model.val(data="imagenet1000", validator=CustomizedValidator, imgsz=224, batch=64)
+    ```
+
 ### Dataset format
 
 YOLO classification dataset format can be found in detail in the [Dataset Guide](../datasets/classify/index.md).
@@ -103,6 +174,10 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
         yolo classify val model=yolo11n-cls.pt  # val official model
         yolo classify val model=path/to/best.pt # val custom model
         ```
+
+!!! tip
+
+    As mentioned in the [training section](#train), you can handle extreme aspect ratios during training by using a custom `ClassificationTrainer`. You need to apply the same approach for consistent validation results by implementing a custom `ClassificationValidator` when calling the `val()` method. Refer to the complete code example in the [training section](#train) for implementation details.
 
 ## Predict
 
@@ -145,7 +220,7 @@ Export a YOLO11n-cls model to a different format like ONNX, CoreML, etc.
 
         # Load a model
         model = YOLO("yolo11n-cls.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained model
+        model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
         model.export(format="onnx")
@@ -155,10 +230,10 @@ Export a YOLO11n-cls model to a different format like ONNX, CoreML, etc.
 
         ```bash
         yolo export model=yolo11n-cls.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
-Available YOLO11-cls export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-cls.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO11-cls export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo11n-cls.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 

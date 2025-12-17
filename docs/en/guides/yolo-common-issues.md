@@ -39,7 +39,6 @@ Installation errors can arise due to various reasons, such as incompatible versi
 Additionally, here are some common installation issues users have encountered, along with their respective solutions:
 
 - Import Errors or Dependency Issues - If you're getting errors during the import of YOLO11, or you're having issues related to dependencies, consider the following troubleshooting steps:
-
     - **Fresh Installation**: Sometimes, starting with a fresh installation can resolve unexpected issues. Especially with libraries like Ultralytics, where updates might introduce changes to the file tree structure or functionalities.
 
     - **Update Regularly**: Ensure you're using the latest version of the library. Older versions might not be compatible with recent updates, leading to potential conflicts or issues.
@@ -51,10 +50,11 @@ Additionally, here are some common installation issues users have encountered, a
     - Remember, keeping your libraries and dependencies up-to-date is crucial for a smooth and error-free experience.
 
 - Running YOLO11 on GPU - If you're having trouble running YOLO11 on GPU, consider the following troubleshooting steps:
-
     - **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
 
     - **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
+
+    - **Check GPU compatibility**: Support for GPU architectures earlier than Turing and compute capability (SM) < 7.5 was abandoned since cuDNN 9.11.0. So if you have an older GPU - like 1080Ti - you may have to use a version of PyTorch built against an older version of CUDA/cuDNN. You can check this by running `import torch; cap = torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0, 0); cudnn = torch.backends.cudnn.version() or 0; ok = "not compatible" if cudnn >= 91100 and (cap[0] < 7 or (cap[0] == 7 and cap[1] < 5)) else "should be ok"; print(f"Compute capability: SM {cap[0]}.{cap[1]}, cuDNN: {cudnn} => {ok}")`
 
     - **Environment Activation**: Ensure you're in the correct environment where all necessary packages are installed.
 
@@ -75,9 +75,9 @@ This section will address common issues faced while training and their respectiv
 - Confirm that the path to your `.yaml` configuration file is correct.
 - Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
 
-```python
-model.train(data="/path/to/your/data.yaml", batch=4)
-```
+    ```python
+    model.train(data="/path/to/your/data.yaml", batch=4)
+    ```
 
 #### Accelerating Training with Multiple GPUs
 
@@ -86,14 +86,14 @@ model.train(data="/path/to/your/data.yaml", batch=4)
 **Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with multiple GPUs, follow these steps:
 
 - Ensure that you have multiple GPUs available.
-- Modify your .yaml configuration file to specify the number of GPUs to use, e.g., gpus: 4.
+- Modify your `.yaml` configuration file to specify the number of GPUs to use, e.g., `gpus: 4`.
 - Increase the batch size accordingly to fully utilize the multiple GPUs without exceeding memory limits.
 - Modify your training command to utilize multiple GPUs:
 
-```python
-# Adjust the batch size and other settings as needed to optimize training speed
-model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
-```
+    ```python
+    # Adjust the batch size and other settings as needed to optimize training speed
+    model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
+    ```
 
 #### Continuous Monitoring Parameters
 
@@ -174,13 +174,13 @@ This section will address common issues faced during model prediction.
 
 - Coordinate Format: YOLO11 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, let's say your image size is 640x640. Then you would do the following:
 
-```python
-# Convert absolute coordinates to relative coordinates
-x1 = x1 / 640  # Divide x-coordinates by image width
-x2 = x2 / 640
-y1 = y1 / 640  # Divide y-coordinates by image height
-y2 = y2 / 640
-```
+    ```python
+    # Convert absolute coordinates to relative coordinates
+    x1 = x1 / 640  # Divide x-coordinates by image width
+    x2 = x2 / 640
+    y1 = y1 / 640  # Divide y-coordinates by image height
+    y2 = y2 / 640
+    ```
 
 - File Name: To obtain the file name of the image you're predicting on, access the image file path directly from the result object within your prediction loop.
 
@@ -190,7 +190,7 @@ y2 = y2 / 640
 
 **Solution**: To detect specific classes use the classes argument to specify the classes you want to include in the output. For instance, to detect only cars (assuming 'cars' have class index 2):
 
-```shell
+```bash
 yolo task=detect mode=segment model=yolo11n-seg.pt source='path/to/car.mp4' show=True classes=2
 ```
 
@@ -209,7 +209,7 @@ yolo task=detect mode=segment model=yolo11n-seg.pt source='path/to/car.mp4' show
 ```python
 from ultralytics import YOLO
 
-# Load a pre-trained YOLO11 model
+# Load a pretrained YOLO11 model
 model = YOLO("yolo11n.pt")
 
 # Specify the source image
@@ -267,8 +267,6 @@ These resources should provide a solid foundation for troubleshooting and improv
 Troubleshooting is an integral part of any development process, and being equipped with the right knowledge can significantly reduce the time and effort spent in resolving issues. This guide aimed to address the most common challenges faced by users of the YOLO11 model within the Ultralytics ecosystem. By understanding and addressing these common issues, you can ensure smoother project progress and achieve better results with your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
 Remember, the Ultralytics community is a valuable resource. Engaging with fellow developers and experts can provide additional insights and solutions that might not be covered in standard documentation. Always keep learning, experimenting, and sharing your experiences to contribute to the collective knowledge of the community.
-
-Happy troubleshooting!
 
 ## FAQ
 

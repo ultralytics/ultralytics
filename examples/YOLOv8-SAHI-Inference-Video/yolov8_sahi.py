@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
+import os
 
 import cv2
 from sahi import AutoDetectionModel
@@ -11,8 +12,7 @@ from ultralytics.utils.files import increment_path
 
 
 class SAHIInference:
-    """
-    Runs Ultralytics YOLO11 and SAHI for object detection on video with options to view, save, and track results.
+    """Runs Ultralytics YOLO11 and SAHI for object detection on video with options to view, save, and track results.
 
     This class integrates SAHI (Slicing Aided Hyper Inference) with YOLO11 models to perform efficient object detection
     on large images by slicing them into smaller pieces, running inference on each slice, and then merging the results.
@@ -21,27 +21,34 @@ class SAHIInference:
         detection_model (AutoDetectionModel): The loaded YOLO11 model wrapped with SAHI functionality.
 
     Methods:
-        load_model: Loads a YOLO11 model with specified weights.
-        inference: Runs object detection on a video using the loaded model.
-        parse_opt: Parses command line arguments for the inference process.
+        load_model: Load a YOLO11 model with specified weights for object detection using SAHI.
+        inference: Run object detection on a video using YOLO11 and SAHI.
+        parse_opt: Parse command line arguments for the inference process.
+
+    Examples:
+        Initialize and run SAHI inference on a video
+        >>> sahi_inference = SAHIInference()
+        >>> sahi_inference.inference(weights="yolo11n.pt", source="video.mp4", view_img=True)
     """
 
     def __init__(self):
-        """Initializes the SAHIInference class for performing sliced inference using SAHI with YOLO11 models."""
+        """Initialize the SAHIInference class for performing sliced inference using SAHI with YOLO11 models."""
         self.detection_model = None
 
     def load_model(self, weights: str, device: str) -> None:
-        """
-        Load a YOLO11 model with specified weights for object detection using SAHI.
+        """Load a YOLO11 model with specified weights for object detection using SAHI.
 
         Args:
             weights (str): Path to the model weights file.
-            device (str, optional): CUDA device, i.e., '0' or '0,1,2,3' or 'cpu'. Defaults to "".
+            device (str): CUDA device, i.e., '0' or '0,1,2,3' or 'cpu'.
         """
         from ultralytics.utils.torch_utils import select_device
 
-        yolo11_model_path = f"models/{weights}"
-        download_model_weights(yolo11_model_path)  # Download model if not present
+        if weights and os.path.exists(weights):
+            yolo11_model_path = weights
+        else:
+            yolo11_model_path = f"models/{weights}"
+            download_model_weights(yolo11_model_path)  # Download model if not present
         self.detection_model = AutoDetectionModel.from_pretrained(
             model_type="ultralytics", model_path=yolo11_model_path, device=select_device(device)
         )
@@ -58,11 +65,10 @@ class SAHIInference:
         slice_width: int = 512,
         slice_height: int = 512,
     ) -> None:
-        """
-        Run object detection on a video using YOLO11 and SAHI.
+        """Run object detection on a video using YOLO11 and SAHI.
 
-        The function processes each frame of the video, applies sliced inference using SAHI,
-        and optionally displays and/or saves the results with bounding boxes and labels.
+        The function processes each frame of the video, applies sliced inference using SAHI, and optionally displays
+        and/or saves the results with bounding boxes and labels.
 
         Args:
             weights (str): Model weights' path.
@@ -70,22 +76,24 @@ class SAHIInference:
             view_img (bool): Whether to display results in a window.
             save_img (bool): Whether to save results to a video file.
             exist_ok (bool): Whether to overwrite existing output files.
-            device (str, optional): CUDA device, i.e., '0' or '0,1,2,3' or 'cpu'. Defaults to "".
-            hide_conf (bool, optional): Flag to show or hide confidences in the output. Defaults to False.
+            device (str, optional): CUDA device, i.e., '0' or '0,1,2,3' or 'cpu'.
+            hide_conf (bool, optional): Flag to show or hide confidences in the output.
             slice_width (int, optional): Slice width for inference.
             slice_height (int, optional): Slice height for inference.
         """
         # Video setup
         cap = cv2.VideoCapture(source)
-        assert cap.isOpened(), "Error reading video file"
+        if not cap.isOpened():
+            raise FileNotFoundError(f"Unable to open video source: '{source}'")
 
-        # Output setup
-        save_dir = increment_path("runs/detect/predict", exist_ok)
-        save_dir.mkdir(parents=True, exist_ok=True)
+        save_dir = None
+        if save_img:
+            save_dir = increment_path("runs/detect/predict", exist_ok)
+            save_dir.mkdir(parents=True, exist_ok=True)
 
         # Load model
         self.load_model(weights, device)
-        idx = 0  # index for image frame writing
+        idx = 0  # Index for image frame writing
         while cap.isOpened():
             success, frame = cap.read()
             if not success:
@@ -104,7 +112,7 @@ class SAHIInference:
                 cv2.imshow("Ultralytics YOLO Inference", frame)
 
             # Save results if requested
-            if save_img:
+            if save_img and save_dir is not None:
                 idx += 1
                 results.export_visuals(export_dir=save_dir, file_name=f"img_{idx}", hide_conf=hide_conf)
 
@@ -118,8 +126,7 @@ class SAHIInference:
 
     @staticmethod
     def parse_opt() -> argparse.Namespace:
-        """
-        Parse command line arguments for the inference process.
+        """Parse command line arguments for the inference process.
 
         Returns:
             (argparse.Namespace): Parsed command line arguments.

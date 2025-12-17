@@ -176,7 +176,7 @@ while True:
     1. `rostopic echo <TOPIC-NAME>` : This command allows you to view messages published on a specific topic, helping you inspect the data flow.
     2. `rostopic list`: Use this command to list all available topics in the ROS system, giving you an overview of the active data streams.
     3. `rqt_graph`: This visualization tool displays the communication graph between nodes, providing insights into how nodes are interconnected and how they interact.
-    4. For more complex visualizations, such as 3D representations, you can use [RViz](https://wiki.ros.org/rviz). RViz (ROS Visualization) is a powerful 3D visualization tool for ROS. It allows you to visualize the state of your robot and its environment in real-time. With RViz, you can view sensor data (e.g. `sensors_msgs/Image`), robot model states, and various other types of information, making it easier to debug and understand the behavior of your robotic system.
+    4. For more complex visualizations, such as 3D representations, you can use [RViz](https://wiki.ros.org/rviz). RViz (ROS Visualization) is a powerful 3D visualization tool for ROS. It allows you to visualize the state of your robot and its environment in real-time. With RViz, you can view sensor data (e.g., `sensor_msgs/Image`), robot model states, and various other types of information, making it easier to debug and understand the behavior of your robotic system.
 
 ### Publish Detected Classes with `std_msgs/String`
 
@@ -243,7 +243,7 @@ Using YOLO, it is possible to extract and combine information from both RGB and 
 
 !!! warning "RGB-D Cameras"
 
-    When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the [Intel RealSense](https://www.intelrealsense.com/) series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment.
+    When working with depth images, it is essential to ensure that the RGB and depth images are correctly aligned. RGB-D cameras, such as the [Intel RealSense](https://realsenseai.com/) series, provide synchronized RGB and depth images, making it easier to combine information from both sources. If using separate RGB and depth cameras, it is crucial to calibrate them to ensure accurate alignment.
 
 #### Depth Step-by-Step Usage
 
@@ -401,8 +401,7 @@ import ros_numpy
 
 
 def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
-    """
-    Convert a ROS PointCloud2 message to a numpy array.
+    """Convert a ROS PointCloud2 message to a numpy array.
 
     Args:
         pointcloud2 (PointCloud2): the PointCloud2 message
@@ -472,8 +471,7 @@ for index, class_id in enumerate(classes):
 
 
     def pointcloud2_to_array(pointcloud2: PointCloud2) -> tuple:
-        """
-        Convert a ROS PointCloud2 message to a numpy array.
+        """Convert a ROS PointCloud2 message to a numpy array.
 
         Args:
             pointcloud2 (PointCloud2): the PointCloud2 message

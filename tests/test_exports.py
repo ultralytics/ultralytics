@@ -12,19 +12,12 @@ import pytest
 from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import (
-    ARM64,
-    IS_RASPBERRYPI,
-    LINUX,
-    MACOS,
-    WINDOWS,
-    checks,
-)
-from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
+from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 
 def test_export_torchscript():
-    """Test YOLO model exporting to TorchScript format for compatibility and correctness."""
+    """Test YOLO model export to TorchScript format for compatibility and correctness."""
     file = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
@@ -35,15 +28,15 @@ def test_export_onnx():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
+@pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 def test_export_openvino():
-    """Test YOLO exports to OpenVINO format for model inference compatibility."""
+    """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(MODEL).export(format="openvino", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
+@pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations except for exclusion cases
@@ -55,7 +48,7 @@ def test_export_openvino():
     ],
 )
 def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
-    """Test YOLO model exports to OpenVINO under various configuration matrix conditions."""
+    """Test YOLO model export to OpenVINO under various configuration matrix conditions."""
     file = YOLO(TASK2MODEL[task]).export(
         format="openvino",
         imgsz=32,
@@ -71,7 +64,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
         # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
         file = Path(file)
         file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
@@ -83,16 +76,11 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
         for task, dynamic, int8, half, batch, simplify, nms in product(
             TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
         )
-        if not (
-            (int8 and half)
-            or (task == "classify" and nms)
-            or (task == "obb" and nms and not TORCH_1_13)
-            or (simplify and dynamic)  # onnxslim is slow when dynamic=True
-        )
+        if not ((int8 and half) or (task == "classify" and nms) or (nms and not TORCH_1_13))
     ],
 )
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
-    """Test YOLO exports to ONNX format with various configurations and parameters."""
+    """Test YOLO export to ONNX format with various configurations and parameters."""
     file = YOLO(TASK2MODEL[task]).export(
         format="onnx", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, simplify=simplify, nms=nms
     )
@@ -105,12 +93,14 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
     "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms)
-        for task, dynamic, int8, half, batch, nms in product(TASKS, [False], [False], [False], [1, 2], [True, False])
+        for task, dynamic, int8, half, batch, nms in product(
+            TASKS, [False, True], [False], [False, True], [1, 2], [True, False]
+        )
         if not (task == "classify" and nms)
     ],
 )
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
-    """Tests YOLO model exports to TorchScript format under varied configurations."""
+    """Test YOLO model export to TorchScript format under varied configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
     )
@@ -120,18 +110,23 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
-@pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
+@pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch",
+    "task, dynamic, int8, half, nms, batch",
     [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch)
-        for task, dynamic, int8, half, batch in product(TASKS, [False], [True, False], [True, False], [1])
+        (task, dynamic, int8, half, nms, batch)
+        for task, dynamic, int8, half, nms, batch in product(
+            TASKS, [True, False], [True, False], [True, False], [True, False], [1]
+        )
         if not (int8 and half)
+        and not (task != "detect" and nms)
+        and not (dynamic and nms)
+        and not (task == "classify" and dynamic)
     ],
 )
-def test_export_coreml_matrix(task, dynamic, int8, half, batch):
-    """Test YOLO exports to CoreML format with various parameter configurations."""
+def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):
+    """Test YOLO export to CoreML format with various parameter configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="coreml",
         imgsz=32,
@@ -139,8 +134,9 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
         int8=int8,
         half=half,
         batch=batch,
+        nms=nms,
     )
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     shutil.rmtree(file)  # cleanup
 
 
@@ -157,24 +153,24 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
         for task, dynamic, int8, half, batch, nms in product(
             TASKS, [False], [True, False], [True, False], [1], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms) or (ARM64 and nms))
+        if not ((int8 and half) or (task == "classify" and nms) or (ARM64 and nms) or (nms and not TORCH_1_13))
     ],
 )
 def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
-    """Test YOLO exports to TFLite format considering various export configurations."""
+    """Test YOLO export to TFLite format considering various export configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
     )
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference at batch=3
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
 
 
-@pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
+@pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
 @pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
 def test_export_coreml():
-    """Test YOLO exports to CoreML format and check for errors."""
+    """Test YOLO export to CoreML format and check for errors."""
     # Capture stdout and stderr
     stdout, stderr = io.StringIO(), io.StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
@@ -192,7 +188,7 @@ def test_export_coreml():
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 def test_export_tflite():
-    """Test YOLO exports to TFLite format under specific OS and Python version conditions."""
+    """Test YOLO export to TFLite format under specific OS and Python version conditions."""
     model = YOLO(MODEL)
     file = model.export(format="tflite", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
@@ -201,7 +197,7 @@ def test_export_tflite():
 @pytest.mark.skipif(True, reason="Test disabled")
 @pytest.mark.skipif(not LINUX, reason="TF suffers from install conflicts on Windows and macOS")
 def test_export_pb():
-    """Test YOLO exports to TensorFlow's Protobuf (*.pb) format."""
+    """Test YOLO export to TensorFlow's Protobuf (*.pb) format."""
     model = YOLO(MODEL)
     file = model.export(format="pb", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
@@ -209,28 +205,106 @@ def test_export_pb():
 
 @pytest.mark.skipif(True, reason="Test disabled as Paddle protobuf and ONNX protobuf requirements conflict.")
 def test_export_paddle():
-    """Test YOLO exports to Paddle format, noting protobuf conflicts with ONNX."""
+    """Test YOLO export to Paddle format, noting protobuf conflicts with ONNX."""
     YOLO(MODEL).export(format="paddle", imgsz=32)
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 def test_export_mnn():
-    """Test YOLO exports to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
+    """Test YOLO export to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(MODEL).export(format="mnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
+@pytest.mark.parametrize(
+    "task, int8, half, batch",
+    [  # generate all combinations except for exclusion cases
+        (task, int8, half, batch)
+        for task, int8, half, batch in product(TASKS, [True, False], [True, False], [1, 2])
+        if not (int8 and half)
+    ],
+)
+def test_export_mnn_matrix(task, int8, half, batch):
+    """Test YOLO export to MNN format considering various export configurations."""
+    file = YOLO(TASK2MODEL[task]).export(format="mnn", imgsz=32, int8=int8, half=half, batch=batch)
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    Path(file).unlink()  # cleanup
+
+
+@pytest.mark.slow
 def test_export_ncnn():
-    """Test YOLO exports to NCNN format."""
+    """Test YOLO export to NCNN format."""
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with TFlite export.")
-@pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
+@pytest.mark.slow
+@pytest.mark.parametrize("task, half, batch", list(product(TASKS, [True, False], [1])))
+def test_export_ncnn_matrix(task, half, batch):
+    """Test YOLO export to NCNN format considering various export configurations."""
+    file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, half=half, batch=batch)
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
+
+
+@pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
+@pytest.mark.skipif(WINDOWS or MACOS, reason="Skipping test on Windows and Macos")
+@pytest.mark.skipif(ARM64, reason="IMX export is not supported on ARM64 architectures.")
 def test_export_imx():
-    """Test YOLO exports to IMX format."""
-    model = YOLO("yolov8n.pt")
+    """Test YOLO export to IMX format."""
+    model = YOLO(MODEL)
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not TORCH_2_8, reason="Axelera export requires torch>=2.8.0")
+@pytest.mark.skipif(not LINUX, reason="Axelera export only supported on Linux")
+@pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="Axelera export requires Python 3.10")
+def test_export_axelera():
+    """Test YOLO export to Axelera format."""
+    model = YOLO(MODEL)
+    # For faster testing, use a smaller calibration dataset
+    # 32 image size crashes axelera export, so use 64
+    file = model.export(format="axelera", imgsz=64, data="coco8.yaml")
+    assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
+@pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
+def test_export_executorch():
+    """Test YOLO model export to ExecuTorch format."""
+    file = YOLO(MODEL).export(format="executorch", imgsz=32)
+    assert Path(file).exists(), f"ExecuTorch export failed, directory not found: {file}"
+    # Check that .pte file exists in the exported directory
+    pte_file = Path(file) / Path(MODEL).with_suffix(".pte").name
+    assert pte_file.exists(), f"ExecuTorch .pte file not found: {pte_file}"
+    # Check that metadata.yaml exists
+    metadata_file = Path(file) / "metadata.yaml"
+    assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found: {metadata_file}"
+    # Note: Inference testing skipped as ExecuTorch requires special runtime setup
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
+@pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
+@pytest.mark.parametrize("task", TASKS)
+def test_export_executorch_matrix(task):
+    """Test YOLO export to ExecuTorch format for various task types."""
+    file = YOLO(TASK2MODEL[task]).export(format="executorch", imgsz=32)
+    assert Path(file).exists(), f"ExecuTorch export failed for task '{task}', directory not found: {file}"
+    # Check that .pte file exists in the exported directory
+    model_name = Path(TASK2MODEL[task]).with_suffix(".pte").name
+    pte_file = Path(file) / model_name
+    assert pte_file.exists(), f"ExecuTorch .pte file not found for task '{task}': {pte_file}"
+    # Check that metadata.yaml exists
+    metadata_file = Path(file) / "metadata.yaml"
+    assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found for task '{task}': {metadata_file}"
+    # Note: Inference testing skipped as ExecuTorch requires special runtime setup
+    shutil.rmtree(file, ignore_errors=True)  # cleanup

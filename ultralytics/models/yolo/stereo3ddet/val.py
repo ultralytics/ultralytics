@@ -656,6 +656,7 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             alpha = label.get("alpha", 0.0)
 
             # Reconstruct 3D center from stereo disparity (matching prediction pipeline)
+            # This ensures train/eval consistency since training uses lr_distance
             left_box = label.get("left_box", {})
             right_box = label.get("right_box", {})
             
@@ -696,12 +697,14 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             # Compute disparity (left-right distance in pixels)
             disparity = left_u - right_u
             
+            # Skip objects with invalid stereo geometry (clipped right box, near-zero disparity)
+            # These objects are near the image edge or have unreliable depth estimates
+            MIN_DISPARITY_PX = 3.0  # ~130m depth - anything beyond is unreliable
+            if disparity < MIN_DISPARITY_PX or right_center_x <= 0.01:
+                continue  # Skip this GT box - invalid stereo geometry
+            
             # Compute depth from disparity: Z = (f × baseline) / disparity
-            if disparity > 0:
-                depth = (fx_val * baseline_val) / disparity
-            else:
-                # Fallback to a reasonable default if disparity is invalid
-                depth = 30.0
+            depth = (fx_val * baseline_val) / disparity
 
             # Convert 2D center to 3D
             center_x_2d = left_u
@@ -709,8 +712,6 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
 
             x_3d = (center_x_2d - cx_val) * depth / fx_val
             # y_3d is at geometric center (matching prediction decoder convention)
-            # Note: vis_yolo_kitti.py converts to bottom center, but we use geometric center
-            # for consistency with plotting.py corner generation which uses [-h/2, +h/2]
             y_3d = (center_y_2d - cy_val) * depth / fy_val
             z_3d = depth
 
@@ -1042,10 +1043,6 @@ class Stereo3DDetValidator(BaseValidator):
                                         LOGGER.warning(f"Error computing 3D IoU: {e2}")
                                         iou_matrix[i, j] = 0.0
 
-                    # DIAGNOSTIC START
-                    # self._diagnostic_log_iou_matrix(iou_matrix, pred_boxes, gt_boxes, si)
-                    # DIAGNOSTIC END
-
                     # Match predictions to ground truth (greedy matching)
                     matched_gt = set()
                     tp = np.zeros((len(pred_boxes), self.niou), dtype=bool)
@@ -1077,10 +1074,6 @@ class Stereo3DDetValidator(BaseValidator):
                                     matched_gt.add(best_gt_idx)
                             else:
                                 fp[pred_idx, iou_idx] = True
-
-                    # DIAGNOSTIC START
-                    # self._diagnostic_log_tp_fp_assignment(tp, fp, pred_boxes, self.iouv, si)
-                    # DIAGNOSTIC END
 
                 else:
                     # No matches possible

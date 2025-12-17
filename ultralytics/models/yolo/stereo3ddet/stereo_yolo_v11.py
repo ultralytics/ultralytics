@@ -708,6 +708,7 @@ class StereoYOLOv11Wrapper(nn.Module):
         
         # Import TargetGenerator and initialize it (T133)
         from ultralytics.data.stereo.target import TargetGenerator
+        from ultralytics.data.stereo.target_improved import TargetGenerator as TargetGeneratorImproved
         
         # Initialize target generator if not already done
         if not hasattr(self, "_target_generator"):
@@ -715,7 +716,7 @@ class StereoYOLOv11Wrapper(nn.Module):
             # Output size is H/32, W/32 (ResNet18 backbone downsamples by 32x)
             output_h = imgsz // 32
             output_w = imgsz // 32
-            self._target_generator = TargetGenerator(
+            self._target_generator = TargetGeneratorImproved(
                 output_size=(output_h, output_w),
                 num_classes=num_classes,
             )

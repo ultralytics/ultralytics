@@ -357,7 +357,12 @@ def compute_3d_iou(
     union = volume1 + volume2 - intersection
 
     # Compute IoU
+    # Note: AABB approximation for intersection can overestimate when boxes are rotated,
+    # causing intersection > volume1 + volume2, leading to small/negative union.
+    # Clamp IoU to [0, 1] to handle this approximation error.
     iou = intersection / (union + eps)
+    iou = min(max(iou, 0.0), 1.0)  # Clamp to valid IoU range
+    
     return float(iou)
 
 

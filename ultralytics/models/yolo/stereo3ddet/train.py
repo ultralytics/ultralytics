@@ -252,6 +252,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         # Generate targets from labels if present
         if "labels" in batch and batch["labels"]:
             from ultralytics.data.stereo.target import TargetGenerator
+            from ultralytics.data.stereo.target_improved import TargetGenerator as TargetGeneratorImproved
             
             # Get image size (needed for both target generator initialization and target generation)
             imgsz = int(self.args.imgsz) if hasattr(self.args, "imgsz") else 384
@@ -262,7 +263,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
                 # Output size is H/32, W/32 (ResNet18 backbone downsamples by 32x)
                 output_h = imgsz // 32
                 output_w = imgsz // 32  # Assuming square for now, adjust if needed
-                self.target_generator = TargetGenerator(
+                self.target_generator = TargetGeneratorImproved(
                     output_size=(output_h, output_w),
                     num_classes=num_classes,
                 )

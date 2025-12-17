@@ -382,6 +382,8 @@ class KITTIToYOLO3D:
                 vertices_norm.extend([v_x, v_y])
 
             # ===== Build YOLO label line =====
+            # Format: 22 values total
+            # class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y X Y Z
             label = f"{class_id} "
             label += f"{center_x_l_norm:.6f} {center_y_l_norm:.6f} "
             label += f"{width_l_norm:.6f} {height_l_norm:.6f} "
@@ -389,6 +391,9 @@ class KITTIToYOLO3D:
             label += f"{h:.2f} {w:.2f} {l:.2f} "
             label += f"{alpha:.4f} "
             label += " ".join([f"{v:.6f}" for v in vertices_norm])
+            # Add original KITTI 3D location (X, Y, Z in camera coordinates)
+            # Y is bottom center in KITTI, so we store as-is (will convert to geometric center when parsing)
+            label += f" {X:.4f} {Y:.4f} {Z:.4f}"
 
             yolo_labels.append(label)
 

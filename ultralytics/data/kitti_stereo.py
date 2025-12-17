@@ -199,7 +199,8 @@ class KITTIStereoDataset:
     def _parse_labels(self, label_file: Path) -> list[dict[str, Any]]:
         """Parse YOLO 3D format label file.
 
-        Format: class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y
+        Format (22 values): class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y X Y Z
+        Legacy format (19 values): class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y
 
         Args:
             label_file (Path): Path to label file.
@@ -213,6 +214,7 @@ class KITTIStereoDataset:
                 - dimensions: 3D dimensions [height, width, length] in meters
                 - alpha: Observation angle in radians
                 - vertices: Bottom 4 vertices of 3D box [v1_x, v1_y, v2_x, v2_y, v3_x, v3_y, v4_x, v4_y] (normalized)
+                - location_3d: (Optional) Original KITTI 3D location [X, Y, Z] in camera coordinates (Y is bottom center)
         """
         if not label_file.exists():
             return []
@@ -229,8 +231,9 @@ class KITTIStereoDataset:
                     continue
 
                 parts = line.split()
+                # Support both legacy (19 values) and new format (22 values with X, Y, Z)
                 if len(parts) < 19:
-                    LOGGER.warning(f"Invalid label format in {label_file}: expected 19 values, got {len(parts)}")
+                    LOGGER.warning(f"Invalid label format in {label_file}: expected 19+ values, got {len(parts)}")
                     continue
 
                 try:
@@ -273,6 +276,16 @@ class KITTIStereoDataset:
                             "v4": [values[17], values[18]],
                         },
                     }
+                    
+                    # Parse 3D location if available (new format with 22 values)
+                    # X, Y, Z are in camera coordinates; Y is bottom center in KITTI
+                    if len(values) >= 22:
+                        label_dict["location_3d"] = {
+                            "x": values[19],
+                            "y": values[20],  # Bottom center Y in KITTI coords
+                            "z": values[21],  # Depth
+                        }
+                    
                     # assertion
                     assert label_dict['alpha'] >= -np.pi and label_dict['alpha'] <= np.pi, f"alpha is out of range: {label_dict['alpha']}"
                     assert 0.1 < label_dict['dimensions']['height'] < 5 and 0.1 < label_dict['dimensions']['width'] < 3 and 0.1 < label_dict['dimensions']['length'] < 20, f"dimensions are out of range: {label_dict['dimensions']}"

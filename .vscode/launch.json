@@ -18,13 +18,15 @@
             "program": "${workspaceFolder}/ultralytics/data/scripts/convert_kitti_3d.py",
             "args": [
                 "--kitti-root",
-                "/root/autodl-tmp",
+                "/home/rick/datasets/kitti_raw",
                 "--output-root",
-                "/root/autodl-tmp/converted_kitti_3dop",
-                "--split",
-                "training",
+                "/home/rick/datasets/converted_kitti_3dop",
                 "--split-strategy",
-                "3dop"
+                "3dop",
+                "--filter-classes",
+                "Car",
+                "Pedestrian",
+                "Cyclist"
             ],
             "console": "integratedTerminal"
         },
@@ -44,32 +46,31 @@
             "name": "train smoke test",
             "type": "debugpy",
             "request": "launch",
-            "program": "/root/miniconda3/bin/yolo",
+            "program": "/home/rick/miniconda/envs/pytorch/bin/yolo",
             "args": [
                 "task=stereo3ddet",
-                "data=/root/autodl-tmp/converted_kitti_3dop/dataset.yaml",
+                "data=/home/rick/converted_kitti_3dop/dataset.yaml",
                 "model=yolo11-stereo3ddet.yaml",
                 "mode=train",
-                "epochs=200",
+                "epochs=20",
                 "batch=32",
-                "workers=0"
+                // "workers=0"
             ],
         },
         {
             "name": "validate with trained weights",
             "type": "debugpy",
             "request": "launch",
-            "program": "/root/miniconda3/bin/yolo",
+            "program": "/home/rick/miniconda/envs/pytorch/bin/yolo",
             "args": [
                 "task=stereo3ddet",
                 "mode=val",
-                "model=/root/ultralytics/runs/stereo3ddet/train146/weights/best.pt",
-                "data=/root/autodl-tmp/converted_kitti_3dop/dataset.yaml",
-                "imgsz=384",
+                "model=/home/rick/ultralytics/runs/stereo3ddet/train20/weights/best.pt",
+                "data=/home/rick/datasets/converted_kitti_3dop/dataset.yaml",
                 "batch=4",
-                "workers=0",
                 "plots=True",
-                "save_json=False"
+                "save_json=True",
+                "conf=0.25"
             ],
             "console": "integratedTerminal"
         },

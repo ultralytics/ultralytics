@@ -441,7 +441,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
         from modlib.models.post_processors import pp_yolo_segment_ultralytics
 
         class YOLOSegment(Model):
-        """YOLO segmentation model for IMX500 deployment."""
+            """YOLO segmentation model for IMX500 deployment."""
 
             def __init__(self):
                 """Initialize the YOLO segmentation model for IMX500 deployment."""

@@ -187,7 +187,7 @@ class Detect(nn.Module):
             norm = self.strides / (self.stride[0] * grid_size)
             dbox = self.decode_bboxes(self.dfl(boxes) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
         else:
-            new_shape = [s * 8 for s in self.shape[2:]]
+            new_shape = [s * self.stride[0] for s in self.shape[2:]]
             boxes[:, 0] *= new_shape[1]
             boxes[:, 1] *= new_shape[0]
             boxes[:, 2] *= new_shape[1]

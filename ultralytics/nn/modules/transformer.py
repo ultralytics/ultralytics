@@ -13,7 +13,8 @@ from torch.nn.init import constant_, xavier_uniform_
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 from .conv import Conv
-from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch, MSDeformAttnFunction
+from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
+from .utils import MSDeformAttnFunction, gen_sineembed_for_position
 
 __all__ = (
     "AIFI",
@@ -726,7 +727,7 @@ class DeformableTransformerDecoder(nn.Module):
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     """
 
-    def __init__(self, hidden_dim: int, decoder_layer: nn.Module, num_layers: int, eval_idx: int = -1):
+    def __init__(self, hidden_dim: int, decoder_layer: nn.Module, num_layers: int, eval_idx: int = -1, dab_sine_embedding: bool = False):
         """Initialize the DeformableTransformerDecoder with the given parameters.
 
         Args:
@@ -740,6 +741,7 @@ class DeformableTransformerDecoder(nn.Module):
         self.num_layers = num_layers
         self.hidden_dim = hidden_dim
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
+        self.dab_sine_embedding = dab_sine_embedding
 
     def forward(
         self,
@@ -752,6 +754,7 @@ class DeformableTransformerDecoder(nn.Module):
         pos_mlp: nn.Module,
         attn_mask: torch.Tensor | None = None,
         padding_mask: torch.Tensor | None = None,
+        pos_scale_mlp: nn.Module | None = None,
     ):
         """Perform the forward pass through the entire decoder.
 
@@ -765,6 +768,7 @@ class DeformableTransformerDecoder(nn.Module):
             pos_mlp (nn.Module): Position MLP.
             attn_mask (torch.Tensor, optional): Attention mask.
             padding_mask (torch.Tensor, optional): Padding mask.
+            pos_scale_mlp (nn.Module, optional): Position scale MLP.
 
         Returns:
             dec_bboxes (torch.Tensor): Decoded bounding boxes.
@@ -776,7 +780,15 @@ class DeformableTransformerDecoder(nn.Module):
         last_refined_bbox = None
         refer_bbox = refer_bbox.sigmoid()
         for i, layer in enumerate(self.layers):
-            output = layer(output, refer_bbox, feats, shapes, padding_mask, attn_mask, pos_mlp(refer_bbox))
+            if not self.dab_sine_embedding:
+                query_pos = pos_mlp(refer_bbox)
+            else:
+                sine_embedded_position = gen_sineembed_for_position(refer_bbox, self.hidden_dim // 2)
+                query_pos_unscaled = pos_mlp(sine_embedded_position)
+                pos_scale = pos_scale_mlp(output) if i != 0 else 1
+                query_pos = pos_scale * query_pos_unscaled
+
+            output = layer(output, refer_bbox, feats, shapes, padding_mask, attn_mask, query_pos)
 
             bbox = bbox_head[i](output)
             refined_bbox = torch.sigmoid(bbox + inverse_sigmoid(refer_bbox))

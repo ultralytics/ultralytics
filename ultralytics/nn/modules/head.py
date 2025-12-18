@@ -875,6 +875,7 @@ class RTDETRDecoder(nn.Module):
         learnt_init_query: bool = False,
         enable_cuda_acceleration: bool = False,
         one_to_many_groups: int = 0,
+        dab_sine_embedding: bool = False,
     ):
         """Initialize the RTDETRDecoder module with the given parameters.
 
@@ -918,9 +919,9 @@ class RTDETRDecoder(nn.Module):
         # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
 
         # Transformer module
-        decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp, 
+        decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp,
                                                           enable_cuda_acceleration=enable_cuda_acceleration)
-        self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx)
+        self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx, dab_sine_embedding)
 
         # Denoising part
         self.denoising_class_embed = nn.Embedding(nc, hd)
@@ -928,12 +929,20 @@ class RTDETRDecoder(nn.Module):
         self.label_noise_ratio = label_noise_ratio
         self.box_noise_scale = box_noise_scale
         self.query_noise_scale = 0.0
+        self.one_to_many_groups = one_to_many_groups
+        self.dab_sine_embedding = dab_sine_embedding
 
         # Decoder embedding
         self.learnt_init_query = learnt_init_query
         if learnt_init_query:
             self.tgt_embed = nn.Embedding(nq, hd)
-        self.query_pos_head = MLP(4, 2 * hd, hd, num_layers=2)
+
+        if dab_sine_embedding:
+            self.query_pos_head = MLP(2 * hd, 2 * hd, hd, num_layers=2)
+            self.query_pos_scale_head = MLP(hd, hd, hd, num_layers=2)
+        else:
+            self.query_pos_head = MLP(4, 2 * hd, hd, num_layers=2)
+            self.query_pos_scale_head = None
 
         # Encoder head
         self.enc_output = nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
@@ -943,8 +952,6 @@ class RTDETRDecoder(nn.Module):
         # Decoder head
         self.dec_score_head = nn.ModuleList([nn.Linear(hd, nc) for _ in range(ndl)])
         self.dec_bbox_head = nn.ModuleList([MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
-
-        self.one_to_many_groups = one_to_many_groups
 
         self._reset_parameters()
 
@@ -1001,6 +1008,8 @@ class RTDETRDecoder(nn.Module):
             self.dec_score_head,
             self.query_pos_head,
             attn_mask=attn_mask,
+            padding_mask=None,
+            pos_scale_mlp=self.query_pos_scale_head,
         )
         x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta
         if self.training:

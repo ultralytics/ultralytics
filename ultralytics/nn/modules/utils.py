@@ -107,6 +107,40 @@ def inverse_sigmoid(x, eps=1e-5):
     return torch.log(x1 / x2)
 
 
+def gen_sineembed_for_position(pos_tensor, length=128, temperature=10000):
+    # n_query, bs, _ = pos_tensor.size()
+    # sineembed_tensor = torch.zeros(n_query, bs, 256)
+    scale = 2 * math.pi
+    dim_t = torch.arange(length, dtype=torch.float32, device=pos_tensor.device)
+    dim_t = temperature ** (2 * (dim_t // 2) / length)
+    x_embed = pos_tensor[:, :, 0] * scale
+    y_embed = pos_tensor[:, :, 1] * scale
+    pos_x = x_embed[:, :, None] / dim_t
+    pos_y = y_embed[:, :, None] / dim_t
+    pos_x = torch.stack((pos_x[:, :, 0::2].sin(), pos_x[:, :, 1::2].cos()), dim=3).flatten(2)
+    pos_y = torch.stack((pos_y[:, :, 0::2].sin(), pos_y[:, :, 1::2].cos()), dim=3).flatten(2)
+    if pos_tensor.size(-1) == 2:
+        pos = torch.cat((pos_y, pos_x), dim=2)
+    elif pos_tensor.size(-1) == 3:
+        z_embed = pos_tensor[:, :, 2] * scale
+        pos_z = z_embed[:, :, None] / dim_t
+        pos_z = torch.stack((pos_z[:, :, 0::2].sin(), pos_z[:, :, 1::2].cos()), dim=3).flatten(2)
+        pos = torch.cat((pos_y, pos_x, pos_z), dim=2)
+    elif pos_tensor.size(-1) == 4:
+        w_embed = pos_tensor[:, :, 2] * scale
+        pos_w = w_embed[:, :, None] / dim_t
+        pos_w = torch.stack((pos_w[:, :, 0::2].sin(), pos_w[:, :, 1::2].cos()), dim=3).flatten(2)
+
+        h_embed = pos_tensor[:, :, 3] * scale
+        pos_h = h_embed[:, :, None] / dim_t
+        pos_h = torch.stack((pos_h[:, :, 0::2].sin(), pos_h[:, :, 1::2].cos()), dim=3).flatten(2)
+
+        pos = torch.cat((pos_y, pos_x, pos_w, pos_h), dim=2)
+    else:
+        raise ValueError("Unknown pos_tensor shape(-1):{}".format(pos_tensor.size(-1)))
+    return pos
+
+
 def multi_scale_deformable_attn_pytorch(
     value: torch.Tensor,
     value_spatial_shapes: torch.Tensor,

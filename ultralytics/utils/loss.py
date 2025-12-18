@@ -244,6 +244,7 @@ class v8DetectionLoss:
             stride=self.stride.tolist(),
             stride_ratio=self.hyp.stride_ratio,
             topk2=tal_topk2,
+            hungarian=self.hyp.hungarian
         )
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)

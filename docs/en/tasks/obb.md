@@ -17,7 +17,7 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 
 !!! tip
 
-    YOLO11 OBB models use the `-obb` suffix, i.e. `yolo11n-obb.pt` and are pretrained on [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
+    YOLO11 OBB models use the `-obb` suffix, i.e., `yolo11n-obb.pt`, and are pretrained on [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
 
 <p align="center">
   <br>
@@ -50,6 +50,10 @@ YOLO11 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 ## Train
 
 Train YOLO11n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+
+!!! note
+
+    OBB angles are constrained to the range **0–90 degrees** (exclusive of 90). Angles of 90 degrees or greater are not supported.
 
 !!! example
 
@@ -121,7 +125,7 @@ Validate trained YOLO11n-obb model [accuracy](https://www.ultralytics.com/glossa
         metrics.box.map  # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
-        metrics.box.maps  # a list contains map50-95(B) of each category
+        metrics.box.maps  # a list containing mAP50-95(B) for each category
         ```
 
     === "CLI"
@@ -190,7 +194,7 @@ Export a YOLO11n-obb model to a different format like ONNX, CoreML, etc.
 
         # Load a model
         model = YOLO("yolo11n-obb.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained model
+        model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
         model.export(format="onnx")
@@ -200,10 +204,10 @@ Export a YOLO11n-obb model to a different format like ONNX, CoreML, etc.
 
         ```bash
         yolo export model=yolo11n-obb.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
-Available YOLO11-obb export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-obb.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO11-obb export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo11n-obb.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 

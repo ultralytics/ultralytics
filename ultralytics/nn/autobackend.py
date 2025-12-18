@@ -1,12 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import ast
 import json
 import platform
 import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -14,14 +16,14 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML
+from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML, is_jetson
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
+from ultralytics.utils.nms import non_max_suppression
 
 
-def check_class_names(names: Union[List, Dict]) -> Dict[int, str]:
-    """
-    Check class names and convert to dict format if needed.
+def check_class_names(names: list | dict) -> dict[int, str]:
+    """Check class names and convert to dict format if needed.
 
     Args:
         names (list | dict): Class names as list or dict format.
@@ -49,9 +51,8 @@ def check_class_names(names: Union[List, Dict]) -> Dict[int, str]:
     return names
 
 
-def default_class_names(data: Optional[Union[str, Path]] = None) -> Dict[int, str]:
-    """
-    Apply default class names to an input YAML file or return numerical class names.
+def default_class_names(data: str | Path | None = None) -> dict[int, str]:
+    """Apply default class names to an input YAML file or return numerical class names.
 
     Args:
         data (str | Path, optional): Path to YAML file containing class names.
@@ -68,8 +69,7 @@ def default_class_names(data: Optional[Union[str, Path]] = None) -> Dict[int, st
 
 
 class AutoBackend(nn.Module):
-    """
-    Handle dynamic backend selection for running inference using Ultralytics YOLO models.
+    """Handle dynamic backend selection for running inference using Ultralytics YOLO models.
 
     The AutoBackend class is designed to provide an abstraction layer for various inference engines. It supports a wide
     range of formats, each with specific naming conventions as outlined below:
@@ -93,6 +93,9 @@ class AutoBackend(nn.Module):
             | NCNN                  | *_ncnn_model/     |
             | IMX                   | *_imx_model/      |
             | RKNN                  | *_rknn_model/     |
+            | Triton Inference      | triton://model    |
+            | ExecuTorch            | *.pte             |
+            | Axelera               | *_axelera_model/  |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -119,46 +122,44 @@ class AutoBackend(nn.Module):
         imx (bool): Whether the model is an IMX model.
         rknn (bool): Whether the model is an RKNN model.
         triton (bool): Whether the model is a Triton Inference Server model.
+        pte (bool): Whether the model is a PyTorch ExecuTorch model.
+        axelera (bool): Whether the model is an Axelera model.
 
     Methods:
         forward: Run inference on an input image.
-        from_numpy: Convert numpy array to tensor.
+        from_numpy: Convert NumPy arrays to tensors on the model device.
         warmup: Warm up the model with a dummy input.
         _model_type: Determine the model type from file path.
 
     Examples:
-        >>> model = AutoBackend(weights="yolo11n.pt", device="cuda")
+        >>> model = AutoBackend(model="yolo11n.pt", device="cuda")
         >>> results = model(img)
     """
 
     @torch.no_grad()
     def __init__(
         self,
-        weights: Union[str, List[str], torch.nn.Module] = "yolo11n.pt",
+        model: str | torch.nn.Module = "yolo11n.pt",
         device: torch.device = torch.device("cpu"),
         dnn: bool = False,
-        data: Optional[Union[str, Path]] = None,
+        data: str | Path | None = None,
         fp16: bool = False,
-        batch: int = 1,
         fuse: bool = True,
         verbose: bool = True,
     ):
-        """
-        Initialize the AutoBackend for inference.
+        """Initialize the AutoBackend for inference.
 
         Args:
-            weights (str | List[str] | torch.nn.Module): Path to the model weights file or a module instance.
+            model (str | torch.nn.Module): Path to the model weights file or a module instance.
             device (torch.device): Device to run the model on.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
-            batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
             verbose (bool): Enable verbose logging.
         """
         super().__init__()
-        w = str(weights[0] if isinstance(weights, list) else weights)
-        nn_module = isinstance(weights, torch.nn.Module)
+        nn_module = isinstance(model, torch.nn.Module)
         (
             pt,
             jit,
@@ -176,13 +177,15 @@ class AutoBackend(nn.Module):
             ncnn,
             imx,
             rknn,
+            pte,
+            axelera,
             triton,
-        ) = self._model_type(w)
+        ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
-        nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
+        nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCHW)
         stride, ch = 32, 3  # default stride and channels
         end2end, dynamic = False, False
-        model, metadata, task = None, None, None
+        metadata, task = None, None
 
         # Set device
         cuda = isinstance(device, torch.device) and torch.cuda.is_available() and device.type != "cpu"  # use CUDA
@@ -191,36 +194,32 @@ class AutoBackend(nn.Module):
             cuda = False
 
         # Download if not local
-        if not (pt or triton or nn_module):
-            w = attempt_download_asset(w)
+        w = attempt_download_asset(model) if pt else model  # weights path
 
-        # In-memory PyTorch model
-        if nn_module:
-            model = weights.to(device)
-            if fuse:
-                model = model.fuse(verbose=verbose)
+        # PyTorch (in-memory or file)
+        if nn_module or pt:
+            if nn_module:
+                pt = True
+                if fuse:
+                    if IS_JETSON and is_jetson(jetpack=5):
+                        # Jetson Jetpack5 requires device before fuse https://github.com/ultralytics/ultralytics/pull/21028
+                        model = model.to(device)
+                    model = model.fuse(verbose=verbose)
+                model = model.to(device)
+            else:  # pt file
+                from ultralytics.nn.tasks import load_checkpoint
+
+                model, _ = load_checkpoint(model, device=device, fuse=fuse)  # load model, ckpt
+
+            # Common PyTorch model processing
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
             ch = model.yaml.get("channels", 3)
-            self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
-            pt = True
-
-        # PyTorch
-        elif pt:
-            from ultralytics.nn.tasks import attempt_load_weights
-
-            model = attempt_load_weights(
-                weights if isinstance(weights, list) else w, device=device, inplace=True, fuse=fuse
-            )
-            if hasattr(model, "kpt_shape"):
-                kpt_shape = model.kpt_shape  # pose-only
-            stride = max(int(model.stride.max()), 32)  # model stride
-            names = model.module.names if hasattr(model, "module") else model.names  # get class names
-            model.half() if fp16 else model.float()
-            ch = model.yaml.get("channels", 3)
+            for p in model.parameters():
+                p.requires_grad = False
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
 
         # TorchScript
@@ -249,27 +248,24 @@ class AutoBackend(nn.Module):
             providers = ["CPUExecutionProvider"]
             if cuda:
                 if "CUDAExecutionProvider" in onnxruntime.get_available_providers():
-                    providers.insert(0, "CUDAExecutionProvider")
+                    providers.insert(0, ("CUDAExecutionProvider", {"device_id": device.index}))
                 else:  # Only log warning if CUDA was requested but unavailable
                     LOGGER.warning("Failed to start ONNX Runtime with CUDA. Using CPU...")
                     device = torch.device("cpu")
                     cuda = False
-            LOGGER.info(f"Using ONNX Runtime {providers[0]}")
+            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} {providers[0]}")
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
-                check_requirements(
-                    ["model-compression-toolkit>=2.3.0", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions"]
-                )
+                check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl<1.1.0", "onnxruntime-extensions"))
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq
-                from sony_custom_layers.pytorch.nms import nms_ort  # noqa
+                from edgemdt_cl.pytorch.nms import nms_ort  # noqa - register custom NMS ops
 
                 session_options = mctq.get_ort_session_options()
                 session_options.enable_mem_reuse = False  # fix the shape mismatch from onnxruntime
                 session = onnxruntime.InferenceSession(w, session_options, providers=["CPUExecutionProvider"])
-                task = "detect"
 
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
@@ -312,16 +308,22 @@ class AutoBackend(nn.Module):
             if ov_model.get_parameters()[0].get_layout().empty:
                 ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
+            metadata = w.parent / "metadata.yaml"
+            if metadata.exists():
+                metadata = YAML.load(metadata)
+                batch = metadata["batch"]
+                dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
-            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
-            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
+            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 and dynamic else "LATENCY"
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name=device_name,
                 config={"PERFORMANCE_HINT": inference_mode},
             )
+            LOGGER.info(
+                f"Using OpenVINO {inference_mode} mode for batch={batch} inference on {', '.join(ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
+            )
             input_name = ov_compiled_model.input().get_any_name()
-            metadata = w.parent / "metadata.yaml"
 
         # TensorRT
         elif engine:
@@ -332,11 +334,11 @@ class AutoBackend(nn.Module):
                 check_requirements("numpy==1.23.5")
 
             try:  # https://developer.nvidia.com/nvidia-tensorrt-download
-                import tensorrt as trt  # noqa
+                import tensorrt as trt
             except ImportError:
                 if LINUX:
                     check_requirements("tensorrt>7.0.0,!=10.1.0")
-                import tensorrt as trt  # noqa
+                import tensorrt as trt
             check_version(trt.__version__, ">=7.0.0", hard=True)
             check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
             if device.type == "cpu":
@@ -376,7 +378,7 @@ class AutoBackend(nn.Module):
                     if is_input:
                         if -1 in tuple(model.get_tensor_shape(name)):
                             dynamic = True
-                            context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[1]))
+                            context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[2]))
                         if dtype == np.float16:
                             fp16 = True
                     else:
@@ -398,14 +400,17 @@ class AutoBackend(nn.Module):
                 im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(device)
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
-            batch_size = bindings["images"].shape[0]  # if dynamic, this is instead max batch size
 
         # CoreML
         elif coreml:
+            check_requirements(
+                ["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"]
+            )  # latest numpy 2.4.0rc1 breaks coremltools exports
             LOGGER.info(f"Loading {w} for CoreML inference...")
             import coremltools as ct
 
             model = ct.models.MLModel(w)
+            dynamic = model.get_spec().description.input[0].type.HasField("multiArrayType")
             metadata = dict(model.user_defined_metadata)
 
         # TF SavedModel
@@ -422,7 +427,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Loading {w} for TensorFlow GraphDef inference...")
             import tensorflow as tf
 
-            from ultralytics.engine.exporter import gd_outputs
+            from ultralytics.utils.export.tensorflow import gd_outputs
 
             def wrap_frozen_graph(gd, inputs, outputs):
                 """Wrap frozen graphs for deployment."""
@@ -478,13 +483,19 @@ class AutoBackend(nn.Module):
 
         # TF.js
         elif tfjs:
-            raise NotImplementedError("YOLOv8 TF.js inference is not currently supported.")
+            raise NotImplementedError("Ultralytics TF.js inference is not currently supported.")
 
         # PaddlePaddle
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
-            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle>=3.0.0")
-            import paddle.inference as pdi  # noqa
+            check_requirements(
+                "paddlepaddle-gpu"
+                if torch.cuda.is_available()
+                else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
+                if ARM64
+                else "paddlepaddle>=3.0.0"
+            )
+            import paddle.inference as pdi
 
             w = Path(w)
             model_file, params_file = None, None
@@ -526,7 +537,7 @@ class AutoBackend(nn.Module):
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
-            check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn")  # requires NCNN
+            check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn", cmds="--no-deps")
             import ncnn as pyncnn
 
             net = pyncnn.Net()
@@ -562,6 +573,52 @@ class AutoBackend(nn.Module):
             rknn_model.init_runtime()
             metadata = w.parent / "metadata.yaml"
 
+        # Axelera
+        elif axelera:
+            import os
+
+            if not os.environ.get("AXELERA_RUNTIME_DIR"):
+                LOGGER.warning(
+                    "Axelera runtime environment is not activated."
+                    "\nPlease run: source /opt/axelera/sdk/latest/axelera_activate.sh"
+                    "\n\nIf this fails, verify driver installation: https://docs.ultralytics.com/integrations/axelera/#axelera-driver-installation"
+                )
+            try:
+                from axelera.runtime import op
+            except ImportError:
+                check_requirements(
+                    "axelera_runtime2==0.1.2",
+                    cmds="--extra-index-url https://software.axelera.ai/artifactory/axelera-runtime-pypi",
+                )
+            from axelera.runtime import op
+
+            w = Path(w)
+            if (found := next(w.rglob("*.axm"), None)) is None:
+                raise FileNotFoundError(f"No .axm file found in: {w}")
+            w = found
+
+            ax_model = op.load(str(w))
+            metadata = w.parent / "metadata.yaml"
+
+        # ExecuTorch
+        elif pte:
+            LOGGER.info(f"Loading {w} for ExecuTorch inference...")
+            # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
+            check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
+            check_requirements(("executorch==1.0.1", "flatbuffers"))
+            from executorch.runtime import Runtime
+
+            w = Path(w)
+            if w.is_dir():
+                model_file = next(w.rglob("*.pte"))
+                metadata = w / "metadata.yaml"
+            else:
+                model_file = w
+                metadata = w.parent / "metadata.yaml"
+
+            program = Runtime.get().load_program(str(model_file))
+            model = program.load_method("forward")
+
         # Any other format (unsupported)
         else:
             from ultralytics.engine.exporter import export_formats
@@ -578,29 +635,25 @@ class AutoBackend(nn.Module):
             for k, v in metadata.items():
                 if k in {"stride", "batch", "channels"}:
                     metadata[k] = int(v)
-                elif k in {"imgsz", "names", "kpt_shape", "args"} and isinstance(v, str):
-                    metadata[k] = eval(v)
+                elif k in {"imgsz", "names", "kpt_shape", "kpt_names", "args"} and isinstance(v, str):
+                    metadata[k] = ast.literal_eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
             batch = metadata["batch"]
             imgsz = metadata["imgsz"]
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
+            kpt_names = metadata.get("kpt_names")
             end2end = metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):
-            LOGGER.warning(f"Metadata not found for 'model={weights}'")
+            LOGGER.warning(f"Metadata not found for 'model={w}'")
 
         # Check names
         if "names" not in locals():  # names missing
             names = default_class_names(data)
         names = check_class_names(names)
-
-        # Disable gradients
-        if pt:
-            for p in model.parameters():
-                p.requires_grad = False
 
         self.__dict__.update(locals())  # assign all variables to self
 
@@ -609,11 +662,10 @@ class AutoBackend(nn.Module):
         im: torch.Tensor,
         augment: bool = False,
         visualize: bool = False,
-        embed: Optional[List] = None,
+        embed: list | None = None,
         **kwargs: Any,
-    ) -> Union[torch.Tensor, List[torch.Tensor]]:
-        """
-        Run inference on an AutoBackend model.
+    ) -> torch.Tensor | list[torch.Tensor]:
+        """Run inference on an AutoBackend model.
 
         Args:
             im (torch.Tensor): The image tensor to perform inference on.
@@ -623,9 +675,9 @@ class AutoBackend(nn.Module):
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
-            (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.
+            (torch.Tensor | list[torch.Tensor]): The raw output tensor(s) from the model.
         """
-        b, ch, h, w = im.shape  # batch, channel, height, width
+        _b, _ch, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:
             im = im.half()  # to FP16
         if self.nhwc:
@@ -664,8 +716,17 @@ class AutoBackend(nn.Module):
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
             if self.imx:
-                # boxes, conf, cls
-                y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
+                if self.task == "detect":
+                    # boxes, conf, cls
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
+                elif self.task == "pose":
+                    # boxes, conf, kpts
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1, dtype=y[0].dtype)
+                elif self.task == "segment":
+                    y = (
+                        np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1, dtype=y[0].dtype),
+                        y[4],
+                    )
 
         # OpenVINO
         elif self.xml:
@@ -686,8 +747,8 @@ class AutoBackend(nn.Module):
                     # Start async inference with userdata=i to specify the position in results list
                     async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)  # keep image as BCHW
                 async_queue.wait_all()  # wait for all inference requests to complete
-                y = np.concatenate([list(r.values())[0] for r in results])
-
+                y = [list(r.values()) for r in results]
+                y = [np.concatenate(x) for x in zip(*y)]
             else:  # inference_mode = "LATENCY", optimized for fastest first result at batch-size 1
                 y = list(self.ov_compiled_model(im).values())
 
@@ -715,21 +776,21 @@ class AutoBackend(nn.Module):
 
         # CoreML
         elif self.coreml:
-            im = im[0].cpu().numpy()
-            im_pil = Image.fromarray((im * 255).astype("uint8"))
+            im = im.cpu().numpy()
+            if self.dynamic:
+                im = im.transpose(0, 3, 1, 2)
+            else:
+                im = Image.fromarray((im[0] * 255).astype("uint8"))
             # im = im.resize((192, 320), Image.BILINEAR)
-            y = self.model.predict({"image": im_pil})  # coordinates are xywh normalized
-            if "confidence" in y:
-                raise TypeError(
-                    "Ultralytics only supports inference of non-pipelined CoreML models exported with "
-                    f"'nms=False', but 'model={w}' has an NMS pipeline created by an 'nms=True' export."
-                )
-                # TODO: CoreML NMS inference handling
-                # from ultralytics.utils.ops import xywh2xyxy
-                # box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels
-                # conf, cls = y['confidence'].max(1), y['confidence'].argmax(1).astype(np.float32)
-                # y = np.concatenate((box, conf.reshape(-1, 1), cls.reshape(-1, 1)), 1)
-            y = list(y.values())
+            y = self.model.predict({"image": im})  # coordinates are xywh normalized
+            if "confidence" in y:  # NMS included
+                from ultralytics.utils.ops import xywh2xyxy
+
+                box = xywh2xyxy(y["coordinates"] * [[w, h, w, h]])  # xyxy pixels
+                cls = y["confidence"].argmax(1, keepdims=True)
+                y = np.concatenate((box, np.take_along_axis(y["confidence"], cls, axis=1), cls), 1)[None]
+            else:
+                y = list(y.values())
             if len(y) == 2 and len(y[1].shape) != 4:  # segmentation model
                 y = list(reversed(y))  # reversed for segmentation models (pred, proto)
 
@@ -764,6 +825,15 @@ class AutoBackend(nn.Module):
             im = (im.cpu().numpy() * 255).astype("uint8")
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im)
+
+        # Axelera
+        elif self.axelera:
+            im = im.cpu()
+            y = self.ax_model(im)
+
+        # ExecuTorch
+        elif self.pte:
+            y = self.model.execute([im])
 
         # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
         else:
@@ -824,47 +894,45 @@ class AutoBackend(nn.Module):
         else:
             return self.from_numpy(y)
 
-    def from_numpy(self, x: np.ndarray) -> torch.Tensor:
-        """
-        Convert a numpy array to a tensor.
+    def from_numpy(self, x: np.ndarray | torch.Tensor) -> torch.Tensor:
+        """Convert a NumPy array to a torch tensor on the model device.
 
         Args:
-            x (np.ndarray): The array to be converted.
+            x (np.ndarray | torch.Tensor): Input array or tensor.
 
         Returns:
-            (torch.Tensor): The converted tensor
+            (torch.Tensor): Tensor on `self.device`.
         """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
-    def warmup(self, imgsz: Tuple[int, int, int, int] = (1, 3, 640, 640)) -> None:
-        """
-        Warm up the model by running one forward pass with a dummy input.
+    def warmup(self, imgsz: tuple[int, int, int, int] = (1, 3, 640, 640)) -> None:
+        """Warm up the model by running one forward pass with a dummy input.
 
         Args:
-            imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
+            imgsz (tuple[int, int, int, int]): Dummy input shape in (batch, channels, height, width) format.
         """
-        import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
-
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.jit else 1):
-                self.forward(im)  # warmup
+                self.forward(im)  # warmup model
+                warmup_boxes = torch.rand(1, 84, 16, device=self.device)  # 16 boxes works best empirically
+                warmup_boxes[:, :4] *= imgsz[-1]
+                non_max_suppression(warmup_boxes)  # warmup NMS
 
     @staticmethod
-    def _model_type(p: str = "path/to/model.pt") -> List[bool]:
-        """
-        Take a path to a model file and return the model type.
+    def _model_type(p: str = "path/to/model.pt") -> list[bool]:
+        """Take a path to a model file and return the model type.
 
         Args:
             p (str): Path to the model file.
 
         Returns:
-            (List[bool]): List of booleans indicating the model type.
+            (list[bool]): List of booleans indicating the model type.
 
         Examples:
-            >>> model = AutoBackend(weights="path/to/model.onnx")
-            >>> model_type = model._model_type()  # returns "onnx"
+            >>> types = AutoBackend._model_type("path/to/model.onnx")
+            >>> assert types[2]  # onnx
         """
         from ultralytics.engine.exporter import export_formats
 
@@ -883,4 +951,4 @@ class AutoBackend(nn.Module):
             url = urlsplit(p)
             triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
 
-        return types + [triton]
+        return [*types, triton]

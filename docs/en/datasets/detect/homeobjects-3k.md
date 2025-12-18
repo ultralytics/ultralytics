@@ -10,6 +10,17 @@ keywords: HomeObjects-3K, indoor dataset, household items, object detection, com
 
 The HomeObjects-3K dataset is a curated collection of common household object images, designed for training, testing, and [benchmarking](../../modes/benchmark.md) [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models. Featuring ~3,000 images and 12 distinct object classes, this dataset is ideal for research and applications in indoor scene understanding, smart home devices, [robotics](https://www.ultralytics.com/glossary/robotics), and augmented reality.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/v3iqOYoRBFQ"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on HomeObjects-3K Dataset | Detection, Validation & ONNX Export 🚀
+</p>
+
 ## Dataset Structure
 
 The HomeObjects-3K dataset is organized into the following subsets:
@@ -109,7 +120,7 @@ If you use this dataset in your research, please cite it using the mentioned det
             license = {AGPL-3.0},
             month = {May},
             title = {Ultralytics Datasets: HomeObjects-3K Detection Dataset},
-            url = {https://docs.ultralytics.com/datasets/detect/homeobject-3k/},
+            url = {https://docs.ultralytics.com/datasets/detect/homeobjects-3k/},
             version = {1.0.0},
             year = {2025}
         }

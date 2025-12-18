@@ -19,7 +19,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   workflow_dispatch:
     inputs:
       publish_docs:
@@ -38,7 +37,7 @@ jobs:
       GITHUB_REF: ${{ github.head_ref || github.ref }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # Fetch depth 0 required to capture full docs author history
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
@@ -46,21 +45,21 @@ jobs:
           ref: ${{ env.GITHUB_REF }}
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Install Dependencies
-        run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-ultralytics-plugin mkdocs-macros-plugin
+        run: uv pip install --system -e ".[dev]" ruff black --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Ruff fixes
         continue-on-error: true
         run: |
           ruff check \
           --fix \
           --unsafe-fixes \
-          --extend-select I,D,UP \
-          --target-version py38 \
-          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 \
+          --extend-select F,I,D,UP,RUF,FA \
+          --target-version py39 \
+          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012 \
           .
       - name: Update Docs Reference Section and Push Changes
         continue-on-error: true
@@ -69,7 +68,7 @@ jobs:
           git config --global user.email "web@ultralytics.com"
           npm install --global prettier prettier-plugin-sh
           python docs/build_reference.py
-          git pull origin "$GITHUB_REF"          
+          git pull origin "$GITHUB_REF"
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if [[ "${{ github.event_name }}" == "pull_request" ]] && ! git diff --staged --quiet; then
@@ -81,13 +80,12 @@ jobs:
       - name: Ruff checks
         run: |
           ruff check \
-          --extend-select I,D,UP \
-          --target-version py38 \
-          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413 \
+          --extend-select F,I,D,UP,RUF,FA \
+          --target-version py39 \
+          --ignore D100,D104,D203,D205,D212,D213,D401,D406,D407,D413,RUF001,RUF002,RUF012 \
           .
       - name: Build Docs and Check for Warnings
         run: |
-          export JUPYTER_PLATFORM_DIRS=1
           python docs/build_docs.py
       - name: Commit and Push Docs changes
         continue-on-error: true
@@ -109,8 +107,8 @@ jobs:
           cd docs-repo
           if [ -f "vercel.json" ]; then
             cp vercel.json /tmp/vercel.json
-          fi          
-          rm -rf *          
+          fi
+          rm -rf *
           cp -R ../site/* .
           if [ -f "/tmp/vercel.json" ]; then
             cp /tmp/vercel.json .

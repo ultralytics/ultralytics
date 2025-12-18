@@ -5,9 +5,9 @@ keywords: Ultralytics, data conversion, YOLO models, COCO, DOTA, YOLO bbox2segme
 
 # Reference for `ultralytics/data/converter.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/converter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/converter.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/data/converter.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/converter.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/converter.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 
@@ -48,5 +48,9 @@ keywords: Ultralytics, data conversion, YOLO models, COCO, DOTA, YOLO bbox2segme
 <br><br><hr><br>
 
 ## ::: ultralytics.data.converter.convert_to_multispectral
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.converter.convert_ndjson_to_yolo
 
 <br><br>

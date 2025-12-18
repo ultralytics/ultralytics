@@ -1,30 +1,31 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
 
 class GPUInfo:
-    """
-    Manages NVIDIA GPU information via pynvml with robust error handling.
+    """Manages NVIDIA GPU information via pynvml with robust error handling.
 
-    Provides methods to query detailed GPU statistics (utilization, memory, temp, power) and select the most idle
-    GPUs based on configurable criteria. It safely handles the absence or initialization failure of the pynvml
-    library by logging warnings and disabling related features, preventing application crashes.
+    Provides methods to query detailed GPU statistics (utilization, memory, temp, power) and select the most idle GPUs
+    based on configurable criteria. It safely handles the absence or initialization failure of the pynvml library by
+    logging warnings and disabling related features, preventing application crashes.
 
     Includes fallback logic using `torch.cuda` for basic device counting if NVML is unavailable during GPU
     selection. Manages NVML initialization and shutdown internally.
 
     Attributes:
         pynvml (module | None): The `pynvml` module if successfully imported and initialized, otherwise `None`.
-        nvml_available (bool): Indicates if `pynvml` is ready for use. True if import and `nvmlInit()` succeeded,
-            False otherwise.
-        gpu_stats (List[Dict[str, Any]]): A list of dictionaries, each holding stats for one GPU. Populated on
-            initialization and by `refresh_stats()`. Keys include: 'index', 'name', 'utilization' (%),
-            'memory_used' (MiB), 'memory_total' (MiB), 'memory_free' (MiB), 'temperature' (C), 'power_draw' (W),
-            'power_limit' (W or 'N/A'). Empty if NVML is unavailable or queries fail.
+        nvml_available (bool): Indicates if `pynvml` is ready for use. True if import and `nvmlInit()` succeeded, False
+            otherwise.
+        gpu_stats (list[dict[str, Any]]): A list of dictionaries, each holding stats for one GPU, populated on
+        initialization and by `refresh_stats()`. Keys include: 'index', 'name', 'utilization' (%), 'memory_used' (MiB),
+            'memory_total' (MiB), 'memory_free' (MiB), 'temperature' (C), 'power_draw' (W), 'power_limit' (W or 'N/A').
+            Empty if NVML is unavailable or queries fail.
 
     Methods:
         refresh_stats: Refresh the internal gpu_stats list by querying NVML.
@@ -44,12 +45,12 @@ class GPUInfo:
 
     def __init__(self):
         """Initialize GPUInfo, attempting to import and initialize pynvml."""
-        self.pynvml: Optional[Any] = None
+        self.pynvml: Any | None = None
         self.nvml_available: bool = False
-        self.gpu_stats: List[Dict[str, Any]] = []
+        self.gpu_stats: list[dict[str, Any]] = []
 
         try:
-            check_requirements("pynvml>=12.0.0")
+            check_requirements("nvidia-ml-py>=12.0.0")
             self.pynvml = __import__("pynvml")
             self.pynvml.nvmlInit()
             self.nvml_available = True
@@ -78,13 +79,12 @@ class GPUInfo:
 
         try:
             device_count = self.pynvml.nvmlDeviceGetCount()
-            for i in range(device_count):
-                self.gpu_stats.append(self._get_device_stats(i))
+            self.gpu_stats.extend(self._get_device_stats(i) for i in range(device_count))
         except Exception as e:
             LOGGER.warning(f"Error during device query: {e}")
             self.gpu_stats = []
 
-    def _get_device_stats(self, index: int) -> Dict[str, Any]:
+    def _get_device_stats(self, index: int) -> dict[str, Any]:
         """Get stats for a single GPU device."""
         handle = self.pynvml.nvmlDeviceGetHandleByIndex(index)
         memory = self.pynvml.nvmlDeviceGetMemoryInfo(handle)
@@ -135,9 +135,8 @@ class GPUInfo:
 
     def select_idle_gpu(
         self, count: int = 1, min_memory_fraction: float = 0, min_util_fraction: float = 0
-    ) -> List[int]:
-        """
-        Select the most idle GPUs based on utilization and free memory.
+    ) -> list[int]:
+        """Select the most idle GPUs based on utilization and free memory.
 
         Args:
             count (int): The number of idle GPUs to select.
@@ -145,7 +144,7 @@ class GPUInfo:
             min_util_fraction (float): Minimum free utilization rate required from 0.0 - 1.0.
 
         Returns:
-            (List[int]): Indices of the selected GPUs, sorted by idleness (lowest utilization first).
+            (list[int]): Indices of the selected GPUs, sorted by idleness (lowest utilization first).
 
         Notes:
              Returns fewer than 'count' if not enough qualify or exist.
@@ -153,9 +152,10 @@ class GPUInfo:
         """
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
         assert min_util_fraction <= 1.0, f"min_util_fraction must be <= 1.0, got {min_util_fraction}"
-        LOGGER.info(
-            f"Searching for {count} idle GPUs with free memory >= {min_memory_fraction * 100:.1f}% and free utilization >= {min_util_fraction * 100:.1f}%..."
+        criteria = (
+            f"free memory >= {min_memory_fraction * 100:.1f}% and free utilization >= {min_util_fraction * 100:.1f}%"
         )
+        LOGGER.info(f"Searching for {count} idle GPUs with {criteria}...")
 
         if count <= 0:
             return []
@@ -178,11 +178,11 @@ class GPUInfo:
         selected = [gpu["index"] for gpu in eligible_gpus[:count]]
 
         if selected:
+            if len(selected) < count:
+                LOGGER.warning(f"Requested {count} GPUs but only {len(selected)} met the idle criteria.")
             LOGGER.info(f"Selected idle CUDA devices {selected}")
         else:
-            LOGGER.warning(
-                f"No GPUs met criteria (Free Mem >= {min_memory_fraction * 100:.1f}% and Free Util >= {min_util_fraction * 100:.1f}%)."
-            )
+            LOGGER.warning(f"No GPUs met criteria ({criteria}).")
 
         return selected
 
@@ -195,12 +195,11 @@ if __name__ == "__main__":
     gpu_info = GPUInfo()
     gpu_info.print_status()
 
-    selected = gpu_info.select_idle_gpu(
+    if selected := gpu_info.select_idle_gpu(
         count=num_gpus_to_select,
         min_memory_fraction=required_free_mem_fraction,
         min_util_fraction=required_free_util_fraction,
-    )
-    if selected:
+    ):
         print(f"\n==> Using selected GPU indices: {selected}")
         devices = [f"cuda:{idx}" for idx in selected]
         print(f"    Target devices: {devices}")

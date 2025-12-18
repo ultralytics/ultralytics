@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import json
 import os
 import random
@@ -9,7 +11,7 @@ import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
-from typing import Dict, List, Tuple, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -17,9 +19,9 @@ from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
+    ASSETS_URL,
     DATASETS_DIR,
     LOGGER,
-    MACOS,
     NUM_THREADS,
     ROOT,
     SETTINGS_FILE,
@@ -37,27 +39,25 @@ from ultralytics.utils.ops import segments2boxes
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm", "heic"}  # image suffixes
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # video suffixes
-PIN_MEMORY = str(os.getenv("PIN_MEMORY", not MACOS)).lower() == "true"  # global pin_memory for dataloaders
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
-def img2label_paths(img_paths: List[str]) -> List[str]:
+def img2label_paths(img_paths: list[str]) -> list[str]:
     """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
     sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
     return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
 
 
 def check_file_speeds(
-    files: List[str], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
+    files: list[str], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
 ):
-    """
-    Check dataset file access speed and provide performance feedback.
+    """Check dataset file access speed and provide performance feedback.
 
-    This function tests the access speed of dataset files by measuring ping (stat call) time and read speed.
-    It samples up to 5 files from the provided list and warns if access times exceed the threshold.
+    This function tests the access speed of dataset files by measuring ping (stat call) time and read speed. It samples
+    up to 5 files from the provided list and warns if access times exceed the threshold.
 
     Args:
-        files (List[str]): List of file paths to check for access speed.
+        files (list[str]): List of file paths to check for access speed.
         threshold_ms (float, optional): Threshold in milliseconds for ping time warnings.
         threshold_mb (float, optional): Threshold in megabytes per second for read speed warnings.
         max_files (int, optional): The maximum number of files to check.
@@ -68,7 +68,7 @@ def check_file_speeds(
         >>> image_files = list(Path("dataset/images").glob("*.jpg"))
         >>> check_file_speeds(image_files, threshold_ms=15)
     """
-    if not files or len(files) == 0:
+    if not files:
         LOGGER.warning(f"{prefix}Image speed checks: No files to check")
         return
 
@@ -125,7 +125,7 @@ def check_file_speeds(
         )
 
 
-def get_hash(paths: List[str]) -> str:
+def get_hash(paths: list[str]) -> str:
     """Return a single hash value of a list of paths (files or dirs)."""
     size = 0
     for p in paths:
@@ -138,7 +138,7 @@ def get_hash(paths: List[str]) -> str:
     return h.hexdigest()  # return hash
 
 
-def exif_size(img: Image.Image) -> Tuple[int, int]:
+def exif_size(img: Image.Image) -> tuple[int, int]:
     """Return exif-corrected PIL size."""
     s = img.size  # (width, height)
     if img.format == "JPEG":  # only support JPEG images
@@ -152,7 +152,7 @@ def exif_size(img: Image.Image) -> Tuple[int, int]:
     return s
 
 
-def verify_image(args: Tuple) -> Tuple:
+def verify_image(args: tuple) -> tuple:
     """Verify one image."""
     (im_file, cls), prefix = args
     # Number (found, corrupt), message
@@ -177,7 +177,7 @@ def verify_image(args: Tuple) -> Tuple:
     return (im_file, cls), nf, nc, msg
 
 
-def verify_image_label(args: Tuple) -> List:
+def verify_image_label(args: tuple) -> list:
     """Verify one image-label pair."""
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
@@ -214,13 +214,12 @@ def verify_image_label(args: Tuple) -> List:
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
                     points = lb[:, 1:]
-                assert points.max() <= 1, f"non-normalized or out of bounds coordinates {points[points > 1]}"
-                assert lb.min() >= 0, f"negative label values {lb[lb < 0]}"
+                # Coordinate points check with 1% tolerance
+                assert points.max() <= 1.01, f"non-normalized or out of bounds coordinates {points[points > 1.01]}"
+                assert lb.min() >= -0.01, f"negative class labels or coordinate {lb[lb < -0.01]}"
 
                 # All labels
-                if single_cls:
-                    lb[:, 0] = 0
-                max_cls = lb[:, 0].max()  # max label count
+                max_cls = 0 if single_cls else lb[:, 0].max()  # max label count
                 assert max_cls < num_cls, (
                     f"Label class {int(max_cls)} exceeds dataset class count {num_cls}. "
                     f"Possible class labels are 0-{num_cls - 1}"
@@ -236,7 +235,7 @@ def verify_image_label(args: Tuple) -> List:
                 lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, (5 + nkpt * ndim) if keypoints else 5), dtype=np.float32)
+            lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
         if keypoint:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
             if ndim == 2:
@@ -250,22 +249,21 @@ def verify_image_label(args: Tuple) -> List:
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
-def visualize_image_annotations(image_path: str, txt_path: str, label_map: Dict[int, str]):
-    """
-    Visualize YOLO annotations (bounding boxes and class labels) on an image.
+def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[int, str]):
+    """Visualize YOLO annotations (bounding boxes and class labels) on an image.
 
-    This function reads an image and its corresponding annotation file in YOLO format, then
-    draws bounding boxes around detected objects and labels them with their respective class names.
-    The bounding box colors are assigned based on the class ID, and the text color is dynamically
-    adjusted for readability, depending on the background color's luminance.
+    This function reads an image and its corresponding annotation file in YOLO format, then draws bounding boxes around
+    detected objects and labels them with their respective class names. The bounding box colors are assigned based on
+    the class ID, and the text color is dynamically adjusted for readability, depending on the background color's
+    luminance.
 
     Args:
-        image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL.
-        txt_path (str): The path to the annotation file in YOLO format, that should contain one line per object.
-        label_map (Dict[int, str]): A dictionary that maps class IDs (integers) to class labels (strings).
+        image_path (str): Path to the image file to annotate. The file must be readable by PIL.
+        txt_path (str): Path to the annotation file in YOLO format, which should contain one line per object.
+        label_map (dict[int, str]): A dictionary that maps class IDs (integers) to class labels (strings).
 
     Examples:
-        >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
+        >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # Should include all annotated classes
         >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
     """
     import matplotlib.pyplot as plt
@@ -283,9 +281,9 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: Dict[
             w = width * img_width
             h = height * img_height
             annotations.append((x, y, w, h, int(class_id)))
-    fig, ax = plt.subplots(1)  # Plot the image and annotations
+    _, ax = plt.subplots(1)  # Plot the image and annotations
     for x, y, w, h, label in annotations:
-        color = tuple(c / 255 for c in colors(label, True))  # Get and normalize the RGB color
+        color = tuple(c / 255 for c in colors(label, False))  # Get and normalize an RGB color for Matplotlib
         rect = plt.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor="none")  # Create a rectangle
         ax.add_patch(rect)
         luminance = 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2]  # Formula for luminance
@@ -295,15 +293,14 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: Dict[
 
 
 def polygon2mask(
-    imgsz: Tuple[int, int], polygons: List[np.ndarray], color: int = 1, downsample_ratio: int = 1
+    imgsz: tuple[int, int], polygons: list[np.ndarray], color: int = 1, downsample_ratio: int = 1
 ) -> np.ndarray:
-    """
-    Convert a list of polygons to a binary mask of the specified image size.
+    """Convert a list of polygons to a binary mask of the specified image size.
 
     Args:
-        imgsz (Tuple[int, int]): The size of the image as (height, width).
-        polygons (List[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
-                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        imgsz (tuple[int, int]): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where N is the
+            number of polygons, and M is the number of points such that M % 2 = 0.
         color (int, optional): The color value to fill in the polygons on the mask.
         downsample_ratio (int, optional): Factor by which to downsample the mask.
 
@@ -320,15 +317,14 @@ def polygon2mask(
 
 
 def polygons2masks(
-    imgsz: Tuple[int, int], polygons: List[np.ndarray], color: int, downsample_ratio: int = 1
+    imgsz: tuple[int, int], polygons: list[np.ndarray], color: int, downsample_ratio: int = 1
 ) -> np.ndarray:
-    """
-    Convert a list of polygons to a set of binary masks of the specified image size.
+    """Convert a list of polygons to a set of binary masks of the specified image size.
 
     Args:
-        imgsz (Tuple[int, int]): The size of the image as (height, width).
-        polygons (List[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
-                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        imgsz (tuple[int, int]): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where N is the
+            number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask.
 
@@ -339,8 +335,8 @@ def polygons2masks(
 
 
 def polygons2masks_overlap(
-    imgsz: Tuple[int, int], segments: List[np.ndarray], downsample_ratio: int = 1
-) -> Tuple[np.ndarray, np.ndarray]:
+    imgsz: tuple[int, int], segments: list[np.ndarray], downsample_ratio: int = 1
+) -> tuple[np.ndarray, np.ndarray]:
     """Return a (640, 640) overlap mask."""
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
@@ -348,8 +344,13 @@ def polygons2masks_overlap(
     )
     areas = []
     ms = []
-    for si in range(len(segments)):
-        mask = polygon2mask(imgsz, [segments[si].reshape(-1)], downsample_ratio=downsample_ratio, color=1)
+    for segment in segments:
+        mask = polygon2mask(
+            imgsz,
+            [segment.reshape(-1)],
+            downsample_ratio=downsample_ratio,
+            color=1,
+        )
         ms.append(mask.astype(masks.dtype))
         areas.append(mask.sum())
     areas = np.asarray(areas)
@@ -363,8 +364,7 @@ def polygons2masks_overlap(
 
 
 def find_dataset_yaml(path: Path) -> Path:
-    """
-    Find and return the YAML file associated with a Detect, Segment or Pose dataset.
+    """Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
     performs a recursive search. It prefers YAML files that have the same stem as the provided path.
@@ -383,9 +383,8 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
-def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict:
-    """
-    Download, verify, and/or unzip a dataset if not found locally.
+def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
+    """Download, verify, and/or unzip a dataset if not found locally.
 
     This function checks the availability of a specified dataset, and if not found, it has the option to download and
     unzip the dataset. It then reads and parses the accompanying YAML data, ensuring key requirements are met and also
@@ -396,7 +395,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict:
         autodownload (bool, optional): Whether to automatically download the dataset if not found.
 
     Returns:
-        (Dict): Parsed dataset information and paths.
+        (dict[str, Any]): Parsed dataset information and paths.
     """
     file = check_file(dataset)
 
@@ -455,7 +454,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict:
         if not all(x.exists() for x in val):
             name = clean_url(dataset)  # dataset name with URL auth stripped
             LOGGER.info("")
-            m = f"Dataset '{name}' images not found, missing path '{[x for x in val if not x.exists()][0]}'"
+            m = f"Dataset '{name}' images not found, missing path '{next(x for x in val if not x.exists())}'"
             if s and autodownload:
                 LOGGER.warning(m)
             else:
@@ -467,7 +466,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict:
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
             elif s.startswith("bash "):  # bash script
                 LOGGER.info(f"Running {s} ...")
-                r = os.system(s)
+                subprocess.run(s.split(), check=True)
             else:  # python script
                 exec(s, {"yaml": data})
             dt = f"({round(time.time() - t, 1)}s)"
@@ -478,25 +477,24 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict:
     return data  # dictionary
 
 
-def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict:
-    """
-    Check a classification dataset such as Imagenet.
+def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
+    """Check a classification dataset such as Imagenet.
 
-    This function accepts a `dataset` name and attempts to retrieve the corresponding dataset information.
-    If the dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
+    This function accepts a `dataset` name and attempts to retrieve the corresponding dataset information. If the
+    dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
 
     Args:
         dataset (str | Path): The name of the dataset.
         split (str, optional): The split of the dataset. Either 'val', 'test', or ''.
 
     Returns:
-        (Dict): A dictionary containing the following keys:
+        (dict[str, Any]): A dictionary containing the following keys:
 
             - 'train' (Path): The directory path containing the training set of the dataset.
             - 'val' (Path): The directory path containing the validation set of the dataset.
             - 'test' (Path): The directory path containing the test set of the dataset.
             - 'nc' (int): The number of classes in the dataset.
-            - 'names' (Dict): A dictionary of class names in the dataset.
+            - 'names' (dict[int, str]): A dictionary of class names in the dataset.
     """
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
@@ -508,20 +506,23 @@ def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict:
     dataset = Path(dataset)
     data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
     if not data_dir.is_dir():
+        if data_dir.suffix != "":
+            raise ValueError(
+                f'Classification datasets must be a directory (data="path/to/dir") not a file (data="{dataset}"), '
+                "See https://docs.ultralytics.com/datasets/classify/"
+            )
         LOGGER.info("")
         LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")
         t = time.time()
         if str(dataset) == "imagenet":
-            subprocess.run(f"bash {ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
+            subprocess.run(["bash", str(ROOT / "data/scripts/get_imagenet.sh")], check=True)
         else:
-            url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{dataset}.zip"
-            download(url, dir=data_dir.parent)
+            download(f"{ASSETS_URL}/{dataset}.zip", dir=data_dir.parent)
         LOGGER.info(f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n")
     train_set = data_dir / "train"
     if not train_set.is_dir():
         LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")
-        image_files = list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png"))
-        if image_files:
+        if image_files := list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png")):
             from ultralytics.data.split import split_classify_dataset
 
             LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")
@@ -534,6 +535,8 @@ def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict:
         if (data_dir / "val").exists()
         else data_dir / "validation"
         if (data_dir / "validation").exists()
+        else data_dir / "valid"
+        if (data_dir / "valid").exists()
         else None
     )  # data/test or data/val
     test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test
@@ -571,8 +574,7 @@ def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict:
 
 
 class HUBDatasetStats:
-    """
-    A class for generating HUB dataset JSON and `-hub` dataset directory.
+    """A class for generating HUB dataset JSON and `-hub` dataset directory.
 
     Args:
         path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip).
@@ -583,16 +585,12 @@ class HUBDatasetStats:
         task (str): Dataset task type.
         hub_dir (Path): Directory path for HUB dataset files.
         im_dir (Path): Directory path for compressed images.
-        stats (Dict): Statistics dictionary containing dataset information.
-        data (Dict): Dataset configuration data.
+        stats (dict): Statistics dictionary containing dataset information.
+        data (dict): Dataset configuration data.
 
     Methods:
         get_json: Return dataset JSON for Ultralytics HUB.
         process_images: Compress images for Ultralytics HUB.
-
-    Note:
-        Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
-        i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
 
     Examples:
         >>> from ultralytics.data.utils import HUBDatasetStats
@@ -603,6 +601,10 @@ class HUBDatasetStats:
         >>> stats = HUBDatasetStats("path/to/imagenet10.zip", task="classify")  # classification dataset
         >>> stats.get_json(save=True)
         >>> stats.process_images()
+
+    Notes:
+        Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
+        i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
     """
 
     def __init__(self, path: str = "coco8.yaml", task: str = "detect", autodownload: bool = False):
@@ -633,7 +635,7 @@ class HUBDatasetStats:
         self.data = data
 
     @staticmethod
-    def _unzip(path: Path) -> Tuple[bool, str, Path]:
+    def _unzip(path: Path) -> tuple[bool, str, Path]:
         """Unzip data.zip."""
         if not str(path).endswith(".zip"):  # path is data.yaml
             return False, None, path
@@ -647,7 +649,7 @@ class HUBDatasetStats:
         """Save a compressed image for HUB previews."""
         compress_one_image(f, self.im_dir / Path(f).name)  # save to dataset-hub
 
-    def get_json(self, save: bool = False, verbose: bool = False) -> Dict:
+    def get_json(self, save: bool = False, verbose: bool = False) -> dict:
         """Return dataset JSON for Ultralytics HUB."""
 
         def _round(labels):
@@ -737,11 +739,10 @@ class HUBDatasetStats:
         return self.im_dir
 
 
-def compress_one_image(f: str, f_new: str = None, max_dim: int = 1920, quality: int = 50):
-    """
-    Compress a single image file to reduced size while preserving its aspect ratio and quality using either the Python
-    Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will not be
-    resized.
+def compress_one_image(f: str, f_new: str | None = None, max_dim: int = 1920, quality: int = 50):
+    """Compress a single image file to reduced size while preserving its aspect ratio and quality using either the
+    Python Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it
+    will not be resized.
 
     Args:
         f (str): The path to the input image file.
@@ -774,7 +775,7 @@ def compress_one_image(f: str, f_new: str = None, max_dim: int = 1920, quality: 
         cv2.imwrite(str(f_new or f), im)
 
 
-def load_dataset_cache_file(path: Path) -> Dict:
+def load_dataset_cache_file(path: Path) -> dict:
     """Load an Ultralytics *.cache dictionary from path."""
     import gc
 
@@ -784,7 +785,7 @@ def load_dataset_cache_file(path: Path) -> Dict:
     return cache
 
 
-def save_dataset_cache_file(prefix: str, path: Path, x: Dict, version: str):
+def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
     """Save an Ultralytics dataset *.cache dictionary x to path."""
     x["version"] = version  # add cache version
     if is_dir_writeable(path.parent):
@@ -794,4 +795,4 @@ def save_dataset_cache_file(prefix: str, path: Path, x: Dict, version: str):
             np.save(file, x)
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
-        LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writeable, cache not saved.")
+        LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writable, cache not saved.")

@@ -24,7 +24,7 @@ pip install -r requirements.txt # install
 
 !!! tip "ProTip!"
 
-    `torch.distributed.run` replaces `torch.distributed.launch` in **[PyTorch](https://www.ultralytics.com/glossary/pytorch)>=1.9**. See [PyTorch distributed documentation](https://pytorch.org/docs/stable/distributed.html) for details.
+    `torch.distributed.run` replaces `torch.distributed.launch` in **[PyTorch](https://www.ultralytics.com/glossary/pytorch)>=1.9**. See [PyTorch distributed documentation](https://docs.pytorch.org/docs/stable/distributed.html) for details.
 
 ## Training
 
@@ -38,7 +38,7 @@ Select a pretrained model to start training from. Here we select [YOLOv5s](https
 python train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0
 ```
 
-### Multi-GPU [DataParallel](https://pytorch.org/docs/stable/nn.html#torch.nn.DataParallel) Mode (⚠️ not recommended)
+### Multi-GPU [DataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.DataParallel) Mode (⚠️ not recommended)
 
 You can increase the `device` to use Multiple GPUs in DataParallel mode.
 
@@ -48,7 +48,7 @@ python train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0,1
 
 This method is slow and barely speeds up training compared to using just 1 GPU.
 
-### Multi-GPU [DistributedDataParallel](https://pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) Mode (✅ recommended)
+### Multi-GPU [DistributedDataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) Mode (✅ recommended)
 
 You will have to pass `python -m torch.distributed.run --nproc_per_node`, followed by the usual arguments.
 
@@ -59,7 +59,7 @@ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data co
 - `--nproc_per_node` specifies how many GPUs you would like to use. In the example above, it is 2.
 - `--batch` is the total batch-size. It will be divided evenly to each GPU. In the example above, it is 64/2=32 per GPU.
 
-The code above will use GPUs `0... (N-1)`.
+The code above will use GPUs `0... (N-1)`. You can also set `CUDA_VISIBLE_DEVICES=2,3` (or any other list) before launching the command if you prefer to control device visibility via environment variables.
 
 <details>
   <summary>Use specific GPUs (click to expand)</summary>
@@ -75,7 +75,7 @@ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data co
 <details>
   <summary>Use SyncBatchNorm (click to expand)</summary>
 
-[SyncBatchNorm](https://pytorch.org/docs/master/generated/torch.nn.SyncBatchNorm.html) could increase [accuracy](https://www.ultralytics.com/glossary/accuracy) for multiple GPU training, however, it will slow down training by a significant factor. It is **only** available for Multiple GPU DistributedDataParallel training.
+[SyncBatchNorm](https://docs.pytorch.org/docs/master/generated/torch.nn.SyncBatchNorm.html) could increase [accuracy](https://www.ultralytics.com/glossary/accuracy) for multiple GPU training, however, it will slow down training by a significant factor. It is **only** available for Multiple GPU DistributedDataParallel training.
 
 It is best used when the batch-size on **each** GPU is small (<= 8).
 
@@ -134,7 +134,7 @@ DDP profiling results on an [AWS EC2 P4d instance](../environments/aws_quickstar
 
 ```bash
 # prepare
-t=ultralytics/yolov5:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/coco:/usr/src/coco $t
+t=ultralytics/yolov5:latest && sudo docker pull $t && sudo docker run -it --runtime=nvidia --ipc=host --gpus all -v "$(pwd)"/coco:/usr/src/coco $t
 pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 cd .. && rm -rf app && git clone https://github.com/ultralytics/yolov5 -b master app && cd app
 cp data/coco.yaml data/coco_profile.yaml
@@ -148,14 +148,14 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 
 </details>
 
-| GPUs<br>A100 | batch-size | CUDA_mem<br><sup>device0 (G) | COCO<br><sup>train | COCO<br><sup>val |
-| ------------ | ---------- | ---------------------------- | ------------------ | ---------------- |
-| 1x           | 16         | 26GB                         | 20:39              | 0:55             |
-| 2x           | 32         | 26GB                         | 11:43              | 0:57             |
-| 4x           | 64         | 26GB                         | 5:57               | 0:55             |
-| 8x           | 128        | 26GB                         | 3:09               | 0:57             |
+| GPUs<br>A100 | batch-size | CUDA_mem<br><sup>device0 (G)</sup> | COCO<br><sup>train</sup> | COCO<br><sup>val</sup> |
+| ------------ | ---------- | ---------------------------------- | ------------------------ | ---------------------- |
+| 1x           | 16         | 26GB                               | 20:39                    | 0:55                   |
+| 2x           | 32         | 26GB                               | 11:43                    | 0:57                   |
+| 4x           | 64         | 26GB                               | 5:57                     | 0:55                   |
+| 8x           | 128        | 26GB                               | 3:09                     | 0:57                   |
 
-As shown in the results, using [DistributedDataParallel](https://pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) with multiple GPUs provides nearly linear scaling in training speed. With 8 GPUs, training completes approximately 6.5 times faster than with a single GPU, while maintaining the same memory usage per device.
+As shown in the results, using [DistributedDataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) with multiple GPUs provides nearly linear scaling in training speed. With 8 GPUs, training completes approximately 6.5 times faster than with a single GPU, while maintaining the same memory usage per device.
 
 ## FAQ
 
@@ -177,7 +177,7 @@ If you went through all the above, feel free to raise an Issue by giving as much
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda-zone), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)

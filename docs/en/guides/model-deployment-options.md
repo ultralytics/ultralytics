@@ -25,7 +25,7 @@ This guide walks you through YOLO11's deployment options and the essential facto
 
 ## How to Select the Right Deployment Option for Your YOLO11 Model
 
-When it's time to deploy your YOLO11 model, selecting a suitable export format is very important. As outlined in the [Ultralytics YOLO11 Modes documentation](../modes/export.md#usage-examples), the model.export() function allows for converting your trained model into a variety of formats tailored to diverse environments and performance requirements.
+When it's time to deploy your YOLO11 model, selecting a suitable export format is very important. As outlined in the [Ultralytics YOLO11 Modes documentation](../modes/export.md#usage-examples), the `model.export()` function allows you to convert your trained model into a variety of formats tailored to diverse environments and performance requirements.
 
 The ideal format depends on your model's intended operational context, balancing speed, hardware constraints, and ease of integration. In the following section, we'll take a closer look at each export option, understanding when to choose each one.
 
@@ -202,7 +202,7 @@ NCNN is a high-performance neural network inference framework optimized for the 
 - **Performance Benchmarks**: Highly optimized for mobile platforms, offering efficient inference on ARM-based devices.
 - **Compatibility and Integration**: Suitable for applications on mobile phones and embedded systems with ARM architecture.
 - **Community Support and Ecosystem**: Supported by a niche but active community focused on mobile and embedded ML applications.
-- **Case Studies**: Favoured for mobile applications where efficiency and speed are critical on Android and other ARM-based systems.
+- **Case Studies**: Favored for mobile applications where efficiency and speed are critical on Android and other ARM-based systems.
 - **Maintenance and Updates**: Continuously improved to maintain high performance on a range of ARM devices.
 - **Security Considerations**: Focuses on running locally on the device, leveraging the inherent security of on-device processing.
 - **Hardware Acceleration**: Tailored for ARM CPUs and GPUs, with specific optimizations for these architectures.
@@ -250,8 +250,6 @@ These resources will help you tackle challenges and stay updated on the latest t
 In this guide, we've explored the different deployment options for YOLO11. We've also discussed the important factors to consider when making your choice. These options allow you to customize your model for various environments and performance requirements, making it suitable for real-world applications.
 
 Don't forget that the YOLO11 and [Ultralytics community](https://github.com/orgs/ultralytics/discussions) is a valuable source of help. Connect with other developers and experts to learn unique tips and solutions you might not find in regular documentation. Keep seeking knowledge, exploring new ideas, and sharing your experiences.
-
-Happy deploying!
 
 ## FAQ
 

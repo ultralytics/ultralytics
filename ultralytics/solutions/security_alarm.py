@@ -1,13 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import colors
 
 
 class SecurityAlarm(BaseSolution):
-    """
-    A class to manage security alarm functionalities for real-time monitoring.
+    """A class to manage security alarm functionalities for real-time monitoring.
 
     This class extends the BaseSolution class and provides features to monitor objects in a frame, send email
     notifications when specific thresholds are exceeded for total detections, and annotate the output frame for
@@ -32,9 +33,8 @@ class SecurityAlarm(BaseSolution):
         >>> results = security.process(frame)
     """
 
-    def __init__(self, **kwargs):
-        """
-        Initialize the SecurityAlarm class with parameters for real-time object monitoring.
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the SecurityAlarm class with parameters for real-time object monitoring.
 
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.
@@ -46,16 +46,15 @@ class SecurityAlarm(BaseSolution):
         self.to_email = ""
         self.from_email = ""
 
-    def authenticate(self, from_email: str, password: str, to_email: str):
-        """
-        Authenticate the email server for sending alert notifications.
+    def authenticate(self, from_email: str, password: str, to_email: str) -> None:
+        """Authenticate the email server for sending alert notifications.
+
+        This method initializes a secure connection with the SMTP server and logs in using the provided credentials.
 
         Args:
             from_email (str): Sender's email address.
             password (str): Password for the sender's email account.
             to_email (str): Recipient's email address.
-
-        This method initializes a secure connection with the SMTP server and logs in using the provided credentials.
 
         Examples:
             >>> alarm = SecurityAlarm()
@@ -69,16 +68,15 @@ class SecurityAlarm(BaseSolution):
         self.to_email = to_email
         self.from_email = from_email
 
-    def send_email(self, im0, records: int = 5):
-        """
-        Send an email notification with an image attachment indicating the number of objects detected.
-
-        Args:
-            im0 (numpy.ndarray): The input image or frame to be attached to the email.
-            records (int, optional): The number of detected objects to be included in the email message.
+    def send_email(self, im0, records: int = 5) -> None:
+        """Send an email notification with an image attachment indicating the number of objects detected.
 
         This method encodes the input image, composes the email message with details about the detection, and sends it
         to the specified recipient.
+
+        Args:
+            im0 (np.ndarray): The input image or frame to be attached to the email.
+            records (int, optional): The number of detected objects to be included in the email message.
 
         Examples:
             >>> alarm = SecurityAlarm()
@@ -100,7 +98,7 @@ class SecurityAlarm(BaseSolution):
         message["Subject"] = "Security Alert"
 
         # Add the text message body
-        message_body = f"Ultralytics ALERT!!! {records} objects have been detected!!"
+        message_body = f"Ultralytics alert: {records} object(s) detected."
         message.attach(MIMEText(message_body))
 
         # Attach the image
@@ -114,20 +112,19 @@ class SecurityAlarm(BaseSolution):
         except Exception as e:
             LOGGER.error(f"Failed to send email: {e}")
 
-    def process(self, im0):
-        """
-        Monitor the frame, process object detections, and trigger alerts if thresholds are exceeded.
-
-        Args:
-            im0 (numpy.ndarray): The input image or frame to be processed and annotated.
-
-        Returns:
-            (SolutionResults): Contains processed image `plot_im`, 'total_tracks' (total number of tracked objects) and
-                'email_sent' (whether an email alert was triggered).
+    def process(self, im0) -> SolutionResults:
+        """Monitor the frame, process object detections, and trigger alerts if thresholds are exceeded.
 
         This method processes the input frame, extracts detections, annotates the frame with bounding boxes, and sends
         an email notification if the number of detected objects surpasses the specified threshold and an alert has not
         already been sent.
+
+        Args:
+            im0 (np.ndarray): The input image or frame to be processed and annotated.
+
+        Returns:
+            (SolutionResults): Contains processed image `plot_im`, 'total_tracks' (total number of tracked objects) and
+                'email_sent' (whether an email alert was triggered).
 
         Examples:
             >>> alarm = SecurityAlarm()

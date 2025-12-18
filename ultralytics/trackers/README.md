@@ -32,7 +32,7 @@ Ultralytics YOLO extends its powerful object detection features to deliver robus
 Ultralytics YOLO supports the following tracking algorithms. Enable them by passing the relevant YAML configuration file, such as `tracker=tracker_type.yaml`:
 
 - **BoT-SORT:** Use [`botsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/botsort.yaml) to enable this tracker. Based on the [BoT-SORT paper](https://arxiv.org/abs/2206.14651) and its official [code implementation](https://github.com/NirAharon/BoT-SORT).
-- **ByteTrack:** Use [`bytetrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml) to enable this tracker. Based on the [ByteTrack paper](https://arxiv.org/abs/2110.06864) and its official [code implementation](https://github.com/ifzhang/ByteTrack).
+- **ByteTrack:** Use [`bytetrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml) to enable this tracker. Based on the [ByteTrack paper](https://arxiv.org/abs/2110.06864) and its official [code implementation](https://github.com/FoundationVision/ByteTrack).
 
 The default tracker is **BoT-SORT**.
 
@@ -256,12 +256,11 @@ SOURCES = ["path/to/video.mp4", "0"]  # local video, 0 for webcam
 
 
 def run_tracker_in_thread(model_name, filename):
-    """
-    Run YOLO tracker in its own thread for concurrent processing.
+    """Run YOLO tracker in its own thread for concurrent processing.
 
     Args:
-        model_name (str): The YOLO11 model object.
-        filename (str): The path to the video file or the identifier for the webcam/external camera source.
+        model_name (str): Model name or path that will be loaded inside the thread.
+        filename (str): Local path, device index, or URL that acts as the tracker source.
     """
     model = YOLO(model_name)
     results = model.track(filename, save=True, stream=True)

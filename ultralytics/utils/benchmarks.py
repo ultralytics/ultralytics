@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Benchmark a YOLO model formats for speed and accuracy.
+Benchmark YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
@@ -25,7 +25,10 @@ MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
+ExecuTorch              | `executorch`              | yolo11n_executorch_model/
 """
+
+from __future__ import annotations
 
 import glob
 import os
@@ -34,7 +37,6 @@ import re
 import shutil
 import time
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import torch.cuda
@@ -42,7 +44,7 @@ import torch.cuda
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ARM64, ASSETS, IS_JETSON, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
+from ultralytics.utils import ARM64, ASSETS, ASSETS_URL, IS_JETSON, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
 from ultralytics.utils.checks import IS_PYTHON_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
@@ -61,8 +63,7 @@ def benchmark(
     format="",
     **kwargs,
 ):
-    """
-    Benchmark a YOLO model across different formats for speed and accuracy.
+    """Benchmark a YOLO model across different formats for speed and accuracy.
 
     Args:
         model (str | Path): Path to the model file or directory.
@@ -77,8 +78,8 @@ def benchmark(
         **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
-        (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
-            and inference time.
+        (polars.DataFrame): A Polars DataFrame with benchmark results for each format, including file size, metric, and
+            inference time.
 
     Examples:
         Benchmark a YOLO model with default settings:
@@ -88,10 +89,15 @@ def benchmark(
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 
-    import pandas as pd  # scope for faster 'import ultralytics'
+    import polars as pl  # scope for faster 'import ultralytics'
 
-    pd.options.display.max_columns = 10
-    pd.options.display.width = 120
+    pl.Config.set_tbl_cols(-1)  # Show all columns
+    pl.Config.set_tbl_rows(-1)  # Show all rows
+    pl.Config.set_tbl_width_chars(-1)  # No width limit
+    pl.Config.set_tbl_hide_column_data_types(True)  # Hide data types
+    pl.Config.set_tbl_hide_dataframe_shape(True)  # Hide shape info
+    pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
+
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
@@ -138,13 +144,18 @@ def benchmark(
             if format == "imx":
                 assert not is_end2end
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
-                assert model.task == "detect", "IMX only supported for detection task"
-                assert "C2f" in model.__str__(), "IMX only supported for YOLOv8"  # TODO: enable for YOLO11
+                assert model.task in {"detect", "classify", "pose"}, (
+                    "IMX export is only supported for detection, classification and pose estimation tasks"
+                )
+                assert "C2f" in model.__str__(), "IMX only supported for YOLOv8n and YOLO11n"
             if format == "rknn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by RKNN yet"
                 assert LINUX, "RKNN only supported on Linux"
                 assert not is_rockchip(), "RKNN Inference only supported on Rockchip devices"
+            if format == "executorch":
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 ExecuTorch exports not supported yet"
+                assert not is_end2end, "End-to-end models not supported by ExecuTorch yet"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
@@ -164,6 +175,7 @@ def benchmark(
 
             # Predict
             assert model.task != "pose" or format != "pb", "GraphDef Pose inference is not supported"
+            assert model.task != "pose" or format != "executorch", "ExecuTorch Pose inference is not supported"
             assert format not in {"edgetpu", "tfjs"}, "inference not supported"
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
             if format == "ncnn":
@@ -193,35 +205,36 @@ def benchmark(
 
     # Print results
     check_yolo(device=device)  # print system info
-    df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
+    df = pl.DataFrame(y, schema=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"], orient="row")
+    df = df.with_row_index(" ", offset=1)  # add index info
+    df_display = df.with_columns(pl.all().cast(pl.String).fill_null("-"))
 
     name = model.model_name
     dt = time.time() - t0
     legend = "Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed"
-    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df.fillna('-')}\n"
+    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df_display}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
         f.write(s)
 
     if verbose and isinstance(verbose, float):
-        metrics = df[key].array  # values to compare to floor
+        metrics = df[key].to_numpy()  # values to compare to floor
         floor = verbose  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
-        assert all(x > floor for x in metrics if pd.notna(x)), f"Benchmark failure: metric(s) < floor {floor}"
+        assert all(x > floor for x in metrics if not np.isnan(x)), f"Benchmark failure: metric(s) < floor {floor}"
 
-    return df
+    return df_display
 
 
 class RF100Benchmark:
-    """
-    Benchmark YOLO model performance across various formats for speed and accuracy.
+    """Benchmark YOLO model performance across various formats for speed and accuracy.
 
     This class provides functionality to benchmark YOLO models on the RF100 dataset collection.
 
     Attributes:
-        ds_names (List[str]): Names of datasets used for benchmarking.
-        ds_cfg_list (List[Path]): List of paths to dataset configuration files.
+        ds_names (list[str]): Names of datasets used for benchmarking.
+        ds_cfg_list (list[Path]): List of paths to dataset configuration files.
         rf (Roboflow): Roboflow instance for accessing datasets.
-        val_metrics (List[str]): Metrics used for validation.
+        val_metrics (list[str]): Metrics used for validation.
 
     Methods:
         set_key: Set Roboflow API key for accessing datasets.
@@ -238,8 +251,7 @@ class RF100Benchmark:
         self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
 
     def set_key(self, api_key: str):
-        """
-        Set Roboflow API key for processing.
+        """Set Roboflow API key for processing.
 
         Args:
             api_key (str): The API key.
@@ -255,15 +267,14 @@ class RF100Benchmark:
         self.rf = Roboflow(api_key=api_key)
 
     def parse_dataset(self, ds_link_txt: str = "datasets_links.txt"):
-        """
-        Parse dataset links and download datasets.
+        """Parse dataset links and download datasets.
 
         Args:
             ds_link_txt (str): Path to the file containing dataset links.
 
         Returns:
-            ds_names (List[str]): List of dataset names.
-            ds_cfg_list (List[Path]): List of paths to dataset configuration files.
+            ds_names (list[str]): List of dataset names.
+            ds_cfg_list (list[Path]): List of paths to dataset configuration files.
 
         Examples:
             >>> benchmark = RF100Benchmark()
@@ -273,12 +284,12 @@ class RF100Benchmark:
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
-        safe_download("https://github.com/ultralytics/assets/releases/download/v0.0.0/datasets_links.txt")
+        safe_download(f"{ASSETS_URL}/datasets_links.txt")
 
         with open(ds_link_txt, encoding="utf-8") as file:
             for line in file:
                 try:
-                    _, url, workspace, project, version = re.split("/+", line.strip())
+                    _, _url, workspace, project, version = re.split("/+", line.strip())
                     self.ds_names.append(project)
                     proj_version = f"{project}-{version}"
                     if not Path(proj_version).exists():
@@ -300,8 +311,7 @@ class RF100Benchmark:
         YAML.dump(yaml_data, path)
 
     def evaluate(self, yaml_path: str, val_log_file: str, eval_log_file: str, list_ind: int):
-        """
-        Evaluate model performance on validation results.
+        """Evaluate model performance on validation results.
 
         Args:
             yaml_path (str): Path to the YAML configuration file.
@@ -349,7 +359,7 @@ class RF100Benchmark:
                     map_val = lst["map50"]
         else:
             LOGGER.info("Single dict found")
-            map_val = [res["map50"] for res in eval_lines][0]
+            map_val = next(res["map50"] for res in eval_lines)
 
         with open(eval_log_file, "a", encoding="utf-8") as f:
             f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
@@ -358,13 +368,12 @@ class RF100Benchmark:
 
 
 class ProfileModels:
-    """
-    ProfileModels class for profiling different models on ONNX and TensorRT.
+    """ProfileModels class for profiling different models on ONNX and TensorRT.
 
     This class profiles the performance of different models, returning results such as model speed and FLOPs.
 
     Attributes:
-        paths (List[str]): Paths of the models to profile.
+        paths (list[str]): Paths of the models to profile.
         num_timed_runs (int): Number of timed runs for the profiling.
         num_warmup_runs (int): Number of warmup runs before profiling.
         min_time (float): Minimum number of seconds to profile for.
@@ -393,20 +402,19 @@ class ProfileModels:
 
     def __init__(
         self,
-        paths: List[str],
+        paths: list[str],
         num_timed_runs: int = 100,
         num_warmup_runs: int = 10,
         min_time: float = 60,
         imgsz: int = 640,
         half: bool = True,
         trt: bool = True,
-        device: Optional[Union[torch.device, str]] = None,
+        device: torch.device | str | None = None,
     ):
-        """
-        Initialize the ProfileModels class for profiling models.
+        """Initialize the ProfileModels class for profiling models.
 
         Args:
-            paths (List[str]): List of paths of the models to be profiled.
+            paths (list[str]): List of paths of the models to be profiled.
             num_timed_runs (int): Number of timed runs for the profiling.
             num_warmup_runs (int): Number of warmup runs before the actual profiling starts.
             min_time (float): Minimum time in seconds for profiling a model.
@@ -417,12 +425,6 @@ class ProfileModels:
 
         Notes:
             FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
-
-        Examples:
-            Initialize and profile models
-            >>> from ultralytics.utils.benchmarks import ProfileModels
-            >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
-            >>> profiler.run()
         """
         self.paths = paths
         self.num_timed_runs = num_timed_runs
@@ -434,11 +436,10 @@ class ProfileModels:
         self.device = device if isinstance(device, torch.device) else select_device(device)
 
     def run(self):
-        """
-        Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
+        """Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
         Returns:
-            (List[dict]): List of dictionaries containing profiling results for each model.
+            (list[dict]): List of dictionaries containing profiling results for each model.
 
         Examples:
             Profile models and print results
@@ -489,11 +490,10 @@ class ProfileModels:
         return output
 
     def get_files(self):
-        """
-        Return a list of paths for all relevant model files given by the user.
+        """Return a list of paths for all relevant model files given by the user.
 
         Returns:
-            (List[Path]): List of Path objects for the model files.
+            (list[Path]): List of Path objects for the model files.
         """
         files = []
         for path in self.paths:
@@ -516,16 +516,15 @@ class ProfileModels:
 
     @staticmethod
     def iterative_sigma_clipping(data: np.ndarray, sigma: float = 2, max_iters: int = 3):
-        """
-        Apply iterative sigma clipping to data to remove outliers.
+        """Apply iterative sigma clipping to data to remove outliers.
 
         Args:
-            data (numpy.ndarray): Input data array.
+            data (np.ndarray): Input data array.
             sigma (float): Number of standard deviations to use for clipping.
             max_iters (int): Maximum number of iterations for the clipping process.
 
         Returns:
-            (numpy.ndarray): Clipped data array with outliers removed.
+            (np.ndarray): Clipped data array with outliers removed.
         """
         data = np.array(data)
         for _ in range(max_iters):
@@ -537,8 +536,7 @@ class ProfileModels:
         return data
 
     def profile_tensorrt_model(self, engine_file: str, eps: float = 1e-3):
-        """
-        Profile YOLO model performance with TensorRT, measuring average run time and standard deviation.
+        """Profile YOLO model performance with TensorRT, measuring average run time and standard deviation.
 
         Args:
             engine_file (str): Path to the TensorRT engine file.
@@ -575,9 +573,13 @@ class ProfileModels:
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=3)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
+    @staticmethod
+    def check_dynamic(tensor_shape):
+        """Check whether the tensor shape in the ONNX model is dynamic."""
+        return not all(isinstance(dim, int) and dim >= 0 for dim in tensor_shape)
+
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
-        """
-        Profile an ONNX model, measuring average inference time and standard deviation across multiple runs.
+        """Profile an ONNX model, measuring average inference time and standard deviation across multiple runs.
 
         Args:
             onnx_file (str): Path to the ONNX model file.
@@ -587,7 +589,7 @@ class ProfileModels:
             mean_time (float): Mean inference time in milliseconds.
             std_time (float): Standard deviation of inference time in milliseconds.
         """
-        check_requirements("onnxruntime")
+        check_requirements([("onnxruntime", "onnxruntime-gpu")])  # either package meets requirements
         import onnxruntime as ort
 
         # Session with either 'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'
@@ -596,27 +598,36 @@ class ProfileModels:
         sess_options.intra_op_num_threads = 8  # Limit the number of threads
         sess = ort.InferenceSession(onnx_file, sess_options, providers=["CPUExecutionProvider"])
 
-        input_tensor = sess.get_inputs()[0]
-        input_type = input_tensor.type
-        dynamic = not all(isinstance(dim, int) and dim >= 0 for dim in input_tensor.shape)  # dynamic input shape
-        input_shape = (1, 3, self.imgsz, self.imgsz) if dynamic else input_tensor.shape
+        input_data_dict = {}
+        for input_tensor in sess.get_inputs():
+            input_type = input_tensor.type
+            if self.check_dynamic(input_tensor.shape):
+                if len(input_tensor.shape) != 4 and self.check_dynamic(input_tensor.shape[1:]):
+                    raise ValueError(f"Unsupported dynamic shape {input_tensor.shape} of {input_tensor.name}")
+                input_shape = (
+                    (1, 3, self.imgsz, self.imgsz) if len(input_tensor.shape) == 4 else (1, *input_tensor.shape[1:])
+                )
+            else:
+                input_shape = input_tensor.shape
 
-        # Mapping ONNX datatype to numpy datatype
-        if "float16" in input_type:
-            input_dtype = np.float16
-        elif "float" in input_type:
-            input_dtype = np.float32
-        elif "double" in input_type:
-            input_dtype = np.float64
-        elif "int64" in input_type:
-            input_dtype = np.int64
-        elif "int32" in input_type:
-            input_dtype = np.int32
-        else:
-            raise ValueError(f"Unsupported ONNX datatype {input_type}")
+            # Mapping ONNX datatype to numpy datatype
+            if "float16" in input_type:
+                input_dtype = np.float16
+            elif "float" in input_type:
+                input_dtype = np.float32
+            elif "double" in input_type:
+                input_dtype = np.float64
+            elif "int64" in input_type:
+                input_dtype = np.int64
+            elif "int32" in input_type:
+                input_dtype = np.int32
+            else:
+                raise ValueError(f"Unsupported ONNX datatype {input_type}")
 
-        input_data = np.random.rand(*input_shape).astype(input_dtype)
-        input_name = input_tensor.name
+            input_data = np.random.rand(*input_shape).astype(input_dtype)
+            input_name = input_tensor.name
+            input_data_dict[input_name] = input_data
+
         output_name = sess.get_outputs()[0].name
 
         # Warmup runs
@@ -624,7 +635,7 @@ class ProfileModels:
         for _ in range(3):
             start_time = time.time()
             for _ in range(self.num_warmup_runs):
-                sess.run([output_name], {input_name: input_data})
+                sess.run([output_name], input_data_dict)
             elapsed = time.time() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
@@ -634,7 +645,7 @@ class ProfileModels:
         run_times = []
         for _ in TQDM(range(num_runs), desc=onnx_file):
             start_time = time.time()
-            sess.run([output_name], {input_name: input_data})
+            sess.run([output_name], input_data_dict)
             run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
@@ -643,12 +654,11 @@ class ProfileModels:
     def generate_table_row(
         self,
         model_name: str,
-        t_onnx: Tuple[float, float],
-        t_engine: Tuple[float, float],
-        model_info: Tuple[float, float, float, float],
+        t_onnx: tuple[float, float],
+        t_engine: tuple[float, float],
+        model_info: tuple[float, float, float, float],
     ):
-        """
-        Generate a table row string with model performance metrics.
+        """Generate a table row string with model performance metrics.
 
         Args:
             model_name (str): Name of the model.
@@ -659,7 +669,7 @@ class ProfileModels:
         Returns:
             (str): Formatted table row string with model metrics.
         """
-        layers, params, gradients, flops = model_info
+        _layers, params, _gradients, flops = model_info
         return (
             f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms | {t_engine[0]:.1f}±"
             f"{t_engine[1]:.1f} ms | {params / 1e6:.1f} | {flops:.1f} |"
@@ -668,12 +678,11 @@ class ProfileModels:
     @staticmethod
     def generate_results_dict(
         model_name: str,
-        t_onnx: Tuple[float, float],
-        t_engine: Tuple[float, float],
-        model_info: Tuple[float, float, float, float],
+        t_onnx: tuple[float, float],
+        t_engine: tuple[float, float],
+        model_info: tuple[float, float, float, float],
     ):
-        """
-        Generate a dictionary of profiling results.
+        """Generate a dictionary of profiling results.
 
         Args:
             model_name (str): Name of the model.
@@ -684,7 +693,7 @@ class ProfileModels:
         Returns:
             (dict): Dictionary containing profiling results.
         """
-        layers, params, gradients, flops = model_info
+        _layers, params, _gradients, flops = model_info
         return {
             "model/name": model_name,
             "model/parameters": params,
@@ -694,12 +703,11 @@ class ProfileModels:
         }
 
     @staticmethod
-    def print_table(table_rows: List[str]):
-        """
-        Print a formatted table of model profiling results.
+    def print_table(table_rows: list[str]):
+        """Print a formatted table of model profiling results.
 
         Args:
-            table_rows (List[str]): List of formatted table row strings.
+            table_rows (list[str]): List of formatted table row strings.
         """
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "GPU"
         headers = [

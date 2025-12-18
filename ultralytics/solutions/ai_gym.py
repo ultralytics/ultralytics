@@ -1,22 +1,22 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import defaultdict
+from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 
 
 class AIGym(BaseSolution):
-    """
-    A class to manage gym steps of people in a real-time video stream based on their poses.
+    """A class to manage gym steps of people in a real-time video stream based on their poses.
 
     This class extends BaseSolution to monitor workouts using YOLO pose estimation models. It tracks and counts
     repetitions of exercises based on predefined angle thresholds for up and down positions.
 
     Attributes:
-        states (Dict[float, int, str]): Stores per-track angle, count, and stage for workout monitoring.
+        states (dict[int, dict[str, float | int | str]]): Per-track angle, rep count, and stage for workout monitoring.
         up_angle (float): Angle threshold for considering the 'up' position of an exercise.
         down_angle (float): Angle threshold for considering the 'down' position of an exercise.
-        kpts (List[int]): Indices of keypoints used for angle calculation.
+        kpts (list[int]): Indices of keypoints used for angle calculation.
 
     Methods:
         process: Process a frame to detect poses, calculate angles, and count repetitions.
@@ -30,13 +30,12 @@ class AIGym(BaseSolution):
         >>> cv2.waitKey(0)
     """
 
-    def __init__(self, **kwargs):
-        """
-        Initialize AIGym for workout monitoring using pose estimation and predefined angles.
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize AIGym for workout monitoring using pose estimation and predefined angles.
 
         Args:
-            **kwargs (Any): Keyword arguments passed to the parent class constructor.
-                model (str): Model name or path, defaults to "yolo11n-pose.pt".
+            **kwargs (Any): Keyword arguments passed to the parent class constructor including:
+                - model (str): Model name or path, defaults to "yolo11n-pose.pt".
         """
         kwargs["model"] = kwargs.get("model", "yolo11n-pose.pt")
         super().__init__(**kwargs)
@@ -47,23 +46,19 @@ class AIGym(BaseSolution):
         self.down_angle = float(self.CFG["down_angle"])  # Pose down predefined angle to consider down pose
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
 
-    def process(self, im0):
-        """
-        Monitor workouts using Ultralytics YOLO Pose Model.
+    def process(self, im0) -> SolutionResults:
+        """Monitor workouts using Ultralytics YOLO Pose Model.
 
-        This function processes an input image to track and analyze human poses for workout monitoring. It uses
-        the YOLO Pose model to detect keypoints, estimate angles, and count repetitions based on predefined
-        angle thresholds.
+        This function processes an input image to track and analyze human poses for workout monitoring. It uses the YOLO
+        Pose model to detect keypoints, estimate angles, and count repetitions based on predefined angle thresholds.
 
         Args:
             im0 (np.ndarray): Input image for processing.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im`,
-                'workout_count' (list of completed reps),
-                'workout_stage' (list of current stages),
-                'workout_angle' (list of angles), and
-                'total_tracks' (total number of tracked individuals).
+            (SolutionResults): Contains processed image `plot_im`, 'workout_count' (list of completed reps),
+                'workout_stage' (list of current stages), 'workout_angle' (list of angles), and 'total_tracks' (total
+                number of tracked individuals).
 
         Examples:
             >>> gym = AIGym()

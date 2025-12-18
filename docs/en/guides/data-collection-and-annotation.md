@@ -10,6 +10,17 @@ keywords: What is Data Annotation, Data Annotation Tools, Annotating Data, Avoid
 
 The key to success in any [computer vision project](./steps-of-a-cv-project.md) starts with effective data collection and annotation strategies. The quality of the data directly impacts model performance, so it's important to understand the best practices related to data collection and data annotation.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/iBk6S-PHwS0"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Build Effective Data Collection and Annotation Strategies for Computer Vision 🚀
+</p>
+
 Every consideration regarding the data should closely align with [your project's goals](./defining-project-goals.md). Changes in your annotation strategies could shift the project's focus or effectiveness and vice versa. With this in mind, let's take a closer look at the best ways to approach data collection and annotation.
 
 ## Setting Up Classes and Collecting Data
@@ -27,7 +38,7 @@ When you define your classes, another important distinction to make is whether t
 - **Coarse Class-Count**: These are broader, more inclusive categories, such as "vehicle" and "non-vehicle." They simplify annotation and require fewer computational resources but provide less detailed information, potentially limiting the model's effectiveness in complex scenarios.
 - **Fine Class-Count**: More categories with finer distinctions, such as "sedan," "SUV," "pickup truck," and "motorcycle." They capture more detailed information, improving model accuracy and performance. However, they are more time-consuming and labor-intensive to annotate and require more computational resources.
 
-Starting with more specific classes can be very helpful, especially in complex projects where details are important. More specific classes lets you collect more detailed data, gain deeper insights, and establish clearer distinctions between categories. Not only does it improve the accuracy of the model, but it also makes it easier to adjust the model later if needed, saving both time and resources.
+Starting with more specific classes can be very helpful, especially in complex projects where details are important. More specific classes let you collect more detailed data, gain deeper insights, and establish clearer distinctions between categories. Not only does it improve the accuracy of the model, but it also makes it easier to adjust the model later if needed, saving both time and resources.
 
 ### Sources of Data
 
@@ -75,7 +86,7 @@ Commonly used formats include [COCO](../datasets/detect/coco.md), which supports
 
 Now, assuming you've chosen a type of annotation and format, it's time to establish clear and objective labeling rules. These rules are like a roadmap for consistency and [accuracy](https://www.ultralytics.com/glossary/accuracy) throughout the annotation process. Key aspects of these rules include:
 
-- **Clarity and Detail**: Make sure your instructions are clear. Use examples and illustrations to understand what's expected.
+- **Clarity and Detail**: Make sure your instructions are clear. Use examples and illustrations to show what's expected.
 - **Consistency**: Keep your annotations uniform. Set standard criteria for annotating different types of data, so all annotations follow the same rules.
 - **Reducing Bias**: Stay neutral. Train yourself to be objective and minimize personal biases to ensure fair annotations.
 - **Efficiency**: Work smarter, not harder. Use tools and workflows that automate repetitive tasks, making the annotation process faster and more efficient.

@@ -141,7 +141,7 @@ YOLO11 benchmarks were run by the Ultralytics team on ten different model format
 
 ### Comparison Chart
 
-We have only included benchmarks for YOLO11n and YOLO11s models because other models sizes are too big to run on the Raspberry Pis and does not offer decent performance.
+We have only included benchmarks for YOLO11n and YOLO11s models because other model sizes are too big to run on the Raspberry Pis and do not offer decent performance.
 
 <figure style="text-align: center;">
     <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo11-benchmarks-coco128.avif" alt="YOLO11 benchmarks on RPi 5">
@@ -204,18 +204,18 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         # Load a YOLO11n PyTorch model
         model = YOLO("yolo11n.pt")
 
-        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all all export formats
+        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all export formats
         results = model.benchmark(data="coco128.yaml", imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all all export formats
+        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all export formats
         yolo benchmark model=yolo11n.pt data=coco128.yaml imgsz=640
         ```
 
-    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco.yaml'` (5000 val images).
+    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results, use a dataset with a large number of images, e.g., `data='coco.yaml'` (5000 val images).
 
 ## Use Raspberry Pi Camera
 
@@ -243,13 +243,13 @@ rpicam-hello
 
 ### Inference with Camera
 
-There are 2 methods of using the Raspberry Pi Camera to inference YOLO11 models.
+There are 2 methods of using the Raspberry Pi Camera to run inference on YOLO11 models.
 
 !!! usage
 
     === "Method 1"
 
-        We can use `picamera2` which comes pre-installed with Raspberry Pi OS to access the camera and inference YOLO11 models.
+        We can use `picamera2` which comes pre-installed with Raspberry Pi OS to access the camera and run inference on YOLO11 models.
 
         !!! example
 
@@ -369,9 +369,9 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
 ## Next Steps
 
-Congratulations on successfully setting up YOLO on your Raspberry Pi! For further learning and support, visit [Ultralytics YOLO11 Docs](../index.md) and [Kashmir World Foundation](https://www.kashmirworldfoundation.org/).
+You have successfully set up YOLO on your Raspberry Pi. For further learning and support, visit [Ultralytics YOLO11 Docs](../index.md) and [Kashmir World Foundation](https://www.kashmirworldfoundation.org/).
 
-## Acknowledgements and Citations
+## Acknowledgments and Citations
 
 This guide was initially created by Daan Eeltink for Kashmir World Foundation, an organization dedicated to the use of YOLO for the conservation of endangered species. We acknowledge their pioneering work and educational focus in the realm of object detection technologies.
 

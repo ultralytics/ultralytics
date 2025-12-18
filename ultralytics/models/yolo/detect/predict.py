@@ -2,12 +2,11 @@
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import ops
+from ultralytics.utils import nms, ops
 
 
 class DetectionPredictor(BasePredictor):
-    """
-    A class extending the BasePredictor class for prediction based on a detection model.
+    """A class extending the BasePredictor class for prediction based on a detection model.
 
     This predictor specializes in object detection tasks, processing model outputs into meaningful detection results
     with bounding boxes and class predictions.
@@ -32,8 +31,7 @@ class DetectionPredictor(BasePredictor):
     """
 
     def postprocess(self, preds, img, orig_imgs, **kwargs):
-        """
-        Post-process predictions and return a list of Results objects.
+        """Post-process predictions and return a list of Results objects.
 
         This method applies non-maximum suppression to raw model predictions and prepares them for visualization and
         further analysis.
@@ -53,7 +51,7 @@ class DetectionPredictor(BasePredictor):
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
-        preds = ops.non_max_suppression(
+        preds = nms.non_max_suppression(
             preds,
             self.args.conf,
             self.args.iou,
@@ -67,7 +65,7 @@ class DetectionPredictor(BasePredictor):
         )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         if save_feats:
             obj_feats = self.get_obj_feats(self._feats, preds[1])
@@ -85,23 +83,22 @@ class DetectionPredictor(BasePredictor):
         """Extract object features from the feature maps."""
         import torch
 
-        s = min([x.shape[1] for x in feat_maps])  # find smallest vector length
+        s = min(x.shape[1] for x in feat_maps)  # find shortest vector length
         obj_feats = torch.cat(
             [x.permute(0, 2, 3, 1).reshape(x.shape[0], -1, s, x.shape[1] // s).mean(dim=-1) for x in feat_maps], dim=1
         )  # mean reduce all vectors to same length
-        return [feats[idx] if len(idx) else [] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
+        return [feats[idx] if idx.shape[0] else [] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
 
     def construct_results(self, preds, img, orig_imgs):
-        """
-        Construct a list of Results objects from model predictions.
+        """Construct a list of Results objects from model predictions.
 
         Args:
-            preds (List[torch.Tensor]): List of predicted bounding boxes and scores for each image.
+            preds (list[torch.Tensor]): List of predicted bounding boxes and scores for each image.
             img (torch.Tensor): Batch of preprocessed images used for inference.
-            orig_imgs (List[np.ndarray]): List of original images before preprocessing.
+            orig_imgs (list[np.ndarray]): List of original images before preprocessing.
 
         Returns:
-            (List[Results]): List of Results objects containing detection information for each image.
+            (list[Results]): List of Results objects containing detection information for each image.
         """
         return [
             self.construct_result(pred, img, orig_img, img_path)
@@ -109,8 +106,7 @@ class DetectionPredictor(BasePredictor):
         ]
 
     def construct_result(self, pred, img, orig_img, img_path):
-        """
-        Construct a single Results object from one image prediction.
+        """Construct a single Results object from one image prediction.
 
         Args:
             pred (torch.Tensor): Predicted boxes and scores with shape (N, 6) where N is the number of detections.

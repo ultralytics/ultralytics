@@ -93,7 +93,7 @@ JupyterLab's interactive environment allows you to modify code, visualize output
 
 For a detailed understanding of the model training process and best practices, refer to the [YOLO11 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you're using YOLO11 effectively.
 
-## Keep Learning about Jupyterlab
+## Keep Learning about JupyterLab
 
 If you're excited to learn more about JupyterLab, here are some great resources to get you started:
 
@@ -203,12 +203,10 @@ JupyterLab's interactive environment allows for quick iterations and real-time f
 When working with JupyterLab and YOLO11, you might encounter some common issues. Here's how to handle them:
 
 1. GPU memory issues:
-
     - Use `torch.cuda.empty_cache()` to clear GPU memory between runs.
     - Adjust [batch size](https://www.ultralytics.com/glossary/batch-size) or image size to fit your GPU memory.
 
 2. Package conflicts:
-
     - Create a separate conda environment for your YOLO11 projects to avoid conflicts.
     - Use `!pip install package_name` in a notebook cell to install missing packages.
 

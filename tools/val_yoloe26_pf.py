@@ -43,13 +43,13 @@ def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight):
 
     # load the most model weights
     det_model = YOLOE(yaml_name).load(model_path)
-
-
+    det_model.model.args['clip_weight_name']="mobileclip2:b"
     # set vocab from the unfused model
     unfused_model=YOLOE(unfused_model_weight)
+    unfused_model.model.args['clip_weight_name']="mobileclip2:b"
     unfused_model.eval()
     unfused_model.cuda()
-
+    unfused_model.args['clip_model_weight']="mobileclip2:b"
     with open('../buffer/ram_tag_list.txt', 'r') as f:
         names = [x.strip() for x in f.readlines()]
     # categories = yaml_load("ultralytics/cfg/datasets/lvis.yaml")["names"].values()
@@ -57,14 +57,18 @@ def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight):
     vocab = unfused_model.get_vocab(names)
     
 
+
     det_model.eval()
-    det_model.set_vocab(vocab, names=names)
+    det_model.cuda()
+    det_model.set_vocab(vocab, names=names, set_open_ended_te=True)
     det_model.model.model[-1].is_fused = True
     det_model.model.model[-1].conf = 0.001
     det_model.model.model[-1].max_det = 1000
 
-
-
+    
+    names = list(yaml_load("ultralytics/cfg/datasets/lvis.yaml")["names"].values())
+    tpe = det_model.model.get_text_pe(names)
+    det_model.model.set_classes(names, tpe)
     return det_model
 
 
@@ -74,7 +78,7 @@ weight_path_tp="./runs/yoloe26s_tp_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1
 model_weight="/home/louis/ultra_louis_work/ultralytics/runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf_bn_o2m0.1_pfA/weights/best.pt"
 
 
-single_cls=True
+single_cls=False
 
 if single_cls:
     model=YOLOE(model_weight)

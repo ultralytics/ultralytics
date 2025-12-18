@@ -291,7 +291,7 @@ class YOLOE(Model):
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_visual_pe(img, visual)
 
-    def set_vocab(self, vocab: list[str], names: list[str]) -> None:
+    def set_vocab(self, vocab: list[str], names: list[str],set_open_ended_te=False) -> None:
         """
         Set vocabulary and class names for the YOLOE model.
 
@@ -310,7 +310,7 @@ class YOLOE(Model):
             >>> model.set_vocab(["person", "car", "dog"], ["person", "car", "dog"])
         """
         assert isinstance(self.model, YOLOEModel)
-        self.model.set_vocab(vocab, names=names)
+        self.model.set_vocab(vocab, names=names,set_open_ended_te=set_open_ended_te)
 
     def get_vocab(self, names):
         """Get vocabulary for the given class names."""

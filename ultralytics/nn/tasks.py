@@ -1098,7 +1098,7 @@ class YOLOEModel(DetectionModel):
         """
         return self(img, vpe=visual, return_vpe=True)
 
-    def set_vocab(self, vocab, names):
+    def set_vocab(self, vocab, names,set_open_ended_te=False):
         """
         Set vocabulary for the prompt-free model.
 
@@ -1132,8 +1132,15 @@ class YOLOEModel(DetectionModel):
             assert isinstance(cls_head, nn.Sequential)
             del loc_head[-1]
             del cls_head[-1]
-        self.model[-1].nc = len(names)
+        head.nc = len(names)
         self.names = check_class_names(names)
+
+        if set_open_ended_te:
+            # set the open_ended_te for YOLOEDetect
+            open_ended_te=self.get_text_pe(names, without_reprta=True)
+            assert open_ended_te.ndim == 3 and open_ended_te.shape[1] == len(names)
+            head.open_ended_te = open_ended_te.to(device)  
+
 
     def get_vocab(self, names):
         """
@@ -1177,9 +1184,9 @@ class YOLOEModel(DetectionModel):
             names (list[str]): List of class names.
             embeddings (torch.Tensor): Embeddings tensor.
         """
-        assert not hasattr(self.model[-1], "lrpc"), (
-            "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
-        )
+        # assert not hasattr(self.model[-1], "lrpc"), (
+        #     "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
+        # )
         assert embeddings.ndim == 3
         self.pe = embeddings
         self.model[-1].nc = len(names)

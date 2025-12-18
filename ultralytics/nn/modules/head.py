@@ -929,10 +929,40 @@ class YOLOEDetect(Detect):
     def forward(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
         """Process features with class prompt embeddings to generate detections."""
         if hasattr(self, "lrpc"):  # for prompt-free inference
-            return self.forward_lrpc(x[:3])
+            return self.forward_lrpc(x[:3], x[3])
         return super().forward(x)
 
-    def forward_lrpc(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
+
+
+
+    def score_mapping(self, scores: torch.Tensor, w: torch.Tensor, temperature: float = 0.01, hard: bool = False) -> torch.Tensor:
+        """Map open-ended scores to dataset class scores.
+
+        Args:
+            scores (torch.Tensor): Scores with shape (B, num_open_end, num_anchors).
+            w (torch.Tensor): Dataset class embeddings with shape (B, num_classes, embedding_dim).
+            temperature (float): Temperature for softmax scaling.
+            hard (bool): If True, use hard assignment (argmax). If False, use soft weighting.
+        
+        Returns:
+            torch.Tensor: Mapped scores with shape (B, num_classes, num_anchors).
+        """
+        open_te_norm = F.normalize(self.open_ended_te, dim=-1, p=2)  # (B, num_open_end, D)
+        w_norm = F.normalize(w, dim=-1, p=2)                          # (B, num_classes, D)
+        sim = torch.einsum("bkd,bwd->bkw", open_te_norm, w_norm)      # (B, num_open_end, num_classes)
+        
+        if hard:
+            # Hard assignment: one-hot based on argmax
+            max_idx = sim.argmax(dim=1, keepdim=True)  # (B, 1, num_classes)
+            mapping = torch.zeros_like(sim).scatter_(1, max_idx, 1.0)  # (B, num_open_end, num_classes)
+        else:
+            # Soft assignment: temperature-scaled softmax
+            mapping = torch.softmax(sim / temperature, dim=1)  # (B, num_open_end, num_classes)
+        
+        mapped_scores = torch.einsum("bka,bkw->bwa", scores, mapping)
+        return mapped_scores
+
+    def forward_lrpc(self, x: list[torch.Tensor],w:torch.Tensor) -> torch.Tensor | tuple:
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
@@ -948,8 +978,11 @@ class YOLOEDetect(Detect):
                 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
             )
             boxes.append(box.view(bs, self.reg_max * 4, -1))
+            if hasattr(self, "open_ended_te"):
+                score=self.score_mapping(score,w)  # (bs, num_open_end, -1) -> (bs, nc, -1)
             scores.append(score)
             index.append(idx)
+
         preds = dict(boxes=torch.cat(boxes, 2), scores=torch.cat(scores, 2), feats=x, index=torch.cat(index))
         y = self._inference(preds)
         if self.end2end:

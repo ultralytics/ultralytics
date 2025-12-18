@@ -150,7 +150,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
             mode="predict",
             model="sam3.pt",
             half=True,  # Use FP16 for faster inference
-			save=True
+        True
         )
         predictor = SAM3SemanticPredictor(overrides=overrides)
 

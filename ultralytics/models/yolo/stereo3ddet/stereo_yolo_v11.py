@@ -13,6 +13,37 @@ import torch.nn.functional as F
 
 
 # ============================================================================
+# Helper: DLA-34 Backbone Wrapper
+# ============================================================================
+
+
+class _DLA34Wrapper(nn.Module):
+    """Wrapper for timm DLA-34 backbone to extract single feature map.
+
+    timm's features_only=True returns a list of feature maps from different stages.
+    This wrapper extracts only the final stage output (index 0 from out_indices=(5,)).
+    """
+
+    def __init__(self, backbone):
+        super().__init__()
+        self.backbone = backbone
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Extract final feature map from DLA-34.
+
+        Args:
+            x: Input tensor [B, 3, H, W]
+
+        Returns:
+            Feature tensor [B, 512, H/32, W/32] from final stage
+        """
+        # timm with features_only=True returns list of feature maps
+        features = self.backbone(x)
+        # With out_indices=(5,), we get a list with single element (stage 5, 512 channels)
+        return features[0]
+
+
+# ============================================================================
 # Part 1: Feature Fusion Layer
 # ============================================================================
 
@@ -471,30 +502,134 @@ class StereoCenterNetLoss(nn.Module):
 
 
 class UncertaintyWeightedLoss(nn.Module):
-    """Uncertainty-weighted multi-task loss (Kendall et al., 2018)."""
+    """Uncertainty-weighted multi-task loss (Kendall et al., 2018).
+    
+    This module learns task-specific uncertainty parameters (log_vars) that automatically
+    balance the contribution of each loss component during training. Higher uncertainty
+    for a task means lower weight, allowing the model to focus on more reliable tasks.
+    
+    The learned weights can be logged during training to verify balance (T045).
+    
+    Attributes:
+        log_vars: Learnable log-variance parameters for each task.
+        _last_breakdown: Cached breakdown of last forward pass for logging.
+        _task_names: Task names from last forward pass (for logging).
+    """
 
-    def __init__(self, num_tasks: int = 10):
+    def __init__(self, num_tasks: int = 10, log_interval: int = 100):
+        """Initialize uncertainty-weighted loss module.
+        
+        Args:
+            num_tasks: Number of loss components to weight.
+            log_interval: How often to log loss breakdown (every N forward calls).
+        """
         super().__init__()
         self.log_vars = nn.ParameterList([nn.Parameter(torch.zeros(1)) for _ in range(num_tasks)])
+        self.log_interval = log_interval
+        self._forward_count = 0
+        self._last_breakdown: Optional[Dict[str, Dict[str, float]]] = None
+        self._task_names: Optional[List[str]] = None
 
-    def forward(self, losses: Dict[str, torch.Tensor]) -> torch.Tensor:
-        """
+    def forward(self, losses: Dict[str, torch.Tensor], verbose: bool = False) -> torch.Tensor:
+        """Compute uncertainty-weighted total loss.
+        
         L_total = Σ_i (exp(-log_var_i) * L_i + log_var_i)
 
         Args:
-            losses: Dict of individual task losses
+            losses: Dict of individual task losses {task_name: loss_tensor}.
+            verbose: If True, log loss breakdown immediately.
+            
         Returns:
-            total weighted loss
+            Total weighted loss scalar tensor.
         """
         total_loss = 0
+        breakdown = {}
+        self._task_names = list(losses.keys())
 
         for i, (task_name, loss_val) in enumerate(losses.items()):
             log_var = self.log_vars[i]
             # L_i_weighted = exp(-σ_i) * L_i + σ_i
-            weighted_loss = torch.exp(-log_var) * loss_val + log_var
+            # exp(-σ) acts as precision (inverse variance), higher σ = lower weight
+            precision = torch.exp(-log_var)
+            weighted_loss = precision * loss_val + log_var
             total_loss = total_loss + weighted_loss
+            
+            # Store breakdown for logging (T045)
+            breakdown[task_name] = {
+                "raw_loss": loss_val.detach().item(),
+                "log_var": log_var.detach().item(),
+                "precision": precision.detach().item(),
+                "weighted_loss": weighted_loss.detach().item(),
+            }
+        
+        self._last_breakdown = breakdown
+        self._forward_count += 1
+        
+        # Periodic logging for training balance verification (T045)
+        if verbose or (self.log_interval > 0 and self._forward_count % self.log_interval == 0):
+            self._log_breakdown()
 
         return total_loss
+    
+    def _log_breakdown(self) -> None:
+        """Log the loss breakdown for balance verification (T045).
+        
+        Logs individual loss components, learned uncertainty parameters,
+        and effective weights to help verify that uncertainty weighting
+        is properly balancing the multi-task losses.
+        """
+        if self._last_breakdown is None:
+            return
+        
+        try:
+            from ultralytics.utils import LOGGER
+        except ImportError:
+            import logging
+            LOGGER = logging.getLogger(__name__)
+        
+        # Build log message
+        msg_parts = ["[Uncertainty Loss Breakdown]"]
+        for task_name, values in self._last_breakdown.items():
+            # precision = exp(-log_var), represents effective weight
+            msg_parts.append(
+                f"  {task_name}: raw={values['raw_loss']:.4f}, "
+                f"log_var={values['log_var']:.4f}, "
+                f"weight={values['precision']:.4f}, "
+                f"weighted={values['weighted_loss']:.4f}"
+            )
+        
+        LOGGER.info("\n".join(msg_parts))
+    
+    def get_loss_breakdown(self) -> Optional[Dict[str, Dict[str, float]]]:
+        """Get the breakdown of the last computed loss.
+        
+        Returns:
+            Dict mapping task names to their loss breakdown:
+                - raw_loss: Original unweighted loss value
+                - log_var: Learned log-variance parameter
+                - precision: Effective weight (exp(-log_var))
+                - weighted_loss: Final weighted loss contribution
+            Returns None if forward() hasn't been called yet.
+        """
+        return self._last_breakdown
+    
+    def get_learned_weights(self) -> Dict[str, float]:
+        """Get the current learned weights for each task.
+        
+        The effective weight for each task is exp(-log_var).
+        Higher weight = model considers this task more reliable.
+        
+        Returns:
+            Dict mapping task names to their effective weights.
+        """
+        if self._task_names is None:
+            # Use generic names if forward hasn't been called
+            return {f"task_{i}": torch.exp(-lv).item() for i, lv in enumerate(self.log_vars)}
+        
+        return {
+            name: torch.exp(-self.log_vars[i]).item() 
+            for i, name in enumerate(self._task_names)
+        }
 
 
 # ============================================================================
@@ -504,11 +639,29 @@ class UncertaintyWeightedLoss(nn.Module):
 class StereoYOLOv11(nn.Module):
     """YOLOv11 Stereo 3D Detection - Full model."""
 
-    def __init__(self, backbone_type: str = "resnet18", num_classes: int = 3, in_channels: int = 256):
+    def __init__(
+        self,
+        backbone_type: str = "resnet18",
+        num_classes: int = 3,
+        in_channels: int = 256,
+        use_uncertainty_weighting: bool = False,
+    ):
+        """Initialize StereoYOLOv11 model.
+
+        Args:
+            backbone_type: Backbone architecture ('resnet18', 'resnet50', or 'dla34').
+            num_classes: Number of object classes (default 3 for KITTI: Car, Pedestrian, Cyclist).
+            in_channels: Number of channels for feature fusion output (default 256).
+            use_uncertainty_weighting: Whether to use learned uncertainty weighting for multi-task
+                loss balancing (Kendall et al., 2018). When True, the model learns task-specific
+                uncertainty parameters that automatically balance the contribution of each loss
+                component during training. Default False for backward compatibility.
+        """
         super().__init__()
 
         self.backbone_type = backbone_type
         self.num_classes = num_classes
+        self.use_uncertainty_weighting = use_uncertainty_weighting
 
         # 1. Backbone (shared)
         self.backbone = self._build_backbone(backbone_type)
@@ -528,7 +681,36 @@ class StereoYOLOv11(nn.Module):
         self.uncertainty_loss = UncertaintyWeightedLoss(num_tasks=10)
 
     def _build_backbone(self, backbone_type: str) -> nn.Module:
-        """Build the backbone network."""
+        """Build the backbone network.
+        
+        Args:
+            backbone_type: Type of backbone to use. Supported options:
+                - "resnet18": ResNet-18 (512 channels, ~30+ FPS)
+                - "resnet50": ResNet-50 (2048 channels, ~25 FPS)
+                - "dla34": DLA-34 with Deep Layer Aggregation (512 channels, ~20+ FPS)
+                          Requires timm library: pip install timm
+                          
+        Returns:
+            nn.Module: Backbone network that outputs feature maps [B, C, H/32, W/32]
+            
+        Raises:
+            ValueError: If backbone_type is not supported
+            ImportError: If dla34 is requested but timm is not installed
+            
+        Note (GAP-005 / T033):
+            DLA-34 provides +8.73% AP3D improvement over ResNet-18 according to 
+            the Stereo CenterNet paper. The backbone is shared for weight sharing
+            between left and right image processing (see T034).
+        """
+        # Validate backbone type upfront (T033)
+        valid_backbones = {"resnet18", "resnet50", "dla34"}
+        if backbone_type not in valid_backbones:
+            valid_options = ", ".join(sorted(valid_backbones))
+            raise ValueError(
+                f"Unknown backbone type: '{backbone_type}'. "
+                f"Valid options are: {valid_options}"
+            )
+        
         if backbone_type == "resnet18":
             from torchvision import models
 
@@ -542,17 +724,56 @@ class StereoYOLOv11(nn.Module):
             backbone = models.resnet50(pretrained=True)
             return nn.Sequential(*list(backbone.children())[:-2])
 
-        else:
-            raise ValueError(f"Unknown backbone type: {backbone_type}")
+        elif backbone_type == "dla34":
+            # DLA-34 backbone with deformable convolutions for +8.73% AP3D improvement
+            # Paper Reference: Stereo CenterNet uses DLA-34 as primary backbone
+            try:
+                import timm
+            except ImportError as e:
+                raise ImportError(
+                    "DLA-34 backbone requires the 'timm' library.\n"
+                    "Install with: pip install timm>=0.9.0\n"
+                    "Or add to requirements: timm>=0.9.0"
+                ) from e
+
+            backbone = timm.create_model(
+                "dla34",
+                pretrained=True,
+                features_only=True,
+                out_indices=(5,),  # Get final feature map (stage 5, 512 channels, 32x downsample)
+            )
+            # Wrap in a module that extracts just the final feature map
+            return _DLA34Wrapper(backbone)
+        
+        # Should never reach here due to upfront validation
+        raise ValueError(f"Unhandled backbone type: {backbone_type}")
 
     def _get_backbone_channels(self, backbone_type: str) -> int:
-        """Get the number of output channels of the backbone."""
-        if "resnet18" in backbone_type:
-            return 512
-        elif "resnet50" in backbone_type:
-            return 2048
-        else:
-            raise ValueError(f"Unknown backbone type: {backbone_type}")
+        """Get the number of output channels of the backbone.
+        
+        Args:
+            backbone_type: Type of backbone ("resnet18", "resnet50", "dla34")
+            
+        Returns:
+            Number of output channels from the backbone's final feature map
+            
+        Channel reference (GAP-005 / T032):
+            - resnet18: 512 (final BasicBlock output)
+            - resnet50: 2048 (final Bottleneck output)
+            - dla34: 512 (final stage output from Deep Layer Aggregation)
+        """
+        channel_map = {
+            "resnet18": 512,
+            "resnet50": 2048,
+            "dla34": 512,  # DLA-34 final stage channels (GAP-005)
+        }
+        if backbone_type not in channel_map:
+            valid_options = ", ".join(sorted(channel_map.keys()))
+            raise ValueError(
+                f"Unknown backbone type: '{backbone_type}'. "
+                f"Valid options are: {valid_options}"
+            )
+        return channel_map[backbone_type]
 
     def forward(
         self,
@@ -564,14 +785,22 @@ class StereoYOLOv11(nn.Module):
         Full forward pass.
 
         Args:
-            left_img: [B, 3, H, W]
-            right_img: [B, 3, H, W]
+            left_img: [B, 3, H, W] - Left camera image tensor
+            right_img: [B, 3, H, W] - Right camera image tensor  
             targets: Dict of ground truth (training)
 
         Returns:
             (predictions, loss) or predictions
+            
+        Note (T034 - Weight Sharing Verification):
+            The same backbone instance (self.backbone) is used to process both
+            left and right images. This ensures weight sharing between the two
+            branches, which is critical for stereo matching. Works correctly with
+            all supported backbones: ResNet-18, ResNet-50, and DLA-34.
         """
-        # 1. Backbone feature extraction
+        # 1. Backbone feature extraction (weight sharing - T034)
+        # Both left and right images pass through the SAME backbone module,
+        # ensuring identical feature extraction for stereo correspondence.
         left_feat = self.backbone(left_img)  # [B, C_backbone, H/32, W/32]
         right_feat = self.backbone(right_img)  # [B, C_backbone, H/32, W/32]
 
@@ -589,8 +818,11 @@ class StereoYOLOv11(nn.Module):
         if targets is not None:
             # Per-branch losses
             total_loss, loss_dict = self.criterion(predictions, targets)
-            # (Optional) apply uncertainty weighting
-            # total_loss = self.uncertainty_loss(loss_dict)
+            # Apply uncertainty weighting if enabled (GAP-007: Uncertainty Weighting)
+            # This uses learned uncertainty parameters to automatically balance
+            # multi-task loss components during training (Kendall et al., 2018)
+            if self.use_uncertainty_weighting:
+                total_loss = self.uncertainty_loss(loss_dict)
             return predictions, total_loss, loss_dict
         else:
             return predictions
@@ -602,9 +834,29 @@ class StereoYOLOv11Wrapper(nn.Module):
     Exposes a YOLO-like interface: forward(img, targets=None) -> (loss, items) during training.
     """
 
-    def __init__(self, backbone_type: str = "resnet18", num_classes: int = 3, in_channels: int = 256):
+    def __init__(
+        self,
+        backbone_type: str = "resnet18",
+        num_classes: int = 3,
+        in_channels: int = 256,
+        use_uncertainty_weighting: bool = False,
+    ):
+        """Initialize StereoYOLOv11Wrapper.
+
+        Args:
+            backbone_type: Backbone architecture ('resnet18', 'resnet50', or 'dla34').
+            num_classes: Number of object classes (default 3 for KITTI: Car, Pedestrian, Cyclist).
+            in_channels: Number of channels for feature fusion output (default 256).
+            use_uncertainty_weighting: Whether to use learned uncertainty weighting for multi-task
+                loss balancing. See StereoYOLOv11 for details.
+        """
         super().__init__()
-        self.core = StereoYOLOv11(backbone_type=backbone_type, num_classes=num_classes, in_channels=in_channels)
+        self.core = StereoYOLOv11(
+            backbone_type=backbone_type,
+            num_classes=num_classes,
+            in_channels=in_channels,
+            use_uncertainty_weighting=use_uncertainty_weighting,
+        )
         self.names = {i: str(i) for i in range(num_classes)}
         # Required attributes for AutoBackend compatibility
         self.stride = torch.tensor([32.0])  # Default stride for stereo models

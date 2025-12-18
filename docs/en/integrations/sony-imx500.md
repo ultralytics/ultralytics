@@ -434,18 +434,17 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
 
         ```python
         import numpy as np
-
         from modlib.apps import Annotator
         from modlib.devices import AiCamera
         from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
         from modlib.models.post_processors import pp_yolo_segment_ultralytics
 
+
         class YOLOSegment(Model):
-        """YOLO segmentation model for IMX500 deployment."""
+            """YOLO segmentation model for IMX500 deployment."""
 
             def __init__(self):
                 """Initialize the YOLO segmentation model for IMX500 deployment."""
-
                 super().__init__(
                     model_file="yolo11n-seg_imx_model/packerOut.zip",  # replace with proper directory
                     model_type=MODEL_TYPE.CONVERTED,
@@ -463,7 +462,8 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 """Post-process the output tensors for instance segmentation."""
                 return pp_yolo_segment_ultralytics(output_tensors)
 
-        device = AiCamera(frame_rate=17) # Optimal frame rate for maximum DPS of the YOLO-seg model running on the AI Camera
+
+        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the YOLO-seg model running on the AI Camera
         model = YOLOSegment()
         device.deploy(model)
 

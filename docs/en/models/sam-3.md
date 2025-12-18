@@ -116,7 +116,7 @@ pip install -U ultralytics
 
 !!! warning "SAM 3 Model Weights Required"
 
-    Unlike other Ultralytics models, SAM 3 weights (`sam3.pt`) are **not automatically downloaded**. You must manually download the model weights from the [official SAM 3 repository](https://github.com/facebookresearch/sam3) before using SAM 3. Place the downloaded `sam3.pt` file in your working directory or specify the full path when loading the model.
+    Unlike other Ultralytics models, SAM 3 weights (`sam3.pt`) are **not automatically downloaded**. You must first request access for the model weights on the [SAM 3 model page on Hugging Face](https://huggingface.co/facebook/sam3) and then, once approved, download the [`sam3.pt` file](https://huggingface.co/facebook/sam3/resolve/main/sam3.pt?download=true). Place the downloaded `sam3.pt` file in your working directory or specify the full path when loading the model.
 
 ## How to Use SAM 3: Versatility in Concept Segmentation
 

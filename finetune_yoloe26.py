@@ -132,12 +132,12 @@ else:
 
 
 ###################################################################
-# args.trainer="YOLOESegTrainerFromScratch"
+# args.trainer="YOLOEVPTrainer"
 # args.project="runs/quick_verfiy"
-# args.model_version="26s-seg"
+# args.model_version="26s"
 # data = dict(
 #     train=dict(
-#         yolo_data=["coco128-seg.yaml"]
+#         yolo_data=["coco128.yaml"]
 #     ),
 #     val=dict(yolo_data=[os.path.abspath("../datasets/lvis.yaml")]),
 # )

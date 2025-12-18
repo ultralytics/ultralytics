@@ -1989,11 +1989,14 @@ class Residual(nn.Module):
         """Apply residual connection to input features."""
         return x + self.m(x)
 
-
 class SAVPE(nn.Module):
     """Spatial-Aware Visual Prompt Embedding module for feature enhancement."""
 
-    def __init__(self, ch: list[int], c3: int, embed: int):
+    # ========== Enhancement Switch ==========
+    use_learnable_temperature: bool = True   # learnable softmax temperature
+    temperature_init: float = 1.0            # initial temperature
+
+    def __init__(self, ch: list[int], c3: int, embed: int, **kwargs):
         """
         Initialize SAVPE module with channels, intermediate channels, and embedding dimension.
 
@@ -2003,6 +2006,12 @@ class SAVPE(nn.Module):
             embed (int): Embedding dimension.
         """
         super().__init__()
+        
+        # Allow per-instance override
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        
         self.cv1 = nn.ModuleList(
             nn.Sequential(
                 Conv(x, c3, 3), Conv(c3, c3, 3), nn.Upsample(scale_factor=i * 2) if i in {1, 2} else nn.Identity()
@@ -2021,6 +2030,22 @@ class SAVPE(nn.Module):
         self.cv5 = nn.Conv2d(1, self.c, 3, padding=1)
         self.cv6 = nn.Sequential(Conv(2 * self.c, self.c, 3), nn.Conv2d(self.c, self.c, 3, padding=1))
 
+        # ========== Learnable Temperature ==========
+        if self.use_learnable_temperature:
+            # softplus(raw) + 0.1 = temperature
+            # 初始化使得 temperature ≈ temperature_init
+            init_raw = float(torch.log(torch.exp(torch.tensor(self.temperature_init - 0.1).clamp(min=1e-6)) - 1 + 1e-6))
+            self.temperature_raw = nn.Parameter(torch.tensor(init_raw))
+        else:
+            self.temperature_raw = None
+
+    @property
+    def temperature(self) -> torch.Tensor:
+        """Get current temperature value."""
+        if self.use_learnable_temperature and self.temperature_raw is not None:
+            return F.softplus(self.temperature_raw) + 0.1
+        return torch.tensor(1.0, device=next(self.parameters()).device)
+
     def forward(self, x: list[torch.Tensor], vp: torch.Tensor) -> torch.Tensor:
         """Process input features and visual prompts to generate enhanced embeddings."""
         y = [self.cv2[i](xi) for i, xi in enumerate(x)]
@@ -2030,27 +2055,30 @@ class SAVPE(nn.Module):
         x = self.cv3(torch.cat(x, dim=1))
 
         B, C, H, W = x.shape
-
         Q = vp.shape[1]
 
         x = x.view(B, C, -1)
 
         y = y.reshape(B, 1, self.c, H, W).expand(-1, Q, -1, -1, -1).reshape(B * Q, self.c, H, W)
-        vp = vp.reshape(B, Q, 1, H, W).reshape(B * Q, 1, H, W)
+        vp = vp.reshape(B * Q, 1, H, W)
 
         y = self.cv6(torch.cat((y, self.cv5(vp)), dim=1))
 
         y = y.reshape(B, Q, self.c, -1)
         vp = vp.reshape(B, Q, 1, -1)
 
-        score = y * vp + torch.logical_not(vp) * torch.finfo(y.dtype).min
+        # ========== Score with Temperature ==========
+        score = y * vp / self.temperature  # 加入温度缩放
+        score = score + torch.logical_not(vp) * torch.finfo(y.dtype).min
         score = F.softmax(score, dim=-1).to(y.dtype)
+        
         aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
 
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
+
     def init_weights(self):
         """Initialize SAVPE module weights for training reproduction."""
-        # Initialize cv1 ModuleList (3 sequential conv layers for different scales)
+        # Initialize cv1 ModuleList
         for cv1_seq in self.cv1:
             for module in cv1_seq:
                 if isinstance(module, Conv):
@@ -2061,7 +2089,7 @@ class SAVPE(nn.Module):
                         nn.init.constant_(module.bn.weight, 1)
                         nn.init.constant_(module.bn.bias, 0)
         
-        # Initialize cv2 ModuleList (3 conv layers with upsampling)
+        # Initialize cv2 ModuleList
         for cv2_seq in self.cv2:
             for module in cv2_seq:
                 if isinstance(module, Conv):
@@ -2072,22 +2100,22 @@ class SAVPE(nn.Module):
                         nn.init.constant_(module.bn.weight, 1)
                         nn.init.constant_(module.bn.bias, 0)
         
-        # Initialize cv3 (Conv2d for embedding)
+        # Initialize cv3
         nn.init.kaiming_normal_(self.cv3.weight, mode='fan_out', nonlinearity='relu')
         if self.cv3.bias is not None:
             nn.init.constant_(self.cv3.bias, 0)
         
-        # Initialize cv4 (Conv2d for channel projection)
+        # Initialize cv4
         nn.init.kaiming_normal_(self.cv4.weight, mode='fan_out', nonlinearity='relu')
         if self.cv4.bias is not None:
             nn.init.constant_(self.cv4.bias, 0)
         
-        # Initialize cv5 (Conv2d for visual prompt processing)
+        # Initialize cv5
         nn.init.kaiming_normal_(self.cv5.weight, mode='fan_out', nonlinearity='relu')
         if self.cv5.bias is not None:
             nn.init.constant_(self.cv5.bias, 0)
         
-        # Initialize cv6 Sequential (final fusion layers)
+        # Initialize cv6 Sequential
         for module in self.cv6:
             if isinstance(module, Conv):
                 nn.init.kaiming_normal_(module.conv.weight, mode='fan_out', nonlinearity='relu')
@@ -2101,4 +2129,5 @@ class SAVPE(nn.Module):
                 if module.bias is not None:
                     nn.init.constant_(module.bias, 0)
         
-        print("🔄 SAVPE weights initialized: cv1, cv2, cv3, cv4, cv5, cv6 modules")
+        temp_info = f", temperature={self.temperature.item():.2f}" if self.use_learnable_temperature else ""
+        print(f"🔄 SAVPE weights initialized: cv1-cv6{temp_info}")

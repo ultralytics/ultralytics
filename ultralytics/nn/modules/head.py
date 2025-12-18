@@ -874,6 +874,7 @@ class RTDETRDecoder(nn.Module):
         box_noise_scale: float = 1.0,
         learnt_init_query: bool = False,
         enable_cuda_acceleration: bool = False,
+        one_to_many_groups: int = 0,
     ):
         """Initialize the RTDETRDecoder module with the given parameters.
 
@@ -926,6 +927,7 @@ class RTDETRDecoder(nn.Module):
         self.num_denoising = nd
         self.label_noise_ratio = label_noise_ratio
         self.box_noise_scale = box_noise_scale
+        self.query_noise_scale = 0.0
 
         # Decoder embedding
         self.learnt_init_query = learnt_init_query
@@ -941,6 +943,8 @@ class RTDETRDecoder(nn.Module):
         # Decoder head
         self.dec_score_head = nn.ModuleList([nn.Linear(hd, nc) for _ in range(ndl)])
         self.dec_bbox_head = nn.ModuleList([MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
+
+        self.one_to_many_groups = one_to_many_groups
 
         self._reset_parameters()
 
@@ -975,6 +979,18 @@ class RTDETRDecoder(nn.Module):
 
         embed, refer_bbox, enc_bboxes, enc_scores = self._get_decoder_input(feats, shapes, dn_embed, dn_bbox)
 
+        # === EXTEND ATTENTION MASK FOR ONE-TO-MANY ===
+        if dn_meta is not None:
+            dn_meta["one_to_many_groups"] = self.one_to_many_groups
+        if self.training and self.one_to_many_groups > 0:
+            num_o2m = self.num_queries * self.one_to_many_groups
+            attn_mask = self._extend_attn_mask_for_o2m(attn_mask, dn_meta, num_o2m, device=feats.device)
+
+        # # Visualize and save this attentinn mask for debugging
+        # import matplotlib.pyplot as plt
+        # plt.imshow(attn_mask.cpu().numpy())
+        # plt.savefig('attn_mask.png')
+
         # Decoder
         dec_bboxes, dec_scores = self.decoder(
             embed,
@@ -992,6 +1008,52 @@ class RTDETRDecoder(nn.Module):
         # (bs, 300, 4+nc)
         y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
         return y if self.export else (y, x)
+
+    def _extend_attn_mask_for_o2m(
+        self,
+        attn_mask: torch.Tensor | None,
+        dn_meta: dict | None,
+        num_o2m: int,
+        device: torch.device,
+    ) -> torch.Tensor:
+        """Extend attention mask to include one-to-many queries.
+
+        Query order: [dn | o2o | o2m]
+
+        Mask rules:
+        - DN queries: only attend to themselves (handled by original mask)
+        - O2O queries: cannot attend to O2M queries
+        - O2M queries: cannot attend to O2O queries
+        - DN cannot attend to O2O/O2M and vice versa
+        """
+        num_dn = dn_meta["dn_num_split"][0] if dn_meta else 0
+        num_o2o = self.num_queries
+        total_queries = num_dn + num_o2o + num_o2m
+
+        # Create new mask
+        new_mask = torch.zeros(total_queries, total_queries, dtype=torch.bool, device=device)
+
+        # 1. Copy existing mask (handles DN internal + DN/O2O relationships)
+        if attn_mask is not None:
+            orig_size = attn_mask.shape[0]  # num_dn + num_o2o
+            new_mask[:orig_size, :orig_size] = attn_mask
+
+        # 2. DN can attend to O2M (same as O2O) - already False, no action needed
+        # new_mask[:num_dn, num_dn + num_o2o:] = False  # DN → O2M (can attend)
+
+        # 3. O2M cannot attend to DN (same as O2O)
+        new_mask[num_dn + num_o2o:, :num_dn] = True  # O2M → DN (cannot attend)
+
+        # 3. O2O and O2M cannot attend to each other
+        o2o_start = num_dn
+        o2o_end = num_dn + num_o2o
+        o2m_start = o2o_end
+        o2m_end = total_queries
+
+        new_mask[o2o_start:o2o_end, o2m_start:o2m_end] = True  # O2O cannot see O2M
+        new_mask[o2m_start:o2m_end, o2o_start:o2o_end] = True  # O2M cannot see O2O
+
+        return new_mask
 
     def _generate_anchors(
         self,
@@ -1106,6 +1168,24 @@ class RTDETRDecoder(nn.Module):
         if dn_bbox is not None:
             refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
         enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+
+        # === ONE-TO-MANY: Concatenate repeated queries ===
+        if self.training and self.one_to_many_groups > 0:
+            k = self.one_to_many_groups
+
+            # Repeat and add noise for diversity
+            top_k_features_o2m = top_k_features.repeat_interleave(k, dim=1)  # (bs, nq*k, 256)
+            top_k_anchors_o2m = top_k_anchors.repeat_interleave(k, dim=1)    # (bs, nq*k, 4)
+
+            if self.query_noise_scale > 0:
+                noise = torch.randn_like(top_k_features_o2m) * self.query_noise_scale
+                top_k_features_o2m = top_k_features_o2m + noise
+
+            refer_bbox_o2m = self.enc_bbox_head(top_k_features_o2m) + top_k_anchors_o2m
+
+            # Concatenate: [o2o queries | o2m queries]
+            refer_bbox = torch.cat([refer_bbox, refer_bbox_o2m], dim=1)  # (bs, nq + nq*k, 4)
+            top_k_features = torch.cat([top_k_features, top_k_features_o2m], dim=1)
 
         embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
         if self.training:

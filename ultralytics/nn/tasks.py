@@ -715,10 +715,8 @@ class RTDETRDetectionModel(DetectionModel):
             verbose (bool): Print additional information during initialization.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-        self.one_to_many_groups = 5  # number of GT repetitions (k)
-        self.use_one_to_many = False  # enable/disable one-to-many
 
-    def one_to_many_targets(self, targets):
+    def one_to_many_targets(self, targets, k):
         """Repeat ground truth targets for one-to-many matching.
 
         Args:
@@ -727,15 +725,11 @@ class RTDETRDetectionModel(DetectionModel):
                 - bboxes: bounding boxes [N, 4]
                 - batch_idx: batch indices [N]
                 - gt_groups: list of GT counts per batch
+            k (int): Number of repetitions per target.
 
         Returns:
             dict: Repeated targets for one-to-many matching.
         """
-        if not self.training or not self.use_one_to_many:
-            return targets
-
-        k = self.one_to_many_groups
-
         repeated_targets = {
             "cls": targets["cls"].repeat_interleave(k, dim=0),
             "bboxes": targets["bboxes"].repeat_interleave(k, dim=0),
@@ -744,6 +738,44 @@ class RTDETRDetectionModel(DetectionModel):
         }
 
         return repeated_targets
+
+    @staticmethod
+    def _split_decoder_predictions(dec_bboxes, dec_scores, dn_meta):
+        """Split decoder outputs into denoising, one-to-one, and optional one-to-many groups."""
+        outputs = {
+            "dn_bboxes": None,
+            "dn_scores": None,
+            "o2o_bboxes": dec_bboxes,
+            "o2o_scores": dec_scores,
+            "o2m_bboxes": None,
+            "o2m_scores": None,
+            "one_to_many_groups": 0,
+        }
+
+        if dn_meta is None:
+            return outputs
+
+        outputs["one_to_many_groups"] = dn_meta.get("one_to_many_groups", 0)
+        num_dn, num_o2o = dn_meta["dn_num_split"]
+
+        if outputs["one_to_many_groups"] <= 0:
+            outputs["dn_bboxes"], outputs["o2o_bboxes"] = torch.split(dec_bboxes, dn_meta["dn_num_split"], dim=2)
+            outputs["dn_scores"], outputs["o2o_scores"] = torch.split(dec_scores, dn_meta["dn_num_split"], dim=2)
+            return outputs
+
+        num_o2m = num_o2o * outputs["one_to_many_groups"]
+        dn_end = num_dn
+        o2o_end = dn_end + num_o2o
+        o2m_end = o2o_end + num_o2m
+
+        outputs["dn_bboxes"] = dec_bboxes[:, :, :dn_end]
+        outputs["o2o_bboxes"] = dec_bboxes[:, :, dn_end:o2o_end]
+        outputs["o2m_bboxes"] = dec_bboxes[:, :, o2o_end:o2m_end]
+
+        outputs["dn_scores"] = dec_scores[:, :, :dn_end]
+        outputs["o2o_scores"] = dec_scores[:, :, dn_end:o2o_end]
+        outputs["o2m_scores"] = dec_scores[:, :, o2o_end:o2m_end]
+        return outputs
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model that are not parameters or registered buffers.
@@ -795,11 +827,12 @@ class RTDETRDetectionModel(DetectionModel):
         if preds is None:
             preds = self.predict(img, batch=targets)
         dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds if self.training else preds[1]
-        if dn_meta is None:
-            dn_bboxes, dn_scores = None, None
-        else:
-            dn_bboxes, dec_bboxes = torch.split(dec_bboxes, dn_meta["dn_num_split"], dim=2)
-            dn_scores, dec_scores = torch.split(dec_scores, dn_meta["dn_num_split"], dim=2)
+        split_outputs = self._split_decoder_predictions(dec_bboxes, dec_scores, dn_meta)
+        dn_bboxes = split_outputs["dn_bboxes"]
+        dn_scores = split_outputs["dn_scores"]
+        dec_bboxes = split_outputs["o2o_bboxes"]
+        dec_scores = split_outputs["o2o_scores"]
+        one_to_many_groups = split_outputs["one_to_many_groups"]
 
         dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])  # (7, bs, 300, 4)
         dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
@@ -809,10 +842,12 @@ class RTDETRDetectionModel(DetectionModel):
         )
 
         # One-to-many loss (auxiliary)
-        if self.training and self.use_one_to_many:
-            targets_o2m = self.one_to_many_targets(targets)
+        if self.training and one_to_many_groups > 0:
+            o2m_bboxes = split_outputs["o2m_bboxes"].contiguous()
+            o2m_scores = split_outputs["o2m_scores"].contiguous()
+            targets_o2m = self.one_to_many_targets(targets, one_to_many_groups)
             loss_o2m = self.criterion(
-                (dec_bboxes, dec_scores), targets_o2m, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta
+                (o2m_bboxes, o2m_scores), targets_o2m, dn_bboxes=None, dn_scores=None, dn_meta=None
             )
             # Combine losses (o2m with lower weight)
             o2m_weight = 0.5

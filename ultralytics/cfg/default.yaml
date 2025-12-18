@@ -105,6 +105,7 @@ cls_w: 1.0
 stride_ratio: 1.0
 detach_epoch: 10
 topk: 10
+hungarian: False
 end2end: True
 box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain

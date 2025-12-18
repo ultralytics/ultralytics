@@ -35,6 +35,7 @@ class TaskAlignedAssigner(nn.Module):
         stride_ratio: float = 1.0,
         eps: float = 1e-9,
         topk2=None,
+        hungarian: bool = False,
     ):
         """
         Initialize a TaskAlignedAssigner object with customizable hyperparameters.
@@ -55,6 +56,7 @@ class TaskAlignedAssigner(nn.Module):
         self.stride = stride
         self.stride_ratio = stride_ratio
         self.eps = eps
+        self.hungarian = hungarian
 
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):

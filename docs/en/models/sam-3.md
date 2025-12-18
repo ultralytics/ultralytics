@@ -150,6 +150,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
             mode="predict",
             model="sam3.pt",
             half=True,  # Use FP16 for faster inference
+            save=True,
         )
         predictor = SAM3SemanticPredictor(overrides=overrides)
 
@@ -157,13 +158,13 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         predictor.set_image("path/to/image.jpg")
 
         # Query with multiple text prompts
-        results = predictor(text=["person", "bus", "glasses"], save=True)
+        results = predictor(text=["person", "bus", "glasses"])
 
         # Works with descriptive phrases
-        results = predictor(text=["person with red cloth", "person with blue cloth"], save=True)
+        results = predictor(text=["person with red cloth", "person with blue cloth"])
 
         # Query with a single concept
-        results = predictor(text=["a person"], save=True)
+        results = predictor(text=["a person"])
         ```
 
 #### Segment with Image Exemplars
@@ -178,17 +179,17 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3SemanticPredictor
 
         # Initialize predictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True)
+        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True, save=True)
         predictor = SAM3SemanticPredictor(overrides=overrides)
 
         # Set image
         predictor.set_image("path/to/image.jpg")
 
         # Provide bounding box examples to segment similar objects
-        results = predictor(bboxes=[[480.0, 290.0, 590.0, 650.0]], save=True)
+        results = predictor(bboxes=[[480.0, 290.0, 590.0, 650.0]])
 
         # Multiple bounding boxes for different concepts
-        results = predictor(bboxes=[[539, 599, 589, 639], [343, 267, 499, 662]], save=True)
+        results = predictor(bboxes=[[539, 599, 589, 639], [343, 267, 499, 662]])
         ```
 
 #### Feature-based Inference for Efficiency
@@ -272,11 +273,11 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3VideoSemanticPredictor
 
         # Initialize semantic video predictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=640, model="sam3.pt", half=True)
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=640, model="sam3.pt", half=True, save=True)
         predictor = SAM3VideoSemanticPredictor(overrides=overrides)
 
         # Track concepts using text prompts
-        results = predictor(source="path/to/video.mp4", text=["person", "bicycle"], stream=True, save=True)
+        results = predictor(source="path/to/video.mp4", text=["person", "bicycle"], stream=True)
 
         # Process results
         for r in results:
@@ -288,7 +289,6 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
             bboxes=[[864, 383, 975, 620], [705, 229, 782, 402]],
             labels=[1, 1],  # Positive labels
             stream=True,
-            save=True,
         )
         ```
 

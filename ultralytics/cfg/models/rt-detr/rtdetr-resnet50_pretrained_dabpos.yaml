@@ -39,4 +39,4 @@ head:
   - [-1, 3, RepC3, [256]] # F5 (21), pan_blocks.1
 
   # - [[15, 18, 21], 1, RTDETRDecoder, [nc]] # Detect(P3, P4, P5)
-  - [[15, 18, 21], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0, "relu", -1, 200, 0.5, 1.0, False, False, 0, True]]
+  - [[15, 18, 21], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0, "relu", -1, 200, 0.5, 1.0, False, True, 0, True]]

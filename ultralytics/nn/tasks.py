@@ -1646,7 +1646,11 @@ def parse_model(d, ch, verbose=True):
         else:
             c2 = ch[f]
 
-        m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+        # Special handling for TorchVision to pass in_channels
+        if m is TorchVision:
+            m_ = torch.nn.Sequential(*(m(*args, in_channels=c1) for _ in range(n))) if n > 1 else m(*args, in_channels=c1)
+        else:
+            m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type

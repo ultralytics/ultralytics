@@ -188,11 +188,14 @@ class Detect(nn.Module):
             dbox = self.decode_bboxes(self.dfl(boxes) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
         else:
             new_shape = [s * self.stride[0] for s in self.shape[2:]]
+            boxes = boxes.clone()
             boxes[:, 0] *= new_shape[1]
             boxes[:, 1] *= new_shape[0]
             boxes[:, 2] *= new_shape[1]
             boxes[:, 3] *= new_shape[0]
             boxes /= self.strides
+            # new_shape = torch.tensor([s * self.stride[0] for s in self.shape[2:]], dtype=boxes.dtype, device=boxes.device)[[1, 0, 1, 0]]
+            # dbox = self.decode_bboxes(self.dfl(boxes * new_shape[:, None] / self.strides), self.anchors.unsqueeze(0)) * self.strides
             dbox = self.decode_bboxes(self.dfl(boxes), self.anchors.unsqueeze(0)) * self.strides
         return dbox
 

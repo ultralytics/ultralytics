@@ -294,58 +294,12 @@ class TargetGenerator:
         )
 
         # Store vertex targets
-        # #region agent log
-        import json
-        import time
-        log_path = "/home/rick/ultralytics/.cursor/debug.log"
-        try:
-            with open(log_path, "a") as f:
-                f.write(json.dumps({
-                    "sessionId": "debug-session",
-                    "runId": "run1",
-                    "hypothesisId": "B",
-                    "location": "target_improved.py:307",
-                    "message": "Vertex target generation - scale factors",
-                    "data": {
-                        "scale_w": float(scale_w),
-                        "scale_h": float(scale_h),
-                        "input_w": int(input_w),
-                        "input_h": int(input_h),
-                        "output_w": int(self.output_w),
-                        "output_h": int(self.output_h),
-                        "center_x_out": float(center_x_out),
-                        "center_y_out": float(center_y_out),
-                    },
-                    "timestamp": int(time.time() * 1000)
-                }) + "\n")
-        except: pass
-        # #endregion
+
         for i, (vx, vy) in enumerate(bottom_vertices_2d):
             # Scale to output feature map size
             vx_out = vx * scale_w
             vy_out = vy * scale_h
 
-            # #region agent log
-            if i == 0:  # Log first vertex as sample
-                try:
-                    with open(log_path, "a") as f:
-                        f.write(json.dumps({
-                            "sessionId": "debug-session",
-                            "runId": "run1",
-                            "hypothesisId": "C",
-                            "location": "target_improved.py:309",
-                            "message": "Vertex coordinate scaling",
-                            "data": {
-                                "vx_2d": float(vx),
-                                "vy_2d": float(vy),
-                                "vx_out": float(vx_out),
-                                "vy_out": float(vy_out),
-                                "vertex_index": i,
-                            },
-                            "timestamp": int(time.time() * 1000)
-                        }) + "\n")
-                except: pass
-            # #endregion
 
             # 8. Vertices: Store as RELATIVE offsets from center (not absolute coordinates)
             # This keeps values bounded and reduces loss magnitude
@@ -381,29 +335,6 @@ class TargetGenerator:
             max_dist = math.sqrt(self.output_w ** 2 + self.output_h ** 2)  # Diagonal of feature map
             dist = math.sqrt(dx ** 2 + dy ** 2)  # Use original dx, dy for distance calculation
             dist_normalized = min(dist / max_dist, 1.5)  # Normalize and clip to 1.5x for safety
-            # #region agent log
-            if i == 0:  # Log first vertex distance as sample
-                try:
-                    with open(log_path, "a") as f:
-                        f.write(json.dumps({
-                            "sessionId": "debug-session",
-                            "runId": "run1",
-                            "hypothesisId": "E",
-                            "location": "target_improved.py:327",
-                            "message": "Vertex distance computation",
-                            "data": {
-                                "dx": float(dx),
-                                "dy": float(dy),
-                                "dist": float(dist),
-                                "dist_clipped": dist == max_dist,
-                                "max_dist": float(max_dist),
-                                "center_x_out": float(center_x_out),
-                                "center_y_out": float(center_y_out),
-                            },
-                            "timestamp": int(time.time() * 1000)
-                        }) + "\n")
-                except: pass
-            # #endregion
             targets["vertex_dist"][i, center_y_int, center_x_int] = dist_normalized
 
     def _compute_bottom_vertices_3d(

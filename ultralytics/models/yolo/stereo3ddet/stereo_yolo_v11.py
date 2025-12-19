@@ -305,127 +305,27 @@ class StereoCenterNetLoss(nn.Module):
         )
 
         # 8. Vertex coordinates (L1)
-        # #region agent log
-        import json
-        import os
-        import time
-        log_path = "/home/rick/ultralytics/.cursor/debug.log"
-        try:
-            with open(log_path, "a") as f:
-                f.write(json.dumps({
-                    "sessionId": "debug-session",
-                    "runId": "run1",
-                    "hypothesisId": "A",
-                    "location": "stereo_yolo_v11.py:302",
-                    "message": "Vertex targets stats",
-                    "data": {
-                        "target_min": float(targets["vertices"].min().item()),
-                        "target_max": float(targets["vertices"].max().item()),
-                        "target_mean": float(targets["vertices"].mean().item()),
-                        "target_shape": list(targets["vertices"].shape),
-                        "pred_min": float(predictions["vertices"].min().item()),
-                        "pred_max": float(predictions["vertices"].max().item()),
-                        "pred_mean": float(predictions["vertices"].mean().item()),
-                    },
-                    "timestamp": int(time.time() * 1000)
-                }) + "\n")
-        except: pass
-        # #endregion
+        
         vertex_loss_raw = self.masked_l1_loss(
             predictions["vertices"], targets["vertices"], mask=targets.get("heatmap", None), branch_name="vertices"
         )
         losses["vertices"] = vertex_loss_raw
-        # #region agent log
-        try:
-            with open(log_path, "a") as f:
-                f.write(json.dumps({
-                    "sessionId": "debug-session",
-                    "runId": "run1",
-                    "hypothesisId": "A",
-                    "location": "stereo_yolo_v11.py:302",
-                    "message": "Vertex loss after computation",
-                    "data": {"loss": float(losses["vertices"].item())},
-                    "timestamp": int(time.time() * 1000)
-                }) + "\n")
-        except: pass
-        # #endregion
-
+        
         # 9. Vertex sub-pixel offset (L1)
         losses["vertex_offset"] = self.masked_l1_loss(
             predictions["vertex_offset"], targets["vertex_offset"], mask=targets.get("heatmap", None)
         )
 
         # 10. Vertex distance (L1)
-        # #region agent log
-        try:
-            with open(log_path, "a") as f:
-                f.write(json.dumps({
-                    "sessionId": "debug-session",
-                    "runId": "run1",
-                    "hypothesisId": "E",
-                    "location": "stereo_yolo_v11.py:312",
-                    "message": "Vertex dist targets stats",
-                    "data": {
-                        "target_min": float(targets["vertex_dist"].min().item()),
-                        "target_max": float(targets["vertex_dist"].max().item()),
-                        "target_mean": float(targets["vertex_dist"].mean().item()),
-                        "target_shape": list(targets["vertex_dist"].shape),
-                        "pred_min": float(predictions["vertex_dist"].min().item()),
-                        "pred_max": float(predictions["vertex_dist"].max().item()),
-                        "pred_mean": float(predictions["vertex_dist"].mean().item()),
-                    },
-                    "timestamp": int(time.time() * 1000)
-                }) + "\n")
-        except: pass
-        # #endregion
+        
         vertex_dist_loss_raw = self.masked_l1_loss(
             predictions["vertex_dist"], targets["vertex_dist"], mask=targets.get("heatmap", None), branch_name="vertex_dist"
         )
         losses["vertex_dist"] = vertex_dist_loss_raw
-        # #region agent log
-        try:
-            with open(log_path, "a") as f:
-                f.write(json.dumps({
-                    "sessionId": "debug-session",
-                    "runId": "run1",
-                    "hypothesisId": "E",
-                    "location": "stereo_yolo_v11.py:312",
-                    "message": "Vertex dist loss after computation",
-                    "data": {"loss": float(losses["vertex_dist"].item())},
-                    "timestamp": int(time.time() * 1000)
-                }) + "\n")
-        except: pass
-        # #endregion
-
+        
         # Weighted sum
         total_loss = sum(self.loss_weights[k] * v for k, v in losses.items())
         
-        # #region agent log
-        import json
-        import time
-        log_path = "/home/rick/ultralytics/.cursor/debug.log"
-        try:
-            with open(log_path, "a") as f:
-                f.write(json.dumps({
-                    "sessionId": "debug-session",
-                    "runId": "run1",
-                    "hypothesisId": "F",
-                    "location": "stereo_yolo_v11.py:395",
-                    "message": "Total loss computation with weights",
-                    "data": {
-                        "vertices_raw_loss": float(losses.get("vertices", 0.0)),
-                        "vertices_weight": float(self.loss_weights.get("vertices", 1.0)),
-                        "vertices_weighted": float(self.loss_weights.get("vertices", 1.0) * losses.get("vertices", 0.0)),
-                        "vertex_dist_raw_loss": float(losses.get("vertex_dist", 0.0)),
-                        "vertex_dist_weight": float(self.loss_weights.get("vertex_dist", 1.0)),
-                        "vertex_dist_weighted": float(self.loss_weights.get("vertex_dist", 1.0) * losses.get("vertex_dist", 0.0)),
-                        "total_loss": float(total_loss.item()),
-                    },
-                    "timestamp": int(time.time() * 1000)
-                }) + "\n")
-        except: pass
-        # #endregion
-
         return total_loss, losses
     
     def centernet_focal_loss(self, pred: torch.Tensor, target: torch.Tensor, 
@@ -487,34 +387,6 @@ class StereoCenterNetLoss(nn.Module):
     ) -> torch.Tensor:
         """Smooth L1 loss with optional mask."""
         loss = F.smooth_l1_loss(pred, target, reduction="none")
-        
-        # #region agent log
-        import json
-        import time
-        log_path = "/home/rick/ultralytics/.cursor/debug.log"
-        is_vertex_branch = branch_name in ["vertices", "vertex_dist"]
-        if is_vertex_branch:
-            try:
-                with open(log_path, "a") as f:
-                    f.write(json.dumps({
-                        "sessionId": "debug-session",
-                        "runId": "run1",
-                        "hypothesisId": "D",
-                        "location": "stereo_yolo_v11.py:375",
-                        "message": "Masked L1 loss before normalization",
-                        "data": {
-                            "branch_name": branch_name,
-                            "loss_sum": float(loss.sum().item()),
-                            "loss_mean": float(loss.mean().item()),
-                            "loss_max": float(loss.max().item()),
-                            "pred_shape": list(pred.shape),
-                            "target_shape": list(target.shape),
-                            "has_mask": mask is not None,
-                        },
-                        "timestamp": int(time.time() * 1000)
-                    }) + "\n")
-            except: pass
-        # #endregion
 
         if mask is not None:
             # Convert heatmap mask to binary mask
@@ -537,26 +409,7 @@ class StereoCenterNetLoss(nn.Module):
 
             num_pos = mask.sum().float()
             num_pos = torch.clamp(num_pos, min=1.0)
-            # #region agent log
-            if is_vertex_branch:
-                try:
-                    with open(log_path, "a") as f:
-                        f.write(json.dumps({
-                            "sessionId": "debug-session",
-                            "runId": "run1",
-                            "hypothesisId": "D",
-                            "location": "stereo_yolo_v11.py:400",
-                            "message": "Masked L1 loss normalization",
-                            "data": {
-                                "branch_name": branch_name,
-                                "num_pos": float(num_pos.item()),
-                                "loss_sum_before_norm": float(loss.sum().item()),
-                                "loss_after_norm": float((loss.sum() / num_pos).item()),
-                            },
-                            "timestamp": int(time.time() * 1000)
-                        }) + "\n")
-                except: pass
-            # #endregion
+
             loss = loss.sum() / num_pos
         else:
             loss = loss.mean()

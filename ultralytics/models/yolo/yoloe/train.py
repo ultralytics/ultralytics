@@ -15,7 +15,7 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import unwrap_model
 
 from ..world.train_world import WorldTrainerFromScratch
-from .val import YOLOEDetectValidator,YOLOEDetectVpValidator
+from .val import YOLOEDetectValidator, YOLOEDetectVpValidator
 
 
 class YOLOETrainer(DetectionTrainer):
@@ -271,7 +271,7 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
             (Dataset): YOLO dataset configured for training or validation, with visual prompts for training mode.
         """
         self.load_vp = True
-        self.refer_data=self.args.refer_data
+        self.refer_data = self.args.refer_data
         dataset = super().build_dataset(img_path, mode, batch)
         if isinstance(dataset, YOLOConcatDataset):
             for d in dataset.datasets:
@@ -294,7 +294,7 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
         batch = super().preprocess_batch(batch)
         batch["visuals"] = batch["visuals"].to(self.device, non_blocking=True)
         return batch
-    
+
     def get_validator(self):
         """Return a YOLOEDetectVpValidator for YOLOE model validation with visual prompts.
 

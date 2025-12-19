@@ -200,15 +200,15 @@ class YOLOEDetectValidator(DetectionValidator):
         return stats
 
 
-
 class YOLOEDetectVpValidator(YOLOEDetectValidator):
     """YOLOE detection validator that supports both text and visual prompt embeddings."""
+
     @smart_inference_mode()
     def __call__(
         self,
         trainer: Any | None = None,
         model: YOLOEModel | str | None = None,
-        vp_weight: float= 1.0,
+        vp_weight: float = 1.0,
     ) -> dict[str, Any]:
         """Run validation on YOLOE model using visual prompt embeddings.
 
@@ -216,10 +216,10 @@ class YOLOEDetectVpValidator(YOLOEDetectValidator):
         and uses them for validation. Optionally, visual and text embeddings can be combined using vp_weight.
 
         Args:
-            trainer (object, optional): Trainer object containing the model, device, and args.refer_data.
-                If provided, uses trainer.ema.ema model and trainer.refer_data for validation.
-            model (YOLOEModel | str, optional): Model to validate or path to model weights.
-                Required if trainer is not provided. Can be a model instance or path string.
+            trainer (object, optional): Trainer object containing the model, device, and args.refer_data. If provided,
+                uses trainer.ema.ema model and trainer.refer_data for validation.
+            model (YOLOEModel | str, optional): Model to validate or path to model weights. Required if trainer is not
+                provided. Can be a model instance or path string.
             vp_weight (float): Weight coefficient for visual prompt embeddings (0.0-1.0).
                 When < 1.0, combines visual and text embeddings as: vpe * vp_weight + tpe * (1-vp_weight).
                 Default is 1.0 (pure visual prompts).
@@ -227,35 +227,35 @@ class YOLOEDetectVpValidator(YOLOEDetectValidator):
         Returns:
             (dict): Validation statistics including mAP, precision, recall and other metrics.
 
+        Examples:
+            >>> validator = YOLOEDetectVpValidator(args=args)
+            >>> stats = validator(trainer=trainer)  # During training
+            >>> stats = validator(model="yoloe.pt", vp_weight=0.8)  # Standalone with 80% visual, 20% text
+
         Notes:
             - Reference data path is accessed from self.args.refer_data (set via trainer or args)
             - Half precision is disabled during validation for stability
             - Visual embeddings are extracted from the reference dataset's training split
-
-        Examples:
-            >>> validator = YOLOEDetectVpValidator(args=args)
-            >>> stats = validator(trainer=trainer)  # During training
-            >>> stats = validator(model='yoloe.pt', vp_weight=0.8)  # Standalone with 80% visual, 20% text
         """
         if trainer is not None:
             self.device = trainer.device
             model = trainer.ema.ema
-            refer_data=self.args.refer_data
+            refer_data = self.args.refer_data
             if refer_data:
                 LOGGER.info("Validate using the visual prompt.")
-                if vp_weight<1:
+                if vp_weight < 1:
                     LOGGER.info(f"Using vp_weight {vp_weight} to combine visual and text prompt embeddings.")
                 self.args.half = False
                 # Directly use the same dataloader for visual embeddings extracted during training
-                vp_data  = check_det_dataset(trainer.refer_data)
+                vp_data = check_det_dataset(trainer.refer_data)
                 names = [name.split("/", 1)[0] for name in list(vp_data["names"].values())]
                 dataloader = self.get_vpe_dataloader(vp_data)
                 vpe = self.get_visual_pe(dataloader, model)
-                if vp_weight<1:
-                    vpe= vpe*vp_weight + (1-vp_weight)*model.get_text_pe(names)
+                if vp_weight < 1:
+                    vpe = vpe * vp_weight + (1 - vp_weight) * model.get_text_pe(names)
                 model.set_classes(names, vpe)
 
-            stats = DetectionValidator.__call__(self,trainer, model)
+            stats = DetectionValidator.__call__(self, trainer, model)
         else:
             self.device = select_device(self.args.device, verbose=False)
 
@@ -264,36 +264,26 @@ class YOLOEDetectVpValidator(YOLOEDetectValidator):
 
                 model, _ = load_checkpoint(model, device=self.device)  # model, ckpt
             model.eval().to(self.device)
-            refer_data=self.args.refer_data
-            vp_data  = check_det_dataset(refer_data)
+            refer_data = self.args.refer_data
+            vp_data = check_det_dataset(refer_data)
             names = [name.split("/", 1)[0] for name in list(vp_data["names"].values())]
 
-
             LOGGER.info("Validate using the visual prompt.")
-            if vp_weight<1:
+            if vp_weight < 1:
                 LOGGER.info(f"Using vp_weight {vp_weight} to combine visual and text prompt embeddings.")
-                
-                    
+
             self.args.half = False
 
             dataloader = self.get_vpe_dataloader(vp_data)
             vpe = self.get_visual_pe(dataloader, model)
 
-            if vp_weight<1:
-                vpe= vpe*vp_weight + (1-vp_weight)*model.get_text_pe(names)
-
-
+            if vp_weight < 1:
+                vpe = vpe * vp_weight + (1 - vp_weight) * model.get_text_pe(names)
 
             model.set_classes(names, vpe)
-            stats = DetectionValidator.__call__(self,model=deepcopy(model))
-            
+            stats = DetectionValidator.__call__(self, model=deepcopy(model))
+
         return stats
-
-
-
-
-
-
 
 
 class YOLOESegValidator(YOLOEDetectValidator, SegmentationValidator):

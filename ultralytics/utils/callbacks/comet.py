@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
@@ -18,9 +20,6 @@ try:
     import comet_ml
 
     assert hasattr(comet_ml, "__version__")  # verify package is not directory
-
-    import os
-    from pathlib import Path
 
     # Ensures certain logging functions only run for supported tasks
     COMET_SUPPORTED_TASKS = ["detect", "segment"]

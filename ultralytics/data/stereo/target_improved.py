@@ -84,18 +84,21 @@ class TargetGenerator:
         Args:
             labels: List of label dictionaries from dataset. Each label should have:
                 - class_id: int
-                - left_box: dict with center_x, center_y, width, height (normalized to original image)
-                - right_box: dict with center_x, width (normalized to original image)
+                - left_box: dict with center_x, center_y, width, height (normalized to letterboxed input image)
+                - right_box: dict with center_x, width (normalized to letterboxed input image)
                 - dimensions: dict with length, width, height (meters)
                 - alpha: observation angle in radians
                 - location_3d (optional): dict with x, y, z (meters) - 3D center position
                   If not provided, computed from stereo disparity
                 - vertices (optional): dict with v1, v2, v3, v4 - pre-computed 2D vertices
+                  (normalized to letterboxed input image)
                   If not provided, computed from 3D parameters
             input_size: Input image size (H, W) after preprocessing (letterbox).
             calib: Camera calibration parameters dict with fx, fy, cx, cy, baseline.
+                   Already transformed to letterboxed space by the dataset.
                    If None, uses default KITTI values.
             original_size: Original image size (H, W) before preprocessing.
+                   Used for reference, not for coordinate transformation.
                    If None, uses KITTI default (375, 1242).
 
         Returns:
@@ -159,13 +162,10 @@ class TargetGenerator:
         cy = calib["cy"]
         baseline = calib["baseline"]
 
-        orig_h, orig_w = original_size
-        scale_calib_h = input_h / orig_h
-        scale_calib_w = input_w / orig_w
-        fx = fx * scale_calib_w
-        fy = fy * scale_calib_h
-        cx = cx * scale_calib_w
-        cy = cy * scale_calib_h
+        # Calibration is already transformed to letterboxed space in the dataset,
+        # so we don't need to scale it again here. The calibration parameters
+        # (fx, fy, cx, cy) are already in the letterboxed input image space.
+        # orig_h, orig_w = original_size  # Not needed for calibration scaling anymore
 
         # output scale factors
         scale_h = self.output_h / input_h

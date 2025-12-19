@@ -174,6 +174,146 @@ class Stereo3DDetAdapterDataset(Dataset):
     def __len__(self) -> int:
         return len(self.base)
 
+    def _transform_labels_for_letterbox(
+        self,
+        labels: List[Dict[str, Any]],
+        scale: float,
+        pad_left: int,
+        pad_top: int,
+        orig_w: int,
+        orig_h: int,
+    ) -> List[Dict[str, Any]]:
+        """Transform label coordinates from original image space to letterboxed space.
+        
+        Args:
+            labels: List of label dictionaries with left_box, right_box, and optionally vertices.
+            scale: Letterbox scale factor (min(imgsz / h, imgsz / w)).
+            pad_left: Left padding added by letterbox.
+            pad_top: Top padding added by letterbox.
+            orig_w: Original image width (after augmentation, before letterbox).
+            orig_h: Original image height (after augmentation, before letterbox).
+            
+        Returns:
+            List of transformed label dictionaries.
+        """
+        transformed_labels = []
+        
+        for label in labels:
+            new_label = dict(label)  # Copy label to avoid modifying original
+            
+            # Transform left_box
+            if "left_box" in new_label:
+                lb = new_label["left_box"]
+                # Denormalize from original image
+                cx_px = float(lb.get("center_x", 0)) * orig_w
+                cy_px = float(lb.get("center_y", 0)) * orig_h
+                w_px = float(lb.get("width", 0)) * orig_w
+                h_px = float(lb.get("height", 0)) * orig_h
+                
+                # Apply letterbox scale
+                cx_px = cx_px * scale
+                cy_px = cy_px * scale
+                w_px = w_px * scale
+                h_px = h_px * scale
+                
+                # Add letterbox padding
+                cx_px = cx_px + pad_left
+                cy_px = cy_px + pad_top
+                
+                # Normalize to letterboxed image size
+                new_label["left_box"] = {
+                    "center_x": float(cx_px / self.imgsz),
+                    "center_y": float(cy_px / self.imgsz),
+                    "width": float(w_px / self.imgsz),
+                    "height": float(h_px / self.imgsz),
+                }
+            
+            # Transform right_box
+            if "right_box" in new_label:
+                rb = new_label["right_box"]
+                # Denormalize from original image
+                rx_px = float(rb.get("center_x", 0)) * orig_w
+                rw_px = float(rb.get("width", 0)) * orig_w
+                
+                # Apply letterbox scale
+                rx_px = rx_px * scale
+                rw_px = rw_px * scale
+                
+                # Add letterbox padding (only x, since right box only has center_x and width)
+                rx_px = rx_px + pad_left
+                
+                # Normalize to letterboxed image size
+                new_label["right_box"] = {
+                    "center_x": float(rx_px / self.imgsz),
+                    "width": float(rw_px / self.imgsz),
+                }
+            
+            # Transform vertices if present
+            # Vertices are stored normalized to original image size [0, 1]
+            if "vertices" in new_label:
+                vertices = new_label["vertices"]
+                transformed_vertices = {}
+                for v_key in ["v1", "v2", "v3", "v4"]:
+                    if v_key in vertices:
+                        vx, vy = vertices[v_key]
+                        # Denormalize from original image (vertices are normalized to [0, 1])
+                        vx_px = float(vx) * orig_w
+                        vy_px = float(vy) * orig_h
+                        
+                        # Apply letterbox scale
+                        vx_px = vx_px * scale
+                        vy_px = vy_px * scale
+                        
+                        # Add letterbox padding
+                        vx_px = vx_px + pad_left
+                        vy_px = vy_px + pad_top
+                        
+                        # Normalize to letterboxed image size
+                        transformed_vertices[v_key] = [
+                            float(vx_px / self.imgsz),
+                            float(vy_px / self.imgsz),
+                        ]
+                
+                if transformed_vertices:
+                    new_label["vertices"] = transformed_vertices
+            
+            transformed_labels.append(new_label)
+        
+        return transformed_labels
+
+    def _transform_calib_for_letterbox(
+        self,
+        calib: Dict[str, float],
+        scale: float,
+        pad_left: int,
+        pad_top: int,
+    ) -> Dict[str, float]:
+        """Transform calibration parameters from original image space to letterboxed space.
+        
+        Args:
+            calib: Calibration dictionary with fx, fy, cx, cy, baseline.
+            scale: Letterbox scale factor (min(imgsz / h, imgsz / w)).
+            pad_left: Left padding added by letterbox.
+            pad_top: Top padding added by letterbox.
+            
+        Returns:
+            Transformed calibration dictionary.
+        """
+        new_calib = dict(calib)  # Copy to avoid modifying original
+        
+        # Scale focal lengths (same scale for both dimensions in letterbox)
+        new_calib["fx"] = float(calib.get("fx", 0.0) * scale)
+        new_calib["fy"] = float(calib.get("fy", 0.0) * scale)
+        
+        # Scale and shift principal point
+        new_calib["cx"] = float(calib.get("cx", 0.0) * scale + pad_left)
+        new_calib["cy"] = float(calib.get("cy", 0.0) * scale + pad_top)
+        
+        # Baseline is in meters, not affected by image transformations
+        # new_calib["baseline"] remains unchanged
+        
+        return new_calib
+
     def _labels_to_tensors(
         self, labels: List[Dict[str, Any]], scale: float, pad_left: int, pad_top: int, ori_w: int, ori_h: int
     ) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -189,20 +329,7 @@ class Stereo3DDetAdapterDataset(Dataset):
                 original_cid = int(obj.get("class_id", -1))
                 if original_cid < 0:
                     continue
-
-                # Filter and remap class ID if filtering is enabled
-                if self.filter_classes:
-                    # If base dataset already filtered, class_id is already remapped
-                    # But we should double-check it's in the paper set
-                    remapped_cid = filter_and_remap_class_id(original_cid)
-                    if remapped_cid is None:
-                        # This shouldn't happen if base dataset filtered correctly, but log if it does
-                        from ultralytics.utils import LOGGER
-                        LOGGER.warning(f"Filtering out class {original_cid} in adapter dataset (not in paper set: Car, Pedestrian, Cyclist)")
-                        continue
-                    cid = remapped_cid
-                else:
-                    cid = original_cid
+                cid = original_cid
 
                 lb = obj.get("left_box", {})
                 cx, cy, bw, bh = float(lb.get("center_x", 0)), float(lb.get("center_y", 0)), float(
@@ -262,9 +389,16 @@ class Stereo3DDetAdapterDataset(Dataset):
                 height=h0,
                 width=w0,
             )
-            left_img, right_img, labels_aug, _ = self._aug.augment(left_img, right_img, sample["labels"], calib_obj)
+            left_img, right_img, labels_aug, calib_obj_aug = self._aug.augment(left_img, right_img, sample["labels"], calib_obj)
+            # Use augmented calibration if available, otherwise use original
+            if calib_obj_aug is not None:
+                calib = calib_obj_aug.to_dict()
+            # Get image size after augmentation (before letterbox)
+            h_aug, w_aug = left_img.shape[:2]
         else:
             labels_aug = sample["labels"]
+            # No augmentation, so image size is still original
+            h_aug, w_aug = h0, w0
 
         # BGR -> RGB for both
         left_rgb = cv2.cvtColor(left_img, cv2.COLOR_BGR2RGB)
@@ -272,6 +406,17 @@ class Stereo3DDetAdapterDataset(Dataset):
         # Letterbox both identically using left's parameters, then reapply to right by computing separately
         left_resized, scale_l, pad_left_l, pad_top_l = _letterbox(left_rgb, self.imgsz)
         right_resized, _, _, _ = _letterbox(right_rgb, self.imgsz)
+        
+        # Transform labels from original/augmented image space to letterboxed space
+        labels_transformed = self._transform_labels_for_letterbox(
+            labels_aug, scale_l, pad_left_l, pad_top_l, w_aug, h_aug
+        )
+        
+        # Transform calibration from original/augmented image space to letterboxed space
+        calib_transformed = self._transform_calib_for_letterbox(
+            calib, scale_l, pad_left_l, pad_top_l
+        )
+        
         # Stack to 6 channels (left RGB + right RGB)
         left_t = torch.from_numpy(left_resized).permute(2, 0, 1).contiguous()
         right_t = torch.from_numpy(right_resized).permute(2, 0, 1).contiguous()
@@ -285,16 +430,16 @@ class Stereo3DDetAdapterDataset(Dataset):
         
         if img6.dtype != torch.uint8:
             img6 = img6.to(torch.uint8)
-        labels = labels_aug
+        
         image_id = sample["image_id"]
         im_file = str(self.left_dir / f"{image_id}.png")
 
         return {
             "img": img6,  # uint8 [0,255], shape (6,H,W)
-            "labels": labels,  # Pass labels for target generation (filtered and remapped if needed)
-            "calib": calib,  # Add calib for validation metrics computation (T144)
+            "labels": labels_transformed,  # Labels transformed to letterboxed coordinates
+            "calib": calib_transformed,  # Calibration transformed to letterboxed space
             "im_file": im_file,
-            "ori_shape": (h0, w0),
+            "ori_shape": (h0, w0),  # Original image size (before augmentation and letterbox)
         }
 
     @staticmethod

@@ -32,7 +32,16 @@ class Stereo3DDetAdapterDataset(Dataset):
     - Converts normalized left 2D boxes to resized+letterboxed normalized xywh.
     """
 
-    def __init__(self, root: str | Path, split: str, imgsz: int, names: Dict[int, str] | List[str] | None = None, max_samples: int | None = None):
+    def __init__(
+        self,
+        root: str | Path,
+        split: str,
+        imgsz: int,
+        names: Dict[int, str] | List[str] | None = None,
+        max_samples: int | None = None,
+        output_size: Tuple[int, int] | None = None,
+        mean_dims: Dict[str, List[float]] | None = None,
+    ):
         """Initialize Stereo3DDetAdapterDataset.
 
         Args:
@@ -42,6 +51,10 @@ class Stereo3DDetAdapterDataset(Dataset):
             names (Dict[int, str] | List[str] | None): Class names mapping. If None, uses default.
             max_samples (int | None): Maximum number of samples to load. If None, loads all available samples.
                 If specified, only the first max_samples samples will be loaded. Defaults to None.
+            output_size (Tuple[int, int] | None): Output feature map size (H, W) for target generation.
+                If None, computed from imgsz assuming 8x downsampling (P3 architecture).
+            mean_dims (Dict[str, List[float]] | None): Mean dimensions per class [L, W, H] in meters.
+                If None, uses default KITTI values.
         """
         self.root = Path(root)
         self.split = split
@@ -69,6 +82,27 @@ class Stereo3DDetAdapterDataset(Dataset):
         # Full stereo augmentation pipeline (photometric + geometric)
         self._aug = StereoAugmentationPipeline(
             photometric=PhotometricAugmentor(p_apply=0.9)
+        )
+        
+        # Initialize target generator for generating training/validation targets
+        # Compute output_size if not provided (default to 8x downsampling for P3)
+        if output_size is None:
+            # Default to 8x downsampling (P3 architecture)
+            # This can be overridden when building the dataset if model architecture is known
+            output_h = imgsz // 8
+            output_w = imgsz // 8
+            output_size = (output_h, output_w)
+        self.output_size = output_size
+        
+        # Get number of classes
+        num_classes = len(self.names) if self.names else 3
+        
+        # Initialize target generator
+        from ultralytics.data.stereo.target_improved import TargetGenerator
+        self.target_generator = TargetGenerator(
+            output_size=output_size,
+            num_classes=num_classes,
+            mean_dims=mean_dims,
         )
 
     def _get_actual_label_classes(self, max_samples: int | None = None) -> set[int]:
@@ -442,8 +476,15 @@ class Stereo3DDetAdapterDataset(Dataset):
             "ori_shape": (h0, w0),  # Original image size (before augmentation and letterbox)
         }
 
-    @staticmethod
-    def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def collate_fn(self, batch: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Collate function that generates targets for training/validation.
+        
+        Args:
+            batch: List of samples from __getitem__.
+            
+        Returns:
+            Dictionary with batched images, targets, and metadata.
+        """
         imgs = torch.stack([b["img"] for b in batch], 0)  # (B,6,H,W)
         
         # Validate batch has 6 channels (stereo: left RGB + right RGB)
@@ -453,24 +494,33 @@ class Stereo3DDetAdapterDataset(Dataset):
         )
         
         labels_list = [b["labels"] for b in batch]
-        calibs = [b.get("calib", {}) for b in batch]  # Collect calib for each sample (T145)
+        calibs = [b["calib"] for b in batch]  # Collect calib for each sample (T145)
+        ori_shapes = [b["ori_shape"] for b in batch]  # Original image sizes
         
-        # Final safety check: ensure all class IDs are in [0, 1, 2] range
-        # This should not be needed if filtering works correctly in __getitem__, but provides a safety net
-        # Filter out any labels with invalid class IDs to prevent training errors
-        filtered_labels_list = []
-        for labels in labels_list:
-            filtered_labels = []
-            for label in labels:
-                class_id = label["class_id"]
-                if class_id in [0, 1, 2]:
-                    filtered_labels.append(label)
-                else:
-                    from ultralytics.utils import LOGGER
-                    LOGGER.warning(f"Filtering out label with invalid class_id {class_id} in collate_fn. This should not happen if filtering works correctly in __getitem__.")
-            filtered_labels_list.append(filtered_labels)
+        # Generate targets for each sample in the batch
+        # Targets are generated in letterboxed input space (imgsz x imgsz)
+        targets_list = []
+        for labels, calib, ori_shape in zip(labels_list, calibs, ori_shapes):
+            # TargetGenerator expects calib and original_size to match length of labels
+            # All labels in a single image share the same calib and original_size
+            num_labels = len(labels)
+            calib_list = [calib] * num_labels 
+            ori_shape_list = [ori_shape] * num_labels
+            
+            target = self.target_generator.generate_targets(
+                labels,
+                input_size=(self.imgsz, self.imgsz),  # Letterboxed input size
+                calib=calib_list,
+                original_size=ori_shape_list,
+            )
+            targets_list.append(target)
         
-        labels_list = filtered_labels_list
+        # Stack targets across batch dimension
+        # Each target is a dict with tensors of shape [C, H, W]
+        # We need to stack to [B, C, H, W]
+        batched_targets = {}
+        for key in targets_list[0].keys():
+            batched_targets[key] = torch.stack([t[key] for t in targets_list], dim=0)
         
         # Extract class IDs for compatibility with trainer
         # Trainer expects cls to be a tensor with shape [batch_size]
@@ -478,9 +528,10 @@ class Stereo3DDetAdapterDataset(Dataset):
         cls_tensor = torch.tensor([len(labels) for labels in labels_list], dtype=torch.long)
         return {
             "img": imgs,
-            "labels": labels_list,  # Pass labels for target generation
+            "labels": labels_list,  # Keep labels for metrics computation
+            "targets": batched_targets,  # Generated targets for training/validation
             "calib": calibs,  # Add calib for validation metrics computation (T145)
             "cls": cls_tensor,  # Add cls for trainer compatibility (number of objects per image)
             "im_file": [b["im_file"] for b in batch],
-            "ori_shape": [b["ori_shape"] for b in batch],
+            "ori_shape": ori_shapes,
         }

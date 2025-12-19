@@ -269,6 +269,14 @@ class Stereo3DDetPredictor(DetectionPredictor):
             use_nms = getattr(self.args, 'use_nms', True)
             nms_kernel = getattr(self.args, 'nms_kernel', 3)
             
+            # Get imgsz and original image size for letterbox transformation
+            imgsz = getattr(self.args, 'imgsz', 384)
+            ori_shape = None
+            if orig_imgs and len(orig_imgs) > i:
+                orig_img = orig_imgs[i]
+                # orig_img is 6-channel stereo image, get height and width
+                ori_shape = (orig_img.shape[0], orig_img.shape[1])  # (H, W)
+            
             boxes3d = decode_stereo3d_outputs(
                 single_preds,
                 conf_threshold=self.args.conf,
@@ -276,6 +284,8 @@ class Stereo3DDetPredictor(DetectionPredictor):
                 calib=calib_dict,
                 use_nms=use_nms,
                 nms_kernel=nms_kernel,
+                imgsz=imgsz,
+                ori_shapes=[ori_shape] if ori_shape else None,
             )
 
             # Get original left image (first 3 channels of stereo image)

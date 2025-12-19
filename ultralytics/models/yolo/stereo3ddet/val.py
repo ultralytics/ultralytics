@@ -408,6 +408,30 @@ def compute_3d_iou_batch(
     return iou_matrix
 
 
+def _compute_letterbox_params(ori_h: int, ori_w: int, imgsz: int) -> tuple[float, int, int]:
+    """Compute letterbox scale and padding from original image size.
+    
+    Args:
+        ori_h: Original image height.
+        ori_w: Original image width.
+        imgsz: Letterboxed input size (square, e.g., 384).
+    
+    Returns:
+        (scale, pad_left, pad_top) tuple where:
+        - scale: Letterbox scale factor (min(imgsz / ori_h, imgsz / ori_w))
+        - pad_left: Left padding added by letterbox
+        - pad_top: Top padding added by letterbox
+    """
+    scale = min(imgsz / ori_h, imgsz / ori_w)
+    new_unpad_w = int(round(ori_w * scale))
+    new_unpad_h = int(round(ori_h * scale))
+    dw = imgsz - new_unpad_w
+    dh = imgsz - new_unpad_h
+    pad_left = dw // 2
+    pad_top = dh // 2
+    return scale, pad_left, pad_top
+
+
 @profile_function(name="decode_stereo3d_outputs")
 def _decode_stereo3d_outputs_per_sample(
     outputs: dict[str, torch.Tensor],
@@ -421,6 +445,8 @@ def _decode_stereo3d_outputs_per_sample(
     use_occlusion_classification: bool | None = None,
     left_img: np.ndarray | torch.Tensor | None = None,
     right_img: np.ndarray | torch.Tensor | None = None,
+    imgsz: int | None = None,
+    ori_shape: tuple[int, int] | None = None,
 ) -> list[Box3D]:
     """T213: Original per-sample implementation for backward compatibility.
     
@@ -453,11 +479,23 @@ def _decode_stereo3d_outputs_per_sample(
         2: (1.77, 0.60, 1.76),  # Cyclist
     }
 
-    # T210: Cache calibration parameters at function start
-    # KITTI original image size
-    # TODO: get from calib
-    original_width = 1242.0
-    original_height = 375.0
+    # Get letterbox parameters
+    if imgsz is None:
+        # Infer from input tensor shape or use default
+        imgsz = 384  # Default letterbox size
+    
+    # Get original image size (with fallback to KITTI default)
+    if ori_shape is not None:
+        original_height, original_width = ori_shape
+    else:
+        # Fallback to KITTI default dimensions
+        original_height = 375
+        original_width = 1242
+    
+    # Compute letterbox parameters
+    letterbox_scale, pad_left, pad_top = _compute_letterbox_params(
+        original_height, original_width, imgsz
+    )
     
     if calib is not None:
         fx = calib.get("fx", 721.5377)
@@ -501,12 +539,10 @@ def _decode_stereo3d_outputs_per_sample(
 
     num_classes, h, w = heatmap.shape
     
-    # Compute actual scale from feature map to original image
+    # Compute scale from feature map to letterboxed input space
     # Scale is computed dynamically from actual feature map size (architecture-agnostic)
-    # scale = original_size / feature_map_size
-    scale_w = original_width / w
-    scale_h = original_height / h
-    scale = (scale_w + scale_h) / 2.0  # Average scale factor
+    scale_w_letterbox = imgsz / w  # w is feature map width
+    scale_h_letterbox = imgsz / h  # h is feature map height
 
     # Apply sigmoid to get probabilities
     heatmap = torch.sigmoid(heatmap)
@@ -559,13 +595,14 @@ def _decode_stereo3d_outputs_per_sample(
             # Get left-right distance (in feature map space)
             d = lr_distance[0, y_idx, x_idx].item()
 
-            # Convert 2D center to original image space
-            u = center_x * scale_w
-            v = center_y * scale_h
+            # Convert 2D center from feature map to letterboxed input space
+            u_letterbox = center_x * scale_w_letterbox
+            v_letterbox = center_y * scale_h_letterbox
             
             # Compute depth from stereo geometry
-            # IMPORTANT: d is in feature map space, must scale to original image space
-            d_image = d * scale_w  # Scale disparity to original image width
+            # IMPORTANT: d is in feature map space, must scale to letterboxed input space
+            # Calibration is already in letterboxed space (from dataset transformation)
+            d_letterbox = d * scale_w_letterbox  # Scale disparity to letterboxed input width
 
             # Decode dimensions (offsets + class mean)
             dim_offsets = dimensions[:, y_idx, x_idx].cpu().numpy()
@@ -604,28 +641,28 @@ def _decode_stereo3d_outputs_per_sample(
             alpha = bin_centers[bin_idx] + residual
             
             # T014: Apply geometric construction if enabled and disparity is valid
-            if geometric_solver is not None and d_image > 1.0:
+            if geometric_solver is not None and d_letterbox > 1.0:
                 # Build observations for geometric solver
-                # Use disparity to estimate right image coordinates
-                u_right = u - d_image
-                v_right = v  # Same v due to epipolar constraint
+                # Use letterboxed coordinates (calibration is in letterboxed space)
+                u_right_letterbox = u_letterbox - d_letterbox
+                v_right_letterbox = v_letterbox  # Same v due to epipolar constraint
                 
                 observations = GeometricObservations(
-                    ul=u,
-                    vl=v,
-                    ur=u_right,
-                    vr=v_right,
-                    ul_prime=u_right,  # Left center projected to right
-                    ur_prime=u_right,  # Approximation
-                    up=u,  # Perspective keypoint (simplified: use center)
-                    vp=v,
+                    ul=u_letterbox,
+                    vl=v_letterbox,
+                    ur=u_right_letterbox,
+                    vr=v_right_letterbox,
+                    ul_prime=u_right_letterbox,  # Left center projected to right
+                    ur_prime=u_right_letterbox,  # Approximation
+                    up=u_letterbox,  # Perspective keypoint (simplified: use center)
+                    vp=v_letterbox,
                 )
                 
                 # Initial depth estimate for solver
-                z_init = (fx * baseline) / (d_image + 1e-6)
+                z_init = (fx * baseline) / (d_letterbox + 1e-6)
                 
                 # Initial theta from alpha and initial position estimate
-                x_init = (u - cx) * z_init / fx
+                x_init = (u_letterbox - cx) * z_init / fx
                 theta_init = alpha + np.arctan2(x_init, z_init)
                 theta_init = float(np.arctan2(np.sin(theta_init), np.cos(theta_init)))
                 
@@ -641,21 +678,22 @@ def _decode_stereo3d_outputs_per_sample(
                 # Fallback if solver failed and fallback is enabled
                 if not converged and geo_fallback:
                     x_3d, y_3d, z_3d, theta = fallback_simple_triangulation(
-                        center_2d=(u, v),
-                        disparity=d_image,
+                        center_2d=(u_letterbox, v_letterbox),
+                        disparity=d_letterbox,
                         calib=calib_params,
                         theta_init=theta_init,
                     )
             else:
                 # Original simple triangulation method
-                if d_image > 0:
-                    depth = (fx * baseline) / (d_image + 1e-6)
+                # Use letterboxed coordinates (calibration is in letterboxed space)
+                if d_letterbox > 0:
+                    depth = (fx * baseline) / (d_letterbox + 1e-6)
                 else:
                     depth = 50.0  # Default depth
 
-                # 3D position
-                x_3d = float((u - cx) * depth / fx)
-                y_3d = float((v - cy) * depth / fy)
+                # 3D position (using letterboxed coordinates)
+                x_3d = float((u_letterbox - cx) * depth / fx)
+                y_3d = float((v_letterbox - cy) * depth / fy)
                 z_3d = float(depth)
                 
                 # Convert observation angle α to global yaw θ
@@ -666,6 +704,20 @@ def _decode_stereo3d_outputs_per_sample(
                 # Normalize to [-π, π]
                 theta = np.arctan2(np.sin(theta), np.cos(theta))
 
+            # Convert bbox from feature map to letterboxed, then reverse letterbox
+            box_w_letterbox = box_w * scale_w_letterbox
+            box_h_letterbox = box_h * scale_h_letterbox
+            x_min_letterbox = u_letterbox - box_w_letterbox / 2
+            y_min_letterbox = v_letterbox - box_h_letterbox / 2
+            x_max_letterbox = u_letterbox + box_w_letterbox / 2
+            y_max_letterbox = v_letterbox + box_h_letterbox / 2
+            
+            # Reverse letterbox transformation
+            x_min = (x_min_letterbox - pad_left) / letterbox_scale
+            y_min = (y_min_letterbox - pad_top) / letterbox_scale
+            x_max = (x_max_letterbox - pad_left) / letterbox_scale
+            y_max = (y_max_letterbox - pad_top) / letterbox_scale
+            
             # Create Box3D object
             box3d = Box3D(
                 center_3d=(float(x_3d), float(y_3d), float(z_3d)),
@@ -674,12 +726,7 @@ def _decode_stereo3d_outputs_per_sample(
                 class_label=class_names[c],
                 class_id=c,
                 confidence=confidence,
-                bbox_2d=(
-                    float((center_x - box_w / 2) * scale),
-                    float((center_y - box_h / 2) * scale),
-                    float((center_x + box_w / 2) * scale),
-                    float((center_y + box_h / 2) * scale),
-                ),
+                bbox_2d=(float(x_min), float(y_min), float(x_max), float(y_max)),
             )
             boxes3d.append(box3d)
 
@@ -728,6 +775,8 @@ def decode_stereo3d_outputs(
     use_nms: bool = True,
     nms_kernel: int = 3,
     use_occlusion_classification: bool | None = None,
+    imgsz: int | None = None,
+    ori_shapes: list[tuple[int, int]] | None = None,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode 10-branch model outputs to 3D bounding boxes.
 
@@ -778,10 +827,16 @@ def decode_stereo3d_outputs(
     # T213: Fallback to original per-sample processing for single sample or edge cases
     if is_single_sample:
         # Use original implementation for single sample (backward compatibility)
+        # Get ori_shape for single sample
+        ori_shape_single = None
+        if ori_shapes and len(ori_shapes) > 0:
+            ori_shape_single = ori_shapes[0]
         return _decode_stereo3d_outputs_per_sample(
             outputs, conf_threshold, top_k, calib,
             use_nms=use_nms, nms_kernel=nms_kernel,
             use_occlusion_classification=use_occlusion_classification,
+            imgsz=imgsz,
+            ori_shape=ori_shape_single,
         )
     
     # T206-T211: Batch processing implementation
@@ -795,10 +850,21 @@ def decode_stereo3d_outputs(
         2: (1.77, 0.60, 1.76),  # Cyclist
     }
     
-    # TODO: get from calib
-    # KITTI original image size
-    original_width = 1242.0
-    original_height = 375.0
+    # Get letterbox parameters
+    if imgsz is None:
+        # Infer from input tensor shape or use default
+        # Try to infer from output shape (assuming square input)
+        if outputs["heatmap"].shape[0] > 0:
+            # Estimate from feature map size (rough estimate)
+            # This is a fallback - should be provided by caller
+            imgsz = 384  # Default letterbox size
+        else:
+            imgsz = 384
+    
+    # Get original image sizes (with fallback to KITTI default)
+    if ori_shapes is None or len(ori_shapes) == 0:
+        # Use default KITTI dimensions for all batch items
+        ori_shapes = [(375, 1242)] * batch_size
 
     # T210, T211: Cache calibration parameters and handle batch calibration
     if calib is not None:
@@ -845,10 +911,10 @@ def decode_stereo3d_outputs(
 
     num_classes, h, w = heatmap.shape[1], heatmap.shape[2], heatmap.shape[3]
     
-    # Compute actual scale from feature map to original image
-    # scale = original_size / feature_map_size
-    scale_w = original_width / w
-    scale_h = original_height / h
+    # Compute scale from feature map to letterboxed input space
+    # Scale is computed dynamically from actual feature map size (architecture-agnostic)
+    scale_w_letterbox = imgsz / w  # w is feature map width
+    scale_h_letterbox = imgsz / h  # h is feature map height
 
     # T207: Vectorize heatmap peak detection for batch
     # Apply sigmoid to get probabilities
@@ -872,6 +938,16 @@ def decode_stereo3d_outputs(
     
     for b in range(batch_size):
         boxes3d_batch = []
+        
+        # Get original image size for this batch item
+        if b < len(ori_shapes):
+            ori_h, ori_w = ori_shapes[b]
+        else:
+            # Fallback to KITTI default
+            ori_h, ori_w = 375, 1242
+        
+        # Compute letterbox parameters for this batch item
+        letterbox_scale, pad_left, pad_top = _compute_letterbox_params(ori_h, ori_w, imgsz)
         
         # Get calibration for this batch item
         if shared_calib:
@@ -948,29 +1024,38 @@ def decode_stereo3d_outputs(
             center_x = x_indices.float() + offset_yx[:, 0]  # [K_valid]
             center_y = y_indices.float() + offset_yx[:, 1]  # [K_valid]
             
-            # Convert 2D centers to original image space (vectorized)
-            scale_w_tensor = torch.tensor(scale_w, device=device, dtype=center_x.dtype)
-            scale_h_tensor = torch.tensor(scale_h, device=device, dtype=center_y.dtype)
-            u_values = center_x * scale_w_tensor  # [K_valid]
-            v_values = center_y * scale_h_tensor  # [K_valid]
+            # Convert 2D centers from feature map to letterboxed input space (vectorized)
+            scale_w_letterbox_tensor = torch.tensor(scale_w_letterbox, device=device, dtype=center_x.dtype)
+            scale_h_letterbox_tensor = torch.tensor(scale_h_letterbox, device=device, dtype=center_y.dtype)
+            u_values_letterbox = center_x * scale_w_letterbox_tensor  # [K_valid]
+            v_values_letterbox = center_y * scale_h_letterbox_tensor  # [K_valid]
             
             # Compute depth from stereo geometry (vectorized)
-            # IMPORTANT: d_values is in feature map space, must scale to original image space
+            # IMPORTANT: d_values is in feature map space, must scale to letterboxed input space
+            # Calibration is already in letterboxed space (from dataset transformation)
             fx_b_tensor = torch.tensor(fx_b, device=device, dtype=d_values.dtype)
             baseline_b_tensor = torch.tensor(baseline_b, device=device, dtype=d_values.dtype)
-            d_values_image = d_values * scale_w_tensor  # Scale disparity to original image width
+            d_values_letterbox = d_values * scale_w_letterbox_tensor  # Scale disparity to letterboxed input width
             depth_values = torch.where(
-                d_values_image > 0,
-                (fx_b_tensor * baseline_b_tensor) / (d_values_image + 1e-6),
+                d_values_letterbox > 0,
+                (fx_b_tensor * baseline_b_tensor) / (d_values_letterbox + 1e-6),
                 torch.tensor(50.0, device=device, dtype=d_values.dtype)  # Default depth
             )  # [K_valid]
             
-            cx_b_tensor = torch.tensor(cx_b, device=device, dtype=u_values.dtype)
-            cy_b_tensor = torch.tensor(cy_b, device=device, dtype=v_values.dtype)
+            # Compute 3D position using letterboxed coordinates (calibration is in letterboxed space)
+            cx_b_tensor = torch.tensor(cx_b, device=device, dtype=u_values_letterbox.dtype)
+            cy_b_tensor = torch.tensor(cy_b, device=device, dtype=v_values_letterbox.dtype)
             fy_b_tensor = torch.tensor(fy_b, device=device, dtype=depth_values.dtype)
-            x_3d_values = (u_values - cx_b_tensor) * depth_values / fx_b_tensor  # [K_valid]
-            y_3d_values = (v_values - cy_b_tensor) * depth_values / fy_b_tensor  # [K_valid]
+            x_3d_values = (u_values_letterbox - cx_b_tensor) * depth_values / fx_b_tensor  # [K_valid]
+            y_3d_values = (v_values_letterbox - cy_b_tensor) * depth_values / fy_b_tensor  # [K_valid]
             z_3d_values = depth_values  # [K_valid]
+            
+            # Reverse letterbox transformation for original image coordinates (used for bbox_2d only)
+            pad_left_tensor = torch.tensor(pad_left, device=device, dtype=u_values_letterbox.dtype)
+            pad_top_tensor = torch.tensor(pad_top, device=device, dtype=v_values_letterbox.dtype)
+            letterbox_scale_tensor = torch.tensor(letterbox_scale, device=device, dtype=u_values_letterbox.dtype)
+            u_values_orig = (u_values_letterbox - pad_left_tensor) / letterbox_scale_tensor  # [K_valid]
+            v_values_orig = (v_values_letterbox - pad_top_tensor) / letterbox_scale_tensor  # [K_valid]
             
             # Decode dimensions (vectorized)
             mean_h_tensor = torch.tensor(mean_h, device=device, dtype=dim_offsets.dtype)
@@ -1028,6 +1113,24 @@ def decode_stereo3d_outputs(
             center_x_cpu = center_x.cpu().numpy()
             center_y_cpu = center_y.cpu().numpy()
             
+            # Convert bbox from feature map to letterboxed, then reverse letterbox (vectorized)
+            # Use numpy for CPU-side calculations
+            box_w_letterbox = box_w_cpu * scale_w_letterbox
+            box_h_letterbox = box_h_cpu * scale_h_letterbox
+            center_x_letterbox = center_x_cpu * scale_w_letterbox
+            center_y_letterbox = center_y_cpu * scale_h_letterbox
+            
+            x_min_letterbox = center_x_letterbox - box_w_letterbox / 2
+            y_min_letterbox = center_y_letterbox - box_h_letterbox / 2
+            x_max_letterbox = center_x_letterbox + box_w_letterbox / 2
+            y_max_letterbox = center_y_letterbox + box_h_letterbox / 2
+            
+            # Reverse letterbox transformation
+            x_min = (x_min_letterbox - pad_left) / letterbox_scale
+            y_min = (y_min_letterbox - pad_top) / letterbox_scale
+            x_max = (x_max_letterbox - pad_left) / letterbox_scale
+            y_max = (y_max_letterbox - pad_top) / letterbox_scale
+            
             # Create Box3D objects
             for i in range(len(valid_scores)):
                 box3d = Box3D(
@@ -1038,10 +1141,10 @@ def decode_stereo3d_outputs(
                     class_id=c,
                     confidence=float(confidence_cpu[i]),
                     bbox_2d=(
-                        float((center_x_cpu[i] - box_w_cpu[i] / 2) * scale_w),
-                        float((center_y_cpu[i] - box_h_cpu[i] / 2) * scale_h),
-                        float((center_x_cpu[i] + box_w_cpu[i] / 2) * scale_w),
-                        float((center_y_cpu[i] + box_h_cpu[i] / 2) * scale_h),
+                        float(x_min[i]),
+                        float(y_min[i]),
+                        float(x_max[i]),
+                        float(y_max[i]),
                     ),
                 )
                 boxes3d_batch.append(box3d)
@@ -1259,23 +1362,17 @@ class Stereo3DDetValidator(BaseValidator):
         }
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
-        """Preprocess stereo batch for validation.
-
-        Args:
-            batch: Batch containing stereo images [B, 6, H, W] and labels.
-
-        Returns:
-            Preprocessed batch.
+        """Normalize 6-channel images to float [0,1] and move targets to device.
+        
+        Targets are now generated in the dataset's collate_fn, so we just need to
+        move them to the device if they're not already there.
         """
-        # Move to device
-        for k, v in batch.items():
-            if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
-
-        # Normalize images
-        if "img" in batch:
-            batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255.0
-
+        imgs = batch["img"].to(self.device, non_blocking=True)
+        batch["img"] = (imgs.half() if self.args.half else imgs.float()) / 255.0        
+        # Move targets to device if present (generated by dataset)
+        if "targets" in batch:
+            batch["targets"] = {k: v.to(self.device, non_blocking=True) for k, v in batch["targets"].items()}
+        
         return batch
 
     def postprocess(self, preds: dict[str, torch.Tensor]) -> list[list[Box3D]]:
@@ -1293,6 +1390,7 @@ class Stereo3DDetValidator(BaseValidator):
             # T212: Get calibration from batch if available
             calib = None
             calibs = []
+            ori_shapes = None
             if hasattr(self, "_current_batch") and self._current_batch:
                 # Try to get calibration from batch
                 calibs = self._current_batch.get("calib", [])
@@ -1304,6 +1402,12 @@ class Stereo3DDetValidator(BaseValidator):
                     elif len(calibs) > 0 and isinstance(calibs[0], dict):
                         # Shared calibration (use first one)
                         calib = calibs[0]
+                
+                # Get original shapes from batch
+                ori_shapes = self._current_batch.get("ori_shape", [])
+            
+            # Get imgsz from args
+            imgsz = getattr(self.args, 'imgsz', 384)
 
             # T212, T028: Call decode_stereo3d_outputs once with entire batch
             # Get NMS config from args (defaults: use_nms=True, nms_kernel=3)
@@ -1317,6 +1421,8 @@ class Stereo3DDetValidator(BaseValidator):
                 calib=calib,
                 use_nms=use_nms,
                 nms_kernel=nms_kernel,
+                imgsz=imgsz,
+                ori_shapes=ori_shapes,
             )
             
             # T212: Ensure results is list of lists
@@ -2111,12 +2217,21 @@ class Stereo3DDetValidator(BaseValidator):
             # Get max_samples from args if available (for profiling/testing)
             max_samples = getattr(self.args, "max_samples", None)
             
+            # Compute output_size from imgsz with default stride (8x for P3)
+            # This can be overridden if model is available later, but default works for most cases
+            output_size = None  # Will use dataset default (imgsz // 8)
+            
+            # Get mean_dims from dataset config if available
+            mean_dims = self.data.get("mean_dims") if hasattr(self, "data") else None
+            
             return Stereo3DDetAdapterDataset(
                 root=str(desc.get("root", ".")),
                 split=str(desc.get("split", mode)),
                 imgsz=imgsz,
                 names=self.data.get("names") if hasattr(self, "data") else None,
                 max_samples=max_samples,
+                output_size=output_size,
+                mean_dims=mean_dims,
             )
         
         # Fallback: if img_path is a string, try to use it directly
@@ -2130,6 +2245,8 @@ class Stereo3DDetValidator(BaseValidator):
                 split=mode,
                 imgsz=imgsz,
                 names=self.data.get("names") if hasattr(self, "data") else None,
+                output_size=None,  # Will use dataset default
+                mean_dims=self.data.get("mean_dims") if hasattr(self, "data") else None,
             )
         
         # If we can't determine the dataset, raise an error

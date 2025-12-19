@@ -16,7 +16,7 @@ from ultralytics.models.yolo.stereo3ddet.visualize import plot_stereo_sample
 from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetAdapterDataset
 from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
 from ultralytics.data import build_dataloader
-
+from ultralytics.data.stereo.target_improved import TargetGenerator as TargetGeneratorImproved
 
 class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
     """Stereo 3D Detection trainer.
@@ -46,7 +46,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         )
 
     def _determine_loss_names(self):
-        """T204: Determine loss names dynamically from model's loss dictionary keys or loss_names attribute.
+        """Determine loss names dynamically from model's loss dictionary keys or loss_names attribute.
         
         Priority order:
         1. Check if model has loss_names attribute
@@ -198,11 +198,33 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         desc = img_path if isinstance(img_path, dict) else self.data.get(mode)
         if isinstance(desc, dict) and desc.get("type") == "kitti_stereo":
             imgsz = int(self.args.imgsz) if hasattr(self.args, "imgsz") else 640
+            
+            # Determine output_size from model if available, otherwise use default (8x downsampling)
+            output_size = None
+            if hasattr(self, "model") and self.model is not None:
+                try:
+                    with torch.no_grad():
+                        dummy_img = torch.zeros(1, 6, imgsz, imgsz, device=self.device)
+                        dummy_output = self.model(dummy_img)
+                        if isinstance(dummy_output, dict):
+                            sample_branch = dummy_output.get("heatmap", list(dummy_output.values())[0])
+                            if sample_branch is not None:
+                                _, _, output_h, output_w = sample_branch.shape
+                                output_size = (output_h, output_w)
+                except Exception:
+                    # Fallback to default if model forward fails
+                    pass
+            
+            # Get mean_dims from dataset config
+            mean_dims = self.data.get("mean_dims")
+            
             return Stereo3DDetAdapterDataset(
                 root=str(desc.get("root", ".")),
                 split=str(desc.get("split", "train")),
                 imgsz=imgsz,
                 names=self.data.get("names"),
+                output_size=output_size,
+                mean_dims=mean_dims,
             )
         # Otherwise, use the default detection dataset builder
         return super().build_dataset(img_path, mode=mode, batch=batch)
@@ -264,104 +286,17 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         self._determine_loss_names()
 
     def preprocess_batch(self, batch):
-        """Normalize 6-channel images to float [0,1] and generate targets."""
+        """Normalize 6-channel images to float [0,1] and move targets to device.
+        
+        Targets are now generated in the dataset's collate_fn, so we just need to
+        move them to the device if they're not already there.
+        """
         imgs = batch["img"].to(self.device, non_blocking=True)
         batch["img"] = imgs.float() / 255.0
         
-        # Generate targets from labels if present
-        if "labels" in batch and batch["labels"]:
-            from ultralytics.data.stereo.target import TargetGenerator
-            from ultralytics.data.stereo.target_improved import TargetGenerator as TargetGeneratorImproved
-            
-            # Get image size (needed for both target generator initialization and target generation)
-            # Use actual image dimensions if available, otherwise fall back to args.imgsz
-            if imgs.shape[2] == imgs.shape[3]:  # Square image
-                imgsz = imgs.shape[2]
-            else:
-                # For rectangular images, use the larger dimension
-                imgsz = max(imgs.shape[2], imgs.shape[3])
-            
-            # Override with args.imgsz if available (for consistency with training config)
-            if hasattr(self.args, "imgsz"):
-                imgsz = int(self.args.imgsz)
-            
-            # Initialize target generator if not already done
-            if not hasattr(self, "target_generator"):
-                num_classes = self.data.get("nc", 3)
-                
-                # Get mean dimensions from dataset config if available
-                mean_dims = self.data.get("mean_dims")
-                # mean_dims from dataset.yaml is already in format {class_name: [L, W, H]}
-                # which matches what TargetGeneratorImproved expects
-                
-                # Dynamically determine output size from model forward pass
-                # This works for any architecture (P3, P4, P5, etc.) instead of hardcoding 32x
-                # The model's actual output size depends on the YAML config (e.g., P3 = 8x downsampling)
-                # We do a dummy forward pass to get the actual output shape, making it architecture-agnostic
-                with torch.no_grad():
-                    # Create dummy input with same shape as actual input
-                    dummy_img = torch.zeros(1, 6, imgsz, imgsz, device=self.device)
-                    # Forward pass to get actual output shape
-                    dummy_output = self.model(dummy_img)
-                    
-                    # Extract output shape from predictions
-                    # For stereo3ddet, output is a dict with 10 branches
-                    if isinstance(dummy_output, dict):
-                        # Get shape from any branch (all have same spatial dimensions)
-                        sample_branch = dummy_output.get("heatmap", list(dummy_output.values())[0])
-                        if sample_branch is not None:
-                            _, _, output_h, output_w = sample_branch.shape
-                        else:
-                            # Fallback: try to get from model stride if available
-                            if hasattr(self.model, "stride") and self.model.stride is not None:
-                                stride = float(self.model.stride[0]) if isinstance(self.model.stride, torch.Tensor) else float(self.model.stride)
-                                output_h = int(imgsz / stride)
-                                output_w = int(imgsz / stride)
-                            else:
-                                # Last resort: assume 8x downsampling for P3 (common case)
-                                output_h = imgsz // 8
-                                output_w = imgsz // 8
-                    else:
-                        # If output is not a dict, try to infer from model structure
-                        if hasattr(self.model, "stride") and self.model.stride is not None:
-                            stride = float(self.model.stride[0]) if isinstance(self.model.stride, torch.Tensor) else float(self.model.stride)
-                            output_h = int(imgsz / stride)
-                            output_w = int(imgsz / stride)
-                        else:
-                            # Fallback: assume 8x downsampling for P3
-                            output_h = imgsz // 8
-                            output_w = imgsz // 8
-                
-                self.target_generator = TargetGeneratorImproved(
-                    output_size=(output_h, output_w),
-                    num_classes=num_classes,
-                    mean_dims=mean_dims,  # Pass mean dimensions from dataset.yaml
-                )
-            
-            # Convert labels to target format
-            # The model expects targets to be a single dict (not a list)
-            # We'll use the first sample's targets for now, or batch them properly
-            # For proper batching, we need to stack targets across batch dimension
-            targets_list = []
-            for labels in batch["labels"]:
-                target = self.target_generator.generate_targets(
-                    labels, 
-                    input_size=(imgsz, imgsz),  # Assuming square input
-                    calib=batch.get("calib"),
-                    original_size=batch.get("ori_shape"),
-                )
-                # Move to device
-                target = {k: v.to(self.device) for k, v in target.items()}
-                targets_list.append(target)
-            
-            # Stack targets across batch dimension
-            # Each target is a dict with tensors of shape [C, H, W]
-            # We need to stack to [B, C, H, W]
-            batched_targets = {}
-            for key in targets_list[0].keys():
-                batched_targets[key] = torch.stack([t[key] for t in targets_list], dim=0)
-            
-            batch["targets"] = batched_targets
+        # Move targets to device if present (generated by dataset)
+        if "targets" in batch:
+            batch["targets"] = {k: v.to(self.device, non_blocking=True) for k, v in batch["targets"].items()}
         
         return batch
 

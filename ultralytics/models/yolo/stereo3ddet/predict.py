@@ -264,11 +264,18 @@ class Stereo3DDetPredictor(DetectionPredictor):
                     calib_dict = calib
 
             # Decode 3D boxes
+            # T030: Include NMS parameters for inference consistency (GAP-003)
+            # Get NMS config from args (defaults: use_nms=True, nms_kernel=3)
+            use_nms = getattr(self.args, 'use_nms', True)
+            nms_kernel = getattr(self.args, 'nms_kernel', 3)
+            
             boxes3d = decode_stereo3d_outputs(
                 single_preds,
                 conf_threshold=self.args.conf,
                 top_k=self.args.max_det,
                 calib=calib_dict,
+                use_nms=use_nms,
+                nms_kernel=nms_kernel,
             )
 
             # Get original left image (first 3 channels of stereo image)

@@ -11,9 +11,10 @@ import numpy as np
 import torch
 
 from ultralytics.models import yolo
-from ultralytics.utils import DEFAULT_CFG, YAML
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, YAML
 from ultralytics.models.yolo.stereo3ddet.visualize import plot_stereo_sample
 from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetAdapterDataset
+from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
 from ultralytics.data import build_dataloader
 
 
@@ -169,6 +170,9 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         names = data_cfg.get("names") or get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
         nc = data_cfg.get("nc", len(names))
 
+        # Extract mean dimensions if present in dataset config
+        mean_dims = data_cfg.get("mean_dims")
+        
         # Return a dict compatible with BaseTrainer expectations, plus stereo descriptors
         return {
             "yaml_file": str(self.args.data) if isinstance(self.args.data, (str, Path)) else None,
@@ -185,6 +189,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             "image_size": data_cfg.get("image_size", [375, 1242]),
             "baseline": data_cfg.get("baseline"),
             "focal_length": data_cfg.get("focal_length"),
+            "mean_dims": mean_dims,  # Mean dimensions per class [L, W, H] from dataset.yaml
         }
 
     def build_dataset(self, img_path, mode: str = "train", batch: int | None = None):
@@ -222,21 +227,35 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         # Fallback to default detection dataloader
         return super().get_dataloader(dataset_path, batch_size=batch_size, rank=rank, mode=mode)
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
-        """Instantiate the custom stereo model wrapper using 6-channel input.
+    def get_model(
+        self,
+        cfg: str | Path | dict[str, Any] | None = None,
+        weights: str | Path | None = None,
+        verbose: bool = True,
+    ) -> Stereo3DDetModel:
+        """Build stereo 3D detection model from YAML config.
 
-        Raises on failure to avoid silently falling back to detection model.
+        Args:
+            cfg (str | Path | dict, optional): Model configuration file path or dictionary.
+            weights (str | Path, optional): Path to the model weights file.
+            verbose (bool): Whether to display model information during initialization.
+
+        Returns:
+            (Stereo3DDetModel): Initialized stereo 3D detection model.
         """
-        try:
-            from .stereo_yolo_v11 import StereoYOLOv11Wrapper
-            # Get number of classes from dataset config
-            num_classes = self.data.get("nc", 3)
-            model = StereoYOLOv11Wrapper(num_classes=num_classes)
-            if verbose:
-                print(f"Initialized StereoYOLOv11Wrapper for 6-channel input with {num_classes} classes")
-            return model
-        except Exception as e:
-            raise RuntimeError(f"Failed to initialize StereoYOLOv11Wrapper: {e}")
+        model = Stereo3DDetModel(
+            cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1
+        )
+        if verbose and RANK == -1:
+            LOGGER.info(
+                f"Initialized Stereo3DDetModel with {self.data['nc']} classes and {self.data['channels']} input channels"
+            )
+        if weights:
+            model.load(weights)
+            if verbose and RANK == -1:
+                LOGGER.info(f"Loaded weights from {weights}")
+
+        return model
 
     def set_model_attributes(self):
         """Set model attributes based on dataset information."""
@@ -255,17 +274,68 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             from ultralytics.data.stereo.target_improved import TargetGenerator as TargetGeneratorImproved
             
             # Get image size (needed for both target generator initialization and target generation)
-            imgsz = int(self.args.imgsz) if hasattr(self.args, "imgsz") else 384
+            # Use actual image dimensions if available, otherwise fall back to args.imgsz
+            if imgs.shape[2] == imgs.shape[3]:  # Square image
+                imgsz = imgs.shape[2]
+            else:
+                # For rectangular images, use the larger dimension
+                imgsz = max(imgs.shape[2], imgs.shape[3])
+            
+            # Override with args.imgsz if available (for consistency with training config)
+            if hasattr(self.args, "imgsz"):
+                imgsz = int(self.args.imgsz)
             
             # Initialize target generator if not already done
             if not hasattr(self, "target_generator"):
                 num_classes = self.data.get("nc", 3)
-                # Output size is H/32, W/32 (ResNet18 backbone downsamples by 32x)
-                output_h = imgsz // 32
-                output_w = imgsz // 32  # Assuming square for now, adjust if needed
+                
+                # Get mean dimensions from dataset config if available
+                mean_dims = self.data.get("mean_dims")
+                # mean_dims from dataset.yaml is already in format {class_name: [L, W, H]}
+                # which matches what TargetGeneratorImproved expects
+                
+                # Dynamically determine output size from model forward pass
+                # This works for any architecture (P3, P4, P5, etc.) instead of hardcoding 32x
+                # The model's actual output size depends on the YAML config (e.g., P3 = 8x downsampling)
+                # We do a dummy forward pass to get the actual output shape, making it architecture-agnostic
+                with torch.no_grad():
+                    # Create dummy input with same shape as actual input
+                    dummy_img = torch.zeros(1, 6, imgsz, imgsz, device=self.device)
+                    # Forward pass to get actual output shape
+                    dummy_output = self.model(dummy_img)
+                    
+                    # Extract output shape from predictions
+                    # For stereo3ddet, output is a dict with 10 branches
+                    if isinstance(dummy_output, dict):
+                        # Get shape from any branch (all have same spatial dimensions)
+                        sample_branch = dummy_output.get("heatmap", list(dummy_output.values())[0])
+                        if sample_branch is not None:
+                            _, _, output_h, output_w = sample_branch.shape
+                        else:
+                            # Fallback: try to get from model stride if available
+                            if hasattr(self.model, "stride") and self.model.stride is not None:
+                                stride = float(self.model.stride[0]) if isinstance(self.model.stride, torch.Tensor) else float(self.model.stride)
+                                output_h = int(imgsz / stride)
+                                output_w = int(imgsz / stride)
+                            else:
+                                # Last resort: assume 8x downsampling for P3 (common case)
+                                output_h = imgsz // 8
+                                output_w = imgsz // 8
+                    else:
+                        # If output is not a dict, try to infer from model structure
+                        if hasattr(self.model, "stride") and self.model.stride is not None:
+                            stride = float(self.model.stride[0]) if isinstance(self.model.stride, torch.Tensor) else float(self.model.stride)
+                            output_h = int(imgsz / stride)
+                            output_w = int(imgsz / stride)
+                        else:
+                            # Fallback: assume 8x downsampling for P3
+                            output_h = imgsz // 8
+                            output_w = imgsz // 8
+                
                 self.target_generator = TargetGeneratorImproved(
                     output_size=(output_h, output_w),
                     num_classes=num_classes,
+                    mean_dims=mean_dims,  # Pass mean dimensions from dataset.yaml
                 )
             
             # Convert labels to target format
@@ -276,7 +346,9 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             for labels in batch["labels"]:
                 target = self.target_generator.generate_targets(
                     labels, 
-                    input_size=(imgsz, imgsz)  # Assuming square input
+                    input_size=(imgsz, imgsz),  # Assuming square input
+                    calib=batch.get("calib"),
+                    original_size=batch.get("ori_shape"),
                 )
                 # Move to device
                 target = {k: v.to(self.device) for k, v in target.items()}

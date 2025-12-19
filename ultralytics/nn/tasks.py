@@ -69,6 +69,28 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     v10Detect,
 )
+
+# Import stereo-specific modules for parse_model() resolution
+# Use lazy import to avoid circular dependencies
+# VERIFIED (T003): Both StereoCenterNetHead and StereoConv are available in globals()
+# for parse_model() resolution. StereoConv is immediately available, while
+# StereoCenterNetHead uses lazy import triggered when parse_model() encounters it.
+StereoCenterNetHead = None
+
+def _lazy_import_stereo_center_net_head():
+    """Lazy import of StereoCenterNetHead to avoid circular dependencies."""
+    global StereoCenterNetHead
+    if StereoCenterNetHead is None:
+        try:
+            from ultralytics.models.yolo.stereo3ddet.stereo_yolo_v11 import StereoCenterNetHead as SCH
+            StereoCenterNetHead = SCH
+        except ImportError:
+            pass
+    return StereoCenterNetHead
+
+# StereoConv is an alias for Conv (handles 6-channel stereo input)
+# It's functionally identical to Conv but named to indicate 6-channel stereo usage
+StereoConv = Conv
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
@@ -1575,6 +1597,9 @@ def parse_model(d, ch, verbose=True):
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
+        # Lazy import for StereoCenterNetHead to avoid circular dependencies
+        if m == "StereoCenterNetHead" and StereoCenterNetHead is None:
+            _lazy_import_stereo_center_net_head()
         m = (
             getattr(torch.nn, m[3:])
             if "nn." in m
@@ -1631,20 +1656,30 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
+        elif StereoCenterNetHead is not None and m is StereoCenterNetHead:
+            # StereoCenterNetHead takes (in_channels, num_classes) - no channel list needed
+            # Config format: [nc, 256] means [num_classes, in_channels]
+            # But constructor expects (in_channels, num_classes), so reverse the args
+            if len(args) == 2:
+                args = [args[1], args[0]]  # Swap: [nc, 256] -> [256, nc]
+            # Use first channel from f if it's a list, otherwise use f
+            in_channels = ch[f[0]] if isinstance(f, list) else ch[f]
+            if len(args) >= 1:
+                args[0] = in_channels  # Override with actual channel count
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
             c2 = args[0]
-            c1 = ch[f]
+            c1 = ch[f] if isinstance(f, int) else ch[f[0]]
             args = [c1, c2, *args[1:]]
         elif m is CBFuse:
             c2 = ch[f[-1]]
         elif m in frozenset({TorchVision, Index}):
             c2 = args[0]
-            c1 = ch[f]
+            c1 = ch[f] if isinstance(f, int) else ch[f[0]]
             args = [*args[1:]]
         else:
-            c2 = ch[f]
+            c2 = ch[f] if isinstance(f, int) else ch[f[0]]
 
         # Special handling for TorchVision to pass in_channels
         if m is TorchVision:

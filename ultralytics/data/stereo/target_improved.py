@@ -45,14 +45,15 @@ class TargetGenerator:
 
     def __init__(
         self,
-        output_size: tuple[int, int] = (96, 320),  # H/4, W/4 for 384×1280 input
+        output_size: tuple[int, int] = (96, 320),  # Example: (96, 320) for 384×1280 input with 4x downsampling
         num_classes: int = 3,
         mean_dims: dict[str, list[float]] | None = None,
     ):
         """Initialize target generator.
 
         Args:
-            output_size: Output feature map size (H, W) at 1/4 resolution.
+            output_size: Output feature map size (H, W). Determined dynamically from model architecture.
+                         The actual downsampling factor depends on the model config (e.g., P3 = 8x, P4 = 16x).
             num_classes: Number of object classes.
             mean_dims: Mean dimensions per class [L, W, H] in meters.
         """
@@ -75,8 +76,8 @@ class TargetGenerator:
         self,
         labels: list[dict],
         input_size: tuple[int, int] = (384, 1280),
-        calib: dict[str, float] | None = None,
-        original_size: tuple[int, int] | None = None,
+        calib: list[dict[str, float]] | None = None,
+        original_size: list[tuple[int, int]] | None = None,
     ) -> dict[str, torch.Tensor]:
         """Generate ground truth targets for all 10 branches.
 
@@ -98,29 +99,15 @@ class TargetGenerator:
                    If None, uses KITTI default (375, 1242).
 
         Returns:
-            Dictionary with 10 branch targets, each [num_classes or channels, H/4, W/4].
+            Dictionary with 10 branch targets, each [num_classes or channels, H_out, W_out]
+            where H_out, W_out are determined by the model's output size (architecture-agnostic).
         """
         input_h, input_w = input_size
-        scale_h = self.output_h / input_h
-        scale_w = self.output_w / input_w
-
-        # Get calibration parameters
-        if calib is None:
-            # Default KITTI calibration
-            calib = {
-                "fx": 721.5377,
-                "fy": 721.5377,
-                "cx": 609.5593,
-                "cy": 172.8540,
-                "baseline": 0.54,
-            }
         
-        fx = calib.get("fx", 721.5377)
-        fy = calib.get("fy", 721.5377)
-        cx = calib.get("cx", 609.5593)
-        cy = calib.get("cy", 172.8540)
-        baseline = calib.get("baseline", 0.54)
-
+        # Scale calibration parameters to match preprocessed input size
+        # Calibration parameters are typically in original image space (e.g., KITTI 1242x375)
+        # We need to scale them to match the preprocessed input size
+        # Scale factors from preprocessed input to feature map output
         # Initialize targets
         targets = {
             "heatmap": torch.zeros(self.num_classes, self.output_h, self.output_w),
@@ -136,18 +123,10 @@ class TargetGenerator:
         }
 
         # Process each object
-        for label in labels:
-            try:
-                self._process_single_label(
-                    label, targets, input_h, input_w, scale_h, scale_w,
-                    fx, fy, cx, cy, baseline
-                )
-            except Exception as e:
-                # Skip invalid labels but log for debugging
-                import logging
-                logging.debug(f"Skipping label due to error: {e}")
-                continue
-
+        for label, calib, original_size in zip(labels, calib, original_size):
+            self._process_single_label(
+                label, targets, input_h, input_w, calib, original_size
+            )
         return targets
 
     def _process_single_label(
@@ -156,13 +135,8 @@ class TargetGenerator:
         targets: dict[str, torch.Tensor],
         input_h: int,
         input_w: int,
-        scale_h: float,
-        scale_w: float,
-        fx: float,
-        fy: float,
-        cx: float,
-        cy: float,
-        baseline: float,
+        calib: dict[str, float],
+        original_size: tuple[int, int],
     ) -> None:
         """Process a single label and update targets.
 
@@ -170,14 +144,32 @@ class TargetGenerator:
             label: Single label dictionary.
             targets: Target tensors to update.
             input_h, input_w: Input image dimensions.
-            scale_h, scale_w: Scale factors to output resolution.
-            fx, fy, cx, cy, baseline: Camera calibration parameters.
+            calib: Camera calibration parameters.
+            original_size: Original image size.
         """
         class_id = label["class_id"]
         left_box = label["left_box"]
         right_box = label["right_box"]
         dimensions = label["dimensions"]
         alpha = label["alpha"]
+
+        fx = calib["fx"]
+        fy = calib["fy"]
+        cx = calib["cx"]
+        cy = calib["cy"]
+        baseline = calib["baseline"]
+
+        orig_h, orig_w = original_size
+        scale_calib_h = input_h / orig_h
+        scale_calib_w = input_w / orig_w
+        fx = fx * scale_calib_w
+        fy = fy * scale_calib_h
+        cx = cx * scale_calib_w
+        cy = cy * scale_calib_h
+
+        # output scale factors
+        scale_h = self.output_h / input_h
+        scale_w = self.output_w / input_w
 
         # Get center coordinates in input image (pixels)
         center_x = left_box["center_x"] * input_w
@@ -302,27 +294,117 @@ class TargetGenerator:
         )
 
         # Store vertex targets
+        # #region agent log
+        import json
+        import time
+        log_path = "/home/rick/ultralytics/.cursor/debug.log"
+        try:
+            with open(log_path, "a") as f:
+                f.write(json.dumps({
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "B",
+                    "location": "target_improved.py:307",
+                    "message": "Vertex target generation - scale factors",
+                    "data": {
+                        "scale_w": float(scale_w),
+                        "scale_h": float(scale_h),
+                        "input_w": int(input_w),
+                        "input_h": int(input_h),
+                        "output_w": int(self.output_w),
+                        "output_h": int(self.output_h),
+                        "center_x_out": float(center_x_out),
+                        "center_y_out": float(center_y_out),
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }) + "\n")
+        except: pass
+        # #endregion
         for i, (vx, vy) in enumerate(bottom_vertices_2d):
             # Scale to output feature map size
             vx_out = vx * scale_w
             vy_out = vy * scale_h
 
-            # 8. Vertices: absolute coordinates in feature map space
-            targets["vertices"][i * 2, center_y_int, center_x_int] = vx_out
-            targets["vertices"][i * 2 + 1, center_y_int, center_x_int] = vy_out
+            # #region agent log
+            if i == 0:  # Log first vertex as sample
+                try:
+                    with open(log_path, "a") as f:
+                        f.write(json.dumps({
+                            "sessionId": "debug-session",
+                            "runId": "run1",
+                            "hypothesisId": "C",
+                            "location": "target_improved.py:309",
+                            "message": "Vertex coordinate scaling",
+                            "data": {
+                                "vx_2d": float(vx),
+                                "vy_2d": float(vy),
+                                "vx_out": float(vx_out),
+                                "vy_out": float(vy_out),
+                                "vertex_index": i,
+                            },
+                            "timestamp": int(time.time() * 1000)
+                        }) + "\n")
+                except: pass
+            # #endregion
 
-            # 9. Vertex offset: sub-pixel refinement
-            vx_int = int(vx_out)
-            vy_int = int(vy_out)
-            targets["vertex_offset"][i * 2, center_y_int, center_x_int] = vx_out - vx_int
-            targets["vertex_offset"][i * 2 + 1, center_y_int, center_x_int] = vy_out - vy_int
+            # 8. Vertices: Store as RELATIVE offsets from center (not absolute coordinates)
+            # This keeps values bounded and reduces loss magnitude
+            # Format: [dx0, dy0, dx1, dy1, dx2, dy2, dx3, dy3] where dx = vx - center_x
+            dx = vx_out - center_x_out
+            dy = vy_out - center_y_out
+            
+            # Clip vertex offsets to reasonable bounds to prevent extreme values
+            # Maximum offset should be within feature map bounds (allow 1.5x for safety)
+            max_offset_x = self.output_w * 1.5
+            max_offset_y = self.output_h * 1.5
+            dx = max(-max_offset_x, min(dx, max_offset_x))
+            dy = max(-max_offset_y, min(dy, max_offset_y))
+            
+            # Normalize by feature map size to keep values in [-1.5, 1.5] range
+            # This makes targets similar in scale to other branches and improves learning
+            dx_normalized = dx / self.output_w
+            dy_normalized = dy / self.output_h
+            
+            targets["vertices"][i * 2, center_y_int, center_x_int] = dx_normalized
+            targets["vertices"][i * 2 + 1, center_y_int, center_x_int] = dy_normalized
+
+            # 9. Vertex offset: sub-pixel refinement (relative to integer vertex position)
+            # Since vertices are normalized, compute offset from normalized integer position
+            dx_normalized_int = int(dx_normalized * self.output_w) / self.output_w  # Integer part in normalized space
+            dy_normalized_int = int(dy_normalized * self.output_h) / self.output_h
+            targets["vertex_offset"][i * 2, center_y_int, center_x_int] = dx_normalized - dx_normalized_int
+            targets["vertex_offset"][i * 2 + 1, center_y_int, center_x_int] = dy_normalized - dy_normalized_int
 
             # 10. Vertex distance: Euclidean distance from center to vertex
             # This helps correlate vertices with their parent center
-            dx = vx_out - center_x_out
-            dy = vy_out - center_y_out
-            dist = math.sqrt(dx ** 2 + dy ** 2)
-            targets["vertex_dist"][i, center_y_int, center_x_int] = dist
+            # Normalize distance by feature map diagonal to keep values in reasonable range
+            max_dist = math.sqrt(self.output_w ** 2 + self.output_h ** 2)  # Diagonal of feature map
+            dist = math.sqrt(dx ** 2 + dy ** 2)  # Use original dx, dy for distance calculation
+            dist_normalized = min(dist / max_dist, 1.5)  # Normalize and clip to 1.5x for safety
+            # #region agent log
+            if i == 0:  # Log first vertex distance as sample
+                try:
+                    with open(log_path, "a") as f:
+                        f.write(json.dumps({
+                            "sessionId": "debug-session",
+                            "runId": "run1",
+                            "hypothesisId": "E",
+                            "location": "target_improved.py:327",
+                            "message": "Vertex distance computation",
+                            "data": {
+                                "dx": float(dx),
+                                "dy": float(dy),
+                                "dist": float(dist),
+                                "dist_clipped": dist == max_dist,
+                                "max_dist": float(max_dist),
+                                "center_x_out": float(center_x_out),
+                                "center_y_out": float(center_y_out),
+                            },
+                            "timestamp": int(time.time() * 1000)
+                        }) + "\n")
+                except: pass
+            # #endregion
+            targets["vertex_dist"][i, center_y_int, center_x_int] = dist_normalized
 
     def _compute_bottom_vertices_3d(
         self,

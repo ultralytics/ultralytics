@@ -116,6 +116,9 @@ class KITTIToYOLO3D:
 
         # Create base output directories (split-specific subfolders created during conversion)
         self._setup_output_dirs()
+        
+        # Mean dimensions will be computed during conversion and stored here
+        self.mean_dims = None
 
     def _setup_output_dirs(self):
         """Create base directory containers (no split yet)."""
@@ -416,6 +419,90 @@ class KITTIToYOLO3D:
             f.write(f"image_width: {calib['image_width']}\n")
             f.write(f"image_height: {calib['image_height']}\n")
 
+    def _compute_mean_dimensions(self, split_name="train"):
+        """Compute mean dimensions from converted label files.
+        
+        Args:
+            split_name: Split name to compute means from (typically "train")
+        
+        Returns:
+            dict: Mapping from class name to mean dimensions [L, W, H] in meters
+        """
+        label_dir = self.output_root / "labels" / split_name
+        if not label_dir.exists():
+            LOGGER.warning(f"Label directory {label_dir} does not exist. Cannot compute mean dimensions.")
+            return None
+        
+        # Collect dimensions per class
+        # Format: {class_name: [[l, w, h], ...]}
+        class_dimensions = {}
+        
+        # Get reverse class mapping (class_id -> class_name)
+        # Handle filtered classes and remapping
+        if self.filter_classes is not None:
+            # Build reverse mapping for filtered classes
+            id_to_name = {}
+            for class_name, old_id in sorted(self.class_map.items(), key=lambda x: x[1]):
+                if class_name in self.filter_classes:
+                    new_id = self.class_id_remap[old_id]
+                    id_to_name[new_id] = class_name
+        else:
+            id_to_name = {v: k for k, v in self.class_map.items()}
+        
+        # Iterate through all label files
+        label_files = sorted(label_dir.glob("*.txt"))
+        total_labels = 0
+        
+        for label_file in TQDM(label_files, desc="Computing mean dimensions"):
+            with open(label_file, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    parts = line.split()
+                    if len(parts) < 10:
+                        continue
+                    
+                    try:
+                        class_id = int(float(parts[0]))
+                        # Extract dimensions: h, w, l (indices 7, 8, 9 in YOLO format)
+                        h = float(parts[7])
+                        w = float(parts[8])
+                        l = float(parts[9])
+                        
+                        # Map class_id to class name
+                        class_name = id_to_name.get(class_id)
+                        if class_name is None:
+                            continue
+                        
+                        # Store dimensions as [L, W, H] (length, width, height)
+                        if class_name not in class_dimensions:
+                            class_dimensions[class_name] = []
+                        class_dimensions[class_name].append([l, w, h])
+                        total_labels += 1
+                    except (ValueError, IndexError) as e:
+                        LOGGER.debug(f"Error parsing label line in {label_file}: {e}")
+                        continue
+        
+        # Compute mean dimensions for each class
+        mean_dims = {}
+        for class_name, dims_list in class_dimensions.items():
+            if len(dims_list) == 0:
+                continue
+            
+            # Compute mean for each dimension
+            dims_array = np.array(dims_list)
+            mean_l = float(np.mean(dims_array[:, 0]))
+            mean_w = float(np.mean(dims_array[:, 1]))
+            mean_h = float(np.mean(dims_array[:, 2]))
+            
+            mean_dims[class_name] = [mean_l, mean_w, mean_h]
+            LOGGER.info(f"  {class_name}: mean_dims = [L={mean_l:.2f}, W={mean_w:.2f}, H={mean_h:.2f}] (from {len(dims_list)} samples)")
+        
+        LOGGER.info(f"Computed mean dimensions from {total_labels} labels across {len(mean_dims)} classes")
+        return mean_dims if mean_dims else None
+
     def convert_split(self, split="training"):
         """Convert entire KITTI split.
 
@@ -495,6 +582,10 @@ class KITTIToYOLO3D:
                 f.write("\n".join(val_index))
 
             LOGGER.info(f"3DOP conversion complete: train={len(train_index)} val={len(val_index)}")
+            
+            # Compute mean dimensions from training split
+            LOGGER.info("\nComputing mean dimensions from training split...")
+            self.mean_dims = self._compute_mean_dimensions("train")
             return
 
         # ----- Single split behavior -----
@@ -543,6 +634,11 @@ class KITTIToYOLO3D:
 
         LOGGER.info(f"Conversion complete for split '{split_name}'")
         LOGGER.info(f"Output directory: {self.output_root}")
+        
+        # Compute mean dimensions from training split if this is the training split
+        if split_name == "train" and self.mean_dims is None:
+            LOGGER.info("\nComputing mean dimensions from training split...")
+            self.mean_dims = self._compute_mean_dimensions("train")
 
     def create_dataset_yaml(self, splits=["train", "val"]):
         """Create dataset.yaml for YOLO training."""
@@ -594,6 +690,15 @@ class KITTIToYOLO3D:
             "focal_length: 721.5  # pixels (approximate)",
             "channels: 6",
         ])
+        
+        # Add mean dimensions if computed
+        if self.mean_dims is not None and len(self.mean_dims) > 0:
+            yaml_lines.append("# Mean dimensions per class [L, W, H] in meters")
+            yaml_lines.append("mean_dims:")
+            for class_name in sorted(self.mean_dims.keys()):
+                dims = self.mean_dims[class_name]
+                yaml_lines.append(f"  {class_name}: [{dims[0]:.2f}, {dims[1]:.2f}, {dims[2]:.2f}]")
+        
         yaml_content = "\n".join(yaml_lines) + "\n"
 
         yaml_file = self.output_root / "dataset.yaml"

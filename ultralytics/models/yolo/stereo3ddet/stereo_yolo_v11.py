@@ -138,6 +138,21 @@ class StereoCenterNetHead(nn.Module):
         super().__init__()
         self.in_channels = in_channels
         self.num_classes = num_classes
+        
+        # Attributes required for compatibility with v8DetectionLoss (used by DetectionModel.init_criterion)
+        # These are expected by the standard YOLO loss function even though stereo uses custom loss
+        self.nc = num_classes  # Alias for num_classes (expected by v8DetectionLoss)
+        self.reg_max = 1  # Regression max (not used by stereo, but required by v8DetectionLoss)
+        self.no = self.nc + self.reg_max * 4  # Number of outputs per anchor (for compatibility)
+        
+        # Stride attribute required for compatibility (v8DetectionLoss expects model.model[-1].stride)
+        # Note: This is a default value. The actual stride depends on the model architecture:
+        # - P3 output: 8x downsampling (stride = 8.0)
+        # - P4 output: 16x downsampling (stride = 16.0)  
+        # - P5 output: 32x downsampling (stride = 32.0)
+        # DetectionModel will compute this dynamically via forward pass if the head is a Detect subclass.
+        # For stereo3ddet, we use StereoCenterNetLoss which doesn't rely on this stride value.
+        self.stride = torch.tensor([8.0])  # Default to P3 (8x) since stereo3ddet_full.yaml uses P3 output
 
         # Shared feature extractor (optional)
         self.shared_head = self._build_shared_head(in_channels)
@@ -191,7 +206,7 @@ class StereoCenterNetHead(nn.Module):
             nn.Conv2d(256, out_channels, 1, 1, 0),
         )
 
-    def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def forward(self, x: list[torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
         Args:
             x: [B, C, H, W] fused features from the neck
@@ -199,7 +214,7 @@ class StereoCenterNetHead(nn.Module):
             Dict of 10 branch outputs
         """
         # Shared feature extraction
-        shared_feat = self.shared_head(x)  # [B, 256, H, W]
+        shared_feat = self.shared_head(x[0])  # [B, 256, H, W]
 
         # Run the 10 branches in parallel
         outputs = {}
@@ -216,12 +231,12 @@ class StereoCenterNetHead(nn.Module):
 class StereoCenterNetLoss(nn.Module):
     """Total loss for Stereo CenterNet."""
 
-    def __init__(self, num_classes: int = 3):
+    def __init__(self, num_classes: int = 3, loss_weights: Optional[Dict[str, float]] = None):
         super().__init__()
         self.num_classes = num_classes
 
-        # Per-branch weights
-        self.loss_weights = {
+        # Default per-branch weights (used if loss_weights is None or incomplete)
+        default_weights = {
             "heatmap": 1.0,
             "offset": 1.0,
             "bbox_size": 0.1,
@@ -231,8 +246,14 @@ class StereoCenterNetLoss(nn.Module):
             "orientation": 1.0,
             "vertices": 1.0,
             "vertex_offset": 1.0,
-            "vertex_dist": 1.0,
+            "vertex_dist": 0.1,  # Lower weight to match YAML config and reduce impact of large distances
         }
+        
+        # Use provided loss_weights, falling back to defaults for missing keys
+        if loss_weights is not None:
+            self.loss_weights = {key: loss_weights.get(key, default_weights[key]) for key in default_weights.keys()}
+        else:
+            self.loss_weights = default_weights.copy()
 
     def forward(self, predictions: Dict, targets: Dict) -> Tuple[torch.Tensor, Dict]:
         """
@@ -284,9 +305,50 @@ class StereoCenterNetLoss(nn.Module):
         )
 
         # 8. Vertex coordinates (L1)
-        losses["vertices"] = self.masked_l1_loss(
-            predictions["vertices"], targets["vertices"], mask=targets.get("heatmap", None)
+        # #region agent log
+        import json
+        import os
+        import time
+        log_path = "/home/rick/ultralytics/.cursor/debug.log"
+        try:
+            with open(log_path, "a") as f:
+                f.write(json.dumps({
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "A",
+                    "location": "stereo_yolo_v11.py:302",
+                    "message": "Vertex targets stats",
+                    "data": {
+                        "target_min": float(targets["vertices"].min().item()),
+                        "target_max": float(targets["vertices"].max().item()),
+                        "target_mean": float(targets["vertices"].mean().item()),
+                        "target_shape": list(targets["vertices"].shape),
+                        "pred_min": float(predictions["vertices"].min().item()),
+                        "pred_max": float(predictions["vertices"].max().item()),
+                        "pred_mean": float(predictions["vertices"].mean().item()),
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }) + "\n")
+        except: pass
+        # #endregion
+        vertex_loss_raw = self.masked_l1_loss(
+            predictions["vertices"], targets["vertices"], mask=targets.get("heatmap", None), branch_name="vertices"
         )
+        losses["vertices"] = vertex_loss_raw
+        # #region agent log
+        try:
+            with open(log_path, "a") as f:
+                f.write(json.dumps({
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "A",
+                    "location": "stereo_yolo_v11.py:302",
+                    "message": "Vertex loss after computation",
+                    "data": {"loss": float(losses["vertices"].item())},
+                    "timestamp": int(time.time() * 1000)
+                }) + "\n")
+        except: pass
+        # #endregion
 
         # 9. Vertex sub-pixel offset (L1)
         losses["vertex_offset"] = self.masked_l1_loss(
@@ -294,12 +356,75 @@ class StereoCenterNetLoss(nn.Module):
         )
 
         # 10. Vertex distance (L1)
-        losses["vertex_dist"] = self.masked_l1_loss(
-            predictions["vertex_dist"], targets["vertex_dist"], mask=targets.get("heatmap", None)
+        # #region agent log
+        try:
+            with open(log_path, "a") as f:
+                f.write(json.dumps({
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "E",
+                    "location": "stereo_yolo_v11.py:312",
+                    "message": "Vertex dist targets stats",
+                    "data": {
+                        "target_min": float(targets["vertex_dist"].min().item()),
+                        "target_max": float(targets["vertex_dist"].max().item()),
+                        "target_mean": float(targets["vertex_dist"].mean().item()),
+                        "target_shape": list(targets["vertex_dist"].shape),
+                        "pred_min": float(predictions["vertex_dist"].min().item()),
+                        "pred_max": float(predictions["vertex_dist"].max().item()),
+                        "pred_mean": float(predictions["vertex_dist"].mean().item()),
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }) + "\n")
+        except: pass
+        # #endregion
+        vertex_dist_loss_raw = self.masked_l1_loss(
+            predictions["vertex_dist"], targets["vertex_dist"], mask=targets.get("heatmap", None), branch_name="vertex_dist"
         )
+        losses["vertex_dist"] = vertex_dist_loss_raw
+        # #region agent log
+        try:
+            with open(log_path, "a") as f:
+                f.write(json.dumps({
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "E",
+                    "location": "stereo_yolo_v11.py:312",
+                    "message": "Vertex dist loss after computation",
+                    "data": {"loss": float(losses["vertex_dist"].item())},
+                    "timestamp": int(time.time() * 1000)
+                }) + "\n")
+        except: pass
+        # #endregion
 
         # Weighted sum
         total_loss = sum(self.loss_weights[k] * v for k, v in losses.items())
+        
+        # #region agent log
+        import json
+        import time
+        log_path = "/home/rick/ultralytics/.cursor/debug.log"
+        try:
+            with open(log_path, "a") as f:
+                f.write(json.dumps({
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "F",
+                    "location": "stereo_yolo_v11.py:395",
+                    "message": "Total loss computation with weights",
+                    "data": {
+                        "vertices_raw_loss": float(losses.get("vertices", 0.0)),
+                        "vertices_weight": float(self.loss_weights.get("vertices", 1.0)),
+                        "vertices_weighted": float(self.loss_weights.get("vertices", 1.0) * losses.get("vertices", 0.0)),
+                        "vertex_dist_raw_loss": float(losses.get("vertex_dist", 0.0)),
+                        "vertex_dist_weight": float(self.loss_weights.get("vertex_dist", 1.0)),
+                        "vertex_dist_weighted": float(self.loss_weights.get("vertex_dist", 1.0) * losses.get("vertex_dist", 0.0)),
+                        "total_loss": float(total_loss.item()),
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }) + "\n")
+        except: pass
+        # #endregion
 
         return total_loss, losses
     
@@ -358,10 +483,38 @@ class StereoCenterNetLoss(nn.Module):
         return loss
 
     def masked_l1_loss(
-        self, pred: torch.Tensor, target: torch.Tensor, mask: Optional[torch.Tensor] = None
+        self, pred: torch.Tensor, target: torch.Tensor, mask: Optional[torch.Tensor] = None, branch_name: str = ""
     ) -> torch.Tensor:
         """Smooth L1 loss with optional mask."""
         loss = F.smooth_l1_loss(pred, target, reduction="none")
+        
+        # #region agent log
+        import json
+        import time
+        log_path = "/home/rick/ultralytics/.cursor/debug.log"
+        is_vertex_branch = branch_name in ["vertices", "vertex_dist"]
+        if is_vertex_branch:
+            try:
+                with open(log_path, "a") as f:
+                    f.write(json.dumps({
+                        "sessionId": "debug-session",
+                        "runId": "run1",
+                        "hypothesisId": "D",
+                        "location": "stereo_yolo_v11.py:375",
+                        "message": "Masked L1 loss before normalization",
+                        "data": {
+                            "branch_name": branch_name,
+                            "loss_sum": float(loss.sum().item()),
+                            "loss_mean": float(loss.mean().item()),
+                            "loss_max": float(loss.max().item()),
+                            "pred_shape": list(pred.shape),
+                            "target_shape": list(target.shape),
+                            "has_mask": mask is not None,
+                        },
+                        "timestamp": int(time.time() * 1000)
+                    }) + "\n")
+            except: pass
+        # #endregion
 
         if mask is not None:
             # Convert heatmap mask to binary mask
@@ -384,6 +537,26 @@ class StereoCenterNetLoss(nn.Module):
 
             num_pos = mask.sum().float()
             num_pos = torch.clamp(num_pos, min=1.0)
+            # #region agent log
+            if is_vertex_branch:
+                try:
+                    with open(log_path, "a") as f:
+                        f.write(json.dumps({
+                            "sessionId": "debug-session",
+                            "runId": "run1",
+                            "hypothesisId": "D",
+                            "location": "stereo_yolo_v11.py:400",
+                            "message": "Masked L1 loss normalization",
+                            "data": {
+                                "branch_name": branch_name,
+                                "num_pos": float(num_pos.item()),
+                                "loss_sum_before_norm": float(loss.sum().item()),
+                                "loss_after_norm": float((loss.sum() / num_pos).item()),
+                            },
+                            "timestamp": int(time.time() * 1000)
+                        }) + "\n")
+                except: pass
+            # #endregion
             loss = loss.sum() / num_pos
         else:
             loss = loss.mean()
@@ -645,6 +818,7 @@ class StereoYOLOv11(nn.Module):
         num_classes: int = 3,
         in_channels: int = 256,
         use_uncertainty_weighting: bool = False,
+        loss_weights: Optional[Dict[str, float]] = None,
     ):
         """Initialize StereoYOLOv11 model.
 
@@ -656,6 +830,7 @@ class StereoYOLOv11(nn.Module):
                 loss balancing (Kendall et al., 2018). When True, the model learns task-specific
                 uncertainty parameters that automatically balance the contribution of each loss
                 component during training. Default False for backward compatibility.
+            loss_weights: Optional dict of loss weights for each branch. If None, uses default weights.
         """
         super().__init__()
 
@@ -677,7 +852,7 @@ class StereoYOLOv11(nn.Module):
         self.heads = StereoCenterNetHead(in_channels=in_channels, num_classes=num_classes)
 
         # 5. Loss functions
-        self.criterion = StereoCenterNetLoss(num_classes=num_classes)
+        self.criterion = StereoCenterNetLoss(num_classes=num_classes, loss_weights=loss_weights)
         self.uncertainty_loss = UncertaintyWeightedLoss(num_tasks=10)
 
     def _build_backbone(self, backbone_type: str) -> nn.Module:
@@ -859,7 +1034,9 @@ class StereoYOLOv11Wrapper(nn.Module):
         )
         self.names = {i: str(i) for i in range(num_classes)}
         # Required attributes for AutoBackend compatibility
-        self.stride = torch.tensor([32.0])  # Default stride for stereo models
+        # Note: Stride depends on model architecture (P3=8x, P4=16x, P5=32x)
+        # Default to P3 (8x) since stereo3ddet_full.yaml uses P3 output
+        self.stride = torch.tensor([8.0])  # Architecture-dependent, matches P3 output
         self.yaml = {"channels": 6}  # 6-channel input (left + right)
         self.model = self.core  # For compatibility with BaseModel.fuse() pattern
         self.ch = 6
@@ -965,9 +1142,45 @@ class StereoYOLOv11Wrapper(nn.Module):
         # Initialize target generator if not already done
         if not hasattr(self, "_target_generator"):
             num_classes = len(self.names) if isinstance(self.names, dict) else 3
-            # Output size is H/32, W/32 (ResNet18 backbone downsamples by 32x)
-            output_h = imgsz // 32
-            output_w = imgsz // 32
+            
+            # Dynamically determine output size from model forward pass
+            # This works for any architecture (P3, P54, P5, etc.) instead of hardcoding 32x
+            # The model's actual output size depends on the YAML config (e.g., P3 = 8x downsampling)
+            # We do a dummy forward pass to get the actual output shape, making it architecture-agnostic
+            with torch.no_grad():
+                # Create dummy input with same shape as actual input
+                dummy_img = torch.zeros(1, 6, imgsz, imgsz, device=img.device)
+                # Forward pass to get actual output shape
+                dummy_output = self.forward(dummy_img)
+                
+                # Extract output shape from predictions
+                # For stereo3ddet, output is a dict with 10 branches
+                if isinstance(dummy_output, dict):
+                    # Get shape from any branch (all have same spatial dimensions)
+                    sample_branch = dummy_output.get("heatmap", list(dummy_output.values())[0])
+                    if sample_branch is not None:
+                        _, _, output_h, output_w = sample_branch.shape
+                    else:
+                        # Fallback: try to get from model stride if available
+                        if hasattr(self, "stride") and self.stride is not None:
+                            stride = float(self.stride[0]) if isinstance(self.stride, torch.Tensor) else float(self.stride)
+                            output_h = int(imgsz / stride)
+                            output_w = int(imgsz / stride)
+                        else:
+                            # Last resort: assume 8x downsampling for P3 (common case)
+                            output_h = imgsz // 8
+                            output_w = imgsz // 8
+                else:
+                    # If output is not a dict, try to infer from model structure
+                    if hasattr(self, "stride") and self.stride is not None:
+                        stride = float(self.stride[0]) if isinstance(self.stride, torch.Tensor) else float(self.stride)
+                        output_h = int(imgsz / stride)
+                        output_w = int(imgsz / stride)
+                    else:
+                        # Fallback: assume 8x downsampling for P3
+                        output_h = imgsz // 8
+                        output_w = imgsz // 8
+            
             self._target_generator = TargetGeneratorImproved(
                 output_size=(output_h, output_w),
                 num_classes=num_classes,
@@ -993,8 +1206,26 @@ class StereoYOLOv11Wrapper(nn.Module):
                 batched_targets[key] = torch.stack([t[key] for t in targets_list], dim=0)
         else:
             # Empty batch - create zero targets
-            output_h = imgsz // 32
-            output_w = imgsz // 32
+            # Use target generator's output size if available, otherwise determine dynamically
+            if hasattr(self, "_target_generator"):
+                output_h, output_w = self._target_generator.output_h, self._target_generator.output_w
+            else:
+                # Dynamically determine output size from model forward pass
+                with torch.no_grad():
+                    dummy_img = torch.zeros(1, 6, imgsz, imgsz, device=img.device)
+                    dummy_output = self.forward(dummy_img)
+                    
+                    if isinstance(dummy_output, dict):
+                        sample_branch = dummy_output.get("heatmap", list(dummy_output.values())[0])
+                        if sample_branch is not None:
+                            _, _, output_h, output_w = sample_branch.shape
+                        else:
+                            output_h = imgsz // 8
+                            output_w = imgsz // 8
+                    else:
+                        output_h = imgsz // 8
+                        output_w = imgsz // 8
+            
             num_classes = len(self.names) if isinstance(self.names, dict) else 3
             batched_targets = {
                 "heatmap": torch.zeros(img.shape[0], num_classes, output_h, output_w, device=img.device),

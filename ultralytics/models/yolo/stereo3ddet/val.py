@@ -502,7 +502,7 @@ def _decode_stereo3d_outputs_per_sample(
     num_classes, h, w = heatmap.shape
     
     # Compute actual scale from feature map to original image
-    # Feature map is at 1/4 of input resolution, but input was resized from original
+    # Scale is computed dynamically from actual feature map size (architecture-agnostic)
     # scale = original_size / feature_map_size
     scale_w = original_width / w
     scale_h = original_height / h

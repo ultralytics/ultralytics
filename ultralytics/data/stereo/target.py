@@ -18,14 +18,15 @@ class TargetGenerator:
 
     def __init__(
         self,
-        output_size: tuple[int, int] = (96, 320),  # H/4, W/4 for 384×1280 input
+        output_size: tuple[int, int] = (96, 320),  # Example: (96, 320) for 384×1280 input with 4x downsampling
         num_classes: int = 3,
         mean_dims: dict[str, list[float]] | None = None,
     ):
         """Initialize target generator.
 
         Args:
-            output_size: Output feature map size (H, W) at 1/4 resolution.
+            output_size: Output feature map size (H, W). Determined dynamically from model architecture.
+                         The actual downsampling factor depends on the model config (e.g., P3 = 8x, P4 = 16x).
             num_classes: Number of object classes.
             mean_dims: Mean dimensions per class [L, W, H] in meters.
         """

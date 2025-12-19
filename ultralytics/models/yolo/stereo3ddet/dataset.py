@@ -249,22 +249,22 @@ class Stereo3DDetAdapterDataset(Dataset):
         h0, w0 = left_img.shape[:2]
 
         # Get calibration (needed for both train and val) (T143)
-        calib = sample.get("calib", {})
+        calib = sample["calib"]
         
         # Optional stereo augmentation (train split only)
         if self.split == "train":
             calib_obj = StereoCalibration(
-                fx=float(calib.get("fx", 0.0)),
-                fy=float(calib.get("fy", 0.0)),
-                cx=float(calib.get("cx", 0.0)),
-                cy=float(calib.get("cy", 0.0)),
-                baseline=float(calib.get("baseline", 0.0)),
+                fx=float(calib["fx"]),
+                fy=float(calib["fy"]),
+                cx=float(calib["cx"]),
+                cy=float(calib["cy"]),
+                baseline=float(calib["baseline"]),
                 height=h0,
                 width=w0,
             )
-            left_img, right_img, labels_aug, _ = self._aug.augment(left_img, right_img, sample.get("labels", []), calib_obj)
+            left_img, right_img, labels_aug, _ = self._aug.augment(left_img, right_img, sample["labels"], calib_obj)
         else:
-            labels_aug = sample.get("labels", [])
+            labels_aug = sample["labels"]
 
         # BGR -> RGB for both
         left_rgb = cv2.cvtColor(left_img, cv2.COLOR_BGR2RGB)
@@ -286,7 +286,7 @@ class Stereo3DDetAdapterDataset(Dataset):
         if img6.dtype != torch.uint8:
             img6 = img6.to(torch.uint8)
         labels = labels_aug
-        image_id = sample.get("image_id")
+        image_id = sample["image_id"]
         im_file = str(self.left_dir / f"{image_id}.png")
 
         return {
@@ -307,7 +307,7 @@ class Stereo3DDetAdapterDataset(Dataset):
             f"Expected (B, 6, H, W) for stereo input."
         )
         
-        labels_list = [b.get("labels", []) for b in batch]
+        labels_list = [b["labels"] for b in batch]
         calibs = [b.get("calib", {}) for b in batch]  # Collect calib for each sample (T145)
         
         # Final safety check: ensure all class IDs are in [0, 1, 2] range
@@ -317,7 +317,7 @@ class Stereo3DDetAdapterDataset(Dataset):
         for labels in labels_list:
             filtered_labels = []
             for label in labels:
-                class_id = label.get("class_id", -1)
+                class_id = label["class_id"]
                 if class_id in [0, 1, 2]:
                     filtered_labels.append(label)
                 else:

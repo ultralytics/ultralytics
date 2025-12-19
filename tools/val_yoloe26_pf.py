@@ -64,11 +64,7 @@ def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight):
     det_model.model.model[-1].is_fused = True
     det_model.model.model[-1].conf = 0.001
     det_model.model.model[-1].max_det = 1000
-
     
-    names = list(yaml_load("ultralytics/cfg/datasets/lvis.yaml")["names"].values())
-    tpe = det_model.model.get_text_pe(names)
-    det_model.model.set_classes(names, tpe)
     return det_model
 
 

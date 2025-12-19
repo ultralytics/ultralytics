@@ -196,7 +196,10 @@ class YOLOEDetectValidator(DetectionValidator):
                 model.set_classes(names, vpe)
                 stats = super().__call__(model=deepcopy(model))
             elif isinstance(model.model[-1], YOLOEDetect) and hasattr(model.model[-1], "lrpc"):  # prompt-free
-                return super().__call__(trainer, model)
+                LOGGER.info("Validate using the text prompt for prompt-free model.")
+                tpe = model.get_text_pe(names)
+                model.set_classes(names, tpe)
+                stats = super().__call__(model=deepcopy(model))
             else:
                 LOGGER.info("Validate using the text prompt.")
                 tpe = model.get_text_pe(names)

@@ -65,6 +65,7 @@ RKNN_CHIPS = frozenset(
         "rv1103b",
         "rv1106b",
         "rk2118",
+        "rv1126b",
     }
 )  # Rockchip processors available for export
 HELP_MSG = """

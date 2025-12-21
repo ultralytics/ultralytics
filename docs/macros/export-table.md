@@ -1,6 +1,6 @@
 {%set tip1 = ':material-information-outline:{ title="conf, iou, agnostic_nms are also available when nms=True" }' %}
 {%set tip2 = ':material-information-outline:{ title="conf, iou are also available when nms=True" }' %}
-{%set tip3 = ':material-information-outline:{ title="imx format only supported for YOLOv8n and yolo11n model currently" }' %}
+{%set tip3 = ':material-information-outline:{ title="IMX format is currently only supported for YOLOv8n and YOLO11n models" }' %}
 
 | Format                                             | `format` Argument | Model                                             | Metadata | Arguments                                                                                                           |
 | -------------------------------------------------- | ----------------- | ------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |

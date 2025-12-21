@@ -12,7 +12,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/N8TxB43y-xM"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/1H9ktpHUUB8"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -60,7 +60,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         from ultralytics import solutions
 
         inf = solutions.Inference(
-            model="yolo11n.pt",  # you can use any model that Ultralytics support, i.e. YOLO11, or custom trained model
+            model="yolo11n.pt",  # you can use any model that Ultralytics supports, e.g., YOLO11, or a custom-trained model
         )
 
         inf.inference()
@@ -121,7 +121,7 @@ Then, you can create a basic Streamlit application to run live inference:
         from ultralytics import solutions
 
         inf = solutions.Inference(
-            model="yolo11n.pt",  # you can use any model that Ultralytics support, i.e. YOLO11, YOLOv10
+            model="yolo11n.pt",  # you can use any model that Ultralytics supports, e.g., YOLO11, YOLOv10
         )
 
         inf.inference()

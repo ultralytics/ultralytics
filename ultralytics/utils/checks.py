@@ -379,8 +379,8 @@ def check_apt_requirements(requirements):
             f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, attempting AutoUpdate..."
         )
         # Optionally update package list first
-        if is_sudo_available():
-            subprocess.run(["sudo", "apt", "update"], check=False)
+        cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "update"]
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
 
         # Build and run the install command
         cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y"] + missing_packages
@@ -476,7 +476,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                LOGGER.info(attempt_install(s, cmds, use_uv=not ARM64 and check_uv()))
+                use_uv = not ARM64 and check_uv()  # uv fails on ARM64
+                LOGGER.info(attempt_install(s, cmds, use_uv=use_uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(

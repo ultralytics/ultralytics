@@ -80,7 +80,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 
     !!! note
 
-        You can also use a [custom trained YOLO11 model](https://docs.ultralytics.com/modes/train/).
+        You can also use a [custom-trained YOLO11 model](https://docs.ultralytics.com/modes/train/).
 
 5.  Convert model to ONNX
 

@@ -34,7 +34,7 @@ For more information on Triton, see the [NVIDIA Triton Inference Server document
    wget https://github.com/triton-inference-server/server/releases/download/v2.23.0/v2.23.0_ubuntu2004.clients.tar.gz
    mkdir tritonclient
    tar -xvf v2.23.0_ubuntu2004.clients.tar.gz -C tritonclient
-   rm -rf v2.23.0_ubuntu2004.clients.tar.gz
+   rm -f v2.23.0_ubuntu2004.clients.tar.gz
    ```
 
 2. **Clone the Ultralytics repository:**
@@ -107,4 +107,4 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 
 For more resources, explore the [Ultralytics documentation](https://docs.ultralytics.com/), [Ultralytics blog](https://www.ultralytics.com/blog), and [Ultralytics HUB](https://docs.ultralytics.com/hub/).
 
-**We encourage your contributions to make this project even better! 🚀**
+**We encourage your contributions to help improve this project.**

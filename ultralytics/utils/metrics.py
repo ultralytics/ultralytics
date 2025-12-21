@@ -9,8 +9,7 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import (
-    Any, 
-    Optional,
+    Any,
 )
 
 import numpy as np
@@ -192,8 +191,8 @@ def kpt_iou(
 
 
 def _get_covariance_matrix(
-        boxes: torch.Tensor, pa: Optional[float] = None, pb: Optional[float] = None
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    boxes: torch.Tensor, pa: float | None = None, pb: float | None = None
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Generate covariance matrix from oriented bounding boxes.
 
     Args:

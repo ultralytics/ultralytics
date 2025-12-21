@@ -1204,9 +1204,9 @@ class Exporter:
         # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
         # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
         check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-        check_requirements(("executorch==1.0.1", "flatbuffers"))
+        # Pin numpy to avoid coremltools errors with numpy>=2.4.0
+        check_requirements(("executorch==1.0.1", "flatbuffers", "numpy<=2.3.5"))
 
-        import torch
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
         from executorch.exir import to_edge_transform_and_lower
 

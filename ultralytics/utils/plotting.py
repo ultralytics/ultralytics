@@ -203,6 +203,8 @@ class Annotator:
         if not input_is_pil:
             if im.shape[2] == 1:  # handle grayscale
                 im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+            elif im.shape[2] == 2:  # handle 2-channel images
+                im = np.ascontiguousarray(np.dstack((im, np.zeros_like(im[..., :1]))))
             elif im.shape[2] > 3:  # multispectral
                 im = np.ascontiguousarray(im[..., :3])
         if self.pil:  # use PIL

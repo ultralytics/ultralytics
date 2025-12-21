@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import functools
 import glob
 import inspect
@@ -135,7 +136,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     elif isinstance(imgsz, (list, tuple)):
         imgsz = list(imgsz)
     elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
-        imgsz = [int(imgsz)] if imgsz.isnumeric() else eval(imgsz)
+        imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
     else:
         raise TypeError(
             f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
@@ -350,6 +351,46 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 
 
 @TryExcept()
+def check_apt_requirements(requirements):
+    """Check if apt packages are installed and install missing ones.
+
+    Args:
+        requirements: List of apt package names to check and install
+    """
+    prefix = colorstr("red", "bold", "apt requirements:")
+    # Check which packages are missing
+    missing_packages = []
+    for package in requirements:
+        try:
+            # Use dpkg -l to check if package is installed
+            result = subprocess.run(["dpkg", "-l", package], capture_output=True, text=True, check=False)
+            # Check if package is installed (look for "ii" status)
+            if result.returncode != 0 or not any(
+                line.startswith("ii") and package in line for line in result.stdout.splitlines()
+            ):
+                missing_packages.append(package)
+        except Exception:
+            # If check fails, assume package is not installed
+            missing_packages.append(package)
+
+    # Install missing packages if any
+    if missing_packages:
+        LOGGER.info(
+            f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, attempting AutoUpdate..."
+        )
+        # Optionally update package list first
+        cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "update"]
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+        # Build and run the install command
+        cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y"] + missing_packages
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+        LOGGER.info(f"{prefix} AutoUpdate success ✅")
+        LOGGER.warning(f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n")
+
+
+@TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
@@ -409,20 +450,22 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         if use_uv:
             base = (
                 f"uv pip install --no-cache-dir {packages} {commands} "
-                f"--index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+                f"--index-strategy=unsafe-best-match --break-system-packages"
             )
             try:
-                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE, text=True)
+                return subprocess.check_output(base, shell=True, stderr=subprocess.STDOUT, text=True)
             except subprocess.CalledProcessError as e:
-                if e.stderr and "No virtual environment found" in e.stderr:
+                if e.output and "No virtual environment found" in e.output:
                     return subprocess.check_output(
                         base.replace("uv pip install", "uv pip install --system"),
                         shell=True,
-                        stderr=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
                         text=True,
                     )
                 raise
-        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True, text=True)
+        return subprocess.check_output(
+            f"pip install --no-cache-dir {packages} {commands}", shell=True, stderr=subprocess.STDOUT, text=True
+        )
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
@@ -433,7 +476,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                LOGGER.info(attempt_install(s, cmds, use_uv=not ARM64 and check_uv()))
+                use_uv = not ARM64 and check_uv()  # uv fails on ARM64
+                LOGGER.info(attempt_install(s, cmds, use_uv=use_uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(
@@ -944,8 +988,11 @@ check_torchvision()  # check torch-torchvision compatibility
 
 # Define constants
 IS_PYTHON_3_8 = PYTHON_VERSION.startswith("3.8")
+IS_PYTHON_3_9 = PYTHON_VERSION.startswith("3.9")
+IS_PYTHON_3_10 = PYTHON_VERSION.startswith("3.10")
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
 IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 
+IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)

@@ -6,7 +6,7 @@ keywords: YOLOv5, Google Cloud Platform, GCP, Deep Learning VM, object detection
 
 # Mastering YOLOv5 Deployment on Google Cloud Platform (GCP) Deep Learning VM
 
-Embarking on the journey of [artificial intelligence (AI)](https://www.ultralytics.com/glossary/artificial-intelligence-ai) and [machine learning (ML)](https://www.ultralytics.com/glossary/machine-learning-ml) can be exhilarating, especially when you leverage the power and flexibility of a [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) platform. Google Cloud Platform (GCP) offers robust tools tailored for ML enthusiasts and professionals alike. One such tool is the Deep Learning VM, preconfigured for data science and ML tasks. In this tutorial, we will navigate the process of setting up [Ultralytics YOLOv5](../../models/yolov5.md) on a [GCP Deep Learning VM](https://cloud.google.com/deep-learning-vm/docs). Whether you're taking your first steps in ML or you're a seasoned practitioner, this guide provides a clear pathway to implementing [object detection](https://www.ultralytics.com/glossary/object-detection) models powered by YOLOv5.
+Embarking on the journey of [artificial intelligence (AI)](https://www.ultralytics.com/glossary/artificial-intelligence-ai) and [machine learning (ML)](https://www.ultralytics.com/glossary/machine-learning-ml) can be exhilarating, especially when you leverage the power and flexibility of a [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) platform. Google Cloud Platform (GCP) offers robust tools tailored for ML enthusiasts and professionals alike. One such tool is the Deep Learning VM, preconfigured for data science and ML tasks. In this tutorial, we will navigate the process of setting up [Ultralytics YOLOv5](../../models/yolov5.md) on a [GCP Deep Learning VM](https://docs.cloud.google.com/deep-learning-vm/docs). Whether you're taking your first steps in ML or you're a seasoned practitioner, this guide provides a clear pathway to implementing [object detection](https://www.ultralytics.com/glossary/object-detection) models powered by YOLOv5.
 
 🆓 Plus, if you're a new GCP user, you're in luck with a [$300 free credit offer](https://cloud.google.com/free/docs/free-cloud-features#free-trial) to kickstart your projects.
 
@@ -32,13 +32,11 @@ This VM comes pre-loaded with essential tools and frameworks, including the [Ana
 After setting up the environment, let's get YOLOv5 installed and ready:
 
 ```bash
-# Clone the YOLOv5 repository from GitHub
+# Clone the YOLOv5 repository
 git clone https://github.com/ultralytics/yolov5
-
-# Navigate into the cloned repository directory
 cd yolov5
 
-# Install the required Python packages listed in requirements.txt
+# Install dependencies
 pip install -r requirements.txt
 ```
 
@@ -62,7 +60,7 @@ python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos
 python export.py --weights yolov5s.pt --include onnx coreml tflite
 ```
 
-Using just a few commands, YOLOv5 enables you to train custom [object detection](https://docs.ultralytics.com/tasks/detect/) models tailored to your specific needs or utilize pre-trained weights for rapid results across various tasks. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.
+Using just a few commands, YOLOv5 enables you to train custom [object detection](https://docs.ultralytics.com/tasks/detect/) models tailored to your specific needs or utilize pretrained weights for rapid results across various tasks. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.
 
 ![Terminal command image illustrating model training on a GCP Deep Learning VM](https://github.com/ultralytics/docs/releases/download/0/terminal-command-model-training.avif)
 
@@ -94,7 +92,7 @@ To train YOLOv5 on your custom dataset within GCP, follow these general steps:
 1.  Prepare your dataset according to the YOLOv5 format (images and corresponding label files). See our [datasets overview](../../datasets/index.md) for guidance.
 2.  Upload your dataset to your GCP VM using `gcloud compute scp` or the web console's SSH feature.
 3.  Create a dataset configuration YAML file (`custom_dataset.yaml`) that specifies the paths to your training and validation data, the number of classes, and class names.
-4.  Begin the [training process](../../modes/train.md) using your custom dataset YAML and potentially starting from pre-trained weights:
+4.  Begin the [training process](../../modes/train.md) using your custom dataset YAML and potentially starting from pretrained weights:
 
     ```bash
     # Example: Train YOLOv5s on a custom dataset for 100 epochs

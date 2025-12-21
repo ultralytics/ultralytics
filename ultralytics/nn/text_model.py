@@ -77,11 +77,6 @@ class CLIP(TextModel):
         Args:
             size (str): Model size identifier (e.g., 'ViT-B/32').
             device (torch.device): Device to load the model on.
-
-        Examples:
-            >>> import torch
-            >>> clip_model = CLIP("ViT-B/32", device=torch.device("cuda:0"))
-            >>> text_features = clip_model.encode_text(["a photo of a cat", "a photo of a dog"])
         """
         super().__init__()
         self.model, self.image_preprocess = clip.load(size, device=device)
@@ -89,11 +84,13 @@ class CLIP(TextModel):
         self.device = device
         self.eval()
 
-    def tokenize(self, texts: str | list[str]) -> torch.Tensor:
+    def tokenize(self, texts: str | list[str], truncate: bool = True) -> torch.Tensor:
         """Convert input texts to CLIP tokens.
 
         Args:
             texts (str | list[str]): Input text or list of texts to tokenize.
+            truncate (bool, optional): Whether to trim texts that exceed CLIP's context length. Defaults to True to
+                avoid RuntimeError from overly long inputs while still allowing explicit opt-out.
 
         Returns:
             (torch.Tensor): Tokenized text tensor with shape (batch_size, context_length) ready for model processing.
@@ -102,8 +99,10 @@ class CLIP(TextModel):
             >>> model = CLIP("ViT-B/32", device="cpu")
             >>> tokens = model.tokenize("a photo of a cat")
             >>> print(tokens.shape)  # torch.Size([1, 77])
+            >>> strict_tokens = model.tokenize("a photo of a cat", truncate=False)  # Enforce strict length checks
+            >>> print(strict_tokens.shape)  # Same shape/content as tokens since prompt less than 77 tokens
         """
-        return clip.tokenize(texts).to(self.device)
+        return clip.tokenize(texts, truncate=truncate).to(self.device)
 
     @smart_inference_mode()
     def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
@@ -195,20 +194,9 @@ class MobileCLIP(TextModel):
         Args:
             size (str): Model size identifier (e.g., 's0', 's1', 's2', 'b', 'blt').
             device (torch.device): Device to load the model on.
-
-        Examples:
-            >>> import torch
-            >>> model = MobileCLIP("s0", device=torch.device("cpu"))
-            >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
-            >>> features = model.encode_text(tokens)
         """
         try:
-            import warnings
-
-            # Suppress 'timm.models.layers is deprecated, please import via timm.layers' warning from mobileclip usage
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=FutureWarning)
-                import mobileclip
+            import mobileclip
         except ImportError:
             # Ultralytics fork preferred since Apple MobileCLIP repo has incorrect version of torchvision
             checks.check_requirements("git+https://github.com/ultralytics/mobileclip.git")
@@ -295,11 +283,6 @@ class MobileCLIPTS(TextModel):
 
         Args:
             device (torch.device): Device to load the model on.
-
-        Examples:
-            >>> model = MobileCLIPTS(device=torch.device("cpu"))
-            >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
-            >>> features = model.encode_text(tokens)
         """
         super().__init__()
         from ultralytics.utils.downloads import attempt_download_asset
@@ -308,20 +291,25 @@ class MobileCLIPTS(TextModel):
         self.tokenizer = clip.clip.tokenize
         self.device = device
 
-    def tokenize(self, texts: list[str]) -> torch.Tensor:
+    def tokenize(self, texts: list[str], truncate: bool = True) -> torch.Tensor:
         """Convert input texts to MobileCLIP tokens.
 
         Args:
             texts (list[str]): List of text strings to tokenize.
+            truncate (bool, optional): Whether to trim texts that exceed the tokenizer context length. Defaults to True,
+                matching CLIP's behavior to prevent runtime failures on long captions.
 
         Returns:
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).
 
         Examples:
-            >>> model = MobileCLIPTS("cpu")
+            >>> model = MobileCLIPTS(device=torch.device("cpu"))
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
+            >>> strict_tokens = model.tokenize(
+            ...     ["a very long caption"], truncate=False
+            ... )  # RuntimeError if exceeds 77-token
         """
-        return self.tokenizer(texts).to(self.device)
+        return self.tokenizer(texts, truncate=truncate).to(self.device)
 
     @smart_inference_mode()
     def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:

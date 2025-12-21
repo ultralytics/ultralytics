@@ -26,7 +26,7 @@ The format for a single row in the segmentation dataset file is as follows:
 <class-index> <x1> <y1> <x2> <y2> ... <xn> <yn>
 ```
 
-In this format, `<class-index>` is the index of the class for the object, and `<x1> <y1> <x2> <y2> ... <xn> <yn>` are the bounding coordinates of the object's segmentation mask. The coordinates are separated by spaces.
+In this format, `<class-index>` is the index of the class for the object, and `<x1> <y1> <x2> <y2> ... <xn> <yn>` are the normalized polygon coordinates of the object's segmentation mask (values are in `[0, 1]` relative to image width and height). The coordinates are separated by spaces.
 
 Here is an example of the YOLO dataset format for a single image with two objects made up of a 3-point segment and a 5-point segment.
 
@@ -37,8 +37,8 @@ Here is an example of the YOLO dataset format for a single image with two object
 
 !!! tip
 
-      - The length of each row does **not** have to be equal.
-      - Each segmentation label must have a **minimum of 3 xy points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
+    - The length of each row does **not** have to be equal.
+    - Each segmentation label must have a **minimum of 3 `(x, y)` points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
 
 ### Dataset YAML format
 
@@ -81,10 +81,10 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 Ultralytics YOLO supports various datasets for instance segmentation tasks. Here's a list of the most commonly used ones:
 
+- [Carparts-seg](carparts-seg.md): A specialized dataset focused on the segmentation of car parts, ideal for automotive applications. It includes a variety of vehicles with detailed annotations of individual car components.
 - [COCO](coco.md): A comprehensive dataset for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning, featuring over 200K labeled images across a wide range of categories.
 - [COCO8-seg](coco8-seg.md): A compact, 8-image subset of COCO designed for quick testing of segmentation model training, ideal for CI checks and workflow validation in the `ultralytics` repository.
 - [COCO128-seg](coco128-seg.md): A smaller dataset for [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks, containing a subset of 128 COCO images with segmentation annotations.
-- [Carparts-seg](carparts-seg.md): A specialized dataset focused on the segmentation of car parts, ideal for automotive applications. It includes a variety of vehicles with detailed annotations of individual car components.
 - [Crack-seg](crack-seg.md): A dataset tailored for the segmentation of cracks in various surfaces. Essential for infrastructure maintenance and quality control, it provides detailed imagery for training models to identify structural weaknesses.
 - [Package-seg](package-seg.md): A dataset dedicated to the segmentation of different types of packaging materials and shapes. It's particularly useful for logistics and warehouse automation, aiding in the development of systems for package handling and sorting.
 
@@ -110,11 +110,11 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
 
 This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
 
-Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
+Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful segmentation models.
 
 ## Auto-Annotation
 
-Auto-annotation is an essential feature that allows you to generate a segmentation dataset using a pre-trained detection model. It enables you to quickly and accurately annotate a large number of images without the need for manual labeling, saving time and effort.
+Auto-annotation is an essential feature that allows you to generate a segmentation dataset using a pretrained detection model. It enables you to quickly and accurately annotate a large number of images without the need for manual labeling, saving time and effort.
 
 ### Generate Segmentation Dataset Using a Detection Model
 
@@ -132,9 +132,9 @@ To auto-annotate your dataset using the Ultralytics framework, you can use the `
 
 {% include "macros/sam-auto-annotate.md" %}
 
-The `auto_annotate` function takes the path to your images, along with optional arguments for specifying the pre-trained detection models i.e. [YOLO11](../../models/yolo11.md), [YOLOv8](../../models/yolov8.md) or other [models](../../models/index.md) and segmentation models i.e, [SAM](../../models/sam.md), [SAM2](../../models/sam-2.md) or [MobileSAM](../../models/mobile-sam.md), the device to run the models on, and the output directory for saving the annotated results.
+The `auto_annotate` function takes the path to your images, along with optional arguments for specifying the pretrained detection models i.e. [YOLO11](../../models/yolo11.md), [YOLOv8](../../models/yolov8.md) or other [models](../../models/index.md) and segmentation models i.e, [SAM](../../models/sam.md), [SAM2](../../models/sam-2.md) or [MobileSAM](../../models/mobile-sam.md), the device to run the models on, and the output directory for saving the annotated results.
 
-By leveraging the power of pre-trained models, auto-annotation can significantly reduce the time and effort required for creating high-quality segmentation datasets. This feature is particularly useful for researchers and developers working with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
+By leveraging the power of pretrained models, auto-annotation can significantly reduce the time and effort required for creating high-quality segmentation datasets. This feature is particularly useful for researchers and developers working with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
 
 ### Visualize Dataset Annotations
 
@@ -201,7 +201,7 @@ Ensure you update the paths and class names according to your dataset. For more 
 
 ### What is the auto-annotation feature in Ultralytics YOLO?
 
-Auto-annotation in Ultralytics YOLO allows you to generate segmentation annotations for your dataset using a pre-trained detection model. This significantly reduces the need for manual labeling. You can use the `auto_annotate` function as follows:
+Auto-annotation in Ultralytics YOLO allows you to generate segmentation annotations for your dataset using a pretrained detection model. This significantly reduces the need for manual labeling. You can use the `auto_annotate` function as follows:
 
 ```python
 from ultralytics.data.annotator import auto_annotate

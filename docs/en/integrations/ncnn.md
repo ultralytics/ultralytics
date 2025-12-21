@@ -111,7 +111,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO11 NCNN Models
 
-After successfully exporting your Ultralytics YOLO11 models to NCNN format, you can now deploy them. The primary and recommended first step for running a NCNN model is to utilize the YOLO("yolo11n_ncnn_model/") method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your NCNN models in various other settings, take a look at the following resources:
+After successfully exporting your Ultralytics YOLO11 models to NCNN format, you can now deploy them. The primary and recommended first step for running an NCNN model is to use the `YOLO("yolo11n_ncnn_model/")` method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your NCNN models in various other settings, take a look at the following resources:
 
 - **[Android](https://github.com/Tencent/ncnn/wiki/how-to-build#build-for-android)**: This blog explains how to use NCNN models for performing tasks like [object detection](https://www.ultralytics.com/glossary/object-detection) through Android applications.
 
@@ -119,7 +119,7 @@ After successfully exporting your Ultralytics YOLO11 models to NCNN format, you 
 
 - **[Linux](https://github.com/Tencent/ncnn/wiki/how-to-build#build-for-linux)**: Explore this page to learn how to deploy NCNN models on limited resource devices like Raspberry Pi and other similar devices.
 
-- **[Windows x64 using VS2017](https://github.com/Tencent/ncnn/wiki/how-to-build#build-for-windows-x64-using-visual-studio-community-2017)**: Explore this blog to learn how to deploy NCNN models on windows x64 using Visual Studio Community 2017.
+- **[Windows x64 using VS2017](https://github.com/Tencent/ncnn/wiki/how-to-build#build-for-windows-x64-using-visual-studio-community-2017)**: Explore this blog to learn how to deploy NCNN models on Windows x64 using Visual Studio Community 2017.
 
 ## Summary
 

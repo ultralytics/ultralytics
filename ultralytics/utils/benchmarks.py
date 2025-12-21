@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Benchmark a YOLO model formats for speed and accuracy.
+Benchmark YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
@@ -78,7 +78,7 @@ def benchmark(
         **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
-        (polars.DataFrame): A polars DataFrame with benchmark results for each format, including file size, metric, and
+        (polars.DataFrame): A Polars DataFrame with benchmark results for each format, including file size, metric, and
             inference time.
 
     Examples:
@@ -423,12 +423,6 @@ class ProfileModels:
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
 
-        Examples:
-            Initialize and profile models
-            >>> from ultralytics.utils.benchmarks import ProfileModels
-            >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
-            >>> profiler.run()
-
         Notes:
             FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
         """
@@ -604,7 +598,7 @@ class ProfileModels:
         sess_options.intra_op_num_threads = 8  # Limit the number of threads
         sess = ort.InferenceSession(onnx_file, sess_options, providers=["CPUExecutionProvider"])
 
-        input_data_dict = dict()
+        input_data_dict = {}
         for input_tensor in sess.get_inputs():
             input_type = input_tensor.type
             if self.check_dynamic(input_tensor.shape):
@@ -632,7 +626,7 @@ class ProfileModels:
 
             input_data = np.random.rand(*input_shape).astype(input_dtype)
             input_name = input_tensor.name
-            input_data_dict.update({input_name: input_data})
+            input_data_dict[input_name] = input_data
 
         output_name = sess.get_outputs()[0].name
 

@@ -20,7 +20,7 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 - Setting up Docker with NVIDIA support
 - Installing Ultralytics Docker images
 - Running Ultralytics in a Docker container with CPU or GPU support
-- Using a Display Server with Docker to Show Ultralytics Detection Results
+- Using a display server with Docker to show Ultralytics detection results
 - Mounting local directories into the container
 
 <p align="center">
@@ -70,7 +70,7 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
     sudo apt-get update
     ```
 
-    Install Latest version of nvidia-container-toolkit
+    Install the latest version of `nvidia-container-toolkit`:
 
     ```bash
     sudo apt-get install -y nvidia-container-toolkit \
@@ -285,7 +285,7 @@ yolo predict model=yolo11n.pt show=True
 
 ---
 
-Congratulations! You're now set up to use Ultralytics with Docker and ready to take advantage of its powerful capabilities. For alternate installation methods, feel free to explore the [Ultralytics quickstart documentation](../quickstart.md).
+You are now set up to use Ultralytics with Docker and ready to take advantage of its capabilities. For alternative installation methods, see the [Ultralytics quickstart documentation](../quickstart.md).
 
 ## FAQ
 

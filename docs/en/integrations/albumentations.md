@@ -30,7 +30,7 @@ Albumentations offers many useful features that simplify complex image augmentat
 
 - **High Performance Optimization**: Built on OpenCV and NumPy, Albumentations uses advanced optimization techniques like SIMD (Single Instruction, Multiple Data), which processes multiple data points simultaneously to speed up processing. It handles large datasets quickly, making it one of the fastest options available for image augmentation.
 
-- **Three Levels of Augmentation**: Albumentations supports three levels of augmentation: pixel-level transformations, spatial-level transformations, and mixing-level transformation. Pixel-level transformations only affect the input images without altering masks, bounding boxes, or key points. Meanwhile, both the image and its elements, like masks and bounding boxes, are transformed using spatial-level transformations. Furthermore, mixing-level transformations are a unique way to augment data as it combines multiple images into one.
+- **Three Levels of Augmentation**: Albumentations supports three levels of augmentation: pixel-level transformations, spatial-level transformations, and mixing-level transformations. Pixel-level transformations only affect the input images without altering masks, bounding boxes, or key points. Meanwhile, both the image and its elements, like masks and bounding boxes, are transformed using spatial-level transformations. Furthermore, mixing-level transformations are a unique way to augment data as they combine multiple images into one.
 
 ![Overview of the Different Levels of Augmentations](https://github.com/ultralytics/docs/releases/download/0/levels-of-augmentation.avif)
 
@@ -76,7 +76,7 @@ After installing the necessary packages, you're ready to start using Albumentati
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained model
+        # Load a pretrained model
         model = YOLO("yolo11n.pt")
 
         # Train the model with default augmentations
@@ -90,7 +90,7 @@ After installing the necessary packages, you're ready to start using Albumentati
 
         from ultralytics import YOLO
 
-        # Load a pre-trained model
+        # Load a pretrained model
         model = YOLO("yolo11n.pt")
 
         # Define custom Albumentations transforms
@@ -110,7 +110,7 @@ After installing the necessary packages, you're ready to start using Albumentati
         )
         ```
 
-Next, let's take look a closer look at the specific augmentations that are applied during training.
+Next, let's take a closer look at the specific augmentations that are applied during training.
 
 ### Blur
 
@@ -245,7 +245,7 @@ Different applications benefit from different augmentation strategies:
 - **Low-Light Scenarios**: Emphasize noise addition and brightness adjustments to train robust models for challenging lighting
 - **Industrial Inspection**: Add texture variations and simulated defects for quality control applications
 
-For a complete list of available transforms and their parameters, visit the [Albumentations documentation](https://albumentations.ai/docs/api_reference/full_reference/).
+For a complete list of available transforms and their parameters, visit the [Albumentations documentation](https://albumentations.ai/docs/).
 
 For more detailed examples and best practices on using custom Albumentations transforms with YOLO11, see the [YOLO Data Augmentation guide](../guides/yolo-data-augmentation.md#custom-albumentations-transforms-augmentations).
 

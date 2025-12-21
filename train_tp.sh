@@ -171,10 +171,41 @@ mkdir -p $project_dir
 
 
 
-project_dir=runs/yoloe26m_tp_ultra6
-weight_path="yolo26m-objv1.pt"
+# project_dir=runs/yoloe26m_tp_ultra6
+# weight_path="yolo26m-objv1.pt"
+# trainer="YOLOETrainerFromScratch"
+# model=26m
+# epo=30
+# close_mosaic=2
+# batch_size=128
+# ag=True
+
+# clip_weight_name="mobileclip2:b" # mobileclip2b
+# ptw="object365v1" 
+
+
+# optimizer="MuSGD"
+# lr0=0.00125
+# lrf=0.5
+# momentum=0.9
+# weight_decay=0.0005
+# o2m=0.1
+
+# exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_maskdata_tp
+# device=2,3
+
+# using the following command to check the log:
+# tail -f -n 50 ./runs/20251221_105109.log
+# Current screen: 2203801.train
+# exp name: mobileclip2:b_26m_bs128_epo30_close2_opMuSGD_o2m0.1_maskdata_tp
+###############################################default args #######################################
+
+
+
+project_dir=runs/yoloe26l_tp_ultra6
+weight_path="yolo26l-objv1.pt"
 trainer="YOLOETrainerFromScratch"
-model=26m
+model=26l
 epo=30
 close_mosaic=2
 batch_size=128
@@ -192,13 +223,12 @@ weight_decay=0.0005
 o2m=0.1
 
 exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_maskdata_tp
-device=2,3
+device=4,5
 
 # using the following command to check the log:
-# tail -f -n 50 ./runs/20251221_105109.log
-# Current screen: 2203801.train
-# exp name: mobileclip2:b_26m_bs128_epo30_close2_opMuSGD_o2m0.1_maskdata_tp
-
+# tail -f -n 50 ./runs/20251221_105843.log
+# Current screen: 359138.train2
+# exp name: mobileclip2:b_26l_bs128_epo30_close2_opMuSGD_o2m0.1_maskdata_tp
 ###############################################default args #######################################
 
 

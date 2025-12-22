@@ -890,6 +890,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
                 )
 
                 import math
+
                 n = len(columns)
                 n_cols = math.ceil(n / 2)
 

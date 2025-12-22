@@ -1011,7 +1011,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'detect'.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
-            target classes, target images and the normalised (imgsz) offset of the predictions with respect to the 
+            target classes, target images and the normalised (imgsz) offset of the predictions with respect to the
             ground truth.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
@@ -1093,7 +1093,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             self.center_rmse = 0.0
         else:
             tp_offsets = tp_offsets.astype(float)
-            self.center_rmse = float(np.sqrt(np.mean(tp_offsets ** 2)))
+            self.center_rmse = float(np.sqrt(np.mean(tp_offsets**2)))
 
         return stats
 

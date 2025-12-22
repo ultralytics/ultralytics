@@ -184,7 +184,11 @@ class DetectionValidator(BaseValidator):
             if no_pred or cls.shape[0] == 0:
                 tp_center_offsets = np.zeros(0)
             else:
-                iou = box_iou(pbatch["bboxes"], predn["bboxes"]) if (pbatch["bboxes"].shape[0] and predn["bboxes"].shape[0]) else torch.zeros((cls.shape[0], predn["bboxes"].shape[0]), device=self.device)
+                iou = (
+                    box_iou(pbatch["bboxes"], predn["bboxes"])
+                    if (pbatch["bboxes"].shape[0] and predn["bboxes"].shape[0])
+                    else torch.zeros((cls.shape[0], predn["bboxes"].shape[0]), device=self.device)
+                )
                 iou = iou.cpu().numpy()
                 pred_cls_np = predn["cls"].cpu().numpy()
                 # mask by class equality
@@ -206,7 +210,7 @@ class DetectionValidator(BaseValidator):
                     pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:]) / 2.0
                     dists = np.linalg.norm(pred_centers[matches[:, 1]] - gt_centers[matches[:, 0]], axis=1)
                     imgsz_arr = np.array(pbatch["imgsz"])
-                    diag = np.sqrt((imgsz_arr ** 2).sum()) + 1e-7
+                    diag = np.sqrt((imgsz_arr**2).sum()) + 1e-7
                     tp_center_offsets = dists / diag
                 else:
                     tp_center_offsets = np.zeros(0)

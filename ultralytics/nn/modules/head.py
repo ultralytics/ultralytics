@@ -955,6 +955,13 @@ class RTDETRDecoder(nn.Module):
 
         self._reset_parameters()
 
+    def __setstate__(self, state):
+        """Handle loading from older checkpoints without enable_cuda_acceleration."""
+        self.__dict__.update(state)
+        # Add default value for missing attribute from older checkpoints
+        if 'query_pos_scale_head' not in self.__dict__:
+            self.query_pos_scale_head = None
+
     def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:
         """Run the forward pass of the module, returning bounding box and classification scores for the input.
 

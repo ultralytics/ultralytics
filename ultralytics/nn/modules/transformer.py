@@ -743,6 +743,13 @@ class DeformableTransformerDecoder(nn.Module):
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
         self.dab_sine_embedding = dab_sine_embedding
 
+    def __setstate__(self, state):
+        """Handle loading from older checkpoints without enable_cuda_acceleration."""
+        self.__dict__.update(state)
+        # Add default value for missing attribute from older checkpoints
+        if 'dab_sine_embedding' not in self.__dict__:
+            self.dab_sine_embedding = False
+
     def forward(
         self,
         embed: torch.Tensor,  # decoder embeddings

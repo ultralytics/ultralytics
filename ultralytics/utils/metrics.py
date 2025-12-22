@@ -16,7 +16,7 @@ from typing import (
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings
+from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings, jitter_generator
 
 OKS_SIGMA = (
     np.array(
@@ -192,7 +192,7 @@ def kpt_iou(
 
 
 def _get_covariance_matrix(
-        boxes: torch.Tensor, pa: Optional[float] = None, pb: Optional[float] = None
+        boxes: torch.Tensor, pa: float = 1.0, pb: float = 1.0
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Generate covariance matrix from oriented bounding boxes.
 
@@ -205,11 +205,13 @@ def _get_covariance_matrix(
         (torch.Tensor): Covariance matrices corresponding to original rotated bounding boxes.
     """
     # Gaussian bounding boxes, ignore the center points (the first two columns) because they are not needed here.
-    gbbs = torch.cat((boxes[:, 2:4].pow(2) / 12, boxes[:, 4:]), dim=-1)
+
+    gbbs = torch.cat((
+        boxes[:, 2:3].pow(2) * (pa / 12.0), 
+        boxes[:, 3:4].pow(2) * (pb / 12.0), 
+        boxes[:, 4:]
+        ), dim=-1)
     a, b, c = gbbs.split(1, dim=-1)
-    if pa is not None and pb is not None:
-        a = pa * a
-        b = pb * b
     cos = c.cos()
     sin = c.sin()
     cos2 = cos.pow(2)
@@ -237,7 +239,7 @@ def probiou(obb1: torch.Tensor, obb2: torch.Tensor, CIoU: bool = False, eps: flo
     """
     x1, y1 = obb1[..., :2].split(1, dim=-1)
     x2, y2 = obb2[..., :2].split(1, dim=-1)
-    pa = random.uniform(1.0, 2.0)
+    pa = jitter_generator()
     pb = 1.0 / pa
     a1, b1, c1 = _get_covariance_matrix(obb1, pa, pb)
     a2, b2, c2 = _get_covariance_matrix(obb2, pa, pb)
@@ -281,7 +283,7 @@ def batch_probiou(obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.ndarr
     obb1 = torch.from_numpy(obb1) if isinstance(obb1, np.ndarray) else obb1
     obb2 = torch.from_numpy(obb2) if isinstance(obb2, np.ndarray) else obb2
 
-    pa = random.uniform(1.0, 2.0)
+    pa = jitter_generator()
     pb = 1.0 / pa
 
     x1, y1 = obb1[..., :2].split(1, dim=-1)

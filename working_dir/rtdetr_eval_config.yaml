@@ -1,0 +1,14 @@
+# Basic Ultralytics validation config
+# Provide weights via --weights or set `model` here.
+# model: runs/detect/train/weights/best.pt
+
+data: coco128.yaml
+split: val
+imgsz: 640
+batch: 16
+device: 0
+conf: 0.25
+iou: 0.7
+save_json: False
+name: deneme
+plots: True

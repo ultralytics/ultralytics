@@ -17,7 +17,8 @@ imgsz: 640
 
 # Device configuration
 device: cpu  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
-workers: 8
+workers: 0
+sync_bn: False  # Disable SyncBatchNorm for CPU training
 
 # Output and logging
 project: /Users/esat/workspace/detr_trainings
@@ -57,6 +58,7 @@ fliplr: 0.5
 mosaic: 1.0
 mixup: 0.0
 copy_paste: 0.0
+multi_scale: True  # Enable multi-scale training
 
 # Training optimization
 # amp: True  # Uncomment for GPU training with Automatic Mixed Precision

@@ -63,6 +63,7 @@ mixup: 0.0  # MixUp augmentation (disabled)
 copy_paste: 0.0  # Copy-paste augmentation (disabled)
 auto_augment: False  # AutoAugment (disabled)
 erasing: 0.0  # Random erasing probability
+multi_scale: True  # Enable multi-scale training
 
 # Training optimizations
 fraction: 1.0

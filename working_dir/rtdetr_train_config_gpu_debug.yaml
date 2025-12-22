@@ -57,6 +57,7 @@ fliplr: 0.5
 mosaic: 1.0
 mixup: 0.0
 copy_paste: 0.0
+multi_scale: True  # Enable multi-scale training
 
 # Training optimization
 # amp: True  # Uncomment for GPU training with Automatic Mixed Precision

@@ -2,13 +2,14 @@
 # Provide weights via --weights or set `model` here.
 # model: runs/detect/train/weights/best.pt
 
-data: coco128.yaml
+data: coco.yaml
 split: val
 imgsz: 640
 batch: 16
-device: 0
-conf: 0.25
+device: mps
 iou: 0.7
+# conf: 0.25
 save_json: False
 name: deneme
 plots: True
+max_det: 300

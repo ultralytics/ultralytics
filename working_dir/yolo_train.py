@@ -1,6 +1,7 @@
 import torch
 import argparse
 from ultralytics import RTDETR
+import yaml
 
 
 def parse_args():
@@ -44,7 +45,19 @@ def parse_args():
         help='Path to pretrained weights file'
     )
 
+    parser.add_argument(
+        '--train', nargs='*', default=[], 
+        help='Additional Ultralytics train args, e.g. freeze=10 imgsz=1024')
+
     return parser.parse_args()
+
+
+def parse_overrides(pairs):
+    overrides = {}
+    for pair in pairs:
+        key, value = pair.split('=', 1)
+        overrides[key] = yaml.safe_load(value)  # auto-casts ints/bools/lists
+    return overrides
 
 
 def main():
@@ -69,8 +82,13 @@ def main():
     if args.pretrained:
         model.load(args.pretrained)
 
+    for name, param in model.model.named_parameters():
+        if not param.requires_grad:
+            print(f"Layer: {name} | Requires Grad: {param.requires_grad}")
+
     # Prepare training kwargs
     train_kwargs = {'cfg': args.config, 'name': args.name, 'project': args.project}
+    train_kwargs.update(parse_overrides(args.train))
 
     # Train using YAML configuration
     results = model.train(**train_kwargs)

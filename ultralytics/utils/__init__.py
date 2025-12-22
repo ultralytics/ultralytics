@@ -1419,20 +1419,24 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     url = "https://docs.ultralytics.com/integrations/vscode"
     return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
 
-def create_jitter_generator(factor : float = 0.9):
+
+def create_jitter_generator(factor: float = 0.9):
     """
     The jitter generator function creates a generator that produces jitter values based on a specified factor.
-    
+
     :param factor: The initial factor used to calculate jitter values.
 
     :return: A generator function that yields jitter values.
     """
     data = factor
+
     def jitter_generator():
         nonlocal data
         data = 1.0 / data
         return data
+
     return jitter_generator
+
 
 # Initialize the jitter generator
 jitter_generator = create_jitter_generator()

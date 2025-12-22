@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import math
-import random
 import warnings
 from collections import defaultdict
 from pathlib import Path
@@ -15,7 +14,7 @@ from typing import (
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings, jitter_generator
+from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, jitter_generator, plt_settings
 
 OKS_SIGMA = (
     np.array(
@@ -191,8 +190,8 @@ def kpt_iou(
 
 
 def _get_covariance_matrix(
-        boxes: torch.Tensor, pa: float = 1.0, pb: float = 1.0
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    boxes: torch.Tensor, pa: float = 1.0, pb: float = 1.0
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Generate covariance matrix from oriented bounding boxes.
 
     Args:
@@ -205,11 +204,7 @@ def _get_covariance_matrix(
     """
     # Gaussian bounding boxes, ignore the center points (the first two columns) because they are not needed here.
 
-    gbbs = torch.cat((
-        boxes[:, 2:3].pow(2) * (pa / 12.0), 
-        boxes[:, 3:4].pow(2) * (pb / 12.0), 
-        boxes[:, 4:]
-        ), dim=-1)
+    gbbs = torch.cat((boxes[:, 2:3].pow(2) * (pa / 12.0), boxes[:, 3:4].pow(2) * (pb / 12.0), boxes[:, 4:]), dim=-1)
     a, b, c = gbbs.split(1, dim=-1)
     cos = c.cos()
     sin = c.sin()

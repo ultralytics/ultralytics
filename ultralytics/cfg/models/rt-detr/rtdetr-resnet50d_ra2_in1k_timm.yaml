@@ -12,7 +12,7 @@ nc: 80
 backbone:
   # [from, repeats, module, args]
   # Timm args: [model_name, pretrained, out_indices, split]
-  - [-1, 1, Timm, [None, resnet50d.gluon_in1k, True, [2, 3, 4], True]]
+  - [-1, 1, Timm, [None, resnet50d.ra2_in1k, True, [2, 3, 4], True]]
   - [0, 1, Index, [512, 1]]     # (1, 512, 80, 80)  - P3
   - [0, 1, Index, [1024, 2]]    # (1, 1024, 40, 40) - P4
   - [0, 1, Index, [2048, 3]]    # (1, 2048, 20, 20) - P5
@@ -41,4 +41,4 @@ head:
   - [[-1, 6], 1, Concat, [1]]
   - [-1, 3, RepC3, [256]] # 21
 
-  - [[15, 18, 21], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0, "relu", -1, 200, 0.5, 1.0, False, False]]
+  - [[15, 18, 21], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0, "relu", -1, 200, 0.5, 1.0, False, True]]

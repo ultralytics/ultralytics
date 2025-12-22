@@ -201,6 +201,36 @@ mkdir -p $project_dir
 ###############################################default args #######################################
 
 
+# project_dir=runs/yoloe26l_tp_ultra6
+# weight_path="yolo26l-objv1.pt"
+# trainer="YOLOETrainerFromScratch"
+# model=26l
+# epo=30
+# close_mosaic=2
+# batch_size=128
+# ag=True
+
+# clip_weight_name="mobileclip2:b" # mobileclip2b
+# ptw="object365v1" 
+
+
+# optimizer="MuSGD"
+# lr0=0.00125
+# lrf=0.5
+# momentum=0.9
+# weight_decay=0.0005
+# o2m=0.1
+
+# exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_maskdata_tp
+# device=4,5
+
+# using the following command to check the log:
+# tail -f -n 50 ./runs/20251221_105843.log
+# Current screen: 359138.train2
+# exp name: mobileclip2:b_26l_bs128_epo30_close2_opMuSGD_o2m0.1_maskdata_tp
+
+###############################################default args #######################################
+
 
 project_dir=runs/yoloe26l_tp_ultra6
 weight_path="yolo26l-objv1.pt"
@@ -222,13 +252,16 @@ momentum=0.9
 weight_decay=0.0005
 o2m=0.1
 
-exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_maskdata_tp
-device=4,5
+copy_paste=0.5
+mixup=0.15
 
+exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_cp50_mix15_tp
+device=6,7
 # using the following command to check the log:
-# tail -f -n 50 ./runs/20251221_105843.log
-# Current screen: 359138.train2
-# exp name: mobileclip2:b_26l_bs128_epo30_close2_opMuSGD_o2m0.1_maskdata_tp
+# tail -f -n 50 ./runs/20251221_110801.log
+# Current screen: 393113.train3
+# exp name: mobileclip2:b_26l_bs128_epo30_close2_opMuSGD_o2m0.1_cp50_mix15_tp
+
 ###############################################default args #######################################
 
 
@@ -253,6 +286,8 @@ nohup python $pyfile \
     --o2m $o2m \
     --weight_path $weight_path \
     --trainer $trainer \
+    --copy_paste $copy_paste \
+    --mixup $mixup \
     > "./runs/$timestamp.log" 2>&1 &
 
 ##############################################################################################

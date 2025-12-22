@@ -50,7 +50,8 @@ parser.add_argument("--weight_decay",type=float, default=0.0007)
 parser.add_argument("--lrf", type=float, default=0.5)
 parser.add_argument("--lr0", type=float, default=0.00125)  # initial learning rate
 parser.add_argument("--o2m", type=float, default=0.1)
-
+parser.add_argument("--copy_paste", type=float, default=0.15)
+parser.add_argument("--mixup", type=float, default=0.05)
 
  # mobileclip2b
 #
@@ -225,8 +226,8 @@ model.train(
 
     cache="disk",
     scale=args.scale, # sensitive.  [0.1,  1.9] 
-    copy_paste=0.15, 
-    mixup=0.05,
+    copy_paste=args.copy_paste, 
+    mixup=args.mixup,
     dfl=6.0,
     o2m=args.o2m,
     warmup_epochs=1,

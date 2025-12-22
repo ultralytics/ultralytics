@@ -1011,7 +1011,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'detect'.
         stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes,
-            target classes, and target images.
+            target classes, target images and the normalised (imgsz) offset of the predictions with respect to the 
+            ground truth.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
 
@@ -1041,9 +1042,10 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.box = Metric()
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "detect"
-        self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
+        self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[], tp_center_offset=[])
         self.nt_per_class = None
         self.nt_per_image = None
+        self.center_rmse = 0.0
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Update statistics by appending new values to existing stat collections.
@@ -1084,6 +1086,15 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.box.update(results)
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
+
+        # compute center offset RMSE (normalized) across all true positives
+        tp_offsets = stats.get("tp_center_offset") if "tp_center_offset" in stats else None
+        if tp_offsets is None or tp_offsets.size == 0:
+            self.center_rmse = 0.0
+        else:
+            tp_offsets = tp_offsets.astype(float)
+            self.center_rmse = float(np.sqrt(np.mean(tp_offsets ** 2)))
+
         return stats
 
     def clear_stats(self):
@@ -1094,11 +1105,22 @@ class DetMetrics(SimpleClass, DataExportMixin):
     @property
     def keys(self) -> list[str]:
         """Return a list of keys for accessing specific metrics."""
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
+        return [
+            "metrics/precision(B)",
+            "metrics/recall(B)",
+            "metrics/mAP50(B)",
+            "metrics/mAP50-95(B)",
+            "metrics/center_rmse(B)",
+        ]
 
     def mean_results(self) -> list[float]:
-        """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
-        return self.box.mean_results()
+        """Calculate mean of detected objects & return precision, recall, mAP50, mAP50-95 and center_rmse.
+
+        The returned list length matches `self.keys` so it can be used directly in formatted outputs.
+        """
+        base = list(self.box.mean_results())
+        base.append(self.center_rmse)
+        return base
 
     def class_result(self, i: int) -> tuple[float, float, float, float]:
         """Return the result of evaluating the performance of an object detection model on a specific class."""
@@ -1123,7 +1145,9 @@ class DetMetrics(SimpleClass, DataExportMixin):
     def results_dict(self) -> dict[str, float]:
         """Return dictionary of computed performance metrics and statistics."""
         keys = [*self.keys, "fitness"]
-        values = ((float(x) if hasattr(x, "item") else x) for x in ([*self.mean_results(), self.fitness]))
+        # include center_rmse (self.center_rmse) after mean_results
+        mean_vals = list(self.mean_results())
+        values = ((float(x) if hasattr(x, "item") else x) for x in ([*mean_vals, self.center_rmse, self.fitness]))
         return dict(zip(keys, values))
 
     @property

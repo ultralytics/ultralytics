@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.autobackend import check_class_names
+from ultralytics.nn.modules.utils import freeze_batch_norm2d
 from ultralytics.nn.modules import (
     AIFI,
     C1,
@@ -705,8 +706,8 @@ class RTDETRDetectionModel(DetectionModel):
         >>> results = model.predict(image_tensor)
     """
 
-    def __init__(self, cfg="rtdetr-l.yaml", ch=3, nc=None, verbose=True):
-        """Initialize the RTDETRDetectionModel.
+    def __init__(self, cfg="rtdetr-l.yaml", ch=3, nc=None, verbose=True, **kwargs):
+        """Initialize the RTDETRDetectionModel.s
 
         Args:
             cfg (str | dict): Configuration file name or path.
@@ -715,6 +716,11 @@ class RTDETRDetectionModel(DetectionModel):
             verbose (bool): Print additional information during initialization.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+        self.backbone_len = len(self.yaml["backbone"])
+        freeze_bn = kwargs.get("freeze_bn", False)
+        if freeze_bn:
+            for i in range(self.backbone_len):
+                self.model[i] = freeze_batch_norm2d(self.model[i])
 
     def one_to_many_targets(self, targets, k):
         """Repeat ground truth targets for one-to-many matching.
@@ -722,8 +728,6 @@ class RTDETRDetectionModel(DetectionModel):
         Args:
             targets (dict): Original targets with keys:
                 - cls: class labels [N]
-                - bboxes: bounding boxes [N, 4]
-                - batch_idx: batch indices [N]
                 - gt_groups: list of GT counts per batch
             k (int): Number of repetitions per target.
 
@@ -796,7 +800,7 @@ class RTDETRDetectionModel(DetectionModel):
         """Initialize the loss criterion for the RTDETRDetectionModel."""
         from ultralytics.models.utils.loss import RTDETRDetectionLoss
 
-        return RTDETRDetectionLoss(nc=self.nc, use_vfl=True, gamma=2.0, alpha=0.75)
+        return RTDETRDetectionLoss(nc=self.nc, use_vfl=True)
 
     def loss(self, batch, preds=None):
         """Compute the loss for the given batch of data.

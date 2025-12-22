@@ -9,8 +9,7 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import (
-    Any, 
-    Optional,
+    Any,
 )
 
 import numpy as np

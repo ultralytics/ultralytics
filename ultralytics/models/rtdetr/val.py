@@ -177,13 +177,27 @@ class RTDETRValidator(DetectionValidator):
         bboxes, scores = preds[0].split((4, nd - 4), dim=-1)
         bboxes *= self.args.imgsz
         outputs = [torch.zeros((0, 6), device=bboxes.device)] * bs
+        # for i, bbox in enumerate(bboxes):  # (300, 4)
+        #     bbox = ops.xywh2xyxy(bbox)
+        #     score, cls = scores[i].max(-1)  # (300, )
+        #     pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
+        #     # Sort by confidence to correctly get internal metrics
+        #     pred = pred[score.argsort(descending=True)]
+        #     outputs[i] = pred[score > self.args.conf]
+
         for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
-            score, cls = scores[i].max(-1)  # (300, )
-            pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
-            # Sort by confidence to correctly get internal metrics
-            pred = pred[score.argsort(descending=True)]
-            outputs[i] = pred[score > self.args.conf]
+            score = scores[i]
+            num_queries, num_classes = score.shape
+            topk = min(self.args.max_det, num_queries * num_classes)
+            topk_scores, topk_idx = score.flatten().topk(topk)
+            labels = topk_idx % num_classes
+            query_idx = topk_idx // num_classes
+            pred = torch.cat(
+                [bbox[query_idx], topk_scores[:, None], labels[:, None].float()],
+                dim=-1,
+            )
+            outputs[i] = pred
 
         return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 

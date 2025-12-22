@@ -1147,7 +1147,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         keys = [*self.keys, "fitness"]
         # include center_rmse (self.center_rmse) after mean_results
         mean_vals = list(self.mean_results())
-        values = ((float(x) if hasattr(x, "item") else x) for x in ([*mean_vals, self.center_rmse, self.fitness]))
+        values = ((float(x) if hasattr(x, "item") else x) for x in ([*mean_vals, self.fitness]))
         return dict(zip(keys, values))
 
     @property

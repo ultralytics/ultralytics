@@ -893,8 +893,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
 
                 n = len(columns)
                 n_cols = math.ceil(n / 2)
-
-                fig, ax = plt.subplots(2, n_cols, figsize=(len(columns) + 2, 6), tight_layout=True)
+                fig, ax = plt.subplots(2, n_cols, figsize=(n_cols + 2, 6), tight_layout=True)
                 ax = ax.ravel()
             x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(columns):

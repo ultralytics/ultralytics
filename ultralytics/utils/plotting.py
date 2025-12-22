@@ -888,7 +888,12 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
                 columns = (
                     loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
                 )
-                fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
+
+                import math
+                n = len(columns)
+                n_cols = math.ceil(n / 2)
+
+                fig, ax = plt.subplots(2, n_cols, figsize=(len(columns) + 2, 6), tight_layout=True)
                 ax = ax.ravel()
             x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(columns):

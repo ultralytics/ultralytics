@@ -21,7 +21,7 @@ workers: 0
 sync_bn: False  # Disable SyncBatchNorm for CPU training
 
 # Output and logging
-project: /Users/esat/workspace/detr_trainings
+project: detr_trainings
 name: yolo11_rtdetr_res50_coco8
 exist_ok: True
 verbose: True

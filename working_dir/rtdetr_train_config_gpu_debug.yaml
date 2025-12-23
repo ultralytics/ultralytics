@@ -20,7 +20,7 @@ device: 0  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
 workers: 8
 
 # Output and logging
-project: /home/ek21/workspace/detr_trainings
+project: detr_trainings
 name: yolo11_rtdetr_res50_coco8
 exist_ok: True
 verbose: True

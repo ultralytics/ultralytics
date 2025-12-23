@@ -32,13 +32,6 @@ def parse_args():
     )
 
     parser.add_argument(
-        '--project',
-        type=str,
-        default='/Users/esat/workspace/detr_trainings',
-        help='Project directory to save training results'
-    )
-
-    parser.add_argument(
         '--pretrained',
         type=str,
         default=None,
@@ -87,7 +80,7 @@ def main():
             print(f"Layer: {name} | Requires Grad: {param.requires_grad}")
 
     # Prepare training kwargs
-    train_kwargs = {'cfg': args.config, 'name': args.name, 'project': args.project}
+    train_kwargs = {'cfg': args.config, 'name': args.name}
     train_kwargs.update(parse_overrides(args.train))
 
     # Train using YAML configuration

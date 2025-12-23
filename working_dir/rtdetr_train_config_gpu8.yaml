@@ -22,7 +22,7 @@ amp: False  # Explicitly False for CPU training (set to True for GPU with mixed 
 sync_bn: True  # Enable SyncBatchNorm for multi-GPU training
 
 # Output and logging
-project: /home/esat/workspace/detr_trainings
+project: detr_trainings
 name: yolo11_rtdetr_res50_coco
 exist_ok: True
 verbose: True

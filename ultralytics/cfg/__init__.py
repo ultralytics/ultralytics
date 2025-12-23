@@ -405,14 +405,23 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
         >>> args = SimpleNamespace(project="my_project", task="detect", mode="train", exist_ok=True)
         >>> save_dir = get_save_dir(args)
         >>> print(save_dir)
-        my_project/detect/train
+        runs/detect/my_project/train
     """
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
         from ultralytics.utils.files import increment_path
 
-        project = args.project or (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task
+        base_dir = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR
+        task = getattr(args, "task", None)
+        project_root = base_dir / task if task else base_dir
+        project = project_root
+        if args.project:
+            project_arg = Path(args.project)
+            if project_arg.is_absolute():
+                project = project_arg
+            else:
+                project = project_root / project_arg
         name = name or args.name or f"{args.mode}"
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 
@@ -727,7 +736,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
             )
             if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
                 w, h = 1280, 720
-            save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False))
+            save_dir = get_save_dir(SimpleNamespace(project="solutions", name="exp", exist_ok=False))
             save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
             vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 

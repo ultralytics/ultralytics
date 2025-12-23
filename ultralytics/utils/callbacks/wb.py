@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from pathlib import Path
+
 from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -130,7 +132,12 @@ def on_pretrain_routine_start(trainer):
     if trainer.args.project is None:
         project = "Ultralytics"
     else:
-        project = trainer.args.project.split("/")[-1]
+        project_str = str(trainer.args.project)
+        project_arg = Path(project_str)
+        if project_arg.is_absolute():
+            project = project_arg.name
+        else:
+            project = project_str
 
     from datetime import datetime
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')

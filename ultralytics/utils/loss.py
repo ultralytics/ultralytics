@@ -650,14 +650,13 @@ class v8PoseLoss(v8DetectionLoss):
         imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=pred_kpts.dtype)  # image size (h,w)
 
         pred_kpts = pred_kpts.view(batch_size, -1, *self.kpt_shape)  # (b, h*w, 17, 3)
-        
+
         if self.rle_loss and preds.get("kpts_sigma", None) is not None:
             pred_sigma = preds["kpts_sigma"].permute(0, 2, 1).contiguous()
             pred_sigma = pred_sigma.view(batch_size, -1, self.kpt_shape[0], 2)  # (b, h*w, 17, 2)
             pred_kpts = torch.cat([pred_kpts, pred_sigma], dim=-1)  # (b, h*w, 17, 5)
-        
+
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts)
-        pred_kpts[..., :2] *= stride_tensor.view(1, -1, 1, 1)
 
         # Bbox loss
         if fg_mask.sum():
@@ -754,11 +753,15 @@ class v8PoseLoss(v8DetectionLoss):
             1, target_gt_idx_expanded.expand(-1, -1, keypoints.shape[1], keypoints.shape[2])
         )
 
+        # Divide coordinates by stride
+        selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)
+
         kpts_loss = 0
         kpts_obj_loss = 0
         rle_loss = 0
 
         if masks.any():
+            target_bboxes /= stride_tensor
             gt_kpt = selected_keypoints[masks]
             area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
             pred_kpt = pred_kpts[masks]

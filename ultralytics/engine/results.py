@@ -1087,10 +1087,7 @@ class Masks(BaseTensor):
             >>> print(len(xy_coords))  # Number of masks
             >>> print(xy_coords[0].shape)  # Shape of first mask's coordinates
         """
-        return [
-            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
-            for x in ops.masks2segments(self.data)
-        ]
+        return [x for x in ops.masks2segments(self.data)]
 
 
 class Keypoints(BaseTensor):

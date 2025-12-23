@@ -19,6 +19,7 @@ imgsz: 640
 device: [0,1,2,3]  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
 workers: 4
 amp: False  # Explicitly False for CPU training (set to True for GPU with mixed precision)
+sync_bn: True  # Enable SyncBatchNorm for multi-GPU training
 
 # Output and logging
 project: /home/esat/workspace/detr_trainings
@@ -33,6 +34,7 @@ lrf: 0.01  # Final learning rate = lr0 * lrf = 0.000001
 momentum: 0.9  # The default value in AdamW implementations
 weight_decay: 0.0001  # L2 regularization (typical for DETR models)
 backbone_lr_ratio: 0.1  # Learning rate ratio for backbone (0.1 means lr0 * 0.1 for backbone)
+clip_grad_norm: 0.1  # Gradient clipping value
 
 # Learning rate scheduler
 warmup_epochs: 5.0  # Increased from 3.0 for better DETR convergence
@@ -62,6 +64,7 @@ mixup: 0.0  # MixUp augmentation (disabled)
 copy_paste: 0.0  # Copy-paste augmentation (disabled)
 auto_augment: False  # AutoAugment (disabled)
 erasing: 0.0  # Random erasing probability
+multi_scale: True  # Enable multi-scale training
 
 # Training optimizations
 fraction: 1.0

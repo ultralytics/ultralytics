@@ -33,6 +33,7 @@ lrf: 0.01  # Final learning rate = lr0 * lrf = 0.000001
 momentum: 0.9  # The default value in AdamW implementations
 weight_decay: 0.0001  # L2 regularization (typical for DETR models)
 backbone_lr_ratio: 0.1  # Learning rate ratio for backbone (0.1 means lr0 * 0.1 for backbone)
+clip_grad_norm: 0.1  # Gradient clipping value
 
 # Learning rate scheduler
 warmup_epochs: 3.0
@@ -45,19 +46,21 @@ cls: 0.5
 dfl: 1.5
 
 # Augmentation settings
-hsv_h: 0.015
-hsv_s: 0.7
-hsv_v: 0.4
-degrees: 0.0
-translate: 0.1
-scale: 0.5
-shear: 0.0
-perspective: 0.0
-flipud: 0.0
-fliplr: 0.5
-mosaic: 1.0
-mixup: 0.0
-copy_paste: 0.0
+hsv_h: 0.015  # HSV-Hue augmentation
+hsv_s: 0.7  # HSV-Saturation augmentation
+hsv_v: 0.4  # HSV-Value augmentation
+degrees: 0.0  # Rotation augmentation (disabled)
+translate: 0.1  # Translation augmentation
+scale: 0.5  # Scale augmentation
+shear: 0.0  # Shear augmentation (disabled)
+perspective: 0.0  # Perspective augmentation (disabled)
+flipud: 0.0  # Vertical flip (disabled)
+fliplr: 0.5  # Horizontal flip probability
+mosaic: 0.0  # Mosaic augmentation (disabled for DETR - changed from 1.0)
+mixup: 0.0  # MixUp augmentation (disabled)
+copy_paste: 0.0  # Copy-paste augmentation (disabled)
+auto_augment: False  # AutoAugment (disabled)
+erasing: 0.0  # Random erasing probability
 multi_scale: True  # Enable multi-scale training
 
 # Training optimization

@@ -120,6 +120,7 @@ class DetectionTrainer(BaseTrainer):
         if self.args.multi_scale:
             imgs = batch["img"]
             sz = (
+                # TODO, here the scale can be variable,
                 random.randrange(int(self.args.imgsz * 0.5), int(self.args.imgsz * 1.5 + self.stride))
                 // self.stride
                 * self.stride

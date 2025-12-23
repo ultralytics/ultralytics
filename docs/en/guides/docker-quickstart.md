@@ -209,13 +209,13 @@ Replace `/path/on/host` with the directory path on your local machine and `/path
 
 ### Persisting Training Outputs
 
-Training outputs save to `/ultralytics/runs/<task>/<name>/` inside the container by default. Outputs are lost when the container stops unless you mount a host directory.
+Training outputs save to `/ultralytics/runs/<task>/<name>/` inside the container by default. Without mounting a host directory, outputs are lost when the container is removed.
 
 To persist training outputs:
 
 ```bash
 # Recommended: mount workspace and specify project path
-sudo docker run --rm -it -v "$(pwd)":/w -w /w $t \
+sudo docker run --rm -it -v "$(pwd)":/w -w /w ultralytics/ultralytics:latest \
   yolo train model=yolo11n.pt data=coco8.yaml project=/w/runs
 ```
 

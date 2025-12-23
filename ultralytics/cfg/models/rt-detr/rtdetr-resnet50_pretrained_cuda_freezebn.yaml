@@ -9,7 +9,7 @@ nc: 80 # number of classes
 
 backbone:
   # [from, repeats, module, args]
-  - [-1, 1, TorchVision, [512, resnet50, DEFAULT, True, 2, True]]
+  - [-1, 1, TorchVision, [512, resnet50, DEFAULT, True, 2, True, True]]
   - [0, 1, Index, [512, 6]]     # (1, 512, 80, 80)  - 1
   - [0, 1, Index, [1024, 7]]    # (1, 1024, 40, 40) - 2
   - [0, 1, Index, [2048, 8]]    # (1, 2048, 20, 20) - 3
@@ -39,7 +39,4 @@ head:
   - [-1, 3, RepC3, [256]] # F5 (21), pan_blocks.1
 
   # - [[15, 18, 21], 1, RTDETRDecoder, [nc]] # Detect(P3, P4, P5)
-  - [[15, 18, 21], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0, "relu", -1, 200, 0.5, 1.0, False, True]]
-
-additions:
-  freeze_bn: True  # Freeze BatchNorm layers in backbone during training
+  - [[15, 18, 21], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, True]]

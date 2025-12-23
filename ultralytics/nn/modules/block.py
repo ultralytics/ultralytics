@@ -51,6 +51,7 @@ __all__ = (
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",
+    "PResNet",
     "TorchVision",
     "Timm",
 )
@@ -1563,13 +1564,20 @@ class TorchVision(nn.Module):
         unwrap (bool, optional): Unwraps the model to a sequential containing all but the last `truncate` layers.
         truncate (int, optional): Number of layers to truncate from the end if `unwrap` is True. Default is 2.
         split (bool, optional): Returns output from intermediate child modules as list. Default is False.
+        freeze_bn (bool, optional): Convert BatchNorm layers to FrozenBatchNorm. Default is False.
 
     Attributes:
         m (nn.Module): The loaded torchvision model, possibly truncated and unwrapped.
     """
 
     def __init__(
-        self, model: str, weights: str = "DEFAULT", unwrap: bool = True, truncate: int = 2, split: bool = False
+        self,
+        model: str,
+        weights: str = "DEFAULT",
+        unwrap: bool = True,
+        truncate: int = 2,
+        split: bool = False,
+        freeze_bn: bool = False,
     ):
         """Load the model and weights from torchvision.
 
@@ -1579,6 +1587,7 @@ class TorchVision(nn.Module):
             unwrap (bool): Whether to unwrap the model.
             truncate (int): Number of layers to truncate.
             split (bool): Whether to split the output.
+            freeze_bn (bool): Whether to convert BatchNorm layers to FrozenBatchNorm.
         """
         import torchvision  # scope for faster 'import ultralytics'
 
@@ -1596,6 +1605,10 @@ class TorchVision(nn.Module):
         else:
             self.split = False
             self.m.head = self.m.heads = nn.Identity()
+        if freeze_bn:
+            from ultralytics.nn.modules.utils import freeze_batch_norm2d  # scope for faster 'import ultralytics'
+
+            self.m = freeze_batch_norm2d(self.m)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through the model.
@@ -1682,6 +1695,76 @@ class Timm(nn.Module):
             y.extend(self.m(x))
             return y
         return self.m(x)
+
+
+class PResNet(nn.Module):
+    """PResNet wrapper to allow loading PResNet as a backbone.
+
+    Args:
+        depth (int): ResNet depth. Default is 50.
+        variant (str): ResNet variant. Default is "d".
+        num_stages (int): Number of stages. Default is 4.
+        return_idx (tuple, optional): Stage indices to return. Default is (1, 2, 3).
+        act (str): Activation function name. Default is "relu".
+        freeze_at (int): Freeze stages up to this index. Default is 0.
+        freeze_norm (bool): Whether to freeze normalization. Default is True.
+        pretrained (bool): Whether to load pre-trained weights. Default is True.
+        split (bool): Returns output from intermediate stages as list. Default is True.
+    """
+
+    def __init__(
+        self,
+        depth: int = 50,
+        variant: str = "d",
+        num_stages: int = 4,
+        return_idx: tuple[int, ...] = (1, 2, 3),
+        act: str = "relu",
+        freeze_at: int = 0,
+        freeze_norm: bool = True,
+        pretrained: bool = True,
+        split: bool = True,
+    ):
+        """Initialize the PResNet backbone.
+
+        Args:
+            depth (int): ResNet depth.
+            variant (str): ResNet variant.
+            num_stages (int): Number of stages.
+            return_idx (tuple): Stage indices to return.
+            act (str): Activation function name.
+            freeze_at (int): Freeze stages up to this index.
+            freeze_norm (bool): Whether to freeze normalization layers.
+            pretrained (bool): Whether to load pre-trained weights.
+            split (bool): Whether to return features as a list (for use with Index module).
+        """
+        from ultralytics.nn.backbones.presnet import PResNet as _PResNet  # scope for faster 'import ultralytics'
+
+        super().__init__()
+        variant = 'd'  # variant is always 'd' for ultralytics implementation
+        self.m = _PResNet(
+            depth=depth,
+            variant=variant,
+            num_stages=num_stages,
+            return_idx=list(return_idx),
+            act=act,
+            freeze_at=freeze_at,
+            freeze_norm=freeze_norm,
+            pretrained=pretrained,
+        )
+        self.split = split
+        self.channels = self.m.out_channels
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Forward pass returning feature maps from specified stages.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (list[torch.Tensor]): List of feature tensors from different stages.
+        """
+        y = self.m(x)
+        return [x, *y] if self.split else y
 
 
 class AAttn(nn.Module):

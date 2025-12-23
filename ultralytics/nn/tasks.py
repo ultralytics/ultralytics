@@ -56,6 +56,7 @@ from ultralytics.nn.modules import (
     Index,
     LRPCHead,
     Pose,
+    PResNet,
     RepC3,
     RepConv,
     RepNCSPELAN4,
@@ -716,11 +717,6 @@ class RTDETRDetectionModel(DetectionModel):
             verbose (bool): Print additional information during initialization.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-        self.backbone_len = len(self.yaml["backbone"])
-        freeze_bn = kwargs.get("freeze_bn", False)
-        if freeze_bn:
-            for i in range(self.backbone_len):
-                self.model[i] = freeze_batch_norm2d(self.model[i])
 
     def one_to_many_targets(self, targets, k):
         """Repeat ground truth targets for one-to-many matching.
@@ -1720,7 +1716,7 @@ def parse_model(d, ch, verbose=True):
             args = [c1, c2, *args[1:]]
         elif m is CBFuse:
             c2 = ch[f[-1]]
-        elif m in frozenset({TorchVision, Timm, Index}):
+        elif m in frozenset({TorchVision, Timm, PResNet, Index}):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]

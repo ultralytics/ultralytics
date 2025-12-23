@@ -1063,6 +1063,7 @@ class Masks(BaseTensor):
             >>> normalized_coords = masks.xyn
             >>> print(normalized_coords[0])  # Normalized coordinates of the first mask
         """
+        # TODO
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
             for x in ops.masks2segments(self.data)

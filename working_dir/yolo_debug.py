@@ -5,7 +5,11 @@ from ultralytics import RTDETR
 # It will automatically download 'yolo11n.pt' if not present.
 # model = YOLO('yolo11n.pt')
 # model = RTDETR('rtdetr-resnet50.yaml')
-model = RTDETR('ultralytics/cfg/models/11/yolo11-rtdetr-res50.yaml')
+# model = RTDETR('ultralytics/cfg/models/rt-detr/rtdetr-resnet50_pretrained_timm.yaml')
+# model = RTDETR('ultralytics/cfg/models/rt-detr/rtdetr-resnet50_pretrained.yaml')
+model = RTDETR('rtdetr-l')
+# model = RTDETR('ultralytics/cfg/models/rt-detr/rtdetr-resnet50d_gluon_in1k_timm.yaml')
+# model.load('yolo11n.pt')
 
 # 2. Run inference on a source (can be a file path, URL, or '0' for webcam)
 # We use a standard URL image for this example.

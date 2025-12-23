@@ -618,7 +618,7 @@ def masks2segments(masks: np.ndarray | torch.Tensor, strategy: str = "all") -> l
 
     masks = masks.astype("uint8") if isinstance(masks, np.ndarray) else masks.byte().cpu().numpy()
     segments = []
-    for x in masks:
+    for x in np.ascontiguousarray(masks):
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         if c:
             if strategy == "all":  # merge and concatenate all segments

@@ -604,20 +604,21 @@ def regularize_rboxes(rboxes):
     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
-def masks2segments(masks, strategy: str = "all"):
+def masks2segments(masks: np.ndarray | torch.Tensor, strategy: str = "all") -> list[np.ndarray]:
     """Convert masks to segments using contour detection.
 
     Args:
-        masks (torch.Tensor): Binary masks with shape (batch_size, 160, 160).
+        masks (np.ndarray | torch.Tensor): Binary masks with shape (batch_size, 160, 160).
         strategy (str): Segmentation strategy, either 'all' or 'largest'.
 
     Returns:
         (list): List of segment masks as float32 arrays.
     """
     from ultralytics.data.converter import merge_multi_segment
+    masks = masks.astype("uint8") if isinstance(masks, np.ndarray) else masks.byte().cpu().numpy()
 
     segments = []
-    for x in masks.byte().cpu().numpy():
+    for x in masks:
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         if c:
             if strategy == "all":  # merge and concatenate all segments

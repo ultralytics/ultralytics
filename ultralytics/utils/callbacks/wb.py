@@ -1,5 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from datetime import datetime
+from pathlib import Path
+
 from ultralytics.utils import SETTINGS, TESTS_RUNNING
 from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -127,11 +130,27 @@ def _log_plots(plots, step):
 
 def on_pretrain_routine_start(trainer):
     """Initialize and start wandb project if module is present."""
+    if trainer.args.project is None:
+        project = "Ultralytics"
+    else:
+        project_str = str(trainer.args.project)
+        project_arg = Path(project_str)
+        if project_arg.is_absolute():
+            project = project_arg.name
+        else:
+            project = project_str
+
+    safe_name = str(trainer.args.name).replace("/", "-").replace(" ", "_")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    wandb_id = f"{safe_name}_{timestamp}" if safe_name else f"train_{timestamp}"
+
     if not wb.run:
         wb.init(
-            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
-            name=str(trainer.args.name).replace("/", "-"),
+            project=project,
+            name=safe_name,
             config=vars(trainer.args),
+            id=wandb_id,
+            dir=str(trainer.save_dir),
         )
 
 

@@ -683,7 +683,8 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+        if self.args.clip_grad_norm and self.args.clip_grad_norm > 0:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.args.clip_grad_norm)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()

@@ -159,6 +159,8 @@ CFG_FLOAT_KEYS = frozenset(
         "time",
         "workspace",
         "batch",
+        "clip_grad_norm",
+        "backbone_lr_ratio",
     }
 )
 CFG_FRACTION_KEYS = frozenset(

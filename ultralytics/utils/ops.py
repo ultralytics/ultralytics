@@ -615,6 +615,7 @@ def masks2segments(masks: np.ndarray | torch.Tensor, strategy: str = "all") -> l
         (list): List of segment masks as float32 arrays.
     """
     from ultralytics.data.converter import merge_multi_segment
+
     masks = masks.astype("uint8") if isinstance(masks, np.ndarray) else masks.byte().cpu().numpy()
 
     segments = []

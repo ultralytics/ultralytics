@@ -1291,12 +1291,22 @@ class Attention(nn.Module):
         """
         B, C, H, W = x.shape
         N = H * W
+        # Replace NaN/Inf in input (can occur from BatchNorm in eval mode with corrupted running stats)
+        # This is especially important during validation when BN uses running_mean/running_var
+        if not x.isfinite().all():
+            x = torch.where(torch.isnan(x), torch.zeros_like(x), x)
+            x = torch.where(torch.isinf(x), torch.clamp(x, min=-10.0, max=10.0), x)
         qkv = self.qkv(x)
         q, k, v = qkv.view(B, self.num_heads, self.key_dim * 2 + self.head_dim, N).split(
             [self.key_dim, self.key_dim, self.head_dim], dim=2
         )
+        # Clamp q, k to prevent extreme values in attention computation (from eval mode BN stats)
+        q = q.clamp(min=-50.0, max=50.0)
+        k = k.clamp(min=-50.0, max=50.0)
 
         attn = (q.transpose(-2, -1) @ k) * self.scale
+        # Clamp attention scores to prevent numerical instability (NaN) during warmup/validation
+        attn = attn.clamp(min=-50.0, max=50.0)
         attn = attn.softmax(dim=-1)
         x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         x = self.proj(x)

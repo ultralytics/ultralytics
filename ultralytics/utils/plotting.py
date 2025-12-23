@@ -387,10 +387,7 @@ class Annotator:
             if im_gpu.device != masks.device:
                 im_gpu = im_gpu.to(masks.device)
 
-            ih, iw = self.im.shape[:2]
             if not retina_masks:
-                # Use scale_masks to properly remove padding and upsample, convert bool to float first
-                masks = ops.scale_masks(masks[None].float(), (ih, iw))[0] > 0.5
                 # Convert original BGR image to RGB tensor
                 im_gpu = (
                     torch.from_numpy(self.im).to(masks.device).permute(2, 0, 1).flip(0).contiguous().float() / 255.0

@@ -80,6 +80,7 @@ from ultralytics.utils.loss import (
     v8DetectionLoss,
     v8OBBLoss,
     v8PoseLoss,
+    PoseLoss26,
     v8SegmentationLoss,
 )
 from ultralytics.utils.ops import make_divisible
@@ -612,7 +613,7 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
-        return E2ELoss(self, v8PoseLoss) if getattr(self, "end2end", False) else v8PoseLoss(self)
+        return E2ELoss(self, PoseLoss26) if getattr(self, "end2end", False) else v8PoseLoss(self)
 
 
 class ClassificationModel(BaseModel):

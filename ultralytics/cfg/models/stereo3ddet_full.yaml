@@ -186,14 +186,14 @@ training:
   loss_weights:
     heatmap: 1.0
     offset: 1.0
-    bbox_size: 0.1
+    bbox_size: 1.0
     lr_distance: 1.0
-    right_width: 0.1
-    dimensions: 0.1
+    right_width: 1.0
+    dimensions: 1.0
     orientation: 1.0
     vertices: 1.0
     vertex_offset: 1.0
-    vertex_dist: 0.1
+    vertex_dist: 1.0
 
 # =============================================================================
 # Performance Targets (from paper)

@@ -4,14 +4,15 @@
 """
 KITTI to YOLO 3D Stereo Format Converter
 
-This script converts KITTI dataset to YOLO 3D stereo format with 19 values per object:
-class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y
+This script converts KITTI dataset to YOLO 3D stereo format with 22 values per object:
+class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y X Y Z
 
 All coordinates normalized to [0, 1], dimensions in meters, alpha in radians.
+Uses 3DOP split strategy: training set split into train (0-3711) and val (3712+).
 
 Usage:
-    python convert_kitti_3d.py --kitti-root /path/to/kitti --output-root /path/to/output
-    python convert_kitti_3d.py --kitti-root /path/to/kitti --output-root /path/to/output --split training
+    python convert_kitti_3d.py --kitti-root /path/to/kitti
+    python convert_kitti_3d.py --kitti-root /path/to/kitti --filter-classes Car Pedestrian Cyclist
 """
 
 import argparse
@@ -709,88 +710,66 @@ class KITTIToYOLO3D:
 
 
 def main():
-    """Main conversion script."""
+    """Main conversion script. Converts KITTI training split using 3DOP strategy to generate train and val splits."""
     parser = argparse.ArgumentParser(
-        description="Convert KITTI to YOLO 3D format",
+        description="Convert KITTI to YOLO 3D format using 3DOP split strategy",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Convert all classes
-  python convert_kitti_3d.py --kitti-root /path/to/kitti --output-root /path/to/output
+  python convert_kitti_3d.py --kitti-root /path/to/kitti
 
-  # Convert only Car and Pedestrian classes
-  python convert_kitti_3d.py --kitti-root /path/to/kitti --output-root /path/to/output --filter-classes Car Pedestrian
+  # Convert only specific classes (e.g., Car, Pedestrian, Cyclist)
+  python convert_kitti_3d.py --kitti-root /path/to/kitti --filter-classes Car Pedestrian Cyclist
 
-  # Convert only vehicle classes
-  python convert_kitti_3d.py --kitti-root /path/to/kitti --output-root /path/to/output --filter-classes Car Van Truck
+The script will:
+  - Process the KITTI training split
+  - Use 3DOP strategy: indices 0-3711 -> train, 3712+ -> val
+  - Output converted dataset to the same directory as --kitti-root
+  - Include all classes by default, or only specified classes if --filter-classes is used
+  - Available classes: Car, Van, Truck, Pedestrian, Person_sitting, Cyclist, Tram, Misc
         """,
     )
     parser.add_argument("--kitti-root", type=str, required=True, help="Path to KITTI dataset root directory")
-    parser.add_argument(
-        "--output-root",
-        type=str,
-        default=None,
-        help="Path to output directory (default: same as --kitti-root)",
-    )
-    parser.add_argument(
-        "--split", type=str, default="training", choices=["training", "testing"], help="Which split to convert"
-    )
-    parser.add_argument(
-        "--split-strategy",
-        type=str,
-        default="single",
-        choices=["single", "3dop"],
-        help="Split logic: 'single' maps KITTI splits directly; '3dop' divides KITTI training into train(0-3711) and val(3712-end)",
-    )
     parser.add_argument(
         "--filter-classes",
         type=str,
         nargs="+",
         default=None,
-        help="List of class names to include (e.g., Car Pedestrian). Available: Car, Van, Truck, Pedestrian, Person_sitting, Cyclist, Tram, Misc",
+        help="List of class names to include (e.g., Car Pedestrian Cyclist). If not specified, all classes are included. Available: Car, Van, Truck, Pedestrian, Person_sitting, Cyclist, Tram, Misc",
     )
 
     args = parser.parse_args()
 
-    # Determine output root fallback
-    output_root = args.output_root or args.kitti_root
-    if args.output_root is None:
-        LOGGER.info("--output-root not provided. Using --kitti-root as output directory.")
+    # Output to same directory as input
+    output_root = args.kitti_root
 
-    # Initialize converter
+    # Initialize converter with 3DOP strategy and optional class filtering
     converter = KITTIToYOLO3D(
         args.kitti_root,
         output_root,
-        filter_classes=args.filter_classes,
-        split_strategy=args.split_strategy,
+        filter_classes=args.filter_classes,  # None = all classes, or list of class names
+        split_strategy="3dop",  # Always use 3DOP split strategy
     )
 
-    # Convert dataset
-    converter.convert_split(args.split)
+    # Always convert training split (which creates both train and val with 3DOP strategy)
+    converter.convert_split("training")
 
     # Create dataset.yaml
     converter.create_dataset_yaml()
 
     LOGGER.info("\n✓ Conversion complete!")
     LOGGER.info(f"\nYour dataset is ready at: {output_root}")
-    # Determine split name for logging (training->train, testing->val)
-    LOGGER.info("\nDirectory structure (partial):")
-    if args.split_strategy == "3dop" and args.split == "training":
-        LOGGER.info("  images/train/left/  - Train left images")
-        LOGGER.info("  images/train/right/ - Train right images")
-        LOGGER.info("  images/val/left/    - Val left images")
-        LOGGER.info("  images/val/right/   - Val right images")
-        LOGGER.info("  labels/train/       - Train labels")
-        LOGGER.info("  labels/val/         - Val labels")
-        LOGGER.info("  calib/train/        - Train calibration")
-        LOGGER.info("  calib/val/          - Val calibration")
-    else:
-        split_name = SPLIT_MAP.get(args.split, args.split)
-        LOGGER.info(f"  images/{split_name}/left/   - Left camera images")
-        LOGGER.info(f"  images/{split_name}/right/  - Right camera images")
-        LOGGER.info(f"  labels/{split_name}/        - YOLO 3D format labels")
-        LOGGER.info(f"  calib/{split_name}/         - Calibration files")
-    LOGGER.info("  train.txt / val.txt - Image index lists (if present)")
+    LOGGER.info("\nDirectory structure:")
+    LOGGER.info("  images/train/left/  - Train left images")
+    LOGGER.info("  images/train/right/ - Train right images")
+    LOGGER.info("  images/val/left/    - Val left images")
+    LOGGER.info("  images/val/right/   - Val right images")
+    LOGGER.info("  labels/train/       - Train labels")
+    LOGGER.info("  labels/val/         - Val labels")
+    LOGGER.info("  calib/train/        - Train calibration")
+    LOGGER.info("  calib/val/          - Val calibration")
+    LOGGER.info("  train.txt / val.txt - Image index lists")
     LOGGER.info("  dataset.yaml        - Dataset configuration")
 
 

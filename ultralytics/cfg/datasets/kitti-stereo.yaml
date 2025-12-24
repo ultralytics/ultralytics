@@ -138,15 +138,15 @@ download: |
 
   LOGGER.info(f"Converting KITTI dataset to YOLO 3D format at: {dir}")
 
-  # Use 3dop split strategy: training set split into train (0-3711) and val (3712+)
+  # Convert using 3DOP strategy (training set split into train 0-3711 and val 3712+)
   converter = KITTIToYOLO3D(
       kitti_root=kitti_raw,
       output_root=dir,
-      filter_classes=None,  # Include all classes
+      filter_classes=None,
       split_strategy="3dop",
   )
 
-  # Convert the training split (will create both train and val with 3dop strategy)
+  # Convert training split (creates both train and val with 3DOP strategy)
   converter.convert_split("training")
 
   # Create dataset.yaml

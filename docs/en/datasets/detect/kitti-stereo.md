@@ -222,11 +222,19 @@ To train a stereo 3D detection model:
 To convert from original KITTI format to YOLO 3D format, use the conversion script:
 
 ```bash
-python ultralytics/data/scripts/convert_kitti_3d.py \
-    --kitti-root /path/to/kitti_raw \
-    --output-root /path/to/kitti-stereo \
-    --split-strategy 3dop
+# Convert all classes
+python ultralytics/data/scripts/convert_kitti_3d.py --kitti-root /path/to/kitti_raw
+
+# Convert only specific classes (e.g., Car, Pedestrian, Cyclist)
+python ultralytics/data/scripts/convert_kitti_3d.py --kitti-root /path/to/kitti_raw --filter-classes Car Pedestrian Cyclist
 ```
 
-This will create the proper directory structure and convert all annotations to the YOLO 3D format.
+The script will:
+- Process the KITTI training split
+- Use 3DOP strategy: indices 0-3711 → train, 3712+ → val
+- Output converted dataset to the same directory as `--kitti-root`
+- Include all classes by default, or only specified classes if `--filter-classes` is used
+- Available classes: Car, Van, Truck, Pedestrian, Person_sitting, Cyclist, Tram, Misc
+
+This will create the proper directory structure and convert all annotations to the YOLO 3D format (22 values per object). When using `--filter-classes`, class IDs will be remapped to be consecutive starting from 0.
 

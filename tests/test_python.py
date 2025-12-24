@@ -266,7 +266,7 @@ def test_workflow_train():
 def test_workflow_val():
     """Test YOLO model validation workflow."""
     model = YOLO(MODEL)
-    model.val(imgsz=32)
+    model.val(data="coco8.yaml", imgsz=32)
 
 
 @pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
@@ -664,12 +664,20 @@ def test_model_embeddings():
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
-def test_yolo_world():
-    """Test YOLO world models with CLIP support."""
+def test_yolo_world_predict():
+    """Test YOLO world models prediction with CLIP support."""
     model = YOLO(WEIGHTS_DIR / "yolov8s-world.pt")  # no YOLO11n-world model yet
     model.set_classes(["tree", "window"])
     model(SOURCE, conf=0.01)
 
+
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    checks.IS_PYTHON_3_8 and LINUX and ARM64,
+    reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
+)
+def test_yolo_world_train_pretrained():
+    """Test YOLO world models training from pretrained with CLIP support."""
     model = YOLO(WEIGHTS_DIR / "yolov8s-worldv2.pt")  # no YOLO11n-world model yet
     # Training from a pretrained model. Eval is included at the final stage of training.
     # Use dota8.yaml which has fewer categories to reduce the inference time of CLIP model
@@ -681,6 +689,14 @@ def test_yolo_world():
         close_mosaic=1,
     )
 
+
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOWorld with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(
+    checks.IS_PYTHON_3_8 and LINUX and ARM64,
+    reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
+)
+def test_yolo_world_train_scratch():
+    """Test YOLO world models training from scratch with CLIP support."""
     # test WorWorldTrainerFromScratch
     from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
 
@@ -761,23 +777,52 @@ def test_yoloe():
     model.val(data="coco128-seg.yaml", imgsz=32)
 
 
-def test_yolov10():
-    """Test YOLOv10 model training, validation, and prediction functionality."""
+def test_yolov10_train():
+    """Test YOLOv10 model training."""
     model = YOLO("yolov10n.yaml")
-    # train/val/predict
     model.train(data="coco8.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+
+
+def test_yolov10_val():
+    """Test YOLOv10 model validation."""
+    model = YOLO("yolov10n.yaml")
     model.val(data="coco8.yaml", imgsz=32)
-    model.predict(imgsz=32, save_txt=True, save_crop=True, augment=True)
+
+
+def test_yolov10_predict_args():
+    """Test YOLOv10 model prediction with args."""
+    model = YOLO("yolov10n.yaml")
+    model.predict(SOURCE, imgsz=32, save_txt=True, save_crop=True, augment=True)
+
+
+def test_yolov10_predict_source():
+    """Test YOLOv10 model prediction with source."""
+    model = YOLO("yolov10n.yaml")
     model(SOURCE)
 
 
-def test_multichannel():
-    """Test YOLO model multi-channel training, validation, and prediction functionality."""
+def test_multichannel_train():
+    """Test YOLO model multi-channel training."""
     model = YOLO("yolo11n.pt")
     model.train(data="coco8-multispectral.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+
+
+def test_multichannel_val():
+    """Test YOLO model multi-channel validation."""
+    model = YOLO("yolo11n.pt")
     model.val(data="coco8-multispectral.yaml")
+
+
+def test_multichannel_predict():
+    """Test YOLO model multi-channel prediction."""
+    model = YOLO("yolo11n.pt")
     im = np.zeros((32, 32, 10), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
+
+
+def test_multichannel_export():
+    """Test YOLO model multi-channel export."""
+    model = YOLO("yolo11n.pt")
     model.export(format="onnx")
 
 

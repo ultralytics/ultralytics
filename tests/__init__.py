@@ -10,7 +10,7 @@ SOURCE = ASSETS / "bus.jpg"
 SOURCES_LIST = [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"]
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
 CUDA_DEVICE_COUNT = checks.cuda_device_count()
-TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in sorted(TASKS)]
+TASK_MODEL_DATA = sorted([(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS])
 MODELS = sorted([*list(TASK2MODEL.values()), "yolo11n-grayscale.pt"])
 
 __all__ = (

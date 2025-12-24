@@ -213,8 +213,7 @@ class MuSGD(optim.Optimizer):
                 # generate weight updates in distributed fashion
                 for p in group["params"]:
                     if p.grad is None:
-                        # continue
-                        p.grad = torch.zeros_like(p)  # Force synchronization
+                        continue
                     grad = p.grad
                     state = self.state[p]
                     if len(state) == 0:
@@ -241,8 +240,7 @@ class MuSGD(optim.Optimizer):
             else:  # SGD
                 for p in group["params"]:
                     if p.grad is None:
-                        # continue
-                        p.grad = torch.zeros_like(p)  # Force synchronization
+                        continue
                     grad = p.grad
                     if group["weight_decay"] != 0:
                         grad = grad.add(p, alpha=group["weight_decay"])

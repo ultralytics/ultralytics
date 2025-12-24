@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Ultralytics Chat Widget ---------------------------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-  new UltralyticsChat({
+  const ultralyticsChat = new UltralyticsChat({
     welcome: {
       title: "Hello 👋",
       message: "Ask about YOLO, tutorials, training, export, deployment, or troubleshooting.",
@@ -115,10 +115,18 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     headerElement.insertBefore(searchBar, searchContainer);
 
-    searchBar.querySelector(".ult-search-button").addEventListener("click", () => {
-      ultralyticsChat?.toggle(true, "search");
-    });
-  }
+    const defaultSearchToggle = headerElement.querySelector('label[for="__search"]');
+    const defaultSearchInput = document.getElementById("__search");
+    const defaultSearchDialog = document.querySelector(".md-search");
+    if (defaultSearchToggle) {
+      defaultSearchToggle.setAttribute("aria-hidden", "true");
+      defaultSearchToggle.style.display = "none";
+    }
+    if (defaultSearchInput) {
+      defaultSearchInput.setAttribute("tabindex", "-1");
+      defaultSearchInput.setAttribute("aria-hidden", "true");
+    }
+    if (defaultSearchDialog) defaultSearchDialog.style.display = "none";
 
     searchBar.querySelector(".ult-search-button").addEventListener("click", () => {
       ultralyticsChat?.toggle(true, "search");
@@ -157,11 +165,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Update links
-    langs.forEach((lang) => (lang.link.href = location.origin + "/" + lang.code + basePath));
-    if (defaultLink) {
-      defaultLink.href = location.origin + basePath;
-    }
+    // Preserve query string and hash
+    const suffix = location.search + location.hash;
+
+    // Update all language links
+    links.forEach((link) => {
+      const lang = link.getAttribute("hreflang");
+      link.href =
+        lang === defaultLang
+          ? `${location.origin}/${basePath}${suffix}`
+          : `${location.origin}/${lang}/${basePath}${suffix}`;
+    });
   }
 
   // Run on load and navigation

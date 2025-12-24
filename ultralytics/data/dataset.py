@@ -704,7 +704,14 @@ class SemanticDataset(BaseDataset):
 
     def img2label_paths(self, im_files):
         """Find annotated RGB mask file correspond image file."""
-        return [im_file.replace("image", "annotation") for im_file in im_files]
+        msk_files = []
+        for im_file in im_files:
+            p = Path(im_file)
+            parts = list(p.parts)
+            msk_parts = ["annotation" if part == "image" else part for part in parts]
+            msk_files.append(str(Path(*msk_parts)))
+
+        return msk_files
 
     def cache_labels(self, path=Path("./labels.cache")):
         """Load annotations mask from a JSON file each image.

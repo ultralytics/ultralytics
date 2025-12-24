@@ -31,18 +31,12 @@ dataset_root/
 
 ## Label Format
 
-Each label file (`.txt`) corresponds to one stereo image pair and contains one line per object. The format supports two versions:
+Each label file (`.txt`) corresponds to one stereo image pair and contains one line per object. The format supports multiple versions:
 
-### Standard Format (22 values)
-
-```
-class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y X Y Z
-```
-
-### Legacy Format (19 values)
+### Current Format (24 values)
 
 ```
-class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y
+class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y
 ```
 
 ## Field Descriptions
@@ -60,32 +54,33 @@ class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v
 
 ### Right Image 2D Bounding Box (normalized)
 - **x_r**: Right image center x-coordinate (normalized 0-1)
+- **y_r**: Right image center y-coordinate (normalized 0-1) - *24-value format only*
 - **w_r**: Right image bounding box width (normalized 0-1)
-- **Note**: Right image uses same y-coordinate and height as left (epipolar constraint)
+- **h_r**: Right image bounding box height (normalized 0-1) - *24-value format only*
+- **Note**: In 22-value format, only x_r and w_r are stored (y and h are same as left due to epipolar constraint)
 
 ### 3D Dimensions (meters)
-- **dim_h**: Object height in meters
-- **dim_w**: Object width in meters
-- **dim_l**: Object length in meters
-- **Note**: Dimensions are in camera coordinate system (height=Y, width=Z, length=X)
+- **24-value format**: `dim_l dim_w dim_h` - length, width, height in meters
+- **Note**: Dimensions are in camera coordinate system (height=Y, width=Z, length=X). The order differs between formats.
 
-### Observation Angle
-- **alpha**: Observation angle in radians (range: [-π, π])
-- **Description**: Angle between object orientation and camera ray in image plane
-- **Note**: This is converted to global yaw (rotation_y) during training/inference
+### Orientation
+- **24-value format**: `rot_y` - Global rotation around Y-axis in radians (range: [-π, π])
+- **Description**: 
+  - `rot_y` (24-value): Direct global yaw angle (rotation around vertical Y-axis)
+  using: `rotation_y = alpha + arctan(x/z)`
 
 ### Bottom 4 Vertices (normalized)
-- **v1_x, v1_y**: First bottom vertex (normalized 0-1)
-- **v2_x, v2_y**: Second bottom vertex (normalized 0-1)
-- **v3_x, v3_y**: Third bottom vertex (normalized 0-1)
-- **v4_x, v4_y**: Fourth bottom vertex (normalized 0-1)
-- **Description**: Projected 2D coordinates of the 4 bottom corners of the 3D bounding box
+- **kp1_x, kp1_y** (24-value) or **v1_x, v1_y** (22-value): First bottom vertex (normalized 0-1)
+- **kp2_x, kp2_y** (24-value) or **v2_x, v2_y** (22-value): Second bottom vertex (normalized 0-1)
+- **kp3_x, kp3_y** (24-value) or **v3_x, v3_y** (22-value): Third bottom vertex (normalized 0-1)
+- **kp4_x, kp4_y** (24-value) or **v4_x, v4_y** (22-value): Fourth bottom vertex (normalized 0-1)
+- **Description**: Projected 2D coordinates of the 4 bottom corners of the 3D bounding box in normalized image coordinates [0, 1]
 
-### 3D Location (camera coordinates, meters) - Standard Format Only
-- **X**: X-coordinate in camera frame (right = positive)
-- **Y**: Y-coordinate in camera frame (down = positive, bottom center of box)
-- **Z**: Z-coordinate in camera frame (forward = positive, depth)
-- **Note**: Y is at bottom center of box (KITTI convention). The geometric center is computed during parsing.
+### 3D Location (camera coordinates, meters)
+- **loc_x** (24-value) or **X** (22-value): X-coordinate in camera frame (right = positive)
+- **loc_y** (24-value) or **Y** (22-value): Y-coordinate in camera frame (down = positive, bottom center of box)
+- **loc_z** (24-value) or **Z** (22-value): Z-coordinate in camera frame (forward = positive, depth)
+- **Note**: Y is at bottom center of box (KITTI convention). The geometric center is computed during parsing. Only present in 22+ value formats.
 
 ## Coordinate Systems
 
@@ -101,19 +96,36 @@ class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v
 - **Orientation**: Rotation around Y-axis (vertical axis) in radians
 - **Rotation_y = 0**: Object faces camera X direction (forward along X-axis)
 
-## Example Label Line
+## Example Label Lines
+
+### 24-Value Format Example
+
+```
+0 0.739219 0.739093 0.256667 0.505120 0.681871 0.880345 0.318305 0.489783 3.580000 1.710000 1.490000 2.810000 1.600000 7.590000 -1.610000 0.610886 0.486533 0.867552 0.486533 0.867552 0.991653 0.610886 0.991653
+```
+
+Breaking down this 24-value example:
+- **Class**: `0` (Car)
+- **Left box**: center=(0.739219, 0.739093), size=(0.256667, 0.505120)
+- **Right box**: center=(0.681871, 0.880345), size=(0.318305, 0.489783)
+- **Dimensions**: length=3.58m, width=1.71m, height=1.49m
+- **3D location**: X=2.81m, Y=1.6m, Z=7.59m
+- **Rotation_y**: -1.61 radians (global yaw)
+- **Vertices**: 4 bottom corners (kp1-kp4) in normalized coordinates
+
+### 22-Value Format Example
 
 ```
 0 0.491935 0.461333 0.193548 0.293333 0.478226 0.193548 1.52 1.73 3.89 0.1234 0.395 0.461 0.589 0.461 0.589 0.754 0.395 0.754 2.8 1.6 7.6
 ```
 
-Breaking down this example:
+Breaking down this 22-value example:
 - **Class**: `0` (Car)
 - **Left box**: center=(0.491935, 0.461333), size=(0.193548, 0.293333)
-- **Right box**: center_x=0.478226, width=0.193548
+- **Right box**: center_x=0.478226, width=0.193548 (y and h same as left)
 - **Dimensions**: height=1.52m, width=1.73m, length=3.89m
-- **Alpha**: 0.1234 radians
-- **Vertices**: 4 bottom corners in normalized coordinates
+- **Alpha**: 0.1234 radians (observation angle)
+- **Vertices**: 4 bottom corners (v1-v4) in normalized coordinates
 - **3D location**: X=2.8m, Y=1.6m, Z=7.6m
 
 ## Calibration File Format
@@ -184,17 +196,26 @@ To train a stereo 3D detection model:
 
 ## Important Notes
 
-1. **Normalized Coordinates**: All 2D coordinates (x_l, y_l, w_l, h_l, x_r, w_r, vertices) are normalized to [0, 1] relative to image dimensions.
+1. **Normalized Coordinates**: All 2D coordinates (x_l, y_l, w_l, h_l, x_r, y_r, w_r, h_r, vertices) are normalized to [0, 1] relative to image dimensions.
 
 2. **Coordinate System**: 3D coordinates use camera coordinate system with Y pointing down (KITTI convention).
 
 3. **Box Center**: The Y coordinate represents the bottom center of the 3D box, not the geometric center. The geometric center is computed during parsing.
 
-4. **Epipolar Constraint**: Right image y-coordinate and height are the same as left image due to stereo rectification.
+4. **Right Image Box**: 
+   - **24-value format**: Stores full right box (x_r, y_r, w_r, h_r)
+   - **22-value format**: Only stores x_r and w_r (y and h are same as left due to epipolar constraint)
 
-5. **Observation Angle vs. Global Yaw**: The `alpha` (observation angle) is converted to `rotation_y` (global yaw) using: `rotation_y = alpha + arctan(x/z)`.
+5. **Dimensions Order**: 
+   - **24-value format**: `dim_l dim_w dim_h` (length, width, height)
+   - **22-value format**: `dim_h dim_w dim_l` (height, width, length)
+   - Both are converted to (length, width, height) in Box3D objects
 
-6. **Dimensions Order**: Dimensions are stored as (height, width, length) but used as (length, width, height) in Box3D objects.
+6. **Orientation Representation**:
+   - **24-value format**: Direct `rotation_y` (global yaw) in radians
+   - **22-value format**: `alpha` (observation angle) converted to `rotation_y` using: `rotation_y = alpha + arctan(x/z)`
+
+7. **Format Compatibility**: The parser in `kitti_stereo.py` currently expects the 22-value format. If you have 24-value labels, you may need to adjust the parsing logic or convert to 22-value format.
 
 ## Conversion from KITTI Format
 

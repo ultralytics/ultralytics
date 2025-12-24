@@ -35,7 +35,7 @@ class KITTIStereoDataset:
         >>> calib = sample["calib"]
     """
 
-    def __init__(self, root: str | Path, split: str = "train", filter_classes: bool = False, max_samples: int | None = None):
+    def __init__(self, root: str | Path, split: str = "train", max_samples: int | None = None):
         """Initialize KITTI Stereo Dataset.
 
         Args:
@@ -44,14 +44,11 @@ class KITTIStereoDataset:
                 - labels/{split}/
                 - calib/{split}/
             split (str): Dataset split, either 'train' or 'val'. Defaults to 'train'.
-            filter_classes (bool): If True, filter to only paper classes (Car, Pedestrian, Cyclist)
-                and remap class IDs from 0,3,5 to 0,1,2. Defaults to False.
             max_samples (int | None): Maximum number of samples to load. If None, loads all available samples.
                 If specified, only the first max_samples samples will be loaded. Defaults to None.
         """
         self.root = Path(root)
         self.split = split
-        self.filter_classes = filter_classes
 
         # Set up directory paths
         self.left_img_dir = self.root / "images" / split / "left"
@@ -199,8 +196,7 @@ class KITTIStereoDataset:
     def _parse_labels(self, label_file: Path) -> list[dict[str, Any]]:
         """Parse YOLO 3D format label file.
 
-        Format (22 values): class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y X Y Z
-        Legacy format (19 values): class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y
+        Format (24 values): class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y
 
         Args:
             label_file (Path): Path to label file.
@@ -210,18 +206,14 @@ class KITTIStereoDataset:
                 - class_id: Class ID (int) - remapped if filter_classes=True
                 - original_class_id: Original class ID (int) - only if filter_classes=True
                 - left_box: Left image 2D box [center_x, center_y, width, height] (normalized)
-                - right_box: Right image 2D box [center_x, width] (normalized)
+                - right_box: Right image 2D box [center_x, center_y, width, height] (normalized)
                 - dimensions: 3D dimensions [height, width, length] in meters
-                - alpha: Observation angle in radians
+                - rotation_y: Global rotation around Y-axis in radians
                 - vertices: Bottom 4 vertices of 3D box [v1_x, v1_y, v2_x, v2_y, v3_x, v3_y, v4_x, v4_y] (normalized)
-                - location_3d: (Optional) Original KITTI 3D location [X, Y, Z] in camera coordinates (Y is bottom center)
+                - location_3d: 3D location [X, Y, Z] in camera coordinates (Y is bottom center)
         """
         if not label_file.exists():
             return []
-
-        # Import class mapping utilities
-        if self.filter_classes:
-            from ultralytics.models.yolo.stereo3ddet.utils import filter_and_remap_class_id
 
         labels = []
         with open(label_file, "r") as f:
@@ -231,74 +223,63 @@ class KITTIStereoDataset:
                     continue
 
                 parts = line.split()
-                # Support both legacy (19 values) and new format (22 values with X, Y, Z)
-                if len(parts) < 19:
-                    LOGGER.warning(f"Invalid label format in {label_file}: expected 19+ values, got {len(parts)}")
+                # 24-value format: class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y
+                if len(parts) != 24:
+                    LOGGER.warning(f"Invalid label format in {label_file}: expected 24 values, got {len(parts)}")
                     continue
+                
+                
+                values = [float(x) for x in parts]
+                original_class_id = int(values[0])
+                class_id = original_class_id
 
-                try:
-                    values = [float(x) for x in parts]
-                    original_class_id = int(values[0])
+                # 24-value format structure:
+                # 0: class
+                # 1-4: x_l y_l w_l h_l (left box)
+                # 5-8: x_r y_r w_r h_r (right box)
+                # 9-11: dim_l dim_w dim_h (dimensions: length, width, height)
+                # 12-14: loc_x loc_y loc_z (3D location)
+                # 15: rot_y (rotation around Y-axis)
+                # 16-23: kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y (vertices)
+                
+                label_dict = {
+                    "class_id": class_id,
+                    "left_box": {
+                        "center_x": values[1],
+                        "center_y": values[2],
+                        "width": values[3],
+                        "height": values[4],
+                    },
+                    "right_box": {
+                        "center_x": values[5],
+                        "center_y": values[6],
+                        "width": values[7],
+                        "height": values[8],
+                    },
+                    "dimensions": {
+                        "length": values[9],   # dim_l
+                        "width": values[10],  # dim_w
+                        "height": values[11], # dim_h
+                    },
+                    "rotation_y": values[15],  # rot_y (global yaw)
+                    "vertices": {
+                        "v1": [values[16], values[17]],  # kp1
+                        "v2": [values[18], values[19]],  # kp2
+                        "v3": [values[20], values[21]],  # kp3
+                        "v4": [values[22], values[23]],  # kp4
+                    },
+                    "location_3d": {
+                        "x": values[12],  # loc_x
+                        "y": values[13],  # loc_y (bottom center Y in KITTI coords)
+                        "z": values[14],  # loc_z (depth)
+                    },
+                }
+                
+                # Assertions
+                assert -np.pi <= label_dict['rotation_y'] <= np.pi, f"rotation_y is out of range: {label_dict['rotation_y']}"
+                assert 0.1 < label_dict['dimensions']['height'] < 5 and 0.1 < label_dict['dimensions']['width'] < 3 and 0.1 < label_dict['dimensions']['length'] < 20, f"dimensions are out of range: {label_dict['dimensions']}"
 
-                    # Filter and remap class ID if filtering is enabled
-                    if self.filter_classes:
-                        remapped_class_id = filter_and_remap_class_id(original_class_id)
-                        if remapped_class_id is None:
-                            # Class is not in paper set, skip it
-                            # LOGGER.warning(f"Filtering out class {original_class_id} (not in paper set: Car, Pedestrian, Cyclist)")
-                            continue
-                        class_id = remapped_class_id
-                    else:
-                        class_id = original_class_id
-
-                    label_dict = {
-                        "class_id": class_id,
-                        "left_box": {
-                            "center_x": values[1],
-                            "center_y": values[2],
-                            "width": values[3],
-                            "height": values[4],
-                        },
-                        "right_box": {
-                            "center_x": values[5],
-                            "width": values[6],
-                        },
-                        "dimensions": {
-                            "height": values[7],
-                            "width": values[8],
-                            "length": values[9],
-                        },
-                        "alpha": values[10],
-                        "vertices": {
-                            "v1": [values[11], values[12]],
-                            "v2": [values[13], values[14]],
-                            "v3": [values[15], values[16]],
-                            "v4": [values[17], values[18]],
-                        },
-                    }
-                    
-                    # Parse 3D location if available (new format with 22 values)
-                    # X, Y, Z are in camera coordinates; Y is bottom center in KITTI
-                    if len(values) >= 22:
-                        label_dict["location_3d"] = {
-                            "x": values[19],
-                            "y": values[20],  # Bottom center Y in KITTI coords
-                            "z": values[21],  # Depth
-                        }
-                    
-                    # assertion
-                    assert label_dict['alpha'] >= -np.pi and label_dict['alpha'] <= np.pi, f"alpha is out of range: {label_dict['alpha']}"
-                    assert 0.1 < label_dict['dimensions']['height'] < 5 and 0.1 < label_dict['dimensions']['width'] < 3 and 0.1 < label_dict['dimensions']['length'] < 20, f"dimensions are out of range: {label_dict['dimensions']}"
-
-                    
-                    # Store original class ID if filtering is enabled
-                    if self.filter_classes:
-                        label_dict["original_class_id"] = original_class_id
-
-                    labels.append(label_dict)
-                except (ValueError, IndexError) as e:
-                    LOGGER.warning(f"Error parsing label line in {label_file}: {e}")
-                    continue
+                labels.append(label_dict)
 
         return labels
 

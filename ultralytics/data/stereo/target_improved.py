@@ -154,7 +154,17 @@ class TargetGenerator:
         left_box = label["left_box"]
         right_box = label["right_box"]
         dimensions = label["dimensions"]
-        alpha = label["alpha"]
+        
+        # Support both rotation_y (24-value format) and alpha (22-value format)
+        if "rotation_y" in label:
+            # 24-value format: rotation_y is already global yaw, we'll compute alpha for encoding
+            rotation_y = label["rotation_y"]
+        elif "alpha" in label:
+            # 22-value format: alpha is observation angle
+            alpha = label["alpha"]
+        else:
+            # Fallback
+            alpha = 0.0
 
         fx = calib["fx"]
         fy = calib["fy"]
@@ -269,10 +279,18 @@ class TargetGenerator:
         W = dimensions["width"]   # Width (lateral direction)
         H = dimensions["height"]  # Height
 
-        # Convert observation angle α to global yaw θ
-        # θ = α + arctan(x/z) - Paper Equation 7
-        ray_angle = math.atan2(x_3d, z_3d)
-        theta = alpha + ray_angle
+        # Handle orientation - support both rotation_y (24-value) and alpha (22-value)
+        if "rotation_y" in label:
+            # 24-value format: rotation_y is global yaw, compute alpha for encoding
+            # α = θ - arctan(x/z)
+            ray_angle = math.atan2(x_3d, z_3d)
+            alpha = rotation_y - ray_angle
+            theta = rotation_y  # theta is same as rotation_y
+        else:
+            # 22-value format: alpha is observation angle, convert to global yaw
+            # θ = α + arctan(x/z) - Paper Equation 7
+            ray_angle = math.atan2(x_3d, z_3d)
+            theta = alpha + ray_angle
         # Normalize to [-π, π]
         theta = math.atan2(math.sin(theta), math.cos(theta))
 

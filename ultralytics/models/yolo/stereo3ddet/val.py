@@ -2,47 +2,32 @@
 
 from __future__ import annotations
 
-import json
-import logging
+
 import math
-import os
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import torch
-import torch.distributed as dist
 
 from ultralytics.data.stereo.box3d import Box3D
-from ultralytics.engine.validator import BaseValidator
 from ultralytics.models.yolo.stereo3ddet.metrics import Stereo3DDetMetrics
-from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, RANK, TQDM, YAML, callbacks, colorstr, emojis
-from ultralytics.utils.checks import check_imgsz
+from ultralytics.utils import LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.metrics import compute_3d_iou
-from ultralytics.utils.ops import Profile
 from ultralytics.utils.plotting import plot_stereo3d_boxes
-from ultralytics.utils.profiling import profile_function, profile_section
-from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
+from ultralytics.utils.profiling import profile_function
+
 
 # Import geometric construction module (GAP-001)
 from ultralytics.models.yolo.stereo3ddet.geometric import (
     GeometricConstruction,
     GeometricObservations,
     CalibParams,
-    solve_geometric_batch,
-    fallback_simple_triangulation,
 )
 
 # Import dense alignment module (GAP-002)
 from ultralytics.models.yolo.stereo3ddet.dense_align import (
     DenseAlignment,
-    create_dense_alignment_from_config,
 )
-
-# Global geometric solver instance for convergence tracking (SC-007)
-_geometric_solver: GeometricConstruction | None = None
-_geometric_config: dict | None = None
 
 
 def get_geometric_config(config_path: str | Path | None = None) -> dict:
@@ -1193,9 +1178,6 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             width = dims.get("width", 1.5)
             length = dims.get("length", 3.0)
 
-            # Get orientation (alpha is observation angle, convert to rotation_y)
-            alpha = label.get("alpha", 0.0)
-
             # Reconstruct 3D center from stereo disparity (matching prediction pipeline)
             # This ensures train/eval consistency since training uses lr_distance
             left_box = label.get("left_box", {})
@@ -1256,12 +1238,27 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             y_3d = (center_y_2d - cy_val) * depth / fy_val
             z_3d = depth
 
-            # Compute rotation_y from alpha (matches vis_yolo_kitti.py)
-            # Convert alpha (observation angle) to rotation_y (global yaw)
-            # θ = α + arctan(x/z)
-            import math
-            ray_angle = math.atan2(x_3d, z_3d)
-            rotation_y = alpha + ray_angle
+            # Get orientation - support both rotation_y (24-value format) and alpha (22-value format)
+            
+            if "rotation_y" in label:
+                # 24-value format: rotation_y is already global yaw
+                rotation_y = label.get("rotation_y", 0.0)
+            elif "alpha" in label:
+                # 22-value format: alpha is observation angle, convert to rotation_y
+                # θ = α + arctan(x/z)
+                alpha = label.get("alpha", 0.0)
+                ray_angle = math.atan2(x_3d, z_3d)
+                rotation_y = alpha + ray_angle
+            else:
+                # Fallback: use location_3d if available
+                location_3d = label.get("location_3d", {})
+                if location_3d:
+                    x_3d = location_3d.get("x", x_3d)
+                    z_3d = location_3d.get("z", z_3d)
+                    rotation_y = label.get("rotation_y", 0.0)
+                else:
+                    rotation_y = 0.0
+            
             # Normalize to [-π, π]
             rotation_y = math.atan2(math.sin(rotation_y), math.cos(rotation_y))
 
@@ -2279,3 +2276,21 @@ class Stereo3DDetValidator(BaseValidator):
             drop_last=False,  # Don't drop last batch in validation
             pin_memory=self.device.type == "cuda" if hasattr(self, "device") else True,
         )
+    
+    # def __call__(self, batch: dict[str, Any]) -> dict[str, Any]:
+    #     """Validate a single batch of data."""
+    #     # debug
+    #     def fix_batchnorm_stats(model):
+    #         """Fix NaN BatchNorm running statistics that can cause validation failures."""
+    #         for module in model.modules():
+    #             if isinstance(module, torch.nn.BatchNorm2d):
+    #                 # Check for NaN in running statistics
+    #                 if torch.isnan(module.running_mean).any() or torch.isnan(module.running_var).any():
+    #                     print(f"WARNING: Found NaN in BatchNorm running stats, resetting to zeros")
+    #                     # Reset to safe defaults
+    #                     module.running_mean.zero_()
+    #                     module.running_var.fill_(1.0)
+    #                     # Optionally reset momentum buffers
+    #                     if hasattr(module, 'momentum') and module.momentum is not None:
+    #                         module.momentum = 0.1  # Conservative momentum
+    #     return super().__call__(batch)

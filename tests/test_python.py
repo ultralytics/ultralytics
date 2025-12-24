@@ -218,7 +218,7 @@ def test_train_scratch_train():
 
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch_predict():
-    """Test prediction of the YOLO model from scratch."""
+    """Test that a YOLO model initialized from a config (untrained) can run prediction on the source."""
     model = YOLO(CFG)
     model(SOURCE)
 
@@ -239,8 +239,7 @@ def test_train_pretrained_train(scls):
     )
 
 
-@pytest.mark.parametrize("scls", [False, True])
-def test_train_pretrained_predict(scls):
+def test_train_pretrained_predict():
     """Test prediction of the YOLO model starting from a pre-trained checkpoint."""
     model = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
     model(SOURCE)

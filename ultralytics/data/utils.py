@@ -845,7 +845,10 @@ def verify_image_and_mask(args: tuple) -> list:
 
         # verify mask
         mask = cv2.imread(lb_file)
-        assert mask is not None
+        if (mask is None):
+            nm = 1
+            raise FileNotFoundError("Mask file is not existed")
+
         msk_shape = mask.shape
         assert msk_shape == img_shape
 
@@ -886,6 +889,7 @@ def verify_image_and_mask(args: tuple) -> list:
             lb[:, 2] = lb[:, 2] / h
             lb[:, 3] = lb[:, 3] / w
             lb[:, 4] = lb[:, 4] / h
+            nf = 1
 
         else:
             ne = 1

@@ -268,6 +268,7 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
+        self.backbone_len = len(self.model.yaml["backbone"])
         # Compile model
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
@@ -307,6 +308,8 @@ class BaseTrainer:
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
         if self.world_size > 1:
+            if self.args.sync_bn:
+                self.model = nn.SyncBatchNorm.convert_sync_batchnorm(self.model) 
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
         # Check imgsz
@@ -349,6 +352,7 @@ class BaseTrainer:
             momentum=self.args.momentum,
             decay=weight_decay,
             iterations=iterations,
+            backbone_lr_ratio=self.args.backbone_lr_ratio,
         )
         # Scheduler
         self._setup_scheduler()
@@ -679,7 +683,8 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+        if self.args.clip_grad_norm and self.args.clip_grad_norm > 0:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.args.clip_grad_norm)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
@@ -912,7 +917,7 @@ class BaseTrainer:
             LOGGER.info("Closing dataloader mosaic")
             self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
 
-    def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
+    def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5, backbone_lr_ratio=1.0):
         """Construct an optimizer for the given model.
 
         Args:
@@ -923,11 +928,12 @@ class BaseTrainer:
             momentum (float, optional): The momentum factor for the optimizer.
             decay (float, optional): The weight decay for the optimizer.
             iterations (float, optional): The number of iterations, which determines the optimizer if name is 'auto'.
+            backbone_lr_ratio (float, optional): The learning rate ratio for the backbone parameters.
 
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.
         """
-        g = [], [], []  # optimizer parameter groups
+        g = [], [], [], [], [], []  # optimizer parameter groups, 6 groups now
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         if name == "auto":
             LOGGER.info(
@@ -940,16 +946,40 @@ class BaseTrainer:
             name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
+        backbone_len = self.backbone_len
+
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if "bias" in fullname:  # bias (no decay)
-                    g[2].append(param)
-                elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
-                    # ContrastiveHead and BNContrastiveHead included here with 'logit_scale'
-                    g[1].append(param)
-                else:  # weight (with decay)
-                    g[0].append(param)
+
+                # Check if this is a backbone layer
+                is_backbone = False
+                parts = fullname.split(".")
+
+                # Handle DDP wrapping: "module.model.0.conv.weight" vs "model.0.conv.weight"
+                if parts[0] == "module":
+                    parts = parts[1:]  # Remove "module" prefix for DDP
+
+                if len(parts) > 1 and parts[0] == "model" and parts[1].isdigit():
+                    layer_idx = int(parts[1])
+                    is_backbone = layer_idx < backbone_len
+
+                if is_backbone:
+                    # Backbone parameters (groups 3, 4, 5)
+                    if "bias" in fullname:
+                        g[5].append(param)  # backbone bias
+                    elif isinstance(module, bn) or "logit_scale" in fullname:
+                        g[4].append(param)  # backbone bn weight
+                    else:
+                        g[3].append(param)  # backbone weight with decay
+                else:
+                    # Head parameters (groups 0, 1, 2)
+                    if "bias" in fullname:
+                        g[2].append(param)  # head bias
+                    elif isinstance(module, bn) or "logit_scale" in fullname:
+                        g[1].append(param)  # head bn weight
+                    else:
+                        g[0].append(param)  # head weight with decay
 
         optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
@@ -965,10 +995,19 @@ class BaseTrainer:
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
 
-        optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
-        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
+        # Head param groups (normal lr)
+        optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # head weights
+        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})    # head bn
+
+        backbone_lr = lr * backbone_lr_ratio
+        # Backbone param groups (smaller lr)
+        optimizer.add_param_group({"params": g[5], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bias
+        optimizer.add_param_group({"params": g[3], "lr": backbone_lr, "weight_decay": decay}) # backbone weights
+        optimizer.add_param_group({"params": g[4], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bn
+
         LOGGER.info(
-            f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
-            f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"
+            f"{colorstr('optimizer:')} {type(optimizer).__name__} with parameter groups:\n"
+            f"  Head:     {len(g[1])} bn, {len(g[0])} weight(decay={decay}), {len(g[2])} bias (lr={lr})\n"
+            f"  Backbone: {len(g[4])} bn, {len(g[3])} weight(decay={decay}), {len(g[5])} bias (lr={backbone_lr})"
         )
         return optimizer

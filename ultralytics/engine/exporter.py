@@ -1212,15 +1212,14 @@ class Exporter:
         from executorch.exir import to_edge_transform_and_lower
 
         file_directory = Path(str(self.file).replace(self.file.suffix, "_executorch_model"))
-        file_directory.mkdir(parents=True, exist_ok=True)
 
-        file_pte = file_directory / self.file.with_suffix(".pte").name
         sample_inputs = (self.im,)
-
         et_program = to_edge_transform_and_lower(
             torch.export.export(self.model, sample_inputs), partitioner=[XnnpackPartitioner()]
         ).to_executorch()
 
+        file_directory.mkdir(parents=True, exist_ok=True)
+        file_pte = file_directory / self.file.with_suffix(".pte").name
         with open(file_pte, "wb") as file:
             file.write(et_program.buffer)
 

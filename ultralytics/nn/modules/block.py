@@ -1993,7 +1993,7 @@ class SAVPE(nn.Module):
     """Spatial-Aware Visual Prompt Embedding module for feature enhancement."""
 
     # ========== Enhancement Switch ==========
-    use_learnable_temperature: bool = True   # learnable softmax temperature
+    use_learnable_temperature: bool = False   # learnable softmax temperature
     temperature_init: float = 1.0            # initial temperature
 
     def __init__(self, ch: list[int], c3: int, embed: int, **kwargs):

@@ -801,28 +801,13 @@ def test_yolov10_predict_source():
     model(SOURCE)
 
 
-def test_multichannel_train():
-    """Test YOLO model multi-channel training."""
+def test_multichannel():
+    """Test YOLO model multi-channel training, validation, and prediction functionality."""
     model = YOLO("yolo11n.pt")
     model.train(data="coco8-multispectral.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
-
-
-def test_multichannel_val():
-    """Test YOLO model multi-channel validation."""
-    model = YOLO("yolo11n.pt")
     model.val(data="coco8-multispectral.yaml")
-
-
-def test_multichannel_predict():
-    """Test YOLO model multi-channel prediction."""
-    model = YOLO("yolo11n.pt")
     im = np.zeros((32, 32, 10), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
-
-
-def test_multichannel_export():
-    """Test YOLO model multi-channel export."""
-    model = YOLO("yolo11n.pt")
     model.export(format="onnx")
 
 

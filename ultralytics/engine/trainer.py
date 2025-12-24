@@ -309,7 +309,7 @@ class BaseTrainer:
         )
         if self.world_size > 1:
             if self.args.sync_bn:
-                self.model = nn.SyncBatchNorm.convert_sync_batchnorm(self.model) 
+                self.model = nn.SyncBatchNorm.convert_sync_batchnorm(self.model)
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
         # Check imgsz
@@ -917,7 +917,9 @@ class BaseTrainer:
             LOGGER.info("Closing dataloader mosaic")
             self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
 
-    def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5, backbone_lr_ratio=1.0):
+    def build_optimizer(
+        self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5, backbone_lr_ratio=1.0
+    ):
         """Construct an optimizer for the given model.
 
         Args:
@@ -997,13 +999,13 @@ class BaseTrainer:
 
         # Head param groups (normal lr)
         optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # head weights
-        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})    # head bn
+        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # head bn
 
         backbone_lr = lr * backbone_lr_ratio
         # Backbone param groups (smaller lr)
-        optimizer.add_param_group({"params": g[5], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bias
-        optimizer.add_param_group({"params": g[3], "lr": backbone_lr, "weight_decay": decay}) # backbone weights
-        optimizer.add_param_group({"params": g[4], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bn
+        optimizer.add_param_group({"params": g[5], "lr": backbone_lr, "weight_decay": 0.0})  # backbone bias
+        optimizer.add_param_group({"params": g[3], "lr": backbone_lr, "weight_decay": decay})  # backbone weights
+        optimizer.add_param_group({"params": g[4], "lr": backbone_lr, "weight_decay": 0.0})  # backbone bn
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__} with parameter groups:\n"

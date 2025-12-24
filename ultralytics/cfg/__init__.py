@@ -160,7 +160,6 @@ CFG_FLOAT_KEYS = frozenset(
         "workspace",
         "batch",
         "clip_grad_norm",
-        "backbone_lr_ratio",
     }
 )
 CFG_FRACTION_KEYS = frozenset(
@@ -188,6 +187,7 @@ CFG_FRACTION_KEYS = frozenset(
         "conf",
         "iou",
         "fraction",
+        "backbone_lr_ratio",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -240,6 +240,7 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "multi_scale",
+        "sync_bn",
     }
 )
 

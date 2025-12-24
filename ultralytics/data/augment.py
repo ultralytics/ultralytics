@@ -3409,13 +3409,17 @@ class SemSegRandomPerspective(RandomPerspective):
                 img = cv2.warpPerspective(img, M, dsize=self.size, borderValue=(114, 114, 114))
                 new_msk = np.zeros((self.size[1], self.size[0], self.num_classes), dtype=np.uint8)
                 for i in range(self.num_classes):
-                    new_msk[:, :, i] = cv2.warpPerspective(msk[:, :, i], M, dsize=self.size, borderValue=0, flags=cv2.INTER_NEAREST)
+                    new_msk[:, :, i] = cv2.warpPerspective(
+                        msk[:, :, i], M, dsize=self.size, borderValue=0, flags=cv2.INTER_NEAREST
+                    )
 
             else:  # affine
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
                 new_msk = np.zeros((self.size[1], self.size[0], self.num_classes), dtype=np.uint8)
                 for i in range(self.num_classes):
-                    new_msk[:, :, i] = cv2.warpAffine(msk[:, :, i], M[:2], dsize=self.size, borderValue=0, flags=cv2.INTER_NEAREST)
+                    new_msk[:, :, i] = cv2.warpAffine(
+                        msk[:, :, i], M[:2], dsize=self.size, borderValue=0, flags=cv2.INTER_NEAREST
+                    )
 
         else:
             new_msk = msk

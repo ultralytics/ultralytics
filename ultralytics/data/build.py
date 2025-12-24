@@ -240,7 +240,7 @@ def build_yolo_dataset(
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
         stride=stride,
-        pad=0.0 if mode == "train" else 0.5,
+        pad=0.0 if mode == "train" else 0.0,
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,

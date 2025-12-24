@@ -210,10 +210,16 @@ def test_val(task: str, weight: str, data: str) -> None:
 
 
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
-def test_train_scratch():
-    """Test training the YOLO model from scratch using the provided configuration."""
+def test_train_scratch_train():
+    """Test only the training of the YOLO model from scratch using the provided configuration (no prediction)."""
     model = YOLO(CFG)
     model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
+
+
+@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_train_scratch_predict():
+    """Test prediction of the YOLO model from scratch."""
+    model = YOLO(CFG)
     model(SOURCE)
 
 
@@ -225,12 +231,18 @@ def test_train_ndjson():
 
 
 @pytest.mark.parametrize("scls", [False, True])
-def test_train_pretrained(scls):
+def test_train_pretrained_train(scls):
     """Test training of the YOLO model starting from a pre-trained checkpoint."""
     model = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
     model.train(
         data="coco8-seg.yaml", epochs=1, imgsz=32, cache="ram", copy_paste=0.5, mixup=0.5, name=0, single_cls=scls
     )
+
+
+@pytest.mark.parametrize("scls", [False, True])
+def test_train_pretrained_predict(scls):
+    """Test prediction of the YOLO model starting from a pre-trained checkpoint."""
+    model = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
     model(SOURCE)
 
 

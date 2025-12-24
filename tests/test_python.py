@@ -257,12 +257,30 @@ def test_all_model_yamls():
 
 
 @pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
-def test_workflow():
-    """Test the complete workflow including training, validation, prediction, and exporting."""
+def test_workflow_train():
+    """Test YOLO model training workflow."""
     model = YOLO(MODEL)
     model.train(data="coco8.yaml", epochs=1, imgsz=32, optimizer="SGD")
+
+
+@pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
+def test_workflow_val():
+    """Test YOLO model validation workflow."""
+    model = YOLO(MODEL)
     model.val(imgsz=32)
+
+
+@pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
+def test_workflow_predict():
+    """Test YOLO model prediction workflow."""
+    model = YOLO(MODEL)
     model.predict(SOURCE, imgsz=32)
+
+
+@pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
+def test_workflow_export():
+    """Test YOLO model export workflow."""
+    model = YOLO(MODEL)
     model.export(format="torchscript")  # WARNING: Windows slow CI export bug
 
 

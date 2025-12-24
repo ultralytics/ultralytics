@@ -900,7 +900,7 @@ def split(image, mask, img_size, slide):
     return patches_img, patches_msk, lefts, ups
 
 
-def Cityscapse2YOLO(cityecpse_path, yolo_data_path, img_size=512, ratio=0.5):
+def Cityscapse2YOLO(cityscapes_path, yolo_data_path, img_size=512, ratio=0.5):
     """This function is designed for converting official CityEcapse dataset to YOLO CityEcapse dataset.
 
     Args:
@@ -916,30 +916,19 @@ def Cityscapse2YOLO(cityecpse_path, yolo_data_path, img_size=512, ratio=0.5):
     val_dir = os.path.join(yolo_data_path, "val")
     test_dir = os.path.join(yolo_data_path, "test")
 
-    if not os.path.exists(train_dir):
-        os.mkdir(train_dir)
-        os.mkdir(os.path.join(train_dir, "image")) if not os.path.exists(os.path.join(train_dir, "image")) else None
-        os.mkdir(os.path.join(train_dir, "annotation")) if not os.path.exists(
-            os.path.join(train_dir, "annotation")
-        ) else None
+    os.makedirs(os.path.join(train_dir, "image"), exist_ok=True)
+    os.makedirs(os.path.join(train_dir, "annotation"), exist_ok=True)
 
-    if not os.path.exists(val_dir):
-        os.mkdir(val_dir)
-        os.mkdir(os.path.join(val_dir, "image")) if not os.path.exists(os.path.join(val_dir, "image")) else None
-        os.mkdir(os.path.join(val_dir, "annotation")) if not os.path.exists(
-            os.path.join(val_dir, "annotation")
-        ) else None
+    os.makedirs(os.path.join(val_dir, "image"), exist_ok=True)
+    os.makedirs(os.path.join(val_dir, "annotation"), exist_ok=True)
 
-    if not os.path.exists(test_dir):
-        os.mkdir(test_dir)
-        os.mkdir(os.path.join(test_dir, "image")) if not os.path.exists(os.path.join(test_dir, "image")) else None
-        os.mkdir(os.path.join(test_dir, "annotation")) if not os.path.exists(
-            os.path.join(test_dir, "annotation")
-        ) else None
+    os.makedirs(os.path.join(test_dir, "image"), exist_ok=True)
+    os.makedirs(os.path.join(test_dir, "annotation"), exist_ok=True)
 
-    train_image_dir = os.path.join(cityecpse_path, "leftImg8bit_trainvaltest", "leftImg8bit", "train")
-    val_image_dir = os.path.join(cityecpse_path, "leftImg8bit_trainvaltest", "leftImg8bit", "val")
-    test_image_dir = os.path.join(cityecpse_path, "leftImg8bit_trainvaltest", "leftImg8bit", "test")
+
+    train_image_dir = os.path.join(cityscapes_path, "leftImg8bit_trainvaltest", "leftImg8bit", "train")
+    val_image_dir = os.path.join(cityscapes_path, "leftImg8bit_trainvaltest", "leftImg8bit", "val")
+    test_image_dir = os.path.join(cityscapes_path, "leftImg8bit_trainvaltest", "leftImg8bit", "test")
 
     train_image_list, train_annotation_list = [], []
     val_image_list, val_annotation_list = [], []
@@ -1019,8 +1008,8 @@ def Cityscapse2YOLO(cityecpse_path, yolo_data_path, img_size=512, ratio=0.5):
 def YOLO2Cityscapse(
     image_dir: str,
     annotation_color_dir: str,
-    cityecapse_image_dir: str,
-    cityecapse_annotation_dir: str,
+    cityscapes_image_dir: str,
+    cityscapes_annotation_dir: str,
     type="color",
     overlap=0.5,
 ):
@@ -1093,7 +1082,7 @@ def YOLO2Cityscapse(
             n_image[up : up + h, left : left + w, :] = cv2.resize(patch, (w, h))
 
         n_image = cv2.resize(n_image, dsize=(2048, 1024))
-        cv2.imwrite(os.path.join(cityecapse_image_dir, main_name + ".png"), n_image)
+        cv2.imwrite(os.path.join(cityscapes_image_dir, main_name + ".png"), n_image)
 
     annotation_list, lefts, ups = [], [], []
     for root, dirs, files in os.walk(annotation_color_dir):
@@ -1135,6 +1124,6 @@ def YOLO2Cityscapse(
                 image_r, image_g, image_b = n_image[:, :, 2], n_image[:, :, 1], n_image[:, :, 0]
                 m = (image_r == color[0]) * (image_g == color[1]) * (image_b == color[2])
                 annotation_labelId[m] = cls
-            cv2.imwrite(os.path.join(cityecapse_annotation_dir, main_name + "_labelIds.png"), annotation_labelId)
+            cv2.imwrite(os.path.join(cityscapes_annotation_dir, main_name + "_labelIds.png"), annotation_labelId)
         else:
-            cv2.imwrite(os.path.join(cityecapse_annotation_dir, main_name + "_color.png"), n_image)
+            cv2.imwrite(os.path.join(cityscapes_annotation_dir, main_name + "_color.png"), n_image)

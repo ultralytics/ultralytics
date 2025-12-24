@@ -1168,7 +1168,7 @@ class RepVGGDW(torch.nn.Module):
 
 
 class CIB(nn.Module):
-    """Conditional Identity Block (CIB) module.
+    """Compact Inverted Block (CIB) module.
 
     Args:
         c1 (int): Number of input channels.
@@ -1220,7 +1220,7 @@ class C2fCIB(C2f):
         c2 (int): Number of output channels.
         n (int, optional): Number of CIB modules to stack. Defaults to 1.
         shortcut (bool, optional): Whether to use shortcut connection. Defaults to False.
-        lk (bool, optional): Whether to use local key connection. Defaults to False.
+        lk (bool, optional): Whether to use large kernel. Defaults to False.
         g (int, optional): Number of groups for grouped convolution. Defaults to 1.
         e (float, optional): Expansion ratio for CIB modules. Defaults to 0.5.
     """
@@ -1235,7 +1235,7 @@ class C2fCIB(C2f):
             c2 (int): Output channels.
             n (int): Number of CIB modules.
             shortcut (bool): Whether to use shortcut connection.
-            lk (bool): Whether to use local key connection.
+            lk (bool): Whether to use large kernel.
             g (int): Groups for convolutions.
             e (float): Expansion ratio.
         """

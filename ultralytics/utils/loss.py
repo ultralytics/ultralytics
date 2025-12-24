@@ -139,12 +139,12 @@ class BboxLoss(nn.Module):
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
-            target_ltrb = target_ltrb * stride
-            target_ltrb[..., 0::2] /= imgsz[1]
-            target_ltrb[..., 1::2] /= imgsz[0]
-            pred_dist = pred_dist * stride
-            pred_dist[..., 0::2] /= imgsz[1]
-            pred_dist[..., 1::2] /= imgsz[0]
+            # target_ltrb = target_ltrb * stride
+            # target_ltrb[..., 0::2] /= imgsz[1]
+            # target_ltrb[..., 1::2] /= imgsz[0]
+            # pred_dist = pred_dist * stride
+            # pred_dist[..., 0::2] /= imgsz[1]
+            # pred_dist[..., 1::2] /= imgsz[0]
             loss_dfl = (
                 F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
             )
@@ -244,7 +244,7 @@ class v8DetectionLoss:
             stride=self.stride.tolist(),
             stride_ratio=self.hyp.stride_ratio,
             topk2=tal_topk2,
-            hungarian=self.hyp.hungarian
+            hungarian=self.hyp.hungarian,
         )
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
@@ -282,7 +282,7 @@ class v8DetectionLoss:
             preds["boxes"].permute(0, 2, 1).contiguous(),
             preds["scores"].permute(0, 2, 1).contiguous(),
         )
-        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
+        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5, normalize=True)
 
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
@@ -295,14 +295,14 @@ class v8DetectionLoss:
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
         # Pboxes
-        pred_distri *= imgsz[[1, 0, 1, 0]]
-        pred_distri /= stride_tensor
+        # pred_distri *= imgsz[[1, 0, 1, 0]]
+        # pred_distri /= stride_tensor
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
-            (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
-            anchor_points * stride_tensor,
+            (pred_bboxes.detach() * imgsz[[1, 0, 1, 0]]).type(gt_bboxes.dtype),
+            anchor_points * imgsz[[1, 0]],
             gt_labels,
             gt_bboxes,
             mask_gt,
@@ -319,7 +319,7 @@ class v8DetectionLoss:
                 pred_distri,
                 pred_bboxes,
                 anchor_points,
-                target_bboxes / stride_tensor,
+                target_bboxes / imgsz[[1, 0, 1, 0]],
                 target_scores,
                 target_scores_sum,
                 fg_mask,

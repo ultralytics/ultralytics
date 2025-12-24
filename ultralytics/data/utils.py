@@ -845,7 +845,7 @@ def verify_image_and_mask(args: tuple) -> list:
 
         # verify mask
         mask = cv2.imread(lb_file)
-        if (mask is None):
+        if mask is None:
             nm = 1
             raise FileNotFoundError("Mask file is not existed")
 

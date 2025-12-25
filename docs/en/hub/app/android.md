@@ -64,7 +64,7 @@ Different delegates are available on Android devices to accelerate model inferen
 
 1. **CPU**: The default option, with reasonable performance on most devices.
 2. **GPU**: Utilizes the device's GPU for faster inference. It can provide a significant performance boost on devices with powerful GPUs.
-3. **Hexagon/QNN**: Leverages Qualcomm's Hexagon DSP for faster and more efficient processing. This option is available on devices with Qualcomm Snapdragon processors. Ultralytics now supports automatic QNN (Qualcomm Neural Network) acceleration, which uses the Hexagon Tensor Processor (HTP) backend for optimized inference performance.
+3. **Hexagon/QNN**: Leverages Qualcomm's Hexagon DSP for faster and more efficient processing. This option is available on devices with Qualcomm Snapdragon processors. Ultralytics now supports automatic QNN (Qualcomm Neural Network) acceleration, which uses the Hexagon Tensor Processor (HTP) backend for optimized inference performance on supported devices.
 4. **NNAPI**: The Android [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) API (NNAPI) serves as an abstraction layer for running ML models on Android devices. NNAPI can utilize various hardware accelerators, such as CPU, GPU, and dedicated AI chips (e.g., Google's Edge TPU, or the Pixel Neural Core).
 
 Here's a table showing the primary vendors, their product lines, popular devices, and supported delegates:

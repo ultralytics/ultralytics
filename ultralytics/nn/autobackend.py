@@ -473,7 +473,18 @@ class AutoBackend(nn.Module):
                 device = "cpu"  # Required, otherwise PyTorch will try to use the wrong device
             else:  # TFLite
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
+
+                qnn_delegate_path = "libQnnTFLiteDelegate.so"
+                qnn_supported = Path("/usr/lib/"+qnn_delegate_path).is_file()
+                qnn_delegate = None
+                if qnn_supported:
+                    qnn_delegate = load_delegate(qnn_delegate_path,  {'backend_type': 'htp'})
+                
                 interpreter = Interpreter(model_path=w)  # load TFLite model
+                if qnn_delegate is not None:
+                    interpreter.modify_graph_with_delegate(qnn_delegate)
+                
+                
             interpreter.allocate_tensors()  # allocate
             input_details = interpreter.get_input_details()  # inputs
             output_details = interpreter.get_output_details()  # outputs

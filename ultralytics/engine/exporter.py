@@ -387,6 +387,8 @@ class Exporter:
                 self.args.int8 = True
             if model.task not in {"detect"}:
                 raise ValueError("Axelera export only supported for detection models.")
+            if not self.args.data:
+                self.args.data = "coco128.yaml"  # Axelera default to coco128.yaml
         if imx:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
@@ -454,10 +456,7 @@ class Exporter:
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
         if self.args.int8 and not self.args.data:
-            if axelera:
-                self.args.data = "coco128.yaml"  # Axelera default to coco128.yaml
-            else:
-                self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
+            self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
@@ -1141,7 +1140,7 @@ class Exporter:
         from axelera import compiler
         from axelera.compiler import CompilerConfig
 
-        self.args.opset = 17
+        self.args.opset = 17  # hardcode opset for Axelera
         onnx_path = self.export_onnx()
         model_name = Path(onnx_path).stem
         export_path = Path(f"{model_name}_axelera_model")

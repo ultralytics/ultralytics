@@ -4,10 +4,10 @@
 """
 KITTI to YOLO 3D Stereo Format Converter
 
-This script converts KITTI dataset to YOLO 3D stereo format with 22 values per object:
-class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y X Y Z
+This script converts KITTI dataset to YOLO 3D stereo format with 26 values per object:
+class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y truncated occluded
 
-All coordinates normalized to [0, 1], dimensions in meters, alpha in radians.
+All coordinates normalized to [0, 1], dimensions in meters, rot_y in radians.
 Uses 3DOP split strategy: training set split into train (0-3711) and val (3712+).
 
 Usage:
@@ -369,11 +369,15 @@ class KITTIToYOLO3D:
             center_x_r, width_r = self.compute_right_box(X, Y, Z, h, w, l, rotation_y, calib, left_box_2d=[x1, y1, x2, y2])
 
             center_x_r_norm = center_x_r / self.img_width
+            center_y_r_norm = center_y_l_norm  # Same y due to epipolar constraint
             width_r_norm = width_r / self.img_width
+            height_r_norm = height_l_norm  # Same height due to epipolar constraint
 
             # Clamp to valid range
             center_x_r_norm = np.clip(center_x_r_norm, 0, 1)
+            center_y_r_norm = np.clip(center_y_r_norm, 0, 1)
             width_r_norm = np.clip(width_r_norm, 0, 1)
+            height_r_norm = np.clip(height_r_norm, 0, 1)
 
             # ===== Bottom 4 Vertices (normalized) =====
             vertices_2d = self.compute_bottom_vertices(X, Y, Z, h, w, l, rotation_y, calib)
@@ -386,18 +390,25 @@ class KITTIToYOLO3D:
                 vertices_norm.extend([v_x, v_y])
 
             # ===== Build YOLO label line =====
-            # Format: 22 values total
-            # class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y X Y Z
+            # Format: 26 values total
+            # class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y truncated occluded
             label = f"{class_id} "
+            # Left box (4 values)
             label += f"{center_x_l_norm:.6f} {center_y_l_norm:.6f} "
             label += f"{width_l_norm:.6f} {height_l_norm:.6f} "
-            label += f"{center_x_r_norm:.6f} {width_r_norm:.6f} "
-            label += f"{h:.2f} {w:.2f} {l:.2f} "
-            label += f"{alpha:.4f} "
+            # Right box (4 values)
+            label += f"{center_x_r_norm:.6f} {center_y_r_norm:.6f} "
+            label += f"{width_r_norm:.6f} {height_r_norm:.6f} "
+            # Dimensions: length, width, height (3 values)
+            label += f"{l:.2f} {w:.2f} {h:.2f} "
+            # 3D location: X, Y, Z (3 values)
+            label += f"{X:.4f} {Y:.4f} {Z:.4f} "
+            # Rotation around Y-axis (1 value)
+            label += f"{rotation_y:.4f} "
+            # Bottom 4 vertices (8 values)
             label += " ".join([f"{v:.6f}" for v in vertices_norm])
-            # Add original KITTI 3D location (X, Y, Z in camera coordinates)
-            # Y is bottom center in KITTI, so we store as-is (will convert to geometric center when parsing)
-            label += f" {X:.4f} {Y:.4f} {Z:.4f}"
+            # Truncation and occlusion (2 values)
+            label += f" {truncated:.6f} {occluded}"
 
             yolo_labels.append(label)
 

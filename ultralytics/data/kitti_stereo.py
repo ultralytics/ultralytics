@@ -196,7 +196,7 @@ class KITTIStereoDataset:
     def _parse_labels(self, label_file: Path) -> list[dict[str, Any]]:
         """Parse YOLO 3D format label file.
 
-        Format (24 values): class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y
+        Format (26 values): class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y truncated occluded
 
         Args:
             label_file (Path): Path to label file.
@@ -211,9 +211,11 @@ class KITTIStereoDataset:
                 - rotation_y: Global rotation around Y-axis in radians
                 - vertices: Bottom 4 vertices of 3D box [v1_x, v1_y, v2_x, v2_y, v3_x, v3_y, v4_x, v4_y] (normalized)
                 - location_3d: 3D location [X, Y, Z] in camera coordinates (Y is bottom center)
+                - truncated: Truncation level [0.0, 1.0] (float)
+                - occluded: Occlusion level [0, 1, 2, 3] (int)
         """
         if not label_file.exists():
-            return []
+            raise FileNotFoundError(f"Label file not found: {label_file}")
 
         labels = []
         with open(label_file, "r") as f:
@@ -223,9 +225,9 @@ class KITTIStereoDataset:
                     continue
 
                 parts = line.split()
-                # 24-value format: class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y
-                if len(parts) != 24:
-                    LOGGER.warning(f"Invalid label format in {label_file}: expected 24 values, got {len(parts)}")
+                # 26-value format: class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y truncated occluded
+                if len(parts) != 26:
+                    LOGGER.warning(f"Invalid label format in {label_file}: expected 26 values, got {len(parts)}")
                     continue
                 
                 
@@ -233,7 +235,7 @@ class KITTIStereoDataset:
                 original_class_id = int(values[0])
                 class_id = original_class_id
 
-                # 24-value format structure:
+                # 26-value format structure:
                 # 0: class
                 # 1-4: x_l y_l w_l h_l (left box)
                 # 5-8: x_r y_r w_r h_r (right box)
@@ -241,6 +243,8 @@ class KITTIStereoDataset:
                 # 12-14: loc_x loc_y loc_z (3D location)
                 # 15: rot_y (rotation around Y-axis)
                 # 16-23: kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y (vertices)
+                # 24: truncated (float, [0.0, 1.0])
+                # 25: occluded (int, [0, 1, 2, 3])
                 
                 label_dict = {
                     "class_id": class_id,
@@ -273,6 +277,8 @@ class KITTIStereoDataset:
                         "y": values[13],  # loc_y (bottom center Y in KITTI coords)
                         "z": values[14],  # loc_z (depth)
                     },
+                    "truncated": float(values[24]),  # truncated (float, [0.0, 1.0])
+                    "occluded": int(values[25]),  # occluded (int, [0, 1, 2, 3])
                 }
                 
                 # Assertions

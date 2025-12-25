@@ -57,6 +57,31 @@ class Box3D:
         if not (0.0 <= self.confidence <= 1.0):
             raise ValueError(f"Confidence must be in [0, 1], got {self.confidence}")
 
+        # Validate bbox_2d (xyxy format) if provided
+        if self.bbox_2d is not None:
+            if not isinstance(self.bbox_2d, (tuple, list)) or len(self.bbox_2d) != 4:
+                raise ValueError(
+                    f"bbox_2d must be a tuple/list of 4 numbers (xyxy format: x_min, y_min, x_max, y_max), "
+                    f"got {self.bbox_2d}"
+                )
+            x_min, y_min, x_max, y_max = self.bbox_2d
+            if not all(isinstance(v, (int, float)) for v in self.bbox_2d):
+                raise ValueError(
+                    f"bbox_2d must contain numeric values, got {self.bbox_2d}"
+                )
+            if x_min >= x_max:
+                raise ValueError(
+                    f"bbox_2d xyxy format: x_min ({x_min}) must be < x_max ({x_max})"
+                )
+            if y_min >= y_max:
+                raise ValueError(
+                    f"bbox_2d xyxy format: y_min ({y_min}) must be < y_max ({y_max})"
+                )
+            if x_min < 0 or y_min < 0:
+                raise ValueError(
+                    f"bbox_2d xyxy format: x_min and y_min must be non-negative, got ({x_min}, {y_min})"
+                )
+
     def to_dict(self) -> dict[str, Any]:
         """Convert 3D box to dictionary.
 

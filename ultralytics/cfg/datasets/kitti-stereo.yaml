@@ -4,10 +4,11 @@
 # Documentation: https://www.cvlibs.net/datasets/kitti/
 # Example usage: yolo train data=kitti-stereo.yaml
 #
-# Label format (22 values): class x_l y_l w_l h_l x_r w_r dim_h dim_w dim_l alpha v1_x v1_y v2_x v2_y v3_x v3_y v4_x v4_y X Y Z
-# Where: x_l,y_l,w_l,h_l = left 2D box (normalized), x_r,w_r = right 2D box center_x and width (normalized)
-#        dim_h,dim_w,dim_l = 3D dimensions (meters), alpha = observation angle (radians)
-#        v1-v4 = 4 bottom vertices (normalized), X,Y,Z = 3D location (camera coords)
+# Label format (26 values): class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y truncated occluded
+# Where: x_l,y_l,w_l,h_l = left 2D box (normalized), x_r,y_r,w_r,h_r = right 2D box (normalized)
+#        dim_l,dim_w,dim_h = 3D dimensions (length, width, height in meters)
+#        loc_x,loc_y,loc_z = 3D location (camera coords), rot_y = rotation around Y-axis (radians)
+#        kp1-kp4 = 4 bottom vertices (normalized)
 # parent
 # ├── ultralytics
 # └── datasets

@@ -33,10 +33,10 @@ dataset_root/
 
 Each label file (`.txt`) corresponds to one stereo image pair and contains one line per object. The format supports multiple versions:
 
-### Current Format (24 values)
+### Current Format (26 values)
 
 ```
-class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y
+class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y kp1_x kp1_y kp2_x kp2_y kp3_x kp3_y kp4_x kp4_y truncated occluded
 ```
 
 ## Field Descriptions
@@ -77,10 +77,19 @@ class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y 
 - **Description**: Projected 2D coordinates of the 4 bottom corners of the 3D bounding box in normalized image coordinates [0, 1]
 
 ### 3D Location (camera coordinates, meters)
-- **loc_x** (24-value) or **X** (22-value): X-coordinate in camera frame (right = positive)
-- **loc_y** (24-value) or **Y** (22-value): Y-coordinate in camera frame (down = positive, bottom center of box)
-- **loc_z** (24-value) or **Z** (22-value): Z-coordinate in camera frame (forward = positive, depth)
+- **loc_x** : X-coordinate in camera frame (right = positive)
+- **loc_y** : Y-coordinate in camera frame (down = positive, bottom center of box)
+- **loc_z** : Z-coordinate in camera frame (forward = positive, depth)
 - **Note**: Y is at bottom center of box (KITTI convention). The geometric center is computed during parsing. Only present in 22+ value formats.
+
+### Truncation and Occlusion (26-value format only)
+- **truncated**: Float value [0.0, 1.0] indicating truncation level where 0 = fully visible (object fully within image boundaries) and 1 = fully truncated (object leaving image boundaries)
+- **occluded**: Integer value indicating occlusion level:
+  - `0` = fully visible
+  - `1` = partly occluded
+  - `2` = largely occluded
+  - `3` = unknown/fully occluded
+- **Note**: These attributes are only present in the 26-value format. They are extracted from the original KITTI labels and preserved in the YOLO format for training and evaluation purposes.
 
 ## Coordinate Systems
 
@@ -98,13 +107,13 @@ class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h loc_x loc_y loc_z rot_y 
 
 ## Example Label Lines
 
-### 24-Value Format Example
+### 26-Value Format Example
 
 ```
-0 0.739219 0.739093 0.256667 0.505120 0.681871 0.880345 0.318305 0.489783 3.580000 1.710000 1.490000 2.810000 1.600000 7.590000 -1.610000 0.610886 0.486533 0.867552 0.486533 0.867552 0.991653 0.610886 0.991653
+0 0.739219 0.739093 0.256667 0.505120 0.681871 0.880345 0.318305 0.489783 3.580000 1.710000 1.490000 2.810000 1.600000 7.590000 -1.610000 0.610886 0.486533 0.867552 0.486533 0.867552 0.991653 0.610886 0.991653 0.000000 0
 ```
 
-Breaking down this 24-value example:
+Breaking down this 26-value example:
 - **Class**: `0` (Car)
 - **Left box**: center=(0.739219, 0.739093), size=(0.256667, 0.505120)
 - **Right box**: center=(0.681871, 0.880345), size=(0.318305, 0.489783)
@@ -112,6 +121,8 @@ Breaking down this 24-value example:
 - **3D location**: X=2.81m, Y=1.6m, Z=7.59m
 - **Rotation_y**: -1.61 radians (global yaw)
 - **Vertices**: 4 bottom corners (kp1-kp4) in normalized coordinates
+- **Truncated**: 0.000000 (fully visible, not truncated)
+- **Occluded**: 0 (fully visible, not occluded)
 
 ### 22-Value Format Example
 
@@ -203,19 +214,24 @@ To train a stereo 3D detection model:
 3. **Box Center**: The Y coordinate represents the bottom center of the 3D box, not the geometric center. The geometric center is computed during parsing.
 
 4. **Right Image Box**: 
-   - **24-value format**: Stores full right box (x_r, y_r, w_r, h_r)
+   - **26-value format**: Stores full right box (x_r, y_r, w_r, h_r)
    - **22-value format**: Only stores x_r and w_r (y and h are same as left due to epipolar constraint)
 
 5. **Dimensions Order**: 
-   - **24-value format**: `dim_l dim_w dim_h` (length, width, height)
+   - **26-value format**: `dim_l dim_w dim_h` (length, width, height)
    - **22-value format**: `dim_h dim_w dim_l` (height, width, length)
    - Both are converted to (length, width, height) in Box3D objects
 
 6. **Orientation Representation**:
-   - **24-value format**: Direct `rotation_y` (global yaw) in radians
+   - **26-value format**: Direct `rotation_y` (global yaw) in radians
    - **22-value format**: `alpha` (observation angle) converted to `rotation_y` using: `rotation_y = alpha + arctan(x/z)`
 
-7. **Format Compatibility**: The parser in `kitti_stereo.py` currently expects the 22-value format. If you have 24-value labels, you may need to adjust the parsing logic or convert to 22-value format.
+7. **Truncation and Occlusion**:
+   - **26-value format**: Includes `truncated` (float [0.0, 1.0]) and `occluded` (int [0-3]) at the end
+   - These values are extracted from original KITTI labels and preserved for training/evaluation
+   - Truncated indicates if object leaves image boundaries, occluded indicates visibility level
+
+8. **Format Compatibility**: The parser in `kitti_stereo.py` expects the 26-value format. If you have older 24-value labels, you will need to reconvert them using the updated conversion script.
 
 ## Conversion from KITTI Format
 
@@ -236,5 +252,5 @@ The script will:
 - Include all classes by default, or only specified classes if `--filter-classes` is used
 - Available classes: Car, Van, Truck, Pedestrian, Person_sitting, Cyclist, Tram, Misc
 
-This will create the proper directory structure and convert all annotations to the YOLO 3D format (22 values per object). When using `--filter-classes`, class IDs will be remapped to be consecutive starting from 0.
+This will create the proper directory structure and convert all annotations to the YOLO 3D format (26 values per object, including truncated and occluded attributes). When using `--filter-classes`, class IDs will be remapped to be consecutive starting from 0.
 

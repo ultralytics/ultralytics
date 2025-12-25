@@ -475,21 +475,13 @@ class AutoBackend(nn.Module):
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
 
                 qnn_delegate = None
-                    qnn_delegate_path = Path("/usr/lib") / "libQnnTFLiteDelegate.so"
-                    if qnn_delegate_path.is_file():
-                        try:
-                            qnn_delegate = load_delegate(str(qnn_delegate_path), {"backend_type": "htp"})
-                        except Exception as e:
-                            LOGGER.warning(f"QNN delegate found but failed to load: {e}")
+                qnn_delegate_path = Path("/usr/lib") / "libQnnTFLiteDelegate.so"
+                if qnn_delegate_path.is_file():
+                    try:
+                        qnn_delegate = load_delegate(str(qnn_delegate_path), {"backend_type": "htp"})
+                    except Exception as e:
+                        LOGGER.warning(f"QNN delegate found but failed to load: {e}")
 
-                    interpreter = Interpreter(model_path=w)  # load TFLite model
-                    if qnn_delegate is not None:
-                        interpreter.modify_graph_with_delegate(qnn_delegate)
-                qnn_supported = Path("/usr/lib/"+qnn_delegate_path).is_file()
-                qnn_delegate = None
-                if qnn_supported:
-                    qnn_delegate = load_delegate(qnn_delegate_path,  {'backend_type': 'htp'})
-                
                 interpreter = Interpreter(model_path=w)  # load TFLite model
                 if qnn_delegate is not None:
                     interpreter.modify_graph_with_delegate(qnn_delegate)

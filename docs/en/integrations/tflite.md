@@ -57,7 +57,7 @@ Ultralytics now supports automatic hardware acceleration for TFLite models on Qu
 - **HTP Backend**: Uses the Hexagon Tensor Processor (HTP) backend for optimized performance
 - **Seamless Integration**: No code changes required - QNN acceleration is applied automatically when available
 
-This feature provides significant performance improvements on Qualcomm-powered devices including many Android smartphones, tablets, and embedded systems with Snapdragon processors. The QNN integration works transparently with your existing TFLite models exported from YOLO11.
+This feature provides significant performance improvements on Qualcomm-powered devices including many Android smartphones, tablets, embedded Linux systems (such as Qualcomm-based single-board computers), and other embedded systems with Snapdragon processors. The QNN integration works transparently with your existing TFLite models exported from YOLO11.
 
 ## Export to TFLite: Converting Your YOLO11 Model
 

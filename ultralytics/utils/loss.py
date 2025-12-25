@@ -810,8 +810,8 @@ class TVPDetectLoss:
 
         vp_feats = self._get_vp_features(feats)
         vp_loss = self.vp_criterion(vp_feats, batch)
-        box_loss = vp_loss[0][1]
-        return box_loss, vp_loss[1]
+        cls_loss = vp_loss[0][1]
+        return cls_loss, vp_loss[1]
 
     def _get_vp_features(self, feats: list[torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""

@@ -101,9 +101,11 @@ The following table lists the default search space parameters for hyperparameter
 | `perspective`     | `float` | `(0.0, 0.001)` | Random perspective augmentation range. Simulates different viewing angles                                                  |
 | `flipud`          | `float` | `(0.0, 1.0)`   | Probability of vertical image flip during training. Useful for overhead/aerial imagery                                     |
 | `fliplr`          | `float` | `(0.0, 1.0)`   | Probability of horizontal image flip. Helps model become invariant to object direction                                     |
+| `bgr`             | `float` | `(0.0, 1.0)`   | Probability of using BGR augmentation, which swaps color channels. Can help with color invariance                          |
 | `mosaic`          | `float` | `(0.0, 1.0)`   | Probability of using mosaic augmentation, which combines 4 images. Especially useful for small object detection            |
 | `mixup`           | `float` | `(0.0, 1.0)`   | Probability of using mixup augmentation, which blends two images. Can improve model robustness                             |
 | `copy_paste`      | `float` | `(0.0, 1.0)`   | Probability of using copy-paste augmentation. Helps improve instance segmentation performance                              |
+| `close_mosaic`    | `int`   | `(0, 10)`      | Disables mosaic in the last N epochs to stabilize training before completion.                                              |
 
 ## Custom Search Space Example
 

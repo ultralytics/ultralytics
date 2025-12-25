@@ -48,6 +48,17 @@ TFLite offers various on-device deployment options for machine learning models, 
 
 - **Deploying with Microcontrollers**: TFLite models can also be deployed on microcontrollers and other devices with only a few kilobytes of memory. The core runtime just fits in 16 KB on an Arm Cortex M3 and can run many basic models. It doesn't require operating system support, any standard C or C++ libraries, or dynamic memory allocation.
 
+## Hardware Acceleration with QNN
+
+Ultralytics now supports automatic hardware acceleration for TFLite models on Qualcomm devices through the Qualcomm Neural Network (QNN) SDK. When running TFLite inference on devices with Qualcomm Snapdragon processors, the framework automatically detects and utilizes the QNN delegate if available, enabling:
+
+- **Hexagon DSP Acceleration**: Leverages Qualcomm's Hexagon Digital Signal Processor (DSP) for efficient neural network processing
+- **Automatic Detection**: The QNN delegate is automatically detected and loaded when `libQnnTFLiteDelegate.so` is present in `/usr/lib/`
+- **HTP Backend**: Uses the Hexagon Tensor Processor (HTP) backend for optimized performance
+- **Seamless Integration**: No code changes required - QNN acceleration is applied automatically when available
+
+This feature provides significant performance improvements on Qualcomm-powered devices including many Android smartphones, tablets, embedded Linux systems (such as Qualcomm-based single-board computers), and other embedded systems with Snapdragon processors. The QNN integration works transparently with your existing TFLite models exported from YOLO11.
+
 ## Export to TFLite: Converting Your YOLO11 Model
 
 You can improve on-device model execution efficiency and optimize performance by converting your models to TFLite format.
@@ -196,6 +207,10 @@ TensorFlow Lite provides extensive platform compatibility, allowing you to deplo
 - **Microcontrollers**: Suitable for MCUs with constrained resources.
 
 For more information on deployment options, see our detailed [deployment guide](#deploying-exported-yolo11-tflite-models).
+
+### Does Ultralytics support hardware acceleration on Qualcomm devices?
+
+Yes, Ultralytics automatically detects and enables QNN (Qualcomm Neural Network) hardware acceleration on Qualcomm Snapdragon devices when running TFLite inference. The QNN delegate leverages the Hexagon Tensor Processor (HTP) for optimized performance on Qualcomm hardware. This acceleration is automatically applied when the QNN delegate library (`libQnnTFLiteDelegate.so`) is available on the system, requiring no additional code changes. For more details, see the [Hardware Acceleration with QNN](#hardware-acceleration-with-qnn) section.
 
 ### How do I troubleshoot common issues during YOLO11 model export to TFLite?
 

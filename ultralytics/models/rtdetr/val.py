@@ -8,7 +8,7 @@ from typing import Any
 import torch
 
 from ultralytics.data import YOLODataset
-from ultralytics.data.augment import Compose, Format, v8_transforms
+from ultralytics.data.augment import Compose, Format, rtdetr_transforms, v8_transforms
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr, ops
 
@@ -49,6 +49,7 @@ class RTDETRDataset(YOLODataset):
             data (dict | None): Dictionary containing dataset information. If None, default values will be used.
             **kwargs (Any): Additional keyword arguments passed to the parent YOLODataset class.
         """
+        self.rtdetr_augmentations = kwargs["hyp"].rtdetr_augmentations
         super().__init__(*args, data=data, **kwargs)
 
     def load_image(self, i, rect_mode=False):
@@ -82,7 +83,10 @@ class RTDETRDataset(YOLODataset):
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
-            transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
+            if self.rtdetr_augmentations:
+                transforms = rtdetr_transforms(self, self.imgsz, hyp, stretch=True)
+            else:
+                transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
         else:
             # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
             transforms = Compose([])

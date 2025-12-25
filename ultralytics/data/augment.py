@@ -2368,6 +2368,115 @@ class RandomLoadText:
         return labels
 
 
+class _RTDETRToTvTensors:
+    def __init__(self) -> None:
+        from torchvision import tv_tensors
+
+        self._tv_tensors = tv_tensors
+
+    @staticmethod
+    def _build_labels_tensor(cls: np.ndarray) -> torch.Tensor:
+        return torch.as_tensor(cls.reshape(-1), dtype=torch.int64) if len(cls) else torch.zeros((0,), dtype=torch.int64)
+
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
+        img = labels.pop("img")
+        instances = labels.pop("instances", None)
+        cls = labels.pop("cls")
+
+        h, w = img.shape[:2]
+        if img.ndim == 3 and img.shape[2] == 3:
+            image = Image.fromarray(img[..., ::-1].copy())  # BGR -> RGB
+        else:
+            image = Image.fromarray(img.copy())
+
+        if instances is None or len(instances) == 0:
+            boxes_tensor = torch.zeros((0, 4), dtype=torch.float32)
+        else:
+            instances.convert_bbox(format="xyxy")
+            instances.denormalize(w, h)
+            boxes_tensor = torch.as_tensor(instances.bboxes, dtype=torch.float32)
+
+        labels["image"] = image
+        labels["boxes"] = self._tv_tensors.BoundingBoxes(boxes_tensor, format="XYXY", canvas_size=(h, w))
+        labels["labels"] = self._build_labels_tensor(cls)
+        return labels
+
+
+class _RTDETRFromTvTensors:
+    @staticmethod
+    def _to_numpy_image(image: Any) -> np.ndarray:
+        if isinstance(image, torch.Tensor):
+            img = image.detach().cpu()
+            if img.ndim == 3:
+                img = img.permute(1, 2, 0)
+            img = img.numpy()
+        else:
+            img = np.asarray(image)
+        if np.issubdtype(img.dtype, np.floating):
+            if img.size and img.max() <= 1.0:
+                img = img * 255.0
+            img = img.round().astype(np.uint8)
+        return img
+
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
+        image = labels.pop("image")
+        boxes_t = labels.pop("boxes", None)
+        labels_t = labels.pop("labels", None)
+
+        img_np = self._to_numpy_image(image)
+        if img_np.ndim == 3 and img_np.shape[2] == 3:
+            img_np = img_np[..., ::-1]  # RGB -> BGR
+
+        if boxes_t is None or boxes_t.numel() == 0:
+            bboxes = np.zeros((0, 4), dtype=np.float32)
+            cls_out = np.zeros((0, 1), dtype=np.int64)
+        else:
+            bboxes = boxes_t.to(torch.float32).cpu().numpy()
+            if labels_t is None:
+                cls_out = np.zeros((len(bboxes), 1), dtype=np.int64)
+            else:
+                cls_out = labels_t.to(torch.int64).view(-1, 1).cpu().numpy()
+
+        labels["img"] = img_np
+        labels["instances"] = Instances(bboxes=bboxes, bbox_format="xyxy", normalized=False)
+        labels["cls"] = cls_out
+        labels["resized_shape"] = img_np.shape[:2]
+        return labels
+
+
+class _RTDETRRandomIoUCrop:
+    def __init__(self, p: float = 1.0, **kwargs) -> None:
+        import torchvision.transforms.v2 as T
+
+        self.p = p
+        self.transform = T.RandomIoUCrop(**kwargs)
+
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
+        if torch.rand(1) >= self.p:
+            return labels
+        return self.transform(labels)
+
+
+def rtdetr_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bool = False):
+    """Apply a series of image transformations for RT-DETR training."""
+    import torchvision.transforms.v2 as T
+
+    fliplr = getattr(hyp, "fliplr", 0.5)
+    return Compose(
+        [
+            _RTDETRToTvTensors(),
+            T.RandomPhotometricDistort(p=0.5),
+            T.RandomZoomOut(fill=0),
+            _RTDETRRandomIoUCrop(p=0.8),
+            T.SanitizeBoundingBoxes(min_size=1),
+            T.RandomHorizontalFlip(p=fliplr),
+            T.Resize(size=[imgsz, imgsz]),
+            T.SanitizeBoundingBoxes(min_size=1),
+            _RTDETRFromTvTensors(),
+        ]
+    )  # transforms
+
+
 def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bool = False):
     """Apply a series of image transformations for training.
 

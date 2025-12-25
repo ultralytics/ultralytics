@@ -138,7 +138,7 @@ class Detect(nn.Module):
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
         # boxes = 1.5 * boxes - 0.25  # (-0.25, 1.25)
-        boxes = 0.7 * boxes - 0.10  # (-0.10, 0.6)
+        # boxes = 0.7 * boxes - 0.10  # (-0.10, 0.6)
         scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
         return dict(boxes=boxes, scores=scores, feats=x)
 

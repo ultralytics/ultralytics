@@ -22,7 +22,7 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segm
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Use Meta Segment Anything 3 with Ultralytics | Text-Prompt Segmentation on Images & Videos 🚀
+  <strong>Watch:</strong> How to Use Meta Segment Anything 3 with Ultralytics | Text-Prompt Segmentation on Images & Videos
 </p>
 
 SAM 3 is now fully integrated into the `ultralytics` package, providing native support for concept segmentation with text prompts, image exemplar prompts, and video tracking capabilities.

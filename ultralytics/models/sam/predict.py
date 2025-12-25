@@ -2595,8 +2595,13 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         assert predictor.dataset is not None
         assert predictor.dataset.mode == "video"
         num_frames = predictor.dataset.frames
-        inference_state = {"num_frames": num_frames, "tracker_inference_states": [], "tracker_metadata": {},
-                           "text_prompt": None, "per_frame_geometric_prompt": [None] * num_frames}
+        inference_state = {
+            "num_frames": num_frames,
+            "tracker_inference_states": [],
+            "tracker_metadata": {},
+            "text_prompt": None,
+            "per_frame_geometric_prompt": [None] * num_frames,
+        }
         predictor.inference_state = inference_state
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] | None = None, *args, **kwargs):

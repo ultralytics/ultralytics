@@ -798,7 +798,8 @@ class BNContrastiveHead(nn.Module):
         del self.logit_scale
         self.forward = self.forward_fuse
 
-    def forward_fuse(self, x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
+    @staticmethod
+    def forward_fuse(x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
         """Passes input out unchanged."""
         return x
 
@@ -1736,7 +1737,8 @@ class ABlock(nn.Module):
 
         self.apply(self._init_weights)
 
-    def _init_weights(self, m: nn.Module):
+    @staticmethod
+    def _init_weights(m: nn.Module):
         """Initialize weights using a truncated normal distribution.
 
         Args:

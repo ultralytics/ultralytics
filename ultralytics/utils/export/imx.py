@@ -116,7 +116,7 @@ def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tenso
     kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
     x = Detect.forward(self, x)
     pred_kpt = self.kpts_decode(bs, kpt)
-    return (*x, pred_kpt.permute(0, 2, 1))
+    return *x, pred_kpt.permute(0, 2, 1)
 
 
 def segment_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -125,7 +125,7 @@ def segment_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Te
     bs = p.shape[0]  # batch size
     mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
     x = Detect.forward(self, x)
-    return (*x, mc.transpose(1, 2), p)
+    return *x, mc.transpose(1, 2), p
 
 
 class NMSWrapper(torch.nn.Module):

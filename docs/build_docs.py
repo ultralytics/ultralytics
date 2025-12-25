@@ -455,7 +455,7 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
 
 
 def render_jinja_macros() -> None:
-    """Render MiniJinja macros in markdown files before building with MkDocs."""
+    """Render MiniJinja macros in Markdown files before building with MkDocs."""
     mkdocs_yml = DOCS.parent / "mkdocs.yml"
     default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
 

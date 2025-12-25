@@ -2164,7 +2164,8 @@ class LoadVisualPrompt:
         """
         self.scale_factor = scale_factor
 
-    def make_mask(self, boxes: torch.Tensor, h: int, w: int) -> torch.Tensor:
+    @staticmethod
+    def make_mask(boxes: torch.Tensor, h: int, w: int) -> torch.Tensor:
         """Create binary masks from bounding boxes.
 
         Args:

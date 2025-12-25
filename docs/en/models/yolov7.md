@@ -97,14 +97,14 @@ As of the time of writing, Ultralytics only supports ONNX and TensorRT inference
 
 To use YOLOv7 ONNX model with Ultralytics:
 
-0. (Optional) Install Ultralytics and export an ONNX model to have the required dependencies automatically installed:
+1. (Optional) Install Ultralytics and export an ONNX model to have the required dependencies automatically installed:
 
     ```bash
     pip install ultralytics
     yolo export model=yolo11n.pt format=onnx
     ```
 
-1. Export the desired YOLOv7 model by using the exporter in the [YOLOv7 repo](https://github.com/WongKinYiu/yolov7):
+2. Export the desired YOLOv7 model by using the exporter in the [YOLOv7 repo](https://github.com/WongKinYiu/yolov7):
 
     ```bash
     git clone https://github.com/WongKinYiu/yolov7
@@ -112,7 +112,7 @@ To use YOLOv7 ONNX model with Ultralytics:
     python export.py --weights yolov7-tiny.pt --grid --end2end --simplify --topk-all 100 --iou-thres 0.65 --conf-thres 0.35 --img-size 640 640 --max-wh 640
     ```
 
-2. Modify the ONNX model graph to be compatible with Ultralytics using the following script:
+3. Modify the ONNX model graph to be compatible with Ultralytics using the following script:
 
     ```python
     import numpy as np
@@ -309,7 +309,7 @@ To use YOLOv7 ONNX model with Ultralytics:
     onnx.save(model, "yolov7-ultralytics.onnx")
     ```
 
-3. You can then load the modified ONNX model and run inference with it in Ultralytics normally:
+4. You can then load the modified ONNX model and run inference with it in Ultralytics normally:
 
     ```python
     from ultralytics import ASSETS, YOLO

@@ -179,7 +179,8 @@ class TQDM:
             num /= self.unit_divisor
         return f"{num:.1f}PB"
 
-    def _format_time(self, seconds: float) -> str:
+    @staticmethod
+    def _format_time(seconds: float) -> str:
         """Format time duration."""
         if seconds < 60:
             return f"{seconds:.1f}s"

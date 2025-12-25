@@ -475,10 +475,17 @@ class AutoBackend(nn.Module):
                 LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
 
                 qnn_delegate = None
-                qnn_delegate_path = Path("/usr/lib") / "libQnnTFLiteDelegate.so"
-                if qnn_delegate_path.is_file():
+                delegate_name = "libQnnTFLiteDelegate.so"
+                qnn_delegate_candidates = [
+                    Path("/usr/lib") / delegate_name,
+                    Path("/usr/lib64") / delegate_name,
+                    Path("/usr/lib/aarch64-linux-gnu") / delegate_name,
+                    Path("/usr/lib/x86_64-linux-gnu") / delegate_name,
+                ]
+                qnn_delegate_candidates = [candidate for candidate in qnn_delegate_candidates if candidate.is_file()]
+                if qnn_delegate_candidates:
                     try:
-                        qnn_delegate = load_delegate(str(qnn_delegate_path), {"backend_type": "htp"})
+                        qnn_delegate = load_delegate(str(qnn_delegate_candidates[0]), {"backend_type": "htp"})
                     except Exception as e:
                         LOGGER.warning(f"QNN delegate found but failed to load: {e}")
 

@@ -53,7 +53,7 @@ TFLite offers various on-device deployment options for machine learning models, 
 Ultralytics now supports automatic hardware acceleration for TFLite models on Qualcomm devices through the Qualcomm Neural Network (QNN) SDK. When running TFLite inference on devices with Qualcomm Snapdragon processors, the framework automatically detects and utilizes the QNN delegate if available, enabling:
 
 - **Hexagon DSP Acceleration**: Leverages Qualcomm's Hexagon Digital Signal Processor (DSP) for efficient neural network processing
-- **Automatic Detection**: The QNN delegate is automatically detected and loaded when `libQnnTFLiteDelegate.so` is present in `/usr/lib/`
+- **Automatic Detection**: The QNN delegate is automatically detected and loaded when `libQnnTFLiteDelegate.so` is present in common directories(`/usr/lib`, `/usr/lib64`, `/usr/lib/aarch64-linux-gnu`, and `/usr/lib/x86_64-linux-gnu`)
 - **HTP Backend**: Uses the Hexagon Tensor Processor (HTP) backend for optimized performance
 - **Seamless Integration**: No code changes required - QNN acceleration is applied automatically when available
 

@@ -779,7 +779,7 @@ class Exporter:
                 data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
                 assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
                 im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0-255 to 0.0-1.0
-                return np.expand_dims(im, 0) if im.ndim == 3 else im
+                return im[None] if im.ndim == 3 else im
 
             # Generate calibration data for integer quantization
             ignored_scope = None
@@ -1150,7 +1150,7 @@ class Exporter:
             data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
             assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
             im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
-            return np.expand_dims(im, 0) if im.ndim == 3 else im
+            return im[None] if im.ndim == 3 else im
 
         if "C2PSA" in self.model.__str__():  # YOLO11
             config = CompilerConfig(

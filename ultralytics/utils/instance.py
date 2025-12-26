@@ -7,8 +7,9 @@ from itertools import repeat
 from numbers import Number
 
 import numpy as np
+import cv2
 
-from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
+from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh, xyxyxyxy2xywhr
 
 
 def _ntuple(n):
@@ -234,6 +235,17 @@ class Instances:
         self.keypoints = keypoints
         self.normalized = normalized
         self.segments = segments
+        self.obbData = obbData
+
+    def initOrientedBoundingBoxes(self, w, h):
+        if not len(self.segments):
+            self.obbData = np.zeros((0, 5), dtype=np.float32)
+            return
+        # get the segment data in denormalized data
+        denormSegments = self.segments * np.array([w, h], dtype=np.float32).reshape((1, 1, 2))
+        self.obbData = xyxyxyxy2xywhr(denormSegments)
+        # Convert back to degrees
+        self.obbData[:, 4] = self.obbData[:, 4]*180.0/np.pi
 
     def convert_bbox(self, format: str) -> None:
         """Convert bounding box format.
@@ -331,12 +343,20 @@ class Instances:
         keypoints = self.keypoints[index] if self.keypoints is not None else None
         bboxes = self.bboxes[index]
         bbox_format = self._bboxes.format
+        obbData = None
+        if not self.obbData is None:
+            if len(self.obbData):
+                obbData = self.obbData[index]
+            else:
+                obbData = self.obbData
+
         return Instances(
             bboxes=bboxes,
             segments=segments,
             keypoints=keypoints,
             bbox_format=bbox_format,
             normalized=self.normalized,
+            obbData=obbData
         )
 
     def flipud(self, h: int) -> None:
@@ -412,6 +432,9 @@ class Instances:
                 self.segments = self.segments[good]
             if self.keypoints is not None:
                 self.keypoints = self.keypoints[good]
+            if self.obbData is not None:
+                self.obbData = self.obbData[good]
+
         return good
 
     def update(self, bboxes: np.ndarray, segments: np.ndarray = None, keypoints: np.ndarray = None):
@@ -476,7 +499,11 @@ class Instances:
         else:
             cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
-        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
+        obbBoxes = None
+        if not instances_list[0].obbData is None:
+            obbBoxes = np.concatenate([b.obbData for b in instances_list],axis=axis)
+        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized, obbBoxes)
+
 
     @property
     def bboxes(self) -> np.ndarray:

@@ -668,6 +668,8 @@ class ModelEMA:
 
             msd = unwrap_model(model).state_dict()  # model state_dict
             for k, v in self.ema.state_dict().items():
+                if "teacher" in k:  # skip teacher parameters
+                    continue
                 if v.dtype.is_floating_point:  # true for FP16 and FP32
                     v *= d
                     v += (1 - d) * msd[k].detach()

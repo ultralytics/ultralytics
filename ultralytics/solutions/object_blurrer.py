@@ -37,7 +37,7 @@ class ObjectBlurrer(BaseSolution):
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class and for configuration including:
-                - blur_ratio (float): Intensity of the blur effect (0.1-1.0, default=0.5).
+            - blur_ratio (float): Intensity of the blur effect (0.1-1.0, default=0.5).
         """
         super().__init__(**kwargs)
         blur_ratio = self.CFG["blur_ratio"]

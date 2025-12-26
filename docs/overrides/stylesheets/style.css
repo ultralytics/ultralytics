@@ -192,14 +192,17 @@ div.highlight {
 .banner-wrapper > .banner-content-wrapper > img {
   height: 30px;
 }
-.banner-wrapper > .banner-content-wrapper > .vc-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-}
-.banner-wrapper > .banner-content-wrapper > .vc-wrapper > img {
-  height: 20px;
+.banner-wrapper > .banner-content-wrapper > .shenzhen-text {
+  font-size: 20px;
+  font-weight: 600;
+
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(90deg, rgba(221, 214, 215, 0.8), rgba(255, 213, 226, 0.8), rgba(255, 241, 203, 0.8));
+  background-size: cover;
+  background-position: center;
+  background-clip: text;
+  -webkit-background-clip: text;
 }
 @media screen and (min-width: 768px) {
   .md-banner {

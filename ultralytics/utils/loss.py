@@ -258,7 +258,7 @@ class v8DetectionLoss:
 
         # Targets
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
-        targets = self.preprocess(targets, batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+        targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
@@ -285,14 +285,9 @@ class v8DetectionLoss:
 
         # Bbox loss
         if fg_mask.sum():
+            target_bboxes /= stride_tensor
             loss[0], loss[2] = self.bbox_loss(
-                pred_distri,
-                pred_bboxes,
-                anchor_points,
-                target_bboxes / stride_tensor,
-                target_scores,
-                target_scores_sum,
-                fg_mask,
+                pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask
             )
 
         loss[0] *= self.hyp.box  # box gain
@@ -332,7 +327,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         try:
             batch_idx = batch["batch_idx"].view(-1, 1)
             targets = torch.cat((batch_idx, batch["cls"].view(-1, 1), batch["bboxes"]), 1)
-            targets = self.preprocess(targets, batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+            targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
             gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
             mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
         except RuntimeError as e:
@@ -391,7 +386,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         loss[2] *= self.hyp.cls  # cls gain
         loss[3] *= self.hyp.dfl  # dfl gain
 
-        return loss * batch_size, loss.detach()  # loss(box, seg, cls, dfl)
+        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     @staticmethod
     def single_mask_loss(
@@ -517,7 +512,7 @@ class v8PoseLoss(v8DetectionLoss):
         batch_size = pred_scores.shape[0]
         batch_idx = batch["batch_idx"].view(-1, 1)
         targets = torch.cat((batch_idx, batch["cls"].view(-1, 1), batch["bboxes"]), 1)
-        targets = self.preprocess(targets, batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+        targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
@@ -704,7 +699,7 @@ class v8OBBLoss(v8DetectionLoss):
             targets = torch.cat((batch_idx, batch["cls"].view(-1, 1), batch["bboxes"].view(-1, 5)), 1)
             rw, rh = targets[:, 4] * imgsz[0].item(), targets[:, 5] * imgsz[1].item()
             targets = targets[(rw >= 2) & (rh >= 2)]  # filter rboxes of tiny size to stabilize training
-            targets = self.preprocess(targets, batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+            targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
             gt_labels, gt_bboxes = targets.split((1, 5), 2)  # cls, xywhr
             mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
         except RuntimeError as e:
@@ -847,3 +842,28 @@ class TVPSegmentLoss(TVPDetectLoss):
         vp_loss = self.vp_criterion((vp_feats, pred_masks, proto), batch)
         cls_loss = vp_loss[0][2]
         return cls_loss, vp_loss[1]
+
+
+class SemSegLoss:
+    """Criterion for computing training losses for semantic segmentation task."""
+
+    def __init__(self, model, alpha=0.3, beta=0.7):
+        """Initialize Segment Loss and criteria using the provided model."""
+        self.device = next(model.parameters()).device  # get model device
+        self.ce_0 = nn.CrossEntropyLoss(reduction="none")
+        self.ce_1 = nn.CrossEntropyLoss(reduction="none")
+        self.alpha = alpha
+        self.beta = beta
+
+    def __call__(self, preds, batch):
+        """Calculate the loss for semantic segmentation."""
+        gt_mask = batch["masks"].to(self.device)
+        batch_size = preds[0].shape[0]  # batch size, number of masks, mask height, mask width
+        if isinstance(preds, torch.Tensor):
+            loss = self.ce_1(preds, gt_mask).mean()
+        else:
+            loss_0 = self.ce_0(preds[0], gt_mask).mean()
+            loss_1 = self.ce_1(preds[1], gt_mask).mean()
+            loss = self.alpha * loss_0 + self.beta * loss_1
+
+        return loss * batch_size, loss.detach()  # loss

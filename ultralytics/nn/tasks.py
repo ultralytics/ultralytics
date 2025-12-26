@@ -63,6 +63,7 @@ from ultralytics.nn.modules import (
     RTDETRDecoder,
     SCDown,
     Segment,
+    SemanticSegment,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
@@ -73,6 +74,7 @@ from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
+    SemSegLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
@@ -1231,6 +1233,18 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
         return self.criterion(preds, batch)
 
 
+class SemanticModel(DetectionModel):
+    """YOLOv8 segmentation model."""
+
+    def __init__(self, cfg="yolov8n-seg.yaml", ch=3, nc=None, verbose=True):
+        """Initialize YOLOv8 segmentation model with given config and parameters."""
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the SegmentationModel."""
+        return SemSegLoss(self)
+
+
 class Ensemble(torch.nn.ModuleList):
     """Ensemble of models.
 
@@ -1574,7 +1588,8 @@ def parse_model(d, ch, verbose=True):
             A2C2f,
         }
     )
-    for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
+    modules = d["backbone"] + d["head"] if "backbone" in d.keys() else d["encoder"] + d["neck"] + d["decoder"]
+    for i, (f, n, m, args) in enumerate(modules):  # from, number, module, args
         m = (
             getattr(torch.nn, m[3:])
             if "nn." in m
@@ -1624,10 +1639,21 @@ def parse_model(d, ch, verbose=True):
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in frozenset(
-            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
+            {
+                Detect,
+                WorldDetect,
+                YOLOEDetect,
+                Segment,
+                YOLOESegment,
+                Pose,
+                OBB,
+                ImagePoolingAttn,
+                v10Detect,
+                SemanticSegment,
+            }
         ):
             args.append([ch[x] for x in f])
-            if m is Segment or m is YOLOESegment:
+            if m is Segment or m is YOLOESegment or m is SemanticSegment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
@@ -1660,11 +1686,12 @@ def parse_model(d, ch, verbose=True):
     return torch.nn.Sequential(*layers), sorted(save)
 
 
-def yaml_model_load(path):
+def yaml_model_load(path, with_model_scale=True):
     """Load a YOLOv8 model from a YAML file.
 
     Args:
         path (str | Path): Path to the YAML file.
+        with_model_scale (bool): is model define with scale
 
     Returns:
         (dict): Model dictionary.
@@ -1678,7 +1705,7 @@ def yaml_model_load(path):
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = YAML.load(yaml_file)  # model dict
-    d["scale"] = guess_model_scale(path)
+    d["scale"] = guess_model_scale(path) if (not with_model_scale) or ("scale" not in d.keys()) else d["scale"]
     d["yaml_file"] = str(path)
     return d
 

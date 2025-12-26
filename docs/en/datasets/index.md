@@ -97,6 +97,12 @@ Multi-object tracking is a computer vision technique that involves detecting and
 - [Argoverse](detect/argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations for multi-object tracking tasks.
 - [VisDrone](detect/visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 
+## [Semantic Segment (Semseg)](semseg/cityscapes.md)
+
+is a fundamental task in the field of computer vision that aims to classify every pixel in an image, thereby achieving a precise partition of different semantic categories within a scene. Unlike object detection, which only identifies the locations and categories of objects, semantic segmentation provides a finer-grained understanding of visual content and enabling models to know not only what is present, but also where it is.
+
+- [Cityscapes](semseg/cityscapes.md): A popular semantic segment imagery dataset from 50 cities, which has high quality pixel-level annotations of 5,000 images.
+
 ## Contribute New Datasets
 
 Contributing a new dataset involves several steps to ensure that it aligns well with the existing infrastructure. Below are the necessary steps:

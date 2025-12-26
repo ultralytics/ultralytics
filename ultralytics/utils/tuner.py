@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 from __future__ import annotations
 
 from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_cfg, get_save_dir

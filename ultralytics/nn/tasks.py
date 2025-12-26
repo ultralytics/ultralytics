@@ -139,7 +139,7 @@ class BaseModel(torch.nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.predict(x, *args, **kwargs)
 
-    def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
+    def predict(self, x, profile=False, visualize=False, augment=False, embed=None, return_feats=False):
         """
         Perform a forward pass through the network.
 
@@ -149,6 +149,7 @@ class BaseModel(torch.nn.Module):
             visualize (bool): Save the feature maps of the model if True.
             augment (bool): Augment image during prediction.
             embed (list, optional): A list of feature vectors/embeddings to return.
+            return_feats (bool): Whether to return all the feature maps in a list.
 
         Returns:
             (torch.Tensor): The last output of the model.
@@ -157,7 +158,7 @@ class BaseModel(torch.nn.Module):
             return self._predict_augment(x)
         return self._predict_once(x, profile, visualize, embed)
 
-    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+    def _predict_once(self, x, profile=False, visualize=False, embed=None, return_feats=False):
         """
         Perform a forward pass through the network.
 
@@ -166,6 +167,7 @@ class BaseModel(torch.nn.Module):
             profile (bool): Print the computation time of each layer if True.
             visualize (bool): Save the feature maps of the model if True.
             embed (list, optional): A list of feature vectors/embeddings to return.
+            return_feats (bool): Whether to return all the feature maps in a list.
 
         Returns:
             (torch.Tensor): The last output of the model.
@@ -186,7 +188,7 @@ class BaseModel(torch.nn.Module):
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max_idx:
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
-        return x
+        return (x, y) if return_feats else x
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""

@@ -62,4 +62,6 @@ class PosePredictor(DetectionPredictor):
         # Scale keypoints coordinates to match the original image dimensions
         pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, orig_img.shape)
         result.update(keypoints=pred_kpts)
+        if hasattr(self.model, "kpt_names") and self.model.kpt_names is not None:
+            result.kpt_names = self.model.kpt_names
         return result

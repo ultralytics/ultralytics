@@ -183,3 +183,15 @@ Understanding and configuring export arguments is crucial for optimizing model p
 - **`int8:`** Enables INT8 quantization, highly beneficial for [edge AI](https://www.ultralytics.com/blog/deploying-computer-vision-applications-on-edge-ai-devices) deployments.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.
+
+### What do the output tensors represent in exported YOLO models?
+
+When you export a YOLO model to formats like ONNX or TensorRT, the output tensor structure depends on the model task. Understanding these outputs is important for custom inference implementations.
+
+For **detection models** (e.g., `yolo11n.pt`), the output is a single tensor with shape `(batch_size, 84, 8400)` where 84 represents 4 bounding box coordinates plus 80 class scores (for COCO), and 8400 is the number of detection anchors.
+
+For **segmentation models** (e.g., `yolo11n-seg.pt`), you'll get two outputs: the first tensor `(batch_size, 116, 8400)` contains bounding boxes, class scores, and 32 mask coefficients, while the second tensor `(batch_size, 32, 160, 160)` contains the mask prototypes that combine with the coefficients to generate instance masks.
+
+For **pose models** (e.g., `yolo11n-pose.pt`), the output tensor has shape `(batch_size, 56, 8400)` where 56 includes bounding boxes, class scores, and keypoint coordinates for body pose estimation.
+
+The examples in the [ONNX inference directory](https://github.com/ultralytics/ultralytics/tree/main/examples) demonstrate how to process these outputs for each model type.

@@ -19,6 +19,7 @@ save_period: -1 # (int) save checkpoint every N epochs; disabled if < 1
 cache: False # (bool | str) cache images in RAM (True/'ram') or on 'disk' to speed dataloading; False disables
 device: # (int | str | list) device: 0 or [0,1,2,3] for CUDA, 'cpu'/'mps', or -1/[-1,-1] to auto-select idle GPUs
 workers: 8 # (int) dataloader workers (per RANK if DDP)
+sync_bn: False # (bool) use SyncBatchNorm, only for DDP training
 project: # (str, optional) project name for results root
 name: # (str, optional) experiment name; results in 'project/name'
 exist_ok: False # (bool) overwrite existing 'project/name' if True
@@ -33,6 +34,7 @@ cos_lr: False # (bool) cosine learning rate scheduler
 close_mosaic: 10 # (int) disable mosaic augmentation for final N epochs (0 to keep enabled)
 resume: False # (bool) resume training from last checkpoint in the run dir
 amp: True # (bool) Automatic Mixed Precision (AMP) training; True runs AMP capability check
+clip_grad_norm: 10.0 # (float) max gradient norm for clipping; 0.0 disables
 fraction: 1.0 # (float) fraction of training dataset to use (1.0 = all)
 profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int) or specific layer indices (list)
@@ -93,6 +95,7 @@ nms: False # (bool) fuse NMS into exported model when backend supports; if True,
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)
 lrf: 0.01 # (float) final LR fraction; final LR = lr0 * lrf
+backbone_lr_ratio: 1.0 # (float) learning rate ratio for backbone (1.0 means lr0 for backbone)
 momentum: 0.937 # (float) SGD momentum or Adam beta1
 weight_decay: 0.0005 # (float) weight decay (L2 regularization)
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)

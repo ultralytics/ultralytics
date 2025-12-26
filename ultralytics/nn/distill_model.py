@@ -1,15 +1,22 @@
 from ultralytics.utils.torch_utils import smart_inference_mode
 import torch.nn.functional as F
+from torch import nn
+import torch
 
 
 class DistillationModel:
     def __init__(self, teacher_model, student_model, feats_idx, temperature=1.0, alpha=0.5):
+        assert isinstance(feats_idx, int), "Currently only single feature index is supported."
         self.teacher_model = teacher_model
+        # get the feature dimensions
+        with smart_inference_mode():
+            teacher_dim = teacher_model(torch.zeros(1, 3, 256, 256), embed=[feats_idx]).shape[1]
+            student_dim = student_model(torch.zeros(1, 3, 256, 256), embed=[feats_idx]).shape[1]
         self.student_model = student_model
         self.temperature = temperature
         self.alpha = alpha
-        assert isinstance(feats_idx, int), "Currently only single feature index is supported."
         self.feats_idx = feats_idx
+        self.projector = nn.Linear(student_dim, teacher_dim) if student_dim != teacher_dim else nn.Identity()
 
     # def distillation_loss(self, student_logits, teacher_logits, true_labels):
     #     # Soft targets from teacher
@@ -37,9 +44,13 @@ class DistillationModel:
         with smart_inference_mode():
             teacher_feats = self.teacher_model(batch["img"], return_feats=True)[1][self.feats_idx]
         preds, feats = self.student_model(batch["img"], return_feats=True)
-        student_feats = feats[self.feats_idx]
+        student_feats = self.projector(feats[self.feats_idx])
 
-        regular_loss = self.student_model.loss(batch, preds)
-        # TODO: placeholder for distillation loss
-        distill_loss = F.mse_loss(student_feats, teacher_feats.detach())
-        return regular_loss + distill_loss
+        student_feats = F.normalize(student_feats.flatten(2).permute(0, 2, 1), p=2, dim=-1)
+        teacher_feats = F.normalize(teacher_feats.flatten(2).permute(0, 2, 1), p=2, dim=-1)
+
+        cos_sim = F.cosine_similarity(student_feats, student_feats, dim=-1)
+        loss_distill = (1 - cos_sim).mean()
+
+        regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
+        return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill.detach()])

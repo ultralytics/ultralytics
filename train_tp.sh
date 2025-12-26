@@ -201,6 +201,42 @@ mkdir -p $project_dir
 ###############################################default args #######################################
 
 
+
+project_dir=runs/yoloe26s_tp_ultra6
+weight_path="yolo26s-objv1.pt"
+trainer="YOLOETrainerFromScratch"
+model=26s
+epo=30
+close_mosaic=2
+batch_size=256
+ag=True
+
+clip_weight_name="mobileclip2:b" # mobileclip2b
+ptw="object365v1" 
+
+
+optimizer="MuSGD"
+lr0=0.00125
+lrf=0.5
+momentum=0.9
+weight_decay=0.0005
+o2m=0.1
+
+copy_paste=0.15
+mixup=0.05
+
+exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_tp
+device=4,5
+
+# python commnand:
+# python ultralytics/finetune_yoloe26.py     --model_version 26s     --lr0 0.00125     --lrf 0.5     --optimizer MuSGD     --momentum 0.9     --weight_decay 0.0005     --epochs 30     --close_mosaic 2     --batch 256     --device 4,5     --project runs/yoloe26s_tp_ultra6     --name mobileclip2:b_26s_bs256_epo30_close2_opMuSGD_o2m0.1_tp     --clip_weight_name mobileclip2:b     --ag True     --o2m 0.1     --weight_path yolo26s-objv1.pt     --trainer YOLOETrainerFromScratch     --copy_paste 0.15     --mixup 0.05 
+# using the following command to check the log:
+# tail -f -n 50 ./runs/20251225_194107.log
+# Current screen: 117435.cuda45
+# DDP: debug command /home/louis/miniconda3/envs/ultra/bin/python -m torch.distributed.run --nproc_per_node 2 --master_port 40189 /home/louis/.config/Ultralytics/DDP/_temp_otflsday140155903977664.py
+###############################################default args #######################################
+
+
 # project_dir=runs/yoloe26l_tp_ultra6
 # weight_path="yolo26l-objv1.pt"
 # trainer="YOLOETrainerFromScratch"
@@ -232,31 +268,33 @@ mkdir -p $project_dir
 ###############################################default args #######################################
 
 
-project_dir=runs/yoloe26l_tp_ultra6
-weight_path="yolo26l-objv1.pt"
-trainer="YOLOETrainerFromScratch"
-model=26l
-epo=30
-close_mosaic=2
-batch_size=128
-ag=True
+# project_dir=runs/yoloe26l_tp_ultra6
+# weight_path="yolo26l-objv1.pt"
+# trainer="YOLOETrainerFromScratch"
+# model=26l
+# epo=30
+# close_mosaic=2
+# batch_size=128
+# ag=True
 
-clip_weight_name="mobileclip2:b" # mobileclip2b
-ptw="object365v1" 
+# clip_weight_name="mobileclip2:b" # mobileclip2b
+# ptw="object365v1" 
 
 
-optimizer="MuSGD"
-lr0=0.00125
-lrf=0.5
-momentum=0.9
-weight_decay=0.0005
-o2m=0.1
+# optimizer="MuSGD"
+# lr0=0.00125
+# lrf=0.5
+# momentum=0.9
+# weight_decay=0.0005
+# o2m=0.1
 
-copy_paste=0.5
-mixup=0.15
+# copy_paste=0.5
+# mixup=0.15
 
-exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_cp50_mix15_tp
-device=6,7
+# exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_cp50_mix15_tp
+# device=6,7
+
+
 # using the following command to check the log:
 # tail -f -n 50 ./runs/20251221_110801.log
 # Current screen: 393113.train3
@@ -266,9 +304,8 @@ device=6,7
 
 
 pyfile=ultralytics/finetune_yoloe26.py
-
 timestamp=$(date +%Y%m%d_%H%M%S)
-nohup python $pyfile \
+command="python $pyfile \
     --model_version $model \
     --lr0 $lr0 \
     --lrf $lrf \
@@ -287,15 +324,19 @@ nohup python $pyfile \
     --weight_path $weight_path \
     --trainer $trainer \
     --copy_paste $copy_paste \
-    --mixup $mixup \
-    > "./runs/$timestamp.log" 2>&1 &
+    --mixup $mixup "
+
+nohup $command > "./runs/$timestamp.log" 2>&1 &
 
 ##############################################################################################
+echo "# python commnand:"
+echo "# $command"
+
 echo "# using the following command to check the log:"
 echo "# tail -f -n 50 ./runs/$timestamp.log"
 current_screen=$(echo $STY) # get the current screen 
 echo "# Current screen: $current_screen"
-echo "# exp name: $exp_name"
+
 
 
 

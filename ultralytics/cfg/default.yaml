@@ -109,6 +109,7 @@ hungarian: False
 end2end: True
 distill_model: # (str, optional) path to teacher model for knowledge distillation
 distill_layer: # (int) the layer index to distill features from
+dis: 0.2 # (float) distillation loss weight
 box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain
 dfl: 1.5 # (float) distribution focal loss gain

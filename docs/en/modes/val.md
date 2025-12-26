@@ -116,12 +116,19 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
         # Customize validation settings
         metrics = model.val(data="coco8.yaml", imgsz=640, batch=16, conf=0.25, iou=0.6, device="0")
+
+        # Validation on multiple GPUs
+        metrics = model.val(data="coco8.yaml", imgsz=640, batch=16, conf=0.25, iou=0.6, device=[0, 1])
         ```
 
     === "CLI"
 
         ```bash
+        # Single-GPU validation
         yolo val model=yolo11n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
+
+        # Multi-GPU validation
+        yolo val model=yolo11n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0,1
         ```
 
 !!! tip "Export ConfusionMatrix"

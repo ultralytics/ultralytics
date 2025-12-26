@@ -66,7 +66,7 @@ class DistillationModel(nn.Module):
         student_feats = F.normalize(student_feats.flatten(2).permute(0, 2, 1), p=2, dim=-1)
         teacher_feats = F.normalize(teacher_feats.flatten(2).permute(0, 2, 1), p=2, dim=-1)
 
-        cos_sim = F.cosine_similarity(student_feats, student_feats, dim=-1)
+        cos_sim = F.cosine_similarity(student_feats, teacher_feats, dim=-1)
         loss_distill = (1 - cos_sim).mean()[None]
 
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)

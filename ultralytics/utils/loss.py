@@ -796,7 +796,6 @@ class TVPDetectLoss:
         """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
         self.vp_criterion = v8DetectionLoss(model)
         # NOTE: store following info as it's changeable in __call__
-        self.ori_nc = self.vp_criterion.nc
         self.ori_no = self.vp_criterion.no
         self.ori_reg_max = self.vp_criterion.reg_max
 
@@ -804,7 +803,7 @@ class TVPDetectLoss:
         """Calculate the loss for text-visual prompt detection."""
         feats = preds[1] if isinstance(preds, tuple) else preds
 
-        if self.ori_reg_max * 4 + self.ori_nc == feats[0].shape[1]:
+        if self.ori_reg_max * 4 == feats[0].shape[1]:
             loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()
 
@@ -815,7 +814,7 @@ class TVPDetectLoss:
 
     def _get_vp_features(self, feats: list[torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""
-        vnc = feats[0].shape[1] - self.ori_reg_max * 4 - self.ori_nc
+        vnc = feats[0].shape[1] - self.ori_reg_max * 4
 
         self.vp_criterion.nc = vnc
         self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
@@ -823,7 +822,7 @@ class TVPDetectLoss:
 
         return [
             torch.cat((box, cls_vp), dim=1)
-            for box, _, cls_vp in [xi.split((self.ori_reg_max * 4, self.ori_nc, vnc), dim=1) for xi in feats]
+            for box, cls_vp in [xi.split((self.ori_reg_max * 4, vnc), dim=1) for xi in feats]
         ]
 
 
@@ -839,7 +838,7 @@ class TVPSegmentLoss(TVPDetectLoss):
         """Calculate the loss for text-visual prompt segmentation."""
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
 
-        if self.ori_reg_max * 4 + self.ori_nc == feats[0].shape[1]:
+        if self.ori_reg_max * 4 == feats[0].shape[1]:
             loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()
 

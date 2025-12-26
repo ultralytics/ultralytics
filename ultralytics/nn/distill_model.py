@@ -1,20 +1,26 @@
 from ultralytics.utils.torch_utils import smart_inference_mode
+from .tasks import load_checkpoint
 import torch.nn.functional as F
 from torch import nn
 import torch
 
 
 class DistillationModel:
-    def __init__(self, teacher_model, student_model, feats_idx, temperature=1.0, alpha=0.5):
+    """Distillation model wrapper.
+    Currently only supports feature-based distillation with a single feature index on YOLO models.
+    """
+
+    def __init__(self, teacher_model: str | nn.Module, student_model: nn.Module, feats_idx: int):
+        """Initialize DistillationModel."""
         assert isinstance(feats_idx, int), "Currently only single feature index is supported."
+        if isinstance(teacher_model, str):
+            teacher_model = load_checkpoint(teacher_model)[0]
         self.teacher_model = teacher_model
         # get the feature dimensions
         with smart_inference_mode():
             teacher_dim = teacher_model(torch.zeros(1, 3, 256, 256), embed=[feats_idx]).shape[1]
             student_dim = student_model(torch.zeros(1, 3, 256, 256), embed=[feats_idx]).shape[1]
         self.student_model = student_model
-        self.temperature = temperature
-        self.alpha = alpha
         self.feats_idx = feats_idx
         self.projector = nn.Linear(student_dim, teacher_dim) if student_dim != teacher_dim else nn.Identity()
 

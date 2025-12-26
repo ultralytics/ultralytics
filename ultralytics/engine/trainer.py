@@ -61,6 +61,7 @@ from ultralytics.utils.torch_utils import (
     unset_deterministic,
     unwrap_model,
 )
+from ultralytics.nn.distill_model import DistillationModel
 
 
 class BaseTrainer:
@@ -673,6 +674,13 @@ class BaseTrainer:
             (dict): Optional checkpoint to resume training from.
         """
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
+            # TODO
+            if self.args.distill_model is not None:
+                self.model = DistillationModel(
+                    student_model=self.model,
+                    teacher_model=self.args.distill_model,
+                    feats_idx=self.args.distill_layer,
+                )
             return
 
         cfg, weights = self.model, None
@@ -683,6 +691,12 @@ class BaseTrainer:
         elif isinstance(self.args.pretrained, (str, Path)):
             weights, _ = load_checkpoint(self.args.pretrained)
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
+        if self.args.distill_model is not None:
+            self.model = DistillationModel(
+                student_model=self.model,
+                teacher_model=self.args.distill_model,
+                feats_idx=self.args.distill_layer,
+            )
         return ckpt
 
     def optimizer_step(self):

@@ -188,10 +188,10 @@ For deployment on specific hardware platforms, consider using specialized export
 
 When you export a YOLO model to formats like ONNX or TensorRT, the output tensor structure depends on the model task. Understanding these outputs is important for custom inference implementations.
 
-For **detection models** (e.g., `yolo11n.pt`), the output is a single tensor with shape `(batch_size, 84, 8400)` where 84 represents 4 bounding box coordinates plus 80 class scores (for COCO), and 8400 is the number of detection anchors.
+For **detection models** (e.g., `yolo11n.pt`), the output is typically a single tensor shaped like `(batch_size, 4 + num_classes, num_predictions)` where the channels represent box coordinates plus per-class scores, and `num_predictions` depends on the export input resolution (and can be dynamic).
 
-For **segmentation models** (e.g., `yolo11n-seg.pt`), you'll get two outputs: the first tensor `(batch_size, 116, 8400)` contains bounding boxes, class scores, and 32 mask coefficients, while the second tensor `(batch_size, 32, 160, 160)` contains the mask prototypes that combine with the coefficients to generate instance masks.
+For **segmentation models** (e.g., `yolo11n-seg.pt`), you'll typically get two outputs: the first tensor shaped like `(batch_size, 4 + num_classes + mask_dim, num_predictions)` (boxes, class scores, and mask coefficients), and the second tensor shaped like `(batch_size, mask_dim, proto_h, proto_w)` containing mask prototypes used with the coefficients to generate instance masks. Sizes depend on the export input resolution (and can be dynamic).
 
-For **pose models** (e.g., `yolo11n-pose.pt`), the output tensor has shape `(batch_size, 56, 8400)` where 56 includes bounding boxes, class scores, and keypoint coordinates for body pose estimation.
+For **pose models** (e.g., `yolo11n-pose.pt`), the output tensor is typically shaped like `(batch_size, 4 + num_classes + keypoint_dims, num_predictions)`, where `keypoint_dims` depends on the pose specification (e.g., number of keypoints and whether confidence is included), and `num_predictions` depends on the export input resolution (and can be dynamic).
 
-The examples in the [ONNX inference directory](https://github.com/ultralytics/ultralytics/tree/main/examples) demonstrate how to process these outputs for each model type.
+The examples in the [ONNX inference examples](https://github.com/ultralytics/ultralytics/tree/main/examples) demonstrate how to process these outputs for each model type.

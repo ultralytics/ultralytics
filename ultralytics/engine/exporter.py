@@ -172,7 +172,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8"]],
+        ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -387,6 +387,8 @@ class Exporter:
                 self.args.int8 = True
             if model.task not in {"detect"}:
                 raise ValueError("Axelera export only supported for detection models.")
+            if not self.args.data:
+                self.args.data = "coco128.yaml"  # Axelera default to coco128.yaml
         if imx:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
@@ -454,10 +456,7 @@ class Exporter:
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
         if self.args.int8 and not self.args.data:
-            if axelera:
-                self.args.data = "coco128.yaml"  # Axelera default to coco128.yaml
-            else:
-                self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
+            self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
@@ -775,13 +774,6 @@ class Exporter:
             check_requirements("nncf>=2.14.0")
             import nncf
 
-            def transform_fn(data_item) -> np.ndarray:
-                """Quantization transform function."""
-                data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
-                assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-                im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0-255 to 0.0-1.0
-                return np.expand_dims(im, 0) if im.ndim == 3 else im
-
             # Generate calibration data for integer quantization
             ignored_scope = None
             if isinstance(self.model.model[-1], Detect):
@@ -800,7 +792,7 @@ class Exporter:
 
             quantized_ov_model = nncf.quantize(
                 model=ov_model,
-                calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn),
+                calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), self._transform_fn),
                 preset=nncf.QuantizationPreset.MIXED,
                 ignored_scope=ignored_scope,
             )
@@ -1141,17 +1133,11 @@ class Exporter:
         from axelera import compiler
         from axelera.compiler import CompilerConfig
 
-        self.args.opset = 17
+        self.args.opset = 17  # hardcode opset for Axelera
         onnx_path = self.export_onnx()
-        model_name = f"{Path(onnx_path).stem}"
+        model_name = Path(onnx_path).stem
         export_path = Path(f"{model_name}_axelera_model")
         export_path.mkdir(exist_ok=True)
-
-        def transform_fn(data_item) -> np.ndarray:
-            data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
-            assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-            im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
-            return np.expand_dims(im, 0) if im.ndim == 3 else im
 
         if "C2PSA" in self.model.__str__():  # YOLO11
             config = CompilerConfig(
@@ -1178,7 +1164,7 @@ class Exporter:
             model=onnx_path,
             calibration_dataset=self.get_int8_calibration_dataloader(prefix),
             config=config,
-            transform_fn=transform_fn,
+            transform_fn=self._transform_fn,
         )
 
         compiler.compile(model=qmodel, config=config, output_dir=export_path)
@@ -1440,6 +1426,14 @@ class Exporter:
         model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
         LOGGER.info(f"{prefix} pipeline success")
         return model
+
+    @staticmethod
+    def _transform_fn(data_item) -> np.ndarray:
+        """The transformation function for Axelera/OpenVINO quantization preprocessing."""
+        data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
+        assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
+        im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+        return im[None] if im.ndim == 3 else im
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""

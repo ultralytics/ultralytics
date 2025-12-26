@@ -803,7 +803,6 @@ class TVPDetectLoss:
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the loss for text-visual prompt detection."""
         feats = preds[1] if isinstance(preds, tuple) else preds
-        assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
         if self.ori_reg_max * 4 + self.ori_nc == feats[0].shape[1]:
             loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
@@ -811,8 +810,8 @@ class TVPDetectLoss:
 
         vp_feats = self._get_vp_features(feats)
         vp_loss = self.vp_criterion(vp_feats, batch)
-        box_loss = vp_loss[0][1]
-        return box_loss, vp_loss[1]
+        cls_loss = vp_loss[0][1]
+        return cls_loss, vp_loss[1]
 
     def _get_vp_features(self, feats: list[torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""
@@ -839,7 +838,6 @@ class TVPSegmentLoss(TVPDetectLoss):
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the loss for text-visual prompt segmentation."""
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
-        assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
         if self.ori_reg_max * 4 + self.ori_nc == feats[0].shape[1]:
             loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)

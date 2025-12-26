@@ -476,13 +476,10 @@ class AutoBackend(nn.Module):
 
                 qnn_delegate = None
                 delegate_name = "libQnnTFLiteDelegate.so"
-                qnn_delegate_candidates = [
-                    Path("/usr/lib") / delegate_name,
-                    Path("/usr/lib64") / delegate_name,
-                    Path("/usr/lib/aarch64-linux-gnu") / delegate_name,
-                    Path("/usr/lib/x86_64-linux-gnu") / delegate_name,
-                ]
-                qnn_delegate_candidates = [candidate for candidate in qnn_delegate_candidates if candidate.is_file()]
+                qnn_delegate_candidates = []  
+                for directory in ("lib", "lib64", "lib/aarch64-linux-gnu", "lib/x86_64-linux-gnu")  
+                    if (candidate := Path("/usr", directory, delegate_name)).is_file():  
+                        qnn_delegate_candidates.append(candidate)
                 if qnn_delegate_candidates:
                     try:
                         qnn_delegate = load_delegate(str(qnn_delegate_candidates[0]), {"backend_type": "htp"})

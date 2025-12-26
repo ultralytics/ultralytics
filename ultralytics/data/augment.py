@@ -2114,7 +2114,7 @@ class Format:
             torch.Size([3, 100, 100])
         """
         if len(img.shape) < 3:
-            img = np.expand_dims(img, -1)
+            img = img[..., None]
         img = img.transpose(2, 0, 1)
         img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr and img.shape[0] == 3 else img)
         img = torch.from_numpy(img)

@@ -603,10 +603,9 @@ class AutoBackend(nn.Module):
             w = Path(w)
             if (found := next(w.rglob("*.axm"), None)) is None:
                 raise FileNotFoundError(f"No .axm file found in: {w}")
-            w = found
 
-            ax_model = op.load(str(w))
-            metadata = w.parent / "metadata.yaml"
+            ax_model = op.load(str(found))
+            metadata = found.parent / "metadata.yaml"
 
         # ExecuTorch
         elif pte:
@@ -836,8 +835,7 @@ class AutoBackend(nn.Module):
 
         # Axelera
         elif self.axelera:
-            im = im.cpu()
-            y = self.ax_model(im)
+            y = self.ax_model(im.cpu())
 
         # ExecuTorch
         elif self.pte:

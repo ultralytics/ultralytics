@@ -188,6 +188,7 @@ CFG_FRACTION_KEYS = frozenset(
         "iou",
         "fraction",
         "backbone_lr_ratio",
+        "multi_scale_range",
     }
 )
 CFG_INT_KEYS = frozenset(

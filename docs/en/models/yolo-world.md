@@ -238,13 +238,13 @@ For instance, if your application only requires detecting 'person' and 'bus' obj
 
 !!! note "Background Class"
 
-    Some users have found that adding an empty string `""` as a background class can improve detection performance in certain scenarios. While the exact mechanism isn't fully understood, this may help with prediction scoring during non-maximum suppression:
+    Some users have found that appending an empty string `""` as a background class can improve detection performance in certain scenarios. This behavior appears to be scenario-dependent and the exact mechanism is not fully understood:
 
     ```python
     model.set_classes(["person", "bus", ""])
     ```
 
-You can also save a model after setting custom classes. By doing this you create a version of the YOLO-World model that is specialized for your specific use case. This process embeds your custom class definitions directly into the model file, making the model ready to use with your specified classes without further adjustments. Follow these steps to save and load your custom YOLOv8 model:
+You can also save a model after setting custom classes. By doing this you create a version of the YOLO-World model that is specialized for your specific use case. This process embeds your custom class definitions directly into the model file, making the model ready to use with your specified classes without further adjustments. Follow these steps to save and load your custom YOLO-World model:
 
 !!! example
 

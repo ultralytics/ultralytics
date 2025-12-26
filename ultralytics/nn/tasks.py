@@ -156,7 +156,7 @@ class BaseModel(torch.nn.Module):
         """
         if augment:
             return self._predict_augment(x)
-        return self._predict_once(x, profile, visualize, embed)
+        return self._predict_once(x, profile, visualize, embed, return_feats)
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None, return_feats=False):
         """

@@ -1,0 +1,24 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+path: AIP14 # dataset root dir
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+
+# Classes
+names:
+  0: "spiked_pepper"
+  1: "asiatic_sand_sedge"
+  2: "bitou_bush"
+  3: "black_sage"
+  4: "black_swallow_wort"
+  5: "buffel_grass"
+  6: "cane_tibochina"
+  7: "gorse"
+  8: "halogeton"
+  9: "lantana"
+  10: "leafy_spurge"
+  11: "mikania"
+  12: "mouse_ear_hawkweed"
+  13: "portuguese_bloom"
+
+download: https://github.com/1MLightyears/AIP14/releases/download/v1.0/AIP14_compressed.zip

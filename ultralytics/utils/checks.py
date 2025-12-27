@@ -420,7 +420,9 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     prefix = colorstr("red", "bold", "requirements:")
 
     if "ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS" in os.environ:
-        LOGGER.info(f"{prefix} ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS detected in environment, skipping requirements check.")
+        LOGGER.info(
+            f"{prefix} ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS detected in environment, skipping requirements check."
+        )
         return True
 
     if isinstance(requirements, Path):  # requirements.txt file

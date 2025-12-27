@@ -45,7 +45,7 @@ from .utils import (
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
 DATASET_CACHE_VERSION = "1.0.3"
 # CACHE_SUFFIX=".cache"
-CACHE_SUFFIX=".engine.cache" #
+CACHE_SUFFIX=".engine1.cache" #
 #CACHE_SUFFIX=".cache" # refine
 
 
@@ -456,7 +456,7 @@ class GroundingDataset(YOLODataset):
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
-        assert CACHE_SUFFIX in {".cache", ".engine.segment.cache", ".engine.cache"}, f"cache_suffix must be either '.cache' or '.merged.cache', but got {CACHE_SUFFIX}"
+        assert CACHE_SUFFIX in {".cache", ".engine.segment.cache", ".engine.cache",".engine1.cache"}, f"cache_suffix must be either '.cache' or '.merged.cache', but got {CACHE_SUFFIX}"
 
     def get_img_files(self, img_path: str) -> list:
         """

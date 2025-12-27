@@ -204,36 +204,36 @@ mkdir -p $project_dir
 
 project_dir=runs/yoloe26s_tp_ultra6
 weight_path="yolo26s-objv1.pt"
+ptw="yolo26s-objv1"
 trainer="YOLOETrainerFromScratch"
 model=26s
 epo=30
 close_mosaic=2
-batch_size=256
+batch_size=255
 ag=True
 
 clip_weight_name="mobileclip2:b" # mobileclip2b
-ptw="object365v1" 
 
 
 optimizer="MuSGD"
 lr0=0.00125
 lrf=0.5
 momentum=0.9
-weight_decay=0.0005
+weight_decay=0.0007
 o2m=0.1
 
 copy_paste=0.15
 mixup=0.05
 
-exp_name=${clip_weight_name}_${model}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_tp
-device=4,5
+exp_name=${clip_weight_name}_${model}_ptw${ptw}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_engine1_tp
+device=0,1,2
+
 
 # python commnand:
-# python ultralytics/finetune_yoloe26.py     --model_version 26s     --lr0 0.00125     --lrf 0.5     --optimizer MuSGD     --momentum 0.9     --weight_decay 0.0005     --epochs 30     --close_mosaic 2     --batch 256     --device 4,5     --project runs/yoloe26s_tp_ultra6     --name mobileclip2:b_26s_bs256_epo30_close2_opMuSGD_o2m0.1_tp     --clip_weight_name mobileclip2:b     --ag True     --o2m 0.1     --weight_path yolo26s-objv1.pt     --trainer YOLOETrainerFromScratch     --copy_paste 0.15     --mixup 0.05 
+# python ultralytics_pro/finetune_yoloe26.py     --model_version 26s     --lr0 0.00125     --lrf 0.5     --optimizer MuSGD     --momentum 0.9     --weight_decay 0.0007     --epochs 30     --close_mosaic 2     --batch 255     --device 0,1,2     --project runs/yoloe26s_tp_ultra6     --name mobileclip2:b_26s_ptwyolo26s-objv1_bs255_epo30_close2_opMuSGD_o2m0.1_engine1_tp     --clip_weight_name mobileclip2:b     --ag True     --o2m 0.1     --weight_path yolo26s-objv1.pt     --trainer YOLOETrainerFromScratch     --copy_paste 0.15     --mixup 0.05 
 # using the following command to check the log:
-# tail -f -n 50 ./runs/20251225_194107.log
-# Current screen: 117435.cuda45
-# DDP: debug command /home/louis/miniconda3/envs/ultra/bin/python -m torch.distributed.run --nproc_per_node 2 --master_port 40189 /home/louis/.config/Ultralytics/DDP/_temp_otflsday140155903977664.py
+# tail -f -n 50 ./runs/20251227_091212.log
+# Current screen: 1154717.cuda01-2
 ###############################################default args #######################################
 
 
@@ -303,7 +303,7 @@ device=4,5
 ###############################################default args #######################################
 
 
-pyfile=ultralytics/finetune_yoloe26.py
+pyfile=ultralytics_pro/finetune_yoloe26.py
 timestamp=$(date +%Y%m%d_%H%M%S)
 command="python $pyfile \
     --model_version $model \

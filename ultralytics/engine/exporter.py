@@ -1187,9 +1187,6 @@ class Exporter:
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
         assert TORCH_2_9, f"ExecuTorch export requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
-        # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
-        # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-        # check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
         check_requirements(("executorch==1.0.1", "flatbuffers"))
         # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
         check_requirements("numpy<=2.3.5")

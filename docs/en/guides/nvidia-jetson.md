@@ -230,12 +230,6 @@ Alternatively, for `onnxruntime-gpu 1.20.0`:
 pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl
 ```
 
-!!! note
-
-    `onnxruntime-gpu` will automatically revert back the numpy version to latest. So we need to reinstall numpy to `1.23.5` to fix an issue by executing:
-
-    `pip install numpy==1.23.5`
-
 ### Run on JetPack 5.1.2
 
 #### Install Ultralytics Package

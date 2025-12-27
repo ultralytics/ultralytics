@@ -1812,7 +1812,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         inference_state["output_dict_per_obj"].clear()
         inference_state["temp_output_dict_per_obj"].clear()
 
-    def _reset_tracking_results(self, inference_state):
+    @staticmethod
+    def _reset_tracking_results(inference_state):
         """Reset all tracking inputs and results across the videos."""
         for v in inference_state["point_inputs_per_obj"].values():
             v.clear()
@@ -2598,9 +2599,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "num_frames": num_frames,
             "tracker_inference_states": [],
             "tracker_metadata": {},
+            "text_prompt": None,
+            "per_frame_geometric_prompt": [None] * num_frames,
         }
-        inference_state["text_prompt"] = None
-        inference_state["per_frame_geometric_prompt"] = [None] * num_frames
         predictor.inference_state = inference_state
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] | None = None, *args, **kwargs):
@@ -2880,7 +2881,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             tracker_obj_scores_global,  # a dict: obj_id --> tracker frame-level scores
         )
 
-    def _suppress_detections_close_to_boundary(self, boxes, margin=0.025):
+    @staticmethod
+    def _suppress_detections_close_to_boundary(boxes, margin=0.025):
         """Suppress detections too close to image edges (for normalized boxes).
 
         boxes: (N, 4) in xyxy format, normalized [0,1]
@@ -3327,8 +3329,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         return tracker_states_local
 
+    @staticmethod
     def build_outputs(
-        self,
         det_out: dict[str, torch.Tensor],
         tracker_low_res_masks_global: torch.Tensor,
         tracker_metadata_prev: dict[str, np.ndarray],
@@ -3921,7 +3923,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def _encode_prompt(self, **kwargs):
         return self.model._encode_prompt(**kwargs)
 
-    def _drop_new_det_with_obj_limit(self, new_det_fa_inds, det_scores_np, num_to_keep):
+    @staticmethod
+    def _drop_new_det_with_obj_limit(new_det_fa_inds, det_scores_np, num_to_keep):
         """Drop a few new detections based on the maximum number of objects. We drop new objects based on their
         detection scores, keeping the high-scoring ones and dropping the low-scoring ones.
         """

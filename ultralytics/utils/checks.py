@@ -417,6 +417,11 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         Check with interchangeable packages
         >>> check_requirements([("onnxruntime", "onnxruntime-gpu"), "numpy"])
     """
+    
+    if os.environ.get("ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS", "0") == "1":
+        LOGGER.info("ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS=1 detected, skipping requirements check.")
+        return True
+    
     prefix = colorstr("red", "bold", "requirements:")
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()

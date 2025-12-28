@@ -657,6 +657,8 @@ class v8ClassificationLoss:
 class v8OBBLoss(v8DetectionLoss):
     """Calculates losses for object detection, classification, and box distribution in rotated YOLO models."""
 
+    obb_size = 7  # OBB vector size: x,y,w,h,angle with scale factors, f1, f2
+
     def __init__(self, model):
         """Initialize v8OBBLoss with model, assigner, and rotated bbox loss; model must be de-paralleled."""
         super().__init__(model)
@@ -666,18 +668,19 @@ class v8OBBLoss(v8DetectionLoss):
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
         """Preprocess targets for oriented bounding box detection."""
         if targets.shape[0] == 0:
-            out = torch.zeros(batch_size, 0, 6, device=self.device)
+            out = torch.zeros(batch_size, 0, v8OBBLoss.obb_size + 1, device=self.device)
         else:
             i = targets[:, 0]  # image index
             _, counts = i.unique(return_counts=True)
             counts = counts.to(dtype=torch.int32)
-            out = torch.zeros(batch_size, counts.max(), 6, device=self.device)
+            out = torch.zeros(batch_size, counts.max(), v8OBBLoss.obb_size + 1, device=self.device)
             for j in range(batch_size):
                 matches = i == j
                 if n := matches.sum():
                     bboxes = targets[matches, 2:]
                     bboxes[..., :4].mul_(scale_tensor)
-                    out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
+                    cls = targets[matches, 1:2]
+                    out[j, :n] = torch.cat([cls, bboxes], dim=-1)
         return out
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
@@ -701,11 +704,11 @@ class v8OBBLoss(v8DetectionLoss):
         # targets
         try:
             batch_idx = batch["batch_idx"].view(-1, 1)
-            targets = torch.cat((batch_idx, batch["cls"].view(-1, 1), batch["bboxes"].view(-1, 5)), 1)
+            targets = torch.cat((batch_idx, batch["cls"].view(-1, 1), batch["bboxes"].view(-1, v8OBBLoss.obb_size)), 1)
             rw, rh = targets[:, 4] * imgsz[0].item(), targets[:, 5] * imgsz[1].item()
             targets = targets[(rw >= 2) & (rh >= 2)]  # filter rboxes of tiny size to stabilize training
             targets = self.preprocess(targets, batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
-            gt_labels, gt_bboxes = targets.split((1, 5), 2)  # cls, xywhr
+            gt_labels, gt_bboxes = targets.split((1, v8OBBLoss.obb_size), 2)  # cls, xywhr
             mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
         except RuntimeError as e:
             raise TypeError(

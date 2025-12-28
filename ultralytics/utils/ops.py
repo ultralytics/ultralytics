@@ -358,6 +358,78 @@ def xyxyxyxy2xywhr(x):
     return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
 
 
+def calculate_aspect_ratio_scale_factors(
+    w: torch.Tensor, h: torch.Tensor, expected_aspect=1.24, aspect_threshold=0.06, eps=1e-6
+):
+    """Calculate scale factors to mitigate isotopic invariance issue of obb's metric.
+
+    Args:
+        w (torch.Tensor): Width of the bounding box.
+        h (torch.Tensor): Height of the bounding box.
+        expected_aspect (float): Expected aspect ratio.
+        aspect_threshold (float): Threshold for aspect ratio deviation.
+
+    Returns:
+        (tuple): Scale factors (scale_w, scale_h).
+    """
+    aspect = (w / (h + eps)).log()
+    aspect_limit = np.log((1.0 + aspect_threshold) / 1.0)
+    aspect_factor = np.log(expected_aspect / 1.0)
+
+    mask_select = aspect.abs() >= aspect_limit
+    scale_factor_w = torch.ones_like(aspect)
+    scale_factor_h = torch.ones_like(aspect)
+
+    # update scale factors for positive aspect ratios
+    mask_positive = aspect >= 0.0
+    scale_factor_w[mask_positive & ~mask_select] = ((aspect_factor - aspect[mask_positive & ~mask_select]) / 2).exp()
+    scale_factor_h[mask_positive & ~mask_select] = 1.0 / scale_factor_w[mask_positive & ~mask_select]
+
+    # update scale factors for negative aspect ratios
+    mask_negative = ~mask_positive
+    scale_factor_w[mask_negative & ~mask_select] = (-(aspect_factor - aspect[mask_negative & ~mask_select]) / 2).exp()
+    scale_factor_h[mask_negative & ~mask_select] = 1.0 / scale_factor_w[mask_negative & ~mask_select]
+
+    return scale_factor_w, scale_factor_h
+
+
+def xyxyxyxy2xywhrsf(x, eps=1e-6):
+    """Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation] format. This variant
+    adds scale factors to mitigate the isotopic invariance issue of obb's metric.
+
+    Args:
+        x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) in [xy1, xy2, xy3, xy4] format.
+
+    Returns:
+        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). Rotation
+            values are in radians from 0 to pi/2.
+    """
+    is_torch = isinstance(x, torch.Tensor)
+    points = x.cpu().numpy() if is_torch else x
+    points = points.reshape(len(x), -1, 2)
+    rboxes = []
+    aspect_threshold = 0.06
+    aspect_limit = np.log((1.0 + aspect_threshold) / 1.0)
+    expected_aspect = 1.24
+    aspect_factor = np.log(expected_aspect / 1.0)
+    for pts in points:
+        # NOTE: Use cv2.minAreaRect to get accurate xywhr,
+        # especially some objects are cut off by augmentations in dataloader.
+        (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
+        # adding aspect ratio jittering scale factors
+        aspect = np.log(w / (h + eps))
+        if np.abs(aspect) >= aspect_limit:
+            scale_factor = 1.0
+        elif aspect >= 0:
+            scale_factor = np.exp((aspect_factor - aspect) / 2)
+        else:
+            aspect = -aspect
+            scale_factor = np.exp(-(aspect_factor - aspect) / 2)
+
+        rboxes.append([cx, cy, w, h, angle / 180 * np.pi, scale_factor, 1.0 / scale_factor])
+    return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
+
+
 def xywhr2xyxyxyxy(x):
     """Convert batched Oriented Bounding Boxes (OBB) from [xywh, rotation] to [xy1, xy2, xy3, xy4] format.
 

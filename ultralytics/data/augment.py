@@ -18,7 +18,7 @@ from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
-from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhr
+from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhrsf
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
 
 DEFAULT_MEAN = (0.0, 0.0, 0.0)
@@ -2079,7 +2079,9 @@ class Format:
                 labels["keypoints"][..., 1] /= h
         if self.return_obb:
             labels["bboxes"] = (
-                xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros((0, 5))
+                xyxyxyxy2xywhrsf(torch.from_numpy(instances.segments))
+                if len(instances.segments)
+                else torch.zeros((0, 5))
             )
         # NOTE: need to normalize obb in xywhr format for width-height consistency
         if self.normalize:

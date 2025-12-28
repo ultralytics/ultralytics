@@ -7,12 +7,15 @@ import math
 import warnings
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
+from typing import (
+    Any,
+)
 
 import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings
+from ultralytics.utils.ops import calculate_aspect_ratio_scale_factors
 
 OKS_SIGMA = (
     np.array(
@@ -187,23 +190,80 @@ def kpt_iou(
     return ((-e).exp() * kpt_mask[:, None]).sum(-1) / (kpt_mask.sum(-1)[:, None] + eps)
 
 
-def _get_covariance_matrix(boxes: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def _get_covariance_matrix(
+    boxes: torch.Tensor, pa: float | torch.Tensor = 1.0, pb: float | torch.Tensor = 1.0
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Generate covariance matrix from oriented bounding boxes.
 
     Args:
         boxes (torch.Tensor): A tensor of shape (N, 5) representing rotated bounding boxes, with xywhr format.
+        pa (float | torch.Tensor): Scaling factor for width.
+        pb (float | torch.Tensor): Scaling factor for height.
 
     Returns:
         (torch.Tensor): Covariance matrices corresponding to original rotated bounding boxes.
     """
     # Gaussian bounding boxes, ignore the center points (the first two columns) because they are not needed here.
-    gbbs = torch.cat((boxes[:, 2:4].pow(2) / 12, boxes[:, 4:]), dim=-1)
+
+    # check matching dimension for boxes and pa and pb
+    use_recalculation = False
+    if not isinstance(pa, float) and not (boxes.shape[0] == pa.shape[0]):
+        # during validation we can observe different number of boxes between gt and pred
+        # hence we need to recalculate the scale factors
+        # during training gt and pred boxes are matched nicely so are able to use the initial scale factors
+        use_recalculation = True
+        pa, pb = 1.0, 1.0
+    # else:
+    #     pass
+
+    a = boxes[:, 2:3]
+    b = boxes[:, 3:4]
+
+    if use_recalculation:
+        _pa, _pb = calculate_aspect_ratio_scale_factors(a, b)
+        pa, pb = _pa, _pb
+
+    # debugging code to compare the recalculated scale factors with the original ones
+    # _pa, _pb = calculate_aspect_ratio_scale_factors(a, b)
+    # _mm = ((_pa - pa).pow(2) + (_pb - pb).pow(2)).sum() / boxes.shape[0]
+    # if _mm > 0.02: # hand picked threshold
+    #     pass
+    # else:
+    #     pass
+
+    gbbs = torch.cat(((a * pa).pow(2) / 12.0, (b * pb).pow(2) / 12.0, boxes[:, 4:5]), dim=-1)
     a, b, c = gbbs.split(1, dim=-1)
     cos = c.cos()
     sin = c.sin()
     cos2 = cos.pow(2)
     sin2 = sin.pow(2)
     return a * cos2 + b * sin2, a * sin2 + b * cos2, (a - b) * cos * sin
+
+
+def get_scale_factors(obb1: torch.Tensor, obb2: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """Get optional scale factors for oriented bounding boxes.
+
+    Args:
+        obb1 (torch.Tensor): Ground truth OBBs, shape (N, 5), format xywhr.
+        obb2 (torch.Tensor): Predicted OBBs, shape (N, 5), format xywhr.
+
+    Returns:
+        (tuple[torch.Tensor, torch.Tensor]): Scale factors for width and height, each of shape (N, 1).
+
+    Notes:
+        OBB format: [center_x, center_y, width, height, rotation_angle].
+        Optional scale factors are stored in the 6th and 7th elements of the OBB tensors.
+    """
+    # if not (obb1.shape[0] == obb2.shape[0]):
+    #     pa, pb = 1.0, 1.0
+    # el
+    if obb1.shape[-1] == 7:
+        pa, pb = obb1[..., 5:7].split(1, dim=-1)  # scale factors
+    elif obb2.shape[-1] == 7:
+        pa, pb = obb2[..., 5:7].split(1, dim=-1)  # scale factors
+    else:
+        pa, pb = 1.0, 1.0
+    return pa, pb
 
 
 def probiou(obb1: torch.Tensor, obb2: torch.Tensor, CIoU: bool = False, eps: float = 1e-7) -> torch.Tensor:
@@ -220,14 +280,16 @@ def probiou(obb1: torch.Tensor, obb2: torch.Tensor, CIoU: bool = False, eps: flo
 
     Notes:
         OBB format: [center_x, center_y, width, height, rotation_angle].
+        Optional scale factors are stored in the 6th and 7th elements of the OBB tensors.
 
     References:
         https://arxiv.org/pdf/2106.06072v1.pdf
     """
     x1, y1 = obb1[..., :2].split(1, dim=-1)
     x2, y2 = obb2[..., :2].split(1, dim=-1)
-    a1, b1, c1 = _get_covariance_matrix(obb1)
-    a2, b2, c2 = _get_covariance_matrix(obb2)
+    pa, pb = get_scale_factors(obb1, obb2)
+    a1, b1, c1 = _get_covariance_matrix(obb1, pa, pb)
+    a2, b2, c2 = _get_covariance_matrix(obb2, pa, pb)
 
     t1 = (
         ((a1 + a2) * (y1 - y2).pow(2) + (b1 + b2) * (x1 - x2).pow(2)) / ((a1 + a2) * (b1 + b2) - (c1 + c2).pow(2) + eps)
@@ -268,10 +330,12 @@ def batch_probiou(obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.ndarr
     obb1 = torch.from_numpy(obb1) if isinstance(obb1, np.ndarray) else obb1
     obb2 = torch.from_numpy(obb2) if isinstance(obb2, np.ndarray) else obb2
 
+    pa, pb = get_scale_factors(obb1, obb2)
+
     x1, y1 = obb1[..., :2].split(1, dim=-1)
     x2, y2 = (x.squeeze(-1)[None] for x in obb2[..., :2].split(1, dim=-1))
-    a1, b1, c1 = _get_covariance_matrix(obb1)
-    a2, b2, c2 = (x.squeeze(-1)[None] for x in _get_covariance_matrix(obb2))
+    a1, b1, c1 = _get_covariance_matrix(obb1, pa, pb)
+    a2, b2, c2 = (x.squeeze(-1)[None] for x in _get_covariance_matrix(obb2, pa, pb))
 
     t1 = (
         ((a1 + a2) * (y1 - y2).pow(2) + (b1 + b2) * (x1 - x2).pow(2)) / ((a1 + a2) * (b1 + b2) - (c1 + c2).pow(2) + eps)
@@ -387,7 +451,8 @@ class ConfusionMatrix(DataExportMixin):
             self.matches = {k: defaultdict(list) for k in {"TP", "FP", "FN", "GT"}}
             for i in range(gt_cls.shape[0]):
                 self._append_matches("GT", batch, i)  # store GT
-        is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
+        # check if boxes contains angle for OBB
+        is_obb = gt_bboxes.shape[1] in [5, 7]
         conf = 0.25 if conf in {None, 0.01 if is_obb else 0.001} else conf  # apply 0.25 if default val conf is passed
         no_pred = detections["cls"].shape[0] == 0
         if gt_cls.shape[0] == 0:  # Check if labels is empty

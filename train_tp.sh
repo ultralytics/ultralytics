@@ -202,14 +202,49 @@ mkdir -p $project_dir
 
 
 
-project_dir=runs/yoloe26s_tp_ultra6
-weight_path="yolo26s-objv1.pt"
-ptw="yolo26s-objv1"
+# project_dir=runs/yoloe26s_tp_ultra6
+# weight_path="yolo26s-objv1.pt"
+# ptw="yolo26s-objv1"
+# trainer="YOLOETrainerFromScratch"
+# model=26s
+# epo=30
+# close_mosaic=2
+# batch_size=128
+# ag=True
+
+# clip_weight_name="mobileclip2:b" # mobileclip2b
+
+
+# optimizer="MuSGD"
+# lr0=0.00125
+# lrf=0.5
+# momentum=0.9
+# weight_decay=0.0007
+# o2m=0.1
+
+# copy_paste=0.15
+# mixup=0.05
+
+# exp_name=${clip_weight_name}_${model}_ptw${ptw}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_engine_tp
+# device=0,1
+
+
+# python ultralytics/finetune_yoloe26.py     --model_version 26s     --lr0 0.00125     --lrf 0.5     --optimizer MuSGD     --momentum 0.9     --weight_decay 0.0007     --epochs 30     --close_mosaic 2     --batch 128     --device 0,1     --project runs/yoloe26s_tp_ultra6     --name mobileclip2:b_26s_ptwyolo26s-objv1_bs128_epo30_close2_opMuSGD_o2m0.1_engine_tp     --clip_weight_name mobileclip2:b     --ag True     --o2m 0.1     --weight_path yolo26s-objv1.pt     --trainer YOLOETrainerFromScratch     --copy_paste 0.15     --mixup 0.05 
+# using the following command to check the log:
+# tail -f -n 50 ./runs/20251228_084117.log
+# Current screen: 1154717.cuda01-2
+###############################################default args #######################################
+
+
+
+project_dir=runs/yoloe26m_tp_ultra6
+weight_path="yolo26m-objv1.pt"
+ptw="yolo26m-objv1"
 trainer="YOLOETrainerFromScratch"
-model=26s
+model=26m
 epo=30
 close_mosaic=2
-batch_size=128
+batch_size=256
 ag=True
 
 clip_weight_name="mobileclip2:b" # mobileclip2b
@@ -219,21 +254,18 @@ optimizer="MuSGD"
 lr0=0.00125
 lrf=0.5
 momentum=0.9
-weight_decay=0.0007
+weight_decay=0.0005
 o2m=0.1
 
 copy_paste=0.15
 mixup=0.05
 
 exp_name=${clip_weight_name}_${model}_ptw${ptw}_bs${batch_size}_epo${epo}_close${close_mosaic}_op${optimizer}_o2m${o2m}_engine_tp
-device=0,1
-
-
-# python ultralytics/finetune_yoloe26.py     --model_version 26s     --lr0 0.00125     --lrf 0.5     --optimizer MuSGD     --momentum 0.9     --weight_decay 0.0007     --epochs 30     --close_mosaic 2     --batch 128     --device 0,1     --project runs/yoloe26s_tp_ultra6     --name mobileclip2:b_26s_ptwyolo26s-objv1_bs128_epo30_close2_opMuSGD_o2m0.1_engine_tp     --clip_weight_name mobileclip2:b     --ag True     --o2m 0.1     --weight_path yolo26s-objv1.pt     --trainer YOLOETrainerFromScratch     --copy_paste 0.15     --mixup 0.05 
+device=2,3,4,5
+# python ultralytics/finetune_yoloe26.py     --model_version 26m     --lr0 0.00125     --lrf 0.5     --optimizer MuSGD     --momentum 0.9     --weight_decay 0.0005     --epochs 30     --close_mosaic 2     --batch 256     --device 2,3,4,5     --project runs/yoloe26m_tp_ultra6     --name mobileclip2:b_26m_ptwyolo26m-objv1_bs256_epo30_close2_opMuSGD_o2m0.1_engine_tp     --clip_weight_name mobileclip2:b     --ag True     --o2m 0.1     --weight_path yolo26m-objv1.pt     --trainer YOLOETrainerFromScratch     --copy_paste 0.15     --mixup 0.05 
 # using the following command to check the log:
-# tail -f -n 50 ./runs/20251228_084117.log
-# Current screen: 1154717.cuda01-2
-
+# tail -f -n 50 ./runs/20251228_085352.log
+# Current screen:
 ###############################################default args #######################################
 
 

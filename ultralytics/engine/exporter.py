@@ -1187,6 +1187,8 @@ class Exporter:
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
         assert TORCH_2_9, f"ExecuTorch export requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+
+        check_requirements("setuptools", cmds="upgrade setuptools")
         check_requirements(("executorch==1.0.1", "flatbuffers"))
         # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
         check_requirements("numpy<=2.3.5")

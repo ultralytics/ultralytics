@@ -633,14 +633,8 @@ class Pose(Detect):
 class RealNVP(nn.Module):
     """RealNVP: a flow-based generative model
 
-    `Density estimation using Real NVP
-    arXiv: <https://arxiv.org/abs/1605.08803>`_.
-
-    Code is modified from `the official implementation of RLE
-    <https://github.com/Jeff-sjtu/res-loglikelihood-regression>`_.
-
-    See also `real-nvp-pytorch
-    <https://github.com/senya-ashukha/real-nvp-pytorch>`_.
+    References:
+        https://arxiv.org/abs/1605.08803
     """
 
     @staticmethod
@@ -667,13 +661,10 @@ class RealNVP(nn.Module):
 
         self.register_buffer('loc', torch.zeros(2))
         self.register_buffer('cov', torch.eye(2))
-        self.register_buffer(
-            'mask', torch.tensor([[0, 1], [1, 0]] * 3, dtype=torch.float32))
+        self.register_buffer('mask', torch.tensor([[0, 1], [1, 0]] * 3, dtype=torch.float32))
 
-        self.s = torch.nn.ModuleList(
-            [self.nets() for _ in range(len(self.mask))])
-        self.t = torch.nn.ModuleList(
-            [self.nett() for _ in range(len(self.mask))])
+        self.s = torch.nn.ModuleList([self.nets() for _ in range(len(self.mask))])
+        self.t = torch.nn.ModuleList([self.nett() for _ in range(len(self.mask))])
         self.init_weights()
 
     def init_weights(self):
@@ -685,12 +676,11 @@ class RealNVP(nn.Module):
     def backward_p(self, x):
         """Apply mapping form the data space to the latent space and calculate
         the log determinant of the Jacobian matrix."""
-
         log_det_jacob, z = x.new_zeros(x.shape[0]), x
         for i in reversed(range(len(self.t))):
             z_ = self.mask[i] * z
-            s = self.s[i](z_) * (1 - self.mask[i])  # torch.exp(s): betas
-            t = self.t[i](z_) * (1 - self.mask[i])  # gammas
+            s = self.s[i](z_) * (1 - self.mask[i])
+            t = self.t[i](z_) * (1 - self.mask[i])
             z = (1 - self.mask[i]) * (z - t) * torch.exp(-s) + z_
             log_det_jacob -= s.sum(dim=1)
         return z, log_det_jacob
@@ -705,7 +695,7 @@ class RealNVP(nn.Module):
 
 class Pose26(Pose):
     """
-    YOLO Pose head for keypoints models.
+    YOLO26 Pose head for keypoints models.
 
     This class extends the Detect head to include keypoint prediction capabilities for pose estimation tasks.
 

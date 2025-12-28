@@ -436,3 +436,41 @@ def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
     x, y = xf * cos - yf * sin, xf * sin + yf * cos
     xy = torch.cat([x, y], dim=dim) + anchor_points
     return torch.cat([xy, lt + rb], dim=dim)
+
+
+def rbox2dist(target_bboxes, anchor_points, target_angle, dim=-1, reg_max: int = None):
+    """
+    Decode rotated bounding box (xywh) to distance(ltrb). This is the inverse of dist2rbox.
+
+    Args:
+        target_bboxes (torch.Tensor): Target rotated bounding boxes with shape (bs, h*w, 4), format [x, y, w, h].
+        anchor_points (torch.Tensor): Anchor points with shape (h*w, 2).
+        target_angle (torch.Tensor): Target angle with shape (bs, h*w, 1).
+        dim (int, optional): Dimension along which to split.
+
+    Returns:
+        (torch.Tensor): Predicted rotated distance with shape (bs, h*w, 4), format [l, t, r, b].
+
+    Notes:
+        This function performs the inverse transformation of dist2rbox:
+        - dist2rbox: (l, t, r, b) + angle + anchor -> (x, y, w, h)
+        - rbox2dist: (x, y, w, h) + angle + anchor -> (l, t, r, b)
+    """
+    xy, wh = target_bboxes.split(2, dim=dim)
+    offset = xy - anchor_points  # (bs, h*w, 2)
+    offset_x, offset_y = offset.split(1, dim=dim)
+    cos, sin = torch.cos(target_angle), torch.sin(target_angle)
+    xf = offset_x * cos + offset_y * sin
+    yf = -offset_x * sin + offset_y * cos
+
+    w, h = wh.split(1, dim=dim)
+    target_l = w / 2 - xf
+    target_t = h / 2 - yf
+    target_r = w / 2 + xf
+    target_b = h / 2 + yf
+
+    dist = torch.cat([target_l, target_t, target_r, target_b], dim=dim)
+    if reg_max is not None:
+        dist = dist.clamp_(0, reg_max - 0.01)
+
+    return dist

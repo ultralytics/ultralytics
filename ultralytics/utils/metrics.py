@@ -207,8 +207,7 @@ def _get_covariance_matrix(
 
     # check matching dimension for boxes and pa and pb
     use_recalculation = False
-    if ( not isinstance(pa, float) and
-         not (boxes.shape[0] == pa.shape[0] ) ):
+    if not isinstance(pa, float) and not (boxes.shape[0] == pa.shape[0]):
         # during validation we can observe different number of boxes between gt and pred
         # hence we need to recalculate the scale factors
         # during training gt and pred boxes are matched nicely so are able to use the initial scale factors
@@ -232,13 +231,14 @@ def _get_covariance_matrix(
     # else:
     #     pass
 
-    gbbs = torch.cat(((a*pa).pow(2) / 12.0, (b*pb).pow(2) / 12.0, boxes[:, 4:5]), dim=-1)
+    gbbs = torch.cat(((a * pa).pow(2) / 12.0, (b * pb).pow(2) / 12.0, boxes[:, 4:5]), dim=-1)
     a, b, c = gbbs.split(1, dim=-1)
     cos = c.cos()
     sin = c.sin()
     cos2 = cos.pow(2)
     sin2 = sin.pow(2)
     return a * cos2 + b * sin2, a * sin2 + b * cos2, (a - b) * cos * sin
+
 
 def get_scale_factors(obb1: torch.Tensor, obb2: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """Get optional scale factors for oriented bounding boxes.
@@ -253,9 +253,7 @@ def get_scale_factors(obb1: torch.Tensor, obb2: torch.Tensor) -> tuple[torch.Ten
     Notes:
         OBB format: [center_x, center_y, width, height, rotation_angle].
         Optional scale factors are stored in the 6th and 7th elements of the OBB tensors.
-
     """
-
     # if not (obb1.shape[0] == obb2.shape[0]):
     #     pa, pb = 1.0, 1.0
     # el

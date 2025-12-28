@@ -1419,6 +1419,7 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     url = "https://docs.ultralytics.com/integrations/vscode"
     return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
 
+
 # Run below code on utils init ------------------------------------------------------------------------------------
 
 # Check first-install steps

@@ -59,7 +59,7 @@ class DistillationModel(nn.Module):
             preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
         with torch.inference_mode():
-            teacher_feats = self.teacher_model(batch["img"], return_feats=True)[1][self.feats_idx]
+            teacher_feats = self.teacher_model(batch["img"], embed=[self.feats_idx], direct_return=True)
         preds, feats = self.student_model(batch["img"], return_feats=True)
         student_feats = self.projector(feats[self.feats_idx].permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
 

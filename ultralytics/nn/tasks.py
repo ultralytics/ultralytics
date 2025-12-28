@@ -139,7 +139,7 @@ class BaseModel(torch.nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.predict(x, *args, **kwargs)
 
-    def predict(self, x, profile=False, visualize=False, augment=False, embed=None, return_feats=False):
+    def predict(self, x, profile=False, visualize=False, augment=False, embed=None, return_feats=False, direct_return=False):
         """
         Perform a forward pass through the network.
 
@@ -150,15 +150,16 @@ class BaseModel(torch.nn.Module):
             augment (bool): Augment image during prediction.
             embed (list, optional): A list of feature vectors/embeddings to return.
             return_feats (bool): Whether to return all the feature maps in a list.
+            direct_return (bool): Whether to directly the features without going through all the model layers.
 
         Returns:
             (torch.Tensor): The last output of the model.
         """
         if augment:
             return self._predict_augment(x)
-        return self._predict_once(x, profile, visualize, embed, return_feats)
+        return self._predict_once(x, profile, visualize, embed, return_feats, direct_return)
 
-    def _predict_once(self, x, profile=False, visualize=False, embed=None, return_feats=False):
+    def _predict_once(self, x, profile=False, visualize=False, embed=None, return_feats=False, direct_return=False):
         """
         Perform a forward pass through the network.
 
@@ -168,6 +169,7 @@ class BaseModel(torch.nn.Module):
             visualize (bool): Save the feature maps of the model if True.
             embed (list, optional): A list of feature vectors/embeddings to return.
             return_feats (bool): Whether to return all the feature maps in a list.
+            direct_return (bool): Whether to directly the features without going through all the model layers.
 
         Returns:
             (torch.Tensor): The last output of the model.
@@ -184,6 +186,8 @@ class BaseModel(torch.nn.Module):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if m.i == max_idx and direct_return:
+                return x
             if m.i in embed:
                 embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
                 if m.i == max_idx:

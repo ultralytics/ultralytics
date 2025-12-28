@@ -485,8 +485,6 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 )
             except Exception as e:
                 LOGGER.warning(f"{prefix} ❌ {e}")
-                if isinstance(e, subprocess.CalledProcessError) and e.output:
-                    LOGGER.warning(f"{prefix} {e.output}")
                 return False
         else:
             return False

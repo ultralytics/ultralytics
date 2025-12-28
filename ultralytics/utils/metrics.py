@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import math
-import random
 import warnings
 from collections import defaultdict
 from pathlib import Path
@@ -192,8 +191,8 @@ def kpt_iou(
 
 
 def _get_covariance_matrix(
-        boxes: torch.Tensor, pa: float | torch.Tensor = 1.0, pb: float | torch.Tensor = 1.0
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    boxes: torch.Tensor, pa: float | torch.Tensor = 1.0, pb: float | torch.Tensor = 1.0
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Generate covariance matrix from oriented bounding boxes.
 
     Args:
@@ -233,11 +232,7 @@ def _get_covariance_matrix(
     # else:
     #     pass
 
-    gbbs = torch.cat((
-        (a*pa).pow(2) / 12.0,
-        (b*pb).pow(2) / 12.0,
-        boxes[:, 4:5]
-        ), dim=-1)
+    gbbs = torch.cat(((a*pa).pow(2) / 12.0, (b*pb).pow(2) / 12.0, boxes[:, 4:5]), dim=-1)
     a, b, c = gbbs.split(1, dim=-1)
     cos = c.cos()
     sin = c.sin()

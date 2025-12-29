@@ -69,7 +69,20 @@ jobs:
           python-version: "3.x"
       - uses: astral-sh/setup-uv@v7
       - run: uv pip install --system --no-cache build
-      - run: python -m build
+      - run: python -m build --outdir dist/
+      - name: Build ultralytics-opencv-headless
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("pyproject.toml")
+          text = path.read_text()
+          text = text.replace('name = "ultralytics"', 'name = "ultralytics-opencv-headless"', 1)
+          text = text.replace('"opencv-python>=', '"opencv-python-headless>=', 1)
+          path.write_text(text)
+          PY
+          python -m build --outdir dist/
+          git checkout pyproject.toml
       - uses: actions/upload-artifact@v6
         with:
           name: dist

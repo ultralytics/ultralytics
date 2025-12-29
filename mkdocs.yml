@@ -147,6 +147,7 @@ extra_javascript:
   - javascript/extra.js
   - javascript/giscus.js
   - javascript/tablesort.js
+  - assets/js/hs.js
 
 markdown_extensions:
   - admonition

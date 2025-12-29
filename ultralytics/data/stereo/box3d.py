@@ -53,9 +53,6 @@ class Box3D:
         if not (-np.pi <= self.orientation <= np.pi):
             raise ValueError(f"Orientation must be in [-π, π], got {self.orientation}")
 
-        if self.class_label not in {"Car", "Pedestrian", "Cyclist"}:
-            raise ValueError(f"Invalid class label: {self.class_label}")
-
         if not (0.0 <= self.confidence <= 1.0):
             raise ValueError(f"Confidence must be in [0, 1], got {self.confidence}")
 
@@ -78,10 +75,6 @@ class Box3D:
             if y_min >= y_max:
                 LOGGER.warning(
                     f"bbox_2d xyxy format: y_min ({y_min}) must be < y_max ({y_max})"
-                )
-            if x_min < 0 or y_min < 0:
-                LOGGER.warning(
-                    f"bbox_2d xyxy format: x_min and y_min must be non-negative, got ({x_min}, {y_min})"
                 )
 
     def to_dict(self) -> dict[str, Any]:

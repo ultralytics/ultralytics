@@ -197,14 +197,18 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         # If img_path is a stereo descriptor dict created in get_dataset
         desc = img_path if isinstance(img_path, dict) else self.data.get(mode)
         if isinstance(desc, dict) and desc.get("type") == "kitti_stereo":
-            imgsz = int(self.args.imgsz) if hasattr(self.args, "imgsz") else 640
+            imgsz = getattr(self.args, "imgsz", 640)
+            if isinstance(imgsz, (list, tuple)) and len(imgsz) == 2:
+                imgsz_hw = (int(imgsz[0]), int(imgsz[1]))  # (H, W)
+            else:
+                imgsz_hw = (int(imgsz), int(imgsz))  # square fallback
             
             # Determine output_size from model if available, otherwise use default (8x downsampling)
             output_size = None
             if hasattr(self, "model") and self.model is not None:
                 try:
                     with torch.no_grad():
-                        dummy_img = torch.zeros(1, 6, imgsz, imgsz, device=self.device)
+                        dummy_img = torch.zeros(1, 6, imgsz_hw[0], imgsz_hw[1], device=self.device)
                         dummy_output = self.model(dummy_img)
                         if isinstance(dummy_output, dict):
                             sample_branch = dummy_output.get("heatmap", list(dummy_output.values())[0])
@@ -221,7 +225,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             return Stereo3DDetDataset(
                 root=str(desc.get("root", ".")),
                 split=str(desc.get("split", "train")),
-                imgsz=imgsz,
+                imgsz=imgsz_hw,
                 names=self.data.get("names"),
                 output_size=output_size,
                 mean_dims=mean_dims,

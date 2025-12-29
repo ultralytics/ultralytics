@@ -398,13 +398,15 @@ def compute_3d_iou_batch(
     return iou_matrix
 
 
-def _compute_letterbox_params(ori_h: int, ori_w: int, imgsz: int) -> tuple[float, int, int]:
+def _compute_letterbox_params(
+    ori_h: int, ori_w: int, imgsz: int | tuple[int, int] | list[int]
+) -> tuple[float, int, int]:
     """Compute letterbox scale and padding from original image size.
     
     Args:
         ori_h: Original image height.
         ori_w: Original image width.
-        imgsz: Letterboxed input size (square, e.g., 384).
+        imgsz: Letterboxed input size. May be a square int (e.g., 384) or (H, W).
     
     Returns:
         (scale, pad_left, pad_top) tuple where:
@@ -412,11 +414,15 @@ def _compute_letterbox_params(ori_h: int, ori_w: int, imgsz: int) -> tuple[float
         - pad_left: Left padding added by letterbox
         - pad_top: Top padding added by letterbox
     """
-    scale = min(imgsz / ori_h, imgsz / ori_w)
+    if isinstance(imgsz, int):
+        out_h, out_w = imgsz, imgsz
+    else:
+        out_h, out_w = int(imgsz[0]), int(imgsz[1])
+    scale = min(out_h / ori_h, out_w / ori_w)
     new_unpad_w = int(round(ori_w * scale))
     new_unpad_h = int(round(ori_h * scale))
-    dw = imgsz - new_unpad_w
-    dh = imgsz - new_unpad_h
+    dw = out_w - new_unpad_w
+    dh = out_h - new_unpad_h
     pad_left = dw // 2
     pad_top = dh // 2
     return scale, pad_left, pad_top
@@ -434,7 +440,7 @@ def _decode_stereo3d_outputs_per_sample(
     use_occlusion_classification: bool | None = None,
     left_img: np.ndarray | torch.Tensor | None = None,
     right_img: np.ndarray | torch.Tensor | None = None,
-    imgsz: int | None = None,
+    imgsz: int | tuple[int, int] | list[int] | None = None,
     ori_shape: tuple[int, int] | None = None,
 ) -> list[Box3D]:
     """Original per-sample implementation for backward compatibility.
@@ -470,8 +476,8 @@ def _decode_stereo3d_outputs_per_sample(
 
     # Get letterbox parameters
     if imgsz is None:
-        # Infer from input tensor shape or use default
-        imgsz = 384  # Default letterbox size
+        imgsz = (384, 384)  # Default letterbox size (H, W)
+    input_h, input_w = (imgsz, imgsz) if isinstance(imgsz, int) else (int(imgsz[0]), int(imgsz[1]))
     
     # Get original image size (with fallback to KITTI default)
     if ori_shape is not None:
@@ -530,8 +536,8 @@ def _decode_stereo3d_outputs_per_sample(
     
     # Compute scale from feature map to letterboxed input space
     # Scale is computed dynamically from actual feature map size (architecture-agnostic)
-    scale_w_letterbox = imgsz / w  # w is feature map width
-    scale_h_letterbox = imgsz / h  # h is feature map height
+    scale_w_letterbox = input_w / w  # w is feature map width
+    scale_h_letterbox = input_h / h  # h is feature map height
 
     # Apply sigmoid to get probabilities
     heatmap = torch.sigmoid(heatmap)
@@ -785,7 +791,7 @@ def decode_stereo3d_outputs(
     use_nms: bool = True,
     nms_kernel: int = 3,
     use_occlusion_classification: bool | None = None,
-    imgsz: int | None = None,
+    imgsz: int | tuple[int, int] | list[int] | None = None,
     ori_shapes: list[tuple[int, int]] | None = None,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode 10-branch model outputs to 3D bounding boxes.
@@ -865,14 +871,8 @@ def decode_stereo3d_outputs(
     
     # Get letterbox parameters
     if imgsz is None:
-        # Infer from input tensor shape or use default
-        # Try to infer from output shape (assuming square input)
-        if outputs["heatmap"].shape[0] > 0:
-            # Estimate from feature map size (rough estimate)
-            # This is a fallback - should be provided by caller
-            imgsz = 384  # Default letterbox size
-        else:
-            imgsz = 384
+        imgsz = (384, 384)  # Default letterbox size (H, W)
+    input_h, input_w = (imgsz, imgsz) if isinstance(imgsz, int) else (int(imgsz[0]), int(imgsz[1]))
     
     # Get original image sizes (with fallback to KITTI default)
     if ori_shapes is None or len(ori_shapes) == 0:
@@ -926,8 +926,8 @@ def decode_stereo3d_outputs(
     
     # Compute scale from feature map to letterboxed input space
     # Scale is computed dynamically from actual feature map size (architecture-agnostic)
-    scale_w_letterbox = imgsz / w  # w is feature map width
-    scale_h_letterbox = imgsz / h  # h is feature map height
+    scale_w_letterbox = input_w / w  # w is feature map width
+    scale_h_letterbox = input_h / h  # h is feature map height
 
     # T207: Vectorize heatmap peak detection for batch
     # Apply sigmoid to get probabilities

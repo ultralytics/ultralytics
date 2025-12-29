@@ -311,7 +311,11 @@ class BaseTrainer:
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
-        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
+        # NOTE: allow rectangular train imgsz=[h,w] for stereo3ddet (letterbox already supports (H,W))
+        if getattr(self.args, "task", None) == "stereo3ddet":
+            self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, min_dim=2, max_dim=2)
+        else:
+            self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
         self.stride = gs  # for multiscale training
 
         # Batch size

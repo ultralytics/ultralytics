@@ -8,41 +8,18 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+from ultralytics.data.augment import LetterBox
 from ultralytics.models.yolo.stereo3ddet.augment import StereoAugmentationPipeline, StereoCalibration, PhotometricAugmentor
 from ultralytics.utils import LOGGER
 
 
-def _letterbox(image: np.ndarray, new_shape: int, color=(114, 114, 114)) -> Tuple[np.ndarray, float, int, int]:
-    h, w = image.shape[:2]
-    scale = min(new_shape / h, new_shape / w)
-    new_unpad = (int(round(w * scale)), int(round(h * scale)))
-    resized = cv2.resize(image, new_unpad, interpolation=cv2.INTER_LINEAR)
-    dw, dh = new_shape - new_unpad[0], new_shape - new_unpad[1]
-    top, bottom = dh // 2, dh - dh // 2
-    left, right = dw // 2, dw - dw // 2
-    padded = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
-    return padded, scale, left, top
-
-
-def _letterbox_with_params(
-    image: np.ndarray, new_shape: int, scale: float, pad_left: int, pad_top: int, color=(114, 114, 114)
-) -> np.ndarray:
-    """Letterbox using externally provided scale and padding.
-
-    This keeps stereo views pixel-aligned even if rounding would otherwise diverge between left/right.
-    """
-    h, w = image.shape[:2]
-    new_unpad = (int(round(w * scale)), int(round(h * scale)))
-    resized = cv2.resize(image, new_unpad, interpolation=cv2.INTER_LINEAR)
-    dw, dh = new_shape - new_unpad[0], new_shape - new_unpad[1]
-    # Recompute the symmetric pads to match the left image's exact padding split.
-    # pad_left/pad_top are the *leading* pads; trailing pads are implied by remaining space.
-    left = int(pad_left)
-    top = int(pad_top)
-    right = int(dw - left)
-    bottom = int(dh - top)
-    padded = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
-    return padded
+def _to_hw(imgsz: int | tuple[int, int] | list[int]) -> tuple[int, int]:
+    """Normalize imgsz to (H, W)."""
+    if isinstance(imgsz, int):
+        return int(imgsz), int(imgsz)
+    if isinstance(imgsz, (tuple, list)) and len(imgsz) == 2:
+        return int(imgsz[0]), int(imgsz[1])
+    raise TypeError(f"imgsz must be int or (h,w), got {imgsz} ({type(imgsz).__name__})")
 
 
 class Stereo3DDetDataset(Dataset):
@@ -57,7 +34,7 @@ class Stereo3DDetDataset(Dataset):
         self,
         root: str | Path,
         split: str,
-        imgsz: int,
+        imgsz: int | tuple[int, int] | list[int],
         names: Dict[int, str] | List[str] | None = None,
         max_samples: int | None = None,
         output_size: Tuple[int, int] | None = None,
@@ -79,8 +56,9 @@ class Stereo3DDetDataset(Dataset):
         """
         self.root = Path(root)
         self.split = split
-        self.imgsz = int(imgsz)
+        self.imgsz = _to_hw(imgsz)  # (H, W)
         self.names = names or {}
+        self._letterbox = LetterBox(new_shape=self.imgsz, auto=False, scale_fill=False, scaleup=True, stride=32)
 
         # Dataset layout (KITTI-style stereo):
         # - images/{split}/left, images/{split}/right
@@ -118,11 +96,9 @@ class Stereo3DDetDataset(Dataset):
         # Initialize target generator for generating training/validation targets
         # Compute output_size if not provided (default to 8x downsampling for P3)
         if output_size is None:
-            # Default to 8x downsampling (P3 architecture)
-            # This can be overridden when building the dataset if model architecture is known
-            output_h = imgsz // 8
-            output_w = imgsz // 8
-            output_size = (output_h, output_w)
+            # Default to 8x downsampling (P3 architecture). This can be overridden by the trainer if model is known.
+            input_h, input_w = self.imgsz
+            output_size = (input_h // 8, input_w // 8)
         self.output_size = output_size
         
         # Get number of classes
@@ -318,6 +294,8 @@ class Stereo3DDetDataset(Dataset):
         for label in labels:
             new_label = dict(label)  # Copy label to avoid modifying original
             
+            input_h, input_w = self.imgsz
+
             # Transform left_box
             if "left_box" in new_label:
                 lb = new_label["left_box"]
@@ -337,12 +315,12 @@ class Stereo3DDetDataset(Dataset):
                 cx_px = cx_px + pad_left
                 cy_px = cy_px + pad_top
                 
-                # Normalize to letterboxed image size
+                # Normalize to letterboxed image size (H, W)
                 new_label["left_box"] = {
-                    "center_x": float(cx_px / self.imgsz),
-                    "center_y": float(cy_px / self.imgsz),
-                    "width": float(w_px / self.imgsz),
-                    "height": float(h_px / self.imgsz),
+                    "center_x": float(cx_px / input_w),
+                    "center_y": float(cy_px / input_h),
+                    "width": float(w_px / input_w),
+                    "height": float(h_px / input_h),
                 }
             
             # Transform right_box
@@ -354,9 +332,6 @@ class Stereo3DDetDataset(Dataset):
                 rw_px = float(rb["width"]) * orig_w
                 rh_px = float(rb["height"]) * orig_h
 
-                assert rw_px > 1, "Consider use higher resize resolution, the width is smaller than 1 pixel"
-                assert rh_px > 1, "Consider use higher resize resolution, the height is smaller than 1 pixel"
-
                 # Apply letterbox scale
                 rx_px = rx_px * scale
                 ry_px = ry_px * scale
@@ -365,12 +340,12 @@ class Stereo3DDetDataset(Dataset):
 
                 rx_px = rx_px + pad_left
                 ry_px = ry_px + pad_top
-                # Normalize to letterboxed image size
+                # Normalize to letterboxed image size (H, W)
                 new_label["right_box"] = {
-                    "center_x": float(rx_px / self.imgsz),
-                    "center_y": float(ry_px / self.imgsz),
-                    "width": float(rw_px / self.imgsz),
-                    "height": float(rh_px / self.imgsz),
+                    "center_x": float(rx_px / input_w),
+                    "center_y": float(ry_px / input_h),
+                    "width": float(rw_px / input_w),
+                    "height": float(rh_px / input_h),
                 }
             
             # Transform vertices if present
@@ -393,10 +368,10 @@ class Stereo3DDetDataset(Dataset):
                         vx_px = vx_px + pad_left
                         vy_px = vy_px + pad_top
                         
-                        # Normalize to letterboxed image size
+                        # Normalize to letterboxed image size (H, W)
                         transformed_vertices[v_key] = [
-                            float(vx_px / self.imgsz),
-                            float(vy_px / self.imgsz),
+                            float(vx_px / input_w),
+                            float(vy_px / input_h),
                         ]
                 
                 if transformed_vertices:
@@ -495,9 +470,24 @@ class Stereo3DDetDataset(Dataset):
         # right_rgb = right_img.copy()
         left_rgb = cv2.cvtColor(left_img, cv2.COLOR_BGR2RGB)
         right_rgb = cv2.cvtColor(right_img, cv2.COLOR_BGR2RGB)
-        # Letterbox stereo pair identically using left's parameters to guarantee pixel alignment
-        left_resized, scale_l, pad_left_l, pad_top_l = _letterbox(left_rgb, self.imgsz)
-        right_resized = _letterbox_with_params(right_rgb, self.imgsz, scale_l, pad_left_l, pad_top_l)
+        # Letterbox stereo pair identically by letterboxing the stacked 6-channel image once.
+        # This guarantees perfect pixel alignment between left/right views.
+        stereo6 = np.concatenate([left_rgb, right_rgb], axis=2)  # [H, W, 6]
+
+        # Compute the exact scale/pad that LetterBox will apply (to transform labels/calibration consistently).
+        in_h, in_w = stereo6.shape[:2]
+        out_h, out_w = self.imgsz
+        scale_l = min(out_h / in_h, out_w / in_w)
+        new_unpad_w, new_unpad_h = round(in_w * scale_l), round(in_h * scale_l)
+        dw, dh = out_w - new_unpad_w, out_h - new_unpad_h
+        dw /= 2
+        dh /= 2
+        pad_left_l = int(round(dw - 0.1))
+        pad_top_l = int(round(dh - 0.1))
+
+        stereo6_resized = self._letterbox(image=stereo6)
+        left_resized = stereo6_resized[:, :, :3]
+        right_resized = stereo6_resized[:, :, 3:]
         
         # Transform labels from original/augmented image space to letterboxed space
         labels_transformed = self._transform_labels_for_letterbox(
@@ -554,8 +544,8 @@ class Stereo3DDetDataset(Dataset):
         calibs = [b["calib"] for b in batch]  # Collect calib for each sample (T145)
         ori_shapes = [b["ori_shape"] for b in batch]  # Original image sizes
         
-        # Generate targets for each sample in the batch
-        # Targets are generated in letterboxed input space (imgsz x imgsz)
+        # Generate targets for each sample in the batch.
+        # Targets are generated in letterboxed input space (H, W).
         targets_list = []
         for labels, calib, ori_shape in zip(labels_list, calibs, ori_shapes):
             # TargetGenerator expects calib and original_size to match length of labels
@@ -566,7 +556,7 @@ class Stereo3DDetDataset(Dataset):
             
             target = self.target_generator.generate_targets(
                 labels,
-                input_size=(self.imgsz, self.imgsz),  # Letterboxed input size
+                input_size=self.imgsz,  # Letterboxed input size (H, W)
                 calib=calib_list,
                 original_size=ori_shape_list,
             )

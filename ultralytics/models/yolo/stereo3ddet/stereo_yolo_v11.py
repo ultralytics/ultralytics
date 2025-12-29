@@ -986,7 +986,7 @@ class StereoYOLOv11Wrapper(nn.Module):
         
         # Get image size for TargetGenerator
         _, _, h, w = img.shape
-        imgsz = h  # Assuming square images
+        input_size = (h, w)
         
         # Import TargetGenerator and initialize it (T133)
         from ultralytics.data.stereo.target import TargetGenerator
@@ -1002,7 +1002,7 @@ class StereoYOLOv11Wrapper(nn.Module):
             # We do a dummy forward pass to get the actual output shape, making it architecture-agnostic
             with torch.no_grad():
                 # Create dummy input with same shape as actual input
-                dummy_img = torch.zeros(1, 6, imgsz, imgsz, device=img.device)
+                dummy_img = torch.zeros(1, 6, input_size[0], input_size[1], device=img.device)
                 # Forward pass to get actual output shape
                 dummy_output = self.forward(dummy_img)
                 
@@ -1017,22 +1017,22 @@ class StereoYOLOv11Wrapper(nn.Module):
                         # Fallback: try to get from model stride if available
                         if hasattr(self, "stride") and self.stride is not None:
                             stride = float(self.stride[0]) if isinstance(self.stride, torch.Tensor) else float(self.stride)
-                            output_h = int(imgsz / stride)
-                            output_w = int(imgsz / stride)
+                            output_h = int(input_size[0] / stride)
+                            output_w = int(input_size[1] / stride)
                         else:
                             # Last resort: assume 8x downsampling for P3 (common case)
-                            output_h = imgsz // 8
-                            output_w = imgsz // 8
+                            output_h = input_size[0] // 8
+                            output_w = input_size[1] // 8
                 else:
                     # If output is not a dict, try to infer from model structure
                     if hasattr(self, "stride") and self.stride is not None:
                         stride = float(self.stride[0]) if isinstance(self.stride, torch.Tensor) else float(self.stride)
-                        output_h = int(imgsz / stride)
-                        output_w = int(imgsz / stride)
+                        output_h = int(input_size[0] / stride)
+                        output_w = int(input_size[1] / stride)
                     else:
                         # Fallback: assume 8x downsampling for P3
-                        output_h = imgsz // 8
-                        output_w = imgsz // 8
+                        output_h = input_size[0] // 8
+                        output_w = input_size[1] // 8
             
             self._target_generator = TargetGeneratorImproved(
                 output_size=(output_h, output_w),
@@ -1044,7 +1044,7 @@ class StereoYOLOv11Wrapper(nn.Module):
         for labels in labels_list:
             target = self._target_generator.generate_targets(
                 labels,
-                input_size=(imgsz, imgsz)
+                input_size=input_size
             )
             # Move to same device as img
             target = {k: v.to(img.device) for k, v in target.items()}
@@ -1065,7 +1065,7 @@ class StereoYOLOv11Wrapper(nn.Module):
             else:
                 # Dynamically determine output size from model forward pass
                 with torch.no_grad():
-                    dummy_img = torch.zeros(1, 6, imgsz, imgsz, device=img.device)
+                    dummy_img = torch.zeros(1, 6, input_size[0], input_size[1], device=img.device)
                     dummy_output = self.forward(dummy_img)
                     
                     if isinstance(dummy_output, dict):
@@ -1073,11 +1073,11 @@ class StereoYOLOv11Wrapper(nn.Module):
                         if sample_branch is not None:
                             _, _, output_h, output_w = sample_branch.shape
                         else:
-                            output_h = imgsz // 8
-                            output_w = imgsz // 8
+                            output_h = input_size[0] // 8
+                            output_w = input_size[1] // 8
                     else:
-                        output_h = imgsz // 8
-                        output_w = imgsz // 8
+                        output_h = input_size[0] // 8
+                        output_w = input_size[1] // 8
             
             num_classes = len(self.names) if isinstance(self.names, dict) else 3
             batched_targets = {

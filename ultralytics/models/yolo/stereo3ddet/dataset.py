@@ -8,8 +8,8 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from ultralytics.data.kitti_stereo import KITTIStereoDataset
 from ultralytics.models.yolo.stereo3ddet.augment import StereoAugmentationPipeline, StereoCalibration, PhotometricAugmentor
+from ultralytics.utils import LOGGER
 
 
 def _letterbox(image: np.ndarray, new_shape: int, color=(114, 114, 114)) -> Tuple[np.ndarray, float, int, int]:
@@ -24,8 +24,29 @@ def _letterbox(image: np.ndarray, new_shape: int, color=(114, 114, 114)) -> Tupl
     return padded, scale, left, top
 
 
-class Stereo3DDetAdapterDataset(Dataset):
-    """Wraps KITTIStereoDataset to emit YOLO-style batches for training.
+def _letterbox_with_params(
+    image: np.ndarray, new_shape: int, scale: float, pad_left: int, pad_top: int, color=(114, 114, 114)
+) -> np.ndarray:
+    """Letterbox using externally provided scale and padding.
+
+    This keeps stereo views pixel-aligned even if rounding would otherwise diverge between left/right.
+    """
+    h, w = image.shape[:2]
+    new_unpad = (int(round(w * scale)), int(round(h * scale)))
+    resized = cv2.resize(image, new_unpad, interpolation=cv2.INTER_LINEAR)
+    dw, dh = new_shape - new_unpad[0], new_shape - new_unpad[1]
+    # Recompute the symmetric pads to match the left image's exact padding split.
+    # pad_left/pad_top are the *leading* pads; trailing pads are implied by remaining space.
+    left = int(pad_left)
+    top = int(pad_top)
+    right = int(dw - left)
+    bottom = int(dh - top)
+    padded = cv2.copyMakeBorder(resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
+    return padded
+
+
+class Stereo3DDetDataset(Dataset):
+    """Stereo 3D detection dataset (single, unified dataset).
 
     - Returns keys: 'img' (6-channel), 'targets' (dict), 'im_file', 'ori_shape'.
     - Builds a single 6-channel tensor by stacking left and right RGB after identical letterbox.
@@ -42,7 +63,7 @@ class Stereo3DDetAdapterDataset(Dataset):
         output_size: Tuple[int, int] | None = None,
         mean_dims: Dict[str, List[float]] | None = None,
     ):
-        """Initialize Stereo3DDetAdapterDataset.
+        """Initialize Stereo3DDetDataset.
 
         Args:
             root (str | Path): Root directory of the dataset.
@@ -61,24 +82,34 @@ class Stereo3DDetAdapterDataset(Dataset):
         self.imgsz = int(imgsz)
         self.names = names or {}
 
-        # Determine if we should filter classes based on names parameter
-        # If names contains only 3 classes (Car, Pedestrian, Cyclist), enable filtering
-        from ultralytics.models.yolo.stereo3ddet.utils import PAPER_CLASS_NAMES
-        # Fix filter_classes logic bug: should be == not != (T125)
-        self.filter_classes = set(self.names.values()) == set(PAPER_CLASS_NAMES.values())
-
-        # Validate that names parameter matches actual label classes (T123)
-        # Pass max_samples to validation so it only checks the files that will be loaded
-        # Initialize base dataset with class filtering and max_samples if needed (T193, T194)
-        # DEBUG: MAX_SAMPLES = 1000
-        MAX_SAMPLES = max_samples
-        self.base = KITTIStereoDataset(
-            root=self.root,
-            split=self.split,
-            filter_classes=self.filter_classes,
-            max_samples=MAX_SAMPLES
-        )
+        # Dataset layout (KITTI-style stereo):
+        # - images/{split}/left, images/{split}/right
+        # - labels/{split}
+        # - calib/{split}
         self.left_dir = self.root / "images" / split / "left"
+        self.right_dir = self.root / "images" / split / "right"
+        self.label_dir = self.root / "labels" / split
+        self.calib_dir = self.root / "calib" / split
+
+        if not self.left_dir.exists():
+            raise FileNotFoundError(f"Left image directory not found: {self.left_dir}")
+        if not self.right_dir.exists():
+            raise FileNotFoundError(f"Right image directory not found: {self.right_dir}")
+        if not self.calib_dir.exists():
+            raise FileNotFoundError(f"Calibration directory not found: {self.calib_dir}")
+
+        self.image_ids = self._get_image_ids()
+        if len(self.image_ids) == 0:
+            raise ValueError(f"No stereo pairs found in {self.left_dir} (missing/empty)")
+
+        if max_samples is not None:
+            if max_samples <= 0:
+                raise ValueError(f"max_samples must be > 0, got {max_samples}")
+            total = len(self.image_ids)
+            self.image_ids = self.image_ids[:max_samples]
+            if len(self.image_ids) < total:
+                LOGGER.info(f"Limited stereo dataset to {len(self.image_ids)} samples (from {total} total)")
+
         # Full stereo augmentation pipeline (photometric + geometric)
         self._aug = StereoAugmentationPipeline(
             photometric=PhotometricAugmentor(p_apply=0.9)
@@ -105,108 +136,160 @@ class Stereo3DDetAdapterDataset(Dataset):
             mean_dims=mean_dims,
         )
 
-    def _get_actual_label_classes(self, max_samples: int | None = None) -> set[int]:
-        """Scan label files and extract unique class IDs from dataset (T120).
-        
-        Args:
-            max_samples: If specified, only scan the first max_samples label files.
-        
-        Returns:
-            set[int]: Set of unique original class IDs found in label files.
+    def _get_image_ids(self) -> list[str]:
+        """Return image ids that exist in both left and right directories."""
+        left_files = sorted(self.left_dir.glob("*.png"))
+        if not left_files:
+            left_files = sorted(self.left_dir.glob("*.jpg"))
+
+        image_ids: list[str] = []
+        for lf in left_files:
+            rf = self.right_dir / lf.name
+            if rf.exists():
+                image_ids.append(lf.stem)
+            else:
+                LOGGER.warning(f"Missing right image for {lf.stem}, skipping")
+        return image_ids
+
+    def _parse_calibration(self, calib_file: Path) -> dict[str, Any]:
+        """Parse calibration file into a structured dictionary.
+
+        Supports both original KITTI format (P0..P3, R0_rect, Tr_*) and the simplified converted
+        format (fx, fy, cx, cy, right_cx, right_cy, baseline, image_width, image_height).
         """
-        label_dir = self.root / "labels" / self.split
-        if not label_dir.exists():
-            return set()
-        
-        actual_classes = set()
-        label_files = sorted(label_dir.glob("*.txt"))
-        
-        # If max_samples is specified, only check the first max_samples files
-        if max_samples is not None:
-            label_files = label_files[:max_samples]
-        
-        for label_file in label_files:
-            try:
-                with open(label_file, "r") as f:
-                    for line in f:
-                        line = line.strip()
-                        if not line:
-                            continue
-                        parts = line.split()
-                        if len(parts) >= 1:
-                            try:
-                                class_id = int(float(parts[0]))  # Handle float format
-                                actual_classes.add(class_id)
-                            except (ValueError, IndexError):
-                                continue
-            except (IOError, OSError):
+        with open(calib_file, "r") as f:
+            lines = f.readlines()
+
+        calib_dict: dict[str, Any] = {}
+        for line in lines:
+            line = line.strip()
+            if not line:
                 continue
-        
-        return actual_classes
+            parts = line.split(":")
+            if len(parts) != 2:
+                continue
+            key = parts[0].strip()
+            value_str = parts[1].strip()
 
-    def _map_class_ids_to_names(self, class_ids: set[int]) -> dict[int, str]:
-        """Map actual class IDs to class names using ORIGINAL_TO_PAPER mapping (T121).
-        
-        Args:
-            class_ids: Set of original class IDs from label files.
-            
-        Returns:
-            dict[int, str]: Mapping from paper class ID to class name for classes found in labels.
-        """
-        from ultralytics.models.yolo.stereo3ddet.utils import ORIGINAL_TO_PAPER, PAPER_CLASS_NAMES
-        
-        mapped_names = {}
-        for original_id in class_ids:
-            # Check if this class is in the paper set
-            if original_id in ORIGINAL_TO_PAPER:
-                paper_id = ORIGINAL_TO_PAPER[original_id]
-                if paper_id in PAPER_CLASS_NAMES:
-                    mapped_names[paper_id] = PAPER_CLASS_NAMES[paper_id]
-        
-        return mapped_names
+            if key in {"fx", "fy", "cx", "cy", "right_cx", "right_cy", "baseline"}:
+                try:
+                    calib_dict[key] = float(value_str)
+                except ValueError:
+                    continue
+                continue
+            if key in {"image_width", "image_height"}:
+                try:
+                    calib_dict[key] = int(float(value_str))
+                except ValueError:
+                    continue
+                continue
 
-    def _validate_names_against_labels(self, max_samples: int | None = None) -> None:
-        """Compare names parameter with actual label classes and raise ValueError if mismatch (T122, T124).
-        
-        Args:
-            max_samples: If specified, only validate against the first max_samples label files.
-        
-        Raises:
-            ValueError: If names parameter doesn't match actual label classes.
-        """
-        # Get actual class IDs from label files (only check files that will be loaded)
-        actual_class_ids = self._get_actual_label_classes(max_samples=max_samples)
-        
-        # If no labels found, skip validation (edge case: empty dataset)
-        if not actual_class_ids:
-            return
-        
-        # Map actual class IDs to paper class names
-        actual_names = self._map_class_ids_to_names(actual_class_ids)
-        
-        # If no paper classes found in labels (all filtered out), skip validation
-        # This handles the edge case where labels only contain non-paper classes
-        if not actual_names:
-            return
-        
-        # Compare with provided names parameter
-        expected_names_set = set(self.names.values())
-        actual_names_set = set(actual_names.values())
-        
-        if expected_names_set != actual_names_set:
-            # Build clear error message (T124)
-            expected_str = ", ".join(sorted(expected_names_set)) if expected_names_set else "(none)"
-            actual_str = ", ".join(sorted(actual_names_set)) if actual_names_set else "(none)"
-            
-            raise ValueError(
-                f"names parameter does not match actual label classes. "
-                f"Expected classes in names: {expected_str}, "
-                f"but found classes in labels: {actual_str}. "
-                f"Please ensure the names parameter matches the classes present in your label files."
-            )
+            try:
+                values = [float(x) for x in value_str.split()]
+            except ValueError:
+                continue
+
+            if key == "P0":
+                calib_dict["P0"] = np.array(values).reshape(3, 4)
+            elif key == "P1":
+                calib_dict["P1"] = np.array(values).reshape(3, 4)
+            elif key == "P2":
+                calib_dict["P2"] = np.array(values).reshape(3, 4)
+            elif key == "P3":
+                calib_dict["P3"] = np.array(values).reshape(3, 4)
+            elif key == "R0_rect":
+                calib_dict["R0_rect"] = np.array(values).reshape(3, 3)
+            elif key == "Tr_velo_to_cam":
+                calib_dict["Tr_velo_to_cam"] = np.array(values).reshape(3, 4)
+            elif key == "Tr_imu_to_velo":
+                calib_dict["Tr_imu_to_velo"] = np.array(values).reshape(3, 4)
+
+        # Derive intrinsics from P2 if needed
+        if "P2" in calib_dict and not all(k in calib_dict for k in ("fx", "fy", "cx", "cy")):
+            P2 = calib_dict["P2"]
+            calib_dict["fx"] = P2[0, 0]
+            calib_dict["fy"] = P2[1, 1]
+            calib_dict["cx"] = P2[0, 2]
+            calib_dict["cy"] = P2[1, 2]
+
+        if "P3" in calib_dict and not all(k in calib_dict for k in ("right_cx", "right_cy")):
+            P3 = calib_dict["P3"]
+            calib_dict["right_cx"] = P3[0, 2]
+            calib_dict["right_cy"] = P3[1, 2]
+
+        if "P2" in calib_dict and "P3" in calib_dict and "fx" in calib_dict and "baseline" not in calib_dict:
+            P2 = calib_dict["P2"]
+            P3 = calib_dict["P3"]
+            fx = calib_dict["fx"]
+            baseline = (P2[0, 3] - P3[0, 3]) / fx
+            calib_dict["baseline"] = abs(baseline)
+
+        return calib_dict
+
+    def _parse_labels(self, label_file: Path) -> list[dict[str, Any]]:
+        """Parse YOLO 3D label file (26-value format)."""
+        if not label_file.exists():
+            raise FileNotFoundError(f"Label file not found: {label_file}")
+
+        labels: list[dict[str, Any]] = []
+        with open(label_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                parts = line.split()
+                if len(parts) != 26:
+                    LOGGER.warning(f"Invalid label format in {label_file}: expected 26 values, got {len(parts)}")
+                    continue
+
+                values = [float(x) for x in parts]
+                class_id = int(values[0])
+                label_dict = {
+                    "class_id": class_id,
+                    "left_box": {
+                        "center_x": values[1],
+                        "center_y": values[2],
+                        "width": values[3],
+                        "height": values[4],
+                    },
+                    "right_box": {
+                        "center_x": values[5],
+                        "center_y": values[6],
+                        "width": values[7],
+                        "height": values[8],
+                    },
+                    "dimensions": {
+                        "length": values[9],
+                        "width": values[10],
+                        "height": values[11],
+                    },
+                    "rotation_y": values[15],
+                    "vertices": {
+                        "v1": [values[16], values[17]],
+                        "v2": [values[18], values[19]],
+                        "v3": [values[20], values[21]],
+                        "v4": [values[22], values[23]],
+                    },
+                    "location_3d": {"x": values[12], "y": values[13], "z": values[14]},
+                    "truncated": float(values[24]),
+                    "occluded": int(values[25]),
+                }
+
+                # Keep existing assertions for early data-quality feedback
+                assert -np.pi <= label_dict["rotation_y"] <= np.pi, (
+                    f"rotation_y is out of range: {label_dict['rotation_y']}"
+                )
+                assert (
+                    0.1 < label_dict["dimensions"]["height"] < 5
+                    and 0.1 < label_dict["dimensions"]["width"] < 3
+                    and 0.1 < label_dict["dimensions"]["length"] < 20
+                ), f"dimensions are out of range: {label_dict['dimensions']}"
+
+                labels.append(label_dict)
+        return labels
 
     def __len__(self) -> int:
-        return len(self.base)
+        return len(self.image_ids)
 
     def _transform_labels_for_letterbox(
         self,
@@ -346,71 +429,36 @@ class Stereo3DDetAdapterDataset(Dataset):
         # Baseline is in meters, not affected by image transformations
         # new_calib["baseline"] remains unchanged
         
+        
         return new_calib
 
-    def _labels_to_tensors(
-        self, labels: List[Dict[str, Any]], scale: float, pad_left: int, pad_top: int, ori_w: int, ori_h: int
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        cls_list: List[float] = []
-        bboxes_list: List[List[float]] = []
-
-        # Import class mapping utilities if filtering is enabled
-        if self.filter_classes:
-            from ultralytics.models.yolo.stereo3ddet.utils import filter_and_remap_class_id
-
-        for obj in labels:
-            try:
-                original_cid = int(obj.get("class_id", -1))
-                if original_cid < 0:
-                    continue
-                cid = original_cid
-
-                lb = obj.get("left_box", {})
-                cx, cy, bw, bh = float(lb.get("center_x", 0)), float(lb.get("center_y", 0)), float(
-                    lb.get("width", 0)
-                ), float(lb.get("height", 0))
-                # denormalize to original pixels
-                x = cx * ori_w
-                y = cy * ori_h
-                w = bw * ori_w
-                h = bh * ori_h
-                # apply resize + pad
-                x = x * scale + pad_left
-                y = y * scale + pad_top
-                w = w * scale
-                h = h * scale
-                # normalize to new square size (imgsz)
-                cxn = x / self.imgsz
-                cyn = y / self.imgsz
-                wn = w / self.imgsz
-                hn = h / self.imgsz
-                # clamp
-                cxn = float(min(max(cxn, 0.0), 1.0))
-                cyn = float(min(max(cyn, 0.0), 1.0))
-                wn = float(min(max(wn, 0.0), 1.0))
-                hn = float(min(max(hn, 0.0), 1.0))
-
-                cls_list.append(float(cid))
-                bboxes_list.append([cxn, cyn, wn, hn])
-            except Exception:
-                continue
-
-        if len(cls_list) == 0:
-            cls_t = torch.zeros((0,), dtype=torch.float32)
-            bboxes_t = torch.zeros((0, 4), dtype=torch.float32)
-        else:
-            cls_t = torch.tensor(cls_list, dtype=torch.float32)
-            bboxes_t = torch.tensor(bboxes_list, dtype=torch.float32)
-        return cls_t, bboxes_t
-
     def __getitem__(self, idx: int) -> Dict[str, Any]:
-        sample = self.base[idx]
-        left_img: np.ndarray = sample["left_img"]
-        right_img: np.ndarray = sample["right_img"]
+        image_id = self.image_ids[idx]
+
+        # Load images (BGR)
+        left_img_path = self.left_dir / f"{image_id}.png"
+        if not left_img_path.exists():
+            left_img_path = self.left_dir / f"{image_id}.jpg"
+        right_img_path = self.right_dir / left_img_path.name
+
+        left_img = cv2.imread(str(left_img_path))
+        right_img = cv2.imread(str(right_img_path))
+        if left_img is None:
+            raise FileNotFoundError(f"Could not load left image: {left_img_path}")
+        if right_img is None:
+            raise FileNotFoundError(f"Could not load right image: {right_img_path}")
+
         h0, w0 = left_img.shape[:2]
 
         # Get calibration (needed for both train and val) (T143)
-        calib = sample["calib"]
+        calib_file = self.calib_dir / f"{image_id}.txt"
+        if not calib_file.exists():
+            raise FileNotFoundError(f"Calibration file not found: {calib_file}")
+        calib = self._parse_calibration(calib_file)
+
+        # Load labels (normalized coordinates in original/augmented image space)
+        label_file = self.label_dir / f"{image_id}.txt"
+        labels = self._parse_labels(label_file)
         
         # Optional stereo augmentation (train split only)
         if self.split == "train":
@@ -423,23 +471,25 @@ class Stereo3DDetAdapterDataset(Dataset):
                 height=h0,
                 width=w0,
             )
-            left_img, right_img, labels_aug, calib_obj_aug = self._aug.augment(left_img, right_img, sample["labels"], calib_obj)
+            left_img, right_img, labels_aug, calib_obj_aug = self._aug.augment(left_img, right_img, labels, calib_obj)
             # Use augmented calibration if available, otherwise use original
             if calib_obj_aug is not None:
                 calib = calib_obj_aug.to_dict()
             # Get image size after augmentation (before letterbox)
             h_aug, w_aug = left_img.shape[:2]
         else:
-            labels_aug = sample["labels"]
+            labels_aug = labels
             # No augmentation, so image size is still original
             h_aug, w_aug = h0, w0
 
         # BGR -> RGB for both
+        # left_rgb = left_img.copy()
+        # right_rgb = right_img.copy()
         left_rgb = cv2.cvtColor(left_img, cv2.COLOR_BGR2RGB)
         right_rgb = cv2.cvtColor(right_img, cv2.COLOR_BGR2RGB)
-        # Letterbox both identically using left's parameters, then reapply to right by computing separately
+        # Letterbox stereo pair identically using left's parameters to guarantee pixel alignment
         left_resized, scale_l, pad_left_l, pad_top_l = _letterbox(left_rgb, self.imgsz)
-        right_resized, _, _, _ = _letterbox(right_rgb, self.imgsz)
+        right_resized = _letterbox_with_params(right_rgb, self.imgsz, scale_l, pad_left_l, pad_top_l)
         
         # Transform labels from original/augmented image space to letterboxed space
         labels_transformed = self._transform_labels_for_letterbox(
@@ -465,7 +515,6 @@ class Stereo3DDetAdapterDataset(Dataset):
         if img6.dtype != torch.uint8:
             img6 = img6.to(torch.uint8)
         
-        image_id = sample["image_id"]
         im_file = str(self.left_dir / f"{image_id}.png")
 
         return {
@@ -535,3 +584,7 @@ class Stereo3DDetAdapterDataset(Dataset):
             "im_file": [b["im_file"] for b in batch],
             "ori_shape": ori_shapes,
         }
+
+
+# Backward-compatible alias (older training/val code imported the adapter name)
+Stereo3DDetAdapterDataset = Stereo3DDetDataset

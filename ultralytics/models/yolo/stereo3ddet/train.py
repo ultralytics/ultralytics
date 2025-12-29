@@ -13,7 +13,7 @@ import torch
 from ultralytics.models import yolo
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, YAML
 from ultralytics.models.yolo.stereo3ddet.visualize import plot_stereo_sample
-from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetAdapterDataset
+from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
 from ultralytics.data import build_dataloader
 from ultralytics.data.stereo.target_improved import TargetGenerator as TargetGeneratorImproved
@@ -193,7 +193,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         }
 
     def build_dataset(self, img_path, mode: str = "train", batch: int | None = None):
-        """Build Stereo3DDetAdapterDataset when given our descriptor; fallback to detection dataset otherwise."""
+        """Build Stereo3DDetDataset when given our descriptor; fallback to detection dataset otherwise."""
         # If img_path is a stereo descriptor dict created in get_dataset
         desc = img_path if isinstance(img_path, dict) else self.data.get(mode)
         if isinstance(desc, dict) and desc.get("type") == "kitti_stereo":
@@ -218,7 +218,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             # Get mean_dims from dataset config
             mean_dims = self.data.get("mean_dims")
             
-            return Stereo3DDetAdapterDataset(
+            return Stereo3DDetDataset(
                 root=str(desc.get("root", ".")),
                 split=str(desc.get("split", "train")),
                 imgsz=imgsz,
@@ -235,7 +235,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         dataset = self.build_dataset(dataset_path, mode=mode, batch=batch_size)
 
         # If using our adapter, build InfiniteDataLoader with its collate_fn via Ultralytics helper
-        if isinstance(dataset, Stereo3DDetAdapterDataset):
+        if isinstance(dataset, Stereo3DDetDataset):
             shuffle = mode == "train"
             return build_dataloader(
                 dataset,
@@ -319,78 +319,35 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         """
         # Keep default detection visualization
         super().plot_training_samples(batch, ni)
+        assert 'im_file' in batch, "im_file is required in batch"
+        im_files = batch["im_file"]
+        # Prepare up to 4 stereo previews per batch
+        previews = min(4, len(im_files))
+        canvas_list = []
 
-        try:
-            root = Path(self.data.get("path", ".")).resolve()
-            split = "train"
-            im_files = batch.get("im_file", [])
-            if not im_files:
-                return
+        for i in range(previews):
+            _6_channel_img = batch["img"][i]
+            assert _6_channel_img.shape[0] == 6, "6-channel image is required"
+            assert _6_channel_img.max() <= 1.0, "image is not normalized"
+            assert _6_channel_img.min() >= 0.0, "image is not normalized"
+            # convert to cpu and numpy
+            _6_channel_img = _6_channel_img.cpu().numpy()
+            left_img = _6_channel_img[:3, :].transpose(1, 2, 0) * 255
+            left_img = left_img.astype(np.uint8)
+            right_img = _6_channel_img[3:, :].transpose(1, 2, 0) * 255
+            right_img = right_img.astype(np.uint8)
+            labels = batch["labels"][i]
+            L, R = plot_stereo_sample(left_img, right_img, labels, class_names=self.data["names"])
+            canvas_list.append(np.concatenate([L, R], axis=1))
 
-            # Prepare up to 4 stereo previews per batch
-            previews = min(4, len(im_files))
-            canvas_list = []
 
-            for i in range(previews):
-                left_path = Path(im_files[i])
-                image_id = left_path.stem
-                right_path = root / "images" / split / "right" / f"{image_id}.png"
-                label_path = root / "labels" / split / f"{image_id}.txt"
 
-                left_img = cv2.imread(str(left_path))
-                right_img = cv2.imread(str(right_path)) if right_path.exists() else None
-                if left_img is None or right_img is None:
-                    continue
-
-                # Parse minimal stereo label (class_id xl yl wl hl xr yr wr hr ...)
-                labels = []
-                if label_path.exists():
-                    with open(label_path, "r") as f:
-                        for line in f:
-                            p = line.strip().split()
-                            if len(p) >= 9:
-                                try:
-                                    cls = int(float(p[0]))
-                                except Exception:
-                                    continue
-                                labels.append(
-                                    {
-                                        "class_id": cls,
-                                        "left_box": {
-                                            "center_x": float(p[1]),
-                                            "center_y": float(p[2]),
-                                            "width": float(p[3]),
-                                            "height": float(p[4]),
-                                        },
-                                        "right_box": {
-                                            "center_x": float(p[5]),
-                                            "width": float(p[7]),
-                                        },
-                                    }
-                                )
-
-                L, R = plot_stereo_sample(left_img, right_img, labels, class_names=self.data.get("names"))
-                h = max(L.shape[0], R.shape[0])
-                # Resize to same height if needed
-                if L.shape[0] != R.shape[0]:
-                    scale_L = h / L.shape[0]
-                    scale_R = h / R.shape[0]
-                    if L.shape[0] != h:
-                        L = cv2.resize(L, (int(L.shape[1] * scale_L), h))
-                    if R.shape[0] != h:
-                        R = cv2.resize(R, (int(R.shape[1] * scale_R), h))
-                canvas = np.concatenate([L, R], axis=1)
-                canvas_list.append(canvas)
-
-            if canvas_list:
-                grid = canvas_list[0]
-                for c in canvas_list[1:]:
-                    grid = np.concatenate([grid, c], axis=0)
-                out = self.save_dir / f"stereo_train_batch{ni}.jpg"
-                cv2.imwrite(str(out), grid)
-        except Exception:
-            # Stay non-intrusive in case of any optional plotting error
-            pass
+        if canvas_list:
+            grid = canvas_list[0]
+            for c in canvas_list[1:]:
+                grid = np.concatenate([grid, c], axis=0)
+            out = self.save_dir / f"stereo_train_batch{ni}.jpg"
+            cv2.imwrite(str(out), grid)
 
     def plot_training_labels(self) -> None:
         """Override default label-plotting which expects detection dataset internals.

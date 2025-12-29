@@ -5,6 +5,6 @@
   hs.async = true;
   hs.defer = true;
   hs.id = "hs-script-loader";
-  hs.src = "//js.hs-scripts.com/44351537.js";
+  hs.src = "https://js.hs-scripts.com/44351537.js";
   document.head.appendChild(hs);
 })();

@@ -140,7 +140,7 @@ class YOLOEDetectValidator(DetectionValidator):
         model: YOLOEModel | str | None = None,
         refer_data: str | None = None,
         load_vp: bool = False,
-        set_classes_for_pf_mode: bool = False,
+        set_classes_for_pf_mode: bool = True,
     ) -> dict[str, Any]:
         """
         Run validation on the model using either text or visual prompt embeddings.

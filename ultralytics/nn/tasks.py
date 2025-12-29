@@ -1042,6 +1042,7 @@ class YOLOEModel(DetectionModel):
         
             clip_weight=self.args.get("clip_weight_name")
         else:
+            assert False
             clip_weight="mobileclip2:b"
             
         # clip_weight="mobileclip2:b"

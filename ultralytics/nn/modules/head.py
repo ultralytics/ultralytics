@@ -874,40 +874,43 @@ class YOLOEDetect(Detect):
             cls_head[-1] = conv
 
             bn_head.fuse()
-        for cls_head, bn_head in zip(self.one2one_cv3, self.one2one_cv4):
-            assert isinstance(cls_head, nn.Sequential)
-            assert isinstance(bn_head, BNContrastiveHead)
-            conv = cls_head[-1]
-            assert isinstance(conv, nn.Conv2d)
-            logit_scale = bn_head.logit_scale
-            bias = bn_head.bias
-            norm = bn_head.norm
 
-            t = txt_feats * logit_scale.exp()
-            conv: nn.Conv2d = fuse_conv_and_bn(conv, norm)
+        if hasattr(self, "one2one_cv3") and hasattr(self, "one2one_cv4"):
 
-            w = conv.weight.data.squeeze(-1).squeeze(-1)
-            b = conv.bias.data
+            for cls_head, bn_head in zip(self.one2one_cv3, self.one2one_cv4):
+                assert isinstance(cls_head, nn.Sequential)
+                assert isinstance(bn_head, BNContrastiveHead)
+                conv = cls_head[-1]
+                assert isinstance(conv, nn.Conv2d)
+                logit_scale = bn_head.logit_scale
+                bias = bn_head.bias
+                norm = bn_head.norm
 
-            w = t @ w
-            b1 = (t @ b.reshape(-1).unsqueeze(-1)).squeeze(-1)
-            b2 = torch.ones_like(b1) * bias
+                t = txt_feats * logit_scale.exp()
+                conv: nn.Conv2d = fuse_conv_and_bn(conv, norm)
 
-            conv = (
-                nn.Conv2d(
-                    conv.in_channels,
-                    w.shape[0],
-                    kernel_size=1,
+                w = conv.weight.data.squeeze(-1).squeeze(-1)
+                b = conv.bias.data
+
+                w = t @ w
+                b1 = (t @ b.reshape(-1).unsqueeze(-1)).squeeze(-1)
+                b2 = torch.ones_like(b1) * bias
+
+                conv = (
+                    nn.Conv2d(
+                        conv.in_channels,
+                        w.shape[0],
+                        kernel_size=1,
+                    )
+                    .requires_grad_(False)
+                    .to(conv.weight.device)
                 )
-                .requires_grad_(False)
-                .to(conv.weight.device)
-            )
 
-            conv.weight.data.copy_(w.unsqueeze(-1).unsqueeze(-1))
-            conv.bias.data.copy_(b1 + b2)
-            cls_head[-1] = conv
+                conv.weight.data.copy_(w.unsqueeze(-1).unsqueeze(-1))
+                conv.bias.data.copy_(b1 + b2)
+                cls_head[-1] = conv
 
-            bn_head.fuse()
+                bn_head.fuse()
 
         del self.reprta
         self.reprta = nn.Identity()

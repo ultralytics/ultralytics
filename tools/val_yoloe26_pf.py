@@ -39,17 +39,17 @@ def yaml_load(file="data.yaml", append_filename=False):
 
 
 
-def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight):
+def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight,clip_weight_name="mobileclip2:b"):
 
     # load the most model weights
     det_model = YOLOE(yaml_name).load(model_path)
-    det_model.model.args['clip_weight_name']="mobileclip2:b"
+    det_model.model.args['clip_weight_name']=clip_weight_name
     # set vocab from the unfused model
     unfused_model=YOLOE(unfused_model_weight)
-    unfused_model.model.args['clip_weight_name']="mobileclip2:b"
+    unfused_model.model.args['clip_weight_name']=clip_weight_name
     unfused_model.eval()
     unfused_model.cuda()
-    unfused_model.args['clip_model_weight']="mobileclip2:b"
+    unfused_model.args['clip_model_weight']=clip_weight_name
     with open('../buffer/ram_tag_list.txt', 'r') as f:
         names = [x.strip() for x in f.readlines()]
     # categories = yaml_load("ultralytics/cfg/datasets/lvis.yaml")["names"].values()
@@ -140,13 +140,25 @@ def read_pf_det_from_seg_fused(model_path,yaml_name):
 #     metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= (not single_cls)) # map 0
 
 
-version='11s'
-model_weight="yoloe-11s-seg-pf.pt"
-model=read_pf_det_from_seg_fused(model_weight,f"yoloe-{version}.yaml")
+# version='11s'
+# model_weight="yoloe-11s-seg-pf.pt"
+# model=read_pf_det_from_seg_fused(model_weight,f"yoloe-{version}.yaml")
 
 
-metrics = model.val(data="lvis.yaml",split="minival", single_cls=False ,max_det=1000,save_json=True, plots=False,
-                    project="runs/prompt_free_test",name="yoloe-11s-seg-pf") # map
+# metrics = model.val(data="lvis.yaml",split="minival", single_cls=False ,max_det=1000,save_json=True, plots=False,
+#                     project="runs/prompt_free_test",name="yoloe-11s-seg-pf") # map
 
 
+version='v8l'
+model_weight=f"/home/louis/repos/yoloe/pretrain/yoloe-{version}-seg-pf.pt"
+weight_path_tp=f"/home/louis/repos/yoloe/pretrain/yoloe-{version}-seg.pt"
+model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",weight_path_tp, clip_weight_name="mobileclip:blt")
 
+# del model.model.model[-1].one2one_cv2
+# del model.model.model[-1].one2one_cv3
+# del model.model.model[-1].one2one_cv4
+model.model.end2end = False
+
+
+metrics = model.val(data="lvis.yaml",split="minival",batch=1, single_cls=False ,max_det=1000,save_json=True, plots=False,
+                    project="runs/prompt_free_test",name=f"yoloe-{version}-seg-pf") # map

@@ -1469,7 +1469,9 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     if not hasattr(model, "stride"):
         model.stride = torch.tensor([32.0])
 
-    model = (model.fuse() if fuse and hasattr(model, "fuse") else model).eval().to(device)  # model in eval mode
+    # fix the issue: https://github.com/ultralytics/ultralytics/pull/21028
+    model = model.to(device)
+    model = (model.fuse() if fuse and hasattr(model, "fuse") else model).eval()  # model in eval mode
 
     # Module updates
     for m in model.modules():

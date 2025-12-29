@@ -8,6 +8,7 @@ from time import time
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING
 
 _last_upload = 0  # Rate limit model uploads
+_console_logger = None  # Global console logger instance
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -16,8 +17,7 @@ try:
     assert _api_key  # verify API key is present
 
     import requests
-
-    from ultralytics.utils.logger import SystemLogger
+    from ultralytics.utils.logger import ConsoleLogger, SystemLogger
     from ultralytics.utils.torch_utils import model_info_for_loggers
 
 except AssertionError:
@@ -83,11 +83,23 @@ def _upload_model_async(model_path, project, name):
 
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start."""
+    global _console_logger
+
     if RANK not in {-1, 0} or not trainer.args.project:
         return
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
     LOGGER.info(f"Platform: Streaming to project '{project}' as '{name}'")
+
+    # Create callback to send console output to Platform
+    def send_console_output(content, line_count, chunk_id):
+        """Send batched console output to Platform webhook."""
+        _send_async("console_output", {"chunkId": chunk_id, "content": content, "lineCount": line_count}, project, name)
+
+    # Start console capture with batching (5 lines or 5 seconds)
+    _console_logger = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)
+    _console_logger.start_capture()
+
     _send_async(
         "training_started",
         {
@@ -159,10 +171,17 @@ def on_model_save(trainer):
 
 def on_train_end(trainer):
     """Log final results and upload best model."""
+    global _console_logger
+
     if RANK not in {-1, 0} or not trainer.args.project:
         return
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
+
+    # Stop console capture and flush remaining output
+    if _console_logger:
+        _console_logger.stop_capture()
+        _console_logger = None
 
     # Upload best model (blocking to ensure it completes)
     model_path = None

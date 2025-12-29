@@ -171,6 +171,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [Signature](signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 - [Medical-pills](medical-pills.md): A dataset featuring images of medical-pills, annotated for applications such as pharmaceutical quality assurance, pill sorting, and regulatory compliance.
 - [KITTI](kitti.md) New 🚀: A dataset featuring real-world driving scenes with stereo, LiDAR, and GPS/IMU data, used here for **2D object detection** tasks such as identifying cars, pedestrians, and cyclists in urban, rural, and highway environments.
+- [KITTI Stereo 3D](kitti-stereo.md): A specialized format for **stereo-based 3D object detection** using the KITTI dataset, with 22-value label format including stereo 2D boxes, 3D dimensions, observation angles, and camera coordinates.
 
 ### Adding your own dataset
 

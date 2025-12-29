@@ -336,10 +336,9 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             assert _6_channel_img.min() >= 0.0, "image is not normalized"
             # convert to cpu and numpy
             _6_channel_img = _6_channel_img.cpu().numpy()
-            left_img = _6_channel_img[:3, :].transpose(1, 2, 0) * 255
-            left_img = left_img.astype(np.uint8)
-            right_img = _6_channel_img[3:, :].transpose(1, 2, 0) * 255
-            right_img = right_img.astype(np.uint8)
+            # Batch images are stored as RGB; OpenCV drawing/saving expects BGR.
+            left_img = (_6_channel_img[:3, :].transpose(1, 2, 0) * 255).astype(np.uint8)[..., ::-1].copy()
+            right_img = (_6_channel_img[3:, :].transpose(1, 2, 0) * 255).astype(np.uint8)[..., ::-1].copy()
             labels = batch["labels"][i]
             L, R = plot_stereo_sample(left_img, right_img, labels, class_names=self.data["names"])
             canvas_list.append(np.concatenate([L, R], axis=1))

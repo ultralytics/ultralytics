@@ -58,16 +58,16 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         # Default loss names for stereo 3D detection (10 branches)
         # Order matches stereo_yolo_v11.py:677-688
         default_loss_names = (
-            "heatmap",
-            "offset",
-            "bbox_size",
-            "lr_distance",
-            "right_width",
-            "dimensions",
-            "orientation",
-            "vertices",
-            "vertex_offset",
-            "vertex_dist",
+            "heatmap_loss",
+            "offset_loss",
+            "bbox_size_loss",
+            "lr_distance_loss",
+            "right_width_loss",
+            "dimensions_loss",
+            "orientation_loss",
+            "vertices_loss",
+            "vertex_offset_loss",
+            "vertex_dist_loss",
         )
         
         # Check if loss_names is already set to stereo 3D detection names (10 branches)

@@ -17,6 +17,7 @@ try:
     assert _api_key  # verify API key is present
 
     import requests
+
     from ultralytics.utils.logger import ConsoleLogger, SystemLogger
     from ultralytics.utils.torch_utils import model_info_for_loggers
 

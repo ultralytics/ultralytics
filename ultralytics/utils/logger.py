@@ -82,7 +82,7 @@ class ConsoleLogger:
     def start_capture(self):
         """Start capturing console output and redirect stdout/stderr.
 
-        Note:
+        Notes:
             In DDP training, only activates on rank 0/-1 to prevent duplicate logging.
         """
         if self.active or RANK not in {-1, 0}:

@@ -49,7 +49,7 @@ class HungarianMatcher(nn.Module):
     def __init__(
         self,
         cost_gain: dict[str, float] | None = None,
-        use_fl: bool = True,
+        use_fl: bool = False,
         with_mask: bool = False,
         num_sample_points: int = 12544,
         alpha: float = 0.25,

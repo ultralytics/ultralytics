@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.metrics import OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
-from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
+from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors, rbox2dist
 from ultralytics.utils.torch_utils import autocast
 
 from .metrics import bbox_iou, probiou
@@ -180,11 +180,19 @@ class RotatedBboxLoss(BboxLoss):
 
         # DFL loss
         if self.dfl_loss:
-            target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]), self.dfl_loss.reg_max - 1)
+            # target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]), self.dfl_loss.reg_max - 1)
+            # Use rbox2dist to convert target_bboxes (xywhr) to ltrb distances
+            # target_bboxes format: (bs, h*w, 5) where last dim is [x, y, w, h, angle]
+            target_angle = target_bboxes[..., 4:5]
+            target_ltrb = rbox2dist(target_bboxes[..., :4], anchor_points, target_angle, self.dfl_loss.reg_max - 1)
+
             loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
-            target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]))
+            # target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]))
+            # Non-DFL branch: also use rbox2dist for consistency
+            target_angle = target_bboxes[..., 4:5]
+            target_ltrb = rbox2dist(target_bboxes[..., :4], anchor_points, target_angle)
             target_ltrb = target_ltrb * stride
             target_ltrb[..., 0::2] /= imgsz[1]
             target_ltrb[..., 1::2] /= imgsz[0]
@@ -928,6 +936,7 @@ class v8OBBLoss(v8DetectionLoss):
             topk=tal_topk, num_classes=self.nc, alpha=0.5, beta=6.0, stride=self.stride.tolist()
         )
         self.bbox_loss = RotatedBboxLoss(self.reg_max).to(self.device)
+        self.ga_loss = model.args.ga_loss
 
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
         """Preprocess targets for oriented bounding box detection."""
@@ -946,9 +955,50 @@ class v8OBBLoss(v8DetectionLoss):
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
         return out
 
+    def calculate_ga_loss(self, pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum, lambda_val=3, angle_mode='le135'):
+        """
+        计算 Gaussian Angle Loss (基于论文 Eq. 11)
+        Args:
+            pred_bboxes: [N, 5] (x, y, w, h, theta) - theta 通常为弧度
+            target_bboxes: [N, 5] (x, y, w, h, theta)
+            lambda_val: 控制对长宽比敏感度的超参数 (论文默认 3.0)
+            angle_mode: 角度格式，可选 'le135' ([-pi/4, 3pi/4]), 'le90' ([-pi/2, pi/2]), 'oc' ([0, pi/2])
+        """
+        # 1. 获取 GT 的宽和高 (注意确保是像素尺度，如果是归一化的需还原或调整 lambda)
+        # Ultralytics 的 target_bboxes 在 loss 计算时通常已经是特征图尺度或原图尺度
+        w_gt = target_bboxes[..., 2]
+        h_gt = target_bboxes[..., 3]
+        pred_theta = pred_bboxes[..., 4]
+        target_theta = target_bboxes[..., 4]
+
+        log_ar = torch.log(w_gt / h_gt)
+        scale_weight = torch.exp(-(log_ar ** 2) / (lambda_val ** 2))
+
+        delta_theta = pred_theta - target_theta
+        if angle_mode == 'oc':
+            delta_theta_wrapped = delta_theta - torch.round(delta_theta / (torch.pi / 2)) * (torch.pi / 2)
+            angle_loss = torch.sin(2 * delta_theta_wrapped[fg_mask]) ** 2
+        else:  # 'le135' or 'le90'
+            delta_theta_wrapped = delta_theta - torch.round(delta_theta / torch.pi) * torch.pi
+            angle_loss = torch.sin(2 * delta_theta_wrapped[fg_mask]) ** 2
+
+        ga_loss = scale_weight[fg_mask] * angle_loss
+        ga_loss = ga_loss * weight
+
+        # diff_factor = torch.exp(4 * lambda_val - lambda_val * (w_gt / h_gt + h_gt / w_gt)**2)
+        # 3. 计算角度差异项 sin^2(delta_theta)
+        # angle_diff = pred_theta - target_theta
+        # 论文公式 (11) 使用 sin^2
+        # angle_loss = torch.sin(2 * angle_diff[fg_mask]) ** 2
+        # 4. 组合 Loss
+        # ga_loss = diff_factor[fg_mask] * angle_loss
+        # ga_loss = ga_loss * weight
+
+        return ga_loss.sum() / target_scores_sum
+
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate and return the loss for oriented bounding box detection."""
-        loss = torch.zeros(3, device=self.device)  # box, cls, dfl
+        loss = torch.zeros(4 if self.ga_loss else 3, device=self.device)  # box, cls, dfl
         pred_distri, pred_scores, pred_angle = (
             preds["boxes"].permute(0, 2, 1).contiguous(),
             preds["scores"].permute(0, 2, 1).contiguous(),
@@ -1013,12 +1063,17 @@ class v8OBBLoss(v8DetectionLoss):
                 imgsz,
                 stride_tensor,
             )
+            if self.ga_loss:
+                weight = target_scores.sum(-1)[fg_mask]
+                loss[3] = self.calculate_ga_loss(pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum)
         else:
             loss[0] += (pred_angle * 0).sum()
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
+        if self.ga_loss:
+            loss[3] *= self.hyp.ga
 
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 

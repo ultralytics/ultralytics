@@ -69,7 +69,8 @@ jobs:
           python-version: "3.x"
       - uses: astral-sh/setup-uv@v7
       - run: uv pip install --system --no-cache build
-      - run: python -m build --outdir dist/
+      - name: Build ultralytics
+        run: python -m build --outdir dist/
       - name: Build ultralytics-opencv-headless
         run: |
           python - <<'PY'

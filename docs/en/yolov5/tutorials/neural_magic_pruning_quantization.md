@@ -116,10 +116,16 @@ pipeline_outputs = yolo_pipeline(images=images, iou_thres=0.6, conf_thres=0.001)
 print(pipeline_outputs)
 ```
 
-If you are running in the cloud, you may get an error that open-cv cannot find `libGL.so.1`. Running the following on Ubuntu installs it:
+If you are running in the cloud, you may get an error that OpenCV cannot find `libGL.so.1`. You can either install the missing library:
 
-```
+```bash
 apt-get install libgl1
+```
+
+Or use the headless Ultralytics package that avoids GUI dependencies entirely:
+
+```bash
+pip install ultralytics-opencv-headless
 ```
 
 #### HTTP Server

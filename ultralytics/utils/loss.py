@@ -684,7 +684,7 @@ class v8OBBLoss(v8DetectionLoss):
         """Calculate and return the loss for oriented bounding box detection."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         feats, pred_angle = preds if isinstance(preds[0], list) else preds[1]
-        batch_size = pred_angle.shape[0]  # batch size, number of masks, mask height, mask width
+        batch_size = pred_angle.shape[0]  # batch size
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1
         )
@@ -702,7 +702,7 @@ class v8OBBLoss(v8DetectionLoss):
         try:
             batch_idx = batch["batch_idx"].view(-1, 1)
             targets = torch.cat((batch_idx, batch["cls"].view(-1, 1), batch["bboxes"].view(-1, 5)), 1)
-            rw, rh = targets[:, 4] * imgsz[0].item(), targets[:, 5] * imgsz[1].item()
+            rw, rh = targets[:, 4] * float(imgsz[1]), targets[:, 5] * float(imgsz[0])
             targets = targets[(rw >= 2) & (rh >= 2)]  # filter rboxes of tiny size to stabilize training
             targets = self.preprocess(targets, batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
             gt_labels, gt_bboxes = targets.split((1, 5), 2)  # cls, xywhr

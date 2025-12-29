@@ -336,7 +336,7 @@ def ltwh2xywh(x):
     return y
 
 
-def xyxyxyxy2xywhr(x):
+def xyxyxyxy2xywhr(x, mode='le135'):
     """Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation] format.
 
     Args:
@@ -354,7 +354,42 @@ def xyxyxyxy2xywhr(x):
         # NOTE: Use cv2.minAreaRect to get accurate xywhr,
         # especially some objects are cut off by augmentations in dataloader.
         (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
-        rboxes.append([cx, cy, w, h, angle / 180 * np.pi])
+        theta = angle / 180 * np.pi
+        if mode == 'le135':
+            # --- 第一步：几何转换（确保 w 是长边）---
+            if w < h:
+                w, h = h, w
+                theta += np.pi / 2
+            
+            # 此时 theta 的范围变成了 [0, pi]
+            # 因为原 theta 是 [0, pi/2]，如果不换边则是 [0, pi/2]，换边则是 [pi/2, pi]
+            
+            # --- 第二步：范围归一化 (规范化到 -pi/4 ~ 3pi/4) ---
+            # 你的目标范围跨度是 pi (180度)
+            # 上界是 3*pi/4 (135度)
+            
+            while theta >= 3 * np.pi / 4:
+                theta -= np.pi
+                
+            # 理论上基于 OpenCV 的输入，这里不需要处理下界（theta不会小于0）
+            # 但为了代码健壮性，可以加上：
+            while theta < -np.pi / 4:
+                theta += np.pi
+        elif mode == 'le90':
+            # --- LE90 Logic ---
+            # 1. Force w to be long edge
+            if w < h:
+                w, h = h, w
+                theta += np.pi / 2
+            
+            # 2. Normalize to [-pi/2, pi/2) i.e. [-90, 90)
+            # Center of the range is 0
+            while theta >= np.pi / 2:
+                theta -= np.pi
+            while theta < -np.pi / 2:
+                theta += np.pi
+
+        rboxes.append([cx, cy, w, h, theta])
     return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
 
 
@@ -586,22 +621,50 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     return coords
 
 
+# def regularize_rboxes(rboxes):
+#     """Regularize rotated bounding boxes to range [0, pi/2].
+
+#     Args:
+#         rboxes (torch.Tensor): Input rotated boxes with shape (N, 5) in xywhr format.
+
+#     Returns:
+#         (torch.Tensor): Regularized rotated boxes.
+#     """
+#     x, y, w, h, t = rboxes.unbind(dim=-1)
+#     # Swap edge if t >= pi/2 while not being symmetrically opposite
+#     swap = t % math.pi >= math.pi / 2
+#     w_ = torch.where(swap, h, w)
+#     h_ = torch.where(swap, w, h)
+#     t = t % (math.pi / 2)
+#     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
+
+
 def regularize_rboxes(rboxes):
-    """Regularize rotated bounding boxes to range [0, pi/2].
+    """
+    将任意角度的 rboxes 规范化到 [-pi/4, 3pi/4] 范围内。
+    不交换 w, h (因为 w 已经是长边)。
 
     Args:
-        rboxes (torch.Tensor): Input rotated boxes with shape (N, 5) in xywhr format.
-
+        rboxes (torch.Tensor): (N, 5) -> x, y, w, h, theta_arbitrary
     Returns:
-        (torch.Tensor): Regularized rotated boxes.
+        (torch.Tensor): regularized boxes with theta in [-pi/4, 3pi/4]
     """
     x, y, w, h, t = rboxes.unbind(dim=-1)
-    # Swap edge if t >= pi/2 while not being symmetrically opposite
-    swap = t % math.pi >= math.pi / 2
-    w_ = torch.where(swap, h, w)
-    h_ = torch.where(swap, w, h)
-    t = t % (math.pi / 2)
-    return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
+
+    # 目标范围: [-pi/4, 3pi/4], 周期为 pi
+    # 公式: t_normalized = (t - min_val) % period + min_val
+
+    # 1. 先减去下界 (-pi/4)，把坐标系平移到 [0, pi]
+    t_shifted = t - (-math.pi / 4)
+
+    # 2. 对周期 pi 取模
+    t_mod = t_shifted % math.pi
+    
+    # 3. 加上下界，移回 [-pi/4, 3pi/4]
+    t_final = t_mod + (-math.pi / 4)
+    
+    # 注意：这里绝对没有 w, h 的交换操作！
+    return torch.stack([x, y, w, h, t_final], dim=-1)
 
 
 def masks2segments(masks, strategy: str = "all"):

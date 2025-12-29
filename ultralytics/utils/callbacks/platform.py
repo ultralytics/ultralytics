@@ -9,6 +9,7 @@ from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING
 
 _last_upload = 0  # Rate limit model uploads
 _console_logger = None  # Global console logger instance
+_system_logger = None  # Cached system logger instance
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -114,6 +115,8 @@ def on_pretrain_routine_start(trainer):
 
 def on_fit_epoch_end(trainer):
     """Log training and system metrics at epoch end."""
+    global _system_logger
+
     if RANK not in {-1, 0} or not trainer.args.project:
         return
 
@@ -128,10 +131,12 @@ def on_fit_epoch_end(trainer):
         except Exception:
             pass
 
-    # Get system metrics
+    # Get system metrics (cache SystemLogger for efficiency)
     system = {}
     try:
-        system = SystemLogger().get_metrics(rates=True)
+        if _system_logger is None:
+            _system_logger = SystemLogger()
+        system = _system_logger.get_metrics(rates=True)
     except Exception:
         pass
 

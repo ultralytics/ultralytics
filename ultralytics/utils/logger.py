@@ -114,6 +114,14 @@ class ConsoleLogger:
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
 
+        # Remove logging handler to prevent memory leak
+        if self._log_handler:
+            try:
+                logging.getLogger("ultralytics").removeHandler(self._log_handler)
+            except Exception:
+                pass
+            self._log_handler = None
+
         # Final flush
         self._flush_buffer()
 
@@ -165,11 +173,16 @@ class ConsoleLogger:
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 line = f"[{timestamp}] {line}"
 
-            # Add to buffer
+            # Add to buffer and check if flush needed
+            should_flush = False
             with self.buffer_lock:
                 self.buffer.append(line)
                 if len(self.buffer) >= self.batch_size:
-                    self._flush_buffer()
+                    should_flush = True
+
+            # Flush outside lock to avoid deadlock
+            if should_flush:
+                self._flush_buffer()
 
     def _flush_worker(self):
         """Background worker that flushes buffer periodically."""

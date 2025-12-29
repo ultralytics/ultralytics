@@ -349,20 +349,28 @@ class Stereo3DDetDataset(Dataset):
             if "right_box" in new_label:
                 rb = new_label["right_box"]
                 # Denormalize from original image
-                rx_px = float(rb.get("center_x", 0)) * orig_w
-                rw_px = float(rb.get("width", 0)) * orig_w
-                
+                rx_px = float(rb["center_x"]) * orig_w
+                ry_px = float(rb["center_y"]) * orig_h
+                rw_px = float(rb["width"]) * orig_w
+                rh_px = float(rb["height"]) * orig_h
+
+                assert rw_px > 1, "Consider use higher resize resolution, the width is smaller than 1 pixel"
+                assert rh_px > 1, "Consider use higher resize resolution, the height is smaller than 1 pixel"
+
                 # Apply letterbox scale
                 rx_px = rx_px * scale
+                ry_px = ry_px * scale
                 rw_px = rw_px * scale
-                
-                # Add letterbox padding (only x, since right box only has center_x and width)
+                rh_px = rh_px * scale
+
                 rx_px = rx_px + pad_left
-                
+                ry_px = ry_px + pad_top
                 # Normalize to letterboxed image size
                 new_label["right_box"] = {
                     "center_x": float(rx_px / self.imgsz),
+                    "center_y": float(ry_px / self.imgsz),
                     "width": float(rw_px / self.imgsz),
+                    "height": float(rh_px / self.imgsz),
                 }
             
             # Transform vertices if present

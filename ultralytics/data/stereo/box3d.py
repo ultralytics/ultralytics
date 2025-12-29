@@ -9,6 +9,8 @@ from typing import Any
 
 import numpy as np
 
+from ultralytics.utils import LOGGER
+
 
 @dataclass
 class Box3D:
@@ -70,15 +72,15 @@ class Box3D:
                     f"bbox_2d must contain numeric values, got {self.bbox_2d}"
                 )
             if x_min >= x_max:
-                raise ValueError(
+                LOGGER.warning(
                     f"bbox_2d xyxy format: x_min ({x_min}) must be < x_max ({x_max})"
                 )
             if y_min >= y_max:
-                raise ValueError(
+                LOGGER.warning(
                     f"bbox_2d xyxy format: y_min ({y_min}) must be < y_max ({y_max})"
                 )
             if x_min < 0 or y_min < 0:
-                raise ValueError(
+                LOGGER.warning(
                     f"bbox_2d xyxy format: x_min and y_min must be non-negative, got ({x_min}, {y_min})"
                 )
 

@@ -101,18 +101,20 @@ class HorizontalFlipAugmentor:
         # Update labels
         new_labels: List[Dict[str, Any]] = []
         for obj in labels:
-            lb = dict(obj.get("left_box", {}))
-            rb = dict(obj.get("right_box", {}))
+            lb = dict(obj["left_box"])
+            rb = dict(obj["right_box"])
             # flip x center and swap left/right boxes
             lb_flipped = {
-                "center_x": self._flip_norm_x(rb.get("center_x", 0.0)),
-                "center_y": lb.get("center_y", 0.0),
-                "width": lb.get("width", 0.0),
-                "height": lb.get("height", 0.0),
+                "center_x": self._flip_norm_x(float(rb["center_x"])),
+                "center_y": lb["center_y"],
+                "width": lb["width"],
+                "height": lb["height"],
             }
             rb_flipped = {
-                "center_x": self._flip_norm_x(lb.get("center_x", 0.0)),
-                "width": rb.get("width", 0.0),
+                "center_x": self._flip_norm_x(float(lb["center_x"])),
+                "center_y": rb["center_y"],
+                "width": rb["width"],
+                "height": rb["height"],
             }
             new_obj = dict(obj)
             new_obj["left_box"] = lb_flipped
@@ -181,15 +183,17 @@ class RandomCropAugmentor:
         # Update labels: shift centers by crop and renormalize to new size
         new_labels: List[Dict[str, Any]] = []
         for obj in labels:
-            lb = dict(obj.get("left_box", {}))
-            rb = dict(obj.get("right_box", {}))
+            lb = dict(obj["left_box"])
+            rb = dict(obj["right_box"])
             # denorm
-            cx_px = float(lb.get("center_x", 0.0)) * W
-            cy_px = float(lb.get("center_y", 0.0)) * H
-            w_px = float(lb.get("width", 0.0)) * W
-            h_px = float(lb.get("height", 0.0)) * H
-            rx_px = float(rb.get("center_x", 0.0)) * W
-            rw_px = float(rb.get("width", 0.0)) * W
+            cx_px = float(lb["center_x"]) * W
+            cy_px = float(lb["center_y"]) * H
+            w_px = float(lb["width"]) * W
+            h_px = float(lb["height"]) * H
+            rx_px = float(rb["center_x"]) * W
+            ry_px = float(rb["center_y"]) * H
+            rw_px = float(rb["width"]) * W
+            rh_px = float(rb["height"]) * H
 
             # shift
             cx_px -= x0
@@ -209,7 +213,9 @@ class RandomCropAugmentor:
             }
             rb_new = {
                 "center_x": rx_px / cw,
+                "center_y": ry_px / ch,
                 "width": rw_px / cw,
+                "height": rh_px / ch,
             }
             new_obj = dict(obj)
             new_obj["left_box"] = lb_new

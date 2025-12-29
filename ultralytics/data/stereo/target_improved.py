@@ -155,16 +155,13 @@ class TargetGenerator:
         right_box = label["right_box"]
         dimensions = label["dimensions"]
         
-        # Support both rotation_y (24-value format) and alpha (22-value format)
-        if "rotation_y" in label:
-            # 24-value format: rotation_y is already global yaw, we'll compute alpha for encoding
-            rotation_y = label["rotation_y"]
-        elif "alpha" in label:
-            # 22-value format: alpha is observation angle
-            alpha = label["alpha"]
-        else:
-            # Fallback
-            alpha = 0.0
+        rotation_y = label["rotation_y"]
+        location_3d = label["location_3d"]
+        x_3d = location_3d["x"]
+        z_3d = location_3d["z"]
+        ray_angle = math.atan2(x_3d, z_3d)
+        alpha = rotation_y - ray_angle
+        
 
         fx = calib["fx"]
         fy = calib["fy"]

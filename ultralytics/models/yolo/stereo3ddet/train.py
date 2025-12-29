@@ -355,34 +355,3 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         Our stereo adapter does not provide a global `dataset.labels` cache, so skip gracefully.
         """
         return
-
-    # def final_eval(self):
-    #     """Perform final evaluation and validation for stereo 3D detection model.
-        
-    #     Overrides BaseTrainer.final_eval() to convert Path to string for AutoBackend compatibility.
-    #     This is required because AutoBackend expects a string path, not a Path object.
-        
-    #     Note: This override is constitution-compliant - we do not modify BaseTrainer.
-    #     """
-    #     model_path = self.best if self.best.exists() else None
-    #     if isinstance(model_path, Path):
-    #         # load the model from the path
-    #         model = torch.load(model_path, weights_only=False)
-    #         model_path = str(model_path)
-    #     else:
-    #         model_path = str(model_path)
-
-    #     with torch_distributed_zero_first(LOCAL_RANK):
-    #         if RANK in {-1, 0}:
-    #             ckpt = strip_optimizer(self.last) if self.last.exists() else {}
-    #             if model_path:
-    #                 # update best.pt train_metrics from last.pt
-    #                 strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
-    #     if model_path:
-    #         LOGGER.info(f"\nValidating {model_path}...")
-    #         self.validator.args.plots = self.args.plots
-    #         self.validator.args.compile = False  # disable final val compile as too slow
-    #         # Convert Path to string for AutoBackend compatibility
-    #         self.metrics = self.validator(model=model)
-    #         self.metrics.pop("fitness", None)
-    #         self.run_callbacks("on_fit_epoch_end")

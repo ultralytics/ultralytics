@@ -1144,10 +1144,14 @@ def project_3d_to_2d(
     # KITTI convention: rotation_y=0 means object faces camera X direction
     # So object's length (forward direction) should be along X axis
     # Coordinate system: x: right (length), y: down (height), z: forward (width)
+    # EDGE_CONNECTIONS expects: bottom face (0,1,2,3), top face (4,5,6,7)
+    # In KITTI camera coords: Y points down, so bottom has y=+height/2, top has y=-height/2
     corners_obj = np.array(
         [
+            # Bottom face corners (y = +height/2): 0, 1, 2, 3
+            # Top face corners (y = -height/2): 4, 5, 6, 7
             [-length / 2, length / 2, length / 2, -length / 2, -length / 2, length / 2, length / 2, -length / 2],  # x (length)
-            [-height / 2, -height / 2, -height / 2, -height / 2, height / 2, height / 2, height / 2, height / 2],  # y (height)
+            [height / 2, height / 2, height / 2, height / 2, -height / 2, -height / 2, -height / 2, -height / 2],  # y (height) - bottom first, then top
             [width / 2, width / 2, -width / 2, -width / 2, width / 2, width / 2, -width / 2, -width / 2],  # z (width)
         ]
     )
@@ -1215,10 +1219,14 @@ def project_box3d_corners(
 
     # KITTI convention: rotation_y=0 means object faces camera X direction
     # So object's length (forward direction) should be along X axis
+    # EDGE_CONNECTIONS expects: bottom face (0,1,2,3), top face (4,5,6,7)
+    # In KITTI camera coords: Y points down, so bottom has y=+height/2, top has y=-height/2
     corners_obj = np.array(
         [
+            # Bottom face corners (y = +height/2): 0, 1, 2, 3
+            # Top face corners (y = -height/2): 4, 5, 6, 7
             [-length / 2, length / 2, length / 2, -length / 2, -length / 2, length / 2, length / 2, -length / 2],  # x (length)
-            [-height / 2, -height / 2, -height / 2, -height / 2, height / 2, height / 2, height / 2, height / 2],  # y (height)
+            [height / 2, height / 2, height / 2, height / 2, -height / 2, -height / 2, -height / 2, -height / 2],  # y (height) - bottom first, then top
             [width / 2, width / 2, -width / 2, -width / 2, width / 2, width / 2, -width / 2, -width / 2],  # z (width)
         ]
     )

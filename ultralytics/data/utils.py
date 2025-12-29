@@ -302,8 +302,7 @@ def visualize_image_annotations_multiformat(
     segment_color=(0, 255, 0),
     line_width=2,
 ):
-    """
-    Displays YOLO Detection and YOLO Segmentation annotations automatically.
+    """Displays YOLO Detection and YOLO Segmentation annotations automatically.
 
     Supports both:
     - YOLO Detection format: class x_center y_center width height
@@ -320,12 +319,9 @@ def visualize_image_annotations_multiformat(
         line_width (int, optional): Line thickness for drawn shapes.
 
     Returns:
-        PIL.Image.Image:
-            Image object with rendered annotations (bounding boxes,
-            segmentation polygons, and class labels). The image is returned
-            in memory and is not saved to disk.
+        PIL.Image.Image: Image object with rendered annotations (bounding boxes, segmentation polygons, and class
+            labels). The image is returned in memory and is not saved to disk.
     """
-
     img = Image.open(image_path).convert("RGB")
     draw = ImageDraw.Draw(img)
     img_width, img_height = img.size
@@ -363,10 +359,7 @@ def visualize_image_annotations_multiformat(
                 coords = np.array(parts[1:]).reshape(-1, 2)
 
                 # Normalizado → pixel
-                polygon = [
-                    (x * img_width, y * img_height)
-                    for x, y in coords
-                ]
+                polygon = [(x * img_width, y * img_height) for x, y in coords]
 
                 if draw_segments:
                     draw.polygon(

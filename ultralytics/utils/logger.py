@@ -8,7 +8,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from ultralytics.utils import MACOS
+from ultralytics.utils import MACOS, RANK
 from ultralytics.utils.checks import check_requirements
 
 
@@ -80,8 +80,12 @@ class ConsoleLogger:
         self.last_was_progress = False  # Track if last line was a progress bar
 
     def start_capture(self):
-        """Start capturing console output and redirect stdout/stderr."""
-        if self.active:
+        """Start capturing console output and redirect stdout/stderr.
+
+        Note:
+            In DDP training, only activates on rank 0/-1 to prevent duplicate logging.
+        """
+        if self.active or RANK not in {-1, 0}:
             return
 
         self.active = True

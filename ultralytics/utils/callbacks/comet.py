@@ -59,7 +59,14 @@ def _get_comet_should_log_model() -> bool:
     """Return whether the comet model should be logged from the environment variable or default to 'true'. Since this is
     not a standard comet environment variable, the name has a 'COMET_ULTRALYTICS_' prefix, instead of just 'COMET_'.
     """
-    return os.getenv("COMET_ULTRALYTICS_SHOULD_LOG_MODEL", "true").lower() == "true"
+    should_log_model = os.getenv("COMET_ULTRALYTICS_SHOULD_LOG_MODEL", "true").lower()
+    if should_log_model == "true":
+        return True
+    elif should_log_model == "false":
+        return False
+    else:
+        LOGGER.warning(f"Invalid value for COMET_ULTRALYTICS_SHOULD_LOG_MODEL: {os.getenv('COMET_ULTRALYTICS_SHOULD_LOG_MODEL')}. Defaulting to 'true'.")
+        return True
 
 
 def _get_comet_model_name() -> str:

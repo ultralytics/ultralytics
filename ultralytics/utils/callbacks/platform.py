@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from threading import Thread
 from time import time
 
 from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING
@@ -10,6 +10,7 @@ from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING
 _last_upload = 0  # Rate limit model uploads
 _console_logger = None  # Global console logger instance
 _system_logger = None  # Cached system logger instance
+_executor = ThreadPoolExecutor(max_workers=10)  # Bounded thread pool for async operations
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -22,7 +23,7 @@ try:
     from ultralytics.utils.logger import ConsoleLogger, SystemLogger
     from ultralytics.utils.torch_utils import model_info_for_loggers
 
-except AssertionError:
+except (AssertionError, ImportError):
     _api_key = None
 
 
@@ -40,8 +41,8 @@ def _send(event, data, project, name):
 
 
 def _send_async(event, data, project, name):
-    """Send event asynchronously in a background thread."""
-    Thread(target=_send, args=(event, data, project, name), daemon=True).start()
+    """Send event asynchronously using bounded thread pool."""
+    _executor.submit(_send, event, data, project, name)
 
 
 def _upload_model(model_path, project, name):
@@ -79,8 +80,8 @@ def _upload_model(model_path, project, name):
 
 
 def _upload_model_async(model_path, project, name):
-    """Upload model asynchronously in a background thread."""
-    Thread(target=_upload_model, args=(model_path, project, name), daemon=True).start()
+    """Upload model asynchronously using bounded thread pool."""
+    _executor.submit(_upload_model, model_path, project, name)
 
 
 def on_pretrain_routine_start(trainer):

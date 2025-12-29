@@ -187,7 +187,7 @@ class ConsoleLogger:
     def _flush_worker(self):
         """Background worker that flushes buffer periodically."""
         while self.active:
-            threading.Event().wait(self.flush_interval)
+            time.sleep(self.flush_interval)
             if self.active:
                 self._flush_buffer()
 
@@ -198,17 +198,18 @@ class ConsoleLogger:
                 return
             lines = self.buffer.copy()
             self.buffer.clear()
+            self.chunk_id += 1
+            chunk_id = self.chunk_id  # Capture under lock to avoid race
 
         content = "\n".join(lines)
-        self.chunk_id += 1
         line_count = len(lines)
 
         # Call custom callback if provided
         if self.on_flush:
             try:
-                self.on_flush(content, line_count, self.chunk_id)
-            except Exception as e:
-                print(f"Console logger callback error: {e}", file=self.original_stderr)
+                self.on_flush(content, line_count, chunk_id)
+            except Exception:
+                pass  # Silently ignore callback errors to avoid flooding stderr
 
         # Write to destination (file or API)
         if self.destination is not None:

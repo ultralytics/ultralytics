@@ -9,7 +9,6 @@ try:
     PREFIX = colorstr("TensorBoard: ")
 
     # Imports below only required if TensorBoard enabled
-    import warnings
     from copy import deepcopy
 
     import torch
@@ -22,8 +21,7 @@ except (ImportError, AssertionError, TypeError, AttributeError):
 
 
 def _log_scalars(scalars: dict, step: int = 0) -> None:
-    """
-    Log scalar values to TensorBoard.
+    """Log scalar values to TensorBoard.
 
     Args:
         scalars (dict): Dictionary of scalar values to log to TensorBoard. Keys are scalar names and values are the
@@ -41,16 +39,15 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
 
 
 def _log_tensorboard_graph(trainer) -> None:
-    """
-    Log model graph to TensorBoard.
+    """Log model graph to TensorBoard.
 
     This function attempts to visualize the model architecture in TensorBoard by tracing the model with a dummy input
     tensor. It first tries a simple method suitable for YOLO models, and if that fails, falls back to a more complex
     approach for models like RTDETR that may require special handling.
 
     Args:
-        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing the model to visualize.
-            Must have attributes model and args with imgsz.
+        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing the model to visualize. Must
+            have attributes model and args with imgsz.
 
     Notes:
         This function requires TensorBoard integration to be enabled and the global WRITER to be initialized.
@@ -63,32 +60,27 @@ def _log_tensorboard_graph(trainer) -> None:
     p = next(trainer.model.parameters())  # for device, type
     im = torch.zeros((1, 3, *imgsz), device=p.device, dtype=p.dtype)  # input image (must be zeros, not empty)
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=UserWarning)  # suppress jit trace warning
-        warnings.simplefilter("ignore", category=torch.jit.TracerWarning)  # suppress jit trace warning
-
-        # Try simple method first (YOLO)
+    # Try simple method first (YOLO)
+    try:
+        trainer.model.eval()  # place in .eval() mode to avoid BatchNorm statistics changes
+        WRITER.add_graph(torch.jit.trace(torch_utils.unwrap_model(trainer.model), im, strict=False), [])
+        LOGGER.info(f"{PREFIX}model graph visualization added ✅")
+        return
+    except Exception as e1:
+        # Fallback to TorchScript export steps (RTDETR)
         try:
-            trainer.model.eval()  # place in .eval() mode to avoid BatchNorm statistics changes
-            WRITER.add_graph(torch.jit.trace(torch_utils.unwrap_model(trainer.model), im, strict=False), [])
+            model = deepcopy(torch_utils.unwrap_model(trainer.model))
+            model.eval()
+            model = model.fuse(verbose=False)
+            for m in model.modules():
+                if hasattr(m, "export"):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
+                    m.export = True
+                    m.format = "torchscript"
+            model(im)  # dry run
+            WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
-            return
-
-        except Exception:
-            # Fallback to TorchScript export steps (RTDETR)
-            try:
-                model = deepcopy(torch_utils.unwrap_model(trainer.model))
-                model.eval()
-                model = model.fuse(verbose=False)
-                for m in model.modules():
-                    if hasattr(m, "export"):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
-                        m.export = True
-                        m.format = "torchscript"
-                model(im)  # dry run
-                WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
-                LOGGER.info(f"{PREFIX}model graph visualization added ✅")
-            except Exception as e:
-                LOGGER.warning(f"{PREFIX}TensorBoard graph visualization failure {e}")
+        except Exception as e2:
+            LOGGER.warning(f"{PREFIX}TensorBoard graph visualization failure: {e1} -> {e2}")
 
 
 def on_pretrain_routine_start(trainer) -> None:

@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO11, machine learning, model training, validation, pre
 
 ## Introduction
 
-Ultralytics YOLO11 is not just another object detection model; it's a versatile framework designed to cover the entire lifecycle of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models—from data ingestion and model training to validation, deployment, and real-world tracking. Each mode serves a specific purpose and is engineered to offer you the flexibility and efficiency required for different tasks and use-cases.
+Ultralytics YOLO11 is not just another object detection model; it's a versatile framework designed to cover the entire lifecycle of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models—from data ingestion and model training to validation, deployment, and real-world tracking. Each mode serves a specific purpose and is engineered to offer you the flexibility and efficiency required for different tasks and use cases.
 
 <p align="center">
   <br>
@@ -85,7 +85,7 @@ Training a custom object detection model with Ultralytics YOLO11 involves using 
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLO model (you can choose n, s, m, l, or x versions)
+        # Load a pretrained YOLO model (you can choose n, s, m, l, or x versions)
         model = YOLO("yolo11n.pt")
 
         # Start training on your custom dataset
@@ -96,7 +96,7 @@ Training a custom object detection model with Ultralytics YOLO11 involves using 
 
         ```bash
         # Train a YOLO model from the command line
-        yolo train data=path/to/dataset.yaml epochs=100 imgsz=640
+        yolo detect train data=path/to/dataset.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
 For more detailed instructions, you can refer to the [Ultralytics Train Guide](../modes/train.md).
@@ -118,7 +118,7 @@ You can run the following command to start the validation:
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained or custom YOLO model
+        # Load a pretrained or custom YOLO model
         model = YOLO("yolo11n.pt")
 
         # Run validation on your dataset
@@ -129,7 +129,7 @@ You can run the following command to start the validation:
 
         ```bash
         # Validate a YOLO model from the command line
-        yolo val data=path/to/validation.yaml
+        yolo val model=yolo11n.pt data=path/to/validation.yaml
         ```
 
 Refer to the [Validation Guide](../modes/val.md) for further details.
@@ -198,7 +198,7 @@ Real-time object tracking can be achieved using the track mode in Ultralytics YO
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLO model
+        # Load a pretrained YOLO model
         model = YOLO("yolo11n.pt")
 
         # Start tracking objects in a video
@@ -211,7 +211,7 @@ Real-time object tracking can be achieved using the track mode in Ultralytics YO
         ```bash
         # Perform object tracking on a video from the command line
         # You can specify different sources like webcam (0) or RTSP streams
-        yolo track source=path/to/video.mp4
+        yolo track model=yolo11n.pt source=path/to/video.mp4
         ```
 
 For in-depth instructions, visit the [Track Guide](../modes/track.md).

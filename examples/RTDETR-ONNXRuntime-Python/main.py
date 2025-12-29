@@ -13,8 +13,7 @@ import yaml
 
 
 def download_file(url: str, local_path: str) -> str:
-    """
-    Download a file from a URL to a local path.
+    """Download a file from a URL to a local path.
 
     Args:
         url (str): URL of the file to download.
@@ -26,16 +25,18 @@ def download_file(url: str, local_path: str) -> str:
         return local_path
     # Download the file from the URL
     print(f"Downloading {url} to {local_path}...")
-    response = requests.get(url)
+    response = requests.get(url, stream=True, timeout=30)
+    response.raise_for_status()
     with open(local_path, "wb") as f:
-        f.write(response.content)
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
+            if chunk:
+                f.write(chunk)
 
     return local_path
 
 
 class RTDETR:
-    """
-    RT-DETR (Real-Time Detection Transformer) object detection model for ONNX inference and visualization.
+    """RT-DETR (Real-Time Detection Transformer) object detection model for ONNX inference and visualization.
 
     This class implements the RT-DETR model for object detection tasks, supporting ONNX model inference and
     visualization of detection results with bounding boxes and class labels.
@@ -77,16 +78,15 @@ class RTDETR:
         iou_thres: float = 0.5,
         class_names: str | None = None,
     ):
-        """
-        Initialize the RT-DETR object detection model.
+        """Initialize the RT-DETR object detection model.
 
         Args:
             model_path (str): Path to the ONNX model file.
             img_path (str): Path to the input image.
             conf_thres (float, optional): Confidence threshold for filtering detections.
             iou_thres (float, optional): IoU threshold for non-maximum suppression.
-            class_names (Optional[str], optional): Path to a YAML file containing class names.
-                If None, uses COCO dataset classes.
+            class_names (Optional[str], optional): Path to a YAML file containing class names. If None, uses COCO
+                dataset classes.
         """
         self.model_path = model_path
         self.img_path = img_path
@@ -94,8 +94,10 @@ class RTDETR:
         self.iou_thres = iou_thres
         self.classes = class_names
 
-        # Set up the ONNX runtime session with CUDA and CPU execution providers
-        self.session = ort.InferenceSession(model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+        # Set up the ONNX runtime session with available execution providers
+        available = ort.get_available_providers()
+        providers = [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in available]
+        self.session = ort.InferenceSession(model_path, providers=providers or available)
 
         self.model_input = self.session.get_inputs()
         self.input_width = self.model_input[0].shape[2]
@@ -104,8 +106,7 @@ class RTDETR:
         if self.classes is None:
             # Load class names from the COCO dataset YAML file
             self.classes = download_file(
-                "https://raw.githubusercontent.com/ultralytics/"
-                "ultralytics/refs/heads/main/ultralytics/cfg/datasets/coco8.yaml",
+                "https://raw.githubusercontent.com/ultralytics/ultralytics/main/ultralytics/cfg/datasets/coco8.yaml",
                 "coco8.yaml",
             )
 
@@ -157,17 +158,18 @@ class RTDETR:
         )
 
     def preprocess(self) -> np.ndarray:
-        """
-        Preprocess the input image for model inference.
+        """Preprocess the input image for model inference.
 
-        Loads the image, converts color space from BGR to RGB, resizes to model input dimensions, and normalizes
-        pixel values to [0, 1] range.
+        Loads the image, converts color space from BGR to RGB, resizes to model input dimensions, and normalizes pixel
+        values to [0, 1] range.
 
         Returns:
             (np.ndarray): Preprocessed image data with shape (1, 3, H, W) ready for inference.
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.img_path)
+        if self.img is None:
+            raise FileNotFoundError(f"Image not found or unreadable: '{self.img_path}'")
 
         # Get the height and width of the input image
         self.img_height, self.img_width = self.img.shape[:2]
@@ -185,17 +187,16 @@ class RTDETR:
         image_data = np.transpose(image_data, (2, 0, 1))  # Channel first
 
         # Expand the dimensions of the image data to match the expected input shape
-        image_data = np.expand_dims(image_data, axis=0).astype(np.float32)
+        image_data = image_data[None].astype(np.float32)
 
         return image_data
 
     def bbox_cxcywh_to_xyxy(self, boxes: np.ndarray) -> np.ndarray:
-        """
-        Convert bounding boxes from center format to corner format.
+        """Convert bounding boxes from center format to corner format.
 
         Args:
-            boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in
-                (center_x, center_y, width, height) format.
+            boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in (center_x, center_y,
+                width, height) format.
 
         Returns:
             (np.ndarray): Array of shape (N, 4) with bounding boxes in (x_min, y_min, x_max, y_max) format.
@@ -214,11 +215,10 @@ class RTDETR:
         return np.column_stack((x_min, y_min, x_max, y_max))
 
     def postprocess(self, model_output: list[np.ndarray]) -> np.ndarray:
-        """
-        Postprocess model output to extract and visualize detections.
+        """Postprocess model output to extract and visualize detections.
 
-        Applies confidence thresholding, converts bounding box format, scales coordinates to original image
-        dimensions, and draws detection annotations.
+        Applies confidence thresholding, converts bounding box format, scales coordinates to original image dimensions,
+        and draws detection annotations.
 
         Args:
             model_output (list[np.ndarray]): Output tensors from the model inference.
@@ -248,15 +248,19 @@ class RTDETR:
         boxes[:, 0::2] *= self.img_width
         boxes[:, 1::2] *= self.img_height
 
+        # Apply non-maximum suppression (optional for RT-DETR, but useful for filtering overlaps)
+        xywh_boxes = [[float(b[0]), float(b[1]), float(b[2] - b[0]), float(b[3] - b[1])] for b in boxes]
+        indices = cv2.dnn.NMSBoxes(xywh_boxes, scores.tolist(), self.conf_thres, self.iou_thres)
+        indices = indices.flatten().tolist() if len(indices) else []
+
         # Draw detections on the image
-        for box, score, label in zip(boxes, scores, labels):
-            self.draw_detections(box, score, label)
+        for i in indices:
+            self.draw_detections(boxes[i], float(scores[i]), int(labels[i]))
 
         return self.img
 
     def main(self) -> np.ndarray:
-        """
-        Execute the complete object detection pipeline on the input image.
+        """Execute the complete object detection pipeline on the input image.
 
         Performs preprocessing, ONNX model inference, and postprocessing to generate annotated detection results.
 

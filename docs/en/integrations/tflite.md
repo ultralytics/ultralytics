@@ -18,7 +18,7 @@ The TensorFlow Lite or TFLite export format allows you to optimize your [Ultraly
 
 Introduced by Google in May 2017 as part of their TensorFlow framework, [TensorFlow Lite](https://ai.google.dev/edge/litert), or TFLite for short, is an open-source deep learning framework designed for on-device inference, also known as [edge computing](https://www.ultralytics.com/glossary/edge-computing). It gives developers the necessary tools to execute their trained models on mobile, embedded, and IoT devices, as well as traditional computers.
 
-TensorFlow Lite is compatible with a wide range of platforms, including embedded Linux, Android, iOS, and MCU. Exporting your model to TFLite makes your applications faster, more reliable, and capable of running offline.
+TensorFlow Lite is compatible with a wide range of platforms, including embedded Linux, Android, iOS, and microcontrollers (MCUs). Exporting your model to TFLite makes your applications faster, more reliable, and capable of running offline.
 
 ## Key Features of TFLite Models
 
@@ -44,7 +44,7 @@ TFLite offers various on-device deployment options for machine learning models, 
   <img width="75%" src="https://github.com/ultralytics/docs/releases/download/0/architecture-diagram-tflite-deployment.avif" alt="Architecture">
 </p>
 
-- **Implementing with Embedded Linux**: If running inferences on a [Raspberry Pi](https://www.raspberrypi.org/) using the [Ultralytics Guide](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference times. Additionally, it's possible to further improve performance by utilizing a [Coral Edge TPU device](https://coral.withgoogle.com/).
+- **Implementing with Embedded Linux**: If running inferences on a [Raspberry Pi](https://www.raspberrypi.org/) using the [Ultralytics Guide](../guides/raspberry-pi.md) does not meet the speed requirements for your use case, you can use an exported TFLite model to accelerate inference times. Additionally, it's possible to further improve performance by utilizing a [Coral Edge TPU device](https://developers.google.com/coral).
 
 - **Deploying with Microcontrollers**: TFLite models can also be deployed on microcontrollers and other devices with only a few kilobytes of memory. The core runtime just fits in 16 KB on an Arm Cortex M3 and can run many basic models. It doesn't require operating system support, any standard C or C++ libraries, or dynamic memory allocation.
 
@@ -119,7 +119,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO11 TFLite Models
 
-After successfully exporting your Ultralytics YOLO11 models to TFLite format, you can now deploy them. The primary and recommended first step for running a TFLite model is to utilize the `YOLO("model.tflite")` method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
+After successfully exporting your Ultralytics YOLO11 models to TFLite format, you can now deploy them. The primary and recommended first step for running a TFLite model is to use the `YOLO("model.tflite")` method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TFLite models in various other settings, take a look at the following resources:
 
 - **[Android](https://ai.google.dev/edge/litert/android)**: A quick start guide for integrating [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite into Android applications, providing easy-to-follow steps for setting up and running [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models.
 
@@ -133,7 +133,7 @@ In this guide, we focused on how to export to TFLite format. By converting your 
 
 For further details on usage, visit the [TFLite official documentation](https://ai.google.dev/edge/litert).
 
-Also, if you're curious about other Ultralytics YOLO11 integrations, make sure to check out our [integration guide page](../integrations/index.md). You'll find tons of helpful info and insights waiting for you there.
+Also, if you're curious about other Ultralytics YOLO11 integrations, check out our [integration guide page](../integrations/index.md). You'll find plenty of helpful information and insights there.
 
 ## FAQ
 
@@ -179,7 +179,7 @@ To learn more, check out the [TFLite guide](https://ai.google.dev/edge/litert).
 
 Yes, you can run YOLO11 TFLite models on Raspberry Pi to improve inference speeds. First, export your model to TFLite format as explained above. Then, use a tool like TensorFlow Lite Interpreter to execute the model on your Raspberry Pi.
 
-For further optimizations, you might consider using [Coral Edge TPU](https://coral.withgoogle.com/). For detailed steps, refer to our [Raspberry Pi deployment guide](../guides/raspberry-pi.md) and the [Edge TPU integration guide](../integrations/edge-tpu.md).
+For further optimizations, you might consider using [Coral Edge TPU](https://developers.google.com/coral). For detailed steps, refer to our [Raspberry Pi deployment guide](../guides/raspberry-pi.md) and the [Edge TPU integration guide](../integrations/edge-tpu.md).
 
 ### Can I use TFLite models on microcontrollers for YOLO11 predictions?
 

@@ -30,7 +30,7 @@ An example of a `*.txt` label file for the above image, which contains an object
 
 ### Dataset YAML format
 
-The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training OBB Models. Here is an example of the YAML format used for defining a OBB dataset:
+The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training OBB models. Here is an example of the YAML format used for defining an OBB dataset:
 
 !!! example "ultralytics/cfg/datasets/dota8.yaml"
 
@@ -65,11 +65,11 @@ To train a model using these OBB formats:
 
 ## Supported Datasets
 
-Currently, the following datasets with Oriented Bounding Boxes are supported:
+Currently, the following datasets with oriented bounding boxes are supported:
 
-- [DOTA-v1](dota-v2.md): The first version of the DOTA dataset, providing a comprehensive set of aerial images with oriented bounding boxes for object detection.
-- [DOTA-v1.5](dota-v2.md): An intermediate version of the DOTA dataset, offering additional annotations and improvements over DOTA-v1 for enhanced object detection tasks.
-- [DOTA-v2](dota-v2.md): DOTA (A Large-scale Dataset for Object Detection in Aerial Images) version 2, emphasizes detection from aerial perspectives and contains oriented bounding boxes with 1.7 million instances and 11,268 images.
+- [DOTA-v1](dota-v2.md#dota-v10): The first version of the DOTA dataset, providing a comprehensive set of aerial images with oriented bounding boxes for object detection.
+- [DOTA-v1.5](dota-v2.md#dota-v15): An intermediate version of the DOTA dataset, offering additional annotations and improvements over DOTA-v1 for enhanced object detection tasks.
+- [DOTA-v2](dota-v2.md#dota-v20): DOTA (A Large-scale Dataset for Object Detection in Aerial Images) version 2, emphasizes detection from aerial perspectives and contains oriented bounding boxes with 1.7 million instances and 11,268 images.
 - [DOTA8](dota8.md): A small, 8-image subset of the full DOTA dataset suitable for testing workflows and Continuous Integration (CI) checks of OBB training in the `ultralytics` repository.
 
 ### Incorporating your own OBB dataset

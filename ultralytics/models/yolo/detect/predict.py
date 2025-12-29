@@ -6,8 +6,7 @@ from ultralytics.utils import nms, ops
 
 
 class DetectionPredictor(BasePredictor):
-    """
-    A class extending the BasePredictor class for prediction based on a detection model.
+    """A class extending the BasePredictor class for prediction based on a detection model.
 
     This predictor specializes in object detection tasks, processing model outputs into meaningful detection results
     with bounding boxes and class predictions.
@@ -32,8 +31,7 @@ class DetectionPredictor(BasePredictor):
     """
 
     def postprocess(self, preds, img, orig_imgs, **kwargs):
-        """
-        Post-process predictions and return a list of Results objects.
+        """Post-process predictions and return a list of Results objects.
 
         This method applies non-maximum suppression to raw model predictions and prepares them for visualization and
         further analysis.
@@ -67,7 +65,7 @@ class DetectionPredictor(BasePredictor):
         )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         if save_feats:
             obj_feats = self.get_obj_feats(self._feats, preds[1])
@@ -81,7 +79,8 @@ class DetectionPredictor(BasePredictor):
 
         return results
 
-    def get_obj_feats(self, feat_maps, idxs):
+    @staticmethod
+    def get_obj_feats(feat_maps, idxs):
         """Extract object features from the feature maps."""
         import torch
 
@@ -92,8 +91,7 @@ class DetectionPredictor(BasePredictor):
         return [feats[idx] if idx.shape[0] else [] for feats, idx in zip(obj_feats, idxs)]  # for each img in batch
 
     def construct_results(self, preds, img, orig_imgs):
-        """
-        Construct a list of Results objects from model predictions.
+        """Construct a list of Results objects from model predictions.
 
         Args:
             preds (list[torch.Tensor]): List of predicted bounding boxes and scores for each image.
@@ -109,8 +107,7 @@ class DetectionPredictor(BasePredictor):
         ]
 
     def construct_result(self, pred, img, orig_img, img_path):
-        """
-        Construct a single Results object from one image prediction.
+        """Construct a single Results object from one image prediction.
 
         Args:
             pred (torch.Tensor): Predicted boxes and scores with shape (N, 6) where N is the number of detections.

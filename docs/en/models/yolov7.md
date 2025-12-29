@@ -6,7 +6,7 @@ keywords: YOLOv7, real-time object detection, Ultralytics, AI, computer vision, 
 
 # YOLOv7: Trainable Bag-of-Freebies
 
-YOLOv7 is a state-of-the-art real-time object detector that surpasses all known object detectors in both speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) in the range from 5 FPS to 160 FPS. It has the highest accuracy (56.8% AP) among all known real-time object detectors with 30 FPS or higher on GPU V100. Moreover, YOLOv7 outperforms other object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, YOLOv5, and many others in speed and accuracy. The model is trained on the MS COCO dataset from scratch without using any other datasets or pre-trained weights. Source code for YOLOv7 is available on GitHub.
+YOLOv7 is a state-of-the-art real-time object detector that surpasses all known object detectors in both speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) in the range from 5 FPS to 160 FPS. It has the highest accuracy (56.8% AP) among all known real-time object detectors with 30 FPS or higher on GPU V100. Moreover, YOLOv7 outperforms other object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, YOLOv5, and many others in speed and accuracy. The model is trained on the MS COCO dataset from scratch without using any other datasets or pretrained weights. Source code for YOLOv7 is available on GitHub.
 
 ![YOLOv7 comparison with SOTA object detectors](https://github.com/ultralytics/docs/releases/download/0/yolov7-comparison-sota-object-detectors.avif)
 
@@ -25,7 +25,7 @@ If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 f
 
     === "Detection (COCO)"
 
-        | Model                 | Params<br><sup>(M) | FLOPs<br><sup>(G) | Size<br><sup>(pixels) | FPS     | AP<sup>test / val<br>50-95 | AP<sup>test<br>50 | AP<sup>test<br>75 | AP<sup>test<br>S | AP<sup>test<br>M | AP<sup>test<br>L |
+        | Model                 | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | Size<br><sup>(pixels)</sup> | FPS     | AP<sup>test / val<br>50-95</sup> | AP<sup>test<br>50</sup> | AP<sup>test<br>75</sup> | AP<sup>test<br>S</sup> | AP<sup>test<br>M</sup> | AP<sup>test<br>L</sup> |
         | --------------------- | ------------------ | ----------------- | --------------------- | ------- | -------------------------- | ----------------- | ----------------- | ---------------- | ---------------- | ---------------- |
         | [YOLOX-S][1]          | **9.0**           | **26.8**         | 640                   | **102** | 40.5% / 40.5%              | -                 | -                 | -                | -                | -                |
         | [YOLOX-M][1]          | 25.3              | 73.8             | 640                   | 81      | 47.2% / 46.9%              | -                 | -                 | -                | -                | -                |
@@ -97,14 +97,14 @@ As of the time of writing, Ultralytics only supports ONNX and TensorRT inference
 
 To use YOLOv7 ONNX model with Ultralytics:
 
-0. (Optional) Install Ultralytics and export an ONNX model to have the required dependencies automatically installed:
+1. (Optional) Install Ultralytics and export an ONNX model to have the required dependencies automatically installed:
 
     ```bash
     pip install ultralytics
     yolo export model=yolo11n.pt format=onnx
     ```
 
-1. Export the desired YOLOv7 model by using the exporter in the [YOLOv7 repo](https://github.com/WongKinYiu/yolov7):
+2. Export the desired YOLOv7 model by using the exporter in the [YOLOv7 repo](https://github.com/WongKinYiu/yolov7):
 
     ```bash
     git clone https://github.com/WongKinYiu/yolov7
@@ -112,7 +112,7 @@ To use YOLOv7 ONNX model with Ultralytics:
     python export.py --weights yolov7-tiny.pt --grid --end2end --simplify --topk-all 100 --iou-thres 0.65 --conf-thres 0.35 --img-size 640 640 --max-wh 640
     ```
 
-2. Modify the ONNX model graph to be compatible with Ultralytics using the following script:
+3. Modify the ONNX model graph to be compatible with Ultralytics using the following script:
 
     ```python
     import numpy as np
@@ -309,7 +309,7 @@ To use YOLOv7 ONNX model with Ultralytics:
     onnx.save(model, "yolov7-ultralytics.onnx")
     ```
 
-3. You can then load the modified ONNX model and run inference with it in Ultralytics normally:
+4. You can then load the modified ONNX model and run inference with it in Ultralytics normally:
 
     ```python
     from ultralytics import ASSETS, YOLO
@@ -347,7 +347,7 @@ To use YOLOv7 ONNX model with Ultralytics:
     results = model(ASSETS / "bus.jpg")
     ```
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We would like to acknowledge the YOLOv7 authors for their significant contributions in the field of real-time object detection:
 

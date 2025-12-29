@@ -14,8 +14,7 @@ def run_ray_tune(
     max_samples: int = 10,
     **train_args,
 ):
-    """
-    Run hyperparameter tuning using Ray Tune.
+    """Run hyperparameter tuning using Ray Tune.
 
     Args:
         model (YOLO): Model to run the tuner on.
@@ -78,7 +77,7 @@ def run_ray_tune(
         "perspective": tune.uniform(0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
         "flipud": tune.uniform(0.0, 1.0),  # image flip up-down (probability)
         "fliplr": tune.uniform(0.0, 1.0),  # image flip left-right (probability)
-        "bgr": tune.uniform(0.0, 1.0),  # image channel BGR (probability)
+        "bgr": tune.uniform(0.0, 1.0),  # swap RGB↔BGR channels (probability)
         "mosaic": tune.uniform(0.0, 1.0),  # image mosaic (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "cutmix": tune.uniform(0.0, 1.0),  # image cutmix (probability)

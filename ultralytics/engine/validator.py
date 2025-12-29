@@ -41,15 +41,14 @@ from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_
 
 
 class BaseValidator:
-    """
-    A base class for creating validators.
+    """A base class for creating validators.
 
     This class provides the foundation for validation processes, including model evaluation, metric computation, and
     result visualization.
 
     Attributes:
         args (SimpleNamespace): Configuration for the validator.
-        dataloader (DataLoader): Dataloader to use for validation.
+        dataloader (DataLoader): DataLoader to use for validation.
         model (nn.Module): Model to validate.
         data (dict): Data dictionary containing dataset information.
         device (torch.device): Device to use for validation.
@@ -62,8 +61,8 @@ class BaseValidator:
         nc (int): Number of classes.
         iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
         jdict (list): List to store JSON validation results.
-        speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective
-            batch processing times in milliseconds.
+        speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective batch
+            processing times in milliseconds.
         save_dir (Path): Directory to save results.
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
@@ -93,11 +92,10 @@ class BaseValidator:
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
-        """
-        Initialize a BaseValidator instance.
+        """Initialize a BaseValidator instance.
 
         Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
+            dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (Path, optional): Directory to save results.
             args (SimpleNamespace, optional): Configuration for the validator.
             _callbacks (dict, optional): Dictionary to store various callback functions.
@@ -131,8 +129,7 @@ class BaseValidator:
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
-        """
-        Execute validation process, running inference on dataloader and computing performance metrics.
+        """Execute validation process, running inference on dataloader and computing performance metrics.
 
         Args:
             trainer (object, optional): Trainer object that contains the model to validate.
@@ -269,8 +266,7 @@ class BaseValidator:
     def match_predictions(
         self, pred_classes: torch.Tensor, true_classes: torch.Tensor, iou: torch.Tensor, use_scipy: bool = False
     ) -> torch.Tensor:
-        """
-        Match predictions to ground truth objects using IoU.
+        """Match predictions to ground truth objects using IoU.
 
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape (N,).

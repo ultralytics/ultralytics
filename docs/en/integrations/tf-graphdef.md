@@ -16,7 +16,7 @@ In this guide, we'll walk you step by step through how to export your [Ultralyti
 
 ## Why Should You Export to TF GraphDef?
 
-TF GraphDef is a powerful component of the TensorFlow ecosystem that was developed by Google. It can be used to optimize and deploy models like YOLO11. Exporting to TF GraphDef lets us move models from research to real-world applications. It allows models to run in environments without the full TensorFlow framework.
+TF GraphDef is a powerful component of the TensorFlow ecosystem that was developed by Google. It can be used to optimize and deploy models like YOLO11. Exporting to TF GraphDef lets you move models from research to real-world applications. It allows models to run in environments without the full TensorFlow framework.
 
 The GraphDef format represents the model as a serialized computation graph. This enables various optimization techniques like constant folding, quantization, and graph transformations. These optimizations ensure efficient execution, reduced memory usage, and faster inference speeds.
 
@@ -132,7 +132,7 @@ In this guide, we explored how to export Ultralytics YOLO11 models to the TF Gra
 
 For further details on usage, visit the [TF GraphDef official documentation](https://www.tensorflow.org/api_docs/python/tf/Graph).
 
-For more information on integrating Ultralytics YOLO11 with other platforms and frameworks, don't forget to check out our [integration guide page](index.md). It has great resources and insights to help you make the most of YOLO11 in your projects.
+For more information on integrating Ultralytics YOLO11 with other platforms and frameworks, see our [integration guide page](index.md).
 
 ## FAQ
 

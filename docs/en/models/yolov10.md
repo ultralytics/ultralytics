@@ -114,7 +114,7 @@ Compared to other state-of-the-art detectors:
 
         Here is a detailed comparison of YOLOv10 variants with other state-of-the-art models:
 
-        | Model             | Params<br><sup>(M) | FLOPs<br><sup>(G) | mAP<sup>val<br>50-95 | Latency<br><sup>(ms) | Latency-forward<br><sup>(ms) |
+        | Model             | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | mAP<sup>val<br>50-95</sup> | Latency<br><sup>(ms)</sup> | Latency-forward<br><sup>(ms)</sup> |
         | ----------------- | ------------------ | ----------------- | -------------------- | -------------------- | ---------------------------- |
         | YOLOv6-3.0-N      | 4.7                | 11.4              | 37.0                 | 2.69                 | **1.76**                     |
         | Gold-YOLO-N       | 5.6                | 12.1              | **39.6**             | 2.92                 | 1.82                         |
@@ -160,7 +160,7 @@ For predicting new images with YOLOv10:
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLOv10n model
+        # Load a pretrained YOLOv10n model
         model = YOLO("yolov10n.pt")
 
         # Perform object detection on an image
@@ -205,7 +205,7 @@ For training YOLOv10 on a custom dataset:
 
 ## Supported Tasks and Modes
 
-The YOLOv10 models series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
+The YOLOv10 model series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
 | Model   | Filenames                                                             | Tasks                                  | Inference | Validation | Training | Export |
 | ------- | --------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
@@ -234,7 +234,7 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 
 YOLOv10 sets a new standard in real-time object detection by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its ability to deliver high accuracy with low computational cost makes it an ideal choice for a wide range of [real-world applications](https://www.ultralytics.com/solutions) including [manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing), [retail](https://www.ultralytics.com/blog/ai-in-fashion-retail), and [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-automotive).
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We would like to acknowledge the YOLOv10 authors from [Tsinghua University](https://www.tsinghua.edu.cn/en/) for their extensive research and significant contributions to the [Ultralytics](https://www.ultralytics.com/) framework:
 
@@ -272,7 +272,7 @@ For easy inference, you can use the Ultralytics YOLO Python library or the comma
         ```python
         from ultralytics import YOLO
 
-        # Load the pre-trained YOLOv10n model
+        # Load the pretrained YOLOv10n model
         model = YOLO("yolov10n.pt")
         results = model("image.jpg")
         results[0].show()

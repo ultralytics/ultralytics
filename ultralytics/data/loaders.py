@@ -25,11 +25,10 @@ from ultralytics.utils.patches import imread
 
 @dataclass
 class SourceTypes:
-    """
-    Class to represent various types of input sources for predictions.
+    """Class to represent various types of input sources for predictions.
 
-    This class uses dataclass to define boolean flags for different types of input sources that can be used for
-    making predictions with YOLO models.
+    This class uses dataclass to define boolean flags for different types of input sources that can be used for making
+    predictions with YOLO models.
 
     Attributes:
         stream (bool): Flag indicating if the input source is a video stream.
@@ -52,11 +51,10 @@ class SourceTypes:
 
 
 class LoadStreams:
-    """
-    Stream Loader for various types of video streams.
+    """Stream Loader for various types of video streams.
 
-    Supports RTSP, RTMP, HTTP, and TCP streams. This class handles the loading and processing of multiple video
-    streams simultaneously, making it suitable for real-time video analysis tasks.
+    Supports RTSP, RTMP, HTTP, and TCP streams. This class handles the loading and processing of multiple video streams
+    simultaneously, making it suitable for real-time video analysis tasks.
 
     Attributes:
         sources (list[str]): The source input paths or URLs for the video streams.
@@ -71,7 +69,7 @@ class LoadStreams:
         shape (list[tuple[int, int, int]]): List of shapes for each stream.
         caps (list[cv2.VideoCapture]): List of cv2.VideoCapture objects for each stream.
         bs (int): Batch size for processing.
-        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
+        cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
 
     Methods:
         update: Read stream frames in daemon thread.
@@ -94,21 +92,20 @@ class LoadStreams:
     """
 
     def __init__(self, sources: str = "file.streams", vid_stride: int = 1, buffer: bool = False, channels: int = 3):
-        """
-        Initialize stream loader for multiple video sources, supporting various stream types.
+        """Initialize stream loader for multiple video sources, supporting various stream types.
 
         Args:
             sources (str): Path to streams file or single stream URL.
             vid_stride (int): Video frame-rate stride.
             buffer (bool): Whether to buffer input streams.
-            channels (int): Number of image channels (1 for grayscale, 3 for RGB).
+            channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.buffer = buffer  # buffer input streams
         self.running = True  # running flag for Thread
         self.mode = "stream"
         self.vid_stride = vid_stride  # video frame-rate stride
-        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or RGB
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
@@ -126,7 +123,7 @@ class LoadStreams:
             if urllib.parse.urlparse(s).hostname in {"www.youtube.com", "youtube.com", "youtu.be"}:  # YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Jsn8D3aC840' or 'https://youtu.be/Jsn8D3aC840'
                 s = get_best_youtube_url(s)
-            s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
+            s = int(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (IS_COLAB or IS_KAGGLE):
                 raise NotImplementedError(
                     "'source=0' webcam not supported in Colab and Kaggle notebooks. "
@@ -227,11 +224,10 @@ class LoadStreams:
 
 
 class LoadScreenshots:
-    """
-    Ultralytics screenshot dataloader for capturing and processing screen images.
+    """Ultralytics screenshot dataloader for capturing and processing screen images.
 
-    This class manages the loading of screenshot images for processing with YOLO. It is suitable for use with
-    `yolo predict source=screen`.
+    This class manages the loading of screenshot images for processing with YOLO. It is suitable for use with `yolo
+    predict source=screen`.
 
     Attributes:
         source (str): The source input indicating which screen to capture.
@@ -246,7 +242,7 @@ class LoadScreenshots:
         bs (int): Batch size, set to 1.
         fps (int): Frames per second, set to 30.
         monitor (dict[str, int]): Monitor configuration details.
-        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
+        cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
 
     Methods:
         __iter__: Returns an iterator object.
@@ -259,12 +255,11 @@ class LoadScreenshots:
     """
 
     def __init__(self, source: str, channels: int = 3):
-        """
-        Initialize screenshot capture with specified screen and region parameters.
+        """Initialize screenshot capture with specified screen and region parameters.
 
         Args:
             source (str): Screen capture source string in format "screen_num left top width height".
-            channels (int): Number of image channels (1 for grayscale, 3 for RGB).
+            channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         check_requirements("mss")
         import mss
@@ -282,7 +277,7 @@ class LoadScreenshots:
         self.sct = mss.mss()
         self.bs = 1
         self.fps = 30
-        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or RGB
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
 
         # Parse monitor shape
         monitor = self.sct.monitors[self.screen]
@@ -307,11 +302,10 @@ class LoadScreenshots:
 
 
 class LoadImagesAndVideos:
-    """
-    A class for loading and processing images and videos for YOLO object detection.
+    """A class for loading and processing images and videos for YOLO object detection.
 
-    This class manages the loading and pre-processing of image and video data from various sources, including
-    single image files, video files, and lists of image and video paths.
+    This class manages the loading and pre-processing of image and video data from various sources, including single
+    image files, video files, and lists of image and video paths.
 
     Attributes:
         files (list[str]): List of image and video file paths.
@@ -325,7 +319,7 @@ class LoadImagesAndVideos:
         frames (int): Total number of frames in the video.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
-        cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
+        cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
 
     Methods:
         __init__: Initialize the LoadImagesAndVideos object.
@@ -347,14 +341,13 @@ class LoadImagesAndVideos:
     """
 
     def __init__(self, path: str | Path | list, batch: int = 1, vid_stride: int = 1, channels: int = 3):
-        """
-        Initialize dataloader for images and videos, supporting various input formats.
+        """Initialize dataloader for images and videos, supporting various input formats.
 
         Args:
             path (str | Path | list): Path to images/videos, directory, or list of paths.
             batch (int): Batch size for processing.
             vid_stride (int): Video frame-rate stride.
-            channels (int): Number of image channels (1 for grayscale, 3 for RGB).
+            channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         parent = None
         if isinstance(path, str) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
@@ -392,7 +385,7 @@ class LoadImagesAndVideos:
         self.mode = "video" if ni == 0 else "image"  # default to video if no images
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
-        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or RGB
+        self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
         if any(videos):
             self._new_video(videos[0])  # new video
         else:
@@ -490,8 +483,7 @@ class LoadImagesAndVideos:
 
 
 class LoadPilAndNumpy:
-    """
-    Load images from PIL and Numpy arrays for batch processing.
+    """Load images from PIL and Numpy arrays for batch processing.
 
     This class manages loading and pre-processing of image data from both PIL and Numpy formats. It performs basic
     validation and format conversion to ensure that the images are in the required format for downstream processing.
@@ -517,12 +509,11 @@ class LoadPilAndNumpy:
     """
 
     def __init__(self, im0: Image.Image | np.ndarray | list, channels: int = 3):
-        """
-        Initialize a loader for PIL and Numpy images, converting inputs to a standardized format.
+        """Initialize a loader for PIL and Numpy images, converting inputs to a standardized format.
 
         Args:
             im0 (PIL.Image.Image | np.ndarray | list): Single image or list of images in PIL or numpy format.
-            channels (int): Number of image channels (1 for grayscale, 3 for RGB).
+            channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         if not isinstance(im0, list):
             im0 = [im0]
@@ -535,11 +526,16 @@ class LoadPilAndNumpy:
 
     @staticmethod
     def _single_check(im: Image.Image | np.ndarray, flag: str = "RGB") -> np.ndarray:
-        """Validate and format an image to numpy array, ensuring RGB order and contiguous memory."""
+        """Validate and format an image to a NumPy array.
+
+        Notes:
+            - PIL inputs are converted to NumPy and returned in OpenCV-compatible BGR order for color images.
+            - NumPy inputs are returned as-is (no channel-order conversion is applied).
+        """
         assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
         if isinstance(im, Image.Image):
             im = np.asarray(im.convert(flag))
-            # adding new axis if it's grayscale, and converting to BGR if it's RGB
+            # Add a new axis if grayscale; convert RGB -> BGR for OpenCV compatibility.
             im = im[..., None] if flag == "L" else im[..., ::-1]
             im = np.ascontiguousarray(im)  # contiguous
         elif im.ndim == 2:  # grayscale in numpy form
@@ -564,11 +560,10 @@ class LoadPilAndNumpy:
 
 
 class LoadTensor:
-    """
-    A class for loading and processing tensor data for object detection tasks.
+    """A class for loading and processing tensor data for object detection tasks.
 
-    This class handles the loading and pre-processing of image data from PyTorch tensors, preparing them for
-    further processing in object detection pipelines.
+    This class handles the loading and pre-processing of image data from PyTorch tensors, preparing them for further
+    processing in object detection pipelines.
 
     Attributes:
         im0 (torch.Tensor): The input tensor containing the image(s) with shape (B, C, H, W).
@@ -588,8 +583,7 @@ class LoadTensor:
     """
 
     def __init__(self, im0: torch.Tensor) -> None:
-        """
-        Initialize LoadTensor object for processing torch.Tensor image data.
+        """Initialize LoadTensor object for processing torch.Tensor image data.
 
         Args:
             im0 (torch.Tensor): Input tensor with shape (B, C, H, W).
@@ -656,8 +650,7 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
 
 
 def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
-    """
-    Retrieve the URL of the best quality MP4 video stream from a given YouTube video.
+    """Retrieve the URL of the best quality MP4 video stream from a given YouTube video.
 
     Args:
         url (str): The URL of the YouTube video.

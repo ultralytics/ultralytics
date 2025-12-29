@@ -15,8 +15,7 @@ except (ImportError, AssertionError):
 
 
 def _log_debug_samples(files, title: str = "Debug Samples") -> None:
-    """
-    Log files (images) as debug samples in the ClearML task.
+    """Log files (images) as debug samples in the ClearML task.
 
     Args:
         files (list[Path]): A list of file paths in PosixPath format.
@@ -35,8 +34,7 @@ def _log_debug_samples(files, title: str = "Debug Samples") -> None:
 
 
 def _log_plot(title: str, plot_path: str) -> None:
-    """
-    Log an image as a plot in the plot section of ClearML.
+    """Log an image as a plot in the plot section of ClearML.
 
     Args:
         title (str): The title of the plot.
@@ -125,15 +123,9 @@ def on_train_end(trainer) -> None:
     """Log final model and training results on training completion."""
     if task := Task.current_task():
         # Log final results, confusion matrix and PR plots
-        files = [
-            "results.png",
-            "confusion_matrix.png",
-            "confusion_matrix_normalized.png",
-            *(f"{x}_curve.png" for x in ("F1", "PR", "P", "R")),
-        ]
-        files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter existing files
-        for f in files:
-            _log_plot(title=f.stem, plot_path=f)
+        for f in [*trainer.plots.keys(), *trainer.validator.plots.keys()]:
+            if "batch" not in f.name:
+                _log_plot(title=f.stem, plot_path=f)
         # Report final metrics
         for k, v in trainer.validator.metrics.results_dict.items():
             task.get_logger().report_single_value(k, v)

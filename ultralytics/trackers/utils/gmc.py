@@ -11,8 +11,7 @@ from ultralytics.utils import LOGGER
 
 
 class GMC:
-    """
-    Generalized Motion Compensation (GMC) class for tracking and object detection in video frames.
+    """Generalized Motion Compensation (GMC) class for tracking and object detection in video frames.
 
     This class provides methods for tracking and detecting objects based on several tracking algorithms including ORB,
     SIFT, ECC, and Sparse Optical Flow. It also supports downscaling of frames for computational efficiency.
@@ -35,24 +34,18 @@ class GMC:
     Examples:
         Create a GMC object and apply it to a frame
         >>> gmc = GMC(method="sparseOptFlow", downscale=2)
-        >>> frame = np.array([[1, 2, 3], [4, 5, 6]])
-        >>> processed_frame = gmc.apply(frame)
-        >>> print(processed_frame)
-        array([[1, 2, 3],
-               [4, 5, 6]])
+        >>> frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+        >>> warp = gmc.apply(frame)
+        >>> print(warp.shape)
+        (2, 3)
     """
 
     def __init__(self, method: str = "sparseOptFlow", downscale: int = 2) -> None:
-        """
-        Initialize a Generalized Motion Compensation (GMC) object with tracking method and downscale factor.
+        """Initialize a Generalized Motion Compensation (GMC) object with tracking method and downscale factor.
 
         Args:
             method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
             downscale (int): Downscale factor for processing frames.
-
-        Examples:
-            Initialize a GMC object with the 'sparseOptFlow' method and a downscale factor of 2
-            >>> gmc = GMC(method="sparseOptFlow", downscale=2)
         """
         super().__init__()
 
@@ -91,8 +84,7 @@ class GMC:
         self.initializedFirstFrame = False
 
     def apply(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:
-        """
-        Apply object detection on a raw frame using the specified method.
+        """Estimate a 2×3 motion compensation warp for a frame.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
@@ -118,8 +110,7 @@ class GMC:
             return np.eye(2, 3)
 
     def apply_ecc(self, raw_frame: np.ndarray) -> np.ndarray:
-        """
-        Apply the ECC (Enhanced Correlation Coefficient) algorithm to a raw frame for motion compensation.
+        """Apply the ECC (Enhanced Correlation Coefficient) algorithm to a raw frame for motion compensation.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
@@ -153,13 +144,12 @@ class GMC:
         try:
             (_, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
         except Exception as e:
-            LOGGER.warning(f"find transform failed. Set warp as identity {e}")
+            LOGGER.warning(f"findTransformECC failed; using identity warp. {e}")
 
         return H
 
     def apply_features(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:
-        """
-        Apply feature-based methods like ORB or SIFT to a raw frame.
+        """Apply feature-based methods like ORB or SIFT to a raw frame.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
@@ -276,8 +266,7 @@ class GMC:
         return H
 
     def apply_sparseoptflow(self, raw_frame: np.ndarray) -> np.ndarray:
-        """
-        Apply Sparse Optical Flow method to a raw frame.
+        """Apply Sparse Optical Flow method to a raw frame.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).

@@ -43,11 +43,15 @@ These are the notable functionalities offered by YOLO11's Val mode:
 
 !!! tip
 
-    * YOLO11 models automatically remember their training settings, so you can validate a model at the same image size and on the original dataset easily with just `yolo val model=yolo11n.pt` or `model('yolo11n.pt').val()`
+    * YOLO11 models automatically remember their training settings, so you can validate a model at the same image size and on the original dataset easily with just `yolo val model=yolo11n.pt` or `YOLO("yolo11n.pt").val()`
 
 ## Usage Examples
 
-Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes. See Arguments section below for a full list of validation arguments.
+Validate a trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes. See the Arguments section below for a full list of validation arguments.
+
+!!! warning "Windows Multi-Processing Error"
+
+    On Windows, you may receive a `RuntimeError` when launching the validation as a script. Add an `if __name__ == "__main__":` block before your validation code to resolve it.
 
 !!! example
 
@@ -65,7 +69,7 @@ Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/a
         metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps  # a list contains map50-95 of each category
+        metrics.box.maps  # a list containing mAP50-95 for each category
         ```
 
     === "CLI"

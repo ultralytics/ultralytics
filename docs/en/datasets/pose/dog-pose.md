@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover the Dog-Pose dataset for pose detection. Featuring 6,773 training and 1,703 test images, it's a robust dataset for training YOLO11 models.
+description: Discover the Dog-Pose dataset for pose detection. Featuring 6,773 training and 1,703 test images, it is a robust dataset for training YOLO11 models.
 keywords: Dog-Pose, Ultralytics, pose detection dataset, YOLO11, machine learning, computer vision, training data
 ---
 
@@ -8,7 +8,7 @@ keywords: Dog-Pose, Ultralytics, pose detection dataset, YOLO11, machine learnin
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) Dog-pose dataset is a high-quality and extensive dataset specifically curated for dog keypoint estimation. With 6,773 training images and 1,703 test images, this dataset provides a solid foundation for training robust pose estimation models.
+The [Ultralytics](https://www.ultralytics.com/) Dog-Pose dataset is a high-quality and extensive dataset specifically curated for dog keypoint estimation. With 6,773 training images and 1,703 test images, this dataset provides a solid foundation for training robust pose estimation models.
 
 <p align="center">
   <br>
@@ -18,7 +18,7 @@ The [Ultralytics](https://www.ultralytics.com/) Dog-pose dataset is a high-quali
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the Stanford Dog Pose Estimation Dataset | Step-by-Step Tutorial🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the Stanford Dog Pose Estimation Dataset | Step-by-Step Tutorial
 </p>
 
 Each annotated image includes 24 keypoints with 3 dimensions per keypoint (x, y, visibility), making it a valuable resource for advanced research and development in computer vision.
@@ -26,6 +26,18 @@ Each annotated image includes 24 keypoints with 3 dimensions per keypoint (x, y,
 <img src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-dogs.avif" alt="Ultralytics Dog-pose display image" width="800">
 
 This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics).
+
+## Dataset Structure
+
+- **Split**: 6,773 train / 1,703 test images with matching YOLO-format label files.
+- **Keypoints**: 24 per dog with `(x, y, visibility)` triplets.
+- **Layout**:
+
+    ```
+    datasets/dog-pose/
+    ├── images/{train,test}
+    └── labels/{train,test}
+    ```
 
 ## Dataset YAML
 
@@ -139,7 +151,7 @@ The Dog-pose dataset offers several benefits:
 
 **Real-World Scenarios**: Includes images from varied environments, enhancing the model's ability to generalize to real-world applications like [pet monitoring](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation) and behavior analysis.
 
-**Transfer Learning Advantage**: The dataset works well with [transfer learning](https://www.ultralytics.com/blog/understanding-few-shot-zero-shot-and-transfer-learning) techniques, allowing models pre-trained on human pose datasets to adapt to dog-specific features.
+**Transfer Learning Advantage**: The dataset works well with [transfer learning](https://www.ultralytics.com/blog/understanding-few-shot-zero-shot-and-transfer-learning) techniques, allowing models pretrained on human pose datasets to adapt to dog-specific features.
 
 For more about its features and usage, see the [Dataset Introduction](#introduction) section.
 

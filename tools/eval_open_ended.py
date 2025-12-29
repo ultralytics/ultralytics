@@ -52,7 +52,7 @@ def yaml_load(file="data.yaml", append_filename=False):
 
 
 class LVISOpenEndedEval():
-    def __init__(self, anno_path, pred_path, name_path):
+    def __init__(self, anno_path, pred_path, name_path,clip_weight_name):
         self.anno_path = anno_path
         self.pred_path = pred_path
         
@@ -63,10 +63,15 @@ class LVISOpenEndedEval():
             self.names = [x.strip() for x in f.readlines()]
 
         self.topk_for_mapping = 1
+        self.clip_weight_name=clip_weight_name
 
-    def setup_clip_matching(self):
+
+    def setup_clip_matching(self, clip_weight_name):
         print("Loading CLIP model for matching")
-        self.clip_model = OpenCLIP("cuda")
+        from ultralytics.nn.text_model import build_text_model
+
+
+        self.clip_model = build_text_model(clip_weight_name,"cuda")
         
         tokens = self.clip_model.tokenize(self.categories).cuda()
         text_features = self.clip_model.encode_text(tokens)
@@ -75,7 +80,7 @@ class LVISOpenEndedEval():
 
     @torch.inference_mode()
     def match(self, total, rank, verbose=False):
-        self.setup_clip_matching()
+        self.setup_clip_matching(self.clip_weight_name)
         
         predictions = []
         data_all = json.load(open(self.pred_path))
@@ -116,11 +121,11 @@ def setup_seed(seed):
     torch.backends.cudnn.benchmark = False
 
 def worker(args):
-    json, pred, names, total, rank, device, seed, verbose = args
+    json, pred, names, total, rank, device, seed, verbose,clip_weight_name = args
     setup_seed(seed)
     torch.cuda.set_device(int(device))
     
-    lvis_eval = LVISOpenEndedEval(json, pred, names)
+    lvis_eval = LVISOpenEndedEval(json, pred, names,clip_weight_name)
     match_result = lvis_eval.match(total, rank, verbose=(rank == 0) and verbose)
     return match_result
 
@@ -133,7 +138,7 @@ def main(args):
     with mp.Pool(total) as pool:
         results = pool.map(worker,
                         [(args.json, args.pred, args.names,
-                            total, rank, device, args.seed, args.verbose)
+                            total, rank, device, args.seed, args.verbose,args.clip_weight_name)
                             for rank, device in zip(ranks, devices)])
 
     predictions = []
@@ -165,12 +170,55 @@ if __name__ == "__main__":
     parser.add_argument('--pred', help='path to pred json file', default='./data/predictions.json')
     parser.add_argument('--names', help='path to vocab names', default='./tools/ram_tag_list.txt')
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--devices", type=str, default="0,1,2,3,4,5,6,7")
+    parser.add_argument("--devices", type=str, default="0,1")
     parser.add_argument('--verbose', help='verbose', action='store_true')
     parser.add_argument('--fixed', help='evaluate by fixed ap', action='store_true')
+    parser.add_argument('--clip_weight_name', type=str, default='mobileclip:blt', help='clip weight name')
     args = parser.parse_args()
-    args.pred="/home/shared/ultralytics/runs/detect/val69/predictions.json"
+
+
+    ####################################### test eval script  with mobileclip2 #########################################
+    # val_project="/home/shared/ultralytics/runs/detect/val69/" #  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= -1 catIds=all] = 0.215
+    # args.clip_weight_name="mobileclip2:b"
+    # args.pred=f"{val_project}/predictions.json"
+    # args.json="/home/louis/ultra_louis_work/datasets/lvis/annotations/lvis_v1_minival.json"
+    # args.names='../buffer/ram_tag_list.txt'
+    # args.fixed=True
+    ####################################### test eval script with mobileclip1 #########################################
+    # val_project="/home/shared/ultralytics/runs/detect/val69/" #  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= -1 catIds=all] = 0.215
+    # args.clip_weight_name="mobileclip:blt"
+    # args.pred=f"{val_project}/predictions.json"
+    # args.json="/home/louis/ultra_louis_work/datasets/lvis/annotations/lvis_v1_minival.json"
+    # args.names='../buffer/ram_tag_list.txt'
+    # args.fixed=True
+    # main(args)
+
+
+
+    ####################################### test yoloe-11s-seg-pf.pt  with mobileclip #########################################  
+    # val_project="/home/shared/ultralytics/runs/prompt_free_test/yoloe-11s-seg-pf" # Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= -1 catIds=all] = 0.164
+    # args.clip_weight_name="mobileclip:blt"
+    # args.pred=f"{val_project}/predictions.json"
+    # args.json="/home/louis/ultra_louis_work/datasets/lvis/annotations/lvis_v1_minival.json"
+    # args.names='../buffer/ram_tag_list.txt'
+    # args.fixed=True
+    # main(args)
+
+  ####################################### test yoloe-11s-seg-pf.pt  with mobileclip2 #########################################  
+    # val_project="/home/shared/ultralytics/runs/prompt_free_test/yoloe-11s-seg-pf" # Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= -1 catIds=all] = 0.168
+    # args.clip_weight_name="mobileclip2:b"
+    # args.pred=f"{val_project}/predictions.json"
+    # args.json="/home/louis/ultra_louis_work/datasets/lvis/annotations/lvis_v1_minival.json"
+    # args.names='../buffer/ram_tag_list.txt'
+    # args.fixed=True
+    # main(args)
+
+    val_project="/home/louis/repos/yoloe/runs/segment/val2" # Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= -1 catIds=all] = 0.168
+    args.clip_weight_name="mobileclip2:b"
+    args.pred=f"{val_project}/predictions.json"
     args.json="/home/louis/ultra_louis_work/datasets/lvis/annotations/lvis_v1_minival.json"
     args.names='../buffer/ram_tag_list.txt'
     args.fixed=True
     main(args)
+
+

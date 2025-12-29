@@ -935,7 +935,7 @@ class YOLOEDetect(Detect):
 
 
 
-    def score_mapping(self, scores: torch.Tensor, w: torch.Tensor, temperature: float = 0.01, hard: bool = False) -> torch.Tensor:
+    def score_mapping(self, scores: torch.Tensor, w: torch.Tensor, temperature: float = 0.01, hard: bool = True) -> torch.Tensor:
         """Map open-ended scores to dataset class scores.
 
         Args:

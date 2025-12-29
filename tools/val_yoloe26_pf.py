@@ -69,23 +69,84 @@ def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight):
 
 
 
-version='26s'
-weight_path_tp="./runs/yoloe26s_tp_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_exp/weights/best.pt"
-model_weight="/home/louis/ultra_louis_work/ultralytics/runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf_bn_o2m0.1_pfA/weights/best.pt"
+
+def read_pf_det_from_seg_fused(model_path,yaml_name):
+    """
+        read pd_det from a fused seg model
+    """
+
+    # load the most model weights
+    det_model = YOLOE(yaml_name).load(model_path)
+    det_model.model.args['clip_weight_name']="mobileclip:blt"
+    det_model.eval()
+    det_model.cuda() 
+    import copy
+    seg_model=YOLOE(model_path)
+    seg_model.model.args['clip_weight_name']="mobileclip:blt"
+    seg_model.eval()
+    seg_model.cuda()
+    # copy the lrpc model ()
+    det_model.model.model[-1].lrpc =copy.deepcopy(seg_model.model.model[-1].lrpc)
+    det_model.model.model[-1].is_fused = True
+    det_model.model.model[-1].conf = 0.001
+    det_model.model.model[-1].max_det = 1000
+
+    # del the last layer of loc and cls head (which is copied from the set_vocab function)
+    import torch.nn as nn
+    for loc_head, cls_head in zip(det_model.model.model[-1].cv2, det_model.model.model[-1].cv3):
+        assert isinstance(loc_head, nn.Sequential)
+        assert isinstance(cls_head, nn.Sequential)
+        del loc_head[-1]
+        del cls_head[-1]
+
+    with open('../buffer/ram_tag_list.txt', 'r') as f:
+        names = [x.strip() for x in f.readlines()]
+    tpe = det_model.model.get_text_pe(names)
+    det_model.model.set_classes(names, tpe)
+
+    return det_model
 
 
-single_cls=False
-
-if single_cls:
-    model=YOLOE(model_weight)
-    head=model.model.model[-1]
-    head.set_fixed_nc(1)  # stop the dynamic update of YOLOEDetect.nc
-
-    metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= False) # map 0
-
-else:
-    # model_weight="runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_o2m0.1_pf2/weights/best.pt"
-    model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",weight_path_tp)
 
 
-    metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= (not single_cls)) # map 0
+
+
+# version='26s'
+# weight_path_tp="./runs/yoloe26s_tp_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_exp/weights/best.pt"
+# model_weight="/home/louis/ultra_louis_work/ultralytics/runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf_bn_o2m0.1_pfA/weights/best.pt"
+
+
+# # set the open_ended_te for YOLOEDetect
+# with open('../buffer/ram_tag_list.txt', 'r') as f:
+#     names = [x.strip() for x in f.readlines()]
+#     model.model.set_open_ended_te(names)
+# metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= (not single_cls)) # map
+
+
+
+
+
+
+# if single_cls:
+#     model=YOLOE(model_weight)
+#     head=model.model.model[-1]
+#     head.set_fixed_nc(1)  # stop the dynamic update of YOLOEDetect.nc
+
+#     metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= False) # map 0
+
+# else:
+#     # model_weight="runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_o2m0.1_pf2/weights/best.pt"
+#     model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",weight_path_tp)
+#     metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= (not single_cls)) # map 0
+
+
+version='11s'
+model_weight="yoloe-11s-seg-pf.pt"
+model=read_pf_det_from_seg_fused(model_weight,f"yoloe-{version}.yaml")
+
+
+metrics = model.val(data="lvis.yaml",split="minival", single_cls=False ,max_det=1000,save_json=True, plots=False,
+                    project="runs/prompt_free_test",name="yoloe-11s-seg-pf") # map
+
+
+

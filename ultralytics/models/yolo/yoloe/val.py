@@ -140,6 +140,7 @@ class YOLOEDetectValidator(DetectionValidator):
         model: YOLOEModel | str | None = None,
         refer_data: str | None = None,
         load_vp: bool = False,
+        set_classes_for_pf_mode: bool = False,
     ) -> dict[str, Any]:
         """
         Run validation on the model using either text or visual prompt embeddings.
@@ -196,9 +197,10 @@ class YOLOEDetectValidator(DetectionValidator):
                 model.set_classes(names, vpe)
                 stats = super().__call__(model=deepcopy(model))
             elif isinstance(model.model[-1], YOLOEDetect) and hasattr(model.model[-1], "lrpc"):  # prompt-free
-                LOGGER.info("Validate using the text prompt for prompt-free model.")
-                tpe = model.get_text_pe(names)
-                model.set_classes(names, tpe)
+                if set_classes_for_pf_mode:
+                    LOGGER.info("Validate using the text prompt for prompt-free model.")
+                    tpe = model.get_text_pe(names)
+                    model.set_classes(names, tpe)
                 stats = super().__call__(model=deepcopy(model))
             else:
                 LOGGER.info("Validate using the text prompt.")

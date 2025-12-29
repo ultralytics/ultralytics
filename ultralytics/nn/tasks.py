@@ -1136,10 +1136,15 @@ class YOLOEModel(DetectionModel):
         self.names = check_class_names(names)
 
         if set_open_ended_te:
-            # set the open_ended_te for YOLOEDetect
-            open_ended_te=self.get_text_pe(names, without_reprta=True)
-            assert open_ended_te.ndim == 3 and open_ended_te.shape[1] == len(names)
-            head.open_ended_te = open_ended_te.to(device)  
+            # set the open_ended_te for YOLOEDetect 
+            self.set_open_ended_te(names)
+
+    def set_open_ended_te(self, names):
+        open_ended_te=self.get_text_pe(names, without_reprta=True)
+        head = self.model[-1]
+        device = next(self.parameters()).device
+        assert open_ended_te.ndim == 3 and open_ended_te.shape[1] == len(names)
+        head.open_ended_te = open_ended_te.to(device)  
 
 
     def get_vocab(self, names):

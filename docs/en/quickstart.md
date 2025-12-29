@@ -161,6 +161,72 @@ For server environments without a display (e.g., cloud VMs, Docker containers, C
 
 Both packages provide the same functionality and API. The headless variant simply excludes OpenCV's GUI components that require display libraries.
 
+## Advanced Installation
+
+While the standard installation methods cover most use cases, you might need a more tailored setup for development or custom configurations.
+
+!!! example "Advanced Methods"
+
+    === "Install from Fork"
+
+        If you need persistent custom modifications, you can fork the Ultralytics repository, make changes to `pyproject.toml` or other code, and install from your fork.
+
+        1.  **Fork** the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) to your own GitHub account.
+        2.  **Clone** your fork locally:
+            ```bash
+            git clone https://github.com/YOUR_USERNAME/ultralytics.git
+            cd ultralytics
+            ```
+        3.  **Create a new branch** for your changes:
+            ```bash
+            git checkout -b my-custom-branch
+            ```
+        4.  **Make your modifications** to `pyproject.toml` or other files as needed.
+        5.  **Commit and push** your changes:
+            ```bash
+            git add .
+            git commit -m "My custom changes"
+            git push origin my-custom-branch
+            ```
+        6.  **Install** using pip with the `git+https` syntax, pointing to your branch:
+            ```bash
+            pip install git+https://github.com/YOUR_USERNAME/ultralytics.git@my-custom-branch
+            ```
+
+    === "Local Clone and Install"
+
+        Clone the repository locally, modify files as needed, and install in editable mode.
+
+        1.  **Clone** the Ultralytics repository:
+            ```bash
+            git clone https://github.com/ultralytics/ultralytics
+            cd ultralytics
+            ```
+        2.  **Make your modifications** to `pyproject.toml` or other files as needed.
+        3.  **Install** the package in editable mode (`-e`). Pip will use your modified `pyproject.toml` to resolve dependencies:
+            ```bash
+            pip install -e .
+            ```
+
+        This approach is useful for development or testing local changes before committing.
+
+    === "Use requirements.txt"
+
+        Specify a custom Ultralytics fork in your `requirements.txt` file to ensure consistent installations across your team.
+
+        ```text title="requirements.txt"
+        # Install ultralytics from a specific git branch
+        git+https://github.com/YOUR_USERNAME/ultralytics.git@my-custom-branch
+
+        # Other project dependencies
+        flask
+        ```
+
+        Install dependencies from the file:
+        ```bash
+        pip install -r requirements.txt
+        ```
+
 ## Use Ultralytics with CLI
 
 The Ultralytics command-line interface (CLI) allows for simple single-line commands without needing a Python environment. CLI requires no customization or Python code; run all tasks from the terminal with the `yolo` command. For more on using YOLO from the command line, see the [CLI Guide](usage/cli.md).

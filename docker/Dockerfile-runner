@@ -35,4 +35,4 @@ ENTRYPOINT ["sh", "-c", "./config.sh --url https://github.com/ultralytics/ultral
 # t=ultralytics/ultralytics:latest-runner && sudo docker build -f docker/Dockerfile-runner -t $t . && sudo docker push $t
 
 # Pull and Run in detached mode with access to GPUs 0 and 1
-# t=ultralytics/ultralytics:latest-runner && sudo docker run -d -e GITHUB_RUNNER_TOKEN=TOKEN -e GITHUB_RUNNER_NAME=NAME --ipc=host --gpus '"device=0,1"' $t
+# t=ultralytics/ultralytics:latest-runner && sudo docker run -d -e GITHUB_RUNNER_TOKEN=TOKEN -e GITHUB_RUNNER_NAME=NAME --ipc=host --runtime=nvidia --gpus '"device=0,1"' $t

@@ -65,7 +65,9 @@ def _get_comet_should_log_model() -> bool:
     elif should_log_model == "false":
         return False
     else:
-        LOGGER.warning(f"Invalid value for COMET_ULTRALYTICS_SHOULD_LOG_MODEL: {os.getenv('COMET_ULTRALYTICS_SHOULD_LOG_MODEL')}. Defaulting to 'true'.")
+        LOGGER.warning(
+            f"Invalid value for COMET_ULTRALYTICS_SHOULD_LOG_MODEL: {os.getenv('COMET_ULTRALYTICS_SHOULD_LOG_MODEL')}. Defaulting to 'true'."
+        )
         return True
 
 

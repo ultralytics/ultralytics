@@ -51,13 +51,13 @@ RUN uv pip install --system -e "." albumentations faster-coco-eval wandb && \
 # t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
 # Pull and Run with access to all GPUs
-# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
 
 # Pull and Run with access to GPUs 2 and 3 (inside container CUDA devices will appear as 0 and 1)
-# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t
 
 # Pull and Run with local directory access
-# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/shared/datasets:/datasets $t
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v "$(pwd)"/shared/datasets:/datasets $t
 
 # Kill all
 # sudo docker kill $(sudo docker ps -q)

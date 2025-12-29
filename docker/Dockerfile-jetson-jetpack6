@@ -50,10 +50,7 @@ RUN python3 -m pip install --upgrade pip uv && \
 # t=ultralytics/ultralytics:latest-jetson-jetpack6 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson-jetpack6 -t $t . && sudo docker push $t
 
 # Run
-# t=ultralytics/ultralytics:latest-jetson-jetpack6 && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack6 && sudo docker run -it --ipc=host --runtime=nvidia $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:latest-jetson-jetpack6 && sudo docker pull $t && sudo docker run -it --ipc=host $t
-
-# Pull and Run with NVIDIA runtime
 # t=ultralytics/ultralytics:latest-jetson-jetpack6 && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t

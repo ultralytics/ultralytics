@@ -132,7 +132,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         ```bash
         # Mount local directory to a directory inside the container
-        sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
+        sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/path/in/container $t
         ```
 
         Replace `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container.

@@ -17,6 +17,7 @@ from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
 from ultralytics.data import build_dataloader
 from ultralytics.data.stereo.target_improved import TargetGenerator as TargetGeneratorImproved
+from ultralytics.utils.plotting import plot_labels
 
 class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
     """Stereo 3D Detection trainer.
@@ -370,8 +371,84 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             cv2.imwrite(str(out), grid)
 
     def plot_training_labels(self) -> None:
-        """Override default label-plotting which expects detection dataset internals.
+        """Plot training label statistics for stereo3ddet.
 
-        Our stereo adapter does not provide a global `dataset.labels` cache, so skip gracefully.
+        The default detection implementation expects a YOLODetectionDataset-style `dataset.labels` cache.
+        Our stereo dataset does not provide that cache, so we build the arrays by scanning label files.
+
+        Note: stereo datasets may include "negative" images (empty label files). We count those and overlay
+        the summary onto the generated `labels.jpg`.
         """
-        return
+        dataset = getattr(self.train_loader, "dataset", None)
+        if dataset is None:
+            return
+
+        # Try to use the Stereo3DDetDataset API (label_dir + image_ids + _parse_labels).
+        label_dir = getattr(dataset, "label_dir", None)
+        image_ids = getattr(dataset, "image_ids", None)
+        parse_labels = getattr(dataset, "_parse_labels", None)
+        if label_dir is None or image_ids is None or parse_labels is None:
+            LOGGER.warning("stereo3ddet: plot_training_labels() skipped (dataset missing label_dir/image_ids/_parse_labels).")
+            return
+
+        boxes_list: list[list[float]] = []
+        cls_list: list[int] = []
+        neg_images = 0
+        total_images = 0
+
+        for image_id in image_ids:
+            label_file = label_dir / f"{image_id}.txt"
+            try:
+                labels = parse_labels(label_file)
+            except FileNotFoundError:
+                LOGGER.warning(f"stereo3ddet: missing label file, skipping: {label_file}")
+                continue
+
+            total_images += 1
+            if not labels:
+                neg_images += 1
+                continue
+
+            for lab in labels:
+                cls_list.append(int(lab["class_id"]))
+                lb = lab["left_box"]
+                boxes_list.append(
+                    [float(lb["center_x"]), float(lb["center_y"]), float(lb["width"]), float(lb["height"])]
+                )
+
+        out = self.save_dir / "labels.jpg"
+        if not boxes_list:
+            # All-negative or no-label dataset: create a small placeholder image instead of crashing.
+            panel = np.full((480, 960, 3), 255, dtype=np.uint8)
+            msg1 = "No object labels found to plot."
+            msg2 = f"Negative images (empty label files): {neg_images}/{total_images}"
+            cv2.putText(panel, msg1, (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2, cv2.LINE_AA)
+            cv2.putText(panel, msg2, (20, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2, cv2.LINE_AA)
+            cv2.imwrite(str(out), panel)
+            if self.on_plot:
+                self.on_plot(out)
+            return
+
+        boxes = np.asarray(boxes_list, dtype=np.float32)
+        cls = np.asarray(cls_list, dtype=np.int64)
+
+        names = self.data.get("names", {})
+        if isinstance(names, (list, tuple)):
+            names = {i: n for i, n in enumerate(names)}
+
+        plot_labels(boxes, cls, names=names, save_dir=self.save_dir, on_plot=self.on_plot)
+
+        # Overlay negative-image summary onto the generated plot for quick sanity-checking.
+        if out.exists():
+            im = cv2.imread(str(out))
+            if im is not None:
+                summary = f"neg images: {neg_images}/{total_images}"
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 0.7
+                thickness = 2
+                (tw, th), baseline = cv2.getTextSize(summary, font, font_scale, thickness)
+                x, y = 10, 10 + th
+                pad = 6
+                cv2.rectangle(im, (x - pad, y - th - pad), (x + tw + pad, y + baseline + pad), (0, 0, 0), -1)
+                cv2.putText(im, summary, (x, y), font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+                cv2.imwrite(str(out), im)

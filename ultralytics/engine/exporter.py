@@ -90,6 +90,7 @@ from ultralytics.utils import (
     IS_JETSON,
     IS_RASPBERRYPI,
     IS_UBUNTU,
+    IS_DOCKER,
     LINUX,
     LOGGER,
     MACOS,
@@ -1189,7 +1190,8 @@ class Exporter:
         assert TORCH_2_9, f"ExecuTorch export requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
 
         # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
-        check_requirements("packaging>=22.0")
+        if LINUX and ARM64 and IS_DOCKER:
+            check_requirements("packaging>=22.0")
         check_requirements("executorch==1.0.1", "flatbuffers")
         # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
         check_requirements("numpy<=2.3.5")

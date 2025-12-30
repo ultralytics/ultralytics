@@ -3325,6 +3325,7 @@ class SemSegRandomPerspective(RandomPerspective):
         border=(0, 0),
         pre_transform=None,
         num_classes=20,
+        use_background=True,
     ):
         """Initialize RandomPerspective object with transformation parameters. This class implements random perspective
         and affine transformations on images and masks. Transformations include rotation, translation, scaling,
@@ -3347,6 +3348,7 @@ class SemSegRandomPerspective(RandomPerspective):
         """
         super().__init__(degrees, translate, scale, shear, perspective, border, pre_transform)
         self.num_classes = num_classes
+        self.use_background = use_background
 
     def affine_transform(self, img, msk, border):
         """Applies a sequence of affine transformations centered around the image center.
@@ -3403,20 +3405,25 @@ class SemSegRandomPerspective(RandomPerspective):
 
         # Combined rotation matrix
         M = T @ S @ R @ P @ C  # order of operations (right to left) is IMPORTANT
+
+        # border values
+        if not self.use_background:
+            border_values = [0 for _ in range(self.num_classes)]
+        else:
+            border_values = [0 for _ in range(self.num_classes - 1)] + [1]
+
         # Affine image
         if (border[0] != 0) or (border[1] != 0) or (M != np.eye(3)).any():  # image changed
             if self.perspective:
                 img = cv2.warpPerspective(img, M, dsize=self.size, borderValue=(114, 114, 114))
                 new_msk = np.zeros((self.size[1], self.size[0], self.num_classes), dtype=np.uint8)
                 for i in range(self.num_classes):
-                    new_msk[:, :, i] = cv2.warpPerspective(msk[:, :, i], M, dsize=self.size, borderValue=0, flags=cv2.INTER_NEAREST)
-
+                    new_msk[:, :, i] = cv2.warpPerspective(msk[:, :, i], M, dsize=self.size, borderValue=border_values[i],flags=cv2.INTER_NEAREST)
             else:  # affine
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
                 new_msk = np.zeros((self.size[1], self.size[0], self.num_classes), dtype=np.uint8)
                 for i in range(self.num_classes):
-                    new_msk[:, :, i] = cv2.warpAffine(msk[:, :, i], M[:2], dsize=self.size, borderValue=0, flags=cv2.INTER_NEAREST)
-
+                    new_msk[:, :, i] = cv2.warpAffine(msk[:, :, i], M[:2], dsize=self.size, borderValue=border_values[i], flags=cv2.INTER_NEAREST)
         else:
             new_msk = msk
 
@@ -3756,6 +3763,7 @@ def semseg_transforms(dataset, imgsz, hyp, stretch=False):
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
         >>> augmented_data = transforms(dataset[0])
     """
+    use_background = (dataset.data["names"][dataset.data["nc"] - 1] == "background")
     mosaic = SemSegMosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
     affine = SemSegRandomPerspective(
         degrees=hyp.degrees,
@@ -3765,6 +3773,7 @@ def semseg_transforms(dataset, imgsz, hyp, stretch=False):
         perspective=hyp.perspective,
         pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
         num_classes=dataset.data["nc"],
+        use_background=use_background
     )
 
     pre_transform = Compose([mosaic, affine])

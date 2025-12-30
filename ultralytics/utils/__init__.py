@@ -39,6 +39,7 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
+SEMSEG_URL = "https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download"
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 SEMSEG_CFG_PATH = ROOT / "cfg/semseg.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads

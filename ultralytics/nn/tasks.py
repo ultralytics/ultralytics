@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
+import os
 import pickle
 import re
 import types
@@ -1398,7 +1399,10 @@ def torch_safe_load(weight, safe_only=False):
     from ultralytics.utils.downloads import attempt_download_asset
 
     check_suffix(file=weight, suffix=".pt")
-    file = attempt_download_asset(weight)  # search online if missing locally
+    if weight.split(os.sep)[-1] != 'yolo11n-semseg.pt':
+        file = attempt_download_asset(weight)  # search online if missing locally
+    else:
+        file = attempt_download_asset(weight, repo="kuazhangxiaoai/ultralytics-semantic-segment", release="pretrained")
     try:
         with temporary_modules(
             modules={

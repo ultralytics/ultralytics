@@ -3342,6 +3342,7 @@ class SemSegRandomPerspective(RandomPerspective):
                 transformation.
             num_classes: number of categories
             use_background: the background is used as a category for semseg task
+
         Examples:
             >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
             >>> result = transform(labels)  # Apply random perspective to labels.
@@ -3767,7 +3768,7 @@ def semseg_transforms(dataset, imgsz, hyp, stretch=False):
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
         >>> augmented_data = transforms(dataset[0])
     """
-    use_background = (dataset.data["names"][dataset.data["nc"] - 1] == "background")
+    use_background = dataset.data["names"][dataset.data["nc"] - 1] == "background"
     mosaic = SemSegMosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
     affine = SemSegRandomPerspective(
         degrees=hyp.degrees,

@@ -8,7 +8,6 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from time import time
 
-from ultralytics import __version__
 from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING
 
 _last_upload = 0  # Rate limit model uploads
@@ -93,6 +92,7 @@ def _get_environment_info():
     """Collect comprehensive environment info using existing ultralytics utilities."""
     import torch
 
+    from ultralytics import __version__
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
     env = {
@@ -159,7 +159,7 @@ def on_pretrain_routine_start(trainer):
         model_info = {
             "parameters": info.get("model/parameters", 0),
             "gflops": info.get("model/GFLOPs", 0),
-            "layers": getattr(trainer.model, "yaml", {}).get("nc", 0),  # number of classes
+            "classes": getattr(trainer.model, "yaml", {}).get("nc", 0),  # number of classes
         }
     except Exception:
         pass

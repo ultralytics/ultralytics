@@ -87,6 +87,7 @@ def run_ray_tune(
     # Put the model in ray store
     task = model.task
     model_in_store = ray.put(model)
+    base_name = train_args.get("name", "tune")
 
     def _tune(config):
         """Train the YOLO model with the specified hyperparameters and return results."""
@@ -132,9 +133,6 @@ def run_ray_tune(
 
     # Define the callbacks for the hyperparameter search
     tuner_callbacks = [WandbLoggerCallback(project="YOLOv8-tune")] if wandb else []
-
-    # Save base name before it's popped for trial naming in W&B
-    base_name = train_args.get("name", "tune")
 
     # Create the Ray Tune hyperparameter search tuner
     tune_dir = get_save_dir(

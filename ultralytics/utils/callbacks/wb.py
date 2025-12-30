@@ -138,11 +138,11 @@ def on_pretrain_routine_start(trainer):
         project_name = project_arg.name if project_arg.is_absolute() else project_str
         project_name = project_name.replace("/", "-")
 
-    raw_name = str(trainer.args.name).replace("/", "-") if trainer.args.name else None
-    safe_name = str(raw_name).replace(" ", "_") if raw_name else None
+    raw_name = str(trainer.args.name).replace("/", "-")
+    safe_name = str(raw_name).replace(" ", "_")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    wandb_id = f"{safe_name}_{timestamp}" if safe_name else None
+    wandb_id = f"{safe_name}_{timestamp}"
 
     if not wb.run:
         wb.init(

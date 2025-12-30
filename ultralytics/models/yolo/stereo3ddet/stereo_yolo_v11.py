@@ -346,11 +346,15 @@ class StereoCenterNetLoss(nn.Module):
         Returns:
             Scalar loss value
         """
-        # Apply sigmoid to get probabilities [0, 1]
-        pred = torch.sigmoid(pred)
-        
-        # Numerical stability - clamp predictions
-        pred = torch.clamp(pred, min=1e-4, max=1 - 1e-4)
+        # IMPORTANT (AMP/FP16 stability):
+        # In fp16, values like (1 - 1e-4) round back to 1.0 (ulp near 1 is ~9.77e-4),
+        # so clamp(max=1-1e-4) may NOT prevent pred==1.0 and log(1-pred)==log(0)==-inf.
+        # Do focal-loss math in fp32 to avoid this and use log1p for better stability.
+        pred = torch.sigmoid(pred).float()
+        target = target.float()
+
+        eps = 1e-4  # fp32 epsilon for log safety
+        pred = pred.clamp(min=eps, max=1.0 - eps)
         
         # Identify positive locations (peak of Gaussian, Y = 1)
         pos_mask = target.eq(1).float()
@@ -365,8 +369,8 @@ class StereoCenterNetLoss(nn.Module):
         # - All objects were filtered out (wrong class, truncated, etc.)
         # - Object centers fall outside feature map bounds
         if num_pos == 0:
-            # Return zero loss for empty batch - no objects to learn from
-            return torch.tensor(0.0, device=pred.device, requires_grad=True)
+            # Return 0 with a valid grad path
+            return pred.sum() * 0.0
         
         num_pos = torch.clamp(num_pos, min=1.0)  # Avoid division by zero
         
@@ -375,7 +379,9 @@ class StereoCenterNetLoss(nn.Module):
         
         # Negative loss: (1 - Y)^β * Ŷ^α * log(1 - Ŷ)
         # The (1 - Y)^β term down-weights locations near object centers
-        neg_loss = torch.pow(1 - target, beta) * torch.pow(pred, alpha) * torch.log(1 - pred) * neg_mask
+        # log1p(-pred) is numerically more stable than log(1-pred) when pred ~ 1
+        neg_loss = torch.pow(1 - target, beta) * torch.pow(pred, alpha) * torch.log1p(-pred) * neg_mask
+        
         
         # Sum and normalize by number of positive samples
         loss = -(pos_loss.sum() + neg_loss.sum()) / num_pos

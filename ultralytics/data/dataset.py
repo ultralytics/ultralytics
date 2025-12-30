@@ -699,19 +699,13 @@ class SemanticDataset(BaseDataset):
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
+        self.use_background = (data["names"][data["nc"] - 1] == "background")
         assert not (self.use_segment and self.use_keypoints)
         super().__init__(*args, **kwargs)
 
     def img2label_paths(self, im_files):
         """Find annotated RGB mask file correspond image file."""
-        msk_files = []
-        for im_file in im_files:
-            p = Path(im_file)
-            parts = list(p.parts)
-            msk_parts = ["annotation" if part == "image" else part for part in parts]
-            msk_files.append(str(Path(*msk_parts)))
-
-        return msk_files
+        return [im_file.replace("image", "annotation") for im_file in im_files]
 
     def cache_labels(self, path=Path("./labels.cache")):
         """Load annotations mask from a JSON file each image.
@@ -882,13 +876,17 @@ class SemanticDataset(BaseDataset):
         mask_g = mask[:, :, 1]
         mask_r = mask[:, :, 2]
 
+        fore = np.zeros_like(mask_b).astype(np.bool_)
         for i in range(nc):
             r, g, b = colors[i]
             mb = (mask_b == b).astype(np.uint8)
             mg = (mask_g == g).astype(np.uint8)
             mr = (mask_r == r).astype(np.uint8)
             results[:, :, i] = mb * mg * mr
-
+            fore = np.logical_or(fore, (mb * mg * mr).astype(np.bool_))
+        bg_mask, results_bg = np.logical_not(fore), results[:, :, -1]
+        if self.use_background:
+            results_bg[bg_mask] = 1
         return results
 
     def update_labels_info(self, label):

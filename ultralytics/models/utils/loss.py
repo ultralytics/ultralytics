@@ -40,11 +40,12 @@ class DETRLoss(nn.Module):
         loss_gain: dict[str, float] | None = None,
         aux_loss: bool = True,
         use_fl: bool = True,
-        use_vfl: bool = False,
+        use_vfl: bool = True,
         use_uni_match: bool = False,
         uni_match_ind: int = 0,
         gamma: float = 1.5,
         alpha: float = 0.25,
+        matcher: dict[str, Any] = {},
     ):
         """Initialize DETR loss function with customizable components and gains.
 
@@ -61,13 +62,14 @@ class DETRLoss(nn.Module):
             uni_match_ind (int): Index of fixed layer for uni_match.
             gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
             alpha (float): The balancing factor used to address class imbalance.
+            matcher (dict[str, Any]): Configuration for HungarianMatcher.
         """
         super().__init__()
 
         if loss_gain is None:
             loss_gain = {"class": 1, "bbox": 5, "giou": 2, "no_object": 0.1, "mask": 1, "dice": 1}
         self.nc = nc
-        self.matcher = HungarianMatcher(cost_gain={"class": 2, "bbox": 5, "giou": 2})
+        self.matcher = HungarianMatcher(**matcher)
         self.loss_gain = loss_gain
         self.aux_loss = aux_loss
         self.fl = FocalLoss(gamma, alpha) if use_fl else None

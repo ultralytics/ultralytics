@@ -49,7 +49,7 @@ class HungarianMatcher(nn.Module):
     def __init__(
         self,
         cost_gain: dict[str, float] | None = None,
-        use_fl: bool = False,
+        use_fl: bool = True,
         with_mask: bool = False,
         num_sample_points: int = 12544,
         alpha: float = 0.25,
@@ -68,7 +68,7 @@ class HungarianMatcher(nn.Module):
         """
         super().__init__()
         if cost_gain is None:
-            cost_gain = {"class": 1, "bbox": 5, "giou": 2, "mask": 1, "dice": 1}
+            cost_gain = {"class": 2, "bbox": 5, "giou": 2, "mask": 1, "dice": 1}
         self.cost_gain = cost_gain
         self.use_fl = use_fl
         self.with_mask = with_mask

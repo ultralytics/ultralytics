@@ -16,8 +16,6 @@ RUN apt-get update && \
 
 # Install export dependencies and run exports to AutoInstall packages
 RUN uv pip install --system -e ".[export]" && \
-    # Need lower version of 'numpy' for Sony IMX export
-    uv pip install --system numpy==1.26.4 && \
     # Run exports to AutoInstall packages
     yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 && \
     yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32 && \

@@ -330,17 +330,16 @@ def visualize_image_annotations_multiformat(
         for raw_line in file:
             line = raw_line.strip()
             if not line:
-                continue # skip empty lines
-            
+                continue  # skip empty lines
+
             parts = line.split()
             if len(parts) < 5:
-                continue # invalid label line
+                continue  # invalid label line
 
             try:
                 values = list(map(float, parts))
             except ValueError:
-                continue # non-numeric values
-
+                continue  # non-numeric values
 
             class_id = int(values[0])
             label = label_map.get(class_id, str(class_id)) if label_map else str(class_id)
@@ -372,12 +371,12 @@ def visualize_image_annotations_multiformat(
                 coords = values[1:]
 
                 if len(coords) % 2 != 0:
-                    continue # invalid number of coordinates
+                    continue  # invalid number of coordinates
 
                 coords = np.array(coords, dtype=np.float32).reshape(-1, 2)
 
                 if coords.shape[0] < 3:
-                    continue # not enough points for a polygon
+                    continue  # not enough points for a polygon
 
                 # Normalizado → pixel
                 polygon = [(x * img_width, y * img_height) for x, y in coords]

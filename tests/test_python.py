@@ -804,9 +804,7 @@ def test_visualize_multiformat_segmentation(tmp_path):
     img.save(img_path)
 
     label_path = tmp_path / "label.txt"
-    label_path.write_text(
-        "0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9\n"
-    )
+    label_path.write_text("0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9\n")
 
     result = visualize_image_annotations_multiformat(
         img_path,
@@ -825,12 +823,7 @@ def test_visualize_multiformat_invalid_labels(tmp_path):
     img.save(img_path)
 
     label_path = tmp_path / "label.txt"
-    label_path.write_text(
-        "\n"
-        "invalid data\n"
-        "0 0.1 0.2 0.3\n"
-        "0 0.1 0.2 0.3 0.4\n"
-    )
+    label_path.write_text("\ninvalid data\n0 0.1 0.2 0.3\n0 0.1 0.2 0.3 0.4\n")
 
     result = visualize_image_annotations_multiformat(
         img_path,
@@ -838,4 +831,3 @@ def test_visualize_multiformat_invalid_labels(tmp_path):
     )
 
     assert result is not None
-    

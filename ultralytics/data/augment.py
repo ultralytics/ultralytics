@@ -3344,7 +3344,7 @@ class SemSegRandomPerspective(RandomPerspective):
             pre_transform (Callable | None): Function/transform to apply to the image before starting the random
                 transformation.
             num_classes: number of categories
-
+            use_background: the background is used as a category for semseg task
         Examples:
             >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
             >>> result = transform(labels)  # Apply random perspective to labels.

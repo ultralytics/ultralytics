@@ -327,16 +327,29 @@ def visualize_image_annotations_multiformat(
     img_width, img_height = img.size
 
     with open(txt_path, encoding="utf-8") as file:
-        for line in file:
-            parts = list(map(float, line.split()))
-            class_id = int(parts[0])
+        for raw_line in file:
+            line = raw_line.strip()
+            if not line:
+                continue # skip empty lines
+            
+            parts = line.split()
+            if len(parts) < 5:
+                continue # invalid label line
+
+            try:
+                values = list(map(float, parts))
+            except ValueError:
+                continue # non-numeric values
+
+
+            class_id = int(values[0])
             label = label_map.get(class_id, str(class_id)) if label_map else str(class_id)
 
             # ============================
             # YOLO DETECTION FORMAT
             # ============================
-            if len(parts) == 5:
-                _, x, y, w, h = parts
+            if len(values) == 5:
+                _, x, y, w, h = values
 
                 x1 = (x - w / 2) * img_width
                 y1 = (y - h / 2) * img_height
@@ -355,8 +368,16 @@ def visualize_image_annotations_multiformat(
             # ============================
             # YOLO SEGMENTATION FORMAT
             # ============================
-            elif len(parts) > 5:
-                coords = np.array(parts[1:]).reshape(-1, 2)
+            elif len(values) > 5:
+                coords = values[1:]
+
+                if len(coords) % 2 != 0:
+                    continue # invalid number of coordinates
+
+                coords = np.array(coords, dtype=np.float32).reshape(-1, 2)
+
+                if coords.shape[0] < 3:
+                    continue # not enough points for a polygon
 
                 # Normalizado → pixel
                 polygon = [(x * img_width, y * img_height) for x, y in coords]
@@ -382,8 +403,8 @@ def visualize_image_annotations_multiformat(
                         outline=box_color,
                         width=line_width,
                     )
-
-                draw.text((polygon[0][0], polygon[0][1]), label, fill=segment_color)
+                px, py = polygon[0]
+                draw.text((px, py), label, fill=segment_color)
 
             else:
                 raise ValueError(f"Invalid label format: {line}")

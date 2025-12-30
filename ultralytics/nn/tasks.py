@@ -139,7 +139,9 @@ class BaseModel(torch.nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.predict(x, *args, **kwargs)
 
-    def predict(self, x, profile=False, visualize=False, augment=False, embed=None, return_feats=False, direct_return=False):
+    def predict(
+        self, x, profile=False, visualize=False, augment=False, embed=None, return_feats=False, direct_return=False
+    ):
         """
         Perform a forward pass through the network.
 
@@ -186,12 +188,12 @@ class BaseModel(torch.nn.Module):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-            if m.i == max_idx and direct_return:
-                return x
             if m.i in embed:
-                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
+                embeddings.append(
+                    x if direct_return else torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1)
+                )  # flatten
                 if m.i == max_idx:
-                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
+                    return embeddings if direct_return else torch.unbind(torch.cat(embeddings, 1), dim=0)
         return (x, y) if return_feats else x
 
     def _predict_augment(self, x):

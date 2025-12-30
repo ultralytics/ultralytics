@@ -13,20 +13,26 @@ class DistillationModel(nn.Module):
     def __init__(self, teacher_model: str | nn.Module, student_model: nn.Module, feats_idx: int):
         """Initialize DistillationModel."""
         super().__init__()
-        assert isinstance(feats_idx, int), "Currently only single feature index is supported."
+        if isinstance(feats_idx, int):
+            feats_idx = [feats_idx]
         if isinstance(teacher_model, str):
             teacher_model = load_checkpoint(teacher_model)[0]
         device = next(student_model.parameters()).device
         self.teacher_model = teacher_model.to(device).eval()
         for v in self.teacher_model.parameters():
             v.requires_grad = False
-        # get the feature dimensions
-        with torch.inference_mode():
-            teacher_dim = teacher_model(torch.zeros(1, 3, 256, 256).to(device), embed=[feats_idx])[0].shape[0]
-            student_dim = student_model(torch.zeros(1, 3, 256, 256).to(device), embed=[feats_idx])[0].shape[0]
         self.student_model = student_model
         self.feats_idx = feats_idx
-        self.projector = nn.Linear(student_dim, teacher_dim) if student_dim != teacher_dim else nn.Identity()
+        # get the feature dimensions
+        with torch.inference_mode():
+            teacher_output = teacher_model(torch.zeros(1, 3, 256, 256).to(device), embed=feats_idx, direct_return=True)
+            student_output = student_model(torch.zeros(1, 3, 256, 256).to(device), embed=feats_idx, direct_return=True)
+            assert len(teacher_output) == len(student_output), "Feature dimensions must match in length."
+        self.projector = nn.ModuleList(
+            nn.Linear(student_dim, teacher_dim) if student_dim != teacher_dim else nn.Identity()
+            for student_out, teacher_out in zip(student_output, teacher_output)
+            for student_dim, teacher_dim in [(student_out.shape[1], teacher_out.shape[1])]
+        )
         copy_attr(self, student_model)
 
     # def distillation_loss(self, student_logits, teacher_logits, true_labels):
@@ -75,15 +81,16 @@ class DistillationModel(nn.Module):
             preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
         with torch.inference_mode():
-            teacher_feats = self.teacher_model(batch["img"], embed=[self.feats_idx], direct_return=True)
+            teacher_feats = self.teacher_model(batch["img"], embed=self.feats_idx, direct_return=True)
         preds, feats = self.student_model(batch["img"], return_feats=True)
-        student_feats = self.projector(feats[self.feats_idx].permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+        loss_distill = torch.zeros(1, device=batch["img"].device)
+        for i, feat_idx in enumerate(self.feats_idx):
+            student_feat = self.projector[i](feats[feat_idx].permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+            student_feat = F.normalize(student_feat.flatten(2).permute(0, 2, 1), p=2, dim=-1)
+            teacher_feat = F.normalize(teacher_feats[i].flatten(2).permute(0, 2, 1), p=2, dim=-1)
 
-        student_feats = F.normalize(student_feats.flatten(2).permute(0, 2, 1), p=2, dim=-1)
-        teacher_feats = F.normalize(teacher_feats.flatten(2).permute(0, 2, 1), p=2, dim=-1)
-
-        cos_sim = F.cosine_similarity(student_feats, teacher_feats, dim=-1)
-        loss_distill = (1 - cos_sim).mean()[None] * self.student_model.args.dis
+            cos_sim = F.cosine_similarity(student_feat, teacher_feat, dim=-1)
+            loss_distill += (1 - cos_sim).mean() * self.student_model.args.dis
 
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill.detach()])

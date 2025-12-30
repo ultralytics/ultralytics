@@ -76,7 +76,7 @@ class ConsoleLogger:
         # Deduplication state
         self.last_line = ""
         self.last_time = 0.0
-        self.last_progress_line = ""  # Track last progress line for deduplication
+        self.last_progress_line = ""  # Track progress sequence key for deduplication
         self.last_was_progress = False  # Track if last line was a progress bar
 
     def start_capture(self):
@@ -146,12 +146,34 @@ class ConsoleLogger:
             if "─" in line:  # Has thin lines but no thick lines
                 continue
 
-            # Deduplicate completed progress bars only if they match the previous progress line
+            # Only show 100% completion lines for progress bars
             if " ━━" in line:
-                progress_core = line.split(" ━━")[0].strip()
-                if progress_core == self.last_progress_line and self.last_was_progress:
+                is_complete = "100%" in line
+
+                # Skip ALL non-complete progress lines
+                if not is_complete:
                     continue
-                self.last_progress_line = progress_core
+
+                # Extract sequence key to deduplicate multiple 100% lines for same sequence
+                parts = line.split()
+                seq_key = ""
+                if parts:
+                    # Check for epoch pattern (X/Y at start)
+                    if "/" in parts[0] and parts[0].replace("/", "").isdigit():
+                        seq_key = parts[0]  # e.g., "1/3"
+                    elif parts[0] == "Class" and len(parts) > 1:
+                        seq_key = f"{parts[0]}_{parts[1]}"  # e.g., "Class_train:" or "Class_val:"
+                    elif parts[0] in ("train:", "val:"):
+                        seq_key = parts[0]  # Phase identifier
+
+                # Skip if we already showed 100% for this sequence
+                if seq_key and self.last_progress_line == f"{seq_key}:done":
+                    continue
+
+                # Mark this sequence as done
+                if seq_key:
+                    self.last_progress_line = f"{seq_key}:done"
+
                 self.last_was_progress = True
             else:
                 # Skip empty line after progress bar

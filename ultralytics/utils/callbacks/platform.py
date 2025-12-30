@@ -1,11 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import os
+import platform
+import socket
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from time import time
 
-from ultralytics.utils import LOGGER, RANK, SETTINGS, TESTS_RUNNING
+from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING
 
 _last_upload = 0  # Rate limit model uploads
 _console_logger = None  # Global console logger instance
@@ -85,12 +88,57 @@ def _upload_model_async(model_path, project, name):
     _executor.submit(_upload_model, model_path, project, name)
 
 
+def _get_environment_info():
+    """Collect comprehensive environment info using existing ultralytics utilities."""
+    import torch
+
+    from ultralytics import __version__
+    from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
+
+    env = {
+        "ultralyticsVersion": __version__,
+        "hostname": socket.gethostname(),
+        "os": platform.platform(),
+        "environment": ENVIRONMENT,
+        "pythonVersion": PYTHON_VERSION,
+        "pythonExecutable": sys.executable,
+        "cpuCount": os.cpu_count() or 0,
+        "cpu": get_cpu_info(),
+        "command": " ".join(sys.argv),
+    }
+
+    # Git info using cached GIT singleton (no subprocess calls)
+    try:
+        if GIT.is_repo:
+            if GIT.origin:
+                env["gitRepository"] = GIT.origin
+            if GIT.branch:
+                env["gitBranch"] = GIT.branch
+            if GIT.commit:
+                env["gitCommit"] = GIT.commit[:12]  # Short hash
+    except Exception:
+        pass
+
+    # GPU info
+    try:
+        if torch.cuda.is_available():
+            env["gpuCount"] = torch.cuda.device_count()
+            env["gpuType"] = get_gpu_info(0) if torch.cuda.device_count() > 0 else None
+    except Exception:
+        pass
+
+    return env
+
+
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start."""
-    global _console_logger
+    global _console_logger, _last_upload
 
     if RANK not in {-1, 0} or not trainer.args.project:
         return
+
+    # Initialize upload timer to now so first checkpoint waits 15 min from training start
+    _last_upload = time()
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
     LOGGER.info(f"Platform: Streaming to project '{project}' as '{name}'")
@@ -104,12 +152,29 @@ def on_pretrain_routine_start(trainer):
     _console_logger = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)
     _console_logger.start_capture()
 
+    # Gather model info for richer metadata
+    model_info = {}
+    try:
+        info = model_info_for_loggers(trainer)
+        model_info = {
+            "parameters": info.get("model/parameters", 0),
+            "gflops": info.get("model/GFLOPs", 0),
+            "classes": getattr(trainer.model, "yaml", {}).get("nc", 0),  # number of classes
+        }
+    except Exception:
+        pass
+
+    # Collect environment info (W&B-style metadata)
+    environment = _get_environment_info()
+
     _send_async(
         "training_started",
         {
             "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
             "epochs": trainer.epochs,
             "device": str(trainer.device),
+            "modelInfo": model_info,
+            "environment": environment,
         },
         project,
         name,

@@ -778,6 +778,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
 
 
 def test_visualize_multiformat_detection(tmp_path):
+    """Test visualization with YOLO detection format labels."""
     from ultralytics.data.utils import visualize_image_annotations_multiformat
 
     img = Image.new("RGB", (100, 100))
@@ -797,6 +798,7 @@ def test_visualize_multiformat_detection(tmp_path):
 
 
 def test_visualize_multiformat_segmentation(tmp_path):
+    """Test visualization with YOLO segmentation format labels."""
     from ultralytics.data.utils import visualize_image_annotations_multiformat
 
     img = Image.new("RGB", (100, 100))
@@ -816,6 +818,7 @@ def test_visualize_multiformat_segmentation(tmp_path):
 
 
 def test_visualize_multiformat_invalid_labels(tmp_path):
+    """Test graceful handling of invalid YOLO label formats."""
     from ultralytics.data.utils import visualize_image_annotations_multiformat
 
     img = Image.new("RGB", (100, 100))

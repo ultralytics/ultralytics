@@ -3348,7 +3348,6 @@ class SemSegRandomPerspective(RandomPerspective):
         """
         super().__init__(degrees, translate, scale, shear, perspective, border, pre_transform)
         self.num_classes = num_classes
-        self.use_background = use_background
 
     def affine_transform(self, img, msk, border):
         """Applies a sequence of affine transformations centered around the image center.
@@ -3763,7 +3762,6 @@ def semseg_transforms(dataset, imgsz, hyp, stretch=False):
         >>> transforms = v8_transforms(dataset, imgsz=640, hyp=hyp)
         >>> augmented_data = transforms(dataset[0])
     """
-    use_background = (dataset.data["names"][dataset.data["nc"] - 1] == "background")
     mosaic = SemSegMosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
     affine = SemSegRandomPerspective(
         degrees=hyp.degrees,

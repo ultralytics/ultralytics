@@ -925,7 +925,6 @@ def Cityscapse2YOLO(cityscapes_path, yolo_data_path, img_size=512, ratio=0.5):
     os.makedirs(os.path.join(test_dir, "image"), exist_ok=True)
     os.makedirs(os.path.join(test_dir, "annotation"), exist_ok=True)
 
-
     train_image_dir = os.path.join(cityscapes_path, "leftImg8bit_trainvaltest", "leftImg8bit", "train")
     val_image_dir = os.path.join(cityscapes_path, "leftImg8bit_trainvaltest", "leftImg8bit", "val")
     test_image_dir = os.path.join(cityscapes_path, "leftImg8bit_trainvaltest", "leftImg8bit", "test")

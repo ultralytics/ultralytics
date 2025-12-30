@@ -699,7 +699,7 @@ class SemanticDataset(BaseDataset):
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
-        self.use_background = (data["names"][data["nc"] - 1] == "background")
+        self.use_background = data["names"][data["nc"] - 1] == "background"
         assert not (self.use_segment and self.use_keypoints)
         super().__init__(*args, **kwargs)
 

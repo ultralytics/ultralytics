@@ -32,7 +32,7 @@ def _send(event, data, project, name):
     """Send event to Platform endpoint."""
     try:
         requests.post(
-            "https://alpha.ultralytics.com/api/training/webhook",
+            "https://alpha.ultralytics.com/api/webhooks/training/metrics",
             json={"event": event, "project": project, "name": name, "data": data},
             headers={"Authorization": f"Bearer {_api_key}"},
             timeout=10,
@@ -55,7 +55,7 @@ def _upload_model(model_path, project, name):
 
         # Get signed upload URL
         response = requests.post(
-            "https://alpha.ultralytics.com/api/training/upload-url",
+            "https://alpha.ultralytics.com/api/webhooks/models/upload",
             json={"project": project, "name": name, "filename": model_path.name},
             headers={"Authorization": f"Bearer {_api_key}"},
             timeout=10,

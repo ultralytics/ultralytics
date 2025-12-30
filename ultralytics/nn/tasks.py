@@ -1399,7 +1399,7 @@ def torch_safe_load(weight, safe_only=False):
     from ultralytics.utils.downloads import attempt_download_asset
 
     check_suffix(file=weight, suffix=".pt")
-    if weight.split(os.sep)[-1] != "yolo11n-semseg.pt":
+    if str(weight).split(os.sep)[-1] != "yolo11n-semseg.pt":
         file = attempt_download_asset(weight)  # search online if missing locally
     else:
         file = attempt_download_asset(weight, repo="kuazhangxiaoai/ultralytics-semantic-segment", release="pretrained")

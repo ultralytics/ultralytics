@@ -199,3 +199,7 @@ calibration_*.npy
 *.heic
 *.ico
 *.raw
+
+# Training logs
+args.yaml
+results.csv

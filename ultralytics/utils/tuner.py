@@ -93,6 +93,16 @@ def run_ray_tune(
         model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
         model_to_train.reset_callbacks()
         config.update(train_args)
+
+        # Set trial-specific name for W&B logging
+        try:
+            trial_id = tune.get_trial_id()  # Get current trial ID (e.g., "2c2fc_00000")
+            trial_suffix = trial_id.split("_")[-1] if "_" in trial_id else trial_id
+            config["name"] = f"{base_name}_{trial_suffix}"
+        except Exception:
+            # Not in Ray Tune context or error getting trial ID, use base name
+            config["name"] = base_name
+
         results = model_to_train.train(**config)
         return results.results_dict
 
@@ -122,6 +132,9 @@ def run_ray_tune(
 
     # Define the callbacks for the hyperparameter search
     tuner_callbacks = [WandbLoggerCallback(project="YOLOv8-tune")] if wandb else []
+
+    # Save base name before it's popped for trial naming in W&B
+    base_name = train_args.get("name", "tune")
 
     # Create the Ray Tune hyperparameter search tuner
     tune_dir = get_save_dir(

@@ -339,9 +339,28 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             right_img = (_6_channel_img[3:, :].transpose(1, 2, 0) * 255).astype(np.uint8)[..., ::-1].copy()
             labels = batch["labels"][i]
             L, R = plot_stereo_sample(left_img, right_img, labels, class_names=self.data["names"])
-            canvas_list.append(np.concatenate([L, R], axis=1))
+            panel = np.concatenate([L, R], axis=1)
 
+            # Add filename to the top-left corner of each rendered stereo panel for easier debugging.
+            filename = Path(str(im_files[i])).name
+            if filename:
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 0.6
+                thickness = 1
+                (tw, th), baseline = cv2.getTextSize(filename, font, font_scale, thickness)
+                x = 6
+                y = 6 + th
+                pad = 3
+                cv2.rectangle(
+                    panel,
+                    (x - pad, y - th - pad),
+                    (x + tw + pad, y + baseline + pad),
+                    (0, 0, 0),
+                    thickness=-1,
+                )
+                cv2.putText(panel, filename, (x, y), font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
 
+            canvas_list.append(panel)
 
         if canvas_list:
             grid = canvas_list[0]

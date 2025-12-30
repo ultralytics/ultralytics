@@ -321,8 +321,6 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         This supplements the default detection plot with a stereo visualization by loading the matching right image
         and labels from `self.data['path']`.
         """
-        # Keep default detection visualization
-        super().plot_training_samples(batch, ni)
         assert 'im_file' in batch, "im_file is required in batch"
         im_files = batch["im_file"]
         # Prepare up to 4 stereo previews per batch

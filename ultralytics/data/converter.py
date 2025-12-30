@@ -904,7 +904,7 @@ def Cityscapse2YOLO(cityscapes_path, yolo_data_path, img_size=512, ratio=0.5):
     """This function is designed for converting official CityEcapse dataset to YOLO CityEcapse dataset.
 
     Args:
-        cityecpse_path: the root directory of official CityEcapse dataset
+        cityscapes_path: the root directory of official CityEcapse dataset
         yolo_data_path: the root directory of yolo CityEcapse dataset
         img_size: image size of CityEcapseYOLO dataset.
         ratio: resized ratio for image
@@ -1019,8 +1019,8 @@ def YOLO2Cityscapse(
         image_dir: image directory
         annotation_color_dir: annotation color image
         annotation_dir: annotation directory
-        cityecapse_image_dir: directory for saving cityecapse image
-        cityecapse_annotation_dir: directory for saving cityecapse annotation
+        cityscapes_image_dir: directory for saving cityecapse image
+        cityscapes_annotation_dir: directory for saving cityecapse annotation
         type: convert type for cityEcapse, including color, classId
         overlap: overlap when splitting images,
 

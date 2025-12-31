@@ -789,6 +789,8 @@ class Results(SimpleClass, DataExportMixin):
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
         h, w = self.orig_shape if normalize else (1, 1)
+        if data is None:
+            return results
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
             box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()

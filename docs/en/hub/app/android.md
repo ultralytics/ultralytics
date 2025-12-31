@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Experience real-time object detection on Android with Ultralytics. Leverage YOLO models for efficient and fast object identification. Download now!.
+description: Experience real-time object detection on Android with Ultralytics. Leverage YOLO models for efficient and fast object identification. Download now.
 keywords: Ultralytics, Android app, real-time object detection, YOLO models, TensorFlow Lite, FP16 quantization, INT8 quantization, hardware delegates, mobile AI, download app
 ---
 
@@ -39,7 +39,7 @@ The Ultralytics Android App is a powerful tool that allows you to run YOLO model
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Getting Started with the Ultralytics HUB App (IOS & Android)
+  <strong>Watch:</strong> Getting Started with the Ultralytics HUB App (iOS & Android)
 </p>
 
 ## Quantization and Acceleration

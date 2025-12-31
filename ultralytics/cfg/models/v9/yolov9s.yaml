@@ -38,4 +38,4 @@ head:
   - [[-1, 9], 1, Concat, [1]] # cat head P5
   - [-1, 1, RepNCSPELAN4, [256, 256, 128, 3]] # 21 (P5/32-large)
 
-  - [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4 P5)
+  - [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4, P5)

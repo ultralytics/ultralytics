@@ -6,7 +6,7 @@
 
 # Parameters
 nc: 80 # number of classes
-scales: # model compound scaling constants, i.e. 'model=yolov8n-cls.yaml' will call yolov8-cls.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=rtdetr-l.yaml' will call rtdetr-l.yaml with scale 'l'
   # [depth, width, max_channels]
   l: [1.00, 1.00, 1024]
 

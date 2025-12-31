@@ -57,7 +57,7 @@ By integrating with Codecov, we aim to maintain and improve the quality of our c
 
 ### Coverage Results
 
-To quickly get a glimpse of the code coverage status of the `ultralytics` python package, we have included a badge and sunburst visual of the `ultralytics` coverage results. These images show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts. For full details please see [https://codecov.io/github/ultralytics/ultralytics](https://app.codecov.io/github/ultralytics/ultralytics).
+To quickly get a glimpse of the code coverage status of the `ultralytics` Python package, we have included a badge and sunburst visual of the `ultralytics` coverage results. These images show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts. For full details, visit the [Ultralytics Codecov report](https://app.codecov.io/github/ultralytics/ultralytics).
 
 | Repository                                                | Code Coverage                                                                                                                                           |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |

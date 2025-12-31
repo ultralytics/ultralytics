@@ -271,14 +271,7 @@ class FrozenBatchNorm2d(nn.Module):
 def freeze_batch_norm2d(module: nn.Module) -> nn.Module:
     if isinstance(module, nn.BatchNorm2d):
         frozen = FrozenBatchNorm2d(module.num_features, eps=module.eps)
-        with torch.no_grad():
-            if module.affine:
-                frozen.weight.copy_(module.weight)
-                frozen.bias.copy_(module.bias)
-            if module.running_mean is not None:
-                frozen.running_mean.copy_(module.running_mean)
-            if module.running_var is not None:
-                frozen.running_var.copy_(module.running_var)
+        frozen.load_state_dict(module.state_dict(), strict=True)
         module = frozen
     else:
         for name, child in module.named_children():

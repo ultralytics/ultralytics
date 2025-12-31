@@ -168,7 +168,7 @@ Ultralytics YOLO boasts a rich set of features for advanced computer vision task
 - Pretrained Models: Access a variety of [pretrained models](https://docs.ultralytics.com/models/) that balance speed and accuracy for different use cases.
 - Custom Training: Easily fine-tune models on custom datasets with the flexible [training pipeline](https://docs.ultralytics.com/modes/train/).
 - Wide [Deployment Options](https://docs.ultralytics.com/guides/model-deployment-options/): Export models to various formats like TensorRT, ONNX, and CoreML for deployment across different platforms.
-- Extensive Documentation: Benefit from comprehensive [documentation](https://docs.ultralytics.com/) and a supportive community to guide you through your computer vision journey.
+- Extensive Documentation: Benefit from comprehensive [documentation](https://docs.ultralytics.com/) and a supportive community for your computer vision workflows.
 
 ### How can I improve the performance of my YOLO model?
 

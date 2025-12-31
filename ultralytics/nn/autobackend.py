@@ -477,7 +477,7 @@ class AutoBackend(nn.Module):
                 qnn_delegate = None
                 delegate_name = "libQnnTFLiteDelegate.so"
                 qnn_delegate_candidates = []  
-                for directory in ("lib", "lib64", "lib/aarch64-linux-gnu", "lib/x86_64-linux-gnu")  
+                for directory in ("lib", "lib64", "lib/aarch64-linux-gnu", "lib/x86_64-linux-gnu"):
                     if (candidate := Path("/usr", directory, delegate_name)).is_file():  
                         qnn_delegate_candidates.append(candidate)
                 if qnn_delegate_candidates:

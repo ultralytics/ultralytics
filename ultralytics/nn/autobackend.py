@@ -486,9 +486,12 @@ class AutoBackend(nn.Module):
                     except Exception as e:
                         LOGGER.warning(f"QNN delegate found but failed to load: {e}")
 
-                interpreter = Interpreter(model_path=w)  # load TFLite model
+                delegates = []
                 if qnn_delegate is not None:
-                    interpreter.modify_graph_with_delegate(qnn_delegate)
+                    delegates.append(qnn_delegate)
+                
+                interpreter = Interpreter(model_path=w,
+                                          experimental_delegates=delegates)  # load TFLite model
                 
                 
             interpreter.allocate_tensors()  # allocate

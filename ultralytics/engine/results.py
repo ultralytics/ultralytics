@@ -753,6 +753,9 @@ class Results(SimpleClass, DataExportMixin):
         if self.boxes is None:
             LOGGER.warning("No boxes")
             return
+        if self.boxes is None:
+            LOGGER.warning("No boxes")
+            return
         for d in self.boxes:
             save_one_box(
                 d.xyxy,

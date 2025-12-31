@@ -1,6 +1,6 @@
 # YOLO-Series ONNXRuntime Rust Demo for Core YOLO Tasks
 
-This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [Ultralytics YOLO](https://docs.ultralytics.com/) series tasks such as [Classification](https://docs.ultralytics.com/tasks/classify/), [Segmentation](https://docs.ultralytics.com/tasks/segment/), [Detection](https://docs.ultralytics.com/tasks/detect/), [Pose Estimation](https://docs.ultralytics.com/tasks/pose/), and Oriented Bounding Box ([OBB](https://docs.ultralytics.com/tasks/obb/)) detection using the [ONNXRuntime](https://github.com/microsoft/onnxruntime). It supports various YOLO models (v5 through 11) across multiple computer vision tasks.
+This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [Ultralytics YOLO](https://docs.ultralytics.com/) series tasks such as [Classification](https://docs.ultralytics.com/tasks/classify/), [Segmentation](https://docs.ultralytics.com/tasks/segment/), [Detection](https://docs.ultralytics.com/tasks/detect/), [Pose Estimation](https://docs.ultralytics.com/tasks/pose/), and Oriented Bounding Box ([OBB](https://docs.ultralytics.com/tasks/obb/)) detection using the [ONNXRuntime](https://github.com/microsoft/onnxruntime). It supports various YOLO models (YOLOv5 through YOLO11) across multiple computer vision tasks.
 
 ## ✨ Introduction
 

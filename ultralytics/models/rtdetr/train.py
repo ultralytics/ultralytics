@@ -55,6 +55,22 @@ class RTDETRTrainer(DetectionTrainer):
         model = RTDETRDetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
+        freeze_bn = str(getattr(self.args, "freeze_bn", "none")).lower().replace("+", "_")
+        if freeze_bn in {"backbone", "backbone_neck"}:
+            from ultralytics.nn.modules.utils import freeze_batch_norm2d
+
+            nb = len(model.yaml["backbone"])
+            freeze_to = nb
+            if freeze_bn == "backbone_neck":
+                head = model.yaml.get("head", [])
+                detect_modules = {"Detect", "WorldDetect", "YOLOEDetect", "v10Detect"}
+                head_cut = next((i for i, layer in enumerate(head) if layer[2] in detect_modules), len(head))
+                freeze_to = nb + head_cut
+
+            for i, m in enumerate(model.model[:freeze_to]):
+                frozen = freeze_batch_norm2d(m)
+                if frozen is not m:
+                    model.model[i] = frozen
         return model
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None):

@@ -63,8 +63,7 @@ class RTDETRTrainer(DetectionTrainer):
             freeze_to = nb
             if freeze_bn == "backbone_neck":
                 head = model.yaml.get("head", [])
-                detect_modules = {"Detect", "WorldDetect", "YOLOEDetect", "v10Detect"}
-                head_cut = next((i for i, layer in enumerate(head) if layer[2] in detect_modules), len(head))
+                head_cut = next((i for i, layer in enumerate(head) if layer[2] == "RTDETRDecoder"), len(head))
                 freeze_to = nb + head_cut
 
             for i, m in enumerate(model.model[:freeze_to]):

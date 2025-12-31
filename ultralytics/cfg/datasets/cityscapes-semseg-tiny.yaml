@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# CityEcapse-YOLO dataset by Ultralytics
+# Cityscapes-YOLO dataset by Ultralytics
 # Documentation: https://docs.ultralytics.com/datasets/segment/CityEcapse-semseg/
 # Example usage: yolo train data=CityscapesYOLO.yaml
 # parent
@@ -12,7 +12,7 @@ path: Cityscapes-YOLO-256-tiny # dataset root dir
 train: train/image # train images (relative to 'path') 4 images
 val: val/image # val images (relative to 'path') 4 images
 test: test/image # test images (optional)
-nc: 19
+nc: 20
 
 # Class Names
 names:
@@ -35,6 +35,7 @@ names:
   16: train
   17: motorcycle
   18: bicycle
+  19: background
 
 #Colors:[r, g, b]
 colors:
@@ -57,6 +58,7 @@ colors:
   16: [0, 80, 100]
   17: [0, 0, 230]
   18: [119, 11, 32]
+  19: [0, 0, 0]
 
 # Download script/URL (optional)
 download: https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/v2.0/Cityscapes-YOLO-256-tiny.zip

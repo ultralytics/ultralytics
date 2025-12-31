@@ -8,7 +8,7 @@
 #     └── CityEcapse-YOLO  ← downloads here (1 MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: CityEcapse-YOLO-512-small # dataset root dir
+path: Cityscapse-YOLO-512-small # dataset root dir
 train: train/image # train images (relative to 'path') 4 images
 val: val/image # val images (relative to 'path') 4 images
 test: test/image # test images (optional)

@@ -258,7 +258,9 @@ def on_train_end(trainer):
 
     # Upload best model (blocking to ensure it completes)
     model_path = None
+    model_size = None
     if trainer.best and Path(trainer.best).exists():
+        model_size = Path(trainer.best).stat().st_size
         model_path = _upload_model(trainer.best, project, name)
 
     # Send training complete
@@ -270,6 +272,7 @@ def on_train_end(trainer):
                 "bestEpoch": getattr(trainer, "best_epoch", trainer.epoch),
                 "bestFitness": trainer.best_fitness,
                 "modelPath": model_path or str(trainer.best) if trainer.best else None,
+                "modelSize": model_size,
             }
         },
         project,

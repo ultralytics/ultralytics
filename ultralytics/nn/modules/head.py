@@ -1078,9 +1078,9 @@ class RTDETRDecoder(nn.Module):
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
         # Query selection
-        # (bs, num_queries)
+        # (bs*num_queries,)
         topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
-        # (bs, num_queries)
+        # (bs*num_queries,)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
         # (bs, num_queries, 256)

@@ -147,7 +147,7 @@ def multi_scale_deformable_attn_pytorch(
         sampling_value_list.append(sampling_value_l_)
     # (bs, num_queries, num_heads, num_levels, num_points) ->
     # (bs, num_heads, num_queries, num_levels, num_points) ->
-    # (bs, num_heads, 1, num_queries, num_levels*num_points)
+    # (bs*num_heads, 1, num_queries, num_levels*num_points)
     attention_weights = attention_weights.transpose(1, 2).reshape(
         bs * num_heads, 1, num_queries, num_levels * num_points
     )

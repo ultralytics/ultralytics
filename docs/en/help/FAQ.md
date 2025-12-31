@@ -24,13 +24,13 @@ Ultralytics is a [computer vision](https://www.ultralytics.com/glossary/computer
 
 Installing the Ultralytics package is straightforward using pip:
 
-```
+```bash
 pip install ultralytics
 ```
 
 For the latest development version, install directly from the GitHub repository:
 
-```
+```bash
 pip install git+https://github.com/ultralytics/ultralytics.git
 ```
 

@@ -738,6 +738,9 @@ class Results(SimpleClass, DataExportMixin):
         if self.obb is not None:
             LOGGER.warning("OBB task does not support `save_crop`.")
             return
+        if self.boxes is None:
+            LOGGER.warning("No boxes")
+            return
         for d in self.boxes:
             save_one_box(
                 d.xyxy,

@@ -959,7 +959,7 @@ class RTDETRDecoder(nn.Module):
         """Handle loading from older checkpoints without enable_cuda_acceleration."""
         self.__dict__.update(state)
         # Add default value for missing attribute from older checkpoints
-        if 'query_pos_scale_head' not in self.__dict__:
+        if 'dab_sine_embedding' not in self.__dict__:
             self.query_pos_scale_head = None
 
     def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:

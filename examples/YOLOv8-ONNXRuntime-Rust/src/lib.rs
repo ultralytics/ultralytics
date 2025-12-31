@@ -94,9 +94,13 @@ pub fn check_font(font: &str) -> rusttype::Font<'static> {
             .call()
             .unwrap_or_else(|err| panic!("> Failed to download font: {source_url}: {err:?}"));
 
-        // read to buffer
+        // read to buffer with size limit (10MB max for font file)
+        const MAX_FONT_SIZE: u64 = 10 * 1024 * 1024;
         let mut buffer = vec![];
-        resp.into_reader().read_to_end(&mut buffer).unwrap();
+        resp.into_reader()
+            .take(MAX_FONT_SIZE)
+            .read_to_end(&mut buffer)
+            .unwrap();
 
         // save
         let _path = std::fs::File::create(font).unwrap();
@@ -129,9 +133,13 @@ pub fn load_font() -> FontArc {
                 .call()
                 .unwrap_or_else(|err| panic!("> Failed to download font: {source_url}: {err:?}"));
 
-            // read to buffer
+            // read to buffer with size limit (10MB max for font file)
+            const MAX_FONT_SIZE: u64 = 10 * 1024 * 1024;
             let mut buffer = vec![];
-            resp.into_reader().read_to_end(&mut buffer).unwrap();
+            resp.into_reader()
+                .take(MAX_FONT_SIZE)
+                .read_to_end(&mut buffer)
+                .unwrap();
             // save
             let mut fd = std::fs::File::create(font_path).unwrap();
             fd.write_all(&buffer).unwrap();

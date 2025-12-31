@@ -353,8 +353,7 @@ class DetectionValidator(BaseValidator):
         keys = preds[0].keys()
         max_det = max_det or self.args.max_det
         batched_preds = {k: torch.cat([x[k][:max_det] for x in preds], dim=0) for k in keys}
-        # TODO: fix this
-        batched_preds["bboxes"][:, :4] = ops.xyxy2xywh(batched_preds["bboxes"][:, :4])  # convert to xywh format
+        batched_preds["bboxes"] = ops.xyxy2xywh(batched_preds["bboxes"])  # convert to xywh format
         plot_images(
             images=batch["img"],
             labels=batched_preds,

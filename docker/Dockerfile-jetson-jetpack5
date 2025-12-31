@@ -21,6 +21,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git python3-pip libopenmpi-dev libopenblas-base libomp-dev \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Create working directory
@@ -53,10 +54,7 @@ RUN uv pip install --system \
 # t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson-jetpack5 -t $t . && sudo docker push $t
 
 # Run
-# t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker run -it --ipc=host --runtime=nvidia $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker pull $t && sudo docker run -it --ipc=host $t
-
-# Pull and Run with NVIDIA runtime
 # t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t

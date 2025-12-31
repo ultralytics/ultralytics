@@ -96,15 +96,7 @@ pub fn check_font(font: &str) -> rusttype::Font<'static> {
 
         // read to buffer
         let mut buffer = vec![];
-        let total_size = resp
-            .header("Content-Length")
-            .and_then(|s| s.parse::<u64>().ok())
-            .unwrap();
-        let _reader = resp
-            .into_reader()
-            .take(total_size)
-            .read_to_end(&mut buffer)
-            .unwrap();
+        resp.into_reader().read_to_end(&mut buffer).unwrap();
 
         // save
         let _path = std::fs::File::create(font).unwrap();
@@ -139,15 +131,7 @@ pub fn load_font() -> FontArc {
 
             // read to buffer
             let mut buffer = vec![];
-            let total_size = resp
-                .header("Content-Length")
-                .and_then(|s| s.parse::<u64>().ok())
-                .unwrap();
-            let _reader = resp
-                .into_reader()
-                .take(total_size)
-                .read_to_end(&mut buffer)
-                .unwrap();
+            resp.into_reader().read_to_end(&mut buffer).unwrap();
             // save
             let mut fd = std::fs::File::create(font_path).unwrap();
             fd.write_all(&buffer).unwrap();

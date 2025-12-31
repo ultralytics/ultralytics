@@ -21,6 +21,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git python3-pip libopenmpi-dev libopenblas-base libomp-dev \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Create working directory

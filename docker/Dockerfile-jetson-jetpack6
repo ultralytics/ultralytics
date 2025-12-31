@@ -23,6 +23,7 @@ RUN dpkg -i cuda-keyring_1.1-1_all.deb && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
     git python3-pip libopenmpi-dev libopenblas-base libomp-dev libcusparselt0 libcusparselt-dev && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/* cuda-keyring_1.1-1_all.deb
 
 # Create working directory

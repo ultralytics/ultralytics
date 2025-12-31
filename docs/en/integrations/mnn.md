@@ -123,7 +123,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
                 image, (640, 640), 0.0, 0.0, cv2.INTER_LINEAR, -1, [0.0, 0.0, 0.0], [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0]
             )
             image = image[..., ::-1]  # BGR to RGB
-            input_var = np.expand_dims(image, 0)
+            input_var = image[None]
             input_var = MNN.expr.convert(input_var, MNN.expr.NC4HW4)
             output_var = net.forward(input_var)
             output_var = MNN.expr.convert(output_var, MNN.expr.NCHW)

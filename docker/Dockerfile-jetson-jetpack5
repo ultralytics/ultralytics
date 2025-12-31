@@ -41,6 +41,8 @@ RUN uv pip install --system \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.18.0-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl && \
+    # Need lower version of 'numpy' for TensorRT export
+    uv pip install --system numpy==1.23.5 && \
     uv pip install --system -e ".[export]" && \
     # Remove extra build files
     rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
@@ -51,10 +53,7 @@ RUN uv pip install --system \
 # t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson-jetpack5 -t $t . && sudo docker push $t
 
 # Run
-# t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker run -it --ipc=host --runtime=nvidia $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker pull $t && sudo docker run -it --ipc=host $t
-
-# Pull and Run with NVIDIA runtime
 # t=ultralytics/ultralytics:latest-jetson-jetpack5 && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t

@@ -8,7 +8,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from ultralytics.utils import MACOS, RANK
+from ultralytics.utils import MACOS, RANK, LOGGER
 from ultralytics.utils.checks import check_requirements
 
 
@@ -336,7 +336,8 @@ class SystemLogger:
             self.pynvml = __import__("pynvml")
             self.pynvml.nvmlInit()
             return True
-        except Exception:
+        except Exception as e:
+            LOGGER.warning(f"SystemLogger NVML init failed: {e}")
             return False
 
     def get_metrics(self, rates=False):

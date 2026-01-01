@@ -8,7 +8,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from ultralytics.utils import MACOS, RANK, LOGGER
+from ultralytics.utils import LOGGER, MACOS, RANK
 from ultralytics.utils.checks import check_requirements
 
 

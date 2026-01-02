@@ -423,6 +423,66 @@ def xywhr2xyxyxyxy(x):
     return stack([pt1, pt2, pt3, pt4], -2)
 
 
+def rboxes2masks_batch(rboxes, imgsz, downsample_ratio=1):
+    """Convert batch of rotated bounding boxes to binary masks using polygon filling.
+
+    This function efficiently converts oriented bounding boxes (OBB) in xywhr format to binary masks
+    by first converting them to corner points, then using cv2.fillPoly for rasterization.
+
+    Args:
+        rboxes (torch.Tensor): Rotated boxes with shape (N, 5) in xywhr format [cx, cy, w, h, rotation].
+        imgsz (tuple[int, int]): Target mask size as (height, width).
+        downsample_ratio (int): Factor by which to downsample the mask. Default is 1 (no downsampling).
+
+    Returns:
+        (torch.Tensor): Binary masks with shape (N, H*W) where H and W are the downsampled dimensions.
+            Masks are flattened for efficient IoU computation.
+
+    Examples:
+        >>> rboxes = torch.rand(10, 5) * 100  # 10 random rotated boxes
+        >>> masks = rboxes2masks_batch(rboxes, (640, 640))
+        >>> print(masks.shape)  # torch.Size([10, 409600])
+    """
+    if not isinstance(rboxes, torch.Tensor):
+        rboxes = torch.tensor(rboxes)
+    
+    device = rboxes.device
+    n = len(rboxes)
+    h, w = imgsz
+    
+    # Downsample if needed
+    h_down = h // downsample_ratio
+    w_down = w // downsample_ratio
+    
+    # Handle empty input
+    if n == 0:
+        return torch.zeros((0, h_down * w_down), device=device, dtype=torch.float32)
+    
+    # Convert rotated boxes to corner points (N, 4, 2)
+    corners = xywhr2xyxyxyxy(rboxes)  # shape: (N, 4, 2)
+    
+    # Convert to numpy for cv2 operations
+    corners_np = corners.cpu().numpy()
+    
+    # Scale corners to downsampled size
+    if downsample_ratio > 1:
+        corners_np = corners_np / downsample_ratio
+    
+    # Create masks using cv2.fillPoly
+    masks = np.zeros((n, h_down, w_down), dtype=np.uint8)
+    for i in range(n):
+        # Convert corners to integer coordinates
+        pts = corners_np[i].reshape(-1, 1, 2).astype(np.int32)
+        cv2.fillPoly(masks[i], [pts], color=1)
+    
+    # Convert back to torch tensor and flatten
+    # Use float type for compatibility with mask_iou function
+    masks_tensor = torch.from_numpy(masks).to(device).float()
+    masks_flat = masks_tensor.reshape(n, -1)  # (N, H*W)
+    
+    return masks_flat
+
+
 def ltwh2xyxy(x):
     """Convert bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right.
 

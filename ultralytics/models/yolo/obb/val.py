@@ -10,8 +10,58 @@ import torch
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
-from ultralytics.utils.metrics import OBBMetrics, batch_probiou
+from ultralytics.utils.metrics import OBBMetrics, batch_probiou, mask_iou
 from ultralytics.utils.nms import TorchNMS
+
+
+from shapely.geometry import Polygon
+from ultralytics.utils.ops import xywhr2xyxyxyxy
+
+
+# NOTE: This function is deprecated and kept for reference only.
+# Use mask-based IoU calculation in _process_batch for better performance.
+def calculate_rotated_iou(obb1, obb2):
+    if isinstance(obb1, torch.Tensor):
+        obb1_np = obb1.cpu().numpy()
+        device = obb1.device
+    else:
+        obb1_np = obb1
+        device = None
+
+    if isinstance(obb2, torch.Tensor):
+        obb2_np = obb2.cpu().numpy()
+    else:
+        obb2_np = obb2
+
+    box1_polys = xywhr2xyxyxyxy(torch.from_numpy(obb1_np)).reshape(-1, 4, 2).cpu().numpy()
+    box2_polys = xywhr2xyxyxyxy(torch.from_numpy(obb2_np)).reshape(-1, 4, 2).cpu().numpy()
+    
+    N = len(box1_polys)
+    M = len(box2_polys)
+    iou_matrix = np.zeros((N, M), dtype=np.float32)
+
+    for i in range(N):
+        poly1 = Polygon(box1_polys[i])
+        if not poly1.is_valid:
+            poly1 = poly1.buffer(0)
+
+        for j in range(M):
+            poly2 = Polygon(box2_polys[j])
+            if not poly2.is_valid:
+                poly2 = poly2.buffer(0)
+
+            intersection = poly1.intersection(poly2).area
+            union = poly1.area + poly2.area - intersection
+
+            if union > 0:
+                iou_matrix[i, j] = intersection / union
+            else:
+                iou_matrix[i, j] = 0.0
+    iou_tensor = torch.from_numpy(iou_matrix)
+    if device is not None:
+        iou_tensor = iou_tensor.to(device)
+
+    return iou_tensor
 
 
 class OBBValidator(DetectionValidator):
@@ -96,6 +146,13 @@ class OBBValidator(DetectionValidator):
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
             return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = batch_probiou(batch["bboxes"], preds["bboxes"])
+        # iou = calculate_rotated_iou(batch["bboxes"], preds["bboxes"])
+
+        # imgsz = batch["imgsz"]  # (height, width)
+        # gt_masks = ops.rboxes2masks_batch(batch["bboxes"], imgsz, downsample_ratio=1)
+        # pred_masks = ops.rboxes2masks_batch(preds["bboxes"], imgsz, downsample_ratio=1)
+        # iou = mask_iou(gt_masks, pred_masks)  # (N_gt, N_pred)
+        
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:

@@ -273,7 +273,7 @@ def test_export_axelera():
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
-@pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")
+# @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 def test_export_executorch():

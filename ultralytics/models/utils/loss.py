@@ -12,6 +12,15 @@ from ultralytics.utils.loss import FocalLoss, VarifocalLoss
 from ultralytics.utils.metrics import bbox_iou
 
 from .ops import HungarianMatcher
+import torch.distributed as dist
+
+
+def _global_num_gts(num_gts: int, device: torch.device) -> float:
+    t = torch.tensor([num_gts], device=device, dtype=torch.float32)
+    if dist.is_available() and dist.is_initialized():
+        dist.all_reduce(t, op=dist.ReduceOp.SUM)
+        t = t / dist.get_world_size()
+    return max(t.item(), 1.0)
 
 
 class DETRLoss(nn.Module):
@@ -80,7 +89,8 @@ class DETRLoss(nn.Module):
         self.device = None
 
     def _get_loss_class(
-        self, pred_scores: torch.Tensor, targets: torch.Tensor, gt_scores: torch.Tensor, num_gts: int, postfix: str = ""
+        self, pred_scores: torch.Tensor, targets: torch.Tensor, gt_scores: torch.Tensor, 
+        local_num_gts: int, global_num_gts: float, postfix: str = ""
     ) -> dict[str, torch.Tensor]:
         """Compute classification loss based on predictions, target values, and ground truth scores.
 
@@ -110,18 +120,18 @@ class DETRLoss(nn.Module):
         gt_scores = gt_scores.view(bs, nq, 1) * one_hot
 
         if self.fl:
-            if num_gts and self.vfl:
+            if local_num_gts and self.vfl:
                 loss_cls = self.vfl(pred_scores, gt_scores, one_hot)
             else:
                 loss_cls = self.fl(pred_scores, one_hot.float())
-            loss_cls /= max(num_gts, 1) / nq
+            loss_cls /= max(global_num_gts, 1) / nq
         else:
             loss_cls = nn.BCEWithLogitsLoss(reduction="none")(pred_scores, gt_scores).mean(1).sum()  # YOLO CLS loss
 
         return {name_class: loss_cls.squeeze() * self.loss_gain["class"]}
 
     def _get_loss_bbox(
-        self, pred_bboxes: torch.Tensor, gt_bboxes: torch.Tensor, postfix: str = ""
+        self, pred_bboxes: torch.Tensor, gt_bboxes: torch.Tensor, global_num_gts: float, postfix: str = ""
     ) -> dict[str, torch.Tensor]:
         """Compute bounding box and GIoU losses for predicted and ground truth bounding boxes.
 
@@ -148,9 +158,9 @@ class DETRLoss(nn.Module):
             loss[name_giou] = torch.tensor(0.0, device=self.device)
             return loss
 
-        loss[name_bbox] = self.loss_gain["bbox"] * F.l1_loss(pred_bboxes, gt_bboxes, reduction="sum") / len(gt_bboxes)
+        loss[name_bbox] = self.loss_gain["bbox"] * F.l1_loss(pred_bboxes, gt_bboxes, reduction="sum") / global_num_gts
         loss[name_giou] = 1.0 - bbox_iou(pred_bboxes, gt_bboxes, xywh=True, GIoU=True)
-        loss[name_giou] = loss[name_giou].sum() / len(gt_bboxes)
+        loss[name_giou] = loss[name_giou].sum() / global_num_gts
         loss[name_giou] = self.loss_gain["giou"] * loss[name_giou]
         return {k: v.squeeze() for k, v in loss.items()}
 
@@ -192,6 +202,7 @@ class DETRLoss(nn.Module):
         gt_bboxes: torch.Tensor,
         gt_cls: torch.Tensor,
         gt_groups: list[int],
+        global_num_gts: float,
         match_indices: list[tuple] | None = None,
         postfix: str = "",
         masks: torch.Tensor | None = None,
@@ -233,6 +244,7 @@ class DETRLoss(nn.Module):
                 gt_bboxes,
                 gt_cls,
                 gt_groups,
+                global_num_gts,
                 masks=aux_masks,
                 gt_mask=gt_mask,
                 postfix=postfix,
@@ -307,6 +319,7 @@ class DETRLoss(nn.Module):
         gt_bboxes: torch.Tensor,
         gt_cls: torch.Tensor,
         gt_groups: list[int],
+        global_num_gts: float,
         masks: torch.Tensor | None = None,
         gt_mask: torch.Tensor | None = None,
         postfix: str = "",
@@ -345,8 +358,8 @@ class DETRLoss(nn.Module):
             gt_scores[idx] = bbox_iou(pred_bboxes.detach(), gt_bboxes, xywh=True).squeeze(-1)
 
         return {
-            **self._get_loss_class(pred_scores, targets, gt_scores, len(gt_bboxes), postfix),
-            **self._get_loss_bbox(pred_bboxes, gt_bboxes, postfix),
+            **self._get_loss_class(pred_scores, targets, gt_scores, len(gt_bboxes), global_num_gts, postfix),
+            **self._get_loss_bbox(pred_bboxes, gt_bboxes, global_num_gts, postfix),
             # **(self._get_loss_mask(masks, gt_mask, match_indices, postfix) if masks is not None and gt_mask is not None else {})
         }
 
@@ -356,6 +369,7 @@ class DETRLoss(nn.Module):
         pred_scores: torch.Tensor,
         batch: dict[str, Any],
         postfix: str = "",
+        global_num_gts: float | None = None,
         **kwargs: Any,
     ) -> dict[str, torch.Tensor]:
         """Calculate loss for predicted bounding boxes and scores.
@@ -365,6 +379,7 @@ class DETRLoss(nn.Module):
             pred_scores (torch.Tensor): Predicted class scores, shape (L, B, N, C).
             batch (dict[str, Any]): Batch information containing cls, bboxes, and gt_groups.
             postfix (str, optional): Postfix for loss names.
+            global_num_gts (float, optional): Global GT count (mean across ranks) for loss normalization.
             **kwargs (Any): Additional arguments, may include 'match_indices'.
 
         Returns:
@@ -377,15 +392,31 @@ class DETRLoss(nn.Module):
         self.device = pred_bboxes.device
         match_indices = kwargs.get("match_indices", None)
         gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
+        if global_num_gts is None:
+            global_num_gts = _global_num_gts(len(gt_bboxes), pred_scores.device)
 
         total_loss = self._get_loss(
-            pred_bboxes[-1], pred_scores[-1], gt_bboxes, gt_cls, gt_groups, postfix=postfix, match_indices=match_indices
+            pred_bboxes[-1],
+            pred_scores[-1],
+            gt_bboxes,
+            gt_cls,
+            gt_groups,
+            global_num_gts,
+            postfix=postfix,
+            match_indices=match_indices,
         )
 
         if self.aux_loss:
             total_loss.update(
                 self._get_loss_aux(
-                    pred_bboxes[:-1], pred_scores[:-1], gt_bboxes, gt_cls, gt_groups, match_indices, postfix
+                    pred_bboxes[:-1],
+                    pred_scores[:-1],
+                    gt_bboxes,
+                    gt_cls,
+                    gt_groups,
+                    global_num_gts,
+                    match_indices=match_indices,
+                    postfix=postfix,
                 )
             )
 
@@ -420,7 +451,8 @@ class RTDETRDetectionLoss(DETRLoss):
             (dict[str, torch.Tensor]): Dictionary containing total loss and denoising loss if applicable.
         """
         pred_bboxes, pred_scores = preds
-        total_loss = super().forward(pred_bboxes, pred_scores, batch)
+        global_num_gts = _global_num_gts(len(batch["bboxes"]), pred_scores.device)
+        total_loss = super().forward(pred_bboxes, pred_scores, batch, global_num_gts=global_num_gts)
 
         # Check for denoising metadata to compute denoising training loss
         if dn_meta is not None:
@@ -431,7 +463,15 @@ class RTDETRDetectionLoss(DETRLoss):
             match_indices = self.get_dn_match_indices(dn_pos_idx, dn_num_group, batch["gt_groups"])
 
             # Compute the denoising training loss
-            dn_loss = super().forward(dn_bboxes, dn_scores, batch, postfix="_dn", match_indices=match_indices)
+            dn_global_num_gts = max(global_num_gts * dn_num_group, 1.0)
+            dn_loss = super().forward(
+                dn_bboxes,
+                dn_scores,
+                batch,
+                postfix="_dn",
+                match_indices=match_indices,
+                global_num_gts=dn_global_num_gts,
+            )
             total_loss.update(dn_loss)
         else:
             # If no denoising metadata is provided, set denoising loss to zero

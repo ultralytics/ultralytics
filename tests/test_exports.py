@@ -267,13 +267,13 @@ def test_export_imx():
 @pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="Axelera export requires Python 3.10")
 def test_export_axelera():
     """Test YOLO export to Axelera format."""
-    # For faster testing, use a smaller calibration dataset
-    # 32 image size crashes axelera export, so use 64
+    # For faster testing, use a smaller calibration dataset (32 image size crashes axelera export, so 64 is used)
     file = YOLO(MODEL).export(format="axelera", imgsz=64, data="coco8.yaml")
     assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
+# @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 def test_export_executorch():

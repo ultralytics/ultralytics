@@ -460,6 +460,7 @@ class DFCAttn(nn.Module):
         """
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, 1, 1, 0, bias=True)
+        self.pool_stride = pool_stride
         self.pool = nn.MaxPool2d(kernel_size=pool_stride, stride=pool_stride)
         self.conv_v = nn.Conv2d(c2, c2, (k, 1), 1, (k // 2, 0), groups=c2, bias=False)
         self.bn_v = nn.BatchNorm2d(c2)
@@ -471,7 +472,7 @@ class DFCAttn(nn.Module):
         """Generate the DFC attention map for input features."""
         attn = self.conv(x)
         h, w = attn.shape[2:]
-        if h > 1 and w > 1:
+        if h >= self.pool_stride and w >= self.pool_stride:
             attn = self.pool(attn)
             pooled = True
         else:

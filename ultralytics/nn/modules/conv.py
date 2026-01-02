@@ -367,9 +367,10 @@ class GhostConvV2(nn.Module):
             dw_k (int): Depthwise kernel size for cheap operation.
         """
         super().__init__()
-        c_ = c2 // 2  # hidden channels
-        self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
-        self.cv2 = Conv(c_, c_, dw_k, 1, None, c_, act=act)
+        self.c2 = c2
+        self.c_ = (c2 + 1) // 2  # hidden channels
+        self.cv1 = Conv(c1, self.c_, k, s, None, g, act=act)
+        self.cv2 = Conv(self.c_, self.c_, dw_k, 1, None, self.c_, act=act)
 
     def forward(self, x):
         """Apply Ghost Convolution to input tensor.
@@ -381,7 +382,10 @@ class GhostConvV2(nn.Module):
             (torch.Tensor): Output tensor with concatenated features.
         """
         y = self.cv1(x)
-        return torch.cat((y, self.cv2(y)), 1)
+        y2 = self.cv2(y)
+        if y.shape[1] + y2.shape[1] != self.c2:
+            y2 = y2[:, : self.c2 - y.shape[1], ...]
+        return torch.cat((y, y2), 1)
 
 
 class RepConv(nn.Module):

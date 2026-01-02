@@ -251,8 +251,40 @@ def on_model_save(trainer):
     _last_upload = time()
 
 
+def _collect_plot_data(trainer):
+    """Collect validation plot data from trainer and validator for interactive frontend rendering.
+
+    Returns:
+        tuple: (class_names: list[str] | None, plots: list[dict])
+    """
+    plots = []
+
+    # Collect from trainer.plots
+    if hasattr(trainer, "plots"):
+        for path, info in trainer.plots.items():
+            if info.get("data"):
+                plots.append(info["data"])
+
+    # Collect from validator.plots (contains confusion matrix, PR/F1/P/R curves)
+    if hasattr(trainer, "validator") and hasattr(trainer.validator, "plots"):
+        for path, info in trainer.validator.plots.items():
+            if info.get("data"):
+                plots.append(info["data"])
+
+    # Get class names from validator or trainer data
+    class_names = None
+    if hasattr(trainer, "validator") and hasattr(trainer.validator, "names"):
+        names = trainer.validator.names
+        class_names = list(names.values()) if isinstance(names, dict) else list(names)
+    elif hasattr(trainer, "data") and isinstance(trainer.data, dict) and "names" in trainer.data:
+        names = trainer.data["names"]
+        class_names = list(names.values()) if isinstance(names, dict) else list(names)
+
+    return class_names, plots
+
+
 def on_train_end(trainer):
-    """Log final results and upload best model."""
+    """Log final results, upload best model, and send validation plot data."""
     global _console_logger
 
     if RANK not in {-1, 0} or not trainer.args.project:
@@ -272,7 +304,10 @@ def on_train_end(trainer):
         model_size = Path(trainer.best).stat().st_size
         model_path = _upload_model(trainer.best, project, name)
 
-    # Send training complete
+    # Collect validation plot data for interactive frontend rendering
+    class_names, plots = _collect_plot_data(trainer)
+
+    # Send training complete with plot data and class names
     _send(
         "training_complete",
         {
@@ -282,12 +317,15 @@ def on_train_end(trainer):
                 "bestFitness": trainer.best_fitness,
                 "modelPath": model_path or str(trainer.best) if trainer.best else None,
                 "modelSize": model_size,
-            }
+            },
+            "classNames": class_names,
+            "plots": plots,
         },
         project,
         name,
     )
-    LOGGER.info(f"Platform: Training complete, results uploaded to '{project}'")
+    plot_count = len(plots)
+    LOGGER.info(f"Platform: Training complete, results uploaded to '{project}'" + (f" ({plot_count} plots)" if plot_count else ""))
 
 
 callbacks = (

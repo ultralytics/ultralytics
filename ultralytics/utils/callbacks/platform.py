@@ -252,7 +252,7 @@ def on_model_save(trainer):
 
 
 def on_train_end(trainer):
-    """Log final results and upload best model."""
+    """Log final results, upload best model, and send validation plot data."""
     global _console_logger
 
     if RANK not in {-1, 0} or not trainer.args.project:
@@ -260,7 +260,7 @@ def on_train_end(trainer):
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
 
-    # Stop console capture and flush remaining output
+    # Stop console capture
     if _console_logger:
         _console_logger.stop_capture()
         _console_logger = None
@@ -272,7 +272,16 @@ def on_train_end(trainer):
         model_size = Path(trainer.best).stat().st_size
         model_path = _upload_model(trainer.best, project, name)
 
-    # Send training complete
+    # Collect plots from trainer and validator
+    plots = [info["data"] for info in getattr(trainer, "plots", {}).values() if info.get("data")]
+    plots += [
+        info["data"] for info in getattr(getattr(trainer, "validator", None), "plots", {}).values() if info.get("data")
+    ]
+
+    # Get class names
+    names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")
+    class_names = list(names.values()) if isinstance(names, dict) else list(names) if names else None
+
     _send(
         "training_complete",
         {
@@ -280,14 +289,16 @@ def on_train_end(trainer):
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
                 "bestEpoch": getattr(trainer, "best_epoch", trainer.epoch),
                 "bestFitness": trainer.best_fitness,
-                "modelPath": model_path or str(trainer.best) if trainer.best else None,
+                "modelPath": model_path or (str(trainer.best) if trainer.best else None),
                 "modelSize": model_size,
-            }
+            },
+            "classNames": class_names,
+            "plots": plots,
         },
         project,
         name,
     )
-    LOGGER.info(f"Platform: Training complete, results uploaded to '{project}'")
+    LOGGER.info(f"Platform: Training complete, results uploaded to '{project}' ({len(plots)} plots)")
 
 
 callbacks = (

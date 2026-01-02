@@ -252,11 +252,7 @@ def on_model_save(trainer):
 
 
 def _collect_plot_data(trainer):
-    """Collect validation plot data from trainer and validator for interactive frontend rendering.
-
-    Returns:
-        tuple: (class_names: list[str] | None, plots: list[dict])
-    """
+    """Collect validation plot data from trainer and validator for interactive frontend rendering."""
     plots = []
 
     # Collect from trainer.plots

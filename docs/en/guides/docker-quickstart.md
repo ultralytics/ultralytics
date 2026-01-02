@@ -207,6 +207,20 @@ sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/pat
 
 Replace `/path/on/host` with the directory path on your local machine and `/path/in/container` with the desired path inside the Docker container.
 
+### Persisting Training Outputs
+
+Training outputs save to `/ultralytics/runs/<task>/<name>/` inside the container by default. Without mounting a host directory, outputs are lost when the container is removed.
+
+To persist training outputs:
+
+```bash
+# Recommended: mount workspace and specify project path
+sudo docker run --rm -it -v "$(pwd)":/w -w /w ultralytics/ultralytics:latest \
+  yolo train model=yolo11n.pt data=coco8.yaml project=/w/runs
+```
+
+This saves all training outputs to `./runs` on your host machine.
+
 ## Run graphical user interface (GUI) applications in a Docker Container
 
 !!! danger "Highly Experimental - User Assumes All Risk"

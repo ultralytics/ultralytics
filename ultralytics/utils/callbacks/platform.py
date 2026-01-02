@@ -1,73 +1,349 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import RANK, SETTINGS
+import os
+import platform
+import socket
+import sys
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from time import time
+
+from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, colorstr
+
+PREFIX = colorstr("Platform: ")
+_last_upload = 0  # Rate limit model uploads
+_console_logger = None  # Global console logger instance
+_system_logger = None  # Cached system logger instance
+
+try:
+    assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS.get("platform", False) is True or os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
+    _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
+    assert _api_key  # verify API key is present
+
+    import requests
+
+    from ultralytics.utils.logger import ConsoleLogger, SystemLogger
+    from ultralytics.utils.torch_utils import model_info_for_loggers
+
+    _executor = ThreadPoolExecutor(max_workers=10)  # Bounded thread pool for async operations
+
+except (AssertionError, ImportError):
+    _api_key = None
+
+
+def _interp_plot(plot, n=101):
+    """Interpolate plot curve data from 1000 to n points to reduce storage size."""
+    import numpy as np
+
+    if not plot.get("x") or not plot.get("y"):
+        return plot  # No interpolation needed (e.g., confusion_matrix)
+
+    x, y = np.array(plot["x"]), np.array(plot["y"])
+    if len(x) <= n:
+        return plot  # Already small enough
+
+    # New x values (101 points gives clean 0.01 increments: 0, 0.01, 0.02, ..., 1.0)
+    x_new = np.linspace(x[0], x[-1], n)
+
+    # Interpolate y values (handle both 1D and 2D arrays)
+    if y.ndim == 1:
+        y_new = np.interp(x_new, x, y)
+    else:
+        y_new = np.array([np.interp(x_new, x, yi) for yi in y])
+
+    # Also interpolate ap if present (for PR curves)
+    result = {**plot, "x": x_new.tolist(), "y": y_new.tolist()}
+    if "ap" in plot:
+        result["ap"] = plot["ap"]  # Keep AP values as-is (per-class scalars)
+
+    return result
+
+
+def _send(event, data, project, name):
+    """Send event to Platform endpoint."""
+    try:
+        requests.post(
+            "https://alpha.ultralytics.com/api/webhooks/training/metrics",
+            json={"event": event, "project": project, "name": name, "data": data},
+            headers={"Authorization": f"Bearer {_api_key}"},
+            timeout=10,
+        ).raise_for_status()
+    except Exception as e:
+        LOGGER.debug(f"Platform: Failed to send {event}: {e}")
+
+
+def _send_async(event, data, project, name):
+    """Send event asynchronously using bounded thread pool."""
+    _executor.submit(_send, event, data, project, name)
+
+
+def _upload_model(model_path, project, name):
+    """Upload model checkpoint to Platform via signed URL."""
+    try:
+        model_path = Path(model_path)
+        if not model_path.exists():
+            return None
+
+        # Get signed upload URL
+        response = requests.post(
+            "https://alpha.ultralytics.com/api/webhooks/models/upload",
+            json={"project": project, "name": name, "filename": model_path.name},
+            headers={"Authorization": f"Bearer {_api_key}"},
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        # Upload to GCS
+        with open(model_path, "rb") as f:
+            requests.put(
+                data["uploadUrl"],
+                data=f,
+                headers={"Content-Type": "application/octet-stream"},
+                timeout=600,  # 10 min timeout for large models
+            ).raise_for_status()
+
+        # url = f"https://alpha.ultralytics.com/{project}/{name}"
+        # LOGGER.info(f"{PREFIX}Model uploaded to {url}")
+        return data.get("gcsPath")
+
+    except Exception as e:
+        LOGGER.debug(f"Platform: Failed to upload model: {e}")
+        return None
+
+
+def _upload_model_async(model_path, project, name):
+    """Upload model asynchronously using bounded thread pool."""
+    _executor.submit(_upload_model, model_path, project, name)
+
+
+def _get_environment_info():
+    """Collect comprehensive environment info using existing ultralytics utilities."""
+    import shutil
+
+    import psutil
+    import torch
+
+    from ultralytics import __version__
+    from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
+
+    # Get RAM and disk totals
+    memory = psutil.virtual_memory()
+    disk_usage = shutil.disk_usage("/")
+
+    env = {
+        "ultralyticsVersion": __version__,
+        "hostname": socket.gethostname(),
+        "os": platform.platform(),
+        "environment": ENVIRONMENT,
+        "pythonVersion": PYTHON_VERSION,
+        "pythonExecutable": sys.executable,
+        "cpuCount": os.cpu_count() or 0,
+        "cpu": get_cpu_info(),
+        "command": " ".join(sys.argv),
+        "totalRamGb": round(memory.total / (1 << 30), 1),  # Total RAM in GB
+        "totalDiskGb": round(disk_usage.total / (1 << 30), 1),  # Total disk in GB
+    }
+
+    # Git info using cached GIT singleton (no subprocess calls)
+    try:
+        if GIT.is_repo:
+            if GIT.origin:
+                env["gitRepository"] = GIT.origin
+            if GIT.branch:
+                env["gitBranch"] = GIT.branch
+            if GIT.commit:
+                env["gitCommit"] = GIT.commit[:12]  # Short hash
+    except Exception:
+        pass
+
+    # GPU info
+    try:
+        if torch.cuda.is_available():
+            env["gpuCount"] = torch.cuda.device_count()
+            env["gpuType"] = get_gpu_info(0) if torch.cuda.device_count() > 0 else None
+    except Exception:
+        pass
+
+    return env
 
 
 def on_pretrain_routine_start(trainer):
-    """Initialize and start console logging immediately at the very beginning."""
-    if RANK in {-1, 0}:
-        from ultralytics.utils.logger import DEFAULT_LOG_PATH, ConsoleLogger, SystemLogger
+    """Initialize Platform logging at training start."""
+    global _console_logger, _last_upload
 
-        trainer.system_logger = SystemLogger()
-        trainer.console_logger = ConsoleLogger(DEFAULT_LOG_PATH)
-        trainer.console_logger.start_capture()
+    if RANK not in {-1, 0} or not trainer.args.project:
+        return
 
+    # Initialize upload timer to now so first checkpoint waits 15 min from training start
+    _last_upload = time()
 
-def on_pretrain_routine_end(trainer):
-    """Handle pre-training routine completion event."""
-    pass
+    project, name = str(trainer.args.project), str(trainer.args.name or "train")
+    url = f"https://alpha.ultralytics.com/{project}/{name}"
+    LOGGER.info(f"{PREFIX}Streaming to {url}")
+
+    # Create callback to send console output to Platform
+    def send_console_output(content, line_count, chunk_id):
+        """Send batched console output to Platform webhook."""
+        _send_async("console_output", {"chunkId": chunk_id, "content": content, "lineCount": line_count}, project, name)
+
+    # Start console capture with batching (5 lines or 5 seconds)
+    _console_logger = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)
+    _console_logger.start_capture()
+
+    # Gather model info for richer metadata
+    model_info = {}
+    try:
+        info = model_info_for_loggers(trainer)
+        model_info = {
+            "parameters": info.get("model/parameters", 0),
+            "gflops": info.get("model/GFLOPs", 0),
+            "classes": getattr(trainer.model, "yaml", {}).get("nc", 0),  # number of classes
+        }
+    except Exception:
+        pass
+
+    # Collect environment info (W&B-style metadata)
+    environment = _get_environment_info()
+
+    _send_async(
+        "training_started",
+        {
+            "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+            "epochs": trainer.epochs,
+            "device": str(trainer.device),
+            "modelInfo": model_info,
+            "environment": environment,
+        },
+        project,
+        name,
+    )
 
 
 def on_fit_epoch_end(trainer):
-    """Handle end of training epoch event and collect system metrics."""
-    if RANK in {-1, 0} and hasattr(trainer, "system_logger"):
-        system_metrics = trainer.system_logger.get_metrics()
-        print(system_metrics)  # for debug
+    """Log training and system metrics at epoch end."""
+    global _system_logger
+
+    if RANK not in {-1, 0} or not trainer.args.project:
+        return
+
+    project, name = str(trainer.args.project), str(trainer.args.name or "train")
+    metrics = {**trainer.label_loss_items(trainer.tloss, prefix="train"), **trainer.metrics}
+
+    if trainer.optimizer and trainer.optimizer.param_groups:
+        metrics["lr"] = trainer.optimizer.param_groups[0]["lr"]
+    if trainer.epoch == 0:
+        try:
+            metrics.update(model_info_for_loggers(trainer))
+        except Exception:
+            pass
+
+    # Get system metrics (cache SystemLogger for efficiency)
+    system = {}
+    try:
+        if _system_logger is None:
+            _system_logger = SystemLogger()
+        system = _system_logger.get_metrics(rates=True)
+    except Exception:
+        pass
+
+    _send_async(
+        "epoch_end",
+        {
+            "epoch": trainer.epoch,
+            "metrics": metrics,
+            "system": system,
+            "fitness": trainer.fitness,
+            "best_fitness": trainer.best_fitness,
+        },
+        project,
+        name,
+    )
 
 
 def on_model_save(trainer):
-    """Handle model checkpoint save event."""
-    pass
+    """Upload model checkpoint (rate limited to every 15 min)."""
+    global _last_upload
+
+    if RANK not in {-1, 0} or not trainer.args.project:
+        return
+
+    # Rate limit to every 15 minutes (900 seconds)
+    if time() - _last_upload < 900:
+        return
+
+    model_path = trainer.best if trainer.best and Path(trainer.best).exists() else trainer.last
+    if not model_path:
+        return
+
+    project, name = str(trainer.args.project), str(trainer.args.name or "train")
+    _upload_model_async(model_path, project, name)
+    _last_upload = time()
 
 
 def on_train_end(trainer):
-    """Stop console capture and finalize logs."""
-    if logger := getattr(trainer, "console_logger", None):
-        logger.stop_capture()
+    """Log final results, upload best model, and send validation plot data."""
+    global _console_logger
 
+    if RANK not in {-1, 0} or not trainer.args.project:
+        return
 
-def on_train_start(trainer):
-    """Handle training start event."""
-    pass
+    project, name = str(trainer.args.project), str(trainer.args.name or "train")
 
+    # Stop console capture
+    if _console_logger:
+        _console_logger.stop_capture()
+        _console_logger = None
 
-def on_val_start(validator):
-    """Handle validation start event."""
-    pass
+    # Upload best model (blocking to ensure it completes)
+    model_path = None
+    model_size = None
+    if trainer.best and Path(trainer.best).exists():
+        model_size = Path(trainer.best).stat().st_size
+        model_path = _upload_model(trainer.best, project, name)
 
+    # Collect plots from trainer and validator, deduplicating by type
+    plots_by_type = {}
+    for info in getattr(trainer, "plots", {}).values():
+        if info.get("data") and info["data"].get("type"):
+            plots_by_type[info["data"]["type"]] = info["data"]
+    for info in getattr(getattr(trainer, "validator", None), "plots", {}).values():
+        if info.get("data") and info["data"].get("type"):
+            plots_by_type.setdefault(info["data"]["type"], info["data"])  # Don't overwrite trainer plots
+    plots = [_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
 
-def on_predict_start(predictor):
-    """Handle prediction start event."""
-    pass
+    # Get class names
+    names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")
+    class_names = list(names.values()) if isinstance(names, dict) else list(names) if names else None
 
-
-def on_export_start(exporter):
-    """Handle model export start event."""
-    pass
+    _send(
+        "training_complete",
+        {
+            "results": {
+                "metrics": {**trainer.metrics, "fitness": trainer.fitness},
+                "bestEpoch": getattr(trainer, "best_epoch", trainer.epoch),
+                "bestFitness": trainer.best_fitness,
+                "modelPath": model_path or (str(trainer.best) if trainer.best else None),
+                "modelSize": model_size,
+            },
+            "classNames": class_names,
+            "plots": plots,
+        },
+        project,
+        name,
+    )
+    url = f"https://alpha.ultralytics.com/{project}/{name}"
+    LOGGER.info(f"{PREFIX}View results at {url}")
 
 
 callbacks = (
     {
         "on_pretrain_routine_start": on_pretrain_routine_start,
-        "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_model_save": on_model_save,
         "on_train_end": on_train_end,
-        "on_train_start": on_train_start,
-        "on_val_start": on_val_start,
-        "on_predict_start": on_predict_start,
-        "on_export_start": on_export_start,
     }
-    if SETTINGS.get("platform", False) is True  # disabled for debugging
+    if _api_key
     else {}
 )

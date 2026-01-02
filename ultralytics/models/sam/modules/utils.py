@@ -166,7 +166,7 @@ def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
         AssertionError: If the shape of freqs_cis doesn't match the last two dimensions of x.
     """
     ndim = x.ndim
-    assert 0 <= 1 < ndim
+    assert ndim >= 2
     assert freqs_cis.shape == (x.shape[-2], x.shape[-1])
     shape = [d if i >= ndim - 2 else 1 for i, d in enumerate(x.shape)]
     return freqs_cis.view(*shape)

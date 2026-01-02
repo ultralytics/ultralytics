@@ -63,18 +63,15 @@ char* YOLO_V8::PreProcess(cv::Mat& iImg, std::vector<int> iImgSize, cv::Mat& oIm
     case YOLO_DETECT_V8_HALF:
     case YOLO_POSE_V8_HALF://LetterBox
     {
-        if (iImg.cols >= iImg.rows)
-        {
-            resizeScales = iImg.cols / (float)iImgSize.at(0);
-            cv::resize(oImg, oImg, cv::Size(iImgSize.at(0), int(iImg.rows / resizeScales)));
-        }
-        else
-        {
-            resizeScales = iImg.rows / (float)iImgSize.at(0);
-            cv::resize(oImg, oImg, cv::Size(int(iImg.cols / resizeScales), iImgSize.at(1)));
-        }
-        cv::Mat tempImg = cv::Mat::zeros(iImgSize.at(0), iImgSize.at(1), CV_8UC3);
-        oImg.copyTo(tempImg(cv::Rect(0, 0, oImg.cols, oImg.rows)));
+        int new_h = iImgSize.at(0);
+        int new_w = iImgSize.at(1);
+        float r = min(new_w / (float)iImg.cols, new_h / (float)iImg.rows);
+        int resized_w = static_cast<int>(iImg.cols * r);
+        int resized_h = static_cast<int>(iImg.rows * r);
+        resizeScales = 1.0f / r;
+        cv::resize(oImg, oImg, cv::Size(resized_w, resized_h));
+        cv::Mat tempImg = cv::Mat::zeros(new_h, new_w, CV_8UC3);
+        oImg.copyTo(tempImg(cv::Rect(0, 0, resized_w, resized_h)));
         oImg = tempImg;
         break;
     }
@@ -85,7 +82,7 @@ char* YOLO_V8::PreProcess(cv::Mat& iImg, std::vector<int> iImgSize, cv::Mat& oIm
         int m = min(h, w);
         int top = (h - m) / 2;
         int left = (w - m) / 2;
-        cv::resize(oImg(cv::Rect(left, top, m, m)), oImg, cv::Size(iImgSize.at(0), iImgSize.at(1)));
+        cv::resize(oImg(cv::Rect(left, top, m, m)), oImg, cv::Size(iImgSize.at(1), iImgSize.at(0)));
         break;
     }
     }
@@ -335,7 +332,7 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
 
 char* YOLO_V8::WarmUpSession() {
     clock_t starttime_1 = clock();
-    cv::Mat iImg = cv::Mat(cv::Size(imgSize.at(0), imgSize.at(1)), CV_8UC3);
+    cv::Mat iImg = cv::Mat(cv::Size(imgSize.at(1), imgSize.at(0)), CV_8UC3);
     cv::Mat processedImg;
     PreProcess(iImg, imgSize, processedImg);
     if (modelType < 4)

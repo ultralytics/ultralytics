@@ -63,8 +63,7 @@ Next, you can install and import the necessary Python libraries.
         ```bash
         # Install the required packages
         pip install torch torchvision torchaudio
-        pip install opencv-contrib-python-headless
-        pip install ultralytics==8.0.196
+        pip install ultralytics-opencv-headless
         ```
 
 For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.

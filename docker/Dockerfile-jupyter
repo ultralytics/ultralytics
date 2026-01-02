@@ -15,7 +15,7 @@ RUN uv pip install --system jupyterlab && \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Start JupyterLab with tutorial notebook
-ENTRYPOINT ["/usr/local/bin/jupyter", "lab", "--allow-root", "--ip=*", "/ultralytics/examples/tutorial.ipynb"]
+ENTRYPOINT ["/usr/local/bin/jupyter", "lab", "--allow-root", "--ip=0.0.0.0", "/ultralytics/examples/tutorial.ipynb"]
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

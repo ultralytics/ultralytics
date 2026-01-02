@@ -14,25 +14,26 @@ ENV RUNNER_ALLOW_RUNASROOT=1 \
 # Set the working directory
 WORKDIR /actions-runner
 
-# Download and unpack the latest runner from https://github.com/actions/runner and install dependencies
+# Download and unpack the runner from https://github.com/actions/runner and install dependencies
 RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
-    curl -o "$FILENAME" -L "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
+    curl -fLso "$FILENAME" "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
     tar xzf "$FILENAME" && \
     rm "$FILENAME" && \
     # Install runner dependencies \
     uv pip install --system pytest-cov && \
     ./bin/installdependencies.sh && \
     apt-get update && \
-    apt-get -y install libicu-dev && \
+    apt-get install -y --no-install-recommends libicu-dev && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # JSON ENTRYPOINT command to configure and start runner with default TOKEN and NAME
 ENTRYPOINT ["sh", "-c", "./config.sh --url https://github.com/ultralytics/ultralytics --token ${GITHUB_RUNNER_TOKEN:-TOKEN} --name ${GITHUB_RUNNER_NAME:-NAME} --labels gpu-latest --replace && ./run.sh"]
 
-# Usage Examples -------------------------------------------------------------------------------------------------------
+# Usage --------------------------------------------------------------------------------------------------------------
 
-# Build and Push
-# t=ultralytics/ultralytics:latest-runner && sudo docker build -f docker/Dockerfile-runner -t $t . && sudo docker push $t
-
-# Pull and Run in detached mode with access to GPUs 0 and 1
-# t=ultralytics/ultralytics:latest-runner && sudo docker run -d -e GITHUB_RUNNER_TOKEN=TOKEN -e GITHUB_RUNNER_NAME=NAME --ipc=host --runtime=nvidia --gpus '"device=0,1"' $t
+# Production builds: https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml
+# Example (build): t=ultralytics/ultralytics:latest-runner && docker build -f docker/Dockerfile-runner -t $t .
+# Example (push): docker push $t
+# Example (pull): t=ultralytics/ultralytics:latest-runner && docker pull $t
+# Example (run): docker run -d --restart unless-stopped -e GITHUB_RUNNER_TOKEN=TOKEN -e GITHUB_RUNNER_NAME=NAME --ipc=host --runtime=nvidia --gpus all $t

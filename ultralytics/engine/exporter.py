@@ -1192,6 +1192,8 @@ class Exporter:
         # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
         if LINUX and ARM64 and IS_DOCKER:
             check_requirements("packaging>=22.0")
+
+        check_requirements("ruamel.yaml<0.19.0")
         check_requirements("executorch==1.0.1", "flatbuffers")
         # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
         check_requirements("numpy<=2.3.5")

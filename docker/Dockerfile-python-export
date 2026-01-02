@@ -24,16 +24,11 @@ RUN uv pip install --system -e ".[export]" && \
     # Remove extra build files
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
-# Usage Examples -------------------------------------------------------------------------------------------------------
+# Usage --------------------------------------------------------------------------------------------------------------
 
-# Build and Push
-# t=ultralytics/ultralytics:latest-python-export && sudo docker build -f docker/Dockerfile-python-export -t $t . && sudo docker push $t
-
-# Run
-# t=ultralytics/ultralytics:latest-python-export && sudo docker run -it --ipc=host $t
-
-# Pull and Run
-# t=ultralytics/ultralytics:latest-python-export && sudo docker pull $t && sudo docker run -it --ipc=host $t
-
-# Pull and Run with local volume mounted
-# t=ultralytics/ultralytics:latest-python-export && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/shared/datasets:/datasets $t
+# Production builds: https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml
+# Example (build): t=ultralytics/ultralytics:latest-python-export && docker build -f docker/Dockerfile-python-export -t $t .
+# Example (push): docker push $t
+# Example (pull): t=ultralytics/ultralytics:latest-python-export && docker pull $t
+# Example (run): docker run -it --ipc=host $t
+# Example (run-with-volume): docker run -it --ipc=host -v "$PWD/shared/datasets:/datasets" $t

@@ -8,8 +8,9 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from time import time
 
-from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING
+from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, colorstr
 
+PREFIX = colorstr("Platform: ")
 _last_upload = 0  # Rate limit model uploads
 _console_logger = None  # Global console logger instance
 _system_logger = None  # Cached system logger instance
@@ -31,7 +32,7 @@ except (AssertionError, ImportError):
     _api_key = None
 
 
-def _interp_plot(plot, n=100):
+def _interp_plot(plot, n=101):
     """Interpolate plot curve data from 1000 to n points to reduce storage size."""
     import numpy as np
 
@@ -42,7 +43,7 @@ def _interp_plot(plot, n=100):
     if len(x) <= n:
         return plot  # Already small enough
 
-    # New x values (evenly spaced)
+    # New x values (101 points gives clean 0.01 increments: 0, 0.01, 0.02, ..., 1.0)
     x_new = np.linspace(x[0], x[-1], n)
 
     # Interpolate y values (handle both 1D and 2D arrays)
@@ -103,7 +104,8 @@ def _upload_model(model_path, project, name):
                 timeout=600,  # 10 min timeout for large models
             ).raise_for_status()
 
-        LOGGER.info(f"Platform: Model uploaded to '{project}'")
+        url = f"https://alpha.ultralytics.com/{project}/{name}"
+        LOGGER.info(f"{PREFIX}Model uploaded to {url} 🚀")
         return data.get("gcsPath")
 
     except Exception as e:
@@ -178,7 +180,8 @@ def on_pretrain_routine_start(trainer):
     _last_upload = time()
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
-    LOGGER.info(f"Platform: Streaming to project '{project}' as '{name}'")
+    url = f"https://alpha.ultralytics.com/{project}/{name}"
+    LOGGER.info(f"{PREFIX}Streaming to {url} 🚀")
 
     # Create callback to send console output to Platform
     def send_console_output(content, line_count, chunk_id):
@@ -330,7 +333,8 @@ def on_train_end(trainer):
         project,
         name,
     )
-    LOGGER.info(f"Platform: Training complete, results uploaded to '{project}' ({len(plots)} plots)")
+    url = f"https://alpha.ultralytics.com/{project}/{name}"
+    LOGGER.info(f"{PREFIX}Training complete, view results at {url} 🚀")
 
 
 callbacks = (

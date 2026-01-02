@@ -181,7 +181,7 @@ def on_pretrain_routine_start(trainer):
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
     url = f"https://alpha.ultralytics.com/{project}/{name}"
-    LOGGER.info(f"{PREFIX}Streaming to {url} 🚀")
+    LOGGER.info(f"{PREFIX}Streaming to {url}")
 
     # Create callback to send console output to Platform
     def send_console_output(content, line_count, chunk_id):

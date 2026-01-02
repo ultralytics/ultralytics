@@ -260,9 +260,6 @@ class MuSGD(optim.Optimizer):
                         and bool(re.search(pattern, group["param_names"][i]))
                         # and "cv3" in group["param_names"][i]
                         # and "23" in group["param_names"][i]
-                        and bool(re.search(pattern, group["param_names"][i]))
-                        # and "cv3" in group["param_names"][i]
-                        # and "23" in group["param_names"][i]
                         # and int(group["param_names"][i].split(".")[1]) in list(range(11, 24))
                         else group["lr"]
                     )

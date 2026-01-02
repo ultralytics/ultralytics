@@ -568,7 +568,6 @@ class ConfusionMatrix(DataExportMixin):
         fig.savefig(plot_fname, dpi=250)
         plt.close(fig)
         if on_plot:
-            # Pass confusion matrix data for interactive plotting (raw counts only, normalization done on frontend)
             on_plot(plot_fname, {"type": "confusion_matrix", "matrix": self.matrix.tolist()})
 
     def print(self):
@@ -663,7 +662,8 @@ def plot_pr_curve(
     plt.close(fig)
     if on_plot:
         # Pass PR curve data for interactive plotting (class names stored at model level)
-        on_plot(save_dir, {"type": "pr_curve", "x": px.tolist(), "y": py.tolist(), "ap": ap.tolist()})
+        # Transpose py to match other curves: y[class][point] format
+        on_plot(save_dir, {"type": "pr_curve", "x": px.tolist(), "y": py.T.tolist(), "ap": ap.tolist()})
 
 
 @plt_settings()

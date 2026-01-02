@@ -31,6 +31,34 @@ except (AssertionError, ImportError):
     _api_key = None
 
 
+def _interp_plot(plot, n=100):
+    """Interpolate plot curve data from 1000 to n points to reduce storage size."""
+    import numpy as np
+
+    if not plot.get("x") or not plot.get("y"):
+        return plot  # No interpolation needed (e.g., confusion_matrix)
+
+    x, y = np.array(plot["x"]), np.array(plot["y"])
+    if len(x) <= n:
+        return plot  # Already small enough
+
+    # New x values (evenly spaced)
+    x_new = np.linspace(x[0], x[-1], n)
+
+    # Interpolate y values (handle both 1D and 2D arrays)
+    if y.ndim == 1:
+        y_new = np.interp(x_new, x, y)
+    else:
+        y_new = np.array([np.interp(x_new, x, yi) for yi in y])
+
+    # Also interpolate ap if present (for PR curves)
+    result = {**plot, "x": x_new.tolist(), "y": y_new.tolist()}
+    if "ap" in plot:
+        result["ap"] = plot["ap"]  # Keep AP values as-is (per-class scalars)
+
+    return result
+
+
 def _send(event, data, project, name):
     """Send event to Platform endpoint."""
     try:
@@ -272,11 +300,15 @@ def on_train_end(trainer):
         model_size = Path(trainer.best).stat().st_size
         model_path = _upload_model(trainer.best, project, name)
 
-    # Collect plots from trainer and validator
-    plots = [info["data"] for info in getattr(trainer, "plots", {}).values() if info.get("data")]
-    plots += [
-        info["data"] for info in getattr(getattr(trainer, "validator", None), "plots", {}).values() if info.get("data")
-    ]
+    # Collect plots from trainer and validator, deduplicating by type
+    plots_by_type = {}
+    for info in getattr(trainer, "plots", {}).values():
+        if info.get("data") and info["data"].get("type"):
+            plots_by_type[info["data"]["type"]] = info["data"]
+    for info in getattr(getattr(trainer, "validator", None), "plots", {}).values():
+        if info.get("data") and info["data"].get("type"):
+            plots_by_type.setdefault(info["data"]["type"], info["data"])  # Don't overwrite trainer plots
+    plots = [_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
 
     # Get class names
     names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")

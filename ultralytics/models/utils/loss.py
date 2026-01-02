@@ -393,7 +393,7 @@ class DETRLoss(nn.Module):
         match_indices = kwargs.get("match_indices", None)
         gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
         if global_num_gts is None:
-            if self.training:
+            if self.training and torch.is_grad_enabled():
                 global_num_gts = _global_num_gts(len(gt_bboxes), pred_scores.device)
             else:
                 global_num_gts = max(len(gt_bboxes), 1)
@@ -454,7 +454,7 @@ class RTDETRDetectionLoss(DETRLoss):
             (dict[str, torch.Tensor]): Dictionary containing total loss and denoising loss if applicable.
         """
         pred_bboxes, pred_scores = preds
-        if self.training:
+        if self.training and torch.is_grad_enabled():
             global_num_gts = _global_num_gts(len(batch["bboxes"]), pred_scores.device)
         else:
             global_num_gts = max(len(batch["bboxes"]), 1.0)

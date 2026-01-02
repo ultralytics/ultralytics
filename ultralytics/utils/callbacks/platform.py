@@ -104,7 +104,8 @@ def _upload_model(model_path, project, name):
                 timeout=600,  # 10 min timeout for large models
             ).raise_for_status()
 
-        LOGGER.info(f"{PREFIX}Model uploaded")
+        # url = f"https://alpha.ultralytics.com/{project}/{name}"
+        # LOGGER.info(f"{PREFIX}Model uploaded to {url}")
         return data.get("gcsPath")
 
     except Exception as e:

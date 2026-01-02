@@ -489,7 +489,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                     f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
                 )
             except Exception as e:
-                LOGGER.warning(f"{prefix} ❌ {e}")
+                msg = f"{prefix} ❌ {e}"
+                if hasattr(e, "output") and e.output:
+                    msg += f"\n{e.output}"
+                LOGGER.warning(msg)
                 return False
         else:
             return False

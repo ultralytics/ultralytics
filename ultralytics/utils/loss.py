@@ -890,8 +890,6 @@ class PoseLoss26(v8PoseLoss):
         """
         # Select target keypoints using inherited helper method
         selected_keypoints = self._select_target_keypoints(keypoints, batch_idx, target_gt_idx, masks)
-        # Divide coordinates by stride
-        selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)
 
         # Divide coordinates by stride
         selected_keypoints[..., :2] /= stride_tensor.view(1, -1, 1, 1)

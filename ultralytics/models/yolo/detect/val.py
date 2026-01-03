@@ -347,7 +347,8 @@ class DetectionValidator(BaseValidator):
             ni (int): Batch index.
             max_det (Optional[int]): Maximum number of detections to plot.
         """
-        # TODO: optimize this
+        if not preds:
+            return
         for i, pred in enumerate(preds):
             pred["batch_idx"] = torch.ones_like(pred["conf"]) * i  # add batch index to predictions
         keys = preds[0].keys()

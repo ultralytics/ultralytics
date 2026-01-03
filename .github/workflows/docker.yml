@@ -80,6 +80,8 @@ jobs:
           - dockerfile: "Dockerfile-nvidia-arm64"
             tags: "latest-nvidia-arm64"
             platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
+            derivatives: ""
           - dockerfile: "Dockerfile-jetson-jetpack6"
             tags: "latest-jetson-jetpack6"
             platforms: "linux/arm64"

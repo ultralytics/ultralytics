@@ -34,8 +34,8 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages (uv already installed in base image)
 RUN uv pip install --system \
-    https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl && \
-    uv pip install --system -e ".[export]" && \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl --break-system-packages && \
+    uv pip install --system -e ".[export]" --break-system-packages && \
     # Remove extra build files
     rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
 

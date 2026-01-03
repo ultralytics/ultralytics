@@ -3,8 +3,8 @@
 # Builds ultralytics/ultralytics:latest-nvidia-arm64 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Supports JetPack 7.0 and DGX OS for YOLO on Jetson AGX Thor (T5000) and DGX Spark
 
-# Start FROM PyTorch image nvcr.io/nvidia/pytorch:25.11-py3
-FROM nvcr.io/nvidia/pytorch:25.11-py3
+# Start FROM PyTorch image nvcr.io/nvidia/pytorch:25.10-py3
+FROM nvcr.io/nvidia/pytorch:25.10-py3
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \

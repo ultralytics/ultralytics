@@ -8,8 +8,9 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from time import time
 
-from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING
+from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, colorstr
 
+PREFIX = colorstr("Platform: ")
 _last_upload = 0  # Rate limit model uploads
 _console_logger = None  # Global console logger instance
 _system_logger = None  # Cached system logger instance
@@ -29,6 +30,34 @@ try:
 
 except (AssertionError, ImportError):
     _api_key = None
+
+
+def _interp_plot(plot, n=101):
+    """Interpolate plot curve data from 1000 to n points to reduce storage size."""
+    import numpy as np
+
+    if not plot.get("x") or not plot.get("y"):
+        return plot  # No interpolation needed (e.g., confusion_matrix)
+
+    x, y = np.array(plot["x"]), np.array(plot["y"])
+    if len(x) <= n:
+        return plot  # Already small enough
+
+    # New x values (101 points gives clean 0.01 increments: 0, 0.01, 0.02, ..., 1.0)
+    x_new = np.linspace(x[0], x[-1], n)
+
+    # Interpolate y values (handle both 1D and 2D arrays)
+    if y.ndim == 1:
+        y_new = np.interp(x_new, x, y)
+    else:
+        y_new = np.array([np.interp(x_new, x, yi) for yi in y])
+
+    # Also interpolate ap if present (for PR curves)
+    result = {**plot, "x": x_new.tolist(), "y": y_new.tolist()}
+    if "ap" in plot:
+        result["ap"] = plot["ap"]  # Keep AP values as-is (per-class scalars)
+
+    return result
 
 
 def _send(event, data, project, name):
@@ -75,7 +104,8 @@ def _upload_model(model_path, project, name):
                 timeout=600,  # 10 min timeout for large models
             ).raise_for_status()
 
-        LOGGER.info(f"Platform: Model uploaded to '{project}'")
+        # url = f"https://alpha.ultralytics.com/{project}/{name}"
+        # LOGGER.info(f"{PREFIX}Model uploaded to {url}")
         return data.get("gcsPath")
 
     except Exception as e:
@@ -90,10 +120,17 @@ def _upload_model_async(model_path, project, name):
 
 def _get_environment_info():
     """Collect comprehensive environment info using existing ultralytics utilities."""
+    import shutil
+
+    import psutil
     import torch
 
     from ultralytics import __version__
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
+
+    # Get RAM and disk totals
+    memory = psutil.virtual_memory()
+    disk_usage = shutil.disk_usage("/")
 
     env = {
         "ultralyticsVersion": __version__,
@@ -105,6 +142,8 @@ def _get_environment_info():
         "cpuCount": os.cpu_count() or 0,
         "cpu": get_cpu_info(),
         "command": " ".join(sys.argv),
+        "totalRamGb": round(memory.total / (1 << 30), 1),  # Total RAM in GB
+        "totalDiskGb": round(disk_usage.total / (1 << 30), 1),  # Total disk in GB
     }
 
     # Git info using cached GIT singleton (no subprocess calls)
@@ -141,7 +180,8 @@ def on_pretrain_routine_start(trainer):
     _last_upload = time()
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
-    LOGGER.info(f"Platform: Streaming to project '{project}' as '{name}'")
+    url = f"https://alpha.ultralytics.com/{project}/{name}"
+    LOGGER.info(f"{PREFIX}Streaming to {url}")
 
     # Create callback to send console output to Platform
     def send_console_output(content, line_count, chunk_id):
@@ -243,7 +283,7 @@ def on_model_save(trainer):
 
 
 def on_train_end(trainer):
-    """Log final results and upload best model."""
+    """Log final results, upload best model, and send validation plot data."""
     global _console_logger
 
     if RANK not in {-1, 0} or not trainer.args.project:
@@ -251,17 +291,32 @@ def on_train_end(trainer):
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
 
-    # Stop console capture and flush remaining output
+    # Stop console capture
     if _console_logger:
         _console_logger.stop_capture()
         _console_logger = None
 
     # Upload best model (blocking to ensure it completes)
     model_path = None
+    model_size = None
     if trainer.best and Path(trainer.best).exists():
+        model_size = Path(trainer.best).stat().st_size
         model_path = _upload_model(trainer.best, project, name)
 
-    # Send training complete
+    # Collect plots from trainer and validator, deduplicating by type
+    plots_by_type = {}
+    for info in getattr(trainer, "plots", {}).values():
+        if info.get("data") and info["data"].get("type"):
+            plots_by_type[info["data"]["type"]] = info["data"]
+    for info in getattr(getattr(trainer, "validator", None), "plots", {}).values():
+        if info.get("data") and info["data"].get("type"):
+            plots_by_type.setdefault(info["data"]["type"], info["data"])  # Don't overwrite trainer plots
+    plots = [_interp_plot(p) for p in plots_by_type.values()]  # Interpolate curves to reduce size
+
+    # Get class names
+    names = getattr(getattr(trainer, "validator", None), "names", None) or (trainer.data or {}).get("names")
+    class_names = list(names.values()) if isinstance(names, dict) else list(names) if names else None
+
     _send(
         "training_complete",
         {
@@ -269,13 +324,17 @@ def on_train_end(trainer):
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
                 "bestEpoch": getattr(trainer, "best_epoch", trainer.epoch),
                 "bestFitness": trainer.best_fitness,
-                "modelPath": model_path or str(trainer.best) if trainer.best else None,
-            }
+                "modelPath": model_path or (str(trainer.best) if trainer.best else None),
+                "modelSize": model_size,
+            },
+            "classNames": class_names,
+            "plots": plots,
         },
         project,
         name,
     )
-    LOGGER.info(f"Platform: Training complete, results uploaded to '{project}'")
+    url = f"https://alpha.ultralytics.com/{project}/{name}"
+    LOGGER.info(f"{PREFIX}View results at {url}")
 
 
 callbacks = (

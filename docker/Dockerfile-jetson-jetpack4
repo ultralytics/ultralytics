@@ -25,12 +25,13 @@ RUN wget -q -O - https://repo.download.nvidia.com/jetson/jetson-ota-public.asc |
 # gnupg required for Edge TPU install
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    git python3.8 python3.8-dev python3-pip python3-libnvinfer libopenmpi-dev libopenblas-base libomp-dev gcc \
-    && rm -rf /var/lib/apt/lists/*
+    git python3.8 python3.8-dev python3-pip python3-libnvinfer libopenmpi-dev libopenblas-base libomp-dev gcc && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create symbolic links for python3.8 and pip3
 RUN ln -sf /usr/bin/python3.8 /usr/bin/python3 && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
+    ln -sf /usr/bin/pip3 /usr/bin/pip
 
 # Create working directory
 WORKDIR /ultralytics
@@ -58,13 +59,11 @@ RUN uv pip install --system \
     # Remove extra build files
     rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
 
-# Usage Examples -------------------------------------------------------------------------------------------------------
+# Usage --------------------------------------------------------------------------------------------------------------
 
-# Build and Push
-# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson-jetpack4 -t $t . && sudo docker push $t
-
-# Run
-# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker run -it --ipc=host --runtime=nvidia $t
-
-# Pull and Run
-# t=ultralytics/ultralytics:latest-jetson-jetpack4 && sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
+# Production builds: https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml
+# Example (build): t=ultralytics/ultralytics:latest-jetson-jetpack4 && docker build --platform linux/arm64 -f docker/Dockerfile-jetson-jetpack4 -t $t .
+# Example (push): docker push $t
+# Example (pull): t=ultralytics/ultralytics:latest-jetson-jetpack4 && docker pull $t
+# Example (run): docker run -it --ipc=host --runtime=nvidia $t
+# Example (run-with-volume): docker run -it --ipc=host --runtime=nvidia -v "$PWD/shared/datasets:/datasets" $t

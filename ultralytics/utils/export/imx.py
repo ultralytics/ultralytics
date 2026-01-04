@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from shutil import which
 import subprocess
 import sys
 import types
 from pathlib import Path
+from shutil import which
 
 import numpy as np
 import torch

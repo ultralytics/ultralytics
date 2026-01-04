@@ -7,7 +7,11 @@ import time
 import pytest
 from ultralytics import YOLO
 from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
+
 from ultralytics.utils.downloads import safe_download
+
+# Lock TTL for video asset downloads (in seconds)
+LOCK_TTL = 600
 
 
 def pytest_addoption(parser):
@@ -138,9 +142,31 @@ def solutions_videos(tmp_path_factory):
         "workout_small.mp4",
     ]
 
+
+
     lock_dir = video_dir / "download_lock"
     lock_acquired = False
 
+    # Stale lock removal before acquisition (robust against TOCTOU)
+    try:
+        stat = lock_dir.stat()
+        age = time.time() - stat.st_mtime
+        owner_token = None
+        owner_file = lock_dir / "owner"
+        if owner_file.exists():
+            try:
+                with open(owner_file, "r") as f:
+                    owner_token = f.read().strip()
+            except Exception:
+                owner_token = None
+        # Remove lock only if stale and owner token is absent or indicates stale
+        if age > LOCK_TTL and not owner_token:
+            try:
+                lock_dir.rmdir()
+            except (FileNotFoundError, OSError):
+                pass  # Directory was claimed or removed in the meantime
+    except FileNotFoundError:
+        pass  # Lock does not exist, nothing to clean up
 
     try:
         # Simple spin-lock (max ~30s)

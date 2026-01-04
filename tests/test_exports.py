@@ -209,8 +209,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
     )
     YOLO(file)([SOURCE] * batch)
     Path(file).unlink()
-    ],
-)
+    
 def test_export_mnn_matrix(task, int8, half, batch):
     """Test YOLO export to MNN format considering various export configurations."""
     file = YOLO(TASK2MODEL[task]).export(format="mnn", imgsz=32, int8=int8, half=half, batch=batch)

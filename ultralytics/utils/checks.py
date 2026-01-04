@@ -12,12 +12,12 @@ import platform
 import re
 import shutil
 import subprocess
+import sys
 import time
 from importlib import metadata
 from pathlib import Path
 from types import SimpleNamespace
 
-import sys
 import cv2
 import numpy as np
 import torch

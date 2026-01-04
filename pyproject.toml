@@ -71,9 +71,9 @@ dependencies = [
     "torch>=1.8.0",
     "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
     "torchvision>=0.9.0",
-    "psutil", # system utilization
-    "polars",
-    "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
+    "psutil>=5.8.0", # system utilization
+    "polars>=0.20.0",
+    "ultralytics-thop>=2.0.18", # FLOPs computation https://github.com/ultralytics/thop
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
@@ -83,17 +83,16 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage[toml]",
-    "mkdocs>=1.6.0",
-    "mkdocs-material>=9.5.9",
-    "mkdocstrings[python]",
-    "mkdocs-ultralytics-plugin>=0.1.29", # for meta descriptions and images, dates and authors
-    "mkdocs-macros-plugin>=1.0.5", # duplicating content (i.e. export tables) in multiple places
+    "zensical>=0.0.15; python_version >= '3.10'",
+    "mkdocs-ultralytics-plugin>=0.2.4", # for meta descriptions and images, dates and authors
+    "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
 ]
 export = [
     "numpy<2.0.0", # TF 2.20 compatibility
     "onnx>=1.12.0; platform_system != 'Darwin'", # ONNX export
-    "onnx>=1.12.0,<1.18.0; platform_system == 'Darwin'",  # TF inference hanging on MacOS
-    "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
+    "onnx>=1.12.0,<1.18.0; platform_system == 'Darwin'",  # TF inference hanging on MacOS (tested up to onnx==1.20.0)
+    "onnxslim>=0.1.82",
+    "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
     "openvino>=2024.0.0",  # OpenVINO export
     "tensorflow>=2.0.0,<=2.19.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
@@ -118,7 +117,7 @@ extra = [
     "faster-coco-eval>=1.6.7", # COCO mAP
 ]
 typing = [
-    "scipy-stubs",
+    "scipy-stubs>=1.14.1.4; python_version >= '3.10'",
     "types-pillow",
     "types-psutil",
     "types-pyyaml",
@@ -189,5 +188,5 @@ close-quotes-on-newline = true
 in-place = true
 
 [tool.codespell]
-ignore-words-list = "crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall"
-skip = '*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,__pycache__*,*.ico,*.jpg,*.png,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml'
+ignore-words-list = "grey,writeable,finalY,RepResNet,Idenfy,WIT,Smoot,EHR,ROUGE,ALS,iTerm,Carmel,FPR,Hach,Calle,ore,COO,MOT,crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall,skelton,goin"
+skip = "*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,*lock*,__pycache__*,*.ico,*.jpg,*.png,*.webp,*.avif,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml"

@@ -8,7 +8,7 @@ keywords: SAM 2, SAM 2.1, Segment Anything, video segmentation, image segmentati
 
 !!! note "SAM Evolution"
 
-    SAM 2 builds upon the original [SAM](sam.md) with video segmentation capabilities. For the upcoming next-generation model with enhanced memory and 2× faster processing, see [SAM 3](sam-3.md).
+    SAM 2 builds upon the original [SAM](sam.md) with video segmentation capabilities. For Promptable Concept Segmentation with text and image exemplar prompts, see [SAM 3](sam-3.md).
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/inference-with-meta-sam-and-sam2-using-ultralytics-python-package.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Inference with Segment Anything 2 In Colab"></a>
 
@@ -118,9 +118,9 @@ pip install ultralytics
 
 ## How to Use SAM 2: Versatility in Image and Video Segmentation
 
-The following table details the available SAM 2 models, their pre-trained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
+The following table details the available SAM 2 models, their pretrained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
 
-| Model Type    | Pre-trained Weights                                                                       | Tasks Supported                              | Inference | Validation | Training | Export |
+| Model Type    | Pretrained Weights                                                                        | Tasks Supported                              | Inference | Validation | Training | Export |
 | ------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | SAM 2 tiny    | [sam2_t.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_t.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 | SAM 2 small   | [sam2_s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_s.pt)     | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
@@ -228,7 +228,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 ## Dynamic Interactive Segment and Track
 
-SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with multiple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training.
+SAM2DynamicInteractivePredictor is an advanced training-free extension of SAM2 that enables dynamic interaction with multiple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor rebuilds the inference flow to make the best use of pretrained SAM2 models without requiring additional training.
 
 ![SAM 2 Example Results](https://github.com/ultralytics/assets/releases/download/v0.0.0/sam2-interative-sample.avif)
 
@@ -260,7 +260,7 @@ It offers three significant enhancements:
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
         # Define a category by box prompt
-        predictor(source="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
+        predictor(source="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[0], update_memory=True)
 
         # Detect this particular object in a new image
         results = predictor(source="image2.jpg")
@@ -269,7 +269,7 @@ It offers three significant enhancements:
         results = predictor(
             source="image4.jpg",
             bboxes=[[300, 300, 400, 400]],  # New object
-            obj_ids=[2],  # New object ID
+            obj_ids=[1],  # New object ID
             update_memory=True,  # Add to memory
         )
         # Perform inference
@@ -281,7 +281,7 @@ It offers three significant enhancements:
             source="image6.jpg",
             points=[[150, 150]],  # Refinement point
             labels=[1],  # Positive point
-            obj_ids=[2],  # Same object ID
+            obj_ids=[1],  # Same object ID
             update_memory=True,  # Update memory with new information
         )
         # Perform inference on new image
@@ -296,7 +296,7 @@ It offers three significant enhancements:
 
 | Name            | Default Value | Data Type   | Description                                 |
 | --------------- | ------------- | ----------- | ------------------------------------------- |
-| `max_obj_num`   | `3`           | `str`       | The preset maximum number of categories     |
+| `max_obj_num`   | `3`           | `int`       | The preset maximum number of categories     |
 | `update_memory` | `False`       | `bool`      | Whether to update memory with new prompts   |
 | `obj_ids`       | `None`        | `List[int]` | List of object IDs corresponding to prompts |
 
@@ -359,7 +359,7 @@ Tests run on a 2025 Apple M4 Pro with 24GB of RAM using `torch==2.6.0` and `ultr
 
 ## Auto-Annotation: Efficient Dataset Creation
 
-Auto-annotation is a powerful feature of SAM 2, enabling users to generate segmentation datasets quickly and accurately by leveraging pre-trained models. This capability is particularly useful for creating large, high-quality datasets without extensive manual effort.
+Auto-annotation is a powerful feature of SAM 2, enabling users to generate segmentation datasets quickly and accurately by leveraging pretrained models. This capability is particularly useful for creating large, high-quality datasets without extensive manual effort.
 
 ### How to Auto-Annotate with SAM 2
 
@@ -397,7 +397,7 @@ Despite its strengths, SAM 2 has certain limitations:
 - **Efficiency with Multiple Objects**: Segmentation efficiency decreases when processing multiple objects simultaneously due to the lack of inter-object communication.
 - **Detail [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: May miss fine details, especially with fast-moving objects. Additional prompts can partially address this issue, but temporal smoothness is not guaranteed.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If SAM 2 is a crucial part of your research or development work, please cite it using the following reference:
 

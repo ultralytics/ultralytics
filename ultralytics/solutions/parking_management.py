@@ -14,11 +14,10 @@ from ultralytics.utils.checks import check_imshow
 
 
 class ParkingPtsSelection:
-    """
-    A class for selecting and managing parking zone points on images using a Tkinter-based UI.
+    """A class for selecting and managing parking zone points on images using a Tkinter-based UI.
 
-    This class provides functionality to upload an image, select points to define parking zones, and save the
-    selected points to a JSON file. It uses Tkinter for the graphical user interface.
+    This class provides functionality to upload an image, select points to define parking zones, and save the selected
+    points to a JSON file. It uses Tkinter for the graphical user interface.
 
     Attributes:
         tk (module): The Tkinter module for GUI operations.
@@ -93,7 +92,7 @@ class ParkingPtsSelection:
 
         for text, cmd in [
             ("Upload Image", self.upload_image),
-            ("Remove Last BBox", self.remove_last_bounding_box),
+            ("Remove Last Bounding Box", self.remove_last_bounding_box),
             ("Save", self.save_to_json),
         ]:
             self.tk.Button(button_frame, text=text, command=cmd).pack(side=self.tk.LEFT)
@@ -178,19 +177,18 @@ class ParkingPtsSelection:
 
 
 class ParkingManagement(BaseSolution):
-    """
-    Manages parking occupancy and availability using YOLO model for real-time monitoring and visualization.
+    """Manages parking occupancy and availability using YOLO model for real-time monitoring and visualization.
 
-    This class extends BaseSolution to provide functionality for parking lot management, including detection of
-    occupied spaces, visualization of parking regions, and display of occupancy statistics.
+    This class extends BaseSolution to provide functionality for parking lot management, including detection of occupied
+    spaces, visualization of parking regions, and display of occupancy statistics.
 
     Attributes:
         json_file (str): Path to the JSON file containing parking region details.
         json (list[dict]): Loaded JSON data containing parking region information.
         pr_info (dict[str, int]): Dictionary storing parking information (Occupancy and Available spaces).
-        arc (tuple[int, int, int]): RGB color tuple for available region visualization.
-        occ (tuple[int, int, int]): RGB color tuple for occupied region visualization.
-        dc (tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
+        arc (tuple[int, int, int]): BGR color tuple for available region visualization.
+        occ (tuple[int, int, int]): BGR color tuple for occupied region visualization.
+        dc (tuple[int, int, int]): BGR color tuple for centroid visualization of detected objects.
 
     Methods:
         process: Process the input image for parking lot management and visualization.
@@ -207,11 +205,11 @@ class ParkingManagement(BaseSolution):
         super().__init__(**kwargs)
 
         self.json_file = self.CFG["json_file"]  # Load parking regions JSON data
-        if self.json_file is None:
-            LOGGER.warning("json_file argument missing. Parking region details required.")
-            raise ValueError("❌ Json file path can not be empty")
+        if not self.json_file:
+            LOGGER.warning("ParkingManagement requires `json_file` with parking region coordinates.")
+            raise ValueError("❌ JSON file path cannot be empty.")
 
-        with open(self.json_file) as f:
+        with open(self.json_file, encoding="utf-8") as f:
             self.json = json.load(f)
 
         self.pr_info = {"Occupancy": 0, "Available": 0}  # Dictionary for parking information
@@ -221,19 +219,19 @@ class ParkingManagement(BaseSolution):
         self.dc = (255, 0, 189)  # Centroid color for each box
 
     def process(self, im0: np.ndarray) -> SolutionResults:
-        """
-        Process the input image for parking lot management and visualization.
+        """Process the input image for parking lot management and visualization.
 
-        This function analyzes the input image, extracts tracks, and determines the occupancy status of parking
-        regions defined in the JSON file. It annotates the image with occupied and available parking spots,
-        and updates the parking information.
+        This function analyzes the input image, extracts tracks, and determines the occupancy status of parking regions
+        defined in the JSON file. It annotates the image with occupied and available parking spots, and updates the
+        parking information.
 
         Args:
             im0 (np.ndarray): The input inference image.
 
         Returns:
             (SolutionResults): Contains processed image `plot_im`, 'filled_slots' (number of occupied parking slots),
-                'available_slots' (number of available parking slots), and 'total_tracks' (total number of tracked objects).
+                'available_slots' (number of available parking slots), and 'total_tracks' (total number of
+                tracked objects).
 
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")
@@ -241,28 +239,32 @@ class ParkingManagement(BaseSolution):
             >>> results = parking_manager.process(image)
         """
         self.extract_tracks(im0)  # Extract tracks from im0
-        es, fs = len(self.json), 0  # Empty slots, filled slots
+        available_slots, occupied_slots = len(self.json), 0
         annotator = SolutionAnnotator(im0, self.line_width)  # Initialize annotator
 
         for region in self.json:
             # Convert points to a NumPy array with the correct dtype and reshape properly
-            pts_array = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
-            rg_occupied = False  # Occupied region initialization
+            region_polygon = np.array(region["points"], dtype=np.int32).reshape((-1, 1, 2))
+            region_occupied = False
             for box, cls in zip(self.boxes, self.clss):
                 xc, yc = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-                dist = cv2.pointPolygonTest(pts_array, (xc, yc), False)
-                if dist >= 0:
+                inside_distance = cv2.pointPolygonTest(region_polygon, (xc, yc), False)
+                if inside_distance >= 0:
                     # cv2.circle(im0, (xc, yc), radius=self.line_width * 4, color=self.dc, thickness=-1)
                     annotator.display_objects_labels(
                         im0, self.model.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
                     )
-                    rg_occupied = True
+                    region_occupied = True
                     break
-            fs, es = (fs + 1, es - 1) if rg_occupied else (fs, es)
+            if region_occupied:
+                occupied_slots += 1
+                available_slots -= 1
             # Plot regions
-            cv2.polylines(im0, [pts_array], isClosed=True, color=self.occ if rg_occupied else self.arc, thickness=2)
+            cv2.polylines(
+                im0, [region_polygon], isClosed=True, color=self.occ if region_occupied else self.arc, thickness=2
+            )
 
-        self.pr_info["Occupancy"], self.pr_info["Available"] = fs, es
+        self.pr_info["Occupancy"], self.pr_info["Available"] = occupied_slots, available_slots
 
         annotator.display_analytics(im0, self.pr_info, (104, 31, 17), (255, 255, 255), 10)
 

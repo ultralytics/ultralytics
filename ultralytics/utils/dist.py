@@ -10,8 +10,7 @@ from .torch_utils import TORCH_1_9
 
 
 def find_free_network_port() -> int:
-    """
-    Find a free port on localhost.
+    """Find a free port on localhost.
 
     It is useful in single-node training when we don't want to connect to a real main node but have to set the
     `MASTER_PORT` environment variable.
@@ -27,11 +26,10 @@ def find_free_network_port() -> int:
 
 
 def generate_ddp_file(trainer):
-    """
-    Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
+    """Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
 
-    This function creates a temporary Python file that enables distributed training across multiple GPUs.
-    The file contains the necessary configuration to initialize the trainer in a distributed environment.
+    This function creates a temporary Python file that enables distributed training across multiple GPUs. The file
+    contains the necessary configuration to initialize the trainer in a distributed environment.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing training configuration and arguments.
@@ -77,8 +75,7 @@ if __name__ == "__main__":
 
 
 def generate_ddp_command(trainer):
-    """
-    Generate command for distributed training.
+    """Generate command for distributed training.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing configuration for distributed training.
@@ -108,11 +105,10 @@ def generate_ddp_command(trainer):
 
 
 def ddp_cleanup(trainer, file):
-    """
-    Delete temporary file if created during distributed data parallel (DDP) training.
+    """Delete temporary file if created during distributed data parallel (DDP) training.
 
-    This function checks if the provided file contains the trainer's ID in its name, indicating it was created
-    as a temporary file for DDP training, and deletes it if so.
+    This function checks if the provided file contains the trainer's ID in its name, indicating it was created as a
+    temporary file for DDP training, and deletes it if so.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer used for distributed training.

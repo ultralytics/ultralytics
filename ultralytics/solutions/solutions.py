@@ -18,8 +18,7 @@ from ultralytics.utils.plotting import Annotator
 
 
 class BaseSolution:
-    """
-    A base class for managing Ultralytics Solutions.
+    """A base class for managing Ultralytics Solutions.
 
     This class provides core functionality for various Ultralytics Solutions, including model loading, object tracking,
     and region initialization. It serves as the foundation for implementing specific computer vision solutions such as
@@ -73,8 +72,7 @@ class BaseSolution:
     """
 
     def __init__(self, is_cli: bool = False, **kwargs: Any) -> None:
-        """
-        Initialize the BaseSolution class with configuration settings and YOLO model.
+        """Initialize the BaseSolution class with configuration settings and YOLO model.
 
         Args:
             is_cli (bool): Enable CLI mode if set to True.
@@ -138,12 +136,11 @@ class BaseSolution:
         )
 
     def adjust_box_label(self, cls: int, conf: float, track_id: int | None = None) -> str | None:
-        """
-        Generate a formatted label for a bounding box.
+        """Generate a formatted label for a bounding box.
 
-        This method constructs a label string for a bounding box using the class index and confidence score.
-        Optionally includes the track ID if provided. The label format adapts based on the display settings
-        defined in `self.show_conf` and `self.show_labels`.
+        This method constructs a label string for a bounding box using the class index and confidence score. Optionally
+        includes the track ID if provided. The label format adapts based on the display settings defined in
+        `self.show_conf` and `self.show_labels`.
 
         Args:
             cls (int): The class index of the detected object.
@@ -157,8 +154,7 @@ class BaseSolution:
         return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 
     def extract_tracks(self, im0: np.ndarray) -> None:
-        """
-        Apply object tracking and extract tracks from an input image or frame.
+        """Apply object tracking and extract tracks from an input image or frame.
 
         Args:
             im0 (np.ndarray): The input image or frame.
@@ -181,15 +177,14 @@ class BaseSolution:
             self.track_ids = self.track_data.id.int().cpu().tolist()
             self.confs = self.track_data.conf.cpu().tolist()
         else:
-            self.LOGGER.warning("no tracks found!")
+            self.LOGGER.warning("No tracks found.")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
 
     def store_tracking_history(self, track_id: int, box) -> None:
-        """
-        Store the tracking history of an object.
+        """Store the tracking history of an object.
 
-        This method updates the tracking history for a given object by appending the center point of its
-        bounding box to the track line. It maintains a maximum of 30 points in the tracking history.
+        This method updates the tracking history for a given object by appending the center point of its bounding box to
+        the track line. It maintains a maximum of 30 points in the tracking history.
 
         Args:
             track_id (int): The unique identifier for the tracked object.
@@ -214,8 +209,8 @@ class BaseSolution:
         )  # region or line
 
     def display_output(self, plot_im: np.ndarray) -> None:
-        """
-        Display the results of the processing, which could involve showing frames, printing counts, or saving results.
+        """Display the results of the processing, which could involve showing frames, printing counts, or saving
+        results.
 
         This method is responsible for visualizing the output of the object detection and tracking process. It displays
         the processed frame with annotations, and allows for user interaction to close the display.
@@ -264,8 +259,7 @@ class BaseSolution:
 
 
 class SolutionAnnotator(Annotator):
-    """
-    A specialized annotator class for visualizing and analyzing computer vision tasks.
+    """A specialized annotator class for visualizing and analyzing computer vision tasks.
 
     This class extends the base Annotator class, providing additional methods for drawing regions, centroids, tracking
     trails, and visual annotations for Ultralytics Solutions. It offers comprehensive visualization capabilities for
@@ -277,7 +271,7 @@ class SolutionAnnotator(Annotator):
         font_size (int): Size of the font used for text annotations.
         font (str): Path to the font file used for text rendering.
         pil (bool): Whether to use PIL for text rendering.
-        example (str): An example attribute for demonstration purposes.
+        example (str): Example text used to detect non-ASCII labels for PIL rendering.
 
     Methods:
         draw_region: Draw a region using specified points, colors, and thickness.
@@ -310,8 +304,7 @@ class SolutionAnnotator(Annotator):
         pil: bool = False,
         example: str = "abc",
     ):
-        """
-        Initialize the SolutionAnnotator class with an image for annotation.
+        """Initialize the SolutionAnnotator class with an image for annotation.
 
         Args:
             im (np.ndarray): The image to be annotated.
@@ -319,7 +312,7 @@ class SolutionAnnotator(Annotator):
             font_size (int, optional): Font size for text annotations.
             font (str): Path to the font file.
             pil (bool): Indicates whether to use PIL for rendering text.
-            example (str): An example parameter for demonstration purposes.
+            example (str): Example text used to detect non-ASCII labels for PIL rendering.
         """
         super().__init__(im, line_width, font_size, font, pil, example)
 
@@ -329,12 +322,11 @@ class SolutionAnnotator(Annotator):
         color: tuple[int, int, int] = (0, 255, 0),
         thickness: int = 5,
     ):
-        """
-        Draw a region or line on the image.
+        """Draw a region or line on the image.
 
         Args:
             reg_pts (list[tuple[int, int]], optional): Region points (for line 2 points, for region 4+ points).
-            color (tuple[int, int, int]): RGB color value for the region.
+            color (tuple[int, int, int]): BGR color value for the region (OpenCV format).
             thickness (int): Line thickness for drawing the region.
         """
         cv2.polylines(self.im, [np.array(reg_pts, dtype=np.int32)], isClosed=True, color=color, thickness=thickness)
@@ -350,14 +342,13 @@ class SolutionAnnotator(Annotator):
         region_color: tuple[int, int, int] = (255, 255, 255),
         txt_color: tuple[int, int, int] = (0, 0, 0),
     ):
-        """
-        Display queue counts on an image centered at the points with customizable font size and colors.
+        """Display queue counts on an image centered at the points with customizable font size and colors.
 
         Args:
             label (str): Queue counts label.
             points (list[tuple[int, int]], optional): Region points for center point calculation to display text.
-            region_color (tuple[int, int, int]): RGB queue region color.
-            txt_color (tuple[int, int, int]): RGB text display color.
+            region_color (tuple[int, int, int]): BGR queue region color (OpenCV format).
+            txt_color (tuple[int, int, int]): BGR text color (OpenCV format).
         """
         x_values = [point[0] for point in points]
         y_values = [point[1] for point in points]
@@ -397,14 +388,13 @@ class SolutionAnnotator(Annotator):
         bg_color: tuple[int, int, int],
         margin: int,
     ):
-        """
-        Display the overall statistics for parking lots, object counter etc.
+        """Display overall statistics for Solutions (e.g., parking management and object counting).
 
         Args:
             im0 (np.ndarray): Inference image.
             text (dict[str, Any]): Labels dictionary.
-            txt_color (tuple[int, int, int]): Display color for text foreground.
-            bg_color (tuple[int, int, int]): Display color for text background.
+            txt_color (tuple[int, int, int]): Text color (BGR, OpenCV format).
+            bg_color (tuple[int, int, int]): Background color (BGR, OpenCV format).
             margin (int): Gap between text and rectangle for better display.
         """
         horizontal_gap = int(im0.shape[1] * 0.02)
@@ -426,22 +416,44 @@ class SolutionAnnotator(Annotator):
             text_y_offset = rect_y2
 
     @staticmethod
+    def _point_xy(point: Any) -> tuple[float, float]:
+        """Convert a keypoint-like object to an (x, y) tuple of floats."""
+        if hasattr(point, "detach"):  # torch.Tensor
+            point = point.detach()
+        if hasattr(point, "cpu"):  # torch.Tensor
+            point = point.cpu()
+        if hasattr(point, "numpy"):  # torch.Tensor
+            point = point.numpy()
+        if hasattr(point, "tolist"):  # numpy / torch
+            point = point.tolist()
+        return float(point[0]), float(point[1])
+
+    @staticmethod
     @lru_cache(maxsize=256)
-    def estimate_pose_angle(a: list[float], b: list[float], c: list[float]) -> float:
-        """
-        Calculate the angle between three points for workout monitoring.
+    def _estimate_pose_angle_cached(a: tuple[float, float], b: tuple[float, float], c: tuple[float, float]) -> float:
+        """Calculate the angle between three points for workout monitoring (cached)."""
+        radians = math.atan2(c[1] - b[1], c[0] - b[0]) - math.atan2(a[1] - b[1], a[0] - b[0])
+        angle = abs(radians * 180.0 / math.pi)
+        return angle if angle <= 180.0 else (360 - angle)
+
+    @staticmethod
+    def estimate_pose_angle(a: Any, b: Any, c: Any) -> float:
+        """Calculate the angle between three points for workout monitoring.
 
         Args:
-            a (list[float]): The coordinates of the first point.
-            b (list[float]): The coordinates of the second point (vertex).
-            c (list[float]): The coordinates of the third point.
+            a (Any): The coordinates of the first point (e.g. list/tuple/NumPy array/torch tensor).
+            b (Any): The coordinates of the second point (vertex).
+            c (Any): The coordinates of the third point.
 
         Returns:
             (float): The angle in degrees between the three points.
         """
-        radians = math.atan2(c[1] - b[1], c[0] - b[0]) - math.atan2(a[1] - b[1], a[0] - b[0])
-        angle = abs(radians * 180.0 / math.pi)
-        return angle if angle <= 180.0 else (360 - angle)
+        a_xy, b_xy, c_xy = (
+            SolutionAnnotator._point_xy(a),
+            SolutionAnnotator._point_xy(b),
+            SolutionAnnotator._point_xy(c),
+        )
+        return SolutionAnnotator._estimate_pose_angle_cached(a_xy, b_xy, c_xy)
 
     def draw_specific_kpts(
         self,
@@ -450,8 +462,7 @@ class SolutionAnnotator(Annotator):
         radius: int = 2,
         conf_thresh: float = 0.25,
     ) -> np.ndarray:
-        """
-        Draw specific keypoints for gym steps counting.
+        """Draw specific keypoints for gym steps counting.
 
         Args:
             keypoints (list[list[float]]): Keypoints data to be plotted, each in format [x, y, confidence].
@@ -486,8 +497,7 @@ class SolutionAnnotator(Annotator):
         color: tuple[int, int, int] = (104, 31, 17),
         txt_color: tuple[int, int, int] = (255, 255, 255),
     ) -> int:
-        """
-        Draw workout text with a background on the image.
+        """Draw workout text with a background on the image.
 
         Args:
             display_text (str): The text to be displayed.
@@ -522,8 +532,7 @@ class SolutionAnnotator(Annotator):
         color: tuple[int, int, int] = (104, 31, 17),
         txt_color: tuple[int, int, int] = (255, 255, 255),
     ):
-        """
-        Plot the pose angle, count value, and step stage for workout monitoring.
+        """Plot the pose angle, count value, and step stage for workout monitoring.
 
         Args:
             angle_text (str): Angle value for workout monitoring.
@@ -554,11 +563,10 @@ class SolutionAnnotator(Annotator):
         line_color: tuple[int, int, int] = (104, 31, 17),
         centroid_color: tuple[int, int, int] = (255, 0, 255),
     ):
-        """
-        Plot the distance and line between two centroids on the frame.
+        """Plot the distance and line between two centroids on the frame.
 
         Args:
-            pixels_distance (float): Pixels distance between two bbox centroids.
+            pixels_distance (float): Pixel distance between two bounding-box centroids.
             centroids (list[tuple[int, int]]): Bounding box centroids data.
             line_color (tuple[int, int, int]): Distance line color.
             centroid_color (tuple[int, int, int]): Bounding box centroid color.
@@ -597,8 +605,7 @@ class SolutionAnnotator(Annotator):
         y_center: float,
         margin: int,
     ):
-        """
-        Display the bounding boxes labels in parking management app.
+        """Display the bounding boxes labels in parking management app.
 
         Args:
             im0 (np.ndarray): Inference image.
@@ -644,15 +651,14 @@ class SolutionAnnotator(Annotator):
         color: tuple[int, int, int] = (221, 0, 186),
         txt_color: tuple[int, int, int] = (255, 255, 255),
     ):
-        """
-        Draw a sweep annotation line and an optional label.
+        """Draw a sweep annotation line and an optional label.
 
         Args:
             line_x (int): The x-coordinate of the sweep line.
             line_y (int): The y-coordinate limit of the sweep line.
             label (str, optional): Text label to be drawn in center of sweep line. If None, no label is drawn.
-            color (tuple[int, int, int]): RGB color for the line and label background.
-            txt_color (tuple[int, int, int]): RGB color for the label text.
+            color (tuple[int, int, int]): BGR color for the line and label background (OpenCV format).
+            txt_color (tuple[int, int, int]): BGR color for the label text (OpenCV format).
         """
         # Draw the sweep line
         cv2.line(self.im, (line_x, 0), (line_x, line_y), color, self.tf * 2)
@@ -684,8 +690,7 @@ class SolutionAnnotator(Annotator):
         color: tuple[int, int, int] = (235, 219, 11),
         pin_color: tuple[int, int, int] = (255, 0, 255),
     ):
-        """
-        Perform pinpoint human-vision eye mapping and plotting.
+        """Perform pinpoint human-vision eye mapping and plotting.
 
         Args:
             box (list[float]): Bounding box coordinates in format [x1, y1, x2, y2].
@@ -707,22 +712,21 @@ class SolutionAnnotator(Annotator):
         shape: str = "rect",
         margin: int = 5,
     ):
-        """
-        Draw a label with a background rectangle or circle centered within a given bounding box.
+        """Draw a label with a background rectangle or circle centered within a given bounding box.
 
         Args:
             box (tuple[float, float, float, float]): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
             color (tuple[int, int, int]): The background color of the rectangle (B, G, R).
-            txt_color (tuple[int, int, int]): The color of the text (R, G, B).
-            shape (str): The shape of the label i.e "circle" or "rect"
+            txt_color (tuple[int, int, int]): The color of the text (B, G, R).
+            shape (str): Label shape. Options: "circle" or "rect".
             margin (int): The margin between the text and the rectangle border.
         """
         if shape == "circle" and len(label) > 3:
             LOGGER.warning(f"Length of label is {len(label)}, only first 3 letters will be used for circle annotation.")
             label = label[:3]
 
-        x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)  # Calculate center of the bbox
+        x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)  # Bounding-box center
         text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0]  # Get size of the text
         text_x, text_y = x_center - text_size[0] // 2, y_center + text_size[1] // 2  # Calculate top-left corner of text
 
@@ -757,12 +761,11 @@ class SolutionAnnotator(Annotator):
 
 
 class SolutionResults:
-    """
-    A class to encapsulate the results of Ultralytics Solutions.
+    """A class to encapsulate the results of Ultralytics Solutions.
 
     This class is designed to store and manage various outputs generated by the solution pipeline, including counts,
-    angles, workout stages, and other analytics data. It provides a structured way to access and manipulate results
-    from different computer vision solutions such as object counting, pose estimation, and tracking analytics.
+    angles, workout stages, and other analytics data. It provides a structured way to access and manipulate results from
+    different computer vision solutions such as object counting, pose estimation, and tracking analytics.
 
     Attributes:
         plot_im (np.ndarray): Processed image with counts, blurred, or other effects from solutions.
@@ -785,8 +788,7 @@ class SolutionResults:
     """
 
     def __init__(self, **kwargs):
-        """
-        Initialize a SolutionResults object with default or user-specified values.
+        """Initialize a SolutionResults object with default or user-specified values.
 
         Args:
             **kwargs (Any): Optional arguments to override default attribute values.
@@ -813,8 +815,7 @@ class SolutionResults:
         self.__dict__.update(kwargs)
 
     def __str__(self) -> str:
-        """
-        Return a formatted string representation of the SolutionResults object.
+        """Return a formatted string representation of the SolutionResults object.
 
         Returns:
             (str): A string representation listing non-null attributes.

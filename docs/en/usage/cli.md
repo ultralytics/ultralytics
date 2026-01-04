@@ -84,7 +84,7 @@ Where:
 
 - `TASK` (optional) is one of `[detect, segment, classify, pose, obb]`. If not explicitly passed, YOLO will attempt to infer the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
-- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS`, see the [Configuration](cfg.md) page and `defaults.yaml`.
+- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. For a full list of available `ARGS`, see the [Configuration](cfg.md) page and `default.yaml`.
 
 !!! warning
 
@@ -237,7 +237,7 @@ You can then pass this file as `cfg=default_copy.yaml` along with any additional
 
 ## Solutions Commands
 
-Ultralytics provides ready-to-use solutions for common computer vision applications through the CLI. These solutions simplify implementation of complex tasks like object counting, workout monitoring, and queue management.
+Ultralytics provides ready-to-use solutions for common computer vision applications through the CLI. These solutions simplify the implementation of complex tasks like object counting, workout monitoring, and queue management.
 
 !!! example
 

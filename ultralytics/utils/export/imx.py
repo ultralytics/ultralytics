@@ -12,7 +12,7 @@ import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Segment
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, WINDOWS
 from ultralytics.utils.patches import onnx_export_patch
 from ultralytics.utils.tal import make_anchors
 from ultralytics.utils.torch_utils import copy_attr
@@ -306,9 +306,10 @@ def torch2imx(
     onnx.save(model_onnx, onnx_model)
 
     # Find imxconv-pt binary - check venv bin directory first, then PATH
-    imxconv = Path(sys.executable).parent / "imxconv-pt"
+    bin_dir = Path(sys.executable).parent
+    imxconv = bin_dir / ("imxconv-pt.exe" if WINDOWS else "imxconv-pt")
     if not imxconv.exists():
-        imxconv = which("imxconv-pt")
+        imxconv = which("imxconv-pt")  # fallback to PATH
     if not imxconv:
         raise FileNotFoundError("imxconv-pt not found. Install with: pip install imx500-converter[pt]")
 

@@ -35,7 +35,6 @@ Usage - formats:
 
 from __future__ import annotations
 
-import platform
 import re
 import threading
 from pathlib import Path

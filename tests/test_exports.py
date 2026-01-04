@@ -13,7 +13,6 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
-
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 # Define EXPORT_TEST_MATRIX for parametrized export tests
@@ -79,9 +78,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, nms", EXPORT_TEST_MATRIX
-)
+@pytest.mark.parametrize("task, dynamic, int8, half, batch, nms", EXPORT_TEST_MATRIX)
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO export to ONNX format with various configurations and parameters."""
     file = YOLO(TASK2MODEL[task]).export(
@@ -92,9 +89,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, nms):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, nms", EXPORT_TEST_MATRIX
-)
+@pytest.mark.parametrize("task, dynamic, int8, half, batch, nms", EXPORT_TEST_MATRIX)
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO model export to TorchScript format under varied configurations."""
     file = YOLO(TASK2MODEL[task]).export(

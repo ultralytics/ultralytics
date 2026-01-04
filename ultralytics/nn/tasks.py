@@ -407,7 +407,7 @@ class DetectionModel(BaseModel):
             self.model.train()  # Set model back to training(default) mode
             m.bias_init()  # only run once
         else:
-            self.stride = torch.Tensor([32])  # default stride for i.e. RTDETR
+            self.stride = torch.Tensor([32])  # default stride, e.g., RTDETR
 
         # Init weights, biases
         initialize_weights(self)
@@ -1590,7 +1590,7 @@ def parse_model(d, ch, verbose=True):
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]
-            if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
+            if c2 != nc:  # if c2 != nc (e.g., Classify() output)
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
                 args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)

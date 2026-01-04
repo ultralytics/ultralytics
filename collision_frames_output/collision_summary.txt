@@ -1,0 +1,30 @@
+============================================================
+COLLISION EVENTS VISUALIZATION SUMMARY
+============================================================
+
+Total events visualized: 15
+Output directory: collision_frames_output
+
+Saved files:
+  - collision_event_001_frame_00103_obj14_vs_obj16_MED.jpg
+  - collision_event_002_frame_00113_obj10_vs_obj14_MED.jpg
+  - collision_event_003_frame_00108_obj13_vs_obj15_MED.jpg
+  - collision_event_004_frame_00093_obj13_vs_obj14_MED.jpg
+  - collision_event_005_frame_00092_obj13_vs_obj14_MED.jpg
+  - collision_event_006_frame_00084_obj13_vs_obj14_MED.jpg
+  - collision_event_007_frame_00061_obj10_vs_obj11_MED.jpg
+  - collision_event_008_frame_00149_obj18_vs_obj25_MED.jpg
+  - collision_event_009_frame_00114_obj10_vs_obj14_MED.jpg
+  - collision_event_010_frame_00091_obj13_vs_obj14_MED.jpg
+  - collision_event_011_frame_00116_obj14_vs_obj16_MED.jpg
+  - collision_event_012_frame_00119_obj13_vs_obj15_MED.jpg
+  - collision_event_013_frame_00100_obj10_vs_obj14_MED.jpg
+  - collision_event_014_frame_00099_obj10_vs_obj16_MED.jpg
+  - collision_event_015_frame_00112_obj10_vs_obj14_MED.jpg
+
+============================================================
+Color Coding:
+  Object 1 (Blue):  Detection box + contact points
+  Object 2 (Green): Detection box + contact points
+  Info Box:         Distance, TTC, Contact type, Risk level
+============================================================

@@ -1,0 +1,30 @@
+{
+  "video": "videos/Homograph_Teset_FullScreen.mp4",
+  "frame_size": [
+    1080,
+    1920
+  ],
+  "method": "opencv_assisted",
+  "homography_matrix": [
+    [
+      8.165653350064218,
+      -1.4379762612519986,
+      -4684.41490302285
+    ],
+    [
+      0.021715646265525645,
+      0.12471803633941374,
+      -145.9444599357341
+    ],
+    [
+      0.007014084742812014,
+      -0.0006353953489887418,
+      1.0
+    ]
+  ],
+  "world_dimensions": {
+    "width_meters": 12.0,
+    "height_meters": 8.0,
+    "description": "Assumed rectangular road dimensions"
+  }
+}

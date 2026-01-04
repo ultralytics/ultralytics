@@ -1,0 +1,30 @@
+{
+  "video": "videos/homographTest_5s.mp4",
+  "frame_size": [
+    1920,
+    1080
+  ],
+  "method": "opencv_assisted",
+  "homography_matrix": [
+    [
+      0.08133584149709285,
+      0.22278947888334155,
+      -202.5863631236505
+    ],
+    [
+      -0.16383237881002363,
+      0.2691531937593249,
+      -38.477204394811466
+    ],
+    [
+      -0.016995782388739927,
+      0.02072704165059644,
+      1.0
+    ]
+  ],
+  "world_dimensions": {
+    "width_meters": 12.0,
+    "height_meters": 8.0,
+    "description": "Assumed rectangular road dimensions"
+  }
+}

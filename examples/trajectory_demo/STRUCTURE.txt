@@ -1,0 +1,230 @@
+================================================================================
+              碰撞检测Pipeline - 完整项目结构
+================================================================================
+
+
+ 📌 【启动文件】
+ run_pipeline.py                  ⭐ 运行pipeline的主脚   └─
+
+ 🎯 【核心代码】
+   ├── collision_detection_pipeline.py  ⭐ Pipeline实现（3个阶段）
+   ├── yolo_runner.py                   YOLO检测器
+   ├── object_state_manager.py          物体状态管理
+   ├── coord_transform.py               坐标变换工具
+   └── calibration.py                   Homography标定工具
+
+ 📖 【文档（你现在看的）】
+   ├── QUICK_START.md                   快速开始指南 ⭐
+   ├── PIPELINE_USAGE.md                详细使用说明 ⭐
+   └── STRUCTURE.txt                    项目结构（此文件）
+
+ 🔗 【输入/输出数据】（相对路径）
+    ├── ../../calibration/
+    │   └── Homograph_Teset_FullScreen_homography.json    (输入标定数据)
+    ├── ../../videos/
+ Homograph_Teset_FullScreen.mp4               (    │)   
+    └── ../../results/                                    (所有运行结果)
+        └── 20251218_225957/                              (时间戳文件夹)
+            ├── 1_homography/
+            │   ├── homography.json         (矩阵备份)
+            │   └── verify_original.jpg     (验证图)
+            ├── 2_warped_video/
+            │   └── warped.mp4              (变换)
+            ├── 3_collision_events/
+            │   ├── collision_events.json   (事件列表)
+            │   ├── analysis_report.txt     (分析报告)
+            │   ├── event_frame_0001.jpg    (碰撞事件帧)
+            │   └── ...
+            └── README.md                   (本次运行说明)
+
+================================================================================
+                         快速命令参考
+================================================================================
+
+pipeline目录】
+$ cd /workspace/ultralytics/examples/trajectory_demo
+
+完整项目结构
+$ python run_pipeline.py --help
+
+pipeline（标准参数）】
+$ python run_pipeline.py \
+    --video ../../videos/Homograph_Teset_FullScreen.mp4 \
+    --homography ../../calibration/Homograph_Teset_FullScreen_homography.json
+
+pipeline（自定义置信度）】
+$ python run_pipeline.py \
+    --video ../../videos/Homograph_Teset_FullScreen.mp4 \
+    --homography ../../calibration/Homograph_Teset_FullScreen_homography.json \
+    --conf 0.35
+
+
+$ ls -lh /workspace/ultralytics/results/ | tail -5
+
+
+$ cat /workspace/ultralytics/results/20251218_225957/3_collision_events/analysis_report.txt
+
+ls /JSON）】
+$ cat /workspace/ultralytics/results/20251218_225957/3_collision_events/collision_events.json
+
+
+$ ls /workspace/ultralytics/results/20251218_225957/3_collision_events/event_frame_*.jpg
+
+================================================================================
+                      Pipeline三个处理阶段
+================================================================================
+
+   ├─ 输入: Homography JSON文件
+   ├─ 处理: 验证标定矩阵和参考点
+   └─ 输出: 
+      ├─ homography.json (矩阵备份)
+      └─ verify_original.jpg (标注参考点的验证图)
+
+   ├─ 输入: 原始视频 + Homography矩阵
+   ├─ 处理: 应用透视变换 (H_inv @ A)
+   └─ 输出:
+      └─ warped.mp4 (鸟瞰图视频, 180×1200像素)
+
+   ├─ 输入: Warped视频 + YOLO模型
+   ├─ 处理: 物体检测 + 距离计算 + 碰撞识别
+   └─ 输出:
+      ├─ collision_events.json (所有碰撞事件, JSON格式)
+      ├─ analysis_report.txt (汇总报告)
+      ├─ event_frame_0001.jpg (碰撞事件帧截图)
+      ├─ event_frame_0002.jpg
+      └─ ...
+
+================================================================================
+                        关键配置参数
+================================================================================
+
+Pipeline参数】
+--video          输入视频路径                    (必需)
+--homography     Homography JSON路径             (必需)
+--output         结果输出基目录                  (默认: ../../results)
+--conf           YOLO置信度阈值 (0-1)           (默认: 0.45)
+
+#)
+
+ 碰撞距离阈值:  collision_detection_pipeline.py 第~150行
+  - 当前: 0.5m
+  - 修改: if distance < 0.5  →  if distance < YOUR_VALUE
+
+ 输出视频分辨率: collision_detection_pipeline.py 第~90行
+  - 当前: (180, 1200)
+  - 修改: output_size = (YOUR_WIDTH, YOUR_HEIGHT)
+
+ YOLO模型版本:  collision_detection_pipeline.py 第~115行
+  - 当前: yolo11n.pt (最轻量)
+  - 可选: yolo11s.pt, yolo11m.pt, yolo11l.pt (越来越重)
+
+================================================================================
+                         输出JSON格式
+================================================================================
+
+collision_events.json】
+[
+  {
+    "frame": 15,              # 帧号
+    "time": 0.5,              # 时间戳（秒）
+    "object_ids": [1, 2],     # 涉及的物体ID
+    "distance": 0.45,         # 距离（米）
+    "distance_str": "0.45m",  # 格式化距离
+    "frame_image": "event_frame_0015.jpg"  # 对应的截图
+  },
+  ...
+]
+
+================================================================================
+                          调试和优化
+================================================================================
+
+): 未检测到物体】
+ls /workspace/
+#
+::: python run_pipeline.py ... --conf 0.3
+
+): 检测太灵敏（误报）】
+: 置信度阈值过低
+#
+::: python run_pipeline.py ... --conf 0.6
+
+): Warped视频质量差】
+#
+:
+  1. verify_original.jpg 中的参考点是否正确
+  2. homography.json 中 calibration_error 是否接近0
+  3. 原始视频是否清晰
+
+
+$ cat ../../results/20251218_225957/3_collision_events/analysis_report.txt
+
+================================================================================
+                         版本和依赖
+================================================================================
+
+Required:
+  • Python 3.7+
+  • OpenCV (cv2)
+  • NumPy
+  • YOLOv11 (ultralytics)
+  • PyYAML
+
+: yolo11n.pt (需自动下载，首次运行较慢)
+
+================================================================================
+                          示例工作流
+================================================================================
+
+
+$ cd /workspace/ultralytics/examples/trajectory_demo
+$ python run_pipeline.py \
+    --video ../../videos/Homograph_Teset_FullScreen.mp4 \
+    --homography ../../calibration/Homograph_Teset_FullScreen_homography.json
+
+
+$ cat /workspace/ultralytics/results/20251218_225957/3_collision_events/analysis_report.txt
+
+
+$ python run_pipeline.py \
+    --video ../../videos/Homograph_Teset_FullScreen.mp4 \
+    --homography ../../calibration/Homograph_Teset_FullScreen_homography.json \
+    --conf 0.35   # 更敏感的检测
+
+
+$ ls -lh /workspace/ultralytics/results/
+$ # 每次运行都会生成一个新的时间戳文件夹
+
+================================================================================
+                      获取更多帮助
+================================================================================
+
+ls /workspace:
+  $ cat QUICK_START.md
+
+:
+  $ cat PIPELINE_USAGE.md
+
+README:
+  $ cat /workspace/ultralytics/results/20251218_225957/README.md
+
+Pipeline源码:
+  $ less collision_detection_pipeline.py
+
+完整项目结构:
+  $ python run_pipeline.py --help
+
+================================================================================
+                           完成！
+================================================================================
+
+ Pipeline已安装并测试成功
+ 已生成示例运行结果 (20251218_225957/)
+ 所有文档已准备好
+ 可立即开始使用
+
+:
+  $ cd /workspace/ultralytics/examples/trajectory_demo
+  $ python run_pipeline.py --help
+
+================================================================================

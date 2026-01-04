@@ -8,7 +8,6 @@ import pytest
 
 from ultralytics import YOLO
 from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
-
 from ultralytics.utils.downloads import safe_download
 
 # Lock TTL for video asset downloads (in seconds)
@@ -145,11 +144,8 @@ def solutions_videos(tmp_path_factory):
         "workout_small.mp4",
     ]
 
-
-
     lock_dir = video_dir / "download_lock"
     lock_acquired = False
-
 
     try:
         # Simple spin-lock (max ~30s)

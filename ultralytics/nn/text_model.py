@@ -298,7 +298,7 @@ class MobileCLIPTS(TextModel):
         >>> features = text_encoder.encode_text(tokens)
     """
 
-    def __init__(self, device: torch.device):
+    def __init__(self, clip_weight_name="mobileclip_blt.ts", device: torch.device="cuda"):
         """
         Initialize the MobileCLIP TorchScript text encoder.
 
@@ -316,7 +316,7 @@ class MobileCLIPTS(TextModel):
         super().__init__()
         from ultralytics.utils.downloads import attempt_download_asset
 
-        self.encoder = torch.jit.load(attempt_download_asset("mobileclip_blt.ts"), map_location=device)
+        self.encoder = torch.jit.load(attempt_download_asset(clip_weight_name), map_location=device)
         self.tokenizer = clip.clip.tokenize
         self.device = device
 
@@ -365,7 +365,7 @@ import copy
 
 class OpenCLIP(TextModel):
 
-    def __init__(self,device,  pretrained_path="mobileclip2_b.pt"):
+    def __init__(self,device,  pretrained_path="mobileclip2_b.ts"):
         """
         Initializes the model, tokenizer, and preprocessing steps.
         """
@@ -454,10 +454,10 @@ def build_text_model(variant: str, device: torch.device = None) -> TextModel:
     """
     base, size = variant.split(":")
     if base == "clip":
-        return CLIP(size, device)
+        return CLIP(size, device=device)
     elif base == "mobileclip":
-        return MobileCLIPTS(device)
+        return MobileCLIPTS(clip_weight_name="mobileclip_blt.ts",device=device)
     elif base == "mobileclip2":
-        return OpenCLIP(device)
+        return MobileCLIPTS(clip_weight_name="mobileclip2_b.ts",device=device)
     else:
-        raise ValueError(f"Unrecognized base model: '{base}'. Supported base models: 'clip', 'mobileclip'.")
+        raise ValueError(f"Unrecognized base model: '{base}'. Supported base models: 'clip', 'mobileclip', 'mobileclip2'.")

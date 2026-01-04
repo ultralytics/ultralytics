@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from shutil import which
 import subprocess
+import sys
 import types
 from pathlib import Path
 
@@ -303,8 +305,15 @@ def torch2imx(
 
     onnx.save(model_onnx, onnx_model)
 
+    # Find imxconv-pt binary - check venv bin directory first, then PATH
+    imxconv = Path(sys.executable).parent / "imxconv-pt"
+    if not imxconv.exists():
+        imxconv = which("imxconv-pt")
+    if not imxconv:
+        raise FileNotFoundError("imxconv-pt not found. Install with: pip install imx500-converter[pt]")
+
     subprocess.run(
-        ["imxconv-pt", "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
+        [str(imxconv), "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
         check=True,
     )
 

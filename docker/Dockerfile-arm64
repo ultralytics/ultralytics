@@ -8,11 +8,12 @@
 # Start FROM official arm64v8 Ubuntu 24.04 image https://hub.docker.com/layers/arm64v8/ubuntu/24.04/
 FROM arm64v8/ubuntu:24.04
 
-# Set environment variables
+# Set environment variables (suppress PyTorch NNPACK warnings)
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_BREAK_SYSTEM_PACKAGES=1
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    TORCH_CPP_LOG_LEVEL=ERROR
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \

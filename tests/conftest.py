@@ -1,10 +1,11 @@
-
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import shutil
-from pathlib import Path
 import time
+from pathlib import Path
+
 import pytest
+
 from ultralytics import YOLO
 from ultralytics.utils import ASSETS_URL, WEIGHTS_DIR
 
@@ -69,8 +70,6 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         shutil.rmtree(directory, ignore_errors=True)
 
 
-
-
 # Mapping of task names to their standard weight files
 MODEL_WEIGHTS = {
     "detect": "yolo11n.pt",
@@ -80,12 +79,12 @@ MODEL_WEIGHTS = {
     "obb": "yolo11n-obb.pt",
 }
 
+
 @pytest.fixture(scope="session")
 def model_factory():
-    """
-    Session-scoped factory for YOLO models.
+    """Session-scoped factory for YOLO models.
 
-    NOTE:
+    Notes:
     With pytest-xdist this is instantiated once per worker,
     which is thread-safe and still significantly faster than
     loading models per-test.
@@ -102,34 +101,38 @@ def model_factory():
 
     return _get_model
 
+
 # Backwards-compatible task-specific fixtures
 @pytest.fixture(scope="session")
 def yolo_model(model_factory):
     return model_factory("detect")
 
+
 @pytest.fixture(scope="session")
 def yolo_seg_model(model_factory):
     return model_factory("segment")
+
 
 @pytest.fixture(scope="session")
 def yolo_cls_model(model_factory):
     return model_factory("classify")
 
+
 @pytest.fixture(scope="session")
 def yolo_pose_model(model_factory):
     return model_factory("pose")
+
 
 @pytest.fixture(scope="session")
 def yolo_obb_model(model_factory):
     return model_factory("obb")
 
+
 @pytest.fixture(scope="session")
 def solutions_videos(tmp_path_factory):
-    """
-    Pre-download solution videos once per session.
+    """Pre-download solution videos once per session.
 
-    Uses a simple lock directory to prevent race conditions when
-    running with pytest-xdist.
+    Uses a simple lock directory to prevent race conditions when running with pytest-xdist.
     """
     # Shared directory across all workers
     root_tmp_dir = tmp_path_factory.getbasetemp().parent
@@ -147,26 +150,6 @@ def solutions_videos(tmp_path_factory):
     lock_dir = video_dir / "download_lock"
     lock_acquired = False
 
-    # Stale lock removal before acquisition (robust against TOCTOU)
-    try:
-        stat = lock_dir.stat()
-        age = time.time() - stat.st_mtime
-        owner_token = None
-        owner_file = lock_dir / "owner"
-        if owner_file.exists():
-            try:
-                with open(owner_file, "r") as f:
-                    owner_token = f.read().strip()
-            except Exception:
-                owner_token = None
-        # Remove lock only if stale and owner token is absent or indicates stale
-        if age > LOCK_TTL and not owner_token:
-            try:
-                lock_dir.rmdir()
-            except (FileNotFoundError, OSError):
-                pass  # Directory was claimed or removed in the meantime
-    except FileNotFoundError:
-        pass  # Lock does not exist, nothing to clean up
 
     try:
         # Simple spin-lock (max ~30s)

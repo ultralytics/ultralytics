@@ -45,7 +45,7 @@ from .utils import (
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
 DATASET_CACHE_VERSION = "1.0.3"
 # CACHE_SUFFIX=".cache"
-CACHE_SUFFIX=".engine.cache" #
+CACHE_SUFFIX=".engine1.cache" #
 #CACHE_SUFFIX=".cache" # refine
 
 
@@ -238,6 +238,7 @@ class YOLODataset(BaseDataset):
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,
                 bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
+                semseg_loss=hyp.semseg_loss if "train" in self.prefix else False,
             )
         )
         return transforms
@@ -309,7 +310,7 @@ class YOLODataset(BaseDataset):
                 value = torch.stack(value, 0)
             elif k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
-            if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
+            if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb", "sem_masks"}:
                 value = torch.cat(value, 0)
             new_batch[k] = value
         new_batch["batch_idx"] = list(new_batch["batch_idx"])
@@ -456,7 +457,7 @@ class GroundingDataset(YOLODataset):
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
-        assert CACHE_SUFFIX in {".cache", ".engine.segment.cache", ".engine.cache",".engine1.cache"}, f"cache_suffix must be either '.cache' or '.merged.cache', but got {CACHE_SUFFIX}"
+        # assert CACHE_SUFFIX in {".cache", ".engine.segment.cache", ".engine.cache"}, f"cache_suffix must be either '.cache' or '.merged.cache', but got {CACHE_SUFFIX}"
 
     def get_img_files(self, img_path: str) -> list:
         """

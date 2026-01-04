@@ -84,9 +84,11 @@ from .head import (
     Pose,
     RTDETRDecoder,
     Segment,
+    Segment26,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
+    YOLOESegment26,
     v10Detect,
 )
 from .transformer import (
@@ -170,6 +172,7 @@ __all__ = (
     "ResNetLayer",
     "SCDown",
     "Segment",
+    "Segment26",
     "SpatialAttention",
     "TorchVision",
     "TransformerBlock",
@@ -178,5 +181,6 @@ __all__ = (
     "WorldDetect",
     "YOLOEDetect",
     "YOLOESegment",
+    "YOLOESegment26",
     "v10Detect",
 )

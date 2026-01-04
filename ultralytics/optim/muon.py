@@ -2,6 +2,7 @@ from __future__ import annotations
 from torch import optim
 import torch
 import math
+import re
 
 
 def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
@@ -207,13 +208,25 @@ class MuSGD(optim.Optimizer):
             with torch.enable_grad():
                 loss = closure()
 
+        pattern = r'(?=.*23)(?=.*cv3)|proto\.semseg'
         for group in self.param_groups:
             # Muon
             if group["use_muon"]:
                 # generate weight updates in distributed fashion
-                for p in group["params"]:
+                for i, p in enumerate(group["params"]):
+                    lr = (
+                        group["lr"] * self.cls_w
+                        if  "param_names" in group.keys() and group["param_names"] is not None
+                        and bool(re.search(pattern, group["param_names"][i]))
+                        # and "cv3" in group["param_names"][i]
+                        # and "23" in group["param_names"][i]
+                        # and int(group["param_names"][i].split(".")[1]) in list(range(11, 24))
+                        else group["lr"]
+                    )
                     if p.grad is None:
                         continue
+                        # p.grad = torch.zeros_like(p)  # Force synchronization
+
                     grad = p.grad
                     state = self.state[p]
                     if len(state) == 0:
@@ -238,9 +251,19 @@ class MuSGD(optim.Optimizer):
                     )
                     p.add_(sgd_update, alpha=-group["lr"] * self.sgd)
             else:  # SGD
-                for p in group["params"]:
+                for i, p in enumerate(group["params"]):
+                    lr = (
+                        group["lr"] * self.cls_w
+                        if "param_names" in group.keys() and  group["param_names"] is not None
+                        and bool(re.search(pattern, group["param_names"][i]))
+                        # and "cv3" in group["param_names"][i]
+                        # and "23" in group["param_names"][i]
+                        # and int(group["param_names"][i].split(".")[1]) in list(range(11, 24))
+                        else group["lr"]
+                    )
                     if p.grad is None:
                         continue
+                        # p.grad = torch.zeros_like(p)  # Force synchronization
                     grad = p.grad
                     if group["weight_decay"] != 0:
                         grad = grad.add(p, alpha=group["weight_decay"])

@@ -1,9 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import io
 import shutil
 import uuid
-from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
 
@@ -13,7 +11,7 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_8, TORCH_2_9
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 # ONNX export matrix (preserves original constraints)
 EXPORT_ONNX_MATRIX = [
@@ -178,7 +176,6 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
 @pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
-
 # ONNX
 @pytest.mark.slow
 @pytest.mark.parametrize("task, dynamic, batch, nms, simplify", EXPORT_ONNX_MATRIX)
@@ -193,6 +190,7 @@ def test_export_onnx_matrix(task, dynamic, batch, nms, simplify):
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)
     Path(file).unlink()
+
 
 # TorchScript
 @pytest.mark.slow
@@ -209,7 +207,8 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
     )
     YOLO(file)([SOURCE] * batch)
     Path(file).unlink()
-    
+
+
 def test_export_mnn_matrix(task, int8, half, batch):
     """Test YOLO export to MNN format considering various export configurations."""
     file = YOLO(TASK2MODEL[task]).export(format="mnn", imgsz=32, int8=int8, half=half, batch=batch)

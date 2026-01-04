@@ -24,6 +24,10 @@ from ultralytics import YOLO
 from object_state_manager import ObjectStateManager
 import coord_transform
 
+# 导入Homography变换工具（用于正确的透视变换）
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from homography_transform_utils import load_homography, compute_transformation_matrix, transform_frame_manual
+
 
 class CollisionDetectionPipeline:
     def __init__(self, video_path, homography_path, output_base='../../results'):
@@ -103,51 +107,46 @@ class CollisionDetectionPipeline:
         return frame_marked
     
     def transform_video(self):
-        """对视频进行透视变换"""
+        """对视频进行透视变换 - 使用正确的手工逐像素变换方法"""
         print(f"\n【步骤2: 视频透视变换】")
         
+        # 使用正确的输出尺寸（与homography标定一致）
+        # 原始视频：1920×1080，标定点范围7.5米×50米
+        # 输出：180×1200（宽×高）
+        output_size = (180, 1200)
+        
         # 计算输出→像素的映射矩阵
-        min_x = min(w[0] for w in self.world_points)
-        max_x = max(w[0] for w in self.world_points)
-        min_y = min(w[1] for w in self.world_points)
-        max_y = max(w[1] for w in self.world_points)
-        
-        world_bounds = (min_x, max_x, min_y, max_y)
-        # 增大分辨率以获得更好的检测效果
-        # OpenCV warpPerspective需要 (宽, 高) 顺序！
-        output_width = 2400
-        output_height = 360
-        output_size = (output_width, output_height)
-        
-        # 构造A矩阵（输出→世界）
-        world_width = max_x - min_x
-        world_height = max_y - min_y
-        A = np.array([
-            [world_width / output_width, 0, min_x],
-            [0, -world_height / output_height, max_y],
-            [0, 0, 1]
-        ], dtype=np.float32)
-        
-        # 计算M = H_inv @ A（输出→像素）
-        H_inv = np.linalg.inv(self.H)
-        M = H_inv @ A
+        M, world_bounds = compute_transformation_matrix(self.H, self.world_points, output_size)
+        min_x, max_x, min_y, max_y = world_bounds
         
         # 处理视频
         cap = cv2.VideoCapture(self.video_path)
         fps = cap.get(cv2.CAP_PROP_FPS)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         
-        warped_path = self.warped_video_dir / 'warped.mp4'
-        # 使用更兼容的编码（H.264 而不是H.265）
-        fourcc = cv2.VideoWriter_fourcc(*'avc1')  # H.264编码，更兼容
+        # 生成带时间戳的输出文件名
+        input_path = Path(self.video_path)
+        video_name = input_path.stem  # 去除扩展名
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_filename = f"{video_name}_warped_{timestamp}.mp4"
+        warped_path = self.warped_video_dir / output_filename
+        
+        # 使用mp4v编码（与homography_transform_video.py保持一致）
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(str(warped_path), fourcc, fps, output_size)
         
         if not out.isOpened():
-            # 如果avc1失败，尝试其他编码
+            print(f"[WARNING] mp4v codec failed, trying h264...")
+            fourcc = cv2.VideoWriter_fourcc(*'avc1')  # H.264编码
+            out = cv2.VideoWriter(str(warped_path), fourcc, fps, output_size)
+        
+        if not out.isOpened():
+            print(f"[WARNING] h264 codec failed, trying DIVX...")
             fourcc = cv2.VideoWriter_fourcc(*'DIVX')
             out = cv2.VideoWriter(str(warped_path), fourcc, fps, output_size)
         
         print(f"处理中: {total_frames}帧 @ {fps:.2f}FPS...")
+        print(f"输出尺寸: {output_size[0]}×{output_size[1]} (宽×高)")
         
         frame_count = 0
         while True:
@@ -155,8 +154,8 @@ class CollisionDetectionPipeline:
             if not ret:
                 break
             
-            # 使用warpPerspective变换
-            warped = cv2.warpPerspective(frame, M, output_size)
+            # 使用手工逐像素变换（规避OpenCV warpPerspective数值稳定性问题）
+            warped = transform_frame_manual(frame, M, output_size)
             out.write(warped)
             
             frame_count += 1
@@ -168,6 +167,7 @@ class CollisionDetectionPipeline:
         
         print(f"✓ warped视频已保存: {warped_path.name}")
         print(f"  分辨率: {output_size[0]}×{output_size[1]}")
+        print(f"  世界坐标范围: X=[{min_x:.2f}, {max_x:.2f}]m, Y=[{min_y:.2f}, {max_y:.2f}]m")
         self.warped_video_path = str(warped_path)
         return str(warped_path)
     

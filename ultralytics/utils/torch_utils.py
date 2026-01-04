@@ -723,8 +723,8 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
     }
 
     # Update model
-    if x.get("ema"):
-        x["model"] = x["ema"]  # replace model with EMA
+    # if x.get("ema"):
+    #     x["model"] = x["ema"]  # replace model with EMA
     if hasattr(x["model"], "args"):
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
     if hasattr(x["model"], "criterion"):
@@ -735,7 +735,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
 
     # Update other keys
     args = {**DEFAULT_CFG_DICT, **x.get("train_args", {})}  # combine args
-    for k in "optimizer", "best_fitness", "ema", "updates", "scaler":  # keys
+    for k in "optimizer", "best_fitness", "updates", "scaler":  # keys
         x[k] = None
     x["epoch"] = -1
     x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys

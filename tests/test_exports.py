@@ -13,7 +13,17 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
+
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_8, TORCH_2_9
+
+# Define EXPORT_TEST_MATRIX for parametrized export tests
+EXPORT_TEST_MATRIX = [
+    (task, dynamic, int8, half, batch, nms)
+    for task, dynamic, int8, half, batch, nms in product(
+        TASKS, [True, False], [True, False], [True, False], [1, 2], [True, False]
+    )
+    if not (int8 and half) and not (task == "classify" and nms)
+]
 
 
 def test_export_torchscript():
@@ -70,19 +80,12 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, simplify, nms",
-    [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, simplify, nms)
-        for task, dynamic, int8, half, batch, simplify, nms in product(
-            TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
-        )
-        if not ((int8 and half) or (task == "classify" and nms) or (nms and not TORCH_1_13))
-    ],
+    "task, dynamic, int8, half, batch, nms", EXPORT_TEST_MATRIX
 )
-def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
+def test_export_onnx_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO export to ONNX format with various configurations and parameters."""
     file = YOLO(TASK2MODEL[task]).export(
-        format="onnx", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, simplify=simplify, nms=nms
+        format="onnx", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     Path(file).unlink()  # cleanup
@@ -90,14 +93,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, nms",
-    [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, nms)
-        for task, dynamic, int8, half, batch, nms in product(
-            TASKS, [False, True], [False], [False, True], [1, 2], [True, False]
-        )
-        if not (task == "classify" and nms)
-    ],
+    "task, dynamic, int8, half, batch, nms", EXPORT_TEST_MATRIX
 )
 def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO model export to TorchScript format under varied configurations."""

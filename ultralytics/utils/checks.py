@@ -457,7 +457,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             # Use --python to explicitly target current interpreter (venv or system)
             # This ensures correct installation when VIRTUAL_ENV env var isn't set
             return subprocess.check_output(
-                f"uv pip install --no-cache-dir --python {sys.executable} {packages} {commands} "
+                f'uv pip install --no-cache-dir --python "{sys.executable}" {packages} {commands} '
                 f"--index-strategy=unsafe-best-match --break-system-packages",
                 shell=True,
                 stderr=subprocess.STDOUT,

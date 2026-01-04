@@ -5,15 +5,29 @@ homography_transform_video.py
 将视频应用Homography透视变换，得到鸟瞰图效果
 使用手工逐像素变换+双线性插值方法（已验证有效）
 
-用法：
-  python homography_transform_video.py \
-    --input videos/Homograph_Teset_FullScreen.mp4 \
-    --homography calibration/Homograph_Teset_FullScreen_homography.json \
-    --output videos/Homograph_Teset_FullScreen_warped.mp4
+用法1（自动生成输出文件名）：
+  python homography_transform_video.py \\
+    --input videos/Homograph_Teset_FullScreen.mp4 \\
+    --homography calibration/Homograph_Teset_FullScreen_homography.json
+  
+  输出文件名自动为: results/warped_videos/Homograph_Teset_FullScreen_YYYYMMDD_HHMMSS.mp4
+
+用法2（指定输出文件）：
+  python homography_transform_video.py \\
+    --input videos/video.mp4 \\
+    --homography calibration/homography.json \\
+    --output my_output.mp4
+
+用法3（仅验证第一帧）：
+  python homography_transform_video.py \\
+    --input videos/video.mp4 \\
+    --homography calibration/homography.json \\
+    --verify-only
 
 核心特性：
 - 手工逐像素变换（规避OpenCV warpPerspective的bug）
 - 双线性插值确保图像质量
+- 自动生成时间戳文件名：原始视频名_YYYYMMDD_HHMMSS.mp4
 - 进度显示
 - 验证第一帧
 """
@@ -24,6 +38,7 @@ import json
 import argparse
 import os
 from pathlib import Path
+from datetime import datetime
 
 
 def load_homography(json_path):
@@ -247,7 +262,8 @@ def main():
     parser = argparse.ArgumentParser(description='Apply Homography perspective transform to video')
     parser.add_argument('--input', '-i', required=True, help='Input video file')
     parser.add_argument('--homography', '-H', required=True, help='Homography JSON file')
-    parser.add_argument('--output', '-o', default=None, help='Output video file')
+    parser.add_argument('--output', '-o', default=None, help='Output video file (auto-generated if not specified)')
+    parser.add_argument('--output-dir', '-d', default='results/warped_videos', help='Output directory (default: results/warped_videos)')
     parser.add_argument('--width', type=int, default=180, help='Output width (default: 180)')
     parser.add_argument('--height', type=int, default=1200, help='Output height (default: 1200)')
     parser.add_argument('--verify-only', action='store_true', help='Only verify first frame')
@@ -265,9 +281,24 @@ def main():
         print("[INFO] Verify-only mode: skipping full video processing")
         return 0
     
+    # 如果没有指定output，自动生成
     if args.output is None:
-        print("[ERROR] --output is required when not using --verify-only")
-        return 1
+        # 提取原始视频名（不含扩展名）
+        input_path = Path(args.input)
+        video_name = input_path.stem  # 不含扩展名
+        
+        # 生成时间戳
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # 创建输出目录
+        output_dir = Path(args.output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 生成输出文件名：原始视频名_YYYYMMDD_HHMMSS.mp4
+        output_filename = f"{video_name}_{timestamp}.mp4"
+        args.output = str(output_dir / output_filename)
+        
+        print(f"[INFO] Auto-generated output file: {args.output}")
     
     # 处理整个视频
     success = transform_video(args.input, args.homography, args.output, output_size)

@@ -12,12 +12,12 @@ import torch
 
 from ultralytics.models import yolo
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, YAML
-from ultralytics.models.yolo.stereo3ddet.visualize import plot_stereo_sample
+from ultralytics.models.yolo.stereo3ddet.visualize import labels_to_box3d, plot_stereo_sample
 from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
 from ultralytics.data import build_dataloader
 from ultralytics.data.stereo.target_improved import TargetGenerator as TargetGeneratorImproved
-from ultralytics.utils.plotting import plot_labels
+from ultralytics.utils.plotting import VisualizationConfig, plot_labels, plot_stereo3d_boxes
 
 class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
     """Stereo 3D Detection trainer.
@@ -322,16 +322,31 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         return out if isinstance(out, torch.Tensor) else torch.tensor(0.0, device=imgs.device), {"out": out}
 
     def plot_training_samples(self, batch: dict[str, Any], ni: int) -> None:
-        """Plot left-image training samples (default) plus stereo pairs using the existing dataset layout.
+        """Plot training samples as a 2-column grid for clarity.
 
-        This supplements the default detection plot with a stereo visualization by loading the matching right image
-        and labels from `self.data['path']`.
+        Layout (per row/sample):
+        - Left column: LEFT image with 2D boxes
+        - Right column: LEFT image with 3D wireframes (projected), not the right-camera image
         """
         assert 'im_file' in batch, "im_file is required in batch"
         im_files = batch["im_file"]
+        calibs = batch.get("calib", None)
         # Prepare up to 4 stereo previews per batch
         previews = min(4, len(im_files))
         canvas_list = []
+
+        def _add_title(img: np.ndarray, title: str) -> np.ndarray:
+            """Add a small title banner to the top-left of an image (BGR)."""
+            out = img.copy()
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 0.7
+            thickness = 2
+            (tw, th), baseline = cv2.getTextSize(title, font, font_scale, thickness)
+            pad = 6
+            x, y = 8, 8 + th
+            cv2.rectangle(out, (x - pad, y - th - pad), (x + tw + pad, y + baseline + pad), (0, 0, 0), -1)
+            cv2.putText(out, title, (x, y), font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+            return out
 
         for i in range(previews):
             _6_channel_img = batch["img"][i]
@@ -342,10 +357,62 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             _6_channel_img = _6_channel_img.cpu().numpy()
             # Batch images are stored as RGB; OpenCV drawing/saving expects BGR.
             left_img = (_6_channel_img[:3, :].transpose(1, 2, 0) * 255).astype(np.uint8)[..., ::-1].copy()
-            right_img = (_6_channel_img[3:, :].transpose(1, 2, 0) * 255).astype(np.uint8)[..., ::-1].copy()
             labels = batch["labels"][i]
-            L, R = plot_stereo_sample(left_img, right_img, labels, class_names=self.data["names"])
-            panel = np.concatenate([L, R], axis=1)
+            calib_i = None
+            if isinstance(calibs, (list, tuple)) and i < len(calibs):
+                calib_i = calibs[i]
+
+            # ------------------------------------------------------------------
+            # Left column: 2D boxes on LEFT image
+            # ------------------------------------------------------------------
+            L2, _ = plot_stereo_sample(
+                left_img,
+                left_img.copy(),  # dummy, not used (we intentionally avoid right-camera visualization)
+                labels,
+                class_names=self.data["names"],
+                color=(0, 255, 255),  # yellow (BGR)
+                thickness=2,
+                font_scale=0.55,
+            )
+            L2 = _add_title(L2, "2D (left)")
+
+            # ------------------------------------------------------------------
+            # Right column: 3D wireframes on a separate LEFT-image view (cleaner)
+            # ------------------------------------------------------------------
+            L3 = left_img.copy()
+            if isinstance(calib_i, dict):
+                boxes3d = labels_to_box3d(
+                    labels=labels,
+                    calib=calib_i,
+                    image_hw=L3.shape[:2],
+                    class_names=self.data["names"],
+                )
+                if boxes3d:
+                    class_ids = {int(b.class_id) for b in boxes3d}
+                    magenta = (255, 0, 255)  # BGR
+                    scheme = {cid: magenta for cid in class_ids}
+                    cfg = VisualizationConfig(
+                        line_width=2,
+                        font_size=0.5,
+                        show_labels=True,
+                        show_conf=False,
+                        gt_color_scheme=scheme,
+                    )
+                    L3, _, _ = plot_stereo3d_boxes(
+                        left_img=L3,
+                        right_img=L3.copy(),  # dummy
+                        pred_boxes3d=None,
+                        gt_boxes3d=boxes3d,
+                        left_calib=calib_i,
+                        right_calib=calib_i,
+                        config=cfg,
+                        letterbox_scale=None,
+                        letterbox_pad_left=None,
+                        letterbox_pad_top=None,
+                    )
+            L3 = _add_title(L3, "3D (proj)")
+
+            panel = np.concatenate([L2, L3], axis=1)
 
             # Add filename to the top-left corner of each rendered stereo panel for easier debugging.
             filename = Path(str(im_files[i])).name

@@ -105,6 +105,6 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 
 ---
 
-For more resources, explore the [Ultralytics documentation](https://docs.ultralytics.com/), [Ultralytics blog](https://www.ultralytics.com/blog), and [Ultralytics HUB](https://docs.ultralytics.com/hub/).
+For more resources, explore the [Ultralytics documentation](https://docs.ultralytics.com/) and [Ultralytics blog](https://www.ultralytics.com/blog).
 
 **We encourage your contributions to help improve this project.**

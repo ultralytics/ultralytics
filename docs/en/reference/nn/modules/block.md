@@ -1,5 +1,5 @@
 ---
-description: Explore detailed documentation of block modules in Ultralytics, available for deep learning tasks. Contribute and improve the codebase!.
+description: Explore detailed documentation of block modules in Ultralytics, available for deep learning tasks. Contribute and improve the codebase.
 keywords: Ultralytics, YOLO, neural networks, block modules, DFL, Proto, HGStem, HGBlock, SPP, SPPF, C1, C2, C2f, C3, C3x, RepC3, C3TR, C3Ghost, GhostBottleneck, Bottleneck, BottleneckCSP, ResNetBlock, MaxSigmoidAttnBlock, ImagePoolingAttn, ContrastiveHead, RepBottleneck, RepCSP, RepNCSPELAN4, ADown, SPPELAN, Silence, CBLinear, CBFuse
 ---
 

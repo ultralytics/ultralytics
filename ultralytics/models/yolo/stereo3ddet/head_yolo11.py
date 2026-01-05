@@ -18,22 +18,17 @@ def _branch(in_ch: int, out_ch: int, hidden: int = 256) -> nn.Sequential:
     )
 
 
-class Stereo3DDetHeadYOLO11(nn.Module):
-    """P3-only stereo3ddet head that reuses YOLO11 Detect assignment for positives.
+class Stereo3DDetHeadYOLO11(Detect):
+    """P3-only stereo3ddet head implemented as a Detect subclass (like Segment/Pose).
 
-    Outputs:
-      - det: YOLO Detect head outputs (list with 1 feature map) for bbox/cls (DFL format).
-      - aux branches: dense maps aligned with P3 grid, trained only on assigner positives.
+    This keeps YOLO's standard Detect behavior (stride/bias init, export behavior) while returning a dict:
+      - det: Detect outputs (training: list[Tensor], inference: (y, x))
+      - aux branches: dense maps aligned with P3 grid
     """
 
     def __init__(self, nc: int, ch: int = 256):
-        super().__init__()
-        self.nc = nc
+        super().__init__(nc=nc, ch=(ch,))  # P3-only Detect
 
-        # YOLO11-style bbox+cls head (P3-only = single detection layer).
-        self.detect = Detect(nc=nc, ch=(ch,))
-
-        # Auxiliary stereo/3D branches (kept dense, masked by fg_mask in loss).
         self.aux = nn.ModuleDict(
             {
                 "lr_distance": _branch(ch, 1),
@@ -47,15 +42,15 @@ class Stereo3DDetHeadYOLO11(nn.Module):
         )
 
     def forward(self, x: List[torch.Tensor]) -> Dict[str, torch.Tensor]:
-        # x is a list of feature maps from the neck; for P3-only we expect length==1.
         if not isinstance(x, list):
             x = [x]
         if len(x) != 1:
-            # Keep it strict for P3-only first iteration to avoid silent shape bugs.
             raise ValueError(f"Stereo3DDetHeadYOLO11 expects 1 feature map (P3-only), got {len(x)}")
 
         feat = x[0]
-        out: Dict[str, torch.Tensor] = {"det": self.detect([feat])}
+        det_out = super().forward([feat])  # keep Detect semantics (training vs inference)
+
+        out: Dict[str, torch.Tensor] = {"det": det_out}
         for k, m in self.aux.items():
             out[k] = m(feat)
         return out

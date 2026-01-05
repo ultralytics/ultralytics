@@ -115,7 +115,10 @@ class Stereo3DDetDataset(Dataset):
         )
 
     def _get_image_ids(self) -> list[str]:
-        """Return image ids that exist in both left and right directories."""
+        """Return image ids that exist in left/right dirs AND have required metadata files.
+
+        This prevents runtime errors where an image exists but its calibration file is missing.
+        """
         left_files = sorted(self.left_dir.glob("*.png"))
         if not left_files:
             left_files = sorted(self.left_dir.glob("*.jpg"))
@@ -123,10 +126,22 @@ class Stereo3DDetDataset(Dataset):
         image_ids: list[str] = []
         for lf in left_files:
             rf = self.right_dir / lf.name
-            if rf.exists():
-                image_ids.append(lf.stem)
-            else:
-                LOGGER.warning(f"Missing right image for {lf.stem}, skipping")
+            image_id = lf.stem
+            if not rf.exists():
+                LOGGER.warning(f"Missing right image for {image_id}, skipping")
+                continue
+
+            calib_file = self.calib_dir / f"{image_id}.txt"
+            if not calib_file.exists():
+                LOGGER.warning(f"Missing calibration for {image_id}, skipping: {calib_file}")
+                continue
+
+            label_file = self.label_dir / f"{image_id}.txt"
+            if not label_file.exists():
+                LOGGER.warning(f"Missing label file for {image_id}, skipping: {label_file}")
+                continue
+
+            image_ids.append(image_id)
         return image_ids
 
     def _parse_calibration(self, calib_file: Path) -> dict[str, Any]:

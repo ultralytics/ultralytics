@@ -433,7 +433,11 @@ class DetectionModel(BaseModel):
                 """Perform a forward pass through the model, handling different Detect subclass types accordingly."""
                 if self.end2end:
                     return self.forward(x)["one2many"]
-                return self.forward(x)[0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else self.forward(x)
+                out = self.forward(x)
+                # Some custom heads (e.g. stereo3ddet YOLO11-mapped) return dicts that contain Detect outputs under 'det'.
+                if isinstance(out, dict) and "det" in out:
+                    return out["det"]
+                return out[0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else out
 
             self.model.eval()  # Avoid changing batch statistics until training begins
             m.training = True  # Setting it to True to properly return strides

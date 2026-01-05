@@ -47,11 +47,10 @@ class Stereo3DDetLossYOLO11P3(nn.Module):
         super().__init__()
         device = next(model.parameters()).device
 
-        m = model.model[-1]
-        # Detect() module lives inside our head as `detect`.
-        detect = getattr(m, "detect", None)
-        if detect is None:
-            raise AttributeError("Stereo3DDetLossYOLO11P3 expected model.model[-1].detect (Detect module)")
+        # Last module is our Detect-subclass head.
+        detect = model.model[-1]
+        if not hasattr(detect, "reg_max") or not hasattr(detect, "nc"):
+            raise AttributeError("Stereo3DDetLossYOLO11P3 expected model.model[-1] to be a Detect-like head")
 
         self.device = device
         self.nc = detect.nc

@@ -6,7 +6,6 @@ import torch
 
 from ultralytics.nn.tasks import DetectionModel
 
-
 class Stereo3DDetModel(DetectionModel):
     """Placeholder Stereo 3D Detection model.
 
@@ -14,7 +13,7 @@ class Stereo3DDetModel(DetectionModel):
     stereo3ddet task end-to-end while we iterate on a dedicated stereo head/loss.
     """
 
-    def __init__(self, cfg="yolo11-stereo3ddet.yaml", ch=6, nc=None, verbose=True):
+    def __init__(self, cfg, ch=6, nc=None, verbose=True):
         # Load config to get input_channels if ch not explicitly provided
         # When called from Model._new(), cfg is already a dict
         if isinstance(cfg, dict):

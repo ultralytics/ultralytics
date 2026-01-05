@@ -76,6 +76,7 @@ from ultralytics.nn.modules import (
 # for parse_model() resolution. StereoConv is immediately available, while
 # StereoCenterNetHead uses lazy import triggered when parse_model() encounters it.
 StereoCenterNetHead = None
+Stereo3DDetHeadYOLO11 = None
 
 def _lazy_import_stereo_center_net_head():
     """Lazy import of StereoCenterNetHead to avoid circular dependencies."""
@@ -87,6 +88,18 @@ def _lazy_import_stereo_center_net_head():
         except ImportError:
             pass
     return StereoCenterNetHead
+
+
+def _lazy_import_stereo3ddet_head_yolo11():
+    """Lazy import of Stereo3DDetHeadYOLO11 to avoid circular dependencies."""
+    global Stereo3DDetHeadYOLO11
+    if Stereo3DDetHeadYOLO11 is None:
+        try:
+            from ultralytics.models.yolo.stereo3ddet.head_yolo11 import Stereo3DDetHeadYOLO11 as SYH
+            Stereo3DDetHeadYOLO11 = SYH
+        except ImportError:
+            pass
+    return Stereo3DDetHeadYOLO11
 
 # StereoConv is an alias for Conv (handles 6-channel stereo input)
 # It's functionally identical to Conv but named to indicate 6-channel stereo usage
@@ -1597,9 +1610,11 @@ def parse_model(d, ch, verbose=True):
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
-        # Lazy import for StereoCenterNetHead to avoid circular dependencies
+        # Lazy imports for stereo heads to avoid circular dependencies
         if m == "StereoCenterNetHead" and StereoCenterNetHead is None:
             _lazy_import_stereo_center_net_head()
+        if m == "Stereo3DDetHeadYOLO11" and Stereo3DDetHeadYOLO11 is None:
+            _lazy_import_stereo3ddet_head_yolo11()
         m = (
             getattr(torch.nn, m[3:])
             if "nn." in m

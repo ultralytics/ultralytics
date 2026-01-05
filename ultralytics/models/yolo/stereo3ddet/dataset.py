@@ -12,6 +12,8 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.models.yolo.stereo3ddet.augment import StereoAugmentationPipeline, StereoCalibration, PhotometricAugmentor
 from ultralytics.utils import LOGGER
 
+import math
+
 
 def _to_hw(imgsz: int | tuple[int, int] | list[int]) -> tuple[int, int]:
     """Normalize imgsz to (H, W)."""
@@ -543,44 +545,210 @@ class Stereo3DDetDataset(Dataset):
         labels_list = [b["labels"] for b in batch]
         calibs = [b["calib"] for b in batch]  # Collect calib for each sample (T145)
         ori_shapes = [b["ori_shape"] for b in batch]  # Original image sizes
-        
-        # Generate targets for each sample in the batch.
-        # Targets are generated in letterboxed input space (H, W).
-        targets_list = []
-        for labels, calib, ori_shape in zip(labels_list, calibs, ori_shapes):
-            # TargetGenerator expects calib and original_size to match length of labels
-            # All labels in a single image share the same calib and original_size
-            num_labels = len(labels)
-            calib_list = [calib] * num_labels 
-            ori_shape_list = [ori_shape] * num_labels
-            
-            target = self.target_generator.generate_targets(
-                labels,
-                input_size=self.imgsz,  # Letterboxed input size (H, W)
-                calib=calib_list,
-                original_size=ori_shape_list,
-            )
-            targets_list.append(target)
-        
-        # Stack targets across batch dimension
-        # Each target is a dict with tensors of shape [C, H, W]
-        # We need to stack to [B, C, H, W]
-        batched_targets = {}
-        for key in targets_list[0].keys():
-            batched_targets[key] = torch.stack([t[key] for t in targets_list], dim=0)
-        
-        # Extract class IDs for compatibility with trainer
-        # Trainer expects cls to be a tensor with shape [batch_size]
-        # We'll use the number of objects as a proxy
-        cls_tensor = torch.tensor([len(labels) for labels in labels_list], dtype=torch.long)
+
+        # ---------------------------------------------------------------------
+        # YOLO11-style detection targets (P3-only first)
+        # ---------------------------------------------------------------------
+        # Produce standard keys used by TaskAlignedAssigner-based losses:
+        # - batch_idx: [N, 1]
+        # - cls: [N] (per-object class ids)
+        # - bboxes: [N, 4] normalized xywh in input image space (letterboxed)
+        #
+        # Also produce per-object stereo/3D targets, padded per image:
+        # aux_targets[name]: [B, max_n, C] in feature-map units for P3 (stride=8).
+        input_h, input_w = self.imgsz
+        stride = 8.0  # P3/8 for first iteration
+        out_h = int(round(input_h / stride))
+        out_w = int(round(input_w / stride))
+
+        all_batch_idx: list[int] = []
+        all_cls: list[int] = []
+        all_bboxes: list[list[float]] = []
+
+        # Per-image lists (will be padded)
+        per_image_aux: dict[str, list[torch.Tensor]] = {
+            "lr_distance": [],
+            "right_width": [],
+            "dimensions": [],
+            "orientation": [],
+            "vertices": [],
+            "vertex_offset": [],
+            "vertex_dist": [],
+        }
+        per_image_counts: list[int] = []
+
+        # Reuse mean dims mapping from TargetGenerator for consistency.
+        mean_dims = getattr(self.target_generator, "mean_dims", None)
+        class_names_map = getattr(self.target_generator, "class_names_map", {0: "Car", 1: "Pedestrian", 2: "Cyclist"})
+
+        for i, (labels, calib, ori_shape) in enumerate(zip(labels_list, calibs, ori_shapes)):
+            n = len(labels)
+            per_image_counts.append(n)
+            if n == 0:
+                # keep empty placeholders
+                continue
+
+            # Build per-object aux targets for this image
+            lr_list = []
+            rw_list = []
+            dim_list = []
+            ori_list = []
+            v_list = []
+            vo_list = []
+            vd_list = []
+
+            for lab in labels:
+                cls_i = int(lab["class_id"])
+                lb = lab["left_box"]
+                rb = lab["right_box"]
+
+                # Normalized xywh (letterboxed input space) for detection loss.
+                cx = float(lb["center_x"])
+                cy = float(lb["center_y"])
+                bw = float(lb["width"])
+                bh = float(lb["height"])
+
+                all_batch_idx.append(i)
+                all_cls.append(cls_i)
+                all_bboxes.append([cx, cy, bw, bh])
+
+                # -------------------------
+                # Stereo 2D aux targets (feature-map units)
+                # -------------------------
+                center_x_px = cx * input_w
+                right_center_x_px = float(rb["center_x"]) * input_w
+                disparity_px = center_x_px - right_center_x_px
+                lr_feat = disparity_px / stride  # feature units
+                lr_list.append(torch.tensor([lr_feat], dtype=torch.float32))
+
+                right_w_px = float(rb["width"]) * input_w
+                right_w_feat = right_w_px / stride
+                rw_list.append(torch.tensor([1.0 / (right_w_feat + 1.0)], dtype=torch.float32))
+
+                # -------------------------
+                # 3D aux targets (object-level, reused from TargetGenerator logic)
+                # -------------------------
+                dims = lab["dimensions"]  # meters
+                class_name = class_names_map.get(cls_i, "Car")
+                mean_dim = (mean_dims or {}).get(class_name, [1.0, 1.0, 1.0]) if isinstance(mean_dims, dict) else [1.0, 1.0, 1.0]
+                # [ΔH, ΔW, ΔL]
+                dim_offset = torch.tensor(
+                    [
+                        float(dims["height"] - mean_dim[2]),
+                        float(dims["width"] - mean_dim[1]),
+                        float(dims["length"] - mean_dim[0]),
+                    ],
+                    dtype=torch.float32,
+                )
+                dim_list.append(dim_offset)
+
+                # Orientation encoding (8-d) using same encoding as target generator
+                rotation_y = float(lab["rotation_y"])
+                loc = lab.get("location_3d", None) or {"x": 0.0, "z": 1.0}
+                x_3d = float(loc.get("x", 0.0))
+                z_3d = float(loc.get("z", 1.0))
+                ray_angle = math.atan2(x_3d, z_3d)
+                alpha = rotation_y - ray_angle
+                alpha = math.atan2(math.sin(alpha), math.cos(alpha))
+                # 2-bin encoding: [conf0, conf1, sin0, cos0, sin1, cos1, pad, pad]
+                enc = torch.zeros(8, dtype=torch.float32)
+                if alpha < 0:
+                    bin_idx = 0
+                    bin_center = -math.pi / 2
+                else:
+                    bin_idx = 1
+                    bin_center = math.pi / 2
+                residual = alpha - bin_center
+                enc[0] = 1.0 if bin_idx == 0 else 0.0
+                enc[1] = 1.0 if bin_idx == 1 else 0.0
+                if bin_idx == 0:
+                    enc[2] = math.sin(residual)
+                    enc[3] = math.cos(residual)
+                else:
+                    enc[4] = math.sin(residual)
+                    enc[5] = math.cos(residual)
+                ori_list.append(enc)
+
+                # Vertices targets as object-level offsets relative to object center (normalized by feature map size)
+                # We reuse the same projection logic by calling into the target generator, then extracting computed values.
+                # NOTE: For P3-only first pass, we approximate by using the existing generator but reading values at center cell.
+                # This keeps behavior consistent with the previous heatmap pipeline while switching positivity source.
+                num_labels = 1
+                calib_list = [calib] * num_labels
+                ori_shape_list = [ori_shape] * num_labels
+                tmp = self.target_generator.generate_targets(
+                    [lab],
+                    input_size=self.imgsz,
+                    calib=calib_list,
+                    original_size=ori_shape_list,
+                )
+                # Find center cell and read out targets written there.
+                center_x_out = (cx * input_w) / stride
+                center_y_out = (cy * input_h) / stride
+                cx_i = int(center_x_out)
+                cy_i = int(center_y_out)
+                cx_i = max(0, min(cx_i, out_w - 1))
+                cy_i = max(0, min(cy_i, out_h - 1))
+
+                v_list.append(tmp["vertices"][:, cy_i, cx_i].float())
+                vo_list.append(tmp["vertex_offset"][:, cy_i, cx_i].float())
+                vd_list.append(tmp["vertex_dist"][:, cy_i, cx_i].float())
+
+            per_image_aux["lr_distance"].append(torch.stack(lr_list, 0))
+            per_image_aux["right_width"].append(torch.stack(rw_list, 0))
+            per_image_aux["dimensions"].append(torch.stack(dim_list, 0))
+            per_image_aux["orientation"].append(torch.stack(ori_list, 0))
+            per_image_aux["vertices"].append(torch.stack(v_list, 0))
+            per_image_aux["vertex_offset"].append(torch.stack(vo_list, 0))
+            per_image_aux["vertex_dist"].append(torch.stack(vd_list, 0))
+
+        # Build detection tensors
+        if all_bboxes:
+            batch_idx_t = torch.tensor(all_batch_idx, dtype=torch.long).view(-1, 1)
+            cls_t = torch.tensor(all_cls, dtype=torch.long)
+            bboxes_t = torch.tensor(all_bboxes, dtype=torch.float32)
+        else:
+            batch_idx_t = torch.zeros((0, 1), dtype=torch.long)
+            cls_t = torch.zeros((0,), dtype=torch.long)
+            bboxes_t = torch.zeros((0, 4), dtype=torch.float32)
+
+        # Pad aux targets per image to [B, max_n, C]
+        max_n = max(per_image_counts) if per_image_counts else 0
+        aux_targets: dict[str, torch.Tensor] = {}
+        for k in per_image_aux.keys():
+            # Determine channel count
+            c = {
+                "lr_distance": 1,
+                "right_width": 1,
+                "dimensions": 3,
+                "orientation": 8,
+                "vertices": 8,
+                "vertex_offset": 8,
+                "vertex_dist": 4,
+            }[k]
+            padded = torch.zeros((len(batch), max_n, c), dtype=torch.float32)
+            for bi in range(len(batch)):
+                if per_image_counts[bi] == 0:
+                    continue
+                # If missing (e.g. empty but list absent), skip
+                if bi >= len(per_image_aux[k]):
+                    continue
+                t = per_image_aux[k][bi]  # [n, c]
+                padded[bi, : t.shape[0]] = t
+            aux_targets[k] = padded
+
         return {
             "img": imgs,
             "labels": labels_list,  # Keep labels for metrics computation
-            "targets": batched_targets,  # Generated targets for training/validation
-            "calib": calibs,  # Add calib for validation metrics computation (T145)
-            "cls": cls_tensor,  # Add cls for trainer compatibility (number of objects per image)
+            "calib": calibs,  # For downstream metrics/tools
             "im_file": [b["im_file"] for b in batch],
             "ori_shape": ori_shapes,
+            # YOLO-style detection labels
+            "batch_idx": batch_idx_t,
+            "cls": cls_t,
+            "bboxes": bboxes_t,
+            # Aux targets for stereo/3D heads
+            "aux_targets": aux_targets,
         }
 
 

@@ -50,7 +50,12 @@ class Box3D:
         if z <= 0:
             raise ValueError(f"Depth (z) must be positive, got z={z}")
 
-        if not (-np.pi <= self.orientation <= np.pi):
+        # Normalize orientation to [-π, π] to be robust to float32 π (≈ 3.141592741...)
+        # torch.atan2(sin, cos) can yield a float32 representation of π that is slightly > np.pi (float64),
+        # so we normalize and use a small tolerance to avoid false positives.
+        self.orientation = float(np.arctan2(np.sin(self.orientation), np.cos(self.orientation)))
+        eps = 1e-6
+        if not (-np.pi - eps <= self.orientation <= np.pi + eps):
             raise ValueError(f"Orientation must be in [-π, π], got {self.orientation}")
 
         if not (0.0 <= self.confidence <= 1.0):

@@ -269,8 +269,12 @@ class DenseAlignment:
         l, w, h = box3d["dimensions"]
         theta = box3d["orientation"]
         
-        # Check if box is behind camera
-        if z <= 0:
+        # Guard against NaN/Inf/invalid geometry early to avoid runtime warnings downstream
+        if not np.isfinite([x, y, z, l, w, h, theta]).all():
+            return (0, 0, 0, 0)
+        
+        # Check if box is behind camera or has invalid size
+        if z <= 0 or l <= 0 or w <= 0 or h <= 0:
             return (0, 0, 0, 0)
         
         # Extract calibration
@@ -303,13 +307,23 @@ class DenseAlignment:
         if camera == "right":
             corners_x_world = corners_x_world - baseline
         
-        # Project to 2D (only corners in front of camera)
-        valid_mask = corners_z_world > 0.1
+        # Project to 2D (only corners in front of camera and finite)
+        z_eps = 0.1
+        valid_mask = (
+            np.isfinite(corners_x_world)
+            & np.isfinite(corners_y_world)
+            & np.isfinite(corners_z_world)
+            & (corners_z_world > z_eps)
+        )
         if not valid_mask.any():
             return (0, 0, 0, 0)
         
-        u_coords = fx * corners_x_world[valid_mask] / corners_z_world[valid_mask] + cx
-        v_coords = fy * corners_y_world[valid_mask] / corners_z_world[valid_mask] + cy
+        # Safe division (avoid invalid value encountered in divide)
+        z_valid = corners_z_world[valid_mask]
+        u_coords = fx * np.divide(corners_x_world[valid_mask], z_valid, out=np.zeros_like(z_valid), where=z_valid != 0) + cx
+        v_coords = fy * np.divide(corners_y_world[valid_mask], z_valid, out=np.zeros_like(z_valid), where=z_valid != 0) + cy
+        if not (np.isfinite(u_coords).all() and np.isfinite(v_coords).all()):
+            return (0, 0, 0, 0)
         
         # Get bounding rectangle with padding
         pad = self.patch_size // 2
@@ -506,12 +520,18 @@ class DenseAlignment:
         z_init = box3d_init["center_3d"][2]
         
         # Validate initial depth
-        if z_init <= 0:
+        if (not np.isfinite(z_init)) or z_init <= 0:
             return z_init  # Can't refine invalid depth
+        
+        # Validate search range to avoid NaN propagation into linspace()
+        if (not np.isfinite(self.depth_search_range)) or self.depth_search_range <= 0:
+            return float(z_init)
         
         # Compute depth search range
         z_min = max(0.1, z_init - self.depth_search_range)  # Minimum 0.1m
         z_max = z_init + self.depth_search_range
+        if (not np.isfinite(z_min)) or (not np.isfinite(z_max)) or z_max <= z_min:
+            return float(z_init)
         
         # Generate depth hypotheses
         z_candidates = np.linspace(z_min, z_max, self.depth_steps)
@@ -551,8 +571,12 @@ class DenseAlignment:
         best_error = float("inf")
         
         for z in z_candidates:
+            if (not np.isfinite(z)) or z <= 0:
+                continue
             # Compute disparity for this depth
             disparity = (fx * baseline) / z
+            if not np.isfinite(disparity):
+                continue
             
             # Warp right image patch to left view
             warped_right = self._warp_right_to_left(right_img, roi_left, disparity, calib)

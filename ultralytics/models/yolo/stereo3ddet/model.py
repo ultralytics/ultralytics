@@ -50,9 +50,25 @@ class Stereo3DDetModel(DetectionModel):
         if preds is None:
             preds = self.forward(batch["img"])
         
-        # Check if preds is a dict (stereo3ddet format)
-        stereo_keys = {"heatmap", "offset", "bbox_size", "lr_distance", "right_width", 
-                      "dimensions", "orientation", "vertices", "vertex_offset", "vertex_dist"}
+        # New path: YOLO11 bbox mapping head (P3-only) returns dict with "det" + aux branches.
+        if isinstance(preds, dict) and "det" in preds:
+            from ultralytics.models.yolo.stereo3ddet.loss_yolo11 import Stereo3DDetLossYOLO11P3
+
+            if not hasattr(self, "_stereo_yolo11_criterion"):
+                # Optional aux weights from YAML training section
+                aux_w = None
+                if hasattr(self, "yaml") and self.yaml is not None:
+                    training_config = self.yaml.get("training", {})
+                    if training_config and "loss_weights" in training_config:
+                        aux_w = training_config["loss_weights"]
+                self._stereo_yolo11_criterion = Stereo3DDetLossYOLO11P3(self, loss_weights=aux_w)
+
+            out = self._stereo_yolo11_criterion(preds, batch)
+            return out.total, out.loss_items
+
+        # Legacy path: CenterNet-style stereo3ddet dict prediction - use StereoCenterNetLoss
+        stereo_keys = {"heatmap", "offset", "bbox_size", "lr_distance", "right_width",
+                       "dimensions", "orientation", "vertices", "vertex_offset", "vertex_dist"}
         if isinstance(preds, dict) and stereo_keys.issubset(set(preds.keys())):
             # This is a stereo3ddet dict prediction - we need to use StereoCenterNetLoss
             # Check if we have access to the criterion through the model structure

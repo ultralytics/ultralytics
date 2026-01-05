@@ -356,34 +356,20 @@ def xyxyxyxy2xywhr(x, mode='le135'):
         (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
         theta = angle / 180 * np.pi
         if mode == 'le135':
-            # --- 第一步：几何转换（确保 w 是长边）---
             if w < h:
                 w, h = h, w
                 theta += np.pi / 2
-            
-            # 此时 theta 的范围变成了 [0, pi]
-            # 因为原 theta 是 [0, pi/2]，如果不换边则是 [0, pi/2]，换边则是 [pi/2, pi]
-            
-            # --- 第二步：范围归一化 (规范化到 -pi/4 ~ 3pi/4) ---
-            # 你的目标范围跨度是 pi (180度)
-            # 上界是 3*pi/4 (135度)
-            
+
             while theta >= 3 * np.pi / 4:
                 theta -= np.pi
-                
-            # 理论上基于 OpenCV 的输入，这里不需要处理下界（theta不会小于0）
-            # 但为了代码健壮性，可以加上：
+
             while theta < -np.pi / 4:
                 theta += np.pi
         elif mode == 'le90':
-            # --- LE90 Logic ---
-            # 1. Force w to be long edge
             if w < h:
                 w, h = h, w
                 theta += np.pi / 2
-            
-            # 2. Normalize to [-pi/2, pi/2) i.e. [-90, 90)
-            # Center of the range is 0
+
             while theta >= np.pi / 2:
                 theta -= np.pi
             while theta < -np.pi / 2:

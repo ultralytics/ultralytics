@@ -190,9 +190,10 @@ class RotatedBboxLoss(BboxLoss):
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             # target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]))
-            # Non-DFL branch: also use rbox2dist for consistency
+
             target_angle = target_bboxes[..., 4:5]
             target_ltrb = rbox2dist(target_bboxes[..., :4], anchor_points, target_angle)
+
             target_ltrb = target_ltrb * stride
             target_ltrb[..., 0::2] /= imgsz[1]
             target_ltrb[..., 1::2] /= imgsz[0]
@@ -953,17 +954,15 @@ class v8OBBLoss(v8DetectionLoss):
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
         return out
 
-    def calculate_ga_loss(self, pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum, lambda_val=3, angle_mode='le135'):
+    def calculate_ga_loss(self, pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum, lambda_val=3, angle_mode='oc'):
         """
-        计算 Gaussian Angle Loss (基于论文 Eq. 11)
+        Calculate Gaussian Angle Loss
         Args:
-            pred_bboxes: [N, 5] (x, y, w, h, theta) - theta 通常为弧度
+            pred_bboxes: [N, 5] (x, y, w, h, theta)
             target_bboxes: [N, 5] (x, y, w, h, theta)
-            lambda_val: 控制对长宽比敏感度的超参数 (论文默认 3.0)
-            angle_mode: 角度格式，可选 'le135' ([-pi/4, 3pi/4]), 'le90' ([-pi/2, pi/2]), 'oc' ([0, pi/2])
+            lambda_val: control the sensitivity to aspect ratio (default 3.0)
+            angle_mode: angle format, optional 'le135' ([-pi/4, 3pi/4]), 'le90' ([-pi/2, pi/2]), 'oc' ([0, pi/2])
         """
-        # 1. 获取 GT 的宽和高 (注意确保是像素尺度，如果是归一化的需还原或调整 lambda)
-        # Ultralytics 的 target_bboxes 在 loss 计算时通常已经是特征图尺度或原图尺度
         w_gt = target_bboxes[..., 2]
         h_gt = target_bboxes[..., 3]
         pred_theta = pred_bboxes[..., 4]
@@ -982,15 +981,6 @@ class v8OBBLoss(v8DetectionLoss):
 
         ga_loss = scale_weight[fg_mask] * angle_loss
         ga_loss = ga_loss * weight
-
-        # diff_factor = torch.exp(4 * lambda_val - lambda_val * (w_gt / h_gt + h_gt / w_gt)**2)
-        # 3. 计算角度差异项 sin^2(delta_theta)
-        # angle_diff = pred_theta - target_theta
-        # 论文公式 (11) 使用 sin^2
-        # angle_loss = torch.sin(2 * angle_diff[fg_mask]) ** 2
-        # 4. 组合 Loss
-        # ga_loss = diff_factor[fg_mask] * angle_loss
-        # ga_loss = ga_loss * weight
 
         return ga_loss.sum() / target_scores_sum
 

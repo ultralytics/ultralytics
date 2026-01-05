@@ -287,7 +287,8 @@ class Stereo3DDetDataset(Dataset):
     def _transform_labels_for_letterbox(
         self,
         labels: List[Dict[str, Any]],
-        scale: float,
+        scale_w: float,
+        scale_h: float,
         pad_left: int,
         pad_top: int,
         orig_w: int,
@@ -297,7 +298,8 @@ class Stereo3DDetDataset(Dataset):
         
         Args:
             labels: List of label dictionaries with left_box, right_box, and optionally vertices.
-            scale: Letterbox scale factor (min(imgsz / h, imgsz / w)).
+            scale_w: Effective letterbox x-scale (matches actual integer resize width).
+            scale_h: Effective letterbox y-scale (matches actual integer resize height).
             pad_left: Left padding added by letterbox.
             pad_top: Top padding added by letterbox.
             orig_w: Original image width (after augmentation, before letterbox).
@@ -322,11 +324,11 @@ class Stereo3DDetDataset(Dataset):
                 w_px = float(lb.get("width", 0)) * orig_w
                 h_px = float(lb.get("height", 0)) * orig_h
                 
-                # Apply letterbox scale
-                cx_px = cx_px * scale
-                cy_px = cy_px * scale
-                w_px = w_px * scale
-                h_px = h_px * scale
+                # Apply letterbox scale (use effective per-axis scales to match actual cv2.resize integer output)
+                cx_px = cx_px * scale_w
+                cy_px = cy_px * scale_h
+                w_px = w_px * scale_w
+                h_px = h_px * scale_h
                 
                 # Add letterbox padding
                 cx_px = cx_px + pad_left
@@ -349,11 +351,11 @@ class Stereo3DDetDataset(Dataset):
                 rw_px = float(rb["width"]) * orig_w
                 rh_px = float(rb["height"]) * orig_h
 
-                # Apply letterbox scale
-                rx_px = rx_px * scale
-                ry_px = ry_px * scale
-                rw_px = rw_px * scale
-                rh_px = rh_px * scale
+                # Apply letterbox scale (effective per-axis)
+                rx_px = rx_px * scale_w
+                ry_px = ry_px * scale_h
+                rw_px = rw_px * scale_w
+                rh_px = rh_px * scale_h
 
                 rx_px = rx_px + pad_left
                 ry_px = ry_px + pad_top
@@ -377,9 +379,9 @@ class Stereo3DDetDataset(Dataset):
                         vx_px = float(vx) * orig_w
                         vy_px = float(vy) * orig_h
                         
-                        # Apply letterbox scale
-                        vx_px = vx_px * scale
-                        vy_px = vy_px * scale
+                        # Apply letterbox scale (effective per-axis)
+                        vx_px = vx_px * scale_w
+                        vy_px = vy_px * scale_h
                         
                         # Add letterbox padding
                         vx_px = vx_px + pad_left
@@ -401,7 +403,8 @@ class Stereo3DDetDataset(Dataset):
     def _transform_calib_for_letterbox(
         self,
         calib: Dict[str, float],
-        scale: float,
+        scale_w: float,
+        scale_h: float,
         pad_left: int,
         pad_top: int,
     ) -> Dict[str, float]:
@@ -409,7 +412,8 @@ class Stereo3DDetDataset(Dataset):
         
         Args:
             calib: Calibration dictionary with fx, fy, cx, cy, baseline.
-            scale: Letterbox scale factor (min(imgsz / h, imgsz / w)).
+            scale_w: Effective letterbox x-scale (matches actual integer resize width).
+            scale_h: Effective letterbox y-scale (matches actual integer resize height).
             pad_left: Left padding added by letterbox.
             pad_top: Top padding added by letterbox.
             
@@ -418,13 +422,13 @@ class Stereo3DDetDataset(Dataset):
         """
         new_calib = dict(calib)  # Copy to avoid modifying original
         
-        # Scale focal lengths (same scale for both dimensions in letterbox)
-        new_calib["fx"] = float(calib.get("fx", 0.0) * scale)
-        new_calib["fy"] = float(calib.get("fy", 0.0) * scale)
+        # Scale focal lengths (use effective per-axis scales)
+        new_calib["fx"] = float(calib.get("fx", 0.0) * scale_w)
+        new_calib["fy"] = float(calib.get("fy", 0.0) * scale_h)
         
         # Scale and shift principal point
-        new_calib["cx"] = float(calib.get("cx", 0.0) * scale + pad_left)
-        new_calib["cy"] = float(calib.get("cy", 0.0) * scale + pad_top)
+        new_calib["cx"] = float(calib.get("cx", 0.0) * scale_w + pad_left)
+        new_calib["cy"] = float(calib.get("cy", 0.0) * scale_h + pad_top)
         
         # Baseline is in meters, not affected by image transformations
         # new_calib["baseline"] remains unchanged
@@ -496,6 +500,9 @@ class Stereo3DDetDataset(Dataset):
         out_h, out_w = self.imgsz
         scale_l = min(out_h / in_h, out_w / in_w)
         new_unpad_w, new_unpad_h = round(in_w * scale_l), round(in_h * scale_l)
+        # Effective scale actually used after rounding to integer resize sizes (can differ slightly from scale_l)
+        scale_w_eff = new_unpad_w / float(in_w) if in_w else 1.0
+        scale_h_eff = new_unpad_h / float(in_h) if in_h else 1.0
         dw, dh = out_w - new_unpad_w, out_h - new_unpad_h
         dw /= 2
         dh /= 2
@@ -508,12 +515,12 @@ class Stereo3DDetDataset(Dataset):
         
         # Transform labels from original/augmented image space to letterboxed space
         labels_transformed = self._transform_labels_for_letterbox(
-            labels_aug, scale_l, pad_left_l, pad_top_l, w_aug, h_aug
+            labels_aug, scale_w_eff, scale_h_eff, pad_left_l, pad_top_l, w_aug, h_aug
         )
         
         # Transform calibration from original/augmented image space to letterboxed space
         calib_transformed = self._transform_calib_for_letterbox(
-            calib, scale_l, pad_left_l, pad_top_l
+            calib, scale_w_eff, scale_h_eff, pad_left_l, pad_top_l
         )
         
         # Stack to 6 channels (left RGB + right RGB)

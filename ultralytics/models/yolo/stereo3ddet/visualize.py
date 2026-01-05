@@ -97,10 +97,10 @@ def labels_to_box3d(
     image_hw: tuple[int, int],
     class_names: Any = None,
 ) -> list["Box3D"]:
-    """Convert dataset label dicts (normalized 2D + dimensions + rotation_y) to Box3D.
+    """Convert dataset label dicts to Box3D for visualization.
 
-    This is used for visualization during training, where we only have the letterboxed/augmented images (not originals).
-    We reconstruct depth from stereo disparity to match the training target pipeline.
+    Prefer ground-truth `location_3d` when present (more accurate for large/near objects).
+    Fall back to disparity-based reconstruction only if `location_3d` is missing.
 
     Args:
         labels: List of label dicts from Stereo3DDetDataset (letterboxed space, normalized coords).
@@ -119,7 +119,7 @@ def labels_to_box3d(
     cx = float(calib.get("cx", 0.0))
     cy = float(calib.get("cy", 0.0))
     baseline = float(calib.get("baseline", 0.0))
-    if fx <= 0 or fy <= 0 or baseline <= 0:
+    if fx <= 0 or fy <= 0:
         return []
 
     boxes3d: list[Box3D] = []
@@ -129,21 +129,7 @@ def labels_to_box3d(
         try:
             class_id = int(lab["class_id"])
             lb = lab["left_box"]
-            rb = lab["right_box"]
-
-            left_u = float(lb["center_x"]) * W
-            right_u = float(rb["center_x"]) * W
-            disparity = left_u - right_u
-            if not np.isfinite(disparity) or disparity <= eps:
-                continue
-
-            depth = (fx * baseline) / max(disparity, eps)
-            center_x_2d = left_u
-            center_y_2d = float(lb.get("center_y", 0.5)) * H
-
-            x_3d = (center_x_2d - cx) * depth / fx
-            y_3d = (center_y_2d - cy) * depth / fy
-            z_3d = depth
+            rb = lab.get("right_box", None)
 
             dims = lab.get("dimensions", {})
             length = float(dims.get("length", 1.0))
@@ -152,7 +138,31 @@ def labels_to_box3d(
 
             rot_y = float(lab.get("rotation_y", 0.0))
 
+            # Prefer GT 3D location when present. KITTI `location` is bottom-center; convert to geometric center.
+            loc = lab.get("location_3d", None)
+            if isinstance(loc, dict) and all(k in loc for k in ("x", "y", "z")):
+                x_3d = float(loc["x"])
+                y_bottom = float(loc["y"])
+                z_3d = float(loc["z"])
+                y_3d = y_bottom - height / 2.0  # bottom-center -> geometric center (Y points down)
+            else:
+                # Fallback: reconstruct from stereo disparity between box centers (less accurate for large/near objects).
+                if rb is None or baseline <= 0:
+                    continue
+                left_u = float(lb["center_x"]) * W
+                right_u = float(rb["center_x"]) * W
+                disparity = left_u - right_u
+                if not np.isfinite(disparity) or disparity <= eps:
+                    continue
+                z_3d = (fx * baseline) / max(disparity, eps)
+                center_x_2d = left_u
+                center_y_2d = float(lb.get("center_y", 0.5)) * H
+                x_3d = (center_x_2d - cx) * z_3d / fx
+                y_3d = (center_y_2d - cy) * z_3d / fy
+
             # Pixel-space 2D bbox (left) for reference/debug (not used by 3D wireframe drawing).
+            center_x_2d = float(lb.get("center_x", 0.5)) * W
+            center_y_2d = float(lb.get("center_y", 0.5)) * H
             bw = float(lb.get("width", 0.0)) * W
             bh = float(lb.get("height", 0.0)) * H
             x1 = center_x_2d - bw / 2

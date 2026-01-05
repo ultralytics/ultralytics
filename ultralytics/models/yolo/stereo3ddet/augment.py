@@ -89,9 +89,9 @@ class HorizontalFlipAugmentor:
         left: np.ndarray,
         right: np.ndarray,
         labels: List[Dict[str, Any]],
-    ) -> Tuple[np.ndarray, np.ndarray, List[Dict[str, Any]]]:
+    ) -> Tuple[np.ndarray, np.ndarray, List[Dict[str, Any]], bool]:
         if np.random.rand() >= self.p_apply:
-            return left, right, labels
+            return left, right, labels, False
 
         # Flip both and swap
         left_f = cv2.flip(left, 1)
@@ -119,9 +119,18 @@ class HorizontalFlipAugmentor:
             new_obj = dict(obj)
             new_obj["left_box"] = lb_flipped
             new_obj["right_box"] = rb_flipped
+            # 3D orientation must be mirrored on horizontal flip.
+            # Reflection across the camera YZ plane maps yaw -> -yaw (see derivation in issue discussion).
+            if "rotation_y" in new_obj:
+                rot = float(new_obj["rotation_y"])
+                new_obj["rotation_y"] = float(np.arctan2(np.sin(-rot), np.cos(-rot)))
+            # Vertices are view-specific 2D keypoints; after swapping cameras we can't reliably transform them here.
+            # Drop them so downstream target generation recomputes vertices from 3D parameters.
+            if "vertices" in new_obj:
+                new_obj.pop("vertices", None)
             new_labels.append(new_obj)
 
-        return left_f, right_f, new_labels
+        return left_f, right_f, new_labels, True
 
 
 class RandomScaleAugmentor:
@@ -169,9 +178,9 @@ class RandomCropAugmentor:
         left: np.ndarray,
         right: np.ndarray,
         labels: List[Dict[str, Any]],
-    ) -> Tuple[np.ndarray, np.ndarray, List[Dict[str, Any]]]:
+    ) -> Tuple[np.ndarray, np.ndarray, List[Dict[str, Any]], bool, int, int, int, int]:
         if np.random.rand() >= self.p_apply:
-            return left, right, labels
+            return left, right, labels, False, 0, 0, left.shape[1], left.shape[0]
         H, W = left.shape[:2]
         ch = max(1, int(H * self.crop_height_ratio))
         cw = max(1, int(W * self.crop_width_ratio))
@@ -222,7 +231,7 @@ class RandomCropAugmentor:
             new_obj["right_box"] = rb_new
             new_labels.append(new_obj)
 
-        return left_c, right_c, new_labels
+        return left_c, right_c, new_labels, True, x0, y0, cw, ch
 
 
 class StereoAugmentationPipeline:
@@ -251,7 +260,22 @@ class StereoAugmentationPipeline:
         calibration: StereoCalibration | None = None,
     ) -> Tuple[np.ndarray, np.ndarray, List[Dict[str, Any]], StereoCalibration | None]:
         # Geometric first
-        left, right, labels = self.hflip(left, right, labels)
+        left, right, labels, did_flip = self.hflip(left, right, labels)
+        if did_flip and calibration is not None:
+            # After cv2.flip, pixel u becomes u' = (W - 1) - u, so principal point must update too.
+            calibration.cx = float((calibration.width - 1) - calibration.cx)
+            # Swapping cameras changes the origin for 3D X in left-camera coordinates.
+            # If original left-camera center_x is x_l, then in original right-camera coords x_r = x_l - baseline.
+            # After horizontal reflection, x_new = -x_r = baseline - x_l.
+            b = float(calibration.baseline)
+            for lab in labels:
+                loc = lab.get("location_3d")
+                if isinstance(loc, dict) and "x" in loc:
+                    try:
+                        x_l = float(loc["x"])
+                        loc["x"] = float(b - x_l)
+                    except Exception:
+                        pass
 
         # Keep track of original size to adjust calibration if scaled
         orig_h, orig_w = left.shape[:2]
@@ -270,7 +294,16 @@ class StereoAugmentationPipeline:
             calibration.width = int(new_w)
             calibration.height = int(new_h)
 
-        left, right, labels = self.rcrop(left, right, labels)
+        left, right, labels, did_crop, x0, y0, cw, ch = self.rcrop(left, right, labels)
+        if did_crop and calibration is not None:
+            # Cropping shifts the pixel coordinate frame by (x0, y0).
+            calibration.cx = float(calibration.cx - x0)
+            calibration.cy = float(calibration.cy - y0)
+            calibration.width = int(cw)
+            calibration.height = int(ch)
+            # Keep cx/cy within the new image bounds to avoid numerical weirdness.
+            calibration.cx = float(np.clip(calibration.cx, 0.0, max(0, calibration.width - 1)))
+            calibration.cy = float(np.clip(calibration.cy, 0.0, max(0, calibration.height - 1)))
         # Photometric last
         left, right = self.photometric(left, right)
         return left, right, labels, calibration

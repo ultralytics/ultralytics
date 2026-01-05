@@ -1455,36 +1455,43 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
         width = label["dimensions"]["width"]
         length = label["dimensions"]["length"]
 
-        # Reconstruct 3D center from stereo disparity (matching prediction pipeline)
-        # This ensures train/eval consistency since training uses lr_distance
-        left_box = label["left_box"]
-        right_box = label["right_box"]
-        
-        # Handle both dict and CalibrationParameters objects
-        if isinstance(calib, dict):
-            calib = CalibrationParameters.from_dict(calib)
-        fx_val = calib.fx
-        fy_val = calib.fy
-        cx_val = calib.cx
-        cy_val = calib.cy
-        baseline_val = calib.baseline
+        # Prefer GT 3D location if present (more accurate for large/near objects).
+        loc = label.get("location_3d", None)
+        if isinstance(loc, dict) and all(k in loc for k in ("x", "y", "z")):
+            x_3d = float(loc["x"])
+            y_bottom = float(loc["y"])
+            z_3d = float(loc["z"])
+            y_3d = y_bottom - float(height) / 2.0  # bottom-center -> geometric center (Y points down)
+        else:
+            # Fallback: reconstruct 3D center from stereo disparity (matching prediction pipeline)
+            left_box = label["left_box"]
+            right_box = label["right_box"]
+            
+            # Handle both dict and CalibrationParameters objects
+            if isinstance(calib, dict):
+                calib = CalibrationParameters.from_dict(calib)
+            fx_val = calib.fx
+            fy_val = calib.fy
+            cx_val = calib.cx
+            cy_val = calib.cy
+            baseline_val = calib.baseline
 
-        img_width = calib.image_width
-        img_height = calib.image_height
-        left_u = left_box["center_x"] * img_width
-        right_u = right_box["center_x"] * img_width
-        disparity = left_u - right_u
-        # Compute depth from disparity: Z = (f × baseline) / disparity
-        depth = (fx_val * baseline_val) / disparity
+            img_width = calib.image_width
+            img_height = calib.image_height
+            left_u = left_box["center_x"] * img_width
+            right_u = right_box["center_x"] * img_width
+            disparity = left_u - right_u
+            # Compute depth from disparity: Z = (f × baseline) / disparity
+            depth = (fx_val * baseline_val) / disparity
 
-        # Convert 2D center to 3D
-        center_x_2d = left_u
-        center_y_2d = left_box.get("center_y", 0.5) * img_height
+            # Convert 2D center to 3D
+            center_x_2d = left_u
+            center_y_2d = left_box.get("center_y", 0.5) * img_height
 
-        x_3d = (center_x_2d - cx_val) * depth / fx_val
-        # y_3d is at geometric center (matching prediction decoder convention)
-        y_3d = (center_y_2d - cy_val) * depth / fy_val
-        z_3d = depth
+            x_3d = (center_x_2d - cx_val) * depth / fx_val
+            # y_3d is at geometric center (matching prediction decoder convention)
+            y_3d = (center_y_2d - cy_val) * depth / fy_val
+            z_3d = depth
 
         rotation_y = label["rotation_y"]
         truncated = label["truncated"]

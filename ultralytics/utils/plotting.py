@@ -1217,6 +1217,13 @@ def project_box3d_corners(
     length, width, height = box3d.dimensions
     orientation = box3d.orientation
 
+    # Skip boxes with invalid Z depth (too shallow or negative)
+    # Z < 2.0 can cause extreme pixel coordinates when projecting (u = fx * X / Z)
+    # Example: Z=1.36 produced 3.4 billion pixels causing cv2.clipLine TypeError
+    MIN_VALID_Z = 2.0  # Minimum valid Z depth in meters (conservative threshold)
+    if z < MIN_VALID_Z or not np.isfinite(z):
+        return np.zeros((8, 2), dtype=np.float32)  # Return dummy corners (will be clipped out)
+
     # KITTI convention: rotation_y=0 means object faces camera X direction
     # So object's length (forward direction) should be along X axis
     # EDGE_CONNECTIONS expects: bottom face (0,1,2,3), top face (4,5,6,7)
@@ -1255,7 +1262,8 @@ def project_box3d_corners(
         u = u_orig
         v = v_orig
 
-    return np.stack((u, v), axis=-1).astype(np.float32)
+    corners = np.stack((u, v), axis=-1).astype(np.float32)
+    return corners
 
 
 def _select_color(

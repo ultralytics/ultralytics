@@ -1,4 +1,4 @@
-# Regions Counting Using Ultralytics YOLOv8 (Inference on Video)
+# Regions Counting Using Ultralytics YOLO11 (Inference on Video)
 
 > **Note:** Region Counter is now part of **[Ultralytics Solutions](https://docs.ultralytics.com/solutions/)**, offering enhanced features and ongoing updates.
 >
@@ -20,7 +20,7 @@ Region counting is a technique used to count objects within predefined areas or 
 ## 📚 Table of Contents
 
 - [Step 1: Install the Required Libraries](#-step-1-install-the-required-libraries)
-- [Step 2: Run Region Counting with Ultralytics YOLOv8](#-step-2-run-region-counting-with-ultralytics-yolov8)
+- [Step 2: Run Region Counting with Ultralytics YOLO11](#-step-2-run-region-counting-with-ultralytics-yolo11)
 - [Usage Options](#-usage-options)
 - [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
 - [Contributing](#-contributing)
@@ -40,7 +40,7 @@ cd ultralytics/examples/YOLOv8-Region-Counter
 pip install ultralytics shapely
 ```
 
-## ▶️ Step 2: Run Region Counting with Ultralytics YOLOv8
+## ▶️ Step 2: Run Region Counting with Ultralytics YOLO11
 
 Execute the script using the following commands. You can customize the source, model, device, and other parameters.
 
@@ -55,11 +55,11 @@ python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --view-i
 # Run inference using the CPU
 python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --view-img --device cpu
 
-# Use a specific Ultralytics YOLOv8 model file
-python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --weights "path/to/yolov8n.pt"
+# Use a specific Ultralytics YOLO11 model file
+python yolov8_region_counter.py --source "path/to/video.mp4" --save-img --weights "path/to/yolo11n.pt"
 
 # Detect only specific classes (e.g., class 0 and class 2)
-python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2 --weights "path/to/yolov8m.pt"
+python yolov8_region_counter.py --source "path/to/video.mp4" --classes 0 2 --weights "path/to/yolo11m.pt"
 
 # Run inference without saving the output video/images
 python yolov8_region_counter.py --source "path/to/video.mp4" --view-img
@@ -75,7 +75,7 @@ The script accepts several command-line arguments for customization:
 - `--device`: Computation device (`cpu` or GPU ID like `0`).
 - `--save-img`: Boolean flag to save output frames with detections.
 - `--view-img`: Boolean flag to display the output video stream in real-time.
-- `--weights`: Path to the [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) model file (`.pt`). Defaults typically use a standard model like `yolov8n.pt`.
+- `--weights`: Path to the [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) model file (`.pt`). Defaults typically use a standard model like `yolo11n.pt`.
 - `--classes`: Filter detections by specific class IDs (e.g., `--classes 0 2 3` to detect classes 0, 2, and 3).
 - `--line-thickness`: Thickness of the [bounding box](https://www.ultralytics.com/glossary/bounding-box) lines.
 - `--region-thickness`: Thickness of the lines defining the counting regions.
@@ -117,9 +117,9 @@ counting_regions = [
 ]
 ```
 
-### Why Combine Region Counting with YOLOv8?
+### Why Combine Region Counting with YOLO11?
 
-[Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) excels at [object detection](https://www.ultralytics.com/glossary/object-detection) and [tracking](https://www.ultralytics.com/glossary/object-tracking) in video streams. Integrating region counting enhances its capabilities by enabling object quantification within specific zones, making it useful for applications like crowd monitoring, traffic flow analysis, and retail footfall counting. Check out our blog post on [Object Detection and Tracking with Ultralytics YOLOv8](https://www.ultralytics.com/blog/object-detection-and-tracking-with-ultralytics-yolov8).
+[Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) excels at [object detection](https://www.ultralytics.com/glossary/object-detection) and [tracking](https://www.ultralytics.com/glossary/object-tracking) in video streams. Integrating region counting enhances its capabilities by enabling object quantification within specific zones, making it useful for applications like crowd monitoring, traffic flow analysis, and retail footfall counting. Check out our blog post on [Object Detection and Tracking with Ultralytics YOLOv8](https://www.ultralytics.com/blog/object-detection-and-tracking-with-ultralytics-yolov8).
 
 ### How Can I Troubleshoot Issues?
 

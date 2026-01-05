@@ -24,15 +24,15 @@ pf_trainer="YOLOEPEFreeTrainer"
 seg_trainer="YOLOESegmentTrainer"
 
 
-train_tp_switch=true
-train_vp_switch=false
+train_tp_switch=false
+train_vp_switch=true
 train_pf_switch=false
 train_seg_switch=false
 
-tp_device="3,4"
-vp_device="5,6"
-pf_device="7"
-seg_device="4,5"
+tp_device="0,1"
+vp_device="0,1"
+pf_device="0,1"
+seg_device="0,1"
 
 
 #################################################### train tp ##################################################################
@@ -86,7 +86,8 @@ if [ "$train_tp_switch" = true ]; then
     screen -S "$screen_name" bash -c "$(declare -f run_training); run_training '$statusfile' '$logfile' '$command'"
 fi
 #################################################### check tp best weight  ###############################################################
-tp_best_weight=$tp_project_dir/$tp_exp_name/weights/best.pt
+# tp_best_weight=$tp_project_dir/$tp_exp_name/weights/best.pt
+tp_best_weight="weights/yoloe-26s.pt"
 
 if [ ! -f "$tp_best_weight" ]; then
     echo "TP best weight file not found at $tp_best_weight"
@@ -162,7 +163,7 @@ close_mosaic=2
 batch_size=256
 device=$vp_device
 
-optimizer="AdamW"
+optimizer="MuSGD"
 lr0=0.002
 lrf=0.01
 momentum=0.9

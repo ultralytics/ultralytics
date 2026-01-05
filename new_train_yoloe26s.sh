@@ -163,7 +163,7 @@ close_mosaic=2
 batch_size=256
 device=$vp_device
 
-optimizer="MuSGD"
+optimizer="Adam"
 lr0=0.002
 lrf=0.01
 momentum=0.9
@@ -182,7 +182,7 @@ mixup=0.05
 
 
 project_dir=$vp_project_dir
-exp_name=${model}_ptw${ptw}_bs${batch_size}_epo${epo}_close${close_mosaic}_engine_vp
+exp_name=${model}_ptw${ptw}_bs${batch_size}_epo${epo}_close${close_mosaic}_engine_adam_vp
 
 pyfile="finetune_yoloe26.py"
 command="

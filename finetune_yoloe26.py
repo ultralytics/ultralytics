@@ -53,6 +53,7 @@ parser.add_argument("--o2m", type=float, default=0.1)
 parser.add_argument("--copy_paste", type=float, default=0.15)
 parser.add_argument("--mixup", type=float, default=0.05)
 
+parser.add_argument("--override", type=str, default=None) 
  # mobileclip2b
 #
 args = parser.parse_args()
@@ -207,9 +208,7 @@ else:
 trainer_class =eval( args.trainer)
 
 
-
-model.train(
-    data=data,
+train_args=dict( data=data,
     batch=args.batch,
     epochs=args.epochs,
     close_mosaic=args.close_mosaic,
@@ -223,7 +222,6 @@ model.train(
     val=args.val,
     project=args.project,
     name=args.name,
-
     cache="disk",
     scale=args.scale, # sensitive.  [0.1,  1.9] 
     copy_paste=args.copy_paste, 
@@ -240,5 +238,19 @@ model.train(
     single_cls=single_cls, # for YOLOEPEFreeTrainer
     freeze=freeze, # for YOLOEVPTrainer
     refer_data=refer_data, # for YOLOEVPTrainer
+    semseg_loss=args.semseg_loss)
 
-)
+
+
+from overrides import overrides
+if args.override is not None:
+    assert args.override in overrides, f"override {args.override} not found"
+    override=overrides[args.override]
+    for k,v in override.items():
+        print(f"Overriding {k} from {train_args.get(k, 'N/A')} to {v}")
+        train_args[k]=v
+            
+for k, v in train_args.items():
+    print(f"{k}: {v}")
+
+model.train(**train_args)

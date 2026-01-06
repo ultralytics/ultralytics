@@ -160,8 +160,8 @@ def test_nan_recovery():
 def test_semseg():
     """Test semantic segment including training, validation, and prediction phases."""
     overrides = {
-        "data": "CityscapesYOLO.yaml",
-        "model": "yolo11-semseg.yaml",
+        "data": "ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
+        "model": "ultralytics/cfg/models/11/yolo11-semseg.yaml",
         "imgsz": 512,
         "epochs": 1,
         "save": False,

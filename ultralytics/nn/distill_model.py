@@ -55,22 +55,22 @@ class DistillationModel(nn.Module):
         if isinstance(x, dict):  # for cases of training and validating while training.
             return self.loss(x, *args, **kwargs)
         return self.student_model.predict(x, *args, **kwargs)
-        # y = []  # outputs
-        # sx = x.clone()
-        # for i, m in enumerate(self.student_model.model):
-        #     sx = m(sx)  # run
-        #     if i == 10:
-        #         sx = self.projector(sx.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
-        #         break
-        # for i, m in enumerate(self.teacher_model.model):
-        #     if m.f != -1:  # if not from previous layer
-        #         x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
-        #     x = m(x)  # run
-        #     if i == 10:
-        #         y.append(sx)
-        #     else:
-        #         y.append(x if m.i in self.save else None)  # save output
-        # return x
+        y = []  # outputs
+        sx = x.clone()
+        for i, m in enumerate(self.student_model.model):
+            sx = m(sx)  # run
+            if i == 10:
+                sx = self.projector[0](sx.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+                break
+        for i, m in enumerate(self.teacher_model.model):
+            if m.f != -1:  # if not from previous layer
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+            x = m(x)  # run
+            if i == 10:
+                y.append(sx)
+            else:
+                y.append(x if m.i in self.save else None)  # save output
+        return x
 
     def loss(self, batch, preds=None):
         """
@@ -90,7 +90,7 @@ class DistillationModel(nn.Module):
             teacher_feat = F.normalize(teacher_feats[i].flatten(2).permute(0, 2, 1), p=2, dim=-1)
 
             cos_sim = F.cosine_similarity(student_feat, teacher_feat, dim=-1)
-            loss_distill += (1 - cos_sim).mean() * self.student_model.args.dis
+            loss_distill += (1 - cos_sim).sum(0).mean() * self.student_model.args.dis
 
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill.detach()])

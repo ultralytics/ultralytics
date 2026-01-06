@@ -686,7 +686,7 @@ class YOLOConcatDataset(ConcatDataset):
 class SemanticDataset(BaseDataset):
     """Semantic Segmentation Dataset."""
 
-    def __init__(self, *args, data=None, task="semseg", **kwargs):
+    def __init__(self, *args, data, task="semseg", **kwargs):
         """Initialize a SemanticDataset object.
 
         Args:
@@ -695,6 +695,7 @@ class SemanticDataset(BaseDataset):
             task: An explicit arg to point current task, Defaults to 'detect'.
             **kwargs: arguments with dict format
         """
+        assert data is not None, "Data configuation must not be none."
         self.use_segment = task in ["segment"]
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"

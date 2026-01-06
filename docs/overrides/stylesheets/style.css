@@ -88,12 +88,7 @@ div.highlight {
 
   color: transparent;
   -webkit-text-fill-color: transparent;
-  background: linear-gradient(
-    90deg,
-    rgba(221, 214, 215, 0.8),
-    rgba(255, 213, 226, 0.8),
-    rgba(255, 241, 203, 0.8)
-  );
+  background: linear-gradient(90deg, rgba(221, 214, 215, 0.8), rgba(255, 213, 226, 0.8), rgba(255, 241, 203, 0.8));
   background-size: cover;
   background-position: center;
   background-clip: text;

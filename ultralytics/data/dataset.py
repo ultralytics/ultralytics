@@ -695,7 +695,7 @@ class SemanticDataset(BaseDataset):
             task: An explicit arg to point current task, Defaults to 'detect'.
             **kwargs: arguments with dict format
         """
-        assert data is not None, "Data configuation must not be none."
+        assert data is not None, "Data configuration must not be none."
         self.use_segment = task in ["segment"]
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"

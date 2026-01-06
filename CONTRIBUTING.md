@@ -24,10 +24,12 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 ### 📏 Contribution Scope & PR Size Guidelines
 
 **First-time contributors**
-First-time contributors are expected to submit small, focused pull requests. Large PRs are generally not accepted from first-time contributors. Contributions should be limited to bug fixes and minor issues. Feature additions are not expected at this stage.
+First-time contributors are expected to submit small, well-scoped pull requests. Large PRs (more than ~30 lines of change) are generally not accepted at this stage, except when the size is driven primarily by docstrings, documentation, or formatting rather than substantive code changes. Contributions should focus on speed improvements, bug fixes, documentation updates, and other minor issues. New feature development is not expected from first-time contributors.
 
 **Established contributors**
 Actions and results are fundamental to the [Ultralytics Mission & Values](https://handbook.ultralytics.com/mission-vision-values/). There is no specific threshold to becoming an 'established contributor' as it's impossible to fit all individuals to the same standard. The Ultralytics Team notices those who make consistent, high-quality contributions that follow the Ultralytics standards. Following our contributing guidance (this document) and [our Development Workflow](https://handbook.ultralytics.com/workflows/development/) is _the best_ way to improve your chances for your work to be reviewed, accepted, and/or recognized; this is not a guarantee.
+
+As an established contributor, you may submit feature pull requests, provided they are preceded by a feature request GitHub issue that has been adequately discussed and explicitly approved by the maintainers. Even with prior approval, changes are expected to remain appropriately scoped and focused. Feature PRs are evaluated with careful consideration of long-term maintenance impact and overall value to the Ultralytics user base.
 
 **PR size and review time**
 The larger the proposed changes to the code, the longer the review process will take. Smaller, narrowly-scoped PRs can significantly increase the likelihood of a timely review and merge.

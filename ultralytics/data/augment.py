@@ -2836,7 +2836,7 @@ class SemSegMosaic(BaseMixTransform):
         >>> augmented_labels = mosaic_aug(original_labels)
     """
 
-    def __init__(self, dataset, imgsz=1024, p=1.0, n=4):
+    def __init__(self, dataset, imgsz=1024, p=1.0, n=4, use_background=True):
         """Initializes the Mosaic augmentation object.
 
         This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
@@ -2860,6 +2860,7 @@ class SemSegMosaic(BaseMixTransform):
         self.imgsz = imgsz
         self.border = (-imgsz // 2, -imgsz // 2)  # width, height
         self.n = n
+        self.use_background = use_background
 
     def get_indexes(self, buffer=True):
         """Returns a List of random indexes from the dataset for mosaic augmentation.
@@ -2951,7 +2952,7 @@ class SemSegMosaic(BaseMixTransform):
             if i == 0:  # center
                 img3 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 3 tiles
                 msk3 = np.full((s * 3, s * 3, msk.shape[2]), 0, dtype=np.uint8)
-                msk3[:, :, -1] = 1
+                msk3[:, :, -1] = 1 if self.use_background else 0
                 h0, w0 = h, w
                 c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
             elif i == 1:  # right
@@ -3012,7 +3013,7 @@ class SemSegMosaic(BaseMixTransform):
             if i == 0:  # top left
                 img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
                 msk4 = np.full((s * 2, s * 2, msk.shape[2]), 0, dtype=np.uint8)  # base image with 4 tiles
-                msk4[:, :, -1] = 1
+                msk4[:, :, -1] = 1 if self.use_background else 0
                 x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
                 x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
             elif i == 1:  # top right
@@ -3076,7 +3077,7 @@ class SemSegMosaic(BaseMixTransform):
             if i == 0:  # center
                 img9 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
                 msk9 = np.full((s * 3, s * 3, msk.shape[2]), 0, dtype=np.uint8)  # base image with 4 tiles
-                msk9[:, :, -1] = 1
+                msk9[:, :, -1] = 1 if self.use_background else 0
                 h0, w0 = h, w
                 c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
             elif i == 1:  # top

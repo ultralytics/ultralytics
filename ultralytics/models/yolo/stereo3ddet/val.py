@@ -22,6 +22,7 @@ from ultralytics.utils.profiling import profile_function, profile_section
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
 from ultralytics.utils.nms import non_max_suppression
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # YOLO11-mapped (Detect-based) decode helpers
@@ -1434,21 +1435,24 @@ def decode_stereo3d_outputs(
 
     return batch_results
 
-def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] | None = None) -> list[Box3D]:
+def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] | None = None, names: dict[int, str] | None = None) -> list[Box3D]:
     """Convert label dictionaries to Box3D objects.
 
-    Filters and remaps class IDs to paper classes (Car, Pedestrian, Cyclist) if needed.
+    Uses provided names mapping, or falls back to paper classes (Car, Pedestrian, Cyclist) if not available.
 
     Args:
         labels: List of label dictionaries from dataset.
         calib: Calibration parameters (dict or CalibrationParameters object).
+        names: Optional class names mapping {class_id: class_name}.
 
     Returns:
         List of Box3D objects with filtered and remapped class IDs.
     """
     boxes3d = []
-    class_names = get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
-
+    
+    # Use provided names, or fall back to paper classes (Car, Pedestrian, Cyclist)
+    class_names = names if names else get_paper_class_names()
+    
     for label in labels:
         class_id = label["class_id"]
         height = label["dimensions"]["height"]
@@ -1509,7 +1513,7 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             center_3d=(float(x_3d), float(y_3d), float(z_3d)),
             dimensions=(float(length), float(width), float(height)),
             orientation=float(rotation_y),
-            class_label=class_names[class_id],
+            class_label=class_names.get(class_id, f"class_{class_id}"),
             class_id=class_id,
             confidence=1.0,  # Ground truth has confidence 1.0
             bbox_2d=bbox_2d_x1y1x2y2,
@@ -1891,96 +1895,9 @@ class Stereo3DDetValidator(BaseValidator):
         self.det_metrics.names = self.names
         self.det_metrics.clear_stats()
 
-    def _diagnostic_log_iou_matrix(
-        self, iou_matrix: np.ndarray, pred_boxes: list[Box3D], gt_boxes: list[Box3D], sample_idx: int
-    ) -> None:
-        """Log IoU matrix computation results for diagnostic purposes.
-
-        Args:
-            iou_matrix: IoU matrix of shape [N, M] with IoU values between predictions and ground truth.
-            pred_boxes: List of N predicted boxes.
-            gt_boxes: List of M ground truth boxes.
-            sample_idx: Index of current sample in batch.
-        """
-        try:
-            n, m = iou_matrix.shape
-            non_zero_count = np.count_nonzero(iou_matrix)
-            total = n * m
-            iou_min = float(np.min(iou_matrix)) if total > 0 else 0.0
-            iou_max = float(np.max(iou_matrix)) if total > 0 else 0.0
-            iou_mean = float(np.mean(iou_matrix)) if total > 0 else 0.0
-
-            LOGGER.info(f"[DIAG] Sample {sample_idx}: IoU Matrix")
-            LOGGER.info(f"  Shape: [{n}, {m}]")
-            LOGGER.info(f"  Non-zero count: {non_zero_count} / {total}")
-            LOGGER.info(f"  Value range: [{iou_min:.4f}, {iou_max:.4f}]")
-            LOGGER.info(f"  Mean: {iou_mean:.4f}")
-
-            # Sample values (first few predictions vs first few ground truth)
-            sample_size = min(3, n, m)
-            if sample_size > 0:
-                LOGGER.info("  Sample values:")
-                for i in range(min(3, n)):
-                    for j in range(min(3, m)):
-                        iou_val = float(iou_matrix[i, j])
-                        if iou_val > 0.0:
-                            LOGGER.info(f"    Pred[{i}] vs GT[{j}]: {iou_val:.4f}")
-        except Exception as e:
-            LOGGER.warning(f"Diagnostic logging failed (_diagnostic_log_iou_matrix): {e}")
-
-    def _diagnostic_log_tp_fp_assignment(
-        self, tp: np.ndarray, fp: np.ndarray, pred_boxes: list[Box3D], iou_thresholds: torch.Tensor, sample_idx: int
-    ) -> None:
-        """Log TP/FP assignment results for diagnostic purposes.
-
-        Args:
-            tp: True positives array of shape [N, 2] per prediction per threshold.
-            fp: False positives array of shape [N, 2] per prediction per threshold.
-            pred_boxes: List of N predicted boxes.
-            iou_thresholds: IoU thresholds tensor [0.5, 0.7].
-            sample_idx: Index of current sample in batch.
-        """
-        try:
-            n = tp.shape[0] if len(tp.shape) > 0 else 0
-            LOGGER.info(f"[DIAG] Sample {sample_idx}: TP/FP Assignment")
-            LOGGER.info(f"  Arrays shape: [{n}, {tp.shape[1] if len(tp.shape) > 1 else 0}]")
-
-            for iou_idx, iou_thresh in enumerate(iou_thresholds):
-                if iou_idx < tp.shape[1]:
-                    tp_count = int(np.sum(tp[:, iou_idx]))
-                    fp_count = int(np.sum(fp[:, iou_idx]))
-                    tp_indices = np.where(tp[:, iou_idx])[0].tolist()[:10]  # First 10 TP indices
-                    fp_indices = np.where(fp[:, iou_idx])[0].tolist()[:10]  # First 10 FP indices
-
-                    LOGGER.info(f"  IoU Threshold {iou_thresh.item():.1f}: TP={tp_count}, FP={fp_count}")
-                    if tp_indices:
-                        LOGGER.info(f"  TP indices (threshold {iou_thresh.item():.1f}): {tp_indices}")
-                    if fp_indices:
-                        LOGGER.info(f"  FP indices (threshold {iou_thresh.item():.1f}): {fp_indices}")
-        except Exception as e:
-            LOGGER.warning(f"Diagnostic logging failed (_diagnostic_log_tp_fp_assignment): {e}")
-
-    def _diagnostic_log_statistics_extraction(
-        self, conf: np.ndarray, pred_cls: np.ndarray, target_cls: np.ndarray, sample_idx: int
-    ) -> None:
-        """Log extracted statistics arrays for diagnostic purposes.
-
-        Args:
-            conf: Confidence scores array of shape [N].
-            pred_cls: Predicted class IDs array of shape [N].
-            target_cls: Target class IDs array of shape [M].
-            sample_idx: Index of current sample in batch.
-        """
-        try:
-            LOGGER.info(f"[DIAG] Sample {sample_idx}: Statistics Extraction")
-            LOGGER.info(f"  conf: shape={conf.shape}, dtype={conf.dtype}, range=[{float(np.min(conf)) if len(conf) > 0 else 0.0:.4f}, {float(np.max(conf)) if len(conf) > 0 else 0.0:.4f}], non-zero={np.count_nonzero(conf)}")
-            unique_pred_cls = np.unique(pred_cls).tolist() if len(pred_cls) > 0 else []
-            LOGGER.info(f"  pred_cls: shape={pred_cls.shape}, dtype={pred_cls.dtype}, unique={unique_pred_cls}")
-            unique_target_cls = np.unique(target_cls).tolist() if len(target_cls) > 0 else []
-            LOGGER.info(f"  target_cls: shape={target_cls.shape}, dtype={target_cls.dtype}, unique={unique_target_cls}")
-        except Exception as e:
-            LOGGER.warning(f"Diagnostic logging failed (_diagnostic_log_statistics_extraction): {e}")
-
+    
+    
+    
     def update_metrics(self, preds: list[list[Box3D]], batch: dict[str, Any]) -> None:
         """Update metrics with predictions and ground truth.
 
@@ -2043,7 +1960,7 @@ class Stereo3DDetValidator(BaseValidator):
 
                 # Convert labels to Box3D
                 try:
-                    gt_boxes = _labels_to_box3d_list(labels, calib)
+                    gt_boxes = _labels_to_box3d_list(labels, calib, names=self.names)
                 except Exception as e:
                     LOGGER.warning(f"Error converting labels to Box3D (sample {si}): {e}")
                     gt_boxes = []
@@ -2412,7 +2329,7 @@ class Stereo3DDetValidator(BaseValidator):
                 gt_boxes = []
                 if labels:
                     try:
-                        gt_boxes = _labels_to_box3d_list(labels, calib_orig)
+                        gt_boxes = _labels_to_box3d_list(labels, calib_orig, names=self.names)
                     except Exception as e:
                         LOGGER.debug(f"Error converting labels to Box3D for visualization (sample {si}): {e}")
 
@@ -2695,9 +2612,13 @@ class Stereo3DDetValidator(BaseValidator):
         if isinstance(desc, dict) and desc.get("type") == "kitti_stereo":
             # Get image size from args, default to 384
             imgsz = getattr(self.args, "imgsz", 384)
-            if isinstance(imgsz, (list, tuple)):
-                imgsz = imgsz[0] if len(imgsz) > 0 else 384
-            
+            if isinstance(imgsz, (list, tuple)) and len(imgsz) == 2:
+                imgsz = (int(imgsz[0]), int(imgsz[1]))  # (H, W)
+            elif isinstance(imgsz, (list, tuple)):
+                imgsz = (int(imgsz[0]), int(imgsz[0]))  # Fallback to square
+            else:
+                imgsz = (int(imgsz), int(imgsz))  # Int to square
+
             # Get max_samples from args if available (for profiling/testing)
             max_samples = getattr(self.args, "max_samples", None)
             
@@ -2721,9 +2642,13 @@ class Stereo3DDetValidator(BaseValidator):
         # Fallback: if img_path is a string, try to use it directly
         if isinstance(img_path, str) or isinstance(img_path, Path):
             imgsz = getattr(self.args, "imgsz", 384)
-            if isinstance(imgsz, (list, tuple)):
-                imgsz = imgsz[0] if len(imgsz) > 0 else 384
-            
+            if isinstance(imgsz, (list, tuple)) and len(imgsz) == 2:
+                imgsz = (int(imgsz[0]), int(imgsz[1]))  # (H, W)
+            elif isinstance(imgsz, (list, tuple)):
+                imgsz = (int(imgsz[0]), int(imgsz[0]))  # Fallback to square
+            else:
+                imgsz = (int(imgsz), int(imgsz))  # Int to square
+
             return Stereo3DDetDataset(
                 root=img_path,
                 split=mode,

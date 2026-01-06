@@ -310,17 +310,6 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         
         return batch
 
-    def _forward_train(self, batch):
-        """Forward training pass for the stereo model, passing targets dict if present."""
-        imgs = batch["img"]
-        targets = batch.get("targets", None)
-        out = self.model(imgs, targets=targets)
-        if isinstance(out, dict) and "loss" in out:
-            return out["loss"], out
-        # Fallback for unexpected outputs
-        import torch
-        return out if isinstance(out, torch.Tensor) else torch.tensor(0.0, device=imgs.device), {"out": out}
-
     def plot_training_samples(self, batch: dict[str, Any], ni: int) -> None:
         """Plot training samples as a 2-column grid for clarity.
 

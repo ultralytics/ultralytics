@@ -311,6 +311,7 @@ class BaseTrainer:
                 teacher_model=self.args.distill_model,
                 feats_idx=self.args.distill_layer,
             ).to(self.device)
+            self.freeze_layer_names += [f"teacher_model."]  # handle BN layers
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)

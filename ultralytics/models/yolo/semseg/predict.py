@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 import torch
 
-from ultralytics.data.utils import check_det_dataset, check_semseg_dataset
+from ultralytics.data.utils import check_semseg_dataset
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, SEMSEG_CFG, YAML

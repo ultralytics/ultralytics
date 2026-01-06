@@ -23,21 +23,21 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 
 ### 📏 Contribution Scope & PR Size Guidelines
 
-**First-time contributors**
+#### First-time Contributors
 
 First-time contributors are expected to submit small, well-scoped pull requests. Large PRs (more than ~30 lines of change) are generally not accepted at this stage, except when the size is driven primarily by docstrings, documentation, or formatting rather than substantive code changes. Contributions should focus on speed improvements, bug fixes, documentation updates, and other minor issues. Feature PRs are not encouraged for first-time contributors. However, if you still wish to contribute a feature, follow the guideline for feature PRs below.
 
-**Established contributors**
+#### Established Contributors
 
 Pull requests from established contributors generally receive higher review priority. Actions and results are fundamental to the [Ultralytics Mission & Values](https://handbook.ultralytics.com/mission-vision-values/). There is no specific threshold to becoming an 'established contributor' as it's impossible to fit all individuals to the same standard. The Ultralytics Team notices those who make consistent, high-quality contributions that follow the Ultralytics standards.
 
 Following our contributing guidance (this document) and [our Development Workflow](https://handbook.ultralytics.com/workflows/development/) is _the best_ way to improve your chances for your work to be reviewed, accepted, and/or recognized; this is not a guarantee. In addition, contributors with a strong track record of meaningful contributions to notable open-source projects may be treated as established contributors, even if they are technically first-time contributors to Ultralytics.
 
-**Feature PRs**
+#### Feature PRs
 
 Feature pull requests must be preceded by a feature request GitHub issue that has been sufficiently discussed and explicitly approved by the maintainers. This process helps avoid unnecessary effort on changes that are unlikely to be merged. Even after approval, feature PRs are expected to remain well-scoped and focused. All feature contributions are evaluated with attention to long-term maintenance costs and their overall usefulness to the Ultralytics user base.
 
-**PR size and review time**
+#### PR Size and Review Time
 
 The larger the proposed changes to the code, the longer the review process will take. Smaller, narrowly-scoped PRs can significantly increase the likelihood of a timely review and merge.
 

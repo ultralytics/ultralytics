@@ -27,10 +27,10 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 First-time contributors are expected to submit small, focused pull requests. Large PRs are generally not accepted from first-time contributors. Contributions should be limited to bug fixes and minor issues. Feature additions are not expected at this stage.
 
 **Established contributors**
-Contributors with 5 or more merged PRs may propose and implement new features. Feature PRs must follow a prior feature request issue that has been adequately discussed and explicitly greenlit by maintainers. Even for established contributors, PRs should remain reasonably scoped with a clear limit on the amount of code changed.
+Actions and results are fundamental to the [Ultralytics Mission & Values](https://handbook.ultralytics.com/mission-vision-values/). There is no specific threshold to becoming an 'established contributor' as it's impossible to fit all individuals to the same standard. The Ultralytics Team notices those who make consistent, high-quality contributions that follow the Ultralytics standards. Following our contributing guidance (this document) and [our Development Workflow](https://handbook.ultralytics.com/workflows/development/) is _the best_ way to improve your chances for your work to be reviewed, accepted, and/or recognized; this is not a guarantee.
 
 **PR size and review time**
-The larger the change set, the longer the review process will take. Smaller, well-scoped PRs significantly increase the likelihood of timely review and merge.
+The larger the proposed changes to the code, the longer the review process will take. Smaller, narrowly-scoped PRs can significantly increase the likelihood of a timely review and merge.
 
 ### 📝 CLA Signing
 
@@ -111,11 +111,11 @@ All pull requests must pass the [GitHub Actions](https://github.com/features/act
 When contributing code to Ultralytics projects, keep these best practices in mind:
 
 - **Avoid code duplication:** Reuse existing code wherever possible and minimize unnecessary arguments.
-- **Make smaller, focused changes:** Focus on targeted modifications rather than large-scale changes. Smaller, incremental pull requests are easier to review, less error-prone, and have a higher chance of being merged.
+- **Make smaller, focused changes:** Focus on targeted modifications rather than large-scale changes. Smaller, narrow-scope pull requests are easier to review, less error-prone, and have a higher chance of being merged.
 - **Simplify when possible:** Look for opportunities to simplify the code or remove unnecessary parts.
 - **Consider compatibility:** Before making changes, consider whether they might break existing code using Ultralytics.
 - **Use consistent formatting:** Tools like [Ruff Formatter](https://github.com/astral-sh/ruff) can help maintain stylistic consistency.
-- **Add appropriate tests:** Include [tests](https://docs.ultralytics.com/guides/model-testing/) for new features to ensure they work as expected. New tests should be added to existing test files rather than creating new test files. Tests do not need to be exhaustive, but should reasonably confirm correct behavior and prevent regressions.
+- **Add appropriate tests:** Include [tests](https://docs.ultralytics.com/guides/model-testing/) for new features to ensure they work as expected. New tests should be added to existing test files rather than creating new test files. Tests do not need to be exhaustive, but must be able to reasonably confirm correct behavior and detect regressions.
 
 ## 👀 Reviewing Pull Requests
 

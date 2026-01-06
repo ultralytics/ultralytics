@@ -111,12 +111,11 @@ All pull requests must pass the [GitHub Actions](https://github.com/features/act
 When contributing code to Ultralytics projects, keep these best practices in mind:
 
 - **Avoid code duplication:** Reuse existing code wherever possible and minimize unnecessary arguments.
-- **Make smaller, focused changes:** Focus on targeted modifications rather than large-scale changes.
+- **Make smaller, focused changes:** Focus on targeted modifications rather than large-scale changes. Smaller, incremental pull requests are easier to review, less error-prone, and have a higher chance of being merged.
 - **Simplify when possible:** Look for opportunities to simplify the code or remove unnecessary parts.
 - **Consider compatibility:** Before making changes, consider whether they might break existing code using Ultralytics.
 - **Use consistent formatting:** Tools like [Ruff Formatter](https://github.com/astral-sh/ruff) can help maintain stylistic consistency.
 - **Add appropriate tests:** Include [tests](https://docs.ultralytics.com/guides/model-testing/) for new features to ensure they work as expected. New tests should be added to existing test files rather than creating new test files. Tests do not need to be exhaustive, but should reasonably confirm correct behavior and prevent regressions.
-- **Prefer small PRs:** Smaller, incremental pull requests are easier to review, less error-prone, and have a higher chance of being merged.
 
 ## 👀 Reviewing Pull Requests
 

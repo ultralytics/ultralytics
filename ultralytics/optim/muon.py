@@ -151,9 +151,11 @@ class MuSGD(optim.Optimizer):
         momentum: float = 0.0,
         weight_decay: float = 0.0,
         nesterov: bool = False,
-        use_muon=False,
+        use_muon: bool = False,
         muon: float = 0.5,
         sgd: float = 0.5,
+        cls_w: float = 1.0,
+        param_names: list | None = None,
     ):
         defaults = dict(
             lr=lr,
@@ -161,10 +163,12 @@ class MuSGD(optim.Optimizer):
             weight_decay=weight_decay,
             nesterov=nesterov,
             use_muon=use_muon,
+            param_names=param_names,
         )
         super().__init__(params, defaults)
         self.muon = muon
         self.sgd = sgd
+        self.cls_w = cls_w
 
     def adjust_lr(self, lr: float, param_shape: tuple) -> float:
         """Adjust learning rate based on parameter shape dimensions.
@@ -207,11 +211,21 @@ class MuSGD(optim.Optimizer):
             with torch.enable_grad():
                 loss = closure()
 
+        pattern = r'(?=.*23)(?=.*cv3)|proto\.semseg|flow_model'
         for group in self.param_groups:
             # Muon
             if group["use_muon"]:
                 # generate weight updates in distributed fashion
-                for p in group["params"]:
+                for i, p in enumerate(group["params"]):
+                    lr = (
+                        group["lr"] * self.cls_w
+                        if group["param_names"] is not None
+                        and bool(re.search(pattern, group["param_names"][i]))
+                        # and "cv3" in group["param_names"][i]
+                        # and "23" in group["param_names"][i]
+                        # and int(group["param_names"][i].split(".")[1]) in list(range(11, 24))
+                        else group["lr"]
+                    )
                     if p.grad is None:
                         continue
                     grad = p.grad
@@ -223,9 +237,8 @@ class MuSGD(optim.Optimizer):
                     update = muon_update(
                         grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
                     )
-                    lr = group["lr"] * self.muon
                     # lr = self.adjust_lr(lr, p.shape)
-                    p.add_(update.reshape(p.shape), alpha=-lr)
+                    p.add_(update.reshape(p.shape), alpha=-(lr * self.muon))
 
                     # SGD update
                     if group["weight_decay"] != 0:
@@ -236,9 +249,18 @@ class MuSGD(optim.Optimizer):
                         if group["nesterov"]
                         else state["momentum_buffer_SGD"]
                     )
-                    p.add_(sgd_update, alpha=-group["lr"] * self.sgd)
+                    p.add_(sgd_update, alpha=-(lr * self.sgd))
             else:  # SGD
-                for p in group["params"]:
+                for i, p in enumerate(group["params"]):
+                    lr = (
+                        group["lr"] * self.cls_w
+                        if group["param_names"] is not None
+                        and bool(re.search(pattern, group["param_names"][i]))
+                        # and "cv3" in group["param_names"][i]
+                        # and "23" in group["param_names"][i]
+                        # and int(group["param_names"][i].split(".")[1]) in list(range(11, 24))
+                        else group["lr"]
+                    )
                     if p.grad is None:
                         continue
                     grad = p.grad
@@ -253,7 +275,7 @@ class MuSGD(optim.Optimizer):
                         if group["nesterov"]
                         else state["momentum_buffer"]
                     )
-                    p.add_(update, alpha=-group["lr"])
+                    p.add_(update, alpha=-lr)
         return loss
 
 

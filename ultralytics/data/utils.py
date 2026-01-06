@@ -17,7 +17,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
-from ultralytics.nn.autobackend import check_class_names, check_class_colors
+from ultralytics.nn.autobackend import check_class_colors, check_class_names
 from ultralytics.utils import (
     ASSETS_URL,
     DATASETS_DIR,
@@ -476,6 +476,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
 
     return data  # dictionary
 
+
 def check_semseg_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
     """Download, verify, and/or unzip a dataset if not found locally.
 
@@ -569,6 +570,7 @@ def check_semseg_dataset(dataset: str, autodownload: bool = True) -> dict[str, A
     check_font("Arial.ttf" if is_ascii(data["names"]) else "Arial.Unicode.ttf")  # download fonts
 
     return data  # dictionary
+
 
 def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     """Check a classification dataset such as Imagenet.

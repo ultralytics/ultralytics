@@ -25,14 +25,14 @@ from ultralytics.utils.nms import non_max_suppression
 def check_class_colors(colors: list | dict) -> dict[int, str]:
     """Check class names and convert to dict format if needed.
 
-        Args:
-            colors (list | dict): Class colors as list or dict format.
+    Args:
+        colors (list | dict): Class colors as list or dict format.
 
-        Returns:
-            (dict): Class colors in dict format with integer keys and string values.
+    Returns:
+        (dict): Class colors in dict format with integer keys and string values.
 
-        Raises:
-            KeyError: If colors indices are invalid for the dataset size.
+    Raises:
+        KeyError: If colors indices are invalid for the dataset size.
     """
     if isinstance(colors, list):  # names is a list
         colors = dict(enumerate(colors))  # convert to dict
@@ -49,6 +49,7 @@ def check_class_colors(colors: list | dict) -> dict[int, str]:
             colors_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
             colors = {k: colors_map[v] for k, v in colors.items()}
     return colors
+
 
 def check_class_names(names: list | dict) -> dict[int, str]:
     """Check class names and convert to dict format if needed.

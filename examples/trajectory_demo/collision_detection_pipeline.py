@@ -219,35 +219,43 @@ class CollisionDetectionPipeline:
                 'frame_image': frame_path.name
             })
             
-            if ids is None or len(ids) < 2:
+            if len(boxes) < 2:
                 if frame_count % 30 == 0:
                     print(f"  Frame {frame_count}/{total_frames} - {len(boxes)}个物体")
                 continue
             
             # 计算所有物体对之间的距离
+            # 注意：warped视频已经是世界坐标空间了（180×1200 = 7.5m × 50m）
+            # 但YOLO在640×96上检测，需要换算缩放比例
+            output_size = (180, 1200)  # warped视频的期望分辨率
+            actual_size = (640, 96)    # 实际加载的warped分辨率
+            scale_x = output_size[0] / actual_size[0]  # 0.28125
+            scale_y = output_size[1] / actual_size[1]  # 12.5
+            
+            # 世界坐标范围（从homography计算）
+            world_bounds = (-3.75, 3.75, 0.0, 50.0)  # (min_x, max_x, min_y, max_y)
+            world_width = world_bounds[1] - world_bounds[0]   # 7.5m
+            world_height = world_bounds[3] - world_bounds[2]  # 50m
+            
             collision_in_frame = False
             for i in range(len(boxes)):
                 for j in range(i+1, len(boxes)):
                     x1, y1 = boxes[i][:2]
                     x2, y2 = boxes[j][:2]
                     
-                    # 使用世界坐标计算距离（如果有H矩阵）
-                    if H is not None:
-                        try:
-                            p1_world = coord_transform.transform_point((x1, y1), H)
-                            p2_world = coord_transform.transform_point((x2, y2), H)
-                            distance = np.sqrt((p1_world[0]-p2_world[0])**2 + 
-                                            (p1_world[1]-p2_world[1])**2)
-                            distance_str = f"{distance:.2f}m"
-                        except:
-                            distance = np.sqrt((x2-x1)**2 + (y2-y1)**2)
-                            distance_str = f"{distance:.1f}px"
-                    else:
-                        distance = np.sqrt((x2-x1)**2 + (y2-y1)**2)
-                        distance_str = f"{distance:.1f}px"
+                    # 将warped视频中的像素坐标换算到世界坐标
+                    # warped视频坐标(0-640, 0-96) 对应世界坐标(-3.75-3.75, 0-50)
+                    x1_world = world_bounds[0] + (x1 / actual_size[0]) * world_width
+                    y1_world = world_bounds[2] + (y1 / actual_size[1]) * world_height
+                    x2_world = world_bounds[0] + (x2 / actual_size[0]) * world_width
+                    y2_world = world_bounds[2] + (y2 / actual_size[1]) * world_height
                     
-                    # 记录接近事件（距离 < 0.5m）
-                    if distance < 0.5 or (H is None and distance < 50):
+                    # 计算世界坐标中的距离（单位：米）
+                    distance = np.sqrt((x2_world-x1_world)**2 + (y2_world-y1_world)**2)
+                    distance_str = f"{distance:.2f}m"
+                    
+                    # 记录接近事件（距离 < 1.5m，更合理的碰撞距离）
+                    if distance < 1.5:
                         collision_in_frame = True
                         
                         event = {

@@ -79,7 +79,6 @@ def transform_frame_manual(frame, M, output_size):
     对单个帧进行手工逐像素变换（使用双线性插值）
     
     这个方法规避了OpenCV warpPerspective的数值稳定性问题
-    采用逐像素映射 + 双线性插值的方式进行透视变换
     
     参数：
     - frame: 输入帧 (HxWx3 uint8)

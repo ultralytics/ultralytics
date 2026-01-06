@@ -21,6 +21,18 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with concise and descriptive commit messages. If your changes address a specific issue, include the issue number (e.g., `Fix #123: Corrected calculation error.`).
 6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your branch to the `main` branch of the original Ultralytics repository. Provide a clear title and a detailed description explaining the purpose and scope of your changes.
 
+
+### 📏 Contribution Scope & PR Size Guidelines
+
+**First-time contributors**
+First-time contributors are expected to submit small, focused pull requests. Large PRs are generally not accepted from first-time contributors. Contributions should be limited to bug fixes and minor issues. Feature additions are not expected at this stage.
+
+**Established contributors**
+Contributors with 5 or more merged PRs may propose and implement new features. Feature PRs must follow a prior feature request issue that has been adequately discussed and explicitly greenlit by maintainers. Even for established contributors, PRs should remain reasonably scoped with a clear limit on the amount of code changed.
+
+**PR size and review time**
+The larger the change set, the longer the review process will take. Smaller, well-scoped PRs significantly increase the likelihood of timely review and merge.
+
 ### 📝 CLA Signing
 
 Before we can merge your pull request, you must sign our [Contributor License Agreement (CLA)](https://docs.ultralytics.com/help/CLA/). This legal agreement ensures that your contributions are properly licensed, allowing the project to continue being distributed under the [AGPL-3.0 license](https://www.ultralytics.com/legal/agpl-3-0-software-license).
@@ -104,7 +116,8 @@ When contributing code to Ultralytics projects, keep these best practices in min
 - **Simplify when possible:** Look for opportunities to simplify the code or remove unnecessary parts.
 - **Consider compatibility:** Before making changes, consider whether they might break existing code using Ultralytics.
 - **Use consistent formatting:** Tools like [Ruff Formatter](https://github.com/astral-sh/ruff) can help maintain stylistic consistency.
-- **Add appropriate tests:** Include [tests](https://docs.ultralytics.com/guides/model-testing/) for new features to ensure they work as expected.
+- **Add appropriate tests:** Include [tests](https://docs.ultralytics.com/guides/model-testing/) for new features to ensure they work as expected. New tests should be added to existing test files rather than creating new test files. Tests do not need to be exhaustive, but should reasonably confirm correct behavior and prevent regressions.
+- **Prefer small PRs:** Smaller, incremental pull requests are easier to review, less error-prone, and have a higher chance of being merged.
 
 ## 👀 Reviewing Pull Requests
 
@@ -116,6 +129,12 @@ Reviewing pull requests is another valuable way to contribute. When reviewing PR
 - **Verify CI tests:** Confirm all [Continuous Integration tests](https://docs.ultralytics.com/help/CI/) are passing.
 - **Provide constructive feedback:** Offer specific, clear feedback about any issues or concerns.
 - **Recognize effort:** Acknowledge the author's work to maintain a positive collaborative atmosphere.
+
+### 🤖 Automated Review
+
+All pull requests undergo an automatic review by Ultralytics Assistant. Each suggestion from Ultralytics Assistant includes an associated level of importance. Contributors are expected to review all suggestions and either apply them or explicitly explain in a PR comment why a given suggestion is not applicable or should not be adopted.
+
+If needed, you may re-request a review from Ultralytics Assistant via the GitHub reviewers panel.
 
 ## 🐞 Reporting Bugs
 

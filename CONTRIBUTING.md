@@ -39,7 +39,7 @@ Feature pull requests must be preceded by a feature request GitHub issue that ha
 
 #### PR Size and Review Time
 
-The larger the proposed changes to the code, the longer the review process will take. Smaller, narrowly-scoped PRs can significantly increase the likelihood of a timely review and merge.
+The larger the proposed changes to the code, the longer the review process will take. Smaller, narrowly-scoped PRs that align with the style and structure of the Ultralytics codebase have significantly higher likelihood of timely review and merge.
 
 ### 📝 CLA Signing
 

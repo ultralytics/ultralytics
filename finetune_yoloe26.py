@@ -26,7 +26,7 @@ parser.add_argument("--close_mosaic", type=int, default=0)
 parser.add_argument("--batch", type=int, default=32)
 parser.add_argument("--project", type=str, default="../runs/train_tp")
 #device
-parser.add_argument("--device", type=str, default="7")
+parser.add_argument("--device", type=str, default="0,1")
 # val
 parser.add_argument("--val", type=str, default="True", choices=["True", "False"])
 parser.add_argument("--name", type=str, default="yoloe_vp")
@@ -52,6 +52,7 @@ parser.add_argument("--lr0", type=float, default=0.00125)  # initial learning ra
 parser.add_argument("--o2m", type=float, default=0.1)
 parser.add_argument("--copy_paste", type=float, default=0.15)
 parser.add_argument("--mixup", type=float, default=0.05)
+parser.add_argument("--semseg_loss", type=str, default="False", choices=["True", "False"]) # if use segseg_loss 
 
 parser.add_argument("--override", type=str, default=None) 
  # mobileclip2b
@@ -61,9 +62,9 @@ args = parser.parse_args()
 # Convert string to bool
 args.val = args.val == "True"
 args.ag = args.ag == "True"
-
-assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeTrainer","YOLOESegTrainerFromScratch"], \
-    "trainer must be YOLOETrainerFromScratch, YOLOEVPTrainer, YOLOEPEFreeTrainer, or YOLOESegTrainerFromScratch"
+args.semseg_loss = args.semseg_loss == "True"
+assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeTrainer","YOLOESegTrainerFromScratch","YOLOESegTrainerSegHead"], \
+    "trainer must be YOLOETrainerFromScratch, YOLOEVPTrainer, YOLOEPEFreeTrainer, YOLOESegTrainerFromScratch, or YOLOESegTrainerSegHead"
 
 
 
@@ -127,6 +128,16 @@ elif args.data=="objv1_only":
         ),
         val=dict(yolo_data=["../datasets/lvis.yaml"]),
     )
+elif args.data=="flickr_only":
+    data = dict(
+        train=dict(
+            grounding_data=[ dict(
+                    img_path="../datasets/flickr/full_images/",
+                    json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                ),],
+        ),
+        val=dict(yolo_data=["../datasets/lvis.yaml"]),
+    )
 elif args.data is None or args.data=="":
     pass
 else:
@@ -134,6 +145,7 @@ else:
 
 
 ###################################################################
+# args.device="7"
 # args.trainer="YOLOESegTrainerFromScratch"
 # args.project="runs/quick_verfiy"
 # args.model_version="26s-seg"
@@ -196,11 +208,31 @@ elif args.trainer == "YOLOEPEFreeTrainer":
             f"{head_index}.one2one_cv3.1.1",
             f"{head_index}.one2one_cv3.2.0",
             f"{head_index}.one2one_cv3.2.1",
-        ]
-    )
-
+        ])
     refer_data=None
     single_cls=True
+
+
+elif args.trainer=="YOLOESegTrainerSegHead":
+
+    print("Using YOLOESegTrainerSegHead for training.")
+    # reinit the model.model.savpe.
+    # freeze every layer except of the savpe module.
+    head_index = len(model.model.model) - 1
+    train_layers=[]
+    freeze = list(range(0, head_index))
+    for name, child in model.model.model[-1].named_children():
+        print("name:", name)
+
+        if ("cv5" not in name) and ("one2one_cv5" not in name) and ("proto" not in name):
+            freeze.append(f"{head_index}.{name}")
+        else:
+            train_layers.append(f"{head_index}.{name}")
+
+    refer_data=None
+    single_cls=False
+
+
 else:
     print("trainer_class:", args.trainer)
     raise ValueError("trainer_class must be YOLOETrainerFromScratch or YOLOEVPTrainer")

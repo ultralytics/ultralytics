@@ -375,13 +375,15 @@ class SystemLogger:
         for mount in mounts:
             try:
                 usage = shutil.disk_usage(mount)
-                disk.append({
-                    "mount": mount,
-                    read_key: read_val,
-                    write_key: write_val,
-                    "used_gb": round(usage.used / (1 << 30), 3),
-                    "total_gb": round(usage.total / (1 << 30), 3),
-                })
+                disk.append(
+                    {
+                        "mount": mount,
+                        read_key: read_val,
+                        write_key: write_val,
+                        "used_gb": round(usage.used / (1 << 30), 3),
+                        "total_gb": round(usage.total / (1 << 30), 3),
+                    }
+                )
             except (PermissionError, OSError):
                 continue  # Skip inaccessible drives
 

@@ -511,7 +511,7 @@ class Results(SimpleClass, DataExportMixin):
         )
 
         # Plot Segment results
-        if pred_masks and show_masks:
+        if pred_masks and show_masks and pred_boxes:
             if im_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
                 im_gpu = (
@@ -529,6 +529,18 @@ class Results(SimpleClass, DataExportMixin):
                 else reversed(range(len(pred_masks)))
             )
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+
+        if pred_masks and show_masks and (not pred_boxes):
+            if im_gpu is None:
+                img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
+                im_gpu = (
+                    torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device)
+                    .permute(2, 0, 1)
+                    .flip(0)
+                    .contiguous()
+                    / 255
+                )
+            annotator.masks(pred_masks.data, colors=[(colors(i, True)) for i in range(len(names))], im_gpu=im_gpu)
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:

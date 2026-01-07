@@ -953,9 +953,9 @@ class BaseTrainer:
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":
-            optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum)
+            optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum, param_names=pn[2])
         elif name == "SGD":
-            optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+            optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True, param_names=pn[2])
         elif name == "MuSGD":
             optimizer = MuSGD(
                 g[2],
@@ -984,13 +984,20 @@ class BaseTrainer:
                     param_names=pn[3],
                 ),
             )
-
-        optimizer.add_param_group(
-            {"params": g[0], "weight_decay": decay, "param_names": pn[0]}
-        )  # add g0 with weight_decay
-        optimizer.add_param_group(
-            {"params": g[1], "weight_decay": 0.0, "param_names": pn[1]}
-        )  # add g1 (BatchNorm2d weights)
+        if name == "MuSGD":
+            optimizer.add_param_group(
+                {"params": g[0], "weight_decay": decay, "param_names": pn[0]}
+            )  # add g0 with weight_decay
+            optimizer.add_param_group(
+                {"params": g[1], "weight_decay": 0.0, "param_names": pn[1]}
+            )  # add g1 (BatchNorm2d weights)
+        else:
+            optimizer.add_param_group(
+                {"params": g[0], "weight_decay": decay}
+            )  # add g0 with weight_decay
+            optimizer.add_param_group(
+                {"params": g[1], "weight_decay": 0.0}
+            )  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{len(g[1])} weight(decay=0.0), {len(g[0]) if len(g[0]) else len(g[3])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"

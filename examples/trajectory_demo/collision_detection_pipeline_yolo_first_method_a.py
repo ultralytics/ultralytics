@@ -386,12 +386,14 @@ class YOLOFirstPipelineA:
     # =========================================================================
     
     def build_trajectories(self, all_detections):
-        """Step 2: 构建轨迹 (像素空间，px/s)
+        """Step 2: 构建轨迹 (像素空间 + 世界坐标，px/s + m/s)
         
         输入: 原始检测结果
-        输出: 完整轨迹 (按 track_id 组织)
+        输出: 完整轨迹 (按 track_id 组织，同时包含像素和世界坐标)
+        
+        Option B: 在轨迹构建时就进行Homography转换，后续直接使用世界坐标
         """
-        print(f"\n【Step 2: 轨迹构建 (像素空间)】")
+        print(f"\n【Step 2: 轨迹构建 (像素空间 + 世界坐标)】")
         
         # 按 track_id 组织轨迹
         tracks = {}
@@ -403,19 +405,36 @@ class YOLOFirstPipelineA:
                 if track_id not in tracks:
                     tracks[track_id] = []
                 
-                # 轨迹点 (像素空间)
+                # 获取像素坐标
+                center_x_px = obj['bbox_xywh'][0]
+                center_y_px = obj['bbox_xywh'][1]
+                
+                # 转换到世界坐标 (如果有Homography矩阵)
+                center_x_world = center_x_px
+                center_y_world = center_y_px
+                if self.H is not None:
+                    pts_px = np.array([[center_x_px, center_y_px]], dtype=np.float32)
+                    pts_world = cv2.perspectiveTransform(pts_px.reshape(1, 1, 2), self.H)
+                    center_x_world = pts_world[0, 0, 0]
+                    center_y_world = pts_world[0, 0, 1]
+                
+                # 轨迹点 (像素空间 + 世界坐标)
                 track_point = {
                     'frame': frame_data['frame'],
                     'time': frame_data['time'],
                     'class': obj['class'],
                     'conf': obj['conf'],
-                    'center_x': obj['bbox_xywh'][0],  # 像素
-                    'center_y': obj['bbox_xywh'][1],  # 像素
+                    # 像素坐标
+                    'center_x': float(center_x_px),
+                    'center_y': float(center_y_px),
+                    # 世界坐标 (Option B新增) - 转换为Python float以便JSON序列化
+                    'center_x_world': float(center_x_world),
+                    'center_y_world': float(center_y_world),
                 }
                 
                 tracks[track_id].append(track_point)
         
-        # 计算每个轨迹的速度信息 (px/s)
+        # 计算每个轨迹的速度信息 (px/s 和 m/s)
         for track_id, track_points in tracks.items():
             track_points.sort(key=lambda p: p['frame'])
             
@@ -426,20 +445,33 @@ class YOLOFirstPipelineA:
                     
                     dt = curr['time'] - prev['time']
                     if dt > 0:
+                        # 像素空间速度
                         dx = curr['center_x'] - prev['center_x']
                         dy = curr['center_y'] - prev['center_y']
-                        
                         curr['vx'] = dx / dt  # px/s
                         curr['vy'] = dy / dt  # px/s
                         curr['speed'] = np.sqrt(dx**2 + dy**2) / dt  # px/s
+                        
+                        # 世界坐标速度 (Option B新增)
+                        dx_world = curr['center_x_world'] - prev['center_x_world']
+                        dy_world = curr['center_y_world'] - prev['center_y_world']
+                        curr['vx_world'] = dx_world / dt  # m/s
+                        curr['vy_world'] = dy_world / dt  # m/s
+                        curr['speed_world'] = np.sqrt(dx_world**2 + dy_world**2) / dt  # m/s
                     else:
                         curr['vx'] = 0.0
                         curr['vy'] = 0.0
                         curr['speed'] = 0.0
+                        curr['vx_world'] = 0.0
+                        curr['vy_world'] = 0.0
+                        curr['speed_world'] = 0.0
                 
                 track_points[0]['vx'] = 0.0
                 track_points[0]['vy'] = 0.0
                 track_points[0]['speed'] = 0.0
+                track_points[0]['vx_world'] = 0.0
+                track_points[0]['vy_world'] = 0.0
+                track_points[0]['speed_world'] = 0.0
         
         # 保存轨迹
         tracks_path = self.trajectory_dir / 'tracks.json'
@@ -450,15 +482,16 @@ class YOLOFirstPipelineA:
         stats = {
             'total_tracks': len(tracks),
             'track_lengths': {str(tid): len(points) for tid, points in tracks.items()},
-            'coordinate_system': 'pixel',
-            'velocity_unit': 'px/s',
+            'coordinate_system': 'pixel + world',
+            'velocity_unit': 'px/s (pixel) + m/s (world)',
         }
         stats_path = self.trajectory_dir / 'track_stats.json'
         with open(stats_path, 'w') as f:
             json.dump(stats, f, indent=2)
         
-        print(f"  ✓ Step 2完成: {len(tracks)}条轨迹 (像素空间)")
-        print(f"    速度单位: px/s")
+        print(f"  ✓ Step 2完成: {len(tracks)}条轨迹 (像素空间 + 世界坐标)")
+        print(f"    坐标系统: 像素 + 世界坐标 (已在Step 2转换)")
+        print(f"    速度单位: px/s (像素) + m/s (世界)")
         print(f"    输出: {tracks_path.name}")
         
         return tracks
@@ -690,39 +723,47 @@ class YOLOFirstPipelineA:
     # STEP 3: 关键帧检测 (接近事件)
     # =========================================================================
 
-    def extract_key_frames(self, all_detections, world_distance_threshold=2.0, debug_threshold=5.0):
-        """Step 3: 关键帧检测 (接近事件)
+    def extract_key_frames(self, all_detections, tracks, world_distance_threshold=2.0, debug_threshold=5.0):
+        """Step 3: 关键帧检测 (接近事件) - Option B
         
-        🔄 FIXED: 现在在【世界坐标】中计算距离，而不是像素坐标
-        - 使用 Homography 早期变换坐标
-        - 设置实际距离阈值 (默认 2米) 而不是固定像素阈值
-        - 避免同一物体的不同部分被识别为两个接近事件
+        🔄 Option B改进: 直接使用Step 2中保存的世界坐标，不需要再次转换
+        - 使用轨迹中已经计算好的世界坐标
+        - 避免多次Homography转换导致的误差累积
+        - 更准确的距离计算
         
         参数:
-        - world_distance_threshold: 关键帧检测的主阈值（默认 2.0 米）
-        - debug_threshold: 调试显示的阈值（默认 5.0 米），用于了解被排除的事件
-        
-        ⚠️ 改进: 过滤掉同一物体被多次检测的情况
-        - 跳过同类别物体的接近检测 (两个car, 两个motorcycle 等)
-        - 只保留不同类别物体的交互 (car与motorcycle, car与person等)
+        - all_detections: 原始检测结果 (用于保存关键帧图像)
+        - tracks: Step 2返回的轨迹信息 (包含world坐标)
+        - world_distance_threshold: 关键帧检测阈值（默认 4.5 米）
+        - debug_threshold: 调试显示的阈值（默认 10.0 米）
         """
-        print(f"\n【Step 3: 关键帧检测 (世界坐标 🔄)】")
-        print(f"  ℹ️  现在在世界坐标中计算距离（使用Homography）")
+        print(f"\n【Step 3: 关键帧检测 (世界坐标 - Option B)】")
+        print(f"  ℹ️  直接使用Step 2保存的世界坐标（无需再次转换）")
         
         proximity_events = []
-        all_proximity_pairs = []  # 用于调试，记录所有 < debug_threshold 的检测
+        all_proximity_pairs = []
         
         # 物体类别映射
         class_names = {0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 
                       4: 'airplane', 5: 'bus', 6: 'train', 7: 'truck'}
         
-        # 遍历每一帧，检测物体对之间的距离
+        # 建立track_id -> 轨迹数据的映射，方便查找
+        track_map = {}
+        for track_id, track_points in tracks.items():
+            for point in track_points:
+                frame = point['frame']
+                if frame not in track_map:
+                    track_map[frame] = {}
+                track_map[frame][int(track_id)] = point
+        
+        # 遍历每一帧，检测物体对之间的世界坐标距离
         for frame_data in all_detections:
-            if len(frame_data['objects']) < 2:
+            frame = frame_data['frame']
+            if frame not in track_map or len(track_map[frame]) < 2:
                 continue
             
-            frame = frame_data['frame']
             objects = frame_data['objects']
+            frame_tracks = track_map[frame]
             
             # 检查所有物体对
             for i in range(len(objects)):
@@ -730,24 +771,30 @@ class YOLOFirstPipelineA:
                     obj1 = objects[i]
                     obj2 = objects[j]
                     
-                    # ⚠️ 过滤: 跳过同类别物体（避免摩托车的不同部分被识别为两个物体）
-                    if obj1['class'] == obj2['class']:
-                        # 只有当距离很近时才保留同类别物体（可能是真实的碰撞）
-                        # 否则跳过（可能是同一物体的多个检测）
-                        pass  # 暂时保留，可以在后续优化
+                    tid1 = obj1['track_id']
+                    tid2 = obj2['track_id']
                     
-                    # 计算中心点距离 (先在世界坐标中计算)
-                    x1_px, y1_px = obj1['bbox_xywh'][0], obj1['bbox_xywh'][1]
-                    x2_px, y2_px = obj2['bbox_xywh'][0], obj2['bbox_xywh'][1]
+                    # 获取轨迹中保存的世界坐标
+                    if tid1 not in frame_tracks or tid2 not in frame_tracks:
+                        continue
                     
-                    # 🔄 转换到世界坐标 (使用 Homography)
-                    x1_world = x1_px / self.pixel_per_meter
-                    y1_world = y1_px / self.pixel_per_meter
-                    x2_world = x2_px / self.pixel_per_meter
-                    y2_world = y2_px / self.pixel_per_meter
+                    track1 = frame_tracks[tid1]
+                    track2 = frame_tracks[tid2]
                     
-                    # 在世界坐标中计算距离 (米)
+                    # 获取世界坐标 (Option B: 直接使用保存的world坐标)
+                    x1_world = track1['center_x_world']
+                    y1_world = track1['center_y_world']
+                    x2_world = track2['center_x_world']
+                    y2_world = track2['center_y_world']
+                    
+                    # 在世界坐标中直接计算距离 (米)
                     distance_meters = np.sqrt((x2_world-x1_world)**2 + (y2_world-y1_world)**2)
+                    
+                    # 获取像素坐标用于图像保存
+                    x1_px = track1['center_x']
+                    y1_px = track1['center_y']
+                    x2_px = track2['center_x']
+                    y2_px = track2['center_y']
                     distance_pixel = np.sqrt((x2_px-x1_px)**2 + (y2_px-y1_px)**2)
                     
                     class1_name = class_names.get(obj1['class'], f"class_{obj1['class']}")
@@ -760,41 +807,38 @@ class YOLOFirstPipelineA:
                             'class_1': class1_name,
                             'class_2': class2_name,
                             'distance_meters': distance_meters,
-                            'track_ids': [obj1['track_id'], obj2['track_id']]
+                            'track_ids': [tid1, tid2]
                         })
                     
                     # 检查是否为接近事件 (使用世界距离阈值)
                     if distance_meters < world_distance_threshold:
-                        class1_name = class_names.get(obj1['class'], f"class_{obj1['class']}")
-                        class2_name = class_names.get(obj2['class'], f"class_{obj2['class']}")
-                        
                         event = {
                             'frame': frame,
                             'time': frame_data['time'],
-                            'track_id_1': obj1['track_id'],
-                            'track_id_2': obj2['track_id'],
+                            'track_id_1': tid1,
+                            'track_id_2': tid2,
                             'class_1': class1_name,
                             'class_2': class2_name,
                             'distance_pixel': float(distance_pixel),
-                            'distance_meters': float(distance_meters),  
+                            'distance_meters': float(distance_meters),
                             'object_classes': (obj1['class'], obj2['class']),
                             'center_1_px': [float(x1_px), float(y1_px)],
                             'center_2_px': [float(x2_px), float(y2_px)],
-                            'center_1_world': [float(x1_world), float(y1_world)],  
-                            'center_2_world': [float(x2_world), float(y2_world)],  
+                            'center_1_world': [float(x1_world), float(y1_world)],
+                            'center_2_world': [float(x2_world), float(y2_world)],
                             'positions': {
                                 'obj1': {'x': x1_px, 'y': y1_px},
                                 'obj2': {'x': x2_px, 'y': y2_px}
                             },
-                            'positions_world': {  
+                            'positions_world': {
                                 'obj1': {'x': x1_world, 'y': y1_world},
                                 'obj2': {'x': x2_world, 'y': y2_world}
                             }
                         }
                         proximity_events.append(event)
                         
-                        # 保存关键帧图像（两个接近物体的帧）
-                        frame_img_path = self.keyframe_dir / f"keyframe_{frame:04d}_ID{obj1['track_id']}_ID{obj2['track_id']}.jpg"
+                        # 保存关键帧图像
+                        frame_img_path = self.keyframe_dir / f"keyframe_{frame:04d}_ID{tid1}_ID{tid2}.jpg"
                         self.save_keyframe_with_distance(self.video_path, frame, frame_img_path, event)
         
         # 保存接近事件
@@ -805,10 +849,10 @@ class YOLOFirstPipelineA:
         print(f"  ✓ Step 3完成: {len(proximity_events)}个关键帧 (< {world_distance_threshold}m)")
         print(f"    总检测到的近距离对: {len(all_proximity_pairs)}个 (< {debug_threshold}m)")
         print(f"    距离阈值: {world_distance_threshold}米 (世界坐标)")
-        print(f"    缩放因子: {self.pixel_per_meter:.2f} px/m")
+        print(f"    坐标来源: Step 2保存的轨迹数据 (已转换)")
         print(f"    输出: {events_path.name}")
         
-        # 打印所有被 debug_threshold 捕捉的事件，但被 world_distance_threshold 排除的
+        # 打印被排除的事件
         excluded_count = len(all_proximity_pairs) - len(proximity_events)
         if excluded_count > 0:
             print(f"\n  ℹ️  被排除的接近事件 ({world_distance_threshold}-{debug_threshold}m):")
@@ -1213,8 +1257,8 @@ class YOLOFirstPipelineA:
             print(f"  Frame 115: {frame_115_objects}")
             print(f"  Frame 148: {frame_148_objects}")
             
-            # Step 3: 关键帧检测
-            proximity_events = self.extract_key_frames(all_detections, world_distance_threshold=4.5)
+            # Step 3: 关键帧检测 (Option B: 使用Step 2保存的轨迹world坐标)
+            proximity_events = self.extract_key_frames(all_detections, tracks, world_distance_threshold=4.5)
             
             if not proximity_events:
                 print(f"\n⚠️  未检测到接近事件")

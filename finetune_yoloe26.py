@@ -71,7 +71,7 @@ assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeT
 
 lvis_data_path=os.path.abspath("../datasets/lvis.yaml")
 # train_data_root="../datasets"
-train_data_root="/data/datasets"
+train_data_root="/data/shared-datasets/yoloe26_data"
 flickr_json="/flickr/pipeline_outputs/v4/merged.json"
 mixed_grounding_json="/mixed_grounding/pipeline_outputs/v4/merged.json"
 obj365_json="/Objects365v1/pipeline_outputs/train/v4/merged.json"

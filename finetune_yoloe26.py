@@ -78,7 +78,6 @@ obj365_json="/Objects365v1/pipeline_outputs/train/v4/merged.json"
 
 
 assert args.ag==True 
-assert args.data==None 
 
 
 if args.ag:
@@ -130,6 +129,29 @@ if args.data=="fast_verify":
         ),
         val=dict(yolo_data=[os.path.abspath(lvis_data_path)]),
     )
+elif args.data == "newdata_oldobj365":
+    print("Using newdata_oldobj365......")
+    data = dict(
+        train=dict(
+            grounding_data=[
+                dict(
+                    img_path=f"{train_data_root}/flickr/full_images/",
+                    json_file=f"{train_data_root}{flickr_json}",
+                ),
+                dict(
+                    img_path=f"{train_data_root}/mixed_grounding/gqa/images",
+                    json_file=f"{train_data_root}{mixed_grounding_json}",
+                ),
+                dict(
+                    img_path=f"../datasets/Objects365v1/images/train",
+                    json_file=f"../datasets/Objects365v1/annotations/objects365_train_segm.json",
+                ),
+            ],
+        ),
+        val=dict(yolo_data=[lvis_data_path]),
+    )
+
+
 elif args.data=="objv1_only":
     Objects365v1=f"{train_data_root}/Objects365v1.yaml"
     data = dict(

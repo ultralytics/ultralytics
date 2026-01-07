@@ -32,6 +32,64 @@ except (AssertionError, ImportError):
     _api_key = None
 
 
+def resolve_platform_uri(uri, hard=True):
+    """Resolve ul:// URIs to signed URLs by authenticating with Ultralytics Platform.
+
+    Formats:
+        ul://username/datasets/slug  -> Returns signed URL to NDJSON file
+        ul://username/project/model  -> Returns signed URL to .pt file
+
+    Args:
+        uri (str): Platform URI starting with "ul://".
+        hard (bool): Whether to raise an error if resolution fails.
+
+    Returns:
+        (str): Signed URL that can be downloaded via standard URL handling.
+    """
+    import requests
+
+    path = uri[5:]  # Remove "ul://"
+    parts = path.split("/")
+
+    api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
+    if not api_key:
+        raise ValueError(f"ULTRALYTICS_API_KEY required for '{uri}'. Get key at https://alpha.ultralytics.com/settings")
+
+    base = "https://alpha.ultralytics.com/api/v1"
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # ul://username/datasets/slug
+    if len(parts) == 3 and parts[1] == "datasets":
+        username, _, slug = parts
+        url = f"{base}/datasets/{username}/{slug}/export"
+
+    # ul://username/project/model
+    elif len(parts) == 3:
+        username, project, model = parts
+        url = f"{base}/models/{username}/{project}/{model}/download"
+
+    else:
+        raise ValueError(f"Invalid platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
+
+    LOGGER.info(f"Resolving {uri} from Ultralytics Platform...")
+
+    try:
+        r = requests.head(url, headers=headers, allow_redirects=False, timeout=30)
+        if r.status_code == 401:
+            raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
+        if r.status_code == 404:
+            raise FileNotFoundError(f"Not found on platform: {uri}") if hard else uri
+        if r.status_code == 302 and "location" in r.headers:
+            return r.headers["location"]  # Return signed URL
+        r.raise_for_status()
+        return uri
+    except requests.exceptions.RequestException as e:
+        if hard:
+            raise ConnectionError(f"Failed to resolve {uri}: {e}") from e
+        LOGGER.warning(f"Failed to resolve {uri}: {e}")
+        return uri
+
+
 def _interp_plot(plot, n=101):
     """Interpolate plot curve data from 1000 to n points to reduce storage size."""
     import numpy as np

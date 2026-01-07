@@ -31,7 +31,7 @@ First-time contributors are expected to submit small, well-scoped pull requests.
 
 Pull requests from established contributors generally receive higher review priority. Actions and results are fundamental to the [Ultralytics Mission & Values](https://handbook.ultralytics.com/mission-vision-values/). There is no specific threshold to becoming an 'established contributor' as it's impossible to fit all individuals to the same standard. The Ultralytics Team notices those who make consistent, high-quality contributions that follow the Ultralytics standards.
 
-Following our contributing guidance (this document) and [our Development Workflow](https://handbook.ultralytics.com/workflows/development/) is _the best_ way to improve your chances for your work to be reviewed, accepted, and/or recognized; this is not a guarantee. In addition, contributors with a strong track record of meaningful contributions to notable open-source projects may be treated as established contributors, even if they are technically first-time contributors to Ultralytics.
+Following our [contributing guidelines](./CONTRIBUTING.md) and [our Development Workflow](https://handbook.ultralytics.com/workflows/development/) is the best way to improve your chances for your work to be reviewed, accepted, and/or recognized; this is not a guarantee. In addition, contributors with a strong track record of meaningful contributions to notable open-source projects may be treated as established contributors, even if they are technically first-time contributors to Ultralytics.
 
 #### Feature PRs
 

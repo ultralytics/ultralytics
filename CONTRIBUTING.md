@@ -21,6 +21,26 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with concise and descriptive commit messages. If your changes address a specific issue, include the issue number (e.g., `Fix #123: Corrected calculation error.`).
 6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your branch to the `main` branch of the original Ultralytics repository. Provide a clear title and a detailed description explaining the purpose and scope of your changes.
 
+### 📏 Contribution Scope & PR Size Guidelines
+
+#### First-time Contributors
+
+First-time contributors are expected to submit small, well-scoped pull requests. Large PRs (more than ~50 lines of change) are generally not accepted at this stage, except when the size is driven primarily by docstrings, documentation, or formatting rather than substantive code changes. Contributions should focus on speed improvements, bug fixes, documentation updates, and other minor issues. Feature PRs are not encouraged for first-time contributors. However, if you still wish to contribute a feature, follow the guidelines for outlined in the [Feature PRs](#feature-prs) section below.
+
+#### Established Contributors
+
+Pull requests from established contributors generally receive higher review priority. Actions and results are fundamental to the [Ultralytics Mission & Values](https://handbook.ultralytics.com/mission-vision-values/). There is no specific threshold to becoming an 'established contributor' as it's impossible to fit all individuals to the same standard. The Ultralytics Team notices those who make consistent, high-quality contributions that follow the Ultralytics standards.
+
+Following our contributing guidance (this document) and [our Development Workflow](https://handbook.ultralytics.com/workflows/development/) is _the best_ way to improve your chances for your work to be reviewed, accepted, and/or recognized; this is not a guarantee. In addition, contributors with a strong track record of meaningful contributions to notable open-source projects may be treated as established contributors, even if they are technically first-time contributors to Ultralytics.
+
+#### Feature PRs
+
+Feature pull requests must be preceded by a feature request GitHub issue that has been sufficiently discussed and explicitly approved by the maintainers. This process helps avoid unnecessary effort on changes that are unlikely to be merged. Even after approval, feature PRs are expected to remain well-scoped and focused. All feature contributions are evaluated with attention to long-term maintenance costs and their overall usefulness to the Ultralytics user base.
+
+#### PR Size and Review Time
+
+The larger the proposed changes to the code, the longer the review process will take. Smaller, narrowly-scoped PRs that align with the style and structure of the Ultralytics codebase have significantly higher likelihood of timely review and merge.
+
 ### 📝 CLA Signing
 
 Before we can merge your pull request, you must sign our [Contributor License Agreement (CLA)](https://docs.ultralytics.com/help/CLA/). This legal agreement ensures that your contributions are properly licensed, allowing the project to continue being distributed under the [AGPL-3.0 license](https://www.ultralytics.com/legal/agpl-3-0-software-license).
@@ -100,11 +120,11 @@ All pull requests must pass the [GitHub Actions](https://github.com/features/act
 When contributing code to Ultralytics projects, keep these best practices in mind:
 
 - **Avoid code duplication:** Reuse existing code wherever possible and minimize unnecessary arguments.
-- **Make smaller, focused changes:** Focus on targeted modifications rather than large-scale changes.
+- **Make smaller, focused changes:** Focus on targeted modifications rather than large-scale changes. Smaller, narrow-scope pull requests are easier to review, less error-prone, and have a higher chance of being merged.
 - **Simplify when possible:** Look for opportunities to simplify the code or remove unnecessary parts.
 - **Consider compatibility:** Before making changes, consider whether they might break existing code using Ultralytics.
 - **Use consistent formatting:** Tools like [Ruff Formatter](https://github.com/astral-sh/ruff) can help maintain stylistic consistency.
-- **Add appropriate tests:** Include [tests](https://docs.ultralytics.com/guides/model-testing/) for new features to ensure they work as expected.
+- **Add appropriate tests:** Include [tests](https://docs.ultralytics.com/guides/model-testing/) for new features to ensure they work as expected. New tests should be added to existing test files rather than creating new test files. Tests do not need to be exhaustive, but must be able to reasonably confirm correct behavior and detect regressions.
 
 ## 👀 Reviewing Pull Requests
 
@@ -116,6 +136,12 @@ Reviewing pull requests is another valuable way to contribute. When reviewing PR
 - **Verify CI tests:** Confirm all [Continuous Integration tests](https://docs.ultralytics.com/help/CI/) are passing.
 - **Provide constructive feedback:** Offer specific, clear feedback about any issues or concerns.
 - **Recognize effort:** Acknowledge the author's work to maintain a positive collaborative atmosphere.
+
+### 🤖 Automated Review
+
+All pull requests undergo an automatic review by Ultralytics Assistant. Each suggestion from Ultralytics Assistant includes an associated level of importance. Contributors are expected to review all suggestions and either apply them or explicitly explain in a PR comment why a given suggestion is not applicable or should not be adopted.
+
+If needed, you may re-request a review from Ultralytics Assistant via the GitHub reviewers panel.
 
 ## 🐞 Reporting Bugs
 

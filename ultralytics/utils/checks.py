@@ -592,7 +592,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
-        file (str): File name or path.
+        file (str): File name or path, or platform URI (ul://username/datasets/name).
         suffix (str | tuple): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
         download_dir (str): Directory to download the file to.
@@ -610,6 +610,16 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         or file.lower().startswith("grpc://")
     ):  # file exists or gRPC Triton images
         return file
+    elif download and file.lower().startswith("ul://"):  # Ultralytics Platform URI
+        from ultralytics.utils.callbacks.platform import resolve_platform_uri
+
+        url = resolve_platform_uri(file, hard=hard)  # Convert to signed HTTPS URL
+        file = Path(download_dir) / url2file(url)
+        if file.exists():
+            LOGGER.info(f"Found {clean_url(url)} locally at {file}")
+        else:
+            downloads.safe_download(url=url, file=file, unzip=False)
+        return str(file)
     elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth

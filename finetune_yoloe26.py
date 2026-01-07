@@ -41,7 +41,7 @@ parser.add_argument("--max_det", type=int,default=1000)  # max det
 parser.add_argument("--workers", type=int,default=8)  # workers
 parser.add_argument("--save_period", type=int,default=5)  # save period
 
-parser.add_argument("--data", type=str, default=None) # fast_verify or objv1_only
+parser.add_argument("--data", type=str, default="flickr_only") # fast_verify or objv1_only
 
 
 parser.add_argument("--optimizer",type=str, default="MuSGD") # "MuSGD"

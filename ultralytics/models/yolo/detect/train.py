@@ -53,7 +53,7 @@ class DetectionTrainer(BaseTrainer):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
-        """Initialize a DetectionTrainer object for training YOLO object detection model training.
+        """Initialize a DetectionTrainer object for training YOLO object detection models.
 
         Args:
             cfg (dict, optional): Default configuration dictionary containing training parameters.

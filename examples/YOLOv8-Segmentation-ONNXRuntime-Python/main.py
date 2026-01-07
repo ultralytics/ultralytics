@@ -51,12 +51,9 @@ class YOLOv8Seg:
             imgsz (int | tuple[int, int], optional): Input image size of the model. Can be an integer for square input
                 or a tuple for rectangular input.
         """
-        self.session = ort.InferenceSession(
-            onnx_model,
-            providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
-            if torch.cuda.is_available()
-            else ["CPUExecutionProvider"],
-        )
+        available = ort.get_available_providers()
+        providers = [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in available]
+        self.session = ort.InferenceSession(onnx_model, providers=providers or available)
 
         self.imgsz = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
         self.classes = YAML.load(check_yaml("coco8.yaml"))["names"]

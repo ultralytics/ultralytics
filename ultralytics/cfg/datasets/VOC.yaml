@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # PASCAL VOC dataset http://host.robots.ox.ac.uk/pascal/VOC by University of Oxford
-# Documentation: # Documentation: https://docs.ultralytics.com/datasets/detect/voc/
+# Documentation: https://docs.ultralytics.com/datasets/detect/voc/
 # Example usage: yolo train data=VOC.yaml
 # parent
 # ├── ultralytics
@@ -59,22 +59,21 @@ download: |
           x, y, w, h = (box[0] + box[1]) / 2.0 - 1, (box[2] + box[3]) / 2.0 - 1, box[1] - box[0], box[3] - box[2]
           return x * dw, y * dh, w * dw, h * dh
 
-      in_file = open(path / f"VOC{year}/Annotations/{image_id}.xml")
-      out_file = open(lb_path, "w")
-      tree = ET.parse(in_file)
-      root = tree.getroot()
-      size = root.find("size")
-      w = int(size.find("width").text)
-      h = int(size.find("height").text)
+      with open(path / f"VOC{year}/Annotations/{image_id}.xml") as in_file, open(lb_path, "w", encoding="utf-8") as out_file:
+          tree = ET.parse(in_file)
+          root = tree.getroot()
+          size = root.find("size")
+          w = int(size.find("width").text)
+          h = int(size.find("height").text)
 
-      names = list(yaml["names"].values())  # names list
-      for obj in root.iter("object"):
-          cls = obj.find("name").text
-          if cls in names and int(obj.find("difficult").text) != 1:
-              xmlbox = obj.find("bndbox")
-              bb = convert_box((w, h), [float(xmlbox.find(x).text) for x in ("xmin", "xmax", "ymin", "ymax")])
-              cls_id = names.index(cls)  # class id
-              out_file.write(" ".join(str(a) for a in (cls_id, *bb)) + "\n")
+          names = list(yaml["names"].values())  # names list
+          for obj in root.iter("object"):
+              cls = obj.find("name").text
+              if cls in names and int(obj.find("difficult").text) != 1:
+                  xmlbox = obj.find("bndbox")
+                  bb = convert_box((w, h), [float(xmlbox.find(x).text) for x in ("xmin", "xmax", "ymin", "ymax")])
+                  cls_id = names.index(cls)  # class id
+                  out_file.write(" ".join(str(a) for a in (cls_id, *bb)) + "\n")
 
 
   # Download

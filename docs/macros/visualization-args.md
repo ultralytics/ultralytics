@@ -11,7 +11,7 @@
     "show_labels": ["bool", "True", "Displays labels for each detection in the visual output. Provides immediate understanding of detected objects."],
     "show_conf": ["bool", "True", "Displays the confidence score for each detection alongside the label. Gives insight into the model's certainty for each detection."],
     "show_boxes": ["bool", "True", "Draws bounding boxes around detected objects. Essential for visual identification and location of objects in images or video frames."],
-    "line_width": ["None or int", "None", "Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity."],
+    "line_width": ["int or None", "None", "Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size. Provides visual customization for clarity."],
 } %}
 
 {% if not params %}

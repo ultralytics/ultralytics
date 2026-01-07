@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Argoverse-HD dataset (ring-front-center camera) https://www.cs.cmu.edu/~mengtial/proj/streaming/ by Argo AI
+# Argoverse-HD dataset (ring-front-center camera) by Argo AI: https://www.cs.cmu.edu/~mengtial/proj/streaming/
 # Documentation: https://docs.ultralytics.com/datasets/detect/argoverse/
 # Example usage: yolo train data=Argoverse.yaml
 # parent
@@ -33,14 +33,15 @@ download: |
   from ultralytics.utils import TQDM
   from ultralytics.utils.downloads import download
 
-  def argoverse2yolo(set):
+  def argoverse2yolo(annotation_file):
       """Convert Argoverse dataset annotations to YOLO format for object detection tasks."""
       labels = {}
-      a = json.load(open(set, "rb"))
-      for annot in TQDM(a["annotations"], desc=f"Converting {set} to YOLOv5 format..."):
+      with open(annotation_file, encoding="utf-8") as f:
+          a = json.load(f)
+      for annot in TQDM(a["annotations"], desc=f"Converting {annotation_file} to YOLO format..."):
           img_id = annot["image_id"]
           img_name = a["images"][img_id]["name"]
-          img_label_name = f"{img_name[:-3]}txt"
+          img_label_name = f"{Path(img_name).stem}.txt"
 
           cls = annot["category_id"]  # instance class id
           x_center, y_center, width, height = annot["bbox"]
@@ -49,7 +50,7 @@ download: |
           width /= 1920.0  # scale
           height /= 1200.0  # scale
 
-          img_dir = set.parents[2] / "Argoverse-1.1" / "labels" / a["seq_dirs"][a["images"][annot["image_id"]]["sid"]]
+          img_dir = annotation_file.parents[2] / "Argoverse-1.1" / "labels" / a["seq_dirs"][a["images"][annot["image_id"]]["sid"]]
           if not img_dir.exists():
               img_dir.mkdir(parents=True, exist_ok=True)
 

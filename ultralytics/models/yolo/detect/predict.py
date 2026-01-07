@@ -79,7 +79,8 @@ class DetectionPredictor(BasePredictor):
 
         return results
 
-    def get_obj_feats(self, feat_maps, idxs):
+    @staticmethod
+    def get_obj_feats(feat_maps, idxs):
         """Extract object features from the feature maps."""
         import torch
 

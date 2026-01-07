@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover Ultralytics HUB Cloud Training for easy model training. Upgrade to Pro and start training with a single click. Streamline your workflow now!.
+description: Discover Ultralytics HUB Cloud Training for easy model training. Upgrade to Pro and start training with a single click. Streamline your workflow now.
 keywords: Ultralytics HUB, cloud training, model training, Pro Plan, easy AI setup
 ---
 

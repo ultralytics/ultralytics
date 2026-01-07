@@ -9,7 +9,14 @@ keywords: Ultralytics, segmentation, object isolation, Predict Mode, YOLO11, mac
 After performing the [Segment Task](../tasks/segment.md), it's sometimes desirable to extract the isolated objects from the inference results. This guide provides a generic recipe on how to accomplish this using the Ultralytics [Predict Mode](../modes/predict.md).
 
 <p align="center">
-  <img src="https://github.com/ultralytics/docs/releases/download/0/isolated-object-segmentation.avif" alt="Example Isolated Object Segmentation">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/5HBB5IBuJ6c"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Remove Background and Isolate Objects with Ultralytics YOLO Segmentation & OpenCV in Python 🚀
 </p>
 
 ## Recipe Walkthrough
@@ -258,7 +265,7 @@ import numpy as np
 from ultralytics import YOLO
 
 m = YOLO("yolo11n-seg.pt")  # (4)!
-res = m.predict()  # (3)!
+res = m.predict(source="path/to/image.jpg")  # (3)!
 
 # Iterate detection results (5)
 for r in res:
@@ -288,7 +295,7 @@ for r in res:
         x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
         iso_crop = isolated[y1:y2, x1:x2]
 
-        # TODO your actions go here (2)
+        # Add your custom post-processing here (2)
 ```
 
 1. The line populating `contour` is combined into a single line here, where it was split to multiple above.

@@ -39,7 +39,7 @@ The Ultralytics iOS App is a powerful tool that allows you to run YOLO models di
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Getting Started with the Ultralytics HUB App (IOS & Android)
+  <strong>Watch:</strong> Getting Started with the Ultralytics HUB App (iOS & Android)
 </p>
 
 ## Quantization and Acceleration

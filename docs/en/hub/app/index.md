@@ -46,10 +46,10 @@ Welcome to the Ultralytics HUB App! This powerful mobile application allows you 
 
 Getting started with the Ultralytics HUB App is simple:
 
-1. Download the app from the [App Store](https://apps.apple.com/xk/app/ultralytics-hub/id1583935240) (iOS) or [Google Play](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) (Android)
-2. Sign in with your Ultralytics account (or create one if you don't have it)
-3. Select a pre-trained model or one of your custom models
-4. Start detecting objects in real-time using your device's camera
+1. Download the app from the [App Store](https://apps.apple.com/xk/app/ultralytics-hub/id1583935240) (iOS) or [Google Play](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app) (Android).
+2. Sign in with your Ultralytics account (or create one if you don't have it).
+3. Select a pretrained model or one of your custom models.
+4. Start detecting objects in real-time using your device's camera.
 
 ## App Documentation
 
@@ -71,7 +71,7 @@ Get started today by downloading the Ultralytics HUB App on your mobile device a
 
 ### What models can I run on the Ultralytics HUB App?
 
-The Ultralytics HUB App supports running YOLOv5, YOLOv8, and YOLO11 models. You can use pre-trained models or train your own custom models using the [Ultralytics HUB platform](https://www.ultralytics.com/blog/how-to-train-and-deploy-yolo11-using-ultralytics-hub).
+The Ultralytics HUB App supports running YOLOv5, YOLOv8, and YOLO11 models. You can use pretrained models or train your own custom models using the [Ultralytics HUB platform](https://www.ultralytics.com/blog/how-to-train-and-deploy-yolo11-using-ultralytics-hub).
 
 ### How is model performance optimized for mobile devices?
 

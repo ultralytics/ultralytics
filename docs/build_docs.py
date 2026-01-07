@@ -455,7 +455,7 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
 
 
 def render_jinja_macros() -> None:
-    """Render MiniJinja macros in markdown files before building with MkDocs."""
+    """Render MiniJinja macros in Markdown files before building with MkDocs."""
     mkdocs_yml = DOCS.parent / "mkdocs.yml"
     default_yaml = DOCS.parent / "ultralytics" / "cfg" / "default.yaml"
 
@@ -629,6 +629,9 @@ def main():
         LOGGER.info(f"Building docs from {DOCS}")
         subprocess.run(["zensical", "build", "-f", str(DOCS.parent / "mkdocs.yml")], check=True)
         LOGGER.info(f"Site built at {SITE}")
+
+        # Remove search index JSON files to disable search
+        Path(SITE / "search.json").unlink(missing_ok=True)
 
         # Update docs HTML pages
         update_docs_html()

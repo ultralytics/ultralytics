@@ -7,7 +7,7 @@
 # Parameters
 nc: 80 # number of classes
 kpt_shape: [17, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
-scales: # model compound scaling constants, i.e. 'model=yolo11n-pose.yaml' will call yolo11.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=yolo11n-pose.yaml' will call yolo11-pose.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024] # summary: 196 layers, 2908507 parameters, 2908491 gradients, 7.7 GFLOPs
   s: [0.50, 0.50, 1024] # summary: 196 layers, 9948811 parameters, 9948795 gradients, 23.5 GFLOPs

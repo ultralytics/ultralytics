@@ -43,11 +43,11 @@ The following are some notable features of YOLO11's Train mode:
 
 !!! tip
 
-    * YOLO11 datasets like COCO, VOC, ImageNet and many others automatically download on first use, i.e. `yolo train data=coco.yaml`
+    * YOLO11 datasets like COCO, VOC, ImageNet, and many others automatically download on first use, i.e., `yolo train data=coco.yaml`
 
 ## Usage Examples
 
-Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device='cpu'` will be used. See Arguments section below for a full list of training arguments.
+Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. The training device can be specified using the `device` argument. If no argument is passed, GPU `device=0` will be used when available; otherwise `device='cpu'` will be used. See the Arguments section below for a full list of training arguments.
 
 !!! warning "Windows Multi-Processing Error"
 
@@ -55,7 +55,7 @@ Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
 
 !!! example "Single-GPU and CPU Training Example"
 
-    Device is determined automatically. If a GPU is available then it will be used (default CUDA device 0), otherwise training will start on CPU.
+    Device is determined automatically. If a GPU is available, it will be used (default CUDA device 0); otherwise training will start on CPU.
 
     === "Python"
 

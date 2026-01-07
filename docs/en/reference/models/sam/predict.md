@@ -25,4 +25,20 @@ keywords: Ultralytics, SAM, Segment Anything Model, SAM 2, Segment Anything Mode
 
 ## ::: ultralytics.models.sam.predict.SAM2DynamicInteractivePredictor
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.predict.SAM3Predictor
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.predict.SAM3SemanticPredictor
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.predict.SAM3VideoPredictor
+
+<br><br><hr><br>
+
+## ::: ultralytics.models.sam.predict.SAM3VideoSemanticPredictor
+
 <br><br>

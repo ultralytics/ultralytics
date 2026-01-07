@@ -41,7 +41,7 @@ Measuring the gap between two objects is known as distance calculation within a 
     - Use the right mouse button to delete all drawn points.
     - Left-click anywhere in the frame to add new points.
 
-???+ warning "Distance is Estimate"
+???+ warning "Distance is an estimate"
 
     Distance is an estimate and may not be fully accurate because it is calculated using 2D data,
     which lacks depth information.

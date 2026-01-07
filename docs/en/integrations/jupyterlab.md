@@ -95,7 +95,7 @@ For a detailed understanding of the model training process and best practices, r
 
 ## Keep Learning about JupyterLab
 
-If you're excited to learn more about JupyterLab, here are some great resources to get you started:
+If you want to learn more about JupyterLab, here are resources to get you started:
 
 - [**JupyterLab Documentation**](https://jupyterlab.readthedocs.io/en/stable/getting_started/starting.html): Dive into the official JupyterLab Documentation to explore its features and capabilities. It's a great way to understand how to use this powerful tool to its fullest potential.
 - [**Try It With Binder**](https://mybinder.org/v2/gh/jupyterlab/jupyterlab-demo/HEAD?urlpath=lab/tree/demo): Experiment with JupyterLab without installing anything by using Binder, which lets you launch a live JupyterLab instance directly in your browser. It's a great way to start experimenting immediately.

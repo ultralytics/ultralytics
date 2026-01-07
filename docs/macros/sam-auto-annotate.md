@@ -2,7 +2,7 @@
 | ------------ | ----------- | -------------- | ------------------------------------------------------------------------------------ |
 | `data`       | `str`       | required       | Path to directory containing target images for annotation or segmentation.           |
 | `det_model`  | `str`       | `'yolo11x.pt'` | YOLO detection model path for initial object detection.                              |
-| `sam_model`  | `str`       | `'sam_b.pt'`   | SAM model path for segmentation (supports SAM, SAM2 variants and mobile_sam models). |
+| `sam_model`  | `str`       | `'sam_b.pt'`   | SAM model path for segmentation (supports SAM, SAM2 variants, and MobileSAM models). |
 | `device`     | `str`       | `''`           | Computation device (e.g., 'cuda:0', 'cpu', or '' for automatic device detection).    |
 | `conf`       | `float`     | `0.25`         | YOLO detection confidence threshold for filtering weak detections.                   |
 | `iou`        | `float`     | `0.45`         | IoU threshold for Non-Maximum Suppression to filter overlapping boxes.               |

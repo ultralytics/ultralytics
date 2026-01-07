@@ -106,15 +106,9 @@ def on_train_end(trainer) -> None:
     """Log final results, plots, and model weights at the end of training."""
     if run:
         # Log final results, CM matrix + PR plots
-        files = [
-            "results.png",
-            "confusion_matrix.png",
-            "confusion_matrix_normalized.png",
-            *(f"{x}_curve.png" for x in ("F1", "PR", "P", "R")),
-        ]
-        files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter
-        for f in files:
-            _log_plot(title=f.stem, plot_path=f)
+        for f in [*trainer.plots.keys(), *trainer.validator.plots.keys()]:
+            if "batch" not in f.name:
+                _log_plot(title=f.stem, plot_path=f)
         # Log the final model
         run[f"weights/{trainer.args.name or trainer.args.task}/{trainer.best.name}"].upload(File(str(trainer.best)))
 

@@ -69,7 +69,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
         isegment = solutions.InstanceSegmentation(
             show=True,  # display the output
             model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
-            # classes=[0, 2],  # segment specific classes i.e, person and car with pretrained model.
+            # classes=[0, 2],  # segment specific classes, e.g., person and car with the pretrained model.
         )
 
         # Process video

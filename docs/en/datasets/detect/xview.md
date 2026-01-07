@@ -29,7 +29,7 @@ xView builds on the success of challenges like [Common Objects in Context (COCO)
 - xView contains over 1 million object instances across 60 classes.
 - The dataset has a resolution of 0.3 meters, providing higher resolution imagery than most public satellite imagery datasets.
 - xView features a diverse collection of small, rare, fine-grained, and multi-type objects with [bounding box](https://www.ultralytics.com/glossary/bounding-box) annotation.
-- Comes with a pre-trained baseline model using the [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) object detection API and an example for [PyTorch](https://www.ultralytics.com/glossary/pytorch).
+- Comes with a pretrained baseline model using the [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) object detection API and an example for [PyTorch](https://www.ultralytics.com/glossary/pytorch).
 
 ## Dataset Structure
 
@@ -160,7 +160,7 @@ The xView dataset stands out due to its comprehensive set of features:
 - Over 1 million object instances across 60 distinct classes.
 - High-resolution imagery at 0.3 meters.
 - Diverse object types including small, rare, and fine-grained objects, all annotated with bounding boxes.
-- Availability of a pre-trained baseline model and examples in [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and PyTorch.
+- Availability of a pretrained baseline model and examples in [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and PyTorch.
 
 ### What is the dataset structure of xView, and how is it annotated?
 

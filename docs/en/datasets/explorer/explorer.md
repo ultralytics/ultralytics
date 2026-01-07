@@ -37,19 +37,19 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 <br>
 </div>
 
-Welcome to the Ultralytics Explorer API notebook! This notebook serves as the starting point for exploring the various resources available to help you get started with using Ultralytics to explore your datasets using with the power of semantic search. You can utilities out of the box that allow you to examine specific types of labels using vector search or even SQL queries.
+Welcome to the Ultralytics Explorer API notebook. This notebook introduces the resources available for exploring datasets with semantic search, vector search, and SQL queries.
 
-Try `yolo explorer` powered by Explorer API
+Try `yolo explorer` (powered by the Explorer API)
 
-Simply `pip install ultralytics` and run `yolo explorer` in your terminal to run custom queries and semantic search on your datasets right inside your browser!
+Install `ultralytics` and run `yolo explorer` in your terminal to run custom queries and semantic search in your browser.
 
 !!! warning "Community Note ⚠️"
 
-    As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don't worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
+    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics HUB](https://hub.ultralytics.com/).
 
 ## Setup
 
-Pip install `ultralytics` and [dependencies](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) and check software and hardware.
+Install `ultralytics` and the required [dependencies](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml), then check software and hardware.
 
 ```bash
 !uv pip install ultralytics[explorer] openai
@@ -65,12 +65,12 @@ exp = Explorer("VOC.yaml", model="yolo11n.pt")
 exp.create_embeddings_table()
 ```
 
-One the embeddings table is built, you can get run semantic search in any of the following ways:
+Once the embeddings table is built, you can run semantic search in any of the following ways:
 
-- On a given index / list of indices in the dataset like - exp.get_similar(idx=[1,10], limit=10)
+- On a given index/list of indices in the dataset, e.g., `exp.get_similar(idx=[1, 10], limit=10)`
 - On any image/ list of images not in the dataset - exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10) In case of multiple inputs, the aggregate of their embeddings is used.
 
-You get a pandas dataframe with the limit number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering
+You get a pandas DataFrame with the limit number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering.
 
 ![Similarity search table](https://github.com/ultralytics/docs/releases/download/0/similarity-search-table.avif)
 
@@ -93,25 +93,25 @@ exp.plot_similar(img="https://ultralytics.com/images/bus.jpg", limit=10, labels=
 
 ![Similarity search image 2](https://github.com/ultralytics/docs/releases/download/0/similarity-search-image-2.avif)
 
-## Ask AI: Search or filter with Natural Language
+## Ask AI: Search or Filter with Natural Language
 
-You can prompt the Explorer object with the kind of data points you want to see, and it'll try to return a dataframe with those. Because it is powered by LLMs, it doesn't always get it right. In that case, it'll return None.
+You can prompt the Explorer object with the kind of data points you want to see, and it will try to return a DataFrame with those results. Because it is powered by LLMs, it does not always get it right. In that case, it will return `None`.
 
-![Ask ai table](https://github.com/ultralytics/docs/releases/download/0/ask-ai-nlp-table.avif)
+![Ask AI table](https://github.com/ultralytics/docs/releases/download/0/ask-ai-nlp-table.avif)
 
 ```python
 df = exp.ask_ai("show me images containing more than 10 objects with at least 2 persons")
 df.head(5)
 ```
 
-for plotting these results you can use `plot_query_result` util Example:
+To plot these results, you can use the `plot_query_result` utility. Example:
 
 ```python
 plt = plot_query_result(exp.ask_ai("show me 10 images containing exactly 2 persons"))
 Image.fromarray(plt)
 ```
 
-![Ask ai image 1](https://github.com/ultralytics/docs/releases/download/0/ask-ai-nlp-image-1.avif)
+![Ask AI image 1](https://github.com/ultralytics/docs/releases/download/0/ask-ai-nlp-image-1.avif)
 
 ```python
 # plot
@@ -122,12 +122,12 @@ plt = plot_query_result(exp.ask_ai("show me 10 images containing exactly 2 perso
 Image.fromarray(plt)
 ```
 
-## Run SQL queries on your Dataset
+## Run SQL Queries on Your Dataset
 
-Sometimes you might want to investigate a certain type of entries in your dataset. For this Explorer allows you to execute SQL queries. It accepts either of the formats:
+Sometimes you might want to investigate certain entries in your dataset. For this, Explorer allows you to execute SQL queries. It accepts either of the following formats:
 
-- Queries beginning with "WHERE" will automatically select all columns. This can be thought of as a shorthand query
-- You can also write full queries where you can specify which columns to select
+- Queries beginning with "WHERE" will automatically select all columns. This can be thought of as a shorthand query.
+- You can also write full queries where you can specify which columns to select.
 
 This can be used to investigate model performance and specific data points. For example:
 

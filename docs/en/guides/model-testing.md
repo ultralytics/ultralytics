@@ -70,7 +70,7 @@ If you want to test your trained YOLO11 model on multiple images stored in a fol
 
 ## Running YOLO11 Predictions Without Custom Training
 
-If you are interested in testing the basic YOLO11 model to understand whether it can be used for your application without custom training, you can use the prediction mode. While the model is pre-trained on datasets like COCO, running predictions on your own dataset can give you a quick sense of how well it might perform in your specific context.
+If you are interested in testing the basic YOLO11 model to understand whether it can be used for your application without custom training, you can use the prediction mode. While the model is pretrained on datasets like COCO, running predictions on your own dataset can give you a quick sense of how well it might perform in your specific context.
 
 ## Overfitting and [Underfitting](https://www.ultralytics.com/glossary/underfitting) in [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml)
 
@@ -208,4 +208,4 @@ Gain insights from the [Model Testing Vs. Model Evaluation](#model-testing-vs-mo
 
 ### How do I run YOLO11 predictions without custom training?
 
-You can run predictions using the pre-trained YOLO11 model on your dataset to see if it suits your application needs. Utilize the [prediction mode](../modes/predict.md) to get a quick sense of performance results without diving into custom training.
+You can run predictions using the pretrained YOLO11 model on your dataset to see if it suits your application needs. Utilize the [prediction mode](../modes/predict.md) to get a quick sense of performance results without diving into custom training.

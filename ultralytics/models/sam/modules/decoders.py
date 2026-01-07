@@ -436,9 +436,8 @@ class SAM2MaskDecoder(nn.Module):
     def _get_stability_scores(self, mask_logits):
         """Compute mask stability scores based on IoU between upper and lower thresholds."""
         mask_logits = mask_logits.flatten(-2)
-        stability_delta = self.dynamic_multimask_stability_delta
-        area_i = torch.sum(mask_logits > stability_delta, dim=-1).float()
-        area_u = torch.sum(mask_logits > -stability_delta, dim=-1).float()
+        area_i = torch.sum(mask_logits > self.dynamic_multimask_stability_delta, dim=-1).float()
+        area_u = torch.sum(mask_logits > -self.dynamic_multimask_stability_delta, dim=-1).float()
         return torch.where(area_u > 0, area_i / area_u, 1.0)
 
     def _dynamic_multimask_via_stability(self, all_mask_logits, all_iou_scores):

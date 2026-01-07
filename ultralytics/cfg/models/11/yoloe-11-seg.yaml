@@ -1,10 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO11-seg instance segmentation model. For Usage examples see https://docs.ultralytics.com/tasks/segment
+# Ultralytics YOLOE-11-seg instance segmentation model. For usage examples, see https://docs.ultralytics.com/tasks/segment
 
 # Parameters
 nc: 80 # number of classes
-scales: # model compound scaling constants, i.e. 'model=yolo11n-seg.yaml' will call yolo11-seg.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=yoloe-11n-seg.yaml' will call yoloe-11-seg.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024] # summary: 355 layers, 2876848 parameters, 2876832 gradients, 10.5 GFLOPs
   s: [0.50, 0.50, 1024] # summary: 355 layers, 10113248 parameters, 10113232 gradients, 35.8 GFLOPs

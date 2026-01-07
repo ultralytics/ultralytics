@@ -59,7 +59,7 @@ class PoseValidator(DetectionValidator):
         specialized metrics for pose evaluation.
 
         Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
+            dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (Path | str, optional): Directory to save results.
             args (dict, optional): Arguments for the validator including task set to "pose".
             _callbacks (list, optional): List of callback functions to be executed during validation.

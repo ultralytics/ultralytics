@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover Ultralytics Explorer for semantic search, SQL queries, vector similarity, and natural language dataset exploration. Enhance your CV datasets effortlessly.
+description: Discover Ultralytics Explorer for semantic search, SQL queries, vector similarity, and natural language dataset exploration.
 keywords: Ultralytics Explorer, CV datasets, semantic search, SQL queries, vector similarity, dataset visualization, python API, machine learning, computer vision
 ---
 
@@ -8,7 +8,7 @@ keywords: Ultralytics Explorer, CV datasets, semantic search, SQL queries, vecto
 
 !!! warning "Community Note ⚠️"
 
-    As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don't worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
+    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics HUB](https://hub.ultralytics.com/).
 
 <p>
     <img width="1709" alt="Ultralytics Explorer Screenshot 1" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-1.avif">

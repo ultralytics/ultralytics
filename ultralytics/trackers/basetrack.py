@@ -19,7 +19,7 @@ class TrackState:
     Examples:
         >>> state = TrackState.New
         >>> if state == TrackState.New:
-        >>>     print("Object is newly detected.")
+        ...     print("Object is newly detected.")
     """
 
     New = 0

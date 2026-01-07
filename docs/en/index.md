@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover Ultralytics YOLO - the latest in real-time object detection and image segmentation. Learn its features and maximize its potential in your projects.
+description: Discover Ultralytics YOLO - the latest in real-time object detection and image segmentation. Learn about its features and maximize its potential in your projects.
 keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep learning, computer vision, AI, machine learning, documentation, tutorial
 ---
 
@@ -111,6 +111,16 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     [:octicons-arrow-right-24: YOLO11 Models 🚀](models/yolo11.md)
 
+- :material-select-all:{ .lg .middle } &nbsp; **SAM 3: Segment Anything with Concepts 🚀 NEW**
+
+    ***
+
+    Meta's latest SAM 3 with Promptable Concept Segmentation - segment all instances using text or image exemplars
+
+    ***
+
+    [:octicons-arrow-right-24: SAM 3 Models](models/sam-3.md)
+
 - :material-scale-balance:{ .lg .middle } &nbsp; **Open Source, AGPL-3.0**
 
     ***
@@ -157,7 +167,7 @@ Ultralytics offers two licensing options to accommodate diverse use cases:
 - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license/agpl-v3) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details.
 - **Enterprise License**: Designed for commercial use, this license permits seamless integration of Ultralytics software and AI models into commercial goods and services, bypassing the open-source requirements of AGPL-3.0. If your scenario involves embedding our solutions into a commercial offering, reach out through [Ultralytics Licensing](https://www.ultralytics.com/license).
 
-Our licensing strategy is designed to ensure that any improvements to our open-source projects are returned to the community. We hold the principles of open source close to our hearts ❤️, and our mission is to guarantee that our contributions can be utilized and expanded upon in ways that are beneficial to all.
+Our licensing strategy is designed to ensure that any improvements to our open-source projects are returned to the community. We believe in open source, and our mission is to ensure that our contributions can be used and expanded in ways that benefit everyone.
 
 ## The Evolution of Object Detection
 
@@ -204,7 +214,7 @@ Here's example code for the Object Detection Task:
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLO model (you can choose n, s, m, l, or x versions)
+        # Load a pretrained YOLO model (you can choose n, s, m, l, or x versions)
         model = YOLO("yolo11n.pt")
 
         # Start training on your custom dataset
@@ -240,7 +250,7 @@ Ultralytics YOLO supports efficient and customizable multi-object tracking. To u
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLO model
+        # Load a pretrained YOLO model
         model = YOLO("yolo11n.pt")
 
         # Start tracking objects in a video

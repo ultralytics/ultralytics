@@ -76,7 +76,7 @@ After installing the necessary packages, you're ready to start using Albumentati
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained model
+        # Load a pretrained model
         model = YOLO("yolo11n.pt")
 
         # Train the model with default augmentations
@@ -90,7 +90,7 @@ After installing the necessary packages, you're ready to start using Albumentati
 
         from ultralytics import YOLO
 
-        # Load a pre-trained model
+        # Load a pretrained model
         model = YOLO("yolo11n.pt")
 
         # Define custom Albumentations transforms

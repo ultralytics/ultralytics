@@ -56,7 +56,7 @@ class Analytics(BaseSolution):
         from matplotlib.backends.backend_agg import FigureCanvasAgg
         from matplotlib.figure import Figure
 
-        self.type = self.CFG["analytics_type"]  # type of analytics i.e "line", "pie", "bar" or "area" charts.
+        self.type = self.CFG["analytics_type"]  # Chart type: "line", "pie", "bar", or "area".
         self.x_label = "Classes" if self.type in {"bar", "pie"} else "Frame#"
         self.y_label = "Total Counts"
 
@@ -66,10 +66,10 @@ class Analytics(BaseSolution):
         self.title = "Ultralytics Solutions"  # window name
         self.max_points = 45  # maximum points to be drawn on window
         self.fontsize = 25  # text font size for display
-        figsize = self.CFG["figsize"]  # set output image size i.e (12.8, 7.2) -> w = 1280, h = 720
+        figsize = self.CFG["figsize"]  # Output size, e.g. (12.8, 7.2) -> 1280x720.
         self.color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
 
-        self.total_counts = 0  # count variable for storing total counts i.e. for line
+        self.total_counts = 0  # Stores total counts for line charts.
         self.clswise_count = {}  # dictionary for class-wise counts
         self.update_every = kwargs.get("update_every", 30)  # Only update graph every 30 frames by default
         self.last_plot_im = None  # Cache of the last rendered chart
@@ -104,7 +104,7 @@ class Analytics(BaseSolution):
                 and 'classwise_count' (dict, per-class object count).
 
         Raises:
-            ModuleNotFoundError: If an unsupported chart type is specified.
+            ValueError: If an unsupported chart type is specified.
 
         Examples:
             >>> analytics = Analytics(analytics_type="line")
@@ -131,9 +131,9 @@ class Analytics(BaseSolution):
                 )
             plot_im = self.last_plot_im
         else:
-            raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
+            raise ValueError(f"Unsupported analytics_type='{self.type}'. Supported types: line, bar, pie, area.")
 
-        # return output dictionary with summary for more usage
+        # Return results for downstream use.
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count)
 
     def update_graph(

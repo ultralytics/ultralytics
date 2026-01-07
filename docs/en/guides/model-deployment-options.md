@@ -251,8 +251,6 @@ In this guide, we've explored the different deployment options for YOLO11. We've
 
 Don't forget that the YOLO11 and [Ultralytics community](https://github.com/orgs/ultralytics/discussions) is a valuable source of help. Connect with other developers and experts to learn unique tips and solutions you might not find in regular documentation. Keep seeking knowledge, exploring new ideas, and sharing your experiences.
 
-Happy deploying!
-
 ## FAQ
 
 ### What are the deployment options available for YOLO11 on different hardware platforms?

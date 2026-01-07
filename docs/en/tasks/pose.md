@@ -26,7 +26,7 @@ The output of a pose estimation model is a set of points that represent the keyp
 
 !!! tip
 
-    YOLO11 _pose_ models use the `-pose` suffix, i.e. `yolo11n-pose.pt`. These models are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) dataset and are suitable for a variety of pose estimation tasks.
+    YOLO11 _pose_ models use the `-pose` suffix, i.e., `yolo11n-pose.pt`. These models are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) dataset and are suitable for a variety of pose estimation tasks.
 
     In the default YOLO11 pose model, there are 17 keypoints, each representing a different part of the human body. Here is the mapping of each index to its respective body joint:
 
@@ -179,7 +179,7 @@ Export a YOLO11n Pose model to a different format like ONNX, CoreML, etc. This a
 
         # Load a model
         model = YOLO("yolo11n-pose.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained model
+        model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
         model.export(format="onnx")
@@ -189,10 +189,10 @@ Export a YOLO11n Pose model to a different format like ONNX, CoreML, etc. This a
 
         ```bash
         yolo export model=yolo11n-pose.pt format=onnx # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
-Available YOLO11-pose export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-pose.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO11-pose export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo11n-pose.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -202,11 +202,11 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### What is Pose Estimation with Ultralytics YOLO11 and how does it work?
 
-Pose estimation with Ultralytics YOLO11 involves identifying specific points, known as keypoints, in an image. These keypoints typically represent joints or other important features of the object. The output includes the `[x, y]` coordinates and confidence scores for each point. YOLO11-pose models are specifically designed for this task and use the `-pose` suffix, such as `yolo11n-pose.pt`. These models are pre-trained on datasets like [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) and can be used for various pose estimation tasks. For more information, visit the [Pose Estimation Page](#pose-estimation).
+Pose estimation with Ultralytics YOLO11 involves identifying specific points, known as keypoints, in an image. These keypoints typically represent joints or other important features of the object. The output includes the `[x, y]` coordinates and confidence scores for each point. YOLO11-pose models are specifically designed for this task and use the `-pose` suffix, such as `yolo11n-pose.pt`. These models are pretrained on datasets like [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml) and can be used for various pose estimation tasks. For more information, visit the [Pose Estimation Page](#pose-estimation).
 
 ### How can I train a YOLO11-pose model on a custom dataset?
 
-Training a YOLO11-pose model on a custom dataset involves loading a model, either a new model defined by a YAML file or a pre-trained model. You can then start the training process using your specified dataset and parameters.
+Training a YOLO11-pose model on a custom dataset involves loading a model, either a new model defined by a YAML file or a pretrained model. You can then start the training process using your specified dataset and parameters.
 
 ```python
 from ultralytics import YOLO
@@ -247,7 +247,7 @@ from ultralytics import YOLO
 
 # Load a model
 model = YOLO("yolo11n-pose.pt")  # load an official model
-model = YOLO("path/to/best.pt")  # load a custom trained model
+model = YOLO("path/to/best.pt")  # load a custom-trained model
 
 # Export the model
 model.export(format="onnx")

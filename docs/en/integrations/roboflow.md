@@ -54,7 +54,7 @@ For compatibility with Ultralytics [YOLO11](../models/yolo11.md), select "YOLO11
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe-dataset-export-1.avif" alt="Roboflow Universe dataset export format selection" width="800">
 </p>
 
-Universe also features a page aggregating public fine-tuned YOLO models uploaded to Roboflow. This can be useful for exploring pre-trained models for testing or automated data labeling.
+Universe also features a page aggregating public fine-tuned YOLO models uploaded to Roboflow. This can be useful for exploring pretrained models for testing or automated data labeling.
 
 ### Roboflow Collect
 

@@ -196,12 +196,7 @@ class MobileCLIP(TextModel):
             device (torch.device): Device to load the model on.
         """
         try:
-            import warnings
-
-            # Suppress 'timm.models.layers is deprecated, please import via timm.layers' warning from mobileclip usage
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=FutureWarning)
-                import mobileclip
+            import mobileclip
         except ImportError:
             # Ultralytics fork preferred since Apple MobileCLIP repo has incorrect version of torchvision
             checks.check_requirements("git+https://github.com/ultralytics/mobileclip.git")
@@ -308,7 +303,7 @@ class MobileCLIPTS(TextModel):
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).
 
         Examples:
-            >>> model = MobileCLIPTS("cpu")
+            >>> model = MobileCLIPTS(device=torch.device("cpu"))
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
             >>> strict_tokens = model.tokenize(
             ...     ["a very long caption"], truncate=False

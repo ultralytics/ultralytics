@@ -39,7 +39,7 @@ class SegmentationValidator(DetectionValidator):
         """Initialize SegmentationValidator and set task to 'segment', metrics to SegmentMetrics.
 
         Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
+            dataloader (torch.utils.data.DataLoader, optional): DataLoader to use for validation.
             save_dir (Path, optional): Directory to save results.
             args (namespace, optional): Arguments for the validator.
             _callbacks (list, optional): List of callback functions.

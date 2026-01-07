@@ -8,11 +8,12 @@
 # Start FROM official arm64v8 Ubuntu 24.04 image https://hub.docker.com/layers/arm64v8/ubuntu/24.04/
 FROM arm64v8/ubuntu:24.04
 
-# Set environment variables
+# Set environment variables (suppress PyTorch NNPACK warnings)
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_BREAK_SYSTEM_PACKAGES=1
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    TORCH_CPP_LOG_LEVEL=ERROR
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
@@ -20,13 +21,11 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     /root/.config/Ultralytics/
 
 # Install linux packages
-# pkg-config and libhdf5-dev (not included) are needed to build 'h5py==3.11.0' aarch64 wheel required by 'tensorflow'
-# gnupg required for Edge TPU install
-RUN apt update && \
-    apt upgrade -y && \
-    apt install -y --no-install-recommends \
+# TensorFlow on aarch64 may require pkg-config and libhdf5-dev if h5py builds from source.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     python3-pip git zip unzip wget curl htop gcc libgl1 libglib2.0-0 gnupg && \
-    apt clean && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Create working directory
@@ -39,23 +38,18 @@ RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages, create python symlink, and remove build files
-RUN pip install uv && \
+RUN python3 -m pip install uv && \
     uv pip install --system -e ".[export]" --break-system-packages && \
     # Creates a symbolic link to make 'python' point to 'python3'
     ln -sf /usr/bin/python3 /usr/bin/python && \
     # Remove extra build files
     rm -rf /root/.config/Ultralytics/persistent_cache.json
 
-# Usage Examples -------------------------------------------------------------------------------------------------------
+# Usage --------------------------------------------------------------------------------------------------------------
 
-# Build and Push
-# t=ultralytics/ultralytics:latest-arm64 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-arm64 -t $t . && sudo docker push $t
-
-# Run
-# t=ultralytics/ultralytics:latest-arm64 && sudo docker run -it --ipc=host $t
-
-# Pull and Run
-# t=ultralytics/ultralytics:latest-arm64 && sudo docker pull $t && sudo docker run -it --ipc=host $t
-
-# Pull and Run with local volume mounted
-# t=ultralytics/ultralytics:latest-arm64 && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/shared/datasets:/datasets $t
+# Production builds: https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml
+# Example (build): t=ultralytics/ultralytics:latest-arm64 && docker build --platform linux/arm64 -f docker/Dockerfile-arm64 -t $t .
+# Example (push): docker push $t
+# Example (pull): t=ultralytics/ultralytics:latest-arm64 && docker pull $t
+# Example (run): docker run -it --ipc=host $t
+# Example (run-with-volume): docker run -it --ipc=host -v "$PWD/shared/datasets:/datasets" $t

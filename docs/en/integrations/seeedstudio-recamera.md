@@ -53,7 +53,7 @@ Step 4: Choose one of the four different pre-installed YOLO11n models and click 
   <img width="50%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-yolo11n-pose.avif" alt="Node-RED YOLO11n-pose select">
 </p>
 
-Step 5: Click `Deploy` and when it finishes deploying, click `Dashboard`
+Step 5: Click `Deploy` and when it finishes deploying, click `Dashboard`.
 
 ![reCamera Node-RED deploy](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-deploy.avif)
 
@@ -63,9 +63,9 @@ Now you will be able to see YOLO11n pose estimation model in action!
 
 ## Export to cvimodel: Converting Your YOLO11 Model
 
-If you want to use a [custom-trained YOLO11 model](../modes/train.md) and use with reCamera, please follow the steps below.
+If you want to use a [custom-trained YOLO11 model](../modes/train.md) with reCamera, follow the steps below.
 
-Here we will first convert `PyTorch` model to `ONNX` and then convert it to `MLIR` model format. Finally `MLIR` will be converted to `cvimodel` in order to inference on-device
+Here, we'll first convert a `PyTorch` model to `ONNX` and then convert it to the `MLIR` model format. Finally, `MLIR` will be converted to `cvimodel` to run inference on-device.
 
 <p align="center">
   <img width="80%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-toolchain-workflow.avif" alt="reCamera Toolchain">

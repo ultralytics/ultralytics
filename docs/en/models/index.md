@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover a variety of models supported by Ultralytics, including YOLOv3 to YOLO11, NAS, SAM, and RT-DETR for detection, segmentation, and more.
-keywords: Ultralytics, supported models, YOLOv3, YOLOv4, YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv9, YOLOv10, YOLO11, SAM, SAM2, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, object detection, image segmentation, classification, pose estimation, multi-object tracking
+keywords: Ultralytics, supported models, YOLOv3, YOLOv4, YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv9, YOLOv10, YOLO11, SAM, SAM2, SAM3, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, object detection, image segmentation, classification, pose estimation, multi-object tracking
 ---
 
 # Models Supported by Ultralytics
@@ -26,7 +26,7 @@ Here are some of the key models supported:
 10. **[YOLO26](yolo26.md) ⚠️ Coming Soon**: Ultralytics' next-generation YOLO model optimized for edge deployment with end-to-end NMS-free inference.
 11. **[Segment Anything Model (SAM)](sam.md)**: Meta's original Segment Anything Model (SAM).
 12. **[Segment Anything Model 2 (SAM2)](sam-2.md)**: The next generation of Meta's Segment Anything Model for videos and images.
-13. **[Segment Anything Model 3 (SAM3)](sam-3.md) ⚠️ Coming Soon**: Meta's upcoming third generation Segment Anything Model with enhanced memory and performance.
+13. **[Segment Anything Model 3 (SAM3)](sam-3.md) 🚀 NEW**: Meta's third generation Segment Anything Model with Promptable Concept Segmentation for text and image exemplar-based segmentation.
 14. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM for mobile applications, by Kyung Hee University.
 15. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM by Image & Video Analysis Group, Institute of Automation, Chinese Academy of Sciences.
 16. **[YOLO-NAS](yolo-nas.md)**: YOLO [Neural Architecture Search](https://www.ultralytics.com/glossary/neural-architecture-search-nas) (NAS) Models.

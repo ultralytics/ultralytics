@@ -55,8 +55,8 @@ from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
 
 STREAM_WARNING = """
-inference results will accumulate in RAM unless `stream=True` is passed, causing potential out-of-memory
-errors for large sources or long-running streams and videos. See https://docs.ultralytics.com/modes/predict/ for help.
+Inference results will accumulate in RAM unless `stream=True` is passed, which can cause out-of-memory errors for large
+sources or long-running streams and videos. See https://docs.ultralytics.com/modes/predict/ for help.
 
 Example:
     results = model(source=..., stream=True)  # generator of Results objects
@@ -222,7 +222,7 @@ class BasePredictor:
         if stream:
             return self.stream_inference(source, model, *args, **kwargs)
         else:
-            return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
+            return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Results into one
 
     def predict_cli(self, source=None, model=None):
         """Method used for Command Line Interface (CLI) prediction.
@@ -244,14 +244,15 @@ class BasePredictor:
         for _ in gen:  # sourcery skip: remove-empty-nested-block, noqa
             pass
 
-    def setup_source(self, source):
+    def setup_source(self, source, stride: int | None = None):
         """Set up source and inference mode.
 
         Args:
             source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor): Source for
                 inference.
+            stride (int, optional): Model stride for image size checking.
         """
-        self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+        self.imgsz = check_imgsz(self.args.imgsz, stride=stride or self.model.stride, min_dim=2)  # check image size
         self.dataset = load_inference_source(
             source=source,
             batch=self.args.batch,
@@ -315,7 +316,8 @@ class BasePredictor:
                 ops.Profile(device=self.device),
             )
             self.run_callbacks("on_predict_start")
-            for self.batch in self.dataset:
+            for batch in self.dataset:
+                self.batch = batch
                 self.run_callbacks("on_predict_batch_start")
                 paths, im0s, s = self.batch
 

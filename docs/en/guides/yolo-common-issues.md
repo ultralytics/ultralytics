@@ -86,7 +86,7 @@ This section will address common issues faced while training and their respectiv
 **Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with multiple GPUs, follow these steps:
 
 - Ensure that you have multiple GPUs available.
-- Modify your .yaml configuration file to specify the number of GPUs to use, e.g., gpus: 4.
+- Modify your `.yaml` configuration file to specify the number of GPUs to use, e.g., `gpus: 4`.
 - Increase the batch size accordingly to fully utilize the multiple GPUs without exceeding memory limits.
 - Modify your training command to utilize multiple GPUs:
 
@@ -209,7 +209,7 @@ yolo task=detect mode=segment model=yolo11n-seg.pt source='path/to/car.mp4' show
 ```python
 from ultralytics import YOLO
 
-# Load a pre-trained YOLO11 model
+# Load a pretrained YOLO11 model
 model = YOLO("yolo11n.pt")
 
 # Specify the source image
@@ -267,8 +267,6 @@ These resources should provide a solid foundation for troubleshooting and improv
 Troubleshooting is an integral part of any development process, and being equipped with the right knowledge can significantly reduce the time and effort spent in resolving issues. This guide aimed to address the most common challenges faced by users of the YOLO11 model within the Ultralytics ecosystem. By understanding and addressing these common issues, you can ensure smoother project progress and achieve better results with your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
 Remember, the Ultralytics community is a valuable resource. Engaging with fellow developers and experts can provide additional insights and solutions that might not be covered in standard documentation. Always keep learning, experimenting, and sharing your experiences to contribute to the collective knowledge of the community.
-
-Happy troubleshooting!
 
 ## FAQ
 

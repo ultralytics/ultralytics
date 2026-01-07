@@ -57,7 +57,7 @@ Export a YOLO11n model to a different format like ONNX or TensorRT. See the Argu
 
         # Load a model
         model = YOLO("yolo11n.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained model
+        model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
         model.export(format="onnx")
@@ -67,7 +67,7 @@ Export a YOLO11n model to a different format like ONNX or TensorRT. See the Argu
 
         ```bash
         yolo export model=yolo11n.pt format=onnx      # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
 ## Arguments
@@ -80,7 +80,7 @@ Adjusting these parameters allows for customization of the export process to fit
 
 ## Export Formats
 
-Available YOLO11 export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO11 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo11n.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -99,7 +99,7 @@ Exporting a YOLO11 model to ONNX format is straightforward with Ultralytics. It 
 
         # Load a model
         model = YOLO("yolo11n.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained model
+        model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
         model.export(format="onnx")
@@ -109,7 +109,7 @@ Exporting a YOLO11 model to ONNX format is straightforward with Ultralytics. It 
 
         ```bash
         yolo export model=yolo11n.pt format=onnx      # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
 For more details on the process, including advanced options like handling different input sizes, refer to the [ONNX integration guide](../integrations/onnx.md).
@@ -183,3 +183,15 @@ Understanding and configuring export arguments is crucial for optimizing model p
 - **`int8:`** Enables INT8 quantization, highly beneficial for [edge AI](https://www.ultralytics.com/blog/deploying-computer-vision-applications-on-edge-ai-devices) deployments.
 
 For deployment on specific hardware platforms, consider using specialized export formats like [TensorRT](../integrations/tensorrt.md) for NVIDIA GPUs, [CoreML](../integrations/coreml.md) for Apple devices, or [Edge TPU](../integrations/edge-tpu.md) for Google Coral devices.
+
+### What do the output tensors represent in exported YOLO models?
+
+When you export a YOLO model to formats like ONNX or TensorRT, the output tensor structure depends on the model task. Understanding these outputs is important for custom inference implementations.
+
+For **detection models** (e.g., `yolo11n.pt`), the output is typically a single tensor shaped like `(batch_size, 4 + num_classes, num_predictions)` where the channels represent box coordinates plus per-class scores, and `num_predictions` depends on the export input resolution (and can be dynamic).
+
+For **segmentation models** (e.g., `yolo11n-seg.pt`), you'll typically get two outputs: the first tensor shaped like `(batch_size, 4 + num_classes + mask_dim, num_predictions)` (boxes, class scores, and mask coefficients), and the second tensor shaped like `(batch_size, mask_dim, proto_h, proto_w)` containing mask prototypes used with the coefficients to generate instance masks. Sizes depend on the export input resolution (and can be dynamic).
+
+For **pose models** (e.g., `yolo11n-pose.pt`), the output tensor is typically shaped like `(batch_size, 4 + num_classes + keypoint_dims, num_predictions)`, where `keypoint_dims` depends on the pose specification (e.g., number of keypoints and whether confidence is included), and `num_predictions` depends on the export input resolution (and can be dynamic).
+
+The examples in the [ONNX inference examples](https://github.com/ultralytics/ultralytics/tree/main/examples) demonstrate how to process these outputs for each model type.

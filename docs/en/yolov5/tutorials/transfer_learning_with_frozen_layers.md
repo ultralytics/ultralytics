@@ -10,7 +10,7 @@ keywords: YOLOv5, transfer learning, freeze layers, machine learning, deep learn
 
 ## Before You Start
 
-First, clone the YOLOv5 repository and install the necessary dependencies listed in [`requirements.txt`](https://github.com/ultralytics/yolov5/blob/master/requirements.txt). Ensure you have a [**Python>=3.8.0**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) installed. Pre-trained [models](https://github.com/ultralytics/yolov5/tree/master/models) and required [datasets](https://github.com/ultralytics/yolov5/tree/master/data) will be downloaded automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+First, clone the YOLOv5 repository and install the necessary dependencies listed in [`requirements.txt`](https://github.com/ultralytics/yolov5/blob/master/requirements.txt). Ensure you have a [**Python>=3.8.0**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) installed. Pretrained [models](https://github.com/ultralytics/yolov5/tree/master/models) and required [datasets](https://github.com/ultralytics/yolov5/tree/master/data) will be downloaded automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
 git clone https://github.com/ultralytics/yolov5 # clone repository
@@ -109,7 +109,7 @@ This approach is useful when you primarily need to adjust the model for a differ
 
 ## Performance Comparison
 
-To illustrate the effects of freezing layers, we trained YOLOv5m on the [Pascal VOC dataset](https://docs.ultralytics.com/datasets/detect/voc/) for 50 [epochs](https://www.ultralytics.com/glossary/epoch), starting from the official COCO pre-trained [weights](https://www.ultralytics.com/glossary/model-weights) (`yolov5m.pt`). We compared three scenarios: training all layers (`--freeze 0`), freezing the backbone (`--freeze 10`), and freezing all but the final detection layers (`--freeze 24`).
+To illustrate the effects of freezing layers, we trained YOLOv5m on the [Pascal VOC dataset](https://docs.ultralytics.com/datasets/detect/voc/) for 50 [epochs](https://www.ultralytics.com/glossary/epoch), starting from the official COCO pretrained [weights](https://www.ultralytics.com/glossary/model-weights) (`yolov5m.pt`). We compared three scenarios: training all layers (`--freeze 0`), freezing the backbone (`--freeze 10`), and freezing all but the final detection layers (`--freeze 24`).
 
 ```bash
 # Example command for training with backbone frozen
@@ -146,7 +146,7 @@ Layer freezing during transfer learning is particularly advantageous in several 
 1.  **Limited Computational Resources**: If you have constraints on GPU memory or processing power.
 2.  **Small Datasets**: When your target dataset is significantly smaller than the original pre-training dataset, freezing helps prevent [overfitting](https://www.ultralytics.com/glossary/overfitting).
 3.  **Rapid Prototyping**: When you need to quickly adapt an existing model to a new task or domain for initial evaluation.
-4.  **Similar Feature Domains**: If the low-level features in your new dataset are very similar to those in the dataset the model was pre-trained on.
+4.  **Similar Feature Domains**: If the low-level features in your new dataset are very similar to those in the dataset the model was pretrained on.
 
 Explore more about the nuances of transfer learning in our [glossary entry](https://www.ultralytics.com/glossary/transfer-learning) and consider techniques like [hyperparameter tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning/) for optimizing performance.
 

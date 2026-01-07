@@ -97,7 +97,7 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
 
     === "Detection (COCO)"
 
-        | Model                                                                                 | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | mAP<sup>val<br>50 | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        | Model                                                                                 | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | mAP<sup>val<br>50</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |---------------------------------------------------------------------------------------|-----------------------|----------------------|-------------------|--------------------|-------------------|
         | [YOLOv9t](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9t.pt)  | 640                   | 38.3                 | 53.1              | 2.0                | 7.7               |
         | [YOLOv9s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9s.pt)  | 640                   | 46.8                 | 63.4              | 7.2                | 26.7              |
@@ -107,7 +107,7 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
 
     === "Segmentation (COCO)"
 
-        | Model                                                                                         | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        | Model                                                                                         | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |-----------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------|-------------------|
         | [YOLOv9c-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9c-seg.pt)  | 640                   | 52.4                 | 42.2                  | 27.9               | 159.4             |
         | [YOLOv9e-seg](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov9e-seg.pt)  | 640                   | 55.1                 | 44.3                  | 60.5               | 248.4             |

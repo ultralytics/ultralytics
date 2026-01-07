@@ -15,18 +15,13 @@ RUN uv pip install --system jupyterlab && \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Start JupyterLab with tutorial notebook
-ENTRYPOINT ["/usr/local/bin/jupyter", "lab", "--allow-root", "--ip=*", "/ultralytics/examples/tutorial.ipynb"]
+ENTRYPOINT ["/usr/local/bin/jupyter", "lab", "--allow-root", "--ip=0.0.0.0", "/ultralytics/examples/tutorial.ipynb"]
 
-# Usage Examples -------------------------------------------------------------------------------------------------------
+# Usage --------------------------------------------------------------------------------------------------------------
 
-# Build and Push
-# t=ultralytics/ultralytics:latest-jupyter && sudo docker build -f docker/Dockerfile-jupyter -t $t . && sudo docker push $t
-
-# Run
-# t=ultralytics/ultralytics:latest-jupyter && sudo docker run -it --ipc=host -p 8888:8888 $t
-
-# Pull and Run
-# t=ultralytics/ultralytics:latest-jupyter && sudo docker pull $t && sudo docker run -it --ipc=host -p 8888:8888 $t
-
-# Pull and Run with local volume mounted
-# t=ultralytics/ultralytics:latest-jupyter && sudo docker pull $t && sudo docker run -it --ipc=host -p 8888:8888 -v "$(pwd)"/datasets:/data/datasets $t
+# Production builds: https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml
+# Example (build): t=ultralytics/ultralytics:latest-jupyter && docker build -f docker/Dockerfile-jupyter -t $t .
+# Example (push): docker push $t
+# Example (pull): t=ultralytics/ultralytics:latest-jupyter && docker pull $t
+# Example (run): docker run -it --ipc=host -p 8888:8888 $t
+# Example (run-with-volume): docker run -it --ipc=host -p 8888:8888 -v "$PWD/datasets:/data/datasets" $t

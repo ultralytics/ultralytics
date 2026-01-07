@@ -26,13 +26,13 @@ The output of an image classifier is a single class label and a confidence score
 
 !!! tip
 
-    YOLO11 Classify models use the `-cls` suffix, i.e. `yolo11n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
+    YOLO11 Classify models use the `-cls` suffix, i.e., `yolo11n-cls.pt`, and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11)
 
-YOLO11 pretrained Classify models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+YOLO11 pretrained Classify models are shown here. Detect, Segment, and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) are downloaded automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 {% include "macros/yolo-cls-perf.md" %}
 
@@ -220,7 +220,7 @@ Export a YOLO11n-cls model to a different format like ONNX, CoreML, etc.
 
         # Load a model
         model = YOLO("yolo11n-cls.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained model
+        model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
         model.export(format="onnx")
@@ -230,10 +230,10 @@ Export a YOLO11n-cls model to a different format like ONNX, CoreML, etc.
 
         ```bash
         yolo export model=yolo11n-cls.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
+        yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
-Available YOLO11-cls export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-cls.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO11-cls export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo11n-cls.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 

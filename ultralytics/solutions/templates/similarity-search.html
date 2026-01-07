@@ -106,7 +106,9 @@
         card.style.display = idx < k ? "block" : "none";
       });
       const buttons = document.querySelectorAll(".topk-btn");
-      buttons.forEach((btn) => btn.classList.remove("active"));
+      buttons.forEach((btn) => {
+        btn.classList.remove("active");
+      });
       event.target.classList.add("active");
     }
     document.addEventListener("DOMContentLoaded", () => {

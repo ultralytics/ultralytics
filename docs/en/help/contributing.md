@@ -230,14 +230,14 @@ Complying means making the **complete corresponding source code** of your projec
     - **Use Ultralytics Template:** Start with the [Ultralytics template repository](https://github.com/ultralytics/template) for a clean, modular setup integrating YOLO.
 
 2. **License Your Project:**
-    - Add an `LICENSE` file containing the full text of the [AGPL-3.0 license](https://opensource.org/license/agpl-v3).
+    - Add a `LICENSE` file containing the full text of the [AGPL-3.0 license](https://opensource.org/license/agpl-v3).
     - Add a notice at the top of each source file indicating the license.
 
 3. **Publish Your Source Code:**
     - Make your **entire project's source code** publicly accessible (e.g., on GitHub). This includes:
         - The complete larger application or system that incorporates the YOLO model or code.
         - Any modifications made to the original Ultralytics YOLO code.
-        - Scripts for training, validation, inference.
+        - Scripts for training, validation, and inference.
         - [Model weights](https://www.ultralytics.com/glossary/model-weights) if modified or fine-tuned.
         - [Configuration files](https://docs.ultralytics.com/usage/cfg/), environment setups (`requirements.txt`, [`Dockerfiles`](https://docs.docker.com/reference/dockerfile/)).
         - Backend and frontend code if it's part of a [web application](https://en.wikipedia.org/wiki/Web_application).
@@ -279,11 +279,11 @@ my-yolo-project/
 
 By following these guidelines, you ensure compliance with AGPL-3.0, supporting the open-source ecosystem that enables powerful tools like Ultralytics YOLO.
 
-## 🎉 Conclusion
+## Conclusion
 
 Thank you for your interest in contributing to [Ultralytics](https://www.ultralytics.com/) [open-source](https://github.com/ultralytics) YOLO projects. Your participation is essential in shaping the future of our software and building a vibrant community of innovation and collaboration. Whether you're enhancing code, reporting bugs, or suggesting new features, your contributions are invaluable.
 
-We're excited to see your ideas come to life and appreciate your commitment to advancing [object detection](https://www.ultralytics.com/glossary/object-detection) technology. Together, let's continue to grow and innovate in this exciting open-source journey. Happy coding! 🚀🌟
+We're excited to see your ideas come to life and appreciate your commitment to advancing [object detection](https://www.ultralytics.com/glossary/object-detection) technology. Together, let's continue to grow and innovate in this exciting open-source journey.
 
 ## FAQ
 

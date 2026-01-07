@@ -6,11 +6,12 @@
 # Use official Python base image for reproducibility (3.11.10 for export and 3.12.10 for inference)
 FROM python:3.11.10-slim-bookworm
 
-# Set environment variables
+# Set environment variables (suppress PyTorch NNPACK warnings)
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_BREAK_SYSTEM_PACKAGES=1
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
+    TORCH_CPP_LOG_LEVEL=ERROR
 
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
@@ -39,16 +40,11 @@ RUN pip install uv && \
     # Remove extra build files
     rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
 
-# Usage Examples -------------------------------------------------------------------------------------------------------
+# Usage --------------------------------------------------------------------------------------------------------------
 
-# Build and Push
-# t=ultralytics/ultralytics:latest-python && sudo docker build -f docker/Dockerfile-python -t $t . && sudo docker push $t
-
-# Run
-# t=ultralytics/ultralytics:latest-python && sudo docker run -it --ipc=host $t
-
-# Pull and Run
-# t=ultralytics/ultralytics:latest-python && sudo docker pull $t && sudo docker run -it --ipc=host $t
-
-# Pull and Run with local volume mounted
-# t=ultralytics/ultralytics:latest-python && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/shared/datasets:/datasets $t
+# Production builds: https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml
+# Example (build): t=ultralytics/ultralytics:latest-python && docker build -f docker/Dockerfile-python -t $t .
+# Example (push): docker push $t
+# Example (pull): t=ultralytics/ultralytics:latest-python && docker pull $t
+# Example (run): docker run -it --ipc=host $t
+# Example (run-with-volume): docker run -it --ipc=host -v "$PWD/shared/datasets:/datasets" $t

@@ -1,14 +1,14 @@
 ---
 comments: true
 description: Explore the revolutionary Segment Anything Model (SAM) for promptable image segmentation with zero-shot performance. Discover key features, datasets, and usage tips.
-keywords: Segment Anything, SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, instance segmentation, computer vision, AI, machine learning
+keywords: Segment Anything, SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pretrained models, instance segmentation, computer vision, AI, machine learning
 ---
 
 # Segment Anything Model (SAM)
 
 !!! note "SAM Evolution"
 
-    This is the original SAM model from Meta. For improved capabilities, see [SAM 2](sam-2.md) for video segmentation or [SAM 3](sam-3.md) for the upcoming next-generation model with enhanced memory and performance.
+    This is the original SAM model from Meta. For improved capabilities, see [SAM 2](sam-2.md) for video segmentation or [SAM 3](sam-3.md) for Promptable Concept Segmentation with text and image exemplar prompts.
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/inference-with-meta-sam-and-sam2-using-ultralytics-python-package.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="How to use Segment Anything In Colab"></a>
 
@@ -33,9 +33,9 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 ## Available Models, Supported Tasks, and Operating Modes
 
-This table presents the available models with their specific pre-trained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
+This table presents the available models with their specific pretrained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
-| Model Type | Pre-trained Weights                                                                 | Tasks Supported                              | Inference | Validation | Training | Export |
+| Model Type | Pretrained Weights                                                                  | Tasks Supported                              | Inference | Validation | Training | Export |
 | ---------- | ----------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | SAM base   | [sam_b.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 | SAM large  | [sam_l.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
@@ -103,7 +103,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         yolo predict model=sam_b.pt source=path/to/image.jpg
         ```
 
-- The logic here is to segment the whole image if you don't pass any prompts(bboxes/points/masks).
+- The logic here is to segment the whole image if you don't pass any prompts (bboxes/points/masks).
 
 !!! example "SAMPredictor example"
 
@@ -200,7 +200,7 @@ Tests run on a 2025 Apple M4 Pro with 24GB of RAM using `torch==2.6.0` and `ultr
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets
 
-Auto-annotation is a key feature of SAM, allowing users to generate a [segmentation dataset](../datasets/segment/index.md) using a pre-trained detection model. This feature enables rapid and accurate annotation of a large number of images, bypassing the need for time-consuming manual labeling.
+Auto-annotation is a key feature of SAM, allowing users to generate a [segmentation dataset](../datasets/segment/index.md) using a pretrained detection model. This feature enables rapid and accurate annotation of a large number of images, bypassing the need for time-consuming manual labeling.
 
 ### Generate Your Segmentation Dataset Using a Detection Model
 
@@ -218,9 +218,9 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
 
 {% include "macros/sam-auto-annotate.md" %}
 
-The `auto_annotate` function takes the path to your images, with optional arguments for specifying the pre-trained detection and SAM segmentation models, the device to run the models on, and the output directory for saving the annotated results.
+The `auto_annotate` function takes the path to your images, with optional arguments for specifying the pretrained detection and SAM segmentation models, the device to run the models on, and the output directory for saving the annotated results.
 
-Auto-annotation with pre-trained models can dramatically cut down the time and effort required for creating high-quality segmentation datasets. This feature is especially beneficial for researchers and developers dealing with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
+Auto-annotation with pretrained models can dramatically cut down the time and effort required for creating high-quality segmentation datasets. This feature is especially beneficial for researchers and developers dealing with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
 
 ## Citations and Acknowledgments
 
@@ -289,7 +289,7 @@ Compared to YOLO models, SAM variants like SAM-b, SAM2-t, MobileSAM, and FastSAM
 
 ### How can I auto-annotate my dataset using SAM?
 
-Ultralytics' SAM offers an auto-annotation feature that allows generating segmentation datasets using a pre-trained detection model. Here's an example in Python:
+Ultralytics' SAM offers an auto-annotation feature that allows generating segmentation datasets using a pretrained detection model. Here's an example in Python:
 
 ```python
 from ultralytics.data.annotator import auto_annotate
@@ -297,7 +297,7 @@ from ultralytics.data.annotator import auto_annotate
 auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model="sam_b.pt")
 ```
 
-This function takes the path to your images and optional arguments for pre-trained detection and SAM segmentation models, along with device and output directory specifications. For a complete guide, see [Auto-Annotation](#auto-annotation-a-quick-path-to-segmentation-datasets).
+This function takes the path to your images and optional arguments for pretrained detection and SAM segmentation models, along with device and output directory specifications. For a complete guide, see [Auto-Annotation](#auto-annotation-a-quick-path-to-segmentation-datasets).
 
 ### What datasets are used to train the Segment Anything Model (SAM)?
 

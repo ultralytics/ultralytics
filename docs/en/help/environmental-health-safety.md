@@ -4,7 +4,7 @@ description: Explore Ultralytics' commitment to Environmental, Health, and Safet
 keywords: Ultralytics, EHS policy, safety, sustainability, environmental impact, health and safety, risk management, compliance, continuous improvement
 ---
 
-# Ultralytics Environmental, Health and Safety (EHS) Policy
+# Ultralytics Environmental, Health, and Safety (EHS) Policy
 
 At Ultralytics, we recognize that the long-term success of our company relies not only on the products and services we offer, but also the manner in which we conduct our business. We are committed to ensuring the safety and well-being of our employees, stakeholders, and the environment, and we will continuously strive to mitigate our impact on the environment while promoting health and safety.
 

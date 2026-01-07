@@ -36,11 +36,13 @@ Ultralytics commands use the following syntax:
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO model from a pre-trained weights file
+        # Load a YOLO model from a pretrained weights file
         model = YOLO("yolo11n.pt")
 
-        # Run MODE mode using the custom arguments ARGS (guess TASK)
-        model.MODE(ARGS)
+        # Run the model in MODE using custom ARGS
+        MODE = "predict"
+        ARGS = {"source": "image.jpg", "imgsz": 640}
+        getattr(model, MODE)(**ARGS)
         ```
 
 Where:
@@ -49,7 +51,7 @@ Where:
 - `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md), [benchmark](../modes/benchmark.md))
 - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
-Default `ARG` values are defined on this page and come from the `cfg/defaults.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
+Default `ARG` values are defined on this page and come from the `cfg/default.yaml` [file](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 ## Tasks
 

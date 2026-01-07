@@ -121,7 +121,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ## Deploying Exported YOLO11 TorchScript Models
 
-After successfully exporting your Ultralytics YOLO11 models to TorchScript format, you can now deploy them. The primary and recommended first step for running a TorchScript model is to utilize the YOLO("model.torchscript") method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TorchScript models in various other settings, take a look at the following resources:
+After successfully exporting your Ultralytics YOLO11 models to TorchScript format, you can now deploy them. The primary and recommended first step for running a TorchScript model is to use the `YOLO("model.torchscript")` method, as outlined in the previous usage code snippet. For in-depth instructions on deploying your TorchScript models in other settings, take a look at the following resources:
 
 - **[Explore Mobile Deployment](https://docs.pytorch.org/executorch/)**: The [PyTorch](https://www.ultralytics.com/glossary/pytorch) Mobile Documentation provides comprehensive guidelines for deploying models on mobile devices, ensuring your applications are efficient and responsive.
 

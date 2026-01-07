@@ -3,5 +3,6 @@
 from .engine import onnx2engine, torch2onnx
 from .imx import torch2imx
 from .tensorflow import keras2pb, onnx2saved_model, pb2tfjs, tflite2edgetpu
+from .axelera import onnx2axelera
 
 __all__ = ["keras2pb", "onnx2engine", "onnx2saved_model", "pb2tfjs", "tflite2edgetpu", "torch2imx", "torch2onnx"]

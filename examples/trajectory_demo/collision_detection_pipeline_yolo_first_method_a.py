@@ -1,8 +1,9 @@
 """
 collision_detection_pipeline_yolo_first_method_a.py
 
-YOLO-First 碰撞检测管道 (Method A - 导师推荐方案)
+YOLO-First 碰撞检测管道 (Method A )
 执行顺序: YOLO检测 → 轨迹构建(px) → 关键帧检测 → Homography变换(仅关键帧) → TTC分析
+
 
 流程:
 1. YOLO 检测 (原始视频或跳帧视频)
@@ -18,7 +19,7 @@ YOLO-First 碰撞检测管道 (Method A - 导师推荐方案)
    - 识别"距离 < 150px"的物体对
    - 标记为关键帧
 
-4. Homography 变换 (仅关键帧) ✨ 核心优化
+4. Homography 变换 (仅关键帧) 
    - 只对关键帧中的物体点做变换
    - 转换距离单位 (px → m)
    - 转换速度单位 (px/s → m/s)
@@ -29,9 +30,9 @@ YOLO-First 碰撞检测管道 (Method A - 导师推荐方案)
    - 生成报告
 
 优势: 
-- ✅ 符合导师建议
-- ✅ 性能最优 (仅变换5-10%的数据)
-- ✅ 逻辑清晰 (先找接近的，再精确分析)
+- 
+-  性能最优 (仅变换5-10%的数据)
+-  逻辑清晰 (先找接近的，再精确分析)
 """
 
 import os
@@ -50,7 +51,7 @@ from ultralytics import YOLO
 
 class YOLOFirstPipelineA:
     def __init__(self, video_path, homography_path=None, output_base=None, skip_frames=1, model='yolo11n', min_track_length=3):
-        """初始化 YOLO-First pipeline (Method A - 导师推荐)
+        """初始化 YOLO-First pipeline 
         
         Args:
             video_path: 原始视频路径
@@ -775,17 +776,17 @@ class YOLOFirstPipelineA:
                             'class_1': class1_name,
                             'class_2': class2_name,
                             'distance_pixel': float(distance_pixel),
-                            'distance_meters': float(distance_meters),  # ✨ 新增：世界坐标距离
+                            'distance_meters': float(distance_meters),  
                             'object_classes': (obj1['class'], obj2['class']),
                             'center_1_px': [float(x1_px), float(y1_px)],
                             'center_2_px': [float(x2_px), float(y2_px)],
-                            'center_1_world': [float(x1_world), float(y1_world)],  # ✨ 新增
-                            'center_2_world': [float(x2_world), float(y2_world)],  # ✨ 新增
+                            'center_1_world': [float(x1_world), float(y1_world)],  
+                            'center_2_world': [float(x2_world), float(y2_world)],  
                             'positions': {
                                 'obj1': {'x': x1_px, 'y': y1_px},
                                 'obj2': {'x': x2_px, 'y': y2_px}
                             },
-                            'positions_world': {  # ✨ 新增
+                            'positions_world': {  
                                 'obj1': {'x': x1_world, 'y': y1_world},
                                 'obj2': {'x': x2_world, 'y': y2_world}
                             }
@@ -829,70 +830,70 @@ class YOLOFirstPipelineA:
     # =========================================================================
     
     def filter_same_class_false_positives(self, proximity_events, same_class_distance_threshold=0.3):
-        """过滤同类别物体的误检 + 跨帧相同Track ID对的误检
+        """过滤同类别物体的误检 + 跨帧同一物体的误分割
         
-        如果两个物体是同一类别，且距离 < same_class_distance_threshold (默认0.3米)，
-        则判断可能是同一物体被检测成两个，进行排除。
-        
-        另外，如果同一对 Track ID 在多个帧中反复出现接近事件，
-        这很可能是同一物体被错误地分成两个Track ID，应该排除。
+        过滤条件：
+        1. 极近距离 (< 0.1m) → 同一物体两部分
+        2. 不合理的类别组合 + 距离稳定 (std < 0.5) → 同速不可能
+        3. 断断续续出现的Track ID对 + 距离近 (< 2.0m) → 同一物体被误分割
+        4. 都是汽车类型 + 距离 < 0.5m → 同一车辆的不同部分（如卡车头和身体）
         """
-        print(f"\n【Step 3.5: 物体误检过滤】")
+        print(f"\n【Step 3.5: 物体误检过滤 (智能策略)】")
         
-        # 首先统计每对 Track ID 出现的次数
-        track_pair_count = {}
-        for event in proximity_events:
-            tid1, tid2 = event['track_id_1'], event['track_id_2']
-            # 标准化对（小ID在前）
-            pair_key = tuple(sorted([tid1, tid2]))
-            if pair_key not in track_pair_count:
-                track_pair_count[pair_key] = []
-            track_pair_count[pair_key].append(event)
-        
-        # 识别可能的误检 Track ID 对
-        # 策略: 检测不合理的物体组合（不同类别但一直在一起）
-        # 比如 person + motorcycle, person + car 等，这些通常是同一物体被错误分类
-        # 但 car + car, person + person 则通常是真实的接近事件
-        suspicious_pairs = {}
+        # 不合理的类别组合（不可能同时出现且同速运动）
         illogical_class_combinations = [
-            ('person', 'motorcycle'),  # 摩托车不会跟人类一样运动
-            ('person', 'car'),         # 人不会跟车一起运动
-            ('person', 'truck'),       # 人不会跟卡车一起运动
-            ('person', 'bus'),         # 人不会跟公交一起运动
-            ('bicycle', 'motorcycle'), # 自行车不会跟摩托车一起运动
-            ('bicycle', 'car'),        # 自行车通常不会跟车平行运动
+            ('person', 'motorcycle'),
+            ('person', 'car'),
+            ('person', 'truck'),
+            ('person', 'bus'),
+            ('bicycle', 'motorcycle'),
+            ('bicycle', 'car'),
         ]
         
-        for pair, events in track_pair_count.items():
-            if len(events) >= 4:  # 至少在4帧中出现
-                distances = [e['distance_meters'] for e in events]
-                avg_distance = sum(distances) / len(distances)
-                std_distance = np.std(distances)
-                
-                class_1 = events[0]['class_1']
-                class_2 = events[0]['class_2']
-                
-                # 检查是否是不合理的类别组合
-                class_pair = tuple(sorted([class_1, class_2]))
-                illogical_pair = tuple(sorted([class_1, class_2])) in [tuple(sorted(p)) for p in illogical_class_combinations]
-                
-                # 如果是不合理的类别组合，且距离稳定，认为是误检
-                if illogical_pair and std_distance < 2.0:
-                    suspicious_pairs[pair] = {
-                        'count': len(events),
-                        'avg_distance': avg_distance,
-                        'std_distance': std_distance,
-                        'reason': f'不合理的类别组合 ({class_1}+{class_2})',
-                        'events': events
-                    }
+        # 定义汽车类型
+        vehicle_types = {'car', 'truck', 'bus', 'motorcycle'}
         
-        if suspicious_pairs:
-            print(f"  ⚠️  检测到可能的误检Track ID对（不合理的类别组合且出现多次）:")
-            for pair, info in sorted(suspicious_pairs.items()):
-                print(f"     - Track ID {pair[0]} + {pair[1]}: {info['count']}帧, 平均距离 {info['avg_distance']:.2f}m ± {info['std_distance']:.2f}m ({info['reason']})")
+        # 首先分析Track ID对的出现情况
+        track_pair_analysis = {}
+        for event in proximity_events:
+            tid1, tid2 = event['track_id_1'], event['track_id_2']
+            pair_key = tuple(sorted([tid1, tid2]))
+            
+            if pair_key not in track_pair_analysis:
+                track_pair_analysis[pair_key] = {
+                    'events': [],
+                    'frames': [],
+                    'distances': [],
+                    'classes': None
+                }
+            
+            track_pair_analysis[pair_key]['events'].append(event)
+            track_pair_analysis[pair_key]['frames'].append(event['frame'])
+            track_pair_analysis[pair_key]['distances'].append(event['distance_meters'])
+            track_pair_analysis[pair_key]['classes'] = (event['class_1'], event['class_2'])
         
+        # 识别"断断续续出现"的Track ID对
+        suspicious_discontinuous_pairs = set()
+        for pair, info in track_pair_analysis.items():
+            frames = sorted(info['frames'])
+            distances = info['distances']
+            avg_distance = sum(distances) / len(distances)
+            
+            # 检查是否有明显的间隔（出现-消失-再出现）
+            has_gap = False
+            for i in range(len(frames) - 1):
+                if frames[i+1] - frames[i] > 3:  # 间隔 > 3帧
+                    has_gap = True
+                    break
+            
+            # 如果断断续续出现且距离近，标记为可疑
+            if has_gap and avg_distance < 2.0:
+                suspicious_discontinuous_pairs.add(pair)
+        
+        # 现在进行逐个事件的过滤
         filtered_events = []
         filtered_count = 0
+        filter_reasons = []
         
         for event in proximity_events:
             class_1 = event['class_1']
@@ -902,32 +903,58 @@ class YOLOFirstPipelineA:
             tid1, tid2 = event['track_id_1'], event['track_id_2']
             pair_key = tuple(sorted([tid1, tid2]))
             
-            # 方法1: 同类别且距离很近 -> 排除
-            if class_1 == class_2 and distance < same_class_distance_threshold:
-                print(f"  🗑️  过滤1: Frame {frame}: {class_1}({event['track_id_1']}) 与 {class_2}({event['track_id_2']}) - 距离 {distance:.3f}m < {same_class_distance_threshold}m (同类别误检)")
-                filtered_count += 1
-                continue
+            reason = None
             
-            # 方法2: 即使不同类别，如果距离也极近 (< 0.1m) 且在同一帧，可能是同一物体的两部分
-            # 比如 YOLO 把卡车的前部检测为 "truck"，把后部检测为 "car" 或 "bus"
+            # 条件1: 极近距离 (< 0.1m) → 同一物体的两部分
             if distance < 0.1:
-                print(f"  🗑️  过滤2: Frame {frame}: {class_1}({event['track_id_1']}) 与 {class_2}({event['track_id_2']}) - 距离 {distance:.3f}m < 0.1m (极近，可能是同一物体的误检)")
+                reason = f"极近 ({distance:.3f}m < 0.1m)"
                 filtered_count += 1
+                filter_reasons.append((frame, tid1, tid2, class_1, class_2, distance, reason))
                 continue
             
-            # 方法3: 跨帧相同Track ID对且距离稳定 -> 排除
-            # 如果同一对Track ID在多个帧中出现且距离非常稳定，很可能是同一物体的误检
-            if pair_key in suspicious_pairs:
-                print(f"  🗑️  过滤3: Frame {frame}: {class_1}({event['track_id_1']}) 与 {class_2}({event['track_id_2']}) - 跨帧重复出现({suspicious_pairs[pair_key]['count']}帧), 距离稳定 (同一物体的Track ID分割误检)")
+            # 条件4: 都是汽车类型 + 距离 < 0.5m → 同一车辆的不同部分
+            if (class_1 in vehicle_types and class_2 in vehicle_types) and distance < 0.5:
+                reason = f"都是汽车类型 ({class_1}+{class_2}, 距离{distance:.3f}m < 0.5m)"
                 filtered_count += 1
+                filter_reasons.append((frame, tid1, tid2, class_1, class_2, distance, reason))
+                continue
+            
+            # 条件2: 不合理的类别组合 + 距离稳定 → 同速不可能
+            class_pair = tuple(sorted([class_1, class_2]))
+            if class_pair in [tuple(sorted(p)) for p in illogical_class_combinations]:
+                pair_info = track_pair_analysis[pair_key]
+                std_distance = np.std(pair_info['distances'])
+                
+                if std_distance < 0.5:  # 距离非常稳定 = 同速 = 不可能
+                    reason = f"不合理类别组合+同速 ({class_1}+{class_2}, std={std_distance:.2f}m)"
+                    filtered_count += 1
+                    filter_reasons.append((frame, tid1, tid2, class_1, class_2, distance, reason))
+                    continue
+            
+            # 条件3: 断断续续出现的Track ID对 + 距离近 → 同一物体被误分割
+            if pair_key in suspicious_discontinuous_pairs:
+                pair_info = track_pair_analysis[pair_key]
+                reason = f"断断续续出现({len(pair_info['frames'])}帧) + 距离近"
+                filtered_count += 1
+                filter_reasons.append((frame, tid1, tid2, class_1, class_2, distance, reason))
                 continue
             
             # 保留这个事件
             filtered_events.append(event)
         
-        print(f"  ✓ 过滤完成: 排除了 {filtered_count} 个误检, 保留 {len(filtered_events)} 个真实事件")
-        print(f"    同类别排除阈值: {same_class_distance_threshold}m")
-        print(f"    极近排除阈值: 0.1m (无论类别)")
+        # 打印过滤详情
+        if filter_reasons:
+            print(f"  🗑️  过滤的事件:")
+            for frame, tid1, tid2, class1, class2, dist, reason in filter_reasons[:20]:  # 只打印前20个
+                print(f"      Frame {frame}: {class1}({tid1}) + {class2}({tid2}) = {dist:.3f}m ({reason})")
+            if len(filter_reasons) > 20:
+                print(f"      ... 还有 {len(filter_reasons)-20} 个")
+        
+        print(f"  ✓ 过滤完成: 排除了 {filtered_count} 个误检, 保留 {len(filtered_events)} 个事件")
+        print(f"    条件1: 距离 < 0.1m")
+        print(f"    条件4: 都是汽车类型 (car/truck/bus/motorcycle等) + 距离 < 0.5m")
+        print(f"    条件2: 不合理类别组合 (person/motorcycle等) + 距离稳定 (std < 0.5m)")
+        print(f"    条件3: Track ID对断断续续出现 + 平均距离 < 2.0m")
         
         # 保存过滤后的事件
         events_path = self.keyframe_dir / 'proximity_events_filtered.json'
@@ -1006,7 +1033,7 @@ class YOLOFirstPipelineA:
         
         计算 TTC，分级事件 (L1/L2/L3)
         
-        ✨ 改进: 过滤同类别物体的极近接近事件
+         改进: 过滤同类别物体的极近接近事件
         - 如果两个物体都是同一类别（如两个car，两个motorcycle）
         - 且距离 < 0.5m，则可能是同一物体的误检
         - 标记为 'Filtered_SameClass' 并排除
@@ -1155,7 +1182,7 @@ class YOLOFirstPipelineA:
                 print(f"\n❌ 未检测到任何物体，停止处理")
                 return
             
-            # Step 1.5: 同帧内物体分割合并 ✨ 新增 - 合并YOLO分割的同类物体
+            # Step 1.5: 同帧内物体分割合并  - 合并YOLO分割的同类物体
             all_detections = self.merge_fragmented_objects_in_frame(all_detections, same_class_distance_threshold=100)
             
             # 调试：检查Step 1.5后的数据
@@ -1168,10 +1195,10 @@ class YOLOFirstPipelineA:
             # Step 2: 轨迹构建
             tracks = self.build_trajectories(all_detections)
             
-            # Step 2.4: 轨迹间断检测 ✨ 新增 - 检测出现→消失→重新出现的可疑轨迹
+            # Step 2.4: 轨迹间断检测  - 检测出现→消失→重新出现的可疑轨迹
             suspicious_tracks = self.detect_discontinuous_tracks(all_detections, max_gap_frames=3)
             
-            # Step 2.5: 轨迹连续性过滤 ✨ 新增 - 移除短轨迹误检
+            # Step 2.5: 轨迹连续性过滤  - 移除短轨迹误检
             all_detections = self.filter_short_tracks(all_detections, min_track_length=self.min_track_length)
             
             # 调试：检查Step 2.5后的数据
@@ -1187,7 +1214,7 @@ class YOLOFirstPipelineA:
             print(f"  Frame 148: {frame_148_objects}")
             
             # Step 3: 关键帧检测
-            proximity_events = self.extract_key_frames(all_detections, world_distance_threshold=10.0)
+            proximity_events = self.extract_key_frames(all_detections, world_distance_threshold=4.5)
             
             if not proximity_events:
                 print(f"\n⚠️  未检测到接近事件")

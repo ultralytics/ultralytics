@@ -20,19 +20,17 @@ if [ ! -f "$VIDEO" ]; then
 fi
 
 if [ ! -f "$HOMOGRAPHY" ]; then
-    echo "⚠️  Homography 文件不存在: $HOMOGRAPHY"
-    echo "   将在像素空间处理（无坐标变换）"
-    python collision_detection_pipeline_yolo_first.py \
-        --video "$VIDEO" \
-        --conf 0.45
+    echo "❌ Homography 文件不存在: $HOMOGRAPHY"
+    echo "   Method C 需要 Homography 进行坐标变换"
+    exit 1
 else
     echo "✓ 文件检查完成"
     echo "  视频: $VIDEO"
     echo "  Homography: $HOMOGRAPHY"
     echo ""
     
-    # 运行 YOLO-First 管道
-    python collision_detection_pipeline_yolo_first.py \
+    # 运行 YOLO-First Method C 管道
+    python collision_detection_pipeline_yolo_first_method_c.py \
         --video "$VIDEO" \
         --homography "$HOMOGRAPHY" \
         --conf 0.45

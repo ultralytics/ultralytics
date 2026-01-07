@@ -1,5 +1,5 @@
 {
-  "video_name": "calibration",
+  "video_name": "Homograph_Teset_FullScreen",
   "homography_matrix": [
     [
       0.07580132832803924,
@@ -37,19 +37,19 @@
   ],
   "world_points": [
     [
-      -3.75,
-      50.0
+      -1.75,
+      25.0
     ],
     [
-      3.75,
-      50.0
+      1.75,
+      25.0
     ],
     [
-      -3.75,
+      -1.75,
       0.0
     ],
     [
-      3.75,
+      1.75,
       0.0
     ]
   ],

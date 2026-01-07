@@ -45,9 +45,9 @@ HOMOGRAPHY_FIRST_DURATION=$((HOMOGRAPHY_FIRST_TIME - START_TIME))
 
 echo ""
 echo "=========================================="
-echo "运行方案2: YOLO-First"
+echo "运行方案2: YOLO-First Method C"
 echo "=========================================="
-python collision_detection_pipeline_yolo_first.py \
+python collision_detection_pipeline_yolo_first_method_c.py \
     --video "$VIDEO" \
     --homography "$HOMOGRAPHY" \
     --conf 0.45

@@ -75,7 +75,7 @@ train_data_root="/data/shared-datasets/yoloe26_data"
 flickr_json="/flickr/pipeline_outputs/v4/merged.json"
 mixed_grounding_json="/mixed_grounding/pipeline_outputs/v4/merged.json"
 obj365_json="/Objects365v1/pipeline_outputs/train/v4/merged.json"
-
+obj365_v5_json="/Objects365v1/pipeline_outputs/train/v5/merged.json"
 
 assert args.ag==True 
 
@@ -145,6 +145,27 @@ elif args.data == "newdata_oldobj365":
                 dict(
                     img_path=f"../datasets/Objects365v1/images/train",
                     json_file=f"../datasets/Objects365v1/annotations/objects365_train_segm.json",
+                ),
+            ],
+        ),
+        val=dict(yolo_data=[lvis_data_path]),
+    )
+elif args.data == "newdata_obj365v5":
+    print("Using newdata_obj365v5......")
+    data = dict(
+        train=dict(
+            grounding_data=[
+                dict(
+                    img_path=f"{train_data_root}/flickr/full_images/",
+                    json_file=f"{train_data_root}{flickr_json}",
+                ),
+                dict(
+                    img_path=f"{train_data_root}/mixed_grounding/gqa/images",
+                    json_file=f"{train_data_root}{mixed_grounding_json}",
+                ),
+                dict(
+                    img_path=f"{train_data_root}/Objects365v1/images/train",
+                    json_file=f"{train_data_root}{obj365_v5_json}",
                 ),
             ],
         ),

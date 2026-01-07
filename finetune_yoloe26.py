@@ -41,7 +41,7 @@ parser.add_argument("--max_det", type=int,default=1000)  # max det
 parser.add_argument("--workers", type=int,default=8)  # workers
 parser.add_argument("--save_period", type=int,default=5)  # save period
 
-parser.add_argument("--data", type=str, default="flickr_only") # fast_verify or objv1_only
+parser.add_argument("--data", type=str, default=None) # fast_verify or objv1_only
 
 
 parser.add_argument("--optimizer",type=str, default="MuSGD") # "MuSGD"
@@ -69,45 +69,55 @@ assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeT
 
 
 
+lvis_data_path=os.path.abspath("../datasets/lvis.yaml")
+# train_data_root="../datasets"
+train_data_root="/data/datasets"
+flickr_json="/flickr/pipeline_outputs/v4/merged.json"
+mixed_grounding_json="/mixed_grounding/pipeline_outputs/v4/merged.json"
+obj365_json="/Objects365v1/pipeline_outputs/train/v4/merged.json"
+
+
+assert args.ag==True 
+assert args.data==None 
+
 
 if args.ag:
     data = dict(
         train=dict(
             grounding_data=[
                 dict(
-                    img_path="../datasets/flickr/full_images/",
-                    json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                    img_path=f"{train_data_root}/flickr/full_images/",
+                    json_file=f"{train_data_root}{flickr_json}",
                 ),
                 dict(
-                    img_path="../datasets/mixed_grounding/gqa/images",
-                    json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                    img_path=f"{train_data_root}/mixed_grounding/gqa/images",
+                    json_file=f"{train_data_root}{mixed_grounding_json}",
                 ),
                 dict(
-                    img_path="../datasets/Objects365v1/images/train",
-                    json_file="../datasets/Objects365v1/annotations/objects365_train_segm.json",
+                    img_path=f"{train_data_root}/Objects365v1/images/train",
+                    json_file=f"{train_data_root}{obj365_json}",
                 ),
             ],
         ),
-        val=dict(yolo_data=["../datasets/lvis.yaml"]),
+        val=dict(yolo_data=[lvis_data_path]),
     )
 
 else:
-    Objects365v1="../datasets/Objects365v1.yaml"
     data = dict(
         train=dict(
-            yolo_data=[Objects365v1],
+            yolo_data=[f"{train_data_root}/Objects365v1.yaml"],
             grounding_data=[
                 dict(
-                    img_path="../datasets/flickr/full_images/",
-                    json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                    img_path=f"{train_data_root}/flickr/full_images/",
+                    json_file=f"{train_data_root}/flickr/annotations/final_flickr_separateGT_train_segm.json",
                 ),
                 dict(
-                    img_path="../datasets/mixed_grounding/gqa/images",
-                    json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                    img_path=f"{train_data_root}/mixed_grounding/gqa/images",
+                    json_file=f"{train_data_root}/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                 ),
             ],
         ),
-        val=dict(yolo_data=["../datasets/lvis.yaml"]),
+        val=dict(yolo_data=[lvis_data_path]),
     )
 
 if args.data=="fast_verify":
@@ -118,25 +128,25 @@ if args.data=="fast_verify":
         train=dict(
             yolo_data=["coco128.yaml"]
         ),
-        val=dict(yolo_data=[os.path.abspath("../datasets/lvis.yaml")]),
+        val=dict(yolo_data=[os.path.abspath(lvis_data_path)]),
     )
 elif args.data=="objv1_only":
-    Objects365v1="../datasets/Objects365v1.yaml"
+    Objects365v1=f"{train_data_root}/Objects365v1.yaml"
     data = dict(
         train=dict(
             yolo_data=[Objects365v1],
         ),
-        val=dict(yolo_data=["../datasets/lvis.yaml"]),
+        val=dict(yolo_data=[lvis_data_path]),
     )
 elif args.data=="flickr_only":
     data = dict(
         train=dict(
             grounding_data=[ dict(
-                    img_path="../datasets/flickr/full_images/",
-                    json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                    img_path=f"{train_data_root}/flickr/full_images/",
+                    json_file=f"{train_data_root}/flickr/annotations/final_flickr_separateGT_train_segm.json",
                 ),],
         ),
-        val=dict(yolo_data=["../datasets/lvis.yaml"]),
+        val=dict(yolo_data=[lvis_data_path]),
     )
 elif args.data is None or args.data=="":
     pass
@@ -153,7 +163,7 @@ else:
 #     train=dict(
 #         yolo_data=["coco128-seg.yaml"]
 #     ),
-#     val=dict(yolo_data=[os.path.abspath("../datasets/lvis.yaml")]),
+#     val=dict(yolo_data=[os.path.abspath(lvis_data_path)]),
 # )
 
 ###################################################################
@@ -179,7 +189,7 @@ elif args.trainer == "YOLOEVPTrainer":
         if "savpe" not in name:
             freeze.append(f"{head_index}.{name}")
 
-    refer_data=os.path.abspath("../datasets/lvis_train_vps.yaml")
+    refer_data=os.path.abspath(f"{train_data_root}/lvis_train_vps.yaml")
     single_cls=False
 elif args.trainer == "YOLOEPEFreeTrainer":
 

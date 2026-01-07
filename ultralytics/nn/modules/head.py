@@ -876,6 +876,7 @@ class RTDETRDecoder(nn.Module):
         enable_cuda_acceleration: bool = False,
         one_to_many_groups: int = 0,
         dab_sine_embedding: bool = False,
+        efficient_msdeformable_attn: bool = False,
     ):
         """Initialize the RTDETRDecoder module with the given parameters.
 
@@ -899,10 +900,15 @@ class RTDETRDecoder(nn.Module):
         super().__init__()
         self.hidden_dim = hd
         self.nhead = nh
-        self.nl = len(ch)  # num level
+        if not efficient_msdeformable_attn:
+            self.nl = len(ch)  # num level
+        else:
+            self.nl = 1  # num level
+
         self.nc = nc
         self.num_queries = nq
         self.num_decoder_layers = ndl
+        self.efficient_msdeformable_attn = efficient_msdeformable_attn
 
         if act == "relu":
             act = nn.ReLU()
@@ -919,9 +925,10 @@ class RTDETRDecoder(nn.Module):
         # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
 
         # Transformer module
-        decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp,
-                                                          enable_cuda_acceleration=enable_cuda_acceleration)
-        self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx, dab_sine_embedding)
+        decoder_layer = DeformableTransformerDecoderLayer(
+            hd, nh, d_ffn, dropout, act, self.nl, ndp, enable_cuda_acceleration=enable_cuda_acceleration)
+        self.decoder = DeformableTransformerDecoder(
+            hd, decoder_layer, ndl, eval_idx, dab_sine_embedding, efficient_msdeformable_attn)
 
         # Denoising part
         self.denoising_class_embed = nn.Embedding(nc, hd)

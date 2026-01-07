@@ -457,7 +457,7 @@ class MSDeformAttn(nn.Module):
         https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
 
-    def __init__(self, d_model: int = 256, n_levels: int = 4, n_heads: int = 8, n_points: int = 4, 
+    def __init__(self, d_model: int = 256, n_levels: int = 4, n_heads: int = 8, n_points: int = 4,
                  enable_cuda_acceleration: bool = False):
         """Initialize MSDeformAttn with the given parameters.
 
@@ -566,7 +566,7 @@ class MSDeformAttn(nn.Module):
             sampling_locations = refer_bbox[:, :, None, :, None, :2] + add
         else:
             raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")
-        
+
         if not self.enable_cuda_acceleration:
             output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights)
         else:
@@ -727,7 +727,8 @@ class DeformableTransformerDecoder(nn.Module):
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     """
 
-    def __init__(self, hidden_dim: int, decoder_layer: nn.Module, num_layers: int, eval_idx: int = -1, dab_sine_embedding: bool = False):
+    def __init__(self, hidden_dim: int, decoder_layer: nn.Module, num_layers: int, eval_idx: int = -1,
+                 dab_sine_embedding: bool = False, efficient_ms: bool = False):
         """Initialize the DeformableTransformerDecoder with the given parameters.
 
         Args:
@@ -742,6 +743,7 @@ class DeformableTransformerDecoder(nn.Module):
         self.hidden_dim = hidden_dim
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
         self.dab_sine_embedding = dab_sine_embedding
+        self.efficient_ms = efficient_ms
 
     def __setstate__(self, state):
         """Handle loading from older checkpoints without enable_cuda_acceleration."""
@@ -749,6 +751,8 @@ class DeformableTransformerDecoder(nn.Module):
         # Add default value for missing attribute from older checkpoints
         if 'dab_sine_embedding' not in self.__dict__:
             self.dab_sine_embedding = False
+        if 'efficient_ms' not in self.__dict__:
+            self.efficient_ms = False
 
     def forward(
         self,
@@ -786,6 +790,16 @@ class DeformableTransformerDecoder(nn.Module):
         dec_cls = []
         last_refined_bbox = None
         refer_bbox = refer_bbox.sigmoid()
+        feats_all = feats
+        shapes_all = shapes
+        if self.efficient_ms:
+            n_levels = len(shapes_all)
+            level_sizes = [h * w for h, w in shapes_all]
+            level_start_index = [0]
+            for size in level_sizes[:-1]:
+                level_start_index.append(level_start_index[-1] + size)
+            order = sorted(range(n_levels), key=lambda i: level_sizes[i])  # small -> large
+            shift = (n_levels - 1 - (self.num_layers - 1) % n_levels) % n_levels
         for i, layer in enumerate(self.layers):
             if not self.dab_sine_embedding:
                 query_pos = pos_mlp(refer_bbox)
@@ -795,7 +809,19 @@ class DeformableTransformerDecoder(nn.Module):
                 pos_scale = pos_scale_mlp(output) if i != 0 else 1
                 query_pos = pos_scale * query_pos_unscaled
 
-            output = layer(output, refer_bbox, feats, shapes, padding_mask, attn_mask, query_pos)
+            if self.efficient_ms:
+                level_idx = order[(i + shift) % n_levels]  # round-robin, last uses max-res
+                start = level_start_index[level_idx]
+                end = start + level_sizes[level_idx]
+                feats_level = feats_all[:, start:end, :]
+                shapes_level = [shapes_all[level_idx]]
+                padding_mask_level = padding_mask[:, start:end] if padding_mask is not None else None
+            else:
+                feats_level = feats_all
+                shapes_level = shapes_all
+                padding_mask_level = padding_mask
+
+            output = layer(output, refer_bbox, feats_level, shapes_level, padding_mask_level, attn_mask, query_pos)
 
             bbox = bbox_head[i](output)
             refined_bbox = torch.sigmoid(bbox + inverse_sigmoid(refer_bbox))

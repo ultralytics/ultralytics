@@ -68,33 +68,34 @@ def onnx2axelera(
             output_axm_format=True,
             model_name=model_name,
         )
-        else:  # YOLOv8
-            config = CompilerConfig(
-                tiling_depth=6,
-                split_buffer_promotion=True,
-                resources_used=0.25,
-                aipu_cores_used=1,
-                multicore_mode="batch",
-                output_axm_format=True,
-                model_name=model_name,
-            )
-
-        qmodel = compiler.quantize(
-            model=str(onnx_path),
-            calibration_dataset=calibration_dataset,
-            config=config,
-            transform_fn=transform_fn,
+        
+    else:  # YOLOv8
+        config = CompilerConfig(
+            tiling_depth=6,
+            split_buffer_promotion=True,
+            resources_used=0.25,
+            aipu_cores_used=1,
+            multicore_mode="batch",
+            output_axm_format=True,
+            model_name=model_name,
         )
 
-        compiler.compile(model=qmodel, config=config, output_dir=export_path)
+    qmodel = compiler.quantize(
+        model=str(onnx_path),
+        calibration_dataset=calibration_dataset,
+        config=config,
+        transform_fn=transform_fn,
+    )
 
-        axm_name = f"{model_name}.axm"
-        axm_src = Path(axm_name)
-        axm_dst = export_path / axm_name
+    compiler.compile(model=qmodel, config=config, output_dir=export_path)
 
-        if axm_src.exists():
-            axm_src.replace(axm_dst)
+    axm_name = f"{model_name}.axm"
+    axm_src = Path(axm_name)
+    axm_dst = export_path / axm_name
 
-        YAML.save(export_path / "metadata.yaml", metadata)
+    if axm_src.exists():
+        axm_src.replace(axm_dst)
 
-        return export_path
+    YAML.save(export_path / "metadata.yaml", metadata)
+
+    return export_path

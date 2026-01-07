@@ -27,6 +27,10 @@ on:
         type: boolean
         description: Dockerfile-arm64
         default: true
+      Dockerfile-nvidia-arm64:
+        type: boolean
+        description: Dockerfile-nvidia-arm64
+        default: true
       Dockerfile-jetson-jetpack6:
         type: boolean
         description: Dockerfile-jetson-jetpack6
@@ -70,6 +74,11 @@ jobs:
           # Standalone base images
           - dockerfile: "Dockerfile-arm64"
             tags: "latest-arm64"
+            platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
+            derivatives: ""
+          - dockerfile: "Dockerfile-nvidia-arm64"
+            tags: "latest-nvidia-arm64"
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
             derivatives: ""

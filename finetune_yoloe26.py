@@ -264,7 +264,7 @@ train_args=dict( data=data,
     val=args.val,
     project=args.project,
     name=args.name,
-    cache="disk",
+    cache=False,
     scale=args.scale, # sensitive.  [0.1,  1.9] 
     copy_paste=args.copy_paste, 
     mixup=args.mixup,

@@ -715,7 +715,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
 
         from ultralytics import solutions
 
-        solution = getattr(solutions, SOLUTION_MAP[solution_name])(is_cli=True, **overrides)  # class i.e ObjectCounter
+        solution = getattr(solutions, SOLUTION_MAP[solution_name])(is_cli=True, **overrides)  # class i.e. ObjectCounter
 
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
         if solution_name != "crop":

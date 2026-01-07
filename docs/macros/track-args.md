@@ -12,7 +12,7 @@
     "verbose": ["bool", "True", "Controls the display of tracking results, providing a visual output of tracked objects."],
     "device": ["str", "None", "Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution."],
     "show": ["bool", "False", "If `True`, displays the annotated images or videos in a window for immediate visual feedback."],
-    "line_width": ["None or int", "None", "Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size."]
+    "line_width": ["int or None", "None", "Specifies the line width of bounding boxes. If `None`, the line width is automatically adjusted based on the image size."]
 } %}
 {% if not params %}
 {% for param, details in default_params.items() %}

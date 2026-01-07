@@ -76,6 +76,7 @@ flickr_json="/flickr/pipeline_outputs/v4/merged.json"
 mixed_grounding_json="/mixed_grounding/pipeline_outputs/v4/merged.json"
 obj365_json="/Objects365v1/pipeline_outputs/train/v4/merged.json"
 obj365_v5_json="/Objects365v1/pipeline_outputs/train/v5/merged.json"
+refer_data_yaml=os.path.abspath(f"../datasets/lvis_train_vps.yaml")
 
 assert args.ag==True 
 
@@ -232,7 +233,7 @@ elif args.trainer == "YOLOEVPTrainer":
         if "savpe" not in name:
             freeze.append(f"{head_index}.{name}")
 
-    refer_data=os.path.abspath(f"{train_data_root}/lvis_train_vps.yaml")
+    refer_data=refer_data_yaml
     single_cls=False
 elif args.trainer == "YOLOEPEFreeTrainer":
 

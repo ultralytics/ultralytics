@@ -614,12 +614,14 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         from ultralytics.utils.callbacks.platform import resolve_platform_uri
 
         url = resolve_platform_uri(file, hard=hard)  # Convert to signed HTTPS URL
-        file = Path(download_dir) / url2file(url)
-        if file.exists():
-            LOGGER.info(f"Found {clean_url(url)} locally at {file}")
+        if url is None:
+            return []  # Not found, soft fail (consistent with file search behavior)
+        local_file = Path(download_dir) / url2file(url)
+        if local_file.exists():
+            LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
         else:
-            downloads.safe_download(url=url, file=file, unzip=False)
-        return str(file)
+            downloads.safe_download(url=url, file=local_file, unzip=False)
+        return str(local_file)
     elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth

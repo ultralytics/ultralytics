@@ -41,10 +41,17 @@ def resolve_platform_uri(uri, hard=True):
 
     Args:
         uri (str): Platform URI starting with "ul://".
-        hard (bool): Whether to raise an error if resolution fails.
+        hard (bool): Whether to raise an error if resolution fails (FileNotFoundError only).
 
     Returns:
-        (str): Signed URL that can be downloaded via standard URL handling.
+        (str | None): Signed URL on success, None if not found and hard=False.
+
+    Raises:
+        ValueError: If API key is missing/invalid or URI format is wrong.
+        PermissionError: If access is denied.
+        RuntimeError: If resource is not ready (e.g., dataset still processing).
+        FileNotFoundError: If resource not found and hard=True.
+        ConnectionError: If network request fails and hard=True.
     """
     import requests
 
@@ -75,19 +82,33 @@ def resolve_platform_uri(uri, hard=True):
 
     try:
         r = requests.head(url, headers=headers, allow_redirects=False, timeout=30)
+
+        # Handle redirect responses (301, 302, 303, 307, 308)
+        if 300 <= r.status_code < 400 and "location" in r.headers:
+            return r.headers["location"]  # Return signed URL
+
+        # Handle error responses
         if r.status_code == 401:
             raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
+        if r.status_code == 403:
+            raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.")
         if r.status_code == 404:
-            raise FileNotFoundError(f"Not found on platform: {uri}") if hard else uri
-        if r.status_code == 302 and "location" in r.headers:
-            return r.headers["location"]  # Return signed URL
+            if hard:
+                raise FileNotFoundError(f"Not found on platform: {uri}")
+            LOGGER.warning(f"Not found on platform: {uri}")
+            return None
+        if r.status_code == 409:
+            raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
+
+        # Unexpected response
         r.raise_for_status()
-        return uri
+        raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
+
     except requests.exceptions.RequestException as e:
         if hard:
             raise ConnectionError(f"Failed to resolve {uri}: {e}") from e
         LOGGER.warning(f"Failed to resolve {uri}: {e}")
-        return uri
+        return None
 
 
 def _interp_plot(plot, n=101):

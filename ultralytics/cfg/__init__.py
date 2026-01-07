@@ -403,23 +403,14 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
         >>> args = SimpleNamespace(project="my_project", task="detect", mode="train", exist_ok=True)
         >>> save_dir = get_save_dir(args)
         >>> print(save_dir)
-        runs/detect/my_project/train
+        runs/my_project/train
     """
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
     else:
         from ultralytics.utils.files import increment_path
 
-        base_dir = ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR
-        task = getattr(args, "task", None)
-        project_root = base_dir / task if task else base_dir
-        project = project_root
-        if args.project:
-            project_arg = Path(args.project)
-            if project_arg.is_absolute():
-                project = project_arg
-            else:
-                project = project_root / project_arg
+        project = (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / (args.project or args.task)
         name = name or args.name or f"{args.mode}"
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 

@@ -783,7 +783,8 @@ class BaseTrainer:
             if model:
                 # update best.pt train_metrics from last.pt
                 strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
-        dist.barrier()  # wait for GPU 0 to strip
+        if RANK != -1:
+            dist.barrier()  # wait for GPU 0 to strip
         if model:
             LOGGER.info(f"\nValidating {model}...")
             self.validator.args.plots = self.args.plots

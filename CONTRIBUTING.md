@@ -25,7 +25,7 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 
 #### First-time Contributors
 
-First-time contributors are expected to submit small, well-scoped pull requests. Large PRs (more than ~50 lines of change) are generally not accepted at this stage, except when the size is driven primarily by docstrings, documentation, or formatting rather than substantive code changes. Contributions should focus on speed improvements, bug fixes, documentation updates, and other minor issues. Feature PRs are not encouraged for first-time contributors. However, if you still wish to contribute a feature, follow the guidelines for outlined in the [Feature PRs](#feature-prs) section below.
+First-time contributors are expected to submit small, well-scoped pull requests. Large PRs (more than ~50 lines of change) are generally not accepted at this stage, except when the size is driven primarily by docstrings, documentation, or formatting rather than substantive code changes. Contributions should focus on speed improvements, bug fixes, documentation updates, and other minor issues. Feature PRs are not encouraged for first-time contributors. However, if you still wish to contribute a feature, follow the guidelines outlined in the [Feature PRs](#feature-prs) section below.
 
 #### Established Contributors
 

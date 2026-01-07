@@ -2,7 +2,7 @@ from __future__ import annotations
 from torch import optim
 import torch
 import math
-
+import re
 
 def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
     """Compute the zeroth power / orthogonalization of matrix G using Newton-Schulz iteration.

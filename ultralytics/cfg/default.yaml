@@ -48,6 +48,7 @@ dropout: 0.0 # (float) dropout for classification head (classify only)
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) run validation/testing during training
+val_period: 1 # (int) run validation every N epochs (1 = every epoch); disabled if < 1 or val=False
 split: val # (str) dataset split to evaluate: 'val', 'test' or 'train'
 save_json: False # (bool) save results to COCO JSON for external evaluation
 conf: # (float, optional) confidence threshold; defaults: predict=0.25, val=0.001

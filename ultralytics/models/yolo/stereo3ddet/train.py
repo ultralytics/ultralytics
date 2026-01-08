@@ -105,7 +105,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         self.loss_names = default_loss_names
 
     def progress_string(self):
-        """T205: Return a formatted string showing training progress with dynamically determined loss branches.
+        """Return a formatted string showing training progress with dynamically determined loss branches.
         
         Follows DetectionTrainer pattern from detect/train.py:187-195.
         Format: ("\n" + "%11s" * (4 + len(self.loss_names))) % ("Epoch", "GPU_mem", *self.loss_names, "Instances", "Size")

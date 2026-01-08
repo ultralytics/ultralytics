@@ -532,7 +532,8 @@ class LRPCHead(nn.Module):
         self.loc = loc
         self.enabled = enabled
 
-    def conv2linear(self, conv: nn.Conv2d) -> nn.Linear:
+    @staticmethod
+    def conv2linear(conv: nn.Conv2d) -> nn.Linear:
         """Convert a 1x1 convolutional layer to a linear layer."""
         assert isinstance(conv, nn.Conv2d) and conv.kernel_size == (1, 1)
         linear = nn.Linear(conv.in_channels, conv.out_channels)
@@ -981,8 +982,8 @@ class RTDETRDecoder(nn.Module):
         y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
         return y if self.export else (y, x)
 
+    @staticmethod
     def _generate_anchors(
-        self,
         shapes: list[list[int]],
         grid_size: float = 0.05,
         dtype: torch.dtype = torch.float32,
@@ -1077,9 +1078,9 @@ class RTDETRDecoder(nn.Module):
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
         # Query selection
-        # (bs, num_queries)
+        # (bs*num_queries,)
         topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
-        # (bs, num_queries)
+        # (bs*num_queries,)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
         # (bs, num_queries, 256)

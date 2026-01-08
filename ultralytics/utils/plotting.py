@@ -24,17 +24,6 @@ class Colors:
     This class provides methods to work with the Ultralytics color palette, including converting hex color codes to RGB
     values and accessing predefined color schemes for object detection and pose estimation.
 
-    Attributes:
-        palette (list[tuple]): List of RGB color tuples for general use.
-        n (int): The number of colors in the palette.
-        pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
-
-    Examples:
-        >>> from ultralytics.utils.plotting import Colors
-        >>> colors = Colors()
-        >>> colors(5, True)  # Returns BGR format: (221, 111, 255)
-        >>> colors(5, False)  # Returns RGB format: (255, 111, 221)
-
     ## Ultralytics Color Palette
 
     | Index | Color                                                             | HEX       | RGB               |
@@ -89,6 +78,17 @@ class Colors:
 
         For Ultralytics brand colors see [https://www.ultralytics.com/brand](https://www.ultralytics.com/brand).
         Please use the official Ultralytics colors for all marketing materials.
+
+    Attributes:
+        palette (list[tuple]): List of RGB color tuples for general use.
+        n (int): The number of colors in the palette.
+        pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
+
+    Examples:
+        >>> from ultralytics.utils.plotting import Colors
+        >>> colors = Colors()
+        >>> colors(5, True)  # Returns BGR format: (221, 111, 255)
+        >>> colors(5, False)  # Returns RGB format: (255, 111, 221)
     """
 
     def __init__(self):
@@ -203,6 +203,8 @@ class Annotator:
         if not input_is_pil:
             if im.shape[2] == 1:  # handle grayscale
                 im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+            elif im.shape[2] == 2:  # handle 2-channel images
+                im = np.ascontiguousarray(np.dstack((im, np.zeros_like(im[..., :1]))))
             elif im.shape[2] > 3:  # multispectral
                 im = np.ascontiguousarray(im[..., :3])
         if self.pil:  # use PIL
@@ -399,7 +401,7 @@ class Annotator:
             masks = masks.unsqueeze(3)  # shape(n,h,w,1)
             masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
             inv_alpha_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
-            mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
+            mcs = masks_color.max(dim=0).values  # shape(h,w,3)
 
             im_gpu = im_gpu.flip(dims=[0]).permute(1, 2, 0).contiguous()  # shape(h,w,3)
             im_gpu = im_gpu * inv_alpha_masks[-1] + mcs
@@ -784,7 +786,6 @@ def plot_images(
                 boxes[..., 0] += x
                 boxes[..., 1] += y
                 is_obb = boxes.shape[-1] == 5  # xywhr
-                # TODO: this transformation might be unnecessary
                 boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]

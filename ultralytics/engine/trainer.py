@@ -117,7 +117,7 @@ class BaseTrainer:
 
     def __init_subclass__(cls, **kwargs):
         """Validate that subclasses properly implement loss_names attribute.
-        
+
         This method is called when a subclass is created. It ensures that subclasses
         are aware they must set loss_names, but allows them to set it in __init__()
         or get_validator() methods.
@@ -215,17 +215,17 @@ class BaseTrainer:
     @property
     def loss_names(self):
         """Get loss names, validating that subclasses have properly implemented this attribute.
-        
+
         Returns:
             (list | tuple): List or tuple of loss component names.
-            
+
         Raises:
             NotImplementedError: If subclass hasn't overridden the default loss_names value.
         """
         # Allow BaseTrainer itself to use the default (for backward compatibility)
         if self.__class__ is BaseTrainer:
             return self._loss_names
-        
+
         # For subclasses, check if they've set loss_names to something other than default
         if self._loss_names == self._loss_names_default:
             raise NotImplementedError(

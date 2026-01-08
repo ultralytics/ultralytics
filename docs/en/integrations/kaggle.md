@@ -6,15 +6,113 @@ keywords: Kaggle, YOLO11, Ultralytics, machine learning, model training, GPU, TP
 
 # A Guide on Using Kaggle to Train Your YOLO11 Models
 
-If you are learning about AI and working on [small projects](../solutions/index.md), you might not have access to powerful computing resources yet, and high-end hardware can be pretty expensive. Fortunately, Kaggle, a platform owned by Google, offers a great solution. Kaggle provides a free, cloud-based environment where you can access GPU resources, handle large datasets, and collaborate with a diverse community of data scientists and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) enthusiasts.
+If you are learning about AI and working on [small projects](../solutions/index.md), you might not have access to powerful computing resources yet, and high-end hardware can be expensive. Fortunately, Kaggle, a platform owned by Google, offers a great solution. Kaggle provides a free, cloud-based environment where you can access GPU resources, handle large datasets, and collaborate with a diverse community of data scientists and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) enthusiasts.
 
-Kaggle is a great choice for [training](../guides/model-training-tips.md) and experimenting with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics?tab=readme-ov-file) models. Kaggle Notebooks make using popular machine learning libraries and frameworks in your projects easy. Let's explore Kaggle's main features and learn how you can train YOLO11 models on this platform!
+Kaggle is a great choice for [training](../guides/model-training-tips.md) and experimenting with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics?tab=readme-ov-file) models. Kaggle Notebooks make using popular machine learning libraries and frameworks in your projects easy. This guide explores Kaggle's main features and shows how to train YOLO11 models on the platform.
 
 ## What is Kaggle?
 
 Kaggle is a platform that brings together data scientists from around the world to collaborate, learn, and compete in solving real-world data science problems. Launched in 2010 by Anthony Goldbloom and Jeremy Howard and acquired by Google in 2017, Kaggle enables users to connect, discover and share datasets, use GPU-powered notebooks, and participate in data science competitions. The platform is designed to help both seasoned professionals and eager learners achieve their goals by offering robust tools and resources.
 
 With more than [10 million users](https://www.kaggle.com/discussions/general/332147) as of 2022, Kaggle provides a rich environment for developing and experimenting with machine learning models. You don't need to worry about your local machine's specs or setup; you can dive right in with just a Kaggle account and a web browser.
+
+## Installation
+
+Before you can start training YOLO11 models on Kaggle, you need to ensure your notebook environment is properly configured. Follow these essential steps:
+
+### Enable Internet Access
+
+Kaggle notebooks require internet access to download packages and dependencies. To enable internet in your Kaggle notebook:
+
+1. Open your Kaggle notebook
+2. Click on the **Settings** panel on the right side of the notebook interface
+3. Scroll down to the **Internet** section
+4. Toggle the switch to **ON** to enable internet connectivity
+
+**Note**: Internet access is required for installing the Ultralytics package and downloading pre-trained models or datasets. Without internet enabled, package installations will fail.
+
+![Kaggle Notebook Internet Turn on](./kaggle_installation.avif)
+
+### Installing Ultralytics
+
+Once internet access is enabled, install the Ultralytics package by running the following command in a notebook cell:
+
+```bash
+!pip install ultralytics
+```
+
+For the latest development version, you can install directly from GitHub:
+
+```bash
+!pip install git+https://github.com/ultralytics/ultralytics.git
+```
+
+### Resolving Dependency Conflicts
+
+During installation, you may encounter dependency conflicts, especially with packages like `opencv-python`, `numpy`, or `torch`. Here are common solutions:
+
+#### Method 1: Force Reinstall with --upgrade
+
+If you encounter conflicts with existing packages, force an upgrade:
+
+```bash
+!pip install --upgrade --force-reinstall ultralytics
+```
+
+#### Method 2: Use --no-deps and Install Dependencies Separately
+
+If conflicts persist, install without dependencies first, then manually install required packages:
+
+```bash
+!pip install --no-deps ultralytics
+!pip install torch torchvision opencv-python matplotlib pillow pyyaml requests
+```
+
+#### Method 3: Restart Kernel After Installation
+
+Sometimes, you need to restart the kernel after installation to resolve import issues:
+
+```bash
+!pip install ultralytics
+# Then click "Restart Kernel" from the notebook menu
+```
+
+#### Method 4: Use Specific Package Versions
+
+If you encounter specific version conflicts, you can pin compatible versions:
+
+```bash
+!pip install ultralytics opencv-python==4.8.1.78 numpy==1.24.3
+```
+
+#### Common Error Solutions
+
+**Error: "No module named 'ultralytics'"**
+
+- Solution: Ensure internet is enabled and run the installation command again
+- Restart the kernel after installation
+
+**Error: "ERROR: pip's dependency resolver does not currently take into account..."**
+
+- Solution: This is usually a warning and can be safely ignored. The installation typically succeeds despite the message
+- Alternatively, use Method 2 above to install without dependency resolution
+
+**Error: "ModuleNotFoundError" after installation**
+
+- Solution: Restart the kernel using the restart button in the notebook interface
+- Re-run the import statements in a new cell
+
+### Verifying Installation
+
+After installation, verify that Ultralytics is properly installed by running:
+
+```python
+import ultralytics
+
+ultralytics.checks()
+```
+
+This will display system information and verify that all dependencies are correctly installed.
 
 ## Training YOLO11 Using Kaggle
 
@@ -28,7 +126,7 @@ Once you sign in to your Kaggle account, you can click on the option to copy and
 
 ![Using kaggle for machine learning model training with a GPU](https://github.com/ultralytics/docs/releases/download/0/using-kaggle-for-machine-learning-model-training-with-a-gpu.avif)
 
-On the [official YOLO11 Kaggle notebook page](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook), if you click on the three dots in the upper right-hand corner, you'll notice more options will pop up.
+On the [official YOLO11 Kaggle notebook page](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook), clicking the three dots in the upper right-hand corner reveals additional options.
 
 ![Overview of Options From the Official YOLO11 Kaggle Notebook Page](https://github.com/ultralytics/docs/releases/download/0/overview-options-yolov8-kaggle-notebook.avif)
 
@@ -46,7 +144,7 @@ These options include:
 
 ### Common Issues While Working with Kaggle
 
-When working with Kaggle, you might come across some common issues. Here are some points to help you navigate the platform smoothly:
+When working with Kaggle, you might encounter some common issues. Here are key points to help you navigate the platform:
 
 - **Access to GPUs**: In your Kaggle notebooks, you can activate a GPU at any time, with usage allowed for up to 30 hours per week. Kaggle provides the NVIDIA Tesla P100 GPU with 16GB of memory and also offers the option of using a NVIDIA GPU T4 x2. Powerful hardware accelerates your machine-learning tasks, making model training and inference much faster.
 - **Kaggle Kernels**: Kaggle Kernels are free Jupyter notebook servers that can integrate GPUs, allowing you to perform machine learning operations on cloud computers. You don't have to rely on your own computer's CPU, avoiding overload and freeing up your local resources.
@@ -61,7 +159,7 @@ Next, let's understand the features Kaggle offers that make it an excellent plat
 
 - **Datasets**: Kaggle hosts a massive collection of [datasets](https://docs.ultralytics.com/datasets/) on various topics. You can easily search and use these datasets in your projects, which is particularly handy for training and testing your YOLO11 models.
 - **Competitions**: Known for its exciting competitions, Kaggle allows data scientists and machine learning enthusiasts to solve real-world problems. Competing helps you improve your skills, learn new techniques, and gain recognition in the community.
-- **Free Access to TPUs**: Kaggle provides free access to powerful [TPUs](https://www.ultralytics.com/glossary/tpu-tensor-processing-unit), which are essential for training complex machine learning models. This means you can speed up processing and boost the performance of your YOLO11 projects without incurring extra costs.
+- **Free Access to TPUs**: Kaggle provides free access to powerful [TPUs](https://www.ultralytics.com/glossary/tpu-tensor-processing-unit), which are beneficial for training complex machine learning models. This allows you to speed up processing and boost the performance of your YOLO11 projects without incurring extra costs.
 - **Integration with GitHub**: Kaggle allows you to easily connect your GitHub repository to upload notebooks and save your work. This integration makes it convenient to manage and access your files.
 - **Community and Discussions**: Kaggle boasts a strong community of data scientists and machine learning practitioners. The discussion forums and shared notebooks are fantastic resources for learning and troubleshooting. You can easily find help, share your knowledge, and collaborate with others.
 
@@ -94,6 +192,16 @@ Interested in more YOLO11 integrations? Check out the [Ultralytics integration g
 
 ## FAQ
 
+### How do I install Ultralytics YOLO11 on Kaggle?
+
+To install Ultralytics YOLO11 on Kaggle:
+
+1. **Enable Internet**: Go to Settings panel and turn ON the Internet toggle
+2. **Install Package**: Run `!pip install ultralytics` in a notebook cell
+3. **Verify Installation**: Run `import ultralytics; ultralytics.checks()` to confirm
+
+If you encounter dependency conflicts, try `!pip install --upgrade --force-reinstall ultralytics` or restart the kernel after installation. For detailed troubleshooting, see the [Installation section](#installation) above.
+
 ### How do I train a YOLO11 model on Kaggle?
 
 Training a YOLO11 model on Kaggle is straightforward. First, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO11 Model Training guide](../modes/train.md).
@@ -114,11 +222,13 @@ For more details, visit our [Ultralytics integration guide](https://docs.ultraly
 Common issues include:
 
 - **Access to GPUs**: Ensure you activate a GPU in your notebook settings. Kaggle allows up to 30 hours of GPU usage per week.
+- **Internet Not Enabled**: Make sure to enable internet in the Settings panel before installing packages.
+- **Dependency Conflicts**: Use `!pip install --upgrade --force-reinstall ultralytics` or install without dependencies using `!pip install --no-deps ultralytics`.
 - **Dataset Licenses**: Check the license of each dataset to understand usage restrictions.
 - **Saving and Committing Notebooks**: Click "Save Version" to save your notebook's state and access output files from the Output tab.
 - **Collaboration**: Kaggle supports asynchronous collaboration; multiple users cannot edit a notebook simultaneously.
 
-For more troubleshooting tips, see our [Common Issues guide](../guides/yolo-common-issues.md).
+For more troubleshooting tips, see the [Installation section](#installation) and our [Common Issues guide](../guides/yolo-common-issues.md).
 
 ### Why should I choose Kaggle over other platforms like Google Colab for training YOLO11 models?
 

@@ -189,10 +189,10 @@ class RotatedBboxLoss(BboxLoss):
             loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
-            target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]))
+            # target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]))
 
-            # target_angle = target_bboxes[..., 4:5]
-            # target_ltrb = rbox2dist(target_bboxes[..., :4], anchor_points, target_angle)
+            target_angle = target_bboxes[..., 4:5]
+            target_ltrb = rbox2dist(target_bboxes[..., :4], anchor_points, target_angle)
 
             target_ltrb = target_ltrb * stride
             target_ltrb[..., 0::2] /= imgsz[1]
@@ -954,7 +954,7 @@ class v8OBBLoss(v8DetectionLoss):
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
         return out
 
-    def calculate_ga_loss(self, pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum, lambda_val=3, angle_mode='oc'):
+    def calculate_ga_loss(self, pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum, lambda_val=3, angle_mode='le135'):
         """
         Calculate Gaussian Angle Loss
         Args:

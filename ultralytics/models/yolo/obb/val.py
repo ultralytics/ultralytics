@@ -10,11 +10,9 @@ import torch
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
-from ultralytics.utils.metrics import OBBMetrics, batch_probiou, mask_iou
+from ultralytics.utils.metrics import OBBMetrics, batch_probiou
 from ultralytics.utils.nms import TorchNMS
 
-
-from shapely.geometry import Polygon
 from ultralytics.utils.ops import xywhr2xyxyxyxy
 
 
@@ -148,11 +146,6 @@ class OBBValidator(DetectionValidator):
         iou = batch_probiou(batch["bboxes"], preds["bboxes"])
         # iou = calculate_rotated_iou(batch["bboxes"], preds["bboxes"])
 
-        # imgsz = batch["imgsz"]  # (height, width)
-        # gt_masks = ops.rboxes2masks_batch(batch["bboxes"], imgsz, downsample_ratio=1)
-        # pred_masks = ops.rboxes2masks_batch(preds["bboxes"], imgsz, downsample_ratio=1)
-        # iou = mask_iou(gt_masks, pred_masks)  # (N_gt, N_pred)
-        
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:

@@ -2224,7 +2224,7 @@ class Format:
                 labels["keypoints"][..., 1] /= h
         if self.return_obb:
             labels["bboxes"] = (
-                xyxyxyxy2xywhr(torch.from_numpy(instances.segments), mode='oc') if len(instances.segments) else torch.zeros((0, 5))
+                xyxyxyxy2xywhr(torch.from_numpy(instances.segments), mode='le135') if len(instances.segments) else torch.zeros((0, 5))
             )
         # NOTE: need to normalize obb in xywhr format for width-height consistency
         if self.normalize:

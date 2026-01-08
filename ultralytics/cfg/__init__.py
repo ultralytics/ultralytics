@@ -411,7 +411,8 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
         from ultralytics.utils.files import increment_path
 
         runs = (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task
-        project = runs / args.project if args.project and "/" in str(args.project) else args.project or runs
+        nested = args.project and len(Path(args.project).parts) > 1  # e.g. "user/project" or "org\repo"
+        project = runs / args.project if nested else args.project or runs
         name = name or args.name or f"{args.mode}"
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 

@@ -13,7 +13,7 @@
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: TT100K # dataset root dir
 train: images/train # train images (relative to 'path') 6105 images
-val: images/val # val images (relative to 'path') 7641 images (mapped from 'other' split)
+val: images/val # val images (relative to 'path') 7641 images (original 'other' split)
 test: images/test # test images (relative to 'path') 3071 images
 
 # Classes (221 traffic sign categories, 45 with sufficient training instances)
@@ -266,7 +266,7 @@ download: |
       class_to_idx = {v: k for k, v in names.items()}
 
       # Create directories
-      for split in ["train", "other", "test"]:
+      for split in ["train", "val", "test"]:
           (dir / "images" / split).mkdir(parents=True, exist_ok=True)
           (dir / "labels" / split).mkdir(parents=True, exist_ok=True)
 
@@ -279,7 +279,7 @@ download: |
           elif "test" in img_path_str:
               split = "test"
           else:
-              split = "other"
+              split = "val"
 
           # Source and destination paths
           src_img = data_dir / img_path_str

@@ -37,13 +37,13 @@ Kaggle notebooks require internet access to download packages and dependencies. 
 
 Once internet access is enabled, install the Ultralytics package by running the following command in a notebook cell:
 
-```python
+```bash
 !pip install ultralytics
 ```
 
 For the latest development version, you can install directly from GitHub:
 
-```python
+```bash
 !pip install git+https://github.com/ultralytics/ultralytics.git
 ```
 
@@ -55,7 +55,7 @@ During installation, you may encounter dependency conflicts, especially with pac
 
 If you encounter conflicts with existing packages, force an upgrade:
 
-```python
+```bash
 !pip install --upgrade --force-reinstall ultralytics
 ```
 
@@ -63,7 +63,7 @@ If you encounter conflicts with existing packages, force an upgrade:
 
 If conflicts persist, install without dependencies first, then manually install required packages:
 
-```python
+```bash
 !pip install --no-deps ultralytics
 !pip install torch torchvision opencv-python matplotlib pillow pyyaml requests
 ```
@@ -72,7 +72,7 @@ If conflicts persist, install without dependencies first, then manually install 
 
 Sometimes, you need to restart the kernel after installation to resolve import issues:
 
-```python
+```bash
 !pip install ultralytics
 # Then click "Restart Kernel" from the notebook menu
 ```
@@ -81,7 +81,7 @@ Sometimes, you need to restart the kernel after installation to resolve import i
 
 If you encounter specific version conflicts, you can pin compatible versions:
 
-```python
+```bash
 !pip install ultralytics opencv-python==4.8.1.78 numpy==1.24.3
 ```
 

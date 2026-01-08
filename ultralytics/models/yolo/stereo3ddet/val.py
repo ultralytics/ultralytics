@@ -2493,22 +2493,8 @@ class Stereo3DDetValidator(BaseValidator):
         pf = "%22s" + "%11i" * 2 + "%11.3g" * 6
         LOGGER.info(pf % ("all", self.seen, total_gt, maps3d_50, maps3d_70, precision_mean, recall_mean, box_map50, box_map5095))
 
-        # # Also print 2D bbox metrics (YOLO-style)
-        # try:
-        #     det_res = self.det_metrics.results_dict if hasattr(self, "det_metrics") else {}
-        #     box_p = det_res.get("metrics/precision(B)", 0.0)
-        #     box_r = det_res.get("metrics/recall(B)", 0.0)
-        #     box_map50 = det_res.get("metrics/mAP50(B)", 0.0)
-        #     box_map = det_res.get("metrics/mAP50-95(B)", 0.0)
-        #     # Format matches main summary: class name, images, AP3D@0.5, AP3D@0.7, precision, recall, mAP50, mAP50-95
-        #     # AP3D metrics are not applicable for 2D bbox, so use 0.0 as placeholders
-        #     pf2 = "%22s" + "%11i" + "%11.3g" * 6
-        #     LOGGER.info(pf2 % ("bbox2d", self.seen, 0.0, 0.0, box_p, box_r, box_map50, box_map))
-        # except Exception as e:
-        #     LOGGER.debug(f"Failed to print bbox2d metrics: {e}")
-
         # Print results per class if verbose and multiple classes
-        if self.args.verbose and not self.training and self.metrics.nc > 1 and self.metrics.ap3d_50:
+        if self.args.verbose and self.metrics.nc > 1 and self.metrics.ap3d_50:
             # Get per-class 2D bbox metrics for printing
             class_map50_dict = {}
             class_map5095_dict = {}

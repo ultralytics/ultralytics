@@ -83,7 +83,7 @@ The fastest way to get started with Ultralytics YOLO11 on NVIDIA DGX Spark is to
 
 ```bash
 t=ultralytics/ultralytics:latest-nvidia-arm64
-sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
+sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
 ```
 
 After this is done, skip to [Use TensorRT on NVIDIA DGX Spark section](#use-tensorrt-on-nvidia-dgx-spark).

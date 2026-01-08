@@ -592,7 +592,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
-        file (str): File name or path, or platform URI (ul://username/datasets/name).
+        file (str): File name or path, URL, platform URI (ul://), or GCS path (gs://).
         suffix (str | tuple): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
         download_dir (str): Directory to download the file to.
@@ -622,7 +622,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         else:
             downloads.safe_download(url=url, file=local_file, unzip=False)
         return str(local_file)
-    elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):  # download
+    elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "gs://")):  # download
+        if file.startswith("gs://"):
+            file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
         if file.exists():

@@ -475,14 +475,11 @@ class BaseTrainer:
             # Validation
             final_epoch = epoch + 1 >= self.epochs
             # Run validation if: val=True AND (val_period matches OR final epoch OR early stopping)
-            should_val = (
-                self.args.val
-                and (
-                    (self.val_period > 0 and (epoch + 1) % self.val_period == 0)
-                    or final_epoch
-                    or self.stopper.possible_stop
-                    or self.stop
-                )
+            should_val = self.args.val and (
+                (self.val_period > 0 and (epoch + 1) % self.val_period == 0)
+                or final_epoch
+                or self.stopper.possible_stop
+                or self.stop
             )
             if should_val:
                 self._clear_memory(threshold=0.5)  # prevent VRAM spike

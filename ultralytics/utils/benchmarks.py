@@ -460,7 +460,7 @@ class ProfileModels:
             if file.suffix in {".pt", ".yaml", ".yml"}:
                 model = YOLO(str(file))
                 model.fuse()  # to report correct params and GFLOPs in model.info()
-                model_info = model.info()
+                model_info = model.info(imgsz=self.imgsz)
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
                         format="engine",

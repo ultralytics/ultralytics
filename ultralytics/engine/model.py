@@ -403,7 +403,7 @@ class Model(torch.nn.Module):
         }
         torch.save({**self.ckpt, **updates}, filename)
 
-    def info(self, detailed: bool = False, verbose: bool = True):
+    def info(self, detailed: bool = False, verbose: bool = True, imgsz=640):
         """Display model information.
 
         This method provides an overview or detailed information about the model, depending on the arguments
@@ -423,7 +423,7 @@ class Model(torch.nn.Module):
             >>> info_list = model.info(detailed=True, verbose=False)  # Returns detailed info as a list
         """
         self._check_is_pytorch_model()
-        return self.model.info(detailed=detailed, verbose=verbose)
+        return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
     def fuse(self) -> None:
         """Fuse Conv2d and BatchNorm2d layers in the model for optimized inference.

@@ -1546,6 +1546,8 @@ class LetterBox:
         stride: int = 32,
         padding_value: int = 114,
         interpolation: int = cv2.INTER_LINEAR,
+        task: str = "detect",
+        use_background: bool = True
     ):
         """Initialize LetterBox object for resizing and padding images.
 
@@ -1570,6 +1572,8 @@ class LetterBox:
         self.center = center  # Put the image in the middle or top-left
         self.padding_value = padding_value
         self.interpolation = interpolation
+        self.task = task
+        self.use_background = use_background
 
     def __call__(self, labels: dict[str, Any] | None = None, image: np.ndarray = None) -> dict[str, Any] | np.ndarray:
         """Resize and pad an image for object detection, instance segmentation, or pose estimation tasks.
@@ -1596,6 +1600,7 @@ class LetterBox:
         if labels is None:
             labels = {}
         img = labels.get("img") if image is None else image
+        msk = labels.get("mask") if self.task == 'semseg' else None
         shape = img.shape[:2]  # current shape [height, width]
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
@@ -1623,20 +1628,34 @@ class LetterBox:
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=self.interpolation)
+            msk = cv2.resize(msk, new_unpad, interpolation=cv2.INTER_NEAREST) if msk is not None else None
             if img.ndim == 2:
                 img = img[..., None]
 
         top, bottom = round(dh - 0.1) if self.center else 0, round(dh + 0.1)
         left, right = round(dw - 0.1) if self.center else 0, round(dw + 0.1)
         h, w, c = img.shape
+        mask_padding = [0 for _ in range(msk.shape[-1])] if msk is not None else [0]
+        mask_padding[-1] = 1 if self.use_background and msk is not None else 0
         if c == 3:
             img = cv2.copyMakeBorder(
                 img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(self.padding_value,) * 3
             )
+            if msk is not None:
+                msk_list = [
+                    cv2.copyMakeBorder(msk[:, :, i], top, bottom, left, right, cv2.BORDER_CONSTANT, value=mask_padding[i])
+                    for i in range(msk.shape[-1])
+                ]
+                msk = np.stack(msk_list, axis=-1)
+
         else:  # multispectral
             pad_img = np.full((h + top + bottom, w + left + right, c), fill_value=self.padding_value, dtype=img.dtype)
+            pad_msk = np.full((h + top + bottom, w + left + right, c), fill_value=0, dtype=img.dtype)
+            pad_msk[:,:, -1] = 1 if self.use_background else 0
             pad_img[top : top + h, left : left + w] = img
+            pad_msk[top : top + h, left : left + w] = msk if msk is not None else 0
             img = pad_img
+            msk = pad_msk if msk is not None else None
 
         if labels.get("ratio_pad"):
             labels["ratio_pad"] = (labels["ratio_pad"], (left, top))  # for evaluation
@@ -1644,6 +1663,8 @@ class LetterBox:
         if len(labels):
             labels = self._update_labels(labels, ratio, left, top)
             labels["img"] = img
+            if msk is not None:
+                labels["mask"] = msk
             labels["resized_shape"] = new_shape
             return labels
         else:
@@ -1677,7 +1698,6 @@ class LetterBox:
         labels["instances"].scale(*ratio)
         labels["instances"].add_padding(padw, padh)
         return labels
-
 
 class CopyPaste(BaseMixTransform):
     """CopyPaste class for applying Copy-Paste augmentation to image datasets.

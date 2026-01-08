@@ -1658,6 +1658,7 @@ class SemSegMetric(Metric):
         self.recall = []
         self.iou = []
         self.mcr = []
+        self.iou_class_index = []
 
     def mean_results(self):
         """Mean of results, return precesion, recall, IoU, Dice-Score, MCR."""
@@ -1708,13 +1709,28 @@ class SemSegMetric(Metric):
                 - dice_score (list): AP scores for all classes and all IoU thresholds. Shape: (nc, 10).
                 - mcr (list): Index of class for each AP score. Shape: (nc,).
         Side Effects:
-            Updates the class attributes `self.p`, `self.r`, `self.f1`, `self.all_ap`, and `self.ap_class_index` based
+            Updates the class attributes `self.precision`, `self.recall`, `self.iou`, `self.dice_score`, and `self.mcr` based
             on the values provided in the `results` tuple.
         """
         (self.precision, self.recall, self.iou, self.dice_score, self.mcr) = results
 
+    @property
+    def curves(self) -> list:
+        """Return a list of curves for accessing specific metrics curves."""
+        return []
 
-class SemSegMetrics(SimpleClass):
+    @property
+    def curves_results(self) -> list[list]:
+        """Return a list of curves for accessing specific metrics curves."""
+        return [
+            [self.px, self.prec_values, "Recall", "Precision"],
+            [self.px, self.f1_curve, "Confidence", "F1"],
+            [self.px, self.p_curve, "Confidence", "Precision"],
+            [self.px, self.r_curve, "Confidence", "Recall"],
+        ]
+
+
+class SemSegMetrics(SimpleClass, DataExportMixin):
     """Utility class for computing semantic segment metrics such as precision, recall, mIoU, dice-score, MCR.
 
     Attributes:
@@ -1809,3 +1825,40 @@ class SemSegMetrics(SimpleClass):
     def curves_results(self):
         """Returns dictionary of computed performance metrics and statistics."""
         return self.seg.curves_results
+
+    @property
+    def ap_class_index(self) -> list:
+        """Return the average precision index per class"""
+        return self.seg.precision
+
+    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
+        """Generate a summarized representation of per-class semseg metrics as a list of dictionaries. Includes
+        shared scalar metrics (mIoU, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
+
+        Args:
+            normalize (bool): For Detect metrics, everything is normalized by default [0-1].
+            decimals (int): Number of decimal places to round the metrics values to.
+
+        Returns:
+            (list[dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric
+                values.
+
+        Examples:
+           >>> results = model.val(data="coco8.yaml")
+           >>> detection_summary = results.summary()
+           >>> print(detection_summary)
+        """
+        per_class = {
+            "Mask-P": self.seg.precision,
+            "Mask-R": self.seg.recall,
+            "Mask-IoU": self.seg.iou,
+        }
+        return [
+            {
+                "Class": self.names[i],
+                "Images": -1,
+                **{k: round(v[i], decimals) for k, v in per_class.items()},
+                "mIoU50": round(self.class_result(i)[2], decimals),
+            }
+            for i in range(len(per_class["Mask-P"]))
+        ]

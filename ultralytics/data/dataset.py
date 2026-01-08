@@ -829,7 +829,7 @@ class SemanticDataset(BaseDataset):
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             transforms = semseg_transforms(self, self.imgsz, hyp)
         else:
-            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
+            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False, task=hyp.task)])
         format = SemSegFormat(
             bbox_format="xywh",
             normalize=True,

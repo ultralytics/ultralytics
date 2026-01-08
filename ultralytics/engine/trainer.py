@@ -146,7 +146,7 @@ class BaseTrainer:
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
-        self.val_period = self.args.val_period
+        self.val_period = 1 if getattr(self.args, "val_period", None) is None else int(getattr(self.args, "val_period"))
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs or 100  # in case users accidentally pass epochs=None with timed training

@@ -37,6 +37,8 @@ obj365_v4_json="Objects365v1/pipeline_outputs/train/v4/merged.json"
 flickr_v5_json="flickr/pipeline_outputs/v5/merged.json"
 mixed_grounding_v5_json="mixed_grounding/pipeline_outputs/v5/merged.json"
 obj365_v5_json="Objects365v1/pipeline_outputs/train/v5/merged.json"
+
+ye_v4_json="yolo-enterprise/pipeline_outputs/train/v4/merged.json"
 ye_v5_json="yolo-enterprise/pipeline_outputs/train/v5/merged.json"
 
 
@@ -95,8 +97,12 @@ new_obj365_v5= dict(
             )
 
 
-yoloep_v5= dict( img_path=f"{train_data_root}/yolo-enterprise/images/train",
-                json_file=f"{train_data_root}/yolo-enterprise/merged/train/original_plus_florence_phrases_train.json",) # todo 
+ye_v4= dict(img_path=f"{train_data_root}/yolo-enterprise/images/train",
+                json_file=f"{train_data_root}/{ye_v4_json}",) 
+
+
+ye_v5= dict(img_path=f"{train_data_root}/yolo-enterprise/images/train",
+                json_file=f"{train_data_root}/{ye_v5_json}",) # todo 
 
 
 
@@ -129,23 +135,23 @@ DATA_CONFIG["newdatav5"]=dict(
     val=dict(yolo_data=[lvis_data]),    
     )
 
-DATA_CONFIG["epdatav5"]=dict(
+DATA_CONFIG["yedatav5"]=dict(
     train=dict(
-        grounding_data=[ new_flickr_v5, new_mixed_v5, new_obj365_v5,yoloep_v5],
+        grounding_data=[ new_flickr_v5, new_mixed_v5, new_obj365_v5,ye_v5],
     ),
     val=dict(yolo_data=[lvis_data]),    
     )  # enterprise data v5
 
-DATA_CONFIG["epdatav4"]=dict(
+DATA_CONFIG["yedatav4"]=dict(
     train=dict(
-        grounding_data=[ new_flickr_v4, new_mixed_v4, new_obj365_v4,yoloep_v4],
+        grounding_data=[ new_flickr_v4, new_mixed_v4, new_obj365_v4,ye_v4],
     ),
     val=dict(yolo_data=[lvis_data]),    
     ) # enterprise data v4
 
-DATA_CONFIG["epdata"]=dict(
+DATA_CONFIG["yedata"]=dict(
     train=dict(
-        grounding_data=[ new_flickr_v4, new_mixed_v4, new_obj365_v4,yoloep_v5],
+        grounding_data=[ new_flickr_v4, new_mixed_v4, new_obj365_v4,ye_v5],
     ),
     val=dict(yolo_data=[lvis_data]),    
     ) # enterprise data v4

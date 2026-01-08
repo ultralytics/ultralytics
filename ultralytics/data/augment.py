@@ -1563,7 +1563,7 @@ class LetterBox:
             stride (int): Stride of the model (e.g., 32 for YOLOv5).
             padding_value (int): Value for padding the image. Default is 114.
             interpolation (int): Interpolation method for resizing. Default is cv2.INTER_LINEAR.
-            task(str):  detect, segment, pose, etc task
+            task(str): detect, segment, pose, etc task
             use_background(bool): If true, take the background as a class. If False, ignore background
         """
         self.new_shape = new_shape

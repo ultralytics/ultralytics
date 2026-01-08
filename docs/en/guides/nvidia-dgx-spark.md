@@ -180,15 +180,6 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
 
 YOLO11 benchmarks were run by the Ultralytics team on multiple model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on NVIDIA DGX Spark at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
-### Comparison Chart
-
-Even though all model exports work on NVIDIA DGX Spark, we have only included **PyTorch, TorchScript, TensorRT** for the comparison chart below because they make use of the GPU and are guaranteed to produce the best results. All the other exports only utilize the CPU and the performance is not as good as the above three. You can find benchmarks for all exports in the section after this chart.
-
-<figure style="text-align: center;">
-    <img src="https://github.com/ultralytics/assets/releases/download/v0.0.0/dgx-spark-benchmarks-coco128.avif" alt="DGX Spark Benchmarks">
-    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.3.249</figcaption>
-</figure>
-
 ### Detailed Comparison Table
 
 The below table represents the benchmark results for five different models (YOLO11n, YOLO11s, YOLO11m, YOLO11l, YOLO11x) across multiple formats, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.

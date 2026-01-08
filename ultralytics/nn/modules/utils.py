@@ -213,7 +213,7 @@ class MSDeformAttnFunction(Function):
     ):
         spatial_shapes = g.op("Cast", value_spatial_shapes, to_i=6)
         level_start_index = g.op("Cast", value_level_start_index, to_i=6)
-        return g.op(
+        output = g.op(
             "com.nvidia::MultiscaleDeformableAttnPlugin_TRT",
             value,
             spatial_shapes,
@@ -223,6 +223,15 @@ class MSDeformAttnFunction(Function):
             plugin_version_s="1",
             plugin_namespace_s="",
         )
+        value_sizes = value.type().sizes()
+        loc_sizes = sampling_locations.type().sizes()
+        n = value_sizes[0] if value_sizes else None
+        lq = loc_sizes[1] if loc_sizes and len(loc_sizes) > 1 else None
+        m = value_sizes[2] if value_sizes and len(value_sizes) > 2 else None
+        d = value_sizes[3] if value_sizes and len(value_sizes) > 3 else None
+        c = m * d if isinstance(m, int) and isinstance(d, int) else None
+        output.setType(value.type().with_sizes([n, lq, c]))
+        return output
 
     @staticmethod
     def forward(ctx, value, value_spatial_shapes, value_level_start_index,

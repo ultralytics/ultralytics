@@ -661,20 +661,31 @@ class Exporter:
             self.args.opset = opset  # for NMSModel
 
         model_for_export = NMSModel(self.model, self.args) if self.args.nms else self.model
-        custom_opsets = {"com.nvidia": 1} if self._uses_trt_msdeformattn_plugin(model_for_export) else None
+        uses_msdeformattn_cuda = self._uses_trt_msdeformattn_plugin(model_for_export)
+        use_trt_plugin = uses_msdeformattn_cuda and self.args.format == "engine"
+        custom_opsets = {"com.nvidia": 1} if use_trt_plugin else None
+        restore_states = None
+        if uses_msdeformattn_cuda and not use_trt_plugin:
+            LOGGER.info(f"{prefix} disabling MSDeformAttn CUDA acceleration for ONNX export")
+            restore_states = self._set_msdeformattn_cuda(model_for_export, False)
         if custom_opsets:
             LOGGER.info(f"{prefix} using TensorRT MSDeformAttn plugin op (MultiscaleDeformableAttnPlugin_TRT v1)")
-        with arange_patch(self.args):
-            torch2onnx(
-                model_for_export,
-                self.im,
-                f,
-                opset=opset,
-                input_names=["images"],
-                output_names=output_names,
-                dynamic=dynamic or None,
-                custom_opsets=custom_opsets,
-            )
+        try:
+            with arange_patch(self.args):
+                torch2onnx(
+                    model_for_export,
+                    self.im,
+                    f,
+                    opset=opset,
+                    input_names=["images"],
+                    output_names=output_names,
+                    dynamic=dynamic or None,
+                    custom_opsets=custom_opsets,
+                )
+        finally:
+            if restore_states:
+                for module, prev in restore_states:
+                    module.enable_cuda_acceleration = prev
 
         # Checks
         model_onnx = onnx.load(f)  # load onnx model
@@ -715,6 +726,21 @@ class Exporter:
             isinstance(m, MSDeformAttn) and getattr(m, "enable_cuda_acceleration", False)
             for m in base_model.modules()
         )
+
+    @staticmethod
+    def _set_msdeformattn_cuda(model: torch.nn.Module, enabled: bool):
+        """Set MSDeformAttn CUDA acceleration flag, returning previous states for restoration."""
+        try:
+            from ultralytics.nn.modules.transformer import MSDeformAttn
+        except Exception:
+            return []
+        base_model = getattr(model, "model", model)
+        states = []
+        for m in base_model.modules():
+            if isinstance(m, MSDeformAttn):
+                states.append((m, getattr(m, "enable_cuda_acceleration", False)))
+                m.enable_cuda_acceleration = enabled
+        return states
 
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):

@@ -631,13 +631,17 @@ class BaseTrainer:
         try:
             if self.args.task == "classify":
                 data = check_cls_dataset(self.args.data)
-            elif str(self.args.data).rsplit(".", 1)[-1] == "ndjson":
-                # Convert NDJSON to YOLO format
+            elif str(self.args.data).rsplit(".", 1)[-1] == "ndjson" or (
+                str(self.args.data).startswith("ul://") and "/datasets/" in str(self.args.data)
+            ):
+                # Convert NDJSON to YOLO format (including ul:// platform dataset URIs)
                 import asyncio
 
                 from ultralytics.data.converter import convert_ndjson_to_yolo
+                from ultralytics.utils.checks import check_file
 
-                yaml_path = asyncio.run(convert_ndjson_to_yolo(self.args.data))
+                ndjson_file = check_file(self.args.data)  # Resolve ul:// or URL to local .ndjson file
+                yaml_path = asyncio.run(convert_ndjson_to_yolo(ndjson_file))
                 self.args.data = str(yaml_path)
                 data = check_det_dataset(self.args.data)
             elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {

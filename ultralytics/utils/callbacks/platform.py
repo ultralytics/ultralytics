@@ -62,7 +62,7 @@ def resolve_platform_uri(uri, hard=True):
     if not api_key:
         raise ValueError(f"ULTRALYTICS_API_KEY required for '{uri}'. Get key at https://alpha.ultralytics.com/settings")
 
-    base = "https://alpha.ultralytics.com/api/v1"
+    base = "https://alpha.ultralytics.com/api/webhooks"
     headers = {"Authorization": f"Bearer {api_key}"}
 
     # ul://username/datasets/slug

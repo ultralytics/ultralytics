@@ -17,7 +17,7 @@ imgsz: 512 # (int | list) input images size as int for train and val modes, or l
 save: True # (bool) save train checkpoints and predict results
 save_period: -1 # (int) Save checkpoint every x epochs (disabled if < 1)
 cache: False # (bool) True/ram, disk or False. Use cache for data loading
-device: 0 # (int | str | list) device: CUDA device=0 or [0,1,2,3] or "cpu/mps" or -1 or [-1,-1] to auto-select idle GPUs
+device: # (int | str | list) device: CUDA device=0 or [0,1,2,3] or "cpu/mps" or -1 or [-1,-1] to auto-select idle GPUs
 workers: 0 # (int) number of worker threads for data loading (per RANK if DDP)
 project: exp # (str, optional) project name
 name: semseg # (str, optional) experiment name, results saved to 'project/name' directory

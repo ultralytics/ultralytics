@@ -1,23 +1,22 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Tsinghua-Tencent 100K Traffic Sign Detection Dataset
-# Dataset: https://cg.cs.tsinghua.edu.cn/traffic-sign/
+# Tsinghua-Tencent 100K (TT100K) dataset https://cg.cs.tsinghua.edu.cn/traffic-sign/ by Tsinghua University
+# Documentation: https://cg.cs.tsinghua.edu.cn/traffic-sign/tutorial.html
 # Paper: Traffic-Sign Detection and Classification in the Wild (CVPR 2016)
-# Documentation: 100,000 images with 30,000+ traffic sign annotations
+# License: CC BY-NC 2.0 license for non-commercial use only
 # Example usage: yolo train data=TT100K.yaml
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── TT100K  ← downloads here (~30 GB with images)
+#     └── TT100K ← downloads here (~18 GB)
 
-# Train/val/test sets
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: TT100K # dataset root dir
-train: images/train # train images (relative to 'path')
-val: images/val # val images (relative to 'path')
-test: images/test # test images (relative to 'path')
+train: images/train # train images (relative to 'path') 6105 images
+val: images/val # val images (relative to 'path') 7641 images (original 'other' split)
+test: images/test # test images (relative to 'path') 3071 images
 
-# Classes
-nc: 221
+# Classes (221 traffic sign categories, 45 with sufficient training instances)
 names:
   0: pl5
   1: pl10
@@ -243,57 +242,52 @@ names:
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
-  import os
   import json
   import shutil
   from pathlib import Path
-  from ultralytics.utils.downloads import download
+
+  from PIL import Image
+
   from ultralytics.utils import TQDM
+  from ultralytics.utils.downloads import download
+
 
   def tt100k2yolo(dir):
-      """Convert TT100K annotations to YOLO format."""
-      from PIL import Image
-      
+      """Convert TT100K annotations to YOLO format with images/{split} and labels/{split} structure."""
       data_dir = dir / "data"
       anno_file = data_dir / "annotations.json"
-      
+
       print("Loading annotations...")
-      with open(anno_file, 'r', encoding='utf-8') as f:
+      with open(anno_file, encoding="utf-8") as f:
           data = json.load(f)
-      
-      # Get all unique classes
-      classes = set()
-      for img_id, img_data in data['imgs'].items():
-          for obj in img_data.get('objects', []):
-              classes.add(obj['category'])
-      class_to_idx = {cls: idx for idx, cls in enumerate(yaml["names"]) if cls in classes}
-      class_to_idx = {cls: idx for idx, cls in enumerate(classes)}
-      
-      print(f"Found {len(classes)} traffic sign classes")
-      
+
+      # Build class name to index mapping from yaml
+      names = yaml["names"]
+      class_to_idx = {v: k for k, v in names.items()}
+
       # Create directories
-      for split in ['train', 'val', 'test']:
-          (dir / 'images' / split).mkdir(parents=True, exist_ok=True)
-          (dir / 'labels' / split).mkdir(parents=True, exist_ok=True)
-      
+      for split in ["train", "val", "test"]:
+          (dir / "images" / split).mkdir(parents=True, exist_ok=True)
+          (dir / "labels" / split).mkdir(parents=True, exist_ok=True)
+
       print("Converting annotations to YOLO format...")
-      for img_id, img_data in TQDM(data['imgs'].items(), desc="Processing"):
-          img_path_str = img_data['path']
-          if 'train' in img_path_str:
-              split = 'train'
-          elif 'test' in img_path_str:
-              split = 'test'
+      skipped = 0
+      for img_id, img_data in TQDM(data["imgs"].items(), desc="Processing"):
+          img_path_str = img_data["path"]
+          if "train" in img_path_str:
+              split = "train"
+          elif "test" in img_path_str:
+              split = "test"
           else:
-              split = 'val'
-          
+              split = "val"
+
           # Source and destination paths
           src_img = data_dir / img_path_str
           if not src_img.exists():
               continue
-          
-          img_name = src_img.name
-          dst_img = dir / 'images' / split / img_name
-          
+
+          dst_img = dir / "images" / split / src_img.name
+
           # Get image dimensions
           try:
               with Image.open(src_img) as img:
@@ -301,57 +295,52 @@ download: |
           except Exception as e:
               print(f"Error reading {src_img}: {e}")
               continue
+
+          # Copy image to destination
           shutil.copy2(src_img, dst_img)
-          label_file = dir / 'labels' / split / f"{src_img.stem}.txt"
+
+          # Convert annotations
+          label_file = dir / "labels" / split / f"{src_img.stem}.txt"
           lines = []
-          
-          for obj in img_data.get('objects', []):
-              category = obj['category']
+
+          for obj in img_data.get("objects", []):
+              category = obj["category"]
               if category not in class_to_idx:
+                  skipped += 1
                   continue
-              
-              bbox = obj['bbox']
-              xmin, ymin = bbox['xmin'], bbox['ymin']
-              xmax, ymax = bbox['xmax'], bbox['ymax']
-              
+
+              bbox = obj["bbox"]
+              xmin, ymin = bbox["xmin"], bbox["ymin"]
+              xmax, ymax = bbox["xmax"], bbox["ymax"]
+
               # Convert to YOLO format (normalized center coordinates and dimensions)
               x_center = ((xmin + xmax) / 2.0) / img_width
               y_center = ((ymin + ymax) / 2.0) / img_height
               width = (xmax - xmin) / img_width
               height = (ymax - ymin) / img_height
-              
-              # Ensure valid coordinates
+
+              # Clip to valid range
               x_center = max(0, min(1, x_center))
               y_center = max(0, min(1, y_center))
               width = max(0, min(1, width))
               height = max(0, min(1, height))
-              
+
               cls_idx = class_to_idx[category]
               lines.append(f"{cls_idx} {x_center:.6f} {y_center:.6f} {width:.6f} {height:.6f}\n")
-          
+
           # Write label file
           if lines:
               label_file.write_text("".join(lines), encoding="utf-8")
-      
-      print(f"Conversion complete!")
-      print(f"Found {len(classes)} classes: {classes[:10]}..." if len(classes) > 10 else f"Classes: {classes}")
-      
-      return classes
 
-  # Download dataset
-  dir = Path(yaml['path'])  # dataset root dir
+      if skipped:
+          print(f"Skipped {skipped} annotations with unknown categories")
+      print("Conversion complete!")
 
-  # TT100K dataset URLs
-  urls = [
-      'https://cg.cs.tsinghua.edu.cn/traffic-sign/data_model_code/data.zip',  # Main dataset with annotations
-  ]
 
-  print("Downloading TT100K dataset...")
-  print("Note: This dataset is large (~30GB). Download may take some time.")
-  print("Dataset is under CC-BY-NC license for non-commercial use only.")
+  # Download
+  dir = Path(yaml["path"])  # dataset root dir
+  urls = ["https://cg.cs.tsinghua.edu.cn/traffic-sign/data_model_code/data.zip"]
+  download(urls, dir=dir, curl=True, threads=1)
 
-  # Download and extract
-  download(urls, dir=dir, unzip=True, delete=False, curl=False, threads=1)
-
-  # Convert dataset in YOLO format
-  classes = tt100k2yolo(dir)
+  # Convert
+  tt100k2yolo(dir)

@@ -22,16 +22,16 @@ NVIDIA DGX Spark is a compact desktop AI supercomputer powered by the NVIDIA GB1
 
 ### Key Specifications
 
-| Specification   | Details                                                                 |
-| --------------- | ----------------------------------------------------------------------- |
-| AI Performance  | Up to 1 PFLOP (FP4)                                                     |
-| GPU             | NVIDIA Blackwell GPU with 1TB/s memory bandwidth                        |
-| CPU             | NVIDIA Grace CPU (Arm Neoverse V2 cores)                                |
-| Memory          | 128 GB unified LPDDR5X memory                                           |
-| Storage         | Up to 4TB NVMe SSD                                                      |
-| Connectivity    | USB4 (40Gbps), USB 3.2, 10GbE, WiFi 7, Bluetooth 5.3                    |
-| OS              | DGX OS (Ubuntu-based Linux)                                             |
-| Power           | Compact desktop design                                                  |
+| Specification  | Details                                              |
+| -------------- | ---------------------------------------------------- |
+| AI Performance | Up to 1 PFLOP (FP4)                                  |
+| GPU            | NVIDIA Blackwell GPU with 1TB/s memory bandwidth     |
+| CPU            | NVIDIA Grace CPU (Arm Neoverse V2 cores)             |
+| Memory         | 128 GB unified LPDDR5X memory                        |
+| Storage        | Up to 4TB NVMe SSD                                   |
+| Connectivity   | USB4 (40Gbps), USB 3.2, 10GbE, WiFi 7, Bluetooth 5.3 |
+| OS             | DGX OS (Ubuntu-based Linux)                          |
+| Power          | Compact desktop design                               |
 
 ### DGX OS
 
@@ -166,7 +166,7 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
 
         ```bash
         # Export a YOLO11n PyTorch model to TensorRT format
-        yolo export model=yolo11n.pt format=engine  # creates 'yolo11n.engine'
+        yolo export model=yolo11n.pt format=engine # creates 'yolo11n.engine'
 
         # Run inference with the exported model
         yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -346,8 +346,8 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
     For best performance, export models with FP16 or INT8 precision:
 
     ```bash
-    yolo export model=yolo11n.pt format=engine half=True  # FP16
-    yolo export model=yolo11n.pt format=engine int8=True  # INT8
+    yolo export model=yolo11n.pt format=engine half=True # FP16
+    yolo export model=yolo11n.pt format=engine int8=True # INT8
     ```
 
 ## Next Steps

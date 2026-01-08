@@ -52,16 +52,16 @@ lvis_data=os.path.abspath("../datasets/lvis.yaml")
 
 
 old_flickr_data= dict(
-                img_path="../datasets/flickr/full_images/",
-                json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                img_path=f"{train_data_root}/flickr/full_images/",
+                json_file=f"{train_data_root}/flickr/annotations/final_flickr_separateGT_train_segm.json",
             )
 old_mixed_data= dict(
-                img_path="../datasets/mixed_grounding/gqa/images",
-                json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                img_path=f"{train_data_root}/mixed_grounding/gqa/images",
+                json_file=f"{train_data_root}/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
             )
 old_obj365_data= dict(
-                img_path="../datasets/Objects365v1/images/train",
-                json_file="../datasets/Objects365v1/annotations/objects365_train_segm.json",
+                img_path=f"{train_data_root}/Objects365v1/images/train",
+                json_file=f"{train_data_root}/Objects365v1/annotations/objects365_train_segm.json",
             )  
 
 

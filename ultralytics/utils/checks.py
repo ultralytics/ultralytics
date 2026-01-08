@@ -622,7 +622,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         else:
             downloads.safe_download(url=url, file=local_file, unzip=False)
         return str(local_file)
-    elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "gs://")):  # download
+    elif download and file.lower().startswith(
+        ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "gs://")
+    ):  # download
         if file.startswith("gs://"):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/

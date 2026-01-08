@@ -2185,9 +2185,10 @@ class Stereo3DDetValidator(BaseValidator):
         Returns:
             Formatted header string matching the progress bar format.
         """
-        # Right-align header strings to match right-aligned numeric values
-        # Format: right-align strings in 11-char fields to match %11i and %11.4g alignment
-        return ("%11s" + "%11s" * 6) % (
+        # Format: class name (22 chars), then Images (11 chars), then 6 metric columns (11 chars each)
+        # This matches the data row format: "%22s" + "%11i" + "%11.3g" * 6
+        return ("%22s" + "%11s" + "%11s" * 6) % (
+            "",  # Empty class name column (22 chars)
             "Images".rjust(11),
             "AP3D@0.5".rjust(11),
             "AP3D@0.7".rjust(11),
@@ -2484,8 +2485,10 @@ class Stereo3DDetValidator(BaseValidator):
             box_r = det_res.get("metrics/recall(B)", 0.0)
             box_map50 = det_res.get("metrics/mAP50(B)", 0.0)
             box_map = det_res.get("metrics/mAP50-95(B)", 0.0)
-            pf2 = "%22s" + "%11i" + "%11.3g" * 4
-            LOGGER.info(pf2 % ("bbox2d", self.seen, box_p, box_r, box_map50, box_map))
+            # Format matches main summary: class name, images, AP3D@0.5, AP3D@0.7, precision, recall, mAP50, mAP50-95
+            # AP3D metrics are not applicable for 2D bbox, so use 0.0 as placeholders
+            pf2 = "%22s" + "%11i" + "%11.3g" * 6
+            LOGGER.info(pf2 % ("bbox2d", self.seen, 0.0, 0.0, box_p, box_r, box_map50, box_map))
         except Exception as e:
             LOGGER.debug(f"Failed to print bbox2d metrics: {e}")
 

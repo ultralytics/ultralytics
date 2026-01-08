@@ -142,6 +142,13 @@ DATA_CONFIG["epdatav4"]=dict(
     val=dict(yolo_data=[lvis_data]),    
     ) # enterprise data v4
 
+DATA_CONFIG["epdata"]=dict(
+    train=dict(
+        grounding_data=[ new_flickr_v4, new_mixed_v4, new_obj365_v4,yoloep_v5],
+    ),
+    val=dict(yolo_data=[lvis_data]),    
+    ) # enterprise data v4
+
 
 
 DATA_CONFIG["old_objv1_only"]=dict(

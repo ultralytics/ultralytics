@@ -78,6 +78,7 @@ from .conv import (
 )
 from .head import (
     OBB,
+    OBB26,
     Classify,
     Detect,
     LRPCHead,
@@ -117,6 +118,7 @@ __all__ = (
     "ELAN1",
     "MLP",
     "OBB",
+    "OBB26",
     "PSA",
     "SPP",
     "SPPELAN",

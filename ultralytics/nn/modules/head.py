@@ -21,7 +21,7 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "Pose", "Pose26", "RTDETRDecoder", "Segment", "Segment26", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = "OBB", "OBB26", "Classify", "Detect", "Pose", "Pose26", "RTDETRDecoder", "Segment", "Segment26", "YOLOEDetect", "YOLOESegment", "v10Detect"
 
 
 class Detect(nn.Module):
@@ -507,6 +507,42 @@ class OBB(Detect):
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = self.cv4 = None
+
+
+class OBB26(OBB):
+    """
+    YOLO26 OBB detection head for detection with rotation models.
+
+    This class extends the OBB head with modified angle processing that outputs raw angle predictions
+    without sigmoid transformation, compared to the original OBB class.
+
+    Attributes:
+        ne (int): Number of extra parameters.
+        cv4 (nn.ModuleList): Convolution layers for angle prediction.
+        angle (torch.Tensor): Predicted rotation angles.
+
+    Methods:
+        forward_head: Concatenate and return predicted bounding boxes, class probabilities, and raw angles.
+
+    Examples:
+        Create an OBB26 detection head
+        >>> obb26 = OBB26(nc=80, ne=1, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = obb26(x)
+    """
+
+    def forward_head(
+        self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, angle_head: torch.nn.Module
+    ) -> torch.Tensor:
+        """Concatenates and returns predicted bounding boxes, class probabilities, and raw angles."""
+        preds = Detect.forward_head(self, x, box_head, cls_head)
+        if angle_head is not None:
+            bs = x[0].shape[0]  # batch size
+            angle = torch.cat(
+                [angle_head[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2
+            )  # OBB theta logits (raw output without sigmoid transformation)
+            preds["angle"] = angle
+        return preds
 
 
 class Pose(Detect):

@@ -28,7 +28,7 @@ def test_special_modes() -> None:
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_train(task: str, model: str, data: str) -> None:
     """Test YOLO training for different tasks, models, and datasets."""
-    run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 cache=disk")
+    run(f"yolo train {task} model={model} data={data} imgsz=32 device=cpu epochs=1 cache=disk")
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)

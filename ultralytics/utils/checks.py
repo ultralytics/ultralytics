@@ -12,6 +12,7 @@ import platform
 import re
 import shutil
 import subprocess
+import sys
 import time
 from importlib import metadata
 from pathlib import Path
@@ -453,21 +454,15 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
-            base = (
-                f"uv pip install --no-cache-dir {packages} {commands} "
-                f"--index-strategy=unsafe-best-match --break-system-packages"
+            # Use --python to explicitly target current interpreter (venv or system)
+            # This ensures correct installation when VIRTUAL_ENV env var isn't set
+            return subprocess.check_output(
+                f'uv pip install --no-cache-dir --python "{sys.executable}" {packages} {commands} '
+                f"--index-strategy=unsafe-best-match --break-system-packages",
+                shell=True,
+                stderr=subprocess.STDOUT,
+                text=True,
             )
-            try:
-                return subprocess.check_output(base, shell=True, stderr=subprocess.STDOUT, text=True)
-            except subprocess.CalledProcessError as e:
-                if e.output and "No virtual environment found" in e.output:
-                    return subprocess.check_output(
-                        base.replace("uv pip install", "uv pip install --system"),
-                        shell=True,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                    )
-                raise
         return subprocess.check_output(
             f"pip install --no-cache-dir {packages} {commands}", shell=True, stderr=subprocess.STDOUT, text=True
         )
@@ -489,7 +484,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                     f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
                 )
             except Exception as e:
-                LOGGER.warning(f"{prefix} ❌ {e}")
+                msg = f"{prefix} ❌ {e}"
+                if hasattr(e, "output") and e.output:
+                    msg += f"\n{e.output}"
+                LOGGER.warning(msg)
                 return False
         else:
             return False
@@ -594,7 +592,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
-        file (str): File name or path.
+        file (str): File name or path, or platform URI (ul://username/datasets/name).
         suffix (str | tuple): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
         download_dir (str): Directory to download the file to.
@@ -612,6 +610,18 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         or file.lower().startswith("grpc://")
     ):  # file exists or gRPC Triton images
         return file
+    elif download and file.lower().startswith("ul://"):  # Ultralytics Platform URI
+        from ultralytics.utils.callbacks.platform import resolve_platform_uri
+
+        url = resolve_platform_uri(file, hard=hard)  # Convert to signed HTTPS URL
+        if url is None:
+            return []  # Not found, soft fail (consistent with file search behavior)
+        local_file = Path(download_dir) / url2file(url)
+        if local_file.exists():
+            LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
+        else:
+            downloads.safe_download(url=url, file=local_file, unzip=False)
+        return str(local_file)
     elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth

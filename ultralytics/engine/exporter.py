@@ -660,15 +660,20 @@ class Exporter:
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
 
+        model_for_export = NMSModel(self.model, self.args) if self.args.nms else self.model
+        custom_opsets = {"com.nvidia": 1} if self._uses_trt_msdeformattn_plugin(model_for_export) else None
+        if custom_opsets:
+            LOGGER.info(f"{prefix} using TensorRT MSDeformAttn plugin op (MultiscaleDeformableAttnPlugin_TRT v1)")
         with arange_patch(self.args):
             torch2onnx(
-                NMSModel(self.model, self.args) if self.args.nms else self.model,
+                model_for_export,
                 self.im,
                 f,
                 opset=opset,
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,
+                custom_opsets=custom_opsets,
             )
 
         # Checks
@@ -697,6 +702,19 @@ class Exporter:
 
         onnx.save(model_onnx, f)
         return f
+
+    @staticmethod
+    def _uses_trt_msdeformattn_plugin(model: torch.nn.Module) -> bool:
+        """Return True if the model uses MSDeformAttn with CUDA acceleration enabled."""
+        try:
+            from ultralytics.nn.modules.transformer import MSDeformAttn
+        except Exception:
+            return False
+        base_model = getattr(model, "model", model)
+        return any(
+            isinstance(m, MSDeformAttn) and getattr(m, "enable_cuda_acceleration", False)
+            for m in base_model.modules()
+        )
 
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):

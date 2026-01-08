@@ -202,6 +202,29 @@ def multi_scale_deformable_attn_pytorch(
 
 class MSDeformAttnFunction(Function):
     @staticmethod
+    def symbolic(
+        g,
+        value,
+        value_spatial_shapes,
+        value_level_start_index,
+        sampling_locations,
+        attention_weights,
+        im2col_step,
+    ):
+        spatial_shapes = g.op("Cast", value_spatial_shapes, to_i=6)
+        level_start_index = g.op("Cast", value_level_start_index, to_i=6)
+        return g.op(
+            "com.nvidia::MultiscaleDeformableAttnPlugin_TRT",
+            value,
+            spatial_shapes,
+            level_start_index,
+            sampling_locations,
+            attention_weights,
+            plugin_version_s="1",
+            plugin_namespace_s="",
+        )
+
+    @staticmethod
     def forward(ctx, value, value_spatial_shapes, value_level_start_index,
                 sampling_locations, attention_weights, im2col_step):
         ctx.im2col_step = im2col_step

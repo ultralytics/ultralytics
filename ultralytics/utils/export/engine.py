@@ -19,6 +19,7 @@ def torch2onnx(
     input_names: list[str] = ["images"],
     output_names: list[str] = ["output0"],
     dynamic: bool | dict = False,
+    custom_opsets: dict[str, int] | None = None,
 ) -> None:
     """Export a PyTorch model to ONNX format.
 
@@ -30,6 +31,7 @@ def torch2onnx(
         input_names (list[str]): List of input tensor names.
         output_names (list[str]): List of output tensor names.
         dynamic (bool | dict, optional): Whether to enable dynamic axes.
+        custom_opsets (dict[str, int] | None, optional): Custom domain opset versions for custom ONNX ops.
 
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
@@ -45,6 +47,7 @@ def torch2onnx(
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic or None,
+        custom_opsets=custom_opsets or None,
         **kwargs,
     )
 
@@ -95,6 +98,7 @@ def onnx2engine(
     logger = trt.Logger(trt.Logger.INFO)
     if verbose:
         logger.min_severity = trt.Logger.Severity.VERBOSE
+    trt.init_libnvinfer_plugins(logger, "")
 
     # Engine builder
     builder = trt.Builder(logger)

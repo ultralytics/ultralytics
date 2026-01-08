@@ -132,7 +132,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         ```bash
         # Mount local directory to a directory inside the container
-        sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
+        sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/path/in/container $t
         ```
 
         Replace `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container.
@@ -149,37 +149,27 @@ See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytic
         <img width="800" alt="PyTorch Installation Instructions" src="https://github.com/ultralytics/docs/releases/download/0/pytorch-installation-instructions.avif">
     </a>
 
-## Custom Installation Methods
+## Headless Server Installation
 
-While the standard installation methods cover most use cases, you might need a more tailored setup. This could involve installing specific package versions, omitting optional dependencies, or substituting packages like replacing `opencv-python` with the GUI-less `opencv-python-headless` for server environments.
+For server environments without a display (e.g., cloud VMs, Docker containers, CI/CD pipelines), use the `ultralytics-opencv-headless` package. This is identical to the standard `ultralytics` package but depends on `opencv-python-headless` instead of `opencv-python`, avoiding unnecessary GUI dependencies and potential `libGL` errors.
 
-!!! example "Custom Methods"
+!!! example "Headless Install"
 
-    === "Method 1: Install without dependencies (`--no-deps`)"
+    ```bash
+    pip install ultralytics-opencv-headless
+    ```
 
-        You can install the `ultralytics` package core without any dependencies using pip's `--no-deps` flag. This requires you to manually install all necessary dependencies afterward.
+Both packages provide the same functionality and API. The headless variant simply excludes OpenCV's GUI components that require display libraries.
 
-        1.  **Install `ultralytics` core:**
-            ```bash
-            pip install ultralytics --no-deps
-            ```
+## Advanced Installation
 
-        2.  **Manually install dependencies:** You need to install all required packages listed in the `pyproject.toml` file, substituting or modifying versions as needed. For the headless OpenCV example:
-            ```bash
-            # Install other core dependencies
-            pip install torch torchvision numpy matplotlib polars pyyaml pillow psutil requests scipy ultralytics-thop
+While the standard installation methods cover most use cases, you might need a more tailored setup for development or custom configurations.
 
-            # Install headless OpenCV instead of the default
-            pip install opencv-python-headless
-            ```
+!!! example "Advanced Methods"
 
-        !!! warning "Dependency Management"
+    === "Install from Fork"
 
-            This method gives full control but requires careful management of dependencies. Ensure all required packages are installed with compatible versions by referencing the `ultralytics` `pyproject.toml` file.
-
-    === "Method 2: Install from a Custom Fork"
-
-        If you need persistent custom modifications (like always using `opencv-python-headless`), you can fork the Ultralytics repository, make changes to `pyproject.toml` or other code, and install from your fork.
+        If you need persistent custom modifications, you can fork the Ultralytics repository, make changes to `pyproject.toml` or other code, and install from your fork.
 
         1.  **Fork** the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) to your own GitHub account.
         2.  **Clone** your fork locally:
@@ -189,78 +179,53 @@ While the standard installation methods cover most use cases, you might need a m
             ```
         3.  **Create a new branch** for your changes:
             ```bash
-            git checkout -b custom-opencv
+            git checkout -b my-custom-branch
             ```
-        4.  **Modify `pyproject.toml`:** Open `pyproject.toml` in a text editor and replace the line containing `"opencv-python>=4.6.0"` with `"opencv-python-headless>=4.6.0"` (adjust version as needed).
+        4.  **Make your modifications** to `pyproject.toml` or other files as needed.
         5.  **Commit and push** your changes:
             ```bash
-            git add pyproject.toml
-            git commit -m "Switch to opencv-python-headless"
-            git push origin custom-opencv
+            git add .
+            git commit -m "My custom changes"
+            git push origin my-custom-branch
             ```
         6.  **Install** using pip with the `git+https` syntax, pointing to your branch:
             ```bash
-            pip install git+https://github.com/YOUR_USERNAME/ultralytics.git@custom-opencv
+            pip install git+https://github.com/YOUR_USERNAME/ultralytics.git@my-custom-branch
             ```
 
-        This method ensures that your custom dependency set is used whenever you install from this specific URL. See Method 4 for using this in a `requirements.txt` file.
+    === "Local Clone and Install"
 
-    === "Method 3: Local Clone, Modify, and Install"
-
-        Similar to the standard "Git Clone" method for development, you can clone the repository locally, modify dependency files *before* installation, and then install in editable mode.
+        Clone the repository locally, modify files as needed, and install in editable mode.
 
         1.  **Clone** the Ultralytics repository:
             ```bash
             git clone https://github.com/ultralytics/ultralytics
             cd ultralytics
             ```
-        2.  **Modify `pyproject.toml`:** Edit the file to make your desired changes. For example, use `sed` (on Linux/macOS) or a text editor to replace `opencv-python` with `opencv-python-headless`.
-            *Using `sed` (verify the exact line in `pyproject.toml` first):*
-            ```bash
-            # Example: Replace the line starting with "opencv-python..."
-            # Adapt the pattern carefully based on the current file content
-            sed -i'' -e 's/^\s*"opencv-python>=.*",/"opencv-python-headless>=4.8.0",/' pyproject.toml
-            ```
-            *Or manually edit `pyproject.toml`* to change `"opencv-python>=...` to `"opencv-python-headless>=..."`.
-        3.  **Install** the package in editable mode (`-e`). Pip will now use your modified `pyproject.toml` to resolve and install dependencies:
+        2.  **Make your modifications** to `pyproject.toml` or other files as needed.
+        3.  **Install** the package in editable mode (`-e`). Pip will use your modified `pyproject.toml` to resolve dependencies:
             ```bash
             pip install -e .
             ```
 
-        This approach is useful for testing local changes to dependencies or build configurations before committing them or for setting up specific development environments.
+        This approach is useful for development or testing local changes before committing.
 
-    === "Method 4: Use `requirements.txt`"
+    === "Use requirements.txt"
 
-        If you manage your project dependencies using a `requirements.txt` file, you can specify your custom Ultralytics fork directly within it. This ensures that anyone setting up the project gets your specific version with its modified dependencies (like `opencv-python-headless`).
+        Specify a custom Ultralytics fork in your `requirements.txt` file to ensure consistent installations across your team.
 
-        1.  **Create or edit `requirements.txt`:** Add a line pointing to your custom fork and branch (as prepared in Method 2).
-            ```text title="requirements.txt"
-            # Core dependencies
-            numpy
-            matplotlib
-            polars
-            pyyaml
-            Pillow
-            psutil
-            requests>=2.23.0
-            torch>=1.8.0 # Or specific version/variant
-            torchvision>=0.9.0 # Or specific version/variant
+        ```text title="requirements.txt"
+        # Install ultralytics from a specific git branch
+        git+https://github.com/YOUR_USERNAME/ultralytics.git@my-custom-branch
 
-            # Install ultralytics from a specific git commit or branch
-            # Replace YOUR_USERNAME and custom-branch with your details
-            git+https://github.com/YOUR_USERNAME/ultralytics.git@custom-branch
+        # Other project dependencies
+        flask
+        ```
 
-            # Other project dependencies
-            flask
-            # ... etc
-            ```
-            *Note: You don't need to list dependencies already required by your custom `ultralytics` fork (like `opencv-python-headless`) here, as pip will install them based on the fork's `pyproject.toml`.*
-        2.  **Install** dependencies from the file:
-            ```bash
-            pip install -r requirements.txt
-            ```
-
-        This method integrates seamlessly with standard Python project dependency management workflows while allowing you to pin `ultralytics` to your customized Git source.
+        Install dependencies from the file:
+        ```bash
+        pip install -r requirements.txt
+        ```
 
 ## Use Ultralytics with CLI
 

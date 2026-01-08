@@ -1828,12 +1828,12 @@ class SemSegMetrics(SimpleClass, DataExportMixin):
 
     @property
     def ap_class_index(self) -> list:
-        """Return the average precision index per class"""
+        """Return the average precision index per class."""
         return self.seg.precision
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
-        """Generate a summarized representation of per-class semseg metrics as a list of dictionaries. Includes
-        shared scalar metrics (mIoU, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
+        """Generate a summarized representation of per-class semseg metrics as a list of dictionaries. Includes shared
+        scalar metrics (mIoU, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
 
         Args:
             normalize (bool): For Detect metrics, everything is normalized by default [0-1].

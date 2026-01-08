@@ -1547,7 +1547,7 @@ class LetterBox:
         padding_value: int = 114,
         interpolation: int = cv2.INTER_LINEAR,
         task: str = "detect",
-        use_background: bool = True
+        use_background: bool = True,
     ):
         """Initialize LetterBox object for resizing and padding images.
 
@@ -1600,7 +1600,7 @@ class LetterBox:
         if labels is None:
             labels = {}
         img = labels.get("img") if image is None else image
-        msk = labels.get("mask") if self.task == 'semseg' else None
+        msk = labels.get("mask") if self.task == "semseg" else None
         shape = img.shape[:2]  # current shape [height, width]
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
@@ -1643,7 +1643,9 @@ class LetterBox:
             )
             if msk is not None:
                 msk_list = [
-                    cv2.copyMakeBorder(msk[:, :, i], top, bottom, left, right, cv2.BORDER_CONSTANT, value=mask_padding[i])
+                    cv2.copyMakeBorder(
+                        msk[:, :, i], top, bottom, left, right, cv2.BORDER_CONSTANT, value=mask_padding[i]
+                    )
                     for i in range(msk.shape[-1])
                 ]
                 msk = np.stack(msk_list, axis=-1)
@@ -1651,7 +1653,7 @@ class LetterBox:
         else:  # multispectral
             pad_img = np.full((h + top + bottom, w + left + right, c), fill_value=self.padding_value, dtype=img.dtype)
             pad_msk = np.full((h + top + bottom, w + left + right, c), fill_value=0, dtype=img.dtype)
-            pad_msk[:,:, -1] = 1 if self.use_background else 0
+            pad_msk[:, :, -1] = 1 if self.use_background else 0
             pad_img[top : top + h, left : left + w] = img
             pad_msk[top : top + h, left : left + w] = msk if msk is not None else 0
             img = pad_img
@@ -1698,6 +1700,7 @@ class LetterBox:
         labels["instances"].scale(*ratio)
         labels["instances"].add_padding(padw, padh)
         return labels
+
 
 class CopyPaste(BaseMixTransform):
     """CopyPaste class for applying Copy-Paste augmentation to image datasets.

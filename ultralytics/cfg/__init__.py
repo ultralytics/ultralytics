@@ -727,7 +727,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
             )
             if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
                 w, h = 1280, 720
-            save_dir = get_save_dir(SimpleNamespace(project="runs/solutions", name="exp", exist_ok=False, task=""))
+            save_dir = get_save_dir(SimpleNamespace(task="solutions", name="exp", exist_ok=False, project=None))
             save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
             vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 

@@ -16,9 +16,6 @@ from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
 # model = YOLOE("/root/ultra_louis_work/yoloe/yoloe-v8s-seg-det.pt")
 
 import argparse
-
-
-
 parser=argparse.ArgumentParser(description="train yoloe with visual prompt")
 parser.add_argument("--model_version", type=str, default="26s")
 parser.add_argument("--epochs", type=int, default=4)
@@ -68,169 +65,12 @@ assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeT
 
 
 
+from overrides import DATA_CONFIG, OVERRIDES ,refer_data_yaml
+assert args.data is not None, "data argument must be provided"
+assert args.data in DATA_CONFIG.keys(), f"data {args.data} not found in DATA_CONFIG"
+data=DATA_CONFIG[args.data]
+ 
 
-lvis_data_path=os.path.abspath("../datasets/lvis.yaml")
-# train_data_root="../datasets"
-train_data_root="/data/shared-datasets/yoloe26_data"
-flickr_json="/flickr/pipeline_outputs/v4/merged.json"
-mixed_grounding_json="/mixed_grounding/pipeline_outputs/v4/merged.json"
-obj365_json="/Objects365v1/pipeline_outputs/train/v4/merged.json"
-obj365_v5_json="/Objects365v1/pipeline_outputs/train/v5/merged.json"
-refer_data_yaml=os.path.abspath(f"../datasets/lvis_train_vps.yaml")
-
-assert args.ag==True 
-
-
-if args.ag:
-    data = dict(
-        train=dict(
-            grounding_data=[
-                dict(
-                    img_path=f"{train_data_root}/flickr/full_images/",
-                    json_file=f"{train_data_root}{flickr_json}",
-                ),
-                dict(
-                    img_path=f"{train_data_root}/mixed_grounding/gqa/images",
-                    json_file=f"{train_data_root}{mixed_grounding_json}",
-                ),
-                dict(
-                    img_path=f"{train_data_root}/Objects365v1/images/train",
-                    json_file=f"{train_data_root}{obj365_json}",
-                ),
-            ],
-        ),
-        val=dict(yolo_data=[lvis_data_path]),
-    )
-
-else:
-    data = dict(
-        train=dict(
-            yolo_data=[f"{train_data_root}/Objects365v1.yaml"],
-            grounding_data=[
-                dict(
-                    img_path=f"{train_data_root}/flickr/full_images/",
-                    json_file=f"{train_data_root}/flickr/annotations/final_flickr_separateGT_train_segm.json",
-                ),
-                dict(
-                    img_path=f"{train_data_root}/mixed_grounding/gqa/images",
-                    json_file=f"{train_data_root}/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
-                ),
-            ],
-        ),
-        val=dict(yolo_data=[lvis_data_path]),
-    )
-
-if args.data=="fast_verify":
-
-
-
-    data = dict(
-        train=dict(
-            yolo_data=["coco128.yaml"]
-        ),
-        val=dict(yolo_data=[os.path.abspath(lvis_data_path)]),
-    )
-elif args.data == "newdata_oldobj365":
-    print("Using newdata_oldobj365......")
-    data = dict(
-        train=dict(
-            grounding_data=[
-                dict(
-                    img_path=f"{train_data_root}/flickr/full_images/",
-                    json_file=f"{train_data_root}{flickr_json}",
-                ),
-                dict(
-                    img_path=f"{train_data_root}/mixed_grounding/gqa/images",
-                    json_file=f"{train_data_root}{mixed_grounding_json}",
-                ),
-                dict(
-                    img_path=f"../datasets/Objects365v1/images/train",
-                    json_file=f"../datasets/Objects365v1/annotations/objects365_train_segm.json",
-                ),
-            ],
-        ),
-        val=dict(yolo_data=[lvis_data_path]),
-    )
-elif args.data == "old_engine_data":
-    print("Using all_old_engine_data......")
-    data = dict(
-        train=dict(
-            grounding_data=[
-                dict(
-                    img_path="../datasets/flickr/full_images/",
-                    json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
-                ),
-                dict(
-                    img_path="../datasets/mixed_grounding/gqa/images",
-                    json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
-                ),
-                dict(
-                    img_path="../datasets/Objects365v1/images/train",
-                    json_file="../datasets/Objects365v1/annotations/objects365_train_segm.json",
-                ),
-            ],
-        ),
-        val=dict(yolo_data=["../datasets/lvis.yaml"]),
-    )
-
-elif args.data == "newdata_obj365v5":
-    print("Using newdata_obj365v5......")
-    data = dict(
-        train=dict(
-            grounding_data=[
-                dict(
-                    img_path=f"{train_data_root}/flickr/full_images/",
-                    json_file=f"{train_data_root}{flickr_json}",
-                ),
-                dict(
-                    img_path=f"{train_data_root}/mixed_grounding/gqa/images",
-                    json_file=f"{train_data_root}{mixed_grounding_json}",
-                ),
-                dict(
-                    img_path=f"{train_data_root}/Objects365v1/images/train",
-                    json_file=f"{train_data_root}{obj365_v5_json}",
-                ),
-            ],
-        ),
-        val=dict(yolo_data=[lvis_data_path]),
-    )
-
-
-elif args.data=="objv1_only":
-    Objects365v1=f"{train_data_root}/Objects365v1.yaml"
-    data = dict(
-        train=dict(
-            yolo_data=[Objects365v1],
-        ),
-        val=dict(yolo_data=[lvis_data_path]),
-    )
-elif args.data=="flickr_only":
-    data = dict(
-        train=dict(
-            grounding_data=[ dict(
-                    img_path=f"{train_data_root}/flickr/full_images/",
-                    json_file=f"{train_data_root}/flickr/annotations/final_flickr_separateGT_train_segm.json",
-                ),],
-        ),
-        val=dict(yolo_data=[lvis_data_path]),
-    )
-elif args.data is None or args.data=="":
-    pass
-else:
-    raise ValueError("data argument must be fast_verify or objv1_only")
-
-
-###################################################################
-# args.device="7"
-# args.trainer="YOLOESegTrainerFromScratch"
-# args.project="runs/quick_verfiy"
-# args.model_version="26s-seg"
-# data = dict(
-#     train=dict(
-#         yolo_data=["coco128-seg.yaml"]
-#     ),
-#     val=dict(yolo_data=[os.path.abspath(lvis_data_path)]),
-# )
 
 ###################################################################
 model = YOLO("yoloe-{}.yaml".format(args.model_version))
@@ -295,7 +135,6 @@ elif args.trainer=="YOLOESegTrainerSegHead":
     # reinit the model.model.savpe.
     # freeze every layer except of the savpe module.
     head_index = len(model.model.model) - 1
-    train_layers=[]
     freeze = list(range(0, head_index))
     for name, child in model.model.model[-1].named_children():
         print("name:", name)
@@ -311,7 +150,7 @@ elif args.trainer=="YOLOESegTrainerSegHead":
 
 else:
     print("trainer_class:", args.trainer)
-    raise ValueError("trainer_class must be YOLOETrainerFromScratch or YOLOEVPTrainer")
+    raise ValueError("trainer_class must be YOLOETrainerFromScratch, YOLOEVPTrainer, YOLOEPEFreeTrainer, YOLOESegTrainerFromScratch, or YOLOESegTrainerSegHead")
 
 trainer_class =eval( args.trainer)
 
@@ -320,7 +159,6 @@ train_args=dict( data=data,
     batch=args.batch,
     epochs=args.epochs,
     close_mosaic=args.close_mosaic,
-
     workers=args.workers,
     max_det=args.max_det,
     trainer=trainer_class,  # use YOLOEVPTrainer if converted to detection model
@@ -350,10 +188,10 @@ train_args=dict( data=data,
 
 
 
-from overrides import overrides
+from overrides import OVERRIDES
 if args.override is not None:
-    assert args.override in overrides, f"override {args.override} not found"
-    override=overrides[args.override]
+    assert args.override in OVERRIDES, f"override {args.override} not found"
+    override=OVERRIDES[args.override]
     for k,v in override.items():
         print(f"Overriding {k} from {train_args.get(k, 'N/A')} to {v}")
         train_args[k]=v

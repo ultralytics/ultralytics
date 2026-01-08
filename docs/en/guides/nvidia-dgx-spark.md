@@ -14,7 +14,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 !!! note
 
-    This guide has been tested with NVIDIA DGX Spark running DGX OS based on Ubuntu. It is expected to work with the latest DGX OS releases.
+    This guide has been tested with NVIDIA DGX Spark Founders Edition running DGX OS based on Ubuntu. It is expected to work with the latest DGX OS releases.
 
 ## What is NVIDIA DGX Spark?
 
@@ -345,6 +345,34 @@ When using NVIDIA DGX Spark, there are a couple of best practices to follow in o
     yolo export model=yolo11n.pt format=engine half=True # FP16
     yolo export model=yolo11n.pt format=engine int8=True # INT8
     ```
+
+## System Updates (Founders Edition)
+
+Keeping your DGX Spark Founders Edition up to date is crucial for performance and security. NVIDIA provides two primary methods for updating the system OS, drivers, and firmware.
+
+### Using DGX Dashboard (Recommended)
+
+The [DGX Dashboard](https://docs.nvidia.com/dgx/dgx-spark/dgx-dashboard.html) is the recommended way to perform system updates ensuring compatibility. It allows you to:
+
+- View available system updates
+- Install security patches and system updates
+- Manage NVIDIA driver and firmware updates
+
+### Manual System Updates
+
+For advanced users, updates can be performed manually via terminal:
+
+```bash
+sudo apt update
+sudo apt dist-upgrade
+sudo fwupdmgr refresh
+sudo fwupdmgr upgrade
+sudo reboot
+```
+
+!!! warning
+
+    Ensure your system is connected to a stable power source and you have backed up critical data before performing updates.
 
 ## Next Steps
 

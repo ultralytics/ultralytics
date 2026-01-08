@@ -2185,11 +2185,12 @@ class Stereo3DDetValidator(BaseValidator):
         Returns:
             Formatted header string matching the progress bar format.
         """
-        # Format: class name (22 chars), then Images (11 chars), then 6 metric columns (11 chars each)
-        # This matches the data row format: "%22s" + "%11i" + "%11.3g" * 6
-        return ("%22s" + "%11s" + "%11s" * 6) % (
+        # Format: class name (22 chars), then Images (11 chars), Instances (11 chars), then 6 metric columns (11 chars each)
+        # This matches the data row format: "%22s" + "%11i" * 2 + "%11.3g" * 6
+        return ("%22s" + "%11s" * 8) % (
             "",  # Empty class name column (22 chars)
             "Images".rjust(11),
+            "Instances".rjust(11),
             "AP3D@0.5".rjust(11),
             "AP3D@0.7".rjust(11),
             "Precision".rjust(11),
@@ -2442,6 +2443,20 @@ class Stereo3DDetValidator(BaseValidator):
         nt_per_class = np.bincount(all_target_cls.astype(int), minlength=self.metrics.nc) if len(all_target_cls) > 0 else np.zeros(self.metrics.nc, dtype=int)
         total_gt = int(nt_per_class.sum())
 
+        # Compute images per class (how many images contain each class)
+        # Use det_metrics if available (already computed), otherwise compute from stats
+        if hasattr(self, "det_metrics") and hasattr(self.det_metrics, "nt_per_image"):
+            nt_per_image = self.det_metrics.nt_per_image
+        else:
+            # Compute from stats: count unique images (by stat index) that contain each class
+            nt_per_image = np.zeros(self.metrics.nc, dtype=int)
+            for si, stat in enumerate(self.metrics.stats):
+                if len(stat.get("target_cls", [])) > 0:
+                    unique_classes = np.unique(stat["target_cls"].astype(int))
+                    for cls_id in unique_classes:
+                        if 0 <= cls_id < self.metrics.nc:
+                            nt_per_image[cls_id] += 1
+
         # Get mean metrics
         maps3d_50 = self.metrics.maps3d_50
         maps3d_70 = self.metrics.maps3d_70
@@ -2473,24 +2488,24 @@ class Stereo3DDetValidator(BaseValidator):
         except Exception as e:
             LOGGER.debug(f"Failed to get bbox2d metrics for main summary: {e}")
 
-        # Print format: class name, images, AP3D@0.5, AP3D@0.7, precision, recall, mAP50, mAP50-95 (matches progress bar format)
-        # Note: labels (total_gt) is shown in verbose per-class output, not in main summary
-        pf = "%22s" + "%11i" + "%11.3g" * 6
-        LOGGER.info(pf % ("all", self.seen, maps3d_50, maps3d_70, precision_mean, recall_mean, box_map50, box_map5095))
+        # Print format: class name, images, instances, AP3D@0.5, AP3D@0.7, precision, recall, mAP50, mAP50-95
+        # Matches detect task format: "Class", "Images", "Instances", ...
+        pf = "%22s" + "%11i" * 2 + "%11.3g" * 6
+        LOGGER.info(pf % ("all", self.seen, total_gt, maps3d_50, maps3d_70, precision_mean, recall_mean, box_map50, box_map5095))
 
-        # Also print 2D bbox metrics (YOLO-style)
-        try:
-            det_res = self.det_metrics.results_dict if hasattr(self, "det_metrics") else {}
-            box_p = det_res.get("metrics/precision(B)", 0.0)
-            box_r = det_res.get("metrics/recall(B)", 0.0)
-            box_map50 = det_res.get("metrics/mAP50(B)", 0.0)
-            box_map = det_res.get("metrics/mAP50-95(B)", 0.0)
-            # Format matches main summary: class name, images, AP3D@0.5, AP3D@0.7, precision, recall, mAP50, mAP50-95
-            # AP3D metrics are not applicable for 2D bbox, so use 0.0 as placeholders
-            pf2 = "%22s" + "%11i" + "%11.3g" * 6
-            LOGGER.info(pf2 % ("bbox2d", self.seen, 0.0, 0.0, box_p, box_r, box_map50, box_map))
-        except Exception as e:
-            LOGGER.debug(f"Failed to print bbox2d metrics: {e}")
+        # # Also print 2D bbox metrics (YOLO-style)
+        # try:
+        #     det_res = self.det_metrics.results_dict if hasattr(self, "det_metrics") else {}
+        #     box_p = det_res.get("metrics/precision(B)", 0.0)
+        #     box_r = det_res.get("metrics/recall(B)", 0.0)
+        #     box_map50 = det_res.get("metrics/mAP50(B)", 0.0)
+        #     box_map = det_res.get("metrics/mAP50-95(B)", 0.0)
+        #     # Format matches main summary: class name, images, AP3D@0.5, AP3D@0.7, precision, recall, mAP50, mAP50-95
+        #     # AP3D metrics are not applicable for 2D bbox, so use 0.0 as placeholders
+        #     pf2 = "%22s" + "%11i" + "%11.3g" * 6
+        #     LOGGER.info(pf2 % ("bbox2d", self.seen, 0.0, 0.0, box_p, box_r, box_map50, box_map))
+        # except Exception as e:
+        #     LOGGER.debug(f"Failed to print bbox2d metrics: {e}")
 
         # Print results per class if verbose and multiple classes
         if self.args.verbose and not self.training and self.metrics.nc > 1 and self.metrics.ap3d_50:
@@ -2540,12 +2555,14 @@ class Stereo3DDetValidator(BaseValidator):
                 class_map5095 = class_map5095_dict.get(class_id, 0.0)
                 
                 nt_class = int(nt_per_class[class_id]) if class_id < len(nt_per_class) else 0
-                # Use same format as main summary (without labels column to match progress bar)
+                nt_images = int(nt_per_image[class_id]) if class_id < len(nt_per_image) else 0
+                # Use same format as main summary: class name, images, instances, then metrics
                 LOGGER.info(
                     pf
                     % (
                         class_name,
-                        nt_class,  # number of ground truth labels for this class
+                        nt_images,  # number of images containing this class
+                        nt_class,  # number of ground truth instances for this class
                         ap3d_50_class,
                         ap3d_70_class,
                         prec_class,

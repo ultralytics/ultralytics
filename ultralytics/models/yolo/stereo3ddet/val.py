@@ -1610,9 +1610,10 @@ class Stereo3DDetValidator(BaseValidator):
         
         Targets are now generated in the dataset's collate_fn, so we just need to
         move them to the device if they're not already there.
-        """
+        """        
         imgs = batch["img"].to(self.device, non_blocking=True)
-        batch["img"] = (imgs.half() if self.args.half else imgs.float()) / 255.0        
+        batch["img"] = (imgs.half() if self.args.half else imgs.float()) / 255.0
+        
         # Make the *current* batch available to postprocess(); BaseValidator calls postprocess() before update_metrics().
         self._current_batch = batch
         # Move targets to device if present (dataset-dependent)
@@ -1895,9 +1896,6 @@ class Stereo3DDetValidator(BaseValidator):
         self.det_metrics.names = self.names
         self.det_metrics.clear_stats()
 
-    
-    
-    
     def update_metrics(self, preds: list[list[Box3D]], batch: dict[str, Any]) -> None:
         """Update metrics with predictions and ground truth.
 
@@ -2464,10 +2462,20 @@ class Stereo3DDetValidator(BaseValidator):
                     all_recalls.extend([v for v in iou_dict.values() if isinstance(v, (int, float))])
             recall_mean = float(np.mean(all_recalls)) if all_recalls else 0.0
 
-        # Print format: class name, images, AP3D@0.5, AP3D@0.7, precision, recall (matches progress bar format)
+        # Get 2D bbox mAP50 and mAP50-95 metrics (for main summary line)
+        box_map50 = 0.0
+        box_map5095 = 0.0
+        try:
+            det_res = self.det_metrics.results_dict if hasattr(self, "det_metrics") else {}
+            box_map50 = det_res.get("metrics/mAP50(B)", 0.0)
+            box_map5095 = det_res.get("metrics/mAP50-95(B)", 0.0)
+        except Exception as e:
+            LOGGER.debug(f"Failed to get bbox2d metrics for main summary: {e}")
+
+        # Print format: class name, images, AP3D@0.5, AP3D@0.7, precision, recall, mAP50, mAP50-95 (matches progress bar format)
         # Note: labels (total_gt) is shown in verbose per-class output, not in main summary
-        pf = "%22s" + "%11i" + "%11.3g" * 4
-        LOGGER.info(pf % ("all", self.seen, maps3d_50, maps3d_70, precision_mean, recall_mean))
+        pf = "%22s" + "%11i" + "%11.3g" * 6
+        LOGGER.info(pf % ("all", self.seen, maps3d_50, maps3d_70, precision_mean, recall_mean, box_map50, box_map5095))
 
         # Also print 2D bbox metrics (YOLO-style)
         try:
@@ -2483,6 +2491,26 @@ class Stereo3DDetValidator(BaseValidator):
 
         # Print results per class if verbose and multiple classes
         if self.args.verbose and not self.training and self.metrics.nc > 1 and self.metrics.ap3d_50:
+            # Get per-class 2D bbox metrics for printing
+            class_map50_dict = {}
+            class_map5095_dict = {}
+            try:
+                if hasattr(self, "det_metrics") and hasattr(self.det_metrics, "class_result") and hasattr(self.det_metrics, "ap_class_index"):
+                    # Get per-class mAP50 and mAP50-95 from DetMetrics
+                    # class_result(i) returns (p, r, map50, map) for index i in ap_class_index
+                    # ap_class_index[i] gives the class_id at index i
+                    for i, class_id in enumerate(self.det_metrics.ap_class_index):
+                        try:
+                            class_result = self.det_metrics.class_result(i)
+                            if len(class_result) >= 4:
+                                class_map50_dict[class_id] = float(class_result[2])  # mAP50
+                                class_map5095_dict[class_id] = float(class_result[3])  # mAP50-95
+                        except (IndexError, AttributeError) as e:
+                            LOGGER.debug(f"Failed to get metrics for class {class_id} at index {i}: {e}")
+                            continue
+            except Exception as e:
+                LOGGER.debug(f"Failed to get per-class bbox2d metrics: {e}")
+
             for class_id, class_name in self.metrics.names.items():
                 ap3d_50_class = self.metrics.ap3d_50.get(class_name, 0.0)
                 ap3d_70_class = self.metrics.ap3d_70.get(class_name, 0.0)
@@ -2504,6 +2532,10 @@ class Stereo3DDetValidator(BaseValidator):
                             recall_values.append(iou_dict[class_id])
                     recall_class = float(np.mean(recall_values)) if recall_values else 0.0
                 
+                # Get class-specific mAP50 and mAP50-95
+                class_map50 = class_map50_dict.get(class_id, 0.0)
+                class_map5095 = class_map5095_dict.get(class_id, 0.0)
+                
                 nt_class = int(nt_per_class[class_id]) if class_id < len(nt_per_class) else 0
                 # Use same format as main summary (without labels column to match progress bar)
                 LOGGER.info(
@@ -2515,6 +2547,8 @@ class Stereo3DDetValidator(BaseValidator):
                         ap3d_70_class,
                         prec_class,
                         recall_class,
+                        class_map50,
+                        class_map5095,
                     )
                 )
 
@@ -2601,8 +2635,9 @@ class Stereo3DDetValidator(BaseValidator):
         """
         from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
         # img_path should be a dir 
-        if isinstance(img_path, str) and not os.path.isdir(img_path):
+
             # means it's a file instead of the path, return it's parent directory
+        if isinstance(img_path, str) and not os.path.isdir(img_path):
             img_path = Path(img_path).parent
 
 
@@ -2688,21 +2723,3 @@ class Stereo3DDetValidator(BaseValidator):
             drop_last=False,  # Don't drop last batch in validation
             pin_memory=self.device.type == "cuda" if hasattr(self, "device") else True,
         )
-    
-    # def __call__(self, batch: dict[str, Any]) -> dict[str, Any]:
-    #     """Validate a single batch of data."""
-    #     # debug
-    #     def fix_batchnorm_stats(model):
-    #         """Fix NaN BatchNorm running statistics that can cause validation failures."""
-    #         for module in model.modules():
-    #             if isinstance(module, torch.nn.BatchNorm2d):
-    #                 # Check for NaN in running statistics
-    #                 if torch.isnan(module.running_mean).any() or torch.isnan(module.running_var).any():
-    #                     print(f"WARNING: Found NaN in BatchNorm running stats, resetting to zeros")
-    #                     # Reset to safe defaults
-    #                     module.running_mean.zero_()
-    #                     module.running_var.fill_(1.0)
-    #                     # Optionally reset momentum buffers
-    #                     if hasattr(module, 'momentum') and module.momentum is not None:
-    #                         module.momentum = 0.1  # Conservative momentum
-    #     return super().__call__(batch)

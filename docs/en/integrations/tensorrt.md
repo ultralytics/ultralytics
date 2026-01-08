@@ -403,9 +403,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 !!! info
 
-    See our [quickstart guide on NVIDIA DGX Spark with Ultralytics YOLO](../guides/nvidia-dgx-spark.md) to learn more about setup and configuration. 
-
-
+    See our [quickstart guide on NVIDIA DGX Spark with Ultralytics YOLO](../guides/nvidia-dgx-spark.md) to learn more about setup and configuration.
 
 #### Evaluation methods
 

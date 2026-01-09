@@ -124,6 +124,17 @@ The above ultralytics installation will install Torch and Torchvision. However, 
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 ```
 
+!!! info
+
+    When running PyTorch 2.9.1 on NVIDIA DGX Spark, you may encounter the following `UserWarning` when initializing CUDA (e.g. running `yolo checks`, `yolo predict`, etc.):
+
+    ```text
+    UserWarning: Found GPU0 NVIDIA GB10 which is of cuda capability 12.1.
+    Minimum and Maximum cuda capability supported by this version of PyTorch is (8.0) - (12.0)
+    ```
+
+    This warning can be safely ignored. To address this permanently, a fix has been submitted in PyTorch PR [#164590](https://github.com/pytorch/pytorch/pull/164590) which will be included in the PyTorch 2.10 release.
+
 ### Install `onnxruntime-gpu`
 
 The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for ARM64 systems. So we need to manually install this package. This package is needed for some of the exports.

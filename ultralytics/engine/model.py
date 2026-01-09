@@ -403,7 +403,7 @@ class Model(torch.nn.Module):
         }
         torch.save({**self.ckpt, **updates}, filename)
 
-    def info(self, detailed: bool = False, verbose: bool = True, imgsz=640):
+    def info(self, detailed: bool = False, verbose: bool = True, imgsz: int | list[int, int] = 640):
         """Display model information.
 
         This method provides an overview or detailed information about the model, depending on the arguments
@@ -412,7 +412,7 @@ class Model(torch.nn.Module):
         Args:
             detailed (bool): If True, shows detailed information about the model layers and parameters.
             verbose (bool): If True, prints the information. If False, returns the information as a list.
-            imgsz (int | list): Input image size used for FLOPs calculation.
+            imgsz (int | list[int, int]): Input image size used for FLOPs calculation.
 
         Returns:
             (list[str]): A list of strings containing various types of information about the model, including model

@@ -23,9 +23,15 @@ Usage - formats:
                           yolo11n_rknn_model         # Rockchip RKNN
 """
 
+from __future__ import annotations
+
 import json
+import os
+import subprocess
 import time
+from datetime import timedelta
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
 import torch
@@ -34,10 +40,17 @@ import torch.distributed as dist
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, RANK, TQDM, callbacks, colorstr, emojis
+from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
+from ultralytics.utils.dist import ddp_cleanup, decide_world_size, generate_distributed_validation_command
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
+from ultralytics.utils.torch_utils import (
+    attempt_compile,
+    select_device,
+    smart_inference_mode,
+    torch_distributed_zero_first,
+    unwrap_model,
+)
 
 
 class BaseValidator:
@@ -106,7 +119,14 @@ class BaseValidator:
         self.dataloader = dataloader
         self.stride = None
         self.data = None
-        self.device = None
+        self.device = select_device(self.args.device)
+
+        # Update "-1" devices so post-training val does not repeat search
+        self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
+        world_size = decide_world_size(self.args.device)
+        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
+        self.world_size = world_size
+
         self.batch_i = None
         self.training = True
         self.names = None
@@ -119,13 +139,126 @@ class BaseValidator:
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
 
         self.save_dir = save_dir or get_save_dir(self.args)
-        (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
+        if RANK in {-1, 0}:
+            (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         if self.args.conf is None:
             self.args.conf = 0.01 if self.args.task == "obb" else 0.001  # reduce OBB val memory usage
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
+
+    def _setup_distributed(self):
+        """Initialize the distributed process group for multi-process validation.
+
+        This was originally copied from the trainer's DDP setup. For validation we don't
+        wrap the model in DistributedDataParallel (no gradient sync), but we may still
+        need a process group when running multi-process validation so that collective
+        operations (e.g. dist.reduce in loss aggregation or other gather/reduce ops in
+        `gather_stats`) work correctly on spawned child processes.
+
+        This method must be called in each spawned process (where `LOCAL_RANK` is set)
+        to configure the device and initialize the torch.distributed process group.
+        """
+        # bind the current process to the correct CUDA device index
+        torch.cuda.set_device(RANK)
+        self.device = torch.device("cuda", RANK)
+        # make NCCL blocking waits deterministic for timeouts
+        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"
+        dist.init_process_group(
+            backend="nccl" if dist.is_nccl_available() else "gloo",
+            timeout=timedelta(seconds=10800 * 3),  # 3 hours
+            rank=RANK,
+            world_size=self.world_size,
+        )
+
+    def _setup_model(self, model_nn: torch.nn.Module | None) -> AutoBackend:
+        """Load, create, or download model for any task.
+
+        Returns:
+            torch.nn.Module
+        """
+        if str(self.args.model).endswith(".yaml") and model_nn is None:
+            LOGGER.warning("Validating an untrained model YAML will result in 0 mAP.")
+
+        model = AutoBackend(
+            model=model_nn or self.args.model,
+            device=self.device,
+            dnn=self.args.dnn,
+            data=self.args.data,
+            fp16=self.args.half,
+        )
+
+        if self.args.compile:
+            model = attempt_compile(model, device=self.device)
+
+        model.eval()
+        return model
+
+    def _setup_dataset_once(self) -> dict:
+        """Setup dataset once to avoid auto-downloading multiple times."""
+        with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
+            if str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"}:
+                data = check_det_dataset(self.args.data)
+            elif self.args.task == "classify":
+                data = check_cls_dataset(self.args.data, split=self.args.split)
+            else:
+                raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))
+
+        return data
+
+    def _setup_validation(self, model_nn: torch.nn.Module | None = None):
+        """Build dataloaders and optimizer on correct rank process."""
+        self.model = self._setup_model(model_nn)
+        self.stride = self.model.stride  # used in get_dataloader() for padding
+
+        self.args.half = self.model.fp16  # update half
+        stride, pt, jit = self.model.stride, self.model.pt, self.model.jit
+        imgsz = check_imgsz(self.args.imgsz, stride=stride)
+
+        if not (pt or jit or getattr(self.model, "dynamic", False)):
+            self.args.batch = self.model.metadata.get("batch", 1)  # export.py models default to batch-size 1
+            LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
+
+        self.data = self._setup_dataset_once()
+
+        local_batch_size = self.args.batch // max(self.world_size, 1)
+        # Subclasses will use LOCAL_RANK to construct loader
+        self.dataloader = self.get_dataloader(self.data.get(self.args.split), local_batch_size)
+
+        self.model.warmup(
+            imgsz=(1 if self.model.pt else self.args.batch, self.data["channels"], imgsz, imgsz)
+        )  # warmup
+
+    def do_offline_validation(self):
+        """Allow device='', device=None on Multi-GPU systems to default to device=0."""
+        # Run subprocess if DDP training, else train normally
+        if self.ddp:
+            # Argument checks
+            if self.args.batch < 1.0:
+                raise ValueError(
+                    "Autobatch with batch<1 not supported for Multi-GPU training, "
+                    "please specify a valid batch size multiple of GPU count (self.world_size), i.e. batch=(self.world_size * 8)."
+                )
+
+            # Command: spawn multiple processes for distributed (multi-process) validation
+            cmd, file = generate_distributed_validation_command(self)
+            try:
+                LOGGER.info(f"{colorstr('DISTRIBUTED:')} debug command {' '.join(cmd)}")
+                subprocess.run(cmd, check=True)
+            except Exception:
+                raise
+            finally:
+                # cleanup temporary file created for distributed validation
+                ddp_cleanup(self, file)
+        else:
+            self.training = False
+            if self.world_size > 1:
+                # initialize distributed process group in spawned child processes
+                self._setup_distributed()
+            self._setup_validation()
+            # Run single-worker validation path: no label_loss_items and no augmentation
+            return self._do_val_single_worker(self.model, None, False)
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
@@ -152,44 +285,15 @@ class BaseValidator:
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
+            return self._do_val_single_worker(model, trainer.label_loss_items, augment)
         else:
-            if str(self.args.model).endswith(".yaml") and model is None:
-                LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
-            callbacks.add_integration_callbacks(self)
-            model = AutoBackend(
-                model=model or self.args.model,
-                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
-                dnn=self.args.dnn,
-                data=self.args.data,
-                fp16=self.args.half,
-            )
-            self.device = model.device  # update device
-            self.args.half = model.fp16  # update half
-            stride, pt, jit = model.stride, model.pt, model.jit
-            imgsz = check_imgsz(self.args.imgsz, stride=stride)
-            if not (pt or jit or getattr(model, "dynamic", False)):
-                self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
-                LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
-
-            if str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"}:
-                self.data = check_det_dataset(self.args.data)
-            elif self.args.task == "classify":
-                self.data = check_cls_dataset(self.args.data, split=self.args.split)
+            if self.world_size <= 1:
+                self._setup_validation(model_nn=model)
+                return self._do_val_single_worker(self.model, None, augment)
             else:
-                raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))
+                return self.do_offline_validation()
 
-            if self.device.type in {"cpu", "mps"}:
-                self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
-            if not (pt or (getattr(model, "dynamic", False) and not model.imx)):
-                self.args.rect = False
-            self.stride = model.stride  # used in get_dataloader() for padding
-            self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
-
-            model.eval()
-            if self.args.compile:
-                model = attempt_compile(model, device=self.device)
-            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
-
+    def _do_val_single_worker(self, model: torch.nn.Module, label_loss_items: Callable | None, augment: bool = False):
         self.run_callbacks("on_val_start")
         dt = (
             Profile(device=self.device),
@@ -240,11 +344,11 @@ class BaseValidator:
             model.float()
             # Reduce loss across all GPUs
             loss = self.loss.clone().detach()
-            if trainer.world_size > 1:
+            if self.world_size > 1:
                 dist.reduce(loss, dst=0, op=dist.ReduceOp.AVG)
             if RANK > 0:
                 return
-            results = {**stats, **trainer.label_loss_items(loss.cpu() / len(self.dataloader), prefix="val")}
+            results = {**stats, **label_loss_items(loss.cpu() / len(self.dataloader), prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
             if RANK > 0:

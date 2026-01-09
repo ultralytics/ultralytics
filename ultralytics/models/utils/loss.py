@@ -89,8 +89,13 @@ class DETRLoss(nn.Module):
         self.device = None
 
     def _get_loss_class(
-        self, pred_scores: torch.Tensor, targets: torch.Tensor, gt_scores: torch.Tensor, 
-        local_num_gts: int, global_num_gts: float, postfix: str = ""
+        self,
+        pred_scores: torch.Tensor,
+        targets: torch.Tensor,
+        gt_scores: torch.Tensor,
+        local_num_gts: int,
+        global_num_gts: float,
+        postfix: str = "",
     ) -> dict[str, torch.Tensor]:
         """Compute classification loss based on predictions, target values, and ground truth scores.
 

@@ -11,7 +11,8 @@ import numpy as np
 import torch
 
 from ultralytics.models import yolo
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, ROOT, YAML, check_yaml
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, ROOT, YAML
+from ultralytics.utils.checks import check_yaml
 from ultralytics.models.yolo.stereo3ddet.visualize import labels_to_box3d, plot_stereo_sample
 from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel

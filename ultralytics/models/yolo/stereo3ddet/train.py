@@ -10,15 +10,16 @@ import cv2
 import numpy as np
 import torch
 
-from ultralytics.models import yolo
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, ROOT, YAML
-from ultralytics.utils.checks import check_yaml
-from ultralytics.models.yolo.stereo3ddet.visualize import labels_to_box3d, plot_stereo_sample
-from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
-from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
 from ultralytics.data import build_dataloader
 from ultralytics.data.stereo.target_improved import TargetGenerator as TargetGeneratorImproved
+from ultralytics.models import yolo
+from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
+from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
+from ultralytics.models.yolo.stereo3ddet.visualize import labels_to_box3d, plot_stereo_sample
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, ROOT, YAML
+from ultralytics.utils.checks import check_yaml
 from ultralytics.utils.plotting import VisualizationConfig, plot_labels, plot_stereo3d_boxes
+
 
 class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
     """Stereo 3D Detection trainer.
@@ -129,29 +130,18 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
     def get_dataset(self) -> dict[str, Any]:
         """Parse stereo dataset YAML and return metadata for KITTIStereoDataset.
 
-        This overrides the base implementation to avoid the default YOLO detection dataset checks
-        and instead wire up paths/splits intended for the custom `KITTIStereoDataset` loader.
+        This leverages check_det_dataset() for path resolution and automatic downloads,
+        then transforms the result into stereo-specific format for our custom dataset loader.
 
         Returns:
             dict: Dataset dictionary with fields used by the trainer and model.
         """
-        # Handle None data for testing purposes
-        if self.args.data is None:
-            return {
-                "names": {0: "Car", 1: "Pedestrian", 2: "Cyclist"},
-                "nc": 3,
-                "channels": 6,
-            }
-        
-        # Load YAML if a path is provided; accept dicts directly
-        data_cfg = self.args.data
-        if isinstance(data_cfg, (str, Path)):
-            # Resolve the path using check_yaml to handle default configs in ultralytics/cfg/datasets/
-            data_cfg_path = check_yaml(str(data_cfg))
-            data_cfg = YAML.load(data_cfg_path)
 
-        if not isinstance(data_cfg, dict):
-            raise RuntimeError("stereo3ddet: data must be a YAML path or dict")
+
+        # Use check_det_dataset for path resolution, validation, and automatic download
+        # This handles: finding default configs, executing download scripts, resolving paths
+        from ultralytics.data.utils import check_det_dataset
+        data_cfg = check_det_dataset(self.args.data, autodownload=True)
 
         # Validate channels for stereo (must be 6 = left RGB + right RGB)
         channels = data_cfg.get("channels", 6)
@@ -163,8 +153,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             )
 
         # Root path and splits
-        root_path = data_cfg.get("path") or "."
-        root = Path(str(root_path)).resolve()
+        root = Path(data_cfg["path"])
         # Accept either directory-style train/val or txt; KITTIStereoDataset uses split names
         train_split = data_cfg.get("train_split", "train")
         val_split = data_cfg.get("val_split", "val")

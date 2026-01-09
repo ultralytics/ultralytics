@@ -20,7 +20,7 @@ MASTER_PORT=${MASTER_PORT:-29500}
 
 export MASTER_ADDR MASTER_PORT NNODES GPUS_PER_NODE NODE_RANK TRAIN_SCRIPT
 
-TORCHRUN=(~/containers/python_ultra_2506 python -m torch.distributed.run)
+TORCHRUN=(~/containers/python_ultra_2506 -m torch.distributed.run)
 "${TORCHRUN[@]}" \
   --nnodes="$NNODES" \
   --nproc_per_node="$GPUS_PER_NODE" \

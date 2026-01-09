@@ -10,13 +10,13 @@ The [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (Visual Object Classes
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ogTBBD8McRk"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/yrHzL8RyY6g"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Brain Tumor Detection using Ultralytics HUB
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the Pascal VOC Dataset | Object Detection 🚀
 </p>
 
 ## Key Features

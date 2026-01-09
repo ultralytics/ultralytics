@@ -184,7 +184,7 @@ div.highlight {
   flex-direction: column;
 }
 .banner-wrapper {
-  padding: 40px 0px;
+  padding: 40px 0;
 }
 .banner-wrapper > .banner-content-wrapper {
   gap: 0.75rem;

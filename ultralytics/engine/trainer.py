@@ -123,6 +123,7 @@ class BaseTrainer:
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
+        self.nnodes = int(self.args.nnodes)
         self.device = select_device(self.args.device) if LOCAL_RANK == -1 else torch.device("cuda", LOCAL_RANK)
         # Update "-1" devices so post-training val does not repeat search
         self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
@@ -192,18 +193,19 @@ class BaseTrainer:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
         if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
-            world_size = len(self.args.device.split(","))
+            local_world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
-            world_size = len(self.args.device)
+            local_world_size = len(self.args.device)
         elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
-            world_size = 0
+            local_world_size = 0
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
-            world_size = 1  # default to device 0
+            local_world_size = 1  # default to device 0
         else:  # i.e. device=None or device=''
-            world_size = 0
+            local_world_size = 0
 
-        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
-        self.world_size = world_size
+        self.local_world_size = local_world_size
+        self.world_size = local_world_size * self.nnodes if local_world_size else 0
+        self.ddp = self.world_size > 1 and "LOCAL_RANK" not in os.environ
         # Run subprocess if DDP training, else train normally
         if RANK in {-1, 0} and not self.ddp:
             callbacks.add_integration_callbacks(self)

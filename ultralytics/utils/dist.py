@@ -9,6 +9,52 @@ from . import USER_CONFIG_DIR
 from .torch_utils import TORCH_1_9
 
 
+def _slurm_master_addr():
+    """Resolve the master address from SLURM nodelist if available."""
+    nodelist = (
+        os.environ.get("SLURM_NODELIST")
+        or os.environ.get("SLURM_JOB_NODELIST")
+        or os.environ.get("SLURM_STEP_NODELIST")
+    )
+    if not nodelist:
+        return None
+    try:
+        import subprocess
+
+        result = subprocess.run(
+            ["scontrol", "show", "hostnames", nodelist],
+            check=True,
+            stdout=subprocess.PIPE,
+            text=True,
+        )
+        host = result.stdout.strip().splitlines()[0] if result.stdout else ""
+        return host or None
+    except Exception:
+        pass
+    # Fallback parser for common patterns like "node[01-03,05]"
+    import re
+
+    first = nodelist.split(",")[0]
+    match = re.match(r"(?P<prefix>[A-Za-z0-9._-]+)\[(?P<range>[^\]]+)\]", first)
+    if match:
+        prefix = match.group("prefix")
+        first_range = match.group("range").split(",")[0]
+        start = first_range.split("-")[0] if "-" in first_range else first_range
+        return f"{prefix}{start}"
+    return first
+
+
+def _slurm_node_rank():
+    """Resolve the node rank from SLURM if available."""
+    node_rank = os.environ.get("SLURM_NODEID")
+    if node_rank is None:
+        return None
+    try:
+        return str(int(node_rank))
+    except ValueError:
+        return None
+
+
 def find_free_network_port() -> int:
     """Find a free port on localhost.
 
@@ -88,21 +134,50 @@ def generate_ddp_command(trainer):
     """
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/pytorch-lightning/issues/15218
 
+    nnodes = trainer.nnodes
+
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir
     file = generate_ddp_file(trainer)
     dist_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
-    port = find_free_network_port()
+
+    master_port = os.environ.get("MASTER_PORT")
+    if nnodes > 1:
+        master_addr = os.environ.get("MASTER_ADDR")
+        node_rank = os.environ.get("NODE_RANK")
+        if master_addr is None or node_rank is None:
+            slurm_master_addr = _slurm_master_addr()
+            slurm_node_rank = _slurm_node_rank()
+            if master_addr is None:
+                master_addr = slurm_master_addr
+            if node_rank is None:
+                node_rank = slurm_node_rank
+        if master_addr is None or node_rank is None:
+            raise ValueError(
+                "MASTER_ADDR and NODE_RANK must be set for multi-node DDP "
+                "(or available via SLURM_NODELIST/SLURM_NODEID)."
+            )
+        if master_port is None:
+            master_port = "29500"
+    else:
+        master_addr = None
+        node_rank = None
+        if master_port is None:
+            master_port = str(find_free_network_port())
+
+    local_world_size = trainer.local_world_size
     cmd = [
         sys.executable,
         "-m",
         dist_cmd,
+        "--nnodes",
+        f"{nnodes}",
         "--nproc_per_node",
-        f"{trainer.world_size}",
-        "--master_port",
-        f"{port}",
-        file,
+        f"{local_world_size}",
     ]
+    if nnodes > 1:
+        cmd.extend(["--node_rank", f"{node_rank}", "--master_addr", f"{master_addr}"])
+    cmd.extend(["--master_port", f"{master_port}", file])
     return cmd, file
 
 

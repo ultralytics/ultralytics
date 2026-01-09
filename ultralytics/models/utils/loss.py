@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -12,7 +13,6 @@ from ultralytics.utils.loss import FocalLoss, VarifocalLoss
 from ultralytics.utils.metrics import bbox_iou
 
 from .ops import HungarianMatcher
-import torch.distributed as dist
 
 
 def _global_num_gts(num_gts: int, device: torch.device) -> float:
@@ -89,8 +89,13 @@ class DETRLoss(nn.Module):
         self.device = None
 
     def _get_loss_class(
-        self, pred_scores: torch.Tensor, targets: torch.Tensor, gt_scores: torch.Tensor, 
-        local_num_gts: int, global_num_gts: float, postfix: str = ""
+        self,
+        pred_scores: torch.Tensor,
+        targets: torch.Tensor,
+        gt_scores: torch.Tensor,
+        local_num_gts: int,
+        global_num_gts: float,
+        postfix: str = "",
     ) -> dict[str, torch.Tensor]:
         """Compute classification loss based on predictions, target values, and ground truth scores.
 

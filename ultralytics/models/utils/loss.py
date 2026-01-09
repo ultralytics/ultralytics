@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -12,7 +13,6 @@ from ultralytics.utils.loss import FocalLoss, VarifocalLoss
 from ultralytics.utils.metrics import bbox_iou
 
 from .ops import HungarianMatcher
-import torch.distributed as dist
 
 
 def _global_num_gts(num_gts: int, device: torch.device) -> float:
@@ -103,8 +103,13 @@ class DETRLoss(nn.Module):
         self.device = None
 
     def _get_loss_class(
-        self, pred_scores: torch.Tensor, targets: torch.Tensor, gt_scores: torch.Tensor, 
-        local_num_gts: int, global_num_gts: float, postfix: str = ""
+        self,
+        pred_scores: torch.Tensor,
+        targets: torch.Tensor,
+        gt_scores: torch.Tensor,
+        local_num_gts: int,
+        global_num_gts: float,
+        postfix: str = "",
     ) -> dict[str, torch.Tensor]:
         """Compute classification loss based on predictions, target values, and ground truth scores.
 
@@ -112,7 +117,8 @@ class DETRLoss(nn.Module):
             pred_scores (torch.Tensor): Predicted class scores with shape (B, N, C).
             targets (torch.Tensor): Target class indices with shape (B, N).
             gt_scores (torch.Tensor): Ground truth confidence scores with shape (B, N).
-            num_gts (int): Number of ground truth objects.
+            local_num_gts (int): Number of ground truth objects on the local rank.
+            global_num_gts (float): Global mean GT count across ranks for loss normalization.
             postfix (str, optional): String to append to the loss name for identification in multi-loss scenarios.
 
         Returns:
@@ -120,7 +126,7 @@ class DETRLoss(nn.Module):
 
         Notes:
             The function supports different classification loss types:
-            - Varifocal Loss (if self.vfl is True and num_gts > 0)
+            - Varifocal Loss (if self.vfl is True and local_num_gts > 0)
             - Focal Loss (if self.fl is True)
             - BCE Loss (default fallback)
         """
@@ -152,6 +158,7 @@ class DETRLoss(nn.Module):
         Args:
             pred_bboxes (torch.Tensor): Predicted bounding boxes with shape (N, 4).
             gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (N, 4).
+            global_num_gts (float): Global mean GT count across ranks for loss normalization.
             postfix (str, optional): String to append to the loss names for identification in multi-loss scenarios.
 
         Returns:
@@ -230,6 +237,7 @@ class DETRLoss(nn.Module):
             gt_bboxes (torch.Tensor): Ground truth bounding boxes.
             gt_cls (torch.Tensor): Ground truth classes.
             gt_groups (list[int]): Number of ground truths per image.
+            global_num_gts (float): Global mean GT count across ranks for loss normalization.
             match_indices (list[tuple], optional): Pre-computed matching indices.
             postfix (str, optional): String to append to loss names.
             masks (torch.Tensor, optional): Predicted masks if using segmentation.
@@ -347,6 +355,7 @@ class DETRLoss(nn.Module):
             gt_bboxes (torch.Tensor): Ground truth bounding boxes.
             gt_cls (torch.Tensor): Ground truth classes.
             gt_groups (list[int]): Number of ground truths per image.
+            global_num_gts (float): Global mean GT count across ranks for loss normalization.
             masks (torch.Tensor, optional): Predicted masks if using segmentation.
             gt_mask (torch.Tensor, optional): Ground truth masks if using segmentation.
             postfix (str, optional): String to append to loss names.

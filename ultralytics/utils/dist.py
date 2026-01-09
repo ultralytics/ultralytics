@@ -52,8 +52,22 @@ def generate_ddp_file(trainer):
 overrides = {vars(trainer.args)}
 
 if __name__ == "__main__":
+    import os
+    from datetime import timedelta
+
+    import torch
+    import torch.distributed as dist
+
     from {module} import {name}
-    from ultralytics.utils import DEFAULT_CFG_DICT
+    from ultralytics.utils import DEFAULT_CFG_DICT, LOCAL_RANK, RANK
+
+    torch.cuda.set_device(LOCAL_RANK)
+    os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+    dist.init_process_group(
+        backend="nccl" if dist.is_nccl_available() else "gloo",
+        timeout=timedelta(seconds=10800),  # 3 hours
+        rank=RANK,
+    )
 
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'

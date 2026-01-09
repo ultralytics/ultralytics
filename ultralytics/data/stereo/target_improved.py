@@ -47,7 +47,8 @@ class TargetGenerator:
         self,
         output_size: tuple[int, int] = (96, 320),  # Example: (96, 320) for 384×1280 input with 4x downsampling
         num_classes: int = 3,
-        mean_dims: dict[str, list[float]] | None = None,
+        mean_dims: dict[int, list[float]] | dict[str, list[float]] | None = None,
+        class_names: dict[int, str] | None = None,
     ):
         """Initialize target generator.
 
@@ -56,21 +57,41 @@ class TargetGenerator:
                          The actual downsampling factor depends on the model config (e.g., P3 = 8x, P4 = 16x).
             num_classes: Number of object classes.
             mean_dims: Mean dimensions per class [L, W, H] in meters.
+                       Can be integer keys (class_id) or string keys (class_name).
+            class_names: Mapping from class_id to class_name (e.g., {0: "Car", 1: "Pedestrian", ...}).
+                       If None, will use generic names ("Class 0", "Class 1", ...).
         """
         self.output_h, self.output_w = output_size
         self.num_classes = num_classes
 
-        # Default mean dimensions (KITTI) - format: [L, W, H]
-        # From paper Section 3.3: [L̄, W̄, H̄]^T = [3.88, 1.63, 1.53]^T for Car
-        # We also include Pedestrian and Cyclist from KITTI statistics
-        self.mean_dims = mean_dims or {
-            "Car": [3.89, 1.73, 1.52],       # L=3.89, W=1.73, H=1.52
-            "Pedestrian": [0.80, 0.50, 1.73], # L=0.80, W=0.50, H=1.73
-            "Cyclist": [1.76, 0.60, 1.77],    # L=1.76, W=0.60, H=1.77
-        }
-        
-        # Class name mapping (after filtering/remapping)
-        self.class_names_map = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        # Class name mapping (dataset-specific)
+        # This maps class_id -> class_name
+        if class_names is not None:
+            self.class_names_map = class_names
+        else:
+            # Use generic names if not provided
+            self.class_names_map = {i: f"Class {i}" for i in range(num_classes)}
+
+        # Build reverse mapping (class_name -> class_id) for backward compatibility
+        self.class_name_to_id = {v: k for k, v in self.class_names_map.items()}
+
+        # Handle both integer keys (class_id) and string keys (class_name)
+        if mean_dims is not None:
+            # Check if mean_dims uses integer keys (class IDs) or string keys (class names)
+            first_key = next(iter(mean_dims.keys())) if mean_dims else None
+            if isinstance(first_key, str):
+                # Convert string keys to integer keys
+                self.mean_dims = {}
+                for class_name, dims in mean_dims.items():
+                    class_id = self.class_name_to_id.get(class_name)
+                    if class_id is not None:
+                        self.mean_dims[class_id] = dims
+            else:
+                # Already integer keys
+                self.mean_dims = mean_dims
+        else:
+            # Default to unit dimensions if not provided (neutral starting point for learning)
+            self.mean_dims = {i: [1.0, 1.0, 1.0] for i in range(num_classes)}
 
     def generate_targets(
         self,
@@ -231,8 +252,7 @@ class TargetGenerator:
         # ============================================================
 
         # 6. Dimensions (offset from class mean - Paper Equation 6)
-        class_name = self.class_names_map.get(class_id, "Car")
-        mean_dim = self.mean_dims.get(class_name, [1.0, 1.0, 1.0])
+        mean_dim = self.mean_dims.get(class_id, [1.0, 1.0, 1.0])
         # mean_dims is [L, W, H], decoder expects [ΔH, ΔW, ΔL] order
         dim_offset = [
             dimensions["height"] - mean_dim[2],   # channel 0 = Δheight

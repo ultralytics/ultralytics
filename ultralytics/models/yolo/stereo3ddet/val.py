@@ -20,7 +20,6 @@ from ultralytics.utils.metrics import DetMetrics, box_iou, compute_3d_iou
 from ultralytics.utils.plotting import plot_stereo3d_boxes
 from ultralytics.utils.profiling import profile_function, profile_section
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
 from ultralytics.utils.nms import non_max_suppression
 from typing import Any
 
@@ -57,11 +56,26 @@ def decode_stereo3d_outputs_yolo11_p3(
     imgsz: int | tuple[int, int] | list[int] | None = None,
     ori_shapes: list[tuple[int, int]] | None = None,
     iou_thres: float = 0.45,
+    mean_dims: dict[int, tuple[float, float, float]] | None = None,
+    class_names: dict[int, str] | None = None,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode YOLO11-mapped stereo3ddet outputs (P3-only) to Box3D objects.
 
     This uses Detect inference output for candidate 2D boxes and class scores, then samples the auxiliary
     stereo/3D maps at the kept P3 indices to estimate depth/dimensions/orientation.
+
+    Args:
+        outputs: Model outputs dictionary.
+        conf_threshold: Confidence threshold for filtering detections.
+        top_k: Maximum number of detections to extract.
+        calib: Calibration parameters (dict or list of dicts).
+        imgsz: Input image size.
+        ori_shapes: Original image shapes per batch item.
+        iou_thres: IoU threshold for NMS.
+        mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
+            Should be provided by dataset configuration.
+        class_names: Mapping from class ID to class name (e.g., {0: "Car",1: "Pedestrian", ...}).
+            Should be provided by dataset configuration.
     """
     if "det" not in outputs:
         raise KeyError("decode_stereo3d_outputs_yolo11_p3 expected outputs['det']")
@@ -101,12 +115,13 @@ def decode_stereo3d_outputs_yolo11_p3(
         return_idxs=True,
     )
 
-    class_names = get_paper_class_names()
-    mean_dims = {
-        0: (1.52, 1.73, 3.89),  # Car (H, W, L)
-        1: (1.73, 0.50, 0.80),  # Pedestrian
-        2: (1.77, 0.60, 1.76),  # Cyclist
-    }
+    # Use mean_dims and class_names from dataset configuration
+    # mean_dims is required (should always be provided by dataset YAML)
+    # class_names is required (should always be provided by dataset YAML)
+    if mean_dims is None:
+        raise ValueError("mean_dims must be provided by dataset configuration")
+    if class_names is None:
+        raise ValueError("class_names must be provided by dataset configuration")
 
     # Original shapes fallback
     if ori_shapes is None or len(ori_shapes) == 0:
@@ -117,29 +132,18 @@ def decode_stereo3d_outputs_yolo11_p3(
 
     for b in range(bs):
         # Calibration per sample
-        if calib is None:
+            # Guard against empty calib lists (should not happen if dataset is correct, but don't crash validation)
+        if len(calib) == 0:
             fx = fy = 721.5377
             cx, cy = 609.5593, 172.8540
             baseline = 0.54
-        elif isinstance(calib, list):
-            # Guard against empty calib lists (should not happen if dataset is correct, but don't crash validation)
-            if len(calib) == 0:
-                fx = fy = 721.5377
-                cx, cy = 609.5593, 172.8540
-                baseline = 0.54
-            else:
-                cdict = calib[b] if b < len(calib) else calib[0]
-                fx = float(cdict.get("fx", 721.5377))
-                fy = float(cdict.get("fy", 721.5377))
-                cx = float(cdict.get("cx", 609.5593))
-                cy = float(cdict.get("cy", 172.8540))
-                baseline = float(cdict.get("baseline", 0.54))
         else:
-            fx = float(calib.get("fx", 721.5377))
-            fy = float(calib.get("fy", 721.5377))
-            cx = float(calib.get("cx", 609.5593))
-            cy = float(calib.get("cy", 172.8540))
-            baseline = float(calib.get("baseline", 0.54))
+            cdict = calib[b] if b < len(calib) else calib[0]
+            fx = float(cdict.get("fx", 721.5377))
+            fy = float(cdict.get("fy", 721.5377))
+            cx = float(cdict.get("cx", 609.5593))
+            cy = float(cdict.get("cy", 172.8540))
+            baseline = float(cdict.get("baseline", 0.54))
 
         ori_h, ori_w = ori_shapes[b]
         letterbox_scale, pad_left, pad_top = _compute_letterbox_params(ori_h, ori_w, imgsz)
@@ -656,19 +660,21 @@ def _decode_stereo3d_outputs_per_sample(
     right_img: np.ndarray | torch.Tensor | None = None,
     imgsz: int | tuple[int, int] | list[int] | None = None,
     ori_shape: tuple[int, int] | None = None,
+    mean_dims: dict[int, tuple[float, float, float]] | None = None,
+    class_names: dict[int, str] | None = None,
 ) -> list[Box3D]:
     """Original per-sample implementation for backward compatibility.
-    
+
     This function processes a single sample (batch_size=1) using the original
     per-detection loop implementation.
-    
+
     Now supports optional geometric construction for refined 3D estimation.
     Now supports occlusion classification for dense alignment skipping.
-    
+
     Args:
         outputs: Model output tensors
         conf_threshold: Confidence threshold for filtering
-        top_k: Maximum detections to return  
+        top_k: Maximum detections to return
         calib: Camera calibration parameters
         use_nms: Enable heatmap NMS
         nms_kernel: NMS kernel size
@@ -677,16 +683,16 @@ def _decode_stereo3d_outputs_per_sample(
         use_occlusion_classification: Enable occlusion classification (None = use config)
         left_img: Left camera image for dense alignment (optional, for future use)
         right_img: Right camera image for dense alignment (optional, for future use)
+        mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
+            Should be provided by dataset configuration.
+        class_names: Mapping from class ID to class name.
+            Should be provided by dataset configuration.
     """
-    # Class names and mean dimensions (Paper uses 3 classes: Car, Pedestrian, Cyclist)
-    from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
-    class_names = get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
-    # Mean dimensions: (height, width, length) in meters
-    mean_dims = {
-        0: (1.52, 1.73, 3.89),  # Car
-        1: (1.73, 0.50, 0.80),  # Pedestrian
-        2: (1.77, 0.60, 1.76),  # Cyclist
-    }
+    # Validate required parameters (should always be provided by dataset configuration)
+    if mean_dims is None:
+        raise ValueError("mean_dims must be provided by dataset configuration")
+    if class_names is None:
+        raise ValueError("class_names must be provided by dataset configuration")
 
     # Get letterbox parameters
     if imgsz is None:
@@ -1019,6 +1025,8 @@ def decode_stereo3d_outputs(
     use_occlusion_classification: bool | None = None,
     imgsz: int | tuple[int, int] | list[int] | None = None,
     ori_shapes: list[tuple[int, int]] | None = None,
+    mean_dims: dict[int, tuple[float, float, float]] | None = None,
+    class_names: dict[int, str] | None = None,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode 10-branch model outputs to 3D bounding boxes.
 
@@ -1082,19 +1090,17 @@ def decode_stereo3d_outputs(
             use_occlusion_classification=use_occlusion_classification,
             imgsz=imgsz,
             ori_shape=ori_shape_single,
+            mean_dims=mean_dims,  # Pass mean_dims from dataset config
+            class_names=class_names,  # Pass class_names from dataset config
         )
-    
+
     # T206-T211: Batch processing implementation
-    # Class names and mean dimensions (Paper uses 3 classes: Car, Pedestrian, Cyclist)
-    from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
-    class_names = get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
-    # Mean dimensions: (height, width, length) in meters
-    mean_dims = {
-        0: (1.52, 1.73, 3.89),  # Car
-        1: (1.73, 0.50, 0.80),  # Pedestrian
-        2: (1.77, 0.60, 1.76),  # Cyclist
-    }
-    
+    # Use mean_dims and class_names from dataset configuration
+    if mean_dims is None:
+        raise ValueError("mean_dims must be provided by dataset configuration")
+    if class_names is None:
+        raise ValueError("class_names must be provided by dataset configuration")
+
     # Get letterbox parameters
     if imgsz is None:
         imgsz = (384, 384)  # Default letterbox size (H, W)
@@ -1449,10 +1455,12 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
         List of Box3D objects with filtered and remapped class IDs.
     """
     boxes3d = []
-    
-    # Use provided names, or fall back to paper classes (Car, Pedestrian, Cyclist)
-    class_names = names if names else get_paper_class_names()
-    
+
+    # Validate required parameters - names must be provided
+    if names is None:
+        raise ValueError("class_names mapping must be provided")
+    class_names = names
+
     for label in labels:
         class_id = label["class_id"]
         height = label["dimensions"]["height"]
@@ -1582,9 +1590,10 @@ class Stereo3DDetValidator(BaseValidator):
         train_split = data_cfg.get("train_split", "train")
         val_split = data_cfg.get("val_split", "val")
 
-        # Names/nc fallback - use paper classes (3 classes: Car, Pedestrian, Cyclist)
-        from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
-        names = data_cfg.get("names") or get_paper_class_names()  # {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
+        # Names/nc - must be provided by dataset configuration
+        names = data_cfg.get("names")
+        if names is None:
+            raise ValueError("Dataset configuration must include 'names' mapping")
         nc = data_cfg.get("nc", len(names))
 
         # Return a dict compatible with BaseValidator expectations, plus stereo descriptors
@@ -1636,17 +1645,10 @@ class Stereo3DDetValidator(BaseValidator):
         Returns:
             List of Box3D lists (one per batch item).
         """
-        # Support both legacy heatmap head and YOLO11-mapped head ("det").
-        if "heatmap" in preds:
-            batch_size = preds["heatmap"].shape[0]
-            mode = "heatmap"
-        elif "det" in preds:
-            det_out = preds["det"]
-            det_inf = det_out[0] if isinstance(det_out, (tuple, list)) else det_out
-            batch_size = int(det_inf.shape[0])
-            mode = "det"
-        else:
-            raise KeyError(f"Unsupported stereo3ddet preds keys: {list(preds.keys())}")
+        det_out = preds["det"]
+        det_inf = det_out[0] if isinstance(det_out, (tuple, list)) else det_out
+        batch_size = int(det_inf.shape[0])
+        mode = "det"
 
         # T212: Get calibration from batch if available
         calib = None
@@ -1669,36 +1671,21 @@ class Stereo3DDetValidator(BaseValidator):
         
         # Get imgsz from args
         imgsz = getattr(self.args, 'imgsz', 384)
-
-        # T212, T028: Call decode_stereo3d_outputs once with entire batch
-        # Get NMS config from args (defaults: use_nms=True, nms_kernel=3)
-        use_nms = getattr(self.args, 'use_nms', True)
-        nms_kernel = getattr(self.args, 'nms_kernel', 3)
         
-        if mode == "heatmap":
-            results = decode_stereo3d_outputs(
-                preds,
-                conf_threshold=self.args.conf,
-                top_k=100,
-                calib=calib,
-                use_nms=use_nms,
-                nms_kernel=nms_kernel,
-                imgsz=imgsz,
-                ori_shapes=ori_shapes,
-            )
-        else:
-            results = decode_stereo3d_outputs_yolo11_p3(
-                preds,
-                conf_threshold=self.args.conf,
-                top_k=100,
-                # IMPORTANT: pass resolved `calib` (None, dict, or list[dict]) rather than raw `calibs`.
-                # `calibs` may be an empty list if the batch has no calibration (shouldn't happen, but guard anyway).
-                calib=calib,
-                imgsz=imgsz,
-                ori_shapes=ori_shapes,
-                iou_thres=getattr(self.args, "iou", 0.45),
-            )
-        
+        results = decode_stereo3d_outputs_yolo11_p3(
+            preds,
+            conf_threshold=self.args.conf,
+            top_k=100,
+            # IMPORTANT: pass resolved `calib` (None, dict, or list[dict]) rather than raw `calibs`.
+            # `calibs` may be an empty list if the batch has no calibration (shouldn't happen, but guard anyway).
+            calib=calib,
+            imgsz=imgsz,
+            ori_shapes=ori_shapes,
+            iou_thres=getattr(self.args, "iou", 0.45),
+            mean_dims=self.mean_dims if hasattr(self, "mean_dims") else None,
+            class_names=self.names if hasattr(self, "names") else None,
+        )
+    
         # T212: Ensure results is list of lists
         # decode_stereo3d_outputs returns list[list[Box3D]] for batch_size > 1
         # or list[Box3D] for batch_size == 1 (backward compatibility)
@@ -1877,21 +1864,33 @@ class Stereo3DDetValidator(BaseValidator):
         reset_geometric_solver()
         
         # Get class names from dataset, not from metrics results_dict (which contains metric keys, not class names)
-        # This fixes the bug where self.nc was set to number of metric keys (6-7) instead of number of classes (3)
+        # Get class names from dataset configuration - names must be provided
         if hasattr(self, "data") and self.data and "names" in self.data:
             self.names = self.data["names"]
         elif hasattr(model, "names") and model.names:
             self.names = model.names
         else:
-            # Fallback to paper class names
-            from ultralytics.models.yolo.stereo3ddet.utils import get_paper_class_names
-            self.names = get_paper_class_names()
-        
+            raise ValueError("Dataset configuration must include 'names' mapping")
+
         self.nc = len(self.names) if isinstance(self.names, dict) else len(self.names) if isinstance(self.names, (list, tuple)) else 0
         self.seen = 0
         self.metrics.names = self.names
         self.metrics.nc = self.nc  # Also update metrics.nc to match the correct number of classes
 
+        # Parse and convert mean_dims from YAML format (class ID -> [L, W, H]) to (class ID -> (H, W, L))
+        mean_dims_raw = self.data.get("mean_dims") if hasattr(self, "data") and self.data else None
+        if mean_dims_raw is not None:
+            # Convert from {class_id: [L, W, H]} to {class_id: (H, W, L)}
+            self.mean_dims = {}
+            for class_id, dims in mean_dims_raw.items():
+                if isinstance(dims, (list, tuple)) and len(dims) == 3:
+                    l, w, h = dims  # YAML has [L, W, H]
+                    self.mean_dims[class_id] = (h, w, l)  # Store as (H, W, L)
+            LOGGER.info(f"Loaded mean_dims with {len(self.mean_dims)} classes")
+        else:
+            self.mean_dims = None
+            LOGGER.info("No mean_dims in dataset config, will use defaults")
+        
         # Init 2D detection metrics (bbox mAP)
         self.det_metrics.names = self.names
         self.det_metrics.clear_stats()

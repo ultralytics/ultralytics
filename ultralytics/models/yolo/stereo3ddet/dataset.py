@@ -112,6 +112,7 @@ class Stereo3DDetDataset(Dataset):
             output_size=output_size,
             num_classes=num_classes,
             mean_dims=mean_dims,
+            class_names=self.names,  # Pass class names mapping for dataset-agnostic operation
         )
 
     def _get_image_ids(self) -> list[str]:
@@ -651,8 +652,8 @@ class Stereo3DDetDataset(Dataset):
                 # 3D aux targets (object-level, reused from TargetGenerator logic)
                 # -------------------------
                 dims = lab["dimensions"]  # meters
-                class_name = class_names_map.get(cls_i, "Car")
-                mean_dim = (mean_dims or {}).get(class_name, [1.0, 1.0, 1.0]) if isinstance(mean_dims, dict) else [1.0, 1.0, 1.0]
+                # mean_dims now uses integer keys (class_id) instead of string keys (class_name)
+                mean_dim = (mean_dims or {}).get(cls_i, [1.0, 1.0, 1.0]) if isinstance(mean_dims, dict) else [1.0, 1.0, 1.0]
                 # [ΔH, ΔW, ΔL]
                 dim_offset = torch.tensor(
                     [

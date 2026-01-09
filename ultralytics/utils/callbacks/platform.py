@@ -288,11 +288,14 @@ def on_pretrain_routine_start(trainer):
     # Collect environment info (W&B-style metadata)
     environment = _get_environment_info()
 
+    # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
+    train_args = {k: str(v) for k, v in vars(trainer.args).items()}
+
     # Send synchronously to get modelId for subsequent webhooks
     response = _send(
         "training_started",
         {
-            "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+            "trainArgs": train_args,
             "epochs": trainer.epochs,
             "device": str(trainer.device),
             "modelInfo": model_info,

@@ -16,6 +16,18 @@ from .ops import HungarianMatcher
 
 
 def _global_num_gts(num_gts: int, device: torch.device) -> float:
+    """Compute the global average number of ground truths across distributed workers.
+
+    In distributed training, this function sums local ground-truth counts across all processes and
+    returns the average per process. It also enforces a minimum of 1.0 to avoid zero-division issues.
+
+    Args:
+        num_gts (int): Number of ground-truth objects on the current process.
+        device (torch.device): Device to place the temporary tensor on.
+
+    Returns:
+        (float): Global average number of ground truths per process, clamped to at least 1.0.
+    """
     t = torch.tensor([num_gts], device=device, dtype=torch.float32)
     if dist.is_available() and dist.is_initialized():
         dist.all_reduce(t, op=dist.ReduceOp.SUM)
@@ -54,7 +66,7 @@ class DETRLoss(nn.Module):
         uni_match_ind: int = 0,
         gamma: float = 1.5,
         alpha: float = 0.25,
-        matcher: dict[str, Any] = {},
+        matcher: dict[str, Any] | None = None,
     ):
         """Initialize DETR loss function with customizable components and gains.
 
@@ -78,6 +90,8 @@ class DETRLoss(nn.Module):
         if loss_gain is None:
             loss_gain = {"class": 1, "bbox": 5, "giou": 2, "no_object": 0.1, "mask": 1, "dice": 1}
         self.nc = nc
+        if matcher is None:
+            matcher = {}
         self.matcher = HungarianMatcher(**matcher)
         self.loss_gain = loss_gain
         self.aux_loss = aux_loss

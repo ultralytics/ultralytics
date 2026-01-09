@@ -71,7 +71,7 @@ def val_yoloe26(model_path,mode,end2end=True,device="0"):
 
         data="../datasets/lvis.yaml"
 
-        metrics = model.val(data=data, split="minival", max_det=1000,  save_json=True,divice=device)
+        metrics = model.val(data=data, split="minival", max_det=1000,  save_json=True,device=device)
 
     if mode=="visual_prompt":
 

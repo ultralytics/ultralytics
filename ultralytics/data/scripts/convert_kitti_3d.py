@@ -18,6 +18,7 @@ Usage:
 import argparse
 import os
 import shutil
+from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
@@ -654,11 +655,11 @@ class KITTIToYOLO3D:
 
     def create_dataset_yaml(self, splits=["train", "val"]):
         """Create dataset.yaml for YOLO training."""
-        # Build class names based on filter
+        # Build class names based on filter - use OrderedDict to preserve insertion order
         if self.filter_classes is not None:
             # Remap class IDs to be consecutive starting from 0
             filtered_class_map = {}
-            class_names = {}
+            class_names = OrderedDict()
             new_id = 0
             for class_name, old_id in sorted(self.class_map.items(), key=lambda x: x[1]):
                 if class_name in self.filter_classes:
@@ -667,11 +668,14 @@ class KITTIToYOLO3D:
                     new_id += 1
             num_classes = len(class_names)
         else:
-            class_names = {v: k for k, v in self.class_map.items()}
+            # Use OrderedDict to preserve order based on class IDs (0, 1, 2, ...)
+            class_names = OrderedDict()
+            for old_id in sorted(self.class_map.keys()):
+                class_names[old_id] = self.class_map[old_id]
             num_classes = len(self.class_map)
 
-        # Build names section
-        names_section = "\n".join([f"  {k}: {v}" for k, v in sorted(class_names.items())])
+        # Build names section - OrderedDict preserves order
+        names_section = "\n".join([f"  {k}: {v}" for k, v in class_names.items()])
 
         # Determine available splits dynamically
         available_splits = []
@@ -703,14 +707,19 @@ class KITTIToYOLO3D:
             "channels: 6",
         ])
         
-        # Add mean dimensions if computed
+        # Add mean dimensions if computed - use integer keys to match class IDs
         if self.mean_dims is not None and len(self.mean_dims) > 0:
             yaml_lines.append("# Mean dimensions per class [L, W, H] in meters")
             yaml_lines.append("mean_dims:")
-            for class_name in sorted(self.mean_dims.keys()):
-                dims = self.mean_dims[class_name]
-                yaml_lines.append(f"  {class_name}: [{dims[0]:.2f}, {dims[1]:.2f}, {dims[2]:.2f}]")
-        
+            # Use the same order as class_names to ensure 1-to-1 correspondence
+            for class_id, class_name in class_names.items():
+                if class_name in self.mean_dims:
+                    dims = self.mean_dims[class_name]
+                    yaml_lines.append(f"  {class_id}: [{dims[0]:.2f}, {dims[1]:.2f}, {dims[2]:.2f}]  # {class_name}")
+                    LOGGER.info(f"  Class {class_id} ({class_name}): mean_dims = [L={dims[0]:.2f}, W={dims[1]:.2f}, H={dims[2]:.2f}]")
+                else:
+                    LOGGER.warning(f"  Missing mean_dims for class {class_id} ({class_name})")
+
         yaml_content = "\n".join(yaml_lines) + "\n"
 
         yaml_file = self.output_root / "dataset.yaml"

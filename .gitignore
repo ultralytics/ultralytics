@@ -198,3 +198,4 @@ TRAINING_VALIDATION_REPORT.md
 .cursor/
 .specify/
 specs/
+.vscode/launch.json

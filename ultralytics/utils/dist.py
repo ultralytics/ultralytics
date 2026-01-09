@@ -124,6 +124,7 @@ def ddp_cleanup(trainer, file):
     if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)
 
+
 def setup_ddp():
     import os
     from datetime import timedelta
@@ -140,4 +141,3 @@ def setup_ddp():
         timeout=timedelta(seconds=10800),  # 3 hours
         rank=RANK,
     )
-

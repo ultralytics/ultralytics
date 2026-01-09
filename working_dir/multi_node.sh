@@ -20,7 +20,8 @@ MASTER_PORT=${MASTER_PORT:-29500}
 
 export MASTER_ADDR MASTER_PORT NNODES GPUS_PER_NODE NODE_RANK TRAIN_SCRIPT
 
-torchrun \
+TORCHRUN=(~/containers/python_ultra_2506 python -m torch.distributed.run)
+"${TORCHRUN[@]}" \
   --nnodes="$NNODES" \
   --nproc_per_node="$GPUS_PER_NODE" \
   --node_rank="$NODE_RANK" \
@@ -30,3 +31,4 @@ torchrun \
   --model ultralytics/cfg/models/rt-detr/rtdetr-resnet50.yaml \
   --config working_dir/rtdetr_train_pr.yaml \
   --name rtdetr-resnet50_mn_trial \
+  --train "data=coco128.yaml" \

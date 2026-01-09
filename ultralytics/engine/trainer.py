@@ -268,7 +268,7 @@ class BaseTrainer:
         self.csv = self.save_dir / "results.csv"
         if self.csv.exists() and not self.args.resume:
             self.csv.unlink()
-        
+
         # Setup model
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)

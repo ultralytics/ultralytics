@@ -18,8 +18,8 @@ from .ops import HungarianMatcher
 def _global_num_gts(num_gts: int, device: torch.device) -> float:
     """Compute the global average number of ground truths across distributed workers.
 
-    In distributed training, this function sums local ground-truth counts across all processes and
-    returns the average per process. It also enforces a minimum of 1.0 to avoid zero-division issues.
+    In distributed training, this function sums local ground-truth counts across all processes and returns the average
+    per process. It also enforces a minimum of 1.0 to avoid zero-division issues.
 
     Args:
         num_gts (int): Number of ground-truth objects on the current process.

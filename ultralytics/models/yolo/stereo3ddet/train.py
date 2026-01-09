@@ -11,7 +11,7 @@ import numpy as np
 import torch
 
 from ultralytics.models import yolo
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, YAML
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, ROOT, YAML, check_yaml
 from ultralytics.models.yolo.stereo3ddet.visualize import labels_to_box3d, plot_stereo_sample
 from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
@@ -145,7 +145,9 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         # Load YAML if a path is provided; accept dicts directly
         data_cfg = self.args.data
         if isinstance(data_cfg, (str, Path)):
-            data_cfg = YAML.load(str(data_cfg))
+            # Resolve the path using check_yaml to handle default configs in ultralytics/cfg/datasets/
+            data_cfg_path = check_yaml(str(data_cfg))
+            data_cfg = YAML.load(data_cfg_path)
 
         if not isinstance(data_cfg, dict):
             raise RuntimeError("stereo3ddet: data must be a YAML path or dict")

@@ -22,16 +22,16 @@ NVIDIA DGX Spark is a compact desktop AI supercomputer powered by the NVIDIA GB1
 
 ### Key Specifications
 
-| Specification  | Details                                              |
-| -------------- | ---------------------------------------------------- |
-| AI Performance | Up to 1 PFLOP (FP4)                                  |
-| GPU            | NVIDIA Blackwell Architecture with 5th Generation Tensor Cores, 4th Generation RT Cores     |
-| CPU            | 20-core Arm processor (10 Cortex-X925 + 10 Cortex-A725)             |
-| Memory         | 128 GB LPDDR5x unified system memory, 256-bit interface, 4266 MHz, 273 GB/s bandwidth                        |
-| Storage        | 1 TB or 4 TB NVMe M.2 with self-encryption                                   |
-| Network        | 1x RJ-45 (10 GbE), ConnectX-7 Smart NIC, Wi-Fi 7, Bluetooth 5.4 |
-| Connectivity   | 4x USB Type-C, 1x HDMI 2.1a, HDMI multichannel audio |
-| Video Processing  | 1x NVENC, 1x NVDEC                          |
+| Specification    | Details                                                                                 |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| AI Performance   | Up to 1 PFLOP (FP4)                                                                     |
+| GPU              | NVIDIA Blackwell Architecture with 5th Generation Tensor Cores, 4th Generation RT Cores |
+| CPU              | 20-core Arm processor (10 Cortex-X925 + 10 Cortex-A725)                                 |
+| Memory           | 128 GB LPDDR5x unified system memory, 256-bit interface, 4266 MHz, 273 GB/s bandwidth   |
+| Storage          | 1 TB or 4 TB NVMe M.2 with self-encryption                                              |
+| Network          | 1x RJ-45 (10 GbE), ConnectX-7 Smart NIC, Wi-Fi 7, Bluetooth 5.4                         |
+| Connectivity     | 4x USB Type-C, 1x HDMI 2.1a, HDMI multichannel audio                                    |
+| Video Processing | 1x NVENC, 1x NVDEC                                                                      |
 
 ### DGX OS
 

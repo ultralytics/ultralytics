@@ -134,17 +134,6 @@ class BaseTrainer:
         # Dirs
         self.save_dir = get_save_dir(self.args)
         self.args.name = self.save_dir.name  # update name for loggers
-        self.wdir = self.save_dir / "weights"  # weights dir
-        if RANK in {-1, 0}:
-            self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
-            self.args.save_dir = str(self.save_dir)
-            # Save run args, serializing augmentations as reprs for resume compatibility
-            args_dict = vars(self.args).copy()
-            if args_dict.get("augmentations") is not None:
-                # Serialize Albumentations transforms as their repr strings for checkpoint compatibility
-                args_dict["augmentations"] = [repr(t) for t in args_dict["augmentations"]]
-            YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
-        self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
 
         self.batch_size = self.args.batch
@@ -174,9 +163,6 @@ class BaseTrainer:
         self.loss = None
         self.tloss = None
         self.loss_names = ["Loss"]
-        self.csv = self.save_dir / "results.csv"
-        if self.csv.exists() and not self.args.resume:
-            self.csv.unlink()
         self.plot_idx = [0, 1, 2]
         self.nan_recovery_attempts = 0
 
@@ -260,9 +246,30 @@ class BaseTrainer:
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
         )
+        # Broadcast working dir location
+        save_dir = [self.save_dir if RANK == 0 else None]
+        dist.broadcast_object_list(save_dir, src=0)
+        self.save_dir = save_dir[0]
 
     def _setup_train(self):
         """Build dataloaders and optimizer on correct rank process."""
+        # Setup working directory
+        self.wdir = self.save_dir / "weights"  # weights dir
+        if RANK in {-1, 0}:
+            self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
+            self.args.save_dir = str(self.save_dir)
+            # Save run args, serializing augmentations as reprs for resume compatibility
+            args_dict = vars(self.args).copy()
+            if args_dict.get("augmentations") is not None:
+                # Serialize Albumentations transforms as their repr strings for checkpoint compatibility
+                args_dict["augmentations"] = [repr(t) for t in args_dict["augmentations"]]
+            YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
+        self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
+        self.csv = self.save_dir / "results.csv"
+        if self.csv.exists() and not self.args.resume:
+            self.csv.unlink()
+        
+        # Setup model
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()

@@ -126,11 +126,10 @@ def ddp_cleanup(trainer, file):
 
 
 def setup_ddp():
-    """
-    Initialize Distributed Data Parallel (DDP) process group for multi-GPU/multi-node training.
-    
-    Sets up the NCCL backend (preferred) or falls back to Gloo, configures the local GPU device,
-    and enables blocking wait for better timeout handling.
+    """Initialize Distributed Data Parallel (DDP) process group for multi-GPU/multi-node training.
+
+    Sets up the NCCL backend (preferred) or falls back to Gloo, configures the local GPU device, and enables blocking
+    wait for better timeout handling.
     """
     import os
     from datetime import timedelta

@@ -18,20 +18,20 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 ## What is NVIDIA DGX Spark?
 
-NVIDIA DGX Spark is a compact desktop AI supercomputer powered by the NVIDIA GB10 Grace Blackwell Superchip. It delivers up to 1 petaflop of AI computing performance with FP4 precision, making it ideal for developers, researchers, and data scientists who need powerful AI capabilities in a desktop form factor.
+NVIDIA DGX Spark is a compact desktop AI supercomputer powered by the NVIDIA GB10 Grace Blackwell Superchip. It delivers up to 1 petaFLOP of AI computing performance with FP4 precision, making it ideal for developers, researchers, and data scientists who need powerful AI capabilities in a desktop form factor.
 
 ### Key Specifications
 
 | Specification  | Details                                              |
 | -------------- | ---------------------------------------------------- |
 | AI Performance | Up to 1 PFLOP (FP4)                                  |
-| GPU            | NVIDIA Blackwell GPU with 1TB/s memory bandwidth     |
-| CPU            | NVIDIA Grace CPU (Arm Neoverse V2 cores)             |
-| Memory         | 128 GB unified LPDDR5X memory                        |
-| Storage        | Up to 4TB NVMe SSD                                   |
-| Connectivity   | USB4 (40Gbps), USB 3.2, 10GbE, WiFi 7, Bluetooth 5.3 |
-| OS             | DGX OS (Ubuntu-based Linux)                          |
-| Power          | Compact desktop design                               |
+| GPU            | NVIDIA Blackwell Architecture with 5th Generation Tensor Cores, 4th Generation RT Cores     |
+| CPU            | 20-core Arm processor (10 Cortex-X925 + 10 Cortex-A725)             |
+| Memory         | 128 GB LPDDR5x unified system memory, 256-bit interface, 4266 MHz, 273 GB/s bandwidth                        |
+| Storage        | 1 TB or 4 TB NVMe M.2 with self-encryption                                   |
+| Network        | 1x RJ-45 (10 GbE), ConnectX-7 Smart NIC, Wi-Fi 7, Bluetooth 5.4 |
+| Connectivity   | 4x USB Type-C, 1x HDMI 2.1a, HDMI multichannel audio |
+| Video Processing  | 1x NVENC, 1x NVDEC                          |
 
 ### DGX OS
 
@@ -52,6 +52,10 @@ DGX Spark comes with a built-in [DGX Dashboard](https://docs.nvidia.com/dgx/dgx-
 - **System Updates**: Ability to apply updates directly from the dashboard
 - **System Settings**: Change device name and other configurations
 - **Integrated JupyterLab**: Access local Jupyter Notebooks for development
+
+<p align="center">
+  <img width="1024" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/dgx-dashboard.avif" alt="NVIDIA DGX Dashboard">
+</p>
 
 #### Accessing the Dashboard
 
@@ -83,7 +87,7 @@ The fastest way to get started with Ultralytics YOLO11 on NVIDIA DGX Spark is to
 
 ```bash
 t=ultralytics/ultralytics:latest-nvidia-arm64
-sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
+sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
 ```
 
 After this is done, skip to [Use TensorRT on NVIDIA DGX Spark section](#use-tensorrt-on-nvidia-dgx-spark).

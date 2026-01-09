@@ -31,4 +31,4 @@ TORCHRUN=(~/containers/python_ultra_2506 -m torch.distributed.run)
   --model ultralytics/cfg/models/rt-detr/rtdetr-resnet50.yaml \
   --config working_dir/rtdetr_train_pr.yaml \
   --name rtdetr-resnet50_mn_trial \
-  --train "data=coco128.yaml" \
+  --train "data=coco.yaml" \

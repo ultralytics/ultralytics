@@ -1,0 +1,83 @@
+# RT-DETR Training Configuration
+# Use with: model.train(cfg='rtdetr_train_config.yaml')
+
+# Task (model is loaded in Python code, not here)
+# task: detect
+mode: train
+
+# Dataset
+data: coco8.yaml  # COCO8 dataset (small subset for testing)
+# datasets_dir: /Users/esat/datasets  # Base directory for datasets
+
+# Training hyperparameters
+epochs: 3
+batch: 16
+nbs: 16
+imgsz: 640
+
+# Device configuration
+device: cpu  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
+workers: 0
+
+# Output and logging
+# project: ultralytics_pr
+# name: yolo11_rtdetr_deneme
+exist_ok: True
+verbose: True
+
+# Optimizer settings (AdamW for DETR-like models)
+optimizer: AdamW  # Best for DETR-like models (AdamW, Adam, SGD, etc.)
+lr0: 0.0001  # Initial learning rate
+lrf: 0.01  # Final learning rate = lr0 * lrf = 0.000001
+momentum: 0.9  # The default value in AdamW implementations
+weight_decay: 0.0001  # L2 regularization (typical for DETR models)
+
+# Learning rate scheduler
+warmup_epochs: 3.0
+warmup_momentum: 0.8
+warmup_bias_lr: 0.1
+
+# Loss function weights
+box: 7.5
+cls: 0.5
+dfl: 1.5
+
+# Augmentation settings
+hsv_h: 0.015  # HSV-Hue augmentation
+hsv_s: 0.7  # HSV-Saturation augmentation
+hsv_v: 0.4  # HSV-Value augmentation
+degrees: 0.0  # Rotation augmentation (disabled)
+translate: 0.1  # Translation augmentation
+scale: 0.5  # Scale augmentation
+shear: 0.0  # Shear augmentation (disabled)
+perspective: 0.0  # Perspective augmentation (disabled)
+flipud: 0.0  # Vertical flip (disabled)
+fliplr: 0.5  # Horizontal flip probability
+mosaic: 0.0  # Mosaic augmentation (disabled for DETR - changed from 1.0)
+mixup: 0.0  # MixUp augmentation (disabled)
+copy_paste: 0.0  # Copy-paste augmentation (disabled)
+auto_augment: False  # AutoAugment (disabled)
+erasing: 0.0  # Random erasing probability
+multi_scale: False  # Enable multi-scale training
+
+# Training optimization
+# amp: True  # Uncomment for GPU training with Automatic Mixed Precision
+fraction: 1.0
+
+# Checkpointing and validation
+save: True
+save_period: -1
+cache: False
+val: True
+patience: 50
+
+# Visualization
+plots: True
+
+# Resume training
+resume: False
+
+# Advanced settings
+close_mosaic: 10
+seed: 0
+deterministic: True

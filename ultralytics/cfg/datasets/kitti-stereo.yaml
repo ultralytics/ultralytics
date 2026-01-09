@@ -47,27 +47,27 @@ download: |
   dir = Path(yaml["path"]).resolve()
 
   # Early exit: if converted dataset already exists, skip download/convert
-  if (dir / "images" / "train" / "left").exists() and (dir / "labels" / "train").exists():
-      LOGGER.info(f"Using existing KITTI Stereo dataset at: {dir} (skipping download/convert)")
-      return
+  dataset_exists = (dir / "images" / "train" / "left").exists() and (dir / "labels" / "train").exists()
+  if dataset_exists:
+    LOGGER.info(f"Using existing KITTI Stereo dataset at: {dir} (skipping download/convert)")
+  else:
+    LOGGER.info("=" * 60)
+    LOGGER.info("KITTI Stereo Dataset Download and Conversion")
+    LOGGER.info("=" * 60)
 
-  LOGGER.info("=" * 60)
-  LOGGER.info("KITTI Stereo Dataset Download and Conversion")
-  LOGGER.info("=" * 60)
-
-  # KITTI dataset S3 URLs
-  kitti_urls = {
+    # KITTI dataset S3 URLs
+    kitti_urls = {
       "image_2": "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_image_2.zip",  # left images
       "image_3": "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_image_3.zip",  # right images
       "label_2": "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_label_2.zip",  # labels
       "calib": "https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_calib.zip",  # calibration
-  }
+    }
 
-  # Download location (raw KITTI data)
-  kitti_raw = dir.parent / "kitti_raw"
-  kitti_raw.mkdir(parents=True, exist_ok=True)
+    # Download location (raw KITTI data)
+    kitti_raw = dir.parent / "kitti_raw"
+    kitti_raw.mkdir(parents=True, exist_ok=True)
 
-  def reorganize_kitti_structure(root_path):
+    def reorganize_kitti_structure(root_path):
       """Reorganize KITTI files if they were extracted to wrong locations."""
       training_dir = root_path / "training"
       training_dir.mkdir(parents=True, exist_ok=True)
@@ -84,26 +84,26 @@ download: |
           dest_dir = training_dir / target_subdir
 
           if src_dir.exists():
-              if dest_dir.exists():
-                  LOGGER.info(f"Merging {src_dir_name}/{split}/{target_subdir} into training/{target_subdir}...")
-                  for item in src_dir.iterdir():
-                      dest_item = dest_dir / item.name
-                      if item.is_file() and not dest_item.exists():
-                          shutil.copy2(item, dest_item)
-                  try:
-                      shutil.rmtree(src_dir.parent.parent)
-                  except Exception:
-                      pass
-              else:
-                  LOGGER.info(f"Moving {src_dir_name}/{split}/{target_subdir} to training/{target_subdir}...")
-                  dest_dir.parent.mkdir(parents=True, exist_ok=True)
-                  shutil.move(str(src_dir), str(dest_dir))
-                  try:
-                      shutil.rmtree(src_dir.parent.parent)
-                  except Exception:
-                      pass
+            if dest_dir.exists():
+                LOGGER.info(f"Merging {src_dir_name}/{split}/{target_subdir} into training/{target_subdir}...")
+                for item in src_dir.iterdir():
+                  dest_item = dest_dir / item.name
+                  if item.is_file() and not dest_item.exists():
+                    shutil.copy2(item, dest_item)
+                try:
+                  shutil.rmtree(src_dir.parent.parent)
+                except Exception:
+                  pass
+            else:
+                LOGGER.info(f"Moving {src_dir_name}/{split}/{target_subdir} to training/{target_subdir}...")
+                dest_dir.parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(src_dir), str(dest_dir))
+                try:
+                  shutil.rmtree(src_dir.parent.parent)
+                except Exception:
+                  pass
 
-  def check_kitti_ready(root_path):
+    def check_kitti_ready(root_path):
       """Check if KITTI raw data is ready for conversion."""
       training_dir = root_path / "training"
       return (
@@ -113,48 +113,69 @@ download: |
           and (training_dir / "calib").exists()
       )
 
-  # Download if not already present
-  if not check_kitti_ready(kitti_raw):
-      LOGGER.info(f"Downloading KITTI dataset to: {kitti_raw}")
-      LOGGER.info("This may take a while (~12 GB to download)...")
+    # Download if not already present
+    if not check_kitti_ready(kitti_raw):
+        LOGGER.info(f"Downloading KITTI dataset to: {kitti_raw}")
+        LOGGER.info("This may take a while (~12 GB to download)...")
 
-      for key, url in kitti_urls.items():
+        for key, url in kitti_urls.items():
           LOGGER.info(f"Downloading {key}...")
           download(url, kitti_raw, unzip=True, delete=True, exist_ok=True)
 
-      # Reorganize if needed
-      reorganize_kitti_structure(kitti_raw)
+        # Reorganize if needed
+        reorganize_kitti_structure(kitti_raw)
 
-  # Verify KITTI structure
-  if not check_kitti_ready(kitti_raw):
-      raise FileNotFoundError(
-          f"KITTI data not found at {kitti_raw / 'training'}. "
-          "Please check the download or set KITTI_ROOT environment variable."
-      )
+    # Verify KITTI structure
+    if not check_kitti_ready(kitti_raw):
+        raise FileNotFoundError(
+            f"KITTI data not found at {kitti_raw / 'training'}. "
+            "Please check the download or set KITTI_ROOT environment variable."
+        )
 
-  LOGGER.info(f"KITTI raw data ready at: {kitti_raw}")
+    LOGGER.info(f"KITTI raw data ready at: {kitti_raw}")
 
-  # Import and use the converter
-  from ultralytics.data.scripts.convert_kitti_3d import KITTIToYOLO3D
+    # Import and use the converter
+    from ultralytics.data.scripts.convert_kitti_3d import KITTIToYOLO3D
 
-  LOGGER.info(f"Converting KITTI dataset to YOLO 3D format at: {dir}")
+    LOGGER.info(f"Converting KITTI dataset to YOLO 3D format at: {dir}")
 
-  # Convert using 3DOP strategy (training set split into train 0-3711 and val 3712+)
-  converter = KITTIToYOLO3D(
+    # Convert using 3DOP strategy (training set split into train 0-3711 and val 3712+)
+    converter = KITTIToYOLO3D(
       kitti_root=kitti_raw,
       output_root=dir,
       filter_classes=None,
       split_strategy="3dop",
-  )
+    )
 
-  # Convert training split (creates both train and val with 3DOP strategy)
-  converter.convert_split("training")
+    # Convert training split (creates both train and val with 3DOP strategy)
+    converter.convert_split("training")
 
-  # Create dataset.yaml
-  converter.create_dataset_yaml()
+    # Create dataset.yaml
+    converter.create_dataset_yaml()
 
-  LOGGER.info("")
-  LOGGER.info("=" * 60)
-  LOGGER.info("KITTI Stereo Dataset Conversion Complete!")
-  LOGGER.info(f"Dataset saved to: {dir}")
-  LOGGER.info("=" * 60)
+    LOGGER.info("")
+    LOGGER.info("=" * 60)
+    LOGGER.info("KITTI Stereo Dataset Conversion Complete!")
+    LOGGER.info(f"Dataset saved to: {dir}")
+    LOGGER.info("=" * 60)
+
+# Stereo calibration parameters (optional, defaults from KITTI)
+baseline: 0.54  # distance between left and right cameras (meters)
+focal_length: 721.5  # focal length in pixels (KITTI P2 matrix)
+
+# Mean dimensions per class for 3D NMS (optional, will be computed from training data)
+mean_dims:
+  Car: [3.9, 1.6, 1.5]        # [length, width, height] in meters
+  Van: [4.8, 2.0, 2.0]
+  Truck: [10.0, 2.8, 3.5]
+  Pedestrian: [0.8, 0.6, 1.7]
+  Person_sitting: [0.9, 0.6, 1.2]
+  Cyclist: [1.8, 0.6, 1.7]
+  Tram: [12.0, 2.5, 3.5]
+  Misc: [3.0, 2.0, 2.0]
+
+# Image size (KITTI raw is 375x1242)
+image_size: [375, 1242]
+
+# Number of input channels (6 = left RGB + right RGB)
+channels: 6

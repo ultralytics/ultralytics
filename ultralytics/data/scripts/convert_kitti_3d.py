@@ -669,9 +669,12 @@ class KITTIToYOLO3D:
             num_classes = len(class_names)
         else:
             # Use OrderedDict to preserve order based on class IDs (0, 1, 2, ...)
+            # class_names should map: {class_id: class_name}
             class_names = OrderedDict()
-            for old_id in sorted(self.class_map.keys()):
-                class_names[old_id] = self.class_map[old_id]
+            for old_id in sorted(self.class_map.values()):
+                # Find class name for this ID
+                class_name = next(name for name, id_ in self.class_map.items() if id_ == old_id)
+                class_names[old_id] = class_name
             num_classes = len(self.class_map)
 
         # Build names section - OrderedDict preserves order

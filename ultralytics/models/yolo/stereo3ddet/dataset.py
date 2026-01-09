@@ -273,12 +273,6 @@ class Stereo3DDetDataset(Dataset):
                 assert -np.pi <= label_dict["rotation_y"] <= np.pi, (
                     f"rotation_y is out of range: {label_dict['rotation_y']}"
                 )
-                assert (
-                    0.1 < label_dict["dimensions"]["height"] < 5
-                    and 0.1 < label_dict["dimensions"]["width"] < 3
-                    and 0.1 < label_dict["dimensions"]["length"] < 20
-                ), f"dimensions are out of range: {label_dict['dimensions']}"
-
                 labels.append(label_dict)
         return labels
 

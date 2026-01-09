@@ -91,6 +91,10 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', type=str, default='0', help='cuda device(s) to use')
     parser.add_argument('-model_weight', type=str, default="./weights/yoloe-26s.pt", help='path to model weight')
+    # swith to val tp and vp 
+    parser.add_argument('--val_mode', type=str, default='all', help='validation mode: all, tp_only, vp_only')
+
+
     args = parser.parse_args()
 
     check_open_clip_installed()
@@ -104,18 +108,20 @@ if __name__=="__main__":
 
     results={}
 
-    print("Validating YOLOE26 with Text Prompt...")
-    model=val_yoloe26(model_weight,mode="text_prompt",end2end=True,device=device)
-    results["tp_end2end"] = model.val_stats if hasattr(model, 'val_stats') else model.metrics.results_dict
-    tp_metrics=val_yoloe26(model_weight,mode="text_prompt",end2end=False,device=device)
-    results["tp_not_end2end"]=tp_metrics.val_stats if hasattr(tp_metrics, 'val_stats') else tp_metrics.metrics.results_dict
+    if args.val_mode in ["all","tp_only"]:
+        print("Validating YOLOE26 with Text Prompt...")
+        model=val_yoloe26(model_weight,mode="text_prompt",end2end=True,device=device)
+        results["tp_end2end"] = model.val_stats if hasattr(model, 'val_stats') else model.metrics.results_dict
+        tp_metrics=val_yoloe26(model_weight,mode="text_prompt",end2end=False,device=device)
+        results["tp_not_end2end"]=tp_metrics.val_stats if hasattr(tp_metrics, 'val_stats') else tp_metrics.metrics.results_dict
 
 
-    print("Validating YOLOE26 with Visual Prompt...")
-    vp_metrics=val_yoloe26(model_weight,mode="visual_prompt",end2end=True,device=device)
-    results["vp_end2end"]=vp_metrics.val_stats if hasattr(vp_metrics, 'val_stats') else vp_metrics.metrics.results_dict
-    vp_metrics=val_yoloe26(model_weight,mode="visual_prompt",end2end=False,device=device)
-    results["vp_not_end2end"]=vp_metrics.val_stats if hasattr(vp_metrics, 'val_stats') else vp_metrics.metrics.results_dict
+    if  args.val_mode in ["all","vp_only"]:
+        print("Validating YOLOE26 with Visual Prompt...")
+        vp_metrics=val_yoloe26(model_weight,mode="visual_prompt",end2end=True,device=device)
+        results["vp_end2end"]=vp_metrics.val_stats if hasattr(vp_metrics, 'val_stats') else vp_metrics.metrics.results_dict
+        vp_metrics=val_yoloe26(model_weight,mode="visual_prompt",end2end=False,device=device)
+        results["vp_not_end2end"]=vp_metrics.val_stats if hasattr(vp_metrics, 'val_stats') else vp_metrics.metrics.results_dict
     
     print("\n" + "="*80)
     print("Validation Results (IoU=0.50:0.95):")

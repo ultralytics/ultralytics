@@ -1,6 +1,6 @@
 # YOLO-Series ONNXRuntime Rust Demo for Core YOLO Tasks
 
-This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [Ultralytics YOLO](https://docs.ultralytics.com/) series tasks such as [Classification](https://docs.ultralytics.com/tasks/classify/), [Segmentation](https://docs.ultralytics.com/tasks/segment/), [Detection](https://docs.ultralytics.com/tasks/detect/), [Pose Estimation](https://docs.ultralytics.com/tasks/pose/), and Oriented Bounding Box ([OBB](https://docs.ultralytics.com/tasks/obb/)) detection using the [ONNXRuntime](https://github.com/microsoft/onnxruntime). It supports various YOLO models (v5 through 11) across multiple computer vision tasks.
+This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [Ultralytics YOLO](https://docs.ultralytics.com/) series tasks such as [Classification](https://docs.ultralytics.com/tasks/classify/), [Segmentation](https://docs.ultralytics.com/tasks/segment/), [Detection](https://docs.ultralytics.com/tasks/detect/), [Pose Estimation](https://docs.ultralytics.com/tasks/pose/), and Oriented Bounding Box ([OBB](https://docs.ultralytics.com/tasks/obb/)) detection using the [ONNXRuntime](https://github.com/microsoft/onnxruntime). It supports various YOLO models (YOLOv5 through YOLO11) across multiple computer vision tasks.
 
 ## ✨ Introduction
 
@@ -43,12 +43,12 @@ This repository provides a [Rust](https://rust-lang.org/) demo showcasing key [U
 
 </details>
 
-### 2. \[Optional\] Install CUDA, CuDNN, and TensorRT
+### 2. [Optional] Install CUDA, CuDNN, and TensorRT
 
 - The CUDA execution provider requires [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) version `12.x`.
 - The TensorRT execution provider requires both CUDA `12.x` and [NVIDIA TensorRT](https://developer.nvidia.com/tensorrt) `10.x`. Ensure [cuDNN](https://developer.nvidia.com/cudnn) is also correctly installed.
 
-### 3. \[Optional\] Install ffmpeg
+### 3. [Optional] Install ffmpeg
 
 To enable viewing video frames and saving video inferences, install the `rust-ffmpeg` crate's dependencies. Follow the instructions provided here:
 [https://github.com/zmwangx/rust-ffmpeg/wiki/Notes-on-building#dependencies](https://github.com/zmwangx/rust-ffmpeg/wiki/Notes-on-building#dependencies)

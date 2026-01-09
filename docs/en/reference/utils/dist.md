@@ -25,4 +25,8 @@ keywords: Ultralytics, distributed training, DDP, multi-node training, network p
 
 ## ::: ultralytics.utils.dist.ddp_cleanup
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.dist.setup_ddp
+
 <br><br>

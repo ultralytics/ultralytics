@@ -53,8 +53,10 @@ overrides = {vars(trainer.args)}
 
 if __name__ == "__main__":
     from {module} import {name}
-    from ultralytics.utils import DEFAULT_CFG_DICT
+    from ultralytics.utils import DEFAULT_CFG_DICT, LOCAL_RANK, RANK
+    from ultralytics.utils.dist import setup_ddp
 
+    setup_ddp()
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
     trainer = {name}(cfg=cfg, overrides=overrides)
@@ -121,3 +123,26 @@ def ddp_cleanup(trainer, file):
     """
     if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)
+
+
+def setup_ddp():
+    """Initialize Distributed Data Parallel (DDP) process group for multi-GPU/multi-node training.
+
+    Sets up the NCCL backend (preferred) or falls back to Gloo, configures the local GPU device, and enables blocking
+    wait for better timeout handling.
+    """
+    import os
+    from datetime import timedelta
+
+    import torch
+    import torch.distributed as dist
+
+    from ultralytics.utils import LOCAL_RANK, RANK
+
+    torch.cuda.set_device(LOCAL_RANK)
+    os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+    dist.init_process_group(
+        backend="nccl" if dist.is_nccl_available() else "gloo",
+        timeout=timedelta(seconds=10800),  # 3 hours
+        rank=RANK,
+    )

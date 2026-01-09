@@ -403,7 +403,7 @@ class Model(torch.nn.Module):
         }
         torch.save({**self.ckpt, **updates}, filename)
 
-    def info(self, detailed: bool = False, verbose: bool = True, imgsz=640):
+    def info(self, detailed: bool = False, verbose: bool = True, imgsz: int | list[int, int] = 640):
         """Display model information.
 
         This method provides an overview or detailed information about the model, depending on the arguments
@@ -412,6 +412,7 @@ class Model(torch.nn.Module):
         Args:
             detailed (bool): If True, shows detailed information about the model layers and parameters.
             verbose (bool): If True, prints the information. If False, returns the information as a list.
+            imgsz (int | list[int, int]): Input image size used for FLOPs calculation.
 
         Returns:
             (list[str]): A list of strings containing various types of information about the model, including model
@@ -523,7 +524,7 @@ class Model(torch.nn.Module):
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         prompts = args.pop("prompts", None)  # for SAM-type models
 
-        if not self.predictor:
+        if not self.predictor or self.predictor.args.device != args.get("device", self.predictor.args.device):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup

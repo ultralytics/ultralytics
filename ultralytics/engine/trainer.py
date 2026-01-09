@@ -148,8 +148,6 @@ class BaseTrainer:
 
         # Model and Dataset
         self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo11n -> yolo11n.pt
-        with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
-            self.data = self.get_dataset()
 
         self.ema = None
 
@@ -268,6 +266,10 @@ class BaseTrainer:
         self.csv = self.save_dir / "results.csv"
         if self.csv.exists() and not self.args.resume:
             self.csv.unlink()
+        
+        # Setup dataset; needs to be after DDP init
+        with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
+            self.data = self.get_dataset()
 
         # Setup model
         ckpt = self.setup_model()

@@ -316,7 +316,7 @@ class DetectionValidator(BaseValidator):
             batch_size,
             self.args.workers,
             shuffle=False,
-            rank=-1,
+            rank=RANK,
             drop_last=self.args.compile,
             pin_memory=self.training,
         )

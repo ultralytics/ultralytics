@@ -11,11 +11,10 @@ from __future__ import annotations
 import gc
 import math
 import os
-import subprocess
 import time
 import warnings
 from copy import copy, deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -42,7 +41,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
-from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
+from ultralytics.utils.dist import run_ddp
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
@@ -52,6 +51,7 @@ from ultralytics.utils.torch_utils import (
     attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
+    get_world_size,
     init_seeds,
     one_cycle,
     select_device,
@@ -123,7 +123,7 @@ class BaseTrainer:
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
-        self.device = select_device(self.args.device)
+        self.device = select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK)
         # Update "-1" devices so post-training val does not repeat search
         self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
@@ -182,20 +182,9 @@ class BaseTrainer:
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
+        self.world_size = get_world_size(self.args.device)
+        self.ddp = self.world_size > 1 and RANK == -1
 
-        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
-            world_size = len(self.args.device.split(","))
-        elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
-            world_size = len(self.args.device)
-        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
-            world_size = 0
-        elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
-            world_size = 1  # default to device 0
-        else:  # i.e. device=None or device=''
-            world_size = 0
-
-        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
-        self.world_size = world_size
         # Run subprocess if DDP training, else train normally
         if RANK in {-1, 0} and not self.ddp:
             callbacks.add_integration_callbacks(self)
@@ -229,15 +218,8 @@ class BaseTrainer:
                     f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
                 )
 
-            # Command
-            cmd, file = generate_ddp_command(self)
-            try:
-                LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
-                subprocess.run(cmd, check=True)
-            except Exception as e:
-                raise e
-            finally:
-                ddp_cleanup(self, str(file))
+            # Launch DDP subprocess
+            run_ddp(self)
 
         else:
             self._do_train()
@@ -249,18 +231,6 @@ class BaseTrainer:
         else:
             self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
-
-    def _setup_ddp(self):
-        """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
-        dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
-            timeout=timedelta(seconds=10800),  # 3 hours
-            rank=RANK,
-            world_size=self.world_size,
-        )
 
     def _setup_train(self):
         """Build dataloaders and optimizer on correct rank process."""
@@ -359,8 +329,6 @@ class BaseTrainer:
 
     def _do_train(self):
         """Train the model with the specified world size."""
-        if self.world_size > 1:
-            self._setup_ddp()
         self._setup_train()
 
         nb = len(self.train_loader)  # number of batches

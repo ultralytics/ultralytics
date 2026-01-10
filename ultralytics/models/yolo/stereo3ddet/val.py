@@ -57,6 +57,7 @@ def decode_stereo3d_outputs_yolo11_p3(
     ori_shapes: list[tuple[int, int]] | None = None,
     iou_thres: float = 0.45,
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
+    std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode YOLO11-mapped stereo3ddet outputs (P3-only) to Box3D objects.
@@ -74,6 +75,9 @@ def decode_stereo3d_outputs_yolo11_p3(
         iou_thres: IoU threshold for NMS.
         mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
             Should be provided by dataset configuration.
+        std_dims: Standard deviation of dimensions per class (class ID -> (H, W, L) in meters).
+            Should be provided by dataset configuration for normalized offset decoding.
+            If None, defaults to reasonable estimates.
         class_names: Mapping from class ID to class name (e.g., {0: "Car",1: "Pedestrian", ...}).
             Should be provided by dataset configuration.
     """
@@ -115,11 +119,14 @@ def decode_stereo3d_outputs_yolo11_p3(
         return_idxs=True,
     )
 
-    # Use mean_dims and class_names from dataset configuration
+    # Use mean_dims, std_dims, and class_names from dataset configuration
     # mean_dims is required (should always be provided by dataset YAML)
+    # std_dims is required for normalized offset decoding (defaults provided if None)
     # class_names is required (should always be provided by dataset YAML)
     if mean_dims is None:
         raise ValueError("mean_dims must be provided by dataset configuration")
+    if std_dims is None:
+        raise ValueError("std_dims must be provided by dataset configuration")
     if class_names is None:
         raise ValueError("class_names must be provided by dataset configuration")
 
@@ -199,11 +206,21 @@ def decode_stereo3d_outputs_yolo11_p3(
             x_3d = (u_orig - cx_orig) * z_3d / fx_orig
             y_3d = (v_orig - cy_orig) * z_3d / fy_orig
 
-            # Dimensions decode (H, W, L)
+            # Dimensions decode (H, W, L) - de-normalize from offset to actual dimensions
+            # Prediction is normalized offset: offset = (dim - mean) / std
+            # So actual dimension: dim = mean + offset * std
             mean_h, mean_w, mean_l = mean_dims.get(c, mean_dims[0])
-            height = mean_h + float(dim_off[0].item())
-            width = mean_w + float(dim_off[1].item())
-            length = mean_l + float(dim_off[2].item())
+            std_h, std_w, std_l = std_dims.get(c, std_dims[0])
+            
+            # De-normalize: dimension = mean + offset * std
+            height = mean_h + float(dim_off[0].item()) * std_h
+            width = mean_w + float(dim_off[1].item()) * std_w
+            length = mean_l + float(dim_off[2].item()) * std_l
+            
+            # Clamp to reasonable bounds to prevent invalid dimensions
+            height = np.clip(height, 0.5, 3.0)   # height in [0.5, 3.0] meters
+            width = np.clip(width, 0.3, 2.5)     # width in [0.3, 2.5] meters
+            length = np.clip(length, 0.5, 6.0)    # length in [0.5, 6.0] meters
 
             # Orientation decode: alpha -> theta
             alpha = _decode_orientation_multibin(ori_enc)
@@ -661,6 +678,7 @@ def _decode_stereo3d_outputs_per_sample(
     imgsz: int | tuple[int, int] | list[int] | None = None,
     ori_shape: tuple[int, int] | None = None,
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
+    std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
 ) -> list[Box3D]:
     """Original per-sample implementation for backward compatibility.
@@ -685,12 +703,31 @@ def _decode_stereo3d_outputs_per_sample(
         right_img: Right camera image for dense alignment (optional, for future use)
         mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
             Should be provided by dataset configuration.
+        std_dims: Standard deviation of dimensions per class (class ID -> (H, W, L) in meters).
+            Should be provided by dataset configuration for normalized offset decoding.
+            If None, defaults to reasonable estimates.
         class_names: Mapping from class ID to class name.
             Should be provided by dataset configuration.
     """
     # Validate required parameters (should always be provided by dataset configuration)
     if mean_dims is None:
         raise ValueError("mean_dims must be provided by dataset configuration")
+    if std_dims is None:
+        # Default std_dims if not provided (reasonable estimates for normalized training)
+        # [std_h, std_w, std_l] in meters
+        std_dims = {
+            0: (0.15, 0.10, 0.42),    # Car
+            1: (0.20, 0.15, 0.50),    # Van
+            2: (0.50, 0.30, 0.80),    # Truck
+            3: (0.12, 0.08, 0.20),    # Pedestrian
+            4: (0.10, 0.08, 0.15),    # Person_sitting
+            5: (0.15, 0.10, 0.25),    # Cyclist
+            6: (0.50, 0.30, 1.00),    # Tram
+            7: (0.50, 0.20, 0.50),    # Misc
+        }
+        # Add generic defaults for additional classes
+        for i in range(8, max(mean_dims.keys()) + 1):
+            std_dims[i] = (0.2, 0.2, 0.5)
     if class_names is None:
         raise ValueError("class_names must be provided by dataset configuration")
 
@@ -821,17 +858,22 @@ def _decode_stereo3d_outputs_per_sample(
             # Calibration is already in letterboxed space (from dataset transformation)
             d_letterbox = d * scale_w_letterbox  # Scale disparity to letterboxed input width
 
-            # Decode dimensions (offsets + class mean)
+            # Decode dimensions - de-normalize from offset to actual dimensions
+            # Prediction is normalized offset: offset = (dim - mean) / std
+            # So actual dimension: dim = mean + offset * std
             dim_offsets = dimensions[:, y_idx, x_idx].cpu().numpy()
             mean_h, mean_w, mean_l = mean_dims[c]
-            height = mean_h + dim_offsets[0]
-            width = mean_w + dim_offsets[1]
-            length = mean_l + dim_offsets[2]
+            std_h, std_w, std_l = std_dims[c]
+            
+            # De-normalize: dimension = mean + offset * std
+            height = mean_h + dim_offsets[0] * std_h
+            width = mean_w + dim_offsets[1] * std_w
+            length = mean_l + dim_offsets[2] * std_l
 
-            # Ensure positive dimensions
-            height = max(0.1, height)
-            width = max(0.1, width)
-            length = max(0.1, length)
+            # Clamp to reasonable bounds to prevent invalid dimensions
+            height = np.clip(height, 0.5, 3.0)   # height in [0.5, 3.0] meters
+            width = np.clip(width, 0.3, 2.5)     # width in [0.3, 2.5] meters
+            length = np.clip(length, 0.5, 6.0)    # length in [0.5, 6.0] meters
 
             # Decode orientation from Multi-Bin representation
             orient_bins = orientation[:, y_idx, x_idx].cpu().numpy()
@@ -1026,6 +1068,7 @@ def decode_stereo3d_outputs(
     imgsz: int | tuple[int, int] | list[int] | None = None,
     ori_shapes: list[tuple[int, int]] | None = None,
     mean_dims: dict[int, tuple[float, float, float]] | None = None,
+    std_dims: dict[int, tuple[float, float, float]] | None = None,
     class_names: dict[int, str] | None = None,
 ) -> list[Box3D] | list[list[Box3D]]:
     """Decode 10-branch model outputs to 3D bounding boxes.
@@ -1091,13 +1134,30 @@ def decode_stereo3d_outputs(
             imgsz=imgsz,
             ori_shape=ori_shape_single,
             mean_dims=mean_dims,  # Pass mean_dims from dataset config
+            std_dims=std_dims,  # Pass std_dims for de-normalization
             class_names=class_names,  # Pass class_names from dataset config
         )
 
     # T206-T211: Batch processing implementation
-    # Use mean_dims and class_names from dataset configuration
+    # Use mean_dims, std_dims, and class_names from dataset configuration
     if mean_dims is None:
         raise ValueError("mean_dims must be provided by dataset configuration")
+    if std_dims is None:
+        # Default std_dims if not provided (reasonable estimates for normalized training)
+        # [std_h, std_w, std_l] in meters
+        std_dims = {
+            0: (0.15, 0.10, 0.42),    # Car
+            1: (0.20, 0.15, 0.50),    # Van
+            2: (0.50, 0.30, 0.80),    # Truck
+            3: (0.12, 0.08, 0.20),    # Pedestrian
+            4: (0.10, 0.08, 0.15),    # Person_sitting
+            5: (0.15, 0.10, 0.25),    # Cyclist
+            6: (0.50, 0.30, 1.00),    # Tram
+            7: (0.50, 0.20, 0.50),    # Misc
+        }
+        # Add generic defaults for additional classes
+        for i in range(8, max(mean_dims.keys()) + 1):
+            std_dims[i] = (0.2, 0.2, 0.5)
     if class_names is None:
         raise ValueError("class_names must be provided by dataset configuration")
 
@@ -1227,6 +1287,7 @@ def decode_stereo3d_outputs(
             class_scores = batch_scores[c]  # [K]
             class_indices = batch_indices[c]  # [K]
             mean_h, mean_w, mean_l = mean_dims[c]
+            std_h, std_w, std_l = std_dims[c]
 
             # debug
             assert class_scores.min() >= 0 and class_scores.max() <= 1, "class_scores are not normalized"
@@ -1339,13 +1400,18 @@ def decode_stereo3d_outputs(
             # u_values_orig and v_values_orig already calculated above for 3D position
             # Reuse them for bbox_2d calculation
             
-            # Decode dimensions (vectorized)
+            # Decode dimensions - de-normalize from offset to actual dimensions (vectorized)
+            # Prediction is normalized offset: offset = (dim - mean) / std
+            # So actual dimension: dim = mean + offset * std
             mean_h_tensor = torch.tensor(mean_h, device=device, dtype=dim_offsets.dtype)
             mean_w_tensor = torch.tensor(mean_w, device=device, dtype=dim_offsets.dtype)
             mean_l_tensor = torch.tensor(mean_l, device=device, dtype=dim_offsets.dtype)
-            height_values = torch.clamp(mean_h_tensor + dim_offsets[:, 0], min=0.1)  # [K_valid]
-            width_values = torch.clamp(mean_w_tensor + dim_offsets[:, 1], min=0.1)  # [K_valid]
-            length_values = torch.clamp(mean_l_tensor + dim_offsets[:, 2], min=0.1)  # [K_valid]
+            std_h_tensor = torch.tensor(std_h, device=device, dtype=dim_offsets.dtype)
+            std_w_tensor = torch.tensor(std_w, device=device, dtype=dim_offsets.dtype)
+            std_l_tensor = torch.tensor(std_l, device=device, dtype=dim_offsets.dtype)
+            height_values = torch.clamp(mean_h_tensor + dim_offsets[:, 0] * std_h_tensor, min=0.5, max=3.0)  # [K_valid]
+            width_values = torch.clamp(mean_w_tensor + dim_offsets[:, 1] * std_w_tensor, min=0.3, max=2.5)  # [K_valid]
+            length_values = torch.clamp(mean_l_tensor + dim_offsets[:, 2] * std_l_tensor, min=0.5, max=6.0)  # [K_valid]
             
             # Decode orientation from Multi-Bin (vectorized)
             # Correct format: [conf1, conf2, sin1, cos1, sin2, cos2, pad, pad]
@@ -1557,6 +1623,10 @@ class Stereo3DDetValidator(BaseValidator):
         self.det_iouv = torch.linspace(0.5, 0.95, 10)
         self.det_metrics = DetMetrics()
 
+        # Mean and std dimensions from dataset config (for decoding)
+        self.mean_dims = None
+        self.std_dims = None
+
     def get_dataset(self) -> dict[str, Any]:
         """Parse stereo dataset YAML and return metadata for KITTIStereoDataset.
 
@@ -1596,6 +1666,12 @@ class Stereo3DDetValidator(BaseValidator):
             raise ValueError("Dataset configuration must include 'names' mapping")
         nc = data_cfg.get("nc", len(names))
 
+        # Mean dimensions per class (for dimension decoding)
+        mean_dims = data_cfg.get("mean_dims")
+        
+        # Standard deviation of dimensions per class (for normalized offset decoding)
+        std_dims = data_cfg.get("std_dims")
+
         # Return a dict compatible with BaseValidator expectations, plus stereo descriptors
         return {
             "yaml_file": str(self.args.data) if isinstance(self.args.data, (str, Path)) else None,
@@ -1612,6 +1688,8 @@ class Stereo3DDetValidator(BaseValidator):
             "image_size": data_cfg.get("image_size", [375, 1242]),
             "baseline": data_cfg.get("baseline"),
             "focal_length": data_cfg.get("focal_length"),
+            "mean_dims": mean_dims,
+            "std_dims": std_dims,
         }
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
@@ -1683,6 +1761,7 @@ class Stereo3DDetValidator(BaseValidator):
             ori_shapes=ori_shapes,
             iou_thres=getattr(self.args, "iou", 0.45),
             mean_dims=self.mean_dims if hasattr(self, "mean_dims") else None,
+            std_dims=self.std_dims if hasattr(self, "std_dims") else None,
             class_names=self.names if hasattr(self, "names") else None,
         )
     
@@ -1890,6 +1969,20 @@ class Stereo3DDetValidator(BaseValidator):
         else:
             self.mean_dims = None
             LOGGER.info("No mean_dims in dataset config, will use defaults")
+
+        # Parse and convert std_dims from YAML format (class ID -> [L, W, H]) to (class ID -> (H, W, L))
+        std_dims_raw = self.data.get("std_dims") if hasattr(self, "data") and self.data else None
+        if std_dims_raw is not None:
+            # Convert from {class_id: [L, W, H]} to {class_id: (H, W, L)}
+            self.std_dims = {}
+            for class_id, dims in std_dims_raw.items():
+                if isinstance(dims, (list, tuple)) and len(dims) == 3:
+                    l, w, h = dims  # YAML has [L, W, H]
+                    self.std_dims[class_id] = (h, w, l)  # Store as (H, W, L)
+            LOGGER.info(f"Loaded std_dims with {len(self.std_dims)} classes")
+        else:
+            self.std_dims = None
+            LOGGER.info("No std_dims in dataset config, will use defaults")
         
         # Init 2D detection metrics (bbox mAP)
         self.det_metrics.names = self.names

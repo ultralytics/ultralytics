@@ -166,6 +166,9 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         # Extract mean dimensions if present in dataset config
         mean_dims = data_cfg.get("mean_dims")
         
+        # Extract standard deviation of dimensions if present in dataset config
+        std_dims = data_cfg.get("std_dims")
+        
         # Return a dict compatible with BaseTrainer expectations, plus stereo descriptors
         return {
             "yaml_file": str(self.args.data) if isinstance(self.args.data, (str, Path)) else None,
@@ -183,6 +186,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             "baseline": data_cfg.get("baseline"),
             "focal_length": data_cfg.get("focal_length"),
             "mean_dims": mean_dims,  # Mean dimensions per class [L, W, H] from dataset.yaml
+            "std_dims": std_dims,  # Standard deviation of dimensions per class [L, W, H] from dataset.yaml
         }
 
     def build_dataset(self, img_path, mode: str = "train", batch: int | None = None):
@@ -214,7 +218,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             
             # Get mean_dims from dataset config
             mean_dims = self.data.get("mean_dims")
-            
+            std_dims = self.data.get("std_dims")
             return Stereo3DDetDataset(
                 root=str(desc.get("root", ".")),
                 split=str(desc.get("split", "train")),
@@ -222,6 +226,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
                 names=self.data.get("names"),
                 output_size=output_size,
                 mean_dims=mean_dims,
+                std_dims=std_dims,
             )
         # Otherwise, use the default detection dataset builder
         return super().build_dataset(img_path, mode=mode, batch=batch)

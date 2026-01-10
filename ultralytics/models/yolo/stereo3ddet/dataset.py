@@ -11,7 +11,7 @@ from torch.utils.data import Dataset
 from ultralytics.data.augment import LetterBox
 from ultralytics.models.yolo.stereo3ddet.augment import StereoAugmentationPipeline, StereoCalibration, PhotometricAugmentor
 from ultralytics.utils import LOGGER
-
+from ultralytics.data.stereo.target_improved import TargetGenerator
 import math
 
 
@@ -41,6 +41,7 @@ class Stereo3DDetDataset(Dataset):
         max_samples: int | None = None,
         output_size: Tuple[int, int] | None = None,
         mean_dims: Dict[str, List[float]] | None = None,
+        std_dims: Dict[str, List[float]] | None = None,
     ):
         """Initialize Stereo3DDetDataset.
 
@@ -55,6 +56,8 @@ class Stereo3DDetDataset(Dataset):
                 If None, computed from imgsz assuming 8x downsampling (P3 architecture).
             mean_dims (Dict[str, List[float]] | None): Mean dimensions per class [L, W, H] in meters.
                 If None, uses default KITTI values.
+            std_dims (Dict[str, List[float]] | None): Standard deviation of dimensions per class [L, W, H] in meters.
+                Used for normalized offset prediction. If None, defaults to reasonable estimates.
         """
         self.root = Path(root)
         self.split = split
@@ -107,11 +110,12 @@ class Stereo3DDetDataset(Dataset):
         num_classes = len(self.names) if self.names else 3
         
         # Initialize target generator
-        from ultralytics.data.stereo.target_improved import TargetGenerator
+        
         self.target_generator = TargetGenerator(
             output_size=output_size,
             num_classes=num_classes,
             mean_dims=mean_dims,
+            std_dims=std_dims,  # std_dims will be loaded from dataset YAML if available
             class_names=self.names,  # Pass class names mapping for dataset-agnostic operation
         )
 
@@ -594,9 +598,10 @@ class Stereo3DDetDataset(Dataset):
         }
         per_image_counts: list[int] = []
 
-        # Reuse mean dims mapping from TargetGenerator for consistency.
-        mean_dims = getattr(self.target_generator, "mean_dims", None)
-        class_names_map = getattr(self.target_generator, "class_names_map", {0: "Car", 1: "Pedestrian", 2: "Cyclist"})
+        # Reuse mean_dims and std_dims mapping from TargetGenerator for consistency.
+        mean_dims = self.target_generator.mean_dims
+        std_dims = self.target_generator.std_dims
+        class_names_map = self.target_generator.class_names_map
 
         for i, (labels, calib, ori_shape) in enumerate(zip(labels_list, calibs, ori_shapes)):
             n = len(labels)
@@ -647,13 +652,14 @@ class Stereo3DDetDataset(Dataset):
                 # -------------------------
                 dims = lab["dimensions"]  # meters
                 # mean_dims now uses integer keys (class_id) instead of string keys (class_name)
-                mean_dim = (mean_dims or {}).get(cls_i, [1.0, 1.0, 1.0]) if isinstance(mean_dims, dict) else [1.0, 1.0, 1.0]
+                mean_dim = mean_dims.get(cls_i, [1.0, 1.0, 1.0])
+                std_dim = std_dims.get(cls_i, [0.2, 0.2, 0.5])
                 # [ΔH, ΔW, ΔL]
                 dim_offset = torch.tensor(
                     [
-                        float(dims["height"] - mean_dim[2]),
-                        float(dims["width"] - mean_dim[1]),
-                        float(dims["length"] - mean_dim[0]),
+                        float(dims["height"] - mean_dim[2]) / std_dim[2],
+                        float(dims["width"] - mean_dim[1]) / std_dim[1],
+                        float(dims["length"] - mean_dim[0]) / std_dim[0],
                     ],
                     dtype=torch.float32,
                 )
@@ -688,8 +694,8 @@ class Stereo3DDetDataset(Dataset):
 
                 # Vertices targets as object-level offsets relative to object center (normalized by feature map size)
                 # We reuse the same projection logic by calling into the target generator, then extracting computed values.
-                # NOTE: For P3-only first pass, we approximate by using the existing generator but reading values at center cell.
-                # This keeps behavior consistent with the previous heatmap pipeline while switching positivity source.
+                # NOTE: For YOLO-based detection, we use the generator but read values at center cell.
+                # This generates 3D targets for vertices while using YOLO TaskAlignedAssigner for bbox detection.
                 num_labels = 1
                 calib_list = [calib] * num_labels
                 ori_shape_list = [ori_shape] * num_labels

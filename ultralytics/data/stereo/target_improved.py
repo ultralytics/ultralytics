@@ -1,24 +1,25 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""Ground truth target generator for Stereo CenterNet training.
+"""Ground truth target generator for Stereo 3D detection with YOLO backbone.
 
-This module implements the target generation for the 10-branch Stereo CenterNet head
+This module implements the target generation for the 7-branch stereo 3D detection head
 following the paper "Stereo CenterNet based 3D Object Detection for Autonomous Driving".
 
-The 10 branches are:
-Task A - Stereo 2D Detection (5 branches):
-    1. heatmap: Center point heatmap [C, H, W]
-    2. offset: Center offset (δx, δy) [2, H, W]
-    3. bbox_size: Left 2D box size (w, h) [2, H, W]
-    4. lr_distance: Left-Right center distance [1, H, W]
-    5. right_width: Right box width [1, H, W]
+Note: This generator creates targets for 3D detection branches. The 2D detection
+(heatmap, offset, bbox_size) has been replaced by YOLO-style TaskAlignedAssigner
+with direct bounding box regression.
 
-Task B - 3D Components (5 branches):
-    6. dimensions: 3D dimension offsets (ΔH, ΔW, ΔL) [3, H, W]
-    7. orientation: Multi-Bin orientation encoding [8, H, W]
-    8. vertices: Bottom 4 vertex 2D coordinates [8, H, W] - (x0,y0,x1,y1,x2,y2,x3,y3)
-    9. vertex_offset: Vertex sub-pixel offsets [8, H, W]
-    10. vertex_dist: Center to vertex distances [4, H, W]
+The 7 branches are:
+Stereo 2D Association (2 branches):
+    1. lr_distance: Left-Right center distance [1, H, W]
+    2. right_width: Right box width [1, H, W]
+
+3D Components (5 branches):
+    3. dimensions: 3D dimension offsets (ΔH, ΔW, ΔL) [3, H, W]
+    4. orientation: Multi-Bin orientation encoding [8, H, W]
+    5. vertices: Bottom 4 vertex 2D coordinates [8, H, W] - (x0,y0,x1,y1,x2,y2,x3,y3)
+    6. vertex_offset: Vertex sub-pixel offsets [8, H, W]
+    7. vertex_dist: Center to vertex distances [4, H, W]
 
 References:
     Paper: https://arxiv.org/abs/2103.11071
@@ -36,11 +37,14 @@ import torch
 
 
 class TargetGenerator:
-    """Generate ground truth targets for 10-branch Stereo CenterNet head.
+    """Generate ground truth targets for stereo 3D detection with YOLO backbone.
 
-    Creates Gaussian heatmaps and regression targets for all 10 branches.
+    Creates regression targets for 7 branches (stereo association + 3D components).
     Following the paper, the bottom 4 vertices of the 3D bounding box are
     projected onto the image plane as keypoints for geometric constraints.
+
+    Note: This generator is used with YOLO-based detection. Heatmap-based 2D detection
+    has been replaced by TaskAlignedAssigner with direct bounding box regression.
     """
 
     def __init__(
@@ -48,6 +52,7 @@ class TargetGenerator:
         output_size: tuple[int, int] = (96, 320),  # Example: (96, 320) for 384×1280 input with 4x downsampling
         num_classes: int = 3,
         mean_dims: dict[int, list[float]] | dict[str, list[float]] | None = None,
+        std_dims: dict[int, list[float]] | dict[str, list[float]] | None = None,
         class_names: dict[int, str] | None = None,
     ):
         """Initialize target generator.
@@ -58,6 +63,9 @@ class TargetGenerator:
             num_classes: Number of object classes.
             mean_dims: Mean dimensions per class [L, W, H] in meters.
                        Can be integer keys (class_id) or string keys (class_name).
+            std_dims: Standard deviation of dimensions per class [L, W, H] in meters.
+                      Can be integer keys (class_id) or string keys (class_name).
+                      Used for normalized offset prediction: (dim - mean) / std.
             class_names: Mapping from class_id to class_name (e.g., {0: "Car", 1: "Pedestrian", ...}).
                        If None, will use generic names ("Class 0", "Class 1", ...).
         """
@@ -75,24 +83,16 @@ class TargetGenerator:
         # Build reverse mapping (class_name -> class_id) for backward compatibility
         self.class_name_to_id = {v: k for k, v in self.class_names_map.items()}
 
-        # Handle both integer keys (class_id) and string keys (class_name)
-        if mean_dims is not None:
-            # Check if mean_dims uses integer keys (class IDs) or string keys (class names)
-            first_key = next(iter(mean_dims.keys())) if mean_dims else None
-            if isinstance(first_key, str):
-                # Convert string keys to integer keys
-                self.mean_dims = {}
-                for class_name, dims in mean_dims.items():
-                    class_id = self.class_name_to_id.get(class_name)
-                    if class_id is not None:
-                        self.mean_dims[class_id] = dims
-            else:
-                # Already integer keys
-                self.mean_dims = mean_dims
-        else:
-            # Default to unit dimensions if not provided (neutral starting point for learning)
-            self.mean_dims = {i: [1.0, 1.0, 1.0] for i in range(num_classes)}
+        # Handle both integer keys (class_id) and string keys (class_name) for mean_dims
+        assert mean_dims is not None, "mean_dims must be provided"
+        # Check if mean_dims uses integer keys (class IDs) or string keys (class names)
+        self.mean_dims = mean_dims
 
+        # Handle both integer keys (class_id) and string keys (class_name) for std_dims
+        assert std_dims is not None, "std_dims must be provided"
+        # Check if std_dims uses integer keys (class IDs) or string keys (class names)
+        self.std_dims = std_dims
+        
     def generate_targets(
         self,
         labels: list[dict],
@@ -100,7 +100,7 @@ class TargetGenerator:
         calib: list[dict[str, float]] | None = None,
         original_size: list[tuple[int, int]] | None = None,
     ) -> dict[str, torch.Tensor]:
-        """Generate ground truth targets for all 10 branches.
+        """Generate ground truth targets for stereo 3D detection (7 branches).
 
         Args:
             labels: List of label dictionaries from dataset. Each label should have:
@@ -123,8 +123,12 @@ class TargetGenerator:
                    If None, uses KITTI default (375, 1242).
 
         Returns:
-            Dictionary with 10 branch targets, each [num_classes or channels, H_out, W_out]
+            Dictionary with 7 branch targets for stereo association and 3D detection,
+            each [num_classes or channels, H_out, W_out]
             where H_out, W_out are determined by the model's output size (architecture-agnostic).
+
+            Note: 2D detection targets (heatmap, offset, bbox_size) are NOT generated.
+            These are replaced by YOLO-style TaskAlignedAssigner with direct bbox regression.
         """
         input_h, input_w = input_size
         
@@ -132,11 +136,9 @@ class TargetGenerator:
         # Calibration parameters are typically in original image space (e.g., KITTI 1242x375)
         # We need to scale them to match the preprocessed input size
         # Scale factors from preprocessed input to feature map output
-        # Initialize targets
+        # Initialize targets (7 branches for 3D detection with YOLO backbone)
+        # Note: heatmap, offset, bbox_size are not generated - replaced by YOLO TaskAlignedAssigner
         targets = {
-            "heatmap": torch.zeros(self.num_classes, self.output_h, self.output_w),
-            "offset": torch.zeros(2, self.output_h, self.output_w),
-            "bbox_size": torch.zeros(2, self.output_h, self.output_w),
             "lr_distance": torch.zeros(1, self.output_h, self.output_w),
             "right_width": torch.zeros(1, self.output_h, self.output_w),
             "dimensions": torch.zeros(3, self.output_h, self.output_w),
@@ -207,7 +209,7 @@ class TargetGenerator:
         center_x_out = center_x * scale_w
         center_y_out = center_y * scale_h
 
-        # Integer center (for heatmap)
+        # Integer center (for sparse target assignment)
         center_x_int = int(center_x_out)
         center_y_int = int(center_y_out)
 
@@ -216,48 +218,39 @@ class TargetGenerator:
             return
 
         # ============================================================
-        # Task A: Stereo 2D Detection (5 branches)
+        # Stereo 2D Association (2 branches for YOLO-based detection)
         # ============================================================
 
-        # 1. Heatmap (Gaussian with aspect ratio - Paper Section 3.1)
-        self._add_gaussian_heatmap(
-            targets["heatmap"][class_id],
-            center_x_out,
-            center_y_out,
-            left_box["width"] * input_w * scale_w,
-            left_box["height"] * input_h * scale_h,
-        )
-
-        # 2. Offset (sub-pixel center offset)
-        targets["offset"][0, center_y_int, center_x_int] = center_x_out - center_x_int
-        targets["offset"][1, center_y_int, center_x_int] = center_y_out - center_y_int
-
-        # 3. Bbox size (2D box width and height in feature map space)
-        targets["bbox_size"][0, center_y_int, center_x_int] = left_box["width"] * input_w * scale_w
-        targets["bbox_size"][1, center_y_int, center_x_int] = left_box["height"] * input_h * scale_h
-
-        # 4. LR distance (left-right center distance for stereo association)
+        # 1. LR distance (left-right center distance for stereo association)
         # Paper Equation 4: distance between left and right object centers
         right_center_x = right_box["center_x"] * input_w
         lr_dist = center_x - right_center_x  # Disparity in pixels
         targets["lr_distance"][0, center_y_int, center_x_int] = lr_dist * scale_w
 
-        # 5. Right width (with sigmoid transform - Paper Equation 5)
+        # 2. Right width (with sigmoid transform - Paper Equation 5)
         # Target is transformed: wr = 1/σ(ŵr) - 1, so we store 1/(wr + 1)
         right_w = right_box["width"] * input_w * scale_w
         targets["right_width"][0, center_y_int, center_x_int] = 1.0 / (right_w + 1.0)
 
         # ============================================================
-        # Task B: 3D Components (5 branches)
+        # 3D Components (5 branches)
         # ============================================================
 
-        # 6. Dimensions (offset from class mean - Paper Equation 6)
+        # 6. Dimensions (normalized offset from class mean)
+        # Using normalized offset: (dim - mean) / std for more stable training
+        # mean_dims and std_dims are both [L, W, H] in meters
         mean_dim = self.mean_dims.get(class_id, [1.0, 1.0, 1.0])
-        # mean_dims is [L, W, H], decoder expects [ΔH, ΔW, ΔL] order
+        std_dim = self.std_dims.get(class_id, [0.2, 0.2, 0.5])
+        
+        # Compute normalized offsets: (dim - mean) / std
+        # decoder expects [ΔH, ΔW, ΔL] order, so we need to reorder from [L, W, H]
+        # std_dim is [L, W, H], so:
+        #   std_dim[0] = std_L, std_dim[1] = std_W, std_dim[2] = std_H
+        #   mean_dim[0] = mean_L, mean_dim[1] = mean_W, mean_dim[2] = mean_H
         dim_offset = [
-            dimensions["height"] - mean_dim[2],   # channel 0 = Δheight
-            dimensions["width"] - mean_dim[1],    # channel 1 = Δwidth
-            dimensions["length"] - mean_dim[0],   # channel 2 = Δlength
+            (dimensions["height"] - mean_dim[2]) / std_dim[2],   # channel 0 = (H - mean_H) / std_H
+            (dimensions["width"] - mean_dim[1]) / std_dim[1],    # channel 1 = (W - mean_W) / std_W
+            (dimensions["length"] - mean_dim[0]) / std_dim[0],   # channel 2 = (L - mean_L) / std_L
         ]
         targets["dimensions"][:, center_y_int, center_x_int] = torch.tensor(dim_offset)
 
@@ -357,14 +350,14 @@ class TargetGenerator:
             targets["vertices"][i * 2, center_y_int, center_x_int] = dx_normalized
             targets["vertices"][i * 2 + 1, center_y_int, center_x_int] = dy_normalized
 
-            # 9. Vertex offset: sub-pixel refinement (relative to integer vertex position)
+            # 8. Vertex offset: sub-pixel refinement (relative to integer vertex position)
             # Since vertices are normalized, compute offset from normalized integer position
             dx_normalized_int = int(dx_normalized * self.output_w) / self.output_w  # Integer part in normalized space
             dy_normalized_int = int(dy_normalized * self.output_h) / self.output_h
             targets["vertex_offset"][i * 2, center_y_int, center_x_int] = dx_normalized - dx_normalized_int
             targets["vertex_offset"][i * 2 + 1, center_y_int, center_x_int] = dy_normalized - dy_normalized_int
 
-            # 10. Vertex distance: Euclidean distance from center to vertex
+            # 9. Vertex distance: Euclidean distance from center to vertex
             # This helps correlate vertices with their parent center
             # Normalize distance by feature map diagonal to keep values in reasonable range
             max_dist = math.sqrt(self.output_w ** 2 + self.output_h ** 2)  # Diagonal of feature map
@@ -481,64 +474,6 @@ class TargetGenerator:
                 v = cy
             vertices_2d.append((u, v))
         return vertices_2d
-
-    def _add_gaussian_heatmap(
-        self,
-        heatmap: torch.Tensor,
-        cx: float,
-        cy: float,
-        width: float,
-        height: float,
-    ) -> None:
-        """Add Gaussian heatmap for an object center.
-
-        Uses Gaussian kernel with aspect ratio as described in Paper Section 3.1:
-        σx = αw/6, σy = αh/6, where α is object size adaptive (default 0.6).
-
-        Args:
-            heatmap: Target heatmap tensor [H, W].
-            cx, cy: Float center coordinates in feature map space.
-            width, height: Object size in feature map space.
-        """
-        # Integer center location
-        cx_int = int(cx)
-        cy_int = int(cy)
-
-        # Bounds check
-        if not (0 <= cx_int < heatmap.shape[1] and 0 <= cy_int < heatmap.shape[0]):
-            return
-
-        # Calculate sigma based on object size (Paper: σ = α * size / 6, α = 0.6)
-        alpha = 0.6
-        sigma_x = max(alpha * width / 6.0, 1.0)  # Minimum sigma = 1
-        sigma_y = max(alpha * height / 6.0, 1.0)
-
-        # Determine the Gaussian radius (3-sigma rule: 99.7% of values)
-        radius_x = int(3 * sigma_x)
-        radius_y = int(3 * sigma_y)
-
-        # Compute Gaussian only in local region (efficiency)
-        y_min = max(0, cy_int - radius_y)
-        y_max = min(heatmap.shape[0], cy_int + radius_y + 1)
-        x_min = max(0, cx_int - radius_x)
-        x_max = min(heatmap.shape[1], cx_int + radius_x + 1)
-
-        # Create local coordinate grids centered on integer location
-        y_coords = torch.arange(y_min, y_max, dtype=torch.float32)
-        x_coords = torch.arange(x_min, x_max, dtype=torch.float32)
-        yy, xx = torch.meshgrid(y_coords, x_coords, indexing="ij")
-
-        # Compute Gaussian centered on integer center (ensures peak = 1.0)
-        gaussian = torch.exp(
-            -((xx - cx_int) ** 2 / (2 * sigma_x ** 2) +
-              (yy - cy_int) ** 2 / (2 * sigma_y ** 2))
-        )
-
-        # Update heatmap with element-wise maximum
-        heatmap[y_min:y_max, x_min:x_max] = torch.maximum(
-            heatmap[y_min:y_max, x_min:x_max],
-            gaussian
-        )
 
     def _encode_orientation(self, alpha: float) -> torch.Tensor:
         """Encode orientation angle into Multi-Bin format.

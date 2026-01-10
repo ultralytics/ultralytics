@@ -510,11 +510,184 @@ class KITTIToYOLO3D:
             mean_w = float(np.mean(dims_array[:, 1]))
             mean_h = float(np.mean(dims_array[:, 2]))
             
+            # Also compute standard deviation for each dimension
+            std_l = float(np.std(dims_array[:, 0]))
+            std_w = float(np.std(dims_array[:, 1]))
+            std_h = float(np.std(dims_array[:, 2]))
+            
             mean_dims[class_name] = [mean_l, mean_w, mean_h]
-            LOGGER.info(f"  {class_name}: mean_dims = [L={mean_l:.2f}, W={mean_w:.2f}, H={mean_h:.2f}] (from {len(dims_list)} samples)")
+            LOGGER.info(f"  {class_name}: mean_dims = [L={mean_l:.2f}, W={mean_w:.2f}, H={mean_h:.2f}], std_dims = [L={std_l:.2f}, W={std_w:.2f}, H={std_h:.2f}] (from {len(dims_list)} samples)")
         
         LOGGER.info(f"Computed mean dimensions from {total_labels} labels across {len(mean_dims)} classes")
         return mean_dims if mean_dims else None
+
+    def _compute_std_dimensions(self, split_name="train"):
+        """Compute standard deviation of dimensions from converted label files.
+        
+        Args:
+            split_name: Split name to compute std from (typically "train")
+        
+        Returns:
+            dict: Mapping from class name to std dimensions [L, W, H] in meters
+        """
+        label_dir = self.output_root / "labels" / split_name
+        if not label_dir.exists():
+            LOGGER.warning(f"Label directory {label_dir} does not exist. Cannot compute std dimensions.")
+            return None
+        
+        # Collect dimensions per class
+        # Format: {class_name: [[l, w, h], ...]}
+        class_dimensions = {}
+        
+        # Get reverse class mapping (class_id -> class_name)
+        # Handle filtered classes and remapping
+        if self.filter_classes is not None:
+            # Build reverse mapping for filtered classes
+            id_to_name = {}
+            for class_name, old_id in sorted(self.class_map.items(), key=lambda x: x[1]):
+                if class_name in self.filter_classes:
+                    new_id = self.class_id_remap[old_id]
+                    id_to_name[new_id] = class_name
+        else:
+            id_to_name = {v: k for k, v in self.class_map.items()}
+        
+        # Iterate through all label files
+        label_files = sorted(label_dir.glob("*.txt"))
+        total_labels = 0
+        
+        for label_file in TQDM(label_files, desc="Computing std dimensions"):
+            with open(label_file, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    parts = line.split()
+                    if len(parts) < 10:
+                        continue
+                    
+                    try:
+                        class_id = int(float(parts[0]))
+                        # Extract dimensions: h, w, l (indices 7, 8, 9 in YOLO format)
+                        h = float(parts[7])
+                        w = float(parts[8])
+                        l = float(parts[9])
+                        
+                        # Map class_id to class name
+                        class_name = id_to_name.get(class_id)
+                        if class_name is None:
+                            continue
+                        
+                        # Store dimensions as [L, W, H] (length, width, height)
+                        if class_name not in class_dimensions:
+                            class_dimensions[class_name] = []
+                        class_dimensions[class_name].append([l, w, h])
+                        total_labels += 1
+                    except (ValueError, IndexError) as e:
+                        LOGGER.debug(f"Error parsing label line in {label_file}: {e}")
+                        continue
+        
+        # Compute std for each class
+        std_dims = {}
+        for class_name, dims_list in class_dimensions.items():
+            if len(dims_list) == 0:
+                continue
+            
+            # Compute std for each dimension
+            dims_array = np.array(dims_list)
+            std_l = float(np.std(dims_array[:, 0]))
+            std_w = float(np.std(dims_array[:, 1]))
+            std_h = float(np.std(dims_array[:, 2]))
+            
+            std_dims[class_name] = [std_l, std_w, std_h]
+            LOGGER.info(f" {class_name}: std_dims = [L={std_l:.2f}, W={std_w:.2f}, H={std_h:.2f}] (from {len(dims_list)} samples)")
+        
+        LOGGER.info(f"Computed std dimensions from {total_labels} labels across {len(std_dims)} classes")
+        return std_dims if std_dims else None
+
+    def _compute_std_dimensions(self, split_name="train"):
+        """Compute standard deviation of dimensions from converted label files.
+        
+        Args:
+            split_name: Split name to compute std from (typically "train")
+        
+        Returns:
+            dict: Mapping from class name to std dimensions [L, W, H] in meters
+        """
+        label_dir = self.output_root / "labels" / split_name
+        if not label_dir.exists():
+            LOGGER.warning(f"Label directory {label_dir} does not exist. Cannot compute std dimensions.")
+            return None
+        
+        # Collect dimensions per class
+        # Format: {class_name: [[l, w, h], ...]}
+        class_dimensions = {}
+        
+        # Get reverse class mapping (class_id -> class_name)
+        # Handle filtered classes and remapping
+        if self.filter_classes is not None:
+            # Build reverse mapping for filtered classes
+            id_to_name = {}
+            for class_name, old_id in sorted(self.class_map.items(), key=lambda x: x[1]):
+                if class_name in self.filter_classes:
+                    new_id = self.class_id_remap[old_id]
+                    id_to_name[new_id] = class_name
+        else:
+            id_to_name = {v: k for k, v in self.class_map.items()}
+        
+        # Iterate through all label files
+        label_files = sorted(label_dir.glob("*.txt"))
+        total_labels = 0
+        
+        for label_file in TQDM(label_files, desc="Computing std dimensions"):
+            with open(label_file, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    parts = line.split()
+                    if len(parts) < 10:
+                        continue
+                    
+                    try:
+                        class_id = int(float(parts[0]))
+                        # Extract dimensions: h, w, l (indices 7, 8, 9 in YOLO format)
+                        h = float(parts[7])
+                        w = float(parts[8])
+                        l = float(parts[9])
+                        
+                        # Map class_id to class name
+                        class_name = id_to_name.get(class_id)
+                        if class_name is None:
+                            continue
+                        
+                        # Store dimensions as [L, W, H] (length, width, height)
+                        if class_name not in class_dimensions:
+                            class_dimensions[class_name] = []
+                        class_dimensions[class_name].append([l, w, h])
+                        total_labels += 1
+                    except (ValueError, IndexError) as e:
+                        LOGGER.debug(f"Error parsing label line in {label_file}: {e}")
+                        continue
+        
+        # Compute std for each class
+        std_dims = {}
+        for class_name, dims_list in class_dimensions.items():
+            if len(dims_list) == 0:
+                continue
+            
+            # Compute std for each dimension
+            dims_array = np.array(dims_list)
+            std_l = float(np.std(dims_array[:, 0]))
+            std_w = float(np.std(dims_array[:, 1]))
+            std_h = float(np.std(dims_array[:, 2]))
+            
+            std_dims[class_name] = [std_l, std_w, std_h]
+            LOGGER.info(f"  {class_name}: std_dims = [L={std_l:.2f}, W={std_w:.2f}, H={std_h:.2f}] (from {len(dims_list)} samples)")
+        
+        LOGGER.info(f"Computed std dimensions from {total_labels} labels across {len(std_dims)} classes")
+        return std_dims if std_dims else None
 
     def convert_split(self, split="training"):
         """Convert entire KITTI split.
@@ -596,9 +769,11 @@ class KITTIToYOLO3D:
 
             LOGGER.info(f"3DOP conversion complete: train={len(train_index)} val={len(val_index)}")
             
-            # Compute mean dimensions from training split
+            # Compute mean and std dimensions from training split
             LOGGER.info("\nComputing mean dimensions from training split...")
             self.mean_dims = self._compute_mean_dimensions("train")
+            LOGGER.info("\nComputing std dimensions from training split...")
+            self.std_dims = self._compute_std_dimensions("train")
             return
 
         # ----- Single split behavior -----
@@ -722,6 +897,19 @@ class KITTIToYOLO3D:
                     LOGGER.info(f"  Class {class_id} ({class_name}): mean_dims = [L={dims[0]:.2f}, W={dims[1]:.2f}, H={dims[2]:.2f}]")
                 else:
                     LOGGER.warning(f"  Missing mean_dims for class {class_id} ({class_name})")
+
+        # Add std dimensions if computed - use integer keys to match class IDs
+        if hasattr(self, 'std_dims') and self.std_dims is not None and len(self.std_dims) > 0:
+            yaml_lines.append("# Standard deviation dimensions per class [L, W, H] in meters")
+            yaml_lines.append("std_dims:")
+            # Use the same order as class_names to ensure 1-to-1 correspondence
+            for class_id, class_name in class_names.items():
+                if class_name in self.std_dims:
+                    dims = self.std_dims[class_name]
+                    yaml_lines.append(f"  {class_id}: [{dims[0]:.2f}, {dims[1]:.2f}, {dims[2]:.2f}]  # {class_name}")
+                    LOGGER.info(f"  Class {class_id} ({class_name}): std_dims = [L={dims[0]:.2f}, W={dims[1]:.2f}, H={dims[2]:.2f}]")
+                else:
+                    LOGGER.warning(f"  Missing std_dims for class {class_id} ({class_name})")
 
         yaml_content = "\n".join(yaml_lines) + "\n"
 

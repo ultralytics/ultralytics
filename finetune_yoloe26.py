@@ -7,7 +7,7 @@ print("set workspace:", workspace)
 
 from ultralytics import YOLOE,YOLO
 from ultralytics.models.yolo.yoloe import YOLOETrainerFromScratch,YOLOEVPTrainer,YOLOEPEFreeTrainer
-from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
+from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch,YOLOESegTrainerSegHead
 
 
 
@@ -70,6 +70,12 @@ assert args.data is not None, "data argument must be provided"
 assert args.data in DATA_CONFIG.keys(), f"data {args.data} not found in DATA_CONFIG"
 data=DATA_CONFIG[args.data]
  
+
+assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeTrainer","YOLOESegTrainerFromScratch","YOLOESegTrainerSegHead"], \
+    "trainer must be YOLOETrainerFromScratch, YOLOEVPTrainer, YOLOEPEFreeTrainer, YOLOESegTrainerFromScratch, or YOLOESegTrainerSegHead"
+
+
+
 
 
 ###################################################################
@@ -135,6 +141,7 @@ elif args.trainer=="YOLOESegTrainerSegHead":
     # reinit the model.model.savpe.
     # freeze every layer except of the savpe module.
     head_index = len(model.model.model) - 1
+    train_layers=[]
     freeze = list(range(0, head_index))
     for name, child in model.model.model[-1].named_children():
         print("name:", name)

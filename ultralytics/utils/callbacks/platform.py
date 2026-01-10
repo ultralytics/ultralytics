@@ -321,6 +321,7 @@ def on_fit_epoch_end(trainer):
             model_info = {
                 "parameters": info.get("model/parameters", 0),
                 "gflops": info.get("model/GFLOPs", 0),
+                "speedMs": info.get("model/speed_PyTorch(ms)", 0),
             }
         except Exception:
             pass

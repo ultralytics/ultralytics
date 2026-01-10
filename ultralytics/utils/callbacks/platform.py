@@ -18,7 +18,7 @@ def slugify(text):
     """Convert text to URL-safe slug (e.g., 'My Project 1' -> 'my-project-1')."""
     if not text:
         return text
-    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9\s-]", "", str(text).lower()).replace(" ", "-")).strip("-")[:50]
+    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9\s-]", "", str(text).lower()).replace(" ", "-")).strip("-")[:128]
 
 try:
     assert not TESTS_RUNNING  # do not log pytest

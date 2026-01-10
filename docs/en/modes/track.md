@@ -106,14 +106,14 @@ Tracking configuration shares properties with Predict mode, such as `conf`, `iou
 
         # Configure the tracking parameters and run the tracker
         model = YOLO("yolo11n.pt")
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.1, iou=0.7, show=True)
         ```
 
     === "CLI"
 
         ```bash
         # Configure tracking parameters and run the tracker using the command line interface
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3, iou=0.5 show
+        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show
         ```
 
 ### Tracker Selection

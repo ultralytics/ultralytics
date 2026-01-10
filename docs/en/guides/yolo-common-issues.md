@@ -216,7 +216,7 @@ model = YOLO("yolo11n.pt")
 source = "https://ultralytics.com/images/bus.jpg"
 
 # Make predictions
-results = model.predict(source, save=True, imgsz=320, conf=0.5)
+results = model.predict(source, save=True, imgsz=320, conf=0.25)
 
 # Extract bounding box dimensions
 boxes = results[0].boxes.xywh.cpu()

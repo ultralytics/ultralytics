@@ -75,8 +75,6 @@ def resolve_platform_uri(uri, hard=True):
     else:
         raise ValueError(f"Invalid platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
 
-    LOGGER.info(f"Resolving {uri} from Ultralytics Platform...")
-
     try:
         r = requests.head(url, headers=headers, allow_redirects=False, timeout=30)
 
@@ -279,29 +277,20 @@ def on_pretrain_routine_start(trainer):
     trainer._platform_console_logger = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)
     trainer._platform_console_logger.start_capture()
 
-    # Gather model info for richer metadata
-    model_info = {}
-    try:
-        info = model_info_for_loggers(trainer)
-        model_info = {
-            "parameters": info.get("model/parameters", 0),
-            "gflops": info.get("model/GFLOPs", 0),
-            "classes": getattr(trainer.model, "yaml", {}).get("nc", 0),  # number of classes
-        }
-    except Exception:
-        pass
-
     # Collect environment info (W&B-style metadata)
     environment = _get_environment_info()
+
+    # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
+    # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
+    train_args = {k: str(v) for k, v in vars(trainer.args).items()}
 
     # Send synchronously to get modelId for subsequent webhooks
     response = _send(
         "training_started",
         {
-            "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+            "trainArgs": train_args,
             "epochs": trainer.epochs,
             "device": str(trainer.device),
-            "modelInfo": model_info,
             "environment": environment,
         },
         project,
@@ -321,9 +310,17 @@ def on_fit_epoch_end(trainer):
 
     if trainer.optimizer and trainer.optimizer.param_groups:
         metrics["lr"] = trainer.optimizer.param_groups[0]["lr"]
+
+    # Extract model info at epoch 0 (sent as separate field, not in metrics)
+    model_info = None
     if trainer.epoch == 0:
         try:
-            metrics.update(model_info_for_loggers(trainer))
+            info = model_info_for_loggers(trainer)
+            model_info = {
+                "parameters": info.get("model/parameters", 0),
+                "gflops": info.get("model/GFLOPs", 0),
+                "speedMs": info.get("model/speed_PyTorch(ms)", 0),
+            }
         except Exception:
             pass
 
@@ -336,15 +333,19 @@ def on_fit_epoch_end(trainer):
     except Exception:
         pass
 
+    payload = {
+        "epoch": trainer.epoch,
+        "metrics": metrics,
+        "system": system,
+        "fitness": trainer.fitness,
+        "best_fitness": trainer.best_fitness,
+    }
+    if model_info:
+        payload["modelInfo"] = model_info
+
     _send_async(
         "epoch_end",
-        {
-            "epoch": trainer.epoch,
-            "metrics": metrics,
-            "system": system,
-            "fitness": trainer.fitness,
-            "best_fitness": trainer.best_fitness,
-        },
+        payload,
         project,
         name,
         getattr(trainer, "_platform_model_id", None),

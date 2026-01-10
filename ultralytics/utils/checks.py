@@ -616,10 +616,13 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         url = resolve_platform_uri(file, hard=hard)  # Convert to signed HTTPS URL
         if url is None:
             return []  # Not found, soft fail (consistent with file search behavior)
-        local_file = Path(download_dir) / url2file(url)
+        # Use URI path for unique directory structure: ul://user/project/model -> user/project/model/filename.pt
+        uri_path = file[5:]  # Remove "ul://"
+        local_file = Path(download_dir) / uri_path / url2file(url)
         if local_file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
         else:
+            local_file.parent.mkdir(parents=True, exist_ok=True)
             downloads.safe_download(url=url, file=local_file, unzip=False)
         return str(local_file)
     elif download and file.lower().startswith(

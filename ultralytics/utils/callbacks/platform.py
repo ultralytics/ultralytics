@@ -20,6 +20,7 @@ def slugify(text):
         return text
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9\s-]", "", str(text).lower()).replace(" ", "-")).strip("-")[:128]
 
+
 try:
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS.get("platform", False) is True or os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")

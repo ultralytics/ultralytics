@@ -972,6 +972,9 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
     if exclude_zero_fitness_points:
         mask = fitness > 0  # exclude zero-fitness points
         x, fitness = x[mask], fitness[mask]
+    if len(fitness) == 0:
+        LOGGER.warning("No valid fitness values to plot (all iterations may have failed)")
+        return
     # Iterative sigma rejection on lower bound only
     for _ in range(3):  # max 3 iterations
         mean, std = fitness.mean(), fitness.std()

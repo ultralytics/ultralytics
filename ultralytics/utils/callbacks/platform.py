@@ -11,9 +11,6 @@ from time import time
 from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, colorstr
 
 PREFIX = colorstr("Platform: ")
-_last_upload = 0  # Rate limit model uploads
-_console_logger = None  # Global console logger instance
-_system_logger = None  # Cached system logger instance
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -30,6 +27,83 @@ try:
 
 except (AssertionError, ImportError):
     _api_key = None
+
+
+def resolve_platform_uri(uri, hard=True):
+    """Resolve ul:// URIs to signed URLs by authenticating with Ultralytics Platform.
+
+    Formats:
+        ul://username/datasets/slug  -> Returns signed URL to NDJSON file
+        ul://username/project/model  -> Returns signed URL to .pt file
+
+    Args:
+        uri (str): Platform URI starting with "ul://".
+        hard (bool): Whether to raise an error if resolution fails (FileNotFoundError only).
+
+    Returns:
+        (str | None): Signed URL on success, None if not found and hard=False.
+
+    Raises:
+        ValueError: If API key is missing/invalid or URI format is wrong.
+        PermissionError: If access is denied.
+        RuntimeError: If resource is not ready (e.g., dataset still processing).
+        FileNotFoundError: If resource not found and hard=True.
+        ConnectionError: If network request fails and hard=True.
+    """
+    import requests
+
+    path = uri[5:]  # Remove "ul://"
+    parts = path.split("/")
+
+    api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
+    if not api_key:
+        raise ValueError(f"ULTRALYTICS_API_KEY required for '{uri}'. Get key at https://alpha.ultralytics.com/settings")
+
+    base = "https://alpha.ultralytics.com/api/webhooks"
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    # ul://username/datasets/slug
+    if len(parts) == 3 and parts[1] == "datasets":
+        username, _, slug = parts
+        url = f"{base}/datasets/{username}/{slug}/export"
+
+    # ul://username/project/model
+    elif len(parts) == 3:
+        username, project, model = parts
+        url = f"{base}/models/{username}/{project}/{model}/download"
+
+    else:
+        raise ValueError(f"Invalid platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
+
+    try:
+        r = requests.head(url, headers=headers, allow_redirects=False, timeout=30)
+
+        # Handle redirect responses (301, 302, 303, 307, 308)
+        if 300 <= r.status_code < 400 and "location" in r.headers:
+            return r.headers["location"]  # Return signed URL
+
+        # Handle error responses
+        if r.status_code == 401:
+            raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'")
+        if r.status_code == 403:
+            raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.")
+        if r.status_code == 404:
+            if hard:
+                raise FileNotFoundError(f"Not found on platform: {uri}")
+            LOGGER.warning(f"Not found on platform: {uri}")
+            return None
+        if r.status_code == 409:
+            raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.")
+
+        # Unexpected response
+        r.raise_for_status()
+        raise RuntimeError(f"Unexpected response from platform for '{uri}': {r.status_code}")
+
+    except requests.exceptions.RequestException as e:
+        if hard:
+            raise ConnectionError(f"Failed to resolve {uri}: {e}") from e
+        LOGGER.warning(f"Failed to resolve {uri}: {e}")
+        return None
 
 
 def _interp_plot(plot, n=101):
@@ -60,22 +134,28 @@ def _interp_plot(plot, n=101):
     return result
 
 
-def _send(event, data, project, name):
-    """Send event to Platform endpoint."""
+def _send(event, data, project, name, model_id=None):
+    """Send event to Platform endpoint. Returns response JSON on success."""
     try:
-        requests.post(
+        payload = {"event": event, "project": project, "name": name, "data": data}
+        if model_id:
+            payload["modelId"] = model_id
+        r = requests.post(
             "https://alpha.ultralytics.com/api/webhooks/training/metrics",
-            json={"event": event, "project": project, "name": name, "data": data},
+            json=payload,
             headers={"Authorization": f"Bearer {_api_key}"},
             timeout=10,
-        ).raise_for_status()
+        )
+        r.raise_for_status()
+        return r.json()
     except Exception as e:
         LOGGER.debug(f"Platform: Failed to send {event}: {e}")
+        return None
 
 
-def _send_async(event, data, project, name):
+def _send_async(event, data, project, name, model_id=None):
     """Send event asynchronously using bounded thread pool."""
-    _executor.submit(_send, event, data, project, name)
+    _executor.submit(_send, event, data, project, name, model_id)
 
 
 def _upload_model(model_path, project, name):
@@ -171,13 +251,12 @@ def _get_environment_info():
 
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start."""
-    global _console_logger, _last_upload
-
     if RANK not in {-1, 0} or not trainer.args.project:
         return
 
-    # Initialize upload timer to now so first checkpoint waits 15 min from training start
-    _last_upload = time()
+    # Per-trainer state to isolate concurrent training runs
+    trainer._platform_model_id = None
+    trainer._platform_last_upload = time()
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
     url = f"https://alpha.ultralytics.com/{project}/{name}"
@@ -186,45 +265,43 @@ def on_pretrain_routine_start(trainer):
     # Create callback to send console output to Platform
     def send_console_output(content, line_count, chunk_id):
         """Send batched console output to Platform webhook."""
-        _send_async("console_output", {"chunkId": chunk_id, "content": content, "lineCount": line_count}, project, name)
+        _send_async(
+            "console_output",
+            {"chunkId": chunk_id, "content": content, "lineCount": line_count},
+            project,
+            name,
+            getattr(trainer, "_platform_model_id", None),
+        )
 
     # Start console capture with batching (5 lines or 5 seconds)
-    _console_logger = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)
-    _console_logger.start_capture()
-
-    # Gather model info for richer metadata
-    model_info = {}
-    try:
-        info = model_info_for_loggers(trainer)
-        model_info = {
-            "parameters": info.get("model/parameters", 0),
-            "gflops": info.get("model/GFLOPs", 0),
-            "classes": getattr(trainer.model, "yaml", {}).get("nc", 0),  # number of classes
-        }
-    except Exception:
-        pass
+    trainer._platform_console_logger = ConsoleLogger(batch_size=5, flush_interval=5.0, on_flush=send_console_output)
+    trainer._platform_console_logger.start_capture()
 
     # Collect environment info (W&B-style metadata)
     environment = _get_environment_info()
 
-    _send_async(
+    # Build trainArgs - callback runs before get_dataset() so args.data is still original (e.g., ul:// URIs)
+    # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
+    train_args = {k: str(v) for k, v in vars(trainer.args).items()}
+
+    # Send synchronously to get modelId for subsequent webhooks
+    response = _send(
         "training_started",
         {
-            "trainArgs": {k: str(v) for k, v in vars(trainer.args).items()},
+            "trainArgs": train_args,
             "epochs": trainer.epochs,
             "device": str(trainer.device),
-            "modelInfo": model_info,
             "environment": environment,
         },
         project,
         name,
     )
+    if response and response.get("modelId"):
+        trainer._platform_model_id = response["modelId"]
 
 
 def on_fit_epoch_end(trainer):
     """Log training and system metrics at epoch end."""
-    global _system_logger
-
     if RANK not in {-1, 0} or not trainer.args.project:
         return
 
@@ -233,44 +310,55 @@ def on_fit_epoch_end(trainer):
 
     if trainer.optimizer and trainer.optimizer.param_groups:
         metrics["lr"] = trainer.optimizer.param_groups[0]["lr"]
+
+    # Extract model info at epoch 0 (sent as separate field, not in metrics)
+    model_info = None
     if trainer.epoch == 0:
         try:
-            metrics.update(model_info_for_loggers(trainer))
+            info = model_info_for_loggers(trainer)
+            model_info = {
+                "parameters": info.get("model/parameters", 0),
+                "gflops": info.get("model/GFLOPs", 0),
+                "speedMs": info.get("model/speed_PyTorch(ms)", 0),
+            }
         except Exception:
             pass
 
-    # Get system metrics (cache SystemLogger for efficiency)
+    # Get system metrics (cache SystemLogger on trainer for efficiency)
     system = {}
     try:
-        if _system_logger is None:
-            _system_logger = SystemLogger()
-        system = _system_logger.get_metrics(rates=True)
+        if not hasattr(trainer, "_platform_system_logger"):
+            trainer._platform_system_logger = SystemLogger()
+        system = trainer._platform_system_logger.get_metrics(rates=True)
     except Exception:
         pass
 
+    payload = {
+        "epoch": trainer.epoch,
+        "metrics": metrics,
+        "system": system,
+        "fitness": trainer.fitness,
+        "best_fitness": trainer.best_fitness,
+    }
+    if model_info:
+        payload["modelInfo"] = model_info
+
     _send_async(
         "epoch_end",
-        {
-            "epoch": trainer.epoch,
-            "metrics": metrics,
-            "system": system,
-            "fitness": trainer.fitness,
-            "best_fitness": trainer.best_fitness,
-        },
+        payload,
         project,
         name,
+        getattr(trainer, "_platform_model_id", None),
     )
 
 
 def on_model_save(trainer):
     """Upload model checkpoint (rate limited to every 15 min)."""
-    global _last_upload
-
     if RANK not in {-1, 0} or not trainer.args.project:
         return
 
     # Rate limit to every 15 minutes (900 seconds)
-    if time() - _last_upload < 900:
+    if time() - getattr(trainer, "_platform_last_upload", 0) < 900:
         return
 
     model_path = trainer.best if trainer.best and Path(trainer.best).exists() else trainer.last
@@ -279,22 +367,20 @@ def on_model_save(trainer):
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
     _upload_model_async(model_path, project, name)
-    _last_upload = time()
+    trainer._platform_last_upload = time()
 
 
 def on_train_end(trainer):
     """Log final results, upload best model, and send validation plot data."""
-    global _console_logger
-
     if RANK not in {-1, 0} or not trainer.args.project:
         return
 
     project, name = str(trainer.args.project), str(trainer.args.name or "train")
 
     # Stop console capture
-    if _console_logger:
-        _console_logger.stop_capture()
-        _console_logger = None
+    if hasattr(trainer, "_platform_console_logger") and trainer._platform_console_logger:
+        trainer._platform_console_logger.stop_capture()
+        trainer._platform_console_logger = None
 
     # Upload best model (blocking to ensure it completes)
     model_path = None
@@ -332,6 +418,7 @@ def on_train_end(trainer):
         },
         project,
         name,
+        getattr(trainer, "_platform_model_id", None),
     )
     url = f"https://alpha.ultralytics.com/{project}/{name}"
     LOGGER.info(f"{PREFIX}View results at {url}")

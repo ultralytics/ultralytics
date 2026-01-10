@@ -2,6 +2,7 @@
 
 import os
 import platform
+import re
 import socket
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -11,6 +12,14 @@ from time import time
 from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, colorstr
 
 PREFIX = colorstr("Platform: ")
+
+
+def slugify(text):
+    """Convert text to URL-safe slug (e.g., 'My Project 1' -> 'my-project-1')."""
+    if not text:
+        return text
+    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9\s-]", "", str(text).lower()).replace(" ", "-")).strip("-")[:128]
+
 
 try:
     assert not TESTS_RUNNING  # do not log pytest
@@ -249,6 +258,14 @@ def _get_environment_info():
     return env
 
 
+def _get_project_name(trainer):
+    """Get slugified project and name from trainer args."""
+    raw = str(trainer.args.project)
+    parts = raw.split("/", 1)
+    project = f"{parts[0]}/{slugify(parts[1])}" if len(parts) == 2 else slugify(raw)
+    return project, slugify(str(trainer.args.name or "train"))
+
+
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start."""
     if RANK not in {-1, 0} or not trainer.args.project:
@@ -258,7 +275,7 @@ def on_pretrain_routine_start(trainer):
     trainer._platform_model_id = None
     trainer._platform_last_upload = time()
 
-    project, name = str(trainer.args.project), str(trainer.args.name or "train")
+    project, name = _get_project_name(trainer)
     url = f"https://alpha.ultralytics.com/{project}/{name}"
     LOGGER.info(f"{PREFIX}Streaming to {url}")
 
@@ -305,7 +322,7 @@ def on_fit_epoch_end(trainer):
     if RANK not in {-1, 0} or not trainer.args.project:
         return
 
-    project, name = str(trainer.args.project), str(trainer.args.name or "train")
+    project, name = _get_project_name(trainer)
     metrics = {**trainer.label_loss_items(trainer.tloss, prefix="train"), **trainer.metrics}
 
     if trainer.optimizer and trainer.optimizer.param_groups:
@@ -365,7 +382,7 @@ def on_model_save(trainer):
     if not model_path:
         return
 
-    project, name = str(trainer.args.project), str(trainer.args.name or "train")
+    project, name = _get_project_name(trainer)
     _upload_model_async(model_path, project, name)
     trainer._platform_last_upload = time()
 
@@ -375,7 +392,7 @@ def on_train_end(trainer):
     if RANK not in {-1, 0} or not trainer.args.project:
         return
 
-    project, name = str(trainer.args.project), str(trainer.args.name or "train")
+    project, name = _get_project_name(trainer)
 
     # Stop console capture
     if hasattr(trainer, "_platform_console_logger") and trainer._platform_console_logger:

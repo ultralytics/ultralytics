@@ -75,8 +75,6 @@ def resolve_platform_uri(uri, hard=True):
     else:
         raise ValueError(f"Invalid platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
 
-    LOGGER.info(f"Resolving {uri} from Ultralytics Platform...")
-
     try:
         r = requests.head(url, headers=headers, allow_redirects=False, timeout=30)
 

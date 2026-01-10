@@ -317,7 +317,11 @@ class TQDM:
             # Final display
             if self.total and self.n >= self.total:
                 self.n = self.total
-            self._display(final=True)
+                # Skip if 100% already shown (prevents duplicate)
+                if self.n != self.last_print_n:
+                    self._display(final=True)
+            else:
+                self._display(final=True)
 
             # Cleanup
             if self.leave:

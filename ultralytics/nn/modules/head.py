@@ -126,7 +126,7 @@ class Detect(nn.Module):
     @property
     def end2end(self):
         """Checks if the model has one2one for v5/v5/v8/v9/11 backward compatibility."""
-        return hasattr(self, "one2one")
+        return False
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None
@@ -784,7 +784,7 @@ class Pose26(Pose):
             bs = x[0].shape[0]  # batch size
             features = [pose_head[i](x[i]) for i in range(self.nl)]
 
-            kpts_head = self.cv4_kpts if not self.end2end else self.one2one_cv4_kpts
+            kpts_head = self.cv4_kpts  # if not self.end2end else self.one2one_cv4_kpts
             preds["kpts"] = torch.cat([kpts_head[i](features[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
 
             if self.training:
@@ -794,8 +794,9 @@ class Pose26(Pose):
 
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
-        super().fuse()
-        self.cv4_kpts = self.cv4_sigma = self.flow_model = self.one2one_cv4_sigma = None
+        # super().fuse()
+        # self.cv4_kpts = self.cv4_sigma = self.flow_model = self.one2one_cv4_sigma = None
+        pass
 
     def kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
         """Decode keypoints from predictions."""

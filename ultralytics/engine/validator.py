@@ -182,13 +182,13 @@ class BaseValidator:
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
             if not (pt or (getattr(model, "dynamic", False) and not model.imx)):
                 self.args.rect = False
-            self.stride = model.stride  # used in get_dataloader() for padding
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()
             if self.args.compile:
                 model = attempt_compile(model, device=self.device)
             model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
+        self.stride = model.stride  # used in get_dataloader() for padding
 
         self.run_callbacks("on_val_start")
         dt = (

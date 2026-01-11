@@ -766,7 +766,7 @@ class Pose26(Pose):
         c4 = max(ch[0] // 4, kpt_shape[0] * (kpt_shape[1] + 2))
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3)) for x in ch)
 
-        self.cv4_kpts = nn.ModuleList(nn.Conv2d(c4, self.nk, 1) for _ in ch)        
+        self.cv4_kpts = nn.ModuleList(nn.Conv2d(c4, self.nk, 1) for _ in ch)
         self.nk_sigma = kpt_shape[0] * 2  # sigma_x, sigma_y for each keypoint
         self.cv4_sigma = nn.ModuleList(nn.Conv2d(c4, self.nk_sigma, 1) for _ in ch)
 
@@ -775,21 +775,31 @@ class Pose26(Pose):
             self.one2one_cv4_kpts = copy.deepcopy(self.cv4_kpts)
             self.one2one_cv4_sigma = copy.deepcopy(self.cv4_sigma)
 
-    def forward_head(
-        self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, pose_head: torch.nn.Module
-    ) -> torch.Tensor:
+    @property
+    def one2many(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(box_head=self.cv2, cls_head=self.cv3, pose_head=self.cv4,
+                    kpts_head=self.cv4_kpts, kpts_sigma_head=self.cv4_sigma)
+
+    @property
+    def one2one(self):
+        """Returns the one-to-one head components."""
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, pose_head=self.one2one_cv4,
+                    kpts_head=self.one2one_cv4_kpts, kpts_sigma_head=self.one2one_cv4_sigma)
+
+    def forward_head(self, x: list[torch.Tensor],
+                     box_head: torch.nn.Module, cls_head: torch.nn.Module, pose_head: torch.nn.Module,
+                     kpts_head: torch.nn.Module, kpts_sigma_head: torch.nn.Module) -> torch.Tensor:
         """Concatenates and returns predicted bounding boxes, class probabilities, and keypoints."""
         preds = Detect.forward_head(self, x, box_head, cls_head)
         if pose_head is not None:
             bs = x[0].shape[0]  # batch size
             features = [pose_head[i](x[i]) for i in range(self.nl)]
-
-            kpts_head = self.cv4_kpts if not self.end2end else self.one2one_cv4_kpts
             preds["kpts"] = torch.cat([kpts_head[i](features[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
-
             if self.training:
-                sigma_head = self.cv4_sigma if not self.end2end else self.one2one_cv4_sigma
-                preds["kpts_sigma"] = torch.cat([sigma_head[i](features[i]).view(bs, self.nk_sigma, -1) for i in range(self.nl)], 2)
+                preds["kpts_sigma"] = torch.cat(
+                    [kpts_sigma_head[i](features[i]).view(bs, self.nk_sigma, -1) for i in range(self.nl)], 2
+                )
         return preds
 
     def fuse(self) -> None:

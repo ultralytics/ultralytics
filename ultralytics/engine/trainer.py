@@ -274,15 +274,24 @@ class BaseTrainer:
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
     def _setup_ddp(self):
-        """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
+        """Initialize Distributed Data Parallel (DDP) process group for multi-GPU/multi-node training.
+
+        Sets up the NCCL backend (preferred) or falls back to Gloo, configures the local GPU device, and enables blocking
+        wait for better timeout handling.
+        """
+        import os
+
+        import torch
+        import torch.distributed as dist
+
+        from ultralytics.utils import LOCAL_RANK, RANK
+
+        torch.cuda.set_device(LOCAL_RANK)
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
             backend="nccl" if dist.is_nccl_available() else "gloo",
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
-            world_size=self.world_size,
         )
 
     def _setup_train(self):

@@ -39,9 +39,11 @@ def _slurm_master_addr():
     if match:
         prefix = match.group("prefix")
         first_range = match.group("range").split(",")[0]
-        start = first_range.split("-")[0] if "-" in first_range else first_range
-        return f"{prefix}{start}"
-    return first
+        num_match = re.match(r"\d+", first_range)
+        if num_match:
+            return f"{prefix}{num_match.group(0)}"
+        return None
+    return first if "[" not in first and "]" not in first else None
 
 
 def _slurm_node_rank():
@@ -137,13 +139,18 @@ def generate_ddp_command(trainer):
     nnodes = trainer.nnodes
 
     if not trainer.resume:
-        shutil.rmtree(trainer.save_dir)  # remove the save_dir
+        try:
+            shutil.rmtree(trainer.save_dir)  # remove the save_dir
+        except FileNotFoundError:
+            pass
     file = generate_ddp_file(trainer)
     dist_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
 
     master_port = os.environ.get("MASTER_PORT")
     if nnodes > 1:
         master_addr = os.environ.get("MASTER_ADDR")
+        if master_addr and ("[" in master_addr or "]" in master_addr):
+            master_addr = None
         node_rank = os.environ.get("NODE_RANK")
         if master_addr is None or node_rank is None:
             slurm_master_addr = _slurm_master_addr()

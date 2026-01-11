@@ -2255,8 +2255,10 @@ class SAM3SemanticPredictor(SAM3Predictor):
             return value[idx : idx + 1]
         if isinstance(value, dict):
             return {k: SAM3SemanticPredictor._select_batch_item(v, idx) for k, v in value.items()}
-        if isinstance(value, (list, tuple)):
+        if isinstance(value, list):
             return [SAM3SemanticPredictor._select_batch_item(v, idx) for v in value]
+        if isinstance(value, tuple):
+            return tuple(SAM3SemanticPredictor._select_batch_item(v, idx) for v in value)
         return value
 
     @staticmethod
@@ -2281,7 +2283,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         features = []
         paths, im0s, s = [], [], []
         for batch in self.dataset:
-            batch_paths, batch_im0s, batch_s = batch
+            batch_paths, batch_im0s, batch_s, *_ = batch
             im = self.preprocess(batch_im0s)
             feats = self.get_im_features(im)
             if isinstance(feats, dict) and isinstance(im, torch.Tensor) and im.shape[0] > 1:
@@ -2295,6 +2297,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
         self.features = features[0] if len(features) == 1 else features
         self.batch = (paths, im0s, s)
+        self._orig_shapes = [im.shape[:2] for im in im0s]
 
     def _prepare_geometric_prompts(self, src_shape, bboxes=None, labels=None):
         """Prepare prompts by normalizing bounding boxes and points to the destination shape."""
@@ -2396,7 +2399,14 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
         preds = []
         for i, feats in enumerate(features_list):
-            src_shape = self.batch[1][i].shape[:2] if self.batch is not None else im.shape[2:]
+            if self.batch is not None:
+                src_shape = self.batch[1][i].shape[:2]
+            elif getattr(self, "_orig_shapes", None):
+                src_shape = self._orig_shapes[i]
+            elif bboxes is not None or labels is not None:
+                raise RuntimeError("Call set_image() before using geometric prompts.")
+            else:
+                src_shape = im.shape[2:]
             prompts = self._prepare_geometric_prompts(src_shape, bboxes, labels)
             pred = self._inference_features(feats, *prompts, text=text_list[i])
             if text_list[i] is not None:

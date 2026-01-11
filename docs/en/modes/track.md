@@ -17,7 +17,7 @@ The output from Ultralytics trackers is consistent with standard [object detecti
 - **Efficiency:** Process video streams in real-time without compromising [accuracy](https://www.ultralytics.com/glossary/accuracy).
 - **Flexibility:** Supports multiple tracking algorithms and configurations.
 - **Ease of Use:** Simple Python API and CLI options for quick integration and deployment.
-- **Customizability:** Easy to use with custom trained YOLO models, allowing integration into domain-specific applications.
+- **Customizability:** Easy to use with custom-trained YOLO models, allowing integration into domain-specific applications.
 
 <p align="center">
   <br>
@@ -69,7 +69,7 @@ To run the tracker on video streams, use a trained Detect, Segment, or Pose mode
         model = YOLO("yolo11n.pt")  # Load an official Detect model
         model = YOLO("yolo11n-seg.pt")  # Load an official Segment model
         model = YOLO("yolo11n-pose.pt")  # Load an official Pose model
-        model = YOLO("path/to/best.pt")  # Load a custom trained model
+        model = YOLO("path/to/best.pt")  # Load a custom-trained model
 
         # Perform tracking with the model
         results = model.track("https://youtu.be/LNwODJXcvt4", show=True)  # Tracking with default tracker
@@ -86,7 +86,7 @@ To run the tracker on video streams, use a trained Detect, Segment, or Pose mode
         yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # Custom trained model
 
         # Track using ByteTrack tracker
-        yolo track model=path/to/best.pt tracker="bytetrack.yaml"
+        yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" tracker="bytetrack.yaml"
         ```
 
 As can be seen in the above usage, tracking is available for all Detect, Segment, and Pose models run on videos or streaming sources.
@@ -106,14 +106,14 @@ Tracking configuration shares properties with Predict mode, such as `conf`, `iou
 
         # Configure the tracking parameters and run the tracker
         model = YOLO("yolo11n.pt")
-        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.3, iou=0.5, show=True)
+        results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.1, iou=0.7, show=True)
         ```
 
     === "CLI"
 
         ```bash
         # Configure tracking parameters and run the tracker using the command line interface
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3, iou=0.5 show
+        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show
         ```
 
 ### Tracker Selection

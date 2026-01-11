@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import types
 from pathlib import Path
+from shutil import which
 
 import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Segment
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, WINDOWS
 from ultralytics.utils.patches import onnx_export_patch
 from ultralytics.utils.tal import make_anchors
 from ultralytics.utils.torch_utils import copy_attr
@@ -116,7 +118,7 @@ def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tenso
     kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
     x = Detect.forward(self, x)
     pred_kpt = self.kpts_decode(bs, kpt)
-    return (*x, pred_kpt.permute(0, 2, 1))
+    return *x, pred_kpt.permute(0, 2, 1)
 
 
 def segment_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -125,7 +127,7 @@ def segment_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Te
     bs = p.shape[0]  # batch size
     mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
     x = Detect.forward(self, x)
-    return (*x, mc.transpose(1, 2), p)
+    return *x, mc.transpose(1, 2), p
 
 
 class NMSWrapper(torch.nn.Module):
@@ -217,7 +219,7 @@ def torch2imx(
     Examples:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
-        >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.45, max_det=300)
+        >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.7, max_det=300)
 
     Notes:
         - Requires model_compression_toolkit, onnx, edgemdt_tpc, and edge-mdt-cl packages
@@ -303,8 +305,16 @@ def torch2imx(
 
     onnx.save(model_onnx, onnx_model)
 
+    # Find imxconv-pt binary - check venv bin directory first, then PATH
+    bin_dir = Path(sys.executable).parent
+    imxconv = bin_dir / ("imxconv-pt.exe" if WINDOWS else "imxconv-pt")
+    if not imxconv.exists():
+        imxconv = which("imxconv-pt")  # fallback to PATH
+    if not imxconv:
+        raise FileNotFoundError("imxconv-pt not found. Install with: pip install imx500-converter[pt]")
+
     subprocess.run(
-        ["imxconv-pt", "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
+        [str(imxconv), "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
         check=True,
     )
 

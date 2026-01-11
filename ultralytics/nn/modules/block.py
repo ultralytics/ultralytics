@@ -800,7 +800,8 @@ class BNContrastiveHead(nn.Module):
         del self.logit_scale
         self.forward = self.forward_fuse
 
-    def forward_fuse(self, x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
+    @staticmethod
+    def forward_fuse(x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
         """Passes input out unchanged."""
         return x
 
@@ -1170,7 +1171,7 @@ class RepVGGDW(torch.nn.Module):
 
 
 class CIB(nn.Module):
-    """Conditional Identity Block (CIB) module.
+    """Compact Inverted Block (CIB) module.
 
     Args:
         c1 (int): Number of input channels.
@@ -1222,7 +1223,7 @@ class C2fCIB(C2f):
         c2 (int): Number of output channels.
         n (int, optional): Number of CIB modules to stack. Defaults to 1.
         shortcut (bool, optional): Whether to use shortcut connection. Defaults to False.
-        lk (bool, optional): Whether to use local key connection. Defaults to False.
+        lk (bool, optional): Whether to use large kernel. Defaults to False.
         g (int, optional): Number of groups for grouped convolution. Defaults to 1.
         e (float, optional): Expansion ratio for CIB modules. Defaults to 0.5.
     """
@@ -1237,7 +1238,7 @@ class C2fCIB(C2f):
             c2 (int): Output channels.
             n (int): Number of CIB modules.
             shortcut (bool): Whether to use shortcut connection.
-            lk (bool): Whether to use local key connection.
+            lk (bool): Whether to use large kernel.
             g (int): Groups for convolutions.
             e (float): Expansion ratio.
         """
@@ -1890,7 +1891,8 @@ class ABlock(nn.Module):
 
         self.apply(self._init_weights)
 
-    def _init_weights(self, m: nn.Module):
+    @staticmethod
+    def _init_weights(m: nn.Module):
         """Initialize weights using a truncated normal distribution.
 
         Args:
@@ -1966,7 +1968,7 @@ class A2C2f(nn.Module):
         """
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
-        assert c_ % 32 == 0, "Dimension of ABlock be a multiple of 32."
+        assert c_ % 32 == 0, "Dimension of ABlock must be a multiple of 32."
 
         self.cv1 = Conv(c1, c_, 1, 1)
         self.cv2 = Conv((1 + n) * c_, c2, 1)

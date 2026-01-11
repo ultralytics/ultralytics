@@ -93,10 +93,16 @@ class HorizontalFlipAugmentor:
         if np.random.rand() >= self.p_apply:
             return left, right, labels, False
 
+        # FIX: Save RNG state before flip for determinism across workers
+        state_before = np.random.get_state()
+
         # Flip both and swap
         left_f = cv2.flip(left, 1)
         right_f = cv2.flip(right, 1)
         left_f, right_f = right_f, left_f
+
+        # FIX: Restore RNG state to ensure determinism
+        np.random.set_state(state_before)
 
         # Update labels
         new_labels: List[Dict[str, Any]] = []
@@ -138,7 +144,10 @@ class RandomScaleAugmentor:
 
     Since labels are normalized, scaling the image does not change normalized values,
     but subsequent letterbox/pad may. We apply scaling here to the raw images only.
+
+    Random scale augmentor for stereo image pairs.
     """
+
 
     def __init__(self, scale_range: Tuple[float, float] = (0.8, 1.2), p_apply: float = 0.5):
         self.scale_range = scale_range
@@ -152,11 +161,19 @@ class RandomScaleAugmentor:
     ) -> Tuple[np.ndarray, np.ndarray, List[Dict[str, Any]]]:
         if np.random.rand() >= self.p_apply:
             return left, right, labels
+        
+        # FIX: Save RNG state before random operations for determinism across workers
+        state_before = np.random.get_state()
+        
         s = float(np.random.uniform(*self.scale_range))
         new_w = max(1, int(round(left.shape[1] * s)))
         new_h = max(1, int(round(left.shape[0] * s)))
         left_s = cv2.resize(left, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
         right_s = cv2.resize(right, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+        
+        # FIX: Restore RNG state to ensure determinism
+        np.random.set_state(state_before)
+        
         # normalized labels unchanged
         return left_s, right_s, labels
 
@@ -181,6 +198,10 @@ class RandomCropAugmentor:
     ) -> Tuple[np.ndarray, np.ndarray, List[Dict[str, Any]], bool, int, int, int, int]:
         if np.random.rand() >= self.p_apply:
             return left, right, labels, False, 0, 0, left.shape[1], left.shape[0]
+        
+        # FIX: Save RNG state before random operations for determinism across workers
+        state_before = np.random.get_state()
+        
         H, W = left.shape[:2]
         ch = max(1, int(H * self.crop_height_ratio))
         cw = max(1, int(W * self.crop_width_ratio))
@@ -188,6 +209,9 @@ class RandomCropAugmentor:
         x0 = int(np.random.randint(0, W - cw + 1))
         left_c = left[y0 : y0 + ch, x0 : x0 + cw]
         right_c = right[y0 : y0 + ch, x0 : x0 + cw]
+        
+        # FIX: Restore RNG state to ensure determinism
+        np.random.set_state(state_before)
 
         # Update labels: shift centers by crop and renormalize to new size
         new_labels: List[Dict[str, Any]] = []
@@ -259,7 +283,7 @@ class StereoAugmentationPipeline:
         labels: List[Dict[str, Any]],
         calibration: StereoCalibration | None = None,
     ) -> Tuple[np.ndarray, np.ndarray, List[Dict[str, Any]], StereoCalibration | None]:
-        # Geometric first
+        # Geometric augmentations applied first
         left, right, labels, did_flip = self.hflip(left, right, labels)
         if did_flip and calibration is not None:
             # After cv2.flip, pixel u becomes u' = (W - 1) - u, so principal point must update too.
@@ -294,6 +318,7 @@ class StereoAugmentationPipeline:
             calibration.width = int(new_w)
             calibration.height = int(new_h)
 
+        # Random crop
         left, right, labels, did_crop, x0, y0, cw, ch = self.rcrop(left, right, labels)
         if did_crop and calibration is not None:
             # Cropping shifts the pixel coordinate frame by (x0, y0).

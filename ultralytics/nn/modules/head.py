@@ -456,6 +456,38 @@ class OBB(Detect):
         self.cv2 = self.cv3 = self.cv4 = None
 
 
+class OBB26(OBB):
+    """
+    YOLO26 OBB detection head for detection with rotation models.
+    This class extends the OBB head with modified angle processing that outputs raw angle predictions
+    without sigmoid transformation, compared to the original OBB class.
+    Attributes:
+        ne (int): Number of extra parameters.
+        cv4 (nn.ModuleList): Convolution layers for angle prediction.
+        angle (torch.Tensor): Predicted rotation angles.
+    Methods:
+        forward_head: Concatenate and return predicted bounding boxes, class probabilities, and raw angles.
+    Examples:
+        Create an OBB26 detection head
+        >>> obb26 = OBB26(nc=80, ne=1, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = obb26(x)
+    """
+
+    def forward_head(
+        self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, angle_head: torch.nn.Module
+    ) -> torch.Tensor:
+        """Concatenates and returns predicted bounding boxes, class probabilities, and raw angles."""
+        preds = Detect.forward_head(self, x, box_head, cls_head)
+        if angle_head is not None:
+            bs = x[0].shape[0]  # batch size
+            angle = torch.cat(
+                [angle_head[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2
+            )  # OBB theta logits (raw output without sigmoid transformation)
+            preds["angle"] = angle
+        return preds
+
+
 class Pose(Detect):
     """
     YOLO Pose head for keypoints models.
@@ -574,6 +606,134 @@ class Pose(Detect):
                     y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
+            return y
+
+
+class Pose26(Pose):
+    """
+    YOLO26 Pose head for keypoints models.
+
+    This class extends the Detect head to include keypoint prediction capabilities for pose estimation tasks.
+
+    Attributes:
+        kpt_shape (tuple): Number of keypoints and dimensions (2 for x,y or 3 for x,y,visible).
+        nk (int): Total number of keypoint values.
+        cv4 (nn.ModuleList): Convolution layers for keypoint prediction.
+
+    Methods:
+        forward: Perform forward pass through YOLO model and return predictions.
+        kpts_decode: Decode keypoints from predictions.
+
+    Examples:
+        Create a pose detection head
+        >>> pose = Pose(nc=80, kpt_shape=(17, 3), ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = pose(x)
+    """
+
+    def __init__(self, nc: int = 80, kpt_shape: tuple = (17, 3), reg_max=16, end2end=False, ch: tuple = ()):
+        """
+        Initialize YOLO network with default parameters and Convolutional Layers.
+
+        Args:
+            nc (int): Number of classes.
+            kpt_shape (tuple): Number of keypoints, number of dims (2 for x,y or 3 for x,y,visible).
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, kpt_shape, reg_max, end2end, ch)
+        self.flow_model = RealNVP()
+
+        c4 = max(ch[0] // 4, kpt_shape[0] * (kpt_shape[1] + 2))
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3)) for x in ch)
+
+        self.cv4_kpts = nn.ModuleList(nn.Conv2d(c4, self.nk, 1) for _ in ch)
+        self.nk_sigma = kpt_shape[0] * 2  # sigma_x, sigma_y for each keypoint
+        self.cv4_sigma = nn.ModuleList(nn.Conv2d(c4, self.nk_sigma, 1) for _ in ch)
+
+        if end2end:
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
+            self.one2one_cv4_kpts = copy.deepcopy(self.cv4_kpts)
+            self.one2one_cv4_sigma = copy.deepcopy(self.cv4_sigma)
+
+    @property
+    def one2many(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(
+            box_head=self.cv2,
+            cls_head=self.cv3,
+            pose_head=self.cv4,
+            kpts_head=self.cv4_kpts,
+            kpts_sigma_head=self.cv4_sigma,
+        )
+
+    @property
+    def one2one(self):
+        """Returns the one-to-one head components."""
+        return dict(
+            box_head=self.one2one_cv2,
+            cls_head=self.one2one_cv3,
+            pose_head=self.one2one_cv4,
+            kpts_head=self.one2one_cv4_kpts,
+            kpts_sigma_head=self.one2one_cv4_sigma,
+        )
+
+    def forward_head(
+        self,
+        x: list[torch.Tensor],
+        box_head: torch.nn.Module,
+        cls_head: torch.nn.Module,
+        pose_head: torch.nn.Module,
+        kpts_head: torch.nn.Module,
+        kpts_sigma_head: torch.nn.Module,
+    ) -> torch.Tensor:
+        """Concatenates and returns predicted bounding boxes, class probabilities, and keypoints."""
+        preds = Detect.forward_head(self, x, box_head, cls_head)
+        if pose_head is not None:
+            bs = x[0].shape[0]  # batch size
+            features = [pose_head[i](x[i]) for i in range(self.nl)]
+            preds["kpts"] = torch.cat([kpts_head[i](features[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
+            if self.training:
+                preds["kpts_sigma"] = torch.cat(
+                    [kpts_sigma_head[i](features[i]).view(bs, self.nk_sigma, -1) for i in range(self.nl)], 2
+                )
+        return preds
+
+    def fuse(self) -> None:
+        """Remove the one2many head for inference optimization."""
+        super().fuse()
+        self.cv4_kpts = self.cv4_sigma = self.flow_model = self.one2one_cv4_sigma = None
+
+    def kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
+        """Decode keypoints from predictions."""
+        ndim = self.kpt_shape[1]
+        bs = kpts.shape[0]
+        if self.export:
+            if self.format in {
+                "tflite",
+                "edgetpu",
+            }:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
+                # Precompute normalization factor to increase numerical stability
+                y = kpts.view(bs, *self.kpt_shape, -1)
+                grid_h, grid_w = self.shape[2], self.shape[3]
+                grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
+                norm = self.strides / (self.stride[0] * grid_size)
+                a = (y[:, :, :2] + self.anchors) * norm
+            else:
+                # NCNN fix
+                y = kpts.view(bs, *self.kpt_shape, -1)
+                a = (y[:, :, :2] + self.anchors) * self.strides
+            if ndim == 3:
+                a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
+            return a.view(bs, self.nk, -1)
+        else:
+            y = kpts.clone()
+            if ndim == 3:
+                if NOT_MACOS14:
+                    y[:, 2::ndim].sigmoid_()
+                else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+                    y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
+            y[:, 0::ndim] = (y[:, 0::ndim] + self.anchors[0]) * self.strides
+            y[:, 1::ndim] = (y[:, 1::ndim] + self.anchors[1]) * self.strides
             return y
 
 

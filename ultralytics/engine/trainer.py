@@ -990,6 +990,7 @@ class BaseTrainer:
                 ),
             )
 
+        # TODO
         optimizer.add_param_group(
             {"params": g[0], "weight_decay": decay, "param_names": pn[0]}
         )  # add g0 with weight_decay

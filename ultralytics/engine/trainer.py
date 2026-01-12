@@ -172,8 +172,7 @@ class BaseTrainer:
         else:  # i.e. device=None or device=''
             local_world_size = 0
 
-        self.local_world_size = local_world_size
-        self.world_size = local_world_size * self.nnodes if local_world_size else 0
+        self.world_size = local_world_size * self.nnodes
         self.ddp = self.world_size > 1 and "LOCAL_RANK" not in os.environ
         # Run subprocess if DDP training, else train normally
         if RANK in {-1, 0} and not self.ddp:

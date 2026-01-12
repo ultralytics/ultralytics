@@ -19,8 +19,6 @@ Algorithm Overview:
 4. Apply Gauss-Newton update with Levenberg-Marquardt damping
 5. Iterate until convergence or max iterations
 6. Fall back to simple triangulation if convergence fails
-
-Target Performance (SC-007): ≥95% convergence rate
 """
 
 from __future__ import annotations

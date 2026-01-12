@@ -669,7 +669,7 @@ class v8OBBLoss(v8DetectionLoss):
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate and return the loss for oriented bounding box detection."""
-        loss = torch.zeros(3, device=self.device)  # box, cls, dfl
+        loss = torch.zeros(4, device=self.device)  # box, cls, dfl
         pred_distri, pred_scores, pred_angle = (
             preds["boxes"].permute(0, 2, 1).contiguous(),
             preds["scores"].permute(0, 2, 1).contiguous(),
@@ -734,14 +734,17 @@ class v8OBBLoss(v8DetectionLoss):
                 imgsz,
                 stride_tensor,
             )
+            weight = target_scores.sum(-1)[fg_mask]
+            loss[3] = self.calculate_angle_loss(pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum)  # angle loss
         else:
             loss[0] += (pred_angle * 0).sum()
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
+        loss[3] *= self.hyp.oa  # ang gain
 
-        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
+        return loss * batch_size, loss.detach()  # loss(box, cls, dfl, angle)
 
     def bbox_decode(
         self, anchor_points: torch.Tensor, pred_dist: torch.Tensor, pred_angle: torch.Tensor
@@ -761,6 +764,31 @@ class v8OBBLoss(v8DetectionLoss):
             b, a, c = pred_dist.shape  # batch, anchors, channels
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
+
+    def calculate_angle_loss(self, pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum, lambda_val=3):
+        """
+        Calculate oriented angle loss
+        Args:
+            pred_bboxes: [N, 5] (x, y, w, h, theta).
+            target_bboxes: [N, 5] (x, y, w, h, theta).
+            lambda_val: control the sensitivity to aspect ratio.
+        """
+        w_gt = target_bboxes[..., 2]
+        h_gt = target_bboxes[..., 3]
+        pred_theta = pred_bboxes[..., 4]
+        target_theta = target_bboxes[..., 4]
+
+        log_ar = torch.log(w_gt / h_gt)
+        scale_weight = torch.exp(-(log_ar**2) / (lambda_val**2))
+
+        delta_theta = pred_theta - target_theta
+        delta_theta_wrapped = delta_theta - torch.round(delta_theta / torch.pi) * torch.pi
+        ang_loss = torch.sin(2 * delta_theta_wrapped[fg_mask]) ** 2
+
+        ang_loss = scale_weight[fg_mask] * ang_loss
+        ang_loss = ang_loss * weight
+
+        return ang_loss.sum() / target_scores_sum
 
 
 class E2EDetectLoss:

@@ -14,7 +14,7 @@ from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigne
 from ultralytics.utils.torch_utils import autocast
 
 from .metrics import bbox_iou, probiou
-from .tal import bbox2dist
+from .tal import bbox2dist, rbox2dist
 
 
 class VarifocalLoss(nn.Module):
@@ -227,11 +227,11 @@ class RotatedBboxLoss(BboxLoss):
 
         # DFL loss
         if self.dfl_loss:
-            target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]), self.dfl_loss.reg_max - 1)
+            target_ltrb = rbox2dist(target_bboxes[..., :4], anchor_points, target_bboxes[..., 4:5], reg_max=self.dfl_loss.reg_max - 1)
             loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
-            target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]))
+            target_ltrb = rbox2dist(target_bboxes[..., :4], anchor_points, target_bboxes[..., 4:5])
             target_ltrb = target_ltrb * stride
             target_ltrb[..., 0::2] /= imgsz[1]
             target_ltrb[..., 1::2] /= imgsz[0]

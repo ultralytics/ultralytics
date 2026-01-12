@@ -9,43 +9,6 @@ from . import USER_CONFIG_DIR
 from .torch_utils import TORCH_1_9
 
 
-def _slurm_master_addr():
-    """Resolve the master address from SLURM nodelist if available."""
-    nodelist = (
-        os.environ.get("SLURM_NODELIST")
-        or os.environ.get("SLURM_JOB_NODELIST")
-        or os.environ.get("SLURM_STEP_NODELIST")
-    )
-    if not nodelist:
-        return None
-    try:
-        import subprocess
-
-        result = subprocess.run(
-            ["scontrol", "show", "hostnames", nodelist],
-            check=True,
-            stdout=subprocess.PIPE,
-            text=True,
-        )
-        host = result.stdout.strip().splitlines()[0] if result.stdout else ""
-        return host or None
-    except Exception:
-        pass
-    # Fallback parser for common patterns like "node[01-03,05]"
-    import re
-
-    first = nodelist.split(",")[0]
-    match = re.match(r"(?P<prefix>[A-Za-z0-9._-]+)\[(?P<range>[^\]]+)\]", first)
-    if match:
-        prefix = match.group("prefix")
-        first_range = match.group("range").split(",")[0]
-        num_match = re.match(r"\d+", first_range)
-        if num_match:
-            return f"{prefix}{num_match.group(0)}"
-        return None
-    return first if "[" not in first and "]" not in first else None
-
-
 def _slurm_node_rank():
     """Resolve the node rank from SLURM if available."""
     node_rank = os.environ.get("SLURM_NODEID")
@@ -147,20 +110,13 @@ def generate_ddp_command(trainer):
     master_port = os.environ.get("MASTER_PORT")
     if nnodes > 1:
         master_addr = os.environ.get("MASTER_ADDR")
-        if master_addr and ("[" in master_addr or "]" in master_addr):
-            master_addr = None
         node_rank = os.environ.get("NODE_RANK")
-        if master_addr is None or node_rank is None:
-            slurm_master_addr = _slurm_master_addr()
-            slurm_node_rank = _slurm_node_rank()
-            if master_addr is None:
-                master_addr = slurm_master_addr
-            if node_rank is None:
-                node_rank = slurm_node_rank
+        if node_rank is None:
+            node_rank = _slurm_node_rank()
         if master_addr is None or node_rank is None:
             raise ValueError(
-                "MASTER_ADDR and NODE_RANK must be set for multi-node DDP "
-                "(or available via SLURM_NODELIST/SLURM_NODEID)."
+                "MASTER_ADDR must be set for multi-node DDP and NODE_RANK must be set "
+                "(NODE_RANK may be available via SLURM_NODEID)."
             )
         if master_port is None:
             master_port = "29500"

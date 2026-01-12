@@ -172,5 +172,11 @@ if __name__ == "__main__":
     args.pred="/home/shared/ultralytics/runs/detect/val69/predictions.json"
     args.json="/home/louis/ultra_louis_work/datasets/lvis/annotations/lvis_v1_minival.json"
     args.names='../buffer/ram_tag_list.txt'
+
+    pred_dir="./runs/detect/val114/"
+    args.pred= pred_dir+"predictions.json"
+
+
+
     args.fixed=True
     main(args)

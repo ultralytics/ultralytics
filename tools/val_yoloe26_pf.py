@@ -1,4 +1,4 @@
-\import ultralytics,os
+import ultralytics,os
 workspace = os.path.dirname(os.path.dirname(os.path.abspath(ultralytics.__file__)))
 os.chdir(workspace)
 print("set workspace:", workspace)
@@ -39,49 +39,97 @@ def yaml_load(file="data.yaml", append_filename=False):
 
 
 
-def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight):
+def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight,clip_weight_name="mobileclip2:b"):
 
     # load the most model weights
     det_model = YOLOE(yaml_name).load(model_path)
-
-
+    det_model.model.args['clip_weight_name']=clip_weight_name
     # set vocab from the unfused model
     unfused_model=YOLOE(unfused_model_weight)
+    unfused_model.model.args['clip_weight_name']=clip_weight_name
     unfused_model.eval()
     unfused_model.cuda()
-
+    unfused_model.args['clip_model_weight']=clip_weight_name
     with open('../buffer/ram_tag_list.txt', 'r') as f:
         names = [x.strip() for x in f.readlines()]
     # categories = yaml_load("ultralytics/cfg/datasets/lvis.yaml")["names"].values()
     # names = [c.split("/")[0] for c in categories]     
-    vocab = unfused_model.get_vocab(names) # 对比头，text p, conv3[-1]
+    vocab = unfused_model.get_vocab(names)
     
 
+
     det_model.eval()
+    det_model.cuda()
     det_model.set_vocab(vocab, names=names)
     det_model.model.model[-1].is_fused = True
     det_model.model.model[-1].conf = 0.001
     det_model.model.model[-1].max_det = 1000
+    
+    return det_model
 
 
+
+
+def read_pf_det_from_seg_fused(model_path,yaml_name):
+    """
+        read pd_det from a fused seg model
+    """
+
+    # load the most model weights
+    det_model = YOLOE(yaml_name).load(model_path)
+    det_model.model.args['clip_weight_name']="mobileclip2:b"
+    det_model.eval()
+    det_model.cuda() 
+    import copy
+    seg_model=YOLOE(model_path)
+    seg_model.model.args['clip_weight_name']="mobileclip2:b"
+    seg_model.eval()
+    seg_model.cuda()
+    # copy the lrpc model ()
+    det_model.model.model[-1].lrpc =copy.deepcopy(seg_model.model.model[-1].lrpc)
+    det_model.model.model[-1].is_fused = True
+    det_model.model.model[-1].conf = 0.001
+    det_model.model.model[-1].max_det = 1000
+
+    # del the last layer of loc and cls head (which is copied from the set_vocab function)
+    import torch.nn as nn
+    for loc_head, cls_head in zip(det_model.model.model[-1].cv2, det_model.model.model[-1].cv3):
+        assert isinstance(loc_head, nn.Sequential)
+        assert isinstance(cls_head, nn.Sequential)
+        del loc_head[-1]
+        del cls_head[-1]
+
+    with open('../buffer/ram_tag_list.txt', 'r') as f:
+        names = [x.strip() for x in f.readlines()]
+    tpe = det_model.model.get_text_pe(names)
+    det_model.model.set_classes(names, tpe)
 
     return det_model
 
 
 
+
+default_tp_weight="runs/yoloe26_tp/26l_ptwobjv1_bs256_epo20_close2_engine_old_engine_data_tp[ultra6]/weights/best.pt"
+default_pf_weight="./runs/yoloe26_pf/26l_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra6]/weights/best.pt"
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--device', type=str, default='0', help='cuda device(s) to use')
-parser.add_argument('-tp_weight', type=str, default=None, help='path to text prompt model weight')
-parser.add_argument('-pf_weight', type=str, default="./runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf_bn_o2m0.1_pfA/weights/best.pt", help='path to visual prompt model weight')
-parser.add_argument('--single_cls', type=int, default=1, help='whether to eval as single class')
+parser.add_argument('-tp_weight', type=str, default=default_tp_weight, help='path to text prompt model weight')
+parser.add_argument('-pf_weight', type=str, default=default_pf_weight, help='path to visual prompt model weight')
+parser.add_argument('--single_cls', type=str, default="False", help='whether to eval as single class')
 parser.add_argument('--version', type=str, default='26s', help='model version')
+
+
 
 
 args= parser.parse_args()
 
+assert args.single_cls in ["True","False"]
+single_cls={"True":True, "False":False}[args.single_cls]
 
-if args.single_cls:
+# ['clip_weight_name']="mobileclip2:b"
+
+if single_cls:
 
 
     model_weight=args.pf_weight
@@ -89,18 +137,17 @@ if args.single_cls:
     head=model.model.model[-1]
     head.set_fixed_nc(1)  # stop the dynamic update of YOLOEDetect.nc
 
-    metrics = model.val(data="lvis.yaml",split="minival", single_cls=args.single_cls ,max_det=1000,save_json= False) # map 0
+    metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= False) # map 0
 
 else:
 
     assert args.tp_weight is not None, "Please provide text prompt model weight for unfused det model."
     model_weight=args.pf_weight
     model_weight_tp=args.tp_weight
-    single_cls=args.single_cls
     version=args.version
 
     # model_weight="runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_o2m0.1_pf2/weights/best.pt"
     model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",model_weight_tp)
 
 
-    metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= (not single_cls)) # map 0
+    metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= (not single_cls),clip_weight_name="mobileclip2:b") # map 0

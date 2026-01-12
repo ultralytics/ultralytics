@@ -115,13 +115,13 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         model = YOLO("yolo11n.pt")
 
         # Customize validation settings
-        metrics = model.val(data="coco8.yaml", imgsz=640, batch=16, conf=0.25, iou=0.6, device="0")
+        metrics = model.val(data="coco8.yaml", imgsz=640, batch=16, conf=0.25, iou=0.7, device="0")
         ```
 
     === "CLI"
 
         ```bash
-        yolo val model=yolo11n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
+        yolo val model=yolo11n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.7 device=0
         ```
 
 !!! tip "Export ConfusionMatrix"

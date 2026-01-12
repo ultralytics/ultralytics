@@ -2196,7 +2196,7 @@ class Format:
             if nl:
                 masks, instances, cls = self._format_segments(instances, cls, w, h)
                 masks = torch.from_numpy(masks)
-                sem_masks = labels["cls"].squeeze(1)[labels["masks"].long() - 1]  # 1xHxW
+                sem_masks = torch.from_numpy(cls.squeeze(1)[masks.long() - 1])  # 1xHxW
             else:
                 masks = torch.zeros(
                     1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio

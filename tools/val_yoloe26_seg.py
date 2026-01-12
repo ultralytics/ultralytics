@@ -45,7 +45,7 @@ from ultralytics import YOLOE
 
 
 
-def val_yoloe26(model_path,mode,end2end=True,device="0"):
+def val_yoloe26(model_path,mode,end2end=True,device="0",task="detect"):
     """
     validate yoloe26 with text prompt or visual prompt.
     Args:
@@ -71,7 +71,7 @@ def val_yoloe26(model_path,mode,end2end=True,device="0"):
 
         data="../datasets/lvis.yaml"
 
-        metrics = model.val(data=data, split="minival", max_det=1000,  save_json=True,device=device)
+        metrics = model.val(data=data, split="val", max_det=1000,  save_json=True,device=device,task=task,batch=32)
 
     if mode=="visual_prompt":
 
@@ -79,7 +79,7 @@ def val_yoloe26(model_path,mode,end2end=True,device="0"):
         data="../datasets/lvis.yaml"
         refer_data="../datasets/lvis_train_vps.yaml"
 
-        metrics = model.val(data=data, split="minival", max_det=1000,load_vp=True,refer_data=refer_data,  save_json=True,device=device)
+        metrics = model.val(data=data, split="val", max_det=1000,load_vp=True,refer_data=refer_data,  save_json=True,device=device,task=task,batch=32)
     return model
 
 
@@ -90,9 +90,10 @@ if __name__=="__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', type=str, default='0', help='cuda device(s) to use')
-    parser.add_argument('-model_weight', type=str, default="./weights/yoloe-26s.pt", help='path to model weight')
+    parser.add_argument('--model_weight', type=str, default="./weights/yoloe-26s.pt", help='path to model weight')
     # swith to val tp and vp 
     parser.add_argument('--val_mode', type=str, default='all', help='validation mode: all, tp_only, vp_only')
+    parser.add_argument("--task", type=str, default='detect', help='task type: segment or detect')
 
 
     args = parser.parse_args()
@@ -110,24 +111,29 @@ if __name__=="__main__":
 
     if args.val_mode in ["all","tp_only"]:
         print("Validating YOLOE26 with Text Prompt...")
-        model=val_yoloe26(model_weight,mode="text_prompt",end2end=True,device=device)
+        model=val_yoloe26(model_weight,mode="text_prompt",end2end=True,device=device,task=args.task)
         results["tp_end2end"] = model.val_stats if hasattr(model, 'val_stats') else model.metrics.results_dict
-        tp_metrics=val_yoloe26(model_weight,mode="text_prompt",end2end=False,device=device)
-        results["tp_not_end2end"]=tp_metrics.val_stats if hasattr(tp_metrics, 'val_stats') else tp_metrics.metrics.results_dict
+        model=val_yoloe26(model_weight,mode="text_prompt",end2end=False,device=device,task=args.task)
+        results["tp_not_end2end"]=model.val_stats if hasattr(model, 'val_stats') else model.metrics.results_dict
 
 
     if  args.val_mode in ["all","vp_only"]:
         print("Validating YOLOE26 with Visual Prompt...")
-        vp_metrics=val_yoloe26(model_weight,mode="visual_prompt",end2end=True,device=device)
-        results["vp_end2end"]=vp_metrics.val_stats if hasattr(vp_metrics, 'val_stats') else vp_metrics.metrics.results_dict
-        vp_metrics=val_yoloe26(model_weight,mode="visual_prompt",end2end=False,device=device)
-        results["vp_not_end2end"]=vp_metrics.val_stats if hasattr(vp_metrics, 'val_stats') else vp_metrics.metrics.results_dict
+        model=val_yoloe26(model_weight,mode="visual_prompt",end2end=True,device=device,task=args.task)
+        results["vp_end2end"]=model.val_stats if hasattr(model, 'val_stats') else model.metrics.results_dict
+        model=val_yoloe26(model_weight,mode="visual_prompt",end2end=False,device=device,task=args.task)
+        results["vp_not_end2end"]=model.val_stats if hasattr(model, 'val_stats') else model.metrics.results_dict
     
     print("\n" + "="*80)
     print("Validation Results (IoU=0.50:0.95):")
     print("="*80)
     for k,v in results.items():
         print(f"{k:20s}: mAP50-95={v['metrics/mAP50-95(B)']:.3f}, mAP50={v['metrics/mAP50(B)']:.3f}, P={v['metrics/precision(B)']:.3f}, R={v['metrics/recall(B)']:.3f}")
+        import os
+
+
+
+
 
 
 

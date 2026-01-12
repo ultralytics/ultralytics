@@ -841,7 +841,7 @@ class YOLOEDetect(Detect):
     """
 
     is_fused = False
-
+    _fixed_nc=None
     def __init__(
         self, nc: int = 80, embed: int = 512, with_bn: bool = False, reg_max=16, end2end=False, ch: tuple = ()
     ):
@@ -879,7 +879,7 @@ class YOLOEDetect(Detect):
         self.reprta = Residual(SwiGLUFFN(embed, embed))
         self.savpe = SAVPE(ch, c3, embed)
         self.embed = embed
-        self._fixed_nc=None 
+        # self._fixed_nc=None 
 
     @smart_inference_mode()
     def fuse(self, txt_feats: torch.Tensor = None):
@@ -996,6 +996,7 @@ class YOLOEDetect(Detect):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
+
             box, score, idx = self.lrpc[i](
                 cls_feat,
                 loc_feat,

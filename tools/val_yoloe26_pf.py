@@ -107,17 +107,43 @@ def read_pf_det_from_seg_fused(model_path,yaml_name):
     return det_model
 
 
+yoloe26n_tp="runs/yoloe26_tp/26n_ptwobjv1_bs256_epo30_close2_engine_old_engine_data_tp[ultra8]/weights/best.pt"
+yoloe26s_tp="runs/yoloe26_tp/26s_ptwobjv1_bs256_epo30_close2_engine_old_engine_data_tp[ultra8]/weights/best.pt"
+yoloe26m_tp="runs/yoloe26_tp/26m_ptwobjv1_bs256_epo25_close2_engine_old_engine_data_tp[ultra8]/weights/best.pt"
+yoloe26l_tp="runs/yoloe26_tp/26l_ptwobjv1_bs256_epo20_close2_engine_old_engine_data_tp[ultra6]/weights/best.pt"
+yoloe26x_tp="runs/yoloe26_tp/26x_ptwobjv1_bs256_epo15_close2_engine_old_engine_data_tp[ultra6]/weights/best.pt"
+
+yoloe26_vp="runs/yoloe26_vp/26n_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
+yoloe26s_vp="runs/yoloe26_vp/26s_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
+yoloe26m_vp="runs/yoloe26_vp/26m_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
+yoloe26l_vp="runs/yoloe26_vp/26l_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra6]/weights/best.pt"
+yoloe26x_vp="runs/yoloe26_vp/26x_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra6]/weights/best.pt"
+
+yoloe26n_seg="runs/yoloe26_seg/26n-seg_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra2]/weights/best.pt"
+yoloe26s_seg="runs/yoloe26_seg/26s-seg_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
+yoloe26m_seg="runs/yoloe26_seg/26m-seg_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
+yoloe26l_seg="runs/yoloe26_seg/26l-seg_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
+yoloe26x_seg="runs/yoloe26_seg/26x-seg_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
+
+yoloe26n_pf="runs/yoloe26_pf/26n_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra8]/weights/best.pt"
+yoloe26s_pf="runs/yoloe26_pf/26s_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra8]/weights/best.pt"
+yoloe26m_pf="runs/yoloe26_pf/26m_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra8]/weights/best.pt"
+yoloe26l_pf="runs/yoloe26_pf/26l_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra6]/weights/best.pt"
+yoloe26x_pf="runs/yoloe26_pf/26x_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra6]/weights/best.pt"
 
 
-default_tp_weight="runs/yoloe26_tp/26l_ptwobjv1_bs256_epo20_close2_engine_old_engine_data_tp[ultra6]/weights/best.pt"
-default_pf_weight="./runs/yoloe26_pf/26l_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra6]/weights/best.pt"
+
+default_tp_weight=yoloe26m_tp
+default_pf_weight=yoloe26m_pf
+default_version="26m"
+
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--device', type=str, default='0', help='cuda device(s) to use')
-parser.add_argument('-tp_weight', type=str, default=default_tp_weight, help='path to text prompt model weight')
-parser.add_argument('-pf_weight', type=str, default=default_pf_weight, help='path to visual prompt model weight')
+parser.add_argument('--device', type=str, default='0', help='cuda device(   s) to use')
+parser.add_argument('--tp_weight', type=str, default=default_tp_weight, help='path to text prompt model weight')
+parser.add_argument('--pf_weight', type=str, default=default_pf_weight, help='path to visual prompt model weight')
 parser.add_argument('--single_cls', type=str, default="False", help='whether to eval as single class')
-parser.add_argument('--version', type=str, default='26s', help='model version')
+parser.add_argument('--version', type=str, default=default_version, help='model version')
 
 
 
@@ -149,5 +175,25 @@ else:
     # model_weight="runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_o2m0.1_pf2/weights/best.pt"
     model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",model_weight_tp)
 
+    end2end=True
+    if not end2end:
+        del model.model.model[-1].one2one_cv2
+        del model.model.model[-1].one2one_cv3
+        del model.model.model[-1].one2one_cv4
+        model.model.end2end = False
 
-    metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= (not single_cls),clip_weight_name="mobileclip2:b") # map 0
+
+    import time
+    time_stamp=time.strftime("%Y%m%d-%H%M%S")
+
+    # get the time_stamp with ms 
+
+    project="runs/yoloe26_pf_eval"
+    run_name="val_"+time_stamp
+    metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= (not single_cls),clip_weight_name="mobileclip2:b",project=project,name=run_name) # map 0
+    pred_file= f"{project}/{run_name}/predictions.json"
+
+    import os 
+    abs_path=os.path.abspath("./tools/eval_open_ended.py")
+    lvis_json="/home/louis/ultra_louis_work/datasets/lvis/annotations/lvis_v1_minival.json"
+    os.system(f"python {abs_path} --json {lvis_json} --pred {pred_file} --fixed")

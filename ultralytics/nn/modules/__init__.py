@@ -78,12 +78,15 @@ from .conv import (
 )
 from .head import (
     OBB,
+    OBB26,
     Classify,
     Detect,
     LRPCHead,
     Pose,
+    Pose26,
     RTDETRDecoder,
     Segment,
+    Segment26,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
@@ -179,4 +182,7 @@ __all__ = (
     "YOLOEDetect",
     "YOLOESegment",
     "v10Detect",
+    "OBB26",
+    "Pose26",
+    "Segment26",
 )

@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import types
 from pathlib import Path
+from shutil import which
 
 import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Segment
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, WINDOWS
 from ultralytics.utils.patches import onnx_export_patch
 from ultralytics.utils.tal import make_anchors
 from ultralytics.utils.torch_utils import copy_attr
@@ -217,7 +219,7 @@ def torch2imx(
     Examples:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
-        >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.45, max_det=300)
+        >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.7, max_det=300)
 
     Notes:
         - Requires model_compression_toolkit, onnx, edgemdt_tpc, and edge-mdt-cl packages
@@ -303,8 +305,16 @@ def torch2imx(
 
     onnx.save(model_onnx, onnx_model)
 
+    # Find imxconv-pt binary - check venv bin directory first, then PATH
+    bin_dir = Path(sys.executable).parent
+    imxconv = bin_dir / ("imxconv-pt.exe" if WINDOWS else "imxconv-pt")
+    if not imxconv.exists():
+        imxconv = which("imxconv-pt")  # fallback to PATH
+    if not imxconv:
+        raise FileNotFoundError("imxconv-pt not found. Install with: pip install imx500-converter[pt]")
+
     subprocess.run(
-        ["imxconv-pt", "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
+        [str(imxconv), "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
         check=True,
     )
 

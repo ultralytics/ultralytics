@@ -70,7 +70,7 @@ theme:
     # - search.suggest
 
 # Customization
-copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2025 Ultralytics Inc.</a> All rights reserved.
+copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2026 Ultralytics Inc.</a> All rights reserved.
 extra: # version:
   homepage: https://www.ultralytics.com/
   #   provider: mike # version drop-down menu
@@ -344,6 +344,7 @@ nav:
           - RF100: datasets/detect/roboflow-100.md
           - Signature: datasets/detect/signature.md
           - SKU-110K: datasets/detect/sku-110k.md
+          - TT100K: datasets/detect/tt100k.md
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
@@ -418,6 +419,7 @@ nav:
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Model Deployment Options: guides/model-deployment-options.md
       - Model YAML Configuration Guide: guides/model-yaml-config.md
+      - NVIDIA DGX Spark: guides/nvidia-dgx-spark.md
       - NVIDIA Jetson: guides/nvidia-jetson.md
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md
       - Preprocessing Annotated Data: guides/preprocessing_annotated_data.md

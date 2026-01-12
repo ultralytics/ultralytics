@@ -157,6 +157,27 @@ class BaseTrainer:
         if self.device.type in {"cpu", "mps"}:
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
+        # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
+        self.callbacks = _callbacks or callbacks.get_default_callbacks()
+
+        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
+            world_size = len(self.args.device.split(","))
+        elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
+            world_size = len(self.args.device)
+        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+            world_size = 0
+        elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
+            world_size = 1  # default to device 0
+        else:  # i.e. device=None or device=''
+            world_size = 0
+
+        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
+        self.world_size = world_size
+        # Run on_pretrain_routine_start before get_dataset() to capture original args.data (e.g., ul:// URIs)
+        if RANK in {-1, 0} and not self.ddp:
+            callbacks.add_integration_callbacks(self)
+            self.run_callbacks("on_pretrain_routine_start")
+
         # Model and Dataset
         self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo11n -> yolo11n.pt
         with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
@@ -179,28 +200,6 @@ class BaseTrainer:
             self.csv.unlink()
         self.plot_idx = [0, 1, 2]
         self.nan_recovery_attempts = 0
-
-        # Callbacks
-        self.callbacks = _callbacks or callbacks.get_default_callbacks()
-
-        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
-            world_size = len(self.args.device.split(","))
-        elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
-            world_size = len(self.args.device)
-        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
-            world_size = 0
-        elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
-            world_size = 1  # default to device 0
-        else:  # i.e. device=None or device=''
-            world_size = 0
-
-        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
-        self.world_size = world_size
-        # Run subprocess if DDP training, else train normally
-        if RANK in {-1, 0} and not self.ddp:
-            callbacks.add_integration_callbacks(self)
-            # Start console logging immediately at trainer initialization
-            self.run_callbacks("on_pretrain_routine_start")
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the event's callback list."""
@@ -631,13 +630,17 @@ class BaseTrainer:
         try:
             if self.args.task == "classify":
                 data = check_cls_dataset(self.args.data)
-            elif str(self.args.data).rsplit(".", 1)[-1] == "ndjson":
-                # Convert NDJSON to YOLO format
+            elif str(self.args.data).rsplit(".", 1)[-1] == "ndjson" or (
+                str(self.args.data).startswith("ul://") and "/datasets/" in str(self.args.data)
+            ):
+                # Convert NDJSON to YOLO format (including ul:// platform dataset URIs)
                 import asyncio
 
                 from ultralytics.data.converter import convert_ndjson_to_yolo
+                from ultralytics.utils.checks import check_file
 
-                yaml_path = asyncio.run(convert_ndjson_to_yolo(self.args.data))
+                ndjson_file = check_file(self.args.data)  # Resolve ul:// or URL to local .ndjson file
+                yaml_path = asyncio.run(convert_ndjson_to_yolo(ndjson_file))
                 self.args.data = str(yaml_path)
                 data = check_det_dataset(self.args.data)
             elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {

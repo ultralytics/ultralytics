@@ -227,7 +227,9 @@ class RotatedBboxLoss(BboxLoss):
 
         # DFL loss
         if self.dfl_loss:
-            target_ltrb = rbox2dist(target_bboxes[..., :4], anchor_points, target_bboxes[..., 4:5], reg_max=self.dfl_loss.reg_max - 1)
+            target_ltrb = rbox2dist(
+                target_bboxes[..., :4], anchor_points, target_bboxes[..., 4:5], reg_max=self.dfl_loss.reg_max - 1
+            )
             loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
@@ -244,6 +246,51 @@ class RotatedBboxLoss(BboxLoss):
             loss_dfl = loss_dfl.sum() / target_scores_sum
 
         return loss_iou, loss_dfl
+
+
+class MultiChannelDiceLoss(nn.Module):
+    """Criterion class for computing multi-channel Dice losses."""
+
+    def __init__(self, smooth=1e-6, reduction="mean"):
+        super(MultiChannelDiceLoss, self).__init__()
+        self.smooth = smooth
+        self.reduction = reduction
+
+    def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        """Calculate multi-channel Dice loss between predictions and targets."""
+        assert pred.size() == target.size(), "the size of predict and target must be equal."
+
+        pred = pred.sigmoid()
+        intersection = (pred * target).sum(dim=(2, 3))
+        union = pred.sum(dim=(2, 3)) + target.sum(dim=(2, 3))
+        dice = (2.0 * intersection + self.smooth) / (union + self.smooth)
+        dice_loss = 1.0 - dice
+        dice_loss = dice_loss.mean(dim=1)
+
+        if self.reduction == "mean":
+            return dice_loss.mean()
+        elif self.reduction == "sum":
+            return dice_loss.sum()
+        else:
+            return dice_loss
+
+
+class BCEDiceLoss(nn.Module):
+    """Criterion class for computing combined BCE and Dice losses."""
+
+    def __init__(self, weight_bce=0.5, weight_dice=0.5):
+        super(BCEDiceLoss, self).__init__()
+        self.weight_bce = weight_bce
+        self.weight_dice = weight_dice
+        self.bce = nn.BCEWithLogitsLoss()
+        self.dice = MultiChannelDiceLoss(smooth=1)
+
+    def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        """Calculate combined BCE and Dice loss between predictions and targets."""
+        _, _, mask_h, mask_w = pred.shape
+        if tuple(target.shape[-2:]) != (mask_h, mask_w):  # downsample to the same size as pred
+            target = F.interpolate(target, (mask_h, mask_w), mode="nearest")
+        return self.weight_bce * self.bce(pred, target) + self.weight_dice * self.dice(pred, target)
 
 
 class KeypointLoss(nn.Module):
@@ -409,11 +456,16 @@ class v8SegmentationLoss(v8DetectionLoss):
         """Initialize the v8SegmentationLoss class with model parameters and mask overlap setting."""
         super().__init__(model, tal_topk)
         self.overlap = model.args.overlap_mask
+        self.bcedice_loss = BCEDiceLoss(weight_bce=0.5, weight_dice=0.5)
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = preds["mask_coefficient"].permute(0, 2, 1).contiguous(), preds["proto"]
-        loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
+        loss = torch.zeros(5, device=self.device)  # box, seg, cls, dfl
+        if len(proto) == 2:
+            proto, pred_semseg = proto
+        else:
+            pred_semseg = None
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]
@@ -439,10 +491,18 @@ class v8SegmentationLoss(v8DetectionLoss):
                 pred_masks,
                 imgsz,
             )
+            if pred_semseg is not None:
+                sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
+                mask_zero = sem_masks == 0  # NxHxW
+                sem_masks = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2).float()  # NxCxHxW
+                sem_masks[mask_zero.unsqueeze(1).expand_as(sem_masks)] = 0
+                loss[4] = self.bcedice_loss(pred_semseg, sem_masks)
+                loss[4] *= self.hyp.box  # seg gain
 
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:
             loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
+            loss[4] += (pred_semseg * 0).sum() + (sem_masks * 0).sum()
 
         loss[1] *= self.hyp.box  # seg gain
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)

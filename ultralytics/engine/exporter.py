@@ -508,6 +508,7 @@ class Exporter:
                 m.format = self.args.format
                 m.max_det = self.args.max_det
                 m.xyxy = self.args.nms and not coreml
+                m.shape = None  # reset cached shape for new export input size
                 if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))
             elif isinstance(m, C2f) and not is_tf_format:

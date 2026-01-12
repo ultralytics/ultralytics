@@ -1,4 +1,4 @@
-import ultralytics,os
+\import ultralytics,os
 workspace = os.path.dirname(os.path.dirname(os.path.abspath(ultralytics.__file__)))
 os.chdir(workspace)
 print("set workspace:", workspace)
@@ -54,7 +54,7 @@ def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight):
         names = [x.strip() for x in f.readlines()]
     # categories = yaml_load("ultralytics/cfg/datasets/lvis.yaml")["names"].values()
     # names = [c.split("/")[0] for c in categories]     
-    vocab = unfused_model.get_vocab(names)
+    vocab = unfused_model.get_vocab(names) # 对比头，text p, conv3[-1]
     
 
     det_model.eval()
@@ -69,23 +69,38 @@ def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight):
 
 
 
-version='26s'
-weight_path_tp="./runs/yoloe26s_tp_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_exp/weights/best.pt"
-model_weight="/home/louis/ultra_louis_work/ultralytics/runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf_bn_o2m0.1_pfA/weights/best.pt"
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--device', type=str, default='0', help='cuda device(s) to use')
+parser.add_argument('-tp_weight', type=str, default=None, help='path to text prompt model weight')
+parser.add_argument('-pf_weight', type=str, default="./runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf_bn_o2m0.1_pfA/weights/best.pt", help='path to visual prompt model weight')
+parser.add_argument('--single_cls', type=int, default=1, help='whether to eval as single class')
+parser.add_argument('--version', type=str, default='26s', help='model version')
 
 
-single_cls=True
+args= parser.parse_args()
 
-if single_cls:
+
+if args.single_cls:
+
+
+    model_weight=args.pf_weight
     model=YOLOE(model_weight)
     head=model.model.model[-1]
     head.set_fixed_nc(1)  # stop the dynamic update of YOLOEDetect.nc
 
-    metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= False) # map 0
+    metrics = model.val(data="lvis.yaml",split="minival", single_cls=args.single_cls ,max_det=1000,save_json= False) # map 0
 
 else:
+
+    assert args.tp_weight is not None, "Please provide text prompt model weight for unfused det model."
+    model_weight=args.pf_weight
+    model_weight_tp=args.tp_weight
+    single_cls=args.single_cls
+    version=args.version
+
     # model_weight="runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_o2m0.1_pf2/weights/best.pt"
-    model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",weight_path_tp)
+    model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",model_weight_tp)
 
 
     metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= (not single_cls)) # map 0

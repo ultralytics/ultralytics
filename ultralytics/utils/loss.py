@@ -600,9 +600,9 @@ class v8SegmentationLoss(v8DetectionLoss):
 class v8PoseLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 pose estimation."""
 
-    def __init__(self, model, tal_topk=10):  # model must be de-paralleled
+    def __init__(self, model, tal_topk: int = 10, tal_topk2: int = 10):  # model must be de-paralleled
         """Initialize v8PoseLoss with model parameters and keypoint-specific loss functions."""
-        super().__init__(model, tal_topk)
+        super().__init__(model, tal_topk, tal_topk2)
         self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()
         is_pose = self.kpt_shape == [17, 3]
@@ -764,13 +764,12 @@ class PoseLoss26(v8PoseLoss):
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]  # number of keypoints
         self.rle_loss = None
-        if model.args.rle_loss:
-            self.flow_model = model.model[-1].flow_model if hasattr(model.model[-1], "flow_model") else None
-            if self.flow_model is not None:
-                self.rle_loss = RLELoss(use_target_weight=True).to(self.device)
-                self.target_weights = (
-                    torch.from_numpy(RLE_WEIGHT).to(self.device) if is_pose else torch.ones(nkpt, device=self.device)
-                )
+        self.flow_model = model.model[-1].flow_model if hasattr(model.model[-1], "flow_model") else None
+        if self.flow_model is not None:
+            self.rle_loss = RLELoss(use_target_weight=True).to(self.device)
+            self.target_weights = (
+                torch.from_numpy(RLE_WEIGHT).to(self.device) if is_pose else torch.ones(nkpt, device=self.device)
+            )
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the total loss and detach it for pose estimation."""

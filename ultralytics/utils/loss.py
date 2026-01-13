@@ -1124,7 +1124,7 @@ class E2ELoss:
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""
-        return max(1 - x / (self.one2one.hyp.epochs - 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
+        return max(1 - x / max(self.one2one.hyp.epochs - 1, 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
 
 
 class TVPDetectLoss:

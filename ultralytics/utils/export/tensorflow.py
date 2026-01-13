@@ -27,8 +27,10 @@ def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
     return model
 
 
-def _tf_inference(self, x: list[torch.Tensor]) -> tuple[torch.Tensor]:
+def _tf_inference(self, x: list[torch.Tensor] | dict[str, torch.Tensor]) -> tuple[torch.Tensor]:
     """Decode boxes and cls scores for tf object detection."""
+    if isinstance(x, dict):
+        x = x["feats"]  # Handle end2end models
     shape = x[0].shape  # BCHW
     x_cat = torch.cat([xi.view(x[0].shape[0], self.no, -1) for xi in x], 2)
     box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)

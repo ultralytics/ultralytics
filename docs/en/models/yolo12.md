@@ -8,11 +8,11 @@ keywords: YOLO12, attention-centric object detection, YOLO series, Ultralytics, 
 
 ## Overview
 
-YOLO12 introduces an attention-centric architecture that departs from the traditional CNN-based approaches used in previous YOLO models, yet retains the real-time inference speed essential for many applications. This model achieves state-of-the-art object detection accuracy through novel methodological innovations in attention mechanisms and overall network architecture, while maintaining real-time performance. Despite those advantages, YOLO12 remains a community-driven release that may exhibit training instability, elevated memory consumption, and slower CPU throughput due to its heavy attention blocks, so Ultralytics still recommends YOLO11 for most production workloads.
+YOLO12, released in early 2025, introduces an attention-centric architecture that departs from the traditional CNN-based approaches used in previous YOLO models, yet retains the real-time inference speed essential for many applications. This model achieves high object detection accuracy through novel methodological innovations in attention mechanisms and overall network architecture, while maintaining real-time performance. Despite those advantages, YOLO12 remains a community-driven release that may exhibit training instability, elevated memory consumption, and slower CPU throughput due to its heavy attention blocks, so Ultralytics recommends [YOLO11](yolo11.md) or [YOLO26](yolo26.md) for most production workloads.
 
 !!! note "Community Model"
 
-    YOLO12 is maintained primarily for benchmarking and research. If you need stable training, predictable memory usage, and optimized CPU inference, choose [YOLO11](yolo11.md) or other Ultralytics-maintained releases for deployment.
+    YOLO12 is maintained primarily for benchmarking and research. If you need stable training, predictable memory usage, and optimized CPU inference, choose [YOLO11](yolo11.md) or [YOLO26](yolo26.md) for deployment.
 
 <p align="center">
   <br>

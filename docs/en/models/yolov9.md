@@ -125,7 +125,7 @@ These results showcase YOLOv9's strategic advancements in model design, emphasiz
 
 ## Conclusion
 
-YOLOv9 represents a pivotal development in real-time object detection, offering significant improvements in terms of efficiency, accuracy, and adaptability. By addressing critical challenges through innovative solutions like PGI and GELAN, YOLOv9 sets a new precedent for future research and application in the field. As the AI community continues to evolve, YOLOv9 stands as a testament to the power of collaboration and innovation in driving technological progress.
+YOLOv9, released in February 2024, represented a pivotal development in real-time object detection, offering significant improvements in terms of efficiency, accuracy, and adaptability. By addressing critical challenges through innovative solutions like PGI and GELAN, YOLOv9 set new benchmarks at its time of release. While newer models like [YOLO11](yolo11.md) and [YOLO26](yolo26.md) have since been released with additional improvements, YOLOv9's architectural innovations continue to influence the field.
 
 ## Usage Examples
 

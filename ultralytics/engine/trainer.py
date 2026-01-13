@@ -959,12 +959,13 @@ class BaseTrainer:
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
 
-        g[2] = {"params":g[2], **optim_args}
-        g[0] = {"params":g[0], **optim_args, "weight_decay": decay}
-        g[1] = {"params":g[1], **optim_args, "weight_decay":0.0}
+        g[2] = {"params": g[2], **optim_args}
+        g[0] = {"params": g[0], **optim_args, "weight_decay": decay}
+        g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0}
         if name == "MuSGD":
-            g[3] = {"params":g[3], **optim_args, "weight_decay":decay, "use_muon":True}
+            g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True}
             import re
+
             # higher lr for certain parameters in MuSGD
             pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|flow_model")
             g_ = []  # new param groups
@@ -973,12 +974,11 @@ class BaseTrainer:
                 p1 = [v for k, v in p.items() if pattern.search(k)]
                 p2 = [v for k, v in p.items() if not pattern.search(k)]
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
-            optimizer = MuSGD(params=g_)
-        else:
-            optimizer = getattr(optim, name, optim.Adam)(params=g)
+            g = g_
+        optimizer = getattr(optim, name, MuSGD)(params=g)
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
-            f"{len(g[1])} weight(decay=0.0), {len(g[0]) if len(g[0]) else len(g[3])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"
+            f"{len(g[1]['params'])} weight(decay=0.0), {len(g[0]['params']) if len(g[0]) else len(g[3]['params'])} weight(decay={decay}), {len(g[2]['params'])} bias(decay=0.0)"
         )
         return optimizer

@@ -4,7 +4,7 @@ description: Optimize YOLO11 models for mobile and embedded devices by exporting
 keywords: Ultralytics, YOLO11, NCNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, Vulkan, GPU acceleration
 ---
 
-# Ultralytics YOLO NCNN Export   
+# Ultralytics YOLO NCNN Export
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on devices with limited computational power, such as mobile or embedded systems, requires careful format selection. Using an optimized format ensures that even resource-constrained devices can handle advanced computer vision tasks efficiently.
 
@@ -186,7 +186,7 @@ To export your Ultralytics YOLO11 model to NCNN format:
 - **CLI**: Use the `yolo export` command.
 
     ```bash
-    yolo export model=yolo11n.pt format=ncnn  # creates '/yolo11n_ncnn_model'
+    yolo export model=yolo11n.pt format=ncnn # creates '/yolo11n_ncnn_model'
     ```
 
 For detailed export options, see the [Export](../modes/export.md) documentation.

@@ -1040,13 +1040,15 @@ class YOLOEModel(DetectionModel):
         """
         from ultralytics.nn.text_model import build_text_model
 
+        clip_weight=None
         if  hasattr(self, "args"):
         
             clip_weight=self.args.get("clip_weight_name")
 
         if not clip_weight:
             clip_weight="mobileclip2:b"
-            Warning("clip_weight_name not found in model args, using default 'mobileclip2:b'")
+            Warning("clip_weight_name not found in model args, use default mobileclip2:b")
+                
 
         if cache_clip_model:
             if not getattr(self, "clip_model", None):

@@ -1997,6 +1997,10 @@ class Proto26(Proto):
             return (p, semseg)
         return p
 
+    def fuse(self):
+        """Fuse the model for inference by removing the semantic segmentation head."""
+        self.semseg = None
+
 
 class RealNVP(nn.Module):
     """RealNVP: a flow-based generative model

@@ -410,6 +410,12 @@ class Segment26(Segment):
             return preds
         return (outputs, proto) if self.export else ((outputs[0], proto), preds)
 
+    def fuse(self) -> None:
+        """Remove the one2many head and extra part of proto module for inference optimization."""
+        super().fuse()
+        if self.hasattr(self.proto, "fuse"):
+            self.proto.fuse()
+
 
 class OBB(Detect):
     """YOLO OBB detection head for detection with rotation models.

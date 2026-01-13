@@ -46,6 +46,8 @@ class SegmentationValidator(DetectionValidator):
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.process = None
+        self.decode_fullres = False  # whether predicted masks are decoded at full image resolution
+        self.pred_mask_shape = None  # (h, w) of predicted masks when not full-res
         self.args.task = "segment"
         self.metrics = SegmentMetrics()
 
@@ -72,7 +74,10 @@ class SegmentationValidator(DetectionValidator):
         if self.args.save_json:
             check_requirements("faster-coco-eval>=1.6.7")
         # More accurate vs faster
-        self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
+        use_native = bool(self.args.save_json or self.args.save_txt)
+        self.process = ops.process_mask_native if use_native else ops.process_mask
+        # Track decode strategy explicitly to avoid fragile identity checks
+        self.decode_fullres = use_native
 
     def get_desc(self) -> str:
         """Return a formatted description of evaluation metrics."""
@@ -102,13 +107,15 @@ class SegmentationValidator(DetectionValidator):
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         preds = super().postprocess(preds[0])
         imgsz = [4 * x for x in proto.shape[2:]]  # get image size from proto
+        # Track predicted mask spatial shape for GT resizing when not full-res
+        self.pred_mask_shape = list(proto.shape[2:]) if not self.decode_fullres else imgsz
         for i, pred in enumerate(preds):
             coefficient = pred.pop("extra")
             pred["masks"] = (
                 self.process(proto[i], coefficient, pred["bboxes"], shape=imgsz)
                 if coefficient.shape[0]
                 else torch.zeros(
-                    (0, *(imgsz if self.process is ops.process_mask_native else proto.shape[2:])),
+                    (0, *(imgsz if self.decode_fullres else proto.shape[2:])),
                     dtype=torch.uint8,
                     device=pred["bboxes"].device,
                 )
@@ -134,7 +141,12 @@ class SegmentationValidator(DetectionValidator):
         else:
             masks = batch["masks"][batch["batch_idx"] == si]
         if nl:
-            mask_size = [s if self.process is ops.process_mask_native else s // 4 for s in prepared_batch["imgsz"]]
+            # Match GT mask size with predicted mask decode strategy and actual proto shape
+            if self.decode_fullres:
+                mask_size = prepared_batch["imgsz"]
+            else:
+                # Prefer proto-derived spatial size; fallback to imgsz//4 if not yet available
+                mask_size = self.pred_mask_shape or [s // 4 for s in prepared_batch["imgsz"]]
             if masks.shape[1:] != mask_size:
                 masks = F.interpolate(masks[None], mask_size, mode="bilinear", align_corners=False)[0]
                 masks = masks.gt_(0.5)

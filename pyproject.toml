@@ -82,6 +82,7 @@ dev = [
     "ipython",
     "pytest",
     "pytest-cov",
+    "pytest-xdist",
     "coverage[toml]",
     "zensical>=0.0.15; python_version >= '3.10'",
     "mkdocs-ultralytics-plugin>=0.2.4", # for meta descriptions and images, dates and authors

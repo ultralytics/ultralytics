@@ -1030,7 +1030,7 @@ class YOLOEDetect(Detect):
     def fuse(self, txt_feats: torch.Tensor = None):
         """Fuse text features with model weights for efficient inference."""
         if txt_feats is None:  # means eliminate one2many branch
-            self.cv2 = self.cv3 = None
+            self.cv2 = self.cv3 = self.cv4 = None
             return
         if self.is_fused:
             return
@@ -1375,12 +1375,12 @@ class YOLOESegment26(YOLOESegment):
 
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
-        outputs = Detect.forward(self, x)
+        outputs = YOLOEDetect.forward(self, x)
         preds = outputs[1] if isinstance(outputs, tuple) else outputs
         proto = self.proto([xi.detach() for xi in x], return_semseg=False)  # mask protos
 
         if isinstance(preds, dict):  # training and validating during training
-            if self.end2end:
+            if self.end2end and not hasattr(self, "lrpc"):  # not prompt-free
                 preds["one2many"]["proto"] = proto
                 preds["one2one"]["proto"] = proto.detach()
             else:

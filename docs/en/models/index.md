@@ -22,8 +22,8 @@ Here are some of the key models supported:
 6. **[YOLOv8](yolov8.md)**: A versatile model featuring enhanced capabilities such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), pose/keypoints estimation, and classification.
 7. **[YOLOv9](yolov9.md)**: An experimental model trained on the Ultralytics [YOLOv5](yolov5.md) codebase implementing Programmable Gradient Information (PGI).
 8. **[YOLOv10](yolov10.md)**: By Tsinghua University, featuring NMS-free training and efficiency-accuracy driven architecture, delivering state-of-the-art performance and latency.
-9. **[YOLO11](yolo11.md)**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks including detection, segmentation, pose estimation, tracking, and classification.
-10. **[YOLO26](yolo26.md) 🚀**: Ultralytics' next-generation YOLO model optimized for edge deployment with end-to-end NMS-free inference.
+9. **[YOLO11](yolo11.md)**: Ultralytics' YOLO models delivering high performance across multiple tasks including detection, segmentation, pose estimation, tracking, and classification.
+10. **[YOLO26](yolo26.md) 🚀 NEW**: Ultralytics' **latest** next-generation YOLO model optimized for edge deployment with end-to-end NMS-free inference.
 11. **[Segment Anything Model (SAM)](sam.md)**: Meta's original Segment Anything Model (SAM).
 12. **[Segment Anything Model 2 (SAM2)](sam-2.md)**: The next generation of Meta's Segment Anything Model for videos and images.
 13. **[Segment Anything Model 3 (SAM3)](sam-3.md) 🚀 NEW**: Meta's third generation Segment Anything Model with Promptable Concept Segmentation for text and image exemplar-based segmentation.

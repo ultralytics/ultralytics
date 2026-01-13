@@ -462,7 +462,7 @@ class OBB(Detect):
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, angle_head=self.one2one_cv4)
 
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
+        """Decode predicted bounding boxes and class probabilities, concatenated with rotation angles."""
         # For decode_bboxes convenience
         self.angle = x["angle"]  # TODO: need to test obb
         preds = super()._inference(x)
@@ -593,7 +593,7 @@ class Pose(Detect):
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, pose_head=self.one2one_cv4)
 
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
+        """Decode predicted bounding boxes and class probabilities, concatenated with keypoints."""
         preds = super()._inference(x)
         return torch.cat([preds, self.kpts_decode(x["kpts"])], dim=1)
 

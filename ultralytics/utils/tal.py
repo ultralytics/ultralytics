@@ -19,9 +19,11 @@ class TaskAlignedAssigner(nn.Module):
 
     Attributes:
         topk (int): The number of top candidates to consider.
+        topk2 (int): Secondary topk value for additional filtering.
         num_classes (int): The number of object classes.
         alpha (float): The alpha parameter for the classification component of the task-aligned metric.
         beta (float): The beta parameter for the localization component of the task-aligned metric.
+        stride (list): List of stride values for different feature levels.
         eps (float): A small value to prevent division by zero.
     """
 

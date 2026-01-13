@@ -813,11 +813,11 @@ class Exporter:
         assert not IS_JETSON, "Jetson Paddle exports not supported yet"
         check_requirements(
             (
-                "paddlepaddle-gpu"
+                "paddlepaddle-gpu>=3.0.0,!=3.3.0"  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
                 if torch.cuda.is_available()
                 else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
                 if ARM64
-                else "paddlepaddle>=3.0.0",
+                else "paddlepaddle>=3.0.0,!=3.3.0",  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
                 "x2paddle",
             )
         )

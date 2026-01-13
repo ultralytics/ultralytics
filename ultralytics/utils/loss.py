@@ -1104,7 +1104,7 @@ class E2ELoss:
     def __init__(self, model, loss_fn=v8DetectionLoss):
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = loss_fn(model, tal_topk=10)
-        self.one2one = loss_fn(model, tal_topk=model.args.topk, tal_topk2=1)
+        self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
         self.updates = 0
         self.total = 1.0
         self.o2m = 0.8

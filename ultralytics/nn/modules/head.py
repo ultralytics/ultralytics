@@ -125,8 +125,7 @@ class Detect(nn.Module):
     @property
     def end2end(self):
         """Checks if the model has one2one for v5/v5/v8/v9/11 backward compatibility."""
-        # NTOE: having this `_end2end` check for the possibility of non-end2end exporting
-        return hasattr(self, "one2one") and getattr(self, "_end2end", True)
+        return hasattr(self, "one2one")
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None

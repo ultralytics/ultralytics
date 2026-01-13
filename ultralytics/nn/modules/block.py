@@ -1170,6 +1170,8 @@ class RepVGGDW(torch.nn.Module):
 
         This method fuses the convolutional layers and updates the weights and biases accordingly.
         """
+        if not hasattr(self, "conv1"):
+            return  # already fused
         conv = fuse_conv_and_bn(self.conv.conv, self.conv.bn)
         conv1 = fuse_conv_and_bn(self.conv1.conv, self.conv1.bn)
 

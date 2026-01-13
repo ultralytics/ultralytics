@@ -8,7 +8,7 @@
 nc: 80 # number of classes
 end2end: True  # whether to use end-to-end mode
 reg_max: 1  # DFL bins
-text_model: mobileclip2
+text_model: mobileclip2:b
 scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024] # summary: 181 layers, 2624080 parameters, 2624064 gradients, 6.6 GFLOPs

@@ -965,17 +965,14 @@ class BaseTrainer:
         if name == "MuSGD":
             g[3] = {"params":g[3], **optim_args, "weight_decay":decay, "use_muon":True}
             import re
-            pattern = r'(?=.*23)(?=.*cv3)|proto\.semseg|flow_model'
+            # higher lr for certain parameters in MuSGD
+            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|flow_model")
             g_ = []  # new param groups
             for x in g:
-                params1, params2 = [], []
-                params = x.pop("params")
-                for k, v in params.items():
-                    if bool(re.search(pattern, k)):
-                        params1.append(v)
-                    else:
-                        params2.append(v)
-                g_.extend([{"params": params1, **x, "lr": lr * 2}, {"params": params2, **x}])
+                p = x.pop("params")
+                p1 = [v for k, v in p.items() if pattern.search(k)]
+                p2 = [v for k, v in p.items() if not pattern.search(k)]
+                g_.extend([{"params": p1, **x, "lr": lr * 2}, {"params": p2, **x}])
             optimizer = MuSGD(params=g_)
         else:
             optimizer = getattr(optim, name, optim.Adam)(params=g)

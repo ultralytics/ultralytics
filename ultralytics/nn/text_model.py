@@ -298,7 +298,7 @@ class MobileCLIPTS(TextModel):
         >>> features = text_encoder.encode_text(tokens)
     """
 
-    def __init__(self, device: torch.device):
+    def __init__(self, device: torch.device,clip_model_weight: str = "mobileclip_blt.ts") -> None:
         """
         Initialize the MobileCLIP TorchScript text encoder.
 
@@ -356,86 +356,14 @@ class MobileCLIPTS(TextModel):
             torch.Size([2, 512])  # Actual dimension depends on model size
         """
         # NOTE: no need to do normalization here as it's embedded in the torchscript model
-        return self.encoder(texts).to(dtype)
 
-import os,sys
-import open_clip
-import copy
+        #     def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
 
-
-class OpenCLIP(TextModel):
-
-    def __init__(self,device,  pretrained_path="mobileclip2_b.pt"):
-        """
-        Initializes the model, tokenizer, and preprocessing steps.
-        """
-        super().__init__()
-
-        import os
-        pretrained_path= os.path.join("./", pretrained_path)
-        if not os.path.exists(pretrained_path):
-            raise Exception("Please download the mobileclip2_b.pt from")
-
-        pretrained_name= os.path.basename(pretrained_path)
-        model_name={"mobileclip2_b.pt":"MobileCLIP2-B"}[pretrained_name]
-
-        model_kwargs = {}
-        if not (model_name.endswith("S3") or model_name.endswith("S4") or model_name.endswith("L-14")):
-            model_kwargs = {"image_mean": (0, 0, 0), "image_std": (1, 1, 1)}
-
-        self.model, _, self.preprocess = open_clip.create_model_and_transforms(
-            model_name, pretrained=pretrained_path, **model_kwargs
-        )
-        self.tokenizer = open_clip.get_tokenizer(model_name)
-
-        # Set up model for inference
-        self.model.eval()
-        self.model = self.reparameterize_model(self.model)
-
-        # Move model to GPU if available
-        self.device = device
-        self.model.to(self.device)
-        print(f"Model '{model_name}' loaded on {self.device}.")
-
-
-    def tokenize(self, texts: list[str]) -> torch.Tensor:
-        """
-        Tokenizes input texts into model-compatible format.
-
-        Args:
-            texts (list[str]): List of text strings to tokenize.
-
-        Returns:
-            (torch.Tensor): Tokenized text inputs.
-        """
-
-
-        return self.tokenizer(texts).to(self.device)
-
-    @smart_inference_mode()
-    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
-
-        text_features = self.model.encode_text(texts)
+        text_features = self.encoder(texts).to(dtype)
         text_features /= text_features.norm(dim=-1, keepdim=True)
         return text_features
 
-    def reparameterize_model(self,model: torch.nn.Module) -> nn.Module:
-        """Method returns a model where a multi-branched structure
-            used in training is re-parameterized into a single branch
-            for inference.
 
-        Args:
-            model: MobileOne model in train mode.
-
-        Returns:
-            MobileOne model in inference mode.
-        """
-        # Avoid editing original graph
-        model = copy.deepcopy(model)
-        for module in model.modules():
-            if hasattr(module, "reparameterize"):
-                module.reparameterize()
-        return model
     
 def build_text_model(variant: str, device: torch.device = None) -> TextModel:
     """
@@ -452,12 +380,13 @@ def build_text_model(variant: str, device: torch.device = None) -> TextModel:
         >>> model = build_text_model("clip:ViT-B/32", device=torch.device("cuda"))
         >>> model = build_text_model("mobileclip:s0", device=torch.device("cpu"))
     """
+
     base, size = variant.split(":")
     if base == "clip":
         return CLIP(size, device)
     elif base == "mobileclip":
         return MobileCLIPTS(device)
     elif base == "mobileclip2":
-        return OpenCLIP(device)
+        return MobileCLIPTS(device,"mobileclip2_b.ts")
     else:
         raise ValueError(f"Unrecognized base model: '{base}'. Supported base models: 'clip', 'mobileclip'.")

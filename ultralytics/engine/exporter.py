@@ -486,6 +486,7 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
+        # TODO
         model = model.fuse()
 
         if imx:

@@ -861,7 +861,7 @@ class Exporter:
     def export_ncnn(self, prefix=colorstr("NCNN:")):
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
         if ARM64:
-            raise SystemError("NCNN not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
+            raise NotImplementedError("NCNN export is not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
         check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
         check_requirements("pnnx")
         import ncnn

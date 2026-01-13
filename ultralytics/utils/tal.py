@@ -450,11 +450,6 @@ def rbox2dist(target_bboxes, anchor_points, target_angle, dim=-1, reg_max: int =
 
     Returns:
         (torch.Tensor): Predicted rotated distance with shape (bs, h*w, 4), format [l, t, r, b].
-
-    Notes:
-        This function performs the inverse transformation of dist2rbox:
-        - dist2rbox: (l, t, r, b) + angle + anchor -> (x, y, w, h)
-        - rbox2dist: (x, y, w, h) + angle + anchor -> (l, t, r, b)
     """
     xy, wh = target_bboxes.split(2, dim=dim)
     offset = xy - anchor_points  # (bs, h*w, 2)

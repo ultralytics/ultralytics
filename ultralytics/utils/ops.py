@@ -336,7 +336,7 @@ def ltwh2xywh(x):
     return y
 
 
-def xyxyxyxy2xywhr(x, mode='le135'):
+def xyxyxyxy2xywhr(x):
     """Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation] format.
 
     Args:
@@ -344,7 +344,7 @@ def xyxyxyxy2xywhr(x, mode='le135'):
 
     Returns:
         (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). Rotation
-            values are in radians from 0 to pi/2.
+            values are in radians [-pi/4, 3pi/4).
     """
     is_torch = isinstance(x, torch.Tensor)
     points = x.cpu().numpy() if is_torch else x
@@ -355,25 +355,14 @@ def xyxyxyxy2xywhr(x, mode='le135'):
         # especially some objects are cut off by augmentations in dataloader.
         (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
         theta = angle / 180 * np.pi
-        if mode == 'le135':
-            if w < h:
-                w, h = h, w
-                theta += np.pi / 2
+        if w < h:
+            w, h = h, w
+            theta += np.pi / 2
 
-            while theta >= 3 * np.pi / 4:
-                theta -= np.pi
-
-            while theta < -np.pi / 4:
-                theta += np.pi
-        elif mode == 'le90':
-            if w < h:
-                w, h = h, w
-                theta += np.pi / 2
-
-            while theta >= np.pi / 2:
-                theta -= np.pi
-            while theta < -np.pi / 2:
-                theta += np.pi
+        while theta >= 3 * np.pi / 4:
+            theta -= np.pi
+        while theta < -np.pi / 4:
+            theta += np.pi
 
         rboxes.append([cx, cy, w, h, theta])
     return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
@@ -407,66 +396,6 @@ def xywhr2xyxyxyxy(x):
     pt3 = ctr - vec1 - vec2
     pt4 = ctr - vec1 + vec2
     return stack([pt1, pt2, pt3, pt4], -2)
-
-
-def rboxes2masks_batch(rboxes, imgsz, downsample_ratio=1):
-    """Convert batch of rotated bounding boxes to binary masks using polygon filling.
-
-    This function efficiently converts oriented bounding boxes (OBB) in xywhr format to binary masks
-    by first converting them to corner points, then using cv2.fillPoly for rasterization.
-
-    Args:
-        rboxes (torch.Tensor): Rotated boxes with shape (N, 5) in xywhr format [cx, cy, w, h, rotation].
-        imgsz (tuple[int, int]): Target mask size as (height, width).
-        downsample_ratio (int): Factor by which to downsample the mask. Default is 1 (no downsampling).
-
-    Returns:
-        (torch.Tensor): Binary masks with shape (N, H*W) where H and W are the downsampled dimensions.
-            Masks are flattened for efficient IoU computation.
-
-    Examples:
-        >>> rboxes = torch.rand(10, 5) * 100  # 10 random rotated boxes
-        >>> masks = rboxes2masks_batch(rboxes, (640, 640))
-        >>> print(masks.shape)  # torch.Size([10, 409600])
-    """
-    if not isinstance(rboxes, torch.Tensor):
-        rboxes = torch.tensor(rboxes)
-    
-    device = rboxes.device
-    n = len(rboxes)
-    h, w = imgsz
-    
-    # Downsample if needed
-    h_down = h // downsample_ratio
-    w_down = w // downsample_ratio
-    
-    # Handle empty input
-    if n == 0:
-        return torch.zeros((0, h_down * w_down), device=device, dtype=torch.float32)
-    
-    # Convert rotated boxes to corner points (N, 4, 2)
-    corners = xywhr2xyxyxyxy(rboxes)  # shape: (N, 4, 2)
-    
-    # Convert to numpy for cv2 operations
-    corners_np = corners.cpu().numpy()
-    
-    # Scale corners to downsampled size
-    if downsample_ratio > 1:
-        corners_np = corners_np / downsample_ratio
-    
-    # Create masks using cv2.fillPoly
-    masks = np.zeros((n, h_down, w_down), dtype=np.uint8)
-    for i in range(n):
-        # Convert corners to integer coordinates
-        pts = corners_np[i].reshape(-1, 1, 2).astype(np.int32)
-        cv2.fillPoly(masks[i], [pts], color=1)
-    
-    # Convert back to torch tensor and flatten
-    # Use float type for compatibility with mask_iou function
-    masks_tensor = torch.from_numpy(masks).to(device).float()
-    masks_flat = masks_tensor.reshape(n, -1)  # (N, H*W)
-    
-    return masks_flat
 
 
 def ltwh2xyxy(x):
@@ -667,50 +596,22 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     return coords
 
 
-# def regularize_rboxes(rboxes):
-#     """Regularize rotated bounding boxes to range [0, pi/2].
-
-#     Args:
-#         rboxes (torch.Tensor): Input rotated boxes with shape (N, 5) in xywhr format.
-
-#     Returns:
-#         (torch.Tensor): Regularized rotated boxes.
-#     """
-#     x, y, w, h, t = rboxes.unbind(dim=-1)
-#     # Swap edge if t >= pi/2 while not being symmetrically opposite
-#     swap = t % math.pi >= math.pi / 2
-#     w_ = torch.where(swap, h, w)
-#     h_ = torch.where(swap, w, h)
-#     t = t % (math.pi / 2)
-#     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
-
-
 def regularize_rboxes(rboxes):
-    """
-    将任意角度的 rboxes 规范化到 [-pi/4, 3pi/4] 范围内。
-    不交换 w, h (因为 w 已经是长边)。
+    """Regularize rotated bounding boxes to range [0, pi/2].
 
     Args:
-        rboxes (torch.Tensor): (N, 5) -> x, y, w, h, theta_arbitrary
+        rboxes (torch.Tensor): Input rotated boxes with shape (N, 5) in xywhr format.
+
     Returns:
-        (torch.Tensor): regularized boxes with theta in [-pi/4, 3pi/4]
+        (torch.Tensor): Regularized rotated boxes.
     """
     x, y, w, h, t = rboxes.unbind(dim=-1)
-
-    # 目标范围: [-pi/4, 3pi/4], 周期为 pi
-    # 公式: t_normalized = (t - min_val) % period + min_val
-
-    # 1. 先减去下界 (-pi/4)，把坐标系平移到 [0, pi]
-    t_shifted = t - (-math.pi / 4)
-
-    # 2. 对周期 pi 取模
-    t_mod = t_shifted % math.pi
-    
-    # 3. 加上下界，移回 [-pi/4, 3pi/4]
-    t_final = t_mod + (-math.pi / 4)
-    
-    # 注意：这里绝对没有 w, h 的交换操作！
-    return torch.stack([x, y, w, h, t_final], dim=-1)
+    # Swap edge if t >= pi/2 while not being symmetrically opposite
+    swap = t % math.pi >= math.pi / 2
+    w_ = torch.where(swap, h, w)
+    h_ = torch.where(swap, w, h)
+    t = t % (math.pi / 2)
+    return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
 def masks2segments(masks, strategy: str = "all"):

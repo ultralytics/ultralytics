@@ -72,10 +72,10 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     cd ultralytics
     ```
 
-4.  Download Ultralytics YOLO26 detection model (.pt) of your choice from [YOLO26 releases](https://github.com/ultralytics/assets/releases). Here we use [yolo26s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26s.pt).
+4.  Download Ultralytics YOLO26 detection model (.pt) of your choice from [YOLO26 releases](https://github.com/ultralytics/assets/releases). Here we use [yolo26s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s.pt).
 
     ```bash
-    wget https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26s.pt
+    wget https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s.pt
     ```
 
     !!! note

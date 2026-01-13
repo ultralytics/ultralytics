@@ -222,8 +222,6 @@ class MuSGD(optim.Optimizer):
         use_muon: bool = False,
         muon: float = 0.5,
         sgd: float = 0.5,
-        cls_w: float = 1.0,
-        param_names: list | None = None,
     ):
         defaults = dict(
             lr=lr,
@@ -231,12 +229,10 @@ class MuSGD(optim.Optimizer):
             weight_decay=weight_decay,
             nesterov=nesterov,
             use_muon=use_muon,
-            param_names=param_names,
         )
         super().__init__(params, defaults)
         self.muon = muon
         self.sgd = sgd
-        self.cls_w = cls_w
 
     def adjust_lr(self, lr: float, param_shape: tuple) -> float:
         """Adjust learning rate based on parameter shape dimensions.
@@ -283,17 +279,8 @@ class MuSGD(optim.Optimizer):
             # Muon
             if group["use_muon"]:
                 # generate weight updates in distributed fashion
-                for i, p in enumerate(group["params"]):
-                    # TODO
-                    lr = (
-                        group["lr"] * self.cls_w
-                        if group["param_names"] is not None
-                        and "cv3" in group["param_names"][i]
-                        and "23" in group["param_names"][i]
-                        # and ("2.weight" in group["param_names"][i] or "2.bias" in group["param_names"][i])
-                        # and int(group["param_names"][i].split(".")[1]) in list(range(11, 24))
-                        else group["lr"]
-                    )
+                for p in group["params"]:
+                    lr = group["lr"]
                     if p.grad is None:
                         continue
                     grad = p.grad
@@ -322,16 +309,8 @@ class MuSGD(optim.Optimizer):
                     )
                     p.add_(sgd_update, alpha=-(lr * self.sgd))
             else:  # SGD
-                for i, p in enumerate(group["params"]):
-                    lr = (
-                        group["lr"] * self.cls_w
-                        if group["param_names"] is not None
-                        and "cv3" in group["param_names"][i]
-                        and "23" in group["param_names"][i]
-                        # and ("2.weight" in group["param_names"][i] or "2.bias" in group["param_names"][i])
-                        # and int(group["param_names"][i].split(".")[1]) in list(range(11, 24))
-                        else group["lr"]
-                    )
+                for p in group["params"]:
+                    lr = group["lr"]
                     if p.grad is None:
                         continue
                     grad = p.grad

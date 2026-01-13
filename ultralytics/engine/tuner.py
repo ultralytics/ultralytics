@@ -117,11 +117,6 @@ class Tuner:
             "cutmix": (0.0, 1.0),  # image cutmix (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
             "close_mosaic": (0.0, 10.0),  # close dataloader mosaic (epochs)
-            "o2m": (0.1, 1.0),
-            "muon_w": (0.1, 1.0),
-            "sgd_w": (0.1, 1.0),
-            "cls_w": (1.0, 5.0),
-            "topk": (2.0, 12.0),
         }
         mongodb_uri = args.pop("mongodb_uri", None)
         mongodb_db = args.pop("mongodb_db", "ultralytics")

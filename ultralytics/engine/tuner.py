@@ -337,14 +337,12 @@ class Tuner:
         # Update types
         if "close_mosaic" in hyp:
             hyp["close_mosaic"] = round(hyp["close_mosaic"])
-        if "topk" in hyp:
-            hyp["topk"] = round(hyp["topk"])
         if "epochs" in hyp:
             hyp["epochs"] = round(hyp["epochs"])
 
         return hyp
 
-    def __call__(self, model=None, iterations: int = 10, cleanup: bool = True):
+    def __call__(self, iterations: int = 10, cleanup: bool = True):
         """Execute the hyperparameter evolution process when the Tuner instance is called.
 
         This method iterates through the specified number of iterations, performing the following steps:
@@ -355,7 +353,6 @@ class Tuner:
         5. Track the best performing configuration across all iterations
 
         Args:
-            model (Model | None, optional): A pre-initialized YOLO model to be used for training.
             iterations (int): The number of generations to run the evolution for.
             cleanup (bool): Whether to delete iteration weights to reduce storage space during tuning.
         """

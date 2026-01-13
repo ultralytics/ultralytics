@@ -76,8 +76,7 @@ class Detect(nn.Module):
     xyxy = False  # xyxy or xywh output
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
-        """
-        Initialize the YOLO detection layer with specified number of classes and channels.
+        """Initialize the YOLO detection layer with specified number of classes and channels.
 
         Args:
             nc (int): Number of classes.
@@ -154,8 +153,7 @@ class Detect(nn.Module):
         return y if self.export else (y, preds)
 
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
-        """
-        Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
+        """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
 
         Args:
             x (dict[str, torch.Tensor]): List of feature maps from different detection layers.
@@ -211,8 +209,7 @@ class Detect(nn.Module):
         )
 
     def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
-        """
-        Post-processes YOLO model predictions.
+        """Post-processes YOLO model predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
@@ -229,8 +226,7 @@ class Detect(nn.Module):
 
     @staticmethod
     def get_topk_index(scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Get top-k indices from scores.
+        """Get top-k indices from scores.
 
         Args:
             scores (torch.Tensor): Scores tensor with shape (batch_size, num_anchors, num_classes).
@@ -238,7 +234,6 @@ class Detect(nn.Module):
 
         Returns:
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
-
         """
         batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,84)
         ori_index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
@@ -274,8 +269,7 @@ class Segment(Detect):
     """
 
     def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, reg_max=16, end2end=False, ch: tuple = ()):
-        """
-        Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers.
+        """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers.
 
         Args:
             nc (int): Number of classes.
@@ -333,8 +327,7 @@ class Segment(Detect):
         return preds
 
     def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
-        """
-        Post-process YOLO model predictions.
+        """Post-process YOLO model predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
@@ -356,8 +349,7 @@ class Segment(Detect):
 
 
 class Segment26(Segment):
-    """
-    YOLO26 Segment head for segmentation models.
+    """YOLO26 Segment head for segmentation models.
 
     This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
 
@@ -378,8 +370,7 @@ class Segment26(Segment):
     """
 
     def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, reg_max=16, end2end=False, ch: tuple = ()):
-        """
-        Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers.
+        """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers.
 
         Args:
             nc (int): Number of classes.
@@ -436,8 +427,7 @@ class OBB(Detect):
     """
 
     def __init__(self, nc: int = 80, ne: int = 1, reg_max=16, end2end=False, ch: tuple = ()):
-        """
-        Initialize OBB with number of classes `nc` and layer channels `ch`.
+        """Initialize OBB with number of classes `nc` and layer channels `ch`.
 
         Args:
             nc (int): Number of classes.
@@ -488,8 +478,7 @@ class OBB(Detect):
         return dist2rbox(bboxes, self.angle, anchors, dim=1)
 
     def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
-        """
-        Post-process YOLO model predictions.
+        """Post-process YOLO model predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + ne) with last dimension
@@ -511,10 +500,9 @@ class OBB(Detect):
 
 
 class OBB26(OBB):
-    """
-    YOLO26 OBB detection head for detection with rotation models.
-    This class extends the OBB head with modified angle processing that outputs raw angle predictions
-    without sigmoid transformation, compared to the original OBB class.
+    """YOLO26 OBB detection head for detection with rotation models. This class extends the OBB head with modified angle
+    processing that outputs raw angle predictions without sigmoid transformation, compared to the original
+    OBB class.
 
     Attributes:
         ne (int): Number of extra parameters.
@@ -567,8 +555,7 @@ class Pose(Detect):
     """
 
     def __init__(self, nc: int = 80, kpt_shape: tuple = (17, 3), reg_max=16, end2end=False, ch: tuple = ()):
-        """
-        Initialize YOLO network with default parameters and Convolutional Layers.
+        """Initialize YOLO network with default parameters and Convolutional Layers.
 
         Args:
             nc (int): Number of classes.
@@ -610,16 +597,15 @@ class Pose(Detect):
         return preds
 
     def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
-        """
-        Post-process YOLO model predictions.
+        """Post-process YOLO model predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nk) with last dimension
                 format [x, y, w, h, class_probs, keypoints].
 
         Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + self.nk) and last
-                dimension format [x, y, w, h, max_class_prob, class_index, keypoints].
+            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + self.nk) and
+                last dimension format [x, y, w, h, max_class_prob, class_index, keypoints].
         """
         boxes, scores, kpts = preds.split([4, self.nc, self.nk], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
@@ -655,8 +641,7 @@ class Pose(Detect):
 
 
 class Pose26(Pose):
-    """
-    YOLO26 Pose head for keypoints models.
+    """YOLO26 Pose head for keypoints models.
 
     This class extends the Detect head to include keypoint prediction capabilities for pose estimation tasks.
 
@@ -677,8 +662,7 @@ class Pose26(Pose):
     """
 
     def __init__(self, nc: int = 80, kpt_shape: tuple = (17, 3), reg_max=16, end2end=False, ch: tuple = ()):
-        """
-        Initialize YOLO network with default parameters and Convolutional Layers.
+        """Initialize YOLO network with default parameters and Convolutional Layers.
 
         Args:
             nc (int): Number of classes.
@@ -992,8 +976,7 @@ class YOLOEDetect(Detect):
     def __init__(
         self, nc: int = 80, embed: int = 512, with_bn: bool = False, reg_max=16, end2end=False, ch: tuple = ()
     ):
-        """
-        Initialize YOLO detection layer with nc classes and layer channels ch.
+        """Initialize YOLO detection layer with nc classes and layer channels ch.
 
         Args:
             nc (int): Number of classes.
@@ -1308,8 +1291,7 @@ class YOLOESegment(YOLOEDetect):
         return preds
 
     def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
-        """
-        Post-process YOLO model predictions.
+        """Post-process YOLO model predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
@@ -1336,18 +1318,10 @@ class YOLOESegment(YOLOEDetect):
 
 
 class YOLOESegment26(YOLOESegment):
-    """
-    YOLOE-style segmentation head module using Proto26 for mask generation.
+    """YOLOE-style segmentation head module using Proto26 for mask generation.
 
-    This class extends the YOLOEDetect functionality to include segmentation capabilities by
-    integrating a prototype generation module and convolutional layers to predict mask coefficients.
-
-    Attributes:
-        nm (int): Number of segmentation masks.
-        npr (int): Number of prototype channels.
-        proto (Proto26): Prototype generation module for segmentation.
-        cv5 (nn.ModuleList): Convolutional layers for generating mask coefficients from features.
-        one2one_cv5 (nn.ModuleList, optional): Deep copy of cv5 for end-to-end detection branches.
+    This class extends the YOLOEDetect functionality to include segmentation capabilities by integrating a prototype
+    generation module and convolutional layers to predict mask coefficients.
 
     Args:
         nc (int): Number of classes. Defaults to 80.
@@ -1358,6 +1332,13 @@ class YOLOESegment26(YOLOESegment):
         reg_max (int): Maximum regression value for bounding boxes. Defaults to 16.
         end2end (bool): Whether to use end-to-end detection mode. Defaults to False.
         ch (tuple[int, ...]): Input channels for each scale.
+
+    Attributes:
+        nm (int): Number of segmentation masks.
+        npr (int): Number of prototype channels.
+        proto (Proto26): Prototype generation module for segmentation.
+        cv5 (nn.ModuleList): Convolutional layers for generating mask coefficients from features.
+        one2one_cv5 (nn.ModuleList, optional): Deep copy of cv5 for end-to-end detection branches.
     """
 
     def __init__(

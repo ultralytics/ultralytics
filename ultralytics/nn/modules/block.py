@@ -1970,8 +1970,7 @@ class Proto26(Proto):
     """Ultralytics YOLO26 models mask Proto module for segmentation models."""
 
     def __init__(self, ch: tuple = (), c_: int = 256, c2: int = 32, nc: int = 80):
-        """
-        Initialize the Ultralytics YOLO models mask Proto module with specified number of protos and masks.
+        """Initialize the Ultralytics YOLO models mask Proto module with specified number of protos and masks.
 
         Args:
             c1 (int): Input channels.
@@ -2041,8 +2040,8 @@ class RealNVP(nn.Module):
                 nn.init.xavier_uniform_(m.weight, gain=0.01)
 
     def backward_p(self, x):
-        """Apply mapping form the data space to the latent space and calculate
-        the log determinant of the Jacobian matrix.
+        """Apply mapping form the data space to the latent space and calculate the log determinant of the Jacobian
+        matrix.
         """
         log_det_jacob, z = x.new_zeros(x.shape[0]), x
         for i in reversed(range(len(self.t))):

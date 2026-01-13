@@ -155,13 +155,13 @@ class BboxLoss(nn.Module):
 class RLELoss(nn.Module):
     """Residual Log-Likelihood Estimation Loss.
 
-    References:
-        https://arxiv.org/abs/2107.11291
-
     Args:
         use_target_weight (bool): Option to use weighted loss.
         size_average (bool): Option to average the loss by the batch_size.
         residual (bool): Option to add L1 loss and let the flow learn the residual error distribution.
+
+    References:
+        https://arxiv.org/abs/2107.11291
     """
 
     def __init__(self, use_target_weight: bool = True, size_average: bool = True, residual: bool = True):
@@ -366,7 +366,9 @@ class v8DetectionLoss:
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
     def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
-        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and target indices."""
+        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and
+        target indices.
+        """
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         pred_distri, pred_scores = (
             preds["boxes"].permute(0, 2, 1).contiguous(),
@@ -657,8 +659,7 @@ class v8PoseLoss(v8DetectionLoss):
         target_gt_idx: torch.Tensor,
         masks: torch.Tensor,
     ) -> torch.Tensor:
-        """
-        Select target keypoints for each anchor based on batch index and target ground truth index.
+        """Select target keypoints for each anchor based on batch index and target ground truth index.
 
         Args:
             keypoints (torch.Tensor): Ground truth keypoints, shape (N_kpts_in_batch, N_kpts_per_object, kpts_dim).
@@ -822,8 +823,7 @@ class PoseLoss26(v8PoseLoss):
         return y
 
     def calculate_rle_loss(self, pred_kpt: torch.Tensor, gt_kpt: torch.Tensor, kpt_mask: torch.Tensor) -> torch.Tensor:
-        """
-        Calculate the RLE (Residual Log-likelihood Estimation) loss for keypoints.
+        """Calculate the RLE (Residual Log-likelihood Estimation) loss for keypoints.
 
         Args:
             pred_kpt (torch.Tensor): Predicted keypoints with sigma, shape (N, kpts_dim) where kpts_dim >= 4.
@@ -858,8 +858,7 @@ class PoseLoss26(v8PoseLoss):
         target_bboxes: torch.Tensor,
         pred_kpts: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Calculate the keypoints loss for the model.
+        """Calculate the keypoints loss for the model.
 
         This function calculates the keypoints loss and keypoints object loss for a given batch. The keypoints loss is
         based on the difference between the predicted keypoints and ground truth keypoints. The keypoints object loss is
@@ -1048,8 +1047,8 @@ class v8OBBLoss(v8DetectionLoss):
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
 
     def calculate_angle_loss(self, pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum, lambda_val=3):
-        """
-        Calculate oriented angle loss
+        """Calculate oriented angle loss.
+
         Args:
             pred_bboxes: [N, 5] (x, y, w, h, theta).
             target_bboxes: [N, 5] (x, y, w, h, theta).

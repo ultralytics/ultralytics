@@ -276,8 +276,7 @@ class MobileCLIPTS(TextModel):
     """
 
     def __init__(self, device: torch.device, weight: str = "mobileclip_blt.ts"):
-        """
-        Initialize the MobileCLIP TorchScript text encoder.
+        """Initialize the MobileCLIP TorchScript text encoder.
 
         This class implements the TextModel interface using Apple's MobileCLIP model in TorchScript format for efficient
         text encoding with optimized inference performance.

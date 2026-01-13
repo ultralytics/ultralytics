@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
 import torch
@@ -34,8 +35,7 @@ class TaskAlignedAssigner(nn.Module):
         eps: float = 1e-9,
         topk2=None,
     ):
-        """
-        Initialize a TaskAlignedAssigner object with customizable hyperparameters.
+        """Initialize a TaskAlignedAssigner object with customizable hyperparameters.
 
         Args:
             topk (int, optional): The number of top candidates to consider.
@@ -279,8 +279,7 @@ class TaskAlignedAssigner(nn.Module):
         return target_labels, target_bboxes, target_scores
 
     def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt, eps=1e-9):
-        """
-        Select positive anchor centers within ground truth bounding boxes.
+        """Select positive anchor centers within ground truth bounding boxes.
 
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates, shape (h*w, 2).
@@ -307,8 +306,7 @@ class TaskAlignedAssigner(nn.Module):
         return bbox_deltas.amin(3).gt_(eps)
 
     def select_highest_overlaps(self, mask_pos, overlaps, n_max_boxes, align_metric):
-        """
-        Select anchor boxes with highest IoU when assigned to multiple ground truths.
+        """Select anchor boxes with highest IoU when assigned to multiple ground truths.
 
         Args:
             mask_pos (torch.Tensor): Positive mask, shape (b, n_max_boxes, h*w).
@@ -353,8 +351,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
 
     @staticmethod
     def select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt):
-        """
-        Select the positive anchor center in gt for rotated bounding boxes.
+        """Select the positive anchor center in gt for rotated bounding boxes.
 
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates with shape (h*w, 2).
@@ -446,8 +443,7 @@ def rbox2dist(
     dim: int = -1,
     reg_max: int | None = None,
 ):
-    """
-    Decode rotated bounding box (xywh) to distance(ltrb). This is the inverse of dist2rbox.
+    """Decode rotated bounding box (xywh) to distance(ltrb). This is the inverse of dist2rbox.
 
     Args:
         target_bboxes (torch.Tensor): Target rotated bounding boxes with shape (bs, h*w, 4), format [x, y, w, h].

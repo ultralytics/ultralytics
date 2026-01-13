@@ -343,8 +343,8 @@ def xyxyxyxy2xywhr(x):
         x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) in [xy1, xy2, xy3, xy4] format.
 
     Returns:
-        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5).
-            Rotation values are in radians from [-pi/4, 3pi/4).
+        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). Rotation
+            values are in radians from [-pi/4, 3pi/4).
     """
     is_torch = isinstance(x, torch.Tensor)
     points = x.cpu().numpy() if is_torch else x

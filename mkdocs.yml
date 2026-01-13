@@ -491,6 +491,7 @@ nav:
       - Rockchip RKNN: integrations/rockchip-rknn.md
       - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
       - SONY IMX500: integrations/sony-imx500.md
+      - Safetensors: integrations/safetensors.md
       - TensorBoard: integrations/tensorboard.md
       - TensorRT: integrations/tensorrt.md
       - TF GraphDef: integrations/tf-graphdef.md

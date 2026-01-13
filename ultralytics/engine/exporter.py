@@ -21,6 +21,7 @@ NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
 ExecuTorch              | `executorch`              | yolo11n_executorch_model/
+SafeTensors             | `safetensors`             | yolo11n.safetensors
 Axelera                 | `axelera`                 | yolo11n_axelera_model/
 
 Requirements:
@@ -173,6 +174,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
+        ["SafeTensors", "safetensors", ".safetensors", True, True, ["half", "int8", "batch"]],
         ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
@@ -357,6 +359,7 @@ class Exporter:
             imx,
             rknn,
             executorch,
+            safetensors,
             axelera,
         ) = flags  # export booleans
 
@@ -592,8 +595,10 @@ class Exporter:
             f[14] = self.export_rknn()
         if executorch:
             f[15] = self.export_executorch()
+        if safetensors:
+            f[16] = self.export_safetensors()
         if axelera:
-            f[16] = self.export_axelera()
+            f[17] = self.export_axelera()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1332,6 +1337,66 @@ class Exporter:
             prefix=prefix,
         )
 
+    @try_export
+    def export_safetensors(self, prefix=colorstr("SafeTensors:")):
+        """Export YOLO model to SafeTensors format.
+
+        SafeTensors is a simple, safe, and fast file format for storing tensors. It is designed to be safe
+        from arbitrary code execution and is faster to load than pickle-based formats.
+        See https://github.com/huggingface/safetensors for more information.
+
+        Note: This exports the FUSED model weights. The model architecture YAML is embedded in the
+        SafeTensors metadata as a JSON string, eliminating the need for a separate YAML file.
+
+        Returns:
+            (str): Path to the exported SafeTensors file.
+        """
+        assert IS_PYTHON_MINIMUM_3_9, "Safetensor export requires Python>=3.9"
+        check_requirements("safetensors>=0.7.0")
+
+        from safetensors.torch import save_file
+
+        LOGGER.info(f"\n{prefix} starting export with safetensors...")
+
+        # Build filename with export parameters
+        name_parts = [self.file.stem]
+        if self.args.half:
+            name_parts.append("fp16")
+        if self.args.int8:
+            name_parts.append("int8")
+        if self.args.nms:
+            name_parts.append("nms")
+
+        # Single file export (no directory needed)
+        model_name = "_".join(name_parts)
+        safetensors_file = self.file.parent / f"{model_name}.safetensors"
+
+        # Use the fused model (self.model is already fused in __call__)
+        model = self.model.half() if self.args.half else self.model.float()
+        state_dict = model.state_dict()
+
+        # Convert metadata to string format for safetensors (only supports string values)
+        metadata_str = {k: str(v) for k, v in self.metadata.items()}
+        # Mark that this is a fused model export
+        metadata_str["fused"] = "True"
+
+        # Embed model architecture YAML in metadata as JSON string
+        if hasattr(self.model, "yaml") and self.model.yaml:
+            yaml_data = self.model.yaml.copy()
+            # Override nc with actual model nc (important for pose/obb/cls which may have different nc than default)
+            if hasattr(self.model, "nc"):
+                yaml_data["nc"] = self.model.nc
+            elif hasattr(self.model, "names"):
+                # For classification models, derive nc from names dict
+                yaml_data["nc"] = len(self.model.names)
+            # Store YAML as JSON string in metadata (SafeTensors only allows string values)
+            metadata_str["model_yaml"] = json.dumps(yaml_data)
+
+        # Save the model weights and metadata
+        save_file(state_dict, str(safetensors_file), metadata=metadata_str)
+
+        return str(safetensors_file)
+
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""
         import zipfile
@@ -1516,6 +1581,8 @@ class NMSModel(torch.nn.Module):
 
         from torchvision.ops import nms
 
+        from ultralytics.utils.ops import xywh2xyxy
+
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
         kwargs = dict(device=pred.device, dtype=pred.dtype)
@@ -1526,6 +1593,9 @@ class NMSModel(torch.nn.Module):
             pad = torch.zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:], **kwargs)
             pred = torch.cat((pred, pad))
         boxes, scores, extras = pred.split([4, len(self.model.names), extra_shape], dim=2)
+        # Convert xywh to xyxy format for NMS
+        if not self.obb:
+            boxes = xywh2xyxy(boxes)
         scores, classes = scores.max(dim=-1)
         self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).

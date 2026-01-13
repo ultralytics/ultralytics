@@ -307,7 +307,7 @@ If you use YOLO26 or other Ultralytics software in your work, please cite it as:
           author = {Glenn Jocher and Jing Qiu},
           title = {Ultralytics YOLO26},
           version = {26.0.0},
-          year = {2025},
+          year = {2026},
           url = {https://github.com/ultralytics/ultralytics},
           orcid = {0000-0001-5950-6979, 0000-0003-3783-7069},
           license = {AGPL-3.0}
@@ -328,9 +328,9 @@ DOI pending. YOLO26 is available under [AGPL-3.0](https://github.com/ultralytics
 - **MuSGD Optimizer**: Combines SGD and Muon (inspired by Moonshot's Kimi K2) for more stable, efficient training
 - **Up to 43% Faster CPU Inference**: Major performance gains for CPU-only devices
 
-### What tasks will YOLO26 support?
+### What tasks does YOLO26 support?
 
-YOLO26 is designed as a **unified model family**, providing end-to-end support for multiple computer vision tasks:
+YOLO26 is a **unified model family**, providing end-to-end support for multiple computer vision tasks:
 
 - [Object Detection](../tasks/detect.md)
 - [Instance Segmentation](../tasks/segment.md)
@@ -338,7 +338,7 @@ YOLO26 is designed as a **unified model family**, providing end-to-end support f
 - [Pose Estimation](../tasks/pose.md)
 - [Oriented Object Detection (OBB)](../tasks/obb.md)
 
-Each size variant (n, s, m, l, x) is planned to support all tasks at release.
+Each size variant (n, s, m, l, x) supports all tasks, plus open-vocabulary versions via [YOLOE-26](#yoloe-26-open-vocabulary-instance-segmentation).
 
 ### Why is YOLO26 optimized for edge deployment?
 
@@ -349,7 +349,18 @@ YOLO26 delivers **state-of-the-art edge performance** with:
 - Architecture simplified for compatibility (no DFL, no NMS)
 - Flexible export formats including TensorRT, ONNX, CoreML, TFLite, and OpenVINO
 
-### When will YOLO26 models be available?
+### How do I get started with YOLO26?
 
-YOLO26 models are still in training and not yet open-sourced. Performance previews are shown here, with official downloads and releases planned in the near future.
-See [YOLO Vision 2025](https://www.ultralytics.com/events/yolovision) for YOLO26 talks.
+YOLO26 models were released on January 14, 2026, and are available for download. Install or update the `ultralytics` package and load a model:
+
+```python
+from ultralytics import YOLO
+
+# Load a pretrained YOLO26 nano model
+model = YOLO("yolo26n.pt")
+
+# Run inference on an image
+results = model("image.jpg")
+```
+
+See the [Usage Examples](#usage-examples) section for training, validation, and export instructions.

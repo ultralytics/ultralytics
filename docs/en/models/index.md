@@ -105,9 +105,9 @@ For detailed steps, consult our [Contributing Guide](../help/contributing.md).
 
 ## FAQ
 
-### What are the key advantages of using Ultralytics YOLO11 for object detection?
+### What is the latest Ultralytics YOLO model?
 
-Ultralytics YOLO11 offers enhanced capabilities such as real-time object detection, instance segmentation, pose estimation, and classification. Its optimized architecture ensures high-speed performance without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy), making it ideal for a variety of applications across diverse AI domains. YOLO11 builds on previous versions with improved performance and additional features, as detailed on the [YOLO11 documentation page](../models/yolo11.md).
+The latest Ultralytics YOLO model is [YOLO26](yolo26.md), released in January 2026. YOLO26 features end-to-end NMS-free inference, optimized edge deployment, and supports all five tasks (detection, segmentation, classification, pose estimation, and OBB) plus open-vocabulary versions. For stable production workloads, both YOLO26 and [YOLO11](yolo11.md) are recommended choices.
 
 ### How can I train a YOLO model on custom data?
 
@@ -143,6 +143,6 @@ Ultralytics supports a comprehensive range of YOLO (You Only Look Once) versions
 
 [Ultralytics HUB](../hub/index.md) provides a no-code, end-to-end platform for training, deploying, and managing YOLO models. It simplifies complex workflows, enabling users to focus on model performance and application. The HUB also offers [cloud training capabilities](../hub/cloud-training.md), comprehensive dataset management, and user-friendly interfaces for both beginners and experienced developers.
 
-### What types of tasks can YOLO11 perform, and how does it compare to other YOLO versions?
+### What types of tasks can Ultralytics YOLO models perform?
 
-YOLO11 is a versatile model capable of performing tasks including object detection, instance segmentation, classification, and pose estimation. Compared to earlier versions, YOLO11 offers significant improvements in speed and accuracy due to its optimized architecture and anchor-free design. For a deeper comparison, refer to the [YOLO11 documentation](../models/yolo11.md) and the [Task pages](../tasks/index.md) for more details on specific tasks.
+Ultralytics YOLO models are versatile and can perform tasks including object detection, instance segmentation, classification, pose estimation, and oriented object detection (OBB). The latest model, [YOLO26](yolo26.md), supports all five tasks plus open-vocabulary detection. For details on specific tasks, refer to the [Task pages](../tasks/index.md).

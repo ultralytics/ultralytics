@@ -24,7 +24,7 @@ data = {
             "s": {"size": 640, "map": 48.6, "cpu": "", "t4": 2.5, "params": 9.5, "flops": 20.7},
             "m": {"size": 640, "map": 53.1, "cpu": "", "t4": 4.7, "params": 20.4, "flops": 68.2},
             "l": {"size": 640, "map": 55.0, "cpu": "", "t4": 6.2, "params": 24.8, "flops": 86.4},
-            "x": {"size": 640, "map": 57.5, "cpu": "", "t4": 11.8, "params": 55.73, "flops": 193.88},
+            "x": {"size": 640, "map": 57.5, "cpu": "", "t4": 11.8, "params": 55.7, "flops": 193.9},
         },
     },
     "YOLO12": {

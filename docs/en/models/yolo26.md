@@ -120,13 +120,13 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
     === "OBB (DOTAv1)"
 
-        | Model       | size<br><sup>(pixels) | mAP<sup>test<br>50(e2e) | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-        |-------------|-----------------------|-------------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
-        | YOLO26n-obb | 1024                  | 78.9                    | 97.7 ± 0.9                     | 2.8 ± 0.0                           | 2.45               | 14.0              |
-        | YOLO26s-obb | 1024                  | 79.8                    | 218.0 ± 1.4                    | 4.9 ± 0.1                           | 9.76               | 55.1              |
-        | YOLO26m-obb | 1024                  | 80.7                    | 579.2 ± 3.8                    | 10.2 ± 0.3                          | 21.21              | 183.3             |
-        | YOLO26l-obb | 1024                  | 81.4                    | 735.6 ± 3.1                    | 13.0 ± 0.2                          | 25.61              | 230.0             |
-        | YOLO26x-obb | 1024                  | 82.1                    | 1485.7 ± 11.5                  | 30.5 ± 0.9                          | 57.56              | 516.5             |
+        | Model       | size<br><sup>(pixels) | mAP<sup>test<br>50-95(e2e)</sup> | mAP<sup>test<br>50(e2e) | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        |-------------|-----------------------|---------------------------------|-------------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+        | YOLO26n-obb | 1024                  | 52.4                            | 78.9                    | 97.7 ± 0.9                     | 2.8 ± 0.0                           | 2.45               | 14.0              |
+        | YOLO26s-obb | 1024                  | 54.8                            | 79.8                    | 218.0 ± 1.4                    | 4.9 ± 0.1                           | 9.76               | 55.1              |
+        | YOLO26m-obb | 1024                  | 55.3                            | 81.0                    | 579.2 ± 3.8                    | 10.2 ± 0.3                          | 21.21              | 183.3             |
+        | YOLO26l-obb | 1024                  | 56.0                            | 81.4                    | 735.6 ± 3.1                    | 13.0 ± 0.2                          | 25.61              | 230.0             |
+        | YOLO26x-obb | 1024                  | 56.7                            | 82.1                    | 1485.7 ± 11.5                  | 30.5 ± 0.9                          | 57.56              | 516.5             |
 
 ---
 
@@ -149,13 +149,13 @@ By leveraging YOLO26's **NMS-free, end-to-end design**, YOLOE-26 delivers fast o
 
 
     === "Prompt-free"
-        | Model            | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95(e2e)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        |------------------|-----------------------------|---------------------------------|--------------------------|-------------------------|
-        | YOLOE-26n-seg-pf | 640                         | 0.166                           | 6.5                      | 15.8                    |
-        | YOLOE-26s-seg-pf | 640                         | 0.214                           | 16.2                     | 35.5                    |
-        | YOLOE-26m-seg-pf | 640                         | 0.257                           | 36.2                     | 122.1                   |
-        | YOLOE-26l-seg-pf | 640                         | 0.272                           | 40.6                     | 140.4                   |
-        | YOLOE-26x-seg-pf | 640                         | 0.299                           | 86.3                     | 314.4                   |
+        | Model            | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95(e2e)</sup> | mAP<sup>val<br>50(e2e)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        |------------------|-----------------------------|---------------------------------|------------------------------|--------------------------|-------------------------|
+        | YOLOE-26n-seg-pf | 640                         | 16.6                            | 22.7                         | 6.5                      | 15.8                    |
+        | YOLOE-26s-seg-pf | 640                         | 21.4                            | 28.6                         | 16.2                     | 35.5                    |
+        | YOLOE-26m-seg-pf | 640                         | 25.7                            | 33.6                         | 36.2                     | 122.1                   |
+        | YOLOE-26l-seg-pf | 640                         | 27.2                            | 35.4                         | 40.6                     | 140.4                   |
+        | YOLOE-26x-seg-pf | 640                         | 29.9                            | 38.7                         | 86.3                     | 314.4                   |
 
 For a deep dive into prompting techniques, training from scratch, and full usage examples, visit the **[YOLOE Documentation](yoloe.md)**.
 

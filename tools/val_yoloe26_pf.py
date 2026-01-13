@@ -55,7 +55,7 @@ def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight,clip_
         unfused_model.model.end2end = False
         # unfused_model.model.model[-1].end2end = False
 
-    with open('../buffer/ram_tag_list.txt', 'r') as f:
+    with open('./tools/ram_tag_list.txt', 'r') as f:
         names = [x.strip() for x in f.readlines()]
     # categories = yaml_load("ultralytics/cfg/datasets/lvis.yaml")["names"].values()
     # names = [c.split("/")[0] for c in categories]     

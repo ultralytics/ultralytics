@@ -1,7 +1,6 @@
 from __future__ import annotations
 from torch import optim
 import torch
-import math
 
 
 def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
@@ -88,80 +87,11 @@ def muon_update(grad: torch.Tensor, momentum: torch.Tensor, beta: float = 0.95, 
         torch.Size([64, 128])
     """
     momentum.lerp_(grad, 1 - beta)
-    # update = grad.lerp_(momentum, beta) if nesterov else momentum
     update = grad.lerp(momentum, beta) if nesterov else momentum
     if update.ndim == 4:  # for the case of conv filters
         update = update.view(len(update), -1)
     update = zeropower_via_newtonschulz5(update)
     update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
-    return update
-
-
-def simple_quantile(tensor: torch.Tensor, q: float) -> torch.Tensor:
-    """
-    A simple quantile implementation (unoptimized for GPU) for this toy script.
-    """
-    tensor = tensor.flatten()
-    num_elements = tensor.numel()
-    if num_elements == 0:
-        return torch.tensor(float("nan"), dtype=tensor.dtype, device=tensor.device)
-    index = torch.tensor(q * (num_elements - 1), device=tensor.device)
-
-    lower_index = torch.floor(index).long()
-    upper_index = torch.ceil(index).long()
-
-    k_lower = lower_index + 1
-    k_upper = upper_index + 1
-
-    if k_lower == k_upper:
-        return tensor.kthvalue(k_lower).values
-    lower_value = tensor.kthvalue(k_lower).values
-    upper_value = tensor.kthvalue(k_upper).values
-
-    weight = index - lower_index
-    return torch.lerp(lower_value, upper_value, weight)
-
-
-def root_update(grad: torch.Tensor, momentum: torch.Tensor, beta: float = 0.95, nesterov: bool = True) -> torch.Tensor:
-    """Compute Muon optimizer update with momentum and orthogonalization.
-
-    This function applies momentum to the gradient, optionally uses Nesterov acceleration,
-    and then orthogonalizes the update using Newton-Schulz iterations. For convolutional
-    filters (4D tensors), it reshapes before orthogonalization and scales the final update
-    based on parameter dimensions.
-
-    Args:
-        grad (torch.Tensor): Gradient tensor to update. Can be 2D or 4D (for conv filters).
-        momentum (torch.Tensor): Momentum buffer tensor, modified in-place via lerp.
-        beta (float, optional): Momentum coefficient for exponential moving average. Default: 0.95.
-        nesterov (bool, optional): Whether to use Nesterov momentum acceleration. Default: True.
-
-    Returns:
-        (torch.Tensor): Orthogonalized update tensor with same shape as input grad.
-            For 4D inputs, returns reshaped result matching original dimensions.
-
-    Notes:
-        - Momentum buffer is updated in-place: momentum = beta * momentum + (1-beta) * grad.
-        - With Nesterov: update = beta * momentum + (1-beta) * grad.
-        - Without Nesterov: update = momentum.
-        - 4D tensors (conv filters) are reshaped to 2D as (channels, height*width*depth) for orthogonalization.
-        - Final update is scaled by sqrt(max(dim[-2], dim[-1])) to account for parameter dimensions.
-
-    Example:
-        >>> grad = torch.randn(64, 128)
-        >>> momentum = torch.zeros_like(grad)
-        >>> update = muon_update(grad, momentum, beta=0.95, nesterov=True)
-        >>> print(update.shape)
-        torch.Size([64, 128])
-    """
-    momentum.lerp_(grad, 1 - beta)
-    # update = grad.lerp_(momentum, beta) if nesterov else momentum
-    update = grad.lerp(momentum, beta) if nesterov else momentum
-    if update.ndim == 4:  # for the case of conv filters
-        update = update.view(len(update), -1)
-    epsilon = simple_quantile(update.abs().float(), 0.9) + 1e-9
-    b = update - torch.sign(update) * torch.nn.functional.relu(torch.abs(update) - epsilon)
-    update = zeropower_via_newtonschulz5(b)
     return update
 
 
@@ -234,22 +164,6 @@ class MuSGD(optim.Optimizer):
         self.muon = muon
         self.sgd = sgd
 
-    def adjust_lr(self, lr: float, param_shape: tuple) -> float:
-        """Adjust learning rate based on parameter shape dimensions.
-
-        Args:
-            lr (float): Base learning rate to adjust.
-            param_shape (tuple): Shape of the parameter tensor.
-
-        Returns:
-            (float): Adjusted learning rate scaled by sqrt(max(A, B)) * 0.2,
-                where A and B are the first two dimensions of param_shape.
-        """
-        A, B = param_shape[:2]
-        adjusted_ratio = 0.2 * math.sqrt(max(A, B))
-        adjusted_lr = lr * adjusted_ratio
-        return adjusted_lr
-
     @torch.no_grad()
     def step(self, closure=None):
         """Perform a single optimization step.
@@ -292,10 +206,6 @@ class MuSGD(optim.Optimizer):
                     update = muon_update(
                         grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
                     )
-                    # update = root_update(
-                    #     grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
-                    # )
-                    # lr = self.adjust_lr(lr, p.shape)
                     p.add_(update.reshape(p.shape), alpha=-(lr * self.muon))
 
                     # SGD update

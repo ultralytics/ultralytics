@@ -6,11 +6,6 @@ keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, simpl
 
 # Ultralytics YOLO26
 
-!!! note "Coming Soon ⚠️"
-
-    🚧 YOLO26 models are still under development and not yet released. Performance numbers shown here are **previews only**.
-    Final downloads and releases will follow soon — stay updated via [YOLO Vision 2025](https://www.ultralytics.com/events/yolovision).
-
 ## Overview
 
 [Ultralytics](https://www.ultralytics.com/) YOLO26 is the latest evolution in the YOLO series of real-time object detectors, engineered from the ground up for **edge and low-power devices**. It introduces a streamlined design that removes unnecessary complexity while integrating targeted innovations to deliver faster, lighter, and more accessible deployment.
@@ -76,8 +71,7 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
     === "Detection (COCO)"
 
-        Trained on [COCO](../datasets/detect/coco.md) with 80 pretrained classes.
-        See [Detection Docs](../tasks/detect.md) for usage once models are released.
+        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
 
         | Model   | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95(e2e)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |---------|-----------------------------|---------------------------------|----------------------------|--------------------------------------|-------------------------------------------|--------------------------|-------------------------|
@@ -90,6 +84,8 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
     === "Segmentation (COCO)"
 
+        See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pretrained classes.
+
         | Model       | size<br><sup>(pixels) | mAP<sup>val<br>50-95(e2e) | mAP<sup>mask<br>50-95(e2e) | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         |-------------|-----------------------|---------------------------|----------------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
         | YOLO26n-seg | 640                   | 39.6                      | 33.9                       | 53.3 ± 0.5                     | 2.1 ± 0.0                           | 2.8                | 9.1               |
@@ -99,6 +95,8 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
         | YOLO26x-seg | 640                   | 56.5                      | 47.0                       | 787.0 ± 6.8                    | 16.4 ± 0.1                          | 65.5               | 313.5             |
 
     === "Classification (ImageNet)"
+
+        See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pretrained classes.
 
         | Model       | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 224 |
         |-------------|-----------------------|------------------|------------------|--------------------------------|-------------------------------------|--------------------|--------------------------|
@@ -110,6 +108,8 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
     === "Pose (COCO)"
 
+        See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pretrained class, 'person'.
+
         | Model        | size<br><sup>(pixels) | mAP<sup>val<br>50-95(e2e) | mAP<sup>pose<br>50(e2e) | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         |--------------|-----------------------|---------------------------|-------------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
         | YOLO26n-pose | 640                   | 56.9                      | 83.0                    | 40.3 ± 0.5                     | 1.8 ± 0.0                           | 2.9                | 7.5               |
@@ -119,6 +119,8 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
         | YOLO26x-pose | 640                   | 71.7                      | 91.6                    | 565.4 ± 3.0                    | 12.2 ± 0.2                          | 57.6               | 201.7             |
 
     === "OBB (DOTAv1)"
+
+        See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pretrained classes.
 
         | Model       | size<br><sup>(pixels) | mAP<sup>test<br>50-95(e2e)</sup> | mAP<sup>test<br>50(e2e) | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
         |-------------|-----------------------|---------------------------------|-------------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
@@ -139,16 +141,22 @@ By leveraging YOLO26's **NMS-free, end-to-end design**, YOLOE-26 delivers fast o
 !!! tip "Performance"
 
     === "Text/Visual Prompts"
+
+        See [YOLOE Docs](./yoloe.md) for usage examples with these models trained on [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1), [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html) and [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/) datasets.
+
         | Model         | Prompt Type | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95(e2e)</sup> | mAP<sup>val<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |---------------|-------------|-----------------------------|---------------------------------|----------------------------|--------------------------|-------------------------|
-        | YOLOE-26n-seg | Text/Visual | 640                         | 23.7 / 20.9                     | 24.7 / 21.9                | 2.4                      | 5.4                     |
-        | YOLOE-26s-seg | Text/Visual | 640                         | 29.9 / 27.1                     | 30.8 / 28.6                | 9.5                      | 20.7                    |
-        | YOLOE-26m-seg | Text/Visual | 640                         | 35.4 / 31.3                     | 35.4 / 33.9                | 20.4                     | 68.2                    |
-        | YOLOE-26l-seg | Text/Visual | 640                         | 36.8 / 33.7                     | 37.8 / 36.3                | 24.8                     | 86.4                    |
-        | YOLOE-26x-seg | Text/Visual | 640                         | 39.5 / 36.2                     | 40.6 / 38.5                | 55.73                    | 193.88                  |
+        | YOLOE-26n-seg | Text/Visual | 640                         | 23.7 / 20.9                     | 24.7 / 21.9                | 4.8                      | 6.0                     |
+        | YOLOE-26s-seg | Text/Visual | 640                         | 29.9 / 27.1                     | 30.8 / 28.6                | 13.1                     | 21.7                    |
+        | YOLOE-26m-seg | Text/Visual | 640                         | 35.4 / 31.3                     | 35.4 / 33.9                | 27.9                     | 70.1                    |
+        | YOLOE-26l-seg | Text/Visual | 640                         | 36.8 / 33.7                     | 37.8 / 36.3                | 32.3                     | 88.3                    |
+        | YOLOE-26x-seg | Text/Visual | 640                         | 39.5 / 36.2                     | 40.6 / 38.5                | 69.9                     | 196.7                   |
 
 
     === "Prompt-free"
+
+        See [YOLOE Docs](./yoloe.md) for usage examples with these models trained on [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1), [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html) and [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/) datasets.
+
         | Model            | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95(e2e)</sup> | mAP<sup>val<br>50(e2e)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         |------------------|-----------------------------|---------------------------------|------------------------------|--------------------------|-------------------------|
         | YOLOE-26n-seg-pf | 640                         | 16.6                            | 22.7                         | 6.5                      | 15.8                    |

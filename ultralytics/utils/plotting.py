@@ -1361,6 +1361,46 @@ def plot_boxes3d(
     return canvas
 
 
+def plot_boxes2d(
+    img: np.ndarray,
+    boxes2d: list["Box3D"] | None,
+    config: VisualizationConfig | None = None,
+) -> np.ndarray:
+    """Draw 2D bounding boxes onto an image.
+
+    Args:
+        img: Image to draw on
+        boxes2d: List of 2D bounding boxes
+        config: Visualization configuration (default: VisualizationConfig())
+    """
+    config = config or VisualizationConfig()
+
+    if img.dtype != np.uint8:
+        img = np.clip(img, 0, 255).astype(np.uint8)
+    else:
+        img = img.copy().astype(np.uint8)
+
+    canvas = img.astype(np.uint8)
+
+    if not boxes2d:
+        return canvas
+
+    height, width = canvas.shape[:2]
+    line_width = max(1, config.line_width)
+
+    for box in boxes2d:
+        # bbox 2d are in pixel format from 0 to image width/height
+        x_min, y_min, x_max, y_max = box.bbox_2d
+        x_min = max(0, int(x_min))
+        y_min = max(0, int(y_min))
+        x_max = min(width, int(x_max))
+        y_max = min(height, int(y_max))
+
+        color = _select_color(0, config.pred_color_scheme)
+        cv2.rectangle(canvas, (x_min, y_min), (x_max, y_max), color, line_width, cv2.LINE_AA)
+    return canvas
+
+
 def plot_stereo3d_boxes(
     left_img: np.ndarray,
     right_img: np.ndarray,
@@ -1403,13 +1443,11 @@ def plot_stereo3d_boxes(
         letterbox_scale=letterbox_scale, letterbox_pad_left=letterbox_pad_left, letterbox_pad_top=letterbox_pad_top
     )
 
-    right_canvas = plot_boxes3d(
-        right_img, pred_boxes3d, right_calib, config, is_ground_truth=False,
-        letterbox_scale=letterbox_scale, letterbox_pad_left=letterbox_pad_left, letterbox_pad_top=letterbox_pad_top
+    right_canvas = plot_boxes2d(
+        left_img, pred_boxes3d, config
     )
-    right_canvas = plot_boxes3d(
-        right_canvas, gt_boxes3d, right_calib, config, is_ground_truth=True,
-        letterbox_scale=letterbox_scale, letterbox_pad_left=letterbox_pad_left, letterbox_pad_top=letterbox_pad_top
+    right_canvas = plot_boxes2d(
+        right_canvas, gt_boxes3d, config
     )
 
     combined = combine_stereo_views(left_canvas, right_canvas)

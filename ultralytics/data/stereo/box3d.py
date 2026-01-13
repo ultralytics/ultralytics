@@ -75,12 +75,15 @@ class Box3D:
                 )
             if x_min >= x_max:
                 LOGGER.warning(
-                    f"bbox_2d xyxy format: x_min ({x_min}) must be < x_max ({x_max})"
+                    "bbox_2d xyxy format: x_min must be < x_max"
                 )
             if y_min >= y_max:
-                LOGGER.warning(
-                    f"bbox_2d xyxy format: y_min ({y_min}) must be < y_max ({y_max})"
-                )
+                LOGGER.warning("bbox_2d xyxy format: y_min must be < y_max")
+            
+            # validate the area of the bbox
+            area = (x_max - x_min) * (y_max - y_min)
+            if area <= 1:
+                raise ValueError(f"bbox_2d area must be greater than 1, got {area}")
 
     def to_dict(self) -> dict[str, Any]:
         """Convert 3D box to dictionary.

@@ -12,16 +12,15 @@ import numpy as np
 import torch
 
 from ultralytics.data.stereo.box3d import Box3D
-import os
+
 from ultralytics.data.stereo.calib import CalibrationParameters
 from ultralytics.models.yolo.stereo3ddet.metrics import Stereo3DDetMetrics
-from ultralytics.utils import LOGGER, RANK, YAML, colorstr, emojis
+from ultralytics.utils import LOGGER, RANK, YAML
 from ultralytics.utils.metrics import DetMetrics, box_iou, compute_3d_iou
 from ultralytics.utils.plotting import plot_stereo3d_boxes
 from ultralytics.utils.profiling import profile_function, profile_section
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils.nms import non_max_suppression
-from typing import Any
 
 # ---------------------------------------------------------------------------
 # YOLO11-mapped (Detect-based) decode helpers
@@ -315,7 +314,7 @@ def get_geometric_config(config_path: str | Path | None = None) -> dict:
             # Merge with defaults
             _geometric_config = {**default_config, **geo_config}
         except Exception as e:
-            LOGGER.debug(f"Failed to load geometric config from {config_path}: {e}")
+            LOGGER.debug("Failed to load geometric config from %s: %s", config_path, e)
             _geometric_config = default_config
     else:
         _geometric_config = default_config
@@ -381,7 +380,7 @@ def log_geometric_statistics() -> None:
     converged = _geometric_solver._converged_solves
     
     status = "✓ PASS" if rate >= 0.95 else "✗ FAIL"
-    LOGGER.info(f"Geometric solver (SC-007): {converged}/{total} converged ({rate:.1%}) [{status}]")
+    LOGGER.info("Geometric solver (SC-007): %d/%d converged (%.1f%%) [%s]", converged, total, rate * 100, status)
 
 
 # Global dense alignment instance (GAP-002)
@@ -433,7 +432,7 @@ def get_dense_alignment_config(config_path: str | Path | None = None) -> dict:
             # Merge with defaults
             _dense_alignment_config = {**default_config, **dense_config}
         except Exception as e:
-            LOGGER.debug(f"Failed to load dense alignment config from {config_path}: {e}")
+            LOGGER.debug("Failed to load dense alignment config from %s: %s", config_path, e)
             _dense_alignment_config = default_config
     else:
         _dense_alignment_config = default_config
@@ -523,11 +522,11 @@ def get_occlusion_config(config_path: str | Path | None = None) -> dict:
             occ_config = full_config.get("occlusion", {})
             _occlusion_config = {**default_config, **occ_config}
         else:
-            LOGGER.debug(f"Occlusion config file not found at {config_path}")
+            LOGGER.debug("Occlusion config file not found at %s", config_path)
             _occlusion_config = default_config
     except Exception as e:
-        LOGGER.debug(f"Failed to load occlusion config from {config_path}: {e}")
-        _occlusion_config = default_config
+            LOGGER.debug("Failed to load occlusion config from %s: %s", config_path, e)
+            _occlusion_config = default_config
     
     return _occlusion_config
 
@@ -670,9 +669,9 @@ def _decode_stereo3d_outputs_per_sample(
     calib: dict[str, float] | None = None,
     use_nms: bool = True,
     nms_kernel: int = 3,
-    use_geometric_construction: bool | None = None,
-    use_dense_alignment: bool | None = None,
-    use_occlusion_classification: bool | None = None,
+    use_geometric_construction: bool = True,
+    use_dense_alignment: bool = True,
+    use_occlusion_classification: bool = True,
     left_img: np.ndarray | torch.Tensor | None = None,
     right_img: np.ndarray | torch.Tensor | None = None,
     imgsz: int | tuple[int, int] | list[int] | None = None,
@@ -762,10 +761,6 @@ def _decode_stereo3d_outputs_per_sample(
         baseline = 0.54
     
     # T014/T015: Determine whether to use geometric construction
-    if use_geometric_construction is None:
-        geo_config = get_geometric_config()
-        use_geometric_construction = geo_config.get("enabled", True)
-    
     # T014: Get geometric solver if enabled
     geometric_solver = None
     geo_fallback = True
@@ -1113,11 +1108,11 @@ def decode_stereo3d_outputs(
     References:
         Stereo CenterNet paper: Section 3.2 (Decoding), Algorithm 1 (Occlusion)
     """
-    # T213: Backward compatibility - detect single sample and use fallback
+    # Backward compatibility - detect single sample and use fallback
     batch_size = outputs["heatmap"].shape[0]
     is_single_sample = batch_size == 1
     
-    # T213: Fallback to original per-sample processing for single sample or edge cases
+    # Fallback to original per-sample processing for single sample or edge cases
     if is_single_sample:
         # Use original implementation for single sample (backward compatibility)
         # Get ori_shape for single sample
@@ -1131,6 +1126,7 @@ def decode_stereo3d_outputs(
             outputs, conf_threshold, top_k, calib,
             use_nms=use_nms, nms_kernel=nms_kernel,
             use_occlusion_classification=use_occlusion_classification,
+            use_geometric_construction=True,
             imgsz=imgsz,
             ori_shape=ori_shape_single,
             mean_dims=mean_dims,  # Pass mean_dims from dataset config
@@ -1507,7 +1503,16 @@ def decode_stereo3d_outputs(
 
     return batch_results
 
-def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] | None = None, names: dict[int, str] | None = None) -> list[Box3D]:
+def _labels_to_box3d_list(
+    labels: list[dict[str, Any]],
+    calib: dict[str, float] | None = None,
+    names: dict[int, str] | None = None,
+    letterbox_scale: float | None = None,
+    pad_left: int | None = None,
+    pad_top: int | None = None,
+    in_h: int | None = None,
+    in_w: int | None = None,
+) -> list[Box3D]:
     """Convert label dictionaries to Box3D objects.
 
     Uses provided names mapping, or falls back to paper classes (Car, Pedestrian, Cyclist) if not available.
@@ -1516,6 +1521,11 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
         labels: List of label dictionaries from dataset.
         calib: Calibration parameters (dict or CalibrationParameters object).
         names: Optional class names mapping {class_id: class_name}.
+        letterbox_scale: Letterbox scale factor (original -> letterboxed).
+        pad_left: Left padding added by letterbox.
+        pad_top: Top padding added by letterbox.
+        in_h: Letterboxed input image height.
+        in_w: Letterboxed input image width.
 
     Returns:
         List of Box3D objects with filtered and remapped class IDs.
@@ -1547,15 +1557,17 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
             
             # Handle both dict and CalibrationParameters objects
             if isinstance(calib, dict):
-                calib = CalibrationParameters.from_dict(calib)
-            fx_val = calib.fx
-            fy_val = calib.fy
-            cx_val = calib.cx
-            cy_val = calib.cy
-            baseline_val = calib.baseline
+                calib_obj = CalibrationParameters.from_dict(calib)
+            else:
+                calib_obj = calib
+            fx_val = calib_obj.fx
+            fy_val = calib_obj.fy
+            cx_val = calib_obj.cx
+            cy_val = calib_obj.cy
+            baseline_val = calib_obj.baseline
 
-            img_width = calib.image_width
-            img_height = calib.image_height
+            img_width = calib_obj.image_width
+            img_height = calib_obj.image_height
             left_u = left_box["center_x"] * img_width
             right_u = right_box["center_x"] * img_width
             disparity = left_u - right_u
@@ -1576,12 +1588,41 @@ def _labels_to_box3d_list(labels: list[dict[str, Any]], calib: dict[str, float] 
         occluded = label["occluded"]
 
         bbox_2d_xywh = label["left_box"]
-        bbox_2d_x1y1x2y2 = (
-            bbox_2d_xywh["center_x"] - bbox_2d_xywh["width"] / 2,
-            bbox_2d_xywh["center_y"] - bbox_2d_xywh["height"] / 2,
-            bbox_2d_xywh["center_x"] + bbox_2d_xywh["width"] / 2,
-            bbox_2d_xywh["center_y"] + bbox_2d_xywh["height"] / 2,
-        )
+
+        # Convert normalized (letterboxed) -> pixels (letterboxed) -> pixels (original)
+        if letterbox_scale is not None and pad_left is not None and pad_top is not None and in_h is not None and in_w is not None:
+            cx_lb_px = bbox_2d_xywh["center_x"] * in_w
+            cy_lb_px = bbox_2d_xywh["center_y"] * in_h
+            bw_lb_px = bbox_2d_xywh["width"] * in_w
+            bh_lb_px = bbox_2d_xywh["height"] * in_h
+
+            x1_lb = cx_lb_px - bw_lb_px / 2
+            y1_lb = cy_lb_px - bh_lb_px / 2
+            x2_lb = cx_lb_px + bw_lb_px / 2
+            y2_lb = cy_lb_px + bh_lb_px / 2
+
+            x1 = (x1_lb - pad_left) / letterbox_scale
+            y1 = (y1_lb - pad_top) / letterbox_scale
+            x2 = (x2_lb - pad_left) / letterbox_scale
+            y2 = (y2_lb - pad_top) / letterbox_scale
+        else:
+            # Fallback: assume labels are normalized to original image
+            if calib is not None:
+                if isinstance(calib, dict):
+                    calib_obj = CalibrationParameters.from_dict(calib)
+                else:
+                    calib_obj = calib
+                orig_w = calib_obj.image_width
+                orig_h = calib_obj.image_height
+            else:
+                orig_w, orig_h = 1242, 375
+
+            x1 = (bbox_2d_xywh["center_x"] - bbox_2d_xywh["width"] / 2) * orig_w
+            y1 = (bbox_2d_xywh["center_y"] - bbox_2d_xywh["height"] / 2) * orig_h
+            x2 = (bbox_2d_xywh["center_x"] + bbox_2d_xywh["width"] / 2) * orig_w
+            y2 = (bbox_2d_xywh["center_y"] + bbox_2d_xywh["height"] / 2) * orig_h
+
+        bbox_2d_x1y1x2y2 = (x1, y1, x2, y2)
 
         box3d = Box3D(
             center_3d=(float(x_3d), float(y_3d), float(z_3d)),
@@ -1871,7 +1912,7 @@ class Stereo3DDetValidator(BaseValidator):
                                 detections.append(det)
                             occluded_indices, _ = classify_occlusion(detections)
                         except Exception as e:
-                            LOGGER.debug(f"Occlusion classification failed: {e}")
+                            LOGGER.debug("Occlusion classification failed for box %d: %s", i, e)
                             occluded_indices = []
                     
                     # Refine depth for each box
@@ -1922,13 +1963,13 @@ class Stereo3DDetValidator(BaseValidator):
                             )
                             refined_boxes.append(refined_box)
                         except Exception as e:
-                            LOGGER.debug(f"Dense alignment failed for box {i}: {e}")
+                            LOGGER.debug("Dense alignment failed for box %d: %s", i, e)
                             refined_boxes.append(box)  # Keep original on failure
                     
                     results[b] = refined_boxes
                     
             except Exception as e:
-                LOGGER.debug(f"Dense alignment batch processing failed: {e}")
+                LOGGER.debug("Dense alignment batch processing failed: %s", e)
                 # Return original results on failure
             
             return results
@@ -1965,7 +2006,7 @@ class Stereo3DDetValidator(BaseValidator):
                 if isinstance(dims, (list, tuple)) and len(dims) == 3:
                     l, w, h = dims  # YAML has [L, W, H]
                     self.mean_dims[class_id] = (h, w, l)  # Store as (H, W, L)
-            LOGGER.info(f"Loaded mean_dims with {len(self.mean_dims)} classes")
+            LOGGER.info("Loaded mean_dims with %d classes", len(self.mean_dims))
         else:
             self.mean_dims = None
             LOGGER.info("No mean_dims in dataset config, will use defaults")
@@ -1979,7 +2020,7 @@ class Stereo3DDetValidator(BaseValidator):
                 if isinstance(dims, (list, tuple)) and len(dims) == 3:
                     l, w, h = dims  # YAML has [L, W, H]
                     self.std_dims[class_id] = (h, w, l)  # Store as (H, W, L)
-            LOGGER.info(f"Loaded std_dims with {len(self.std_dims)} classes")
+            LOGGER.info("Loaded std_dims with %d classes", len(self.std_dims))
         else:
             self.std_dims = None
             LOGGER.info("No std_dims in dataset config, will use defaults")
@@ -2031,7 +2072,6 @@ class Stereo3DDetValidator(BaseValidator):
                             calib_orig["image_width"] = actual_w
                             calib_orig["image_height"] = actual_h
                         else:
-                            from ultralytics.data.stereo.calib import CalibrationParameters
                             if isinstance(calib, CalibrationParameters):
                                 calib_orig = {
                                     "fx": calib.fx / letterbox_scale,
@@ -2045,14 +2085,24 @@ class Stereo3DDetValidator(BaseValidator):
                             else:
                                 calib_orig = calib
                         calib = calib_orig
-                        # Labels are already in original coordinates (normalized to original image size)
-                        # No need to reverse letterbox transformation on labels
+                        # Get letterboxed input size
+                        if isinstance(imgsz, int):
+                            in_h, in_w = imgsz, imgsz
+                        else:
+                            in_h, in_w = int(imgsz[0]), int(imgsz[1])
 
-                # Convert labels to Box3D
+                # Convert labels to Box3D - passing letterbox parameters for bbox_2d conversion
                 try:
-                    gt_boxes = _labels_to_box3d_list(labels, calib, names=self.names)
+                    gt_boxes = _labels_to_box3d_list(
+                        labels, calib, names=self.names,
+                        letterbox_scale=letterbox_scale,
+                        pad_left=pad_left,
+                        pad_top=pad_top,
+                        in_h=in_h,
+                        in_w=in_w,
+                    )
                 except Exception as e:
-                    LOGGER.warning(f"Error converting labels to Box3D (sample {si}): {e}")
+                    LOGGER.warning("Error converting labels to Box3D (sample %d): %s", si, e)
                     gt_boxes = []
 
                 # ------------------------------------------------------------
@@ -2153,7 +2203,7 @@ class Stereo3DDetValidator(BaseValidator):
                         }
                     )
                 except Exception as e:
-                    LOGGER.debug(f"bbox metrics update failed (sample {si}): {e}")
+                    LOGGER.debug("bbox metrics update failed (sample %d): %s", si, e)
 
                 # Handle empty predictions or ground truth
                 if len(pred_boxes) == 0 and len(gt_boxes) == 0:
@@ -2165,7 +2215,7 @@ class Stereo3DDetValidator(BaseValidator):
                     try:
                         iou_matrix = compute_3d_iou_batch(pred_boxes, gt_boxes)
                     except Exception as e:
-                        LOGGER.warning(f"Error computing 3D IoU batch: {e}, falling back to individual computation")
+                        LOGGER.warning("Error computing 3D IoU batch: %s, falling back to individual computation", e)
                         # Fallback to individual computation if batch fails
                         iou_matrix = np.zeros((len(pred_boxes), len(gt_boxes)))
                         for i, pred_box in enumerate(pred_boxes):
@@ -2175,7 +2225,7 @@ class Stereo3DDetValidator(BaseValidator):
                                         iou = compute_3d_iou(pred_box, gt_box)
                                         iou_matrix[i, j] = iou
                                     except Exception as e2:
-                                        LOGGER.warning(f"Error computing 3D IoU: {e2}")
+                                        LOGGER.warning("Error computing 3D IoU: %s", e2)
                                         iou_matrix[i, j] = 0.0
 
                     # Match predictions to ground truth (greedy matching)
@@ -2256,7 +2306,7 @@ class Stereo3DDetValidator(BaseValidator):
                         if metrics_str:
                             self._progress_bar.set_description(metrics_str)
                     except Exception as e:
-                        LOGGER.debug(f"Error updating progress bar: {e}")
+                        LOGGER.debug("Error updating progress bar: %s", e)
 
             # Generate visualization images if plots enabled.
             # NOTE: This stereo validator saves 1 file per sample, so keep defaults conservative to avoid generating
@@ -2264,12 +2314,13 @@ class Stereo3DDetValidator(BaseValidator):
             #
             # Default to 3 batches (matching Detect task style), but can be overridden via `max_plot_batches`.
             # Additionally cap samples per batch (default=1) via `max_plot_samples`.
-            max_plot_batches = getattr(self.args, "max_plot_batches", 3)
+            # TEMPORARY: Modified to generate ALL validation images for error analysis
+            max_plot_batches = getattr(self.args, "max_plot_batches", 10000)
             if self.args.plots and hasattr(self, "batch_i") and self.batch_i < max_plot_batches and RANK in {-1, 0}:
                 try:
                     self.plot_validation_samples(batch, preds, self.batch_i)
                 except Exception as e:
-                    LOGGER.warning(f"Error generating validation visualizations: {e}")
+                    LOGGER.warning("Error generating validation visualizations: %s", e)
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing validation metrics header for progress bar.
@@ -2340,7 +2391,8 @@ class Stereo3DDetValidator(BaseValidator):
                 return
 
             batch_size = len(im_files)
-            max_samples = getattr(self.args, "max_plot_samples", 1)
+            # TEMPORARY: Modified to generate ALL validation samples for error analysis
+            max_samples = getattr(self.args, "max_plot_samples", 10000)
             num_samples = min(batch_size, max_samples)
 
             for si in range(num_samples):
@@ -2351,7 +2403,7 @@ class Stereo3DDetValidator(BaseValidator):
                 # Load original images from file paths
                 left_path = Path(im_file)
                 if not left_path.exists():
-                    LOGGER.debug(f"Left image not found: {left_path}, skipping visualization")
+                    LOGGER.debug("Left image not found: %s, skipping visualization", left_path)
                     continue
 
                 # Get right image path (same filename, different directory)
@@ -2359,7 +2411,7 @@ class Stereo3DDetValidator(BaseValidator):
                 # right path: images/{split}/right/{image_id}.png
                 right_path = left_path.parent.parent / "right" / left_path.name
                 if not right_path.exists():
-                    LOGGER.debug(f"Right image not found: {right_path}, skipping visualization")
+                    LOGGER.debug("Right image not found: %s, skipping visualization", right_path)
                     continue
 
                 # Load original images (BGR format from OpenCV)
@@ -2367,7 +2419,7 @@ class Stereo3DDetValidator(BaseValidator):
                 right_img = cv2.imread(str(right_path))
 
                 if left_img is None or right_img is None:
-                    LOGGER.debug(f"Failed to load images for {left_path}, skipping")
+                    LOGGER.debug("Failed to load images for %s, skipping", left_path)
                     continue
 
                 # Get predictions and ground truth for this sample
@@ -2402,7 +2454,7 @@ class Stereo3DDetValidator(BaseValidator):
                     calib_orig["image_height"] = actual_h
                 else:
                     # For CalibrationParameters object, create a dict with reversed transformation
-                    from ultralytics.data.stereo.calib import CalibrationParameters
+
                     if isinstance(calib, CalibrationParameters):
                         calib_orig = {
                             "fx": calib.fx / letterbox_scale,
@@ -2416,14 +2468,24 @@ class Stereo3DDetValidator(BaseValidator):
                     else:
                         calib_orig = calib
 
+                # Get letterboxed input size
+                if isinstance(imgsz, int):
+                    in_h, in_w = imgsz, imgsz
+                else:
+                    in_h, in_w = int(imgsz[0]), int(imgsz[1])
+
                 # Convert labels to Box3D for ground truth
-                # Use original calibration for accurate conversion
+                # Use original calibration, pass letterbox parameters for bbox_2d conversion
                 gt_boxes = []
                 if labels:
-                    try:
-                        gt_boxes = _labels_to_box3d_list(labels, calib_orig, names=self.names)
-                    except Exception as e:
-                        LOGGER.debug(f"Error converting labels to Box3D for visualization (sample {si}): {e}")
+                    gt_boxes = _labels_to_box3d_list(
+                        labels, calib_orig, names=self.names,
+                        letterbox_scale=letterbox_scale,
+                        pad_left=pad_left,
+                        pad_top=pad_top,
+                        in_h=in_h,
+                        in_w=in_w,
+                    )
 
                 # Filter out predictions with confidence == 0 or below threshold before visualization
                 if pred_boxes:
@@ -2437,38 +2499,29 @@ class Stereo3DDetValidator(BaseValidator):
 
                 # Generate visualization with predictions only (top image)
                 # Use original calibration (not letterboxed) since images are original size
-                try:
-                    left_pred, right_pred, combined_pred = plot_stereo3d_boxes(
-                        left_img=left_img.copy(),
-                        right_img=right_img.copy(),
-                        pred_boxes3d=pred_boxes,
-                        gt_boxes3d=[],  # No ground truth for prediction visualization
-                        left_calib=calib_orig,  # Use original calibration
-                        letterbox_scale=None,  # No letterboxing - using original size
-                        letterbox_pad_left=None,
-                        letterbox_pad_top=None,
-                    )
-                except Exception as e:
-                    LOGGER.debug(f"Error generating prediction visualization for sample {si}: {e}")
-                    continue
-
+                left_pred, right_pred, combined_pred = plot_stereo3d_boxes(
+                    left_img=left_img.copy(),
+                    right_img=right_img.copy(),
+                    pred_boxes3d=pred_boxes,
+                    gt_boxes3d=[],  # No ground truth for prediction visualization
+                    left_calib=calib_orig,  # Use original calibration
+                    letterbox_scale=None,  # No letterboxing - using original size
+                    letterbox_pad_left=None,
+                    letterbox_pad_top=None,
+                )
+                
                 # Generate visualization with ground truth only (bottom image)
                 # Use original calibration (not letterboxed) since images are original size
-                try:
-                    left_gt, right_gt, combined_gt = plot_stereo3d_boxes(
-                        left_img=left_img.copy(),
-                        right_img=right_img.copy(),
-                        pred_boxes3d=[],  # No predictions for ground truth visualization
-                        gt_boxes3d=gt_boxes,
-                        left_calib=calib_orig,  # Use original calibration
-                        letterbox_scale=None,  # No letterboxing - using original size
-                        letterbox_pad_left=None,
-                        letterbox_pad_top=None,
-                    )
-                except Exception as e:
-                    LOGGER.debug(f"Error generating ground truth visualization for sample {si}: {e}")
-                    continue
-
+                left_gt, right_gt, combined_gt = plot_stereo3d_boxes(
+                    left_img=left_img.copy(),
+                    right_img=right_img.copy(),
+                    pred_boxes3d=[],  # No predictions for ground truth visualization
+                    gt_boxes3d=gt_boxes,
+                    left_calib=calib_orig,  # Use original calibration
+                    letterbox_scale=None,  # No letterboxing - using original size
+                    letterbox_pad_left=None,
+                    letterbox_pad_top=None,
+                )
                 # Stack vertically: predictions on top, ground truth on bottom
                 # Use left image only for simplicity (or combine left+right horizontally first)
                 h_pred, w_pred = combined_pred.shape[:2]
@@ -2518,7 +2571,7 @@ class Stereo3DDetValidator(BaseValidator):
                     self.on_plot(save_path)
 
         except Exception as e:
-            LOGGER.warning(f"Error in plot_validation_samples: {e}")
+            LOGGER.warning("Error in plot_validation_samples: %s", e)
 
     def print_results(self) -> None:
         """Print training/validation set metrics per class."""
@@ -2578,7 +2631,7 @@ class Stereo3DDetValidator(BaseValidator):
             box_map50 = det_res.get("metrics/mAP50(B)", 0.0)
             box_map5095 = det_res.get("metrics/mAP50-95(B)", 0.0)
         except Exception as e:
-            LOGGER.debug(f"Failed to get bbox2d metrics for main summary: {e}")
+            LOGGER.debug("Failed to get bbox2d metrics for main summary: %s", e)
 
         # Print format: class name, images, instances, AP3D@0.5, AP3D@0.7, precision, recall, mAP50, mAP50-95
         # Matches detect task format: "Class", "Images", "Instances", ...
@@ -2602,10 +2655,10 @@ class Stereo3DDetValidator(BaseValidator):
                                 class_map50_dict[class_id] = float(class_result[2])  # mAP50
                                 class_map5095_dict[class_id] = float(class_result[3])  # mAP50-95
                         except (IndexError, AttributeError) as e:
-                            LOGGER.debug(f"Failed to get metrics for class {class_id} at index {i}: {e}")
+                            LOGGER.debug("Failed to get metrics for class %d at index %d: %s", class_id, i, e)
                             continue
             except Exception as e:
-                LOGGER.debug(f"Failed to get per-class bbox2d metrics: {e}")
+                LOGGER.debug("Failed to get per-class bbox2d metrics: %s", e)
 
             for class_id, class_name in self.metrics.names.items():
                 ap3d_50_class = self.metrics.ap3d_50.get(class_name, 0.0)
@@ -2715,7 +2768,7 @@ class Stereo3DDetValidator(BaseValidator):
                 float(map5095),
             )
         except Exception as e:
-            LOGGER.debug(f"Error formatting progress metrics: {e}")
+            LOGGER.debug("Error formatting progress metrics: %s", e)
             return ("%11i" + "%11s" * 6) % (int(self.seen), "-", "-", "-", "-", "-", "-")
 
 

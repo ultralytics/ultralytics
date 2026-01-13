@@ -1,4 +1,3 @@
-# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 """Ground truth target generator for Stereo 3D detection with YOLO backbone.
 
@@ -31,8 +30,6 @@ from __future__ import annotations
 
 import math
 from typing import Any
-
-import numpy as np
 import torch
 
 

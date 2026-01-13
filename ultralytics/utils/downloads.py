@@ -426,7 +426,7 @@ def get_github_assets(
 def attempt_download_asset(
     file: str | Path,
     repo: str = "ultralytics/assets",
-    release: str = "v8.3.0",
+    release: str = "v8.4.0",
     **kwargs,
 ) -> str:
     """Attempt to download a file from GitHub release assets if it is not found locally.

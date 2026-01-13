@@ -49,7 +49,7 @@ dropout: 0.0 # (float) dropout for classification head (classify only)
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) run validation/testing during training
 split: val # (str) dataset split to evaluate: 'val', 'test' or 'train'
-save_json: True # (bool) save results to COCO JSON for external evaluation
+save_json: False # (bool) save results to COCO JSON for external evaluation
 conf: # (float, optional) confidence threshold; defaults: predict=0.25, val=0.001
 iou: 0.7 # (float) IoU threshold used for NMS
 max_det: 300 # (int) maximum number of detections per image
@@ -89,6 +89,7 @@ simplify: True # (bool) ONNX/engine only; run graph simplifier for cleaner ONNX 
 opset: # (int, optional) ONNX/engine only; opset version for export; leave unset to use a tested default
 workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.g. 4
 nms: False # (bool) fuse NMS into exported model when backend supports; if True, conf/iou apply (agnostic_nms except coreml)
+end2end: True # (bool) export end-to-end branch or not when model has both end2end(one2one) and standard(one2many) branches
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)
@@ -98,7 +99,6 @@ weight_decay: 0.0005 # (float) weight decay (L2 regularization)
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
 warmup_momentum: 0.8 # (float) initial momentum during warmup
 warmup_bias_lr: 0.1 # (float) bias learning rate during warmup
-end2end: True
 box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain
 dfl: 1.5 # (float) distribution focal loss gain

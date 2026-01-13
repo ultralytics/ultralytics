@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn how to efficiently train Ultralytics YOLO11 models using Google Colab's powerful cloud-based environment. Start your project with ease.
-keywords: YOLO11, Google Colab, machine learning, deep learning, model training, GPU, TPU, cloud computing, Jupyter Notebook, Ultralytics
+description: Learn how to efficiently train Ultralytics YOLO26 models using Google Colab's powerful cloud-based environment. Start your project with ease.
+keywords: YOLO26, Google Colab, machine learning, deep learning, model training, GPU, TPU, cloud computing, Jupyter Notebook, Ultralytics
 ---
 
-# Accelerating YOLO11 Projects with Google Colab
+# Accelerating YOLO26 Projects with Google Colab
 
 Many developers lack the powerful computing resources needed to build [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models. Acquiring high-end hardware or renting a decent GPU can be expensive. Google Colab is a great solution to this. It's a browser-based platform that allows you to work with large datasets, develop complex models, and share your work with others without a huge cost.
 
@@ -16,10 +16,10 @@ Many developers lack the powerful computing resources needed to build [deep lear
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 models on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>.
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 models on Your Custom Dataset in <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb" target="_blank">Google Colab</a>.
 </p>
 
-You can use Google Colab to work on projects related to [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models. Google Colab's user-friendly environment is well suited for efficient model development and experimentation. Let's learn more about Google Colab, its key features, and how you can use it to train YOLO11 models.
+You can use Google Colab to work on projects related to [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models. Google Colab's user-friendly environment is well suited for efficient model development and experimentation. Let's learn more about Google Colab, its key features, and how you can use it to train YOLO26 models.
 
 ## Google Colaboratory
 
@@ -27,9 +27,9 @@ Google Colaboratory, commonly known as Google Colab, was developed by Google Res
 
 You can use Google Colab regardless of the specifications and configurations of your local computer. All you need is a Google account and a web browser.
 
-## Training YOLO11 Using Google Colaboratory
+## Training YOLO26 Using Google Colaboratory
 
-Training YOLO11 models on Google Colab is straightforward. You can access the [Google Colab YOLO11 Notebook](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLO11 Model Training guide](../modes/train.md).
+Training YOLO26 models on Google Colab is straightforward. You can access the [Google Colab YOLO26 Notebook](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLO26 Model Training guide](../modes/train.md).
 
 ### Common Questions While Working with Google Colab
 
@@ -69,9 +69,9 @@ Now, let's look at some of the standout features that make Google Colab a go-to 
 
 - **Educational Resources:** Google Colab offers a range of tutorials and example notebooks to help users learn and explore various functionalities.
 
-## Why Should You Use Google Colab for Your YOLO11 Projects?
+## Why Should You Use Google Colab for Your YOLO26 Projects?
 
-There are many options for training and evaluating YOLO11 models, so what makes the integration with Google Colab unique? Let's explore the advantages of this integration:
+There are many options for training and evaluating YOLO26 models, so what makes the integration with Google Colab unique? Let's explore the advantages of this integration:
 
 - **Zero Setup:** Since Colab runs in the cloud, users can start training models immediately without the need for complex environment setups. Just create an account and start coding.
 
@@ -85,9 +85,9 @@ There are many options for training and evaluating YOLO11 models, so what makes 
 
 - **Extensions and Widgets:** Google Colab allows for adding functionality through third-party extensions and interactive widgets.
 
-## Tips for Working with YOLO11 on Google Colab
+## Tips for Working with YOLO26 on Google Colab
 
-To make the most of your Google Colab experience when working with YOLO11 models, consider these practical tips:
+To make the most of your Google Colab experience when working with YOLO26 models, consider these practical tips:
 
 - **Enable GPU Acceleration:** Always enable GPU acceleration in the runtime settings to significantly speed up training.
 - **Maintain a Stable Connection:** Since Colab runs in the cloud, ensure you have a stable internet connection to prevent interruptions during training.
@@ -99,9 +99,9 @@ To make the most of your Google Colab experience when working with YOLO11 models
 
 If you'd like to dive deeper into Google Colab, here are a few resources to guide you.
 
-- **[Training Custom Datasets with Ultralytics YOLO11 in Google Colab](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab)**: Learn how to train custom datasets with Ultralytics YOLO11 on Google Colab. This comprehensive blog post will take you through the entire process, from initial setup to the training and evaluation stages.
+- **[Training Custom Datasets with Ultralytics YOLO26 in Google Colab](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab)**: Learn how to train custom datasets with Ultralytics YOLO26 on Google Colab. This comprehensive blog post will take you through the entire process, from initial setup to the training and evaluation stages.
 
-- **[Image Segmentation with Ultralytics YOLO11 on Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab)**: Explore how to perform image segmentation tasks using YOLO11 in the Google Colab environment, with practical examples using datasets like the Roboflow Carparts Segmentation Dataset.
+- **[Image Segmentation with Ultralytics YOLO26 on Google Colab](https://www.ultralytics.com/blog/image-segmentation-with-ultralytics-yolo11-on-google-colab)**: Explore how to perform image segmentation tasks using YOLO26 in the Google Colab environment, with practical examples using datasets like the Roboflow Carparts Segmentation Dataset.
 
 - **[Curated Notebooks](https://colab.google/notebooks/)**: Here you can explore a series of organized and educational notebooks, each grouped by specific topic areas.
 
@@ -109,21 +109,21 @@ If you'd like to dive deeper into Google Colab, here are a few resources to guid
 
 ## Summary
 
-We've discussed how you can easily experiment with Ultralytics YOLO11 models on Google Colab. You can use Google Colab to train and evaluate your models on GPUs and TPUs with a few clicks, making it an accessible platform for developers without high-end hardware.
+We've discussed how you can easily experiment with Ultralytics YOLO26 models on Google Colab. You can use Google Colab to train and evaluate your models on GPUs and TPUs with a few clicks, making it an accessible platform for developers without high-end hardware.
 
 For more details, visit [Google Colab's FAQ page](https://research.google.com/colaboratory/faq.html).
 
-Interested in more YOLO11 integrations? Visit the [Ultralytics integration guide page](index.md) to explore additional tools and capabilities that can improve your machine-learning projects, or check out [Kaggle integration](kaggle.md) for another cloud-based alternative.
+Interested in more YOLO26 integrations? Visit the [Ultralytics integration guide page](index.md) to explore additional tools and capabilities that can improve your machine-learning projects, or check out [Kaggle integration](kaggle.md) for another cloud-based alternative.
 
 ## FAQ
 
-### How do I start training Ultralytics YOLO11 models on Google Colab?
+### How do I start training Ultralytics YOLO26 models on Google Colab?
 
-To start training Ultralytics YOLO11 models on Google Colab, sign in to your Google account, then access the [Google Colab YOLO11 Notebook](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb). This notebook guides you through the setup and training process. After launching the notebook, run the cells step-by-step to train your model. For a full guide, refer to the [YOLO11 Model Training guide](../modes/train.md).
+To start training Ultralytics YOLO26 models on Google Colab, sign in to your Google account, then access the [Google Colab YOLO26 Notebook](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb). This notebook guides you through the setup and training process. After launching the notebook, run the cells step-by-step to train your model. For a full guide, refer to the [YOLO26 Model Training guide](../modes/train.md).
 
-### What are the advantages of using Google Colab for training YOLO11 models?
+### What are the advantages of using Google Colab for training YOLO26 models?
 
-Google Colab offers several advantages for training YOLO11 models:
+Google Colab offers several advantages for training YOLO26 models:
 
 - **Zero Setup:** No initial environment setup is required; just log in and start coding.
 - **Free GPU Access:** Use powerful GPUs or TPUs without the need for expensive hardware.
@@ -132,7 +132,7 @@ Google Colab offers several advantages for training YOLO11 models:
 
 For more information on why you should use Google Colab, explore the [training guide](../modes/train.md) and visit the [Google Colab page](https://colab.google/notebooks/).
 
-### How can I handle Google Colab session timeouts during YOLO11 training?
+### How can I handle Google Colab session timeouts during YOLO26 training?
 
 Google Colab sessions timeout due to inactivity, especially for free users. To handle this:
 
@@ -142,9 +142,9 @@ Google Colab sessions timeout due to inactivity, especially for free users. To h
 
 For more tips on managing your Colab session, visit the [Google Colab FAQ page](https://research.google.com/colaboratory/faq.html).
 
-### Can I use custom datasets for training YOLO11 models in Google Colab?
+### Can I use custom datasets for training YOLO26 models in Google Colab?
 
-Yes, you can use custom datasets to train YOLO11 models in Google Colab. Upload your dataset to Google Drive and load it directly into your Colab notebook. You can follow Nicolai's YouTube guide, [How to Train YOLO11 Models on Your Custom Dataset](https://www.youtube.com/watch?v=LNwODJXcvt4), or refer to the [Custom Dataset Training guide](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab) for detailed steps.
+Yes, you can use custom datasets to train YOLO26 models in Google Colab. Upload your dataset to Google Drive and load it directly into your Colab notebook. You can follow Nicolai's YouTube guide, [How to Train YOLO26 Models on Your Custom Dataset](https://www.youtube.com/watch?v=LNwODJXcvt4), or refer to the [Custom Dataset Training guide](https://www.ultralytics.com/blog/training-custom-datasets-with-ultralytics-yolov8-in-google-colab) for detailed steps.
 
 ### What should I do if my Google Colab training session is interrupted?
 

@@ -221,6 +221,7 @@ class AutoBackend(nn.Module):
             for p in model.parameters():
                 p.requires_grad = False
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
+            end2end = getattr(model, "end2end", False)
 
         # TorchScript
         elif jit:
@@ -546,7 +547,9 @@ class AutoBackend(nn.Module):
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
             if ARM64:
-                raise NotImplementedError("NCNN inference is not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
+                raise NotImplementedError(
+                    "NCNN inference is not supported on ARM64"
+                )  # https://github.com/Tencent/ncnn/issues/6509
             check_requirements("ncnn", cmds="--no-deps")
             import ncnn as pyncnn
 

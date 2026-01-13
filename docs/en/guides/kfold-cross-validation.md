@@ -249,7 +249,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
     ```python
     from ultralytics import YOLO
 
-    weights_path = "path/to/weights.pt"  # use yolo11n.pt for a small model
+    weights_path = "path/to/weights.pt"  # use yolo26n.pt for a small model
     model = YOLO(weights_path, task="detect")
     ```
 

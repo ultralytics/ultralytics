@@ -222,7 +222,7 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - YOLO26 🚀 Coming soon: models/yolo26.md # for promotion of new pages
+      - YOLO26 🚀: models/yolo26.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -311,7 +311,7 @@ nav:
       - YOLOv10: models/yolov10.md
       - YOLO11: models/yolo11.md
       - YOLO12: models/yolo12.md
-      - YOLO26 🚀 Coming soon: models/yolo26.md
+      - YOLO26 🚀: models/yolo26.md
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
       - SAM 3 (Segment Anything Model 3): models/sam-3.md
@@ -661,6 +661,8 @@ nav:
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
           - text_model: reference/nn/text_model.md
+      - optim:
+          - muon: reference/optim/muon.md
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md

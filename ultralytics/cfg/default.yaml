@@ -93,11 +93,11 @@ nms: False # (bool) fuse NMS into exported model when backend supports; if True,
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)
 lrf: 0.01 # (float) final LR fraction; final LR = lr0 * lrf
-momentum: 0.9 # (float) SGD momentum or Adam beta1
+momentum: 0.937 # (float) SGD momentum or Adam beta1
 weight_decay: 0.0005 # (float) weight decay (L2 regularization)
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
 warmup_momentum: 0.8 # (float) initial momentum during warmup
-warmup_bias_lr: 0.0 # (float) bias learning rate during warmup
+warmup_bias_lr: 0.1 # (float) bias learning rate during warmup
 end2end: True
 box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain

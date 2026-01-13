@@ -1,11 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 import torch
 import torch.nn as nn
 
 from . import LOGGER
 from .metrics import bbox_iou, probiou
-from .ops import xywhr2xyxyxyxy, xyxy2xywh, xywh2xyxy
+from .ops import xywh2xyxy, xywhr2xyxyxyxy, xyxy2xywh
 from .torch_utils import TORCH_1_11
 
 
@@ -408,7 +409,7 @@ def dist2bbox(distance, anchor_points, xywh=True, dim=-1):
     return torch.cat((x1y1, x2y2), dim)  # xyxy bbox
 
 
-def bbox2dist(anchor_points: torch.Tensor, bbox: torch.Tensor, reg_max: int = None) -> torch.Tensor:
+def bbox2dist(anchor_points: torch.Tensor, bbox: torch.Tensor, reg_max: int | None = None) -> torch.Tensor:
     """Transform bbox(xyxy) to dist(ltrb)."""
     x1y1, x2y2 = bbox.chunk(2, -1)
     dist = torch.cat((anchor_points - x1y1, x2y2 - anchor_points), -1)
@@ -443,7 +444,7 @@ def rbox2dist(
     anchor_points: torch.Tensor,
     target_angle: torch.Tensor,
     dim: int = -1,
-    reg_max: int = None,
+    reg_max: int | None = None,
 ):
     """
     Decode rotated bounding box (xywh) to distance(ltrb). This is the inverse of dist2rbox.

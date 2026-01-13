@@ -2002,7 +2002,7 @@ class Proto26(Proto):
 
 
 class RealNVP(nn.Module):
-    """RealNVP: a flow-based generative model
+    """RealNVP: a flow-based generative model.
 
     References:
         https://arxiv.org/abs/1605.08803
@@ -2024,7 +2024,7 @@ class RealNVP(nn.Module):
         return torch.distributions.MultivariateNormal(self.loc, self.cov)
 
     def __init__(self):
-        super(RealNVP, self).__init__()
+        super().__init__()
 
         self.register_buffer("loc", torch.zeros(2))
         self.register_buffer("cov", torch.eye(2))
@@ -2042,7 +2042,8 @@ class RealNVP(nn.Module):
 
     def backward_p(self, x):
         """Apply mapping form the data space to the latent space and calculate
-        the log determinant of the Jacobian matrix."""
+        the log determinant of the Jacobian matrix.
+        """
         log_det_jacob, z = x.new_zeros(x.shape[0]), x
         for i in reversed(range(len(self.t))):
             z_ = self.mask[i] * z

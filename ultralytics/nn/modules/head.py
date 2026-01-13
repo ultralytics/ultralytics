@@ -15,7 +15,7 @@ from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
-from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Residual, SwiGLUFFN, Proto26, RealNVP
+from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Proto26, RealNVP, Residual, SwiGLUFFN
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
@@ -515,17 +515,20 @@ class OBB26(OBB):
     YOLO26 OBB detection head for detection with rotation models.
     This class extends the OBB head with modified angle processing that outputs raw angle predictions
     without sigmoid transformation, compared to the original OBB class.
+
     Attributes:
         ne (int): Number of extra parameters.
         cv4 (nn.ModuleList): Convolution layers for angle prediction.
         angle (torch.Tensor): Predicted rotation angles.
+
     Methods:
         forward_head: Concatenate and return predicted bounding boxes, class probabilities, and raw angles.
+
     Examples:
         Create an OBB26 detection head
         >>> obb26 = OBB26(nc=80, ne=1, ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
-        >>> outputs = obb26(x)
+        >>> outputs = obb26(x).
     """
 
     def forward_head(

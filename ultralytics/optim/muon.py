@@ -1,6 +1,7 @@
 from __future__ import annotations
-from torch import optim
+
 import torch
+from torch import optim
 
 
 def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:

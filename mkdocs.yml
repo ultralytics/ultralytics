@@ -661,6 +661,8 @@ nav:
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
           - text_model: reference/nn/text_model.md
+      - optim:
+          - muon: reference/optim/muon.md
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md

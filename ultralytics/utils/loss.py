@@ -165,7 +165,7 @@ class RLELoss(nn.Module):
     """
 
     def __init__(self, use_target_weight: bool = True, size_average: bool = True, residual: bool = True):
-        super(RLELoss, self).__init__()
+        super().__init__()
         self.size_average = size_average
         self.use_target_weight = use_target_weight
         self.residual = residual
@@ -249,7 +249,7 @@ class MultiChannelDiceLoss(nn.Module):
     """Criterion class for computing multi-channel Dice losses."""
 
     def __init__(self, smooth: float = 1e-6, reduction: str = "mean"):
-        super(MultiChannelDiceLoss, self).__init__()
+        super().__init__()
         self.smooth = smooth
         self.reduction = reduction
 
@@ -276,7 +276,7 @@ class BCEDiceLoss(nn.Module):
     """Criterion class for computing combined BCE and Dice losses."""
 
     def __init__(self, weight_bce: float = 0.5, weight_dice: float = 0.5):
-        super(BCEDiceLoss, self).__init__()
+        super().__init__()
         self.weight_bce = weight_bce
         self.weight_dice = weight_dice
         self.bce = nn.BCEWithLogitsLoss()
@@ -312,7 +312,7 @@ class KeypointLoss(nn.Module):
 class v8DetectionLoss:
     """Criterion class for computing training losses for YOLOv8 object detection."""
 
-    def __init__(self, model, tal_topk: int = 10, tal_topk2: int = None):  # model must be de-paralleled
+    def __init__(self, model, tal_topk: int = 10, tal_topk2: int | None = None):  # model must be de-paralleled
         """Initialize v8DetectionLoss with model parameters and task-aligned assignment settings."""
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
@@ -448,7 +448,7 @@ class v8DetectionLoss:
 class v8SegmentationLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 segmentation."""
 
-    def __init__(self, model, tal_topk: int = 10, tal_topk2: int = None):  # model must be de-paralleled
+    def __init__(self, model, tal_topk: int = 10, tal_topk2: int | None = None):  # model must be de-paralleled
         """Initialize the v8SegmentationLoss class with model parameters and mask overlap setting."""
         super().__init__(model, tal_topk, tal_topk2)
         self.overlap = model.args.overlap_mask
@@ -751,7 +751,7 @@ class v8PoseLoss(v8DetectionLoss):
 class PoseLoss26(v8PoseLoss):
     """Criterion class for computing training losses for YOLOv8 pose estimation with RLE loss support."""
 
-    def __init__(self, model, tal_topk: int = 10, tal_topk2: int = None):  # model must be de-paralleled
+    def __init__(self, model, tal_topk: int = 10, tal_topk2: int | None = None):  # model must be de-paralleled
         """Initialize PoseLoss26 with model parameters and keypoint-specific loss functions including RLE loss."""
         super().__init__(model, tal_topk, tal_topk2)
         is_pose = self.kpt_shape == [17, 3]
@@ -918,7 +918,7 @@ class v8ClassificationLoss:
 class v8OBBLoss(v8DetectionLoss):
     """Calculates losses for object detection, classification, and box distribution in rotated YOLO models."""
 
-    def __init__(self, model, tal_topk=10, tal_topk2: int = None):
+    def __init__(self, model, tal_topk=10, tal_topk2: int | None = None):
         """Initialize v8OBBLoss with model, assigner, and rotated bbox loss; model must be de-paralleled."""
         super().__init__(model, tal_topk=tal_topk)
         self.assigner = RotatedTaskAlignedAssigner(

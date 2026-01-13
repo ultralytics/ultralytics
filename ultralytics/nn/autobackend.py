@@ -497,11 +497,11 @@ class AutoBackend(nn.Module):
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
             check_requirements(
-                "paddlepaddle-gpu"
+                "paddlepaddle-gpu>=3.0.0,!=3.3.0"  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
                 if torch.cuda.is_available()
                 else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
                 if ARM64
-                else "paddlepaddle>=3.0.0"
+                else "paddlepaddle>=3.0.0,!=3.3.0"  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
             )
             import paddle.inference as pdi
 
@@ -545,6 +545,7 @@ class AutoBackend(nn.Module):
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
+            # use git source for ARM64 due to broken PyPI packages https://github.com/Tencent/ncnn/issues/6509
             check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn", cmds="--no-deps")
             import ncnn as pyncnn
 

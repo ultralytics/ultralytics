@@ -916,8 +916,7 @@ class BaseTrainer:
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.
         """
-        g = [], [], [], []  # optimizer parameter groups
-        pn = [], [], [], []
+        g = {}, {}, {}, {}  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         if name == "auto":
             LOGGER.info(
@@ -935,18 +934,29 @@ class BaseTrainer:
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if param.ndim >= 2 and use_muon:
-                    g[3].append(param)
-                    pn[3].append(fullname)
+                    g[3][fullname] = param  # muon params
                 elif "bias" in fullname:  # bias (no decay)
-                    g[2].append(param)
-                    pn[2].append(fullname)
+                    g[2][fullname] = param
                 elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
                     # ContrastiveHead and BNContrastiveHead included here with 'logit_scale'
-                    g[1].append(param)
-                    pn[1].append(fullname)
+                    g[1][fullname] = param
                 else:  # weight (with decay)
-                    g[0].append(param)
-                    pn[0].append(fullname)
+                    g[0][fullname] = param
+        if use_muon:
+            import re
+            pattern = r'(?=.*23)(?=.*cv3)|proto\.semseg|flow_model'
+            g_ = []  # new param groups
+            for x in g:
+                params1, params2 = [], []
+                for k, v in x.items():
+                    if bool(re.search(pattern, k)):
+                        params1.append(v)
+                    else:
+                        params2.append(v)
+                g_.append([{"params": params1, "lr": lr * 2}, {"params": params2, "lr": lr}])
+            g = g_
+        else:
+            g = [x.values() for x in g]  # convert to list of params
 
         optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
@@ -964,8 +974,7 @@ class BaseTrainer:
                 nesterov=True,
                 muon=self.args.muon_w,
                 sgd=self.args.sgd_w,
-                param_names=pn[2],
-                cls_w=self.args.cls_w,
+                cls_w=1.0,
             )
         else:
             raise NotImplementedError(
@@ -981,17 +990,11 @@ class BaseTrainer:
                     momentum=momentum,
                     nesterov=True,
                     use_muon=True,
-                    param_names=pn[3],
                 ),
             )
 
-        # TODO
-        optimizer.add_param_group(
-            {"params": g[0], "weight_decay": decay, "param_names": pn[0]}
-        )  # add g0 with weight_decay
-        optimizer.add_param_group(
-            {"params": g[1], "weight_decay": 0.0, "param_names": pn[1]}
-        )  # add g1 (BatchNorm2d weights)
+        optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
+        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{len(g[1])} weight(decay=0.0), {len(g[0]) if len(g[0]) else len(g[3])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"

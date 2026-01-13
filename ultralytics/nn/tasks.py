@@ -1061,7 +1061,7 @@ class YOLOEModel(DetectionModel):
         self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
 
         cv3 = getattr(head, "one2one_cv3", head.cv3)
-        cv2 = getattr(head, "one1one_cv3", head.cv2)
+        cv2 = getattr(head, "one2one_cv2", head.cv2)
 
         # re-parameterization for prompt-free model
         self.model[-1].lrpc = nn.ModuleList(

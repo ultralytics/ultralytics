@@ -1330,6 +1330,7 @@ class YOLOFirstPipelineA:
         
         # 对每个关键帧事件执行多锚点分析
         analyzed_count = 0
+        failed_frames = []
         
         for event in proximity_events:
             frame = event['frame']
@@ -1343,6 +1344,7 @@ class YOLOFirstPipelineA:
             try:
                 # 获取该帧的检测和轨迹数据
                 if frame not in detection_map or frame not in track_map:
+                    failed_frames.append((frame, tid1, tid2, "Frame/Track data not found"))
                     continue
                 
                 frame_data = detection_map[frame]
@@ -1368,6 +1370,12 @@ class YOLOFirstPipelineA:
                             track2_history = tracks[tid2]
                 
                 if obj1 is None or obj2 is None or track1_point is None or track2_point is None:
+                    reason = []
+                    if obj1 is None: reason.append(f"obj1 not found")
+                    if obj2 is None: reason.append(f"obj2 not found")
+                    if track1_point is None: reason.append(f"track1_point not found")
+                    if track2_point is None: reason.append(f"track2_point not found")
+                    failed_frames.append((frame, tid1, tid2, ", ".join(reason)))
                     continue
                 
                 # 获取锚点
@@ -1399,15 +1407,19 @@ class YOLOFirstPipelineA:
                 analyzed_count += 1
                 
             except Exception as e:
-                # 如果分析失败，保持原有的简单信息
+                # 记录失败的帧
                 import traceback
-                if analyzed_count == 0:  # 只在第一个失败时打印错误
-                    print(f"  ⚠️  多锚点分析错误: {type(e).__name__}: {str(e)}")
-                    print(f"  📋 Frame {frame}, Track {tid1} + {tid2}")
-                    traceback.print_exc()  # 打印完整堆栈
+                error_msg = f"{type(e).__name__}: {str(e)}"
+                failed_frames.append((frame, tid1, tid2, error_msg))
         
+        # 报告分析结果
         if analyzed_count > 0:
             print(f"  ✓ 多锚点分析完成: {analyzed_count}/{len(proximity_events)}个关键帧")
+        
+        if failed_frames:
+            print(f"  ⚠️  {len(failed_frames)}个关键帧分析失败:")
+            for frame, tid1, tid2, reason in failed_frames:
+                print(f"     - Frame {frame}: ID{tid1}+ID{tid2} ({reason})")
         else:
             print(f"  ⚠️  多锚点分析完成: 0/{len(proximity_events)}个关键帧 (无法获取锚点数据或发生错误)")
         
@@ -1417,17 +1429,37 @@ class YOLOFirstPipelineA:
         print(f"\n【Step 3.7: 多锚点距离过滤 (≤1.0m)】")
         
         anchor_filtered_events = []
+        removed_reasons = {'no_anchor_data': [], 'distance_too_far': []}
+        
         for event in proximity_events:
-            multi = event.get('multi_anchor_detailed', {})
+            frame = event['frame']
+            tid1 = event['track_id_1']
+            tid2 = event['track_id_2']
+            
+            # 检查是否有多锚点分析数据
+            if 'multi_anchor_detailed' not in event:
+                removed_reasons['no_anchor_data'].append((frame, tid1, tid2))
+                continue
+            
+            multi = event['multi_anchor_detailed']
             min_distance = multi.get('min_distance_meters', float('inf'))
             
             # 保留距离 ≤ 1.0m 的事件（高风险）
             if min_distance <= 1.0:
                 anchor_filtered_events.append(event)
             else:
-                frame = event['frame']
-                tid1, tid2 = event['track_id_1'], event['track_id_2']
-                print(f"  ⊗ 过滤 Frame {frame}: Track {tid1}+{tid2} (锚点距离={min_distance:.2f}m > 1.0m)")
+                removed_reasons['distance_too_far'].append((frame, tid1, tid2, min_distance))
+        
+        # 报告被过滤的事件
+        if removed_reasons['no_anchor_data']:
+            print(f"  ⊗ 移除 {len(removed_reasons['no_anchor_data'])} 个无多锚点数据的事件:")
+            for frame, tid1, tid2 in removed_reasons['no_anchor_data']:
+                print(f"     - Frame {frame}: ID{tid1}+ID{tid2} (Step 3.6分析失败)")
+        
+        if removed_reasons['distance_too_far']:
+            print(f"  ⊗ 移除 {len(removed_reasons['distance_too_far'])} 个距离>1.0m的事件:")
+            for frame, tid1, tid2, dist in removed_reasons['distance_too_far']:
+                print(f"     - Frame {frame}: ID{tid1}+ID{tid2} (锚点距离={dist:.2f}m)")
         
         filtered_count = len(proximity_events) - len(anchor_filtered_events)
         print(f"  🔍 多锚点距离过滤: 排除 {filtered_count} 个事件")

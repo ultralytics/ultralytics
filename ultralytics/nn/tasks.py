@@ -393,7 +393,6 @@ class DetectionModel(BaseModel):
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
         self.inplace = self.yaml.get("inplace", True)
-        # self.end2end = getattr(self.model[-1], "end2end", False)
 
         # Build strides
         m = self.model[-1]  # Detect()
@@ -426,17 +425,6 @@ class DetectionModel(BaseModel):
     @property
     def end2end(self):
         return getattr(self.model[-1], "end2end", False)
-
-    def update_detach(self, detach_o2o=True):
-        """
-        Update the Detect layer to detach one-to-one outputs if end-to-end detection is enabled.
-
-        Args:
-            detach_o2o (bool): Whether to detach one-to-one outputs.
-        """
-        m = self.model[-1]
-        if isinstance(m, Detect) and getattr(m, "end2end", False):
-            m.detach_o2o = detach_o2o
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs.

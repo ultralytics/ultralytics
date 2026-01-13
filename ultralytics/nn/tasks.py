@@ -70,6 +70,7 @@ from ultralytics.nn.modules import (
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
+    YOLOESegment26,
     v10Detect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
@@ -1026,13 +1027,12 @@ class YOLOEModel(DetectionModel):
         device = next(self.model.parameters()).device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute
-            # TODO
-            self.clip_model = build_text_model(getattr(self, "text_model", "mobileclip2:blt"), device=device)
+            self.clip_model = build_text_model(getattr(self, "text_model", "mobileclip:blt"), device=device)
 
         model = (
             self.clip_model
             if cache_clip_model
-            else build_text_model(getattr(self, "text_model", "mobileclip2:blt"), device=device)
+            else build_text_model(getattr(self, "text_model", "mobileclip:blt"), device=device)
         )
         text_token = model.tokenize(text)
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
@@ -1673,6 +1673,7 @@ def parse_model(d, ch, verbose=True):
                 Segment,
                 Segment26,
                 YOLOESegment,
+                YOLOESegment26,
                 Pose,
                 Pose26,
                 OBB,
@@ -1682,9 +1683,9 @@ def parse_model(d, ch, verbose=True):
             }
         ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
-            if m is Segment or m is YOLOESegment or m is Segment26:  # TODO, check YOLOESegment26 as well
+            if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, Pose, Pose26, OBB, OBB26}:
+            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])

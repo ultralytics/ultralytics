@@ -90,6 +90,7 @@ from .head import (
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
+    YOLOESegment26,
     v10Detect,
 )
 from .transformer import (
@@ -181,6 +182,7 @@ __all__ = (
     "WorldDetect",
     "YOLOEDetect",
     "YOLOESegment",
+    "YOLOESegment26",
     "v10Detect",
     "OBB26",
     "Pose26",

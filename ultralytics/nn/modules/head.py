@@ -74,7 +74,6 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
-    detach_o2o = True
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """
@@ -399,10 +398,9 @@ class Segment26(Segment):
         if isinstance(preds, dict):  # training and validating during training
             if self.end2end:
                 preds["one2many"]["proto"] = proto
-                if isinstance(proto, tuple):
-                    preds["one2one"]["proto"] = tuple(p.detach() for p in proto)
-                else:
-                    preds["one2one"]["proto"] = proto.detach()
+                preds["one2one"]["proto"] = (
+                    tuple(p.detach() for p in proto) if isinstance(proto, tuple) else proto.detach()
+                )
             else:
                 preds["proto"] = proto
         if self.training:

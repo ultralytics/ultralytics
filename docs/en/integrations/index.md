@@ -93,7 +93,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TF.js](tfjs.md): Developed by [Google](https://www.google.com/) to facilitate machine learning in browsers and Node.js, TF.js allows JavaScript-based deployment of ML models.
 
-- [TFLite](tflite.md): Developed by [Google](https://www.google.com/), TFLite is a lightweight framework for deploying machine learning models on mobile and edge devices, ensuring fast, efficient inference with minimal memory footprint.
+- [TFLite](tflite.md): Developed by [Google](https://www.google.com/), TFLite is a lightweight framework for deploying machine learning models on mobile and edge devices, ensuring fast, efficient inference with minimal memory footprint. Includes automatic hardware acceleration via Qualcomm QNN (Neural Network SDK) on supported devices, when available.
 
 - [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com/) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient [edge computing](https://www.ultralytics.com/glossary/edge-computing).
 

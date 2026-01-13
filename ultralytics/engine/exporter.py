@@ -813,11 +813,11 @@ class Exporter:
         assert not IS_JETSON, "Jetson Paddle exports not supported yet"
         check_requirements(
             (
-                "paddlepaddle-gpu"
+                "paddlepaddle-gpu>=3.0.0,!=3.3.0"  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
                 if torch.cuda.is_available()
                 else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
                 if ARM64
-                else "paddlepaddle>=3.0.0",
+                else "paddlepaddle>=3.0.0,!=3.3.0",  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
                 "x2paddle",
             )
         )
@@ -860,6 +860,8 @@ class Exporter:
     @try_export
     def export_ncnn(self, prefix=colorstr("NCNN:")):
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
+        if ARM64:
+            raise NotImplementedError("NCNN export is not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
         check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
         check_requirements("pnnx")
         import ncnn

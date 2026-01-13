@@ -235,6 +235,7 @@ def test_export_mnn_matrix(task, int8, half, batch):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(ARM64, reason="NCNN not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
 def test_export_ncnn():
     """Test YOLO export to NCNN format."""
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)
@@ -242,6 +243,7 @@ def test_export_ncnn():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(ARM64, reason="NCNN not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
 @pytest.mark.parametrize("task, half, batch", list(product(TASKS, [True, False], [1])))
 def test_export_ncnn_matrix(task, half, batch):
     """Test YOLO export to NCNN format considering various export configurations."""

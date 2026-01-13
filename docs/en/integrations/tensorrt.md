@@ -401,6 +401,10 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
     See our [quickstart guide on NVIDIA Jetson with Ultralytics YOLO](../guides/nvidia-jetson.md) to learn more about setup and configuration.
 
+!!! info
+
+    See our [quickstart guide on NVIDIA DGX Spark with Ultralytics YOLO](../guides/nvidia-dgx-spark.md) to learn more about setup and configuration.
+
 #### Evaluation methods
 
 Expand sections below for information on how these models were exported and tested.

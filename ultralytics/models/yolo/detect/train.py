@@ -116,6 +116,7 @@ class DetectionTrainer(BaseTrainer):
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
+        batch["img"] = batch["img"].float() / 255
         multi_scale = self.args.multi_scale
         if random.random() < multi_scale:
             imgs = batch["img"]
@@ -131,7 +132,6 @@ class DetectionTrainer(BaseTrainer):
                 ]  # new shape (stretched to gs-multiple)
                 imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
             batch["img"] = imgs
-        batch["img"] = batch["img"].float() / 255
         return batch
 
     def set_model_attributes(self):

@@ -1050,17 +1050,25 @@ class YOLOEDetect(Detect):
         if self.is_fused:
             return
 
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
         assert not self.training
         txt_feats = txt_feats.to(torch.float32).squeeze(0)
-        for cls_head, bn_head in zip(cv3, self.cv4):
-            assert isinstance(cls_head, nn.Sequential)
-            assert isinstance(bn_head, BNContrastiveHead)
-            conv = cls_head[-1]
+        self._fuse_tp(txt_feats, self.cv3, self.cv4)
+        if self.end2end:
+            self._fuse_tp(txt_feats, self.one2one_cv3, self.one2one_cv4)
+        del self.reprta
+        self.reprta = nn.Identity()
+        self.is_fused = True
+
+    def _fuse_tp(self, txt_feats: torch.Tensor, cls_head: torch.nn.Module, bn_head: torch.nn.Module) -> None:
+        """Fuse text prompt embeddings with model weights for efficient inference."""
+        for cls_h, bn_h in zip(cls_head, bn_head):
+            assert isinstance(cls_h, nn.Sequential)
+            assert isinstance(bn_h, BNContrastiveHead)
+            conv = cls_h[-1]
             assert isinstance(conv, nn.Conv2d)
-            logit_scale = bn_head.logit_scale
-            bias = bn_head.bias
-            norm = bn_head.norm
+            logit_scale = bn_h.logit_scale
+            bias = bn_h.bias
+            norm = bn_h.norm
 
             t = txt_feats * logit_scale.exp()
             conv: nn.Conv2d = fuse_conv_and_bn(conv, norm)
@@ -1084,13 +1092,9 @@ class YOLOEDetect(Detect):
 
             conv.weight.data.copy_(w.unsqueeze(-1).unsqueeze(-1))
             conv.bias.data.copy_(b1 + b2)
-            cls_head[-1] = conv
+            cls_h[-1] = conv
 
-            bn_head.fuse()
-
-        del self.reprta
-        self.reprta = nn.Identity()
-        self.is_fused = True
+            bn_h.fuse()
 
     def get_tpe(self, tpe: torch.Tensor | None) -> torch.Tensor | None:
         """Get text prompt embeddings with normalization."""
@@ -1334,6 +1338,70 @@ class YOLOESegment(YOLOEDetect):
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))
         return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
+
+
+class YOLOESegment26(YOLOESegment):
+    """
+    YOLOE-style segmentation head module using Proto26 for mask generation.
+
+    This class extends the YOLOEDetect functionality to include segmentation capabilities by
+    integrating a prototype generation module and convolutional layers to predict mask coefficients.
+
+    Attributes:
+        nm (int): Number of segmentation masks.
+        npr (int): Number of prototype channels.
+        proto (Proto26): Prototype generation module for segmentation.
+        cv5 (nn.ModuleList): Convolutional layers for generating mask coefficients from features.
+        one2one_cv5 (nn.ModuleList, optional): Deep copy of cv5 for end-to-end detection branches.
+
+    Args:
+        nc (int): Number of classes. Defaults to 80.
+        nm (int): Number of masks. Defaults to 32.
+        npr (int): Number of prototype channels. Defaults to 256.
+        embed (int): Embedding dimensionality. Defaults to 512.
+        with_bn (bool): Whether to use Batch Normalization. Defaults to False.
+        reg_max (int): Maximum regression value for bounding boxes. Defaults to 16.
+        end2end (bool): Whether to use end-to-end detection mode. Defaults to False.
+        ch (tuple[int, ...]): Input channels for each scale.
+    """
+
+    def __init__(
+        self,
+        nc: int = 80,
+        nm: int = 32,
+        npr: int = 256,
+        embed: int = 512,
+        with_bn: bool = False,
+        reg_max=16,
+        end2end=False,
+        ch: tuple = (),
+    ):
+        """Initialize YOLOESegment26 with class count, mask parameters, and embedding dimensions."""
+        YOLOEDetect.__init__(self, nc, embed, with_bn, reg_max, end2end, ch)
+        self.nm = nm
+        self.npr = npr
+        self.proto = Proto26(ch, self.npr, self.nm, nc)  # protos
+
+        c5 = max(ch[0] // 4, self.nm)
+        self.cv5 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, self.nm, 1)) for x in ch)
+        if end2end:
+            self.one2one_cv5 = copy.deepcopy(self.cv5)
+
+    def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
+        """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
+        outputs = Detect.forward(self, x)
+        preds = outputs[1] if isinstance(outputs, tuple) else outputs
+        proto = self.proto([xi.detach() for xi in x], return_semseg=False)  # mask protos
+
+        if isinstance(preds, dict):  # training and validating during training
+            if self.end2end:
+                preds["one2many"]["proto"] = proto
+                preds["one2one"]["proto"] = proto.detach()
+            else:
+                preds["proto"] = proto
+        if self.training:
+            return preds
+        return (outputs, proto) if self.export else ((outputs[0], proto), preds)
 
 
 class RTDETRDecoder(nn.Module):

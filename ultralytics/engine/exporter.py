@@ -486,7 +486,6 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
-        # TODO
         model = model.fuse()
 
         if imx:
@@ -544,7 +543,6 @@ class Exporter:
             "imgsz": self.imgsz,
             "names": model.names,
             "args": {k: v for k, v in self.args if k in fmt_keys},
-            "end2end": getattr(model, "end2end", False) and self.args.end2end,
             "channels": model.yaml.get("channels", 3),
         }  # model metadata
         if dla is not None:

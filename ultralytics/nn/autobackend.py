@@ -643,7 +643,7 @@ class AutoBackend(nn.Module):
             for k, v in metadata.items():
                 if k in {"stride", "batch", "channels"}:
                     metadata[k] = int(v)
-                elif k in {"imgsz", "names", "kpt_shape", "kpt_names", "args", "end2end"} and isinstance(v, str):
+                elif k in {"imgsz", "names", "kpt_shape", "kpt_names", "args"} and isinstance(v, str):
                     metadata[k] = ast.literal_eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
@@ -652,7 +652,7 @@ class AutoBackend(nn.Module):
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
             kpt_names = metadata.get("kpt_names")
-            end2end = metadata.get("end2end", False) or metadata.get("args", {}).get("nms", False)
+            end2end = metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):

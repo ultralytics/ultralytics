@@ -1017,10 +1017,10 @@ class YOLOEDetect(Detect):
                 for x in ch
             )
         )
+        self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
         if end2end:
             self.one2one_cv3 = copy.deepcopy(self.cv3)  # overwrite with new cv3
-
-        self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
 
         self.reprta = Residual(SwiGLUFFN(embed, embed))
         self.savpe = SAVPE(ch, c3, embed)
@@ -1139,7 +1139,7 @@ class YOLOEDetect(Detect):
     @property
     def one2one(self):
         """Returns the one-to-one head components."""
-        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, contrastive_head=self.cv4)
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, contrastive_head=self.one2one_cv4)
 
     def forward_head(self, x, box_head, cls_head, contrastive_head):
         assert len(x) == 4, f"Expected 4 features including 3 feature maps and 1 text embeddings, but got {len(x)}."
@@ -1234,7 +1234,10 @@ class YOLOESegment(YOLOEDetect):
     def one2one(self):
         """Returns the one-to-one head components."""
         return dict(
-            box_head=self.one2one_cv2, cls_head=self.one2one_cv3, mask_head=self.one2one_cv5, contrastive_head=self.cv4
+            box_head=self.one2one_cv2,
+            cls_head=self.one2one_cv3,
+            mask_head=self.one2one_cv5,
+            contrastive_head=self.one2one_cv4,
         )
 
     def forward_lrpc(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
@@ -1242,7 +1245,7 @@ class YOLOESegment(YOLOEDetect):
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
         cv2 = self.cv2 if not self.end2end else self.one2one_cv2
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv2
+        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
         cv5 = self.cv5 if not self.end2end else self.one2one_cv5
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])

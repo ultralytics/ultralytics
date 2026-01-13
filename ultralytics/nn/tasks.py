@@ -1066,9 +1066,14 @@ class YOLOEModel(DetectionModel):
         device = next(self.model.parameters()).device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute
-            self.clip_model = build_text_model(self.text_model, device=device)
+            # TODO
+            self.clip_model = build_text_model(getattr(self, "text_model", "mobileclip2:blt"), device=device)
 
-        model = self.clip_model if cache_clip_model else build_text_model(self.text_model, device=device)
+        model = (
+            self.clip_model
+            if cache_clip_model
+            else build_text_model(getattr(self, "text_model", "mobileclip2:blt"), device=device)
+        )
         text_token = model.tokenize(text)
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)

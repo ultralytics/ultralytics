@@ -356,7 +356,9 @@ class MobileCLIPTS(TextModel):
             torch.Size([2, 512])  # Actual dimension depends on model size
         """
         # NOTE: no need to do normalization here as it's embedded in the torchscript model
-        return self.encoder(texts).to(dtype)
+        text_features = self.encoder(texts).to(dtype)
+        text_features /= text_features.norm(p=2, dim=-1, keepdim=True)
+        return text_features
 
 
 def build_text_model(variant: str, device: torch.device = None) -> TextModel:

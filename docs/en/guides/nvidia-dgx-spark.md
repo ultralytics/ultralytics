@@ -67,7 +67,7 @@ DGX Spark comes with a built-in [DGX Dashboard](https://docs.nvidia.com/dgx/dgx-
 
     ```bash
     # Open an SSH tunnel
-    ssh -L 11000:localhost:11000 <username>@<IP or spark-abcd.local>
+    ssh -L 11000:localhost:11000 username@spark-abcd.local
 
     # Then open in browser
     # http://localhost:11000

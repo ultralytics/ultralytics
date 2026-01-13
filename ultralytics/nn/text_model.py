@@ -275,7 +275,7 @@ class MobileCLIPTS(TextModel):
         >>> features = text_encoder.encode_text(tokens)
     """
 
-    def __init__(self, device: torch.device, weight:str = "mobileclip_blt.ts"):
+    def __init__(self, device: torch.device, weight: str = "mobileclip_blt.ts"):
         """
         Initialize the MobileCLIP TorchScript text encoder.
 
@@ -331,9 +331,7 @@ class MobileCLIPTS(TextModel):
             torch.Size([2, 512])  # Actual dimension depends on model size
         """
         # NOTE: no need to do normalization here as it's embedded in the torchscript model
-        text_features = self.encoder(texts).to(dtype)
-        text_features /= text_features.norm(p=2, dim=-1, keepdim=True)
-        return text_features
+        return self.encoder(texts).to(dtype)
 
 
 def build_text_model(variant: str, device: torch.device = None) -> TextModel:

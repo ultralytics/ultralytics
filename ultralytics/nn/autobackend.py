@@ -550,7 +550,12 @@ class AutoBackend(nn.Module):
             import ncnn as pyncnn
 
             net = pyncnn.Net()
-            net.opt.use_vulkan_compute = cuda
+            if isinstance(cuda, torch.device):
+                net.opt.use_vulkan_compute = cuda
+            elif isinstance(device, str) and device.startswith("vulkan"):
+                net.opt.use_vulkan_compute = True
+                net.set_vulkan_device(int(device.split(":")[1]))
+                device = torch.device("cpu")
             w = Path(w)
             if not w.is_file():  # if not *.param
                 w = next(w.glob("*.param"))  # get *.param file from *_ncnn_model dir

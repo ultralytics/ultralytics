@@ -133,6 +133,43 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
 ---
 
+## Usage Examples
+
+This section provides simple YOLO26 training and inference examples. For full documentation on these and other [modes](../modes/index.md), see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md), and [Export](../modes/export.md) docs pages.
+
+Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks, see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md), [OBB](../tasks/obb.md), and [Pose](../tasks/pose.md) docs.
+
+!!! example
+
+    === "Python"
+
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in Python:
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+
+        # Run inference with the YOLO26n model on the 'bus.jpg' image
+        results = model("path/to/bus.jpg")
+        ```
+
+    === "CLI"
+
+        CLI commands are available to directly run the models:
+
+        ```bash
+        # Load a COCO-pretrained YOLO26n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolo26n.pt data=coco8.yaml epochs=100 imgsz=640
+
+        # Load a COCO-pretrained YOLO26n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolo26n.pt source=path/to/bus.jpg
+        ```
+
 ## YOLOE-26: Open-Vocabulary Instance Segmentation
 
 YOLOE-26 integrates the high-performance YOLO26 architecture with the open-vocabulary capabilities of the [YOLOE](yoloe.md) series. It enables real-time detection and segmentation of any object class using **text prompts**, **visual prompts**, or a **prompt-free mode** for zero-shot inference, effectively removing the constraints of fixed-category training.
@@ -165,6 +202,91 @@ By leveraging YOLO26's **NMS-free, end-to-end design**, YOLOE-26 delivers fast o
         | YOLOE-26m-seg-pf | 640                         | 25.7                            | 33.6                         | 36.2                     | 122.1                   |
         | YOLOE-26l-seg-pf | 640                         | 27.2                            | 35.4                         | 40.6                     | 140.4                   |
         | YOLOE-26x-seg-pf | 640                         | 29.9                            | 38.7                         | 86.3                     | 314.4                   |
+
+### Usage Example
+
+YOLOE-26 supports both text-based and visual prompting. Using prompts is straightforward—just pass them through the `predict` method as shown below:
+
+!!! example
+
+    === "Text Prompt"
+
+        Text prompts allow you to specify the classes that you wish to detect through textual descriptions. The following code shows how you can use YOLOE-26 to detect people and buses in an image:
+
+        ```python
+        from ultralytics import YOLO
+
+        # Initialize model
+        model = YOLO("yoloe-26l-seg.pt")  # or select yoloe-26s/m-seg.pt for different sizes
+
+        # Set text prompt to detect person and bus. You only need to do this once after you load the model.
+        names = ["person", "bus"]
+        model.set_classes(names, model.get_text_pe(names))
+
+        # Run detection on the given image
+        results = model.predict("path/to/image.jpg")
+
+        # Show results
+        results[0].show()
+        ```
+
+    === "Visual Prompt"
+
+        Visual prompts allow you to guide the model by showing it visual examples of the target classes, rather than describing them in text.
+
+        ```python
+        import numpy as np
+
+        from ultralytics import YOLO
+        from ultralytics.models.yolo.yoloe import YOLOVPSegPredictor
+
+        # Initialize model
+        model = YOLO("yoloe-26l-seg.pt")
+
+        # Define visual prompts using bounding boxes and their corresponding class IDs.
+        # Each box highlights an example of the object you want the model to detect.
+        visual_prompts = dict(
+            bboxes=np.array(
+                [
+                    [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
+                    [120, 425, 160, 445],  # Box enclosing glasses
+                ],
+            ),
+            cls=np.array(
+                [
+                    0,  # ID to be assigned for person
+                    1,  # ID to be assigned for glassses
+                ]
+            ),
+        )
+
+        # Run inference on an image, using the provided visual prompts as guidance
+        results = model.predict(
+            "ultralytics/assets/bus.jpg",
+            visual_prompts=visual_prompts,
+            predictor=YOLOVPSegPredictor,
+        )
+
+        # Show results
+        results[0].show()
+        ```
+
+    === "Prompt free"
+
+        YOLOE-26 includes prompt-free variants that come with a built-in vocabulary. These models don't require any prompts and work like traditional YOLO models. Instead of relying on user-provided labels or visual examples, they detect objects from a [predefined list of 4,585 classes](https://github.com/xinyu1205/recognize-anything/blob/main/ram/data/ram_tag_list.txt) based on the tag set used by the [Recognize Anything Model Plus (RAM++)](https://arxiv.org/abs/2310.15200).
+
+        ```python
+        from ultralytics import YOLO
+
+        # Initialize model
+        model = YOLO("yoloe-26l-seg-pf.pt")
+
+        # Run prediction. No prompts required.
+        results = model.predict("path/to/image.jpg")
+
+        # Show results
+        results[0].show()
+        ```
 
 For a deep dive into prompting techniques, training from scratch, and full usage examples, visit the **[YOLOE Documentation](yoloe.md)**.
 

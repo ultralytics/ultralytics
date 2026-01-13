@@ -48,6 +48,10 @@ from collections import defaultdict
 sys.path.append(os.path.dirname(__file__))
 from ultralytics import YOLO
 
+# 导入多锚点碰撞检测模块
+from anchor_points import VehicleAnchors, PedestrianAnchors, BicycleAnchors, MotorcycleAnchors, get_vehicle_heading
+from collision_analyzer import CollisionAnalyzer
+
 
 class YOLOFirstPipelineA:
     def __init__(self, video_path, homography_path=None, output_base=None, skip_frames=1, model='yolo11n', min_track_length=3):
@@ -167,7 +171,7 @@ class YOLOFirstPipelineA:
         return True
     
     def save_keyframe_with_distance(self, video_path, frame_num, output_path, proximity_event):
-        """保存关键帧图像（绘制两个接近的物体和距离）"""
+        """保存关键帧图像（绘制两个接近的物体、距离、多锚点碰撞点）"""
         cap = cv2.VideoCapture(video_path)
         cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num - 1)
         ret, frame = cap.read()
@@ -202,12 +206,76 @@ class YOLOFirstPipelineA:
         # 绘制连接线
         cv2.line(frame, pt1, pt2, (255, 0, 0), 2)  # 蓝色线
         
+        # ========== 多锚点碰撞可视化 ==========
+        # 如果有多锚点分析结果，绘制最近碰撞点
+        if 'multi_anchor_detailed' in proximity_event:
+            try:
+                multi_anchor = proximity_event['multi_anchor_detailed']
+                closest_parts = multi_anchor.get('closest_parts', {})
+                
+                point1_px = closest_parts.get('point1_px')
+                point2_px = closest_parts.get('point2_px')
+                
+                if point1_px and point2_px:
+                    # 确保坐标是整数
+                    anchor_pt1 = tuple(map(int, point1_px))
+                    anchor_pt2 = tuple(map(int, point2_px))
+                    
+                    # 绘制最近碰撞点：大圆圈（绿/红）
+                    cv2.circle(frame, anchor_pt1, 12, (0, 255, 0), 2)  # 绿色大圆圈 (Object 1)
+                    cv2.circle(frame, anchor_pt2, 12, (0, 0, 255), 2)  # 红色大圆圈 (Object 2)
+                    
+                    # 绘制最近碰撞点之间的连线（紫色）
+                    cv2.line(frame, anchor_pt1, anchor_pt2, (255, 0, 255), 2)
+                    
+                    # 显示锚点名称和距离
+                    obj1_part = closest_parts.get('object1_part', '?')
+                    obj2_part = closest_parts.get('object2_part', '?')
+                    min_dist_m = multi_anchor.get('min_distance_meters', 0)
+                    risk_level = multi_anchor.get('risk_level', 'UNKNOWN')
+                    ttc = multi_anchor.get('ttc_seconds')
+                    
+                    # 在连接线中点显示距离和风险等级
+                    mid_x = (anchor_pt1[0] + anchor_pt2[0]) // 2
+                    mid_y = (anchor_pt1[1] + anchor_pt2[1]) // 2
+                    
+                    # 距离信息
+                    dist_text = f"Anchor: {min_dist_m:.2f}m"
+                    cv2.putText(frame, dist_text, (mid_x-80, mid_y-30),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
+                    
+                    # 风险等级和颜色
+                    risk_color_map = {
+                        'CRITICAL': (0, 0, 255),    # Red
+                        'HIGH': (0, 165, 255),       # Orange
+                        'MEDIUM': (0, 255, 255),     # Yellow
+                        'LOW': (0, 255, 0),          # Green
+                    }
+                    risk_color = risk_color_map.get(risk_level, (255, 255, 255))
+                    cv2.putText(frame, f"Risk: {risk_level}", (mid_x-80, mid_y+10),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.6, risk_color, 2)
+                    
+                    # TTC信息
+                    if ttc is not None:
+                        ttc_text = f"TTC: {ttc:.2f}s" if ttc > 0 else "TTC: CRITICAL"
+                        cv2.putText(frame, ttc_text, (mid_x-80, mid_y+50),
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, risk_color, 2)
+                    
+                    # 碰撞部分标注
+                    cv2.putText(frame, obj1_part, (anchor_pt1[0]-50, anchor_pt1[1]-20),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                    cv2.putText(frame, obj2_part, (anchor_pt2[0]+20, anchor_pt2[1]-20),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+            except Exception as e:
+                # 如果多锚点可视化失败，继续使用简单的中心点可视化
+                pass
+        
         # 显示距离信息 (像素和世界坐标)
         mid_x = (pt1[0] + pt2[0]) // 2
         mid_y = (pt1[1] + pt2[1]) // 2
-        distance_text = f"Distance: {distance_meters:.2f}m ({distance_pixel:.0f}px)"
-        cv2.putText(frame, distance_text, (mid_x-100, mid_y-10),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+        distance_text = f"Center Distance: {distance_meters:.2f}m ({distance_pixel:.0f}px)"
+        cv2.putText(frame, distance_text, (mid_x-130, mid_y+30),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
         
         # 显示物体类别信息
         class_text = f"{class_1} vs {class_2}"
@@ -217,6 +285,7 @@ class YOLOFirstPipelineA:
         # 保存图像
         cv2.imwrite(str(output_path), frame)
         return True
+
     
     # =========================================================================
     # STEP 1: YOLO 检测 (像素空间)
@@ -243,58 +312,116 @@ class YOLOFirstPipelineA:
         frame_count = 0
         detection_frames_count = 0
         
+        # 计算跳帧后的处理帧数
+        expected_processing_frames = (total_frames + self.skip_frames - 1) // self.skip_frames
+        
         # 抽帧处理
         if self.skip_frames > 1:
-            print(f"  处理中: {total_frames}帧 @ {fps:.2f}FPS (每隔{self.skip_frames}帧处理一帧)...")
+            print(f"  处理中: 将处理 ~{expected_processing_frames} 帧 (从总共 {total_frames}帧中，每隔{self.skip_frames}帧处理一帧)...")
         else:
             print(f"  处理中: {total_frames}帧 @ {fps:.2f}FPS...")
         
-        for result in model.track(source=self.video_path, stream=True, 
-                                 persist=True, conf=conf_threshold):
-            frame_count += 1
+        # 如果需要跳帧，先收集要处理的帧
+        frames_to_process = []
+        if self.skip_frames > 1:
+            # 只读取需要处理的帧
+            for frame_idx in range(0, total_frames, self.skip_frames):
+                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+                ret, frame = cap.read()
+                if ret:
+                    frames_to_process.append((frame_idx + 1, frame))  # frame_idx+1 because frames are 1-indexed
+            cap.release()
             
-            # 抽帧：如果启用抽帧，跳过不需要处理的帧
-            if (frame_count - 1) % self.skip_frames != 0:
-                continue
+            print(f"    ✓ 已加载{len(frames_to_process)}帧进行处理")
             
-            if result.boxes is None or len(result.boxes) == 0:
-                if frame_count % 30 == 0:
-                    print(f"    Frame {frame_count}/{total_frames} - 无物体")
-                continue
-            
-            detection_frames_count += 1
-            boxes = result.boxes.xywh.cpu().numpy()
-            ids = result.boxes.id
-            classes = result.boxes.cls.cpu().numpy().astype(int)
-            confs = result.boxes.conf.cpu().numpy()
-            
-            frame_detections = {
-                'frame': frame_count,
-                'time': frame_count / fps,
-                'objects': []
-            }
-            
-            # 只有在有检测到对象时才处理
-            if len(boxes) > 0 and ids is not None:
-                for i in range(len(boxes)):
-                    obj_data = {
-                        'track_id': int(ids[i]) if ids[i] is not None else -1,
-                        'class': int(classes[i]),
-                        'conf': float(confs[i]),
-                        'bbox_xywh': boxes[i].tolist(),  # [x_center, y_center, w, h] 像素
-                    }
-                    frame_detections['objects'].append(obj_data)
+            # 用YOLO处理这些帧
+            for frame_num, frame_img in frames_to_process:
+                results = model.track(source=frame_img, persist=True, conf=conf_threshold)
                 
-                # 保存检测框图像（每个有检测的帧）
-                frame_img_path = self.detection_dir / f"frame_{frame_count:04d}.jpg"
-                self.save_detection_frame(self.video_path, frame_count, frame_img_path, frame_detections)
+                for result in results:
+                    frame_count = frame_num
+                    
+                    if result.boxes is None or len(result.boxes) == 0:
+                        if frame_num % 30 == 0:
+                            print(f"    Frame {frame_num}/{total_frames} - 无物体")
+                        continue
+                    
+                    detection_frames_count += 1
+                    boxes = result.boxes.xywh.cpu().numpy()
+                    ids = result.boxes.id
+                    classes = result.boxes.cls.cpu().numpy().astype(int)
+                    confs = result.boxes.conf.cpu().numpy()
+                    
+                    frame_detections = {
+                        'frame': frame_count,
+                        'time': frame_count / fps,
+                        'objects': []
+                    }
+                    
+                    # 只有在有检测到对象时才处理
+                    if len(boxes) > 0 and ids is not None:
+                        for i in range(len(boxes)):
+                            obj_data = {
+                                'track_id': int(ids[i]) if ids[i] is not None else -1,
+                                'class': int(classes[i]),
+                                'conf': float(confs[i]),
+                                'bbox_xywh': boxes[i].tolist(),  # [x_center, y_center, w, h] 像素
+                            }
+                            frame_detections['objects'].append(obj_data)
+                        
+                        # 保存检测框图像（每个有检测的帧）
+                        frame_img_path = self.detection_dir / f"frame_{frame_count:04d}.jpg"
+                        cv2.imwrite(str(frame_img_path), frame_img)
+                    
+                    all_detections.append(frame_detections)
+                    
+                    if frame_num % 30 == 0:
+                        print(f"    Frame {frame_num}/{total_frames} - {len(boxes)}个物体")
+        else:
+            # 不跳帧：处理所有帧
+            for result in model.track(source=self.video_path, stream=True, 
+                                     persist=True, conf=conf_threshold):
+                frame_count += 1
+                
+                if result.boxes is None or len(result.boxes) == 0:
+                    if frame_count % 30 == 0:
+                        print(f"    Frame {frame_count}/{total_frames} - 无物体")
+                    continue
+                
+                detection_frames_count += 1
+                boxes = result.boxes.xywh.cpu().numpy()
+                ids = result.boxes.id
+                classes = result.boxes.cls.cpu().numpy().astype(int)
+                confs = result.boxes.conf.cpu().numpy()
+                
+                frame_detections = {
+                    'frame': frame_count,
+                    'time': frame_count / fps,
+                    'objects': []
+                }
+                
+                # 只有在有检测到对象时才处理
+                if len(boxes) > 0 and ids is not None:
+                    for i in range(len(boxes)):
+                        obj_data = {
+                            'track_id': int(ids[i]) if ids[i] is not None else -1,
+                            'class': int(classes[i]),
+                            'conf': float(confs[i]),
+                            'bbox_xywh': boxes[i].tolist(),  # [x_center, y_center, w, h] 像素
+                        }
+                        frame_detections['objects'].append(obj_data)
+                    
+                    # 保存检测框图像（每个有检测的帧）
+                    frame_img_path = self.detection_dir / f"frame_{frame_count:04d}.jpg"
+                    self.save_detection_frame(self.video_path, frame_count, frame_img_path, frame_detections)
+                
+                all_detections.append(frame_detections)
+                
+                if frame_count % 30 == 0:
+                    print(f"    Frame {frame_count}/{total_frames} - {len(boxes)}个物体")
             
-            all_detections.append(frame_detections)
-            
-            if frame_count % 30 == 0:
-                print(f"    Frame {frame_count}/{total_frames} - {len(boxes)}个物体")
-        
-        cap.release()
+            cap.release()
+
         
         # 保存原始检测结果 (像素空间)
         detections_path = self.detection_dir / 'detections_pixel.json'
@@ -787,8 +914,21 @@ class YOLOFirstPipelineA:
                     x2_world = track2['center_x_world']
                     y2_world = track2['center_y_world']
                     
-                    # 在世界坐标中直接计算距离 (米)
-                    distance_meters = np.sqrt((x2_world-x1_world)**2 + (y2_world-y1_world)**2)
+                    # ✨ 新增: 验证两个对象都在标定区域内
+                    # 标定区域范围: X [-1.75, 1.75] m, Y [0, 25] m
+                    world_x_min, world_x_max = -1.75, 1.75
+                    world_y_min, world_y_max = 0.0, 25.0
+                    world_margin = 0.3  # 允许轻微超出范围
+                    
+                    # 检查两个物体是否都在有效范围内
+                    obj1_valid = (world_x_min - world_margin <= x1_world <= world_x_max + world_margin and
+                                  world_y_min - world_margin <= y1_world <= world_y_max + world_margin)
+                    obj2_valid = (world_x_min - world_margin <= x2_world <= world_x_max + world_margin and
+                                  world_y_min - world_margin <= y2_world <= world_y_max + world_margin)
+                    
+                    if not (obj1_valid and obj2_valid):
+                        # 跳过超出标定区域的对象对
+                        continue
                     
                     # 获取像素坐标用于图像保存
                     x1_px = track1['center_x']
@@ -796,6 +936,59 @@ class YOLOFirstPipelineA:
                     x2_px = track2['center_x']
                     y2_px = track2['center_y']
                     distance_pixel = np.sqrt((x2_px-x1_px)**2 + (y2_px-y1_px)**2)
+                    
+                    # 使用多锚点碰撞检测分析器
+                    # ⚠️ 注意: 多锚点分析虽然已集成，但为了性能考虑，暂时禁用
+                    # 如需启用，设置 USE_MULTI_ANCHOR=True
+                    USE_MULTI_ANCHOR = False
+                    
+                    if USE_MULTI_ANCHOR:
+                        try:
+                            # 获取锚点
+                            anchors1 = self._get_object_anchors(obj1['class'], obj1['bbox_xywh'])
+                            anchors2 = self._get_object_anchors(obj2['class'], obj2['bbox_xywh'])
+                            
+                            # 获取速度信息（如果可用，否则用默认值）
+                            vx1 = track1.get('vx', 0.0)
+                            vy1 = track1.get('vy', 0.0)
+                            vx2 = track2.get('vx', 0.0)
+                            vy2 = track2.get('vy', 0.0)
+                            
+                            # 创建碰撞分析器
+                            analyzer = CollisionAnalyzer(pixel_per_meter=self.pixel_per_meter)
+                            
+                            # 执行碰撞分析
+                            collision_result = analyzer.analyze(
+                                obj1=obj1,
+                                obj2=obj2,
+                                obj1_anchors=anchors1,
+                                obj2_anchors=anchors2,
+                                obj1_velocity=(vx1, vy1),
+                                obj2_velocity=(vx2, vy2),
+                                obj1_track=track1,
+                                obj2_track=track2,
+                                H=self.H
+                            )
+                            
+                            # 使用多锚点距离
+                            distance_meters = collision_result.min_distance
+                            closest_parts = (collision_result.object1_part, collision_result.object2_part)
+                            ttc = collision_result.ttc
+                            risk_level = collision_result.risk_level
+                            
+                        except Exception as e:
+                            # 如果多锚点分析失败，回退到中心点距离
+                            print(f"  ⚠️  多锚点分析异常: {e}，使用中心点距离")
+                            distance_meters = np.sqrt((x2_world-x1_world)**2 + (y2_world-y1_world)**2)
+                            closest_parts = ('center', 'center')
+                            ttc = None
+                            risk_level = 'UNKNOWN'
+                    else:
+                        # 使用中心点距离（与之前兼容）
+                        distance_meters = np.sqrt((x2_world-x1_world)**2 + (y2_world-y1_world)**2)
+                        closest_parts = ('center', 'center')
+                        ttc = None
+                        risk_level = 'UNKNOWN'
                     
                     class1_name = class_names.get(obj1['class'], f"class_{obj1['class']}")
                     class2_name = class_names.get(obj2['class'], f"class_{obj2['class']}")
@@ -833,6 +1026,12 @@ class YOLOFirstPipelineA:
                             'positions_world': {
                                 'obj1': {'x': x1_world, 'y': y1_world},
                                 'obj2': {'x': x2_world, 'y': y2_world}
+                            },
+                            # 多锚点碰撞分析信息
+                            'multi_anchor': {
+                                'closest_parts': closest_parts,
+                                'risk_level': risk_level,
+                                'ttc': ttc
                             }
                         }
                         proximity_events.append(event)
@@ -868,6 +1067,59 @@ class YOLOFirstPipelineA:
         print(f"\n  ℹ️  调试信息: 检查了 {total_object_pairs} 个物体对，其中 {len(all_proximity_pairs)} 个距离 < {debug_threshold}m")
         
         return proximity_events
+    
+    # =========================================================================
+    # STEP 3.1: 获取物体的锚点
+    # =========================================================================
+    
+    def _shrink_bbox(self, bbox_xywh, shrink_ratio=0.8):
+        """缩小bounding box - 从中心往外缩小到原来的比例
+        
+        Args:
+            bbox_xywh: [x_center, y_center, width, height]
+            shrink_ratio: 缩小比例 (0.8 = 保留原来的80%)
+        
+        Returns:
+            缩小后的 bbox [x_center, y_center, width*shrink_ratio, height*shrink_ratio]
+        """
+        x, y, w, h = bbox_xywh
+        new_w = w * shrink_ratio
+        new_h = h * shrink_ratio
+        return [x, y, new_w, new_h]
+    
+    def _get_object_anchors(self, class_id, bbox_xywh):
+        """根据物体类别获取相应的锚点
+        
+        Args:
+            class_id: YOLO物体类别ID (0=person, 1=bicycle, 2=car, 3=motorcycle, etc.)
+            bbox_xywh: 边界框 [x_center, y_center, width, height]
+        
+        Returns:
+            dict: {anchor_name: (x, y), ...}
+        """
+        # 缩小bounding box到原来的80%，确保锚点在物体内
+        bbox_xywh = self._shrink_bbox(bbox_xywh, shrink_ratio=0.8)
+        
+        try:
+            if class_id == 0:  # person
+                return PedestrianAnchors.get_anchors(bbox_xywh)
+            elif class_id == 2:  # car
+                return VehicleAnchors.get_anchors(bbox_xywh, class_id)
+            elif class_id == 1:  # bicycle
+                return BicycleAnchors.get_anchors(bbox_xywh)
+            elif class_id == 3:  # motorcycle
+                return MotorcycleAnchors.get_anchors(bbox_xywh)
+            elif class_id == 5:  # bus
+                return VehicleAnchors.get_anchors(bbox_xywh, class_id)
+            elif class_id == 7:  # truck
+                return VehicleAnchors.get_anchors(bbox_xywh, class_id)
+            else:
+                # 其他类别使用通用锚点
+                return VehicleAnchors.get_anchors(bbox_xywh, class_id)
+        except Exception as e:
+            print(f"  ⚠️  获取锚点失败 (class_id={class_id}): {e}")
+            # 降级方案：返回简单的中心锚点
+            return {'center': (bbox_xywh[0], bbox_xywh[1])}
     
     # =========================================================================
     # STEP 3.5: 同类别物体误检过滤
@@ -1036,6 +1288,152 @@ class YOLOFirstPipelineA:
                     print(f"  🗑️  删除关键帧图片: {img_file.name}")
                 except Exception as e:
                     print(f"  ⚠️  删除图片失败 {img_file.name}: {e}")
+    
+    # =========================================================================
+    # STEP 3.6: 多锚点碰撞分析 (仅关键帧) ✨ 新增功能
+    # =========================================================================
+    
+    def analyze_keyframes_with_multi_anchor(self, proximity_events, all_detections, tracks):
+        """Step 3.6: 对关键帧执行多锚点碰撞分析（仅在已确定为接近事件的帧上执行）
+        
+        这样可以大幅降低计算量：
+        - Step 3: 用简单的中心点距离快速筛选接近事件
+        - Step 3.6: 只对这些关键帧执行详细的多锚点分析
+        
+        Args:
+            proximity_events: 从Step 3筛选出的接近事件
+            all_detections: 所有检测结果
+            tracks: 轨迹数据
+        
+        Returns:
+            proximity_events: 增强后的事件（包含多锚点分析信息）
+        """
+        print(f"\n【Step 3.6: 多锚点碰撞分析 (仅关键帧)】")
+        
+        if not proximity_events:
+            print(f"  ℹ️  无关键帧，跳过多锚点分析")
+            return proximity_events
+        
+        # 建立track_id -> 轨迹数据的映射
+        track_map = {}
+        for track_id, track_points in tracks.items():
+            for point in track_points:
+                frame = point['frame']
+                if frame not in track_map:
+                    track_map[frame] = {}
+                track_map[frame][int(track_id)] = point
+        
+        # 建立frame -> objects的映射
+        detection_map = {}
+        for frame_data in all_detections:
+            detection_map[frame_data['frame']] = frame_data
+        
+        # 对每个关键帧事件执行多锚点分析
+        analyzed_count = 0
+        
+        for event in proximity_events:
+            frame = event['frame']
+            tid1 = event['track_id_1']
+            tid2 = event['track_id_2']
+            
+            # 跳过已经有多锚点信息的
+            if 'multi_anchor_detailed' in event:
+                continue
+            
+            try:
+                # 获取该帧的检测和轨迹数据
+                if frame not in detection_map or frame not in track_map:
+                    continue
+                
+                frame_data = detection_map[frame]
+                frame_tracks = track_map[frame]
+                
+                # 查找两个物体
+                obj1, obj2 = None, None
+                track1_point, track2_point = None, None
+                track1_history, track2_history = None, None
+                
+                for obj in frame_data['objects']:
+                    if obj['track_id'] == tid1:
+                        obj1 = obj
+                        track1_point = frame_tracks.get(tid1)
+                        # 获取完整的轨迹历史（用于计算速度和方向）
+                        if tid1 in tracks:
+                            track1_history = tracks[tid1]
+                    elif obj['track_id'] == tid2:
+                        obj2 = obj
+                        track2_point = frame_tracks.get(tid2)
+                        # 获取完整的轨迹历史
+                        if tid2 in tracks:
+                            track2_history = tracks[tid2]
+                
+                if obj1 is None or obj2 is None or track1_point is None or track2_point is None:
+                    continue
+                
+                # 获取锚点
+                anchors1 = self._get_object_anchors(obj1['class'], obj1['bbox_xywh'])
+                anchors2 = self._get_object_anchors(obj2['class'], obj2['bbox_xywh'])
+                
+                # 获取速度信息（从该帧的轨迹点）
+                vx1 = track1_point.get('vx', 0.0)
+                vy1 = track1_point.get('vy', 0.0)
+                vx2 = track2_point.get('vx', 0.0)
+                vy2 = track2_point.get('vy', 0.0)
+                
+                # 执行多锚点碰撞分析
+                analyzer = CollisionAnalyzer(pixel_per_meter=self.pixel_per_meter)
+                collision_result = analyzer.analyze(
+                    obj1=obj1,
+                    obj2=obj2,
+                    obj1_anchors=anchors1,
+                    obj2_anchors=anchors2,
+                    obj1_velocity=(vx1, vy1),
+                    obj2_velocity=(vx2, vy2),
+                    obj1_track=track1_history,  # 传入完整的轨迹历史
+                    obj2_track=track2_history,  # 传入完整的轨迹历史
+                    H=self.H
+                )
+                
+                # 添加详细的多锚点分析结果
+                event['multi_anchor_detailed'] = collision_result.to_dict()
+                analyzed_count += 1
+                
+            except Exception as e:
+                # 如果分析失败，保持原有的简单信息
+                import traceback
+                if analyzed_count == 0:  # 只在第一个失败时打印错误
+                    print(f"  ⚠️  多锚点分析错误: {type(e).__name__}: {str(e)}")
+                    print(f"  📋 Frame {frame}, Track {tid1} + {tid2}")
+                    traceback.print_exc()  # 打印完整堆栈
+        
+        if analyzed_count > 0:
+            print(f"  ✓ 多锚点分析完成: {analyzed_count}/{len(proximity_events)}个关键帧")
+        else:
+            print(f"  ⚠️  多锚点分析完成: 0/{len(proximity_events)}个关键帧 (无法获取锚点数据或发生错误)")
+        
+        # =================================================================
+        # STEP 3.7: 多锚点距离过滤（仅保留距离 ≤ 1.0m 的高风险事件）
+        # =================================================================
+        print(f"\n【Step 3.7: 多锚点距离过滤 (≤1.0m)】")
+        
+        anchor_filtered_events = []
+        for event in proximity_events:
+            multi = event.get('multi_anchor_detailed', {})
+            min_distance = multi.get('min_distance_meters', float('inf'))
+            
+            # 保留距离 ≤ 1.0m 的事件（高风险）
+            if min_distance <= 1.0:
+                anchor_filtered_events.append(event)
+            else:
+                frame = event['frame']
+                tid1, tid2 = event['track_id_1'], event['track_id_2']
+                print(f"  ⊗ 过滤 Frame {frame}: Track {tid1}+{tid2} (锚点距离={min_distance:.2f}m > 1.0m)")
+        
+        filtered_count = len(proximity_events) - len(anchor_filtered_events)
+        print(f"  🔍 多锚点距离过滤: 排除 {filtered_count} 个事件")
+        print(f"  ✓ Step 3.7完成: 保留 {len(anchor_filtered_events)} 个关键帧 (≤ 1.0m)")
+        
+        return anchor_filtered_events
     
     # =========================================================================
     # STEP 4: Homography 记录 (仅信息) ✨ 已在Step 3中使用
@@ -1257,6 +1655,9 @@ class YOLOFirstPipelineA:
             print(f"  Frame 115: {frame_115_objects}")
             print(f"  Frame 148: {frame_148_objects}")
             
+            # ⚠️ 关键：Step 2.5过滤后需要重新构建轨迹，否则Step 3.6会找不到对象
+            tracks = self.build_trajectories(all_detections)
+            
             # Step 3: 关键帧检测 (Option B: 使用Step 2保存的轨迹world坐标)
             proximity_events = self.extract_key_frames(all_detections, tracks, world_distance_threshold=4.5)
             
@@ -1272,6 +1673,25 @@ class YOLOFirstPipelineA:
                 if len(filtered_events) < len(proximity_events):
                     self.cleanup_filtered_keyframes(proximity_events, filtered_events)
                 
+                # Step 3.6: 多锚点碰撞分析 (仅关键帧)
+                try:
+                    filtered_events = self.analyze_keyframes_with_multi_anchor(filtered_events, all_detections, tracks)
+                except Exception as e:
+                    print(f"\n  ⚠️  Step 3.6 多锚点分析失败: {e}")
+                    print(f"     继续使用简单的中心点距离分析结果")
+                
+                # 保存最终的proximity_events（包含多锚点分析结果）
+                events_path = self.keyframe_dir / 'proximity_events.json'
+                with open(events_path, 'w') as f:
+                    json.dump(filtered_events, f, indent=2)
+                
+                # 重新绘制关键帧（现在包含多锚点可视化）
+                for event in filtered_events:
+                    frame_num = event['frame']
+                    tid1 = event['track_id_1']
+                    tid2 = event['track_id_2']
+                    frame_img_path = self.keyframe_dir / f"keyframe_{frame_num:04d}_ID{tid1}_ID{tid2}.jpg"
+                    self.save_keyframe_with_distance(self.video_path, frame_num, frame_img_path, event)
                 # Step 4: Homography 变换 (仅关键帧)
                 if self.H is not None:
                     transformed_events = self.transform_key_frames_to_world(filtered_events)

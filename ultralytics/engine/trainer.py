@@ -926,7 +926,7 @@ class BaseTrainer:
             )
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
-            name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
+            name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("MuSGD", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         use_muon = name == "MuSGD"
@@ -972,7 +972,7 @@ class BaseTrainer:
                 p = x.pop("params")
                 p1 = [v for k, v in p.items() if pattern.search(k)]
                 p2 = [v for k, v in p.items() if not pattern.search(k)]
-                g_.extend([{"params": p1, **x, "lr": lr * 2}, {"params": p2, **x}])
+                g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             optimizer = MuSGD(params=g_)
         else:
             optimizer = getattr(optim, name, optim.Adam)(params=g)

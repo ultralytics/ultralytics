@@ -1250,7 +1250,7 @@ class YOLOESegment26(YOLOESegment):
 
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
-        outputs = Detect.forward(self, x)
+        outputs = YOLOEDetect.forward(self, x)
         preds = outputs[1] if isinstance(outputs, tuple) else outputs
         proto=self.proto([ xi.detach() for xi in x])  # mask protos
 

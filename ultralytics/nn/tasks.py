@@ -228,7 +228,7 @@ class BaseModel(torch.nn.Module):
         Returns:
             (torch.nn.Module): The fused model is returned.
         """
-        if not self.is_fused():
+        if True:
             for m in self.model.modules():
                 if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
                     if isinstance(m, Conv2):
@@ -246,9 +246,8 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-                # TODO: comment this out for the possibility of exporting non-e2e version
-                # if isinstance(m, Detect) and getattr(m, "end2end", False):
-                #     m.fuse()  # remove one2many head
+                if isinstance(m, Detect) and getattr(m, "end2end", False):
+                    m.fuse()  # remove one2many head
             self.info(verbose=verbose)
 
         return self

@@ -412,7 +412,7 @@ class Segment26(Segment):
     def fuse(self) -> None:
         """Remove the one2many head and extra part of proto module for inference optimization."""
         super().fuse()
-        if self.hasattr(self.proto, "fuse"):
+        if hasattr(self.proto, "fuse"):
             self.proto.fuse()
 
 
@@ -1323,6 +1323,15 @@ class YOLOESegment(YOLOEDetect):
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))
         return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
+
+    def fuse(self, txt_feats: torch.Tensor = None):
+        """Fuse text features with model weights for efficient inference."""
+        super().fuse(txt_feats)
+        if txt_feats is None:  # means eliminate one2many branch
+            self.cv5 = None
+            if hasattr(self.proto, "fuse"):
+                self.proto.fuse()
+            return
 
 
 class YOLOESegment26(YOLOESegment):

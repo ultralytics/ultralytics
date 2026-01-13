@@ -1107,12 +1107,12 @@ class E2ELoss:
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
         self.updates = 0
         self.total = 1.0
+        # init gain
         self.o2m = 0.8
         self.o2o = self.total - self.o2m
         self.o2m_copy = self.o2m
-        if self.one2one.hyp.o2m == 1.0:
-            self.o2o = 1.0
-            self.o2m = 1.0
+        # final gain
+        self.final_o2m = 0.1
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
@@ -1130,10 +1130,7 @@ class E2ELoss:
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""
-        return (
-            max(1 - x / (self.one2one.hyp.epochs - 1), 0) * (self.o2m_copy - self.one2one.hyp.o2m)
-            + self.one2one.hyp.o2m
-        )
+        return max(1 - x / (self.one2one.hyp.epochs - 1), 0) * (self.o2m_copy - self.final_o2m) + self.final_o2m
 
 
 class TVPDetectLoss:

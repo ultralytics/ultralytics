@@ -994,7 +994,7 @@ class YOLOEModel(DetectionModel):
             verbose (bool): Whether to display model information.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-        self.text_model = cfg.get("text_model", "mobileclip:blt")
+        self.text_model = self.yaml.get("text_model", "mobileclip:blt")                                                                                                                                                                      
 
     @smart_inference_mode()
     def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):

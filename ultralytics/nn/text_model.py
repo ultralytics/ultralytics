@@ -316,7 +316,7 @@ class MobileCLIPTS(TextModel):
         super().__init__()
         from ultralytics.utils.downloads import attempt_download_asset
 
-        self.encoder = torch.jit.load(attempt_download_asset("mobileclip_blt.ts"), map_location=device)
+        self.encoder = torch.jit.load(attempt_download_asset(clip_model_weight), map_location=device)
         self.tokenizer = clip.clip.tokenize
         self.device = device
 

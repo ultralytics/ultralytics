@@ -62,12 +62,14 @@ class KITTIToYOLO3D:
         val.txt   (image index list for validation/testing split if created)
     """
 
-    def __init__(self, kitti_root, output_root, filter_classes=None, split_strategy="single"):
+    def __init__(self, kitti_root, output_root, filter_classes=None, split_strategy="single", filter_occluded=False, max_occlusion_level=1):
         """
         Args:
             kitti_root: Path to KITTI dataset root
             output_root: Path to output directory
             filter_classes: List of class names to include (None = include all)
+            filter_occluded: Whether to filter out heavily occluded objects (default: False)
+            max_occlusion_level: Maximum occlusion level to include (default: 1, excludes heavy/unknown)
         """
         self.kitti_root = Path(kitti_root)
         self.output_root = Path(output_root)
@@ -93,6 +95,12 @@ class KITTIToYOLO3D:
 
     # Filter classes (if specified)
         self.filter_classes = filter_classes
+        # Occlusion filtering settings
+        self.filter_occluded = filter_occluded
+        self.max_occlusion_level = max_occlusion_level
+        if filter_occluded:
+            LOGGER.info(f"Occlusion filtering enabled: excluding objects with occlusion level > {max_occlusion_level} "
+                       f"(0=visible, 1=partial, 2=heavy, 3=unknown)")
         self.class_id_remap = None  # Will store remapping from original to new IDs
         if self.filter_classes is not None:
             # Convert to set for faster lookup
@@ -334,6 +342,11 @@ class KITTIToYOLO3D:
             truncated = float(parts[1])
             occluded = int(parts[2])
             alpha = float(parts[3])
+
+            # Filter heavily occluded objects if enabled
+            if self.filter_occluded and occluded > self.max_occlusion_level:
+                # Skip this object (it's too occluded to be useful for training)
+                continue
 
             # 2D bounding box (left image)
             x1, y1, x2, y2 = [float(x) for x in parts[4:8]]
@@ -949,18 +962,32 @@ The script will:
         default=None,
         help="List of class names to include (e.g., Car Pedestrian Cyclist). If not specified, all classes are included. Available: Car, Van, Truck, Pedestrian, Person_sitting, Cyclist, Tram, Misc",
     )
+    parser.add_argument(
+        "--filter-occluded",
+        action="store_true",
+        help="Filter out heavily occluded objects during conversion. Excludes objects with occlusion level > max-occlusion-level",
+    )
+    parser.add_argument(
+        "--max-occlusion-level",
+        type=int,
+        default=1,
+        choices=[0, 1, 2, 3],
+        help="Maximum occlusion level to include when using --filter-occluded. KITTI levels: 0=fully visible, 1=partially occluded, 2=heavily occluded, 3=unknown. Default is 1 (excludes heavily occluded and unknown objects).",
+    )
 
     args = parser.parse_args()
 
     # Output to same directory as input
     output_root = args.kitti_root
 
-    # Initialize converter with 3DOP strategy and optional class filtering
+    # Initialize converter with 3DOP strategy and optional class/occlusion filtering
     converter = KITTIToYOLO3D(
         args.kitti_root,
         output_root,
         filter_classes=args.filter_classes,  # None = all classes, or list of class names
         split_strategy="3dop",  # Always use 3DOP split strategy
+        filter_occluded=args.filter_occluded,  # Filter heavily occluded objects
+        max_occlusion_level=args.max_occlusion_level,  # Max occlusion level to include
     )
 
     # Always convert training split (which creates both train and val with 3DOP strategy)

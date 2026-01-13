@@ -1117,7 +1117,7 @@ class YOLOEModel(DetectionModel):
         self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
 
 
-        if head.end2end:
+        if self.end2end:
             cv3=head.one2one_cv3
             cv2=head.one2one_cv2
         else:
@@ -1158,7 +1158,7 @@ class YOLOEModel(DetectionModel):
         head.fuse(self.pe.to(device))  # fuse prompt embeddings to classify head
 
 
-        if head.end2end:
+        if self.end2end:
             cv3=head.one2one_cv3
             cv2=head.one2one_cv2
         else:

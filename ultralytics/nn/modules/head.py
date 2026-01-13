@@ -928,6 +928,7 @@ class YOLOEDetect(Detect):
             cls_head[-1] = conv
 
             bn_head.fuse()
+
         for cls_head, bn_head in zip(self.one2one_cv3, self.one2one_cv4):
             assert isinstance(cls_head, nn.Sequential)
             assert isinstance(bn_head, BNContrastiveHead)
@@ -996,7 +997,7 @@ class YOLOEDetect(Detect):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
-
+            print()
             box, score, idx = self.lrpc[i](
                 cls_feat,
                 loc_feat,

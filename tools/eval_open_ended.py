@@ -9,7 +9,7 @@ import os
 import random
 import json
 from tqdm import tqdm
-from ultralytics.nn.text_model import OpenCLIP
+from ultralytics.nn.text_model import MobileCLIPTS
 import numpy as np
 import argparse
 from transformers import logging
@@ -66,7 +66,7 @@ class LVISOpenEndedEval():
 
     def setup_clip_matching(self):
         print("Loading CLIP model for matching")
-        self.clip_model = OpenCLIP("cuda")
+        self.clip_model = MobileCLIPTS("cuda", "mobileclip2_b.ts")
         
         tokens = self.clip_model.tokenize(self.categories).cuda()
         text_features = self.clip_model.encode_text(tokens)
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     parser.add_argument('--pred', help='path to pred json file', default='./data/predictions.json')
     parser.add_argument('--names', help='path to vocab names', default='./tools/ram_tag_list.txt')
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--devices", type=str, default="0,1,2,3,4,5,6,7")
+    parser.add_argument("--devices", type=str, default="0,1,2,3")
     parser.add_argument('--verbose', help='verbose', action='store_true')
     parser.add_argument('--fixed', help='evaluate by fixed ap', action='store_true')
     args = parser.parse_args()

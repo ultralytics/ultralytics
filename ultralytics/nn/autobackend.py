@@ -545,8 +545,9 @@ class AutoBackend(nn.Module):
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
-            # use git source for ARM64 due to broken PyPI packages https://github.com/Tencent/ncnn/issues/6509
-            check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn", cmds="--no-deps")
+            if ARM64:
+                raise SystemError("NCNN not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
+            check_requirements("ncnn", cmds="--no-deps")
             import ncnn as pyncnn
 
             net = pyncnn.Net()

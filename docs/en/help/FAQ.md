@@ -14,8 +14,8 @@ This FAQ section addresses common questions and issues users might encounter whi
 
 Ultralytics is a [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) AI company specializing in state-of-the-art object detection and [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) models, with a focus on the YOLO (You Only Look Once) family. Their offerings include:
 
-- Open-source implementations of [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/)
-- A wide range of [pre-trained models](https://docs.ultralytics.com/models/) for various computer vision tasks
+- Open-source implementations of [YOLO11](https://docs.ultralytics.com/models/yolo11/) (latest) and [YOLOv8](https://docs.ultralytics.com/models/yolov8/) (previous generation)
+- A wide range of [pretrained models](https://docs.ultralytics.com/models/) for various computer vision tasks
 - A comprehensive [Python package](https://docs.ultralytics.com/usage/python/) for seamless integration of YOLO models into projects
 - Versatile [tools](https://docs.ultralytics.com/modes/) for training, testing, and deploying models
 - [Extensive documentation](https://docs.ultralytics.com/) and a supportive community
@@ -24,13 +24,13 @@ Ultralytics is a [computer vision](https://www.ultralytics.com/glossary/computer
 
 Installing the Ultralytics package is straightforward using pip:
 
-```
+```bash
 pip install ultralytics
 ```
 
 For the latest development version, install directly from the GitHub repository:
 
-```
+```bash
 pip install git+https://github.com/ultralytics/ultralytics.git
 ```
 
@@ -66,8 +66,8 @@ To train a custom YOLO model:
     from ultralytics import YOLO
 
     # Load a model
-    model = YOLO("yolov8n.yaml")  # build a new model from scratch
-    model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+    model = YOLO("yolo11n.yaml")  # build a new model from scratch
+    model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
 
     # Train the model
     results = model.train(data="path/to/your/data.yaml", epochs=100, imgsz=640)
@@ -165,10 +165,10 @@ Ultralytics YOLO boasts a rich set of features for advanced computer vision task
 
 - Real-Time Detection: Efficiently detect and classify objects in real-time scenarios.
 - Multi-Task Capabilities: Perform object detection, instance segmentation, classification, and pose estimation with a unified framework.
-- Pre-Trained Models: Access a variety of [pretrained models](https://docs.ultralytics.com/models/) that balance speed and accuracy for different use cases.
+- Pretrained Models: Access a variety of [pretrained models](https://docs.ultralytics.com/models/) that balance speed and accuracy for different use cases.
 - Custom Training: Easily fine-tune models on custom datasets with the flexible [training pipeline](https://docs.ultralytics.com/modes/train/).
 - Wide [Deployment Options](https://docs.ultralytics.com/guides/model-deployment-options/): Export models to various formats like TensorRT, ONNX, and CoreML for deployment across different platforms.
-- Extensive Documentation: Benefit from comprehensive [documentation](https://docs.ultralytics.com/) and a supportive community to guide you through your computer vision journey.
+- Extensive Documentation: Benefit from comprehensive [documentation](https://docs.ultralytics.com/) and a supportive community for your computer vision workflows.
 
 ### How can I improve the performance of my YOLO model?
 
@@ -176,7 +176,7 @@ Enhancing your YOLO model's performance can be achieved through several techniqu
 
 1. [Hyperparameter Tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning): Experiment with different hyperparameters using the [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/) to optimize model performance.
 2. [Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation): Implement techniques like flip, scale, rotate, and color adjustments to enhance your training dataset and improve model generalization.
-3. [Transfer Learning](https://www.ultralytics.com/glossary/transfer-learning): Leverage pre-trained models and fine-tune them on your specific dataset using the [Train guide](../modes/train.md).
+3. [Transfer Learning](https://www.ultralytics.com/glossary/transfer-learning): Leverage pretrained models and fine-tune them on your specific dataset using the [Train guide](../modes/train.md).
 4. Export to Efficient Formats: Convert your model to optimized formats like TensorRT or ONNX for faster inference using the [Export guide](../modes/export.md).
 5. Benchmarking: Utilize the [Benchmark Mode](https://docs.ultralytics.com/modes/benchmark/) to measure and improve inference speed and accuracy systematically.
 
@@ -226,4 +226,4 @@ Ultralytics provides a wealth of resources to help you get started and master th
 
 These resources provide code examples, real-world use cases, and step-by-step guides for various tasks using Ultralytics models.
 
-If you need further assistance, don't hesitate to consult the Ultralytics documentation or reach out to the community through [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the official [discussion forum](https://github.com/orgs/ultralytics/discussions).
+If you need further assistance, consult the Ultralytics documentation or reach out to the community through [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the official [discussion forum](https://github.com/orgs/ultralytics/discussions).

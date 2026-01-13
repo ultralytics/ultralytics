@@ -40,8 +40,7 @@ counting_regions = [
 
 
 def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
-    """
-    Handle mouse events for region manipulation in the video frame.
+    """Handle mouse events for region manipulation in the video frame.
 
     This function enables interactive region selection and dragging functionality for counting regions. It responds to
     mouse button down, move, and up events to allow users to select and reposition counting regions in real-time.
@@ -97,12 +96,11 @@ def run(
     track_thickness: int = 2,
     region_thickness: int = 2,
 ) -> None:
-    """
-    Run object detection and counting within specified regions using YOLO and ByteTrack.
+    """Run object detection and counting within specified regions using YOLO and ByteTrack.
 
     This function performs real-time object detection, tracking, and counting within user-defined polygonal or
-    rectangular regions. It supports interactive region manipulation, multiple counting areas, and both live viewing
-    and video saving capabilities.
+    rectangular regions. It supports interactive region manipulation, multiple counting areas, and both live viewing and
+    video saving capabilities.
 
     Args:
         weights (str): Path to the YOLO model weights file.

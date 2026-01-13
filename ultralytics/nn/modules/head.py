@@ -24,8 +24,7 @@ __all__ = "OBB", "Classify", "Detect", "Pose", "RTDETRDecoder", "Segment", "YOLO
 
 
 class Detect(nn.Module):
-    """
-    YOLO Detect head for object detection models.
+    """YOLO Detect head for object detection models.
 
     This class implements the detection head used in YOLO models for predicting bounding boxes and class probabilities.
     It supports both training and inference modes, with optional end-to-end detection capabilities.
@@ -256,8 +255,7 @@ class Detect(nn.Module):
 
 
 class Segment(Detect):
-    """
-    YOLO Segment head for segmentation models.
+    """YOLO Segment head for segmentation models.
 
     This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
 
@@ -414,8 +412,7 @@ class Segment26(Segment):
 
 
 class OBB(Detect):
-    """
-    YOLO OBB detection head for detection with rotation models.
+    """YOLO OBB detection head for detection with rotation models.
 
     This class extends the Detect head to include oriented bounding box prediction with rotation angles.
 
@@ -543,8 +540,7 @@ class OBB26(OBB):
 
 
 class Pose(Detect):
-    """
-    YOLO Pose head for keypoints models.
+    """YOLO Pose head for keypoints models.
 
     This class extends the Detect head to include keypoint prediction capabilities for pose estimation tasks.
 
@@ -634,20 +630,9 @@ class Pose(Detect):
         ndim = self.kpt_shape[1]
         bs = kpts.shape[0]
         if self.export:
-            if self.format in {
-                "tflite",
-                "edgetpu",
-            }:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
-                # Precompute normalization factor to increase numerical stability
-                y = kpts.view(bs, *self.kpt_shape, -1)
-                grid_h, grid_w = self.shape[2], self.shape[3]
-                grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
-                norm = self.strides / (self.stride[0] * grid_size)
-                a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
-            else:
-                # NCNN fix
-                y = kpts.view(bs, *self.kpt_shape, -1)
-                a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
+            # NCNN fix
+            y = kpts.view(bs, *self.kpt_shape, -1)
+            a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
             return a.view(bs, self.nk, -1)
@@ -792,8 +777,7 @@ class Pose26(Pose):
 
 
 class Classify(nn.Module):
-    """
-    YOLO classification head, i.e. x(b,c1,20,20) to x(b,c2).
+    """YOLO classification head, i.e. x(b,c1,20,20) to x(b,c2).
 
     This class implements a classification head that transforms feature maps into class predictions.
 
@@ -817,8 +801,7 @@ class Classify(nn.Module):
     export = False  # export mode
 
     def __init__(self, c1: int, c2: int, k: int = 1, s: int = 1, p: int | None = None, g: int = 1):
-        """
-        Initialize YOLO classification head to transform input tensor from (b,c1,20,20) to (b,c2) shape.
+        """Initialize YOLO classification head to transform input tensor from (b,c1,20,20) to (b,c2) shape.
 
         Args:
             c1 (int): Number of input channels.
@@ -847,11 +830,10 @@ class Classify(nn.Module):
 
 
 class WorldDetect(Detect):
-    """
-    Head for integrating YOLO detection models with semantic understanding from text embeddings.
+    """Head for integrating YOLO detection models with semantic understanding from text embeddings.
 
-    This class extends the standard Detect head to incorporate text embeddings for enhanced semantic understanding
-    in object detection tasks.
+    This class extends the standard Detect head to incorporate text embeddings for enhanced semantic understanding in
+    object detection tasks.
 
     Attributes:
         cv3 (nn.ModuleList): Convolution layers for embedding features.
@@ -870,8 +852,7 @@ class WorldDetect(Detect):
     """
 
     def __init__(self, nc: int = 80, embed: int = 512, with_bn: bool = False, ch: tuple = ()):
-        """
-        Initialize YOLO detection layer with nc classes and layer channels ch.
+        """Initialize YOLO detection layer with nc classes and layer channels ch.
 
         Args:
             nc (int): Number of classes.
@@ -905,11 +886,10 @@ class WorldDetect(Detect):
 
 
 class LRPCHead(nn.Module):
-    """
-    Lightweight Region Proposal and Classification Head for efficient object detection.
+    """Lightweight Region Proposal and Classification Head for efficient object detection.
 
-    This head combines region proposal filtering with classification to enable efficient detection with
-    dynamic vocabulary support.
+    This head combines region proposal filtering with classification to enable efficient detection with dynamic
+    vocabulary support.
 
     Attributes:
         vocab (nn.Module): Vocabulary/classification layer.
@@ -930,8 +910,7 @@ class LRPCHead(nn.Module):
     """
 
     def __init__(self, vocab: nn.Module, pf: nn.Module, loc: nn.Module, enabled: bool = True):
-        """
-        Initialize LRPCHead with vocabulary, proposal filter, and localization components.
+        """Initialize LRPCHead with vocabulary, proposal filter, and localization components.
 
         Args:
             vocab (nn.Module): Vocabulary/classification module.
@@ -945,7 +924,8 @@ class LRPCHead(nn.Module):
         self.loc = loc
         self.enabled = enabled
 
-    def conv2linear(self, conv: nn.Conv2d) -> nn.Linear:
+    @staticmethod
+    def conv2linear(conv: nn.Conv2d) -> nn.Linear:
         """Convert a 1x1 convolutional layer to a linear layer."""
         assert isinstance(conv, nn.Conv2d) and conv.kernel_size == (1, 1)
         linear = nn.Linear(conv.in_channels, conv.out_channels)
@@ -972,8 +952,7 @@ class LRPCHead(nn.Module):
 
 
 class YOLOEDetect(Detect):
-    """
-    Head for integrating YOLO detection models with semantic understanding from text embeddings.
+    """Head for integrating YOLO detection models with semantic understanding from text embeddings.
 
     This class extends the standard Detect head to support text-guided detection with enhanced semantic understanding
     through text embeddings and visual prompt embeddings.
@@ -1187,11 +1166,10 @@ class YOLOEDetect(Detect):
 
 
 class YOLOESegment(YOLOEDetect):
-    """
-    YOLO segmentation head with text embedding capabilities.
+    """YOLO segmentation head with text embedding capabilities.
 
-    This class extends YOLOEDetect to include mask prediction capabilities for instance segmentation tasks
-    with text-guided semantic understanding.
+    This class extends YOLOEDetect to include mask prediction capabilities for instance segmentation tasks with
+    text-guided semantic understanding.
 
     Attributes:
         nm (int): Number of masks.
@@ -1221,8 +1199,7 @@ class YOLOESegment(YOLOEDetect):
         end2end=False,
         ch: tuple = (),
     ):
-        """
-        Initialize YOLOESegment with class count, mask parameters, and embedding dimensions.
+        """Initialize YOLOESegment with class count, mask parameters, and embedding dimensions.
 
         Args:
             nc (int): Number of classes.
@@ -1405,8 +1382,7 @@ class YOLOESegment26(YOLOESegment):
 
 
 class RTDETRDecoder(nn.Module):
-    """
-    Real-Time Deformable Transformer Decoder (RTDETRDecoder) module for object detection.
+    """Real-Time Deformable Transformer Decoder (RTDETRDecoder) module for object detection.
 
     This decoder module utilizes Transformer architecture along with deformable convolutions to predict bounding boxes
     and class labels for objects in an image. It integrates features from multiple layers and runs through a series of
@@ -1470,8 +1446,7 @@ class RTDETRDecoder(nn.Module):
         box_noise_scale: float = 1.0,
         learnt_init_query: bool = False,
     ):
-        """
-        Initialize the RTDETRDecoder module with the given parameters.
+        """Initialize the RTDETRDecoder module with the given parameters.
 
         Args:
             nc (int): Number of classes.
@@ -1531,8 +1506,7 @@ class RTDETRDecoder(nn.Module):
         self._reset_parameters()
 
     def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:
-        """
-        Run the forward pass of the module, returning bounding box and classification scores for the input.
+        """Run the forward pass of the module, returning bounding box and classification scores for the input.
 
         Args:
             x (list[torch.Tensor]): List of feature maps from the backbone.
@@ -1580,16 +1554,15 @@ class RTDETRDecoder(nn.Module):
         y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
         return y if self.export else (y, x)
 
+    @staticmethod
     def _generate_anchors(
-        self,
         shapes: list[list[int]],
         grid_size: float = 0.05,
         dtype: torch.dtype = torch.float32,
         device: str = "cpu",
         eps: float = 1e-2,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        Generate anchor bounding boxes for given shapes with specific grid size and validate them.
+        """Generate anchor bounding boxes for given shapes with specific grid size and validate them.
 
         Args:
             shapes (list): List of feature map shapes.
@@ -1621,8 +1594,7 @@ class RTDETRDecoder(nn.Module):
         return anchors, valid_mask
 
     def _get_encoder_input(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, list[list[int]]]:
-        """
-        Process and return encoder inputs by getting projection features from input and concatenating them.
+        """Process and return encoder inputs by getting projection features from input and concatenating them.
 
         Args:
             x (list[torch.Tensor]): List of feature maps from the backbone.
@@ -1654,8 +1626,7 @@ class RTDETRDecoder(nn.Module):
         dn_embed: torch.Tensor | None = None,
         dn_bbox: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Generate and prepare the input required for the decoder from the provided features and shapes.
+        """Generate and prepare the input required for the decoder from the provided features and shapes.
 
         Args:
             feats (torch.Tensor): Processed features from encoder.
@@ -1679,9 +1650,9 @@ class RTDETRDecoder(nn.Module):
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
         # Query selection
-        # (bs, num_queries)
+        # (bs*num_queries,)
         topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
-        # (bs, num_queries)
+        # (bs*num_queries,)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
         # (bs, num_queries, 256)
@@ -1733,11 +1704,10 @@ class RTDETRDecoder(nn.Module):
 
 
 class v10Detect(Detect):
-    """
-    v10 Detection head from https://arxiv.org/pdf/2405.14458.
+    """v10 Detection head from https://arxiv.org/pdf/2405.14458.
 
-    This class implements the YOLOv10 detection head with dual-assignment training and consistent dual predictions
-    for improved efficiency and performance.
+    This class implements the YOLOv10 detection head with dual-assignment training and consistent dual predictions for
+    improved efficiency and performance.
 
     Attributes:
         end2end (bool): End-to-end detection mode.
@@ -1761,8 +1731,7 @@ class v10Detect(Detect):
     end2end = True
 
     def __init__(self, nc: int = 80, ch: tuple = ()):
-        """
-        Initialize the v10Detect object with the specified number of classes and input channels.
+        """Initialize the v10Detect object with the specified number of classes and input channels.
 
         Args:
             nc (int): Number of classes.

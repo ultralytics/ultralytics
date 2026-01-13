@@ -13,8 +13,7 @@ from .utils import adjust_bboxes_to_image_border
 
 
 class FastSAMPredictor(SegmentationPredictor):
-    """
-    FastSAMPredictor is specialized for fast SAM (Segment Anything Model) segmentation prediction tasks.
+    """FastSAMPredictor is specialized for fast SAM (Segment Anything Model) segmentation prediction tasks.
 
     This class extends the SegmentationPredictor, customizing the prediction pipeline specifically for fast SAM. It
     adjusts post-processing steps to incorporate mask prediction and non-maximum suppression while optimizing for
@@ -23,8 +22,7 @@ class FastSAMPredictor(SegmentationPredictor):
     Attributes:
         prompts (dict): Dictionary containing prompt information for segmentation (bboxes, points, labels, texts).
         device (torch.device): Device on which model and tensors are processed.
-        clip_model (Any, optional): CLIP model for text-based prompting, loaded on demand.
-        clip_preprocess (Any, optional): CLIP preprocessing function for images, loaded on demand.
+        clip (Any, optional): CLIP model used for text-based prompting, loaded on demand.
 
     Methods:
         postprocess: Apply postprocessing to FastSAM predictions and handle prompts.
@@ -33,8 +31,7 @@ class FastSAMPredictor(SegmentationPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize the FastSAMPredictor with configuration and callbacks.
+        """Initialize the FastSAMPredictor with configuration and callbacks.
 
         This initializes a predictor specialized for Fast SAM (Segment Anything Model) segmentation tasks. The predictor
         extends SegmentationPredictor with custom post-processing for mask prediction and non-maximum suppression
@@ -49,8 +46,7 @@ class FastSAMPredictor(SegmentationPredictor):
         self.prompts = {}
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Apply postprocessing to FastSAM predictions and handle prompts.
+        """Apply postprocessing to FastSAM predictions and handle prompts.
 
         Args:
             preds (list[torch.Tensor]): Raw predictions from the model.
@@ -77,8 +73,7 @@ class FastSAMPredictor(SegmentationPredictor):
         return self.prompt(results, bboxes=bboxes, points=points, labels=labels, texts=texts)
 
     def prompt(self, results, bboxes=None, points=None, labels=None, texts=None):
-        """
-        Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.
+        """Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.
 
         Args:
             results (Results | list[Results]): Original inference results from FastSAM models without any prompts.
@@ -120,7 +115,7 @@ class FastSAMPredictor(SegmentationPredictor):
                     labels = torch.ones(points.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
                 assert len(labels) == len(points), (
-                    f"Expected `labels` with same size as `point`, but got {len(labels)} and {len(points)}"
+                    f"Expected `labels` to have the same length as `points`, but got {len(labels)} and {len(points)}."
                 )
                 point_idx = (
                     torch.ones(len(result), dtype=torch.bool, device=self.device)
@@ -151,8 +146,7 @@ class FastSAMPredictor(SegmentationPredictor):
         return prompt_results
 
     def _clip_inference(self, images, texts):
-        """
-        Perform CLIP inference to calculate similarity between images and text prompts.
+        """Perform CLIP inference to calculate similarity between images and text prompts.
 
         Args:
             images (list[PIL.Image]): List of source images, each should be PIL.Image with RGB channel order.

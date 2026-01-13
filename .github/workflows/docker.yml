@@ -27,6 +27,10 @@ on:
         type: boolean
         description: Dockerfile-arm64
         default: true
+      Dockerfile-nvidia-arm64:
+        type: boolean
+        description: Dockerfile-nvidia-arm64
+        default: true
       Dockerfile-jetson-jetpack6:
         type: boolean
         description: Dockerfile-jetson-jetpack6
@@ -73,6 +77,11 @@ jobs:
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
             derivatives: ""
+          - dockerfile: "Dockerfile-nvidia-arm64"
+            tags: "latest-nvidia-arm64"
+            platforms: "linux/arm64"
+            runs_on: "ubuntu-24.04-arm"
+            derivatives: ""
           - dockerfile: "Dockerfile-jetson-jetpack6"
             tags: "latest-jetson-jetpack6"
             platforms: "linux/arm64"
@@ -101,7 +110,7 @@ jobs:
         uses: ultralytics/actions/cleanup-disk@main
 
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # copy full .git directory to access full git history in Docker images
 

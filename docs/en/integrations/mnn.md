@@ -4,7 +4,7 @@ description: Optimize YOLO11 models for mobile and embedded devices by exporting
 keywords: Ultralytics, YOLO11, MNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, inference, quantization
 ---
 
-# MNN Export for YOLO11 Models and Deploy
+# MNN Export for YOLO11 Models and Deployment
 
 ## MNN
 
@@ -13,6 +13,17 @@ keywords: Ultralytics, YOLO11, MNN, model export, machine learning, deployment, 
 </p>
 
 [MNN](https://github.com/alibaba/MNN) is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device. At present, MNN has been integrated into more than 30 apps of Alibaba Inc, such as Taobao, Tmall, Youku, DingTalk, Xianyu, etc., covering more than 70 usage scenarios such as live broadcast, short video capture, search recommendation, product searching by image, interactive marketing, equity distribution, security risk control. In addition, MNN is also used on embedded devices, such as IoT.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/i34PacLIlq8"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Export Ultralytics YOLO11 to MNN Format | Speed up Inference on Mobile Devices📱
+</p>
 
 ## Export to MNN: Converting Your YOLO11 Model
 
@@ -112,7 +123,7 @@ A function that relies solely on MNN for YOLO11 inference and preprocessing is i
                 image, (640, 640), 0.0, 0.0, cv2.INTER_LINEAR, -1, [0.0, 0.0, 0.0], [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0]
             )
             image = image[..., ::-1]  # BGR to RGB
-            input_var = np.expand_dims(image, 0)
+            input_var = image[None]
             input_var = MNN.expr.convert(input_var, MNN.expr.NC4HW4)
             output_var = net.forward(input_var)
             output_var = MNN.expr.convert(output_var, MNN.expr.NCHW)

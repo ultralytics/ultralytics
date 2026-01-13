@@ -8,6 +8,17 @@ keywords: PASCAL VOC, VOC dataset, object detection, segmentation, classificatio
 
 The [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (Visual Object Classes) dataset is a well-known object detection, segmentation, and classification dataset. It is designed to encourage research on a wide variety of object categories and is commonly used for benchmarking computer vision models. It is an essential dataset for researchers and developers working on object detection, segmentation, and classification tasks.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/yrHzL8RyY6g"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the Pascal VOC Dataset | Object Detection 🚀
+</p>
+
 ## Key Features
 
 - VOC dataset includes two main challenges: VOC2007 and VOC2012.

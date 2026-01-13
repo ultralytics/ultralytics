@@ -144,13 +144,13 @@ By leveraging YOLO26's **NMS-free, end-to-end design**, YOLOE-26 delivers fast o
 
         See [YOLOE Docs](./yoloe.md) for usage examples with these models trained on [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1), [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html) and [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/) datasets.
 
-        | Model         | Prompt Type | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95(e2e)</sup> | mAP<sup>val<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        |---------------|-------------|-----------------------------|---------------------------------|----------------------------|--------------------------|-------------------------|
-        | YOLOE-26n-seg | Text/Visual | 640                         | 23.7 / 20.9                     | 24.7 / 21.9                | 4.8                      | 6.0                     |
-        | YOLOE-26s-seg | Text/Visual | 640                         | 29.9 / 27.1                     | 30.8 / 28.6                | 13.1                     | 21.7                    |
-        | YOLOE-26m-seg | Text/Visual | 640                         | 35.4 / 31.3                     | 35.4 / 33.9                | 27.9                     | 70.1                    |
-        | YOLOE-26l-seg | Text/Visual | 640                         | 36.8 / 33.7                     | 37.8 / 36.3                | 32.3                     | 88.3                    |
-        | YOLOE-26x-seg | Text/Visual | 640                         | 39.5 / 36.2                     | 40.6 / 38.5                | 69.9                     | 196.7                   |
+        | Model         |  size<br><sup>(pixels)</sup>Prompt Type | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95(e2e)</sup> | mAP<sup>val<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        |---------------|-----------------------------------------|-----------------------------|---------------------------------|----------------------------|--------------------------|-------------------------|
+        | YOLOE-26n-seg |  640                        Text/Visual | 640                         | 23.7 / 20.9                     | 24.7 / 21.9                | 4.8                      | 6.0                     |
+        | YOLOE-26s-seg |  640                        Text/Visual | 640                         | 29.9 / 27.1                     | 30.8 / 28.6                | 13.1                     | 21.7                    |
+        | YOLOE-26m-seg |  640                        Text/Visual | 640                         | 35.4 / 31.3                     | 35.4 / 33.9                | 27.9                     | 70.1                    |
+        | YOLOE-26l-seg |  640                        Text/Visual | 640                         | 36.8 / 33.7                     | 37.8 / 36.3                | 32.3                     | 88.3                    |
+        | YOLOE-26x-seg |  640                        Text/Visual | 640                         | 39.5 / 36.2                     | 40.6 / 38.5                | 69.9                     | 196.7                   |
 
 
     === "Prompt-free"

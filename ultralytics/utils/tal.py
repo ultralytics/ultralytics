@@ -31,7 +31,6 @@ class TaskAlignedAssigner(nn.Module):
         alpha: float = 1.0,
         beta: float = 6.0,
         stride: list = [8, 16, 32],
-        stride_ratio: float = 1.0,
         eps: float = 1e-9,
         topk2=None,
     ):
@@ -52,7 +51,6 @@ class TaskAlignedAssigner(nn.Module):
         self.alpha = alpha
         self.beta = beta
         self.stride = stride
-        self.stride_ratio = stride_ratio
         self.eps = eps
 
     @torch.no_grad()
@@ -307,9 +305,7 @@ class TaskAlignedAssigner(nn.Module):
         """
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
         wh_mask = gt_bboxes_xywh[..., 2:] < self.stride[0]  # the smallest stride
-        gt_bboxes_xywh[..., 2:] = torch.where(
-            (wh_mask * mask_gt).bool(), self.stride[1] * self.stride_ratio, gt_bboxes_xywh[..., 2:]
-        )
+        gt_bboxes_xywh[..., 2:] = torch.where((wh_mask * mask_gt).bool(), self.stride[1], gt_bboxes_xywh[..., 2:])
         gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
 
         n_anchors = xy_centers.shape[0]

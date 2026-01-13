@@ -337,7 +337,6 @@ class v8DetectionLoss:
             alpha=0.5,
             beta=6.0,
             stride=self.stride.tolist(),
-            stride_ratio=self.hyp.stride_ratio,
             topk2=tal_topk2,
         )
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
@@ -934,7 +933,6 @@ class v8OBBLoss(v8DetectionLoss):
             alpha=0.5,
             beta=6.0,
             stride=self.stride.tolist(),
-            stride_ratio=self.hyp.stride_ratio,
             topk2=tal_topk2,
         )
         self.bbox_loss = RotatedBboxLoss(self.reg_max).to(self.device)

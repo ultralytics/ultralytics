@@ -99,7 +99,6 @@ warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
 warmup_momentum: 0.8 # (float) initial momentum during warmup
 warmup_bias_lr: 0.0 # (float) bias learning rate during warmup
 o2m: 1.0
-stride_ratio: 1.0
 topk: 10
 end2end: True
 box: 7.5 # (float) box loss gain

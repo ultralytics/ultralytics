@@ -141,10 +141,10 @@ class Detect(nn.Module):
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        x_detach = [xi.detach() for xi in x]
-        preds = self.forward_head(x if self.detach_o2o else x_detach, **self.one2many)
+        preds = self.forward_head(x, **self.one2many)
         if self.end2end:
-            one2one = self.forward_head(x_detach if self.detach_o2o else x, **self.one2one)
+            x_detach = [xi.detach() for xi in x]
+            one2one = self.forward_head(x_detach, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds

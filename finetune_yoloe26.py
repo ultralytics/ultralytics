@@ -79,8 +79,12 @@ assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeT
 
 
 ###################################################################
-model = YOLO("yoloe-{}.yaml".format(args.model_version))
-model=model.load(args.weight_path)
+if args.trainer=="YOLOETrainerFromScratch":
+    model = YOLO("yoloe-{}.yaml".format(args.model_version))
+    model=model.load(args.weight_path)
+else:
+    model = YOLOE(args.weight_path)
+
 
 
 if args.trainer == "YOLOETrainerFromScratch" or args.trainer== "YOLOESegTrainerFromScratch":
@@ -206,4 +210,5 @@ if args.override is not None:
 for k, v in train_args.items():
     print(f"{k}: {v}")
 
+model.args['clip_weight_name']=train_args["clip_weight_name"]
 model.train(**train_args)

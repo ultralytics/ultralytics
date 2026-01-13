@@ -222,7 +222,7 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - YOLO26 🚀 Coming soon: models/yolo26.md # for promotion of new pages
+      - YOLO26 🚀: models/yolo26.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/

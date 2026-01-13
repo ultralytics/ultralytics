@@ -325,34 +325,17 @@ class TaskAlignedAssigner(nn.Module):
             mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
 
             max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
-            # max_overlaps_idx = align_metric.argmax(1)  # (b, h*w)
-            # max_overlaps_idx = (align_metric + overlaps).argmax(1)  # (b, h*w)
             is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
             is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
             mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
-
-            # sum_pos = (mask_pos * (1 - align_metric.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
-            # # sum_pos = (mask_pos * (1 - overlaps.clamp(0, 1))).sum(-1)  # (b, n_max_boxes)
-            # # sum_pos = mask_pos.sum(-1)  # (b, n_max_boxes)
-            # sum_pos = sum_pos.unsqueeze(-1).repeat(1, 1, mask_pos.shape[-1])  # (b, n_max_boxes, h*w)
-            # sum_pos[~(mask_pos.bool())] = sum_pos.max() + 1
-            # sum_pos.masked_fill_(sum_pos == 0, sum_pos.max() + 1)  # (b, n_max_boxes, h*w)
-            # mask_pos_min = torch.argmin(sum_pos, dim=1)  # (b, h*w)
-            # is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-            # is_max_overlaps.scatter_(1, mask_pos_min.unsqueeze(1), 1)
-            # mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos).float()  # (b, n_max_boxes, h*w)
 
             fg_mask = mask_pos.sum(-2)
 
         if self.topk2 != self.topk:
             align_metric = align_metric * mask_pos  # update overlaps
             max_overlaps_idx = torch.topk(align_metric, self.topk2, dim=-1, largest=True).indices  # (b, n_max_boxes)
-            # overlaps = overlaps * mask_pos  # update overlaps
-            # max_overlaps_idx = torch.topk(overlaps, self.topk2, dim=-1, largest=True).indices  # (b, n_max_boxes)
             topk_idx = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos
             topk_idx.scatter_(-1, max_overlaps_idx, 1.0)
-            # WARNING: directly use topk_idx might assign empty labels
-            # mask_pos = topk_idx  # (b, n_max_boxes, h*w)
             mask_pos *= topk_idx
             fg_mask = mask_pos.sum(-2)
         # Find each grid serve which gt(index)

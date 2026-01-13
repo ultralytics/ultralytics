@@ -463,8 +463,7 @@ class BaseTrainer:
 
                 self.run_callbacks("on_train_batch_end")
 
-            # TODO
-            if self.args.o2m != 1.0 and hasattr(unwrap_model(self.model).criterion, "update"):
+            if hasattr(unwrap_model(self.model).criterion, "update"):
                 unwrap_model(self.model).criterion.update()
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers

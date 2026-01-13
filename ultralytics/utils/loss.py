@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import torch
@@ -1085,7 +1086,7 @@ class v8OBBLoss(v8DetectionLoss):
         scale_weight = torch.exp(-(log_ar**2) / (lambda_val**2))
 
         delta_theta = pred_theta - target_theta
-        delta_theta_wrapped = delta_theta - torch.round(delta_theta / torch.pi) * torch.pi
+        delta_theta_wrapped = delta_theta - torch.round(delta_theta / math.pi) * math.pi
         ang_loss = torch.sin(2 * delta_theta_wrapped[fg_mask]) ** 2
 
         ang_loss = scale_weight[fg_mask] * ang_loss

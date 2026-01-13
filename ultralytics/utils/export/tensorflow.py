@@ -30,12 +30,17 @@ def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
 def _tf_inference(self, x: list[torch.Tensor] | dict[str, torch.Tensor]) -> tuple[torch.Tensor]:
     """Decode boxes and cls scores for tf object detection."""
     if isinstance(x, dict):
-        x = x["feats"]  # Handle end2end models
-    shape = x[0].shape  # BCHW
-    x_cat = torch.cat([xi.view(x[0].shape[0], self.no, -1) for xi in x], 2)
-    box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+        # End2end models: boxes and scores are pre-computed
+        feats = x["feats"]
+        box, cls = x["boxes"], x["scores"]
+    else:
+        # Non-end2end models: extract from combined feature maps
+        feats = x
+        x_cat = torch.cat([xi.view(x[0].shape[0], self.no, -1) for xi in x], 2)
+        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+    shape = feats[0].shape  # BCHW
     if self.dynamic or self.shape != shape:
-        self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+        self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(feats, self.stride, 0.5))
         self.shape = shape
     grid_h, grid_w = shape[2], shape[3]
     grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)

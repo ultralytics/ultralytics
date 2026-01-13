@@ -1666,7 +1666,6 @@ def parse_model(d, ch, verbose=True):
                 OBB,
                 OBB26,
                 ImagePoolingAttn,
-                v10Detect,
             }
         ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
@@ -1674,6 +1673,8 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
                 m.legacy = legacy
+        elif m is v10Detect:
+            args.append([ch[x] for x in f])
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:

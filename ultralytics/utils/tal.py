@@ -94,12 +94,14 @@ class TaskAlignedAssigner(nn.Module):
 
         try:
             return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
-        except torch.cuda.OutOfMemoryError:
-            # Move tensors to CPU, compute, then move back to original device
-            LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
-            cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]
-            result = self._forward(*cpu_tensors)
-            return tuple(t.to(device) for t in result)
+        except RuntimeError as e:
+            if "out of memory" in str(e).lower():
+                # Move tensors to CPU, compute, then move back to original device
+                LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
+                cpu_tensors = [t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)]
+                result = self._forward(*cpu_tensors)
+                return tuple(t.to(device) for t in result)
+            raise
 
     def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
         """Compute the task-aligned assignment.
@@ -300,7 +302,8 @@ class TaskAlignedAssigner(nn.Module):
         """
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
         wh_mask = gt_bboxes_xywh[..., 2:] < self.stride[0]  # the smallest stride
-        gt_bboxes_xywh[..., 2:] = torch.where((wh_mask * mask_gt).bool(), self.stride[1], gt_bboxes_xywh[..., 2:])
+        stride_val = torch.tensor(self.stride[1], dtype=gt_bboxes_xywh.dtype, device=gt_bboxes_xywh.device)
+        gt_bboxes_xywh[..., 2:] = torch.where((wh_mask * mask_gt).bool(), stride_val, gt_bboxes_xywh[..., 2:])
         gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
 
         n_anchors = xy_centers.shape[0]

@@ -942,54 +942,28 @@ class BaseTrainer:
                     g[1][fullname] = param
                 else:  # weight (with decay)
                     g[0][fullname] = param
-        if use_muon:
-        #     import re
-        #     pattern = r'(?=.*23)(?=.*cv3)|proto\.semseg|flow_model'
-        #     g_ = []  # new param groups
-        #     for i, x in enumerate(g):
-        #         params1, params2 = [], []
-        #         for k, v in x.items():
-        #             if bool(re.search(pattern, k)):
-        #                 params1.append(v)
-        #             else:
-        #                 params2.append(v)
-        #         g_.append([{"params": params1, "lr": lr * 2}, {"params": params2, "lr": lr}])
-        #     g = g_
-            pass
-        else:
+        if not use_muon:
             g = [x.values() for x in g[:3]]  # convert to list of params
 
         optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
-            g[2] = dict(params=g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
-            # optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+            optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":
-            g[2] = dict(params=g[2], lr=lr, momentum=momentum)
-            # optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum)
-        elif name == "SGD":
-            g[2] = dict(params=g[2], lr=lr, momentum=momentum, nesterov=True)
-            # optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
-        elif name == "MuSGD":
-            g[2] = dict(params=g[2], lr=lr, momentum=momentum, nesterov=True)
-            # optimizer = MuSGD(
-            #     g[2],
-            #     lr=lr,
-            #     momentum=momentum,
-            #     nesterov=True,
-            #     # muon=self.args.muon_w,
-            #     # sgd=self.args.sgd_w,
-            #     # cls_w=1.0,
-            # )
+            optim_args = dict(lr=lr, momentum=momentum)
+        elif name == "SGD" or name == "MuSGD":
+            optim_args = dict(lr=lr, momentum=momentum, nesterov=True)
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
-        g[0] = dict(params=g[0], lr=lr, weight_decay=decay)
-        g[1] = dict(params=g[1], lr=lr, weight_decay=0.0)
+
+        g[2] = {"params":g[2], **optim_args}
+        g[0] = {"params":g[0], **optim_args, "weight_decay": decay}
+        g[1] = {"params":g[1], **optim_args, "weight_decay":0.0}
         if name == "MuSGD":
-            g[3] = dict(params=g[3], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=True)
+            g[3] = {"params":g[3], **optim_args, "weight_decay":decay, "use_muon":True}
             import re
             pattern = r'(?=.*23)(?=.*cv3)|proto\.semseg|flow_model'
             g_ = []  # new param groups
@@ -1006,8 +980,6 @@ class BaseTrainer:
         else:
             optimizer = getattr(optim, name, optim.Adam)(params=g)
 
-        # optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
-        # optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{len(g[1])} weight(decay=0.0), {len(g[0]) if len(g[0]) else len(g[3])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"

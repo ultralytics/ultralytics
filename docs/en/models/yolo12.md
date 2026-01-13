@@ -8,7 +8,11 @@ keywords: YOLO12, attention-centric object detection, YOLO series, Ultralytics, 
 
 ## Overview
 
-YOLO12 introduces an attention-centric architecture that departs from the traditional CNN-based approaches used in previous YOLO models, yet retains the real-time inference speed essential for many applications. This model achieves state-of-the-art object detection accuracy through novel methodological innovations in attention mechanisms and overall network architecture, while maintaining real-time performance.
+YOLO12 introduces an attention-centric architecture that departs from the traditional CNN-based approaches used in previous YOLO models, yet retains the real-time inference speed essential for many applications. This model achieves state-of-the-art object detection accuracy through novel methodological innovations in attention mechanisms and overall network architecture, while maintaining real-time performance. Despite those advantages, YOLO12 remains a community-driven release that may exhibit training instability, elevated memory consumption, and slower CPU throughput due to its heavy attention blocks, so Ultralytics still recommends YOLO11 for most production workloads.
+
+!!! note "Community Model"
+
+    YOLO12 is maintained primarily for benchmarking and research. If you need stable training, predictable memory usage, and optimized CPU inference, choose [YOLO11](yolo11.md) or other Ultralytics-maintained releases for deployment.
 
 <p align="center">
   <br>
@@ -38,7 +42,7 @@ YOLO12 introduces an attention-centric architecture that departs from the tradit
 - **Enhanced Efficiency**: Achieves higher accuracy with fewer parameters compared to many prior models, demonstrating an improved balance between speed and accuracy.
 - **Flexible Deployment**: Designed for deployment across diverse platforms, from edge devices to cloud infrastructure.
 
-![YOLO12 comparison visualization](https://github.com/user-attachments/assets/8009d90f-b43c-4a96-bb89-47ef843e7144)
+![YOLO12 comparison visualization](https://github.com/ultralytics/docs/releases/download/0/yolo12-comparison-visualization.avif)
 
 ## Supported Tasks and Modes
 
@@ -62,7 +66,7 @@ YOLO12 demonstrates significant [accuracy](https://www.ultralytics.com/glossary/
 
     === "Detection (COCO)"
 
-        | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) | Comparison<br><sup>(mAP/Speed) |
+        | Model                                                                                | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> | Comparison<br><sup>(mAP/Speed)</sup> |
         | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | --------------------------------- | ------------------ | ----------------- | ------------------------------ |
         | [YOLO12n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12n.pt) | 640                   | 40.6                 | -                              | 1.64                              | 2.6                | 6.5               | +2.1%/-9% (vs. YOLOv10n)       |
         | [YOLO12s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12s.pt) | 640                   | 48.0                 | -                              | 2.61                              | 9.3                | 21.4              | +0.1%/+42% (vs. RT-DETRv2)     |
@@ -136,7 +140,7 @@ The Ultralytics YOLO12 implementation, by default, _does not require_ FlashAtten
 - [Ada Lovelace GPUs](https://www.nvidia.com/en-us/geforce/ada-lovelace-architecture/) (e.g., RTX40 series)
 - [Hopper GPUs](https://www.nvidia.com/en-us/data-center/technologies/hopper-architecture/) (e.g., H100/H200)
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If you use YOLO12 in your research, please cite the original work by [University at Buffalo](https://www.buffalo.edu/) and the [University of Chinese Academy of Sciences](https://english.ucas.ac.cn/):
 
@@ -145,8 +149,8 @@ If you use YOLO12 in your research, please cite the original work by [University
     === "BibTeX"
 
         ```bibtex
-        @article{tian2025yolov12,
-          title={YOLOv12: Attention-Centric Real-Time Object Detectors},
+        @article{tian2025yolo12,
+          title={YOLO12: Attention-Centric Real-Time Object Detectors},
           author={Tian, Yunjie and Ye, Qixiang and Doermann, David},
           journal={arXiv preprint arXiv:2502.12524},
           year={2025}
@@ -154,7 +158,7 @@ If you use YOLO12 in your research, please cite the original work by [University
 
         @software{yolo12,
           author = {Tian, Yunjie and Ye, Qixiang and Doermann, David},
-          title = {YOLOv12: Attention-Centric Real-Time Object Detectors},
+          title = {YOLO12: Attention-Centric Real-Time Object Detectors},
           year = {2025},
           url = {https://github.com/sunsmarterjie/yolov12},
           license = {AGPL-3.0}

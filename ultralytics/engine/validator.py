@@ -29,26 +29,26 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.distributed as dist
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
+from ultralytics.utils import LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
 
 
 class BaseValidator:
-    """
-    A base class for creating validators.
+    """A base class for creating validators.
 
     This class provides the foundation for validation processes, including model evaluation, metric computation, and
     result visualization.
 
     Attributes:
         args (SimpleNamespace): Configuration for the validator.
-        dataloader (DataLoader): Dataloader to use for validation.
+        dataloader (DataLoader): DataLoader to use for validation.
         model (nn.Module): Model to validate.
         data (dict): Data dictionary containing dataset information.
         device (torch.device): Device to use for validation.
@@ -61,8 +61,8 @@ class BaseValidator:
         nc (int): Number of classes.
         iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
         jdict (list): List to store JSON validation results.
-        speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective
-            batch processing times in milliseconds.
+        speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective batch
+            processing times in milliseconds.
         save_dir (Path): Directory to save results.
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
@@ -92,11 +92,10 @@ class BaseValidator:
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
-        """
-        Initialize a BaseValidator instance.
+        """Initialize a BaseValidator instance.
 
         Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
+            dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (Path, optional): Directory to save results.
             args (SimpleNamespace, optional): Configuration for the validator.
             _callbacks (dict, optional): Dictionary to store various callback functions.
@@ -130,8 +129,7 @@ class BaseValidator:
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
-        """
-        Execute validation process, running inference on dataloader and computing performance metrics.
+        """Execute validation process, running inference on dataloader and computing performance metrics.
 
         Args:
             trainer (object, optional): Trainer object that contains the model to validate.
@@ -148,6 +146,8 @@ class BaseValidator:
             # Force FP16 val during training
             self.args.half = self.device.type != "cpu" and trainer.amp
             model = trainer.ema.ema or trainer.model
+            if trainer.args.compile and hasattr(model, "_orig_mod"):
+                model = model._orig_mod  # validate non-compiled original model to avoid issues
             model = model.half() if self.args.half else model.float()
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
@@ -158,7 +158,7 @@ class BaseValidator:
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
                 model=model or self.args.model,
-                device=select_device(self.args.device, self.args.batch),
+                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,
@@ -186,6 +186,8 @@ class BaseValidator:
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()
+            if self.args.compile:
+                model = attempt_compile(model, device=self.device)
             model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
@@ -196,7 +198,7 @@ class BaseValidator:
             Profile(device=self.device),
         )
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
-        self.init_metrics(de_parallel(model))
+        self.init_metrics(unwrap_model(model))
         self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
@@ -219,21 +221,34 @@ class BaseValidator:
                 preds = self.postprocess(preds)
 
             self.update_metrics(preds, batch)
-            if self.args.plots and batch_i < 3:
+            if self.args.plots and batch_i < 3 and RANK in {-1, 0}:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 
             self.run_callbacks("on_val_batch_end")
-        stats = self.get_stats()
-        self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
-        self.finalize_metrics()
-        self.print_results()
-        self.run_callbacks("on_val_end")
+
+        stats = {}
+        self.gather_stats()
+        if RANK in {-1, 0}:
+            stats = self.get_stats()
+            self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
+            self.finalize_metrics()
+            self.print_results()
+            self.run_callbacks("on_val_end")
+
         if self.training:
             model.float()
-            results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
+            # Reduce loss across all GPUs
+            loss = self.loss.clone().detach()
+            if trainer.world_size > 1:
+                dist.reduce(loss, dst=0, op=dist.ReduceOp.AVG)
+            if RANK > 0:
+                return
+            results = {**stats, **trainer.label_loss_items(loss.cpu() / len(self.dataloader), prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
+            if RANK > 0:
+                return stats
             LOGGER.info(
                 "Speed: {:.1f}ms preprocess, {:.1f}ms inference, {:.1f}ms loss, {:.1f}ms postprocess per image".format(
                     *tuple(self.speed.values())
@@ -251,8 +266,7 @@ class BaseValidator:
     def match_predictions(
         self, pred_classes: torch.Tensor, true_classes: torch.Tensor, iou: torch.Tensor, use_scipy: bool = False
     ) -> torch.Tensor:
-        """
-        Match predictions to ground truth objects using IoU.
+        """Match predictions to ground truth objects using IoU.
 
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape (N,).
@@ -332,6 +346,10 @@ class BaseValidator:
         """Return statistics about the model's performance."""
         return {}
 
+    def gather_stats(self):
+        """Gather statistics from all the GPUs during DDP training to GPU 0."""
+        pass
+
     def print_results(self):
         """Print the results of the model's predictions."""
         pass
@@ -346,7 +364,10 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Register plots for visualization."""
+        """Register plots for visualization, deduplicating by type."""
+        plot_type = data.get("type") if data else None
+        if plot_type and any((v.get("data") or {}).get("type") == plot_type for v in self.plots.values()):
+            return  # Skip duplicate plot types
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
     def plot_val_samples(self, batch, ni):

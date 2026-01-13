@@ -25,11 +25,11 @@ You can use Google Colab to work on projects related to [Ultralytics YOLO11](htt
 
 Google Colaboratory, commonly known as Google Colab, was developed by Google Research in 2017. It is a free online cloud-based Jupyter Notebook environment that allows you to train your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and deep learning models on CPUs, GPUs, and TPUs. The motivation behind developing Google Colab was Google's broader goals to advance AI technology and educational tools, and encourage the use of cloud services.
 
-You can use Google Colab regardless of the specifications and configurations of your local computer. All you need is a Google account and a web browser, and you're good to go.
+You can use Google Colab regardless of the specifications and configurations of your local computer. All you need is a Google account and a web browser.
 
 ## Training YOLO11 Using Google Colaboratory
 
-Training YOLO11 models on Google Colab is pretty straightforward. Thanks to the integration, you can access the [Google Colab YOLO11 Notebook](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLO11 Model Training guide](../modes/train.md).
+Training YOLO11 models on Google Colab is straightforward. You can access the [Google Colab YOLO11 Notebook](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) and start training your model immediately. For a detailed understanding of the model training process and best practices, refer to our [YOLO11 Model Training guide](../modes/train.md).
 
 ### Common Questions While Working with Google Colab
 
@@ -59,7 +59,7 @@ Now, let's look at some of the standout features that make Google Colab a go-to 
 
 - **Library Support:** Google Colab includes pre-installed libraries for data analysis and machine learning and allows additional libraries to be installed as needed. It also supports various libraries for creating interactive charts and visualizations.
 
-- **Hardware Resources:** Users also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to advanced hardware like Tesla K80 GPUs and TPUs, which are specialized circuits designed specifically for machine learning tasks.
+- **Hardware Resources:** Users can also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to advanced hardware like Tesla K80 GPUs and TPUs, which are specialized circuits designed specifically for machine learning tasks.
 
 ![Runtime Settings](https://github.com/ultralytics/docs/releases/download/0/runtime-settings.avif)
 

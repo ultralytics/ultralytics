@@ -7,14 +7,13 @@ from ultralytics.utils.plotting import colors
 
 
 class VisionEye(BaseSolution):
-    """
-    A class to manage object detection and vision mapping in images or video streams.
+    """A class to manage object detection and vision mapping in images or video streams.
 
-    This class extends the BaseSolution class and provides functionality for detecting objects,
-    mapping vision points, and annotating results with bounding boxes and labels.
+    This class extends the BaseSolution class and provides functionality for detecting objects, mapping vision points,
+    and annotating results with bounding boxes and labels.
 
     Attributes:
-        vision_point (Tuple[int, int]): Coordinates (x, y) where vision will view objects and draw tracks.
+        vision_point (tuple[int, int]): Coordinates (x, y) where vision will view objects and draw tracks.
 
     Methods:
         process: Process the input image to detect objects, annotate them, and apply vision mapping.
@@ -27,8 +26,7 @@ class VisionEye(BaseSolution):
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """
-        Initialize the VisionEye class for detecting objects and applying vision mapping.
+        """Initialize the VisionEye class for detecting objects and applying vision mapping.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class and for configuring vision_point.
@@ -38,8 +36,7 @@ class VisionEye(BaseSolution):
         self.vision_point = self.CFG["vision_point"]
 
     def process(self, im0) -> SolutionResults:
-        """
-        Perform object detection, vision mapping, and annotation on the input image.
+        """Perform object detection, vision mapping, and annotation on the input image.
 
         Args:
             im0 (np.ndarray): The input image for detection and annotation.

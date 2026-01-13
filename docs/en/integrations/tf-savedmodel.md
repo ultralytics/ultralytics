@@ -12,7 +12,7 @@ Learning how to export to TF SavedModel from [Ultralytics YOLO11](https://github
 
 ## Why Should You Export to TF SavedModel?
 
-The TensorFlow SavedModel format is a part of the TensorFlow ecosystem developed by Google as shown below. It is designed to save and serialize TensorFlow models seamlessly. It encapsulates the complete details of models like the architecture, weights, and even compilation information. This makes it straightforward to share, deploy, and continue training across different environments.
+The TensorFlow SavedModel format is part of the TensorFlow ecosystem developed by Google as shown below. It is designed to save and serialize TensorFlow models seamlessly. It encapsulates the complete details of models like the architecture, weights, and even compilation information. This makes it straightforward to share, deploy, and continue training across different environments.
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tf-savedmodel-overview.avif" alt="TF SavedModel">

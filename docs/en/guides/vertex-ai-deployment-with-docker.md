@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to deploy pre-trained YOLO11 models on Google Cloud Vertex AI using Docker containers and FastAPI for scalable inference with complete control over preprocessing and postprocessing.
+description: Learn how to deploy pretrained YOLO11 models on Google Cloud Vertex AI using Docker containers and FastAPI for scalable inference with complete control over preprocessing and postprocessing.
 keywords: YOLO11, Vertex AI, Docker, FastAPI, deployment, container, GCP, Artifact Registry, Ultralytics, cloud deployment
 ---
 
-# Deploy a pre-trained YOLO model with Ultralytics on Vertex AI for inference
+# Deploy a pretrained YOLO model with Ultralytics on Vertex AI for inference
 
-This guide will show you how to containerize a pre-trained YOLO11 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO11, but the same principles will apply for using [other YOLO modes](../modes/index.md).
+This guide will show you how to containerize a pretrained YOLO11 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO11, but the same principles will apply for using [other YOLO modes](../modes/index.md).
 
 Before we start, you will need to create a Google Cloud Platform (GCP) project. You get $300 in GCP credits to use for free as a new user, and this amount is enough to test a running setup that you can later extend for any other YOLO11 use case, including training, or batch and streaming inference.
 
@@ -39,7 +39,7 @@ First, you need to create a FastAPI application that will serve the YOLO11 model
 Vertex AI expects your container to implement two specific endpoints:
 
 1. **Health** endpoint (`/health`): Must return HTTP status `200 OK` when service is ready.
-2. **Predict** endpoint (`/predict`): Accepts structured prediction requests with **base64-encoded** images and optional parameters. [Payload size limits](https://cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type) apply depending on the endpoint type.
+2. **Predict** endpoint (`/predict`): Accepts structured prediction requests with **base64-encoded** images and optional parameters. [Payload size limits](https://docs.cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type) apply depending on the endpoint type.
 
     Request payloads for the `/predict` endpoint should follow this JSON structure:
 
@@ -52,7 +52,7 @@ Vertex AI expects your container to implement two specific endpoints:
 
 ### Project folder structure
 
-The bulk of our build will be happening inside the Docker container, and Ultralytics will also load a pre-trained YOLO11 model, so you can keep the local folder structure simple:
+The bulk of our build will be happening inside the Docker container, and Ultralytics will also load a pretrained YOLO11 model, so you can keep the local folder structure simple:
 
 ```txt
 YOUR_PROJECT/
@@ -115,7 +115,7 @@ def _initialize_model():
     global model_yolo, _model_ready
 
     try:
-        # Use pre-trained YOLO11n model from Ultralytics base image
+        # Use pretrained YOLO11n model from Ultralytics base image
         model_yolo = YOLO("yolo11n.pt")
         _model_ready = True
 
@@ -242,7 +242,7 @@ logger.add(
 logger.add("log.log", rotation="1 MB", level="DEBUG", compression="zip")
 ```
 
-For a complete Vertex AI compliance, define the required endpoints in environment variables and set the size limit for requests. It is recommended to use [private Vertex AI endpoints](https://cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type) for production deployments. This way you will have a higher request payload limit (10 MB instead of 1.5 MB for public endpoints), together with robust security and access control.
+For a complete Vertex AI compliance, define the required endpoints in environment variables and set the size limit for requests. It is recommended to use [private Vertex AI endpoints](https://docs.cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type) for production deployments. This way you will have a higher request payload limit (10 MB instead of 1.5 MB for public endpoints), together with robust security and access control.
 
 ```python
 # Vertex AI environment variables
@@ -350,8 +350,8 @@ async def predict(request: PredictionRequest):
         # Re-raise HTTPException as-is (don't catch and convert to 500)
         raise
     except Exception as e:
-        logger.error(f"Prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+        logger.error(f"Prediction error: {e}")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {e}")
 ```
 
 Finally, add the application entry point to run the FastAPI server.
@@ -473,7 +473,7 @@ Open the [Artifact Registry page](https://console.cloud.google.com/artifacts) in
 
 !!! note
 
-    Region selection may affect the availability of machines and certain compute limitations for non-Enterprise users. You can find more information in the Vertex AI official documentation: [Vertex AI quotas and limits](https://cloud.google.com/vertex-ai/docs/quotas)
+    Region selection may affect the availability of machines and certain compute limitations for non-Enterprise users. You can find more information in the Vertex AI official documentation: [Vertex AI quotas and limits](https://docs.cloud.google.com/vertex-ai/docs/quotas)
 
 1. Once the repository is created, save your PROJECT_ID, Location (Region), and Repository Name to your secrets vault or `.env` file. You will need them later to tag and push your Docker image to the Artifact Registry.
 
@@ -544,14 +544,14 @@ To deploy a model, you need to create an Endpoint in Vertex AI.
   <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/endpoint-name.png" alt="Vertex AI create endpoint interface showing endpoint name input field and access configuration options">
 </p>
 1.  Enter the Endpoint name.
-1.  For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint, however you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type).
+1.  For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint, however you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://docs.cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type).
 1.  Click Continue.
 1.  On the Model settings dialog, select the model you imported earlier. Now you can configure the machine type, memory, and GPU settings for your model. Allow for ample memory if you are expecting high inference loads to ensure there are no I/O bottlenecks for the proper YOLO11 performance.
 1.  In Accelerator type, select the GPU type you want to use for inference. If you are not sure which GPU to select, you can start with NVIDIA T4, which is CUDA-supported.
 
     !!! note "Region and machine type quotas"
 
-        Remember that certain regions have very limited compute quotas, so you may not be able to select certain machine types or GPUs in your region. If this is critical, change the region of your deployment to one with a bigger quota. Find more information in the Vertex AI official documentation: [Vertex AI quotas and limits](https://cloud.google.com/vertex-ai/docs/quotas).
+        Remember that certain regions have very limited compute quotas, so you may not be able to select certain machine types or GPUs in your region. If this is critical, change the region of your deployment to one with a bigger quota. Find more information in the Vertex AI official documentation: [Vertex AI quotas and limits](https://docs.cloud.google.com/vertex-ai/docs/quotas).
 
 1.  Once the machine type is selected, you can click Continue. At this point, you can choose to enable model monitoring in Vertex AI—an extra service that will track your model's performance and provide insights into its behavior. This is optional and incurs additional costs, so select according to your needs. Click Create.
 
@@ -564,22 +564,22 @@ Once the deployment is complete, Vertex AI will provide you with a sample API in
 To test remote inference, you can use the provided cURL command or create another Python client library that will send requests to the deployed model. Remember that you need to encode your image to base64 before sending it to the `/predict` endpoint.
 
 <p align="center">
-  <img width="50%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/test-endpoint.png" alt="Vertex AI endpoint testing interface displaying sample cURL command for making prediction requests to deployed YOLO11 model">
+  <img width="50%" src="https://github.com/ultralytics/docs/releases/download/0/vertex-ai-endpoint-test-curl-yolo11.avif" alt="Vertex AI endpoint testing interface displaying sample cURL command for making prediction requests to deployed YOLO11 model">
 </p>
 
 !!! note "Expect a short delay on the first request"
 
     Similarly to the local testing, expect a short delay on the first request, as Ultralytics will need to pull and load the YOLO11 model in the running container.
 
-Congratulations! You have successfully deployed a pre-trained YOLO11 model with Ultralytics on Google Cloud Vertex AI.
+You have successfully deployed a pretrained YOLO11 model with Ultralytics on Google Cloud Vertex AI.
 
 ## FAQ
 
 ### Can I use Ultralytics YOLO models on Vertex AI without Docker?
 
-Yes, however you will first need to export the model to a format compatible with Vertex AI, such as TensorFlow, Scikit-learn, or XGBoost. Google Cloud provides a guide on running `.pt` models on Vertex with a complete overview of the conversion process: [Run PyTorch models on Vertex AI](https://cloud.google.com/blog/topics/developers-practitioners/pytorch-google-cloud-how-deploy-pytorch-models-vertex-ai).
+Yes; however, you will first need to export the model to a format compatible with Vertex AI, such as TensorFlow, Scikit-learn, or XGBoost. Google Cloud provides a guide on running `.pt` models on Vertex with a complete overview of the conversion process: [Run PyTorch models on Vertex AI](https://cloud.google.com/blog/topics/developers-practitioners/pytorch-google-cloud-how-deploy-pytorch-models-vertex-ai).
 
-Please note that the resulting setup will rely only on Vertex AI standard serving layer and will not support the advanced Ultralytics framework features. Since Vertex AI fully supports containerized models and is able to scale them automatically according to your deployment configuration, it allows you to leverage the full capabilities of Ultralytics YOLO models without needing to convert them to a different format.
+Please note that the resulting setup will rely only on the Vertex AI standard serving layer and will not support the advanced Ultralytics framework features. Since Vertex AI fully supports containerized models and can scale them automatically according to your deployment configuration, it allows you to leverage the full capabilities of Ultralytics YOLO models without needing to convert them to a different format.
 
 ### Why is FastAPI a good choice for serving YOLO11 inference?
 
@@ -595,4 +595,4 @@ FastAPI also supports SSE (Server-Sent Events), which is useful for streaming in
 
 This is actually a versatility feature of Google Cloud Platform, where you need to select a region for every service you use. For the task of deploying a containerized model on Vertex AI, your most important region selection is the one for the Model Registry. It will determine the availability of machine types and quotas for your model deployment.
 
-Additionally, if you will be extending the setup and storing prediction data or results in Cloud Storage or BigQuery, you will need to use the same region as for Model Registry, to minimize latency and ensure high throughput for data access.
+Additionally, if you will be extending the setup and storing prediction data or results in Cloud Storage or BigQuery, you will need to use the same region as for Model Registry to minimize latency and ensure high throughput for data access.

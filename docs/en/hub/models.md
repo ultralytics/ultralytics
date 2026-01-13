@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore Ultralytics HUB for easy training, analysis, preview, deployment and sharing of custom vision AI models using YOLO11. Start training today!.
+description: Explore Ultralytics HUB for easy training, analysis, preview, deployment and sharing of custom vision AI models using YOLO11. Start training today.
 keywords: Ultralytics HUB, YOLO11, custom AI models, model training, model deployment, model analysis, vision AI
 ---
 
@@ -68,7 +68,7 @@ In this step, you have to choose the project in which you want to create your mo
 
     You can read more about the available [YOLO models](https://docs.ultralytics.com/models/) and architectures in our documentation.
 
-By default, your model will use a pre-trained model (trained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset) to reduce training time. You can change this behavior and tweak your model's configuration by opening the **Advanced Model Configuration** accordion.
+By default, your model will use a pretrained model (trained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco/) dataset) to reduce training time. You can change this behavior and tweak your model's configuration by opening the **Advanced Model Configuration** accordion.
 
 ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the Advanced Model Configuration accordion](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-train-model-dialog-2.avif)
 
@@ -87,7 +87,7 @@ By default, your model will use a pre-trained model (trained on the [COCO](https
   <strong>Watch:</strong> How to Configure Ultralytics YOLOv8 Training Parameters in Ultralytics HUB
 </p>
 
-Alternatively, you start training from one of your previously trained models by clicking on the **Custom** tab.
+Alternatively, you can start training from one of your previously trained models by clicking on the **Custom** tab.
 
 ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the Custom tab](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-train-model-dialog-3.avif)
 
@@ -95,7 +95,7 @@ When you're happy with your model configuration, click **Continue**.
 
 ### 3. Train
 
-In this step, you will start training you model.
+In this step, you will start training your model.
 
 ??? note
 

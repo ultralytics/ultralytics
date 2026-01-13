@@ -8,7 +8,7 @@ keywords: YOLOE, open-vocabulary detection, real-time object detection, instance
 
 ## Introduction
 
-![YOLOE Prompting Options](https://raw.githubusercontent.com/THU-MIG/yoloe/main/figures/visualization.svg)
+![YOLOE Prompting Options](https://github.com/ultralytics/docs/releases/download/0/yoloe-visualization.avif)
 
 [YOLOE (Real-Time Seeing Anything)](https://arxiv.org/html/2503.07465v1) is a new advancement in zero-shot, promptable YOLO models, designed for **open-vocabulary** detection and segmentation. Unlike previous YOLO models limited to fixed categories, YOLOE uses text, image, or internal vocabulary prompts, enabling real-time detection of any object class. Built upon YOLOv10 and inspired by [YOLO-World](yolo-world.md), YOLOE achieves **state-of-the-art zero-shot performance** with minimal impact on speed and accuracy.
 
@@ -45,11 +45,11 @@ Crucially, YOLOE's open-world modules introduce **no inference cost** when used 
 
 ## Available Models, Supported Tasks, and Operating Modes
 
-This section details the models available with their specific pre-trained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
+This section details the models available with their specific pretrained weights, the tasks they support, and their compatibility with various operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), denoted by ✅ for supported modes and ❌ for unsupported modes.
 
 ### Text/Visual Prompt models
 
-| Model Type | Pre-trained Weights                                                                                 | Tasks Supported                              | Inference | Validation | Training | Export |
+| Model Type | Pretrained Weights                                                                                  | Tasks Supported                              | Inference | Validation | Training | Export |
 | ---------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOE-11S  | [yoloe-11s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11s-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-11M  | [yoloe-11m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11m-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
@@ -60,7 +60,7 @@ This section details the models available with their specific pre-trained weight
 
 ### Prompt Free models
 
-| Model Type   | Pre-trained Weights                                                                                       | Tasks Supported                              | Inference | Validation | Training | Export |
+| Model Type   | Pretrained Weights                                                                                        | Tasks Supported                              | Inference | Validation | Training | Export |
 | ------------ | --------------------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
 | YOLOE-11S-PF | [yoloe-11s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-11M-PF | [yoloe-11m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
@@ -78,6 +78,17 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 #### Fine-Tuning on custom dataset
 
 You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on your custom YOLO dataset for both detection and instance segmentation tasks.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/vnn90bEyk0w"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train YOLOE on Car Parts Segmentation Dataset | Open-Vocabulary Model, Prediction & Export 🚀
+</p>
 
 !!! example
 
@@ -141,7 +152,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         # Identify the head layer index
         head_index = len(model.model.model) - 1
 
-        # Freeze all backbone and neck layers (i.e. everything before the head)
+        # Freeze all backbone and neck layers (i.e., everything before the head)
         freeze = [str(i) for i in range(0, head_index)]
 
         # Freeze parts of the segmentation head, keeping only the classification branch trainable
@@ -188,7 +199,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         # Identify the head layer index
         head_index = len(model.model.model) - 1
 
-        # Freeze all backbone and neck layers (i.e. everything before the head)
+        # Freeze all backbone and neck layers (i.e., everything before the head)
         freeze = [str(i) for i in range(0, head_index)]
 
         # Freeze parts of the segmentation head, keeping only the classification branch trainable
@@ -750,7 +761,7 @@ For zero-shot and transfer tasks, YOLOE excels: on LVIS, YOLOE-small improves ov
 
 !!! note
 
-    **Benchmark conditions:** YOLOE results are from models pre-trained on Objects365, GoldG, and LVIS, then fine-tuned or evaluated on COCO. YOLOE's slight mAP advantage over YOLOv8 comes from extensive pre-training. Without this open-vocab training, YOLOE matches similar-sized YOLO models, affirming its SOTA accuracy and open-world flexibility without performance penalties.
+    **Benchmark conditions:** YOLOE results are from models pretrained on Objects365, GoldG, and LVIS, then fine-tuned or evaluated on COCO. YOLOE's slight mAP advantage over YOLOv8 comes from extensive pre-training. Without this open-vocab training, YOLOE matches similar-sized YOLO models, affirming its SOTA accuracy and open-world flexibility without performance penalties.
 
 ## Comparison with Previous Models
 
@@ -790,7 +801,7 @@ YOLOE's open-vocabulary detection and segmentation enable diverse applications b
   YOLOE facilitates rapid dataset creation by providing initial bounding box and segmentation annotations, significantly reducing human labeling efforts. Particularly valuable in **analytics of large media collections**, where it can auto-identify objects present, assisting in building specialized models faster.
 
 - **Segmentation for Any Object:**
-  Extends segmentation capabilities to arbitrary objects through prompts—particularly beneficial for [medical imaging](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), **microscopy**, or [satellite imagery analysis](https://www.ultralytics.com/blog/using-computer-vision-to-analyse-satellite-imagery), automatically identifying and precisely segmenting structures without specialized pre-trained models. Unlike models like [SAM](sam.md), YOLOE simultaneously recognizes and segments objects automatically, aiding in tasks like **content creation** or **scene understanding**.
+  Extends segmentation capabilities to arbitrary objects through prompts—particularly beneficial for [medical imaging](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), **microscopy**, or [satellite imagery analysis](https://www.ultralytics.com/blog/using-computer-vision-to-analyze-satellite-imagery), automatically identifying and precisely segmenting structures without specialized pretrained models. Unlike models like [SAM](sam.md), YOLOE simultaneously recognizes and segments objects automatically, aiding in tasks like **content creation** or **scene understanding**.
 
 Across all these use cases, YOLOE's core advantage is **versatility**, providing a unified model for detection, recognition, and segmentation across dynamic scenarios. Its efficiency ensures real-time performance on resource-constrained devices, ideal for robotics, [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars), defense, and beyond.
 
@@ -808,14 +819,14 @@ Across all these use cases, YOLOE's core advantage is **versatility**, providing
 
 YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md) and [CLI](../usage/cli.md), similar to other YOLO models (YOLOv8, YOLO-World). Here's how to quickly get started:
 
-!!! Example "Training and inference with YOLOE"
+!!! example "Training and inference with YOLOE"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load pre-trained YOLOE model and train on custom data
+        # Load pretrained YOLOE model and train on custom data
         model = YOLO("yoloe-11s-seg.pt")
         model.train(data="path/to/data.yaml", epochs=50, imgsz=640)
 
@@ -861,10 +872,10 @@ Quickly set up YOLOE with Ultralytics by following these steps:
     ```
 
 2. **Download YOLOE Weights**:
-   Pre-trained YOLOE models (e.g., YOLOE-v8-S/L, YOLOE-11 variants) are available from the YOLOE GitHub releases. Simply download your desired `.pt` file to load into the Ultralytics YOLO class.
+   Pretrained YOLOE models (e.g., YOLOE-v8-S/L, YOLOE-11 variants) are available from the YOLOE GitHub releases. Simply download your desired `.pt` file to load into the Ultralytics YOLO class.
 
 3. **Hardware Requirements**:
-    - **Inference**: Recommended GPU (NVIDIA with ≥4-8GB VRAM). Small models run efficiently on edge GPUs (e.g., [Jetson](../guides/nvidia-jetson.md)) or CPUs at lower resolutions.
+    - **Inference**: Recommended GPU (NVIDIA with ≥4-8GB VRAM). Small models run efficiently on edge GPUs (e.g., [Jetson](../guides/nvidia-jetson.md)) or CPUs at lower resolutions. For high-performance inference on compact workstations, see our [NVIDIA DGX Spark](../guides/nvidia-dgx-spark.md) guide.
     - **Training**: Fine-tuning YOLOE on custom data typically requires just one GPU. Extensive open-vocabulary pre-training (LVIS/Objects365) used by authors required substantial compute (8× RTX 4090 GPUs).
 
 4. **Configuration**:
@@ -899,7 +910,7 @@ The [Ultralytics documentation](https://docs.ultralytics.com/) provides further 
     **Pro Tip:**
     To maximize YOLOE's zero-shot accuracy, fine-tune from provided checkpoints rather than training from scratch. Use prompt words aligning with common training labels (see LVIS categories) to improve detection accuracy.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If YOLOE has contributed to your research or project, please cite the original paper by **Ao Wang, Lihao Liu, Hui Chen, Zijia Lin, Jungong Han, and Guiguang Ding** from **Tsinghua University**:
 

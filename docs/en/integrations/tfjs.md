@@ -18,7 +18,7 @@ Exporting your machine learning models to TensorFlow.js, developed by the Tensor
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/tfjs-architecture.avif" alt="TF.js Architecture">
 </p>
 
-Running models locally also reduces latency and provides a more responsive user experience. [TensorFlow](https://www.ultralytics.com/glossary/tensorflow).js also comes with offline capabilities, allowing users to use your application even without an internet connection. TF.js is designed for efficient execution of complex models on devices with limited resources as it is engineered for scalability, with GPU acceleration support.
+Running models locally also reduces latency and provides a more responsive user experience. [TensorFlow.js](https://www.ultralytics.com/glossary/tensorflow) also comes with offline capabilities, allowing users to use your application even without an internet connection. TF.js is designed for efficient execution of complex models on devices with limited resources as it is engineered for scalability, with GPU acceleration support.
 
 ## Key Features of TF.js
 
@@ -40,7 +40,7 @@ TF.js provides a range of options to deploy your machine learning models:
 
 - **Node.js Applications:** TensorFlow.js also supports deployment in Node.js environments, enabling the development of server-side machine learning applications. It is particularly useful for applications that require the processing power of a server or access to server-side data.
 
-- **Chrome Extensions:** An interesting deployment scenario is the creation of Chrome extensions with TensorFlow.js. For instance, you can develop an extension that allows users to right-click on an image within any webpage to classify it using a pre-trained ML model. TensorFlow.js can be integrated into everyday web browsing experiences to provide immediate insights or augmentations based on machine learning.
+- **Chrome Extensions:** An interesting deployment scenario is the creation of Chrome extensions with TensorFlow.js. For instance, you can develop an extension that allows users to right-click on an image within any webpage to classify it using a pretrained ML model. TensorFlow.js can be integrated into everyday web browsing experiences to provide immediate insights or augmentations based on machine learning.
 
 ## Exporting YOLO11 Models to TensorFlow.js
 

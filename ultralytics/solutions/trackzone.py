@@ -10,8 +10,7 @@ from ultralytics.utils.plotting import colors
 
 
 class TrackZone(BaseSolution):
-    """
-    A class to manage region-based object tracking in a video stream.
+    """A class to manage region-based object tracking in a video stream.
 
     This class extends the BaseSolution class and provides functionality for tracking objects within a specific region
     defined by a polygonal area. Objects outside the region are excluded from tracking.
@@ -19,10 +18,10 @@ class TrackZone(BaseSolution):
     Attributes:
         region (np.ndarray): The polygonal region for tracking, represented as a convex hull of points.
         line_width (int): Width of the lines used for drawing bounding boxes and region boundaries.
-        names (List[str]): List of class names that the model can detect.
-        boxes (List[np.ndarray]): Bounding boxes of tracked objects.
-        track_ids (List[int]): Unique identifiers for each tracked object.
-        clss (List[int]): Class indices of tracked objects.
+        names (list[str]): List of class names that the model can detect.
+        boxes (list[np.ndarray]): Bounding boxes of tracked objects.
+        track_ids (list[int]): Unique identifiers for each tracked object.
+        clss (list[int]): Class indices of tracked objects.
 
     Methods:
         process: Process each frame of the video, applying region-based tracking.
@@ -37,8 +36,7 @@ class TrackZone(BaseSolution):
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """
-        Initialize the TrackZone class for tracking objects within a defined region in video streams.
+        """Initialize the TrackZone class for tracking objects within a defined region in video streams.
 
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.
@@ -49,18 +47,17 @@ class TrackZone(BaseSolution):
         self.mask = None
 
     def process(self, im0: np.ndarray) -> SolutionResults:
-        """
-        Process the input frame to track objects within a defined region.
+        """Process the input frame to track objects within a defined region.
 
-        This method initializes the annotator, creates a mask for the specified region, extracts tracks
-        only from the masked area, and updates tracking information. Objects outside the region are ignored.
+        This method initializes the annotator, creates a mask for the specified region, extracts tracks only from the
+        masked area, and updates tracking information. Objects outside the region are ignored.
 
         Args:
             im0 (np.ndarray): The input image or frame to be processed.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im` and `total_tracks` (int) representing the
-                               total number of tracked objects within the defined region.
+            (SolutionResults): Contains processed image `plot_im` and `total_tracks` (int) representing the total number
+                of tracked objects within the defined region.
 
         Examples:
             >>> tracker = TrackZone()

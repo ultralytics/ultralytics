@@ -10,17 +10,17 @@ keywords: Ultralytics, YOLO11, model prediction, inference, predict mode, real-t
 
 ## Introduction
 
-In the world of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), the process of making sense out of visual data is called 'inference' or 'prediction'. Ultralytics YOLO11 offers a powerful feature known as **predict mode** that is tailored for high-performance, real-time inference on a wide range of data sources.
+In the world of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), the process of making sense of visual data is often called inference or prediction. Ultralytics YOLO11 offers a powerful feature known as **predict mode**, tailored for high-performance, real-time inference across a wide range of data sources.
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/QtsI0TnwDZs?si=ljesw75cMO2Eas14"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YKbBXWBJloY"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Extract the Outputs from Ultralytics YOLO Model for Custom Projects.
+  <strong>Watch:</strong> How to Extract Results from Ultralytics YOLO11 Tasks for Custom Projects 🚀
 </p>
 
 ## Real-world Applications
@@ -34,7 +34,7 @@ In the world of [machine learning](https://www.ultralytics.com/glossary/machine-
 
 Here's why you should consider YOLO11's predict mode for your various inference needs:
 
-- **Versatility:** Capable of making inferences on images, videos, and even live streams.
+- **Versatility:** Capable of running inference on images, videos, and even live streams.
 - **Performance:** Engineered for real-time, high-speed processing without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy).
 - **Ease of Use:** Intuitive Python and CLI interfaces for rapid deployment and testing.
 - **Highly Customizable:** Various settings and parameters to tune the model's inference behavior according to your specific requirements.
@@ -45,10 +45,10 @@ YOLO11's predict mode is designed to be robust and versatile, featuring:
 
 - **Multiple Data Source Compatibility:** Whether your data is in the form of individual images, a collection of images, video files, or real-time video streams, predict mode has you covered.
 - **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method.
-- **Batch Processing:** The ability to process multiple images or video frames in a single batch, further speeding up inference time.
+- **Batch Processing:** Process multiple images or video frames in a single batch, further reducing total inference time.
 - **Integration Friendly:** Easily integrate with existing data pipelines and other software components, thanks to its flexible API.
 
-Ultralytics YOLO models return either a Python list of `Results` objects, or a memory-efficient Python generator of `Results` objects when `stream=True` is passed to the model during inference:
+Ultralytics YOLO models return either a Python list of `Results` objects or a memory-efficient generator of `Results` objects when `stream=True` is passed to the model during inference:
 
 !!! example "Predict"
 
@@ -104,23 +104,23 @@ YOLO11 can process different types of input sources for inference, as shown in t
 
     Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
 
-| Source                                                | Example                                    | Type            | Notes                                                                                       |
-| ----------------------------------------------------- | ------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------- |
-| image                                                 | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                          |
-| URL                                                   | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                            |
-| screenshot                                            | `'screen'`                                 | `str`           | Capture a screenshot.                                                                       |
-| PIL                                                   | `Image.open('image.jpg')`                  | `PIL.Image`     | HWC format with RGB channels.                                                               |
-| [OpenCV](https://www.ultralytics.com/glossary/opencv) | `cv2.imread('image.jpg')`                  | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
-| numpy                                                 | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                               |
-| torch                                                 | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | BCHW format with RGB channels `float32 (0.0-1.0)`.                                          |
-| CSV                                                   | `'sources.csv'`                            | `str` or `Path` | CSV file containing paths to images, videos, or directories.                                |
-| video ✅                                              | `'video.mp4'`                              | `str` or `Path` | Video file in formats like MP4, AVI, etc.                                                   |
-| directory ✅                                          | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                            |
-| glob ✅                                               | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                  |
-| YouTube ✅                                            | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL to a YouTube video.                                                                     |
-| stream ✅                                             | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, TCP, or an IP address.                      |
-| multi-stream ✅                                       | `'list.streams'`                           | `str` or `Path` | `*.streams` text file with one stream URL per row, i.e. 8 streams will run at batch-size 8. |
-| webcam ✅                                             | `0`                                        | `int`           | Index of the connected camera device to run inference on.                                   |
+| Source                                                | Example                                    | Type            | Notes                                                                                        |
+| ----------------------------------------------------- | ------------------------------------------ | --------------- | -------------------------------------------------------------------------------------------- |
+| image                                                 | `'image.jpg'`                              | `str` or `Path` | Single image file.                                                                           |
+| URL                                                   | `'https://ultralytics.com/images/bus.jpg'` | `str`           | URL to an image.                                                                             |
+| screenshot                                            | `'screen'`                                 | `str`           | Capture a screenshot.                                                                        |
+| PIL                                                   | `Image.open('image.jpg')`                  | `PIL.Image`     | HWC format with RGB channels.                                                                |
+| [OpenCV](https://www.ultralytics.com/glossary/opencv) | `cv2.imread('image.jpg')`                  | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                                |
+| numpy                                                 | `np.zeros((640,1280,3))`                   | `np.ndarray`    | HWC format with BGR channels `uint8 (0-255)`.                                                |
+| torch                                                 | `torch.zeros(16,3,320,640)`                | `torch.Tensor`  | BCHW format with RGB channels `float32 (0.0-1.0)`.                                           |
+| CSV                                                   | `'sources.csv'`                            | `str` or `Path` | CSV file containing paths to images, videos, or directories.                                 |
+| video ✅                                              | `'video.mp4'`                              | `str` or `Path` | Video file in formats like MP4, AVI, etc.                                                    |
+| directory ✅                                          | `'path/'`                                  | `str` or `Path` | Path to a directory containing images or videos.                                             |
+| glob ✅                                               | `'path/*.jpg'`                             | `str`           | Glob pattern to match multiple files. Use the `*` character as a wildcard.                   |
+| YouTube ✅                                            | `'https://youtu.be/LNwODJXcvt4'`           | `str`           | URL to a YouTube video.                                                                      |
+| stream ✅                                             | `'rtsp://example.com/media.mp4'`           | `str`           | URL for streaming protocols such as RTSP, RTMP, TCP, or an IP address.                       |
+| multi-stream ✅                                       | `'list.streams'`                           | `str` or `Path` | `*.streams` text file with one stream URL per row, i.e., 8 streams will run at batch-size 8. |
+| webcam ✅                                             | `0`                                        | `int`           | Index of the connected camera device to run inference on.                                    |
 
 Below are code examples for using each source type:
 
@@ -248,7 +248,7 @@ Below are code examples for using each source type:
 
     === "CSV"
 
-        Run inference on a collection of images, URLs, videos and directories listed in a CSV file.
+        Run inference on a collection of images, URLs, videos, and directories listed in a CSV file.
         ```python
         from ultralytics import YOLO
 
@@ -280,7 +280,7 @@ Below are code examples for using each source type:
 
     === "directory"
 
-        Run inference on all images and videos in a directory. To also capture images and videos in subdirectories use a glob pattern, i.e. `path/to/dir/**/*`.
+        Run inference on all images and videos in a directory. To include assets in subdirectories, use a glob pattern such as `path/to/dir/**/*`.
         ```python
         from ultralytics import YOLO
 
@@ -350,7 +350,7 @@ Below are code examples for using each source type:
 
     === "Multi-Stream"
 
-        To handle multiple video streams simultaneously, use a `.streams` text file containing the streaming sources. The model will run batched inference where the batch size equals the number of streams. This setup enables efficient processing of multiple feeds concurrently.
+        To handle multiple video streams simultaneously, use a `.streams` text file containing one source per line. The model will run batched inference where the batch size equals the number of streams. This setup enables efficient processing of multiple feeds concurrently.
 
         ```python
         from ultralytics import YOLO
@@ -395,17 +395,33 @@ Below are code examples for using each source type:
 
 `model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
 
+!!! note
+
+    Ultralytics uses minimal padding during inference by default (`rect=True`). In this mode, the shorter side of each image is padded only as much as needed to make it divisible by the model's maximum stride, rather than padding it all the way to the full `imgsz`. When running inference on a batch of images, minimal padding only works if all images have identical size. Otherwise, images are uniformly padded to a square shape with both sides equal to `imgsz`.
+
+    - `batch=1`, using `rect` padding by default.
+    - `batch>1`, using `rect` padding only if all the images in one batch have identical size, otherwise using square padding to `imgsz`.
+
 !!! example
 
-    ```python
-    from ultralytics import YOLO
+    === "Python"
 
-    # Load a pretrained YOLO11n model
-    model = YOLO("yolo11n.pt")
+        ```python
+        from ultralytics import YOLO
 
-    # Run inference on 'bus.jpg' with arguments
-    model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, conf=0.5)
-    ```
+        # Load a pretrained YOLO11n model
+        model = YOLO("yolo11n.pt")
+
+        # Run inference on 'bus.jpg' with arguments
+        model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, conf=0.25)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference on 'bus.jpg'
+        yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
+        ```
 
 Inference arguments:
 
@@ -831,9 +847,9 @@ Here's a Python script using OpenCV (`cv2`) and YOLO to run inference on video f
 
 This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
 
-[car spare parts]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a0f802a8-0776-44cf-8f17-93974a4a28a1
-[football player detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/7d320e1f-fc57-4d7f-a691-78ee579c3442
-[human fall detect]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/86437c4a-3227-4eee-90ef-9efb697bdb43
+[car spare parts]: https://github.com/ultralytics/docs/releases/download/0/car-parts-detection-for-predict.avif
+[football player detect]: https://github.com/ultralytics/docs/releases/download/0/football-players-detection.avif
+[human fall detect]: https://github.com/ultralytics/docs/releases/download/0/person-fall-detection.avif
 
 ## FAQ
 

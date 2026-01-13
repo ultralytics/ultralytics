@@ -14,8 +14,7 @@ from .utils.kalman_filter import KalmanFilterXYAH
 
 
 class STrack(BaseTrack):
-    """
-    Single object tracking representation that uses Kalman filtering for state estimation.
+    """Single object tracking representation that uses Kalman filtering for state estimation.
 
     This class is responsible for storing all the information regarding individual tracklets and performs state updates
     and predictions based on Kalman filter.
@@ -54,20 +53,13 @@ class STrack(BaseTrack):
     shared_kalman = KalmanFilterXYAH()
 
     def __init__(self, xywh: list[float], score: float, cls: Any):
-        """
-        Initialize a new STrack instance.
+        """Initialize a new STrack instance.
 
         Args:
-            xywh (List[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where
-                (x, y) is the center, (w, h) are width and height, [a] is optional aspect ratio, and idx is the id.
+            xywh (list[float]): Bounding box in `(x, y, w, h, idx)` or `(x, y, w, h, angle, idx)` format, where (x, y)
+                is the center, (w, h) are width and height, and `idx` is the detection index.
             score (float): Confidence score of the detection.
             cls (Any): Class label for the detected object.
-
-        Examples:
-            >>> xywh = [100.0, 150.0, 50.0, 75.0, 1]
-            >>> score = 0.9
-            >>> cls = "person"
-            >>> track = STrack(xywh, score, cls)
         """
         super().__init__()
         # xywh+idx or xywha+idx
@@ -154,8 +146,7 @@ class STrack(BaseTrack):
         self.idx = new_track.idx
 
     def update(self, new_track: STrack, frame_id: int):
-        """
-        Update the state of a matched track.
+        """Update the state of a matched track.
 
         Args:
             new_track (STrack): The new track containing updated information.
@@ -230,7 +221,7 @@ class STrack(BaseTrack):
     def result(self) -> list[float]:
         """Get the current tracking results in the appropriate bounding box format."""
         coords = self.xyxy if self.angle is None else self.xywha
-        return coords.tolist() + [self.track_id, self.score, self.cls, self.idx]
+        return [*coords.tolist(), self.track_id, self.score, self.cls, self.idx]
 
     def __repr__(self) -> str:
         """Return a string representation of the STrack object including start frame, end frame, and track ID."""
@@ -238,17 +229,16 @@ class STrack(BaseTrack):
 
 
 class BYTETracker:
-    """
-    BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
+    """BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
 
-    This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects in a
-    video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman filtering for
-    predicting the new object locations, and performs data association.
+    This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects
+    in a video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman
+    filtering for predicting the new object locations, and performs data association.
 
     Attributes:
-        tracked_stracks (List[STrack]): List of successfully activated tracks.
-        lost_stracks (List[STrack]): List of lost tracks.
-        removed_stracks (List[STrack]): List of removed tracks.
+        tracked_stracks (list[STrack]): List of successfully activated tracks.
+        lost_stracks (list[STrack]): List of lost tracks.
+        removed_stracks (list[STrack]): List of removed tracks.
         frame_id (int): The current frame ID.
         args (Namespace): Command-line arguments.
         max_time_lost (int): The maximum frames for a track to be considered as 'lost'.
@@ -274,21 +264,15 @@ class BYTETracker:
     """
 
     def __init__(self, args, frame_rate: int = 30):
-        """
-        Initialize a BYTETracker instance for object tracking.
+        """Initialize a BYTETracker instance for object tracking.
 
         Args:
             args (Namespace): Command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video sequence.
-
-        Examples:
-            Initialize BYTETracker with command-line arguments and a frame rate of 30
-            >>> args = Namespace(track_buffer=30)
-            >>> tracker = BYTETracker(args, frame_rate=30)
         """
-        self.tracked_stracks = []  # type: List[STrack]
-        self.lost_stracks = []  # type: List[STrack]
-        self.removed_stracks = []  # type: List[STrack]
+        self.tracked_stracks = []  # type: list[STrack]
+        self.lost_stracks = []  # type: list[STrack]
+        self.removed_stracks = []  # type: list[STrack]
 
         self.frame_id = 0
         self.args = args
@@ -320,7 +304,7 @@ class BYTETracker:
         detections = self.init_track(results, feats_keep)
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
-        tracked_stracks = []  # type: List[STrack]
+        tracked_stracks = []  # type: list[STrack]
         for track in self.tracked_stracks:
             if not track.is_activated:
                 unconfirmed.append(track)
@@ -354,9 +338,9 @@ class BYTETracker:
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
         detections_second = self.init_track(results_second, feats_second)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
-        # TODO
+        # TODO: consider fusing scores or appearance features for second association.
         dists = matching.iou_distance(r_tracked_stracks, detections_second)
-        matches, u_track, u_detection_second = matching.linear_assignment(dists, thresh=0.5)
+        matches, u_track, _u_detection_second = matching.linear_assignment(dists, thresh=0.5)
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]
             det = detections_second[idet]
@@ -405,7 +389,7 @@ class BYTETracker:
         self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
         self.removed_stracks.extend(removed_stracks)
         if len(self.removed_stracks) > 1000:
-            self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
+            self.removed_stracks = self.removed_stracks[-1000:]  # clip removed stracks to 1000 maximum
 
         return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
 
@@ -439,9 +423,9 @@ class BYTETracker:
 
     def reset(self):
         """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""
-        self.tracked_stracks = []  # type: List[STrack]
-        self.lost_stracks = []  # type: List[STrack]
-        self.removed_stracks = []  # type: List[STrack]
+        self.tracked_stracks = []  # type: list[STrack]
+        self.lost_stracks = []  # type: list[STrack]
+        self.removed_stracks = []  # type: list[STrack]
         self.frame_id = 0
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()

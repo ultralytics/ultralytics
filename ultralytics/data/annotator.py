@@ -19,8 +19,7 @@ def auto_annotate(
     classes: list[int] | None = None,
     output_dir: str | Path | None = None,
 ) -> None:
-    """
-    Automatically annotate images using a YOLO object detection model and a SAM segmentation model.
+    """Automatically annotate images using a YOLO object detection model and a SAM segmentation model.
 
     This function processes images in a specified directory, detects objects using a YOLO model, and then generates
     segmentation masks using a SAM model. The resulting annotations are saved as text files in YOLO format.
@@ -34,9 +33,9 @@ def auto_annotate(
         iou (float): IoU threshold for filtering overlapping boxes in detection results.
         imgsz (int): Input image resize dimension.
         max_det (int): Maximum number of detections per image.
-        classes (List[int], optional): Filter predictions to specified class IDs, returning only relevant detections.
-        output_dir (str | Path, optional): Directory to save the annotated results. If None, creates a default
-            directory based on the input data path.
+        classes (list[int], optional): Filter predictions to specified class IDs, returning only relevant detections.
+        output_dir (str | Path, optional): Directory to save the annotated results. If None, creates a default directory
+            based on the input data path.
 
     Examples:
         >>> from ultralytics.data.annotator import auto_annotate

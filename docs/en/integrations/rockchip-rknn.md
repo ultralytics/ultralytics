@@ -14,7 +14,7 @@ When deploying computer vision models on embedded devices, especially those powe
 
 !!! note
 
-    This guide has been tested with [Radxa Rock 5B](https://radxa.com/products/rock5/5b/) which is based on Rockchip RK3588 and [Radxa Zero 3W](https://radxa.com/products/zeros/zero3w/) which is based on Rockchip RK3566. It is expected to work across other Rockchip-based devices which supports [rknn-toolkit2](https://github.com/airockchip/rknn-toolkit2) such as RK3576, RK3568, RK3562, RV1103, RV1106, RV1103B, RV1106B and RK2118.
+    This guide has been tested with [Radxa Rock 5B](https://radxa.com/products/rock5/5b/) which is based on Rockchip RK3588 and [Radxa Zero 3W](https://radxa.com/products/zeros/zero3w/) which is based on Rockchip RK3566. It is expected to work across other Rockchip-based devices that support [rknn-toolkit2](https://github.com/airockchip/rknn-toolkit2) such as RK3576, RK3568, RK3562, RV1103, RV1106, RV1103B, RV1106B, RK2118 and RV1126B.
 
 ## What is Rockchip?
 
@@ -46,7 +46,7 @@ Export an Ultralytics YOLO11 model to RKNN format and run inference with the exp
 
 !!! note
 
-    Make sure to use an X86-based Linux PC to export the model to RKNN because exporting on Rockchip-based devices (ARM64) are not supported.
+    Make sure to use an X86-based Linux PC to export the model to RKNN because exporting on Rockchip-based devices (ARM64) is not supported.
 
 ### Installation
 
@@ -69,7 +69,7 @@ For detailed instructions and best practices related to the installation process
 
     Export is currently only supported for detection models. More model support will be coming in the future.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -80,7 +80,7 @@ For detailed instructions and best practices related to the installation process
         model = YOLO("yolo11n.pt")
 
         # Export the model to RKNN format
-        # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118
+        # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118, rv1126b
         model.export(format="rknn", name="rk3588")  # creates '/yolo11n_rknn_model'
         ```
 
@@ -88,7 +88,7 @@ For detailed instructions and best practices related to the installation process
 
         ```bash
         # Export a YOLO11n PyTorch model to RKNN format
-        # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118
+        # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118, rv1126b
         yolo export model=yolo11n.pt format=rknn name=rk3588 # creates '/yolo11n_rknn_model'
         ```
 
@@ -99,7 +99,7 @@ For detailed instructions and best practices related to the installation process
 | `format` | `str`            | `'rknn'`   | Target format for the exported model, defining compatibility with various deployment environments.                                      |
 | `imgsz`  | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `name`   | `str`            | `'rk3588'` | Specifies the Rockchip model (rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118)                         |
+| `name`   | `str`            | `'rk3588'` | Specifies the Rockchip model (rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118, rv1126b)                |
 | `device` | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                               |
 
 !!! tip
@@ -127,7 +127,7 @@ To install the required packages, run:
 
 ### Usage
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -200,7 +200,7 @@ Also, if you'd like to know more about other Ultralytics YOLO11 integrations, vi
 
 You can easily export your Ultralytics YOLO model to RKNN format using the `export()` method in the Ultralytics Python package or via the command-line interface (CLI). Ensure you are using an x86-based Linux PC for the export process, as ARM64 devices like Rockchip are not supported for this operation. You can specify the target Rockchip platform using the `name` argument, such as `rk3588`, `rk3566`, or others. This process generates an optimized RKNN model ready for deployment on your Rockchip device, taking advantage of its Neural Processing Unit (NPU) for accelerated inference.
 
-!!! Example
+!!! example
 
     === "Python"
 
@@ -230,7 +230,7 @@ RKNN models are specifically optimized for Rockchip platforms and their integrat
 
 ### What Rockchip platforms are supported for RKNN model deployment?
 
-The Ultralytics YOLO export to RKNN format supports a wide range of Rockchip platforms, including the popular RK3588, RK3576, RK3566, RK3568, RK3562, RV1103, RV1106, RV1103B, RV1106B, and RK2118. These platforms are commonly found in devices from manufacturers like Radxa, ASUS, Pine64, Orange Pi, Odroid, Khadas, and Banana Pi. This broad support ensures that you can deploy your optimized RKNN models on various Rockchip-powered devices, from single-board computers to industrial systems, taking full advantage of their AI acceleration capabilities for enhanced performance in your computer vision applications.
+The Ultralytics YOLO export to RKNN format supports a wide range of Rockchip platforms, including the popular RK3588, RK3576, RK3566, RK3568, RK3562, RV1103, RV1106, RV1103B, RV1106B, RK2118 and RV1126B. These platforms are commonly found in devices from manufacturers like Radxa, ASUS, Pine64, Orange Pi, Odroid, Khadas, and Banana Pi. This broad support ensures that you can deploy your optimized RKNN models on various Rockchip-powered devices, from single-board computers to industrial systems, taking full advantage of their AI acceleration capabilities for enhanced performance in your computer vision applications.
 
 ### How does the performance of RKNN models compare to other formats on Rockchip devices?
 

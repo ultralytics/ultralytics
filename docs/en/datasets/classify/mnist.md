@@ -22,6 +22,11 @@ The MNIST dataset is split into two subsets:
 1. **Training Set**: This subset contains 60,000 images of handwritten digits used for training machine learning models.
 2. **Testing Set**: This subset consists of 10,000 images used for testing and benchmarking the trained models.
 
+## Dataset Access
+
+- **Original files**: Download the gzip archives from [Yann LeCun's MNIST page](http://yann.lecun.com/exdb/mnist/) if you want direct control over preprocessing.
+- **Ultralytics loader**: Use `data="mnist"` (or `data="mnist160"` for the subset below) in your command and the dataset will be downloaded, converted to PNG, and cached automatically.
+
 Each image in the dataset is labeled with the corresponding digit (0-9), making it a supervised learning dataset ideal for classification tasks.
 
 ## Extended MNIST (EMNIST)
@@ -41,7 +46,7 @@ Some common applications include:
 
 ## Usage
 
-To train a CNN model on the MNIST dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 32×32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a CNN model on the MNIST dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 28×28, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -54,7 +59,7 @@ To train a CNN model on the MNIST dataset for 100 [epochs](https://www.ultralyti
         model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="mnist", epochs=100, imgsz=32)
+        results = model.train(data="mnist", epochs=100, imgsz=28)
         ```
 
     === "CLI"
@@ -92,6 +97,20 @@ If you use the MNIST dataset in your research or development work, please cite t
 
 We would like to acknowledge Yann LeCun, Corinna Cortes, and Christopher J.C. Burges for creating and maintaining the MNIST dataset as a valuable resource for the machine learning and computer vision research community. For more information about the MNIST dataset and its creators, visit the [MNIST dataset website](https://en.wikipedia.org/wiki/MNIST_database).
 
+## MNIST160 Quick Tests
+
+Need a lightning-fast regression test? Ultralytics also exposes `data="mnist160"`, a 160-image slice containing the first eight samples from each digit class. It mirrors the MNIST directory structure, so you can swap datasets without changing any other arguments:
+
+!!! example "Train Example with MNIST160"
+
+    === "CLI"
+
+        ```bash
+        yolo classify train data=mnist160 model=yolo11n-cls.pt epochs=5 imgsz=28
+        ```
+
+Use this subset for CI pipelines or sanity checks before committing to the full 70,000-image dataset.
+
 ## FAQ
 
 ### What is the MNIST dataset, and why is it important in machine learning?
@@ -113,7 +132,7 @@ To train a model on the MNIST dataset using Ultralytics YOLO, you can follow the
         model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="mnist", epochs=100, imgsz=32)
+        results = model.train(data="mnist", epochs=100, imgsz=28)
         ```
 
     === "CLI"

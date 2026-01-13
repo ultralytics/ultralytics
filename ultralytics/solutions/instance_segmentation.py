@@ -7,8 +7,7 @@ from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 
 
 class InstanceSegmentation(BaseSolution):
-    """
-    A class to manage instance segmentation in images or video streams.
+    """A class to manage instance segmentation in images or video streams.
 
     This class extends the BaseSolution class and provides functionality for performing instance segmentation, including
     drawing segmented masks with bounding boxes and labels.
@@ -16,10 +15,10 @@ class InstanceSegmentation(BaseSolution):
     Attributes:
         model (str): The segmentation model to use for inference.
         line_width (int): Width of the bounding box and text lines.
-        names (Dict[int, str]): Dictionary mapping class indices to class names.
-        clss (List[int]): List of detected class indices.
-        track_ids (List[int]): List of track IDs for detected instances.
-        masks (List[np.ndarray]): List of segmentation masks for detected instances.
+        names (dict[int, str]): Dictionary mapping class indices to class names.
+        clss (list[int]): List of detected class indices.
+        track_ids (list[int]): List of track IDs for detected instances.
+        masks (list[np.ndarray]): List of segmentation masks for detected instances.
         show_conf (bool): Whether to display confidence scores.
         show_labels (bool): Whether to display class labels.
         show_boxes (bool): Whether to display bounding boxes.
@@ -36,12 +35,11 @@ class InstanceSegmentation(BaseSolution):
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """
-        Initialize the InstanceSegmentation class for detecting and annotating segmented instances.
+        """Initialize the InstanceSegmentation class for detecting and annotating segmented instances.
 
         Args:
-            **kwargs (Any): Keyword arguments passed to the BaseSolution parent class.
-                model (str): Model name or path, defaults to "yolo11n-seg.pt".
+            **kwargs (Any): Keyword arguments passed to the BaseSolution parent class including:
+                - model (str): Model name or path, defaults to "yolo11n-seg.pt".
         """
         kwargs["model"] = kwargs.get("model", "yolo11n-seg.pt")
         super().__init__(**kwargs)
@@ -51,8 +49,7 @@ class InstanceSegmentation(BaseSolution):
         self.show_boxes = self.CFG.get("show_boxes", True)
 
     def process(self, im0) -> SolutionResults:
-        """
-        Perform instance segmentation on the input image and annotate the results.
+        """Perform instance segmentation on the input image and annotate the results.
 
         Args:
             im0 (np.ndarray): The input image for segmentation.

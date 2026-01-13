@@ -41,7 +41,7 @@ def test_checks():
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_amp():
     """Test AMP training checks."""
-    model = YOLO("yolo11n.pt").model.to(f"cuda:{DEVICES[0]}")
+    model = YOLO("yolo26n.pt").model.to(f"cuda:{DEVICES[0]}")
     assert check_amp(model)
 
 
@@ -126,7 +126,7 @@ def test_train():
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_predict_multiple_devices():
     """Validate model prediction consistency across CPU and CUDA devices."""
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Test CPU
     model = model.cpu()

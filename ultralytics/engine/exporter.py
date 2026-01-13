@@ -860,8 +860,9 @@ class Exporter:
     @try_export
     def export_ncnn(self, prefix=colorstr("NCNN:")):
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
-        # use git source for ARM64 due to broken PyPI packages https://github.com/Tencent/ncnn/issues/6509
-        check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn", cmds="--no-deps")
+        if ARM64:
+            raise NotImplementedError("NCNN export is not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
+        check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
         check_requirements("pnnx")
         import ncnn
         import pnnx

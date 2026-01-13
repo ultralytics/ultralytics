@@ -860,7 +860,15 @@ class WorldDetect(Detect):
         >>> outputs = world_detect(x, text)
     """
 
-    def __init__(self, nc: int = 80, embed: int = 512, with_bn: bool = False, reg_max: int = 16, end2end: bool = False, ch: tuple = ()):
+    def __init__(
+        self,
+        nc: int = 80,
+        embed: int = 512,
+        with_bn: bool = False,
+        reg_max: int = 16,
+        end2end: bool = False,
+        ch: tuple = (),
+    ):
         """Initialize YOLO detection layer with nc classes and layer channels ch.
 
         Args:

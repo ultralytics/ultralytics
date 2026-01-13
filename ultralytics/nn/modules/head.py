@@ -860,28 +860,34 @@ class WorldDetect(Detect):
         >>> outputs = world_detect(x, text)
     """
 
-    def __init__(self, nc: int = 80, embed: int = 512, with_bn: bool = False, ch: tuple = ()):
+    def __init__(self, nc: int = 80, embed: int = 512, with_bn: bool = False, reg_max: int = 16, end2end: bool = False, ch: tuple = ()):
         """Initialize YOLO detection layer with nc classes and layer channels ch.
 
         Args:
             nc (int): Number of classes.
             embed (int): Embedding dimension.
             with_bn (bool): Whether to use batch normalization in contrastive head.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
-        super().__init__(nc, ch)
+        super().__init__(nc, reg_max=reg_max, end2end=end2end, ch=ch)
         c3 = max(ch[0], min(self.nc, 100))
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
         self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
 
     def forward(self, x: list[torch.Tensor], text: torch.Tensor) -> list[torch.Tensor] | tuple:
         """Concatenate and return predicted bounding boxes and class probabilities."""
+        feats = [xi.clone() for xi in x]  # save original features for anchor generation
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), text)), 1)
         if self.training:
             return x
         self.no = self.nc + self.reg_max * 4  # self.nc could be changed when inference with different texts
-        y = self._inference(x)
+        bs = x[0].shape[0]
+        x_cat = torch.cat([xi.view(bs, self.no, -1) for xi in x], 2)
+        boxes, scores = x_cat.split((self.reg_max * 4, self.nc), 1)
+        y = self._inference(dict(boxes=boxes, scores=scores, feats=feats))
         return y if self.export else (y, x)
 
     def bias_init(self):
@@ -1761,7 +1767,7 @@ class v10Detect(Detect):
             nc (int): Number of classes.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
-        super().__init__(nc, ch)
+        super().__init__(nc, ch=ch)
         c3 = max(ch[0], min(self.nc, 100))  # channels
         # Light cls head
         self.cv3 = nn.ModuleList(

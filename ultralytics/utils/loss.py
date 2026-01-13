@@ -137,6 +137,7 @@ class BboxLoss(nn.Module):
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
+            # normalize ltrb by image size
             target_ltrb = target_ltrb * stride
             target_ltrb[..., 0::2] /= imgsz[1]
             target_ltrb[..., 1::2] /= imgsz[0]
@@ -163,13 +164,15 @@ class RLELoss(nn.Module):
         residual (bool): Option to add L1 loss and let the flow learn the residual error distribution.
     """
 
-    def __init__(self, use_target_weight=True, size_average=True, residual=True):
+    def __init__(self, use_target_weight: bool = True, size_average: bool = True, residual: bool = True):
         super(RLELoss, self).__init__()
         self.size_average = size_average
         self.use_target_weight = use_target_weight
         self.residual = residual
 
-    def forward(self, sigma, log_phi, error, target_weight=None):
+    def forward(
+        self, sigma: torch.Tensor, log_phi: torch.Tensor, error: torch.Tensor, target_weight: torch.Tensor = None
+    ) -> torch.Tensor:
         """
         Args:
             sigma (torch.Tensor): Output sigma, shape (N, D).
@@ -177,18 +180,14 @@ class RLELoss(nn.Module):
             error (torch.Tensor): Error, shape (N, D).
             target_weight (torch.Tensor): Weights across different joint types, shape (N).
         """
-        log_phi = log_phi.unsqueeze(1)
         log_sigma = torch.log(sigma)
-        nf_loss = log_sigma - log_phi
+        loss = log_sigma - log_phi.unsqueeze(1)
 
         if self.residual:
-            loss_q = torch.log(sigma * 2) + torch.abs(error)
-            loss = nf_loss + loss_q
-        else:
-            loss = nf_loss
+            loss += torch.log(sigma * 2) + torch.abs(error)
 
         if self.use_target_weight:
-            assert target_weight is not None
+            assert target_weight is not None, "'target_weight' should not be None when 'use_target_weight' is True."
             if target_weight.dim() == 1:
                 target_weight = target_weight.unsqueeze(1)
             loss *= target_weight
@@ -249,7 +248,7 @@ class RotatedBboxLoss(BboxLoss):
 class MultiChannelDiceLoss(nn.Module):
     """Criterion class for computing multi-channel Dice losses."""
 
-    def __init__(self, smooth=1e-6, reduction="mean"):
+    def __init__(self, smooth: float = 1e-6, reduction: str = "mean"):
         super(MultiChannelDiceLoss, self).__init__()
         self.smooth = smooth
         self.reduction = reduction
@@ -276,7 +275,7 @@ class MultiChannelDiceLoss(nn.Module):
 class BCEDiceLoss(nn.Module):
     """Criterion class for computing combined BCE and Dice losses."""
 
-    def __init__(self, weight_bce=0.5, weight_dice=0.5):
+    def __init__(self, weight_bce: float = 0.5, weight_dice: float = 0.5):
         super(BCEDiceLoss, self).__init__()
         self.weight_bce = weight_bce
         self.weight_dice = weight_dice

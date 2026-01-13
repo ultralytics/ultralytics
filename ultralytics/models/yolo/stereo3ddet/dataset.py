@@ -42,6 +42,8 @@ class Stereo3DDetDataset(Dataset):
         output_size: Tuple[int, int] | None = None,
         mean_dims: Dict[str, List[float]] | None = None,
         std_dims: Dict[str, List[float]] | None = None,
+        filter_occluded: bool = False,
+        max_occlusion_level: int = 1,
     ):
         """Initialize Stereo3DDetDataset.
 
@@ -58,6 +60,12 @@ class Stereo3DDetDataset(Dataset):
                 If None, uses default KITTI values.
             std_dims (Dict[str, List[float]] | None): Standard deviation of dimensions per class [L, W, H] in meters.
                 Used for normalized offset prediction. If None, defaults to reasonable estimates.
+            filter_occluded (bool): Whether to filter out heavily occluded objects during training.
+                If True, objects with occlusion level > max_occlusion_level are excluded from training.
+                Defaults to False.
+            max_occlusion_level (int): Maximum occlusion level to include when filter_occluded is True.
+                KITTI occlusion levels: 0=fully visible, 1=partially occluded, 2=heavily occluded, 3=unknown.
+                Default is 1 (exclude heavily occluded and unknown objects).
         """
         self.root = Path(root)
         self.split = split
@@ -92,6 +100,15 @@ class Stereo3DDetDataset(Dataset):
             self.image_ids = self.image_ids[:max_samples]
             if len(self.image_ids) < total:
                 LOGGER.info(f"Limited stereo dataset to {len(self.image_ids)} samples (from {total} total)")
+
+        # Occlusion filtering settings
+        self.filter_occluded = filter_occluded
+        self.max_occlusion_level = max_occlusion_level
+        if filter_occluded:
+            LOGGER.info(
+                f"Occlusion filtering enabled: excluding objects with occlusion level > {max_occlusion_level} "
+                f"(0=visible, 1=partial, 2=heavy, 3=unknown)"
+            )
 
         # Full stereo augmentation pipeline (photometric + geometric)
         self._aug = StereoAugmentationPipeline(
@@ -282,6 +299,65 @@ class Stereo3DDetDataset(Dataset):
 
     def __len__(self) -> int:
         return len(self.image_ids)
+
+    def get_occlusion_stats(self) -> Dict[str, Any]:
+        """Get statistics about occlusion levels in the dataset.
+        
+        Returns:
+            Dict with occlusion distribution statistics.
+        """
+        from collections import Counter
+        
+        occlusion_counts = Counter()
+        total_objects = 0
+        
+        for image_id in self.image_ids:
+            label_file = self.label_dir / f"{image_id}.txt"
+            if not label_file.exists():
+                continue
+            
+            labels = self._parse_labels(label_file)
+            for lab in labels:
+                occlusion = lab.get("occluded", 0)
+                occlusion_counts[occlusion] += 1
+                total_objects += 1
+        
+        # KITTI occlusion level descriptions
+        occlusion_descriptions = {
+            0: "fully visible",
+            1: "partially occluded", 
+            2: "heavily occluded",
+            3: "unknown/completely blocked"
+        }
+        
+        stats = {
+            "total_objects": total_objects,
+            "total_images": len(self.image_ids),
+            "occlusion_distribution": {
+                level: {
+                    "count": occlusion_counts.get(level, 0),
+                    "percentage": occlusion_counts.get(level, 0) / total_objects * 100 if total_objects > 0 else 0,
+                    "description": occlusion_descriptions.get(level, "unknown")
+                }
+                for level in range(4)
+            },
+            "filter_config": {
+                "filter_occluded": self.filter_occluded,
+                "max_occlusion_level": self.max_occlusion_level
+            }
+        }
+        
+        if self.filter_occluded:
+            # Calculate what would be filtered
+            excluded_count = sum(
+                occlusion_counts.get(level, 0) 
+                for level in range(self.max_occlusion_level + 1, 4)
+            )
+            stats["objects_after_filtering"] = total_objects - excluded_count
+            stats["objects_excluded"] = excluded_count
+            stats["exclusion_percentage"] = excluded_count / total_objects * 100 if total_objects > 0 else 0
+        
+        return stats
 
     def _transform_labels_for_letterbox(
         self,
@@ -604,6 +680,28 @@ class Stereo3DDetDataset(Dataset):
         class_names_map = self.target_generator.class_names_map
 
         for i, (labels, calib, ori_shape) in enumerate(zip(labels_list, calibs, ori_shapes)):
+            # Filter occluded objects if enabled (for training only)
+            if self.filter_occluded:
+                filtered_labels = []
+                filtered_count = 0
+                for lab in labels:
+                    occlusion = lab.get("occluded", 0)
+                    # KITTI occlusion levels: 0=fully visible, 1=partially occluded, 
+                    # 2=heavily occluded, 3=unknown/completely blocked
+                    if occlusion <= self.max_occlusion_level:
+                        filtered_labels.append(lab)
+                    else:
+                        filtered_count += 1
+                
+                # Log filtered objects for the first few batches
+                if i < 5 and filtered_count > 0:
+                    LOGGER.debug(
+                        f"Image {i}: filtered {filtered_count}/{len(labels)} occluded objects "
+                        f"(max_occlusion_level={self.max_occlusion_level})"
+                    )
+                
+                labels = filtered_labels
+            
             n = len(labels)
             per_image_counts.append(n)
             if n == 0:

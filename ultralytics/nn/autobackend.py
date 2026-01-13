@@ -661,7 +661,7 @@ class AutoBackend(nn.Module):
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
             kpt_names = metadata.get("kpt_names")
-            end2end = metadata.get("args", {}).get("nms", False)
+            end2end = metadata.get("end2end", False) or metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):

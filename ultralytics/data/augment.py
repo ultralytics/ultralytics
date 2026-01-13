@@ -2067,7 +2067,7 @@ class Format:
                 masks = torch.zeros(
                     1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio
                 )
-                sem_masks = torch.zeros(1, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio)
+                sem_masks = torch.zeros(img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio)
             labels["masks"] = masks
             labels["sem_masks"] = sem_masks.float()
         labels["img"] = self._format_img(img)

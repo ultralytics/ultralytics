@@ -165,6 +165,13 @@ class RLELoss(nn.Module):
     """
 
     def __init__(self, use_target_weight: bool = True, size_average: bool = True, residual: bool = True):
+        """Initialize RLELoss with target weight and residual options.
+
+        Args:
+            use_target_weight (bool): Whether to use target weights for loss calculation.
+            size_average (bool): Whether to average the loss over elements.
+            residual (bool): Whether to include residual log-likelihood term.
+        """
         super().__init__()
         self.size_average = size_average
         self.use_target_weight = use_target_weight
@@ -249,6 +256,12 @@ class MultiChannelDiceLoss(nn.Module):
     """Criterion class for computing multi-channel Dice losses."""
 
     def __init__(self, smooth: float = 1e-6, reduction: str = "mean"):
+        """Initialize MultiChannelDiceLoss with smoothing and reduction options.
+
+        Args:
+            smooth (float): Smoothing factor to avoid division by zero.
+            reduction (str): Reduction method ('mean', 'sum', or 'none').
+        """
         super().__init__()
         self.smooth = smooth
         self.reduction = reduction
@@ -276,6 +289,12 @@ class BCEDiceLoss(nn.Module):
     """Criterion class for computing combined BCE and Dice losses."""
 
     def __init__(self, weight_bce: float = 0.5, weight_dice: float = 0.5):
+        """Initialize BCEDiceLoss with BCE and Dice weight factors.
+
+        Args:
+            weight_bce (float): Weight factor for BCE loss component.
+            weight_dice (float): Weight factor for Dice loss component.
+        """
         super().__init__()
         self.weight_bce = weight_bce
         self.weight_dice = weight_dice
@@ -1052,6 +1071,9 @@ class v8OBBLoss(v8DetectionLoss):
         Args:
             pred_bboxes: [N, 5] (x, y, w, h, theta).
             target_bboxes: [N, 5] (x, y, w, h, theta).
+            fg_mask: Foreground mask indicating valid predictions.
+            weight: Loss weights for each prediction.
+            target_scores_sum: Sum of target scores for normalization.
             lambda_val: control the sensitivity to aspect ratio.
         """
         w_gt = target_bboxes[..., 2]

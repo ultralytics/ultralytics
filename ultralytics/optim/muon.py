@@ -153,6 +153,18 @@ class MuSGD(optim.Optimizer):
         muon: float = 0.5,
         sgd: float = 0.5,
     ):
+        """Initialize MuSGD optimizer with hybrid Muon and SGD capabilities.
+
+        Args:
+            params: Iterable of parameters to optimize or dicts defining parameter groups.
+            lr (float): Learning rate.
+            momentum (float): Momentum factor for SGD.
+            weight_decay (float): Weight decay (L2 penalty).
+            nesterov (bool): Whether to use Nesterov momentum.
+            use_muon (bool): Whether to enable Muon updates.
+            muon (float): Scaling factor for Muon component.
+            sgd (float): Scaling factor for SGD component.
+        """
         defaults = dict(
             lr=lr,
             momentum=momentum,
@@ -270,6 +282,14 @@ class Muon(optim.Optimizer):
     """
 
     def __init__(self, params, lr: float = 0.02, weight_decay: float = 0, momentum: float = 0.95):
+        """Initialize Muon optimizer with orthogonalization-based updates.
+
+        Args:
+            params: Iterable of parameters to optimize or dicts defining parameter groups.
+            lr (float): Learning rate.
+            weight_decay (float): Weight decay factor applied multiplicatively.
+            momentum (float): Momentum factor for gradient accumulation.
+        """
         defaults = dict(lr=lr, weight_decay=weight_decay, momentum=momentum)
         super().__init__(params, defaults)
 

@@ -42,7 +42,9 @@ class TaskAlignedAssigner(nn.Module):
             num_classes (int, optional): The number of object classes.
             alpha (float, optional): The alpha parameter for the classification component of the task-aligned metric.
             beta (float, optional): The beta parameter for the localization component of the task-aligned metric.
+            stride (list, optional): List of stride values for different feature levels.
             eps (float, optional): A small value to prevent division by zero.
+            topk2 (int, optional): Secondary topk value for additional filtering.
         """
         super().__init__()
         self.topk = topk
@@ -312,6 +314,7 @@ class TaskAlignedAssigner(nn.Module):
             mask_pos (torch.Tensor): Positive mask, shape (b, n_max_boxes, h*w).
             overlaps (torch.Tensor): IoU overlaps, shape (b, n_max_boxes, h*w).
             n_max_boxes (int): Maximum number of ground truth boxes.
+            align_metric (torch.Tensor): Alignment metric for selecting best matches.
 
         Returns:
             target_gt_idx (torch.Tensor): Indices of assigned ground truths, shape (b, h*w).

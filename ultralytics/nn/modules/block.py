@@ -215,6 +215,8 @@ class SPPF(nn.Module):
             c1 (int): Input channels.
             c2 (int): Output channels.
             k (int): Kernel size.
+            n (int): Number of pooling iterations.
+            shortcut (bool): Whether to use shortcut connection.
 
         Notes:
             This module is equivalent to SPP(k=(5, 9, 13)).
@@ -1086,6 +1088,7 @@ class C3k2(C2f):
             n (int): Number of blocks.
             c3k (bool): Whether to use C3k blocks.
             e (float): Expansion ratio.
+            attn (bool): Whether to use attention blocks.
             g (int): Groups for convolutions.
             shortcut (bool): Whether to use shortcut connections.
         """
@@ -1973,9 +1976,10 @@ class Proto26(Proto):
         """Initialize the Ultralytics YOLO models mask Proto module with specified number of protos and masks.
 
         Args:
-            c1 (int): Input channels.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
             c_ (int): Intermediate channels.
             c2 (int): Output channels (number of protos).
+            nc (int): Number of classes for semantic segmentation.
         """
         super().__init__(c_, c_, c2)
         self.feat_refine = nn.ModuleList(Conv(x, ch[0], k=1) for x in ch[1:])

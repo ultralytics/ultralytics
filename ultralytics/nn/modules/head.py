@@ -80,6 +80,8 @@ class Detect(nn.Module):
 
         Args:
             nc (int): Number of classes.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__()
@@ -275,6 +277,8 @@ class Segment(Detect):
             nc (int): Number of classes.
             nm (int): Number of masks.
             npr (int): Number of protos.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max, end2end, ch)
@@ -320,6 +324,7 @@ class Segment(Detect):
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, mask_head: torch.nn.Module
     ) -> torch.Tensor:
+        """Concatenates and returns predicted bounding boxes, class probabilities, and mask coefficients."""
         preds = super().forward_head(x, box_head, cls_head)
         if mask_head is not None:
             bs = x[0].shape[0]  # batch size
@@ -376,6 +381,8 @@ class Segment26(Segment):
             nc (int): Number of classes.
             nm (int): Number of masks.
             npr (int): Number of protos.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, nm, npr, reg_max, end2end, ch)
@@ -432,6 +439,8 @@ class OBB(Detect):
         Args:
             nc (int): Number of classes.
             ne (int): Number of extra parameters.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max, end2end, ch)
@@ -560,6 +569,8 @@ class Pose(Detect):
         Args:
             nc (int): Number of classes.
             kpt_shape (tuple): Number of keypoints, number of dims (2 for x,y or 3 for x,y,visible).
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max, end2end, ch)
@@ -667,6 +678,8 @@ class Pose26(Pose):
         Args:
             nc (int): Number of classes.
             kpt_shape (tuple): Number of keypoints, number of dims (2 for x,y or 3 for x,y,visible).
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, kpt_shape, reg_max, end2end, ch)
@@ -982,6 +995,8 @@ class YOLOEDetect(Detect):
             nc (int): Number of classes.
             embed (int): Embedding dimension.
             with_bn (bool): Whether to use batch normalization in contrastive head.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max, end2end, ch)
@@ -1125,6 +1140,7 @@ class YOLOEDetect(Detect):
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, contrastive_head=self.one2one_cv4)
 
     def forward_head(self, x, box_head, cls_head, contrastive_head):
+        """Concatenates and returns predicted bounding boxes, class probabilities, and text embeddings."""
         assert len(x) == 4, f"Expected 4 features including 3 feature maps and 1 text embeddings, but got {len(x)}."
         if box_head is None or cls_head is None:  # for fused inference
             return dict()
@@ -1196,6 +1212,8 @@ class YOLOESegment(YOLOEDetect):
             npr (int): Number of protos.
             embed (int): Embedding dimension.
             with_bn (bool): Whether to use batch normalization in contrastive head.
+            reg_max (int): Maximum number of DFL channels.
+            end2end (bool): Whether to use end-to-end NMS-free detection.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, embed, with_bn, reg_max, end2end, ch)
@@ -1284,6 +1302,7 @@ class YOLOESegment(YOLOEDetect):
         mask_head: torch.nn.Module,
         contrastive_head: torch.nn.Module,
     ) -> torch.Tensor:
+        """Concatenates and returns predicted bounding boxes, class probabilities, and mask coefficients."""
         preds = super().forward_head(x, box_head, cls_head, contrastive_head)
         if mask_head is not None:
             bs = x[0].shape[0]  # batch size

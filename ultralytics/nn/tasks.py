@@ -422,6 +422,7 @@ class DetectionModel(BaseModel):
 
     @property
     def end2end(self):
+        """Return whether the model uses end-to-end NMS-free detection."""
         return getattr(self.model[-1], "end2end", False)
 
     def _predict_augment(self, x):

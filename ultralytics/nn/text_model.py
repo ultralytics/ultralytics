@@ -283,6 +283,7 @@ class MobileCLIPTS(TextModel):
 
         Args:
             device (torch.device): Device to load the model on.
+            weight (str): Path to the TorchScript model weights.
         """
         super().__init__()
         from ultralytics.utils.downloads import attempt_download_asset

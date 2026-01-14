@@ -158,7 +158,7 @@ We express our gratitude to the creators of the Package Segmentation dataset for
 
 ### Why should I use Ultralytics YOLO26 with the Package Segmentation Dataset?
 
-- Ultralytics YOLO26 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLO26's capabilities for precise package segmentation, which is especially beneficial for industries like [logistics](https://www.ultralytics.com/blog/ultralytics-yolo26-the-key-to-computer-vision-in-logistics) and warehouse automation.
+- Ultralytics YOLO26 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) and segmentation tasks. Using it with the Package Segmentation Dataset allows you to leverage YOLO26's capabilities for precise package segmentation, which is especially beneficial for industries like [logistics](https://www.ultralytics.com/blog/ultralytics-yolo11-the-key-to-computer-vision-in-logistics) and warehouse automation.
 
 ### How can I access and use the package-seg.yaml file for the Package Segmentation Dataset?
 

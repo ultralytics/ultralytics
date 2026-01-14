@@ -1,5 +1,5 @@
 ---
-description: Explore Ultralytics' annotator script for automatic image annotation using YOLO and SAM models. Contribute to improve it on GitHub!.
+description: Explore Ultralytics' annotator script for automatic image annotation using YOLO and SAM models. Contribute to improve it on GitHub.
 keywords: Ultralytics, image annotation, YOLO, SAM, Python script, GitHub, object detection, segmentation
 ---
 

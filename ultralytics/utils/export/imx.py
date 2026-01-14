@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import types
 from pathlib import Path
+from shutil import which
 
 import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Segment
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, WINDOWS
 from ultralytics.utils.patches import onnx_export_patch
 from ultralytics.utils.tal import make_anchors
 from ultralytics.utils.torch_utils import copy_attr
@@ -19,27 +21,27 @@ from ultralytics.utils.torch_utils import copy_attr
 MCT_CONFIG = {
     "YOLO11": {
         "detect": {
-            "layer_names": ["sub", "mul_2", "add_14", "cat_21"],
+            "layer_names": ["sub", "mul_2", "add_14", "cat_19"],
             "weights_memory": 2585350.2439,
             "n_layers": 238,
         },
         "pose": {
-            "layer_names": ["sub", "mul_2", "add_14", "cat_22", "cat_23", "mul_4", "add_15"],
+            "layer_names": ["sub", "mul_2", "add_14", "cat_21", "cat_22", "mul_4", "add_15"],
             "weights_memory": 2437771.67,
             "n_layers": 257,
         },
         "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 112},
-        "segment": {"layer_names": ["sub", "mul_2", "add_14", "cat_22"], "weights_memory": 2466604.8, "n_layers": 265},
+        "segment": {"layer_names": ["sub", "mul_2", "add_14", "cat_21"], "weights_memory": 2466604.8, "n_layers": 265},
     },
     "YOLOv8": {
-        "detect": {"layer_names": ["sub", "mul", "add_6", "cat_17"], "weights_memory": 2550540.8, "n_layers": 168},
+        "detect": {"layer_names": ["sub", "mul", "add_6", "cat_15"], "weights_memory": 2550540.8, "n_layers": 168},
         "pose": {
-            "layer_names": ["add_7", "mul_2", "cat_19", "mul", "sub", "add_6", "cat_18"],
+            "layer_names": ["add_7", "mul_2", "cat_17", "mul", "sub", "add_6", "cat_18"],
             "weights_memory": 2482451.85,
             "n_layers": 187,
         },
         "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 73},
-        "segment": {"layer_names": ["sub", "mul", "add_6", "cat_18"], "weights_memory": 2580060.0, "n_layers": 195},
+        "segment": {"layer_names": ["sub", "mul", "add_6", "cat_17"], "weights_memory": 2580060.0, "n_layers": 195},
     },
 }
 
@@ -102,10 +104,13 @@ class FXModel(torch.nn.Module):
         return x
 
 
-def _inference(self, x: list[torch.Tensor]) -> tuple[torch.Tensor]:
+def _inference(self, x: list[torch.Tensor] | dict[str, torch.Tensor]) -> tuple[torch.Tensor]:
     """Decode boxes and cls scores for imx object detection."""
-    x_cat = torch.cat([xi.view(x[0].shape[0], self.no, -1) for xi in x], 2)
-    box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+    if isinstance(x, dict):
+        box, cls = x["boxes"], x["scores"]
+    else:
+        x_cat = torch.cat([xi.view(x[0].shape[0], self.no, -1) for xi in x], 2)
+        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
     dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
     return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
 
@@ -113,10 +118,18 @@ def _inference(self, x: list[torch.Tensor]) -> tuple[torch.Tensor]:
 def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Forward pass for imx pose estimation, including keypoint decoding."""
     bs = x[0].shape[0]  # batch size
-    kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
+    nk_out = getattr(self, "nk_output", self.nk)
+    kpt = torch.cat([self.cv4[i](x[i]).view(bs, nk_out, -1) for i in range(self.nl)], -1)
+
+    # If using Pose26 with 5 dims, convert to 3 dims for export
+    if hasattr(self, "nk_output") and self.nk_output != self.nk:
+        spatial = kpt.shape[-1]
+        kpt = kpt.view(bs, self.kpt_shape[0], self.kpt_shape[1] + 2, spatial)
+        kpt = kpt[:, :, :-2, :]  # Remove sigma_x, sigma_y
+        kpt = kpt.view(bs, self.nk, spatial)
     x = Detect.forward(self, x)
-    pred_kpt = self.kpts_decode(bs, kpt)
-    return (*x, pred_kpt.permute(0, 2, 1))
+    pred_kpt = self.kpts_decode(kpt)
+    return *x, pred_kpt.permute(0, 2, 1)
 
 
 def segment_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -125,7 +138,7 @@ def segment_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Te
     bs = p.shape[0]  # batch size
     mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
     x = Detect.forward(self, x)
-    return (*x, mc.transpose(1, 2), p)
+    return *x, mc.transpose(1, 2), p
 
 
 class NMSWrapper(torch.nn.Module):
@@ -217,7 +230,7 @@ def torch2imx(
     Examples:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
-        >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.45, max_det=300)
+        >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.7, max_det=300)
 
     Notes:
         - Requires model_compression_toolkit, onnx, edgemdt_tpc, and edge-mdt-cl packages
@@ -303,8 +316,16 @@ def torch2imx(
 
     onnx.save(model_onnx, onnx_model)
 
+    # Find imxconv-pt binary - check venv bin directory first, then PATH
+    bin_dir = Path(sys.executable).parent
+    imxconv = bin_dir / ("imxconv-pt.exe" if WINDOWS else "imxconv-pt")
+    if not imxconv.exists():
+        imxconv = which("imxconv-pt")  # fallback to PATH
+    if not imxconv:
+        raise FileNotFoundError("imxconv-pt not found. Install with: pip install imx500-converter[pt]")
+
     subprocess.run(
-        ["imxconv-pt", "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
+        [str(imxconv), "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
         check=True,
     )
 

@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn how to integrate Ultralytics YOLO11 with NVIDIA Triton Inference Server for scalable, high-performance AI model deployment.
-keywords: Triton Inference Server, YOLO11, Ultralytics, NVIDIA, deep learning, AI model deployment, ONNX, scalable inference
+description: Learn how to integrate Ultralytics YOLO26 with NVIDIA Triton Inference Server for scalable, high-performance AI model deployment.
+keywords: Triton Inference Server, YOLO26, Ultralytics, NVIDIA, deep learning, AI model deployment, ONNX, scalable inference
 ---
 
-# Triton Inference Server with Ultralytics YOLO11
+# Triton Inference Server with Ultralytics YOLO26
 
-The [Triton Inference Server](https://developer.nvidia.com/dynamo) (formerly known as TensorRT Inference Server) is an open-source software solution developed by NVIDIA. It provides a cloud inference solution optimized for NVIDIA GPUs. Triton simplifies the deployment of AI models at scale in production. Integrating Ultralytics YOLO11 with Triton Inference Server allows you to deploy scalable, high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference workloads. This guide provides steps to set up and test the integration.
+The [Triton Inference Server](https://developer.nvidia.com/dynamo) (formerly known as TensorRT Inference Server) is an open-source software solution developed by NVIDIA. It provides a cloud inference solution optimized for NVIDIA GPUs. Triton simplifies the deployment of AI models at scale in production. Integrating Ultralytics YOLO26 with Triton Inference Server allows you to deploy scalable, high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference workloads. This guide provides steps to set up and test the integration.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ Triton Inference Server is designed to deploy a variety of AI models in producti
 
 ## Key Benefits of Triton Inference Server
 
-Using Triton Inference Server with Ultralytics YOLO11 provides several advantages:
+Using Triton Inference Server with Ultralytics YOLO26 provides several advantages:
 
 - **Automatic batching**: Groups multiple AI requests together before processing them, reducing latency and improving inference speed
 - **Kubernetes integration**: Cloud-native design works seamlessly with Kubernetes for managing and scaling AI applications
@@ -48,7 +48,7 @@ Ensure you have the following prerequisites before proceeding:
     pip install tritonclient[all]
     ```
 
-## Exporting YOLO11 to ONNX Format
+## Exporting YOLO26 to ONNX Format
 
 Before deploying the model on Triton, it must be exported to the ONNX format. ONNX (Open Neural Network Exchange) is a format that allows models to be transferred between different deep learning frameworks. Use the `export` function from the `YOLO` class:
 
@@ -56,7 +56,7 @@ Before deploying the model on Triton, it must be exported to the ONNX format. ON
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolo11n.pt")  # load an official model
+model = YOLO("yolo26n.pt")  # load an official model
 
 # Retrieve metadata during export. Metadata needs to be added to config.pbtxt. See next section.
 metadata = []
@@ -209,37 +209,37 @@ Key benefits of using TensorRT with Triton include:
 - Support for reduced precision formats (INT8, FP16) while maintaining accuracy
 - Layer fusion to reduce computational overhead
 
-To use TensorRT directly, you can export your YOLO11 model to TensorRT format:
+To use TensorRT directly, you can export your YOLO26 model to TensorRT format:
 
 ```python
 from ultralytics import YOLO
 
-# Load the YOLO11 model
-model = YOLO("yolo11n.pt")
+# Load the YOLO26 model
+model = YOLO("yolo26n.pt")
 
 # Export the model to TensorRT format
-model.export(format="engine")  # creates 'yolo11n.engine'
+model.export(format="engine")  # creates 'yolo26n.engine'
 ```
 
 For more information on TensorRT optimization, see the [TensorRT integration guide](https://docs.ultralytics.com/integrations/tensorrt/).
 
 ---
 
-By following the above steps, you can deploy and run Ultralytics YOLO11 models efficiently on Triton Inference Server, providing a scalable and high-performance solution for deep learning inference tasks. If you face any issues or have further queries, refer to the [official Triton documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html) or reach out to the Ultralytics community for support.
+By following the above steps, you can deploy and run Ultralytics YOLO26 models efficiently on Triton Inference Server, providing a scalable and high-performance solution for deep learning inference tasks. If you face any issues or have further queries, refer to the [official Triton documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html) or reach out to the Ultralytics community for support.
 
 ## FAQ
 
-### How do I set up Ultralytics YOLO11 with NVIDIA Triton Inference Server?
+### How do I set up Ultralytics YOLO26 with NVIDIA Triton Inference Server?
 
-Setting up [Ultralytics YOLO11](../models/yolo11.md) with [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo) involves a few key steps:
+Setting up [Ultralytics YOLO26](../models/yolo26.md) with [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo) involves a few key steps:
 
-1. **Export YOLO11 to ONNX format**:
+1. **Export YOLO26 to ONNX format**:
 
     ```python
     from ultralytics import YOLO
 
     # Load a model
-    model = YOLO("yolo11n.pt")  # load an official model
+    model = YOLO("yolo26n.pt")  # load an official model
 
     # Export the model to ONNX format
     onnx_file = model.export(format="onnx", dynamic=True)
@@ -293,11 +293,11 @@ Setting up [Ultralytics YOLO11](../models/yolo11.md) with [NVIDIA Triton Inferen
         time.sleep(1)
     ```
 
-This setup can help you efficiently deploy YOLO11 models at scale on Triton Inference Server for high-performance AI model inference.
+This setup can help you efficiently deploy YOLO26 models at scale on Triton Inference Server for high-performance AI model inference.
 
-### What benefits does using Ultralytics YOLO11 with NVIDIA Triton Inference Server offer?
+### What benefits does using Ultralytics YOLO26 with NVIDIA Triton Inference Server offer?
 
-Integrating Ultralytics YOLO11 with [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo) provides several advantages:
+Integrating Ultralytics YOLO26 with [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo) provides several advantages:
 
 - **Scalable AI Inference**: Triton allows serving multiple models from a single server instance, supporting dynamic model loading and unloading, making it highly scalable for diverse AI workloads.
 - **High Performance**: Optimized for NVIDIA GPUs, Triton Inference Server ensures high-speed inference operations, perfect for real-time applications such as [object detection](https://www.ultralytics.com/glossary/object-detection).
@@ -305,11 +305,11 @@ Integrating Ultralytics YOLO11 with [NVIDIA Triton Inference Server](https://dev
 - **Automatic Batching**: Triton automatically groups multiple inference requests together, significantly improving throughput and reducing latency.
 - **Simplified Deployment**: Gradual optimization of AI workflows without requiring complete system overhauls, making it easier to scale efficiently.
 
-For detailed instructions on setting up and running YOLO11 with Triton, you can refer to the [setup guide](#setting-up-triton-model-repository).
+For detailed instructions on setting up and running YOLO26 with Triton, you can refer to the [setup guide](#setting-up-triton-model-repository).
 
-### Why should I export my YOLO11 model to ONNX format before using Triton Inference Server?
+### Why should I export my YOLO26 model to ONNX format before using Triton Inference Server?
 
-Using ONNX (Open Neural Network Exchange) format for your Ultralytics YOLO11 model before deploying it on [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo) offers several key benefits:
+Using ONNX (Open Neural Network Exchange) format for your Ultralytics YOLO26 model before deploying it on [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo) offers several key benefits:
 
 - **Interoperability**: ONNX format supports transfer between different deep learning frameworks (such as PyTorch, TensorFlow), ensuring broader compatibility.
 - **Optimization**: Many deployment environments, including Triton, optimize for ONNX, enabling faster inference and better performance.
@@ -322,15 +322,15 @@ To export your model, use:
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 onnx_file = model.export(format="onnx", dynamic=True)
 ```
 
 You can follow the steps in the [ONNX integration guide](https://docs.ultralytics.com/integrations/onnx/) to complete the process.
 
-### Can I run inference using the Ultralytics YOLO11 model on Triton Inference Server?
+### Can I run inference using the Ultralytics YOLO26 model on Triton Inference Server?
 
-Yes, you can run inference using the Ultralytics YOLO11 model on [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo). Once your model is set up in the Triton Model Repository and the server is running, you can load and run inference on your model as follows:
+Yes, you can run inference using the Ultralytics YOLO26 model on [NVIDIA Triton Inference Server](https://developer.nvidia.com/dynamo). Once your model is set up in the Triton Model Repository and the server is running, you can load and run inference on your model as follows:
 
 ```python
 from ultralytics import YOLO
@@ -342,16 +342,16 @@ model = YOLO("http://localhost:8000/yolo", task="detect")
 results = model("path/to/image.jpg")
 ```
 
-This approach allows you to leverage Triton's optimizations while using the familiar Ultralytics YOLO interface. For an in-depth guide on setting up and running Triton Server with YOLO11, refer to the [running triton inference server](#running-triton-inference-server) section.
+This approach allows you to leverage Triton's optimizations while using the familiar Ultralytics YOLO interface. For an in-depth guide on setting up and running Triton Server with YOLO26, refer to the [running triton inference server](#running-triton-inference-server) section.
 
-### How does Ultralytics YOLO11 compare to TensorFlow and PyTorch models for deployment?
+### How does Ultralytics YOLO26 compare to TensorFlow and PyTorch models for deployment?
 
-[Ultralytics YOLO11](../models/yolo11.md) offers several unique advantages compared to [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and PyTorch models for deployment:
+[Ultralytics YOLO26](../models/yolo26.md) offers several unique advantages compared to [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and PyTorch models for deployment:
 
-- **Real-time Performance**: Optimized for real-time object detection tasks, YOLO11 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for applications requiring live video analytics.
-- **Ease of Use**: YOLO11 integrates seamlessly with Triton Inference Server and supports diverse export formats (ONNX, TensorRT, CoreML), making it flexible for various deployment scenarios.
-- **Advanced Features**: YOLO11 includes features like dynamic model loading, model versioning, and ensemble inference, which are crucial for scalable and reliable AI deployments.
+- **Real-time Performance**: Optimized for real-time object detection tasks, YOLO26 provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for applications requiring live video analytics.
+- **Ease of Use**: YOLO26 integrates seamlessly with Triton Inference Server and supports diverse export formats (ONNX, TensorRT, CoreML), making it flexible for various deployment scenarios.
+- **Advanced Features**: YOLO26 includes features like dynamic model loading, model versioning, and ensemble inference, which are crucial for scalable and reliable AI deployments.
 - **Simplified API**: The Ultralytics API provides a consistent interface across different deployment targets, reducing the learning curve and development time.
-- **Edge Optimization**: YOLO11 models are designed with edge deployment in mind, offering excellent performance even on resource-constrained devices.
+- **Edge Optimization**: YOLO26 models are designed with edge deployment in mind, offering excellent performance even on resource-constrained devices.
 
 For more details, compare the deployment options in the [model export guide](../modes/export.md).

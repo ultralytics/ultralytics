@@ -238,7 +238,7 @@ class Detect(nn.Module):
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
         batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,84)
-        ori_index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
+        ori_index = scores.max(dim=-1)[0].topk(min(max_det, anchors))[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.repeat(1, 1, nc))
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index

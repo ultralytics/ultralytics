@@ -6,13 +6,15 @@
 
 # Parameters
 nc: 80 # number of classes
-scales: # model compound scaling constants, i.e. 'model=YOLO26n.yaml' will call YOLO26.yaml with scale 'n'
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+scales: # model compound scaling constants, i.e. 'model=yolo26n-p6.yaml' will call yolo26-p6.yaml with scale 'n'
   # [depth, width, max_channels]
-  n: [0.50, 0.25, 1024] # summary: 319 layers, 2624080 parameters, 2624064 gradients, 6.6 GFLOPs
-  s: [0.50, 0.50, 1024] # summary: 319 layers, 9458752 parameters, 9458736 gradients, 21.7 GFLOPs
-  m: [0.50, 1.00, 512] # summary: 409 layers, 20114688 parameters, 20114672 gradients, 68.5 GFLOPs
-  l: [1.00, 1.00, 512] # summary: 631 layers, 25372160 parameters, 25372144 gradients, 87.6 GFLOPs
-  x: [1.00, 1.50, 512] # summary: 631 layers, 56966176 parameters, 56966160 gradients, 196.0 GFLOPs
+  n: [0.50, 0.25, 1024] # summary: 349 layers, 4,063,872 parameters, 4,063,872 gradients, 6.0 GFLOPs
+  s: [0.50, 0.50, 1024] # summary: 349 layers, 15,876,448 parameters, 15,876,448 gradients, 22.3 GFLOPs
+  m: [0.50, 1.00, 512] # summary: 369 layers, 32,400,096 parameters, 32,400,096 gradients, 77.3 GFLOPs
+  l: [1.00, 1.00, 512] # summary: 523 layers, 39,365,600 parameters, 39,365,600 gradients, 97.0 GFLOPs
+  x: [1.00, 1.50, 512] # summary: 523 layers, 88,330,368 parameters, 88,330,368 gradients, 216.6 GFLOPs
 
 # YOLO26n backbone
 backbone:

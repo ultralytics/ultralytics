@@ -141,6 +141,7 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
             if format == "ncnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
+                assert not ARM64, "NCNN not supported on ARM64"  # https://github.com/Tencent/ncnn/issues/6509
             if format == "imx":
                 assert not is_end2end
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
@@ -460,7 +461,7 @@ class ProfileModels:
             if file.suffix in {".pt", ".yaml", ".yml"}:
                 model = YOLO(str(file))
                 model.fuse()  # to report correct params and GFLOPs in model.info()
-                model_info = model.info()
+                model_info = model.info(imgsz=self.imgsz)
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
                         format="engine",

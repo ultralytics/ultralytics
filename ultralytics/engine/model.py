@@ -275,7 +275,7 @@ class Model(torch.nn.Module):
             >>> model._load("yolo11n.pt")
             >>> model._load("path/to/weights.pth", task="detect")
         """
-        if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):
+        if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://")):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo11n -> yolo11n.pt
 
@@ -403,7 +403,7 @@ class Model(torch.nn.Module):
         }
         torch.save({**self.ckpt, **updates}, filename)
 
-    def info(self, detailed: bool = False, verbose: bool = True):
+    def info(self, detailed: bool = False, verbose: bool = True, imgsz: int | list[int, int] = 640):
         """Display model information.
 
         This method provides an overview or detailed information about the model, depending on the arguments
@@ -412,6 +412,7 @@ class Model(torch.nn.Module):
         Args:
             detailed (bool): If True, shows detailed information about the model layers and parameters.
             verbose (bool): If True, prints the information. If False, returns the information as a list.
+            imgsz (int | list[int, int]): Input image size used for FLOPs calculation.
 
         Returns:
             (list[str]): A list of strings containing various types of information about the model, including model
@@ -423,7 +424,7 @@ class Model(torch.nn.Module):
             >>> info_list = model.info(detailed=True, verbose=False)  # Returns detailed info as a list
         """
         self._check_is_pytorch_model()
-        return self.model.info(detailed=detailed, verbose=verbose)
+        return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
     def fuse(self) -> None:
         """Fuse Conv2d and BatchNorm2d layers in the model for optimized inference.
@@ -824,7 +825,7 @@ class Model(torch.nn.Module):
 
             custom = {}  # method defaults
             args = {**self.overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
-            return Tuner(args=args, _callbacks=self.callbacks)(model=self, iterations=iterations)
+            return Tuner(args=args, _callbacks=self.callbacks)(iterations=iterations)
 
     def _apply(self, fn) -> Model:
         """Apply a function to model tensors that are not parameters or registered buffers.

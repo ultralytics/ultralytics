@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to install Ultralytics using pip, conda, or Docker. Follow our step-by-step guide for a seamless setup of Ultralytics YOLO.
-keywords: Ultralytics, YOLO11, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection
+keywords: Ultralytics, YOLO26, YOLO11, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection
 ---
 
 # Install Ultralytics
@@ -249,33 +249,33 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
 
         Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial learning rate of 0.01:
         ```bash
-        yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
         ```bash
-        yolo predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
 
     === "Val"
 
         Validate a pretrained detection model with a batch size of 1 and image size of 640:
         ```bash
-        yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+        yolo val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
         ```
 
     === "Export"
 
-        Export a YOLO11n classification model to ONNX format with an image size of 224x128 (no TASK required):
+        Export a YOLO26n classification model to ONNX format with an image size of 224x128 (no TASK required):
         ```bash
-        yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+        yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
         ```
 
     === "Count"
 
-        Count objects in a video or live stream using YOLO11:
+        Count objects in a video or live stream using YOLO26:
         ```bash
         yolo solutions count show=True
 
@@ -284,7 +284,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
 
     === "Workout"
 
-        Monitor workout exercises using a YOLO11 pose model:
+        Monitor workout exercises using a YOLO26 pose model:
         ```bash
         yolo solutions workout show=True
 
@@ -297,7 +297,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
 
     === "Queue"
 
-        Use YOLO11 to count objects in a designated queue or region:
+        Use YOLO26 to count objects in a designated queue or region:
         ```bash
         yolo solutions queue show=True
 
@@ -332,11 +332,11 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
 
     Arguments must be passed as `arg=value` pairs, split by an equals `=` sign and delimited by spaces. Do not use `--` argument prefixes or commas `,` between arguments.
 
-    - `yolo predict model=yolo11n.pt imgsz=640 conf=0.25`  ✅
+    - `yolo predict model=yolo26n.pt imgsz=640 conf=0.25`  ✅
     - `yolo predict model yolo11n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
-    - `yolo predict model=yolo11n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
+    - `yolo predict model=yolo26n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
     - `yolo predict --model yolo11n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
-    - `yolo solution model=yolo11n.pt imgsz=640 conf=0.25` ❌ (use `solutions`, not `solution`)
+    - `yolo solution model=yolo26n.pt imgsz=640 conf=0.25` ❌ (use `solutions`, not `solution`)
 
 [CLI Guide](usage/cli.md){ .md-button }
 
@@ -352,10 +352,10 @@ For instance, users can load a model, train it, evaluate its performance, and ex
     from ultralytics import YOLO
 
     # Create a new YOLO model from scratch
-    model = YOLO("yolo11n.yaml")
+    model = YOLO("yolo26n.yaml")
 
     # Load a pretrained YOLO model (recommended for training)
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Train the model using the 'coco8.yaml' dataset for 3 epochs
     results = model.train(data="coco8.yaml", epochs=3)
@@ -449,12 +449,12 @@ The table below overviews the adjustable settings within Ultralytics, including 
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | Directory where model weights are stored                                                                         |
 | `runs_dir`         | `'/path/to/runs'`     | `str`     | Directory where experiment runs are stored                                                                       |
 | `uuid`             | `'a1b2c3d4'`          | `str`     | Unique identifier for the current settings                                                                       |
-| `sync`             | `True`                | `bool`    | Option to sync analytics and crashes to [Ultralytics HUB]                                                        |
-| `api_key`          | `''`                  | `str`     | [Ultralytics HUB] API Key                                                                                        |
+| `sync`             | `True`                | `bool`    | Option to sync analytics and crashes to [Ultralytics Platform]                                                   |
+| `api_key`          | `''`                  | `str`     | [Ultralytics Platform] API Key                                                                                   |
 | `clearml`          | `True`                | `bool`    | Option to use [ClearML] logging                                                                                  |
 | `comet`            | `True`                | `bool`    | Option to use [Comet ML] for experiment tracking and visualization                                               |
 | `dvc`              | `True`                | `bool`    | Option to use [DVC for experiment tracking] and version control                                                  |
-| `hub`              | `True`                | `bool`    | Option to use [Ultralytics HUB] integration                                                                      |
+| `hub`              | `True`                | `bool`    | Option to use [Ultralytics Platform] integration                                                                 |
 | `mlflow`           | `True`                | `bool`    | Option to use [MLFlow] for experiment tracking                                                                   |
 | `neptune`          | `True`                | `bool`    | Option to use [Neptune] for experiment tracking                                                                  |
 | `raytune`          | `True`                | `bool`    | Option to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
@@ -540,19 +540,19 @@ yolo TASK MODE ARGS
 For example, to train a detection model:
 
 ```bash
-yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 ```
 
 Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).
 
 <!-- Article Links -->
 
-[Ultralytics HUB]: https://hub.ultralytics.com
-[API Key]: https://hub.ultralytics.com/settings?tab=api+keys
+[Ultralytics Platform]: https://platform.ultralytics.com
+[API Key]: https://platform.ultralytics.com/settings
 [pip]: https://pypi.org/project/ultralytics/
 [DVC for experiment tracking]: https://dvc.org/doc/dvclive/ml-frameworks/yolo
 [Comet ML]: https://bit.ly/yolov8-readme-comet
-[Ultralytics HUB]: https://hub.ultralytics.com
+[Ultralytics Platform]: https://platform.ultralytics.com
 [ClearML]: ./integrations/clearml.md
 [MLFlow]: ./integrations/mlflow.md
 [Neptune]: https://neptune.ai/

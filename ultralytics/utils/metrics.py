@@ -21,6 +21,7 @@ OKS_SIGMA = (
     )
     / 10.0
 )
+RLE_WEIGHT = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5])
 
 
 def bbox_ioa(box1: np.ndarray, box2: np.ndarray, iou: bool = False, eps: float = 1e-7) -> np.ndarray:
@@ -315,7 +316,7 @@ class ConfusionMatrix(DataExportMixin):
         matches (dict): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
     """
 
-    def __init__(self, names: dict[int, str] = [], task: str = "detect", save_matches: bool = False):
+    def __init__(self, names: dict[int, str] = {}, task: str = "detect", save_matches: bool = False):
         """Initialize a ConfusionMatrix instance.
 
         Args:

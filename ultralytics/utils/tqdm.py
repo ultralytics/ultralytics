@@ -179,7 +179,8 @@ class TQDM:
             num /= self.unit_divisor
         return f"{num:.1f}PB"
 
-    def _format_time(self, seconds: float) -> str:
+    @staticmethod
+    def _format_time(seconds: float) -> str:
         """Format time duration."""
         if seconds < 60:
             return f"{seconds:.1f}s"
@@ -316,7 +317,10 @@ class TQDM:
             # Final display
             if self.total and self.n >= self.total:
                 self.n = self.total
-            self._display(final=True)
+                if self.n != self.last_print_n:  # Skip if 100% already shown
+                    self._display(final=True)
+            else:
+                self._display(final=True)
 
             # Cleanup
             if self.leave:

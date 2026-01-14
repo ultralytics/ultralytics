@@ -750,8 +750,8 @@ class Results(SimpleClass, DataExportMixin):
         """Convert inference results to a summarized dictionary with optional normalization for box coordinates.
 
         This method creates a list of detection dictionaries, each containing information about a single detection or
-        classification result. For classification tasks, it returns the top class and its
-        confidence. For detection tasks, it includes class information, bounding box coordinates, and
+        classification result. For classification tasks, it returns the top 5 classes and their
+        confidences. For detection tasks, it includes class information, bounding box coordinates, and
         optionally mask segments and keypoints.
 
         Args:
@@ -772,14 +772,15 @@ class Results(SimpleClass, DataExportMixin):
         # Create list of detection dictionaries
         results = []
         if self.probs is not None:
-            class_id = self.probs.top1
-            results.append(
-                {
-                    "name": self.names[class_id],
-                    "class": class_id,
-                    "confidence": round(self.probs.top1conf.item(), decimals),
-                }
-            )
+            # Return top 5 classification results
+            for class_id, conf in zip(self.probs.top5, self.probs.top5conf.tolist()):
+                results.append(
+                    {
+                        "name": self.names[class_id],
+                        "class": class_id,
+                        "confidence": round(conf, decimals),
+                    }
+                )
             return results
 
         is_obb = self.obb is not None

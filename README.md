@@ -238,13 +238,6 @@ Our key integrations with leading AI platforms extend the functionality of Ultra
 | :-----------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
 | Streamline YOLO workflows: Label, train, and deploy effortlessly with [Ultralytics HUB](https://hub.ultralytics.com/). Try now! | Track experiments, hyperparameters, and results with [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases/). | Free forever, [Comet ML](https://docs.ultralytics.com/integrations/comet/) lets you save YOLO models, resume training, and interactively visualize predictions. | Run YOLO inference up to 6x faster with [Neural Magic DeepSparse](https://docs.ultralytics.com/integrations/neural-magic/). |
 
-## 🌟 Ultralytics HUB
-
-Experience seamless AI with [Ultralytics HUB](https://hub.ultralytics.com/), the all-in-one platform for data visualization, training YOLO models, and deployment—no coding required. Transform images into actionable insights and bring your AI visions to life effortlessly using our cutting-edge platform and user-friendly [Ultralytics App](https://www.ultralytics.com/app-install). Start your journey for **Free** today!
-
-<a href="https://www.ultralytics.com/hub" target="_blank">
-<img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png" alt="Ultralytics HUB preview image"></a>
-
 ## 🤝 Contribute
 
 We thrive on community collaboration! Ultralytics YOLO wouldn't be the SOTA framework it is without contributions from developers like you. Please see our [Contributing Guide](https://docs.ultralytics.com/help/contributing/) to get started. We also welcome your feedback—share your experience by completing our [Survey](https://www.ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey). A huge **Thank You** 🙏 to everyone who contributes!

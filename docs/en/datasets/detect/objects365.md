@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore the Objects365 Dataset with 2M images and 30M bounding boxes across 365 categories. Enhance your object detection models with diverse, high-quality data.
-keywords: Objects365 dataset, object detection, machine learning, deep learning, computer vision, annotated images, bounding boxes, YOLO11, high-resolution images, dataset configuration
+keywords: Objects365 dataset, object detection, machine learning, deep learning, computer vision, annotated images, bounding boxes, YOLO26, high-resolution images, dataset configuration
 ---
 
 # Objects365 Dataset
@@ -16,7 +16,7 @@ The [Objects365](https://www.objects365.org/) dataset is a large-scale, high-qua
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the Objects365 Dataset with Ultralytics | 2M Annotations 🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on the Objects365 Dataset with Ultralytics | 2M Annotations 🚀
 </p>
 
 ## Key Features
@@ -49,7 +49,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLO11n model on the Objects365 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n model on the Objects365 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -59,7 +59,7 @@ To train a YOLO11n model on the Objects365 dataset for 100 [epochs](https://www.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="Objects365.yaml", epochs=100, imgsz=640)
@@ -69,7 +69,7 @@ To train a YOLO11n model on the Objects365 dataset for 100 [epochs](https://www.
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Objects365.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=Objects365.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -108,9 +108,9 @@ We would like to acknowledge the team of researchers who created and maintain th
 
 The [Objects365 dataset](https://www.objects365.org/) is designed for object detection tasks in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision. It provides a large-scale, high-quality dataset with 2 million annotated images and 30 million bounding boxes across 365 categories. Leveraging such a diverse dataset helps improve the performance and generalization of object detection models, making it invaluable for research and development in the field.
 
-### How can I train a YOLO11 model on the Objects365 dataset?
+### How can I train a YOLO26 model on the Objects365 dataset?
 
-To train a YOLO11n model using the Objects365 dataset for 100 epochs with an image size of 640, follow these instructions:
+To train a YOLO26n model using the Objects365 dataset for 100 epochs with an image size of 640, follow these instructions:
 
 !!! example "Train Example"
 
@@ -120,7 +120,7 @@ To train a YOLO11n model using the Objects365 dataset for 100 epochs with an ima
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="Objects365.yaml", epochs=100, imgsz=640)
@@ -130,7 +130,7 @@ To train a YOLO11n model using the Objects365 dataset for 100 epochs with an ima
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Objects365.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=Objects365.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 Refer to the [Training](../../modes/train.md) page for a comprehensive list of available arguments.

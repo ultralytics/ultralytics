@@ -134,12 +134,12 @@ Joining a community of computer vision enthusiasts can help you solve problems a
 
 ### Community Resources
 
-- **GitHub Issues:** Check out the [YOLO11 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are highly active and supportive.
+- **GitHub Issues:** Check out the [YOLO26 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The community and maintainers are highly active and supportive.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to chat with other users and developers, get support, and share your experiences.
 
 ### Official Documentation
 
-- **Ultralytics YOLO11 Documentation:** Visit the [official YOLO11 documentation](./index.md) for detailed guides and helpful tips on various computer vision projects.
+- **Ultralytics YOLO26 Documentation:** Visit the [official YOLO26 documentation](./index.md) for detailed guides and helpful tips on various computer vision projects.
 
 Using these resources will help you solve challenges and stay up-to-date with the latest trends and practices in the computer vision community.
 

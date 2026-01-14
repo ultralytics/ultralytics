@@ -210,9 +210,7 @@ jobs:
         run: uv cache prune --ci
 
   SlowTests:
-    # TODO: Tests disabled to debug YOLO26 compatiblility
-    # if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
-    if: false
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
     timeout-minutes: 360
     runs-on: ${{ matrix.os }}
     strategy:
@@ -345,9 +343,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   RaspberryPi:
-    # TODO: Tests disabled to debug YOLO26 compatiblility
-    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
-    if: false
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 120
     runs-on: raspberry-pi
     steps:

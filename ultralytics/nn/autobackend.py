@@ -221,6 +221,7 @@ class AutoBackend(nn.Module):
             for p in model.parameters():
                 p.requires_grad = False
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
+            end2end = getattr(model, "end2end", False)
 
         # TorchScript
         elif jit:
@@ -497,11 +498,11 @@ class AutoBackend(nn.Module):
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
             check_requirements(
-                "paddlepaddle-gpu"
+                "paddlepaddle-gpu>=3.0.0,!=3.3.0"  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
                 if torch.cuda.is_available()
                 else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
                 if ARM64
-                else "paddlepaddle>=3.0.0"
+                else "paddlepaddle>=3.0.0,!=3.3.0"  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
             )
             import paddle.inference as pdi
 
@@ -545,11 +546,20 @@ class AutoBackend(nn.Module):
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
-            check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn", cmds="--no-deps")
+            if ARM64:
+                raise NotImplementedError(
+                    "NCNN inference is not supported on ARM64"
+                )  # https://github.com/Tencent/ncnn/issues/6509
+            check_requirements("ncnn", cmds="--no-deps")
             import ncnn as pyncnn
 
             net = pyncnn.Net()
-            net.opt.use_vulkan_compute = cuda
+            if isinstance(cuda, torch.device):
+                net.opt.use_vulkan_compute = cuda
+            elif isinstance(device, str) and device.startswith("vulkan"):
+                net.opt.use_vulkan_compute = True
+                net.set_vulkan_device(int(device.split(":")[1]))
+                device = torch.device("cpu")
             w = Path(w)
             if not w.is_file():  # if not *.param
                 w = next(w.glob("*.param"))  # get *.param file from *_ncnn_model dir
@@ -651,7 +661,7 @@ class AutoBackend(nn.Module):
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
             kpt_names = metadata.get("kpt_names")
-            end2end = metadata.get("args", {}).get("nms", False)
+            end2end = metadata.get("end2end", False) or metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):

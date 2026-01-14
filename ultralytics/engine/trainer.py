@@ -27,6 +27,7 @@ from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import load_checkpoint
+from ultralytics.optim import MuSGD
 from ultralytics.utils import (
     DEFAULT_CFG,
     GIT,
@@ -466,6 +467,9 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
+
+            if hasattr(unwrap_model(self.model).criterion, "update"):
+                unwrap_model(self.model).criterion.update()
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
 

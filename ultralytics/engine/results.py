@@ -954,8 +954,8 @@ class Boxes(BaseTensor):
             >>> boxes = Boxes(torch.tensor([[100, 50, 150, 100], [200, 150, 300, 250]]), orig_shape=(480, 640))
             >>> xywh = boxes.xywh
             >>> print(xywh)
-            tensor([[100.0000,  50.0000,  50.0000,  50.0000],
-                    [200.0000, 150.0000, 100.0000, 100.0000]])
+            tensor([[125.0000,  75.0000,  50.0000,  50.0000],
+                    [250.0000, 200.0000, 100.0000, 100.0000]])
         """
         return ops.xyxy2xywh(self.xyxy)
 

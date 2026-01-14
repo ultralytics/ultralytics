@@ -57,16 +57,16 @@ Choose your compute resources:
 
 <!-- Screenshot: platform-training-gpu.avif -->
 
-| GPU            | VRAM | Speed     | Cost/Hour |
-| -------------- | ---- | --------- | --------- |
-| RTX 6000 Pro   | 96GB | Very Fast | **Free**  |
-| M4 Pro (Mac)   | 64GB | Fast      | **Free**  |
-| RTX 3090       | 24GB | Good      | $0.44     |
-| RTX 4090       | 24GB | Fast      | $0.74     |
-| L40S           | 48GB | Fast      | $1.14     |
-| A100 40GB      | 40GB | Very Fast | $1.29     |
-| A100 80GB      | 80GB | Very Fast | $1.99     |
-| H100 80GB      | 80GB | Fastest   | $3.99     |
+| GPU          | VRAM | Speed     | Cost/Hour |
+| ------------ | ---- | --------- | --------- |
+| RTX 6000 Pro | 96GB | Very Fast | **Free**  |
+| M4 Pro (Mac) | 64GB | Fast      | **Free**  |
+| RTX 3090     | 24GB | Good      | $0.44     |
+| RTX 4090     | 24GB | Fast      | $0.74     |
+| L40S         | 48GB | Fast      | $1.14     |
+| A100 40GB    | 40GB | Very Fast | $1.29     |
+| A100 80GB    | 80GB | Very Fast | $1.99     |
+| H100 80GB    | 80GB | Fastest   | $3.99     |
 
 !!! tip "GPU Selection"
 
@@ -299,50 +299,50 @@ Yes, advanced users can specify additional arguments in the training configurati
 
 ### Core Parameters
 
-| Parameter  | Type  | Default | Range     | Description                 |
-| ---------- | ----- | ------- | --------- | --------------------------- |
-| `epochs`   | int   | 100     | 1+        | Number of training epochs   |
-| `batch`    | int   | 16      | -1 = auto | Batch size (-1 for auto)    |
-| `imgsz`    | int   | 640     | 32+       | Input image size            |
-| `patience` | int   | 100     | 0+        | Early stopping patience     |
-| `workers`  | int   | 8       | 0+        | Dataloader workers          |
-| `cache`    | bool  | False   | -         | Cache images (ram/disk)     |
+| Parameter  | Type | Default | Range     | Description               |
+| ---------- | ---- | ------- | --------- | ------------------------- |
+| `epochs`   | int  | 100     | 1+        | Number of training epochs |
+| `batch`    | int  | 16      | -1 = auto | Batch size (-1 for auto)  |
+| `imgsz`    | int  | 640     | 32+       | Input image size          |
+| `patience` | int  | 100     | 0+        | Early stopping patience   |
+| `workers`  | int  | 8       | 0+        | Dataloader workers        |
+| `cache`    | bool | False   | -         | Cache images (ram/disk)   |
 
 ### Learning Rate Parameters
 
-| Parameter         | Type  | Default | Range   | Description          |
-| ----------------- | ----- | ------- | ------- | -------------------- |
-| `lr0`             | float | 0.01    | 0.0-1.0 | Initial learning rate |
-| `lrf`             | float | 0.01    | 0.0-1.0 | Final LR factor      |
-| `momentum`        | float | 0.937   | 0.0-1.0 | SGD momentum         |
-| `weight_decay`    | float | 0.0005  | 0.0-1.0 | L2 regularization    |
-| `warmup_epochs`   | float | 3.0     | 0+      | Warmup epochs        |
-| `cos_lr`          | bool  | False   | -       | Cosine LR scheduler  |
+| Parameter       | Type  | Default | Range   | Description           |
+| --------------- | ----- | ------- | ------- | --------------------- |
+| `lr0`           | float | 0.01    | 0.0-1.0 | Initial learning rate |
+| `lrf`           | float | 0.01    | 0.0-1.0 | Final LR factor       |
+| `momentum`      | float | 0.937   | 0.0-1.0 | SGD momentum          |
+| `weight_decay`  | float | 0.0005  | 0.0-1.0 | L2 regularization     |
+| `warmup_epochs` | float | 3.0     | 0+      | Warmup epochs         |
+| `cos_lr`        | bool  | False   | -       | Cosine LR scheduler   |
 
 ### Augmentation Parameters
 
-| Parameter     | Type  | Default | Range   | Description              |
-| ------------- | ----- | ------- | ------- | ------------------------ |
-| `hsv_h`       | float | 0.015   | 0.0-1.0 | HSV hue augmentation     |
-| `hsv_s`       | float | 0.7     | 0.0-1.0 | HSV saturation           |
-| `hsv_v`       | float | 0.4     | 0.0-1.0 | HSV value                |
-| `degrees`     | float | 0.0     | -       | Rotation degrees         |
-| `translate`   | float | 0.1     | 0.0-1.0 | Translation fraction     |
-| `scale`       | float | 0.5     | 0.0-1.0 | Scale factor             |
-| `fliplr`      | float | 0.5     | 0.0-1.0 | Horizontal flip prob     |
-| `flipud`      | float | 0.0     | 0.0-1.0 | Vertical flip prob       |
-| `mosaic`      | float | 1.0     | 0.0-1.0 | Mosaic augmentation      |
-| `mixup`       | float | 0.0     | 0.0-1.0 | Mixup augmentation       |
-| `copy_paste`  | float | 0.0     | 0.0-1.0 | Copy-paste (segment)     |
+| Parameter    | Type  | Default | Range   | Description          |
+| ------------ | ----- | ------- | ------- | -------------------- |
+| `hsv_h`      | float | 0.015   | 0.0-1.0 | HSV hue augmentation |
+| `hsv_s`      | float | 0.7     | 0.0-1.0 | HSV saturation       |
+| `hsv_v`      | float | 0.4     | 0.0-1.0 | HSV value            |
+| `degrees`    | float | 0.0     | -       | Rotation degrees     |
+| `translate`  | float | 0.1     | 0.0-1.0 | Translation fraction |
+| `scale`      | float | 0.5     | 0.0-1.0 | Scale factor         |
+| `fliplr`     | float | 0.5     | 0.0-1.0 | Horizontal flip prob |
+| `flipud`     | float | 0.0     | 0.0-1.0 | Vertical flip prob   |
+| `mosaic`     | float | 1.0     | 0.0-1.0 | Mosaic augmentation  |
+| `mixup`      | float | 0.0     | 0.0-1.0 | Mixup augmentation   |
+| `copy_paste` | float | 0.0     | 0.0-1.0 | Copy-paste (segment) |
 
 ### Optimizer Selection
 
-| Value    | Description                    |
-| -------- | ------------------------------ |
-| `auto`   | Automatic selection (default)  |
-| `SGD`    | Stochastic Gradient Descent    |
-| `Adam`   | Adam optimizer                 |
-| `AdamW`  | Adam with weight decay         |
+| Value   | Description                   |
+| ------- | ----------------------------- |
+| `auto`  | Automatic selection (default) |
+| `SGD`   | Stochastic Gradient Descent   |
+| `Adam`  | Adam optimizer                |
+| `AdamW` | Adam with weight decay        |
 
 !!! tip "Task-Specific Parameters"
 

@@ -449,12 +449,12 @@ The table below overviews the adjustable settings within Ultralytics, including 
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | Directory where model weights are stored                                                                         |
 | `runs_dir`         | `'/path/to/runs'`     | `str`     | Directory where experiment runs are stored                                                                       |
 | `uuid`             | `'a1b2c3d4'`          | `str`     | Unique identifier for the current settings                                                                       |
-| `sync`             | `True`                | `bool`    | Option to sync analytics and crashes to [Ultralytics Platform]                                                        |
-| `api_key`          | `''`                  | `str`     | [Ultralytics Platform] API Key                                                                                        |
+| `sync`             | `True`                | `bool`    | Option to sync analytics and crashes to [Ultralytics Platform]                                                   |
+| `api_key`          | `''`                  | `str`     | [Ultralytics Platform] API Key                                                                                   |
 | `clearml`          | `True`                | `bool`    | Option to use [ClearML] logging                                                                                  |
 | `comet`            | `True`                | `bool`    | Option to use [Comet ML] for experiment tracking and visualization                                               |
 | `dvc`              | `True`                | `bool`    | Option to use [DVC for experiment tracking] and version control                                                  |
-| `hub`              | `True`                | `bool`    | Option to use [Ultralytics Platform] integration                                                                      |
+| `hub`              | `True`                | `bool`    | Option to use [Ultralytics Platform] integration                                                                 |
 | `mlflow`           | `True`                | `bool`    | Option to use [MLFlow] for experiment tracking                                                                   |
 | `neptune`          | `True`                | `bool`    | Option to use [Neptune] for experiment tracking                                                                  |
 | `raytune`          | `True`                | `bool`    | Option to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |

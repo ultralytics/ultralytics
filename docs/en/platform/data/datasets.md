@@ -22,12 +22,12 @@ keywords: Ultralytics Platform, datasets, dataset management, YOLO, data upload,
 
 Ultralytics Platform accepts multiple upload formats for flexibility:
 
-| Format          | Description                                         |
-| --------------- | --------------------------------------------------- |
-| **Images**      | Individual image files (JPG, PNG, WebP, TIFF, RAW)  |
-| **ZIP Archive** | Compressed folder with images and optional labels   |
-| **Video**       | MP4, AVI files - frames extracted at ~1 fps         |
-| **YOLO Format** | Standard YOLO directory structure with labels       |
+| Format          | Description                                        |
+| --------------- | -------------------------------------------------- |
+| **Images**      | Individual image files (JPG, PNG, WebP, TIFF, RAW) |
+| **ZIP Archive** | Compressed folder with images and optional labels  |
+| **Video**       | MP4, AVI files - frames extracted at ~1 fps        |
+| **YOLO Format** | Standard YOLO directory structure with labels      |
 
 ### Video Frame Extraction
 

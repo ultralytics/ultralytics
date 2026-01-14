@@ -440,11 +440,11 @@ GET /api/activity
 
 **Query Parameters:**
 
-| Parameter    | Type   | Description               |
-| ------------ | ------ | ------------------------- |
-| `startDate`  | string | Filter from date (ISO)    |
-| `endDate`    | string | Filter to date (ISO)      |
-| `search`     | string | Search in event messages  |
+| Parameter   | Type   | Description              |
+| ----------- | ------ | ------------------------ |
+| `startDate` | string | Filter from date (ISO)   |
+| `endDate`   | string | Filter to date (ISO)     |
+| `search`    | string | Search in event messages |
 
 ### Mark Events Seen
 
@@ -606,10 +606,10 @@ POST /api/gdpr
 }
 ```
 
-| Action     | Description                    |
-| ---------- | ------------------------------ |
-| `export`   | Download all account data      |
-| `delete`   | Delete account and all data    |
+| Action   | Description                 |
+| -------- | --------------------------- |
+| `export` | Download all account data   |
+| `delete` | Delete account and all data |
 
 !!! warning "Irreversible Action"
 

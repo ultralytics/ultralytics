@@ -164,7 +164,7 @@ div.highlight {
 
 /* Banner ----------------------------------------------------------------------------------------------------------- */
 .md-banner {
-  background-image: url(https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/691dac3414d0280ebe3e5fda_bg.avif);
+  background-image: url(https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/6967385a35f3e2c5736f0e71_Banner%20Horizontal%201920x540.avif);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -184,27 +184,22 @@ div.highlight {
   flex-direction: column;
 }
 .banner-wrapper {
-  padding: 40px 0;
+  padding: 40px 16px;
 }
 .banner-wrapper > .banner-content-wrapper {
-  gap: 0.75rem;
+  gap: 12px;
 }
 .banner-wrapper > .banner-content-wrapper > img {
   height: 30px;
 }
-.banner-wrapper > .banner-content-wrapper > .vc-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-}
-.banner-wrapper > .banner-content-wrapper > .vc-wrapper > img {
-  height: 20px;
+.banner-wrapper > .banner-content-wrapper > p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  text-align: center;
 }
 @media screen and (min-width: 768px) {
-  .md-banner {
-    height: 68px;
-  }
   .banner-wrapper,
   .banner-wrapper > .banner-content-wrapper {
     flex-direction: row;
@@ -213,17 +208,11 @@ div.highlight {
     padding: 14px 16px;
   }
   .banner-wrapper > .banner-content-wrapper {
-    gap: 1.25rem;
+    gap: 16px;
     margin: 0 auto;
   }
   .banner-wrapper > .banner-content-wrapper > img {
     height: 40px;
-  }
-  .banner-wrapper > .banner-content-wrapper > .vc-wrapper {
-    gap: 0.5rem;
-  }
-  .banner-wrapper > .banner-content-wrapper > .vc-wrapper > img {
-    height: 28px;
   }
 }
 /* Banner ----------------------------------------------------------------------------------------------------------- */

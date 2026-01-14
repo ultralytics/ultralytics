@@ -1,22 +1,22 @@
 ---
 comments: true
-description: Learn how to export Ultralytics YOLO11 models to TorchScript for flexible, cross-platform deployment. Boost performance and utilize in various environments.
-keywords: YOLO11, TorchScript, model export, Ultralytics, PyTorch, deep learning, AI deployment, cross-platform, performance optimization
+description: Learn how to export Ultralytics YOLO26 models to TorchScript for flexible, cross-platform deployment. Boost performance and utilize in various environments.
+keywords: YOLO26, TorchScript, model export, Ultralytics, PyTorch, deep learning, AI deployment, cross-platform, performance optimization
 ---
 
-# YOLO11 Model Export to TorchScript for Quick Deployment
+# YOLO26 Model Export to TorchScript for Quick Deployment
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models across different environments, including embedded systems, web browsers, or platforms with limited Python support, requires a flexible and portable solution. TorchScript focuses on portability and the ability to run models in environments where the entire Python framework is unavailable. This makes it ideal for scenarios where you need to deploy your computer vision capabilities across various devices or platforms.
 
-Export to TorchScript to serialize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for cross-platform compatibility and streamlined deployment. In this guide, we'll show you how to export your YOLO11 models to the TorchScript format, making it easier for you to use them across a wider range of applications.
+Export to TorchScript to serialize your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models for cross-platform compatibility and streamlined deployment. In this guide, we'll show you how to export your YOLO26 models to the TorchScript format, making it easier for you to use them across a wider range of applications.
 
 ## Why should you export to TorchScript?
 
 ![Torchscript Overview](https://github.com/ultralytics/docs/releases/download/0/torchscript-overview.avif)
 
-Developed by the creators of PyTorch, TorchScript is a powerful tool for optimizing and deploying PyTorch models across a variety of platforms. Exporting YOLO11 models to [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) is crucial for moving from research to real-world applications. TorchScript, part of the PyTorch framework, helps make this transition smoother by allowing PyTorch models to be used in environments that don't support Python.
+Developed by the creators of PyTorch, TorchScript is a powerful tool for optimizing and deploying PyTorch models across a variety of platforms. Exporting YOLO26 models to [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) is crucial for moving from research to real-world applications. TorchScript, part of the PyTorch framework, helps make this transition smoother by allowing PyTorch models to be used in environments that don't support Python.
 
-The process involves two techniques: tracing and scripting. Tracing records operations during model execution, while scripting allows for the definition of models using a subset of Python. These techniques ensure that models like YOLO11 can still work their magic even outside their usual Python environment.
+The process involves two techniques: tracing and scripting. Tracing records operations during model execution, while scripting allows for the definition of models using a subset of Python. These techniques ensure that models like YOLO26 can still work their magic even outside their usual Python environment.
 
 ![TorchScript Script and Trace](https://github.com/ultralytics/docs/releases/download/0/torchscript-script-and-trace.avif)
 
@@ -42,7 +42,7 @@ Here are the key features that make TorchScript a valuable tool for developers:
 
 ## Deployment Options in TorchScript
 
-Before we look at the code for exporting YOLO11 models to the TorchScript format, let's understand where TorchScript models are normally used.
+Before we look at the code for exporting YOLO26 models to the TorchScript format, let's understand where TorchScript models are normally used.
 
 TorchScript offers various deployment options for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models, such as:
 
@@ -52,9 +52,9 @@ TorchScript offers various deployment options for [machine learning](https://www
 
 - **Cloud Deployment**: TorchScript models can be deployed to cloud-based servers using solutions like TorchServe. It provides features like model versioning, batching, and metrics monitoring for scalable deployment in production environments. Cloud deployment with TorchScript can make your models accessible via APIs or other web services.
 
-## Export to TorchScript: Converting Your YOLO11 Model
+## Export to TorchScript: Converting Your YOLO26 Model
 
-Exporting YOLO11 models to TorchScript makes it easier to use them in different places and helps them run faster and more efficiently. This is great for anyone looking to use deep learning models more effectively in real-world applications.
+Exporting YOLO26 models to TorchScript makes it easier to use them in different places and helps them run faster and more efficiently. This is great for anyone looking to use deep learning models more effectively in real-world applications.
 
 ### Installation
 
@@ -65,15 +65,15 @@ To install the required package, run:
     === "CLI"
 
         ```bash
-        # Install the required package for YOLO11
+        # Install the required package for YOLO26
         pip install ultralytics
         ```
 
-For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ### Usage
 
-All [Ultralytics YOLO11 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
+All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
 !!! example "Usage"
 
@@ -82,14 +82,14 @@ All [Ultralytics YOLO11 models](../models/index.md) are designed to support expo
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO11 model
-        model = YOLO("yolo11n.pt")
+        # Load the YOLO26 model
+        model = YOLO("yolo26n.pt")
 
         # Export the model to TorchScript format
-        model.export(format="torchscript")  # creates 'yolo11n.torchscript'
+        model.export(format="torchscript")  # creates 'yolo26n.torchscript'
 
         # Load the exported TorchScript model
-        torchscript_model = YOLO("yolo11n.torchscript")
+        torchscript_model = YOLO("yolo26n.torchscript")
 
         # Run inference
         results = torchscript_model("https://ultralytics.com/images/bus.jpg")
@@ -98,11 +98,11 @@ All [Ultralytics YOLO11 models](../models/index.md) are designed to support expo
     === "CLI"
 
         ```bash
-        # Export a YOLO11n PyTorch model to TorchScript format
-        yolo export model=yolo11n.pt format=torchscript # creates 'yolo11n.torchscript'
+        # Export a YOLO26n PyTorch model to TorchScript format
+        yolo export model=yolo26n.pt format=torchscript # creates 'yolo26n.torchscript'
 
         # Run inference with the exported model
-        yolo predict model=yolo11n.torchscript source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n.torchscript source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ### Export Arguments
@@ -119,9 +119,9 @@ All [Ultralytics YOLO11 models](../models/index.md) are designed to support expo
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-## Deploying Exported YOLO11 TorchScript Models
+## Deploying Exported YOLO26 TorchScript Models
 
-After successfully exporting your Ultralytics YOLO11 models to TorchScript format, you can now deploy them. The primary and recommended first step for running a TorchScript model is to use the `YOLO("model.torchscript")` method, as outlined in the previous usage code snippet. For in-depth instructions on deploying your TorchScript models in other settings, take a look at the following resources:
+After successfully exporting your Ultralytics YOLO26 models to TorchScript format, you can now deploy them. The primary and recommended first step for running a TorchScript model is to use the `YOLO("model.torchscript")` method, as outlined in the previous usage code snippet. For in-depth instructions on deploying your TorchScript models in other settings, take a look at the following resources:
 
 - **[Explore Mobile Deployment](https://docs.pytorch.org/executorch/)**: The [PyTorch](https://www.ultralytics.com/glossary/pytorch) Mobile Documentation provides comprehensive guidelines for deploying models on mobile devices, ensuring your applications are efficient and responsive.
 
@@ -131,21 +131,21 @@ After successfully exporting your Ultralytics YOLO11 models to TorchScript forma
 
 ## Summary
 
-In this guide, we explored the process of exporting Ultralytics YOLO11 models to the TorchScript format. By following the provided instructions, you can optimize YOLO11 models for performance and gain the flexibility to deploy them across various platforms and environments.
+In this guide, we explored the process of exporting Ultralytics YOLO26 models to the TorchScript format. By following the provided instructions, you can optimize YOLO26 models for performance and gain the flexibility to deploy them across various platforms and environments.
 
 For further details on usage, visit [TorchScript's official documentation](https://docs.pytorch.org/docs/stable/jit.html).
 
-Also, if you'd like to know more about other Ultralytics YOLO11 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
+Also, if you'd like to know more about other Ultralytics YOLO26 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
 
 ## FAQ
 
-### What is Ultralytics YOLO11 model export to TorchScript?
+### What is Ultralytics YOLO26 model export to TorchScript?
 
-Exporting an Ultralytics YOLO11 model to TorchScript allows for flexible, cross-platform deployment. TorchScript, a part of the PyTorch ecosystem, facilitates the serialization of models, which can then be executed in environments that lack Python support. This makes it ideal for deploying models on embedded systems, C++ environments, mobile applications, and even web browsers. Exporting to TorchScript enables efficient performance and wider applicability of your YOLO11 models across diverse platforms.
+Exporting an Ultralytics YOLO26 model to TorchScript allows for flexible, cross-platform deployment. TorchScript, a part of the PyTorch ecosystem, facilitates the serialization of models, which can then be executed in environments that lack Python support. This makes it ideal for deploying models on embedded systems, C++ environments, mobile applications, and even web browsers. Exporting to TorchScript enables efficient performance and wider applicability of your YOLO26 models across diverse platforms.
 
-### How can I export my YOLO11 model to TorchScript using Ultralytics?
+### How can I export my YOLO26 model to TorchScript using Ultralytics?
 
-To export a YOLO11 model to TorchScript, you can use the following example code:
+To export a YOLO26 model to TorchScript, you can use the following example code:
 
 !!! example "Usage"
 
@@ -154,14 +154,14 @@ To export a YOLO11 model to TorchScript, you can use the following example code:
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO11 model
-        model = YOLO("yolo11n.pt")
+        # Load the YOLO26 model
+        model = YOLO("yolo26n.pt")
 
         # Export the model to TorchScript format
-        model.export(format="torchscript")  # creates 'yolo11n.torchscript'
+        model.export(format="torchscript")  # creates 'yolo26n.torchscript'
 
         # Load the exported TorchScript model
-        torchscript_model = YOLO("yolo11n.torchscript")
+        torchscript_model = YOLO("yolo26n.torchscript")
 
         # Run inference
         results = torchscript_model("https://ultralytics.com/images/bus.jpg")
@@ -170,18 +170,18 @@ To export a YOLO11 model to TorchScript, you can use the following example code:
     === "CLI"
 
         ```bash
-        # Export a YOLO11n PyTorch model to TorchScript format
-        yolo export model=yolo11n.pt format=torchscript # creates 'yolo11n.torchscript'
+        # Export a YOLO26n PyTorch model to TorchScript format
+        yolo export model=yolo26n.pt format=torchscript # creates 'yolo26n.torchscript'
 
         # Run inference with the exported model
-        yolo predict model=yolo11n.torchscript source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n.torchscript source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For more details about the export process, refer to the [Ultralytics documentation on exporting](../modes/export.md).
 
-### Why should I use TorchScript for deploying YOLO11 models?
+### Why should I use TorchScript for deploying YOLO26 models?
 
-Using TorchScript for deploying YOLO11 models offers several advantages:
+Using TorchScript for deploying YOLO26 models offers several advantages:
 
 - **Portability**: Exported models can run in environments without the need for Python, such as C++ applications, embedded systems, or mobile devices.
 - **Optimization**: TorchScript supports static graph execution and Just-In-Time (JIT) compilation, which can optimize model performance.
@@ -190,24 +190,24 @@ Using TorchScript for deploying YOLO11 models offers several advantages:
 
 For more insights into deployment, visit the [PyTorch Mobile Documentation](https://docs.pytorch.org/executorch/), [TorchServe Documentation](https://docs.pytorch.org/serve/getting_started.html), and [C++ Deployment Guide](https://docs.pytorch.org/tutorials/advanced/cpp_export.html).
 
-### What are the installation steps for exporting YOLO11 models to TorchScript?
+### What are the installation steps for exporting YOLO26 models to TorchScript?
 
-To install the required package for exporting YOLO11 models, use the following command:
+To install the required package for exporting YOLO26 models, use the following command:
 
 !!! tip "Installation"
 
     === "CLI"
 
         ```bash
-        # Install the required package for YOLO11
+        # Install the required package for YOLO26
         pip install ultralytics
         ```
 
 For detailed instructions, visit the [Ultralytics Installation guide](../quickstart.md). If any issues arise during installation, consult the [Common Issues guide](../guides/yolo-common-issues.md).
 
-### How do I deploy my exported TorchScript YOLO11 models?
+### How do I deploy my exported TorchScript YOLO26 models?
 
-After exporting YOLO11 models to the TorchScript format, you can deploy them across a variety of platforms:
+After exporting YOLO26 models to the TorchScript format, you can deploy them across a variety of platforms:
 
 - **C++ API**: Ideal for low-overhead, highly efficient production environments.
 - **Mobile Deployment**: Use [PyTorch Mobile](https://docs.pytorch.org/executorch/) for iOS and Android applications.

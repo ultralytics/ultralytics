@@ -1,16 +1,16 @@
 ---
 comments: true
-description: Master instance segmentation and tracking with Ultralytics YOLO11. Learn techniques for precise object identification and tracking.
-keywords: instance segmentation, tracking, YOLO11, Ultralytics, object detection, machine learning, computer vision, python
+description: Master instance segmentation and tracking with Ultralytics YOLO26. Learn techniques for precise object identification and tracking.
+keywords: instance segmentation, tracking, YOLO26, Ultralytics, object detection, machine learning, computer vision, python
 ---
 
-# Instance Segmentation and Tracking using Ultralytics YOLO11 🚀
+# Instance Segmentation and Tracking using Ultralytics YOLO26 🚀
 
 ## What is Instance Segmentation?
 
 [Instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) is a computer vision task that involves identifying and outlining individual objects in an image at the pixel level. Unlike [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) which only classifies pixels by category, instance segmentation uniquely labels and precisely delineates each object instance, making it crucial for applications requiring detailed spatial understanding like medical imaging, autonomous driving, and industrial automation.
 
-[Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) provides powerful instance segmentation capabilities that enable precise object boundary detection while maintaining the speed and efficiency YOLO models are known for.
+[Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) provides powerful instance segmentation capabilities that enable precise object boundary detection while maintaining the speed and efficiency YOLO models are known for.
 
 There are two types of instance segmentation tracking available in the Ultralytics package:
 
@@ -26,7 +26,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Instance Segmentation with Object Tracking using Ultralytics YOLO11
+  <strong>Watch:</strong> Instance Segmentation with Object Tracking using Ultralytics YOLO26
 </p>
 
 ## Samples
@@ -41,7 +41,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
     === "CLI"
 
         ```bash
-        # Instance segmentation using Ultralytics YOLO11
+        # Instance segmentation using Ultralytics YOLO26
         yolo solutions isegment show=True
 
         # Pass a source video
@@ -68,7 +68,7 @@ There are two types of instance segmentation tracking available in the Ultralyti
         # Initialize instance segmentation object
         isegment = solutions.InstanceSegmentation(
             show=True,  # display the output
-            model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
+            model="yolo26n-seg.pt",  # model="yolo26n-seg.pt" for object segmentation using YOLO26.
             # classes=[0, 2],  # segment specific classes, e.g., person and car with the pretrained model.
         )
 
@@ -110,19 +110,19 @@ Moreover, the following visualization arguments are available:
 
 ## Applications of Instance Segmentation
 
-Instance segmentation with YOLO11 has numerous real-world applications across various industries:
+Instance segmentation with YOLO26 has numerous real-world applications across various industries:
 
 ### Waste Management and Recycling
 
-YOLO11 can be used in [waste management facilities](https://www.ultralytics.com/blog/simplifying-e-waste-management-with-ai-innovations) to identify and sort different types of materials. The model can segment plastic waste, cardboard, metal, and other recyclables with high precision, enabling automated sorting systems to process waste more efficiently. This is particularly valuable considering that only about 10% of the 7 billion tonnes of plastic waste generated globally gets recycled.
+YOLO26 can be used in [waste management facilities](https://www.ultralytics.com/blog/simplifying-e-waste-management-with-ai-innovations) to identify and sort different types of materials. The model can segment plastic waste, cardboard, metal, and other recyclables with high precision, enabling automated sorting systems to process waste more efficiently. This is particularly valuable considering that only about 10% of the 7 billion tonnes of plastic waste generated globally gets recycled.
 
 ### Autonomous Vehicles
 
-In [self-driving cars](https://www.ultralytics.com/solutions/ai-in-automotive), instance segmentation helps identify and track pedestrians, vehicles, traffic signs, and other road elements at the pixel level. This precise understanding of the environment is crucial for navigation and safety decisions. YOLO11's real-time performance makes it ideal for these time-sensitive applications.
+In [self-driving cars](https://www.ultralytics.com/solutions/ai-in-automotive), instance segmentation helps identify and track pedestrians, vehicles, traffic signs, and other road elements at the pixel level. This precise understanding of the environment is crucial for navigation and safety decisions. YOLO26's real-time performance makes it ideal for these time-sensitive applications.
 
 ### Medical Imaging
 
-Instance segmentation can identify and outline tumors, organs, or cellular structures in medical scans. YOLO11's ability to precisely delineate object boundaries makes it valuable for [medical diagnostics](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency) and treatment planning.
+Instance segmentation can identify and outline tumors, organs, or cellular structures in medical scans. YOLO26's ability to precisely delineate object boundaries makes it valuable for [medical diagnostics](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency) and treatment planning.
 
 ### Construction Site Monitoring
 
@@ -134,9 +134,9 @@ For any inquiries, feel free to post your questions in the [Ultralytics Issue Se
 
 ## FAQ
 
-### How do I perform instance segmentation using Ultralytics YOLO11?
+### How do I perform instance segmentation using Ultralytics YOLO26?
 
-To perform instance segmentation using Ultralytics YOLO11, initialize the YOLO model with a segmentation version of YOLO11 and process video frames through it. Here's a simplified code example:
+To perform instance segmentation using Ultralytics YOLO26, initialize the YOLO model with a segmentation version of YOLO26 and process video frames through it. Here's a simplified code example:
 
 ```python
 import cv2
@@ -153,7 +153,7 @@ video_writer = cv2.VideoWriter("instance-segmentation.avi", cv2.VideoWriter_four
 # Init InstanceSegmentation
 isegment = solutions.InstanceSegmentation(
     show=True,  # display the output
-    model="yolo11n-seg.pt",  # model="yolo11n-seg.pt" for object segmentation using YOLO11.
+    model="yolo26n-seg.pt",  # model="yolo26n-seg.pt" for object segmentation using YOLO26.
 )
 
 # Process video
@@ -170,16 +170,16 @@ video_writer.release()
 cv2.destroyAllWindows()
 ```
 
-Learn more about instance segmentation in the [Ultralytics YOLO11 guide](https://docs.ultralytics.com/tasks/segment/).
+Learn more about instance segmentation in the [Ultralytics YOLO26 guide](https://docs.ultralytics.com/tasks/segment/).
 
-### What is the difference between instance segmentation and object tracking in Ultralytics YOLO11?
+### What is the difference between instance segmentation and object tracking in Ultralytics YOLO26?
 
-Instance segmentation identifies and outlines individual objects within an image, giving each object a unique label and mask. Object tracking extends this by assigning consistent IDs to objects across video frames, facilitating continuous tracking of the same objects over time. When combined, as in YOLO11's implementation, you get powerful capabilities for analyzing object movement and behavior in videos while maintaining precise boundary information.
+Instance segmentation identifies and outlines individual objects within an image, giving each object a unique label and mask. Object tracking extends this by assigning consistent IDs to objects across video frames, facilitating continuous tracking of the same objects over time. When combined, as in YOLO26's implementation, you get powerful capabilities for analyzing object movement and behavior in videos while maintaining precise boundary information.
 
-### Why should I use Ultralytics YOLO11 for instance segmentation and tracking over other models like Mask R-CNN or Faster R-CNN?
+### Why should I use Ultralytics YOLO26 for instance segmentation and tracking over other models like Mask R-CNN or Faster R-CNN?
 
-Ultralytics YOLO11 offers real-time performance, superior [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of use compared to other models like Mask R-CNN or Faster R-CNN. YOLO11 processes images in a single pass (one-stage detection), making it significantly faster while maintaining high precision. It also provides seamless integration with [Ultralytics HUB](https://www.ultralytics.com/hub), allowing users to manage models, datasets, and training pipelines efficiently. For applications requiring both speed and accuracy, YOLO11 provides an optimal balance.
+Ultralytics YOLO26 offers real-time performance, superior [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of use compared to other models like Mask R-CNN or Faster R-CNN. YOLO26 processes images in a single pass (one-stage detection), making it significantly faster while maintaining high precision. It also provides seamless integration with [Ultralytics Platform](https://platform.ultralytics.com), allowing users to manage models, datasets, and training pipelines efficiently. For applications requiring both speed and accuracy, YOLO26 provides an optimal balance.
 
-### Are there any datasets provided by Ultralytics suitable for training YOLO11 models for instance segmentation and tracking?
+### Are there any datasets provided by Ultralytics suitable for training YOLO26 models for instance segmentation and tracking?
 
-Yes, Ultralytics offers several datasets suitable for training YOLO11 models for instance segmentation, including [COCO-Seg](https://docs.ultralytics.com/datasets/segment/coco/), [COCO8-Seg](https://docs.ultralytics.com/datasets/segment/coco8-seg/) (a smaller subset for quick testing), [Package-Seg](https://docs.ultralytics.com/datasets/segment/package-seg/), and [Crack-Seg](https://docs.ultralytics.com/datasets/segment/crack-seg/). These datasets come with pixel-level annotations needed for instance segmentation tasks. For more specialized applications, you can also create custom datasets following the Ultralytics format. Complete dataset information and usage instructions can be found in the [Ultralytics Datasets documentation](https://docs.ultralytics.com/datasets/).
+Yes, Ultralytics offers several datasets suitable for training YOLO26 models for instance segmentation, including [COCO-Seg](https://docs.ultralytics.com/datasets/segment/coco/), [COCO8-Seg](https://docs.ultralytics.com/datasets/segment/coco8-seg/) (a smaller subset for quick testing), [Package-Seg](https://docs.ultralytics.com/datasets/segment/package-seg/), and [Crack-Seg](https://docs.ultralytics.com/datasets/segment/crack-seg/). These datasets come with pixel-level annotations needed for instance segmentation tasks. For more specialized applications, you can also create custom datasets following the Ultralytics format. Complete dataset information and usage instructions can be found in the [Ultralytics Datasets documentation](https://docs.ultralytics.com/datasets/).

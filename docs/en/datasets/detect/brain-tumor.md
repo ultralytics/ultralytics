@@ -108,7 +108,7 @@ The brain tumor dataset encompasses a wide array of medical images featuring bra
 
 - **Mosaiced Image**: Displayed here is a training batch comprising mosaiced dataset images. Mosaicing, a training technique, consolidates multiple images into one, enhancing batch diversity. This approach aids in improving the model's capacity to generalize across various tumor sizes, shapes, and locations within brain scans.
 
-This example highlights the diversity and intricacy of images within the brain tumor dataset, underscoring the advantages of incorporating mosaicing during the training phase for [medical image analysis](https://www.ultralytics.com/blog/using-yolo26-for-tumor-detection-in-medical-imaging).
+This example highlights the diversity and intricacy of images within the brain tumor dataset, underscoring the advantages of incorporating mosaicing during the training phase for [medical image analysis](https://www.ultralytics.com/blog/using-yolo11-for-tumor-detection-in-medical-imaging).
 
 ## Citations and Acknowledgments
 

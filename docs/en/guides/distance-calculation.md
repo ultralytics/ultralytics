@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Learn how to calculate distances between objects using Ultralytics YOLO11 for accurate spatial positioning and scene understanding.
-keywords: Ultralytics, YOLO11, distance calculation, computer vision, object tracking, spatial positioning
+description: Learn how to calculate distances between objects using Ultralytics YOLO26 for accurate spatial positioning and scene understanding.
+keywords: Ultralytics, YOLO26, distance calculation, computer vision, object tracking, spatial positioning
 ---
 
-# Distance Calculation using Ultralytics YOLO11
+# Distance Calculation using Ultralytics YOLO26
 
 ## What is Distance Calculation?
 
-Measuring the gap between two objects is known as distance calculation within a specified space. In the case of [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics), the [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroid is employed to calculate the distance for bounding boxes highlighted by the user.
+Measuring the gap between two objects is known as distance calculation within a specified space. In the case of [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics), the [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroid is employed to calculate the distance for bounding boxes highlighted by the user.
 
 <p align="center">
   <br>
@@ -23,9 +23,9 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ## Visuals
 
-|                                         Distance Calculation using Ultralytics YOLO11                                         |
+|                                         Distance Calculation using Ultralytics YOLO26                                         |
 | :---------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO11 Distance Calculation](https://github.com/ultralytics/docs/releases/download/0/distance-calculation.avif) |
+| ![Ultralytics YOLO26 Distance Calculation](https://github.com/ultralytics/docs/releases/download/0/distance-calculation.avif) |
 
 ## Advantages of Distance Calculation
 
@@ -64,7 +64,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 
         # Initialize distance calculation object
         distancecalculator = solutions.DistanceCalculation(
-            model="yolo11n.pt",  # path to the YOLO11 model file.
+            model="yolo26n.pt",  # path to the YOLO26 model file.
             show=True,  # display the output
         )
 
@@ -116,7 +116,7 @@ The implementation uses the `mouse_event_for_distance` method to handle mouse in
 
 ## Applications
 
-Distance calculation with YOLO11 has numerous practical applications:
+Distance calculation with YOLO26 has numerous practical applications:
 
 - **Retail Analytics:** Measure customer proximity to products and analyze store layout effectiveness
 - **Industrial Safety:** Monitor safe distances between workers and machinery
@@ -127,33 +127,33 @@ Distance calculation with YOLO11 has numerous practical applications:
 
 ## FAQ
 
-### How do I calculate distances between objects using Ultralytics YOLO11?
+### How do I calculate distances between objects using Ultralytics YOLO26?
 
-To calculate distances between objects using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics), you need to identify the bounding box centroids of the detected objects. This process involves initializing the `DistanceCalculation` class from Ultralytics' `solutions` module and using the model's tracking outputs to calculate the distances.
+To calculate distances between objects using [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics), you need to identify the bounding box centroids of the detected objects. This process involves initializing the `DistanceCalculation` class from Ultralytics' `solutions` module and using the model's tracking outputs to calculate the distances.
 
-### What are the advantages of using distance calculation with Ultralytics YOLO11?
+### What are the advantages of using distance calculation with Ultralytics YOLO26?
 
-Using distance calculation with Ultralytics YOLO11 offers several advantages:
+Using distance calculation with Ultralytics YOLO26 offers several advantages:
 
 - **Localization Precision:** Provides accurate spatial positioning for objects.
 - **Size Estimation:** Helps estimate physical sizes, contributing to better contextual understanding.
 - **Scene Understanding:** Enhances 3D scene comprehension, aiding improved decision-making in applications like autonomous driving and surveillance.
 - **Real-time Processing:** Performs calculations on-the-fly, making it suitable for live video analysis.
-- **Integration Capabilities:** Works seamlessly with other YOLO11 solutions like [object tracking](../modes/track.md) and [speed estimation](speed-estimation.md).
+- **Integration Capabilities:** Works seamlessly with other YOLO26 solutions like [object tracking](../modes/track.md) and [speed estimation](speed-estimation.md).
 
-### Can I perform distance calculation in real-time video streams with Ultralytics YOLO11?
+### Can I perform distance calculation in real-time video streams with Ultralytics YOLO26?
 
-Yes, you can perform distance calculation in real-time video streams with Ultralytics YOLO11. The process involves capturing video frames using [OpenCV](https://www.ultralytics.com/glossary/opencv), running YOLO11 [object detection](https://www.ultralytics.com/glossary/object-detection), and using the `DistanceCalculation` class to calculate distances between objects in successive frames. For a detailed implementation, see the [video stream example](#distance-calculation-using-ultralytics-yolo11).
+Yes, you can perform distance calculation in real-time video streams with Ultralytics YOLO26. The process involves capturing video frames using [OpenCV](https://www.ultralytics.com/glossary/opencv), running YOLO26 [object detection](https://www.ultralytics.com/glossary/object-detection), and using the `DistanceCalculation` class to calculate distances between objects in successive frames. For a detailed implementation, see the [video stream example](#distance-calculation-using-ultralytics-yolo26).
 
-### How do I delete points drawn during distance calculation using Ultralytics YOLO11?
+### How do I delete points drawn during distance calculation using Ultralytics YOLO26?
 
-To delete points drawn during distance calculation with Ultralytics YOLO11, you can use a right mouse click. This action will clear all the points you have drawn. For more details, refer to the note section under the [distance calculation example](#distance-calculation-using-ultralytics-yolo11).
+To delete points drawn during distance calculation with Ultralytics YOLO26, you can use a right mouse click. This action will clear all the points you have drawn. For more details, refer to the note section under the [distance calculation example](#distance-calculation-using-ultralytics-yolo26).
 
-### What are the key arguments for initializing the DistanceCalculation class in Ultralytics YOLO11?
+### What are the key arguments for initializing the DistanceCalculation class in Ultralytics YOLO26?
 
-The key arguments for initializing the `DistanceCalculation` class in Ultralytics YOLO11 include:
+The key arguments for initializing the `DistanceCalculation` class in Ultralytics YOLO26 include:
 
-- `model`: Path to the YOLO11 model file.
+- `model`: Path to the YOLO26 model file.
 - `tracker`: Tracking algorithm to use (default is 'botsort.yaml').
 - `conf`: Confidence threshold for detections.
 - `show`: Flag to display the output.

@@ -11,7 +11,7 @@ Welcome to the [Ultralytics](https://www.ultralytics.com/) "Under Construction" 
 
 - **Innovative Breakthroughs:** Get ready for [advanced features](https://docs.ultralytics.com/) and services designed to [transform your AI and ML experience](https://www.ultralytics.com/solutions).
 - **New Horizons:** Anticipate novel products that [redefine AI and ML capabilities](https://docs.ultralytics.com/tasks/).
-- **Enhanced Services:** We're upgrading our [services](https://www.ultralytics.com/hub) for greater [efficiency](https://docs.ultralytics.com/modes/benchmark/) and user-friendliness.
+- **Enhanced Services:** We're upgrading our [services](https://platform.ultralytics.com) for greater [efficiency](https://docs.ultralytics.com/modes/benchmark/) and user-friendliness.
 
 ## Stay Updated 🚧
 
@@ -23,7 +23,7 @@ This page is your go-to resource for the latest integration updates and feature 
 
 ## We Value Your Input 🗣️
 
-Help shape the future of Ultralytics HUB by sharing your ideas, feedback, and integration requests through our [official contact form](https://www.ultralytics.com/contact).
+Help shape the future of Ultralytics Platform by sharing your ideas, feedback, and integration requests through our [official contact form](https://www.ultralytics.com/contact).
 
 ## Thank You, Community! 🌍
 

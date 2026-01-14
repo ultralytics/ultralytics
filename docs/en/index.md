@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover Ultralytics YOLO - the latest in real-time object detection and image segmentation. Learn about its features and maximize its potential in your projects.
-keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep learning, computer vision, AI, machine learning, documentation, tutorial
+keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentation, deep learning, computer vision, AI, machine learning, documentation, tutorial
 ---
 
 <div align="center">
@@ -36,7 +36,7 @@ keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep 
 
 # Home
 
-Introducing Ultralytics [YOLO11](models/yolo11.md), the latest version of the acclaimed real-time object detection and image segmentation model. YOLO11 is built on cutting-edge advancements in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) and [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025), offering unparalleled performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). Its streamlined design makes it suitable for various applications and easily adaptable to different hardware platforms, from edge devices to cloud APIs.
+Introducing Ultralytics [YOLO26](models/yolo26.md), the latest version of the acclaimed real-time object detection and image segmentation model. YOLO26 is built on [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) and [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) advancements, featuring end-to-end NMS-free inference and optimized edge deployment. Its streamlined design makes it suitable for various applications and easily adaptable to different hardware platforms, from edge devices to cloud APIs. For stable production workloads, both YOLO26 and [YOLO11](models/yolo11.md) are recommended.
 
 Explore the Ultralytics Docs, a comprehensive resource designed to help you understand and utilize its features and capabilities. Whether you are a seasoned [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) practitioner or new to the field, this hub aims to maximize YOLO's potential in your projects.
 
@@ -101,15 +101,15 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     [:octicons-arrow-right-24: Explore Tasks](tasks/index.md)
 
-- :rocket:{ .lg .middle } &nbsp; **Explore YOLO11 🚀**
+- :rocket:{ .lg .middle } &nbsp; **Explore YOLO26 🚀 NEW**
 
     ***
 
-    Discover Ultralytics' latest state-of-the-art YOLO11 models and their capabilities <br /> &nbsp;
+    Discover Ultralytics' latest YOLO26 models with NMS-free inference and edge optimization <br /> &nbsp;
 
     ***
 
-    [:octicons-arrow-right-24: YOLO11 Models 🚀](models/yolo11.md)
+    [:octicons-arrow-right-24: YOLO26 Models 🚀](models/yolo26.md)
 
 - :material-select-all:{ .lg .middle } &nbsp; **SAM 3: Segment Anything with Concepts 🚀 NEW**
 
@@ -157,8 +157,8 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 - [YOLOv8](models/yolov8.md) released in 2023 by Ultralytics, introduced new features and improvements for enhanced performance, flexibility, and efficiency, supporting a full range of vision AI tasks.
 - [YOLOv9](models/yolov9.md) introduces innovative methods like Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN).
 - [YOLOv10](models/yolov10.md) created by researchers from [Tsinghua University](https://www.tsinghua.edu.cn/en/) using the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/), provides real-time [object detection](tasks/detect.md) advancements by introducing an End-to-End head that eliminates Non-Maximum Suppression (NMS) requirements.
-- **[YOLO11](models/yolo11.md) 🚀**: Ultralytics' latest YOLO models deliver state-of-the-art (SOTA) performance across multiple tasks, including [object detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md), enabling deployment across diverse AI applications and domains.
-- **[YOLO26](models/yolo26.md) ⚠️ Coming Soon**: Ultralytics' next-generation YOLO model optimized for edge deployment with end-to-end NMS-free inference.
+- **[YOLO11](models/yolo11.md)**: Released in September 2024, YOLO11 delivers excellent performance across multiple tasks, including [object detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md), enabling deployment across diverse AI applications and domains.
+- **[YOLO26](models/yolo26.md) 🚀**: Ultralytics' next-generation YOLO model optimized for edge deployment with end-to-end NMS-free inference.
 
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 
@@ -175,13 +175,13 @@ Object detection has evolved significantly over the years, from traditional comp
 
 YOLO's unique approach treats object detection as a single regression problem, predicting [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) and class probabilities directly from full images in one evaluation. This revolutionary method has made YOLO models significantly faster than previous two-stage detectors while maintaining high accuracy.
 
-With each new version, YOLO has introduced architectural improvements and innovative techniques that have enhanced performance across various metrics. YOLO11 continues this tradition by incorporating the latest advancements in computer vision research, offering even better speed-accuracy trade-offs for real-world applications.
+With each new version, YOLO has introduced architectural improvements and innovative techniques that have enhanced performance across various metrics. YOLO26 continues this tradition by incorporating the latest advancements in computer vision research, featuring end-to-end NMS-free inference and optimized edge deployment for real-world applications.
 
 ## FAQ
 
 ### What is Ultralytics YOLO and how does it improve object detection?
 
-Ultralytics YOLO is the latest advancement in the acclaimed YOLO (You Only Look Once) series for real-time object detection and image segmentation. It builds on previous versions by introducing new features and improvements for enhanced performance, flexibility, and efficiency. YOLO supports various [vision AI tasks](tasks/index.md) such as detection, segmentation, pose estimation, tracking, and classification. Its state-of-the-art architecture ensures superior speed and accuracy, making it suitable for diverse applications, including edge devices and cloud APIs.
+Ultralytics YOLO is the acclaimed YOLO (You Only Look Once) series for real-time object detection and image segmentation. The latest model, [YOLO26](models/yolo26.md), builds on previous versions by introducing end-to-end NMS-free inference and optimized edge deployment. YOLO supports various [vision AI tasks](tasks/index.md) such as detection, segmentation, pose estimation, tracking, and classification. Its efficient architecture ensures excellent speed and accuracy, making it suitable for diverse applications, including edge devices and cloud APIs.
 
 ### How can I get started with YOLO installation and setup?
 

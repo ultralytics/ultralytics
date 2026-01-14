@@ -40,7 +40,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01:
 
         ```bash
-        yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
@@ -48,7 +48,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         Predict using a pretrained segmentation model on a YouTube video at image size 320:
 
         ```bash
-        yolo predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
 
     === "Val"
@@ -56,7 +56,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         Validate a pretrained detection model with a [batch size](https://www.ultralytics.com/glossary/batch-size) of 1 and image size 640:
 
         ```bash
-        yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+        yolo val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
         ```
 
     === "Export"
@@ -64,7 +64,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         Export a YOLO classification model to ONNX format with image size 224x128 (no TASK required):
 
         ```bash
-        yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+        yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
         ```
 
     === "Special"
@@ -90,9 +90,9 @@ Where:
 
     Arguments must be passed as `arg=val` pairs, separated by an equals `=` sign and delimited by spaces between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
-    - `yolo predict model=yolo11n.pt imgsz=640 conf=0.25` &nbsp; ✅
-    - `yolo predict model yolo11n.pt imgsz 640 conf 0.25` &nbsp; ❌
-    - `yolo predict --model yolo11n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
+    - `yolo predict model=yolo26n.pt imgsz=640 conf=0.25` &nbsp; ✅
+    - `yolo predict model yolo26n.pt imgsz 640 conf 0.25` &nbsp; ❌
+    - `yolo predict --model yolo26n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
 ## Train
 
@@ -102,10 +102,10 @@ Train YOLO on the COCO8 dataset for 100 epochs at image size 640. For a full lis
 
     === "Train"
 
-        Start training YOLO11n on COCO8 for 100 epochs at image size 640:
+        Start training YOLO26n on COCO8 for 100 epochs at image size 640:
 
         ```bash
-        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
     === "Resume"
@@ -124,10 +124,10 @@ Validate the [accuracy](https://www.ultralytics.com/glossary/accuracy) of the tr
 
     === "Official"
 
-        Validate an official YOLO11n model:
+        Validate an official YOLO26n model:
 
         ```bash
-        yolo detect val model=yolo11n.pt
+        yolo detect val model=yolo26n.pt
         ```
 
     === "Custom"
@@ -146,10 +146,10 @@ Use a trained model to run predictions on images.
 
     === "Official"
 
-        Predict with an official YOLO11n model:
+        Predict with an official YOLO26n model:
 
         ```bash
-        yolo detect predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
+        yolo detect predict model=yolo26n.pt source='https://ultralytics.com/images/bus.jpg'
         ```
 
     === "Custom"
@@ -168,10 +168,10 @@ Export a model to a different format like ONNX or CoreML.
 
     === "Official"
 
-        Export an official YOLO11n model to ONNX format:
+        Export an official YOLO26n model to ONNX format:
 
         ```bash
-        yolo export model=yolo11n.pt format=onnx
+        yolo export model=yolo26n.pt format=onnx
         ```
 
     === "Custom"
@@ -199,7 +199,7 @@ Override default arguments by passing them in the CLI as `arg=value` pairs.
         Train a detection model for 10 epochs with a learning rate of 0.01:
 
         ```bash
-        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
         ```
 
     === "Predict"
@@ -207,7 +207,7 @@ Override default arguments by passing them in the CLI as `arg=value` pairs.
         Predict using a pretrained segmentation model on a YouTube video at image size 320:
 
         ```bash
-        yolo segment predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo segment predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
         ```
 
     === "Val"
@@ -215,7 +215,7 @@ Override default arguments by passing them in the CLI as `arg=value` pairs.
         Validate a pretrained detection model with a batch size of 1 and image size 640:
 
         ```bash
-        yolo detect val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+        yolo detect val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
         ```
 
 ## Overriding Default Config File
@@ -299,7 +299,7 @@ For more information on Ultralytics solutions, visit the [Solutions](../solution
 To train a model using the CLI, execute a single-line command in the terminal. For example, to train a detection model for 10 epochs with a [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01, run:
 
 ```bash
-yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 ```
 
 This command uses the `train` mode with specific arguments. For a full list of available arguments, refer to the [Configuration Guide](cfg.md).
@@ -320,7 +320,7 @@ Customize each task with various arguments. For detailed syntax and examples, se
 To validate a model's [accuracy](https://www.ultralytics.com/glossary/accuracy), use the `val` mode. For example, to validate a pretrained detection model with a [batch size](https://www.ultralytics.com/glossary/batch-size) of 1 and an image size of 640, run:
 
 ```bash
-yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+yolo val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
 ```
 
 This command evaluates the model on the specified dataset and provides performance metrics like [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map), [precision](https://www.ultralytics.com/glossary/precision), and [recall](https://www.ultralytics.com/glossary/recall). For more details, refer to the [Val](#val) section.
@@ -330,7 +330,7 @@ This command evaluates the model on the specified dataset and provides performan
 You can export YOLO models to various formats including ONNX, TensorRT, CoreML, TensorFlow, and more. For instance, to export a model to ONNX format, run:
 
 ```bash
-yolo export model=yolo11n.pt format=onnx
+yolo export model=yolo26n.pt format=onnx
 ```
 
 The export command supports numerous options to optimize your model for specific deployment environments. For complete details on all available export formats and their specific parameters, visit the [Export](../modes/export.md) page.

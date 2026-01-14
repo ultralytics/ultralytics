@@ -27,10 +27,10 @@ For example, users can load a model, train it, evaluate its performance on a val
     from ultralytics import YOLO
 
     # Create a new YOLO model from scratch
-    model = YOLO("yolo11n.yaml")
+    model = YOLO("yolo26n.yaml")
 
     # Load a pretrained YOLO model (recommended for training)
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Train the model using the 'coco8.yaml' dataset for 3 epochs
     results = model.train(data="coco8.yaml", epochs=3)
@@ -56,7 +56,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")  # pass any model type
+        model = YOLO("yolo26n.pt")  # pass any model type
         results = model.train(epochs=5)
         ```
 
@@ -65,7 +65,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.yaml")
+        model = YOLO("yolo26n.yaml")
         results = model.train(data="coco8.yaml", epochs=5)
         ```
 
@@ -90,7 +90,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         from ultralytics import YOLO
 
         # Load a YOLO model
-        model = YOLO("yolo11n.yaml")
+        model = YOLO("yolo26n.yaml")
 
         # Train the model
         model.train(data="coco8.yaml", epochs=5)
@@ -105,7 +105,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         from ultralytics import YOLO
 
         # Load a YOLO model
-        model = YOLO("yolo11n.yaml")
+        model = YOLO("yolo26n.yaml")
 
         # Train the model
         model.train(data="coco8.yaml", epochs=5)
@@ -199,7 +199,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
         model.export(format="onnx", dynamic=True)
         ```
 
@@ -209,7 +209,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
         model.export(format="engine", device=0)
         ```
 
@@ -227,8 +227,8 @@ For example, users can load a model, train it, evaluate its performance on a val
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load an official detection model
-        model = YOLO("yolo11n-seg.pt")  # load an official segmentation model
+        model = YOLO("yolo26n.pt")  # load an official detection model
+        model = YOLO("yolo26n-seg.pt")  # load an official segmentation model
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Track with the model
@@ -251,7 +251,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         from ultralytics.utils.benchmarks import benchmark
 
         # Benchmark
-        benchmark(model="yolo11n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
+        benchmark(model="yolo26n.pt", data="coco8.yaml", imgsz=640, half=False, device=0)
         ```
 
 [Benchmark Examples](../modes/benchmark.md){ .md-button }
@@ -297,7 +297,7 @@ Integrating Ultralytics YOLO into your Python projects is simple. You can load a
 from ultralytics import YOLO
 
 # Load a pretrained YOLO model
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 # Perform object detection on an image
 results = model("https://ultralytics.com/images/bus.jpg")
@@ -330,7 +330,7 @@ To train a custom YOLO model, you need to specify your dataset and other [hyperp
 from ultralytics import YOLO
 
 # Load the YOLO model
-model = YOLO("yolo11n.yaml")
+model = YOLO("yolo26n.yaml")
 
 # Train the model with custom dataset
 model.train(data="path/to/your/dataset.yaml", epochs=10)
@@ -346,7 +346,7 @@ Exporting YOLO models in a format suitable for deployment is straightforward wit
 from ultralytics import YOLO
 
 # Load the YOLO model
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 # Export the model to ONNX format
 model.export(format="onnx")
@@ -362,7 +362,7 @@ Yes, validating YOLO models on different datasets is possible. After training, y
 from ultralytics import YOLO
 
 # Load a YOLO model
-model = YOLO("yolo11n.yaml")
+model = YOLO("yolo26n.yaml")
 
 # Train the model
 model.train(data="coco8.yaml", epochs=5)

@@ -60,7 +60,7 @@ class SegmentationPredictor(DetectionPredictor):
             >>> results = predictor.postprocess(preds, img, orig_img)
         """
         # Extract protos - tuple if PyTorch model or array if exported
-        protos = preds[1][-1] if isinstance(preds[1], tuple) else preds[1]
+        protos = preds[0][-1] if isinstance(preds[0], tuple) else preds[-1]
         return super().postprocess(preds[0], img, orig_imgs, protos=protos)
 
     def construct_results(self, preds, img, orig_imgs, protos):

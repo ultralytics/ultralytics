@@ -123,7 +123,7 @@ This approach allows you to store large datasets and trained models securely and
 
 Congratulations! You are now equipped to harness the capabilities of Ultralytics YOLOv5 combined with the computational power of Google Cloud Platform. This setup provides scalability, efficiency, and versatility for your object detection projects. Whether for personal exploration, academic research, or building industrial [solutions](../../solutions/index.md), you have taken a significant step into the world of AI and ML on the cloud.
 
-Consider using [Ultralytics HUB](../../hub/index.md) for a streamlined, no-code experience to train and manage your models.
+Consider using [Ultralytics Platform](../../platform/index.md) for a streamlined, no-code experience to train and manage your models.
 
 Remember to document your progress, share insights with the vibrant Ultralytics community, and utilize resources like [GitHub discussions](https://github.com/ultralytics/yolov5/discussions) for collaboration and support. Now, go forth and innovate with YOLOv5 and GCP!
 

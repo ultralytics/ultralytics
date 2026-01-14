@@ -39,7 +39,7 @@ To train a CNN model on the ImageWoof dataset for 100 [epochs](https://www.ultra
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagewoof", epochs=100, imgsz=224)
@@ -49,7 +49,7 @@ To train a CNN model on the ImageWoof dataset for 100 [epochs](https://www.ultra
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagewoof model=yolo11n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagewoof model=yolo26n-cls.pt epochs=100 imgsz=224
         ```
 
 ## Dataset Variants
@@ -72,7 +72,7 @@ To use these variants in your training, simply replace 'imagewoof' in the datase
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # For medium-sized dataset
         model.train(data="imagewoof320", epochs=100, imgsz=224)
@@ -85,7 +85,7 @@ To use these variants in your training, simply replace 'imagewoof' in the datase
 
         ```bash
         # Load a pretrained model and train on the medium-sized dataset
-        yolo classify train model=yolo11n-cls.pt data=imagewoof320 epochs=100 imgsz=224
+        yolo classify train model=yolo26n-cls.pt data=imagewoof320 epochs=100 imgsz=224
         ```
 
 It's important to note that using smaller images will likely yield lower performance in terms of classification accuracy. However, it's an excellent way to iterate quickly in the early stages of model development and prototyping.
@@ -121,7 +121,7 @@ To train a [Convolutional Neural Network](https://www.ultralytics.com/glossary/c
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n-cls.pt")  # Load a pretrained model
+        model = YOLO("yolo26n-cls.pt")  # Load a pretrained model
         results = model.train(data="imagewoof", epochs=100, imgsz=224)
         ```
 
@@ -129,7 +129,7 @@ To train a [Convolutional Neural Network](https://www.ultralytics.com/glossary/c
     === "CLI"
 
         ```bash
-        yolo classify train data=imagewoof model=yolo11n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagewoof model=yolo26n-cls.pt epochs=100 imgsz=224
         ```
 
 For more details on available training arguments, refer to the [Training](../../modes/train.md) page.

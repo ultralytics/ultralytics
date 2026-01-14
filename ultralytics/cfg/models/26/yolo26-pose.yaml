@@ -1,0 +1,53 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO26-pose keypoints/pose estimation model with P3/8 - P5/32 outputs
+# Model docs: https://docs.ultralytics.com/models/yolo26
+# Task docs: https://docs.ultralytics.com/tasks/pose
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+kpt_shape: [17, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
+scales: # model compound scaling constants, i.e. 'model=yolo26n-pose.yaml' will call yolo26-pose.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.50, 0.25, 1024] # summary: 363 layers, 3,747,554 parameters, 3,747,554 gradients, 10.7 GFLOPs
+  s: [0.50, 0.50, 1024] # summary: 363 layers, 11,870,498 parameters, 11,870,498 gradients, 29.6 GFLOPs
+  m: [0.50, 1.00, 512] # summary: 383 layers, 24,344,482 parameters, 24,344,482 gradients, 85.9 GFLOPs
+  l: [1.00, 1.00, 512] # summary: 495 layers, 28,747,938 parameters, 28,747,938 gradients, 104.3 GFLOPs
+  x: [1.00, 1.50, 512] # summary: 495 layers, 62,914,350 parameters, 62,914,350 gradients, 226.3 GFLOPs
+
+# YOLO26n backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 2, C3k2, [256, False, 0.25]]
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, C3k2, [512, False, 0.25]]
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5, 3, True]] # 9
+  - [-1, 2, C2PSA, [1024]] # 10
+
+# YOLO26n head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 2, C3k2, [512, True]] # 13
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 2, C3k2, [256, True]] # 16 (P3/8-small)
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 13], 1, Concat, [1]] # cat head P4
+  - [-1, 2, C3k2, [512, True]] # 19 (P4/16-medium)
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]] # cat head P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
+
+  - [[16, 19, 22], 1, Pose26, [nc, kpt_shape]] # Detect(P3, P4, P5)

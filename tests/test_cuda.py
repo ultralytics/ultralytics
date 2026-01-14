@@ -41,7 +41,7 @@ def test_checks():
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_amp():
     """Test AMP training checks."""
-    model = YOLO("yolo11n.pt").model.to(f"cuda:{DEVICES[0]}")
+    model = YOLO("yolo26n.pt").model.to(f"cuda:{DEVICES[0]}")
     assert check_amp(model)
 
 
@@ -91,6 +91,12 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 )
 def test_export_engine_matrix(task, dynamic, int8, half, batch):
     """Test YOLO model export to TensorRT format for various configurations and run inference."""
+    import tensorrt as trt
+
+    is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10
+    if is_trt10 and int8 and dynamic:
+        pytest.skip("YOLO26 INT8+dynamic export requires explicit quantization on TensorRT 10+")
+
     file = YOLO(TASK2MODEL[task]).export(
         format="engine",
         imgsz=32,
@@ -126,7 +132,7 @@ def test_train():
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_predict_multiple_devices():
     """Validate model prediction consistency across CPU and CUDA devices."""
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Test CPU
     model = model.cpu()

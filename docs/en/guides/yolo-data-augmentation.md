@@ -50,7 +50,7 @@ You can customize each parameter using the Python API, the command line interfac
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Training with custom augmentation parameters
         model.train(data="coco.yaml", epochs=100, hsv_h=0.03, hsv_s=0.6, hsv_v=0.5)
@@ -82,7 +82,7 @@ You can customize each parameter using the Python API, the command line interfac
 
         ```bash
         # Training with custom augmentation parameters
-        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 hsv_h=0.03 hsv_s=0.6 hsv_v=0.5
         ```
 
 #### Using a configuration file
@@ -94,7 +94,7 @@ You can define all training parameters, including augmentations, in a YAML confi
 # 'mode' is required only for CLI usage
 mode: train
 data: coco8.yaml
-model: yolo11n.pt
+model: yolo26n.pt
 epochs: 100
 hsv_h: 0.03
 hsv_s: 0.6
@@ -110,8 +110,8 @@ Then launch the training with the Python API:
         ```python
         from ultralytics import YOLO
 
-        # Load a COCO-pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a COCO-pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Train the model with custom configuration
         model.train(cfg="train_custom.yaml")
@@ -121,7 +121,7 @@ Then launch the training with the Python API:
 
         ```bash
         # Train the model with custom configuration
-        yolo detect train model="yolo11n.pt" cfg=train_custom.yaml
+        yolo detect train model="yolo26n.pt" cfg=train_custom.yaml
         ```
 
 ## Color Space Augmentations
@@ -401,7 +401,7 @@ Then launch the training with the Python API:
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Define custom Albumentations transforms
         custom_transforms = [
@@ -429,7 +429,7 @@ Then launch the training with the Python API:
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Define advanced custom Albumentations transforms with specific parameters
         advanced_transforms = [

@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Learn to export YOLO11 models to OpenVINO format for up to 3x CPU speedup and hardware acceleration on Intel GPU and NPU.
-keywords: YOLO11, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU acceleration, NPU, deep learning
+description: Learn to export YOLO26 models to OpenVINO format for up to 3x CPU speedup and hardware acceleration on Intel GPU and NPU.
+keywords: YOLO26, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU acceleration, NPU, deep learning
 ---
 
 # Intel OpenVINO Export
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ecosystem.avif" alt="OpenVINO Ecosystem">
 
-In this guide, we cover exporting YOLO11 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
+In this guide, we cover exporting YOLO26 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2024/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
 
 OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultralytics.com/glossary/neural-network-nn) Optimization toolkit, is a comprehensive toolkit for optimizing and deploying AI inference models. Even though the name contains Visual, OpenVINO also supports various additional tasks including language, audio, time series, etc.
 
@@ -20,12 +20,12 @@ OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultraly
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Export Ultralytics YOLO11 to Intel OpenVINO Format for Faster Inference 🚀
+  <strong>Watch:</strong> How to Export Ultralytics YOLO26 to Intel OpenVINO Format for Faster Inference 🚀
 </p>
 
 ## Usage Examples
 
-Export a YOLO11n model to OpenVINO format and run inference with the exported model.
+Export a YOLO26n model to OpenVINO format and run inference with the exported model.
 
 !!! example
 
@@ -34,14 +34,14 @@ Export a YOLO11n model to OpenVINO format and run inference with the exported mo
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n PyTorch model
+        model = YOLO("yolo26n.pt")
 
         # Export the model
-        model.export(format="openvino")  # creates 'yolo11n_openvino_model/'
+        model.export(format="openvino")  # creates 'yolo26n_openvino_model/'
 
         # Load the exported OpenVINO model
-        ov_model = YOLO("yolo11n_openvino_model/")
+        ov_model = YOLO("yolo26n_openvino_model/")
 
         # Run inference
         results = ov_model("https://ultralytics.com/images/bus.jpg")
@@ -53,14 +53,14 @@ Export a YOLO11n model to OpenVINO format and run inference with the exported mo
     === "CLI"
 
         ```bash
-        # Export a YOLO11n PyTorch model to OpenVINO format
-        yolo export model=yolo11n.pt format=openvino # creates 'yolo11n_openvino_model/'
+        # Export a YOLO26n PyTorch model to OpenVINO format
+        yolo export model=yolo26n.pt format=openvino # creates 'yolo26n_openvino_model/'
 
         # Run inference with the exported model
-        yolo predict model=yolo11n_openvino_model source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n_openvino_model source='https://ultralytics.com/images/bus.jpg'
 
         # Run inference with specified device, available devices: ["intel:gpu", "intel:npu", "intel:cpu"]
-        yolo predict model=yolo11n_openvino_model source='https://ultralytics.com/images/bus.jpg' device="intel:gpu"
+        yolo predict model=yolo26n_openvino_model source='https://ultralytics.com/images/bus.jpg' device="intel:gpu"
         ```
 
 ## Export Arguments
@@ -127,7 +127,7 @@ The ultralytics package allows you to easily run inference using the exported Op
 from ultralytics import YOLO
 
 # Load the exported OpenVINO model
-ov_model = YOLO("yolo11n_openvino_model/")  # the path of your exported OpenVINO model
+ov_model = YOLO("yolo26n_openvino_model/")  # the path of your exported OpenVINO model
 # Run inference with the exported model
 ov_model.predict(device="intel:gpu")  # specify the device you want to run inference on
 ```
@@ -136,7 +136,7 @@ This approach is ideal for fast prototyping or deployment when you don't need fu
 
 ### Inference with OpenVINO Runtime
 
-The OpenVINO Runtime provides a unified API for inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running inference, refer to the [YOLO11 notebooks](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov11-optimization).
+The OpenVINO Runtime provides a unified API for inference across all supported Intel hardware. It also provides advanced capabilities like load balancing across Intel hardware and asynchronous execution. For more information on running inference, refer to the [YOLO26 notebooks](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/yolov11-optimization).
 
 Remember, you'll need the XML and BIN files as well as any application-specific settings like input size, scale factor for normalization, etc., to correctly set up and use the model with the Runtime.
 
@@ -469,9 +469,9 @@ For more detailed information and instructions on using OpenVINO, refer to the [
 
 ## FAQ
 
-### How do I export YOLO11 models to OpenVINO format?
+### How do I export YOLO26 models to OpenVINO format?
 
-Exporting YOLO11 models to the OpenVINO format can significantly enhance CPU speed and enable GPU and NPU accelerations on Intel hardware. To export, you can use either Python or CLI as shown below:
+Exporting YOLO26 models to the OpenVINO format can significantly enhance CPU speed and enable GPU and NPU accelerations on Intel hardware. To export, you can use either Python or CLI as shown below:
 
 !!! example
 
@@ -480,36 +480,36 @@ Exporting YOLO11 models to the OpenVINO format can significantly enhance CPU spe
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n PyTorch model
+        model = YOLO("yolo26n.pt")
 
         # Export the model
-        model.export(format="openvino")  # creates 'yolo11n_openvino_model/'
+        model.export(format="openvino")  # creates 'yolo26n_openvino_model/'
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO11n PyTorch model to OpenVINO format
-        yolo export model=yolo11n.pt format=openvino # creates 'yolo11n_openvino_model/'
+        # Export a YOLO26n PyTorch model to OpenVINO format
+        yolo export model=yolo26n.pt format=openvino # creates 'yolo26n_openvino_model/'
         ```
 
 For more information, refer to the [export formats documentation](../modes/export.md).
 
-### What are the benefits of using OpenVINO with YOLO11 models?
+### What are the benefits of using OpenVINO with YOLO26 models?
 
-Using Intel's OpenVINO toolkit with YOLO11 models offers several benefits:
+Using Intel's OpenVINO toolkit with YOLO26 models offers several benefits:
 
 1. **Performance**: Achieve up to 3x speedup on CPU inference and leverage Intel GPUs and NPUs for acceleration.
 2. **Model Optimizer**: Convert, optimize, and execute models from popular frameworks like PyTorch, TensorFlow, and ONNX.
-3. **Ease of Use**: Over 80 tutorial notebooks are available to help users get started, including ones for YOLO11.
+3. **Ease of Use**: Over 80 tutorial notebooks are available to help users get started, including ones for YOLO26.
 4. **Heterogeneous Execution**: Deploy models on various Intel hardware with a unified API.
 
 For detailed performance comparisons, visit our [benchmarks section](#openvino-yolo11-benchmarks).
 
-### How can I run inference using a YOLO11 model exported to OpenVINO?
+### How can I run inference using a YOLO26 model exported to OpenVINO?
 
-After exporting a YOLO11n model to OpenVINO format, you can run inference using Python or CLI:
+After exporting a YOLO26n model to OpenVINO format, you can run inference using Python or CLI:
 
 !!! example
 
@@ -519,7 +519,7 @@ After exporting a YOLO11n model to OpenVINO format, you can run inference using 
         from ultralytics import YOLO
 
         # Load the exported OpenVINO model
-        ov_model = YOLO("yolo11n_openvino_model/")
+        ov_model = YOLO("yolo26n_openvino_model/")
 
         # Run inference
         results = ov_model("https://ultralytics.com/images/bus.jpg")
@@ -529,14 +529,14 @@ After exporting a YOLO11n model to OpenVINO format, you can run inference using 
 
         ```bash
         # Run inference with the exported model
-        yolo predict model=yolo11n_openvino_model source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n_openvino_model source='https://ultralytics.com/images/bus.jpg'
         ```
 
 Refer to our [predict mode documentation](../modes/predict.md) for more details.
 
-### Why should I choose Ultralytics YOLO11 over other models for OpenVINO export?
+### Why should I choose Ultralytics YOLO26 over other models for OpenVINO export?
 
-Ultralytics YOLO11 is optimized for real-time object detection with high accuracy and speed. Specifically, when combined with OpenVINO, YOLO11 provides:
+Ultralytics YOLO26 is optimized for real-time object detection with high accuracy and speed. Specifically, when combined with OpenVINO, YOLO26 provides:
 
 - Up to 3x speedup on Intel CPUs
 - Seamless deployment on Intel GPUs and NPUs

@@ -36,7 +36,7 @@ kpt_shape: [17, 3] # pose models only
 
 !!! tip "Reduce redundancy with `scales`"
 
-    The `scales` parameter lets you generate multiple model sizes from a single base YAML. For instance, when you load `yolo11n.yaml`, Ultralytics reads the base `yolo11.yaml` and applies the `n` scaling factors (`depth=0.50`, `width=0.25`) to build the nano variant.
+    The `scales` parameter lets you generate multiple model sizes from a single base YAML. For instance, when you load `yolo26n.yaml`, Ultralytics reads the base `yolo26.yaml` and applies the `n` scaling factors (`depth=0.50`, `width=0.25`) to build the nano variant.
 
 !!! note "`nc` and `kpt_shape` are dataset-dependent"
 
@@ -451,7 +451,7 @@ Yes. You can use any supported module, including TorchVision backbones, or defin
 
 ### How do I scale my model for different sizes (nano, small, medium, etc.)?
 
-Use the [`scales` section](#parameters-section) in your YAML to define scaling factors for depth, width, and max channels. The model will automatically apply these when you load the base YAML file with the scale appended to the filename (e.g., `yolo11n.yaml`).
+Use the [`scales` section](#parameters-section) in your YAML to define scaling factors for depth, width, and max channels. The model will automatically apply these when you load the base YAML file with the scale appended to the filename (e.g., `yolo26n.yaml`).
 
 ### What does the `[from, repeats, module, args]` format mean?
 

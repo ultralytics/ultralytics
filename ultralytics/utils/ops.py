@@ -344,7 +344,7 @@ def xyxyxyxy2xywhr(x):
 
     Returns:
         (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). Rotation
-            values are in radians from 0 to pi/2.
+            values are in radians from [-pi/4, 3pi/4).
     """
     is_torch = isinstance(x, torch.Tensor)
     points = x.cpu().numpy() if is_torch else x
@@ -354,7 +354,16 @@ def xyxyxyxy2xywhr(x):
         # NOTE: Use cv2.minAreaRect to get accurate xywhr,
         # especially some objects are cut off by augmentations in dataloader.
         (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
-        rboxes.append([cx, cy, w, h, angle / 180 * np.pi])
+        # convert angle to radian and normalize to [-pi/4, 3pi/4)
+        theta = angle / 180 * np.pi
+        if w < h:
+            w, h = h, w
+            theta += np.pi / 2
+        while theta >= 3 * np.pi / 4:
+            theta -= np.pi
+        while theta < -np.pi / 4:
+            theta += np.pi
+        rboxes.append([cx, cy, w, h, theta])
     return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
 
 

@@ -1,16 +1,16 @@
 ---
 comments: true
-description: Optimize YOLO11 model performance with Ray Tune. Learn efficient hyperparameter tuning using advanced search strategies, parallelism, and early stopping.
-keywords: YOLO11, Ray Tune, hyperparameter tuning, model optimization, machine learning, deep learning, AI, Ultralytics, Weights & Biases
+description: Optimize YOLO26 model performance with Ray Tune. Learn efficient hyperparameter tuning using advanced search strategies, parallelism, and early stopping.
+keywords: YOLO26, Ray Tune, hyperparameter tuning, model optimization, machine learning, deep learning, AI, Ultralytics, Weights & Biases
 ---
 
-# Efficient Hyperparameter Tuning with Ray Tune and YOLO11
+# Efficient Hyperparameter Tuning with Ray Tune and YOLO26
 
 Hyperparameter tuning is vital in achieving peak model performance by discovering the optimal set of hyperparameters. This involves running trials with different hyperparameters and evaluating each trial's performance.
 
-## Accelerate Tuning with Ultralytics YOLO11 and Ray Tune
+## Accelerate Tuning with Ultralytics YOLO26 and Ray Tune
 
-[Ultralytics YOLO11](https://www.ultralytics.com/) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLO11 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
+[Ultralytics YOLO26](https://www.ultralytics.com/) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLO26 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
 
 ### Ray Tune
 
@@ -18,11 +18,11 @@ Hyperparameter tuning is vital in achieving peak model performance by discoverin
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/ray-tune-overview.avif" alt="Ray Tune Overview">
 </p>
 
-[Ray Tune](https://docs.ray.io/en/latest/tune/index.html) is a hyperparameter tuning library designed for efficiency and flexibility. It supports various search strategies, parallelism, and early stopping strategies, and seamlessly integrates with popular [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) frameworks, including Ultralytics YOLO11.
+[Ray Tune](https://docs.ray.io/en/latest/tune/index.html) is a hyperparameter tuning library designed for efficiency and flexibility. It supports various search strategies, parallelism, and early stopping strategies, and seamlessly integrates with popular [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) frameworks, including Ultralytics YOLO26.
 
 ### Integration with Weights & Biases
 
-YOLO11 also allows optional integration with [Weights & Biases](https://wandb.ai/site) for monitoring the tuning process.
+YOLO26 also allows optional integration with [Weights & Biases](https://wandb.ai/site) for monitoring the tuning process.
 
 ## Installation
 
@@ -49,21 +49,21 @@ To install the required packages, run:
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n model
+        model = YOLO("yolo26n.pt")
 
-        # Start tuning hyperparameters for YOLO11n training on the COCO8 dataset
+        # Start tuning hyperparameters for YOLO26n training on the COCO8 dataset
         result_grid = model.tune(data="coco8.yaml", use_ray=True)
         ```
 
 ## `tune()` Method Parameters
 
-The `tune()` method in YOLO11 provides an easy-to-use interface for hyperparameter tuning with Ray Tune. It accepts several arguments that allow you to customize the tuning process. Below is a detailed explanation of each parameter:
+The `tune()` method in YOLO26 provides an easy-to-use interface for hyperparameter tuning with Ray Tune. It accepts several arguments that allow you to customize the tuning process. Below is a detailed explanation of each parameter:
 
 | Parameter       | Type             | Description                                                                                                                                                                                                                                                                                                                                  | Default Value |
 | --------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | `data`          | `str`            | The dataset configuration file (in YAML format) to run the tuner on. This file should specify the training and [validation data](https://www.ultralytics.com/glossary/validation-data) paths, as well as other dataset-specific settings.                                                                                                    |               |
-| `space`         | `dict, optional` | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLO11 uses a default search space with various hyperparameters.                                                                   |               |
+| `space`         | `dict, optional` | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLO26 uses a default search space with various hyperparameters.                                                                   |               |
 | `grace_period`  | `int, optional`  | The grace period in [epochs](https://www.ultralytics.com/glossary/epoch) for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping. | 10            |
 | `gpu_per_trial` | `int, optional`  | The number of GPUs to allocate per trial during tuning. This helps manage GPU usage, particularly in multi-GPU environments. If not provided, the tuner will use all available GPUs.                                                                                                                                                         | `None`        |
 | `iterations`    | `int, optional`  | The maximum number of trials to run during tuning. This parameter helps control the total number of hyperparameter combinations tested, ensuring the tuning process does not run indefinitely.                                                                                                                                               | 10            |
@@ -73,7 +73,7 @@ By customizing these parameters, you can fine-tune the hyperparameter optimizati
 
 ## Default Search Space Description
 
-The following table lists the default search space parameters for hyperparameter tuning in YOLO11 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`.
+The following table lists the default search space parameters for hyperparameter tuning in YOLO26 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`.
 
 | Parameter         | Range                      | Description                                                                                                                                      |
 | ----------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -102,7 +102,7 @@ The following table lists the default search space parameters for hyperparameter
 
 ## Custom Search Space Example
 
-In this example, we demonstrate how to use a custom search space for hyperparameter tuning with Ray Tune and YOLO11. By providing a custom search space, you can focus the tuning process on specific hyperparameters of interest.
+In this example, we demonstrate how to use a custom search space for hyperparameter tuning with Ray Tune and YOLO26. By providing a custom search space, you can focus the tuning process on specific hyperparameters of interest.
 
 !!! example "Usage"
 
@@ -112,7 +112,7 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     from ultralytics import YOLO
 
     # Define a YOLO model
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Run Ray Tune on the model
     result_grid = model.tune(
@@ -123,7 +123,7 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     )
     ```
 
-In the code snippet above, we create a YOLO model with the "yolo11n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
+In the code snippet above, we create a YOLO model with the "yolo26n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco8.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
 
 ## Resuming An Interrupted Hyperparameter Tuning Session With Ray Tune
 
@@ -135,7 +135,7 @@ You can resume an interrupted Ray Tune session by passing `resume=True`. You can
     from ultralytics import YOLO
 
     # Define a YOLO model
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Resume previous run
     results = model.tune(use_ray=True, data="coco8.yaml", epochs=50, resume=True)
@@ -208,9 +208,9 @@ Explore further by looking into Ray Tune's [Analyze Results](https://docs.ray.io
 
 ## FAQ
 
-### How do I tune the hyperparameters of my YOLO11 model using Ray Tune?
+### How do I tune the hyperparameters of my YOLO26 model using Ray Tune?
 
-To tune the hyperparameters of your Ultralytics YOLO11 model using Ray Tune, follow these steps:
+To tune the hyperparameters of your Ultralytics YOLO26 model using Ray Tune, follow these steps:
 
 1. **Install the required packages:**
 
@@ -219,13 +219,13 @@ To tune the hyperparameters of your Ultralytics YOLO11 model using Ray Tune, fol
     pip install wandb # optional for logging
     ```
 
-2. **Load your YOLO11 model and start tuning:**
+2. **Load your YOLO26 model and start tuning:**
 
     ```python
     from ultralytics import YOLO
 
-    # Load a YOLO11 model
-    model = YOLO("yolo11n.pt")
+    # Load a YOLO26 model
+    model = YOLO("yolo26n.pt")
 
     # Start tuning with the COCO8 dataset
     result_grid = model.tune(data="coco8.yaml", use_ray=True)
@@ -233,9 +233,9 @@ To tune the hyperparameters of your Ultralytics YOLO11 model using Ray Tune, fol
 
 This utilizes Ray Tune's advanced search strategies and parallelism to efficiently optimize your model's hyperparameters. For more information, check out the [Ray Tune documentation](https://docs.ray.io/en/latest/tune/index.html).
 
-### What are the default hyperparameters for YOLO11 tuning with Ray Tune?
+### What are the default hyperparameters for YOLO26 tuning with Ray Tune?
 
-Ultralytics YOLO11 uses the following default hyperparameters for tuning with Ray Tune:
+Ultralytics YOLO26 uses the following default hyperparameters for tuning with Ray Tune:
 
 | Parameter       | Value Range                | Description                    |
 | --------------- | -------------------------- | ------------------------------ |
@@ -251,9 +251,9 @@ Ultralytics YOLO11 uses the following default hyperparameters for tuning with Ra
 
 These hyperparameters can be customized to suit your specific needs. For a complete list and more details, refer to the [Hyperparameter Tuning](../guides/hyperparameter-tuning.md) guide.
 
-### How can I integrate Weights & Biases with my YOLO11 model tuning?
+### How can I integrate Weights & Biases with my YOLO26 model tuning?
 
-To integrate Weights & Biases (W&B) with your Ultralytics YOLO11 tuning process:
+To integrate Weights & Biases (W&B) with your Ultralytics YOLO26 tuning process:
 
 1. **Install W&B:**
 
@@ -271,7 +271,7 @@ To integrate Weights & Biases (W&B) with your Ultralytics YOLO11 tuning process:
     wandb.init(project="YOLO-Tuning", entity="your-entity")
 
     # Load YOLO model
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Tune hyperparameters
     result_grid = model.tune(data="coco8.yaml", use_ray=True)
@@ -279,7 +279,7 @@ To integrate Weights & Biases (W&B) with your Ultralytics YOLO11 tuning process:
 
 This setup will allow you to monitor the tuning process, track hyperparameter configurations, and visualize results in W&B.
 
-### Why should I use Ray Tune for hyperparameter optimization with YOLO11?
+### Why should I use Ray Tune for hyperparameter optimization with YOLO26?
 
 Ray Tune offers numerous advantages for hyperparameter optimization:
 
@@ -287,18 +287,18 @@ Ray Tune offers numerous advantages for hyperparameter optimization:
 - **Parallelism:** Supports parallel execution of multiple trials, significantly speeding up the tuning process.
 - **Early Stopping:** Employs strategies like ASHA to terminate under-performing trials early, saving computational resources.
 
-Ray Tune seamlessly integrates with Ultralytics YOLO11, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Hyperparameter Tuning](../guides/hyperparameter-tuning.md) guide.
+Ray Tune seamlessly integrates with Ultralytics YOLO26, providing an easy-to-use interface for tuning hyperparameters effectively. To get started, check out the [Hyperparameter Tuning](../guides/hyperparameter-tuning.md) guide.
 
-### How can I define a custom search space for YOLO11 hyperparameter tuning?
+### How can I define a custom search space for YOLO26 hyperparameter tuning?
 
-To define a custom search space for your YOLO11 hyperparameter tuning with Ray Tune:
+To define a custom search space for your YOLO26 hyperparameter tuning with Ray Tune:
 
 ```python
 from ray import tune
 
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 search_space = {"lr0": tune.uniform(1e-5, 1e-1), "momentum": tune.uniform(0.6, 0.98)}
 result_grid = model.tune(data="coco8.yaml", space=search_space, use_ray=True)
 ```

@@ -49,8 +49,8 @@ To train a model using these OBB formats:
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLO11n-OBB model from scratch
-        model = YOLO("yolo11n-obb.yaml")
+        # Create a new YOLO26n-OBB model from scratch
+        model = YOLO("yolo26n-obb.yaml")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -59,8 +59,8 @@ To train a model using these OBB formats:
     === "CLI"
 
         ```bash
-        # Train a new YOLO11n-OBB model on the DOTAv1 dataset
-        yolo obb train data=DOTAv1.yaml model=yolo11n-obb.pt epochs=100 imgsz=1024
+        # Train a new YOLO26n-OBB model on the DOTAv1 dataset
+        yolo obb train data=DOTAv1.yaml model=yolo26n-obb.pt epochs=100 imgsz=1024
         ```
 
 ## Supported Datasets
@@ -92,7 +92,7 @@ Transitioning labels from the DOTA dataset format to the YOLO OBB format can be 
         convert_dota_to_yolo_obb("path/to/DOTA")
         ```
 
-This conversion mechanism is instrumental for datasets in the DOTA format, ensuring alignment with the [Ultralytics YOLO](../../models/yolo11.md) OBB format.
+This conversion mechanism is instrumental for datasets in the DOTA format, ensuring alignment with the [Ultralytics YOLO](../../models/yolo26.md) OBB format.
 
 It's imperative to validate the compatibility of the dataset with your model and adhere to the necessary format conventions. Properly structured datasets are pivotal for training efficient object detection models with oriented bounding boxes.
 
@@ -102,7 +102,7 @@ It's imperative to validate the compatibility of the dataset with your model and
 
 Oriented Bounding Boxes (OBB) are a type of bounding box annotation where the box can be rotated to align more closely with the object being detected, rather than just being axis-aligned. This is particularly useful in aerial or satellite imagery where objects might not be aligned with the image axes. In [Ultralytics YOLO](../../tasks/obb.md) models, OBBs are represented by their four corner points in the YOLO OBB format. This allows for more accurate object detection since the bounding boxes can rotate to fit the objects better.
 
-### How do I convert my existing DOTA dataset labels to YOLO OBB format for use with Ultralytics YOLO11?
+### How do I convert my existing DOTA dataset labels to YOLO OBB format for use with Ultralytics YOLO26?
 
 You can convert DOTA dataset labels to YOLO OBB format using the [`convert_dota_to_yolo_obb`](../../reference/data/converter.md) function from Ultralytics. This conversion ensures compatibility with the Ultralytics YOLO models, enabling you to leverage the OBB capabilities for enhanced object detection. Here's a quick example:
 
@@ -114,9 +114,9 @@ convert_dota_to_yolo_obb("path/to/DOTA")
 
 This script will reformat your DOTA annotations into a YOLO-compatible format.
 
-### How do I train a YOLO11 model with oriented bounding boxes (OBB) on my dataset?
+### How do I train a YOLO26 model with oriented bounding boxes (OBB) on my dataset?
 
-Training a YOLO11 model with OBBs involves ensuring your dataset is in the YOLO OBB format and then using the [Ultralytics API](../../usage/python.md) to train the model. Here's an example in both Python and CLI:
+Training a YOLO26 model with OBBs involves ensuring your dataset is in the YOLO OBB format and then using the [Ultralytics API](../../usage/python.md) to train the model. Here's an example in both Python and CLI:
 
 !!! example
 
@@ -125,8 +125,8 @@ Training a YOLO11 model with OBBs involves ensuring your dataset is in the YOLO 
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLO11n-OBB model from scratch
-        model = YOLO("yolo11n-obb.yaml")
+        # Create a new YOLO26n-OBB model from scratch
+        model = YOLO("yolo26n-obb.yaml")
 
         # Train the model on the custom dataset
         results = model.train(data="your_dataset.yaml", epochs=100, imgsz=640)
@@ -135,8 +135,8 @@ Training a YOLO11 model with OBBs involves ensuring your dataset is in the YOLO 
     === "CLI"
 
         ```bash
-        # Train a new YOLO11n-OBB model on the custom dataset
-        yolo obb train data=your_dataset.yaml model=yolo11n-obb.yaml epochs=100 imgsz=640
+        # Train a new YOLO26n-OBB model on the custom dataset
+        yolo obb train data=your_dataset.yaml model=yolo26n-obb.yaml epochs=100 imgsz=640
         ```
 
 This ensures your model leverages the detailed OBB annotations for improved detection [accuracy](https://www.ultralytics.com/glossary/accuracy).
@@ -152,6 +152,6 @@ Currently, Ultralytics supports the following datasets for OBB training:
 
 These datasets are tailored for scenarios where OBBs offer a significant advantage, such as aerial and satellite image analysis.
 
-### Can I use my own dataset with oriented bounding boxes for YOLO11 training, and if so, how?
+### Can I use my own dataset with oriented bounding boxes for YOLO26 training, and if so, how?
 
-Yes, you can use your own dataset with oriented bounding boxes for YOLO11 training. Ensure your dataset annotations are converted to the YOLO OBB format, which involves defining bounding boxes by their four corner points. You can then create a [YAML configuration file](../../usage/cfg.md) specifying the dataset paths, classes, and other necessary details. For more information on creating and configuring your datasets, refer to the [Supported Datasets](#supported-datasets) section.
+Yes, you can use your own dataset with oriented bounding boxes for YOLO26 training. Ensure your dataset annotations are converted to the YOLO OBB format, which involves defining bounding boxes by their four corner points. You can then create a [YAML configuration file](../../usage/cfg.md) specifying the dataset paths, classes, and other necessary details. For more information on creating and configuring your datasets, refer to the [Supported Datasets](#supported-datasets) section.

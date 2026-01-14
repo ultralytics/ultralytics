@@ -13,8 +13,8 @@ To get started, choose a `*.yaml` file (see the [YAML format](https://www.ultral
 Model configuration files (`*.yaml`) can be used directly from the [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli/) via the `yolo` command:
 
 ```bash
-# Train a YOLO11n detection model using the coco8 dataset for 100 epochs
-yolo task=detect mode=train model=yolo11n.yaml data=coco8.yaml epochs=100 imgsz=640
+# Train a YOLO26n detection model using the coco8 dataset for 100 epochs
+yolo task=detect mode=train model=yolo26n.yaml data=coco8.yaml epochs=100 imgsz=640
 ```
 
 The same YAML files can be used from [Python](https://www.python.org/), with the same [configuration arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI:
@@ -22,13 +22,13 @@ The same YAML files can be used from [Python](https://www.python.org/), with the
 ```python
 from ultralytics import YOLO
 
-# Initialize a YOLO11n model from a YAML configuration file
+# Initialize a YOLO26n model from a YAML configuration file
 # This creates a model architecture without loading pre-trained weights
-model = YOLO("yolo11n.yaml")
+model = YOLO("yolo26n.yaml")
 
-# Alternatively, load a pre-trained YOLO11n model directly
+# Alternatively, load a pre-trained YOLO26n model directly
 # This loads both the architecture and the weights trained on COCO
-# model = YOLO("yolo11n.pt")
+# model = YOLO("yolo26n.pt")
 
 # Display model information (architecture, layers, parameters, etc.)
 model.info()
@@ -44,6 +44,7 @@ results = model("path/to/image.jpg")
 
 Ultralytics supports a variety of model architectures. Visit the [Ultralytics Models](https://docs.ultralytics.com/models/) documentation page for details and usage examples, including:
 
+- [YOLO26](https://docs.ultralytics.com/models/yolo26/)
 - [YOLO12](https://docs.ultralytics.com/models/yolo12/)
 - [YOLO11](https://docs.ultralytics.com/models/yolo11/)
 - [YOLOv10](https://docs.ultralytics.com/models/yolov10/)

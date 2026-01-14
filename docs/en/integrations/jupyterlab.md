@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Learn how to use JupyterLab to train and experiment with Ultralytics YOLO11 models. Discover key features, setup instructions, and solutions to common issues.
-keywords: JupyterLab, YOLO11, Ultralytics, Model Training, Deep Learning, Interactive Coding, Data Science, Machine Learning, Jupyter Notebook, Model Development
+description: Learn how to use JupyterLab to train and experiment with Ultralytics YOLO26 models. Discover key features, setup instructions, and solutions to common issues.
+keywords: JupyterLab, YOLO26, Ultralytics, Model Training, Deep Learning, Interactive Coding, Data Science, Machine Learning, Jupyter Notebook, Model Development
 ---
 
-# A Guide on How to Use JupyterLab to Train Your YOLO11 Models
+# A Guide on How to Use JupyterLab to Train Your YOLO26 Models
 
 Building [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models can be tough, especially when you don't have the right tools or environment to work with. If you are facing this issue, JupyterLab might be the right solution for you. JupyterLab is a user-friendly, web-based platform that makes coding more flexible and interactive. You can use it to handle big datasets, create complex models, and even collaborate with others, all in one place.
 
-You can use JupyterLab to [work on projects](../guides/steps-of-a-cv-project.md) related to [Ultralytics YOLO11 models](https://github.com/ultralytics/ultralytics). JupyterLab is a great option for efficient model development and experimentation. It makes it easy to start experimenting with and [training YOLO11 models](../modes/train.md) right from your computer. Let's dive deeper into JupyterLab, its key features, and how you can use it to train YOLO11 models.
+You can use JupyterLab to [work on projects](../guides/steps-of-a-cv-project.md) related to [Ultralytics YOLO26 models](https://github.com/ultralytics/ultralytics). JupyterLab is a great option for efficient model development and experimentation. It makes it easy to start experimenting with and [training YOLO26 models](../modes/train.md) right from your computer. Let's dive deeper into JupyterLab, its key features, and how you can use it to train YOLO26 models.
 
 ## What is JupyterLab?
 
@@ -26,7 +26,7 @@ Here are some of the key features that make JupyterLab a great option for model 
 - **Markdown Preview**: Working with Markdown files is more efficient in JupyterLab, thanks to its simultaneous preview feature. As you write or edit your Markdown file, you can see the formatted output in real-time. It makes it easier to double-check that your documentation looks perfect, saving you from having to switch back and forth between editing and preview modes.
 - **Run Code from Text Files**: If you're sharing a text file with code, JupyterLab makes it easy to run it directly within the platform. You can highlight the code and press Shift + Enter to execute it. It is great for verifying code snippets quickly and helps guarantee that the code you share is functional and error-free.
 
-## Why Should You Use JupyterLab for Your YOLO11 Projects?
+## Why Should You Use JupyterLab for Your YOLO26 Projects?
 
 There are multiple platforms for developing and evaluating machine learning models, so what makes JupyterLab stand out? Let's explore some of the unique aspects that JupyterLab offers for your machine-learning projects:
 
@@ -46,9 +46,9 @@ When working with JupyterLab, you might come across some common issues. Here are
 - **Installing JupyterLab Extensions**: JupyterLab supports various extensions to enhance functionality. You can install and customize these extensions to suit your needs. For detailed instructions, refer to [JupyterLab Extensions Guide](https://jupyterlab.readthedocs.io/en/latest/user/extensions.html) for more information.
 - **Using Multiple Versions of Python**: If you need to work with different versions of Python, you can use Jupyter kernels configured with different Python versions.
 
-## How to Use JupyterLab to Try Out YOLO11
+## How to Use JupyterLab to Try Out YOLO26
 
-JupyterLab makes it easy to experiment with YOLO11. To get started, follow these simple steps.
+JupyterLab makes it easy to experiment with YOLO26. To get started, follow these simple steps.
 
 ### Step 1: Install JupyterLab
 
@@ -63,7 +63,7 @@ First, you need to install JupyterLab. Open your terminal and run the command:
         pip install jupyterlab
         ```
 
-### Step 2: Download the YOLO11 Tutorial Notebook
+### Step 2: Download the YOLO26 Tutorial Notebook
 
 Next, download the [tutorial.ipynb](https://github.com/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb) file from the Ultralytics GitHub repository. Save this file to any directory on your local machine.
 
@@ -85,13 +85,13 @@ Once you've run this command, it will open JupyterLab in your default web browse
 
 ### Step 4: Start Experimenting
 
-In JupyterLab, open the tutorial.ipynb notebook. You can now start running the cells to explore and experiment with YOLO11.
+In JupyterLab, open the tutorial.ipynb notebook. You can now start running the cells to explore and experiment with YOLO26.
 
-![Image Showing Opened YOLO11 Notebook in JupyterLab](https://github.com/ultralytics/docs/releases/download/0/opened-yolov8-notebook-jupyterlab.avif)
+![Image Showing Opened YOLO26 Notebook in JupyterLab](https://github.com/ultralytics/docs/releases/download/0/opened-yolov8-notebook-jupyterlab.avif)
 
-JupyterLab's interactive environment allows you to modify code, visualize outputs, and document your findings all in one place. You can try out different configurations and understand how YOLO11 works.
+JupyterLab's interactive environment allows you to modify code, visualize outputs, and document your findings all in one place. You can try out different configurations and understand how YOLO26 works.
 
-For a detailed understanding of the model training process and best practices, refer to the [YOLO11 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you're using YOLO11 effectively.
+For a detailed understanding of the model training process and best practices, refer to the [YOLO26 Model Training guide](../modes/train.md). This guide will help you get the most out of your experiments and ensure you're using YOLO26 effectively.
 
 ## Keep Learning about JupyterLab
 
@@ -100,23 +100,23 @@ If you want to learn more about JupyterLab, here are resources to get you starte
 - [**JupyterLab Documentation**](https://jupyterlab.readthedocs.io/en/stable/getting_started/starting.html): Dive into the official JupyterLab Documentation to explore its features and capabilities. It's a great way to understand how to use this powerful tool to its fullest potential.
 - [**Try It With Binder**](https://mybinder.org/v2/gh/jupyterlab/jupyterlab-demo/HEAD?urlpath=lab/tree/demo): Experiment with JupyterLab without installing anything by using Binder, which lets you launch a live JupyterLab instance directly in your browser. It's a great way to start experimenting immediately.
 - [**Installation Guide**](https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html): For a step-by-step guide on installing JupyterLab on your local machine, check out the installation guide.
-- [**Train Ultralytics YOLO11 using JupyterLab**](https://www.ultralytics.com/blog/train-ultralytics-yolo11-using-the-jupyterlab-integration): Learn more about the practical applications of using JupyterLab with YOLO11 models in this detailed blog post.
+- [**Train Ultralytics YOLO26 using JupyterLab**](https://www.ultralytics.com/blog/train-ultralytics-yolo11-using-the-jupyterlab-integration): Learn more about the practical applications of using JupyterLab with YOLO26 models in this detailed blog post.
 
 ## Summary
 
-We've explored how JupyterLab can be a powerful tool for experimenting with Ultralytics YOLO11 models. Using its flexible and interactive environment, you can easily set up JupyterLab on your local machine and start working with YOLO11. JupyterLab makes it simple to [train](../guides/model-training-tips.md) and [evaluate](../guides/model-testing.md) your models, visualize outputs, and [document your findings](../guides/model-monitoring-and-maintenance.md) all in one place.
+We've explored how JupyterLab can be a powerful tool for experimenting with Ultralytics YOLO26 models. Using its flexible and interactive environment, you can easily set up JupyterLab on your local machine and start working with YOLO26. JupyterLab makes it simple to [train](../guides/model-training-tips.md) and [evaluate](../guides/model-testing.md) your models, visualize outputs, and [document your findings](../guides/model-monitoring-and-maintenance.md) all in one place.
 
 Unlike other platforms such as [Google Colab](../integrations/google-colab.md), JupyterLab runs locally on your machine, giving you more control over your computing environment while still providing an interactive notebook experience. This makes it particularly valuable for developers who need consistent access to their development environment without relying on cloud resources.
 
 For more details, visit the [JupyterLab FAQ Page](https://jupyterlab.readthedocs.io/en/stable/getting_started/faq.html).
 
-Interested in more YOLO11 integrations? Check out the [Ultralytics integration guide](./index.md) to explore additional tools and capabilities for your machine learning projects.
+Interested in more YOLO26 integrations? Check out the [Ultralytics integration guide](./index.md) to explore additional tools and capabilities for your machine learning projects.
 
 ## FAQ
 
-### How do I use JupyterLab to train a YOLO11 model?
+### How do I use JupyterLab to train a YOLO26 model?
 
-To train a YOLO11 model using JupyterLab:
+To train a YOLO26 model using JupyterLab:
 
 1. Install JupyterLab and the Ultralytics package:
 
@@ -131,7 +131,7 @@ To train a YOLO11 model using JupyterLab:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
     ```
 
 4. Train the model on your custom dataset:
@@ -153,22 +153,22 @@ To train a YOLO11 model using JupyterLab:
 
 JupyterLab's interactive environment allows you to easily modify parameters, visualize results, and iterate on your model training process.
 
-### What are the key features of JupyterLab that make it suitable for YOLO11 projects?
+### What are the key features of JupyterLab that make it suitable for YOLO26 projects?
 
-JupyterLab offers several features that make it ideal for YOLO11 projects:
+JupyterLab offers several features that make it ideal for YOLO26 projects:
 
-1. Interactive code execution: Test and debug YOLO11 code snippets in real-time.
+1. Interactive code execution: Test and debug YOLO26 code snippets in real-time.
 2. Integrated file browser: Easily manage datasets, model weights, and configuration files.
 3. Flexible layout: Arrange multiple notebooks, terminals, and output windows side-by-side for efficient workflow.
-4. Rich output display: Visualize YOLO11 detection results, training curves, and model performance metrics inline.
-5. Markdown support: Document your YOLO11 experiments and findings with rich text and images.
+4. Rich output display: Visualize YOLO26 detection results, training curves, and model performance metrics inline.
+5. Markdown support: Document your YOLO26 experiments and findings with rich text and images.
 6. Extension ecosystem: Enhance functionality with extensions for version control, [remote computing](google-colab.md), and more.
 
-These features allow for a seamless development experience when working with YOLO11 models, from data preparation to [model deployment](https://www.ultralytics.com/glossary/model-deployment).
+These features allow for a seamless development experience when working with YOLO26 models, from data preparation to [model deployment](https://www.ultralytics.com/glossary/model-deployment).
 
-### How can I optimize YOLO11 model performance using JupyterLab?
+### How can I optimize YOLO26 model performance using JupyterLab?
 
-To optimize YOLO11 model performance in JupyterLab:
+To optimize YOLO26 model performance in JupyterLab:
 
 1. Use the autobatch feature to determine the optimal batch size:
 
@@ -196,18 +196,18 @@ To optimize YOLO11 model performance in JupyterLab:
 
 4. Experiment with different model architectures and [export formats](../modes/export.md) to find the best balance of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for your specific use case.
 
-JupyterLab's interactive environment allows for quick iterations and real-time feedback, making it easier to optimize your YOLO11 models efficiently.
+JupyterLab's interactive environment allows for quick iterations and real-time feedback, making it easier to optimize your YOLO26 models efficiently.
 
-### How do I handle common issues when working with JupyterLab and YOLO11?
+### How do I handle common issues when working with JupyterLab and YOLO26?
 
-When working with JupyterLab and YOLO11, you might encounter some common issues. Here's how to handle them:
+When working with JupyterLab and YOLO26, you might encounter some common issues. Here's how to handle them:
 
 1. GPU memory issues:
     - Use `torch.cuda.empty_cache()` to clear GPU memory between runs.
     - Adjust [batch size](https://www.ultralytics.com/glossary/batch-size) or image size to fit your GPU memory.
 
 2. Package conflicts:
-    - Create a separate conda environment for your YOLO11 projects to avoid conflicts.
+    - Create a separate conda environment for your YOLO26 projects to avoid conflicts.
     - Use `!pip install package_name` in a notebook cell to install missing packages.
 
 3. Kernel crashes:

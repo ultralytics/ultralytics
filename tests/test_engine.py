@@ -23,7 +23,7 @@ def test_export():
     exporter = Exporter()
     exporter.add_callback("on_export_start", test_func)
     assert test_func in exporter.callbacks["on_export_start"], "callback test failed"
-    f = exporter(model=YOLO("yolo26n.yaml").model)
+    f = exporter(model=YOLO("yolo26n.pt").model)
     YOLO(f)(ASSETS)  # exported model inference
 
 

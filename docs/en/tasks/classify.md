@@ -1,8 +1,8 @@
 ---
 comments: true
-description: Master image classification using YOLO11. Learn to train, validate, predict, and export models efficiently.
-keywords: YOLO11, image classification, AI, machine learning, pretrained models, ImageNet, model export, predict, train, validate
-model_name: yolo11n-cls
+description: Master image classification using YOLO26. Learn to train, validate, predict, and export models efficiently.
+keywords: YOLO26, image classification, AI, machine learning, pretrained models, ImageNet, model export, predict, train, validate
+model_name: yolo26n-cls
 ---
 
 # Image Classification
@@ -21,16 +21,16 @@ The output of an image classifier is a single class label and a confidence score
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Image Classification using Ultralytics HUB
+  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Image Classification using Ultralytics Platform
 </p>
 
 !!! tip
 
-    YOLO11 Classify models use the `-cls` suffix, i.e., `yolo11n-cls.pt`, and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
+    YOLO26 Classify models use the `-cls` suffix, i.e., `yolo26n-cls.pt`, and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml).
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11)
+## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO11 pretrained Classify models are shown here. Detect, Segment, and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+YOLO26 pretrained Classify models are shown here. Detect, Segment, and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) are downloaded automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -41,7 +41,7 @@ YOLO11 pretrained Classify models are shown here. Detect, Segment, and Pose mode
 
 ## Train
 
-Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 64. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train YOLO26n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 64. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example
 
@@ -51,9 +51,9 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.yaml")  # build a new model from YAML
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo11n-cls.yaml").load("yolo11n-cls.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo26n-cls.yaml")  # build a new model from YAML
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.yaml").load("yolo26n-cls.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="mnist160", epochs=100, imgsz=64)
@@ -63,13 +63,13 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo classify train data=mnist160 model=yolo11n-cls.yaml epochs=100 imgsz=64
+        yolo classify train data=mnist160 model=yolo26n-cls.yaml epochs=100 imgsz=64
 
         # Start training from a pretrained *.pt model
-        yolo classify train data=mnist160 model=yolo11n-cls.pt epochs=100 imgsz=64
+        yolo classify train data=mnist160 model=yolo26n-cls.pt epochs=100 imgsz=64
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo classify train data=mnist160 model=yolo11n-cls.yaml pretrained=yolo11n-cls.pt epochs=100 imgsz=64
+        yolo classify train data=mnist160 model=yolo26n-cls.yaml pretrained=yolo26n-cls.pt epochs=100 imgsz=64
         ```
 
 !!! tip
@@ -138,7 +138,7 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
             return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=self.args.split)
 
 
-    model = YOLO("yolo11n-cls.pt")
+    model = YOLO("yolo26n-cls.pt")
     model.train(data="imagenet1000", trainer=CustomizedTrainer, epochs=10, imgsz=224, batch=64)
     model.val(data="imagenet1000", validator=CustomizedValidator, imgsz=224, batch=64)
     ```
@@ -149,7 +149,7 @@ YOLO classification dataset format can be found in detail in the [Dataset Guide]
 
 ## Val
 
-Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the MNIST160 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLO26n-cls model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the MNIST160 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! example
 
@@ -159,7 +159,7 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load an official model
+        model = YOLO("yolo26n-cls.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
@@ -171,7 +171,7 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo classify val model=yolo11n-cls.pt  # val official model
+        yolo classify val model=yolo26n-cls.pt  # val official model
         yolo classify val model=path/to/best.pt # val custom model
         ```
 
@@ -181,7 +181,7 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
 
 ## Predict
 
-Use a trained YOLO11n-cls model to run predictions on images.
+Use a trained YOLO26n-cls model to run predictions on images.
 
 !!! example
 
@@ -191,7 +191,7 @@ Use a trained YOLO11n-cls model to run predictions on images.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load an official model
+        model = YOLO("yolo26n-cls.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Predict with the model
@@ -201,7 +201,7 @@ Use a trained YOLO11n-cls model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo classify predict model=yolo11n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
+        yolo classify predict model=yolo26n-cls.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
         yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # predict with custom model
         ```
 
@@ -209,7 +209,7 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 ## Export
 
-Export a YOLO11n-cls model to a different format like ONNX, CoreML, etc.
+Export a YOLO26n-cls model to a different format like ONNX, CoreML, etc.
 
 !!! example
 
@@ -219,7 +219,7 @@ Export a YOLO11n-cls model to a different format like ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load an official model
+        model = YOLO("yolo26n-cls.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
@@ -229,11 +229,11 @@ Export a YOLO11n-cls model to a different format like ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n-cls.pt format=onnx  # export official model
+        yolo export model=yolo26n-cls.pt format=onnx  # export official model
         yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
-Available YOLO11-cls export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo11n-cls.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26-cls export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-cls.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -241,13 +241,13 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ## FAQ
 
-### What is the purpose of YOLO11 in image classification?
+### What is the purpose of YOLO26 in image classification?
 
-YOLO11 models, such as `yolo11n-cls.pt`, are designed for efficient image classification. They assign a single class label to an entire image along with a confidence score. This is particularly useful for applications where knowing the specific class of an image is sufficient, rather than identifying the location or shape of objects within the image.
+YOLO26 models, such as `yolo26n-cls.pt`, are designed for efficient image classification. They assign a single class label to an entire image along with a confidence score. This is particularly useful for applications where knowing the specific class of an image is sufficient, rather than identifying the location or shape of objects within the image.
 
-### How do I train a YOLO11 model for image classification?
+### How do I train a YOLO26 model for image classification?
 
-To train a YOLO11 model, you can use either Python or CLI commands. For example, to train a `yolo11n-cls` model on the MNIST160 dataset for 100 epochs at an image size of 64:
+To train a YOLO26 model, you can use either Python or CLI commands. For example, to train a `yolo26n-cls` model on the MNIST160 dataset for 100 epochs at an image size of 64:
 
 !!! example
 
@@ -257,7 +257,7 @@ To train a YOLO11 model, you can use either Python or CLI commands. For example,
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="mnist160", epochs=100, imgsz=64)
@@ -266,18 +266,18 @@ To train a YOLO11 model, you can use either Python or CLI commands. For example,
     === "CLI"
 
         ```bash
-        yolo classify train data=mnist160 model=yolo11n-cls.pt epochs=100 imgsz=64
+        yolo classify train data=mnist160 model=yolo26n-cls.pt epochs=100 imgsz=64
         ```
 
 For more configuration options, visit the [Configuration](../usage/cfg.md) page.
 
-### Where can I find pretrained YOLO11 classification models?
+### Where can I find pretrained YOLO26 classification models?
 
-Pretrained YOLO11 classification models can be found in the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11) section. Models like `yolo11n-cls.pt`, `yolo11s-cls.pt`, `yolo11m-cls.pt`, etc., are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset and can be easily downloaded and used for various image classification tasks.
+Pretrained YOLO26 classification models can be found in the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26) section. Models like `yolo26n-cls.pt`, `yolo26s-cls.pt`, `yolo26m-cls.pt`, etc., are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset and can be easily downloaded and used for various image classification tasks.
 
-### How can I export a trained YOLO11 model to different formats?
+### How can I export a trained YOLO26 model to different formats?
 
-You can export a trained YOLO11 model to various formats using Python or CLI commands. For instance, to export a model to ONNX format:
+You can export a trained YOLO26 model to various formats using Python or CLI commands. For instance, to export a model to ONNX format:
 
 !!! example
 
@@ -287,7 +287,7 @@ You can export a trained YOLO11 model to various formats using Python or CLI com
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load the trained model
+        model = YOLO("yolo26n-cls.pt")  # load the trained model
 
         # Export the model to ONNX
         model.export(format="onnx")
@@ -296,12 +296,12 @@ You can export a trained YOLO11 model to various formats using Python or CLI com
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n-cls.pt format=onnx # export the trained model to ONNX format
+        yolo export model=yolo26n-cls.pt format=onnx # export the trained model to ONNX format
         ```
 
 For detailed export options, refer to the [Export](../modes/export.md) page.
 
-### How do I validate a trained YOLO11 classification model?
+### How do I validate a trained YOLO26 classification model?
 
 To validate a trained model's accuracy on a dataset like MNIST160, you can use the following Python or CLI commands:
 
@@ -313,7 +313,7 @@ To validate a trained model's accuracy on a dataset like MNIST160, you can use t
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load the trained model
+        model = YOLO("yolo26n-cls.pt")  # load the trained model
 
         # Validate the model
         metrics = model.val()  # no arguments needed, uses the dataset and settings from training
@@ -324,7 +324,7 @@ To validate a trained model's accuracy on a dataset like MNIST160, you can use t
     === "CLI"
 
         ```bash
-        yolo classify val model=yolo11n-cls.pt # validate the trained model
+        yolo classify val model=yolo26n-cls.pt # validate the trained model
         ```
 
 For more information, visit the [Validate](#val) section.

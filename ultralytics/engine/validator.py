@@ -364,7 +364,10 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Register plots for visualization."""
+        """Register plots for visualization, deduplicating by type."""
+        plot_type = data.get("type") if data else None
+        if plot_type and any((v.get("data") or {}).get("type") == plot_type for v in self.plots.values()):
+            return  # Skip duplicate plot types
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
     def plot_val_samples(self, batch, ni):

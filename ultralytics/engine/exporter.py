@@ -504,7 +504,7 @@ class Exporter:
                 m.export = True
                 m.format = self.args.format
                 # Clamp max_det to anchor count for small image sizes (required for TensorRT compatibility)
-                anchors = sum((self.imgsz[0] // s) * (self.imgsz[1] // s) for s in model.stride.tolist())
+                anchors = sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
                 m.max_det = min(self.args.max_det, anchors)
                 m.xyxy = self.args.nms and not coreml
                 m.shape = None  # reset cached shape for new export input size

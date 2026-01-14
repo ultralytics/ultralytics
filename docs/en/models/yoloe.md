@@ -768,7 +768,7 @@ YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benc
 | **YOLOE-L** (open-vocab)  | 52.6%                    | 35.2%                    | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B<sup>†</sup> |
 | **YOLOE26L** (open-vocab) | -                        | 36.8%                    | **8.0 ms** (125 FPS)  | 32.3 M     | 88.3 B<sup>†</sup> |
 
-<sup>†</sup> _YOLO11-L and YOLOE-L have identical architectures (prompt modules disabled in YOLO11-L), resulting in identical inference speed and similar GFLOPs estimates._
+<sup>†</sup> _YOLOE-L shares YOLO11-L's architecture and YOLOE26L shares YOLO26L's architecture, resulting in similar inference speed and GFLOPs._
 
 YOLOE26L achieves **36.8% LVIS mAP** with **32.3M parameters** and **88.3B FLOPs**, processing 640×640 images at **8.0 ms (125 FPS)** on T4 GPU. This improves over YOLOE-L's **35.2% LVIS mAP** while maintaining competitive speed. Crucially, YOLOE's open-vocabulary modules incur **no inference cost**, demonstrating a **"no free lunch trade-off"** design.
 

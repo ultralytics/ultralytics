@@ -10,6 +10,20 @@ keywords: Ultralytics Platform, REST API, API reference, authentication, endpoin
 
 <!-- Screenshot: platform-api-overview.avif -->
 
+!!! tip "Quick Start"
+
+    ```bash
+    # List your datasets
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      https://platform.ultralytics.com/api/datasets
+
+    # Run inference on a model
+    curl -X POST \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -F "file=@image.jpg" \
+      https://platform.ultralytics.com/api/models/MODEL_ID/predict
+    ```
+
 ## Authentication
 
 All API requests require authentication via API key.

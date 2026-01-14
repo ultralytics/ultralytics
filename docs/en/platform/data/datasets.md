@@ -182,12 +182,20 @@ Reference Platform datasets using the `ul://` URI format:
 ul://username/datasets/dataset-slug
 ```
 
-Use this URI to train models locally:
+Use this URI to train models from anywhere:
 
 ```bash
 export ULTRALYTICS_API_KEY="your_api_key"
 yolo train model=yolo11n.pt data=ul://username/datasets/my-dataset epochs=100
 ```
+
+!!! example "Train Anywhere with Platform Data"
+
+    The `ul://` URI works from any environment:
+
+    - **Local machine**: Train on your hardware, data downloaded automatically
+    - **Google Colab**: Access your Platform datasets in notebooks
+    - **Remote servers**: Train on cloud VMs with full dataset access
 
 ## Visibility Settings
 

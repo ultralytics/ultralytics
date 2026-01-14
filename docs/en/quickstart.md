@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to install Ultralytics using pip, conda, or Docker. Follow our step-by-step guide for a seamless setup of Ultralytics YOLO.
-keywords: Ultralytics, YOLO11, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection
+keywords: Ultralytics, YOLO26, YOLO11, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection
 ---
 
 # Install Ultralytics
@@ -449,12 +449,12 @@ The table below overviews the adjustable settings within Ultralytics, including 
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | Directory where model weights are stored                                                                         |
 | `runs_dir`         | `'/path/to/runs'`     | `str`     | Directory where experiment runs are stored                                                                       |
 | `uuid`             | `'a1b2c3d4'`          | `str`     | Unique identifier for the current settings                                                                       |
-| `sync`             | `True`                | `bool`    | Option to sync analytics and crashes to [Ultralytics HUB]                                                        |
-| `api_key`          | `''`                  | `str`     | [Ultralytics HUB] API Key                                                                                        |
+| `sync`             | `True`                | `bool`    | Option to sync analytics and crashes to [Ultralytics Platform]                                                   |
+| `api_key`          | `''`                  | `str`     | [Ultralytics Platform] API Key                                                                                   |
 | `clearml`          | `True`                | `bool`    | Option to use [ClearML] logging                                                                                  |
 | `comet`            | `True`                | `bool`    | Option to use [Comet ML] for experiment tracking and visualization                                               |
 | `dvc`              | `True`                | `bool`    | Option to use [DVC for experiment tracking] and version control                                                  |
-| `hub`              | `True`                | `bool`    | Option to use [Ultralytics HUB] integration                                                                      |
+| `hub`              | `True`                | `bool`    | Option to use [Ultralytics Platform] integration                                                                 |
 | `mlflow`           | `True`                | `bool`    | Option to use [MLFlow] for experiment tracking                                                                   |
 | `neptune`          | `True`                | `bool`    | Option to use [Neptune] for experiment tracking                                                                  |
 | `raytune`          | `True`                | `bool`    | Option to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
@@ -547,12 +547,12 @@ Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).
 
 <!-- Article Links -->
 
-[Ultralytics HUB]: https://hub.ultralytics.com
-[API Key]: https://hub.ultralytics.com/settings?tab=api+keys
+[Ultralytics Platform]: https://platform.ultralytics.com
+[API Key]: https://platform.ultralytics.com/settings
 [pip]: https://pypi.org/project/ultralytics/
 [DVC for experiment tracking]: https://dvc.org/doc/dvclive/ml-frameworks/yolo
 [Comet ML]: https://bit.ly/yolov8-readme-comet
-[Ultralytics HUB]: https://hub.ultralytics.com
+[Ultralytics Platform]: https://platform.ultralytics.com
 [ClearML]: ./integrations/clearml.md
 [MLFlow]: ./integrations/mlflow.md
 [Neptune]: https://neptune.ai/

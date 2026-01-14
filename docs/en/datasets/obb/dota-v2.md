@@ -20,7 +20,7 @@ keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the DOTA Dataset for Oriented Bounding Boxes in Google Colab
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on the DOTA Dataset for Oriented Bounding Boxes in Google Colab
 </p>
 
 - Collection from various sensors and platforms, with image sizes ranging from 800 × 800 to 20,000 × 20,000 pixels.
@@ -128,8 +128,8 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLO11n-OBB model from scratch
-        model = YOLO("yolo11n-obb.yaml")
+        # Create a new YOLO26n-OBB model from scratch
+        model = YOLO("yolo26n-obb.yaml")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -138,8 +138,8 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
     === "CLI"
 
         ```bash
-        # Train a new YOLO11n-OBB model on the DOTAv1 dataset
-        yolo obb train data=DOTAv1.yaml model=yolo11n-obb.pt epochs=100 imgsz=1024
+        # Train a new YOLO26n-OBB model on the DOTAv1 dataset
+        yolo obb train data=DOTAv1.yaml model=yolo26n-obb.pt epochs=100 imgsz=1024
         ```
 
 ## Sample Data and Annotations
@@ -196,8 +196,8 @@ To train a model on the DOTA dataset, you can use the following example with [Ul
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLO11n-OBB model from scratch
-        model = YOLO("yolo11n-obb.yaml")
+        # Create a new YOLO26n-OBB model from scratch
+        model = YOLO("yolo26n-obb.yaml")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -206,8 +206,8 @@ To train a model on the DOTA dataset, you can use the following example with [Ul
     === "CLI"
 
         ```bash
-        # Train a new YOLO11n-OBB model on the DOTAv1 dataset
-        yolo obb train data=DOTAv1.yaml model=yolo11n-obb.pt epochs=100 imgsz=1024
+        # Train a new YOLO26n-OBB model on the DOTAv1 dataset
+        yolo obb train data=DOTAv1.yaml model=yolo26n-obb.pt epochs=100 imgsz=1024
         ```
 
 For more details on how to split and preprocess the DOTA images, refer to the [split DOTA images section](#split-dota-images).

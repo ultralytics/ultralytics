@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Integrate Neptune with Ultralytics YOLO11 to track experiments, visualize metrics, log model checkpoints, and organize training metadata.
-keywords: Neptune, YOLO11, Ultralytics, experiment tracking, MLOps, model registry, visualization, computer vision
+description: Integrate Neptune with Ultralytics YOLO26 to track experiments, visualize metrics, log model checkpoints, and organize training metadata.
+keywords: Neptune, YOLO26, Ultralytics, experiment tracking, MLOps, model registry, visualization, computer vision
 ---
 
 !!! warning "Neptune acquisition and SaaS deprecation"
@@ -12,7 +12,7 @@ keywords: Neptune, YOLO11, Ultralytics, experiment tracking, MLOps, model regist
 
 [Neptune](https://neptune.ai/) is a metadata store for MLOps, built for teams that run a lot of experiments. It gives you a single place to log, store, display, organize, compare, and query all your model building metadata.
 
-Ultralytics YOLO11 integrates with Neptune to streamline [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking). This integration allows you to automatically log training metrics, visualize model predictions, and store model artifacts without writing custom logging code.
+Ultralytics YOLO26 integrates with Neptune to streamline [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking). This integration allows you to automatically log training metrics, visualize model predictions, and store model artifacts without writing custom logging code.
 
 <p align="center">
   <img width="800" src="https://docs.neptune.ai/img/app/app_preview.png" alt="Neptune.ai Dashboard Overview">
@@ -79,11 +79,11 @@ The securest way to handle credentials is via environment variables. Note that t
 
 ## Usage
 
-Once configured, you can start training your YOLO11 models. The Neptune integration works automatically when the `neptune` package is installed and the integration is enabled in settings.
+Once configured, you can start training your YOLO26 models. The Neptune integration works automatically when the `neptune` package is installed and the integration is enabled in settings.
 
 ### Training Example
 
-!!! example "Train YOLO11 with Neptune Logging"
+!!! example "Train YOLO26 with Neptune Logging"
 
     === "Python"
 
@@ -91,7 +91,7 @@ Once configured, you can start training your YOLO11 models. The Neptune integrat
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Train the model
         # Pass the Neptune project slug as the 'project' argument (workspace/name)

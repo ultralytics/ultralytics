@@ -10,7 +10,7 @@ keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle
 
 The Carparts Segmentation Dataset, available on Roboflow Universe, is a curated collection of images and videos designed for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, specifically focusing on [segmentation tasks](https://docs.ultralytics.com/tasks/segment/). Hosted on Roboflow Universe, this dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable [annotated](https://www.ultralytics.com/glossary/data-labeling) examples for training and testing segmentation models.
 
-Whether you're working on [automotive research](https://www.ultralytics.com/solutions/ai-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like [Ultralytics YOLO](../../models/yolo11.md).
+Whether you're working on [automotive research](https://www.ultralytics.com/solutions/ai-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like [Ultralytics YOLO](../../models/yolo26.md).
 
 <p align="center">
   <br>
@@ -20,7 +20,7 @@ Whether you're working on [automotive research](https://www.ultralytics.com/solu
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Carparts <a href="https://www.ultralytics.com/glossary/instance-segmentation">Instance Segmentation</a> with Ultralytics YOLO11.
+  <strong>Watch:</strong> Carparts <a href="https://www.ultralytics.com/glossary/instance-segmentation">Instance Segmentation</a> with Ultralytics YOLO26.
 </p>
 
 ## Dataset Structure
@@ -58,7 +58,7 @@ A [YAML](https://www.ultralytics.com/glossary/yaml) (Yet Another Markup Language
 
 ## Usage
 
-To train an [Ultralytics YOLO11](../../models/yolo11.md) model on the Carparts Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets. Refer to the model [Training guide](../../modes/train.md) for a comprehensive list of available arguments and explore [model training tips](https://docs.ultralytics.com/guides/model-training-tips/) for best practices.
+To train an [Ultralytics YOLO26](../../models/yolo26.md) model on the Carparts Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets. Refer to the model [Training guide](../../modes/train.md) for a comprehensive list of available arguments and explore [model training tips](https://docs.ultralytics.com/guides/model-training-tips/) for best practices.
 
 !!! example "Train Example"
 
@@ -67,8 +67,8 @@ To train an [Ultralytics YOLO11](../../models/yolo11.md) model on the Carparts S
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained segmentation model like YOLO11n-seg
-        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
+        # Load a pretrained segmentation model like YOLO26n-seg
+        model = YOLO("yolo26n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model on the Carparts Segmentation dataset
         results = model.train(data="carparts-seg.yaml", epochs=100, imgsz=640)
@@ -85,7 +85,7 @@ To train an [Ultralytics YOLO11](../../models/yolo11.md) model on the Carparts S
         ```bash
         # Start training from a pretrained *.pt model using the Command Line Interface
         # Specify the dataset config file, model, number of epochs, and image size
-        yolo segment train data=carparts-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=carparts-seg.yaml model=yolo26n-seg.pt epochs=100 imgsz=640
 
         # Validate the trained model using the validation set
         yolo segment val data=carparts-seg.yaml model=path/to/best.pt
@@ -134,9 +134,9 @@ We acknowledge the contribution of Gianmarco Russo and the Roboflow team in crea
 
 The Carparts Segmentation Dataset is a specialized collection of images and videos for training computer vision models to perform [segmentation](https://docs.ultralytics.com/tasks/segment/) on car parts. It includes diverse visuals with detailed annotations, suitable for automotive AI applications.
 
-### How can I use the Carparts Segmentation Dataset with Ultralytics YOLO11?
+### How can I use the Carparts Segmentation Dataset with Ultralytics YOLO26?
 
-You can train an [Ultralytics YOLO11](../../models/yolo11.md) segmentation model using this dataset. Load a pretrained model (e.g., `yolo11n-seg.pt`) and initiate training using the provided Python or CLI examples, referencing the `carparts-seg.yaml` configuration file. Check the [Training Guide](../../modes/train.md) for detailed instructions.
+You can train an [Ultralytics YOLO26](../../models/yolo26.md) segmentation model using this dataset. Load a pretrained model (e.g., `yolo26n-seg.pt`) and initiate training using the provided Python or CLI examples, referencing the `carparts-seg.yaml` configuration file. Check the [Training Guide](../../modes/train.md) for detailed instructions.
 
 !!! example "Train Example Snippet"
 
@@ -146,7 +146,7 @@ You can train an [Ultralytics YOLO11](../../models/yolo11.md) segmentation model
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="carparts-seg.yaml", epochs=100, imgsz=640)
@@ -155,7 +155,7 @@ You can train an [Ultralytics YOLO11](../../models/yolo11.md) segmentation model
     === "CLI"
 
         ```bash
-        yolo segment train data=carparts-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=carparts-seg.yaml model=yolo26n-seg.pt epochs=100 imgsz=640
         ```
 
 ### What are some applications of Carparts Segmentation?

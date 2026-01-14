@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about object detection with YOLO11. Explore pretrained models, training, validation, prediction, and export details for efficient object recognition.
-keywords: object detection, YOLO11, pretrained models, training, validation, prediction, export, machine learning, computer vision
+description: Learn about object detection with YOLO26. Explore pretrained models, training, validation, prediction, and export details for efficient object recognition.
+keywords: object detection, YOLO26, pretrained models, training, validation, prediction, export, machine learning, computer vision
 ---
 
 # Object Detection
@@ -25,11 +25,11 @@ The output of an object detector is a set of bounding boxes that enclose the obj
 
 !!! tip
 
-    YOLO11 Detect models are the default YOLO11 models, i.e., `yolo11n.pt`, and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
+    YOLO26 Detect models are the default YOLO26 models, i.e., `yolo26n.pt`, and are pretrained on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11)
+## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO11 pretrained Detect models are shown here. Detect, Segment, and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
+YOLO26 pretrained Detect models are shown here. Detect, Segment, and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/ImageNet.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) are downloaded automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -40,7 +40,7 @@ YOLO11 pretrained Detect models are shown here. Detect, Segment, and Pose models
 
 ## Train
 
-Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
+Train YOLO26n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example
 
@@ -50,9 +50,9 @@ Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.yaml")  # build a new model from YAML
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo11n.yaml").load("yolo11n.pt")  # build from YAML and transfer weights
+        model = YOLO("yolo26n.yaml")  # build a new model from YAML
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.yaml").load("yolo26n.pt")  # build from YAML and transfer weights
 
         # Train the model
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
@@ -62,13 +62,13 @@ Train YOLO11n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo detect train data=coco8.yaml model=yolo11n.yaml epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo26n.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo detect train data=coco8.yaml model=yolo11n.yaml pretrained=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=coco8.yaml model=yolo26n.yaml pretrained=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ### Dataset format
@@ -77,7 +77,7 @@ YOLO detection dataset format can be found in detail in the [Dataset Guide](../d
 
 ## Val
 
-Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
 
 !!! example
 
@@ -87,7 +87,7 @@ Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/a
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load an official model
+        model = YOLO("yolo26n.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
@@ -101,13 +101,13 @@ Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/a
     === "CLI"
 
         ```bash
-        yolo detect val model=yolo11n.pt      # val official model
+        yolo detect val model=yolo26n.pt      # val official model
         yolo detect val model=path/to/best.pt # val custom model
         ```
 
 ## Predict
 
-Use a trained YOLO11n model to run predictions on images.
+Use a trained YOLO26n model to run predictions on images.
 
 !!! example
 
@@ -117,7 +117,7 @@ Use a trained YOLO11n model to run predictions on images.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load an official model
+        model = YOLO("yolo26n.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Predict with the model
@@ -136,7 +136,7 @@ Use a trained YOLO11n model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo detect predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'      # predict with official model
+        yolo detect predict model=yolo26n.pt source='https://ultralytics.com/images/bus.jpg'      # predict with official model
         yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # predict with custom model
         ```
 
@@ -144,7 +144,7 @@ See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 ## Export
 
-Export a YOLO11n model to a different format like ONNX, CoreML, etc.
+Export a YOLO26n model to a different format like ONNX, CoreML, etc.
 
 !!! example
 
@@ -154,7 +154,7 @@ Export a YOLO11n model to a different format like ONNX, CoreML, etc.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load an official model
+        model = YOLO("yolo26n.pt")  # load an official model
         model = YOLO("path/to/best.pt")  # load a custom-trained model
 
         # Export the model
@@ -164,11 +164,11 @@ Export a YOLO11n model to a different format like ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=onnx      # export official model
+        yolo export model=yolo26n.pt format=onnx      # export official model
         yolo export model=path/to/best.pt format=onnx # export custom-trained model
         ```
 
-Available YOLO11 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo11n.onnx`. Usage examples are shown for your model after export completes.
+Available YOLO26 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n.onnx`. Usage examples are shown for your model after export completes.
 
 {% include "macros/export-table.md" %}
 
@@ -176,9 +176,9 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ## FAQ
 
-### How do I train a YOLO11 model on my custom dataset?
+### How do I train a YOLO26 model on my custom dataset?
 
-Training a YOLO11 model on a custom dataset involves a few steps:
+Training a YOLO26 model on a custom dataset involves a few steps:
 
 1. **Prepare the Dataset**: Ensure your dataset is in the YOLO format. For guidance, refer to our [Dataset Guide](../datasets/detect/index.md).
 2. **Load the Model**: Use the Ultralytics YOLO library to load a pretrained model or create a new model from a YAML file.
@@ -192,7 +192,7 @@ Training a YOLO11 model on a custom dataset involves a few steps:
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Train the model on your custom dataset
         model.train(data="my_custom_dataset.yaml", epochs=100, imgsz=640)
@@ -201,26 +201,26 @@ Training a YOLO11 model on a custom dataset involves a few steps:
     === "CLI"
 
         ```bash
-        yolo detect train data=my_custom_dataset.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=my_custom_dataset.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 For detailed configuration options, visit the [Configuration](../usage/cfg.md) page.
 
-### What pretrained models are available in YOLO11?
+### What pretrained models are available in YOLO26?
 
-Ultralytics YOLO11 offers various pretrained models for object detection, segmentation, and pose estimation. These models are pretrained on the COCO dataset or ImageNet for classification tasks. Here are some of the available models:
+Ultralytics YOLO26 offers various pretrained models for object detection, segmentation, and pose estimation. These models are pretrained on the COCO dataset or ImageNet for classification tasks. Here are some of the available models:
 
-- [YOLO11n](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt)
-- [YOLO11s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt)
-- [YOLO11m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m.pt)
-- [YOLO11l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l.pt)
-- [YOLO11x](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt)
+- [YOLO26n](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt)
+- [YOLO26s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s.pt)
+- [YOLO26m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m.pt)
+- [YOLO26l](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l.pt)
+- [YOLO26x](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x.pt)
 
-For a detailed list and performance metrics, refer to the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/11) section.
+For a detailed list and performance metrics, refer to the [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26) section.
 
 ### How can I validate the accuracy of my trained YOLO model?
 
-To validate the accuracy of your trained YOLO11 model, you can use the `.val()` method in Python or the `yolo detect val` command in CLI. This will provide metrics like mAP50-95, mAP50, and more.
+To validate the accuracy of your trained YOLO26 model, you can use the `.val()` method in Python or the `yolo detect val` command in CLI. This will provide metrics like mAP50-95, mAP50, and more.
 
 !!! example
 
@@ -245,9 +245,9 @@ To validate the accuracy of your trained YOLO11 model, you can use the `.val()` 
 
 For more validation details, visit the [Val](../modes/val.md) page.
 
-### What formats can I export a YOLO11 model to?
+### What formats can I export a YOLO26 model to?
 
-Ultralytics YOLO11 allows exporting models to various formats such as [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), [TensorRT](https://www.ultralytics.com/glossary/tensorrt), [CoreML](https://docs.ultralytics.com/integrations/coreml/), and more to ensure compatibility across different platforms and devices.
+Ultralytics YOLO26 allows exporting models to various formats such as [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange), [TensorRT](https://www.ultralytics.com/glossary/tensorrt), [CoreML](https://docs.ultralytics.com/integrations/coreml/), and more to ensure compatibility across different platforms and devices.
 
 !!! example
 
@@ -257,7 +257,7 @@ Ultralytics YOLO11 allows exporting models to various formats such as [ONNX](htt
         from ultralytics import YOLO
 
         # Load the model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Export the model to ONNX format
         model.export(format="onnx")
@@ -266,18 +266,18 @@ Ultralytics YOLO11 allows exporting models to various formats such as [ONNX](htt
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=onnx
+        yolo export model=yolo26n.pt format=onnx
         ```
 
 Check the full list of supported formats and instructions on the [Export](../modes/export.md) page.
 
-### Why should I use Ultralytics YOLO11 for object detection?
+### Why should I use Ultralytics YOLO26 for object detection?
 
-Ultralytics YOLO11 is designed to offer state-of-the-art performance for object detection, segmentation, and pose estimation. Here are some key advantages:
+Ultralytics YOLO26 is designed to offer state-of-the-art performance for object detection, segmentation, and pose estimation. Here are some key advantages:
 
 1. **Pretrained Models**: Utilize models pretrained on popular datasets like [COCO](https://docs.ultralytics.com/datasets/detect/coco/) and [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet/) for faster development.
 2. **High Accuracy**: Achieves impressive mAP scores, ensuring reliable object detection.
 3. **Speed**: Optimized for [real-time inference](https://www.ultralytics.com/glossary/real-time-inference), making it ideal for applications requiring swift processing.
 4. **Flexibility**: Export models to various formats like ONNX and TensorRT for deployment across multiple platforms.
 
-Explore our [Blog](https://www.ultralytics.com/blog) for use cases and success stories showcasing YOLO11 in action.
+Explore our [Blog](https://www.ultralytics.com/blog) for use cases and success stories showcasing YOLO26 in action.

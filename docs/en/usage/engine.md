@@ -112,7 +112,7 @@ class MyCustomTrainer(DetectionTrainer):
 
 
 # Initialize YOLO model
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 # Train with custom trainer
 results = model.train(trainer=MyCustomTrainer, data="coco8.yaml", epochs=3)

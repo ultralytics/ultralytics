@@ -6,7 +6,7 @@ keywords: YOLOv7, real-time object detection, Ultralytics, AI, computer vision, 
 
 # YOLOv7: Trainable Bag-of-Freebies
 
-YOLOv7 is a state-of-the-art real-time object detector that surpasses all known object detectors in both speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) in the range from 5 FPS to 160 FPS. It has the highest accuracy (56.8% AP) among all known real-time object detectors with 30 FPS or higher on GPU V100. Moreover, YOLOv7 outperforms other object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, YOLOv5, and many others in speed and accuracy. The model is trained on the MS COCO dataset from scratch without using any other datasets or pretrained weights. Source code for YOLOv7 is available on GitHub.
+YOLOv7, released in July 2022, was a significant advancement in real-time object detection at its time of release. It achieved 56.8% AP on GPU V100, setting new benchmarks when introduced. YOLOv7 outperformed contemporary object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, and YOLOv5 in speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). The model is trained on the MS COCO dataset from scratch without using any other datasets or pretrained weights. Source code for YOLOv7 is available on GitHub. Note that newer models like [YOLO11](yolo11.md) and [YOLO26](yolo26.md) have since achieved higher accuracy with improved efficiency.
 
 ![YOLOv7 comparison with SOTA object detectors](https://github.com/ultralytics/docs/releases/download/0/yolov7-comparison-sota-object-detectors.avif)
 
@@ -370,7 +370,7 @@ The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.026
 
 ### What is YOLOv7 and why is it considered a breakthrough in real-time [object detection](https://www.ultralytics.com/glossary/object-detection)?
 
-YOLOv7 is a cutting-edge real-time object detection model that achieves unparalleled speed and accuracy. It surpasses other models, such as YOLOX, YOLOv5, and PPYOLOE, in both parameters usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs. For more technical details about its architecture and comparison metrics with other state-of-the-art object detectors, refer to the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696).
+YOLOv7, released in July 2022, was a significant real-time object detection model that achieved excellent speed and accuracy at its time of release. It surpassed contemporary models such as YOLOX, YOLOv5, and PPYOLOE in both parameters usage and inference speed. YOLOv7's distinguishing features include its model re-parameterization and dynamic label assignment, which optimize its performance without increasing inference costs. For more technical details about its architecture and comparison metrics with other state-of-the-art object detectors, refer to the [YOLOv7 paper](https://arxiv.org/pdf/2207.02696).
 
 ### How does YOLOv7 improve on previous YOLO models like YOLOv4 and YOLOv5?
 

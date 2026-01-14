@@ -16,7 +16,7 @@ The [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html) (Canadian Institute
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on CIFAR-100 | Step-by-Step Image Classification Tutorial 🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on CIFAR-100 | Step-by-Step Image Classification Tutorial 🚀
 </p>
 
 ## Key Features
@@ -50,7 +50,7 @@ To train a YOLO model on the CIFAR-100 dataset for 100 [epochs](https://www.ultr
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="cifar100", epochs=100, imgsz=32)
@@ -60,7 +60,7 @@ To train a YOLO model on the CIFAR-100 dataset for 100 [epochs](https://www.ultr
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=cifar100 model=yolo11n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar100 model=yolo26n-cls.pt epochs=100 imgsz=32
         ```
 
 ## Sample Images and Annotations
@@ -94,7 +94,7 @@ We would like to acknowledge Alex Krizhevsky for creating and maintaining the CI
 
 ### What is the CIFAR-100 dataset and why is it significant?
 
-The [CIFAR-100 dataset](https://www.cs.toronto.edu/~kriz/cifar.html) is a large collection of 60,000 32x32 color images classified into 100 classes. Developed by the Canadian Institute For Advanced Research (CIFAR), it provides a challenging dataset ideal for complex machine learning and computer vision tasks. Its significance lies in the diversity of classes and the small size of the images, making it a valuable resource for training and testing [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models, like Convolutional [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) (CNNs), using frameworks such as [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/).
+The [CIFAR-100 dataset](https://www.cs.toronto.edu/~kriz/cifar.html) is a large collection of 60,000 32x32 color images classified into 100 classes. Developed by the Canadian Institute For Advanced Research (CIFAR), it provides a challenging dataset ideal for complex machine learning and computer vision tasks. Its significance lies in the diversity of classes and the small size of the images, making it a valuable resource for training and testing [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models, like Convolutional [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) (CNNs), using frameworks such as [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo26/).
 
 ### How do I train a YOLO model on the CIFAR-100 dataset?
 
@@ -108,7 +108,7 @@ You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI c
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="cifar100", epochs=100, imgsz=32)
@@ -118,7 +118,7 @@ You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI c
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=cifar100 model=yolo11n-cls.pt epochs=100 imgsz=32
+        yolo classify train data=cifar100 model=yolo26n-cls.pt epochs=100 imgsz=32
         ```
 
 For a comprehensive list of available arguments, please refer to the model [Training](../../modes/train.md) page.

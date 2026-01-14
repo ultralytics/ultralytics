@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Optimize YOLO11 models for mobile and embedded devices by exporting to NCNN format. Enhance performance in resource-constrained environments.
-keywords: Ultralytics, YOLO11, NCNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, Vulkan, GPU acceleration
+description: Optimize YOLO26 models for mobile and embedded devices by exporting to NCNN format. Enhance performance in resource-constrained environments.
+keywords: Ultralytics, YOLO26, NCNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, Vulkan, GPU acceleration
 ---
 
 # Ultralytics YOLO NCNN Export
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on devices with limited computational power, such as mobile or embedded systems, requires careful format selection. Using an optimized format ensures that even resource-constrained devices can handle advanced computer vision tasks efficiently.
 
-Exporting to NCNN format allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for lightweight device-based applications. This guide covers how to convert your models to NCNN format for improved performance on mobile and embedded devices.
+Exporting to NCNN format allows you to optimize your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models for lightweight device-based applications. This guide covers how to convert your models to NCNN format for improved performance on mobile and embedded devices.
 
 ## Why Export to NCNN?
 
@@ -62,7 +62,7 @@ To use Vulkan acceleration, specify the Vulkan device when running inference:
         from ultralytics import YOLO
 
         # Load the exported NCNN model
-        ncnn_model = YOLO("./yolo11n_ncnn_model")
+        ncnn_model = YOLO("./yolo26n_ncnn_model")
 
         # Run inference with Vulkan GPU acceleration (first Vulkan device)
         results = ncnn_model("https://ultralytics.com/images/bus.jpg", device="vulkan:0")
@@ -75,16 +75,16 @@ To use Vulkan acceleration, specify the Vulkan device when running inference:
 
         ```bash
         # Run inference with Vulkan GPU acceleration
-        yolo predict model='./yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg' device=vulkan:0
+        yolo predict model='./yolo26n_ncnn_model' source='https://ultralytics.com/images/bus.jpg' device=vulkan:0
         ```
 
 !!! tip "Vulkan Requirements"
 
     Ensure you have Vulkan drivers installed for your GPU. Most modern GPU drivers include Vulkan support by default. You can verify Vulkan availability using tools like `vulkaninfo` on Linux or the Vulkan SDK on Windows.
 
-## Export to NCNN: Converting Your YOLO11 Model
+## Export to NCNN: Converting Your YOLO26 Model
 
-You can expand model compatibility and deployment flexibility by converting YOLO11 models to NCNN format.
+You can expand model compatibility and deployment flexibility by converting YOLO26 models to NCNN format.
 
 ### Installation
 
@@ -95,7 +95,7 @@ To install the required packages, run:
     === "CLI"
 
         ```bash
-        # Install the required package for YOLO11
+        # Install the required package for YOLO26
         pip install ultralytics
         ```
 
@@ -103,7 +103,7 @@ For detailed instructions and best practices, see the [Ultralytics Installation 
 
 ### Usage
 
-All [Ultralytics YOLO11 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
+All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
 
 !!! example "Usage"
 
@@ -112,14 +112,14 @@ All [Ultralytics YOLO11 models](../models/index.md) are designed to support expo
           ```python
           from ultralytics import YOLO
 
-          # Load the YOLO11 model
-          model = YOLO("yolo11n.pt")
+          # Load the YOLO26 model
+          model = YOLO("yolo26n.pt")
 
           # Export the model to NCNN format
-          model.export(format="ncnn")  # creates '/yolo11n_ncnn_model'
+          model.export(format="ncnn")  # creates '/yolo26n_ncnn_model'
 
           # Load the exported NCNN model
-          ncnn_model = YOLO("./yolo11n_ncnn_model")
+          ncnn_model = YOLO("./yolo26n_ncnn_model")
 
           # Run inference
           results = ncnn_model("https://ultralytics.com/images/bus.jpg")
@@ -128,11 +128,11 @@ All [Ultralytics YOLO11 models](../models/index.md) are designed to support expo
     === "CLI"
 
           ```bash
-          # Export a YOLO11n PyTorch model to NCNN format
-          yolo export model=yolo11n.pt format=ncnn # creates '/yolo11n_ncnn_model'
+          # Export a YOLO26n PyTorch model to NCNN format
+          yolo export model=yolo26n.pt format=ncnn # creates '/yolo26n_ncnn_model'
 
           # Run inference with the exported model
-          yolo predict model='./yolo11n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
+          yolo predict model='./yolo26n_ncnn_model' source='https://ultralytics.com/images/bus.jpg'
           ```
 
 ### Export Arguments
@@ -147,9 +147,9 @@ All [Ultralytics YOLO11 models](../models/index.md) are designed to support expo
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-## Deploying Exported YOLO11 NCNN Models
+## Deploying Exported YOLO26 NCNN Models
 
-After exporting your Ultralytics YOLO11 models to NCNN format, you can deploy them using the `YOLO("yolo11n_ncnn_model/")` method as shown in the usage example above. For platform-specific deployment instructions, see the following resources:
+After exporting your Ultralytics YOLO26 models to NCNN format, you can deploy them using the `YOLO("yolo26n_ncnn_model/")` method as shown in the usage example above. For platform-specific deployment instructions, see the following resources:
 
 - **[Android](https://github.com/Tencent/ncnn/wiki/how-to-build#build-for-android)**: Build and integrate NCNN models for [object detection](https://www.ultralytics.com/glossary/object-detection) in Android applications.
 
@@ -161,39 +161,39 @@ After exporting your Ultralytics YOLO11 models to NCNN format, you can deploy th
 
 ## Summary
 
-This guide covered exporting Ultralytics YOLO11 models to NCNN format for improved efficiency and speed on resource-constrained devices.
+This guide covered exporting Ultralytics YOLO26 models to NCNN format for improved efficiency and speed on resource-constrained devices.
 
 For additional details, refer to the [official NCNN documentation](https://ncnn.readthedocs.io/en/latest/index.html). For other export options, visit our [integration guide page](index.md).
 
 ## FAQ
 
-### How do I export Ultralytics YOLO11 models to NCNN format?
+### How do I export Ultralytics YOLO26 models to NCNN format?
 
-To export your Ultralytics YOLO11 model to NCNN format:
+To export your Ultralytics YOLO26 model to NCNN format:
 
 - **Python**: Use the `export` method from the YOLO class.
 
     ```python
     from ultralytics import YOLO
 
-    # Load the YOLO11 model
-    model = YOLO("yolo11n.pt")
+    # Load the YOLO26 model
+    model = YOLO("yolo26n.pt")
 
     # Export to NCNN format
-    model.export(format="ncnn")  # creates '/yolo11n_ncnn_model'
+    model.export(format="ncnn")  # creates '/yolo26n_ncnn_model'
     ```
 
 - **CLI**: Use the `yolo export` command.
 
     ```bash
-    yolo export model=yolo11n.pt format=ncnn # creates '/yolo11n_ncnn_model'
+    yolo export model=yolo26n.pt format=ncnn # creates '/yolo26n_ncnn_model'
     ```
 
 For detailed export options, see the [Export](../modes/export.md) documentation.
 
-### What are the advantages of exporting YOLO11 models to NCNN?
+### What are the advantages of exporting YOLO26 models to NCNN?
 
-Exporting your Ultralytics YOLO11 models to NCNN offers several benefits:
+Exporting your Ultralytics YOLO26 models to NCNN offers several benefits:
 
 - **Efficiency**: NCNN models are optimized for mobile and embedded devices, ensuring high performance even with limited computational resources.
 - **Quantization**: NCNN supports techniques like quantization that improve model speed and reduce memory usage.
@@ -222,14 +222,14 @@ NCNN is versatile and supports various platforms:
 
 For improved performance on Raspberry Pi, consider using NCNN format as detailed in our [Raspberry Pi Guide](../guides/raspberry-pi.md).
 
-### How can I deploy Ultralytics YOLO11 NCNN models on Android?
+### How can I deploy Ultralytics YOLO26 NCNN models on Android?
 
-To deploy your YOLO11 models on Android:
+To deploy your YOLO26 models on Android:
 
 1. **Build for Android**: Follow the [NCNN Build for Android](https://github.com/Tencent/ncnn/wiki/how-to-build#build-for-android) guide.
 2. **Integrate with Your App**: Use the NCNN Android SDK to integrate the exported model into your application for efficient on-device inference.
 
-For detailed instructions, see [Deploying Exported YOLO11 NCNN Models](#deploying-exported-yolo11-ncnn-models).
+For detailed instructions, see [Deploying Exported YOLO26 NCNN Models](#deploying-exported-yolo26-ncnn-models).
 
 For more advanced guides and use cases, visit the [Ultralytics deployment guide](../guides/model-deployment-options.md).
 
@@ -241,7 +241,7 @@ NCNN supports Vulkan for GPU acceleration on AMD, Intel, and other non-NVIDIA GP
 from ultralytics import YOLO
 
 # Load NCNN model and run with Vulkan GPU
-model = YOLO("yolo11n_ncnn_model")
+model = YOLO("yolo26n_ncnn_model")
 results = model("image.jpg", device="vulkan:0")  # Use first Vulkan device
 ```
 

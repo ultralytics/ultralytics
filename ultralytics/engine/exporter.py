@@ -503,7 +503,9 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-                m.max_det = self.args.max_det
+                # Clamp max_det to anchor count for small image sizes (required for TensorRT compatibility)
+                anchors = sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
+                m.max_det = min(self.args.max_det, anchors)
                 m.xyxy = self.args.nms and not coreml
                 m.shape = None  # reset cached shape for new export input size
                 if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models
@@ -551,6 +553,8 @@ class Exporter:
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
             if hasattr(model, "kpt_names"):
                 self.metadata["kpt_names"] = model.kpt_names
+        if getattr(model.model[-1], "end2end", False):
+            self.metadata["end2end"] = True
 
         LOGGER.info(
             f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
@@ -861,7 +865,9 @@ class Exporter:
     def export_ncnn(self, prefix=colorstr("NCNN:")):
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
         if ARM64:
-            raise NotImplementedError("NCNN export is not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
+            raise NotImplementedError(
+                "NCNN export is not supported on ARM64"
+            )  # https://github.com/Tencent/ncnn/issues/6509
         check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
         check_requirements("pnnx")
         import ncnn

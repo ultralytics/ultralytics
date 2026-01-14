@@ -43,7 +43,7 @@ To train a deep learning model on the ImageNet dataset for 100 [epochs](https://
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenet", epochs=100, imgsz=224)
@@ -53,7 +53,7 @@ To train a deep learning model on the ImageNet dataset for 100 [epochs](https://
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet model=yolo11n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenet model=yolo26n-cls.pt epochs=100 imgsz=224
         ```
 
 ## Sample Images and Annotations
@@ -104,7 +104,7 @@ To use a pretrained Ultralytics YOLO model for image classification on the Image
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="imagenet", epochs=100, imgsz=224)
@@ -114,14 +114,14 @@ To use a pretrained Ultralytics YOLO model for image classification on the Image
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=imagenet model=yolo11n-cls.pt epochs=100 imgsz=224
+        yolo classify train data=imagenet model=yolo26n-cls.pt epochs=100 imgsz=224
         ```
 
 For more in-depth training instruction, refer to our [Training page](../../modes/train.md).
 
-### Why should I use the Ultralytics YOLO11 pretrained models for my ImageNet dataset projects?
+### Why should I use the Ultralytics YOLO26 pretrained models for my ImageNet dataset projects?
 
-Ultralytics YOLO11 pretrained models offer state-of-the-art performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for various computer vision tasks. For example, the YOLO11n-cls model, with a top-1 accuracy of 70.0% and a top-5 accuracy of 89.4%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLO11 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
+Ultralytics YOLO26 pretrained models offer state-of-the-art performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for various computer vision tasks. For example, the YOLO26n-cls model, with a top-1 accuracy of 70.0% and a top-5 accuracy of 89.4%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLO26 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
 
 ### How is the ImageNet dataset structured, and why is it important?
 

@@ -62,7 +62,7 @@ The `train` and `val` fields specify the paths to the directories containing the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco8-pose.yaml", epochs=100, imgsz=640)
@@ -72,7 +72,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=coco8-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco8-pose.yaml model=yolo26n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Supported Datasets
@@ -170,7 +170,7 @@ To use the [COCO-Pose dataset](https://docs.ultralytics.com/datasets/pose/coco/)
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolo11n-pose.pt")  # load pretrained model
+    model = YOLO("yolo26n-pose.pt")  # load pretrained model
     results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
     ```
 
@@ -187,7 +187,7 @@ To add your dataset:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolo11n-pose.pt")
+    model = YOLO("yolo26n-pose.pt")
     results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
     ```
 

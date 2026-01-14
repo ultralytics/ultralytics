@@ -44,7 +44,7 @@ from threading import Thread
 from ultralytics import YOLO
 
 # Instantiate the model outside the thread
-shared_model = YOLO("yolo11n.pt")
+shared_model = YOLO("yolo26n.pt")
 
 
 def predict(image_path):
@@ -71,8 +71,8 @@ from threading import Thread
 from ultralytics import YOLO
 
 # Instantiate multiple models outside the thread
-shared_model_1 = YOLO("yolo11n_1.pt")
-shared_model_2 = YOLO("yolo11n_2.pt")
+shared_model_1 = YOLO("yolo26n_1.pt")
+shared_model_2 = YOLO("yolo26n_2.pt")
 
 
 def predict(model, image_path):
@@ -105,7 +105,7 @@ from ultralytics import YOLO
 
 def thread_safe_predict(image_path):
     """Predict on an image using a new YOLO model instance in a thread-safe manner; takes image path as input."""
-    local_model = YOLO("yolo11n.pt")
+    local_model = YOLO("yolo26n.pt")
     results = local_model.predict(image_path)
     # Process results
 
@@ -126,7 +126,7 @@ from ultralytics import YOLO
 from ultralytics.utils import ThreadingLocked
 
 # Create a model instance
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 
 
 # Decorate the predict method to make it thread-safe
@@ -164,7 +164,7 @@ from ultralytics import YOLO
 
 def thread_safe_predict(image_path):
     """Predict on an image in a thread-safe manner."""
-    local_model = YOLO("yolo11n.pt")
+    local_model = YOLO("yolo26n.pt")
     results = local_model.predict(image_path)
     # Process results
 
@@ -194,7 +194,7 @@ from ultralytics import YOLO
 
 def thread_safe_predict(image_path):
     """Runs inference in a thread-safe manner with a new YOLO model instance."""
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
     results = model.predict(image_path)
     # Process results
 

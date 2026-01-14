@@ -188,16 +188,16 @@ Contributing a new dataset involves several steps:
 
 Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive guide.
 
-### Why should I use Ultralytics HUB for my dataset?
+### Why should I use Ultralytics Platform for my dataset?
 
-[Ultralytics HUB](https://hub.ultralytics.com/) offers powerful features for dataset management and analysis, including:
+[Ultralytics Platform](https://platform.ultralytics.com/) offers powerful features for dataset management and analysis, including:
 
 - **Seamless Dataset Management**: Upload, organize, and manage your datasets in one place.
 - **Immediate Training Integration**: Use uploaded datasets directly for model training without additional setup.
 - **Visualization Tools**: Explore and visualize your dataset images and annotations.
 - **Dataset Analysis**: Get insights into your dataset distribution and characteristics.
 
-The platform streamlines the transition from dataset management to model training, making the entire process more efficient. Learn more about [Ultralytics HUB Datasets](https://docs.ultralytics.com/hub/datasets/).
+The platform streamlines the transition from dataset management to model training, making the entire process more efficient. Learn more about [Ultralytics Platform Datasets](https://docs.ultralytics.com/platform/datasets/).
 
 ### What are the unique features of Ultralytics YOLO models for computer vision?
 

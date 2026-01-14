@@ -44,7 +44,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLO11n-pose model on the COCO-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n-pose model on the COCO-Pose dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -54,7 +54,7 @@ To train a YOLO11n-pose model on the COCO-Pose dataset for 100 [epochs](https://
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
@@ -64,7 +64,7 @@ To train a YOLO11n-pose model on the COCO-Pose dataset for 100 [epochs](https://
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=coco-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco-pose.yaml model=yolo26n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -102,11 +102,11 @@ We would like to acknowledge the COCO Consortium for creating and maintaining th
 
 ### What is the COCO-Pose dataset and how is it used with Ultralytics YOLO for pose estimation?
 
-The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialized version of the COCO (Common Objects in Context) dataset designed for pose estimation tasks. It builds upon the COCO Keypoints 2017 images and annotations, allowing for the training of models like Ultralytics YOLO for detailed pose estimation. For instance, you can use the COCO-Pose dataset to train a YOLO11n-pose model by loading a pretrained model and training it with a YAML configuration. For training examples, refer to the [Training](../../modes/train.md) documentation.
+The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialized version of the COCO (Common Objects in Context) dataset designed for pose estimation tasks. It builds upon the COCO Keypoints 2017 images and annotations, allowing for the training of models like Ultralytics YOLO for detailed pose estimation. For instance, you can use the COCO-Pose dataset to train a YOLO26n-pose model by loading a pretrained model and training it with a YAML configuration. For training examples, refer to the [Training](../../modes/train.md) documentation.
 
-### How can I train a YOLO11 model on the COCO-Pose dataset?
+### How can I train a YOLO26 model on the COCO-Pose dataset?
 
-Training a YOLO11 model on the COCO-Pose dataset can be accomplished using either Python or CLI commands. For example, to train a YOLO11n-pose model for 100 epochs with an image size of 640, you can follow the steps below:
+Training a YOLO26 model on the COCO-Pose dataset can be accomplished using either Python or CLI commands. For example, to train a YOLO26n-pose model for 100 epochs with an image size of 640, you can follow the steps below:
 
 !!! example "Train Example"
 
@@ -116,7 +116,7 @@ Training a YOLO11 model on the COCO-Pose dataset can be accomplished using eithe
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-pose.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-pose.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco-pose.yaml", epochs=100, imgsz=640)
@@ -126,14 +126,14 @@ Training a YOLO11 model on the COCO-Pose dataset can be accomplished using eithe
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo pose train data=coco-pose.yaml model=yolo11n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco-pose.yaml model=yolo26n-pose.pt epochs=100 imgsz=640
         ```
 
 For more details on the training process and available arguments, check the [training page](../../modes/train.md).
 
 ### What are the different metrics provided by the COCO-Pose dataset for evaluating model performance?
 
-The COCO-Pose dataset provides several standardized evaluation metrics for pose estimation tasks, similar to the original COCO dataset. Key metrics include the Object Keypoint Similarity (OKS), which evaluates the [accuracy](https://www.ultralytics.com/glossary/accuracy) of predicted keypoints against ground truth annotations. These metrics allow for thorough performance comparisons between different models. For instance, the COCO-Pose pretrained models such as YOLO11n-pose, YOLO11s-pose, and others have specific performance metrics listed in the documentation, like mAP<sup>pose</sup>50-95 and mAP<sup>pose</sup>50.
+The COCO-Pose dataset provides several standardized evaluation metrics for pose estimation tasks, similar to the original COCO dataset. Key metrics include the Object Keypoint Similarity (OKS), which evaluates the [accuracy](https://www.ultralytics.com/glossary/accuracy) of predicted keypoints against ground truth annotations. These metrics allow for thorough performance comparisons between different models. For instance, the COCO-Pose pretrained models such as YOLO26n-pose, YOLO26s-pose, and others have specific performance metrics listed in the documentation, like mAP<sup>pose</sup>50-95 and mAP<sup>pose</sup>50.
 
 ### How is the dataset structured and split for the COCO-Pose dataset?
 
@@ -147,6 +147,6 @@ These subsets help organize the training, validation, and testing phases effecti
 
 ### What are the key features and applications of the COCO-Pose dataset?
 
-The COCO-Pose dataset extends the COCO Keypoints 2017 annotations to include 17 keypoints for human figures, enabling detailed pose estimation. Standardized evaluation metrics (e.g., OKS) facilitate comparisons across different models. Applications of the COCO-Pose dataset span various domains, such as sports analytics, healthcare, and human-computer interaction, wherever detailed pose estimation of human figures is required. For practical use, leveraging pretrained models like those provided in the documentation (e.g., YOLO11n-pose) can significantly streamline the process ([Key Features](#key-features)).
+The COCO-Pose dataset extends the COCO Keypoints 2017 annotations to include 17 keypoints for human figures, enabling detailed pose estimation. Standardized evaluation metrics (e.g., OKS) facilitate comparisons across different models. Applications of the COCO-Pose dataset span various domains, such as sports analytics, healthcare, and human-computer interaction, wherever detailed pose estimation of human figures is required. For practical use, leveraging pretrained models like those provided in the documentation (e.g., YOLO26n-pose) can significantly streamline the process ([Key Features](#key-features)).
 
 If you use the COCO-Pose dataset in your research or development work, please cite the paper with the following [BibTeX entry](#citations-and-acknowledgments).

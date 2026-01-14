@@ -37,7 +37,7 @@ Ultralytics commands use the following syntax:
         from ultralytics import YOLO
 
         # Load a YOLO model from a pretrained weights file
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Run the model in MODE using custom ARGS
         MODE = "predict"

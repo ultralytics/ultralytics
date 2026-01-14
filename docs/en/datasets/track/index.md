@@ -28,14 +28,14 @@ Ultralytics YOLO supports the following tracking algorithms:
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
         results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.1, iou=0.7, show=True)
         ```
 
     === "CLI"
 
         ```bash
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show=True
+        yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show=True
         ```
 
 ## Persisting Tracks Between Frames
@@ -52,7 +52,7 @@ For continuous tracking across video frames, you can use the `persist=True` para
         from ultralytics import YOLO
 
         # Load the YOLO model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Open the video file
         cap = cv2.VideoCapture("path/to/video.mp4")
@@ -89,17 +89,17 @@ To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the P
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")  # Load the YOLO11 model
+        model = YOLO("yolo26n.pt")  # Load the YOLO26 model
         results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.1, iou=0.7, show=True)
         ```
 
     === "CLI"
 
         ```bash
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show=True
+        yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show=True
         ```
 
-These commands load the YOLO11 model and use it for tracking objects in the given video source with specific confidence (`conf`) and [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
+These commands load the YOLO26 model and use it for tracking objects in the given video source with specific confidence (`conf`) and [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
 
 ### What are the upcoming features for training trackers in Ultralytics?
 
@@ -137,6 +137,6 @@ You can customize the tracker by creating a modified version of the tracker conf
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 results = model.track(source="video.mp4", tracker="custom_tracker.yaml")
 ```

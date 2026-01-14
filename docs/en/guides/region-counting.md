@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Learn how to use Ultralytics YOLO11 for precise object counting in specified regions, enhancing efficiency across various applications.
-keywords: object counting, regions, YOLO11, computer vision, Ultralytics, efficiency, accuracy, automation, real-time, applications, surveillance, monitoring
+description: Learn how to use Ultralytics YOLO26 for precise object counting in specified regions, enhancing efficiency across various applications.
+keywords: object counting, regions, YOLO26, computer vision, Ultralytics, efficiency, accuracy, automation, real-time, applications, surveillance, monitoring
 ---
 
 # Object Counting in Different Regions using Ultralytics YOLO 🚀
 
 ## What is Object Counting in Regions?
 
-[Object counting](../guides/object-counting.md) in regions with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
+[Object counting](../guides/object-counting.md) in regions with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) involves precisely determining the number of objects within specified areas using advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv). This approach is valuable for optimizing processes, enhancing security, and improving efficiency in various applications.
 
 <p align="center">
   <br>
@@ -18,7 +18,7 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Object Counting in Different Regions using Ultralytics YOLO11 | Ultralytics Solutions 🚀
+  <strong>Watch:</strong> Object Counting in Different Regions using Ultralytics YOLO26 | Ultralytics Solutions 🚀
 </p>
 
 ## Advantages of Object Counting in Regions
@@ -31,8 +31,8 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
 
 |                                                                                      Retail                                                                                       |                                                                                 Market Streets                                                                                  |
 | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![People Counting in Different Region using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/people-counting-different-region-ultralytics-yolov8.avif) | ![Crowd Counting in Different Region using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/crowd-counting-different-region-ultralytics-yolov8.avif) |
-|                                                           People Counting in Different Region using Ultralytics YOLO11                                                            |                                                           Crowd Counting in Different Region using Ultralytics YOLO11                                                           |
+| ![People Counting in Different Region using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/people-counting-different-region-ultralytics-yolov8.avif) | ![Crowd Counting in Different Region using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/crowd-counting-different-region-ultralytics-yolov8.avif) |
+|                                                           People Counting in Different Region using Ultralytics YOLO26                                                            |                                                           Crowd Counting in Different Region using Ultralytics YOLO26                                                           |
 
 ## Usage Examples
 
@@ -65,7 +65,7 @@ keywords: object counting, regions, YOLO11, computer vision, Ultralytics, effici
          regioncounter = solutions.RegionCounter(
              show=True,  # display the frame
              region=region_points,  # pass region points
-             model="yolo11n.pt",  # model for counting in regions, e.g., yolo11s.pt
+             model="yolo26n.pt",  # model for counting in regions, e.g., yolo26s.pt
          )
 
          # Process video
@@ -110,13 +110,13 @@ Additionally, the following visualization settings are supported:
 
 ## FAQ
 
-### What is object counting in specified regions using Ultralytics YOLO11?
+### What is object counting in specified regions using Ultralytics YOLO26?
 
-Object counting in specified regions with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) involves detecting and tallying the number of objects within defined areas using advanced computer vision. This precise method enhances efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy) across various applications like manufacturing, surveillance, and traffic monitoring.
+Object counting in specified regions with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) involves detecting and tallying the number of objects within defined areas using advanced computer vision. This precise method enhances efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy) across various applications like manufacturing, surveillance, and traffic monitoring.
 
-### How do I run the region based object counting script with Ultralytics YOLO11?
+### How do I run the region based object counting script with Ultralytics YOLO26?
 
-Follow these steps to run object counting in Ultralytics YOLO11:
+Follow these steps to run object counting in Ultralytics YOLO26:
 
 1. Clone the Ultralytics repository and navigate to the directory:
 
@@ -132,11 +132,11 @@ Follow these steps to run object counting in Ultralytics YOLO11:
 
 For more options, visit the [Usage Examples](#usage-examples) section.
 
-### Why should I use Ultralytics YOLO11 for object counting in regions?
+### Why should I use Ultralytics YOLO26 for object counting in regions?
 
-Using Ultralytics YOLO11 for object counting in regions offers several advantages:
+Using Ultralytics YOLO26 for object counting in regions offers several advantages:
 
-1. **Real-time Processing:** YOLO11's architecture enables fast inference, making it ideal for applications requiring immediate counting results.
+1. **Real-time Processing:** YOLO26's architecture enables fast inference, making it ideal for applications requiring immediate counting results.
 2. **Flexible Region Definition:** The solution allows you to define multiple custom regions as polygons, rectangles, or lines to suit your specific monitoring needs.
 3. **Multi-class Support:** Count different object types simultaneously within the same regions, providing comprehensive analytics.
 4. **Integration Capabilities:** Easily integrate with existing systems through the Ultralytics Python API or command-line interface.
@@ -145,7 +145,7 @@ Explore deeper benefits in the [Advantages](#advantages-of-object-counting-in-re
 
 ### What are some real-world applications of object counting in regions?
 
-Object counting with Ultralytics YOLO11 can be applied to numerous real-world scenarios:
+Object counting with Ultralytics YOLO26 can be applied to numerous real-world scenarios:
 
 - **Retail Analytics:** Count customers in different store sections to optimize layout and staffing.
 - **Traffic Management:** Monitor vehicle flow in specific road segments or intersections.

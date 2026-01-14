@@ -59,7 +59,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLO11n model on the SKU-110K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n model on the SKU-110K dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -69,7 +69,7 @@ To train a YOLO11n model on the SKU-110K dataset for 100 [epochs](https://www.ul
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="SKU-110K.yaml", epochs=100, imgsz=640)
@@ -79,7 +79,7 @@ To train a YOLO11n model on the SKU-110K dataset for 100 [epochs](https://www.ul
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=SKU-110K.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=SKU-110K.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Data and Annotations
@@ -117,9 +117,9 @@ We would like to acknowledge Eran Goldman et al. for creating and maintaining th
 
 The SKU-110k dataset consists of densely packed retail shelf images designed to aid research in object detection tasks. Developed by Eran Goldman et al., it includes over 110,000 unique SKU categories. Its importance lies in its ability to challenge state-of-the-art object detectors with diverse object appearances and proximity, making it an invaluable resource for researchers and practitioners in computer vision. Learn more about the dataset's structure and applications in our [SKU-110k Dataset](#sku-110k-dataset) section.
 
-### How do I train a YOLO11 model using the SKU-110k dataset?
+### How do I train a YOLO26 model using the SKU-110k dataset?
 
-Training a YOLO11 model on the SKU-110k dataset is straightforward. Here's an example to train a YOLO11n model for 100 epochs with an image size of 640:
+Training a YOLO26 model on the SKU-110k dataset is straightforward. Here's an example to train a YOLO26n model for 100 epochs with an image size of 640:
 
 !!! example "Train Example"
 
@@ -129,7 +129,7 @@ Training a YOLO11 model on the SKU-110k dataset is straightforward. Here's an ex
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="SKU-110K.yaml", epochs=100, imgsz=640)
@@ -140,7 +140,7 @@ Training a YOLO11 model on the SKU-110k dataset is straightforward. Here's an ex
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=SKU-110K.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=SKU-110K.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.

@@ -38,16 +38,16 @@ The default tracker is **BoT-SORT**.
 
 ## ⚙️ Usage
 
-To run the tracker on video streams, use a trained Detect, Segment, or Pose model like [Ultralytics YOLO11n](https://docs.ultralytics.com/models/yolo11/), YOLO11n-seg, or YOLO11n-pose.
+To run the tracker on video streams, use a trained Detect, Segment, or Pose model like [Ultralytics YOLO26n](https://docs.ultralytics.com/models/yolo26/), YOLO26n-seg, or YOLO26n-pose.
 
 ```python
 # Python
 from ultralytics import YOLO
 
 # Load an official or custom model
-model = YOLO("yolo11n.pt")  # Load an official Detect model
-# model = YOLO("yolo11n-seg.pt")  # Load an official Segment model
-# model = YOLO("yolo11n-pose.pt")  # Load an official Pose model
+model = YOLO("yolo26n.pt")  # Load an official Detect model
+# model = YOLO("yolo26n-seg.pt")  # Load an official Segment model
+# model = YOLO("yolo26n-pose.pt")  # Load an official Pose model
 # model = YOLO("path/to/best.pt")  # Load a custom trained model
 
 # Perform tracking with the model
@@ -58,9 +58,9 @@ results = model.track(source="https://youtu.be/LNwODJXcvt4", show=True)  # Track
 ```bash
 # CLI
 # Perform tracking with various models using the command line interface
-yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" # Official Detect model
-# yolo track model=yolo11n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
-# yolo track model=yolo11n-pose.pt source="https://youtu.be/LNwODJXcvt4" # Official Pose model
+yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" # Official Detect model
+# yolo track model=yolo26n-seg.pt source="https://youtu.be/LNwODJXcvt4"  # Official Segment model
+# yolo track model=yolo26n-pose.pt source="https://youtu.be/LNwODJXcvt4" # Official Pose model
 # yolo track model=path/to/best.pt source="https://youtu.be/LNwODJXcvt4" # Custom trained model
 
 # Track using ByteTrack tracker
@@ -80,14 +80,14 @@ Tracking configuration shares properties with the Predict mode, such as `conf` (
 from ultralytics import YOLO
 
 # Configure the tracking parameters and run the tracker
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 results = model.track(source="https://youtu.be/LNwODJXcvt4", conf=0.1, iou=0.7, show=True)
 ```
 
 ```bash
 # CLI
 # Configure tracking parameters and run the tracker using the command line interface
-yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show
+yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.1 iou=0.7 show
 ```
 
 ### Tracker Selection
@@ -99,14 +99,14 @@ Ultralytics allows you to use a modified tracker configuration file. Create a co
 from ultralytics import YOLO
 
 # Load the model and run the tracker with a custom configuration file
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 results = model.track(source="https://youtu.be/LNwODJXcvt4", tracker="custom_tracker.yaml")
 ```
 
 ```bash
 # CLI
 # Load the model and run the tracker with a custom configuration file using the command line interface
-yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
+yolo track model=yolo26n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
 ```
 
 For a comprehensive list of tracking arguments, consult the [Tracking Configuration files](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) in the repository.
@@ -115,7 +115,7 @@ For a comprehensive list of tracking arguments, consult the [Tracking Configurat
 
 ### Persisting Tracks Loop
 
-This Python script uses [OpenCV (`cv2`)](https://opencv.org/) and Ultralytics YOLO11 to perform object tracking on video frames. Ensure you have installed the necessary packages (`opencv-python` and `ultralytics`). The [`persist=True`](https://docs.ultralytics.com/modes/predict/#tracking) argument indicates that the current frame is the next in a sequence, allowing the tracker to maintain track continuity from the previous frame.
+This Python script uses [OpenCV (`cv2`)](https://opencv.org/) and Ultralytics YOLO26 to perform object tracking on video frames. Ensure you have installed the necessary packages (`opencv-python` and `ultralytics`). The [`persist=True`](https://docs.ultralytics.com/modes/predict/#tracking) argument indicates that the current frame is the next in a sequence, allowing the tracker to maintain track continuity from the previous frame.
 
 ```python
 # Python
@@ -123,8 +123,8 @@ import cv2
 
 from ultralytics import YOLO
 
-# Load the YOLO11 model
-model = YOLO("yolo11n.pt")
+# Load the YOLO26 model
+model = YOLO("yolo26n.pt")
 
 # Open the video file
 video_path = "path/to/video.mp4"
@@ -136,14 +136,14 @@ while cap.isOpened():
     success, frame = cap.read()
 
     if success:
-        # Run YOLO11 tracking on the frame, persisting tracks between frames
+        # Run YOLO26 tracking on the frame, persisting tracks between frames
         results = model.track(frame, persist=True)
 
         # Visualize the results on the frame
         annotated_frame = results[0].plot()
 
         # Display the annotated frame
-        cv2.imshow("YOLO11 Tracking", annotated_frame)
+        cv2.imshow("YOLO26 Tracking", annotated_frame)
 
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -161,9 +161,9 @@ Note the use of `model.track(frame)` instead of `model(frame)`, which specifical
 
 ### Plotting Tracks Over Time
 
-Visualizing object tracks across consecutive frames offers valuable insights into movement patterns within a video. Ultralytics YOLO11 makes plotting these tracks efficient.
+Visualizing object tracks across consecutive frames offers valuable insights into movement patterns within a video. Ultralytics YOLO26 makes plotting these tracks efficient.
 
-The following example demonstrates how to use YOLO11's tracking capabilities to plot the movement of detected objects. The script opens a video, reads it frame by frame, and uses the YOLO model built on [PyTorch](https://pytorch.org/) to identify and track objects. By storing the center points of the detected [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) and connecting them, we can draw lines representing the paths of tracked objects using [NumPy](https://numpy.org/) for numerical operations.
+The following example demonstrates how to use YOLO26's tracking capabilities to plot the movement of detected objects. The script opens a video, reads it frame by frame, and uses the YOLO model built on [PyTorch](https://pytorch.org/) to identify and track objects. By storing the center points of the detected [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) and connecting them, we can draw lines representing the paths of tracked objects using [NumPy](https://numpy.org/) for numerical operations.
 
 ```python
 # Python
@@ -174,8 +174,8 @@ import numpy as np
 
 from ultralytics import YOLO
 
-# Load the YOLO11 model
-model = YOLO("yolo11n.pt")
+# Load the YOLO26 model
+model = YOLO("yolo26n.pt")
 
 # Open the video file
 video_path = "path/to/video.mp4"
@@ -190,7 +190,7 @@ while cap.isOpened():
     success, frame = cap.read()
 
     if success:
-        # Run YOLO11 tracking on the frame, persisting tracks between frames
+        # Run YOLO26 tracking on the frame, persisting tracks between frames
         result = model.track(frame, persist=True)[0]
 
         # Get the boxes and track IDs
@@ -214,7 +214,7 @@ while cap.isOpened():
                 cv2.polylines(frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
 
         # Display the annotated frame
-        cv2.imshow("YOLO11 Tracking", frame)
+        cv2.imshow("YOLO26 Tracking", frame)
 
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -236,7 +236,7 @@ This Python script utilizes Python's [`threading`](https://docs.python.org/3/lib
 
 The `run_tracker_in_thread` function accepts parameters like the video file path, model, and a unique window index. It contains the main tracking loop, reading frames, running the tracker, and displaying results in a dedicated window.
 
-This example uses two models, `yolo11n.pt` and `yolo11n-seg.pt`, tracking objects in `video_file1` and `video_file2`, respectively.
+This example uses two models, `yolo26n.pt` and `yolo26n-seg.pt`, tracking objects in `video_file1` and `video_file2`, respectively.
 
 Setting `daemon=True` in `threading.Thread` ensures threads exit when the main program finishes. Threads are started with `start()` and the main thread waits for their completion using `join()`.
 
@@ -251,7 +251,7 @@ import cv2
 from ultralytics import YOLO
 
 # Define model names and video sources
-MODEL_NAMES = ["yolo11n.pt", "yolo11n-seg.pt"]
+MODEL_NAMES = ["yolo26n.pt", "yolo26n-seg.pt"]
 SOURCES = ["path/to/video.mp4", "0"]  # local video, 0 for webcam
 
 

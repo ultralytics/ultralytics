@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Harness the power of Ultralytics YOLO11 for real-time, high-speed inference on various data sources. Learn about predict mode, key features, and practical applications.
-keywords: Ultralytics, YOLO11, model prediction, inference, predict mode, real-time inference, computer vision, machine learning, streaming, high performance
+description: Harness the power of Ultralytics YOLO26 for real-time, high-speed inference on various data sources. Learn about predict mode, key features, and practical applications.
+keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-time inference, computer vision, machine learning, streaming, high performance
 ---
 
 # Model Prediction with Ultralytics YOLO
@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO11, model prediction, inference, predict mode, real-t
 
 ## Introduction
 
-In the world of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), the process of making sense of visual data is often called inference or prediction. Ultralytics YOLO11 offers a powerful feature known as **predict mode**, tailored for high-performance, real-time inference across a wide range of data sources.
+In the world of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), the process of making sense of visual data is often called inference or prediction. Ultralytics YOLO26 offers a powerful feature known as **predict mode**, tailored for high-performance, real-time inference across a wide range of data sources.
 
 <p align="center">
   <br>
@@ -20,7 +20,7 @@ In the world of [machine learning](https://www.ultralytics.com/glossary/machine-
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Extract Results from Ultralytics YOLO11 Tasks for Custom Projects 🚀
+  <strong>Watch:</strong> How to Extract Results from Ultralytics YOLO26 Tasks for Custom Projects 🚀
 </p>
 
 ## Real-world Applications
@@ -32,7 +32,7 @@ In the world of [machine learning](https://www.ultralytics.com/glossary/machine-
 
 ## Why Use Ultralytics YOLO for Inference?
 
-Here's why you should consider YOLO11's predict mode for your various inference needs:
+Here's why you should consider YOLO26's predict mode for your various inference needs:
 
 - **Versatility:** Capable of running inference on images, videos, and even live streams.
 - **Performance:** Engineered for real-time, high-speed processing without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy).
@@ -41,7 +41,7 @@ Here's why you should consider YOLO11's predict mode for your various inference 
 
 ### Key Features of Predict Mode
 
-YOLO11's predict mode is designed to be robust and versatile, featuring:
+YOLO26's predict mode is designed to be robust and versatile, featuring:
 
 - **Multiple Data Source Compatibility:** Whether your data is in the form of individual images, a collection of images, video files, or real-time video streams, predict mode has you covered.
 - **Streaming Mode:** Use the streaming feature to generate a memory-efficient generator of `Results` objects. Enable this by setting `stream=True` in the predictor's call method.
@@ -58,7 +58,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects or a me
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # pretrained YOLO11n model
+        model = YOLO("yolo26n.pt")  # pretrained YOLO26n model
 
         # Run batched inference on a list of images
         results = model(["image1.jpg", "image2.jpg"])  # return a list of Results objects
@@ -80,7 +80,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects or a me
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # pretrained YOLO11n model
+        model = YOLO("yolo26n.pt")  # pretrained YOLO26n model
 
         # Run batched inference on a list of images
         results = model(["image1.jpg", "image2.jpg"], stream=True)  # return a generator of Results objects
@@ -98,7 +98,7 @@ Ultralytics YOLO models return either a Python list of `Results` objects or a me
 
 ## Inference Sources
 
-YOLO11 can process different types of input sources for inference, as shown in the table below. The sources include static images, video streams, and various data formats. The table also indicates whether each source can be used in streaming mode with the argument `stream=True` ✅. Streaming mode is beneficial for processing videos or live streams as it creates a generator of results instead of loading all frames into memory.
+YOLO26 can process different types of input sources for inference, as shown in the table below. The sources include static images, video streams, and various data formats. The table also indicates whether each source can be used in streaming mode with the argument `stream=True` ✅. Streaming mode is beneficial for processing videos or live streams as it creates a generator of results instead of loading all frames into memory.
 
 !!! tip
 
@@ -132,8 +132,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Define path to the image file
         source = "path/to/image.jpg"
@@ -148,8 +148,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Define current screenshot as source
         source = "screen"
@@ -164,8 +164,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Define remote image or video URL
         source = "https://ultralytics.com/images/bus.jpg"
@@ -182,8 +182,8 @@ Below are code examples for using each source type:
 
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Open an image using PIL
         source = Image.open("path/to/image.jpg")
@@ -200,8 +200,8 @@ Below are code examples for using each source type:
 
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Read an image using OpenCV
         source = cv2.imread("path/to/image.jpg")
@@ -218,8 +218,8 @@ Below are code examples for using each source type:
 
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Create a random numpy array of HWC shape (640, 640, 3) with values in range [0, 255] and type uint8
         source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype="uint8")
@@ -236,8 +236,8 @@ Below are code examples for using each source type:
 
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Create a random torch tensor of BCHW shape (1, 3, 640, 640) with values in range [0, 1] and type float32
         source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
@@ -252,8 +252,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Define a path to a CSV file with images, URLs, videos and directories
         source = "path/to/file.csv"
@@ -268,8 +268,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Define path to video file
         source = "path/to/video.mp4"
@@ -284,8 +284,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Define path to directory containing images and videos for inference
         source = "path/to/dir"
@@ -300,8 +300,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Define a glob search for all JPG files in a directory
         source = "path/to/dir/*.jpg"
@@ -319,8 +319,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Define source as YouTube video URL
         source = "https://youtu.be/LNwODJXcvt4"
@@ -336,8 +336,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Single stream with batch-size 1 inference
         source = "rtsp://example.com/media.mp4"  # RTSP, RTMP, TCP, or IP streaming address
@@ -355,8 +355,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Multiple streams with batched inference (e.g., batch-size 8 for 8 streams)
         source = "path/to/list.streams"  # *.streams text file with one streaming address per line
@@ -384,8 +384,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Run inference on the source
         results = model(source=0, stream=True)  # generator of Results objects
@@ -409,8 +409,8 @@ Below are code examples for using each source type:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26n model
+        model = YOLO("yolo26n.pt")
 
         # Run inference on 'bus.jpg' with arguments
         model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, conf=0.25)
@@ -420,7 +420,7 @@ Below are code examples for using each source type:
 
         ```bash
         # Run inference on 'bus.jpg'
-        yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n.pt source='https://ultralytics.com/images/bus.jpg'
         ```
 
 Inference arguments:
@@ -434,7 +434,7 @@ Visualization arguments:
 
 ## Image and Video Formats
 
-YOLO11 supports various image and video formats, as specified in [ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). See the tables below for the valid suffixes and example predict commands.
+YOLO26 supports various image and video formats, as specified in [ultralytics/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). See the tables below for the valid suffixes and example predict commands.
 
 ### Images
 
@@ -486,8 +486,8 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     ```python
     from ultralytics import YOLO
 
-    # Load a pretrained YOLO11n model
-    model = YOLO("yolo11n.pt")
+    # Load a pretrained YOLO26n model
+    model = YOLO("yolo26n.pt")
 
     # Run inference on an image
     results = model("https://ultralytics.com/images/bus.jpg")
@@ -547,8 +547,8 @@ For more details see the [`Results` class documentation](../reference/engine/res
     ```python
     from ultralytics import YOLO
 
-    # Load a pretrained YOLO11n model
-    model = YOLO("yolo11n.pt")
+    # Load a pretrained YOLO26n model
+    model = YOLO("yolo26n.pt")
 
     # Run inference on an image
     results = model("https://ultralytics.com/images/bus.jpg")  # results list
@@ -585,8 +585,8 @@ For more details see the [`Boxes` class documentation](../reference/engine/resul
     ```python
     from ultralytics import YOLO
 
-    # Load a pretrained YOLO11n-seg Segment model
-    model = YOLO("yolo11n-seg.pt")
+    # Load a pretrained YOLO26n-seg Segment model
+    model = YOLO("yolo26n-seg.pt")
 
     # Run inference on an image
     results = model("https://ultralytics.com/images/bus.jpg")  # results list
@@ -618,8 +618,8 @@ For more details see the [`Masks` class documentation](../reference/engine/resul
     ```python
     from ultralytics import YOLO
 
-    # Load a pretrained YOLO11n-pose Pose model
-    model = YOLO("yolo11n-pose.pt")
+    # Load a pretrained YOLO26n-pose Pose model
+    model = YOLO("yolo26n-pose.pt")
 
     # Run inference on an image
     results = model("https://ultralytics.com/images/bus.jpg")  # results list
@@ -652,8 +652,8 @@ For more details see the [`Keypoints` class documentation](../reference/engine/r
     ```python
     from ultralytics import YOLO
 
-    # Load a pretrained YOLO11n-cls Classify model
-    model = YOLO("yolo11n-cls.pt")
+    # Load a pretrained YOLO26n-cls Classify model
+    model = YOLO("yolo26n-cls.pt")
 
     # Run inference on an image
     results = model("https://ultralytics.com/images/bus.jpg")  # results list
@@ -687,8 +687,8 @@ For more details see the [`Probs` class documentation](../reference/engine/resul
     ```python
     from ultralytics import YOLO
 
-    # Load a pretrained YOLO11n model
-    model = YOLO("yolo11n-obb.pt")
+    # Load a pretrained YOLO26n model
+    model = YOLO("yolo26n-obb.pt")
 
     # Run inference on an image
     results = model("https://ultralytics.com/images/boats.jpg")  # results list
@@ -727,8 +727,8 @@ The `plot()` method in `Results` objects facilitates visualization of prediction
 
     from ultralytics import YOLO
 
-    # Load a pretrained YOLO11n model
-    model = YOLO("yolo11n.pt")
+    # Load a pretrained YOLO26n model
+    model = YOLO("yolo26n.pt")
 
     # Run inference on 'bus.jpg'
     results = model(["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"])  # results list
@@ -794,8 +794,8 @@ When using YOLO models in a multi-threaded application, it's important to instan
 
 
     # Starting threads that each have their own model instance
-    Thread(target=thread_safe_predict, args=("yolo11n.pt", "image1.jpg")).start()
-    Thread(target=thread_safe_predict, args=("yolo11n.pt", "image2.jpg")).start()
+    Thread(target=thread_safe_predict, args=("yolo26n.pt", "image1.jpg")).start()
+    Thread(target=thread_safe_predict, args=("yolo26n.pt", "image2.jpg")).start()
     ```
 
 For an in-depth look at thread-safe inference with YOLO models and step-by-step instructions, please refer to our [YOLO Thread-Safe Inference Guide](../guides/yolo-thread-safe-inference.md). This guide will provide you with all the necessary information to avoid common pitfalls and ensure that your multi-threaded inference runs smoothly.
@@ -812,7 +812,7 @@ Here's a Python script using OpenCV (`cv2`) and YOLO to run inference on video f
     from ultralytics import YOLO
 
     # Load the YOLO model
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Open the video file
     video_path = "path/to/your/video/file.mp4"

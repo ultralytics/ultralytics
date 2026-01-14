@@ -16,9 +16,9 @@ RUN apt-get update && \
 
 # Install export dependencies and run exports to AutoInstall packages
 RUN uv pip install --system -e ".[export]" && \
-    # Run exports to AutoInstall packages
-    yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 && \
-    yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32 && \
+    # Run exports to AutoInstall packages (IMX can only export to YOLO11)
+    yolo export model=tmp/yolo26n.pt format=edgetpu imgsz=32 && \
+    yolo export model=tmp/yolo26n.pt format=ncnn imgsz=32 && \
     yolo export model=tmp/yolo11n.pt format=imx imgsz=32 && \
     uv pip install --system paddlepaddle x2paddle && \
     # Remove extra build files

@@ -1,19 +1,19 @@
 ---
 comments: true
-description: Learn to export Ultralytics YOLO11 models to Sony's IMX500 format for efficient edge AI deployment on Raspberry Pi AI Camera with on-chip processing.
+description: Learn to export Ultralytics YOLO26 models to Sony's IMX500 format for efficient edge AI deployment on Raspberry Pi AI Camera with on-chip processing.
 keywords: Sony, IMX500, IMX 500, Atrios, MCT, model export, quantization, pruning, deep learning optimization, Raspberry Pi AI Camera, edge AI, PyTorch, IMX
 ---
 
-# Sony IMX500 Export for Ultralytics YOLO11
+# Sony IMX500 Export for Ultralytics YOLO26
 
-This guide covers exporting and deploying Ultralytics YOLO11 models to Raspberry Pi AI Cameras that feature the Sony IMX500 sensor.
+This guide covers exporting and deploying Ultralytics YOLO26 models to Raspberry Pi AI Cameras that feature the Sony IMX500 sensor.
 
 Deploying computer vision models on devices with limited computational power, such as [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/), can be tricky. Using a model format optimized for faster performance makes a huge difference.
 
-The IMX500 model format is designed to use minimal power while delivering fast performance for neural networks. It allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through exporting and deploying your models to the IMX500 format while making it easier for your models to perform well on the [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/).
+The IMX500 model format is designed to use minimal power while delivering fast performance for neural networks. It allows you to optimize your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through exporting and deploying your models to the IMX500 format while making it easier for your models to perform well on the [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/).
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/ai-camera.avif" alt="Raspberry Pi AI Camera">
+  <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v8.4.0/ai-camera.avif" alt="Raspberry Pi AI Camera">
 </p>
 
 ## Why Should You Export to IMX500?
@@ -21,7 +21,7 @@ The IMX500 model format is designed to use minimal power while delivering fast p
 Sony's [IMX500 Intelligent Vision Sensor](https://www.aitrios.sony-semicon.com/edge-ai-devices/raspberry-pi-ai-camera) is a game-changing piece of hardware in edge AI processing. It's the world's first intelligent vision sensor with on-chip AI capabilities. This sensor helps overcome many challenges in edge AI, including data processing bottlenecks, privacy concerns, and performance limitations.
 While other sensors merely pass along images and frames, the IMX500 tells a whole story. It processes data directly on the sensor, allowing devices to generate insights in real-time.
 
-## Sony's IMX500 Export for YOLO11 Models
+## Sony's IMX500 Export for YOLO26 Models
 
 The IMX500 is designed to transform how devices handle data directly on the sensor, without needing to send it off to the cloud for processing.
 
@@ -33,7 +33,7 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 - **Addresses Privacy Concerns:** By processing data on the device, the IMX500 addresses privacy concerns, ideal for human-centric applications like person counting and occupancy tracking.
 - **Real-time Processing:** Fast, on-sensor processing supports real-time decisions, perfect for edge AI applications such as autonomous systems.
 
-**Before You Begin:** For best results, ensure your YOLO11 model is well-prepared for export by following our [Model Training Guide](https://docs.ultralytics.com/modes/train/), [Data Preparation Guide](https://docs.ultralytics.com/datasets/), and [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/).
+**Before You Begin:** For best results, ensure your YOLO26 model is well-prepared for export by following our [Model Training Guide](https://docs.ultralytics.com/modes/train/), [Data Preparation Guide](https://docs.ultralytics.com/datasets/), and [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/).
 
 ## Supported Tasks
 
@@ -46,7 +46,7 @@ Currently, you can only export models that include the following tasks to IMX500
 
 ## Usage Examples
 
-Export an Ultralytics YOLO11 model to IMX500 format and run inference with the exported model.
+Export an Ultralytics YOLO26 model to IMX500 format and run inference with the exported model.
 
 !!! note
 
@@ -59,14 +59,14 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          ```python
          from ultralytics import YOLO
 
-         # Load a YOLO11n PyTorch model
-         model = YOLO("yolo11n.pt")
+         # Load a YOLO26n PyTorch model
+         model = YOLO("yolo26n.pt")
 
          # Export the model
          model.export(format="imx", data="coco8.yaml")  # exports with PTQ quantization by default
 
          # Load the exported model
-         imx_model = YOLO("yolo11n_imx_model")
+         imx_model = YOLO("yolo26n_imx_model")
 
          # Run inference
          results = imx_model("https://ultralytics.com/images/bus.jpg")
@@ -75,11 +75,11 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
     === "CLI"
 
          ```bash
-         # Export a YOLO11n PyTorch model to imx format with Post-Training Quantization (PTQ)
-         yolo export model=yolo11n.pt format=imx data=coco8.yaml
+         # Export a YOLO26n PyTorch model to imx format with Post-Training Quantization (PTQ)
+         yolo export model=yolo26n.pt format=imx data=coco8.yaml
 
          # Run inference with the exported model
-         yolo predict model=yolo11n_imx_model source='https://ultralytics.com/images/bus.jpg'
+         yolo predict model=yolo26n_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
 !!! example "Pose Estimation"
@@ -89,14 +89,14 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          ```python
          from ultralytics import YOLO
 
-         # Load a YOLO11n-pose PyTorch model
-         model = YOLO("yolo11n-pose.pt")
+         # Load a YOLO26n-pose PyTorch model
+         model = YOLO("yolo26n-pose.pt")
 
          # Export the model
          model.export(format="imx", data="coco8-pose.yaml")  # exports with PTQ quantization by default
 
          # Load the exported model
-         imx_model = YOLO("yolo11n-pose_imx_model")
+         imx_model = YOLO("yolo26n-pose_imx_model")
 
          # Run inference
          results = imx_model("https://ultralytics.com/images/bus.jpg")
@@ -105,11 +105,11 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
     === "CLI"
 
          ```bash
-         # Export a YOLO11n-pose PyTorch model to imx format with Post-Training Quantization (PTQ)
-         yolo export model=yolo11n-pose.pt format=imx data=coco8-pose.yaml
+         # Export a YOLO26n-pose PyTorch model to imx format with Post-Training Quantization (PTQ)
+         yolo export model=yolo26n-pose.pt format=imx data=coco8-pose.yaml
 
          # Run inference with the exported model
-         yolo predict model=yolo11n-pose_imx_model source='https://ultralytics.com/images/bus.jpg'
+         yolo predict model=yolo26n-pose_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
 !!! example "Classification"
@@ -119,14 +119,14 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          ```python
          from ultralytics import YOLO
 
-         # Load a YOLO11n-cls PyTorch model
-         model = YOLO("yolo11n-cls.pt")
+         # Load a YOLO26n-cls PyTorch model
+         model = YOLO("yolo26n-cls.pt")
 
          # Export the model
          model.export(format="imx", data="imagenet10")  # exports with PTQ quantization by default
 
          # Load the exported model
-         imx_model = YOLO("yolo11n-cls_imx_model")
+         imx_model = YOLO("yolo26n-cls_imx_model")
 
          # Run inference
          results = imx_model("https://ultralytics.com/images/bus.jpg", imgsz=224)
@@ -135,11 +135,11 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
     === "CLI"
 
          ```bash
-         # Export a YOLO11n-cls PyTorch model to imx format with Post-Training Quantization (PTQ)
-         yolo export model=yolo11n-cls.pt format=imx data=imagenet10
+         # Export a YOLO26n-cls PyTorch model to imx format with Post-Training Quantization (PTQ)
+         yolo export model=yolo26n-cls.pt format=imx data=imagenet10
 
          # Run inference with the exported model
-         yolo predict model=yolo11n-cls_imx_model source='https://ultralytics.com/images/bus.jpg' imgsz=224
+         yolo predict model=yolo26n-cls_imx_model source='https://ultralytics.com/images/bus.jpg' imgsz=224
          ```
 
 !!! example "Instance Segmentation"
@@ -149,14 +149,14 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          ```python
          from ultralytics import YOLO
 
-         # Load a YOLO11n-seg PyTorch model
-         model = YOLO("yolo11n-seg.pt")
+         # Load a YOLO26n-seg PyTorch model
+         model = YOLO("yolo26n-seg.pt")
 
          # Export the model
          model.export(format="imx", data="coco8-seg.yaml")  # exports with PTQ quantization by default
 
          # Load the exported model
-         imx_model = YOLO("yolo11n-seg_imx_model")
+         imx_model = YOLO("yolo26n-seg_imx_model")
 
          # Run inference
          results = imx_model("https://ultralytics.com/images/bus.jpg")
@@ -165,11 +165,11 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
     === "CLI"
 
          ```bash
-         # Export a YOLO11n-seg PyTorch model to imx format with Post-Training Quantization (PTQ)
-         yolo export model=yolo11n-seg.pt format=imx data=coco8-seg.yaml
+         # Export a YOLO26n-seg PyTorch model to imx format with Post-Training Quantization (PTQ)
+         yolo export model=yolo26n-seg.pt format=imx data=coco8-seg.yaml
 
          # Run inference with the exported model
-         yolo predict model=yolo11n-seg_imx_model source='https://ultralytics.com/images/bus.jpg'
+         yolo predict model=yolo26n-seg_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
 !!! warning
@@ -200,54 +200,54 @@ The export process will create an ONNX model for quantization validation, along 
     === "Object Detection"
 
         ```bash
-        yolo11n_imx_model
+        yolo26n_imx_model
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n_imx.onnx
-        ├── yolo11n_imx_MemoryReport.json
-        └── yolo11n_imx.pbtxt
+        ├── yolo26n_imx.onnx
+        ├── yolo26n_imx_MemoryReport.json
+        └── yolo26n_imx.pbtxt
         ```
 
     === "Pose Estimation"
 
         ```bash
-        yolo11n-pose_imx_model
+        yolo26n-pose_imx_model
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-pose_imx.onnx
-        ├── yolo11n-pose_imx_MemoryReport.json
-        └── yolo11n-pose_imx.pbtxt
+        ├── yolo26n-pose_imx.onnx
+        ├── yolo26n-pose_imx_MemoryReport.json
+        └── yolo26n-pose_imx.pbtxt
         ```
 
     === "Classification"
 
         ```bash
-        yolo11n-cls_imx_model
+        yolo26n-cls_imx_model
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-cls_imx.onnx
-        ├── yolo11n-cls_imx_MemoryReport.json
-        └── yolo11n-cls_imx.pbtxt
+        ├── yolo26n-cls_imx.onnx
+        ├── yolo26n-cls_imx_MemoryReport.json
+        └── yolo26n-cls_imx.pbtxt
         ```
 
     === "Instance Segmentation"
 
         ```bash
-        yolo11n-seg_imx_model
+        yolo26n-seg_imx_model
         ├── dnnParams.xml
         ├── labels.txt
         ├── packerOut.zip
-        ├── yolo11n-seg_imx.onnx
-        ├── yolo11n-seg_imx_MemoryReport.json
-        └── yolo11n-seg_imx.pbtxt
+        ├── yolo26n-seg_imx.onnx
+        ├── yolo26n-seg_imx_MemoryReport.json
+        └── yolo26n-seg_imx.pbtxt
         ```
 
 ## Using IMX500 Export in Deployment
 
-After exporting Ultralytics YOLO11n model to IMX500 format, it can be deployed to Raspberry Pi AI Camera for inference.
+After exporting Ultralytics YOLO26n model to IMX500 format, it can be deployed to Raspberry Pi AI Camera for inference.
 
 ### Hardware Prerequisites
 
@@ -288,7 +288,7 @@ Step 4: Install [Aitrios Raspberry Pi application module library](https://github
 pip install git+https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library.git
 ```
 
-Step 5: Run YOLO11 object detection, pose estimation, classification and segmentation by using the below scripts which are available in [aitrios-rpi-application-module-library examples](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library/tree/main/examples/aicam).
+Step 5: Run YOLO26 object detection, pose estimation, classification and segmentation by using the below scripts which are available in [aitrios-rpi-application-module-library examples](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library/tree/main/examples/aicam).
 
 !!! note
 
@@ -312,14 +312,14 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
             def __init__(self):
                 """Initialize the YOLO model for IMX500 deployment."""
                 super().__init__(
-                    model_file="yolo11n_imx_model/packerOut.zip",  # replace with proper directory
+                    model_file="yolo26n_imx_model/packerOut.zip",  # replace with proper directory
                     model_type=MODEL_TYPE.CONVERTED,
                     color_format=COLOR_FORMAT.RGB,
                     preserve_aspect_ratio=False,
                 )
 
                 self.labels = np.genfromtxt(
-                    "yolo11n_imx_model/labels.txt",  # replace with proper directory
+                    "yolo26n_imx_model/labels.txt",  # replace with proper directory
                     dtype=str,
                     delimiter="\n",
                 )
@@ -359,7 +359,7 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
             def __init__(self):
                 """Initialize the YOLO pose estimation model for IMX500 deployment."""
                 super().__init__(
-                    model_file="yolo11n-pose_imx_model/packerOut.zip",  # replace with proper directory
+                    model_file="yolo26n-pose_imx_model/packerOut.zip",  # replace with proper directory
                     model_type=MODEL_TYPE.CONVERTED,
                     color_format=COLOR_FORMAT.RGB,
                     preserve_aspect_ratio=False,
@@ -402,13 +402,13 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
             def __init__(self):
                 """Initialize the YOLO classification model for IMX500 deployment."""
                 super().__init__(
-                    model_file="yolo11n-cls_imx_model/packerOut.zip",  # replace with proper directory
+                    model_file="yolo26n-cls_imx_model/packerOut.zip",  # replace with proper directory
                     model_type=MODEL_TYPE.CONVERTED,
                     color_format=COLOR_FORMAT.RGB,
                     preserve_aspect_ratio=False,
                 )
 
-                self.labels = np.genfromtxt("yolo11n-cls_imx_model/labels.txt", dtype=str, delimiter="\n")
+                self.labels = np.genfromtxt("yolo26n-cls_imx_model/labels.txt", dtype=str, delimiter="\n")
 
             def post_process(self, output_tensors):
                 """Post-process the output tensors for classification."""
@@ -446,14 +446,14 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
             def __init__(self):
                 """Initialize the YOLO segmentation model for IMX500 deployment."""
                 super().__init__(
-                    model_file="yolo11n-seg_imx_model/packerOut.zip",  # replace with proper directory
+                    model_file="yolo26n-seg_imx_model/packerOut.zip",  # replace with proper directory
                     model_type=MODEL_TYPE.CONVERTED,
                     color_format=COLOR_FORMAT.RGB,
                     preserve_aspect_ratio=False,
                 )
 
                 self.labels = np.genfromtxt(
-                    "yolo11n-seg_imx_model/labels.txt",  # replace with proper directory
+                    "yolo26n-seg_imx_model/labels.txt",  # replace with proper directory
                     dtype=str,
                     delimiter="\n",
                 )
@@ -502,7 +502,7 @@ YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchm
 ## What's Under the Hood?
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/imx500-deploy.avif" alt="IMX500 deployment">
+  <img width="640" src="https://github.com/ultralytics/assets/releases/download/v8.4.0/imx500-deploy.avif" alt="IMX500 deployment">
 </p>
 
 ### Sony Model Compression Toolkit (MCT)
@@ -550,7 +550,7 @@ MCT introduces structured, hardware-aware model pruning designed for specific ha
 
 ### IMX500 Converter Tool (Compiler)
 
-The IMX500 Converter Tool is integral to the IMX500 toolset, allowing the compilation of models for deployment on Sony's IMX500 sensor (for instance, Raspberry Pi AI Cameras). This tool facilitates the transition of Ultralytics YOLO11 models processed through Ultralytics software, ensuring they are compatible and perform efficiently on the specified hardware. The export procedure following model quantization involves the generation of binary files that encapsulate essential data and device-specific configurations, streamlining the deployment process on the Raspberry Pi AI Camera.
+The IMX500 Converter Tool is integral to the IMX500 toolset, allowing the compilation of models for deployment on Sony's IMX500 sensor (for instance, Raspberry Pi AI Cameras). This tool facilitates the transition of Ultralytics YOLO26 models processed through Ultralytics software, ensuring they are compatible and perform efficiently on the specified hardware. The export procedure following model quantization involves the generation of binary files that encapsulate essential data and device-specific configurations, streamlining the deployment process on the Raspberry Pi AI Camera.
 
 ## Real-World Use Cases
 
@@ -558,25 +558,25 @@ Export to IMX500 format has wide applicability across industries. Here are some 
 
 - **Edge AI and IoT**: Enable object detection on drones or security cameras, where real-time processing on low-power devices is essential.
 - **Wearable Devices**: Deploy models optimized for small-scale AI processing on health-monitoring wearables.
-- **Smart Cities**: Use IMX500-exported YOLO11 models for traffic monitoring and safety analysis with faster processing and minimal latency.
+- **Smart Cities**: Use IMX500-exported YOLO26 models for traffic monitoring and safety analysis with faster processing and minimal latency.
 - **Retail Analytics**: Enhance in-store monitoring by deploying optimized models in point-of-sale systems or smart shelves.
 
 ## Conclusion
 
-Exporting Ultralytics YOLO11 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. By leveraging advanced quantization techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
+Exporting Ultralytics YOLO26 models to Sony's IMX500 format allows you to deploy your models for efficient inference on IMX500-based cameras. By leveraging advanced quantization techniques, you can reduce model size and improve inference speed without significantly compromising accuracy.
 
 For more information and detailed guidelines, refer to Sony's [IMX500 website](https://www.aitrios.sony-semicon.com/edge-ai-devices/raspberry-pi-ai-camera).
 
 ## FAQ
 
-### How do I export a YOLO11 model to IMX500 format for Raspberry Pi AI Camera?
+### How do I export a YOLO26 model to IMX500 format for Raspberry Pi AI Camera?
 
-To export a YOLO11 model to IMX500 format, use either the Python API or CLI command:
+To export a YOLO26 model to IMX500 format, use either the Python API or CLI command:
 
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.export(format="imx")  # Exports with PTQ quantization by default
 ```
 
@@ -606,11 +606,11 @@ Software:
 - Raspberry Pi OS Bookworm
 - IMX500 firmware and tools (`sudo apt install imx500-all`)
 
-### What performance can I expect from YOLO11 models on the IMX500?
+### What performance can I expect from YOLO26 models on the IMX500?
 
 Based on Ultralytics benchmarks on Raspberry Pi AI Camera:
 
-- YOLO11n achieves 62.50ms inference time per image
+- YOLO26n achieves 62.50ms inference time per image
 - mAP50-95 of 0.492 on COCO128 dataset
 - Model size of only 3.2MB after quantization
 

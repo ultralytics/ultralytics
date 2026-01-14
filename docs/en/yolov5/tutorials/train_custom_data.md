@@ -20,7 +20,7 @@ pip install -r requirements.txt # Install dependencies
 
 ## Train On Custom Data
 
-<a href="https://www.ultralytics.com/hub" target="_blank">
+<a href="https://platform.ultralytics.com" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-active-learning-loop.avif" alt="Ultralytics active learning loop diagram showing data collection, labeling, training, deployment, and edge case collection"></a>
 <br>
 <br>
@@ -33,7 +33,7 @@ Developing a custom [object detection](https://docs.ultralytics.com/tasks/detect
 4.  **Deploy & Predict**: Utilize the trained model for [inference](https://docs.ultralytics.com/modes/predict/) on new, unseen data.
 5.  **Collect Edge Cases**: Identify scenarios where the model performs poorly ([edge cases](https://en.wikipedia.org/wiki/Edge_case)) and add similar data to your dataset to improve robustness. Repeat the cycle.
 
-[Ultralytics HUB](https://docs.ultralytics.com/hub/) offers a streamlined, no-code solution for this entire [machine learning operations (MLOps)](https://www.ultralytics.com/glossary/machine-learning-operations-mlops) cycle, including dataset management, model training, and deployment.
+[Ultralytics Platform](https://docs.ultralytics.com/platform/) offers a streamlined, no-code solution for this entire [machine learning operations (MLOps)](https://www.ultralytics.com/glossary/machine-learning-operations-mlops) cycle, including dataset management, model training, and deployment.
 
 !!! question "Licensing"
 
@@ -277,9 +277,9 @@ Training YOLOv5 on a custom dataset involves several key steps:
     python train.py --img 640 --batch 16 --epochs 100 --data path/to/your/dataset.yaml --weights yolov5s.pt
     ```
 
-### Why should I use Ultralytics HUB for training my YOLO models?
+### Why should I use Ultralytics Platform for training my YOLO models?
 
-[Ultralytics HUB](https://docs.ultralytics.com/hub/) is a comprehensive platform designed to streamline the entire YOLO model development lifecycle, often without needing to write any code. Key benefits include:
+[Ultralytics Platform](https://docs.ultralytics.com/platform/) is a comprehensive platform designed to streamline the entire YOLO model development lifecycle, often without needing to write any code. Key benefits include:
 
 - **Simplified Training**: Easily train models using pre-configured environments and an intuitive user interface.
 - **Integrated Data Management**: Upload, version control, and manage your datasets efficiently within the platform.
@@ -287,7 +287,7 @@ Training YOLOv5 on a custom dataset involves several key steps:
 - **Collaboration Features**: Facilitates teamwork through shared resources, project management tools, and easy model sharing.
 - **No-Code Deployment**: Deploy trained models directly to various targets.
 
-For a practical walkthrough, check out our blog post: [How to Train Your Custom Models with Ultralytics HUB](https://www.ultralytics.com/blog/how-to-train-your-custom-models-with-ultralytics-hub).
+For a practical walkthrough, check out our blog post: [How to Train Your Custom Models with Ultralytics Platform](https://www.ultralytics.com/blog/how-to-train-your-custom-models-with-ultralytics-hub).
 
 ### How do I convert my annotated data to the YOLOv5 format?
 

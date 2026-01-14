@@ -18,7 +18,7 @@ A brain tumor detection dataset consists of medical images from MRI or CT scans,
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Brain Tumor Detection using Ultralytics HUB
+  <strong>Watch:</strong> Brain Tumor Detection using Ultralytics Platform
 </p>
 
 ## Dataset Structure
@@ -56,7 +56,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a [YOLO11](https://docs.ultralytics.com/models/yolo11/) model on the brain tumor dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, utilize the provided code snippets. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
+To train a [YOLO26](https://docs.ultralytics.com/models/yolo26/) model on the brain tumor dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, utilize the provided code snippets. For a detailed list of available arguments, consult the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -66,7 +66,7 @@ To train a [YOLO11](https://docs.ultralytics.com/models/yolo11/) model on the br
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
@@ -76,7 +76,7 @@ To train a [YOLO11](https://docs.ultralytics.com/models/yolo11/) model on the br
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=brain-tumor.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=brain-tumor.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 !!! example "Inference Example"
@@ -108,7 +108,7 @@ The brain tumor dataset encompasses a wide array of medical images featuring bra
 
 - **Mosaiced Image**: Displayed here is a training batch comprising mosaiced dataset images. Mosaicing, a training technique, consolidates multiple images into one, enhancing batch diversity. This approach aids in improving the model's capacity to generalize across various tumor sizes, shapes, and locations within brain scans.
 
-This example highlights the diversity and intricacy of images within the brain tumor dataset, underscoring the advantages of incorporating mosaicing during the training phase for [medical image analysis](https://www.ultralytics.com/blog/using-yolo11-for-tumor-detection-in-medical-imaging).
+This example highlights the diversity and intricacy of images within the brain tumor dataset, underscoring the advantages of incorporating mosaicing during the training phase for [medical image analysis](https://www.ultralytics.com/blog/using-yolo26-for-tumor-detection-in-medical-imaging).
 
 ## Citations and Acknowledgments
 
@@ -136,9 +136,9 @@ If you use this dataset in your research or development work, please cite it app
 
 The brain tumor dataset is divided into two subsets: the **training set** consists of 893 images with corresponding annotations, while the **testing set** comprises 223 images with paired annotations. This structured division aids in developing robust and accurate computer vision models for detecting brain tumors. For more information on the dataset structure, visit the [Dataset Structure](#dataset-structure) section.
 
-### How can I train a YOLO11 model on the brain tumor dataset using Ultralytics?
+### How can I train a YOLO26 model on the brain tumor dataset using Ultralytics?
 
-You can train a YOLO11 model on the brain tumor dataset for 100 epochs with an image size of 640px using both Python and CLI methods. Below are the examples for both:
+You can train a YOLO26 model on the brain tumor dataset for 100 epochs with an image size of 640px using both Python and CLI methods. Below are the examples for both:
 
 !!! example "Train Example"
 
@@ -148,7 +148,7 @@ You can train a YOLO11 model on the brain tumor dataset for 100 epochs with an i
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="brain-tumor.yaml", epochs=100, imgsz=640)
@@ -159,7 +159,7 @@ You can train a YOLO11 model on the brain tumor dataset for 100 epochs with an i
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=brain-tumor.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=brain-tumor.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 For a detailed list of available arguments, refer to the [Training](../../modes/train.md) page.
@@ -168,9 +168,9 @@ For a detailed list of available arguments, refer to the [Training](../../modes/
 
 Using the brain tumor dataset in AI projects enables early diagnosis and treatment planning for brain tumors. It helps in automating brain tumor identification through computer vision, facilitating accurate and timely medical interventions, and supporting personalized treatment strategies. This application holds significant potential in improving patient outcomes and medical efficiencies. For more insights on AI applications in healthcare, see [Ultralytics' healthcare solutions](https://www.ultralytics.com/solutions/ai-in-healthcare).
 
-### How do I perform inference using a fine-tuned YOLO11 model on the brain tumor dataset?
+### How do I perform inference using a fine-tuned YOLO26 model on the brain tumor dataset?
 
-Inference using a fine-tuned YOLO11 model can be performed with either Python or CLI approaches. Here are the examples:
+Inference using a fine-tuned YOLO26 model can be performed with either Python or CLI approaches. Here are the examples:
 
 !!! example "Inference Example"
 

@@ -399,7 +399,7 @@ class YOLOE(Model):
                         "batch": 1,
                         "device": kwargs.get("device", None),
                         "half": kwargs.get("half", False),
-                        "imgsz": kwargs.get("imgsz", self.overrides["imgsz"]),
+                        "imgsz": kwargs.get("imgsz", self.overrides.get("imgsz", 640)),
                     },
                     _callbacks=self.callbacks,
                 )

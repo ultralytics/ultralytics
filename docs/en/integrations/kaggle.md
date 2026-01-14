@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Learn how to use Kaggle to train Ultralytics YOLO11 models with free GPU/TPU resources. Discover Kaggle's features, benefits, and best practices for efficient model development.
-keywords: Kaggle, YOLO11, Ultralytics, machine learning, model training, GPU, TPU, cloud computing, data science, computer vision
+description: Learn how to use Kaggle to train Ultralytics YOLO26 models with free GPU/TPU resources. Discover Kaggle's features, benefits, and best practices for efficient model development.
+keywords: Kaggle, YOLO26, Ultralytics, machine learning, model training, GPU, TPU, cloud computing, data science, computer vision
 ---
 
-# A Guide on Using Kaggle to Train Your YOLO11 Models
+# A Guide on Using Kaggle to Train Your YOLO26 Models
 
 If you are learning about AI and working on [small projects](../solutions/index.md), you might not have access to powerful computing resources yet, and high-end hardware can be expensive. Fortunately, Kaggle, a platform owned by Google, offers a great solution. Kaggle provides a free, cloud-based environment where you can access GPU resources, handle large datasets, and collaborate with a diverse community of data scientists and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) enthusiasts.
 
-Kaggle is a great choice for [training](../guides/model-training-tips.md) and experimenting with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics?tab=readme-ov-file) models. Kaggle Notebooks make using popular machine learning libraries and frameworks in your projects easy. This guide explores Kaggle's main features and shows how to train YOLO11 models on the platform.
+Kaggle is a great choice for [training](../guides/model-training-tips.md) and experimenting with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics?tab=readme-ov-file) models. Kaggle Notebooks make using popular machine learning libraries and frameworks in your projects easy. This guide explores Kaggle's main features and shows how to train YOLO26 models on the platform.
 
 ## What is Kaggle?
 
@@ -18,7 +18,7 @@ With more than [10 million users](https://www.kaggle.com/discussions/general/332
 
 ## Installation
 
-Before you can start training YOLO11 models on Kaggle, you need to ensure your notebook environment is properly configured. Follow these essential steps:
+Before you can start training YOLO26 models on Kaggle, you need to ensure your notebook environment is properly configured. Follow these essential steps:
 
 ### Enable Internet Access
 
@@ -114,21 +114,21 @@ ultralytics.checks()
 
 This will display system information and verify that all dependencies are correctly installed.
 
-## Training YOLO11 Using Kaggle
+## Training YOLO26 Using Kaggle
 
-Training YOLO11 models on Kaggle is simple and efficient, thanks to the platform's access to powerful GPUs.
+Training YOLO26 models on Kaggle is simple and efficient, thanks to the platform's access to powerful GPUs.
 
-To get started, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook). Kaggle's environment comes with pre-installed libraries like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making the setup process hassle-free.
+To get started, access the [Kaggle YOLO26 Notebook](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook). Kaggle's environment comes with pre-installed libraries like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and [PyTorch](https://www.ultralytics.com/glossary/pytorch), making the setup process hassle-free.
 
-![What is the kaggle integration with respect to YOLO11?](https://github.com/ultralytics/docs/releases/download/0/kaggle-integration-yolov8.avif)
+![What is the kaggle integration with respect to YOLO26?](https://github.com/ultralytics/docs/releases/download/0/kaggle-integration-yolov8.avif)
 
-Once you sign in to your Kaggle account, you can click on the option to copy and edit the code, select a GPU under the accelerator settings, and run the notebook's cells to begin training your model. For a detailed understanding of the model training process and best practices, refer to our [YOLO11 Model Training guide](../modes/train.md).
+Once you sign in to your Kaggle account, you can click on the option to copy and edit the code, select a GPU under the accelerator settings, and run the notebook's cells to begin training your model. For a detailed understanding of the model training process and best practices, refer to our [YOLO26 Model Training guide](../modes/train.md).
 
 ![Using kaggle for machine learning model training with a GPU](https://github.com/ultralytics/docs/releases/download/0/using-kaggle-for-machine-learning-model-training-with-a-gpu.avif)
 
-On the [official YOLO11 Kaggle notebook page](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook), clicking the three dots in the upper right-hand corner reveals additional options.
+On the [official YOLO26 Kaggle notebook page](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook), clicking the three dots in the upper right-hand corner reveals additional options.
 
-![Overview of Options From the Official YOLO11 Kaggle Notebook Page](https://github.com/ultralytics/docs/releases/download/0/overview-options-yolov8-kaggle-notebook.avif)
+![Overview of Options From the Official YOLO26 Kaggle Notebook Page](https://github.com/ultralytics/docs/releases/download/0/overview-options-yolov8-kaggle-notebook.avif)
 
 These options include:
 
@@ -157,17 +157,17 @@ When working with Kaggle, you might encounter some common issues. Here are key p
 
 Next, let's understand the features Kaggle offers that make it an excellent platform for data science and machine learning enthusiasts. Here are some of the key highlights:
 
-- **Datasets**: Kaggle hosts a massive collection of [datasets](https://docs.ultralytics.com/datasets/) on various topics. You can easily search and use these datasets in your projects, which is particularly handy for training and testing your YOLO11 models.
+- **Datasets**: Kaggle hosts a massive collection of [datasets](https://docs.ultralytics.com/datasets/) on various topics. You can easily search and use these datasets in your projects, which is particularly handy for training and testing your YOLO26 models.
 - **Competitions**: Known for its exciting competitions, Kaggle allows data scientists and machine learning enthusiasts to solve real-world problems. Competing helps you improve your skills, learn new techniques, and gain recognition in the community.
-- **Free Access to TPUs**: Kaggle provides free access to powerful [TPUs](https://www.ultralytics.com/glossary/tpu-tensor-processing-unit), which are beneficial for training complex machine learning models. This allows you to speed up processing and boost the performance of your YOLO11 projects without incurring extra costs.
+- **Free Access to TPUs**: Kaggle provides free access to powerful [TPUs](https://www.ultralytics.com/glossary/tpu-tensor-processing-unit), which are beneficial for training complex machine learning models. This allows you to speed up processing and boost the performance of your YOLO26 projects without incurring extra costs.
 - **Integration with GitHub**: Kaggle allows you to easily connect your GitHub repository to upload notebooks and save your work. This integration makes it convenient to manage and access your files.
 - **Community and Discussions**: Kaggle boasts a strong community of data scientists and machine learning practitioners. The discussion forums and shared notebooks are fantastic resources for learning and troubleshooting. You can easily find help, share your knowledge, and collaborate with others.
 
-## Why Should You Use Kaggle for Your YOLO11 Projects?
+## Why Should You Use Kaggle for Your YOLO26 Projects?
 
 There are multiple platforms for training and evaluating machine learning models, so what makes Kaggle stand out? Let's dive into the benefits of using Kaggle for your machine learning projects:
 
-- **Public Notebooks**: You can make your Kaggle notebooks public, allowing other users to view, vote, fork, and discuss your work. Kaggle promotes collaboration, feedback, and the sharing of ideas, helping you improve your YOLO11 models.
+- **Public Notebooks**: You can make your Kaggle notebooks public, allowing other users to view, vote, fork, and discuss your work. Kaggle promotes collaboration, feedback, and the sharing of ideas, helping you improve your YOLO26 models.
 - **Comprehensive History of Notebook Commits**: Kaggle creates a detailed history of your notebook commits. This allows you to review and track changes over time, making it easier to understand the evolution of your project and revert to previous versions if needed.
 - **Console Access**: Kaggle provides a console, giving you more control over your environment. This feature allows you to perform various tasks directly from the command line, enhancing your workflow and productivity.
 - **Resource Availability**: Each notebook editing session on Kaggle is provided with significant resources: 12 hours of execution time for CPU and GPU sessions, 9 hours of execution time for TPU sessions, and 20 gigabytes of auto-saved disk space.
@@ -184,17 +184,17 @@ If you want to learn more about Kaggle, here are some helpful resources to guide
 
 ## Summary
 
-We've seen how Kaggle can boost your YOLO11 projects by providing free access to powerful GPUs, making model training and evaluation efficient. Kaggle's platform is user-friendly, with pre-installed libraries for quick setup. The integration between Ultralytics YOLO11 and Kaggle creates a seamless environment for developing, training, and deploying state-of-the-art [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models without the need for expensive hardware.
+We've seen how Kaggle can boost your YOLO26 projects by providing free access to powerful GPUs, making model training and evaluation efficient. Kaggle's platform is user-friendly, with pre-installed libraries for quick setup. The integration between Ultralytics YOLO26 and Kaggle creates a seamless environment for developing, training, and deploying state-of-the-art [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models without the need for expensive hardware.
 
 For more details, visit [Kaggle's documentation](https://www.kaggle.com/docs).
 
-Interested in more YOLO11 integrations? Check out the [Ultralytics integration guide](https://docs.ultralytics.com/integrations/) to explore additional tools and capabilities for your machine learning projects.
+Interested in more YOLO26 integrations? Check out the [Ultralytics integration guide](https://docs.ultralytics.com/integrations/) to explore additional tools and capabilities for your machine learning projects.
 
 ## FAQ
 
-### How do I install Ultralytics YOLO11 on Kaggle?
+### How do I install Ultralytics YOLO26 on Kaggle?
 
-To install Ultralytics YOLO11 on Kaggle:
+To install Ultralytics YOLO26 on Kaggle:
 
 1. **Enable Internet**: Go to Settings panel and turn ON the Internet toggle
 2. **Install Package**: Run `!pip install ultralytics` in a notebook cell
@@ -202,13 +202,13 @@ To install Ultralytics YOLO11 on Kaggle:
 
 If you encounter dependency conflicts, try `!pip install --upgrade --force-reinstall ultralytics` or restart the kernel after installation. For detailed troubleshooting, see the [Installation section](#installation) above.
 
-### How do I train a YOLO11 model on Kaggle?
+### How do I train a YOLO26 model on Kaggle?
 
-Training a YOLO11 model on Kaggle is straightforward. First, access the [Kaggle YOLO11 Notebook](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO11 Model Training guide](../modes/train.md).
+Training a YOLO26 model on Kaggle is straightforward. First, access the [Kaggle YOLO26 Notebook](https://www.kaggle.com/code/glennjocherultralytics/ultralytics-yolo11-notebook). Sign in to your Kaggle account, copy and edit the notebook, and select a GPU under the accelerator settings. Run the notebook cells to start training. For more detailed steps, refer to our [YOLO26 Model Training guide](../modes/train.md).
 
-### What are the benefits of using Kaggle for YOLO11 model training?
+### What are the benefits of using Kaggle for YOLO26 model training?
 
-Kaggle offers several advantages for training YOLO11 models:
+Kaggle offers several advantages for training YOLO26 models:
 
 - **Free GPU Access**: Utilize powerful GPUs like NVIDIA Tesla P100 or T4 x2 for up to 30 hours per week.
 - **Pre-installed Libraries**: Libraries like TensorFlow and PyTorch are pre-installed, simplifying the setup.
@@ -217,7 +217,7 @@ Kaggle offers several advantages for training YOLO11 models:
 
 For more details, visit our [Ultralytics integration guide](https://docs.ultralytics.com/integrations/).
 
-### What common issues might I encounter when using Kaggle for YOLO11, and how can I resolve them?
+### What common issues might I encounter when using Kaggle for YOLO26, and how can I resolve them?
 
 Common issues include:
 
@@ -230,7 +230,7 @@ Common issues include:
 
 For more troubleshooting tips, see the [Installation section](#installation) and our [Common Issues guide](../guides/yolo-common-issues.md).
 
-### Why should I choose Kaggle over other platforms like Google Colab for training YOLO11 models?
+### Why should I choose Kaggle over other platforms like Google Colab for training YOLO26 models?
 
 Kaggle offers unique features that make it an excellent choice:
 

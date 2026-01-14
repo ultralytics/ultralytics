@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Discover YOLO11, the latest advancement in state-of-the-art object detection, offering unmatched accuracy and efficiency for diverse computer vision tasks.
-keywords: YOLO11, state-of-the-art object detection, YOLO series, Ultralytics, computer vision, AI, machine learning, deep learning
+description: Discover YOLO11, an advancement in real-time object detection, offering excellent accuracy and efficiency for diverse computer vision tasks.
+keywords: YOLO11, real-time object detection, YOLO series, Ultralytics, computer vision, AI, machine learning, deep learning
 ---
 
 # Ultralytics YOLO11
 
 ## Overview
 
-YOLO11 is the latest iteration in the [Ultralytics](https://www.ultralytics.com/) YOLO series of real-time object detectors, redefining what's possible with cutting-edge [accuracy](https://www.ultralytics.com/glossary/accuracy), speed, and efficiency. Building upon the impressive advancements of previous YOLO versions, YOLO11 introduces significant improvements in architecture and training methods, making it a versatile choice for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
+YOLO11 was released by Ultralytics on September 10, 2024, delivering excellent [accuracy](https://www.ultralytics.com/glossary/accuracy), speed, and efficiency. Building upon the impressive advancements of previous YOLO versions, YOLO11 introduces significant improvements in architecture and training methods, making it a versatile choice for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. For the latest Ultralytics model with end-to-end NMS-free inference and optimized edge deployment, see [YOLO26](yolo26.md).
 
 ![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
 
@@ -157,9 +157,9 @@ Please note that the DOI is pending and will be added to the citation once it is
 
 ## FAQ
 
-### What are the key improvements in Ultralytics YOLO11 compared to previous versions?
+### What are the key improvements in Ultralytics YOLO11 compared to YOLOv8?
 
-Ultralytics YOLO11 introduces several significant advancements over its predecessors. Key improvements include:
+Ultralytics YOLO11 introduces several significant advancements over YOLOv8. Key improvements include:
 
 - **Enhanced Feature Extraction:** YOLO11 employs an improved backbone and neck architecture, enhancing [feature extraction](https://www.ultralytics.com/glossary/feature-extraction) capabilities for more precise object detection.
 - **Optimized Efficiency and Speed:** Refined architectural designs and optimized training pipelines deliver faster processing speeds while maintaining a balance between accuracy and performance.

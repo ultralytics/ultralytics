@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Learn to deploy Ultralytics YOLO11 on NVIDIA Jetson devices with our detailed guide. Explore performance benchmarks and maximize AI capabilities.
-keywords: Ultralytics, YOLO11, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision
+description: Learn to deploy Ultralytics YOLO26 on NVIDIA Jetson devices with our detailed guide. Explore performance benchmarks and maximize AI capabilities.
+keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, performance benchmarks, embedded systems, deep learning, TensorRT, computer vision
 ---
 
-# Quick Start Guide: NVIDIA Jetson with Ultralytics YOLO11
+# Quick Start Guide: NVIDIA Jetson with Ultralytics YOLO26
 
-This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO11 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLO11 on these small and powerful devices.
+This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO26 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLO26 on these small and powerful devices.
 
 !!! tip "New product support"
 
@@ -20,7 +20,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to use Ultralytics YOLO11 on NVIDIA Jetson Devices
+  <strong>Watch:</strong> How to use Ultralytics YOLO26 on NVIDIA Jetson Devices
 </p>
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/nvidia-jetson-ecosystem.avif" alt="NVIDIA Jetson Ecosystem">
@@ -83,7 +83,7 @@ The below table highlights NVIDIA JetPack versions supported by different NVIDIA
 
 ## Quick Start with Docker
 
-The fastest way to get started with Ultralytics YOLO11 on NVIDIA Jetson is to run with pre-built docker images for Jetson. Refer to the table above and choose the JetPack version according to the Jetson device you own.
+The fastest way to get started with Ultralytics YOLO26 on NVIDIA Jetson is to run with pre-built docker images for Jetson. Refer to the table above and choose the JetPack version according to the Jetson device you own.
 
 === "JetPack 4"
 
@@ -303,7 +303,7 @@ Among all the model export formats supported by Ultralytics, TensorRT offers the
 
 ### Convert Model to TensorRT and Run Inference
 
-The YOLO11n model in PyTorch format is converted to TensorRT to run inference with the exported model.
+The YOLO26n model in PyTorch format is converted to TensorRT to run inference with the exported model.
 
 !!! example
 
@@ -312,14 +312,14 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n PyTorch model
+        model = YOLO("yolo26n.pt")
 
         # Export the model to TensorRT
-        model.export(format="engine")  # creates 'yolo11n.engine'
+        model.export(format="engine")  # creates 'yolo26n.engine'
 
         # Load the exported TensorRT model
-        trt_model = YOLO("yolo11n.engine")
+        trt_model = YOLO("yolo26n.engine")
 
         # Run inference
         results = trt_model("https://ultralytics.com/images/bus.jpg")
@@ -328,11 +328,11 @@ The YOLO11n model in PyTorch format is converted to TensorRT to run inference wi
     === "CLI"
 
         ```bash
-        # Export a YOLO11n PyTorch model to TensorRT format
-        yolo export model=yolo11n.pt format=engine # creates 'yolo11n.engine'
+        # Export a YOLO26n PyTorch model to TensorRT format
+        yolo export model=yolo26n.pt format=engine # creates 'yolo26n.engine'
 
         # Run inference with the exported model
-        yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
 !!! note
@@ -360,14 +360,14 @@ The following Jetson devices are equipped with DLA hardware:
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n PyTorch model
+        model = YOLO("yolo26n.pt")
 
         # Export the model to TensorRT with DLA enabled (only works with FP16 or INT8)
         model.export(format="engine", device="dla:0", half=True)  # dla:0 or dla:1 corresponds to the DLA cores
 
         # Load the exported TensorRT model
-        trt_model = YOLO("yolo11n.engine")
+        trt_model = YOLO("yolo26n.engine")
 
         # Run inference
         results = trt_model("https://ultralytics.com/images/bus.jpg")
@@ -376,12 +376,12 @@ The following Jetson devices are equipped with DLA hardware:
     === "CLI"
 
         ```bash
-        # Export a YOLO11n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
+        # Export a YOLO26n PyTorch model to TensorRT format with DLA enabled (only works with FP16 or INT8)
         # Once DLA core number is specified at export, it will use the same core at inference
-        yolo export model=yolo11n.pt format=engine device="dla:0" half=True # dla:0 or dla:1 corresponds to the DLA cores
+        yolo export model=yolo26n.pt format=engine device="dla:0" half=True # dla:0 or dla:1 corresponds to the DLA cores
 
         # Run inference with the exported model on the DLA
-        yolo predict model=yolo11n.engine source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
 !!! note
@@ -844,7 +844,7 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
 
 ## Best Practices when using NVIDIA Jetson
 
-When using NVIDIA Jetson, there are a couple of best practices to follow in order to enable maximum performance on the NVIDIA Jetson running YOLO11.
+When using NVIDIA Jetson, there are a couple of best practices to follow in order to enable maximum performance on the NVIDIA Jetson running YOLO26.
 
 1. Enable MAX Power Mode
 
@@ -877,29 +877,29 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
 
 ## Next Steps
 
-For further learning and support, see the [Ultralytics YOLO11 Docs](../index.md).
+For further learning and support, see the [Ultralytics YOLO26 Docs](../index.md).
 
 ## FAQ
 
-### How do I deploy Ultralytics YOLO11 on NVIDIA Jetson devices?
+### How do I deploy Ultralytics YOLO26 on NVIDIA Jetson devices?
 
-Deploying Ultralytics YOLO11 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Quick Start with Docker](#quick-start-with-docker) and [Start with Native Installation](#start-with-native-installation).
+Deploying Ultralytics YOLO26 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Quick Start with Docker](#quick-start-with-docker) and [Start with Native Installation](#start-with-native-installation).
 
 ### What performance benchmarks can I expect from YOLO11 models on NVIDIA Jetson devices?
 
 YOLO11 models have been benchmarked on various NVIDIA Jetson devices showing significant performance improvements. For example, the TensorRT format delivers the best inference performance. The table in the [Detailed Comparison Tables](#detailed-comparison-tables) section provides a comprehensive view of performance metrics like mAP50-95 and inference time across different model formats.
 
-### Why should I use TensorRT for deploying YOLO11 on NVIDIA Jetson?
+### Why should I use TensorRT for deploying YOLO26 on NVIDIA Jetson?
 
-TensorRT is highly recommended for deploying YOLO11 models on NVIDIA Jetson due to its optimal performance. It accelerates inference by leveraging the Jetson's GPU capabilities, ensuring maximum efficiency and speed. Learn more about how to convert to TensorRT and run inference in the [Use TensorRT on NVIDIA Jetson](#use-tensorrt-on-nvidia-jetson) section.
+TensorRT is highly recommended for deploying YOLO26 models on NVIDIA Jetson due to its optimal performance. It accelerates inference by leveraging the Jetson's GPU capabilities, ensuring maximum efficiency and speed. Learn more about how to convert to TensorRT and run inference in the [Use TensorRT on NVIDIA Jetson](#use-tensorrt-on-nvidia-jetson) section.
 
 ### How can I install PyTorch and Torchvision on NVIDIA Jetson?
 
 To install PyTorch and Torchvision on NVIDIA Jetson, first uninstall any existing versions that may have been installed via pip. Then, manually install the compatible PyTorch and Torchvision versions for the Jetson's ARM64 architecture. Detailed instructions for this process are provided in the [Install PyTorch and Torchvision](#install-pytorch-and-torchvision) section.
 
-### What are the best practices for maximizing performance on NVIDIA Jetson when using YOLO11?
+### What are the best practices for maximizing performance on NVIDIA Jetson when using YOLO26?
 
-To maximize performance on NVIDIA Jetson with YOLO11, follow these best practices:
+To maximize performance on NVIDIA Jetson with YOLO26, follow these best practices:
 
 1. Enable MAX Power Mode to utilize all CPU and GPU cores.
 2. Enable Jetson Clocks to run all cores at their maximum frequency.

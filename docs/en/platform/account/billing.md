@@ -16,15 +16,15 @@ Choose the plan that fits your needs:
 
 <!-- Screenshot: platform-billing-plans.avif -->
 
-| Feature | Free | Pro ($29/mo) | Enterprise |
-|---------|------|--------------|------------|
-| **Signup Credit** | $5 | $20/month | Custom |
-| **Storage** | 100 GB | 500 GB | Unlimited |
-| **Private Projects** | 3 | Unlimited | Unlimited |
-| **Deployments** | 1 | 5 | Unlimited |
-| **Support** | Community | Email | Dedicated |
-| **SSO** | - | - | Yes |
-| **Audit Logs** | - | - | Yes |
+| Feature              | Free      | Pro ($29/mo) | Enterprise |
+| -------------------- | --------- | ------------ | ---------- |
+| **Signup Credit**    | $5        | $20/month    | Custom     |
+| **Storage**          | 100 GB    | 500 GB       | Unlimited  |
+| **Private Projects** | 3         | Unlimited    | Unlimited  |
+| **Deployments**      | 1         | 5            | Unlimited  |
+| **Support**          | Community | Email        | Dedicated  |
+| **SSO**              | -         | -            | Yes        |
+| **Audit Logs**       | -         | -            | Yes        |
 
 ### Free Plan
 
@@ -68,21 +68,21 @@ View your balance in Settings > Billing:
 
 <!-- Screenshot: platform-billing-credits.avif -->
 
-| Balance Type | Description |
-|--------------|-------------|
-| **Available** | Credits ready to use |
-| **Reserved** | Held for active training |
-| **Expiring** | Credits expiring soon |
+| Balance Type  | Description              |
+| ------------- | ------------------------ |
+| **Available** | Credits ready to use     |
+| **Reserved**  | Held for active training |
+| **Expiring**  | Credits expiring soon    |
 
 ### Credit Uses
 
 Credits are consumed by:
 
-| Service | Rate |
-|---------|------|
-| **Cloud Training** | GPU rate × hours |
+| Service                 | Rate                 |
+| ----------------------- | -------------------- |
+| **Cloud Training**      | GPU rate × hours     |
 | **Dedicated Endpoints** | Compute rate × hours |
-| **Model Export** | Fixed per export |
+| **Model Export**        | Fixed per export     |
 
 ### Credit Expiration
 
@@ -115,26 +115,26 @@ Top up your balance:
 ### Purchase Options
 
 | Amount | Bonus | Total |
-|--------|-------|-------|
-| $5 | - | $5 |
-| $25 | - | $25 |
-| $50 | - | $50 |
-| $100 | - | $100 |
-| $500 | - | $500 |
-| $1000 | - | $1000 |
+| ------ | ----- | ----- |
+| $5     | -     | $5    |
+| $25    | -     | $25   |
+| $50    | -     | $50   |
+| $100   | -     | $100  |
+| $500   | -     | $500  |
+| $1000  | -     | $1000 |
 
 ## Training Costs
 
 Cloud training costs depend on GPU selection:
 
-| GPU | Rate/Hour | Typical Job (1h) |
-|-----|-----------|------------------|
-| RTX 3090 | $0.44 | $0.44 |
-| RTX 4090 | $0.74 | $0.74 |
-| L40S | $1.14 | $1.14 |
-| A100 40GB | $1.29 | $1.29 |
-| A100 80GB | $1.99 | $1.99 |
-| H100 80GB | $3.99 | $3.99 |
+| GPU       | Rate/Hour | Typical Job (1h) |
+| --------- | --------- | ---------------- |
+| RTX 3090  | $0.44     | $0.44            |
+| RTX 4090  | $0.74     | $0.74            |
+| L40S      | $1.14     | $1.14            |
+| A100 40GB | $1.29     | $1.29            |
+| A100 80GB | $1.99     | $1.99            |
+| H100 80GB | $3.99     | $3.99            |
 
 ### Cost Calculation
 
@@ -143,6 +143,7 @@ Total Cost = GPU Rate × Training Time (hours)
 ```
 
 Example: Training for 2.5 hours on RTX 4090
+
 ```
 $0.74 × 2.5 = $1.85
 ```
@@ -191,12 +192,12 @@ View all transactions:
 
 <!-- Screenshot: platform-billing-history.avif -->
 
-| Column | Description |
-|--------|-------------|
-| **Date** | Transaction date |
+| Column          | Description                     |
+| --------------- | ------------------------------- |
+| **Date**        | Transaction date                |
 | **Description** | Credit purchase, training, etc. |
-| **Amount** | Transaction value |
-| **Balance** | Resulting balance |
+| **Amount**      | Transaction value               |
+| **Balance**     | Resulting balance               |
 
 ### Download Invoice
 

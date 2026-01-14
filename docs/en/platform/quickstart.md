@@ -47,11 +47,11 @@ During signup, you'll be asked to select your data region. This is an important 
 
 <!-- Screenshot: platform-onboarding-region.avif -->
 
-| Region | Location | Best For |
-|--------|----------|----------|
-| **US** | US Central (Iowa) | Americas users |
-| **EU** | EU West (Belgium) | European users, GDPR compliance |
-| **AP** | Asia Pacific (Hong Kong) | Asia-Pacific users |
+| Region | Location                 | Best For                        |
+| ------ | ------------------------ | ------------------------------- |
+| **US** | US Central (Iowa)        | Americas users                  |
+| **EU** | EU West (Belgium)        | European users, GDPR compliance |
+| **AP** | Asia Pacific (Hong Kong) | Asia-Pacific users              |
 
 !!! warning "Region is Permanent"
 
@@ -97,12 +97,12 @@ Navigate to Datasets and click "Upload Dataset" to add your training data.
 
 Ultralytics Platform supports multiple upload formats:
 
-| Format | Description |
-|--------|-------------|
-| **Images** | JPG, PNG, WebP, TIFF, and other common formats |
-| **ZIP Archive** | Compressed folder with images and labels |
-| **Video** | MP4, AVI - frames extracted automatically |
-| **YOLO Format** | Standard YOLO dataset structure with labels |
+| Format          | Description                                    |
+| --------------- | ---------------------------------------------- |
+| **Images**      | JPG, PNG, WebP, TIFF, and other common formats |
+| **ZIP Archive** | Compressed folder with images and labels       |
+| **Video**       | MP4, AVI - frames extracted automatically      |
+| **YOLO Format** | Standard YOLO dataset structure with labels    |
 
 After upload, the Platform processes your data:
 
@@ -139,13 +139,13 @@ From your project, click "Train Model" to start cloud training.
 3. **Set Epochs**: Number of training iterations
 4. **Select GPU**: Choose compute resources
 
-| Model | Size | Speed | Accuracy |
-|-------|------|-------|----------|
-| YOLO11n | Nano | Fastest | Good |
-| YOLO11s | Small | Fast | Better |
-| YOLO11m | Medium | Moderate | High |
-| YOLO11l | Large | Slower | Higher |
-| YOLO11x | Extra Large | Slowest | Best |
+| Model   | Size        | Speed    | Accuracy |
+| ------- | ----------- | -------- | -------- |
+| YOLO11n | Nano        | Fastest  | Good     |
+| YOLO11s | Small       | Fast     | Better   |
+| YOLO11m | Medium      | Moderate | High     |
+| YOLO11l | Large       | Slower   | Higher   |
+| YOLO11x | Extra Large | Slowest  | Best     |
 
 ### Monitor Training
 

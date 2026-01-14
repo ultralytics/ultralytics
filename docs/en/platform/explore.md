@@ -23,11 +23,11 @@ The Explore page features:
 
 ### Content Types
 
-| Type | Description |
-|------|-------------|
+| Type         | Description                            |
+| ------------ | -------------------------------------- |
 | **Datasets** | Labeled image collections for training |
-| **Models** | Trained YOLO checkpoints |
-| **Projects** | Organized model collections |
+| **Models**   | Trained YOLO checkpoints               |
+| **Projects** | Organized model collections            |
 
 ### Filtering
 
@@ -35,11 +35,11 @@ Filter content to find what you need:
 
 <!-- Screenshot: platform-explore-search.avif -->
 
-| Filter | Options |
-|--------|---------|
-| **Type** | Datasets, Models, Projects |
+| Filter   | Options                              |
+| -------- | ------------------------------------ |
+| **Type** | Datasets, Models, Projects           |
 | **Task** | Detect, Segment, Pose, OBB, Classify |
-| **Sort** | Recent, Popular, Most Downloaded |
+| **Sort** | Recent, Popular, Most Downloaded     |
 
 ### Search
 
@@ -56,13 +56,13 @@ Each item displays:
 
 <!-- Screenshot: platform-explore-cards.avif -->
 
-| Element | Description |
-|---------|-------------|
-| **Thumbnail** | Preview image |
-| **Name** | Content title |
-| **Creator** | Author with avatar |
-| **Stats** | Downloads, views, likes |
-| **Task** | YOLO task type badge |
+| Element       | Description             |
+| ------------- | ----------------------- |
+| **Thumbnail** | Preview image           |
+| **Name**      | Content title           |
+| **Creator**   | Author with avatar      |
+| **Stats**     | Downloads, views, likes |
+| **Task**      | YOLO task type badge    |
 
 ## Use Public Content
 
@@ -102,12 +102,12 @@ View public profiles:
 
 <!-- Screenshot: platform-explore-profile.avif -->
 
-| Section | Content |
-|---------|---------|
-| **Bio** | User description |
-| **Stats** | Contributions count |
+| Section     | Content                           |
+| ----------- | --------------------------------- |
+| **Bio**     | User description                  |
+| **Stats**   | Contributions count               |
 | **Content** | Public datasets, models, projects |
-| **Links** | Social profiles |
+| **Links**   | Social profiles                   |
 
 ### Follow Users
 

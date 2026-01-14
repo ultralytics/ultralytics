@@ -14,13 +14,13 @@ Update your profile information:
 
 <!-- Screenshot: platform-settings-profile.avif -->
 
-| Field | Description |
-|-------|-------------|
-| **Display Name** | Your public name |
-| **Username** | Unique identifier (used in URLs) |
-| **Bio** | Short description |
-| **Company** | Organization name |
-| **Use Case** | Primary application |
+| Field             | Description                      |
+| ----------------- | -------------------------------- |
+| **Display Name**  | Your public name                 |
+| **Username**      | Unique identifier (used in URLs) |
+| **Bio**           | Short description                |
+| **Company**       | Organization name                |
+| **Use Case**      | Primary application              |
 | **Profile Image** | Avatar displayed across Platform |
 
 ### Edit Profile
@@ -46,12 +46,12 @@ Add links to your profiles:
 
 <!-- Screenshot: platform-settings-social.avif -->
 
-| Platform | URL Format |
-|----------|------------|
-| **GitHub** | github.com/username |
-| **Twitter** | twitter.com/username |
+| Platform     | URL Format               |
+| ------------ | ------------------------ |
+| **GitHub**   | github.com/username      |
+| **Twitter**  | twitter.com/username     |
 | **LinkedIn** | linkedin.com/in/username |
-| **Website** | your-website.com |
+| **Website**  | your-website.com         |
 
 Social links appear on your public profile page.
 
@@ -61,10 +61,10 @@ View your data region:
 
 <!-- Screenshot: platform-settings-region.avif -->
 
-| Region | Location |
-|--------|----------|
-| **US** | US Central (Iowa) |
-| **EU** | EU West (Belgium) |
+| Region | Location                 |
+| ------ | ------------------------ |
+| **US** | US Central (Iowa)        |
+| **EU** | EU West (Belgium)        |
 | **AP** | Asia Pacific (Hong Kong) |
 
 !!! note "Region is Permanent"
@@ -77,18 +77,18 @@ Monitor your storage consumption:
 
 <!-- Screenshot: platform-settings-storage.avif -->
 
-| Type | Description |
-|------|-------------|
+| Type         | Description             |
+| ------------ | ----------------------- |
 | **Datasets** | Image and label storage |
-| **Models** | Checkpoint storage |
-| **Exports** | Exported model formats |
+| **Models**   | Checkpoint storage      |
+| **Exports**  | Exported model formats  |
 
 ### Storage Limits
 
-| Plan | Limit |
-|------|-------|
-| Free | 100 GB |
-| Pro | 500 GB |
+| Plan       | Limit     |
+| ---------- | --------- |
+| Free       | 100 GB    |
+| Pro        | 500 GB    |
 | Enterprise | Unlimited |
 
 ### Reduce Storage
@@ -166,21 +166,21 @@ Permanently delete your account:
 
 Configure notification preferences:
 
-| Type | Options |
-|------|---------|
-| **Training Complete** | Email, none |
-| **Deployment Status** | Email, none |
-| **Billing Alerts** | Email (required) |
-| **Product Updates** | Email, none |
+| Type                  | Options          |
+| --------------------- | ---------------- |
+| **Training Complete** | Email, none      |
+| **Deployment Status** | Email, none      |
+| **Billing Alerts**    | Email (required) |
+| **Product Updates**   | Email, none      |
 
 ## Theme
 
 Select your preferred theme:
 
-| Theme | Description |
-|-------|-------------|
-| **Light** | Light background |
-| **Dark** | Dark background |
+| Theme      | Description      |
+| ---------- | ---------------- |
+| **Light**  | Light background |
+| **Dark**   | Dark background  |
 | **System** | Match OS setting |
 
 ## Sessions
@@ -234,8 +234,8 @@ Passwords are managed by your OAuth provider:
 
 ### How long until deleted data is removed?
 
-| Type | Timeline |
-|------|----------|
-| **Trash items** | 30 days |
+| Type                 | Timeline      |
+| -------------------- | ------------- |
+| **Trash items**      | 30 days       |
 | **Account deletion** | Up to 30 days |
-| **Backups** | 90 days |
+| **Backups**          | 90 days       |

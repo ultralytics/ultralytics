@@ -44,12 +44,12 @@ Click **Create** to finalize. Your new project appears in the Projects list.
 
 Each project contains:
 
-| Section | Description |
-|---------|-------------|
-| **Models** | Trained checkpoints and their metrics |
-| **Charts** | Compare model performance across experiments |
-| **Activity** | History of changes and events |
-| **Settings** | Project configuration and sharing |
+| Section      | Description                                  |
+| ------------ | -------------------------------------------- |
+| **Models**   | Trained checkpoints and their metrics        |
+| **Charts**   | Compare model performance across experiments |
+| **Activity** | History of changes and events                |
+| **Settings** | Project configuration and sharing            |
 
 ## Share Project
 
@@ -57,11 +57,11 @@ Share your project with collaborators or make it publicly accessible.
 
 ### Visibility Options
 
-| Setting | Access |
-|---------|--------|
-| **Private** | Only you can access |
-| **Shared** | Specific collaborators can view/edit |
-| **Public** | Anyone can view on Explore page |
+| Setting     | Access                               |
+| ----------- | ------------------------------------ |
+| **Private** | Only you can access                  |
+| **Shared**  | Specific collaborators can view/edit |
+| **Public**  | Anyone can view on Explore page      |
 
 ### Add Collaborators
 
@@ -127,13 +127,13 @@ Compare model performance across experiments using the **Charts** tab:
 
 Available comparisons:
 
-| Metric | Description |
-|--------|-------------|
-| **Loss** | Training and validation loss curves |
-| **mAP50** | Mean Average Precision at IoU 0.50 |
-| **mAP50-95** | Mean Average Precision at IoU 0.50-0.95 |
+| Metric        | Description                                         |
+| ------------- | --------------------------------------------------- |
+| **Loss**      | Training and validation loss curves                 |
+| **mAP50**     | Mean Average Precision at IoU 0.50                  |
+| **mAP50-95**  | Mean Average Precision at IoU 0.50-0.95             |
 | **Precision** | True positives / (True positives + False positives) |
-| **Recall** | True positives / (True positives + False negatives) |
+| **Recall**    | True positives / (True positives + False negatives) |
 
 !!! tip "Interactive Charts"
 
@@ -178,8 +178,8 @@ Multiple collaborators can work on the same project:
 
 ### What permissions do collaborators have?
 
-| Permission | Can Do |
-|------------|--------|
-| **View** | View models, charts, export weights |
-| **Edit** | Train models, upload, edit settings |
-| **Owner** | Delete project, manage collaborators |
+| Permission | Can Do                               |
+| ---------- | ------------------------------------ |
+| **View**   | View models, charts, export weights  |
+| **Edit**   | Train models, upload, edit settings  |
+| **Owner**  | Delete project, manage collaborators |

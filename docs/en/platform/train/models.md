@@ -24,9 +24,9 @@ Upload existing model weights to the Platform:
 
 Supported model formats:
 
-| Format | Extension | Description |
-|--------|-----------|-------------|
-| PyTorch | `.pt` | Native Ultralytics format |
+| Format  | Extension | Description               |
+| ------- | --------- | ------------------------- |
+| PyTorch | `.pt`     | Native Ultralytics format |
 
 After upload, the Platform parses model metadata:
 
@@ -52,14 +52,14 @@ See [Cloud Training](cloud-training.md) for detailed instructions.
 
 Each model page displays:
 
-| Section | Content |
-|---------|---------|
+| Section      | Content                                 |
+| ------------ | --------------------------------------- |
 | **Overview** | Model metadata, task type, architecture |
-| **Metrics** | Training loss and performance charts |
-| **Plots** | Confusion matrix, PR curves, F1 curves |
-| **Test** | Interactive inference testing |
-| **Deploy** | Endpoint creation and management |
-| **Export** | Format conversion and download |
+| **Metrics**  | Training loss and performance charts    |
+| **Plots**    | Confusion matrix, PR curves, F1 curves  |
+| **Test**     | Interactive inference testing           |
+| **Deploy**   | Endpoint creation and management        |
+| **Export**   | Format conversion and download          |
 
 ## Training Metrics
 
@@ -69,22 +69,22 @@ View real-time and historical training metrics:
 
 <!-- Screenshot: platform-models-loss.avif -->
 
-| Loss | Description |
-|------|-------------|
-| **Box** | Bounding box regression loss |
-| **Class** | Classification loss |
-| **DFL** | Distribution Focal Loss |
+| Loss      | Description                  |
+| --------- | ---------------------------- |
+| **Box**   | Bounding box regression loss |
+| **Class** | Classification loss          |
+| **DFL**   | Distribution Focal Loss      |
 
 ### Performance Metrics
 
 <!-- Screenshot: platform-models-metrics.avif -->
 
-| Metric | Description |
-|--------|-------------|
-| **mAP50** | Mean Average Precision at IoU 0.50 |
-| **mAP50-95** | Mean Average Precision at IoU 0.50-0.95 |
-| **Precision** | Ratio of correct positive predictions |
-| **Recall** | Ratio of actual positives identified |
+| Metric        | Description                             |
+| ------------- | --------------------------------------- |
+| **mAP50**     | Mean Average Precision at IoU 0.50      |
+| **mAP50-95**  | Mean Average Precision at IoU 0.50-0.95 |
+| **Precision** | Ratio of correct positive predictions   |
+| **Recall**    | Ratio of actual positives identified    |
 
 ## Validation Plots
 
@@ -102,12 +102,12 @@ Performance curves at different confidence thresholds:
 
 <!-- Screenshot: platform-models-curves.avif -->
 
-| Curve | Description |
-|-------|-------------|
-| **Precision-Recall** | Trade-off between precision and recall |
-| **F1-Confidence** | F1 score at different confidence levels |
+| Curve                    | Description                              |
+| ------------------------ | ---------------------------------------- |
+| **Precision-Recall**     | Trade-off between precision and recall   |
+| **F1-Confidence**        | F1 score at different confidence levels  |
 | **Precision-Confidence** | Precision at different confidence levels |
-| **Recall-Confidence** | Recall at different confidence levels |
+| **Recall-Confidence**    | Recall at different confidence levels    |
 
 ## Export Model
 
@@ -122,25 +122,25 @@ Export your model to 17 deployment formats:
 
 ### Supported Formats
 
-| Format | Description | Use Case |
-|--------|-------------|----------|
-| **ONNX** | Open Neural Network Exchange | Cross-platform deployment |
-| **TorchScript** | Serialized PyTorch | PyTorch deployment |
-| **OpenVINO** | Intel optimization | Intel CPUs/GPUs |
-| **TensorRT** | NVIDIA optimization | NVIDIA GPUs |
-| **CoreML** | Apple optimization | iOS/macOS |
-| **TFLite** | TensorFlow Lite | Mobile/embedded |
-| **TF SavedModel** | TensorFlow format | TensorFlow ecosystem |
-| **TF GraphDef** | TensorFlow frozen | Legacy TensorFlow |
-| **PaddlePaddle** | Baidu framework | PaddlePaddle ecosystem |
-| **NCNN** | Mobile inference | Android/embedded |
-| **Edge TPU** | Google Edge TPU | Coral devices |
-| **TF.js** | TensorFlow.js | Browser deployment |
-| **MNN** | Alibaba framework | Mobile optimization |
-| **RKNN** | Rockchip NPU | Rockchip devices |
-| **IMX** | NXP i.MX | NXP platforms |
-| **Axelera** | Metis AI | Edge AI accelerators |
-| **ExecuTorch** | Meta framework | Meta platforms |
+| Format            | Description                  | Use Case                  |
+| ----------------- | ---------------------------- | ------------------------- |
+| **ONNX**          | Open Neural Network Exchange | Cross-platform deployment |
+| **TorchScript**   | Serialized PyTorch           | PyTorch deployment        |
+| **OpenVINO**      | Intel optimization           | Intel CPUs/GPUs           |
+| **TensorRT**      | NVIDIA optimization          | NVIDIA GPUs               |
+| **CoreML**        | Apple optimization           | iOS/macOS                 |
+| **TFLite**        | TensorFlow Lite              | Mobile/embedded           |
+| **TF SavedModel** | TensorFlow format            | TensorFlow ecosystem      |
+| **TF GraphDef**   | TensorFlow frozen            | Legacy TensorFlow         |
+| **PaddlePaddle**  | Baidu framework              | PaddlePaddle ecosystem    |
+| **NCNN**          | Mobile inference             | Android/embedded          |
+| **Edge TPU**      | Google Edge TPU              | Coral devices             |
+| **TF.js**         | TensorFlow.js                | Browser deployment        |
+| **MNN**           | Alibaba framework            | Mobile optimization       |
+| **RKNN**          | Rockchip NPU                 | Rockchip devices          |
+| **IMX**           | NXP i.MX                     | NXP platforms             |
+| **Axelera**       | Metis AI                     | Edge AI accelerators      |
+| **ExecuTorch**    | Meta framework               | Meta platforms            |
 
 <!-- Screenshot: platform-models-export-progress.avif -->
 
@@ -162,10 +162,10 @@ When training with Platform datasets using the `ul://` URI format, linking is au
 
 Control who can see your model:
 
-| Setting | Description |
-|---------|-------------|
-| **Private** | Only you can access |
-| **Public** | Anyone can view on Explore page |
+| Setting     | Description                     |
+| ----------- | ------------------------------- |
+| **Private** | Only you can access             |
+| **Public**  | Anyone can view on Explore page |
 
 To change visibility:
 

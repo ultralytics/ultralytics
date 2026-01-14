@@ -21,12 +21,12 @@ The Account section helps you:
 
 ## Account Features
 
-| Feature | Description |
-|---------|-------------|
+| Feature      | Description                                    |
+| ------------ | ---------------------------------------------- |
 | **API Keys** | Secure keys for remote training and API access |
-| **Billing** | Credits, payments, and usage tracking |
-| **Settings** | Profile, region, and preferences |
-| **GDPR** | Data export and account deletion |
+| **Billing**  | Credits, payments, and usage tracking          |
+| **Settings** | Profile, region, and preferences               |
+| **GDPR**     | Data export and account deletion               |
 
 ## Security
 

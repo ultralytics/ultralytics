@@ -33,24 +33,24 @@ graph LR
     style D fill:#9C27B0,color:#fff
 ```
 
-| Stage | Description |
-|-------|-------------|
-| **Upload** | Import images, videos, or ZIP archives with automatic processing |
+| Stage        | Description                                                             |
+| ------------ | ----------------------------------------------------------------------- |
+| **Upload**   | Import images, videos, or ZIP archives with automatic processing        |
 | **Annotate** | Label data with bounding boxes, polygons, keypoints, or classifications |
-| **Analyze** | View class distributions, spatial heatmaps, and dimension statistics |
-| **Export** | Download in NDJSON format for offline use |
+| **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics    |
+| **Export**   | Download in NDJSON format for offline use                               |
 
 ## Supported Tasks
 
 Ultralytics Platform supports all 5 YOLO task types:
 
-| Task | Description | Annotation Tool |
-|------|-------------|-----------------|
-| **Detect** | Object detection with bounding boxes | Rectangle tool |
-| **Segment** | Instance segmentation with pixel masks | Polygon tool |
-| **Pose** | Keypoint estimation (17-point COCO format) | Keypoint tool |
-| **OBB** | Oriented bounding boxes for rotated objects | Oriented box tool |
-| **Classify** | Image-level classification | Class selector |
+| Task         | Description                                 | Annotation Tool   |
+| ------------ | ------------------------------------------- | ----------------- |
+| **Detect**   | Object detection with bounding boxes        | Rectangle tool    |
+| **Segment**  | Instance segmentation with pixel masks      | Polygon tool      |
+| **Pose**     | Keypoint estimation (17-point COCO format)  | Keypoint tool     |
+| **OBB**      | Oriented bounding boxes for rotated objects | Oriented box tool |
+| **Classify** | Image-level classification                  | Class selector    |
 
 ## Key Features
 
@@ -100,11 +100,11 @@ Ultralytics Platform supports:
 
 Storage limits depend on your plan:
 
-| Plan | Storage Limit |
-|------|---------------|
-| Free | 100 GB |
-| Pro | 500 GB |
-| Enterprise | Custom |
+| Plan       | Storage Limit |
+| ---------- | ------------- |
+| Free       | 100 GB        |
+| Pro        | 500 GB        |
+| Enterprise | Custom        |
 
 ### Can I use my Platform datasets for local training?
 

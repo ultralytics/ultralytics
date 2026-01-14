@@ -36,14 +36,14 @@ Select scopes to limit key permissions:
 
 <!-- Screenshot: platform-apikeys-scopes.avif -->
 
-| Scope | Permissions |
-|-------|-------------|
-| **training** | Start training, stream metrics |
-| **models** | Upload, download, delete models |
-| **datasets** | Access and modify datasets |
-| **read** | Read-only access to all resources |
-| **write** | Full write access |
-| **admin** | Account management (use carefully) |
+| Scope        | Permissions                        |
+| ------------ | ---------------------------------- |
+| **training** | Start training, stream metrics     |
+| **models**   | Upload, download, delete models    |
+| **datasets** | Access and modify datasets         |
+| **read**     | Read-only access to all resources  |
+| **write**    | Full write access                  |
+| **admin**    | Account management (use carefully) |
 
 !!! tip "Least Privilege"
 
@@ -127,12 +127,12 @@ yolo train model=yolo11n.pt data=coco.yaml project=username/project name=exp1
 
 All keys are listed in Settings > API Keys:
 
-| Column | Description |
-|--------|-------------|
-| **Name** | Key identifier |
-| **Scopes** | Assigned permissions |
-| **Created** | Creation date |
-| **Last Used** | Most recent use |
+| Column        | Description          |
+| ------------- | -------------------- |
+| **Name**      | Key identifier       |
+| **Scopes**    | Assigned permissions |
+| **Created**   | Creation date        |
+| **Last Used** | Most recent use      |
 
 ### Revoke Key
 

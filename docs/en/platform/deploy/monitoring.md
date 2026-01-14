@@ -22,12 +22,12 @@ Access the global monitoring dashboard from the sidebar:
 
 <!-- Screenshot: platform-monitoring-cards.avif -->
 
-| Metric | Description |
-|--------|-------------|
-| **Total Requests** | Requests across all endpoints (24h) |
-| **Active Deployments** | Currently running endpoints |
-| **Error Rate** | Percentage of failed requests |
-| **Avg Latency** | Mean response time |
+| Metric                 | Description                         |
+| ---------------------- | ----------------------------------- |
+| **Total Requests**     | Requests across all endpoints (24h) |
+| **Active Deployments** | Currently running endpoints         |
+| **Error Rate**         | Percentage of failed requests       |
+| **Avg Latency**        | Mean response time                  |
 
 ### Deployments Table
 
@@ -35,14 +35,14 @@ Access the global monitoring dashboard from the sidebar:
 
 View all deployments with key metrics:
 
-| Column | Description |
-|--------|-------------|
-| **Model** | Model name with link |
-| **Region** | Deployed region with flag |
-| **Status** | Running/Stopped indicator |
-| **Requests** | Request count (24h) |
-| **Latency** | P50 response time |
-| **Errors** | Error count (24h) |
+| Column        | Description                 |
+| ------------- | --------------------------- |
+| **Model**     | Model name with link        |
+| **Region**    | Deployed region with flag   |
+| **Status**    | Running/Stopped indicator   |
+| **Requests**  | Request count (24h)         |
+| **Latency**   | P50 response time           |
+| **Errors**    | Error count (24h)           |
 | **Sparkline** | Traffic trend visualization |
 
 !!! tip "Real-Time Updates"
@@ -61,25 +61,25 @@ View detailed metrics for individual endpoints:
 
 <!-- Screenshot: platform-monitoring-metrics.avif -->
 
-| Metric | Description | Unit |
-|--------|-------------|------|
-| **Request Count** | Total requests over time | count |
-| **Request Latency** | Response time distribution | ms |
-| **Error Rate** | Failed request percentage | % |
-| **Instance Count** | Active container instances | count |
-| **CPU Utilization** | Processor usage | % |
-| **Memory Usage** | RAM consumption | MB |
+| Metric              | Description                | Unit  |
+| ------------------- | -------------------------- | ----- |
+| **Request Count**   | Total requests over time   | count |
+| **Request Latency** | Response time distribution | ms    |
+| **Error Rate**      | Failed request percentage  | %     |
+| **Instance Count**  | Active container instances | count |
+| **CPU Utilization** | Processor usage            | %     |
+| **Memory Usage**    | RAM consumption            | MB    |
 
 ### Time Ranges
 
 Select time range for metrics:
 
-| Range | Description |
-|-------|-------------|
-| **1h** | Last hour |
-| **6h** | Last 6 hours |
+| Range   | Description             |
+| ------- | ----------------------- |
+| **1h**  | Last hour               |
+| **6h**  | Last 6 hours            |
 | **24h** | Last 24 hours (default) |
-| **7d** | Last 7 days |
+| **7d**  | Last 7 days             |
 
 ### Metric Charts
 
@@ -99,22 +99,22 @@ View request logs for debugging:
 
 Each log entry shows:
 
-| Field | Description |
-|-------|-------------|
-| **Timestamp** | Request time |
-| **Severity** | INFO, WARNING, ERROR |
-| **Message** | Log content |
-| **Request ID** | Unique identifier |
+| Field          | Description          |
+| -------------- | -------------------- |
+| **Timestamp**  | Request time         |
+| **Severity**   | INFO, WARNING, ERROR |
+| **Message**    | Log content          |
+| **Request ID** | Unique identifier    |
 
 ### Severity Levels
 
 Filter logs by severity:
 
-| Level | Color | Description |
-|-------|-------|-------------|
-| **INFO** | Blue | Normal requests |
+| Level       | Color  | Description         |
+| ----------- | ------ | ------------------- |
+| **INFO**    | Blue   | Normal requests     |
 | **WARNING** | Yellow | Non-critical issues |
-| **ERROR** | Red | Failed requests |
+| **ERROR**   | Red    | Failed requests     |
 
 ### Log Filtering
 
@@ -128,12 +128,12 @@ Filter logs to find issues:
 
 Set up alerts for endpoint issues (coming soon):
 
-| Alert Type | Trigger |
-|------------|---------|
-| **High Error Rate** | Error rate > threshold |
-| **High Latency** | P95 latency > threshold |
-| **No Requests** | Zero requests for period |
-| **Scaling** | Instances at max capacity |
+| Alert Type          | Trigger                   |
+| ------------------- | ------------------------- |
+| **High Error Rate** | Error rate > threshold    |
+| **High Latency**    | P95 latency > threshold   |
+| **No Requests**     | Zero requests for period  |
+| **Scaling**         | Instances at max capacity |
 
 ## Performance Optimization
 
@@ -186,11 +186,11 @@ Export includes:
 
 ### How long is data retained?
 
-| Data Type | Retention |
-|-----------|-----------|
-| **Metrics** | 30 days |
-| **Logs** | 7 days |
-| **Alerts** | 90 days |
+| Data Type   | Retention |
+| ----------- | --------- |
+| **Metrics** | 30 days   |
+| **Logs**    | 7 days    |
+| **Alerts**  | 90 days   |
 
 ### Can I set up external monitoring?
 

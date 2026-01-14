@@ -2011,9 +2011,7 @@ class RealNVP(nn.Module):
 
     References:
         https://arxiv.org/abs/1605.08803
-
-    Code is adapted from the implementation by MMPose:
-    https://github.com/open-mmlab/mmpose/blob/main/mmpose/models/utils/realnvp.py
+        https://github.com/open-mmlab/mmpose/blob/main/mmpose/models/utils/realnvp.py
     """
 
     @staticmethod

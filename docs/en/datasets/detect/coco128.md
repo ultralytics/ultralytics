@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore the Ultralytics COCO128 dataset, a versatile and manageable set of 128 images perfect for testing object detection models and training pipelines.
-keywords: COCO128, Ultralytics, dataset, object detection, YOLO11, training, validation, machine learning, computer vision
+keywords: COCO128, Ultralytics, dataset, object detection, YOLO26, training, validation, machine learning, computer vision
 ---
 
 # COCO128 Dataset
@@ -21,7 +21,7 @@ keywords: COCO128, Ultralytics, dataset, object detection, YOLO11, training, val
   <strong>Watch:</strong> Ultralytics COCO Dataset Overview
 </p>
 
-This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
@@ -35,7 +35,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLO11n model on the COCO128 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n model on the COCO128 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -45,7 +45,7 @@ To train a YOLO11n model on the COCO128 dataset for 100 [epochs](https://www.ult
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
@@ -55,7 +55,7 @@ To train a YOLO11n model on the COCO128 dataset for 100 [epochs](https://www.ult
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco128.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=coco128.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -95,9 +95,9 @@ We would like to acknowledge the COCO Consortium for creating and maintaining th
 
 The Ultralytics COCO128 dataset is a compact subset containing the first 128 images from the COCO train 2017 dataset. It's primarily used for testing and debugging [object detection](https://www.ultralytics.com/glossary/object-detection) models, experimenting with new detection approaches, and validating training pipelines before scaling to larger datasets. Its manageable size makes it perfect for quick iterations while still providing enough diversity to be a meaningful test case.
 
-### How do I train a YOLO11 model using the COCO128 dataset?
+### How do I train a YOLO26 model using the COCO128 dataset?
 
-To train a YOLO11 model on the COCO128 dataset, you can use either Python or CLI commands. Here's how:
+To train a YOLO26 model on the COCO128 dataset, you can use either Python or CLI commands. Here's how:
 
 !!! example "Train Example"
 
@@ -107,7 +107,7 @@ To train a YOLO11 model on the COCO128 dataset, you can use either Python or CLI
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Train the model
         results = model.train(data="coco128.yaml", epochs=100, imgsz=640)
@@ -117,7 +117,7 @@ To train a YOLO11 model on the COCO128 dataset, you can use either Python or CLI
     === "CLI"
 
         ```bash
-        yolo detect train data=coco128.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=coco128.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 For more training options and parameters, refer to the [Training](../../modes/train.md) documentation.

@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore Ultralytics Muon optimizer with Newton-Schulz orthogonalization for neural network training. Includes MuSGD hybrid optimizer and momentum-based updates.
+keywords: Muon optimizer, MuSGD, Newton-Schulz iteration, orthogonalization, momentum optimizer, neural network training, PyTorch optimizer, Ultralytics optimization
 ---
 
 # Reference for `ultralytics/optim/muon.py`

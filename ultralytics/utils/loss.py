@@ -163,6 +163,7 @@ class RLELoss(nn.Module):
 
     References:
         https://arxiv.org/abs/2107.11291
+        https://github.com/open-mmlab/mmpose/blob/main/mmpose/models/losses/regression_loss.py
     """
 
     def __init__(self, use_target_weight: bool = True, size_average: bool = True, residual: bool = True):

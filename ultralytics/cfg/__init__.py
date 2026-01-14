@@ -188,7 +188,7 @@ CFG_FRACTION_KEYS = frozenset(
         "iou",
         "fraction",
         "backbone_lr_ratio",
-        "multi_scale_range",
+        "multi_scale",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -240,7 +240,6 @@ CFG_BOOL_KEYS = frozenset(
         "simplify",
         "nms",
         "profile",
-        "multi_scale",
         "sync_bn",
     }
 )

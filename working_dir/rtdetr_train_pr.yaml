@@ -58,7 +58,7 @@ mixup: 0.0  # MixUp augmentation (disabled)
 copy_paste: 0.0  # Copy-paste augmentation (disabled)
 auto_augment: False  # AutoAugment (disabled)
 erasing: 0.0  # Random erasing probability
-multi_scale: False  # Enable multi-scale training
+multi_scale: 0.0  # Enable multi-scale training
 
 # Training optimization
 # amp: True  # Uncomment for GPU training with Automatic Mixed Precision

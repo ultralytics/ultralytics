@@ -49,7 +49,7 @@ dfl: 1.5  # Distribution focal loss weight (for DFL-based models)
 # Note: giou weight is 2.0 in DETRLoss, no_object weight is 0.1 (handled internally)
 
 # Augmentation settings default is utilized here. 
-multi_scale: True  # Enable multi-scale training
+multi_scale: 0.0  # multi-scale training disabled by default
 
 # Training optimizations
 fraction: 1.0

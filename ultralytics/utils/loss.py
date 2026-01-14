@@ -864,6 +864,16 @@ class PoseLoss26(v8PoseLoss):
 
         pred_sigma = pred_sigma.sigmoid()
         error = (pred_coords - gt_coords) / (pred_sigma + 1e-9)
+
+        # Filter out NaN values to prevent MultivariateNormal validation errors (can occur with small images)
+        valid_mask = ~torch.isnan(error).any(dim=-1)
+        if not valid_mask.any():
+            return torch.tensor(0.0, device=pred_kpt.device)
+
+        error = error[valid_mask]
+        pred_sigma = pred_sigma[valid_mask]
+        target_weights = target_weights[valid_mask]
+
         log_phi = self.flow_model.log_prob(error)
 
         return self.rle_loss(pred_sigma, log_phi, error, target_weights)

@@ -87,6 +87,7 @@ from ultralytics.utils import (
     IS_COLAB,
     IS_DEBIAN_BOOKWORM,
     IS_DEBIAN_TRIXIE,
+    IS_DOCKER,
     IS_JETSON,
     IS_RASPBERRYPI,
     IS_UBUNTU,
@@ -172,7 +173,7 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8"]],
+        ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -387,6 +388,8 @@ class Exporter:
                 self.args.int8 = True
             if model.task not in {"detect"}:
                 raise ValueError("Axelera export only supported for detection models.")
+            if not self.args.data:
+                self.args.data = "coco128.yaml"  # Axelera default to coco128.yaml
         if imx:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
@@ -454,15 +457,15 @@ class Exporter:
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
         if self.args.int8 and not self.args.data:
-            if axelera:
-                self.args.data = "coco128.yaml"  # Axelera default to coco128.yaml
-            else:
-                self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
+            self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
         if tfjs and (ARM64 and LINUX):
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
+        if ncnn and hasattr(model.model[-1], "one2one_cv2"):
+            del model.model[-1].one2one_cv2  # Disable end2end branch for NCNN export as it does not support topk
+            LOGGER.warning("NCNN export does not support end2end models, disabling end2end branch.")
         # Recommend OpenVINO if export and Intel CPU
         if SETTINGS.get("openvino_msg"):
             if is_intel():
@@ -503,8 +506,11 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-                m.max_det = self.args.max_det
+                # Clamp max_det to anchor count for small image sizes (required for TensorRT compatibility)
+                anchors = sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
+                m.max_det = min(self.args.max_det, anchors)
                 m.xyxy = self.args.nms and not coreml
+                m.shape = None  # reset cached shape for new export input size
                 if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))
             elif isinstance(m, C2f) and not is_tf_format:
@@ -550,6 +556,8 @@ class Exporter:
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
             if hasattr(model, "kpt_names"):
                 self.metadata["kpt_names"] = model.kpt_names
+        if getattr(model.model[-1], "end2end", False):
+            self.metadata["end2end"] = True
 
         LOGGER.info(
             f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
@@ -775,13 +783,6 @@ class Exporter:
             check_requirements("nncf>=2.14.0")
             import nncf
 
-            def transform_fn(data_item) -> np.ndarray:
-                """Quantization transform function."""
-                data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
-                assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-                im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0-255 to 0.0-1.0
-                return np.expand_dims(im, 0) if im.ndim == 3 else im
-
             # Generate calibration data for integer quantization
             ignored_scope = None
             if isinstance(self.model.model[-1], Detect):
@@ -793,14 +794,13 @@ class Exporter:
                         f".*{head_module_name}/.*/Sub*",
                         f".*{head_module_name}/.*/Mul*",
                         f".*{head_module_name}/.*/Div*",
-                        f".*{head_module_name}\\.dfl.*",
                     ],
                     types=["Sigmoid"],
                 )
 
             quantized_ov_model = nncf.quantize(
                 model=ov_model,
-                calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn),
+                calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), self._transform_fn),
                 preset=nncf.QuantizationPreset.MIXED,
                 ignored_scope=ignored_scope,
             )
@@ -819,11 +819,11 @@ class Exporter:
         assert not IS_JETSON, "Jetson Paddle exports not supported yet"
         check_requirements(
             (
-                "paddlepaddle-gpu"
+                "paddlepaddle-gpu>=3.0.0,!=3.3.0"  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
                 if torch.cuda.is_available()
                 else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
                 if ARM64
-                else "paddlepaddle>=3.0.0",
+                else "paddlepaddle>=3.0.0,!=3.3.0",  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
                 "x2paddle",
             )
         )
@@ -1141,17 +1141,11 @@ class Exporter:
         from axelera import compiler
         from axelera.compiler import CompilerConfig
 
-        self.args.opset = 17
+        self.args.opset = 17  # hardcode opset for Axelera
         onnx_path = self.export_onnx()
-        model_name = f"{Path(onnx_path).stem}"
+        model_name = Path(onnx_path).stem
         export_path = Path(f"{model_name}_axelera_model")
         export_path.mkdir(exist_ok=True)
-
-        def transform_fn(data_item) -> np.ndarray:
-            data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
-            assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-            im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
-            return np.expand_dims(im, 0) if im.ndim == 3 else im
 
         if "C2PSA" in self.model.__str__():  # YOLO11
             config = CompilerConfig(
@@ -1178,7 +1172,7 @@ class Exporter:
             model=onnx_path,
             calibration_dataset=self.get_int8_calibration_dataloader(prefix),
             config=config,
-            transform_fn=transform_fn,
+            transform_fn=self._transform_fn,
         )
 
         compiler.compile(model=qmodel, config=config, output_dir=export_path)
@@ -1201,10 +1195,13 @@ class Exporter:
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
         assert TORCH_2_9, f"ExecuTorch export requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
-        # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
-        # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-        check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-        check_requirements(("executorch==1.0.1", "flatbuffers"))
+
+        # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
+        if LINUX and ARM64 and IS_DOCKER:
+            check_requirements("packaging>=22.0")
+
+        check_requirements("ruamel.yaml<0.19.0")
+        check_requirements("executorch==1.0.1", "flatbuffers")
         # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
         check_requirements("numpy<=2.3.5")
 
@@ -1440,6 +1437,14 @@ class Exporter:
         model.output_description["coordinates"] = "Boxes × [x, y, width, height] (relative to image size)"
         LOGGER.info(f"{prefix} pipeline success")
         return model
+
+    @staticmethod
+    def _transform_fn(data_item) -> np.ndarray:
+        """The transformation function for Axelera/OpenVINO quantization preprocessing."""
+        data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
+        assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
+        im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+        return im[None] if im.ndim == 3 else im
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""

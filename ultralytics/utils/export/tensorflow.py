@@ -58,21 +58,6 @@ def _tf_kpts_decode(self, kpts: torch.Tensor, is_pose26: bool = False) -> torch.
     return a.view(bs, self.nk, -1)
 
 
-def _tf_kpts26_decode(self, kpts: torch.Tensor) -> torch.Tensor:
-    """Decode YOLO26-style keypoints for TensorFlow export."""
-    ndim = self.kpt_shape[1]
-    bs = kpts.shape[0]
-    # Precompute normalization factor to increase numerical stability
-    y = kpts.view(bs, *self.kpt_shape, -1)
-    grid_h, grid_w = self.shape[2], self.shape[3]
-    grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
-    norm = self.strides / (self.stride[0] * grid_size)
-    a = (y[:, :, :2] + self.anchors) * norm
-    if ndim == 3:
-        a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
-    return a.view(bs, self.nk, -1)
-
-
 def onnx2saved_model(
     onnx_file: str,
     output_dir: Path,

@@ -101,7 +101,7 @@ class SegmentationValidator(DetectionValidator):
         """
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         preds = super().postprocess(preds[0])
-        imgsz = self.dataloader.dataset.batch_shapes[self.batch_i] # get image size from dataloader
+        imgsz = self.dataloader.dataset.batch_shapes[self.batch_i]  # get image size from dataloader
         for i, pred in enumerate(preds):
             coefficient = pred.pop("extra")
             pred["masks"] = (

@@ -184,7 +184,7 @@ You can train models anywhere and stream metrics to Platform.
     Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install ultralytics > =8.4.0
+    pip install "ultralytics>=8.4.0"
     ```
 
 ```bash

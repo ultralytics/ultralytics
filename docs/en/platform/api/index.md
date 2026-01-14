@@ -448,7 +448,7 @@ For easier integration, use the Ultralytics Python package.
     Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
 
     ```bash
-    pip install ultralytics > =8.4.0
+    pip install "ultralytics>=8.4.0"
     ```
 
 ```python

@@ -207,7 +207,7 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
         import numpy as np
 
         from ultralytics import YOLO
-        from ultralytics.models.yolo.yoloe import YOLOVPSegPredictor
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize model
         model = YOLO("yoloe-26l-seg.pt")
@@ -233,7 +233,7 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
         results = model.predict(
             "ultralytics/assets/bus.jpg",
             visual_prompts=visual_prompts,
-            predictor=YOLOVPSegPredictor,
+            predictor=YOLOEVPSegPredictor,
         )
 
         # Show results

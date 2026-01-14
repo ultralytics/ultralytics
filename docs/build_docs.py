@@ -39,7 +39,7 @@ try:
 except ImportError:
     postprocess_site = None
 
-from build_reference import build_reference_docs, build_reference_for
+from build_reference import build_reference_docs
 
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
@@ -66,16 +66,6 @@ def prepare_docs_markdown(clone_repos: bool = True):
     shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
     if clone_repos:
-        # Get hub-sdk repo
-        repo = "https://github.com/ultralytics/hub-sdk"
-        local_dir = DOCS / "repos" / Path(repo).name
-        subprocess.run(
-            ["git", "clone", "-q", "--depth=1", "--single-branch", "-b", "main", repo, str(local_dir)], check=True
-        )
-        shutil.rmtree(DOCS / "en/hub/sdk", ignore_errors=True)  # delete if exists
-        shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")  # for docs
-        LOGGER.info(f"Cloned/Updated {repo} in {local_dir}")
-
         # Get docs repo
         repo = "https://github.com/ultralytics/docs"
         local_dir = DOCS / "repos" / Path(repo).name
@@ -160,8 +150,8 @@ def _process_html_file(html_file: Path) -> bool:
     except ValueError:
         rel_path = html_file.name
 
-    # For pages sourced from external repos (hub-sdk, compare), drop edit/copy buttons to avoid wrong links
-    if rel_path.startswith(("hub/sdk/", "compare/")):
+    # For pages sourced from external repos (compare), drop edit/copy buttons to avoid wrong links
+    if rel_path.startswith("compare/"):
         before = content
         content = re.sub(
             r'<a[^>]*class="[^"]*md-content__button[^"]*"[^>]*>.*?</a>',
@@ -609,17 +599,6 @@ def main():
         backup_root, docs_backups = backup_docs_sources()
         prepare_docs_markdown()
         build_reference_docs(update_nav=False)
-        # Render reference docs for any extra packages present (e.g., hub-sdk)
-        extra_refs = [
-            {
-                "package": DOCS / "repos" / "hub-sdk" / "hub_sdk",
-                "reference_dir": DOCS / "en" / "hub" / "sdk" / "reference",
-                "repo": "ultralytics/hub-sdk",
-            },
-        ]
-        for ref in extra_refs:
-            if ref["package"].exists():
-                build_reference_for(ref["package"], ref["reference_dir"], ref["repo"], update_nav=False)
         render_jinja_macros()
 
         # Remove cloned repos before serving/building to keep the tree lean during mkdocs processing
@@ -686,7 +665,6 @@ def main():
     finally:
         if not restored:
             restore_all()
-        shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
         shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
 

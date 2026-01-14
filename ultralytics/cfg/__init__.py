@@ -62,11 +62,11 @@ TASK2DATA = {
     "obb": "dota8.yaml",
 }
 TASK2MODEL = {
-    "detect": "yolo11n.pt",
-    "segment": "yolo11n-seg.pt",
-    "classify": "yolo11n-cls.pt",
-    "pose": "yolo11n-pose.pt",
-    "obb": "yolo11n-obb.pt",
+    "detect": "yolo26n.pt",
+    "segment": "yolo26n-seg.pt",
+    "classify": "yolo26n-cls.pt",
+    "pose": "yolo26n-pose.pt",
+    "obb": "yolo26n-obb.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
@@ -186,6 +186,7 @@ CFG_FRACTION_KEYS = frozenset(
         "conf",
         "iou",
         "fraction",
+        "multi_scale",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -237,7 +238,6 @@ CFG_BOOL_KEYS = frozenset(
         "simplify",
         "nms",
         "profile",
-        "multi_scale",
     }
 )
 

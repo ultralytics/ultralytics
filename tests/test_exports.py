@@ -12,8 +12,8 @@ import pytest
 from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_8, TORCH_2_9
+from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION, WINDOWS, checks
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 
 def test_export_torchscript():
@@ -112,6 +112,9 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
+@pytest.mark.skipif(
+    MACOS and MACOS_VERSION and MACOS_VERSION >= "15", reason="CoreML YOLO26 matrix test crashes on macOS 15+"
+)
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, nms, batch",
     [  # generate all combinations except for exclusion cases
@@ -141,7 +144,9 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
+@pytest.mark.skipif(
+    not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_1_13, reason="TFLite export requires Python>=3.10 and torch>=1.13"
+)
 @pytest.mark.skipif(
     not LINUX or IS_RASPBERRYPI,
     reason="Test disabled as TF suffers from install conflicts on Windows, macOS and Raspberry Pi",
@@ -235,6 +240,8 @@ def test_export_mnn_matrix(task, int8, half, batch):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(ARM64, reason="NCNN not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
+@pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
 def test_export_ncnn():
     """Test YOLO export to NCNN format."""
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)
@@ -242,6 +249,8 @@ def test_export_ncnn():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(ARM64, reason="NCNN not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
+@pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
 @pytest.mark.parametrize("task, half, batch", list(product(TASKS, [True, False], [1])))
 def test_export_ncnn_matrix(task, half, batch):
     """Test YOLO export to NCNN format considering various export configurations."""
@@ -256,7 +265,7 @@ def test_export_ncnn_matrix(task, half, batch):
 @pytest.mark.skipif(ARM64, reason="IMX export is not supported on ARM64 architectures.")
 def test_export_imx():
     """Test YOLO export to IMX format."""
-    model = YOLO(MODEL)
+    model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
 

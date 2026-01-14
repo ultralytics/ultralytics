@@ -11,8 +11,8 @@ FROM ultralytics/ultralytics:latest
 # Note tensorrt installed on-demand as depends on runtime environment CUDA version
 RUN uv pip install --system -e ".[export]" "onnxruntime-gpu" paddlepaddle x2paddle numpy==1.26.4 && \
     # Run exports to AutoInstall packages \
-    yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 && \
-    yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32 && \
+    yolo export model=tmp/yolo26n.pt format=edgetpu imgsz=32 && \
+    yolo export model=tmp/yolo26n.pt format=ncnn imgsz=32 && \
     # Remove temporary files \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 

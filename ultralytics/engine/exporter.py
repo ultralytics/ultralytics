@@ -503,7 +503,9 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
-                m.max_det = self.args.max_det
+                # Clamp max_det to anchor count for small image sizes (required for TensorRT compatibility)
+                anchors = sum((self.imgsz[0] // s) * (self.imgsz[1] // s) for s in model.stride.tolist())
+                m.max_det = min(self.args.max_det, anchors)
                 m.xyxy = self.args.nms and not coreml
                 m.shape = None  # reset cached shape for new export input size
                 if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models

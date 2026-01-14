@@ -226,8 +226,7 @@ class Detect(nn.Module):
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         return torch.cat([boxes, scores, conf], dim=-1)
 
-    @staticmethod
-    def get_topk_index(scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def get_topk_index(self, scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Get top-k indices from scores.
 
         Args:
@@ -238,9 +237,12 @@ class Detect(nn.Module):
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
         batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,84)
-        ori_index = scores.max(dim=-1)[0].topk(min(max_det, anchors))[1].unsqueeze(-1)
+        # Use max_det directly during export for TensorRT compatibility (requires k to be constant),
+        # otherwise use min(max_det, anchors) for safety with small inputs during Python inference
+        k = max_det if self.export else min(max_det, anchors)
+        ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
         scores = scores.gather(dim=1, index=ori_index.repeat(1, 1, nc))
-        scores, index = scores.flatten(1).topk(min(max_det, anchors))
+        scores, index = scores.flatten(1).topk(k)
         idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index
         return scores[..., None], (index % nc)[..., None].float(), idx
 

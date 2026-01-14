@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn to simplify the logging of YOLO11 training with Comet. This guide covers installation, setup, real-time insights, and custom logging.
-keywords: YOLO11, Comet, Comet ML, logging, machine learning, training, model checkpoints, metrics, installation, configuration, real-time insights, custom logging
+description: Learn to simplify the logging of YOLO26 training with Comet. This guide covers installation, setup, real-time insights, and custom logging.
+keywords: YOLO26, Comet, Comet ML, logging, machine learning, training, model checkpoints, metrics, installation, configuration, real-time insights, custom logging
 ---
 
-# Elevating YOLO11 Training: Simplify Your Logging Process with Comet
+# Elevating YOLO26 Training: Simplify Your Logging Process with Comet
 
 Logging key training details such as parameters, metrics, image predictions, and model checkpoints is essential in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml)—it keeps your project transparent, your progress measurable, and your results repeatable.
 
@@ -19,7 +19,7 @@ Logging key training details such as parameters, metrics, image predictions, and
   <strong>Watch:</strong> How to Use Comet for Ultralytics YOLO Model Training Logs and Metrics 🚀
 </p>
 
-[Ultralytics YOLO11](https://www.ultralytics.com/) seamlessly integrates with Comet (formerly Comet ML), efficiently capturing and optimizing every aspect of your YOLO11 [object detection](https://www.ultralytics.com/glossary/object-detection) model's training process. In this guide, we'll cover the installation process, Comet setup, real-time insights, custom logging, and offline usage, ensuring that your YOLO11 training is thoroughly documented and fine-tuned for outstanding results.
+[Ultralytics YOLO26](https://www.ultralytics.com/) seamlessly integrates with Comet (formerly Comet ML), efficiently capturing and optimizing every aspect of your YOLO26 [object detection](https://www.ultralytics.com/glossary/object-detection) model's training process. In this guide, we'll cover the installation process, Comet setup, real-time insights, custom logging, and offline usage, ensuring that your YOLO26 training is thoroughly documented and fine-tuned for outstanding results.
 
 ## Comet
 
@@ -29,9 +29,9 @@ Logging key training details such as parameters, metrics, image predictions, and
 
 [Comet](https://www.comet.com/site/) is a platform for tracking, comparing, explaining, and optimizing machine learning models and experiments. It allows you to log metrics, parameters, media, and more during your model training and monitor your experiments through an aesthetically pleasing web interface. Comet helps data scientists iterate more rapidly, enhances transparency and reproducibility, and aids in the development of production models.
 
-## Harnessing the Power of YOLO11 and Comet
+## Harnessing the Power of YOLO26 and Comet
 
-By combining Ultralytics YOLO11 with Comet, you unlock a range of benefits. These include simplified experiment management, real-time insights for quick adjustments, flexible and tailored logging options, and the ability to log experiments offline when internet access is limited. This integration empowers you to make data-driven decisions, analyze performance metrics, and achieve exceptional results.
+By combining Ultralytics YOLO26 with Comet, you unlock a range of benefits. These include simplified experiment management, real-time insights for quick adjustments, flexible and tailored logging options, and the ability to log experiments offline when internet access is limited. This integration empowers you to make data-driven decisions, analyze performance metrics, and achieve exceptional results.
 
 ## Installation
 
@@ -42,7 +42,7 @@ To install the required packages, run:
     === "CLI"
 
         ```bash
-        # Install the required packages for YOLO11 and Comet
+        # Install the required packages for YOLO26 and Comet
         pip install ultralytics comet_ml torch torchvision
         ```
 
@@ -68,14 +68,14 @@ Then, you can initialize your Comet project. Comet will automatically detect the
         ```python
         import comet_ml
 
-        comet_ml.login(project_name="comet-example-yolo11-coco128")
+        comet_ml.login(project_name="comet-example-yolo26-coco128")
         ```
 
 If you are using a Google Colab notebook, the code above will prompt you to enter your API key for initialization.
 
 ## Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLO11 models offered by Ultralytics](../models/yolo11.md). This will help you choose the most appropriate model for your project requirements.
+Before diving into the usage instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](../models/yolo26.md). This will help you choose the most appropriate model for your project requirements.
 
 !!! example "Usage"
 
@@ -85,12 +85,12 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Train the model
         results = model.train(
             data="coco8.yaml",
-            project="comet-example-yolo11-coco128",
+            project="comet-example-yolo26-coco128",
             batch=32,
             save_period=1,
             save_json=True,
@@ -98,13 +98,13 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         )
         ```
 
-After running the training code, Comet will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLO11 model's training](../modes/train.md) process.
+After running the training code, Comet will create an experiment in your Comet workspace to track the run automatically. You will then be provided with a link to view the detailed logging of your [YOLO26 model's training](../modes/train.md) process.
 
 Comet automatically logs the following data with no additional configuration: metrics such as mAP and loss, hyperparameters, model checkpoints, interactive confusion matrix, and image [bounding box](https://www.ultralytics.com/glossary/bounding-box) predictions.
 
 ## Understanding Your Model's Performance with Comet Visualizations
 
-Let's dive into what you'll see on the Comet dashboard once your YOLO11 model begins training. The dashboard is where all the action happens, presenting a range of automatically logged information through visuals and statistics. Here's a quick tour:
+Let's dive into what you'll see on the Comet dashboard once your YOLO26 model begins training. The dashboard is where all the action happens, presenting a range of automatically logged information through visuals and statistics. Here's a quick tour:
 
 **Experiment Panels**
 
@@ -184,19 +184,19 @@ os.environ["COMET_MODE"] = "offline"
 
 ## Summary
 
-This guide has walked you through integrating Comet with Ultralytics' YOLO11. From installation to customization, you've learned to streamline experiment management, gain real-time insights, and adapt logging to your project's needs.
+This guide has walked you through integrating Comet with Ultralytics' YOLO26. From installation to customization, you've learned to streamline experiment management, gain real-time insights, and adapt logging to your project's needs.
 
-Explore [Comet's official YOLOv8 integration documentation](https://www.comet.com/docs/v2/integrations/third-party-tools/yolov8/), which also applies to YOLO11 projects.
+Explore [Comet's official YOLOv8 integration documentation](https://www.comet.com/docs/v2/integrations/third-party-tools/yolov8/), which also applies to YOLO26 projects.
 
-Furthermore, if you're looking to dive deeper into the practical applications of YOLO11, specifically for [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks, this detailed guide on [fine-tuning YOLO11 with Comet](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) offers valuable insights and step-by-step instructions to enhance your model's performance.
+Furthermore, if you're looking to dive deeper into the practical applications of YOLO26, specifically for [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) tasks, this detailed guide on [fine-tuning YOLO26 with Comet](https://www.comet.com/site/blog/fine-tuning-yolov8-for-image-segmentation-with-comet/) offers valuable insights and step-by-step instructions to enhance your model's performance.
 
 Additionally, to explore other exciting integrations with Ultralytics, check out the [integration guide page](../integrations/index.md), which offers a wealth of resources and information.
 
 ## FAQ
 
-### How do I integrate Comet with Ultralytics YOLO11 for training?
+### How do I integrate Comet with Ultralytics YOLO26 for training?
 
-To integrate Comet with Ultralytics YOLO11, follow these steps:
+To integrate Comet with Ultralytics YOLO26, follow these steps:
 
 1. **Install the required packages**:
 
@@ -215,18 +215,18 @@ To integrate Comet with Ultralytics YOLO11, follow these steps:
     ```python
     import comet_ml
 
-    comet_ml.login(project_name="comet-example-yolo11-coco128")
+    comet_ml.login(project_name="comet-example-yolo26-coco128")
     ```
 
-4. **Train your YOLO11 model and log metrics**:
+4. **Train your YOLO26 model and log metrics**:
 
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
     results = model.train(
         data="coco8.yaml",
-        project="comet-example-yolo11-coco128",
+        project="comet-example-yolo26-coco128",
         batch=32,
         save_period=1,
         save_json=True,
@@ -236,9 +236,9 @@ To integrate Comet with Ultralytics YOLO11, follow these steps:
 
 For more detailed instructions, refer to the [Comet configuration section](#configuring-comet).
 
-### What are the benefits of using Comet with YOLO11?
+### What are the benefits of using Comet with YOLO26?
 
-By integrating Ultralytics YOLO11 with Comet, you can:
+By integrating Ultralytics YOLO26 with Comet, you can:
 
 - **Monitor real-time insights**: Get instant feedback on your training results, allowing for quick adjustments.
 - **Log extensive metrics**: Automatically capture essential metrics such as mAP, loss, hyperparameters, and model checkpoints.
@@ -247,7 +247,7 @@ By integrating Ultralytics YOLO11 with Comet, you can:
 
 By leveraging these features, you can optimize your machine learning workflows for better performance and reproducibility. For more information, visit the [Comet integration guide](../integrations/index.md).
 
-### How do I customize the logging behavior of Comet during YOLO11 training?
+### How do I customize the logging behavior of Comet during YOLO26 training?
 
 Comet allows for extensive customization of its logging behavior using environment variables:
 
@@ -277,9 +277,9 @@ Comet allows for extensive customization of its logging behavior using environme
 
 Refer to the [Customizing Comet Logging](#customizing-comet-logging) section for more customization options.
 
-### How do I view detailed metrics and visualizations of my YOLO11 training on Comet?
+### How do I view detailed metrics and visualizations of my YOLO26 training on Comet?
 
-Once your YOLO11 model starts training, you can access a wide range of metrics and visualizations on the Comet dashboard. Key features include:
+Once your YOLO26 model starts training, you can access a wide range of metrics and visualizations on the Comet dashboard. Key features include:
 
 - **Experiment Panels**: View different runs and their metrics, including segment mask loss, class loss, and mean average [precision](https://www.ultralytics.com/glossary/precision).
 - **Metrics**: Examine metrics in tabular format for detailed analysis.
@@ -288,7 +288,7 @@ Once your YOLO11 model starts training, you can access a wide range of metrics a
 
 For a detailed overview of these features, visit the [Understanding Your Model's Performance with Comet Visualizations](#understanding-your-models-performance-with-comet-visualizations) section.
 
-### Can I use Comet for offline logging when training YOLO11 models?
+### Can I use Comet for offline logging when training YOLO26 models?
 
 Yes, you can enable offline logging in Comet by setting the `COMET_MODE` environment variable to "offline":
 

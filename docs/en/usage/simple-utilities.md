@@ -34,7 +34,7 @@ from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(
     data="path/to/new/data",
-    det_model="yolo11n.pt",
+    det_model="yolo26n.pt",
     sam_model="mobile_sam.pt",
     device="cuda",
     output_dir="path/to/save_labels",
@@ -70,7 +70,7 @@ visualize_image_annotations(
 
 ![Segmentation Masks to YOLO Format](https://github.com/ultralytics/docs/releases/download/0/segmentation-masks-to-yolo-format.avif)
 
-Use this to convert a dataset of segmentation mask images to the [Ultralytics YOLO](../models/yolo11.md) segmentation format. This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
+Use this to convert a dataset of segmentation mask images to the [Ultralytics YOLO](../models/yolo26.md) segmentation format. This function takes the directory containing the binary format mask images and converts them into YOLO segmentation format.
 
 The converted masks will be saved in the specified output directory.
 
@@ -107,7 +107,7 @@ import cv2
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 
-model = YOLO("yolo11n.pt")  # Load pretrain or fine-tune model
+model = YOLO("yolo26n.pt")  # Load pretrain or fine-tune model
 
 # Process the image
 source = cv2.imread("path/to/image.jpg")
@@ -483,7 +483,7 @@ Also see the [`Annotator` Reference Page](../reference/utils/plotting.md/#ultral
 
     # User defined video path and model file
     cap = cv2.VideoCapture("path/to/video.mp4")
-    model = YOLO(model="yolo11s-seg.pt")  # Model file, e.g., yolo11s.pt or yolo11m-seg.pt
+    model = YOLO(model="yolo26s-seg.pt")  # Model file, e.g., yolo26s.pt or yolo26m-seg.pt
 
     if not cap.isOpened():
         print("Error: Could not open video.")
@@ -594,7 +594,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
         from ultralytics.solutions.solutions import SolutionAnnotator
         from ultralytics.utils.plotting import colors
 
-        model = YOLO("yolo11s.pt")
+        model = YOLO("yolo26s.pt")
         names = model.names
         cap = cv2.VideoCapture("path/to/video.mp4")
 
@@ -633,7 +633,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
         from ultralytics.solutions.solutions import SolutionAnnotator
         from ultralytics.utils.plotting import colors
 
-        model = YOLO("yolo11s.pt")
+        model = YOLO("yolo26s.pt")
         names = model.names
         cap = cv2.VideoCapture("path/to/video.mp4")
 
@@ -724,7 +724,7 @@ from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(
     data="path/to/new/data",
-    det_model="yolo11n.pt",
+    det_model="yolo26n.pt",
     sam_model="mobile_sam.pt",
     device="cuda",
     output_dir="path/to/save_labels",

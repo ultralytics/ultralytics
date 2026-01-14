@@ -33,4 +33,8 @@ keywords: Ultralytics, YOLO, TaskAlignedAssigner, object detection, machine lear
 
 ## ::: ultralytics.utils.tal.dist2rbox
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.tal.rbox2dist
+
 <br><br>

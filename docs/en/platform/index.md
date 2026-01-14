@@ -177,7 +177,15 @@ See [Cloud Training](train/cloud-training.md) for pricing and details.
 
 ### How does remote training work?
 
-You can train models anywhere and stream metrics to Platform:
+You can train models anywhere and stream metrics to Platform.
+
+!!! warning "Package Version Requirement"
+
+    Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
+
+    ```bash
+    pip install ultralytics>=8.4.0
+    ```
 
 ```bash
 # Set your API key

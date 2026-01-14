@@ -136,7 +136,15 @@ Continue from your last checkpoint:
 
 ## Remote Training
 
-Train on your own hardware while streaming metrics to the Platform:
+Train on your own hardware while streaming metrics to the Platform.
+
+!!! warning "Package Version Requirement"
+
+    Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
+
+    ```bash
+    pip install ultralytics>=8.4.0
+    ```
 
 ### Setup API Key
 

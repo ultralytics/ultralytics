@@ -441,7 +441,15 @@ GET /api/exports/{exportId}
 
 ## SDK Support
 
-For easier integration, use the Ultralytics Python package:
+For easier integration, use the Ultralytics Python package.
+
+!!! warning "Package Version Requirement"
+
+    Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
+
+    ```bash
+    pip install ultralytics>=8.4.0
+    ```
 
 ```python
 import os

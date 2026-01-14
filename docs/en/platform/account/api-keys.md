@@ -114,7 +114,15 @@ curl -H "Authorization: Bearer ul_your_key_here" \
 
 ### Remote Training
 
-Enable metric streaming with your key:
+Enable metric streaming with your key.
+
+!!! warning "Package Version Requirement"
+
+    Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
+
+    ```bash
+    pip install ultralytics>=8.4.0
+    ```
 
 ```bash
 export ULTRALYTICS_API_KEY="ul_your_key_here"

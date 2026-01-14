@@ -5,7 +5,7 @@ from unittest import mock
 
 import torch
 
-from tests import MODEL
+from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
@@ -24,7 +24,7 @@ def test_export():
     exporter.add_callback("on_export_start", test_func)
     assert test_func in exporter.callbacks["on_export_start"], "callback test failed"
     f = exporter(model=YOLO("yolo26n.yaml").model)
-    YOLO(f)(ASSETS)  # exported model inference
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_detect():

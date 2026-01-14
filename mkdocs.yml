@@ -222,7 +222,7 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - YOLO26 🚀 Coming soon: models/yolo26.md # for promotion of new pages
+      - YOLO26 🚀: models/yolo26.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -311,7 +311,7 @@ nav:
       - YOLOv10: models/yolov10.md
       - YOLO11: models/yolo11.md
       - YOLO12: models/yolo12.md
-      - YOLO26 🚀 Coming soon: models/yolo26.md
+      - YOLO26 🚀: models/yolo26.md
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
       - SAM 3 (Segment Anything Model 3): models/sam-3.md
@@ -501,50 +501,30 @@ nav:
       - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md
       - Weights & Biases: integrations/weights-biases.md
-  - HUB:
-      - HUB: hub/index.md
-      - Web:
-          - hub/index.md
-          - Quickstart: hub/quickstart.md
-          - Datasets: hub/datasets.md
-          - Projects: hub/projects.md
-          - Models: hub/models.md
-          - Pro: hub/pro.md
-          - Cloud Training: hub/cloud-training.md
-          - Inference API: hub/inference-api.md
-          - Teams: hub/teams.md
-          - Integrations: hub/integrations.md
-      - App:
-          - hub/app/index.md
-          - iOS: hub/app/ios.md
-          - Android: hub/app/android.md
-      - Python SDK:
-          - hub/sdk/index.md
-          - Quickstart: hub/sdk/quickstart.md
-          - Model: hub/sdk/model.md
-          - Dataset: hub/sdk/dataset.md
-          - Project: hub/sdk/project.md
-          - Reference:
-              - base:
-                  - api_client: hub/sdk/reference/base/api_client.md
-                  - auth: hub/sdk/reference/base/auth.md
-                  - crud_client: hub/sdk/reference/base/crud_client.md
-                  - paginated_list: hub/sdk/reference/base/paginated_list.md
-                  - server_clients: hub/sdk/reference/base/server_clients.md
-              - helpers:
-                  - error_handler: hub/sdk/reference/helpers/error_handler.md
-                  - exceptions: hub/sdk/reference/helpers/exceptions.md
-                  - logger: hub/sdk/reference/helpers/logger.md
-                  - utils: hub/sdk/reference/helpers/utils.md
-              - hub_client: hub/sdk/reference/hub_client.md
-              - modules:
-                  - datasets: hub/sdk/reference/modules/datasets.md
-                  - models: hub/sdk/reference/modules/models.md
-                  - projects: hub/sdk/reference/modules/projects.md
-                  - teams: hub/sdk/reference/modules/teams.md
-                  - users: hub/sdk/reference/modules/users.md
-      - REST API:
-          - hub/api/index.md
+  - Platform:
+      - Platform: platform/index.md
+      - Quickstart: platform/quickstart.md
+      - Data:
+          - platform/data/index.md
+          - Datasets: platform/data/datasets.md
+          - Annotation: platform/data/annotation.md
+      - Train:
+          - platform/train/index.md
+          - Projects: platform/train/projects.md
+          - Models: platform/train/models.md
+          - Cloud Training: platform/train/cloud-training.md
+      - Deploy:
+          - platform/deploy/index.md
+          - Inference: platform/deploy/inference.md
+          - Endpoints: platform/deploy/endpoints.md
+          - Monitoring: platform/deploy/monitoring.md
+      - Account:
+          - platform/account/index.md
+          - API Keys: platform/account/api-keys.md
+          - Billing: platform/account/billing.md
+          - Settings: platform/account/settings.md
+      - Explore: platform/explore.md
+      - REST API: platform/api/index.md
 
   - Reference:
       - __init__: reference/__init__.md
@@ -661,6 +641,8 @@ nav:
               - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
           - text_model: reference/nn/text_model.md
+      - optim:
+          - muon: reference/optim/muon.md
       - solutions:
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md

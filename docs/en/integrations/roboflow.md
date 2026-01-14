@@ -17,20 +17,20 @@ keywords: Roboflow, Ultralytics YOLO, data labeling, computer vision, model trai
 
     For more details see the [Ultralytics Licensing page](https://www.ultralytics.com/license).
 
-This guide demonstrates how to find, label, and organize data for training a custom [Ultralytics YOLO11](../models/yolo11.md) model using Roboflow.
+This guide demonstrates how to find, label, and organize data for training a custom [Ultralytics YOLO26](../models/yolo26.md) model using Roboflow.
 
-- [Gather Data for Training a Custom YOLO11 Model](#gather-data-for-training-a-custom-yolo11-model)
-- [Upload, Convert and Label Data for YOLO11 Format](#upload-convert-and-label-data-for-yolo11-format)
+- [Gather Data for Training a Custom YOLO26 Model](#gather-data-for-training-a-custom-yolo26-model)
+- [Upload, Convert and Label Data for YOLO26 Format](#upload-convert-and-label-data-for-yolo26-format)
 - [Pre-process and Augment Data for Model Robustness](#pre-process-and-augment-data-for-model-robustness)
-- [Dataset Management for YOLO11](#dataset-management-for-yolo11)
+- [Dataset Management for YOLO26](#dataset-management-for-yolo26)
 - [Export Data in 40+ Formats for Model Training](#export-data-in-40-formats-for-model-training)
-- [Upload Custom YOLO11 Model Weights for Testing and Deployment](#upload-custom-yolo11-model-weights-for-testing-and-deployment)
-- [How to Evaluate YOLO11 Models](#how-to-evaluate-yolo11-models)
+- [Upload Custom YOLO26 Model Weights for Testing and Deployment](#upload-custom-yolo26-model-weights-for-testing-and-deployment)
+- [How to Evaluate YOLO26 Models](#how-to-evaluate-yolo26-models)
 - [Learning Resources](#learning-resources)
 - [Project Showcase](#project-showcase)
 - [FAQ](#faq)
 
-## Gather Data for Training a Custom YOLO11 Model
+## Gather Data for Training a Custom YOLO26 Model
 
 Roboflow offers two primary services to assist in data collection for Ultralytics [YOLO models](../models/index.md): Universe and Collect. For more general information on data collection strategies, refer to our [Data Collection and Annotation Guide](../guides/data-collection-and-annotation.md).
 
@@ -48,7 +48,7 @@ With a Roboflow account, you can export datasets available on Universe. To expor
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe-dataset-export.avif" alt="Roboflow Universe dataset export" width="800">
 </p>
 
-For compatibility with Ultralytics [YOLO11](../models/yolo11.md), select "YOLO11" as the export format:
+For compatibility with Ultralytics [YOLO26](../models/yolo26.md), select "YOLO26" as the export format:
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/roboflow-universe-dataset-export-1.avif" alt="Roboflow Universe dataset export format selection" width="800">
@@ -60,7 +60,7 @@ Universe also features a page aggregating public fine-tuned YOLO models uploaded
 
 If you prefer to gather images yourself, Roboflow Collect is an open-source project enabling automatic image collection via a webcam on edge devices. You can use text or image prompts to specify the data to be collected, helping capture only the necessary images for your vision model.
 
-## Upload, Convert and Label Data for YOLO11 Format
+## Upload, Convert and Label Data for YOLO26 Format
 
 Roboflow Annotate is an online tool for labeling images for various computer vision tasks, including [object detection](../tasks/detect.md), [classification](../tasks/classify.md), and [segmentation](../tasks/segment.md).
 
@@ -97,7 +97,7 @@ You can add tags to images using the Tags panel in the sidebar. Tags can represe
 
 ### Label Assist (Model-Based)
 
-Models hosted on Roboflow can be used with Label Assist, an automated annotation tool that leverages your trained [YOLO11](../models/yolo11.md) model to suggest annotations. First, upload your YOLO11 model weights to Roboflow (see instructions below). Then, activate Label Assist by clicking the magic wand icon in the left sidebar and selecting your model.
+Models hosted on Roboflow can be used with Label Assist, an automated annotation tool that leverages your trained [YOLO26](../models/yolo26.md) model to suggest annotations. First, upload your YOLO26 model weights to Roboflow (see instructions below). Then, activate Label Assist by clicking the magic wand icon in the left sidebar and selecting your model.
 
 Choose your model and click "Continue" to enable Label Assist:
 
@@ -111,7 +111,7 @@ When you open new images for annotation, Label Assist may automatically suggest 
 <img src="https://github.com/ultralytics/docs/releases/download/0/rf-label-assist.avif" alt="Label Assist recommending an annotation based on a trained model" width="800">
 </p>
 
-## Dataset Management for YOLO11
+## Dataset Management for YOLO26
 
 Roboflow provides several tools for understanding and managing your computer vision [datasets](../datasets/index.md).
 
@@ -159,13 +159,13 @@ Once your dataset version is generated, you can export it in various formats sui
 <img src="https://github.com/ultralytics/docs/releases/download/0/exporting-dataset.avif" alt="Exporting a dataset from Roboflow" width="800">
 </p>
 
-Select the "YOLO11" format for compatibility with Ultralytics training pipelines. You are now ready to train your custom [YOLO11](../models/yolo11.md) model. Refer to the [Ultralytics Train mode documentation](../modes/train.md) for detailed instructions on initiating training with your exported dataset.
+Select the "YOLO26" format for compatibility with Ultralytics training pipelines. You are now ready to train your custom [YOLO26](../models/yolo26.md) model. Refer to the [Ultralytics Train mode documentation](../modes/train.md) for detailed instructions on initiating training with your exported dataset.
 
-## Upload Custom YOLO11 Model Weights for Testing and Deployment
+## Upload Custom YOLO26 Model Weights for Testing and Deployment
 
 Roboflow offers a scalable API for deployed models and SDKs compatible with devices like [NVIDIA Jetson](https://developer.nvidia.com/embedded-computing), [Luxonis OAK](https://www.luxonis.com/), [Raspberry Pi](../guides/raspberry-pi.md), and GPU-based systems. Explore various [model deployment options](../guides/model-deployment-options.md) in our guides.
 
-You can deploy YOLO11 models by uploading their weights to Roboflow using a simple [Python](https://www.python.org/) script.
+You can deploy YOLO26 models by uploading their weights to Roboflow using a simple [Python](https://www.python.org/) script.
 
 Create a new Python file and add the following code:
 
@@ -182,7 +182,7 @@ rf = roboflow.Roboflow()
 WORKSPACE_ID = "your-workspace-id"  # Replace with your actual Workspace ID
 PROJECT_ID = "your-project-id"  # Replace with your actual Project ID
 VERSION = 1  # Replace with your desired dataset version number
-MODEL_PATH = "path/to/your/runs/detect/train/"  # Replace with the path to your YOLO11 training results directory
+MODEL_PATH = "path/to/your/runs/detect/train/"  # Replace with the path to your YOLO26 training results directory
 
 # Get project and version
 project = rf.workspace(WORKSPACE_ID).project(PROJECT_ID)
@@ -193,7 +193,7 @@ dataset = project.version(VERSION)
 dataset.deploy(
     model_type="yolov8",
     model_path=MODEL_PATH,
-)  # Note: Use "yolov8" as model_type for YOLO11 compatibility in Roboflow deployment
+)  # Note: Use "yolov8" as model_type for YOLO26 compatibility in Roboflow deployment
 
 print(f"Model from {MODEL_PATH} uploaded to Roboflow project {PROJECT_ID}, version {VERSION}.")
 print("Deployment may take up to 30 minutes.")
@@ -211,7 +211,7 @@ To test your model and find deployment instructions for supported SDKs, go to th
 
 Your uploaded model can also be used as a labeling assistant, suggesting annotations on new images based on its training.
 
-## How to Evaluate YOLO11 Models
+## How to Evaluate YOLO26 Models
 
 Roboflow provides features for evaluating model performance. Understanding [performance metrics](../guides/yolo-performance-metrics.md) is crucial for model iteration.
 
@@ -245,16 +245,16 @@ Vector Analysis helps:
 
 ## Learning Resources
 
-Explore these resources to learn more about using Roboflow with Ultralytics YOLO11:
+Explore these resources to learn more about using Roboflow with Ultralytics YOLO26:
 
-- **[Train YOLO11 on a Custom Dataset (Colab)](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb)**: An interactive [Google Colab](../integrations/google-colab.md) notebook guiding you through training YOLO11 on your data.
-- **[YOLO11 Documentation](../models/yolo11.md)**: Learn about training, exporting, and deploying YOLO11 models within the Ultralytics framework.
-- **[Ultralytics Blog](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai)**: Features articles on computer vision, including [YOLO11 training](../modes/train.md) and annotation best practices.
+- **[Train YOLO26 on a Custom Dataset (Colab)](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb)**: An interactive [Google Colab](../integrations/google-colab.md) notebook guiding you through training YOLO26 on your data.
+- **[YOLO26 Documentation](../models/yolo26.md)**: Learn about training, exporting, and deploying YOLO26 models within the Ultralytics framework.
+- **[Ultralytics Blog](https://www.ultralytics.com/blog/ultralytics-yolo11-has-arrived-redefine-whats-possible-in-ai)**: Features articles on computer vision, including [YOLO26 training](../modes/train.md) and annotation best practices.
 - **[Ultralytics YouTube Channel](https://www.youtube.com/@Ultralytics)**: Offers in-depth video guides on computer vision topics, from model training to automated labeling and [deployment](../guides/model-deployment-options.md).
 
 ## Project Showcase
 
-Feedback from users combining Ultralytics YOLO11 and Roboflow:
+Feedback from users combining Ultralytics YOLO26 and Roboflow:
 
 <p align="center">
 <img src="https://github.com/ultralytics/docs/releases/download/0/rf-showcase-1.avif" alt="Showcase image 1" width="500">
@@ -266,22 +266,22 @@ Feedback from users combining Ultralytics YOLO11 and Roboflow:
 
 ## Frequently Asked Questions
 
-### How do I label data for YOLO11 models using Roboflow?
+### How do I label data for YOLO26 models using Roboflow?
 
-Use Roboflow Annotate. Create a project, upload images, and use the annotation tools (`B` for [bounding boxes](https://www.ultralytics.com/glossary/bounding-box), `P` for polygons) or the SAM-based label assistant for faster labeling. Detailed steps are available in the [Upload, Convert and Label Data section](#upload-convert-and-label-data-for-yolo11-format).
+Use Roboflow Annotate. Create a project, upload images, and use the annotation tools (`B` for [bounding boxes](https://www.ultralytics.com/glossary/bounding-box), `P` for polygons) or the SAM-based label assistant for faster labeling. Detailed steps are available in the [Upload, Convert and Label Data section](#upload-convert-and-label-data-for-yolo26-format).
 
-### What services does Roboflow offer for collecting YOLO11 training data?
+### What services does Roboflow offer for collecting YOLO26 training data?
 
-Roboflow provides Universe (access to numerous [datasets](../datasets/index.md)) and Collect (automated image gathering via webcam). These can help acquire the necessary [training data](https://www.ultralytics.com/glossary/training-data) for your YOLO11 model, complementing strategies outlined in our [Data Collection Guide](../guides/data-collection-and-annotation.md).
+Roboflow provides Universe (access to numerous [datasets](../datasets/index.md)) and Collect (automated image gathering via webcam). These can help acquire the necessary [training data](https://www.ultralytics.com/glossary/training-data) for your YOLO26 model, complementing strategies outlined in our [Data Collection Guide](../guides/data-collection-and-annotation.md).
 
-### How can I manage and analyze my YOLO11 dataset using Roboflow?
+### How can I manage and analyze my YOLO26 dataset using Roboflow?
 
-Utilize Roboflow's dataset search, tagging, and Health Check features. Search finds images by text or tags, while Health Check analyzes dataset quality (class balance, image sizes, etc.) to guide improvements before training. See the [Dataset Management section](#dataset-management-for-yolo11) for details.
+Utilize Roboflow's dataset search, tagging, and Health Check features. Search finds images by text or tags, while Health Check analyzes dataset quality (class balance, image sizes, etc.) to guide improvements before training. See the [Dataset Management section](#dataset-management-for-yolo26) for details.
 
-### How do I export my YOLO11 dataset from Roboflow?
+### How do I export my YOLO26 dataset from Roboflow?
 
-Create a dataset version in Roboflow, apply desired preprocessing and [augmentations](https://www.ultralytics.com/glossary/data-augmentation), then click "Export Dataset" and select the YOLO11 format. The process is outlined in the [Export Data section](#export-data-in-40-formats-for-model-training). This prepares your data for use with Ultralytics [training pipelines](../modes/train.md).
+Create a dataset version in Roboflow, apply desired preprocessing and [augmentations](https://www.ultralytics.com/glossary/data-augmentation), then click "Export Dataset" and select the YOLO26 format. The process is outlined in the [Export Data section](#export-data-in-40-formats-for-model-training). This prepares your data for use with Ultralytics [training pipelines](../modes/train.md).
 
-### How can I integrate and deploy YOLO11 models with Roboflow?
+### How can I integrate and deploy YOLO26 models with Roboflow?
 
-Upload your trained YOLO11 weights to Roboflow using the provided Python script. This creates a deployable API endpoint. Refer to the [Upload Custom Weights section](#upload-custom-yolo11-model-weights-for-testing-and-deployment) for the script and instructions. Explore further [deployment options](../guides/model-deployment-options.md) in our documentation.
+Upload your trained YOLO26 weights to Roboflow using the provided Python script. This creates a deployable API endpoint. Refer to the [Upload Custom Weights section](#upload-custom-yolo26-model-weights-for-testing-and-deployment) for the script and instructions. Explore further [deployment options](../guides/model-deployment-options.md) in our documentation.

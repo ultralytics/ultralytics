@@ -1,0 +1,51 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Builds ultralytics/ultralytics:latest-nvidia-arm64 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Supports JetPack 7.0 and DGX OS for YOLO on Jetson AGX Thor (T5000) and DGX Spark
+
+# Start FROM PyTorch image nvcr.io/nvidia/pytorch:25.10-py3
+FROM nvcr.io/nvidia/pytorch:25.10-py3
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_BREAK_SYSTEM_PACKAGES=1
+
+# Downloads to user config dir
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
+    /root/.config/Ultralytics/
+
+# Install linux packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libgl1 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create working directory
+WORKDIR /ultralytics
+
+# Copy contents and configure git
+COPY . .
+RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
+    sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
+ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
+
+# Install pip packages (uv already installed in base image)
+RUN uv pip install --system \
+    https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl --break-system-packages && \
+    # Reinstall torch and torchvision to ensure CUDA 13.0 compatibility
+    uv pip install --system --force-reinstall torch torchvision --index-url https://download.pytorch.org/whl/cu130 --break-system-packages && \
+    uv pip install --system -e ".[export]" --break-system-packages && \
+    # Remove extra build files
+    rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
+
+# Usage --------------------------------------------------------------------------------------------------------------
+
+# Production builds: https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml
+# Example (build): t=ultralytics/ultralytics:latest-nvidia-arm64 && docker build --platform linux/arm64 -f docker/Dockerfile-nvidia-arm64 -t $t .
+# Example (push): docker push $t
+# Example (pull): t=ultralytics/ultralytics:latest-nvidia-arm64 && docker pull $t
+# Example (run): docker run -it --ipc=host --runtime=nvidia $t
+# Example (run-with-volume): docker run -it --ipc=host --runtime=nvidia -v "$PWD/shared/datasets:/datasets" $t && docker push $tnew

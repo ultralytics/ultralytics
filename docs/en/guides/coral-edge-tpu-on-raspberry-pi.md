@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn how to boost your Raspberry Pi's ML performance using Coral Edge TPU with Ultralytics YOLO11. Follow our detailed setup and installation guide.
-keywords: Coral Edge TPU, Raspberry Pi, YOLO11, Ultralytics, TensorFlow Lite, ML inference, machine learning, AI, installation guide, setup tutorial
+description: Learn how to boost your Raspberry Pi's ML performance using Coral Edge TPU with Ultralytics YOLO26. Follow our detailed setup and installation guide.
+keywords: Coral Edge TPU, Raspberry Pi, YOLO26, Ultralytics, TensorFlow Lite, ML inference, machine learning, AI, installation guide, setup tutorial
 ---
 
-# Coral Edge TPU on a Raspberry Pi with Ultralytics YOLO11 🚀
+# Coral Edge TPU on a Raspberry Pi with Ultralytics YOLO26 🚀
 
 <p align="center">
   <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/edge-tpu-usb-accelerator-and-pi.avif" alt="Raspberry Pi single board computer with USB Edge TPU accelerator">
@@ -84,7 +84,7 @@ After installing the runtime, plug your Coral Edge TPU into a USB 3.0 port on th
 
 ## Export to Edge TPU
 
-To use the Edge TPU, you need to convert your model into a compatible format. It is recommended that you run export on Google Colab, x86_64 Linux machine, using the official [Ultralytics Docker container](docker-quickstart.md), or using [Ultralytics HUB](../hub/quickstart.md), since the Edge TPU compiler is not available on ARM. See the [Export Mode](../modes/export.md) for the available arguments.
+To use the Edge TPU, you need to convert your model into a compatible format. It is recommended that you run export on Google Colab, x86_64 Linux machine, using the official [Ultralytics Docker container](docker-quickstart.md), or using [Ultralytics Platform](../platform/quickstart.md), since the Edge TPU compiler is not available on ARM. See the [Export Mode](../modes/export.md) for the available arguments.
 
 !!! example "Exporting the model"
 
@@ -204,9 +204,9 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
 ## FAQ
 
-### What is a Coral Edge TPU and how does it enhance Raspberry Pi's performance with Ultralytics YOLO11?
+### What is a Coral Edge TPU and how does it enhance Raspberry Pi's performance with Ultralytics YOLO26?
 
-The Coral Edge TPU is a compact device designed to add an Edge TPU coprocessor to your system. This coprocessor enables low-power, high-performance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) inference, particularly optimized for TensorFlow Lite models. When using a Raspberry Pi, the Edge TPU accelerates ML model inference, significantly boosting performance, especially for Ultralytics YOLO11 models. You can read more about the Coral Edge TPU on their [home page](https://developers.google.com/coral).
+The Coral Edge TPU is a compact device designed to add an Edge TPU coprocessor to your system. This coprocessor enables low-power, high-performance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) inference, particularly optimized for TensorFlow Lite models. When using a Raspberry Pi, the Edge TPU accelerates ML model inference, significantly boosting performance, especially for Ultralytics YOLO26 models. You can read more about the Coral Edge TPU on their [home page](https://developers.google.com/coral).
 
 ### How do I install the Coral Edge TPU runtime on a Raspberry Pi?
 
@@ -218,9 +218,9 @@ sudo dpkg -i path/to/package.deb
 
 Make sure to uninstall any previous Coral Edge TPU runtime versions by following the steps outlined in the [Installation Walkthrough](#installation-walkthrough) section.
 
-### Can I export my Ultralytics YOLO11 model to be compatible with Coral Edge TPU?
+### Can I export my Ultralytics YOLO26 model to be compatible with Coral Edge TPU?
 
-Yes, you can export your Ultralytics YOLO11 model to be compatible with the Coral Edge TPU. It is recommended to perform the export on Google Colab, an x86_64 Linux machine, or using the [Ultralytics Docker container](docker-quickstart.md). You can also use [Ultralytics HUB](../hub/quickstart.md) for exporting. Here is how you can export your model using Python and CLI:
+Yes, you can export your Ultralytics YOLO26 model to be compatible with the Coral Edge TPU. It is recommended to perform the export on Google Colab, an x86_64 Linux machine, or using the [Ultralytics Docker container](docker-quickstart.md). You can also use [Ultralytics Platform](../platform/quickstart.md) for exporting. Here is how you can export your model using Python and CLI:
 
 !!! example "Exporting the model"
 
@@ -260,9 +260,9 @@ pip install -U tflite-runtime
 
 For detailed instructions, refer to the [Running the Model](#running-the-model) section.
 
-### How do I run inference with an exported YOLO11 model on a Raspberry Pi using the Coral Edge TPU?
+### How do I run inference with an exported YOLO26 model on a Raspberry Pi using the Coral Edge TPU?
 
-After exporting your YOLO11 model to an Edge TPU-compatible format, you can run inference using the following code snippets:
+After exporting your YOLO26 model to an Edge TPU-compatible format, you can run inference using the following code snippets:
 
 !!! example "Running the model"
 

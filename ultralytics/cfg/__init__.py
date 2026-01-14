@@ -62,11 +62,11 @@ TASK2DATA = {
     "obb": "dota8.yaml",
 }
 TASK2MODEL = {
-    "detect": "yolo11n.pt",
-    "segment": "yolo11n-seg.pt",
-    "classify": "yolo11n-cls.pt",
-    "pose": "yolo11n-pose.pt",
-    "obb": "yolo11n-obb.pt",
+    "detect": "yolo26n.pt",
+    "segment": "yolo26n-seg.pt",
+    "classify": "yolo26n-cls.pt",
+    "pose": "yolo26n-pose.pt",
+    "obb": "yolo26n-obb.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
@@ -186,6 +186,7 @@ CFG_FRACTION_KEYS = frozenset(
         "conf",
         "iou",
         "fraction",
+        "multi_scale",
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -238,7 +239,6 @@ CFG_BOOL_KEYS = frozenset(
         "simplify",
         "nms",
         "profile",
-        "multi_scale",
     }
 )
 
@@ -415,7 +415,7 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
         nested = args.project and len(Path(args.project).parts) > 1  # e.g. "user/project" or "org\repo"
         project = runs / args.project if nested else args.project or runs
         name = name or args.name or f"{args.mode}"
-        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
+        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True, mkdir=True)
 
     return Path(save_dir).resolve()  # resolve to display full path in console
 
@@ -729,7 +729,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
             if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1920, h=1080
                 w, h = 1280, 720
             save_dir = get_save_dir(SimpleNamespace(task="solutions", name="exp", exist_ok=False, project=None))
-            save_dir.mkdir(parents=True)  # create the output directory i.e. runs/solutions/exp
+            save_dir.mkdir(parents=True, exist_ok=True)  # create the output directory i.e. runs/solutions/exp
             vw = cv2.VideoWriter(str(save_dir / f"{solution_name}.avi"), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         try:  # Process video frames

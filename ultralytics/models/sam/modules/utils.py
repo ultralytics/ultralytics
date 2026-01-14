@@ -166,7 +166,7 @@ def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
         AssertionError: If the shape of freqs_cis doesn't match the last two dimensions of x.
     """
     ndim = x.ndim
-    assert 0 <= 1 < ndim
+    assert ndim >= 2
     assert freqs_cis.shape == (x.shape[-2], x.shape[-1])
     shape = [d if i >= ndim - 2 else 1 for i, d in enumerate(x.shape)]
     return freqs_cis.view(*shape)
@@ -210,9 +210,14 @@ def apply_rotary_enc(
         # No keys to rotate, due to dropout
         return xq_out.type_as(xq).to(xq.device), xk
     # Repeat freqs along seq_len dim to match k seq_len
-    if repeat_freqs_k:
-        r = xk_.shape[-2] // xq_.shape[-2]
-        freqs_cis = freqs_cis.repeat(*([1] * (freqs_cis.ndim - 2)), r, 1)
+    if repeat_freqs_k and (r := xk_.shape[-2] // xq_.shape[-2]) > 1:
+        # MPS doesn't support repeat on complex tensors, decompose to real representation
+        if freqs_cis.device.type == "mps":
+            freqs_cis = torch.view_as_real(freqs_cis)
+            freqs_cis = freqs_cis.repeat(*([1] * (freqs_cis.ndim - 3)), r, 1, 1)
+            freqs_cis = torch.view_as_complex(freqs_cis.contiguous())
+        else:
+            freqs_cis = freqs_cis.repeat(*([1] * (freqs_cis.ndim - 2)), r, 1)
     xk_out = torch.view_as_real(xk_ * freqs_cis).flatten(3)
     return xq_out.type_as(xq).to(xq.device), xk_out.type_as(xk).to(xk.device)
 

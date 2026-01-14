@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn how to export YOLO11 models to CoreML for optimized, on-device machine learning on iOS and macOS. Follow step-by-step instructions.
-keywords: CoreML export, YOLO11 models, CoreML conversion, Ultralytics, iOS object detection, macOS machine learning, AI deployment, machine learning integration
+description: Learn how to export YOLO26 models to CoreML for optimized, on-device machine learning on iOS and macOS. Follow step-by-step instructions.
+keywords: CoreML export, YOLO26 models, CoreML conversion, Ultralytics, iOS object detection, macOS machine learning, AI deployment, machine learning integration
 ---
 
-# CoreML Export for YOLO11 Models
+# CoreML Export for YOLO26 Models
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on Apple devices like iPhones and Macs requires a format that ensures seamless performance.
 
@@ -16,10 +16,10 @@ Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Export Ultralytics YOLO11 to CoreML for 2x Fast Inference on Apple Devices 🚀
+  <strong>Watch:</strong> How to Export Ultralytics YOLO26 to CoreML for 2x Fast Inference on Apple Devices 🚀
 </p>
 
-The CoreML export format allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for efficient [object detection](https://www.ultralytics.com/glossary/object-detection) in iOS and macOS applications. In this guide, we'll walk you through the steps for converting your models to the CoreML format, making it easier for your models to perform well on Apple devices.
+The CoreML export format allows you to optimize your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models for efficient [object detection](https://www.ultralytics.com/glossary/object-detection) in iOS and macOS applications. In this guide, we'll walk you through the steps for converting your models to the CoreML format, making it easier for your models to perform well on Apple devices.
 
 ## CoreML
 
@@ -51,7 +51,7 @@ Apple's CoreML framework offers robust features for on-device machine learning. 
 
 ## CoreML Deployment Options
 
-Before we look at the code for exporting YOLO11 models to the CoreML format, let's understand where CoreML models are usually used.
+Before we look at the code for exporting YOLO26 models to the CoreML format, let's understand where CoreML models are usually used.
 
 CoreML offers various deployment options for machine learning models, including:
 
@@ -62,9 +62,9 @@ CoreML offers various deployment options for machine learning models, including:
 
 - **Cloud-Based Deployment**: CoreML models are hosted on servers and accessed by the iOS app through API requests. This scalable and flexible option enables easy model updates without app revisions. It's ideal for complex models or large-scale apps requiring regular updates. However, it does require an internet connection and may pose latency and security issues.
 
-## Exporting YOLO11 Models to CoreML
+## Exporting YOLO26 Models to CoreML
 
-Exporting YOLO11 to CoreML enables optimized, on-device machine learning performance within Apple's ecosystem, offering benefits in terms of efficiency, security, and seamless integration with iOS, macOS, watchOS, and tvOS platforms.
+Exporting YOLO26 to CoreML enables optimized, on-device machine learning performance within Apple's ecosystem, offering benefits in terms of efficiency, security, and seamless integration with iOS, macOS, watchOS, and tvOS platforms.
 
 ### Installation
 
@@ -75,15 +75,15 @@ To install the required package, run:
     === "CLI"
 
         ```bash
-        # Install the required package for YOLO11
+        # Install the required package for YOLO26
         pip install ultralytics
         ```
 
-For detailed instructions and best practices related to the installation process, check our [YOLO11 Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices related to the installation process, check our [YOLO26 Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ### Usage
 
-Before diving into the usage instructions, be sure to check out the range of [YOLO11 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
+Before diving into the usage instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
 !!! example "Usage"
 
@@ -92,14 +92,14 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO11 model
-        model = YOLO("yolo11n.pt")
+        # Load the YOLO26 model
+        model = YOLO("yolo26n.pt")
 
         # Export the model to CoreML format
-        model.export(format="coreml")  # creates 'yolo11n.mlpackage'
+        model.export(format="coreml")  # creates 'yolo26n.mlpackage'
 
         # Load the exported CoreML model
-        coreml_model = YOLO("yolo11n.mlpackage")
+        coreml_model = YOLO("yolo26n.mlpackage")
 
         # Run inference
         results = coreml_model("https://ultralytics.com/images/bus.jpg")
@@ -108,11 +108,11 @@ Before diving into the usage instructions, be sure to check out the range of [YO
     === "CLI"
 
         ```bash
-        # Export a YOLO11n PyTorch model to CoreML format
-        yolo export model=yolo11n.pt format=coreml # creates 'yolo11n.mlpackage'
+        # Export a YOLO26n PyTorch model to CoreML format
+        yolo export model=yolo26n.pt format=coreml # creates 'yolo26n.mlpackage'
 
         # Run inference with the exported model
-        yolo predict model=yolo11n.mlpackage source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n.mlpackage source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ### Export Arguments
@@ -133,9 +133,9 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
-## Deploying Exported YOLO11 CoreML Models
+## Deploying Exported YOLO26 CoreML Models
 
-Having successfully exported your Ultralytics YOLO11 models to CoreML, the next critical phase is deploying these models effectively. For detailed guidance on deploying CoreML models in various environments, check out these resources:
+Having successfully exported your Ultralytics YOLO26 models to CoreML, the next critical phase is deploying these models effectively. For detailed guidance on deploying CoreML models in various environments, check out these resources:
 
 - **[CoreML Tools](https://apple.github.io/coremltools/docs-guides/)**: This guide includes instructions and examples to convert models from [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), PyTorch, and other libraries to Core ML.
 
@@ -145,17 +145,17 @@ Having successfully exported your Ultralytics YOLO11 models to CoreML, the next 
 
 ## Summary
 
-In this guide, we went over how to export Ultralytics YOLO11 models to CoreML format. By following the steps outlined in this guide, you can ensure maximum compatibility and performance when exporting YOLO11 models to CoreML.
+In this guide, we went over how to export Ultralytics YOLO26 models to CoreML format. By following the steps outlined in this guide, you can ensure maximum compatibility and performance when exporting YOLO26 models to CoreML.
 
 For further details on usage, visit the [CoreML official documentation](https://developer.apple.com/documentation/coreml).
 
-Also, if you'd like to know more about other Ultralytics YOLO11 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of valuable resources and insights there.
+Also, if you'd like to know more about other Ultralytics YOLO26 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of valuable resources and insights there.
 
 ## FAQ
 
-### How do I export YOLO11 models to CoreML format?
+### How do I export YOLO26 models to CoreML format?
 
-To export your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models to CoreML format, you'll first need to ensure you have the `ultralytics` package installed. You can install it using:
+To export your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to CoreML format, you'll first need to ensure you have the `ultralytics` package installed. You can install it using:
 
 !!! example "Installation"
 
@@ -174,21 +174,21 @@ Next, you can export the model using the following Python or CLI commands:
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
         model.export(format="coreml")
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=coreml
+        yolo export model=yolo26n.pt format=coreml
         ```
 
-For further details, refer to the [Exporting YOLO11 Models to CoreML](../modes/export.md) section of our documentation.
+For further details, refer to the [Exporting YOLO26 Models to CoreML](../modes/export.md) section of our documentation.
 
-### What are the benefits of using CoreML for deploying YOLO11 models?
+### What are the benefits of using CoreML for deploying YOLO26 models?
 
-CoreML provides numerous advantages for deploying [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models on Apple devices:
+CoreML provides numerous advantages for deploying [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models on Apple devices:
 
 - **On-device Processing**: Enables local model inference on devices, ensuring [data privacy](https://www.ultralytics.com/glossary/data-privacy) and minimizing latency.
 - **Performance Optimization**: Leverages the full potential of the device's CPU, GPU, and Neural Engine, optimizing both speed and efficiency.
@@ -197,9 +197,9 @@ CoreML provides numerous advantages for deploying [Ultralytics YOLO11](https://g
 
 For more details on integrating your CoreML model into an iOS app, check out the guide on [Integrating a Core ML Model into Your App](https://developer.apple.com/documentation/coreml/integrating-a-core-ml-model-into-your-app).
 
-### What are the deployment options for YOLO11 models exported to CoreML?
+### What are the deployment options for YOLO26 models exported to CoreML?
 
-Once you export your YOLO11 model to CoreML format, you have multiple deployment options:
+Once you export your YOLO26 model to CoreML format, you have multiple deployment options:
 
 1. **On-Device Deployment**: Directly integrate CoreML models into your app for enhanced privacy and offline functionality. This can be done as:
     - **Embedded Models**: Included in the app bundle, accessible immediately.
@@ -209,9 +209,9 @@ Once you export your YOLO11 model to CoreML format, you have multiple deployment
 
 For detailed guidance on deploying CoreML models, refer to [CoreML Deployment Options](#coreml-deployment-options).
 
-### How does CoreML ensure optimized performance for YOLO11 models?
+### How does CoreML ensure optimized performance for YOLO26 models?
 
-CoreML ensures optimized performance for [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models by utilizing various optimization techniques:
+CoreML ensures optimized performance for [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models by utilizing various optimization techniques:
 
 - **Hardware Acceleration**: Uses the device's CPU, GPU, and Neural Engine for efficient computation.
 - **Model Compression**: Provides tools for compressing models to reduce their footprint without compromising accuracy.
@@ -230,14 +230,14 @@ Yes, you can run inference directly using the exported CoreML model. Below are t
         ```python
         from ultralytics import YOLO
 
-        coreml_model = YOLO("yolo11n.mlpackage")
+        coreml_model = YOLO("yolo26n.mlpackage")
         results = coreml_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
 
         ```bash
-        yolo predict model=yolo11n.mlpackage source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model=yolo26n.mlpackage source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For additional information, refer to the [Usage section](#usage) of the CoreML export guide.

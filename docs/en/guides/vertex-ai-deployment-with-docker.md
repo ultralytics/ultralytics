@@ -1,18 +1,18 @@
 ---
 comments: true
-description: Learn how to deploy pretrained YOLO11 models on Google Cloud Vertex AI using Docker containers and FastAPI for scalable inference with complete control over preprocessing and postprocessing.
-keywords: YOLO11, Vertex AI, Docker, FastAPI, deployment, container, GCP, Artifact Registry, Ultralytics, cloud deployment
+description: Learn how to deploy pretrained YOLO26 models on Google Cloud Vertex AI using Docker containers and FastAPI for scalable inference with complete control over preprocessing and postprocessing.
+keywords: YOLO26, Vertex AI, Docker, FastAPI, deployment, container, GCP, Artifact Registry, Ultralytics, cloud deployment
 ---
 
 # Deploy a pretrained YOLO model with Ultralytics on Vertex AI for inference
 
-This guide will show you how to containerize a pretrained YOLO11 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO11, but the same principles will apply for using [other YOLO modes](../modes/index.md).
+This guide will show you how to containerize a pretrained YOLO26 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO26, but the same principles will apply for using [other YOLO modes](../modes/index.md).
 
-Before we start, you will need to create a Google Cloud Platform (GCP) project. You get $300 in GCP credits to use for free as a new user, and this amount is enough to test a running setup that you can later extend for any other YOLO11 use case, including training, or batch and streaming inference.
+Before we start, you will need to create a Google Cloud Platform (GCP) project. You get $300 in GCP credits to use for free as a new user, and this amount is enough to test a running setup that you can later extend for any other YOLO26 use case, including training, or batch and streaming inference.
 
 ## What you will learn
 
-1. Create an inference backend for Ultralytics YOLO11 model using FastAPI.
+1. Create an inference backend for Ultralytics YOLO26 model using FastAPI.
 2. Create a GCP Artifact Registry repository to store your Docker image.
 3. Build and push the Docker image with the model to Artifact Registry.
 4. Import your model in Vertex AI.
@@ -32,7 +32,7 @@ Before we start, you will need to create a Google Cloud Platform (GCP) project. 
 
 ## 1. Create an inference backend with FastAPI
 
-First, you need to create a FastAPI application that will serve the YOLO11 model inference requests. This application will handle the model loading, image preprocessing, and inference (prediction) logic.
+First, you need to create a FastAPI application that will serve the YOLO26 model inference requests. This application will handle the model loading, image preprocessing, and inference (prediction) logic.
 
 ### Vertex AI Compliance Fundamentals
 
@@ -52,13 +52,13 @@ Vertex AI expects your container to implement two specific endpoints:
 
 ### Project folder structure
 
-The bulk of our build will be happening inside the Docker container, and Ultralytics will also load a pretrained YOLO11 model, so you can keep the local folder structure simple:
+The bulk of our build will be happening inside the Docker container, and Ultralytics will also load a pretrained YOLO26 model, so you can keep the local folder structure simple:
 
 ```txt
 YOUR_PROJECT/
 ├── src/
 │   ├── __init__.py
-│   ├── app.py              # Core YOLO11 inference logic
+│   ├── app.py              # Core YOLO26 inference logic
 │   └── main.py             # FastAPI inference server
 ├── tests/
 ├── .env                    # Environment variables for local development
@@ -69,7 +69,7 @@ YOUR_PROJECT/
 
 !!! note "Important license note"
 
-    Ultralytics YOLO11 models and framework are licensed under AGPL-3.0, which has important compliance requirements. Make sure to read the Ultralytics docs on [how to comply with the license terms](../help/contributing.md#how-to-comply-with-agpl-30).
+    Ultralytics YOLO26 models and framework are licensed under AGPL-3.0, which has important compliance requirements. Make sure to read the Ultralytics docs on [how to comply with the license terms](../help/contributing.md#how-to-comply-with-agpl-30).
 
 ### Create pyproject.toml with dependencies
 
@@ -96,9 +96,9 @@ build-backend = "setuptools.build_meta"
 - `uvicorn` will be used to run the FastAPI server.
 - `pillow` will be used for image processing, but you are not limited to PIL images only — Ultralytics supports [many other formats](../modes/predict.md#inference-sources).
 
-### Create inference logic with Ultralytics YOLO11
+### Create inference logic with Ultralytics YOLO26
 
-Now that you have the project structure and dependencies set up, you can implement the core YOLO11 inference logic. Create a `src/app.py` file that will handle model loading, image processing, and prediction, using Ultralytics Python API.
+Now that you have the project structure and dependencies set up, you can implement the core YOLO26 inference logic. Create a `src/app.py` file that will handle model loading, image processing, and prediction, using Ultralytics Python API.
 
 ```python
 # src/app.py
@@ -115,8 +115,8 @@ def _initialize_model():
     global model_yolo, _model_ready
 
     try:
-        # Use pretrained YOLO11n model from Ultralytics base image
-        model_yolo = YOLO("yolo11n.pt")
+        # Use pretrained YOLO26n model from Ultralytics base image
+        model_yolo = YOLO("yolo26n.pt")
         _model_ready = True
 
     except Exception as e:
@@ -136,7 +136,7 @@ def is_model_ready() -> bool:
 
 This will load the model once when the container starts, and the model will be shared across all requests. If your model will be handling heavy inference load, it is recommended to select a machine type with more memory when importing a model in Vertex AI at a later step.
 
-Next, create two utility functions for input and output image processing with `pillow`. YOLO11 supports PIL images natively.
+Next, create two utility functions for input and output image processing with `pillow`. YOLO26 supports PIL images natively.
 
 ```python
 def get_image_from_bytes(binary_image: bytes) -> Image.Image:
@@ -158,7 +158,7 @@ Finally, implement the `run_inference` function that will handle the object dete
 
 ```python
 def run_inference(input_image: Image.Image, confidence_threshold: float = 0.5) -> Dict[str, Any]:
-    """Run inference on an image using YOLO11n model."""
+    """Run inference on an image using YOLO26n model."""
     global model_yolo
 
     # Check if model is ready
@@ -222,7 +222,7 @@ def get_annotated_image(results: list) -> Image.Image:
 
 ### Create HTTP inference server with FastAPI
 
-Now that you have the core YOLO11 inference logic, you can create a FastAPI application to serve it. This will include the health check and prediction endpoints required by Vertex AI.
+Now that you have the core YOLO26 inference logic, you can create a FastAPI application to serve it. This will include the health check and prediction endpoints required by Vertex AI.
 
 First, add the imports and configure logging for Vertex AI. Because Vertex AI treats stderr as error output, it makes sense to pipe the logs to stdout.
 
@@ -298,12 +298,12 @@ async def predict(request: PredictionRequest):
             else:
                 raise HTTPException(status_code=400, detail="Invalid instance format")
 
-            # Extract YOLO11 parameters if provided
+            # Extract YOLO26 parameters if provided
             parameters = request.parameters or {}
             confidence_threshold = parameters.get("confidence", 0.5)
             return_annotated_image = parameters.get("return_annotated_image", False)
 
-            # Run inference with YOLO11n model
+            # Run inference with YOLO26n model
             result = run_inference(input_image, confidence_threshold=confidence_threshold)
             detections_list = result["detections"]
 
@@ -366,7 +366,7 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=AIP_HTTP_PORT)
 ```
 
-You now have a complete FastAPI application that can serve YOLO11 inference requests. You can test it locally by installing the dependencies and running the server, for example, with uv.
+You now have a complete FastAPI application that can serve YOLO26 inference requests. You can test it locally by installing the dependencies and running the server, for example, with uv.
 
 ```bash
 # Install dependencies
@@ -386,7 +386,7 @@ curl http://localhost:8080/health
 curl -X POST -H "Content-Type: application/json" -d "{\"instances\": [{\"image\": \"$(base64 -i tests/test_image.jpg)\"}]}" http://localhost:8080/predict
 ```
 
-You should receive a JSON response with the detected objects. On your first request, expect a short delay, as Ultralytics needs to pull and load the YOLO11 model.
+You should receive a JSON response with the detected objects. On your first request, expect a short delay, as Ultralytics needs to pull and load the YOLO26 model.
 
 ## 2. Extend the Ultralytics Docker image with your application
 
@@ -394,15 +394,15 @@ Ultralytics provides several Docker images that you can use as a base for your a
 
 To use the full capabilities of Ultralytics YOLO models, you should select the CUDA-optimized image for GPU inference. However, if CPU inference is enough for your task, you can save computing resources by selecting the CPU-only image as well:
 
-- [Dockerfile](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile): CUDA-optimized image for YOLO11 single/multi-GPU training and inference.
-- [Dockerfile-cpu](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-cpu): CPU-only image for YOLO11 inference.
+- [Dockerfile](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile): CUDA-optimized image for YOLO26 single/multi-GPU training and inference.
+- [Dockerfile-cpu](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-cpu): CPU-only image for YOLO26 inference.
 
 ### Create a Docker image for your application
 
 Create a `Dockerfile` in the root of your project with the following content:
 
 ```dockerfile
-# Extends official Ultralytics Docker image for YOLO11
+# Extends official Ultralytics Docker image for YOLO26
 FROM ultralytics/ultralytics:latest
 
 ENV PYTHONUNBUFFERED=1 \
@@ -428,7 +428,7 @@ EXPOSE 8080
 ENTRYPOINT ["python", "src/main.py"]
 ```
 
-In the example, the official Ultralytics Docker image `ultralytics:latest` is used as a base. It already contains the YOLO11 model and all necessary dependencies. The server's entrypoint is the same as we used to test the FastAPI application locally.
+In the example, the official Ultralytics Docker image `ultralytics:latest` is used as a base. It already contains the YOLO26 model and all necessary dependencies. The server's entrypoint is the same as we used to test the FastAPI application locally.
 
 ### Build and test the Docker image
 
@@ -438,7 +438,7 @@ Now you can build the Docker image with the following command:
 docker build --platform linux/amd64 -t IMAGE_NAME:IMAGE_VERSION .
 ```
 
-Replace `IMAGE_NAME` and `IMAGE_VERSION` with your desired values, for example, `yolo11-fastapi:0.1`. Note that you must build the image for the `linux/amd64` architecture if you are deploying on Vertex AI. The `--platform` parameter needs to be explicitly set if you are building the image on an Apple Silicon Mac or any other non-x86 architecture.
+Replace `IMAGE_NAME` and `IMAGE_VERSION` with your desired values, for example, `yolo26-fastapi:0.1`. Note that you must build the image for the `linux/amd64` architecture if you are deploying on Vertex AI. The `--platform` parameter needs to be explicitly set if you are building the image on an Apple Silicon Mac or any other non-x86 architecture.
 
 Once the image build is completed, you can test the Docker image locally:
 
@@ -546,7 +546,7 @@ To deploy a model, you need to create an Endpoint in Vertex AI.
 1.  Enter the Endpoint name.
 1.  For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint, however you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://docs.cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type).
 1.  Click Continue.
-1.  On the Model settings dialog, select the model you imported earlier. Now you can configure the machine type, memory, and GPU settings for your model. Allow for ample memory if you are expecting high inference loads to ensure there are no I/O bottlenecks for the proper YOLO11 performance.
+1.  On the Model settings dialog, select the model you imported earlier. Now you can configure the machine type, memory, and GPU settings for your model. Allow for ample memory if you are expecting high inference loads to ensure there are no I/O bottlenecks for the proper YOLO26 performance.
 1.  In Accelerator type, select the GPU type you want to use for inference. If you are not sure which GPU to select, you can start with NVIDIA T4, which is CUDA-supported.
 
     !!! note "Region and machine type quotas"
@@ -564,14 +564,14 @@ Once the deployment is complete, Vertex AI will provide you with a sample API in
 To test remote inference, you can use the provided cURL command or create another Python client library that will send requests to the deployed model. Remember that you need to encode your image to base64 before sending it to the `/predict` endpoint.
 
 <p align="center">
-  <img width="50%" src="https://github.com/ultralytics/docs/releases/download/0/vertex-ai-endpoint-test-curl-yolo11.avif" alt="Vertex AI endpoint testing interface displaying sample cURL command for making prediction requests to deployed YOLO11 model">
+  <img width="50%" src="https://github.com/ultralytics/docs/releases/download/0/vertex-ai-endpoint-test-curl-yolo11.avif" alt="Vertex AI endpoint testing interface displaying sample cURL command for making prediction requests to deployed YOLO26 model">
 </p>
 
 !!! note "Expect a short delay on the first request"
 
-    Similarly to the local testing, expect a short delay on the first request, as Ultralytics will need to pull and load the YOLO11 model in the running container.
+    Similarly to the local testing, expect a short delay on the first request, as Ultralytics will need to pull and load the YOLO26 model in the running container.
 
-You have successfully deployed a pretrained YOLO11 model with Ultralytics on Google Cloud Vertex AI.
+You have successfully deployed a pretrained YOLO26 model with Ultralytics on Google Cloud Vertex AI.
 
 ## FAQ
 
@@ -581,7 +581,7 @@ Yes; however, you will first need to export the model to a format compatible wit
 
 Please note that the resulting setup will rely only on the Vertex AI standard serving layer and will not support the advanced Ultralytics framework features. Since Vertex AI fully supports containerized models and can scale them automatically according to your deployment configuration, it allows you to leverage the full capabilities of Ultralytics YOLO models without needing to convert them to a different format.
 
-### Why is FastAPI a good choice for serving YOLO11 inference?
+### Why is FastAPI a good choice for serving YOLO26 inference?
 
 FastAPI provides high throughput for inference workloads. Async support allows handling multiple concurrent requests without blocking the main thread, which is important when serving computer vision models.
 

@@ -39,7 +39,7 @@ WORKDIR /ultralytics
 COPY . .
 RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
     sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
-ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
+ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages (uv already installed in base image)
 RUN uv pip install --system -e "." albumentations faster-coco-eval wandb && \

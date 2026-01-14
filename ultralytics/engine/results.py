@@ -251,7 +251,8 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
-            boxes3d (list | None): A list of Box3D objects for 3D detection results (stereo 3D detection).
+            boxes3d (list | None): A list of Box3D objects for 3D detection results (stereo 3D detection),
+                which will be wrapped in a Boxes3D object.
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Examples:
@@ -280,7 +281,7 @@ class Results(SimpleClass, DataExportMixin):
         self.save_dir = None
         self._keys = "boxes", "masks", "probs", "keypoints", "obb", "boxes3d"
         # 3D boxes for stereo 3D detection
-        self.boxes3d: list | None = boxes3d if boxes3d is not None else None  # List of Box3D objects
+        self.boxes3d: Boxes3D | None = Boxes3D(boxes3d, self.orig_shape) if boxes3d is not None else None
 
     @property
     def boxes3d_numpy(self) -> np.ndarray:
@@ -496,6 +497,7 @@ class Results(SimpleClass, DataExportMixin):
         labels: bool = True,
         boxes: bool = True,
         masks: bool = True,
+        boxes3d: bool = True,
         probs: bool = True,
         show: bool = False,
         save: bool = False,
@@ -543,6 +545,10 @@ class Results(SimpleClass, DataExportMixin):
         pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
+        if self.boxes3d is not None:
+            pred_boxes3d = self.boxes3d
+        else:
+            pred_boxes3d = None
         annotator = Annotator(
             deepcopy(self.orig_img if img is None else img),
             line_width,
@@ -593,6 +599,28 @@ class Results(SimpleClass, DataExportMixin):
                         True,
                     ),
                 )
+
+        # Plot Boxes3D results
+        if pred_boxes3d is not None and boxes3d:
+            for i, d in enumerate(reversed(pred_boxes3d)):
+                c = int(d.class_id)
+                d_conf = float(d.confidence) if conf else None
+                name = names.get(c, f"Class_{c}")
+                label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
+                if d.bbox_2d is not None:
+                    box_coords = np.array(d.bbox_2d)
+                    annotator.box_label(
+                        box_coords,
+                        label,
+                        color=colors(
+                            c
+                            if color_mode == "class"
+                            else i
+                            if color_mode == "instance"
+                            else None,
+                            True,
+                        ),
+                    )
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -697,6 +725,8 @@ class Results(SimpleClass, DataExportMixin):
         if boxes:
             counts = boxes.cls.int().bincount()
             return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+
+        return ""
 
     def save_txt(self, txt_file: str | Path, save_conf: bool = False) -> str:
         """Save detection results to a text file.
@@ -1618,3 +1648,359 @@ class OBB(BaseTensor):
             if isinstance(x, torch.Tensor)
             else np.stack([x.min(1), y.min(1), x.max(1), y.max(1)], -1)
         )
+
+
+class Boxes3D:
+    """A class for managing and manipulating 3D bounding boxes.
+
+    This class provides comprehensive functionality for handling 3D bounding boxes from stereo vision detection,
+    including their 3D positions, dimensions, orientations, confidence scores, and optional 2D bounding boxes.
+    It supports various formats and offers methods for easy manipulation and conversion.
+
+    Attributes:
+        data (list[Box3D]): List of 3D bounding box objects.
+        orig_shape (tuple[int, int]): Original image dimensions (height, width).
+
+    Properties:
+        center_3d: 3D center positions for all boxes as numpy array [N, 3].
+        dimensions: Object dimensions for all boxes as numpy array [N, 3].
+        orientation: Orientation angles for all boxes as numpy array [N, 1].
+        class_label: Class names for all boxes as list [N].
+        class_id: Class IDs for all boxes as numpy array [N, 1].
+        confidence: Confidence scores for all boxes as numpy array [N, 1].
+        bbox_2d: 2D bounding boxes for all boxes as numpy array [N, 4] (optional).
+        truncated: Truncation levels for all boxes as numpy array [N, 1] (optional).
+        occluded: Occlusion levels for all boxes as numpy array [N, 1] (optional).
+
+    Methods:
+        cpu: Return a copy of the object with all boxes (no-op for lists).
+        numpy: Return a copy of the object with all boxes (no-op for lists).
+        cuda: Return a copy of the object with all boxes (no-op for lists).
+        to: Return a copy of the object with all boxes (no-op for lists).
+        tolist: Return the list of Box3D objects.
+
+    Examples:
+        >>> from ultralytics.data.stereo.box3d import Box3D
+        >>> boxes3d = [
+        ...     Box3D(
+        ...         center_3d=(10.5, 1.5, 20.0),
+        ...         dimensions=(4.0, 2.0, 1.5),
+        ...         orientation=0.5,
+        ...         class_label="Car",
+        ...         class_id=0,
+        ...         confidence=0.95
+        ...     )
+        ... ]
+        >>> boxes = Boxes3D(boxes3d, orig_shape=(375, 1242))
+        >>> print(boxes.center_3d)
+        >>> print(boxes.class_label[0])
+    """
+
+    def __init__(self, boxes: list, orig_shape: tuple[int, int]) -> None:
+        """Initialize the Boxes3D class with 3D bounding box data and original image shape.
+
+        This class manages 3D bounding boxes, providing easy access and manipulation of box coordinates,
+        dimensions, orientations, confidence scores, and class labels.
+
+        Args:
+            boxes (list): A list of Box3D objects containing 3D bounding box data.
+            orig_shape (tuple[int, int]): The original image shape as (height, width).
+
+        Attributes:
+            data (list): The raw list containing Box3D objects.
+            orig_shape (tuple[int, int]): The original image size, used for reference.
+
+        Examples:
+            >>> from ultralytics.data.stereo.box3d import Box3D
+            >>> boxes = [Box3D((10, 2, 30), (4, 2, 1.5), 0.1, "Car", 0, 0.9)]
+            >>> boxes3d = Boxes3D(boxes, orig_shape=(375, 1242))
+            >>> print(len(boxes3d))
+            1
+        """
+        if not isinstance(boxes, list):
+            raise TypeError(f"boxes must be a list, got {type(boxes)}")
+        self.data = boxes
+        self.orig_shape = orig_shape
+
+    def __len__(self) -> int:
+        """Return the number of 3D bounding boxes.
+
+        Returns:
+            (int): The number of boxes in the data list.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> len(boxes)
+            2
+        """
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        """Return a Box3D object or a new Boxes3D instance containing the specified boxes.
+
+        Args:
+            idx (int | list[int] | slice): Index or indices to select from the boxes list.
+
+        Returns:
+            (Box3D | Boxes3D): A Box3D object if idx is an int, or a new Boxes3D instance
+                containing the indexed boxes.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> first_box = boxes[0]
+            >>> first_box_slice = boxes[0:1]
+        """
+        result = self.data[idx]
+        if isinstance(result, list):
+            return Boxes3D(result, self.orig_shape)
+        return result
+
+    def __iter__(self):
+        """Iterate over Box3D objects.
+
+        Returns:
+            Iterator over the list of Box3D objects.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> for box in boxes:
+            ...     print(box.class_label)
+        """
+        return iter(self.data)
+
+    def tolist(self) -> list:
+        """Return the list of Box3D objects.
+
+        Returns:
+            (list[Box3D]): The list of 3D bounding box objects.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...)], orig_shape=(375, 1242))
+            >>> box_list = boxes.tolist()
+            >>> isinstance(box_list, list)
+            True
+        """
+        return self.data
+
+    @property
+    def center_3d(self) -> np.ndarray:
+        """Return 3D center positions for all boxes.
+
+        Returns:
+            (np.ndarray): Array of shape (N, 3) containing (x, y, z) coordinates for each box,
+                where N is the number of boxes.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> centers = boxes.center_3d
+            >>> print(centers.shape)
+            (2, 3)
+        """
+        if len(self.data) == 0:
+            return np.empty((0, 3), dtype=np.float32)
+        return np.array([box.center_3d for box in self.data], dtype=np.float32)
+
+    @property
+    def dimensions(self) -> np.ndarray:
+        """Return object dimensions for all boxes.
+
+        Returns:
+            (np.ndarray): Array of shape (N, 3) containing (length, width, height) for each box,
+                where N is the number of boxes.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> dims = boxes.dimensions
+            >>> print(dims.shape)
+            (2, 3)
+        """
+        if len(self.data) == 0:
+            return np.empty((0, 3), dtype=np.float32)
+        return np.array([box.dimensions for box in self.data], dtype=np.float32)
+
+    @property
+    def orientation(self) -> np.ndarray:
+        """Return orientation angles for all boxes.
+
+        Returns:
+            (np.ndarray): Array of shape (N,) containing orientation angles in radians [-π, π],
+                where N is the number of boxes.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> orientations = boxes.orientation
+            >>> print(orientations.shape)
+            (2,)
+        """
+        if len(self.data) == 0:
+            return np.empty((0,), dtype=np.float32)
+        return np.array([box.orientation for box in self.data], dtype=np.float32)
+
+    @property
+    def class_label(self) -> list:
+        """Return class names for all boxes.
+
+        Returns:
+            (list): List of class names of length N, where N is the number of boxes.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> labels = boxes.class_label
+            >>> print(labels)
+            ['Car', 'Pedestrian']
+        """
+        return [box.class_label for box in self.data]
+
+    @property
+    def class_id(self) -> np.ndarray:
+        """Return class IDs for all boxes.
+
+        Returns:
+            (np.ndarray): Array of shape (N,) containing integer class IDs,
+                where N is the number of boxes.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> cls_ids = boxes.class_id
+            >>> print(cls_ids)
+            [0, 1]
+        """
+        if len(self.data) == 0:
+            return np.empty((0,), dtype=np.float32)
+        return np.array([float(box.class_id) for box in self.data], dtype=np.float32)
+
+    @property
+    def confidence(self) -> np.ndarray:
+        """Return confidence scores for all boxes.
+
+        Returns:
+            (np.ndarray): Array of shape (N,) containing confidence scores in [0, 1],
+                where N is the number of boxes.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> confs = boxes.confidence
+            >>> print(confs)
+            [0.95, 0.88]
+        """
+        if len(self.data) == 0:
+            return np.empty((0,), dtype=np.float32)
+        return np.array([box.confidence for box in self.data], dtype=np.float32)
+
+    @property
+    def bbox_2d(self) -> np.ndarray:
+        """Return 2D bounding boxes for all boxes.
+
+        Returns:
+            (np.ndarray): Array of shape (N, 4) containing (x_min, y_min, x_max, y_max) for each box,
+                or empty array if no boxes have bbox_2d defined, where N is the number of boxes.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> bboxes_2d = boxes.bbox_2d
+            >>> print(bboxes_2d.shape)
+            (2, 4)
+        """
+        if len(self.data) == 0:
+            return np.empty((0, 4), dtype=np.float32)
+        # Filter out None values and return array of available 2D boxes
+        bbox_list = [box.bbox_2d for box in self.data if box.bbox_2d is not None]
+        if not bbox_list:
+            return np.empty((0, 4), dtype=np.float32)
+        return np.array(bbox_list, dtype=np.float32)
+
+    @property
+    def truncated(self) -> np.ndarray:
+        """Return truncation levels for all boxes.
+
+        Returns:
+            (np.ndarray): Array of shape (N,) containing truncation levels [0, 1],
+                or empty array if no boxes have truncated defined, where N is the number of boxes.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> truncs = boxes.truncated
+            >>> print(truncs.shape)
+            (2,)
+        """
+        if len(self.data) == 0:
+            return np.empty((0,), dtype=np.float32)
+        # Filter out None values and return array of available truncation levels
+        trunc_list = [box.truncated for box in self.data if box.truncated is not None]
+        if not trunc_list:
+            return np.empty((0,), dtype=np.float32)
+        return np.array(trunc_list, dtype=np.float32)
+
+    @property
+    def occluded(self) -> np.ndarray:
+        """Return occlusion levels for all boxes.
+
+        Returns:
+            (np.ndarray): Array of shape (N,) containing occlusion levels (0=visible, 1=partial, 2=largely, 3=unknown),
+                or empty array if no boxes have occluded defined, where N is the number of boxes.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
+            >>> occs = boxes.occluded
+            >>> print(occs.shape)
+            (2,)
+        """
+        if len(self.data) == 0:
+            return np.empty((0,), dtype=np.float32)
+        # Filter out None values and return array of available occlusion levels
+        occ_list = [box.occluded for box in self.data if box.occluded is not None]
+        if not occ_list:
+            return np.empty((0,), dtype=np.float32)
+        return np.array(occ_list, dtype=np.float32)
+
+    def cpu(self):
+        """Return a copy of the Boxes3D object (no-op for lists).
+
+        Returns:
+            (Boxes3D): A new Boxes3D object with the same data (no device change).
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...)], orig_shape=(375, 1242))
+            >>> boxes_cpu = boxes.cpu()
+        """
+        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.copy(), self.orig_shape)
+
+    def numpy(self):
+        """Return a copy of the Boxes3D object (no-op for lists).
+
+        Returns:
+            (Boxes3D): A new Boxes3D object with the same data (no conversion needed).
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...)], orig_shape=(375, 1242))
+            >>> boxes_np = boxes.numpy()
+        """
+        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.copy(), self.orig_shape)
+
+    def cuda(self):
+        """Return a copy of the Boxes3D object (no-op for lists).
+
+        Returns:
+            (Boxes3D): A new Boxes3D object with the same data (no device change).
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...)], orig_shape=(375, 1242))
+            >>> boxes_cuda = boxes.cuda()
+        """
+        return self.__class__(self.data.copy(), self.orig_shape)
+
+    def to(self, *args, **kwargs):
+        """Return a copy of the Boxes3D object (no-op for lists).
+
+        Args:
+            *args: Variable length argument list (ignored for lists).
+            **kwargs: Arbitrary keyword arguments (ignored for lists).
+
+        Returns:
+            (Boxes3D): A new Boxes3D object with the same data.
+
+        Examples:
+            >>> boxes = Boxes3D([Box3D(...)], orig_shape=(375, 1242))
+            >>> boxes_new = boxes.to("cpu")
+        """
+        return self.__class__(self.data.copy(), self.orig_shape)

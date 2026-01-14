@@ -99,9 +99,9 @@ Below is a detailed overview of each model, including links to their pretrained 
 
 | Model Type | Pretrained Weights                                                                            | Tasks Supported                        | Inference | Validation | Training | Export |
 | ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_s.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_m.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
 
 ## Citations and Acknowledgments
 
@@ -168,6 +168,6 @@ YOLO-NAS models support various object detection tasks and modes such as inferen
 
 Yes, Ultralytics provides pretrained YOLO-NAS models that you can access directly. These models are pretrained on datasets like COCO, ensuring high performance in terms of both speed and accuracy. You can download these models using the links provided in the [Pretrained Models](#pretrained-models) section. Here are some examples:
 
-- [YOLO-NAS-s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.pt)
-- [YOLO-NAS-m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.pt)
-- [YOLO-NAS-l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.pt)
+- [YOLO-NAS-s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_s.pt)
+- [YOLO-NAS-m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_m.pt)
+- [YOLO-NAS-l](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_l.pt)

@@ -490,7 +490,6 @@ class v8SegmentationLoss(v8DetectionLoss):
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]
 
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
-        sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
         if fg_mask.sum():
             # Masks loss
             masks = batch["masks"].to(self.device).float()
@@ -512,6 +511,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                 imgsz,
             )
             if pred_semseg is not None:
+                sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
                 mask_zero = sem_masks == 0  # NxHxW
                 sem_masks = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2).float()  # NxCxHxW
                 sem_masks[mask_zero.unsqueeze(1).expand_as(sem_masks)] = 0
@@ -521,7 +521,9 @@ class v8SegmentationLoss(v8DetectionLoss):
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:
             loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
-            loss[4] += (pred_semseg * 0).sum() + (sem_masks * 0).sum()
+            if pred_semseg is not None:
+                loss[4] += (pred_semseg * 0).sum()
+
         loss[1] *= self.hyp.box  # seg gain
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
@@ -865,12 +867,13 @@ class PoseLoss26(v8PoseLoss):
         pred_sigma = pred_sigma.sigmoid()
         error = (pred_coords - gt_coords) / (pred_sigma + 1e-9)
 
-        # Filter out NaN values to prevent MultivariateNormal validation errors (can occur with small images)
-        valid_mask = ~torch.isnan(error).any(dim=-1)
+        # Filter out NaN and Inf values to prevent MultivariateNormal validation errors
+        valid_mask = ~(torch.isnan(error) | torch.isinf(error)).any(dim=-1)
         if not valid_mask.any():
             return torch.tensor(0.0, device=pred_kpt.device)
 
         error = error[valid_mask]
+        error = error.clamp(-100, 100)  # Prevent numerical instability
         pred_sigma = pred_sigma[valid_mask]
         target_weights = target_weights[valid_mask]
 

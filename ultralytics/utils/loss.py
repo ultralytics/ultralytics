@@ -481,7 +481,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = preds["mask_coefficient"].permute(0, 2, 1).contiguous(), preds["proto"]
         loss = torch.zeros(5, device=self.device)  # box, seg, cls, dfl
-        if len(proto) == 2:
+        if isinstance(proto, tuple) and len(proto) == 2:
             proto, pred_semseg = proto
         else:
             pred_semseg = None
@@ -490,6 +490,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]
 
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
+        sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
         if fg_mask.sum():
             # Masks loss
             masks = batch["masks"].to(self.device).float()
@@ -511,7 +512,6 @@ class v8SegmentationLoss(v8DetectionLoss):
                 imgsz,
             )
             if pred_semseg is not None:
-                sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
                 mask_zero = sem_masks == 0  # NxHxW
                 sem_masks = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2).float()  # NxCxHxW
                 sem_masks[mask_zero.unsqueeze(1).expand_as(sem_masks)] = 0
@@ -522,7 +522,6 @@ class v8SegmentationLoss(v8DetectionLoss):
         else:
             loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()  # inf sums may lead to nan loss
             loss[4] += (pred_semseg * 0).sum() + (sem_masks * 0).sum()
-
         loss[1] *= self.hyp.box  # seg gain
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 

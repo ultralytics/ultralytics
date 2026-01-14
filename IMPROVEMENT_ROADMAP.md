@@ -16,27 +16,15 @@
 ```python
 class TTCCalculator:
     def estimate_velocity_robust(track_history, window_size=5):
+        """改进版速度估计 - 使用最小二乘法 - 降低噪声影响 - 支持长轨迹的拟合 - 返回速度向量 (vx, vy) 和可信度分数.
         """
-        改进版速度估计 - 使用最小二乘法
-        - 降低噪声影响
-        - 支持长轨迹的拟合
-        - 返回速度向量 (vx, vy) 和可信度分数
-        """
-        
+
     def calculate_ttc_physics_based(pos1, vel1, pos2, vel2):
+        """基于物理的TTC计算 - 投影速度到接近轴 (closing axis) - TTC = distance / relative_closing_velocity - 处理速度相近/相反的情况.
         """
-        基于物理的TTC计算
-        - 投影速度到接近轴 (closing axis)
-        - TTC = distance / relative_closing_velocity
-        - 处理速度相近/相反的情况
-        """
-        
+
     def calculate_pet(trajectory1, trajectory2):
-        """
-        Post-Encroachment Time (碰撞后时间差)
-        - 找到两条轨迹的最近点
-        - 计算各自通过该点的时间
-        - PET = time2 - time1
+        """Post-Encroachment Time (碰撞后时间差) - 找到两条轨迹的最近点 - 计算各自通过该点的时间 - PET = time2 - time1.
         """
 ```
 
@@ -61,33 +49,19 @@ class TTCCalculator:
 **改进内容**:
 ```python
 class EventClassifier:
+    """导师提到的风险分级： - Level 1 (Collision)：距离<0.5m OR TTC<1.0s - Level 2 (Near Miss)：0.5m ≤ d < 1.5m AND TTC<3.0s - Level 3
+    (Avoidance)：有接近但>1.5m.
     """
-    导师提到的风险分级：
-    - Level 1 (Collision)：距离<0.5m OR TTC<1.0s
-    - Level 2 (Near Miss)：0.5m ≤ d < 1.5m AND TTC<3.0s  
-    - Level 3 (Avoidance)：有接近但>1.5m
-    """
-    
-    def classify_event(distance, ttc, pet, 
-                      velocity1, velocity2,
-                      object_types):
-        """
-        多维评分系统：
-        1. 距离评分 (0-100)
-        2. TTC评分 (0-100) 
-        3. PET评分 (0-100)
-        4. 类别权重 (car/car > car/person > 其他)
-        5. 动向评分 (是否快速接近)
-        
+
+    def classify_event(distance, ttc, pet, velocity1, velocity2, object_types):
+        """多维评分系统： 1. 距离评分 (0-100) 2. TTC评分 (0-100) 3. PET评分 (0-100) 4. 类别权重 (car/car > car/person > 其他) 5. 动向评分
+        (是否快速接近).
+
         返回: (risk_level, confidence, detailed_scores)
         """
-        
+
     def filter_false_positives(event_list):
-        """
-        虚警过滤：
-        - 同一对物体的短期多次检测应合并
-        - 静止物体的距离波动应忽略
-        - 只保留真实的接近趋势
+        """虚警过滤： - 同一对物体的短期多次检测应合并 - 静止物体的距离波动应忽略 - 只保留真实的接近趋势.
         """
 ```
 
@@ -113,46 +87,23 @@ class EventClassifier:
 
 ```python
 class TrajectoryPredictor:
+    """三层预测系统： 1. 线性预测 (baseline) 2. 二阶多项式预测 (高精度) 3. 卡尔曼滤波 (噪声抑制).
     """
-    三层预测系统：
-    1. 线性预测 (baseline)
-    2. 二阶多项式预测 (高精度)
-    3. 卡尔曼滤波 (噪声抑制)
-    """
-    
+
     def predict_quadratic(track_history, ahead_frames=10):
+        """二阶多项式拟合 (抛物线) - 假设运动方程: y = a*t^2 + b*t + c - 使用最小二乘法拟合 - 输出: 拟合参数 + 预测轨迹 + 拟合误差.
         """
-        二阶多项式拟合 (抛物线)
-        - 假设运动方程: y = a*t^2 + b*t + c
-        - 使用最小二乘法拟合
-        - 输出: 拟合参数 + 预测轨迹 + 拟合误差
-        """
-        
+
     def kalman_smoother(noisy_track):
+        """卡尔曼滤波器： - 状态向量: [x, y, vx, vy] - 处理运动模型噪声和测量噪声 - 输出: 平滑的轨迹 + 不确定性椭圆.
         """
-        卡尔曼滤波器：
-        - 状态向量: [x, y, vx, vy]
-        - 处理运动模型噪声和测量噪声
-        - 输出: 平滑的轨迹 + 不确定性椭圆
-        """
-        
+
     def detect_anomalies(track_history, threshold=3.0):
+        """异常值检测 (标准差方法) - 识别跳变、跟踪失败等 - 可选修复或标记.
         """
-        异常值检测 (标准差方法)
-        - 识别跳变、跟踪失败等
-        - 可选修复或标记
-        """
-        
-    def predict_collision_with_confidence(
-        track1, track2, 
-        prediction_method='kalman',
-        ahead_time=2.0
-    ):
-        """
-        碰撞预测 + 置信度
-        - 预测future positions
-        - 计算碰撞概率
-        - 返回: collision_point, time_to_collision, confidence
+
+    def predict_collision_with_confidence(track1, track2, prediction_method="kalman", ahead_time=2.0):
+        """碰撞预测 + 置信度 - 预测future positions - 计算碰撞概率 - 返回: collision_point, time_to_collision, confidence.
         """
 ```
 
@@ -180,37 +131,26 @@ class TrajectoryPredictor:
 **设计框架**:
 ```python
 class GlobalTracker:
-    """
-    多摄像头全局ID管理系统
-    """
-    
+    """多摄像头全局ID管理系统."""
+
     def __init__(self, num_cameras=2):
         self.local_trackers = {}  # camera_id -> ObjectStateManager
-        self.global_id_map = {}   # (camera_id, local_id) -> global_id
+        self.global_id_map = {}  # (camera_id, local_id) -> global_id
         self.inter_camera_matches = {}  # 跨摄像头关联记录
-        
+
     def update_camera_detection(camera_id, detections, timestamp):
+        """接收单个摄像头的检测结果 - 本地YOLO跟踪 - 与其他摄像头的ID统一.
         """
-        接收单个摄像头的检测结果
-        - 本地YOLO跟踪
-        - 与其他摄像头的ID统一
-        """
-        
+
     def match_across_cameras(local_detections_1, local_detections_2):
-        """
-        基于多特征进行跨摄像头关联：
-        1. 外观特征 (appearance) - 颜色直方图
-        2. 时空特征 (spatio-temporal) - 位置、时间连续性
-        3. 语义特征 (semantic) - 物体类别、大小
-        
+        """基于多特征进行跨摄像头关联： 1. 外观特征 (appearance) - 颜色直方图 2. 时空特征 (spatio-temporal) - 位置、时间连续性 3. 语义特征 (semantic) -
+        物体类别、大小.
+
         返回: 匹配对列表 [(local_id_1, local_id_2, confidence), ...]
         """
-        
+
     def unify_ids(matches, timestamp):
-        """
-        统一ID：
-        - 为跨摄像头关联的物体分配相同的global_id
-        - 处理ID冲突和歧义
+        """统一ID： - 为跨摄像头关联的物体分配相同的global_id - 处理ID冲突和歧义.
         """
 ```
 
@@ -244,19 +184,13 @@ ttc_calc = TTCCalculator()
 for id1, id2 in get_object_pairs(osm):
     traj1 = osm.get_trajectory(id1, last_n=10)
     traj2 = osm.get_trajectory(id2, last_n=10)
-    
+
     vel1 = ttc_calc.estimate_velocity_robust(traj1)
     vel2 = ttc_calc.estimate_velocity_robust(traj2)
-    
+
     distance = osm.distance_between(id1, id2)
-    ttc = ttc_calc.calculate_ttc(
-        osm._get_point_at(id1),
-        vel1, 
-        osm._get_point_at(id2),
-        vel2,
-        distance
-    )
-    
+    ttc = ttc_calc.calculate_ttc(osm._get_point_at(id1), vel1, osm._get_point_at(id2), vel2, distance)
+
     # 新增：事件分类
     classifier = EventClassifier()
     risk_level, name = classifier.classify_event(
@@ -265,19 +199,19 @@ for id1, id2 in get_object_pairs(osm):
         pet=None,  # TODO
         velocity1=vel1,
         velocity2=vel2,
-        object_types=(osm.get_class(id1), osm.get_class(id2))
+        object_types=(osm.get_class(id1), osm.get_class(id2)),
     )
-    
+
     if risk_level <= 2:  # 记录碰撞和近miss
         event = {
-            'frame': frame_idx,
-            'time': t,
-            'object_ids': [id1, id2],
-            'distance': distance,
-            'ttc': ttc,
-            'risk_level': risk_level,
-            'risk_name': name,
-            'velocities': {'obj_' + str(id1): vel1, 'obj_' + str(id2): vel2}
+            "frame": frame_idx,
+            "time": t,
+            "object_ids": [id1, id2],
+            "distance": distance,
+            "ttc": ttc,
+            "risk_level": risk_level,
+            "risk_name": name,
+            "velocities": {"obj_" + str(id1): vel1, "obj_" + str(id2): vel2},
         }
         all_events.append(event)
 ```
@@ -295,27 +229,29 @@ for id1, id2 in get_object_pairs(osm):
 ```python
 class TestTTCCalculator(unittest.TestCase):
     def test_linear_collision_head_on(self):
-        """两物体对向运动，应能预测碰撞"""
-        
+        """两物体对向运动，应能预测碰撞."""
+
     def test_parallel_motion(self):
-        """两物体平行运动，TTC应为无穷"""
-        
+        """两物体平行运动，TTC应为无穷."""
+
     def test_noise_robustness(self):
-        """在噪声轨迹上计算TTC，结果应稳定"""
+        """在噪声轨迹上计算TTC，结果应稳定."""
+
 
 class TestEventClassifier(unittest.TestCase):
     def test_collision_level(self):
-        """distance<0.5m, TTC<1s → Level 1"""
-        
+        """Distance<0.5m, TTC<1s → Level 1."""
+
     def test_near_miss_level(self):
-        """distance in [0.5, 1.5], TTC<3s → Level 2"""
+        """Distance in [0.5, 1.5], TTC<3s → Level 2."""
+
 
 class TestTrajectoryPredictor(unittest.TestCase):
     def test_quadratic_fit_accuracy(self):
-        """二阶拟合误差 < 10%"""
-        
+        """二阶拟合误差 < 10%."""
+
     def test_kalman_smoothing(self):
-        """卡尔曼滤波应降低轨迹抖动"""
+        """卡尔曼滤波应降低轨迹抖动."""
 ```
 
 ---

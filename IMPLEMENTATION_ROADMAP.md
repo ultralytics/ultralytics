@@ -17,25 +17,18 @@
 # 伪代码框架
 class TTCCalculator:
     def estimate_velocity(track_data):
-        """
-        从轨迹数据估计速度
-        输入: track_data = [(x, y, t), (x, y, t), ...]
-        输出: vx, vy (像素/秒 或 米/秒)
+        """从轨迹数据估计速度 输入: track_data = [(x, y, t), (x, y, t), ...] 输出: vx, vy (像素/秒 或 米/秒).
         """
         # 使用最近两帧或最小二乘法
-        
+
     def calculate_ttc(obj1_pos, obj1_vel, obj2_pos, obj2_vel, distance):
-        """
-        TTC = distance / |relative_velocity_along_collision_axis|
-        """
+        """TTC = distance / |relative_velocity_along_collision_axis|."""
         # 计算相对速度
         # 计算沿碰撞轴的分量
         # 返回 TTC (秒)
-        
+
     def calculate_pet(obj1_trajectory, obj2_trajectory):
-        """
-        Post Encroachment Time
-        测量一个物体离开碰撞点的时间到另一个物体到达的时间差
+        """Post Encroachment Time 测量一个物体离开碰撞点的时间到另一个物体到达的时间差.
         """
         # 找到碰撞点
         # 计算时间差
@@ -65,10 +58,8 @@ class TTCCalculator:
 ```python
 class EventClassifier:
     def classify(distance, ttc, pet=None):
-        """
-        Level 1 (Collision): distance < 0.5m 或 TTC < 1.0s
-        Level 2 (Near Miss):  0.5m ≤ distance < 1.5m 且 TTC < 3.0s
-        Level 3 (Avoidance):  distance ≥ 1.5m 但有交集迹象
+        """Level 1 (Collision): distance < 0.5m 或 TTC < 1.0s Level 2 (Near Miss): 0.5m ≤ distance < 1.5m 且 TTC < 3.0s
+        Level 3 (Avoidance): distance ≥ 1.5m 但有交集迹象.
         """
         if distance < 0.5 or (ttc and ttc < 1.0):
             return 1, "Collision"
@@ -92,7 +83,7 @@ class EventClassifier:
 # {frame, time, object_ids, distance, distance_str, frame_image}
 
 # 改为
-# {frame, time, object_ids, distance, distance_str, 
+# {frame, time, object_ids, distance, distance_str,
 #  velocity_1, velocity_2, ttc, pet, risk_level, level_name, frame_image}
 ```
 
@@ -107,31 +98,19 @@ class EventClassifier:
 ```python
 class VideoAnnotator:
     def __init__(self, video_path, output_path, homography_path):
-        """初始化视频标注器"""
-        
+        """初始化视频标注器."""
+
     def draw_detection_frame(frame, detections, event_info=None):
+        """在单帧上绘制: - 检测边框 (绿色边界框) - Track ID (例如 "ID:42") - 距离标注 (例如 "Dist: 0.8m") - TTC 标注 (例如 "TTC: 2.3s") - Level 标记
+        (L1=红, L2=黄, L3=绿) - 速度向量 (箭头).
         """
-        在单帧上绘制:
-        - 检测边框 (绿色边界框)
-        - Track ID (例如 "ID:42")
-        - 距离标注 (例如 "Dist: 0.8m")
-        - TTC 标注 (例如 "TTC: 2.3s")
-        - Level 标记 (L1=红, L2=黄, L3=绿)
-        - 速度向量 (箭头)
-        """
-        
+
     def process_video(collision_events, fps, total_frames):
+        """遍历整个视频，对每一帧: 1. 读取帧 2. 查找该帧的检测/事件信息 3. 绘制标注 4. 写入输出视频 输出: annotated_video.mp4.
         """
-        遍历整个视频，对每一帧:
-        1. 读取帧
-        2. 查找该帧的检测/事件信息
-        3. 绘制标注
-        4. 写入输出视频
-        输出: annotated_video.mp4
-        """
-        
+
     def create_level_color(level):
-        """Level 颜色编码: 1=红(255,0,0), 2=黄(0,255,255), 3=绿(0,255,0)"""
+        """Level 颜色编码: 1=红(255,0,0), 2=黄(0,255,255), 3=绿(0,255,0)."""
 ```
 
 **关键细节**:
@@ -140,17 +119,14 @@ class VideoAnnotator:
 cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness=2)
 
 # Track ID
-cv2.putText(frame, f"ID:{track_id}", (x1, y1-10), 
-            cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+cv2.putText(frame, f"ID:{track_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
 
 # 距离和 TTC
-cv2.putText(frame, f"Dist:{distance:.1f}m TTC:{ttc:.1f}s", 
-            (x1, y2+30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+cv2.putText(frame, f"Dist:{distance:.1f}m TTC:{ttc:.1f}s", (x1, y2 + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
 # Level 标记
 level_text = f"L{level}"
-cv2.putText(frame, level_text, (x2-50, y1-10), 
-            cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+cv2.putText(frame, level_text, (x2 - 50, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
 ```
 
 ### 2.2 集成到 Pipeline
@@ -158,10 +134,8 @@ cv2.putText(frame, level_text, (x2-50, y1-10),
 **修改 collision_detection_pipeline.py**:
 ```python
 def generate_annotated_video(self, collision_events):
-    """新增方法: 生成标注视频"""
-    annotator = VideoAnnotator(self.warped_video_path, 
-                                self.collision_dir / 'annotated_video.mp4',
-                                self.homography_path)
+    """新增方法: 生成标注视频."""
+    annotator = VideoAnnotator(self.warped_video_path, self.collision_dir / "annotated_video.mp4", self.homography_path)
     annotator.process_video(collision_events, fps, total_frames)
 ```
 
@@ -242,9 +216,7 @@ Homography 误差: < 0.1%
 
 ```python
 def detect_collisions(self, conf_threshold=0.45, skip_frame=2):
-    """
-    skip_frame=2: 处理每2帧，检测速度提升2倍
-    skip_frame=0: 处理所有帧（精度最高）
+    """skip_frame=2: 处理每2帧，检测速度提升2倍 skip_frame=0: 处理所有帧（精度最高）.
     """
     frame_count = 0
     for result in model.track(...):
@@ -258,8 +230,8 @@ def detect_collisions(self, conf_threshold=0.45, skip_frame=2):
 
 ```python
 # 在 Pipeline 初始化时
-model = YOLO('yolo11n.pt')
-model.to('cuda')  # 如果有 GPU
+model = YOLO("yolo11n.pt")
+model.to("cuda")  # 如果有 GPU
 
 # 或在 track 时指定
 results = model.track(source=video, device=0)  # device=0 表示 GPU
@@ -273,18 +245,18 @@ results = model.track(source=video, device=0)  # device=0 表示 GPU
 
 ```python
 # 尝试更大的输入分辨率
-model = YOLO('yolo11n.pt')
+model = YOLO("yolo11n.pt")
 results = model.predict(source=frame, imgsz=640)  # 而不是 384
 
 # 或使用更大的模型
-model = YOLO('yolo11s.pt')  # small 而不是 nano
+model = YOLO("yolo11s.pt")  # small 而不是 nano
 ```
 
 ### 5.2 考虑 Segmentation
 
 ```python
 # 如果需要更好的精度，可考虑
-model = YOLO('yolo11n-seg.pt')  # Segmentation 模型
+model = YOLO("yolo11n-seg.pt")  # Segmentation 模型
 ```
 
 ---

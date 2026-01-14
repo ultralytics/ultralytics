@@ -14,9 +14,9 @@
 cd /workspace/ultralytics/examples/trajectory_demo
 
 python collision_detection_pipeline_yolo_first.py \
-    --video ../../videos/Homograph_Teset_FullScreen.mp4 \
-    --homography ../../calibration/Homograph_Teset_FullScreen_homography.json \
-    --conf 0.45
+  --video ../../videos/Homograph_Teset_FullScreen.mp4 \
+  --homography ../../calibration/Homograph_Teset_FullScreen_homography.json \
+  --conf 0.45
 ```
 
 ### 方式 2: 使用启动脚本
@@ -172,12 +172,12 @@ results/20260106_XXXXXX_yolo_first/
 pixel_distance_threshold = 150  # 接近距离，像素
 
 # 在 analyze_collision_risk() 中
-threshold_collision = 50        # 碰撞距离，像素
-threshold_near_miss = 150       # 近距离，像素
+threshold_collision = 50  # 碰撞距离，像素
+threshold_near_miss = 150  # 近距离，像素
 
 # 或使用 Homography 后的米制
-threshold_collision = 0.5       # 0.5 米
-threshold_near_miss = 1.5       # 1.5 米
+threshold_collision = 0.5  # 0.5 米
+threshold_near_miss = 1.5  # 1.5 米
 ```
 
 ### 命令行参数
@@ -247,7 +247,7 @@ bash run_yolo_first_pipeline.sh
 
 ### 2️⃣ 查看输出结果
 ```bash
-ls -la ../../results/  # 查看所有输出
+ls -la ../../results/ # 查看所有输出
 ```
 
 ### 3️⃣ 对比两个方案

@@ -173,23 +173,25 @@ results/20260106_XXXXXX_yolo_first/
 ```python
 # compare_approaches.py
 
+
 def compare_performance():
-    """对比两个 pipeline 的性能"""
+    """对比两个 pipeline 的性能."""
     metrics = {
-        'detection_time': {},
-        'trajectory_time': {},
-        'homography_time': {},
-        'total_time': {},
-        'memory_usage': {},
-        'accuracy': {},
+        "detection_time": {},
+        "trajectory_time": {},
+        "homography_time": {},
+        "total_time": {},
+        "memory_usage": {},
+        "accuracy": {},
     }
-    
+
     # 运行两个 pipeline
     # 记录时间和内存
     # 对比结果一致性
-    
+
+
 def compare_outputs():
-    """对比两个 pipeline 的输出"""
+    """对比两个 pipeline 的输出."""
     # 检测结果是否一致
     # TTC 值是否接近
     # Event 分级是否相同
@@ -203,17 +205,17 @@ def compare_outputs():
 
 ```python
 def pixel_distance(obj1_bbox, obj2_bbox):
-    """计算两个物体的最小距离"""
+    """计算两个物体的最小距离."""
     # 使用接触点而非中心点
     contact_points_1 = get_contact_points(obj1_bbox)
     contact_points_2 = get_contact_points(obj2_bbox)
-    
-    min_distance = float('inf')
+
+    min_distance = float("inf")
     for p1 in contact_points_1:
         for p2 in contact_points_2:
-            dist = np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+            dist = np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
             min_distance = min(min_distance, dist)
-    
+
     return min_distance
 ```
 
@@ -221,15 +223,15 @@ def pixel_distance(obj1_bbox, obj2_bbox):
 
 ```python
 def is_proximity_event(dist_pixels, obj1_size, obj2_size):
-    """判断是否为接近事件，考虑物体大小"""
+    """判断是否为接近事件，考虑物体大小."""
     # 基础阈值: 150px
     # 调整因子: 根据物体大小
     base_threshold = 150
-    
+
     # 较大的物体可能需要更大的阈值
     size_factor = (obj1_size + obj2_size) / 2 / 100
     threshold = base_threshold * size_factor
-    
+
     return dist_pixels < threshold
 ```
 

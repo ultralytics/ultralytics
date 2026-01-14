@@ -123,10 +123,10 @@ for frame_idx, frame in enumerate(video):
     if frame_idx % skip_frame != 0:
         continue
     # 处理这一帧
-    
+
 # GPU 推理
-model = YOLO('yolo11n.pt')
-model.to('cuda')  # 或使用 device=0 参数
+model = YOLO("yolo11n.pt")
+model.to("cuda")  # 或使用 device=0 参数
 
 # 分离式推理
 # 选项1: 本地 GPU 推理

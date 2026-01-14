@@ -3,6 +3,7 @@
 ## 你现在的数据
 
 等待你提供：
+
 - 4个像素坐标 (从视频截图中测量)
 - 4个对应的世界坐标 (实际距离, 单位：米)
 
@@ -20,6 +21,7 @@ python calibration.py \
 ```
 
 例如（假设你的数据）：
+
 ```bash
 python calibration.py \
   --pixel-points "100,50 1800,80 1850,1000 120,1050" \
@@ -40,6 +42,7 @@ python yolo_runner.py \
 ```
 
 输出目录包含：
+
 - `tracks.json` - 轨迹数据
 - `near_misses.json` - 碰撞接近事件
 - `analysis_report.txt` - 分析报告

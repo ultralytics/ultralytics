@@ -1,5 +1,5 @@
 """
-yolo_runner_raw.py
+yolo_runner_raw.py.
 
 阶段 A：只运行 YOLO 并保存原始检测输出（JSONL），不做 adapter / state manager / 坐标转换。
 
@@ -17,11 +17,13 @@ python examples/trajectory_demo_stageA/yolo_runner_raw.py --source "/path/to/vid
 - 如果在容器/VM 中运行，请把视频文件复制或挂载到容器可见路径（见 README 说明）。
 - 该脚本只保存原始检测，不会修改仓库其他文件。
 """
+
 from __future__ import annotations
+
 import argparse
+import json
 import os
 import sys
-import json
 from typing import Any
 
 # allow running from repo root
@@ -31,7 +33,7 @@ from ultralytics import YOLO
 
 
 def tensor_to_list(x: Any):
-    """尝试把 torch tensor 转为 list。若失败，返回 None 或原始对象的 list 表示。"""
+    """尝试把 torch tensor 转为 list。若失败，返回 None 或原始对象的 list 表示。."""
     if x is None:
         return None
     try:
@@ -45,25 +47,25 @@ def tensor_to_list(x: Any):
 
 def run_raw(source: str, weights: str, output: str):
     os.makedirs(output, exist_ok=True)
-    out_file = os.path.join(output, 'raw_detections.jsonl')
+    out_file = os.path.join(output, "raw_detections.jsonl")
     model = YOLO(weights)
     print(f"Running raw YOLO on: {source}")
     print(f"Weights: {weights}")
     print(f"Output JSONL: {out_file}")
 
-    with open(out_file, 'w', encoding='utf-8') as f:
+    with open(out_file, "w", encoding="utf-8") as f:
         for frame_idx, result in enumerate(model.track(source=source, stream=True, persist=True)):
-            boxes = getattr(result, 'boxes', None)
+            boxes = getattr(result, "boxes", None)
             if boxes is None:
                 out = {"frame": frame_idx, "t": frame_idx, "detections": []}
                 f.write(json.dumps(out, ensure_ascii=False) + "\n")
                 print(f"frame {frame_idx}: no boxes")
                 continue
 
-            xyxy = tensor_to_list(getattr(boxes, 'xyxy', None))
-            cls = tensor_to_list(getattr(boxes, 'cls', None))
-            conf = tensor_to_list(getattr(boxes, 'conf', None)) or tensor_to_list(getattr(boxes, 'confidence', None))
-            ids = tensor_to_list(getattr(boxes, 'id', None)) or tensor_to_list(getattr(boxes, 'ids', None))
+            xyxy = tensor_to_list(getattr(boxes, "xyxy", None))
+            cls = tensor_to_list(getattr(boxes, "cls", None))
+            conf = tensor_to_list(getattr(boxes, "conf", None)) or tensor_to_list(getattr(boxes, "confidence", None))
+            ids = tensor_to_list(getattr(boxes, "id", None)) or tensor_to_list(getattr(boxes, "ids", None))
 
             dets = []
             if xyxy is None:
@@ -94,10 +96,10 @@ def run_raw(source: str, weights: str, output: str):
     print(f"Saved raw detections to {out_file}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument('--source', type=str, required=True, help='video file or camera')
-    p.add_argument('--weights', type=str, default='yolo11n.pt')
-    p.add_argument('--output', type=str, default='runs/trajectory_demo_stageA')
+    p.add_argument("--source", type=str, required=True, help="video file or camera")
+    p.add_argument("--weights", type=str, default="yolo11n.pt")
+    p.add_argument("--output", type=str, default="runs/trajectory_demo_stageA")
     args = p.parse_args()
     run_raw(args.source, args.weights, args.output)

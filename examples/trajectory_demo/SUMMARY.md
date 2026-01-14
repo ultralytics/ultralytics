@@ -2,7 +2,8 @@
 
 ## 🎯 'EOF'
 
- **完成**：创建完整的碰撞检测Pipeline，支持：
+**完成**：创建完整的碰撞检测Pipeline，支持：
+
 - Homography标定和验证
 - 视频透视变换（原始视角 → 鸟瞰图）
 - YOLO物体检测与追踪
@@ -65,7 +66,7 @@ ls /workspace
     │   ├── analysis_report.txt       # 分析报告
 ls /
     │   ├── event_frame_0002.jpg
- ...    │   
+ ...    │
     │
     └── README.md                     # 本次运行说明
 ```
@@ -81,7 +82,7 @@ PIPELINE_USAGE.md QUICKSTART.md QUICK_START.md README_CLEAN.md STRUCTURE.txt __p
     ├─ 加载Homography JSON
     ├─ 验证矩阵和参考点
     └─ 输出: verify_original.jpg
-    
+
 PIPELINE_USAGE.md QUICKSTART.md QUICK_START.md README_CLEAN.md STRUCTURE.txt __pycache__ calibration.py collision_detection_pipeline.py coord_transform.py correct_perspective_transform.py create_verification_comparison.py detection_adapter.py direct_verify_mapping.py fast_perspective_transform.py object_state_manager.py perspective_transform_video.py run_collision_detection_pipeline.sh run_pipeline.py run_with_visualization.py test_contact_points.py test_homography.py test_homography_matrix.py trajectory_prediction.py verify_homography.py visualize_collision_events.py visualize_contact_points.py yolo11n.pt yolo_runner.py yolo_runner_with_event_capture.py yolo_warped_detection.py 2】视频透视变换
     ├─ 应用 M = H_inv @ A
     ├─ 输出分辨率: 180×1200
@@ -136,12 +137,12 @@ PIPELINE_USAGE.md QUICKSTART.md QUICK_START.md README_CLEAN.md STRUCTURE.txt __p
 
 ## 🎛️ 参数说明
 
-| 参数 | 说明 | 默认值 | 示例 |
-|------|------|--------|------|
-| `--video` | 输入视频路径 | 必需 | `../../videos/test.mp4` |
-| `--homography` | Homography JSON | 必需 | `../../calibration/h.json` |
-| `--output` | 结果输出目录 | `../../results` | `./my_results` |
-| `--conf` | YOLO置信度 | 0.45 | `0.35` (更敏感) |
+| 参数           | 说明            | 默认值          | 示例                       |
+| -------------- | --------------- | --------------- | -------------------------- |
+| `--video`      | 输入视频路径    | 必需            | `../../videos/test.mp4`    |
+| `--homography` | Homography JSON | 必需            | `../../calibration/h.json` |
+| `--output`     | 结果输出目录    | `../../results` | `./my_results`             |
+| `--conf`       | YOLO置信度      | 0.45            | `0.35` (更敏感)            |
 
 ### 使用示例
 
@@ -187,7 +188,7 @@ python run_pipeline.py --video input.mp4 --homography h.json --output ./results
 : ../../videos/Homograph_Teset_FullScreen.mp4
  0
 
-#PIPELINE_USAGE.md QUICKSTART.md QUICK_START.md README_CLEAN.md STRUCTURE.txt __pycache__ calibration.py collision_detection_pipeline.py coord_transform.py correct_perspective_transform.py create_verification_comparison.py detection_adapter.py direct_verify_mapping.py fast_perspective_transform.py object_state_manager.py perspective_transform_video.py run_collision_detection_pipeline.sh run_pipeline.py run_with_visualization.py test_contact_points.py test_homography.py test_homography_matrix.py trajectory_prediction.py verify_homography.py visualize_collision_events.py visualize_contact_points.py yolo11n.pt yolo_runner.py yolo_runner_with_event_capture.py yolo_warped_detection.py 
+#PIPELINE_USAGE.md QUICKSTART.md QUICK_START.md README_CLEAN.md STRUCTURE.txt __pycache__ calibration.py collision_detection_pipeline.py coord_transform.py correct_perspective_transform.py create_verification_comparison.py detection_adapter.py direct_verify_mapping.py fast_perspective_transform.py object_state_manager.py perspective_transform_video.py run_collision_detection_pipeline.sh run_pipeline.py run_with_visualization.py test_contact_points.py test_homography.py test_homography_matrix.py trajectory_prediction.py verify_homography.py visualize_collision_events.py visualize_contact_points.py yolo11n.pt yolo_runner.py yolo_runner_with_event_capture.py yolo_warped_detection.py
 
 ======================================================================
 ```
@@ -198,7 +199,7 @@ python run_pipeline.py --video input.mp4 --homography h.json --output ./results
 
 ### 修改碰撞距离阈值
 
- `collision_detection_pipeline.py`，约第150行：
+`collision_detection_pipeline.py`，约第150行：
 
 ```python
 # 当前: 0.5m
@@ -209,7 +210,7 @@ if distance < 0.5:
 
 ### 修改输出分辨率
 
- `collision_detection_pipeline.py`，约第90行：
+`collision_detection_pipeline.py`，约第90行：
 
 ```python
 # 当前: 180×1200
@@ -219,11 +220,11 @@ output_size = (180, 1200)
 
 ### 使用更高精度的模型
 
- `collision_detection_pipeline.py`，约第115行：
+`collision_detection_pipeline.py`，约第115行：
 
 ```python
 # 当前: yolo11n.pt (最轻量)
-model = YOLO('yolo11n.pt')
+model = YOLO("yolo11n.pt")
 # 改为: model = YOLO('yolo11m.pt')  # 更准确但更慢
 ```
 
@@ -231,11 +232,12 @@ model = YOLO('yolo11n.pt')
 
 ## ❓ 常见问题与解决方案
 
-### 
+###
 
 **原因**: 物体太小或置信度过高
 
 **解决**:
+
 ```bash
 python run_pipeline.py ... --conf 0.3
 ```
@@ -244,13 +246,15 @@ python run_pipeline.py ... --conf 0.3
 
 **原因**: 置信度过低或距离阈值过小
 
-**解决**: 
+**解决**:
+
 1. 提高置信度: `--conf 0.6`
 2. 修改距离阈值: `if distance < 0.3` (更严格)
 
 ### Q3: Warped视频质量差
 
 **检查**:
+
 1. `verify_original.jpg` 中的4个绿色点是否正确
 2. `homography.json` 中的 `calibration_error` 是否接近0
 3. 原始视频是否清晰
@@ -258,6 +262,7 @@ python run_pipeline.py ... --conf 0.3
 ### Q4: 处理速度慢
 
 **优化**:
+
 1. 使用轻量模型: `yolo11n.pt` (已是最轻)
 2. 降低输出分辨率: `output_size = (90, 600)`
 3. 跳帧处理（代码修改）
@@ -266,12 +271,12 @@ python run_pipeline.py ... --conf 0.3
 
 ## 📚 文档资源
 
-| 文档 | 内容 | 位置 |
-|------|------|------|
-| **QUICK_START.md** | 5分钟快速上手 | trajectory_demo/ |
-| **PIPELINE_USAGE.md** | 详细参数和调试 | trajectory_demo/ |
-| **STRUCTURE.txt** | 完整项目结构 | trajectory_demo/ |
-| **README.md** | 本次运行说明 | results/20251218_225957/ |
+| 文档                  | 内容           | 位置                     |
+| --------------------- | -------------- | ------------------------ |
+| **QUICK_START.md**    | 5分钟快速上手  | trajectory_demo/         |
+| **PIPELINE_USAGE.md** | 详细参数和调试 | trajectory_demo/         |
+| **STRUCTURE.txt**     | 完整项目结构   | trajectory_demo/         |
+| **README.md**         | 本次运行说明   | results/20251218_225957/ |
 
 ---
 
@@ -281,7 +286,7 @@ python run_pipeline.py ... --conf 0.3
 
 ```bash
 cd /workspace/ultralytics/examples/trajectory_demo
-python run_pipeline.py --help  # 查看所有选项
+python run_pipeline.py --help # 查看所有选项
 ```
 
 ### 处理其他视频
@@ -306,11 +311,7 @@ from pathlib import Path
 videos = ["video1.mp4", "video2.mp4", "video3.mp4"]
 for video in videos:
     h_file = f"calibration_{Path(video).stem}.json"
-    subprocess.run([
-        "python", "run_pipeline.py",
-        "--video", video,
-        "--homography", h_file
-    ])
+    subprocess.run(["python", "run_pipeline.py", "--video", video, "--homography", h_file])
 ```
 
 ---
@@ -318,6 +319,7 @@ for video in videos:
 ## ✅ 验证清单
 
 ls /3个阶段）
+
 - [x] 自动生成时间戳文件夹
 - [x] 清晰的文件夹结构（1_homography, 2_warped_video, 3_collision_events）
 
@@ -335,6 +337,7 @@ ls /3个阶段）
 ### 关键技术
 
 /workspace/ ls
+
 - **透视变换**: M = H_inv @ A，其中A是输出→世界映射
 - **YOLO11n**: 轻量级物体检测模型
 - **OpenCV**: 视频处理和图像变换
@@ -343,6 +346,7 @@ ls /3个阶段）
 ### 坐标系统
 
 ls /workspace
+
 - **中间**: 鸟瞰图（180×1200像素）
 - **输出**: 世界坐标（X∈[-3.75, 3.75]m, Y∈[0, 50]m）
 
@@ -356,11 +360,13 @@ ls /workspace
 
 ## 🎉 总结
 
- **完整的Pipeline已实现并测试**  
- **生成的结果清晰有组织**  
-# **提
-**  
- **可以立即投入使用**  
+**完整的Pipeline已实现并测试**  
+ **生成的结果清晰有组织**
+
+# \*\*提
+
+\*\*  
+ **可以立即投入使用**
 
 ls /workspace
 

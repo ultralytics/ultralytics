@@ -229,11 +229,11 @@ tracks = {
 
 # 三维数据 ✅
 sample = {
-    'x': cx,           # X坐标 (像素)
-    'y': cy,           # Y坐标 (像素)
-    't': timestamp,    # 时间轴
-    'x_world': cx_world,    # 额外: 世界X
-    'y_world': cy_world,    # 额外: 世界Y
+    "x": cx,  # X坐标 (像素)
+    "y": cy,  # Y坐标 (像素)
+    "t": timestamp,  # 时间轴
+    "x_world": cx_world,  # 额外: 世界X
+    "y_world": cy_world,  # 额外: 世界Y
 }
 ```
 

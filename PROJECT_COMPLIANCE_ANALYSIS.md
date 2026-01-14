@@ -33,9 +33,9 @@
 
 **当前实现**:
 ```python
-- linear_extrapolation()          # 线性外推
-- estimate_velocity()              # 速度估计
-- predict_collision_point()        # 碰撞点预测
+-linear_extrapolation()  # 线性外推
+-estimate_velocity()  # 速度估计
+-predict_collision_point()  # 碰撞点预测
 ```
 
 **需要完善的**:
@@ -97,15 +97,15 @@ ObjectStateManager.update()
 **核心设计**:
 ```python
 class ObjectStateManager:
-    self.tracks = {}              # key: track_id, value: [samples历史]
-    self.last_seen = {}           # key: track_id, value: 最后出现时间
-    
-    def update(detections):       # 每帧更新
+    self.tracks = {}  # key: track_id, value: [samples历史]
+    self.last_seen = {}  # key: track_id, value: 最后出现时间
+
+    def update(detections):  # 每帧更新
         for det in detections:
-            tid = det['id']
+            tid = det["id"]
             self.tracks[tid].append(sample)
             self.last_seen[tid] = timestamp
-    
+
     def get_trajectory(track_id):  # 查询轨迹
         return self.tracks[track_id]
 ```
@@ -171,14 +171,29 @@ tracks = {
 **接口签名**:
 ```python
 class ObjectStateManager:
-    def __init__(self, H: Optional[np.ndarray] = None): pass
-    def update(self, detections, timestamp): pass
-    def get_trajectory(self, track_id, last_n=None): pass
-    def get_all_ids(self): pass
-    def get_current_objects(self, since_time=None): pass
-    def distance_between(self, id1, id2, at_time=None): pass
-    def distance_between_contact_points(self, id1, id2, at_time=None): pass
-    def approximate_velocity(self, track_id, last_n_samples=5): pass
+    def __init__(self, H: Optional[np.ndarray] = None):
+        pass
+
+    def update(self, detections, timestamp):
+        pass
+
+    def get_trajectory(self, track_id, last_n=None):
+        pass
+
+    def get_all_ids(self):
+        pass
+
+    def get_current_objects(self, since_time=None):
+        pass
+
+    def distance_between(self, id1, id2, at_time=None):
+        pass
+
+    def distance_between_contact_points(self, id1, id2, at_time=None):
+        pass
+
+    def approximate_velocity(self, track_id, last_n_samples=5):
+        pass
 ```
 
 **符合度**: ✅✅ **远超预期**
@@ -210,15 +225,16 @@ class ObjectStateManager:
 def parse_result(result, timestamp):
     for i, box in enumerate(xyxy):
         x1, y1, x2, y2 = box
-        cx, cy = (x1+x2)/2, (y1+y2)/2  # 中心点
+        cx, cy = (x1 + x2) / 2, (y1 + y2) / 2  # 中心点
         detection = {
-            'id': ids_np[i],
-            'cls': cls_np[i],
-            'x': cx, 'y': cy,
-            't': timestamp,
-            'conf': conf_np[i],
-            'bbox': (x1, y1, x2, y2),
-            'mask': masks_data[i] if masks_data else None
+            "id": ids_np[i],
+            "cls": cls_np[i],
+            "x": cx,
+            "y": cy,
+            "t": timestamp,
+            "conf": conf_np[i],
+            "bbox": (x1, y1, x2, y2),
+            "mask": masks_data[i] if masks_data else None,
         }
 ```
 
@@ -268,10 +284,10 @@ def parse_result(result, timestamp):
 **建议**:
 ```python
 # 在 trajectory_prediction.py 中添加
-- quadratic_fit()          # 二阶多项式拟合  
-- kalman_filter()          # 卡尔曼滤波  
-- outlier_detection()      # 异常值处理  
-- confidence_estimation()  # 预测置信度
+-quadratic_fit()  # 二阶多项式拟合
+-kalman_filter()  # 卡尔曼滤波
+-outlier_detection()  # 异常值处理
+-confidence_estimation()  # 预测置信度
 ```
 
 ### 差距 2: 多视图全局跟踪缺失 (会议强调的"难点")

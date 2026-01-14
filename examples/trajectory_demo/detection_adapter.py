@@ -1,19 +1,23 @@
 """
-detection_adapter.py
+detection_adapter.py.
 
 把 Ultralytics 的 `result` 解析成统一格式的检测列表:
 [ {"id":..., "cls":..., "x":..., "y":..., "t":..., "conf":..., "bbox": [...]}, ... ]
 
 字段命名与 ObjectStateManager 一致。
 """
+
 from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
-from typing import List, Dict, Any
 
 # 延迟导入 coord_transform，以避免循环依赖
 
-def parse_result(result, timestamp: float) -> List[Dict[str, Any]]:
-    """从一个 Ultralytics `result` 对象解析出检测项列表。
+
+def parse_result(result, timestamp: float) -> list[dict[str, Any]]:
+    """从一个 Ultralytics `result` 对象解析出检测项列表。.
 
     参数
     - result: 单帧的 Results 对象（来自 model.predict/track 的迭代项）
@@ -23,18 +27,18 @@ def parse_result(result, timestamp: float) -> List[Dict[str, Any]]:
     - detections: 列表，每项为 dict: {id, cls, x, y, t, conf, bbox, mask}
     """
     # Boxes 对象字段可能在不同版本中略有差异，使用 getattr 兜底
-    boxes = getattr(result, 'boxes', None)
-    masks = getattr(result, 'masks', None)  # 分割掩码（如果有）
-    
+    boxes = getattr(result, "boxes", None)
+    masks = getattr(result, "masks", None)  # 分割掩码（如果有）
+
     if boxes is None:
         return []
 
-    xyxy = getattr(boxes, 'xyxy', None)
-    cls = getattr(boxes, 'cls', None)
-    conf = getattr(boxes, 'conf', None)
-    ids = getattr(boxes, 'id', None)
+    xyxy = getattr(boxes, "xyxy", None)
+    cls = getattr(boxes, "cls", None)
+    conf = getattr(boxes, "conf", None)
+    ids = getattr(boxes, "id", None)
     if ids is None:
-        ids = getattr(boxes, 'ids', None)
+        ids = getattr(boxes, "ids", None)
 
     # 转为 numpy（若是 tensor）
     if xyxy is None:
@@ -76,7 +80,7 @@ def parse_result(result, timestamp: float) -> List[Dict[str, Any]]:
         x1, y1, x2, y2 = box.tolist()
         cx = float((x1 + x2) / 2.0)
         cy = float((y1 + y2) / 2.0)
-        
+
         # 如果有分割掩码，计算掩码中心而不是bbox中心
         if masks_data is not None and i < len(masks_data):
             mask = masks_data[i]
@@ -86,18 +90,18 @@ def parse_result(result, timestamp: float) -> List[Dict[str, Any]]:
                 cx = float(np.mean(x_coords))
                 cy = float(np.mean(y_coords))
                 # 计算掩码的最小外接矩形
-                x_min, x_max = int(np.min(x_coords)), int(np.max(x_coords))
-                y_min, y_max = int(np.min(y_coords)), int(np.max(y_coords))
-        
+                _x_min, _x_max = int(np.min(x_coords)), int(np.max(x_coords))
+                _y_min, _y_max = int(np.min(y_coords)), int(np.max(y_coords))
+
         det = {
-            'bbox': [float(x1), float(y1), float(x2), float(y2)],
-            'cx': cx,
-            'cy': cy,
-            't': timestamp,
-            'cls': int(cls_np[i]) if cls_np is not None else None,
-            'conf': float(conf_np[i]) if conf_np is not None else None,
-            'id': int(ids_np[i]) if ids_np is not None else None,
-            'has_mask': masks_data is not None and i < len(masks_data)  # 标记是否用了掩码
+            "bbox": [float(x1), float(y1), float(x2), float(y2)],
+            "cx": cx,
+            "cy": cy,
+            "t": timestamp,
+            "cls": int(cls_np[i]) if cls_np is not None else None,
+            "conf": float(conf_np[i]) if conf_np is not None else None,
+            "id": int(ids_np[i]) if ids_np is not None else None,
+            "has_mask": masks_data is not None and i < len(masks_data),  # 标记是否用了掩码
         }
         dets.append(det)
 

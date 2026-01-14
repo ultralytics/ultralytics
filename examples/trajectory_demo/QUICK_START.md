@@ -161,7 +161,7 @@ if distance < 0.5 or (H is None and distance < 50):
 ```python
 # 当前: 180×1200
 output_size = (180, 1200)
-    # 改为其他分辨率，如 (360, 2400) 获得2倍分辨率
+# 改为其他分辨率，如 (360, 2400) 获得2倍分辨率
 ```
 
 ### 使用轻量级YOLO模型
@@ -170,8 +170,8 @@ output_size = (180, 1200)
 
 ```python
 # 当前: yolo11n
-model = YOLO('yolo11n.pt')
-    # 改为 'yolo11s.pt' 或 'yolo11m.pt'
+model = YOLO("yolo11n.pt")
+# 改为 'yolo11s.pt' 或 'yolo11m.pt'
 ```
 
 ## ❓ 常见问题

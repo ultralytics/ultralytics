@@ -148,11 +148,11 @@
 
 3. **动态视频绘制**
    ```python
-   draw_bboxes()      # 边框
-   draw_track_id()    # ID
-   draw_distance()    # 距离
-   draw_ttc()         # TTC
-   draw_level_color() # 颜色标记
+   draw_bboxes()  # 边框
+   draw_track_id()  # ID
+   draw_distance()  # 距离
+   draw_ttc()  # TTC
+   draw_level_color()  # 颜色标记
    ```
 
 4. **报告生成**

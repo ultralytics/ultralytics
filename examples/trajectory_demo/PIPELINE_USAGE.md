@@ -24,12 +24,12 @@ python run_pipeline.py \
 
 ## 🎛️ 参数说明
 
-| 参数 | 必需 | 说明 | 默认值 |
-|------|------|------|--------|
-| `--video` | ✓ | 输入视频路径 | - |
-| `--homography` | ✓ | Homography JSON文件路径 | - |
-| `--output` | ✗ | 结果基础目录 | `../../results` |
-| `--conf` | ✗ | YOLO置信度阈值 | 0.45 |
+| 参数           | 必需 | 说明                    | 默认值          |
+| -------------- | ---- | ----------------------- | --------------- |
+| `--video`      | ✓    | 输入视频路径            | -               |
+| `--homography` | ✓    | Homography JSON文件路径 | -               |
+| `--output`     | ✗    | 结果基础目录            | `../../results` |
+| `--conf`       | ✗    | YOLO置信度阈值          | 0.45            |
 
 ## 📂 输出目录结构
 
@@ -61,10 +61,12 @@ results/
 
 **输入**: Homography JSON文件
 **输出**:
+
 - `homography.json` - 矩阵 + 参考点备份
 - `verify_original.jpg` - 原始视频第一帧，标注4个参考点
 
-**作用**: 
+**作用**:
+
 - 验证Homography矩阵正确性
 - 确保参考点标注准确
 
@@ -74,11 +76,13 @@ results/
 **输出**: `warped.mp4` - 鸟瞰图视频
 
 **转换细节**:
+
 - 输出分辨率: 180×1200像素
 - 世界坐标范围: X∈[-3.75, 3.75]m, Y∈[0, 50]m
 - 帧率: 与原始视频相同
 
 **作用**:
+
 - 将倾斜视角转为俯视（鸟瞰）视角
 - 为后续的碰撞检测提供规范化的坐标系统
 
@@ -86,15 +90,18 @@ results/
 
 **输入**: Warped视频 + YOLO模型（yolo11n.pt）
 **输出**:
+
 - `collision_events.json` - 检测到的所有碰撞事件
 - `analysis_report.txt` - 分析摘要
 - `event_frame_*.jpg` - 每个事件的帧截图
 
 **碰撞定义**:
+
 - 任何两个物体之间的距离 < 0.5m
 - 基于世界坐标（通过Homography矩阵转换）
 
 **JSON格式**:
+
 ```json
 [
   {
@@ -113,10 +120,12 @@ results/
 ### 问题1: 未检测到物体
 
 **原因**:
+
 1. Warped视频中物体太小
 2. YOLO置信度阈值过高
 
 **解决方案**:
+
 ```bash
 # 降低置信度阈值
 python run_pipeline.py \
@@ -128,6 +137,7 @@ python run_pipeline.py \
 ### 问题2: Warped视频质量差
 
 **检查事项**:
+
 1. 查看 `verify_original.jpg` 是否正确标注了参考点
 2. 确认Homography矩阵的标定精度（查看JSON中的calibration_error）
 3. 检查原始视频是否清晰
@@ -135,8 +145,9 @@ python run_pipeline.py \
 ### 问题3: 碰撞事件过多或过少
 
 **调整方法**:
+
 1. 修改碰撞距离阈值（当前：0.5m）
-   - 在 `collision_detection_pipeline.py` 中找到 `if distance < 0.5` 
+   - 在 `collision_detection_pipeline.py` 中找到 `if distance < 0.5`
    - 改为所需的距离值
 
 2. 修改YOLO置信度（影响检测敏感性）
@@ -146,6 +157,7 @@ python run_pipeline.py \
 ### 修改碰撞距离阈值
 
 编辑 `collision_detection_pipeline.py`，找到：
+
 ```python
 if distance < 0.5 or (H is None and distance < 50):
     # 保存碰撞事件
@@ -156,6 +168,7 @@ if distance < 0.5 or (H is None and distance < 50):
 ### 修改输出视频分辨率
 
 编辑 `collision_detection_pipeline.py`，找到：
+
 ```python
 output_size = (180, 1200)
 ```
@@ -165,6 +178,7 @@ output_size = (180, 1200)
 ### 修改Homography参考坐标
 
 编辑 Homography JSON文件：
+
 ```json
 {
   "pixel_points": [[x1,y1], [x2,y2], [x3,y3], [x4,y4]],
@@ -178,6 +192,7 @@ output_size = (180, 1200)
 ### 加快处理速度
 
 1. **降低视频分辨率** (在source编码时):
+
    ```bash
    # 使用-scale参数在推理前缩放
    ```
@@ -187,7 +202,7 @@ output_size = (180, 1200)
 
 3. **使用更轻量的模型**:
    ```python
-   model = YOLO('yolo11s.pt')  # 改用s版本
+   model = YOLO("yolo11s.pt")  # 改用s版本
    ```
 
 ### 保存更多信息
@@ -195,6 +210,7 @@ output_size = (180, 1200)
 当前只保存了碰撞事件帧。若需保存所有检测帧：
 
 编辑 `collision_detection_pipeline.py`，在 `detect_collisions()` 中添加：
+
 ```python
 # 保存每一帧（会很慢，占用大量磁盘）
 frame_path = self.collision_dir / f"frame_{frame_count:04d}.jpg"

@@ -43,9 +43,9 @@ Step 5: 风险分析 (TTC + 分级)
 #### 初始化
 ```python
 pipeline = YOLOFirstPipeline(
-    video_path='videos/test.mp4',
-    homography_path='calibration/H.json',  # 可选
-    output_base='results'
+    video_path="videos/test.mp4",
+    homography_path="calibration/H.json",  # 可选
+    output_base="results",
 )
 ```
 
@@ -178,9 +178,9 @@ pipeline = YOLOFirstPipeline(
 cd /workspace/ultralytics/examples/trajectory_demo
 
 python collision_detection_pipeline_yolo_first.py \
-    --video ../../videos/Homograph_Teset_FullScreen.mp4 \
-    --homography ../../calibration/Homograph_Teset_FullScreen_homography.json \
-    --conf 0.45
+  --video ../../videos/Homograph_Teset_FullScreen.mp4 \
+  --homography ../../calibration/Homograph_Teset_FullScreen_homography.json \
+  --conf 0.45
 ```
 
 ### 方式 2: 使用 Shell 脚本
@@ -198,10 +198,7 @@ bash compare_both_approaches.sh
 ```python
 from collision_detection_pipeline_yolo_first import YOLOFirstPipeline
 
-pipeline = YOLOFirstPipeline(
-    video_path='videos/test.mp4',
-    homography_path='calibration/H.json'
-)
+pipeline = YOLOFirstPipeline(video_path="videos/test.mp4", homography_path="calibration/H.json")
 pipeline.run(conf_threshold=0.45)
 ```
 
@@ -223,12 +220,12 @@ pipeline.run(conf_threshold=0.45)
 pixel_distance_threshold = 150  # 像素空间的接近距离阈值
 
 # 在 Step 5 (analyze_collision_risk) 中
-threshold_collision = 50        # 碰撞阈值（像素空间）
-threshold_near_miss = 150       # 近距离阈值（像素空间）
+threshold_collision = 50  # 碰撞阈值（像素空间）
+threshold_near_miss = 150  # 近距离阈值（像素空间）
 
 # 或在世界坐标空间中
-threshold_collision = 0.5       # 碰撞阈值（米）
-threshold_near_miss = 1.5       # 近距离阈值（米）
+threshold_collision = 0.5  # 碰撞阈值（米）
+threshold_near_miss = 1.5  # 近距离阈值（米）
 ```
 
 ---

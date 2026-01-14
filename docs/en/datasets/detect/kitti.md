@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Explore the Ultralytics kitti dataset, a benchmark dataset for computer vision tasks such as 3D object detection, depth estimation, and autonomous driving perception.
-keywords: kitti, Ultralytics, dataset, object detection, 3D vision, YOLO11, training, validation, self-driving cars, computer vision
+keywords: kitti, Ultralytics, dataset, object detection, 3D vision, YOLO26, training, validation, self-driving cars, computer vision
 ---
 
 # KITTI Dataset
@@ -18,10 +18,10 @@ The kitti dataset is one of the most influential benchmark datasets for autonomo
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the KITTI Dataset 🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on the KITTI Dataset 🚀
 </p>
 
-It is widely used for evaluating algorithms in object detection, depth estimation, optical flow, and visual odometry. The dataset is fully compatible with Ultralytics YOLO11 for 2D object detection tasks and can be easily integrated into the Ultralytics platform for training and evaluation.
+It is widely used for evaluating algorithms in object detection, depth estimation, optical flow, and visual odometry. The dataset is fully compatible with Ultralytics YOLO26 for 2D object detection tasks and can be easily integrated into the Ultralytics platform for training and evaluation.
 
 ## Dataset Structure
 
@@ -55,7 +55,7 @@ Ultralytics defines the kitti dataset configuration using a YAML file. This file
 
 ## Usage
 
-To train a YOLO11n model on the kitti dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following commands. For more details, refer to the [Training](../../modes/train.md) page.
+To train a YOLO26n model on the kitti dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following commands. For more details, refer to the [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -64,8 +64,8 @@ To train a YOLO11n model on the kitti dataset for 100 [epochs](https://www.ultra
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained YOLO11 model
-        model = YOLO("yolo11n.pt")
+        # Load a pretrained YOLO26 model
+        model = YOLO("yolo26n.pt")
 
         # Train on kitti dataset
         results = model.train(data="kitti.yaml", epochs=100, imgsz=640)
@@ -74,7 +74,7 @@ To train a YOLO11n model on the kitti dataset for 100 [epochs](https://www.ultra
     === "CLI"
 
         ```bash
-        yolo detect train data=kitti.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=kitti.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 You can also perform evaluation, [inference](../../modes/predict.md), and [export](../../modes/export.md) tasks directly from the command line or Python API using the same configuration file.
@@ -118,9 +118,9 @@ The dataset includes 5,985 labeled training images and 1,496 validation images c
 
 kitti includes annotations for objects such as cars, pedestrians, cyclists, trucks, trams, and miscellaneous road users.
 
-### Can I train Ultralytics YOLO11 models using the kitti dataset?
+### Can I train Ultralytics YOLO26 models using the kitti dataset?
 
-Yes, kitti is fully compatible with Ultralytics YOLO11. You can [train](../../modes/train.md) and [validate](../../modes/val.md), models directly using the provided YAML configuration file.
+Yes, kitti is fully compatible with Ultralytics YOLO26. You can [train](../../modes/train.md) and [validate](../../modes/val.md), models directly using the provided YAML configuration file.
 
 ### Where can I find the kitti dataset configuration file?
 

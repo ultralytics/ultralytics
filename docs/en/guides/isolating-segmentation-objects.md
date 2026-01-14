@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn to extract isolated objects from inference results using Ultralytics Predict Mode. Step-by-step guide for segmentation object isolation.
-keywords: Ultralytics, segmentation, object isolation, Predict Mode, YOLO11, machine learning, object detection, binary mask, image processing
+keywords: Ultralytics, segmentation, object isolation, Predict Mode, YOLO26, machine learning, object detection, binary mask, image processing
 ---
 
 # Isolating Segmentation Objects
@@ -31,7 +31,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     from ultralytics import YOLO
 
     # Load a model
-    model = YOLO("yolo11n-seg.pt")
+    model = YOLO("yolo26n-seg.pt")
 
     # Run inference
     results = model.predict()
@@ -264,7 +264,7 @@ import numpy as np
 
 from ultralytics import YOLO
 
-m = YOLO("yolo11n-seg.pt")  # (4)!
+m = YOLO("yolo26n-seg.pt")  # (4)!
 res = m.predict(source="path/to/image.jpg")  # (3)!
 
 # Iterate detection results (5)
@@ -307,16 +307,16 @@ for r in res:
 
 ## FAQ
 
-### How do I isolate objects using Ultralytics YOLO11 for segmentation tasks?
+### How do I isolate objects using Ultralytics YOLO26 for segmentation tasks?
 
-To isolate objects using Ultralytics YOLO11, follow these steps:
+To isolate objects using Ultralytics YOLO26, follow these steps:
 
 1. **Load the model and run inference:**
 
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolo11n-seg.pt")
+    model = YOLO("yolo26n-seg.pt")
     results = model.predict(source="path/to/your/image.jpg")
     ```
 
@@ -342,7 +342,7 @@ Refer to the guide on [Predict Mode](../modes/predict.md) and the [Segment Task]
 
 ### What options are available for saving the isolated objects after segmentation?
 
-Ultralytics YOLO11 offers two main options for saving isolated objects:
+Ultralytics YOLO26 offers two main options for saving isolated objects:
 
 1. **With a Black Background:**
 
@@ -358,7 +358,7 @@ Ultralytics YOLO11 offers two main options for saving isolated objects:
 
 For further details, visit the [Predict Mode](../modes/predict.md) section.
 
-### How can I crop isolated objects to their bounding boxes using Ultralytics YOLO11?
+### How can I crop isolated objects to their bounding boxes using Ultralytics YOLO26?
 
 To crop isolated objects to their bounding boxes:
 
@@ -375,9 +375,9 @@ To crop isolated objects to their bounding boxes:
 
 Learn more about bounding box results in the [Predict Mode](../modes/predict.md#boxes) documentation.
 
-### Why should I use Ultralytics YOLO11 for object isolation in segmentation tasks?
+### Why should I use Ultralytics YOLO26 for object isolation in segmentation tasks?
 
-Ultralytics YOLO11 provides:
+Ultralytics YOLO26 provides:
 
 - **High-speed** real-time object detection and segmentation.
 - **Accurate bounding box and mask generation** for precise object isolation.
@@ -385,9 +385,9 @@ Ultralytics YOLO11 provides:
 
 Explore the benefits of using YOLO in the [Segment Task documentation](../tasks/segment.md).
 
-### Can I save isolated objects including the background using Ultralytics YOLO11?
+### Can I save isolated objects including the background using Ultralytics YOLO26?
 
-Yes, this is a built-in feature in Ultralytics YOLO11. Use the `save_crop` argument in the `predict()` method. For example:
+Yes, this is a built-in feature in Ultralytics YOLO26. Use the `save_crop` argument in the `predict()` method. For example:
 
 ```python
 results = model.predict(source="path/to/your/image.jpg", save_crop=True)

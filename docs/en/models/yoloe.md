@@ -57,11 +57,11 @@ This section details the models available with their specific pretrained weights
 | YOLOE-v8S  | [yoloe-v8s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8s-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-v8M  | [yoloe-v8m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8m-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-v8L  | [yoloe-v8l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8l-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-26N  | `yoloe-26n-seg.pt`                                                                                  | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-26S  | `yoloe-26s-seg.pt`                                                                                  | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-26M  | `yoloe-26m-seg.pt`                                                                                  | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-26L  | `yoloe-26l-seg.pt`                                                                                  | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-26X  | `yoloe-26x-seg.pt`                                                                                  | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26N  | [yoloe-26n-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26S  | [yoloe-26s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26M  | [yoloe-26m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26m-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26L  | [yoloe-26l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26l-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26X  | [yoloe-26x-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26x-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 
 ### Prompt Free models
 
@@ -73,11 +73,11 @@ This section details the models available with their specific pretrained weights
 | YOLOE-v8S-PF | [yoloe-v8s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-v8M-PF | [yoloe-v8m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-v8L-PF | [yoloe-v8l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8l-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-26N-PF | `yoloe-26n-seg-pf.pt`                                                                                     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-26S-PF | `yoloe-26s-seg-pf.pt`                                                                                     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-26M-PF | `yoloe-26m-seg-pf.pt`                                                                                     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-26L-PF | `yoloe-26l-seg-pf.pt`                                                                                     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
-| YOLOE-26X-PF | `yoloe-26x-seg-pf.pt`                                                                                     | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26N-PF | [yoloe-26n-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26S-PF | [yoloe-26s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26M-PF | [yoloe-26m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26L-PF | [yoloe-26l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26l-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26X-PF | [yoloe-26x-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26x-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 
 !!! tip "YOLOE-26 Performance"
 

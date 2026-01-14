@@ -785,16 +785,18 @@ class Exporter:
             if isinstance(self.model.model[-1], Detect):
                 # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect
                 head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
-                ignored_scope = nncf.IgnoredScope(  # ignore operations
-                    patterns=[
-                        f".*{head_module_name}/.*/Add",
-                        f".*{head_module_name}/.*/Sub*",
-                        f".*{head_module_name}/.*/Mul*",
-                        f".*{head_module_name}/.*/Div*",
-                        f".*{head_module_name}\\.dfl.*",
-                    ],
-                    types=["Sigmoid"],
-                )
+                ignored_patterns = [
+                    f".*{head_module_name}/.*/Add",
+                    f".*{head_module_name}/.*/Sub*",
+                    f".*{head_module_name}/.*/Mul*",
+                    f".*{head_module_name}/.*/Div*",
+                ]
+                # yolo26 doesn't have that part
+                if "YOLO26" not in self.pretty_name:
+                    ignored_patterns.append(f".*{head_module_name}\\.dfl.*")
+
+                # Ignore operations
+                ignored_scope = nncf.IgnoredScope(patterns=ignored_patterns, types=["Sigmoid"])
 
             quantized_ov_model = nncf.quantize(
                 model=ov_model,

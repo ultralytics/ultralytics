@@ -759,20 +759,20 @@ The export process is similar to other YOLO models, with the added flexibility o
 
 ## YOLOE Performance Comparison
 
-YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO and LVIS, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) and YOLOE26L (built on [YOLO26](yolo26.md)) against corresponding closed-set models:
+YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO and LVIS, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) and YOLOE26-L (built on [YOLO26](yolo26.md)) against corresponding closed-set models:
 
-| Model                     | COCO mAP<sub>50-95</sub> | LVIS mAP<sub>50-95</sub> | Inference Speed (T4)  | Parameters | GFLOPs (640px)     |
-| ------------------------- | ------------------------ | ------------------------ | --------------------- | ---------- | ------------------ |
-| **YOLOv8-L** (closed-set) | 52.9%                    | -                        | **9.06 ms** (110 FPS) | 43.7 M     | 165.2 B            |
-| **YOLO11-L** (closed-set) | 53.5%                    | -                        | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B             |
-| **YOLOE-L** (open-vocab)  | 52.6%                    | 35.2%                    | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B<sup>†</sup> |
-| **YOLOE26L** (open-vocab) | -                        | 36.8%                    | **8.0 ms** (125 FPS)  | 32.3 M     | 88.3 B<sup>†</sup> |
+| Model                      | COCO mAP<sub>50-95</sub> | LVIS mAP<sub>50-95</sub> | Inference Speed (T4)  | Parameters | GFLOPs (640px)     |
+| -------------------------- | ------------------------ | ------------------------ | --------------------- | ---------- | ------------------ |
+| **YOLOv8-L** (closed-set)  | 52.9%                    | -                        | **9.06 ms** (110 FPS) | 43.7 M     | 165.2 B            |
+| **YOLO11-L** (closed-set)  | 53.5%                    | -                        | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B             |
+| **YOLOE-L** (open-vocab)   | 52.6%                    | 35.2%                    | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B<sup>†</sup> |
+| **YOLOE26-L** (open-vocab) | -                        | 36.8%                    | **8.0 ms** (125 FPS)  | 32.3 M     | 88.3 B<sup>†</sup> |
 
-<sup>†</sup> _YOLOE-L shares YOLO11-L's architecture and YOLOE26L shares YOLO26L's architecture, resulting in similar inference speed and GFLOPs._
+<sup>†</sup> _YOLOE-L shares YOLO11-L's architecture and YOLOE26-L shares YOLO26-L's architecture, resulting in similar inference speed and GFLOPs._
 
-YOLOE26L achieves **36.8% LVIS mAP** with **32.3M parameters** and **88.3B FLOPs**, processing 640×640 images at **8.0 ms (125 FPS)** on T4 GPU. This improves over YOLOE-L's **35.2% LVIS mAP** while maintaining competitive speed. Crucially, YOLOE's open-vocabulary modules incur **no inference cost**, demonstrating a **"no free lunch trade-off"** design.
+YOLOE26-L achieves **36.8% LVIS mAP** with **32.3M parameters** and **88.3B FLOPs**, processing 640×640 images at **8.0 ms (125 FPS)** on T4 GPU. This improves over YOLOE-L's **35.2% LVIS mAP** while maintaining competitive speed. Crucially, YOLOE's open-vocabulary modules incur **no inference cost**, demonstrating a **"no free lunch trade-off"** design.
 
-For zero-shot tasks, YOLOE26 significantly outperforms prior open-vocabulary detectors: on LVIS, YOLOE26S achieves **29.9% mAP**, surpassing YOLO-World-S by **+11.4 AP**, while YOLOE26L achieves **36.8% mAP**, exceeding YOLO-World-L by **+10.0 AP**. YOLOE26 maintains efficient inference at **125 FPS** on T4 GPU, ideal for real-time open-vocabulary applications.
+For zero-shot tasks, YOLOE26 significantly outperforms prior open-vocabulary detectors: on LVIS, YOLOE26-S achieves **29.9% mAP**, surpassing YOLO-World-S by **+11.4 AP**, while YOLOE26-L achieves **36.8% mAP**, exceeding YOLO-World-L by **+10.0 AP**. YOLOE26 maintains efficient inference at **125 FPS** on T4 GPU, ideal for real-time open-vocabulary applications.
 
 !!! note
 
@@ -792,7 +792,7 @@ YOLOE introduces notable advancements over prior YOLO models and open-vocabulary
   [YOLO11](yolo11.md) improves upon YOLOv8 with enhanced efficiency and fewer parameters (~22% reduction). YOLOE inherits these gains directly, matching YOLO11's inference speed and parameter count (~26M parameters), while adding **open-vocabulary detection and segmentation**. In closed-set scenarios, YOLOE is equivalent to YOLO11, but crucially adds adaptability to detect unseen classes, achieving **YOLO11 + open-world capability** without compromising speed.
 
 - **YOLOE26 vs YOLOE (YOLO11-based):**
-  YOLOE26 builds upon [YOLO26](yolo26.md)'s architecture, inheriting its NMS-free end-to-end design for faster inference. On LVIS, YOLOE26L achieves **36.8% mAP**, improving over YOLOE-L's **35.2% mAP**. YOLOE26 offers all five model scales (N/S/M/L/X) compared to YOLOE's three (S/M/L), providing more flexibility for different deployment scenarios.
+  YOLOE26 builds upon [YOLO26](yolo26.md)'s architecture, inheriting its NMS-free end-to-end design for faster inference. On LVIS, YOLOE26-L achieves **36.8% mAP**, improving over YOLOE-L's **35.2% mAP**. YOLOE26 offers all five model scales (N/S/M/L/X) compared to YOLOE's three (S/M/L), providing more flexibility for different deployment scenarios.
 
 - **YOLOE vs previous open-vocabulary detectors:**
   Earlier open-vocab models (GLIP, OWL-ViT, [YOLO-World](yolo-world.md)) relied heavily on vision-language [transformers](https://www.ultralytics.com/glossary/transformer), leading to slow inference. YOLOE surpasses these in zero-shot accuracy (e.g., **+3.5 AP vs. YOLO-Worldv2**) while running **1.4× faster** with significantly lower training resources. Compared to transformer-based approaches (e.g., GLIP), YOLOE offers orders-of-magnitude faster inference, effectively bridging the accuracy-efficiency gap in open-set detection.

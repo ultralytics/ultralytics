@@ -22,12 +22,12 @@ keywords: Ultralytics Platform, datasets, dataset management, YOLO, data upload,
 
 Ultralytics Platform accepts multiple upload formats for flexibility:
 
-| Format | Description |
-|--------|-------------|
-| **Images** | Individual image files (JPG, PNG, WebP, TIFF) |
+| Format          | Description                                       |
+| --------------- | ------------------------------------------------- |
+| **Images**      | Individual image files (JPG, PNG, WebP, TIFF)     |
 | **ZIP Archive** | Compressed folder with images and optional labels |
-| **Video** | MP4, AVI files - frames extracted at ~1 fps |
-| **YOLO Format** | Standard YOLO directory structure with labels |
+| **Video**       | MP4, AVI files - frames extracted at ~1 fps       |
+| **YOLO Format** | Standard YOLO directory structure with labels     |
 
 ### Preparing Your Dataset
 
@@ -61,9 +61,9 @@ train: images/train
 val: images/val
 
 names:
-  0: person
-  1: car
-  2: dog
+    0: person
+    1: car
+    2: dog
 ```
 
 ### Upload Process
@@ -99,11 +99,11 @@ After upload, the Platform processes your data:
 
 View your dataset images in multiple layouts:
 
-| View | Description |
-|------|-------------|
-| **Grid** | Thumbnail grid with annotation overlays |
-| **Compact** | Smaller thumbnails for quick scanning |
-| **Table** | List with filename, dimensions, and label counts |
+| View        | Description                                      |
+| ----------- | ------------------------------------------------ |
+| **Grid**    | Thumbnail grid with annotation overlays          |
+| **Compact** | Smaller thumbnails for quick scanning            |
+| **Table**   | List with filename, dimensions, and label counts |
 
 <!-- Screenshot: platform-datasets-gallery.avif -->
 
@@ -122,12 +122,12 @@ Click any image to open the fullscreen viewer with:
 
 Filter images by their dataset split:
 
-| Split | Purpose |
-|-------|---------|
-| **Train** | Used for model training |
-| **Val** | Used for validation during training |
-| **Test** | Used for final evaluation |
-| **Unknown** | No split assigned |
+| Split       | Purpose                             |
+| ----------- | ----------------------------------- |
+| **Train**   | Used for model training             |
+| **Val**     | Used for validation during training |
+| **Test**    | Used for final evaluation           |
+| **Unknown** | No split assigned                   |
 
 ## Dataset Statistics
 
@@ -193,10 +193,10 @@ yolo train model=yolo11n.pt data=ul://username/datasets/my-dataset epochs=100
 
 Control who can see your dataset:
 
-| Setting | Description |
-|---------|-------------|
-| **Private** | Only you can access |
-| **Public** | Anyone can view on Explore page |
+| Setting     | Description                     |
+| ----------- | ------------------------------- |
+| **Private** | Only you can access             |
+| **Public**  | Anyone can view on Explore page |
 
 <!-- Screenshot: platform-datasets-visibility.avif -->
 

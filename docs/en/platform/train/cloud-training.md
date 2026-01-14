@@ -33,21 +33,21 @@ Choose a dataset from your uploads:
 
 <!-- Screenshot: platform-training-start.avif -->
 
-| Option | Description |
-|--------|-------------|
-| **Your Datasets** | Datasets you've uploaded |
+| Option              | Description                  |
+| ------------------- | ---------------------------- |
+| **Your Datasets**   | Datasets you've uploaded     |
 | **Public Datasets** | Shared datasets from Explore |
 
 ### Step 2: Configure Model
 
 Select base model and parameters:
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| **Model** | Base architecture (YOLO11n, s, m, l, x) | YOLO11n |
-| **Epochs** | Number of training iterations | 100 |
-| **Image Size** | Input resolution | 640 |
-| **Batch Size** | Samples per iteration | Auto |
+| Parameter      | Description                             | Default |
+| -------------- | --------------------------------------- | ------- |
+| **Model**      | Base architecture (YOLO11n, s, m, l, x) | YOLO11n |
+| **Epochs**     | Number of training iterations           | 100     |
+| **Image Size** | Input resolution                        | 640     |
+| **Batch Size** | Samples per iteration                   | Auto    |
 
 <!-- Screenshot: platform-training-config.avif -->
 
@@ -57,14 +57,14 @@ Choose your compute resources:
 
 <!-- Screenshot: platform-training-gpu.avif -->
 
-| GPU | VRAM | Speed | Cost/Hour |
-|-----|------|-------|-----------|
-| RTX 3090 | 24GB | Good | $0.44 |
-| RTX 4090 | 24GB | Fast | $0.74 |
-| L40S | 48GB | Fast | $1.14 |
-| A100 40GB | 40GB | Very Fast | $1.29 |
-| A100 80GB | 80GB | Very Fast | $1.99 |
-| H100 80GB | 80GB | Fastest | $3.99 |
+| GPU       | VRAM | Speed     | Cost/Hour |
+| --------- | ---- | --------- | --------- |
+| RTX 3090  | 24GB | Good      | $0.44     |
+| RTX 4090  | 24GB | Fast      | $0.74     |
+| L40S      | 48GB | Fast      | $1.14     |
+| A100 40GB | 40GB | Very Fast | $1.29     |
+| A100 80GB | 80GB | Very Fast | $1.99     |
+| H100 80GB | 80GB | Fastest   | $3.99     |
 
 !!! tip "GPU Selection"
 
@@ -91,14 +91,14 @@ View real-time training progress:
 
 <!-- Screenshot: platform-training-realtime.avif -->
 
-| Metric | Description |
-|--------|-------------|
-| **Loss** | Training and validation loss |
-| **mAP** | Mean Average Precision |
+| Metric        | Description                  |
+| ------------- | ---------------------------- |
+| **Loss**      | Training and validation loss |
+| **mAP**       | Mean Average Precision       |
 | **Precision** | Correct positive predictions |
-| **Recall** | Detected ground truths |
-| **GPU Util** | GPU utilization percentage |
-| **Memory** | GPU memory usage |
+| **Recall**    | Detected ground truths       |
+| **GPU Util**  | GPU utilization percentage   |
+| **Memory**    | GPU memory usage             |
 
 ### Checkpoints
 
@@ -152,7 +152,7 @@ Use the `project` and `name` parameters to stream metrics:
 
     ```bash
     yolo train model=yolo11n.pt data=coco.yaml epochs=100 \
-        project=username/my-project name=experiment-1
+      project=username/my-project name=experiment-1
     ```
 
 === "Python"
@@ -189,18 +189,18 @@ Training costs are based on GPU usage:
 Total Cost = GPU Rate × Training Time (hours)
 ```
 
-| Example | GPU | Time | Cost |
-|---------|-----|------|------|
-| Small job | RTX 4090 | 1 hour | $0.74 |
-| Medium job | A100 40GB | 4 hours | $5.16 |
-| Large job | H100 | 8 hours | $31.92 |
+| Example    | GPU       | Time    | Cost   |
+| ---------- | --------- | ------- | ------ |
+| Small job  | RTX 4090  | 1 hour  | $0.74  |
+| Medium job | A100 40GB | 4 hours | $5.16  |
+| Large job  | H100      | 8 hours | $31.92 |
 
 ### Payment Methods
 
-| Method | Description |
-|--------|-------------|
-| **Account Balance** | Pre-loaded credits |
-| **Pay Per Job** | Charge at job completion |
+| Method              | Description              |
+| ------------------- | ------------------------ |
+| **Account Balance** | Pre-loaded credits       |
+| **Pay Per Job**     | Charge at job completion |
 
 !!! note "Minimum Balance"
 
@@ -220,13 +220,13 @@ After training, view detailed costs in the **Billing** tab:
 
 ### Choose the Right Model Size
 
-| Model | Parameters | Best For |
-|-------|------------|----------|
-| YOLO11n | 2.6M | Real-time, edge devices |
-| YOLO11s | 9.4M | Balanced speed/accuracy |
-| YOLO11m | 20.1M | Higher accuracy |
-| YOLO11l | 25.3M | Production accuracy |
-| YOLO11x | 56.9M | Maximum accuracy |
+| Model   | Parameters | Best For                |
+| ------- | ---------- | ----------------------- |
+| YOLO11n | 2.6M       | Real-time, edge devices |
+| YOLO11s | 9.4M       | Balanced speed/accuracy |
+| YOLO11m | 20.1M      | Higher accuracy         |
+| YOLO11l | 25.3M      | Production accuracy     |
+| YOLO11x | 56.9M      | Maximum accuracy        |
 
 ### Optimize Training Time
 
@@ -237,12 +237,12 @@ After training, view detailed costs in the **Billing** tab:
 
 ### Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Training stuck at 0% | Check dataset format, retry |
-| Out of memory | Reduce batch size or use larger GPU |
-| Poor accuracy | Increase epochs, check data quality |
-| Training slow | Consider faster GPU |
+| Issue                | Solution                            |
+| -------------------- | ----------------------------------- |
+| Training stuck at 0% | Check dataset format, retry         |
+| Out of memory        | Reduce batch size or use larger GPU |
+| Poor accuracy        | Increase epochs, check data quality |
+| Training slow        | Consider faster GPU                 |
 
 ## FAQ
 
@@ -257,11 +257,11 @@ Training time depends on:
 
 Typical times (1000 images, 100 epochs):
 
-| Model | RTX 4090 | A100 |
-|-------|----------|------|
-| YOLO11n | 30 min | 20 min |
-| YOLO11m | 60 min | 40 min |
-| YOLO11x | 120 min | 80 min |
+| Model   | RTX 4090 | A100   |
+| ------- | -------- | ------ |
+| YOLO11n | 30 min   | 20 min |
+| YOLO11m | 60 min   | 40 min |
+| YOLO11x | 120 min  | 80 min |
 
 ### Can I train overnight?
 
@@ -275,9 +275,9 @@ Training pauses at the end of the current epoch. Your checkpoint is saved, and y
 
 Yes, advanced users can specify additional arguments in the training configuration. Common options:
 
-| Argument | Description |
-|----------|-------------|
+| Argument   | Description             |
+| ---------- | ----------------------- |
 | `patience` | Early stopping patience |
-| `lr0` | Initial learning rate |
-| `augment` | Enable augmentation |
-| `cache` | Cache images in RAM |
+| `lr0`      | Initial learning rate   |
+| `augment`  | Enable augmentation     |
+| `cache`    | Cache images in RAM     |

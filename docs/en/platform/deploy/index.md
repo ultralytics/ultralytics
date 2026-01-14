@@ -23,10 +23,10 @@ The Deployment section helps you:
 
 Ultralytics Platform offers multiple deployment paths:
 
-| Option | Description | Best For |
-|--------|-------------|----------|
-| **Test Tab** | Browser-based inference testing | Development, validation |
-| **Shared API** | Multi-tenant inference service | Light usage, testing |
+| Option                  | Description                       | Best For                |
+| ----------------------- | --------------------------------- | ----------------------- |
+| **Test Tab**            | Browser-based inference testing   | Development, validation |
+| **Shared API**          | Multi-tenant inference service    | Light usage, testing    |
 | **Dedicated Endpoints** | Single-tenant production services | Production, low latency |
 
 ## Workflow
@@ -35,12 +35,12 @@ Ultralytics Platform offers multiple deployment paths:
 Train Model → Test in Browser → Deploy Endpoint → Monitor
 ```
 
-| Stage | Description |
-|-------|-------------|
-| **Test** | Validate model with sample images |
-| **Configure** | Select region and scaling options |
-| **Deploy** | Create dedicated endpoint |
-| **Monitor** | Track requests, latency, and errors |
+| Stage         | Description                         |
+| ------------- | ----------------------------------- |
+| **Test**      | Validate model with sample images   |
+| **Configure** | Select region and scaling options   |
+| **Deploy**    | Create dedicated endpoint           |
+| **Monitor**   | Track requests, latency, and errors |
 
 ## Architecture
 
@@ -48,11 +48,11 @@ Train Model → Test in Browser → Deploy Endpoint → Monitor
 
 The shared inference service runs in 3 key regions:
 
-| Region | Location |
-|--------|----------|
-| US | US Central (Iowa) |
-| EU | EU West (Belgium) |
-| AP | Asia Pacific (Hong Kong) |
+| Region | Location                 |
+| ------ | ------------------------ |
+| US     | US Central (Iowa)        |
+| EU     | EU West (Belgium)        |
+| AP     | Asia Pacific (Hong Kong) |
 
 Requests are routed to your data region automatically.
 
@@ -107,13 +107,13 @@ Dedicated endpoints provide:
 
 ### What's the difference between shared and dedicated inference?
 
-| Feature | Shared | Dedicated |
-|---------|--------|-----------|
-| **Latency** | Variable | Consistent |
-| **Cost** | Pay per request | Pay for uptime |
-| **Scale** | Limited | Configurable |
-| **Regions** | 3 | 43 |
-| **URL** | Generic | Custom |
+| Feature     | Shared          | Dedicated      |
+| ----------- | --------------- | -------------- |
+| **Latency** | Variable        | Consistent     |
+| **Cost**    | Pay per request | Pay for uptime |
+| **Scale**   | Limited         | Configurable   |
+| **Regions** | 3               | 43             |
+| **URL**     | Generic         | Custom         |
 
 ### How long does deployment take?
 

@@ -47,11 +47,11 @@ https://platform.ultralytics.com/api
 
 ## Rate Limits
 
-| Plan | Requests/Minute | Requests/Day |
-|------|-----------------|--------------|
-| Free | 60 | 1,000 |
-| Pro | 300 | 50,000 |
-| Enterprise | Custom | Custom |
+| Plan       | Requests/Minute | Requests/Day |
+| ---------- | --------------- | ------------ |
+| Free       | 60              | 1,000        |
+| Pro        | 300             | 50,000       |
+| Enterprise | Custom          | Custom       |
 
 Rate limit headers are included in responses:
 
@@ -100,29 +100,29 @@ GET /api/datasets
 
 **Query Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `page` | int | Page number (default: 1) |
-| `limit` | int | Items per page (default: 20) |
-| `task` | string | Filter by task type |
+| Parameter | Type   | Description                  |
+| --------- | ------ | ---------------------------- |
+| `page`    | int    | Page number (default: 1)     |
+| `limit`   | int    | Items per page (default: 20) |
+| `task`    | string | Filter by task type          |
 
 **Response:**
 
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "id": "dataset_abc123",
-      "name": "my-dataset",
-      "slug": "my-dataset",
-      "task": "detect",
-      "imageCount": 1000,
-      "classCount": 10,
-      "visibility": "private",
-      "createdAt": "2024-01-15T10:00:00Z"
-    }
-  ]
+    "success": true,
+    "data": [
+        {
+            "id": "dataset_abc123",
+            "name": "my-dataset",
+            "slug": "my-dataset",
+            "task": "detect",
+            "imageCount": 1000,
+            "classCount": 10,
+            "visibility": "private",
+            "createdAt": "2024-01-15T10:00:00Z"
+        }
+    ]
 }
 ```
 
@@ -142,9 +142,9 @@ POST /api/datasets
 
 ```json
 {
-  "name": "my-dataset",
-  "task": "detect",
-  "description": "A custom detection dataset"
+    "name": "my-dataset",
+    "task": "detect",
+    "description": "A custom detection dataset"
 }
 ```
 
@@ -186,8 +186,8 @@ POST /api/projects
 
 ```json
 {
-  "name": "my-project",
-  "description": "Detection experiments"
+    "name": "my-project",
+    "description": "Detection experiments"
 }
 ```
 
@@ -207,10 +207,10 @@ GET /api/models
 
 **Query Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `projectId` | string | Filter by project |
-| `task` | string | Filter by task type |
+| Parameter   | Type   | Description         |
+| ----------- | ------ | ------------------- |
+| `projectId` | string | Filter by project   |
+| `task`      | string | Filter by task type |
 
 ### Get Model
 
@@ -226,11 +226,11 @@ POST /api/models
 
 **Multipart Form:**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `file` | file | Model .pt file |
+| Field       | Type   | Description    |
+| ----------- | ------ | -------------- |
+| `file`      | file   | Model .pt file |
 | `projectId` | string | Target project |
-| `name` | string | Model name |
+| `name`      | string | Model name     |
 
 ### Delete Model
 
@@ -254,24 +254,24 @@ POST /api/models/{modelId}/predict
 
 **Multipart Form:**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `file` | file | Image file |
+| Field  | Type  | Description          |
+| ------ | ----- | -------------------- |
+| `file` | file  | Image file           |
 | `conf` | float | Confidence threshold |
-| `iou` | float | IoU threshold |
+| `iou`  | float | IoU threshold        |
 
 **Response:**
 
 ```json
 {
-  "success": true,
-  "predictions": [
-    {
-      "class": "person",
-      "confidence": 0.92,
-      "box": {"x1": 100, "y1": 50, "x2": 300, "y2": 400}
-    }
-  ]
+    "success": true,
+    "predictions": [
+        {
+            "class": "person",
+            "confidence": 0.92,
+            "box": { "x1": 100, "y1": 50, "x2": 300, "y2": 400 }
+        }
+    ]
 }
 ```
 
@@ -287,11 +287,11 @@ POST /api/training/start
 
 ```json
 {
-  "modelId": "model_abc123",
-  "datasetId": "dataset_xyz789",
-  "epochs": 100,
-  "imageSize": 640,
-  "gpuType": "rtx-4090"
+    "modelId": "model_abc123",
+    "datasetId": "dataset_xyz789",
+    "epochs": 100,
+    "imageSize": 640,
+    "gpuType": "rtx-4090"
 }
 ```
 
@@ -317,8 +317,8 @@ GET /api/deployments
 
 **Query Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type   | Description     |
+| --------- | ------ | --------------- |
 | `modelId` | string | Filter by model |
 
 ### Create Deployment
@@ -331,10 +331,10 @@ POST /api/deployments
 
 ```json
 {
-  "modelId": "model_abc123",
-  "region": "us-central1",
-  "minInstances": 0,
-  "maxInstances": 10
+    "modelId": "model_abc123",
+    "region": "us-central1",
+    "minInstances": 0,
+    "maxInstances": 10
 }
 ```
 
@@ -376,10 +376,10 @@ GET /api/deployments/{deploymentId}/logs
 
 **Query Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter  | Type   | Description          |
+| ---------- | ------ | -------------------- |
 | `severity` | string | INFO, WARNING, ERROR |
-| `limit` | int | Number of entries |
+| `limit`    | int    | Number of entries    |
 
 ## Export API
 
@@ -399,8 +399,8 @@ POST /api/exports
 
 ```json
 {
-  "modelId": "model_abc123",
-  "format": "onnx"
+    "modelId": "model_abc123",
+    "format": "onnx"
 }
 ```
 
@@ -416,47 +416,43 @@ GET /api/exports/{exportId}
 
 ## Error Codes
 
-| Code | Description |
-|------|-------------|
-| `UNAUTHORIZED` | Invalid or missing API key |
-| `FORBIDDEN` | Insufficient permissions |
-| `NOT_FOUND` | Resource not found |
-| `VALIDATION_ERROR` | Invalid request data |
-| `RATE_LIMITED` | Too many requests |
-| `INTERNAL_ERROR` | Server error |
+| Code               | Description                |
+| ------------------ | -------------------------- |
+| `UNAUTHORIZED`     | Invalid or missing API key |
+| `FORBIDDEN`        | Insufficient permissions   |
+| `NOT_FOUND`        | Resource not found         |
+| `VALIDATION_ERROR` | Invalid request data       |
+| `RATE_LIMITED`     | Too many requests          |
+| `INTERNAL_ERROR`   | Server error               |
 
 ## SDK Support
 
 For easier integration, use the Ultralytics Python package:
 
 ```python
-from ultralytics import YOLO
 import os
+
+from ultralytics import YOLO
 
 # Set API key
 os.environ["ULTRALYTICS_API_KEY"] = "ul_your_key"
 
 # Train with Platform integration
 model = YOLO("yolo11n.pt")
-model.train(
-    data="ul://username/datasets/my-dataset",
-    project="username/my-project",
-    name="experiment-1",
-    epochs=100
-)
+model.train(data="ul://username/datasets/my-dataset", project="username/my-project", name="experiment-1", epochs=100)
 ```
 
 ## Webhooks
 
 Webhooks notify your server of Platform events:
 
-| Event | Description |
-|-------|-------------|
-| `training.started` | Training job started |
-| `training.epoch` | Epoch completed |
-| `training.completed` | Training finished |
-| `training.failed` | Training failed |
-| `export.completed` | Export ready |
+| Event                | Description          |
+| -------------------- | -------------------- |
+| `training.started`   | Training job started |
+| `training.epoch`     | Epoch completed      |
+| `training.completed` | Training finished    |
+| `training.failed`    | Training failed      |
+| `export.completed`   | Export ready         |
 
 Webhook setup is available in Enterprise plans.
 
@@ -467,7 +463,8 @@ Webhook setup is available in Enterprise plans.
 Use `page` and `limit` parameters:
 
 ```bash
-GET /api/datasets?page=2&limit=50
+GET /api/datasets?page=2 &
+limit=50
 ```
 
 ### Can I use the API without an SDK?
@@ -485,12 +482,13 @@ Implement exponential backoff:
 ```python
 import time
 
+
 def api_request_with_retry(url, max_retries=3):
     for attempt in range(max_retries):
         response = requests.get(url)
         if response.status_code != 429:
             return response
-        wait = 2 ** attempt
+        wait = 2**attempt
         time.sleep(wait)
     raise Exception("Rate limit exceeded")
 ```

@@ -25,36 +25,36 @@ The Training section helps you:
 Create Project → Upload Model/Train → Monitor → Export
 ```
 
-| Stage | Description |
-|-------|-------------|
-| **Project** | Create a workspace to organize related models |
+| Stage         | Description                                         |
+| ------------- | --------------------------------------------------- |
+| **Project**   | Create a workspace to organize related models       |
 | **Configure** | Select dataset, base model, and training parameters |
-| **Train** | Run on cloud GPUs or your local hardware |
-| **Monitor** | View real-time loss curves and metrics |
-| **Export** | Convert to 17 deployment formats |
+| **Train**     | Run on cloud GPUs or your local hardware            |
+| **Monitor**   | View real-time loss curves and metrics              |
+| **Export**    | Convert to 17 deployment formats                    |
 
 ## Training Options
 
 Ultralytics Platform supports multiple training approaches:
 
-| Method | Description | Best For |
-|--------|-------------|----------|
-| **Cloud Training** | Train on Platform cloud GPUs | No local GPU, scalability |
-| **Remote Training** | Train locally, stream metrics to Platform | Existing hardware, privacy |
-| **Colab Training** | Use Google Colab with Platform integration | Free GPU access |
+| Method              | Description                                | Best For                   |
+| ------------------- | ------------------------------------------ | -------------------------- |
+| **Cloud Training**  | Train on Platform cloud GPUs               | No local GPU, scalability  |
+| **Remote Training** | Train locally, stream metrics to Platform  | Existing hardware, privacy |
+| **Colab Training**  | Use Google Colab with Platform integration | Free GPU access            |
 
 ## GPU Options
 
 Available GPUs for cloud training:
 
-| GPU | VRAM | Performance | Cost |
-|-----|------|-------------|------|
-| RTX 3090 | 24GB | Good | $0.44/hr |
-| RTX 4090 | 24GB | Excellent | $0.74/hr |
-| L40S | 48GB | Very Good | $1.14/hr |
-| A100 40GB | 40GB | Excellent | $1.29/hr |
-| A100 80GB | 80GB | Excellent | $1.99/hr |
-| H100 80GB | 80GB | Best | $3.99/hr |
+| GPU       | VRAM | Performance | Cost     |
+| --------- | ---- | ----------- | -------- |
+| RTX 3090  | 24GB | Good        | $0.44/hr |
+| RTX 4090  | 24GB | Excellent   | $0.74/hr |
+| L40S      | 48GB | Very Good   | $1.14/hr |
+| A100 40GB | 40GB | Excellent   | $1.29/hr |
+| A100 80GB | 80GB | Excellent   | $1.99/hr |
+| H100 80GB | 80GB | Best        | $3.99/hr |
 
 !!! tip "Free Training"
 
@@ -102,9 +102,9 @@ If training fails:
 
 ### How do I choose the right GPU?
 
-| Scenario | Recommended GPU |
-|----------|-----------------|
-| Small datasets (<5000 images) | RTX 4090 |
-| Medium datasets (5000-50000 images) | A100 40GB |
-| Large datasets or batch sizes | A100 80GB or H100 |
-| Budget-conscious | RTX 3090 |
+| Scenario                            | Recommended GPU   |
+| ----------------------------------- | ----------------- |
+| Small datasets (<5000 images)       | RTX 4090          |
+| Medium datasets (5000-50000 images) | A100 40GB         |
+| Large datasets or batch sizes       | A100 80GB or H100 |
+| Budget-conscious                    | RTX 3090          |

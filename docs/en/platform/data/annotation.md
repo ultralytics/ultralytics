@@ -14,13 +14,13 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 
 The annotation editor supports all 5 YOLO task types:
 
-| Task | Tool | Annotation Format |
-|------|------|-------------------|
-| **Detect** | Rectangle | Bounding boxes (x, y, width, height) |
-| **Segment** | Polygon | Pixel-precise masks (polygon vertices) |
-| **Pose** | Keypoint | 17-point COCO skeleton |
-| **OBB** | Oriented Box | Rotated bounding boxes (4 corners) |
-| **Classify** | Class Selector | Image-level labels |
+| Task         | Tool           | Annotation Format                      |
+| ------------ | -------------- | -------------------------------------- |
+| **Detect**   | Rectangle      | Bounding boxes (x, y, width, height)   |
+| **Segment**  | Polygon        | Pixel-precise masks (polygon vertices) |
+| **Pose**     | Keypoint       | 17-point COCO skeleton                 |
+| **OBB**      | Oriented Box   | Rotated bounding boxes (4 corners)     |
+| **Classify** | Class Selector | Image-level labels                     |
 
 ## Getting Started
 
@@ -81,17 +81,17 @@ Place 17 COCO keypoints for human pose:
 
 The 17 COCO keypoints are:
 
-| # | Keypoint | # | Keypoint |
-|---|----------|---|----------|
-| 1 | Nose | 10 | Right wrist |
-| 2 | Left eye | 11 | Left hip |
-| 3 | Right eye | 12 | Right hip |
-| 4 | Left ear | 13 | Left knee |
-| 5 | Right ear | 14 | Right knee |
-| 6 | Left shoulder | 15 | Left ankle |
-| 7 | Right shoulder | 16 | Right ankle |
-| 8 | Left elbow | 17 | (reserved) |
-| 9 | Right elbow | | |
+| #   | Keypoint       | #   | Keypoint    |
+| --- | -------------- | --- | ----------- |
+| 1   | Nose           | 10  | Right wrist |
+| 2   | Left eye       | 11  | Left hip    |
+| 3   | Right eye      | 12  | Right hip   |
+| 4   | Left ear       | 13  | Left knee   |
+| 5   | Right ear      | 14  | Right knee  |
+| 6   | Left shoulder  | 15  | Left ankle  |
+| 7   | Right shoulder | 16  | Right ankle |
+| 8   | Left elbow     | 17  | (reserved)  |
+| 9   | Right elbow    |     |             |
 
 <!-- Screenshot: platform-annotate-pose.avif -->
 
@@ -188,22 +188,22 @@ Each class is assigned a color from the Ultralytics palette. Colors are consiste
 
 Efficient annotation with keyboard shortcuts:
 
-| Shortcut | Action |
-|----------|--------|
-| `B` | Box tool (detect) |
-| `P` | Polygon tool (segment) |
-| `K` | Keypoint tool (pose) |
-| `O` | OBB tool |
-| `S` | SAM smart annotation |
-| `A` | Auto-annotate |
-| `V` | Select/move mode |
-| `1-9` | Select class 1-9 |
+| Shortcut | Action                     |
+| -------- | -------------------------- |
+| `B`      | Box tool (detect)          |
+| `P`      | Polygon tool (segment)     |
+| `K`      | Keypoint tool (pose)       |
+| `O`      | OBB tool                   |
+| `S`      | SAM smart annotation       |
+| `A`      | Auto-annotate              |
+| `V`      | Select/move mode           |
+| `1-9`    | Select class 1-9           |
 | `Delete` | Delete selected annotation |
-| `Ctrl+Z` | Undo |
-| `Ctrl+Y` | Redo |
-| `Escape` | Cancel current operation |
-| `Enter` | Complete polygon |
-| `←/→` | Previous/next image |
+| `Ctrl+Z` | Undo                       |
+| `Ctrl+Y` | Redo                       |
+| `Escape` | Cancel current operation   |
+| `Enter`  | Complete polygon           |
+| `←/→`    | Previous/next image        |
 
 <!-- Screenshot: platform-annotate-shortcuts.avif -->
 
@@ -265,12 +265,12 @@ The keyboard shortcut `1-9` quickly selects classes.
 
 ### What's the difference between SAM and auto-annotate?
 
-| Feature | SAM | Auto-Annotate |
-|---------|-----|---------------|
-| **Method** | Interactive point prompts | Model inference |
-| **Speed** | One object at a time | All objects at once |
-| **Precision** | Very high with guidance | Depends on model |
-| **Best for** | Complex objects, fine details | Bulk labeling, simple objects |
+| Feature       | SAM                           | Auto-Annotate                 |
+| ------------- | ----------------------------- | ----------------------------- |
+| **Method**    | Interactive point prompts     | Model inference               |
+| **Speed**     | One object at a time          | All objects at once           |
+| **Precision** | Very high with guidance       | Depends on model              |
+| **Best for**  | Complex objects, fine details | Bulk labeling, simple objects |
 
 ### Can I train on partially annotated datasets?
 

@@ -33,10 +33,10 @@ Drag and drop or click to upload:
 
 Use built-in example images for quick testing:
 
-| Image | Content |
-|-------|---------|
-| `bus.jpg` | Street scene with vehicles |
-| `zidane.jpg` | Sports scene with people |
+| Image        | Content                    |
+| ------------ | -------------------------- |
+| `bus.jpg`    | Street scene with vehicles |
+| `zidane.jpg` | Sports scene with people   |
 
 ### View Results
 
@@ -54,11 +54,11 @@ Adjust detection behavior with parameters:
 
 <!-- Screenshot: platform-test-params.avif -->
 
-| Parameter | Range | Default | Description |
-|-----------|-------|---------|-------------|
-| **Confidence** | 0.0-1.0 | 0.25 | Minimum confidence threshold |
-| **IoU** | 0.0-1.0 | 0.45 | NMS IoU threshold |
-| **Image Size** | 32-1280 | 640 | Input resize dimension |
+| Parameter      | Range   | Default | Description                  |
+| -------------- | ------- | ------- | ---------------------------- |
+| **Confidence** | 0.0-1.0 | 0.25    | Minimum confidence threshold |
+| **IoU**        | 0.0-1.0 | 0.45    | NMS IoU threshold            |
+| **Image Size** | 32-1280 | 640     | Input resize dimension       |
 
 ### Confidence Threshold
 
@@ -127,33 +127,33 @@ POST https://platform.ultralytics.com/api/models/{model_slug}/predict
 
 ```json
 {
-  "success": true,
-  "predictions": [
-    {
-      "class": "person",
-      "confidence": 0.92,
-      "box": {
-        "x1": 100,
-        "y1": 50,
-        "x2": 300,
-        "y2": 400
-      }
-    },
-    {
-      "class": "car",
-      "confidence": 0.87,
-      "box": {
-        "x1": 400,
-        "y1": 200,
-        "x2": 600,
-        "y2": 350
-      }
+    "success": true,
+    "predictions": [
+        {
+            "class": "person",
+            "confidence": 0.92,
+            "box": {
+                "x1": 100,
+                "y1": 50,
+                "x2": 300,
+                "y2": 400
+            }
+        },
+        {
+            "class": "car",
+            "confidence": 0.87,
+            "box": {
+                "x1": 400,
+                "y1": 200,
+                "x2": 600,
+                "y2": 350
+            }
+        }
+    ],
+    "image": {
+        "width": 1920,
+        "height": 1080
     }
-  ],
-  "image": {
-    "width": 1920,
-    "height": 1080
-  }
 }
 ```
 
@@ -161,14 +161,14 @@ POST https://platform.ultralytics.com/api/models/{model_slug}/predict
 
 ### Response Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `success` | boolean | Request status |
-| `predictions` | array | List of detections |
-| `predictions[].class` | string | Class name |
-| `predictions[].confidence` | float | Detection confidence (0-1) |
-| `predictions[].box` | object | Bounding box coordinates |
-| `image` | object | Original image dimensions |
+| Field                      | Type    | Description                |
+| -------------------------- | ------- | -------------------------- |
+| `success`                  | boolean | Request status             |
+| `predictions`              | array   | List of detections         |
+| `predictions[].class`      | string  | Class name                 |
+| `predictions[].confidence` | float   | Detection confidence (0-1) |
+| `predictions[].box`        | object  | Bounding box coordinates   |
+| `image`                    | object  | Original image dimensions  |
 
 ### Task-Specific Responses
 
@@ -225,9 +225,9 @@ Response format varies by task:
 Shared inference has rate limits:
 
 | Plan | Requests/Minute | Requests/Day |
-|------|-----------------|--------------|
-| Free | 10 | 100 |
-| Pro | 60 | 10,000 |
+| ---- | --------------- | ------------ |
+| Free | 10              | 100          |
+| Pro  | 60              | 10,000       |
 
 For higher limits, deploy a [dedicated endpoint](endpoints.md).
 
@@ -235,13 +235,13 @@ For higher limits, deploy a [dedicated endpoint](endpoints.md).
 
 Common error responses:
 
-| Code | Message | Solution |
-|------|---------|----------|
-| 400 | Invalid image | Check file format |
-| 401 | Unauthorized | Verify API key |
-| 404 | Model not found | Check model slug |
-| 429 | Rate limited | Wait or upgrade plan |
-| 500 | Server error | Retry request |
+| Code | Message         | Solution             |
+| ---- | --------------- | -------------------- |
+| 400  | Invalid image   | Check file format    |
+| 401  | Unauthorized    | Verify API key       |
+| 404  | Model not found | Check model slug     |
+| 429  | Rate limited    | Wait or upgrade plan |
+| 500  | Server error    | Retry request        |
 
 ## FAQ
 

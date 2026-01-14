@@ -31,7 +31,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /root/.config/Ultralytics/persistent_cache.json
 
 # Copy model
-ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
+ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Usage --------------------------------------------------------------------------------------------------------------
 

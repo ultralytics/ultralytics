@@ -22,8 +22,8 @@ Here are some of the key models supported:
 6. **[YOLOv8](yolov8.md)**: A versatile model featuring enhanced capabilities such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), pose/keypoints estimation, and classification.
 7. **[YOLOv9](yolov9.md)**: An experimental model trained on the Ultralytics [YOLOv5](yolov5.md) codebase implementing Programmable Gradient Information (PGI).
 8. **[YOLOv10](yolov10.md)**: By Tsinghua University, featuring NMS-free training and efficiency-accuracy driven architecture, delivering state-of-the-art performance and latency.
-9. **[YOLO11](yolo11.md) 🚀**: Ultralytics' latest YOLO models delivering state-of-the-art (SOTA) performance across multiple tasks including detection, segmentation, pose estimation, tracking, and classification.
-10. **[YOLO26](yolo26.md) ⚠️ Coming Soon**: Ultralytics' next-generation YOLO model optimized for edge deployment with end-to-end NMS-free inference.
+9. **[YOLO11](yolo11.md)**: Ultralytics' YOLO models delivering high performance across multiple tasks including detection, segmentation, pose estimation, tracking, and classification.
+10. **[YOLO26](yolo26.md) 🚀 NEW**: Ultralytics' **latest** next-generation YOLO model optimized for edge deployment with end-to-end NMS-free inference.
 11. **[Segment Anything Model (SAM)](sam.md)**: Meta's original Segment Anything Model (SAM).
 12. **[Segment Anything Model 2 (SAM2)](sam-2.md)**: The next generation of Meta's Segment Anything Model for videos and images.
 13. **[Segment Anything Model 3 (SAM3)](sam-3.md) 🚀 NEW**: Meta's third generation Segment Anything Model with Promptable Concept Segmentation for text and image exemplar-based segmentation.
@@ -105,9 +105,9 @@ For detailed steps, consult our [Contributing Guide](../help/contributing.md).
 
 ## FAQ
 
-### What are the key advantages of using Ultralytics YOLO11 for object detection?
+### What is the latest Ultralytics YOLO model?
 
-Ultralytics YOLO11 offers enhanced capabilities such as real-time object detection, instance segmentation, pose estimation, and classification. Its optimized architecture ensures high-speed performance without sacrificing [accuracy](https://www.ultralytics.com/glossary/accuracy), making it ideal for a variety of applications across diverse AI domains. YOLO11 builds on previous versions with improved performance and additional features, as detailed on the [YOLO11 documentation page](../models/yolo11.md).
+The latest Ultralytics YOLO model is [YOLO26](yolo26.md), released in January 2026. YOLO26 features end-to-end NMS-free inference, optimized edge deployment, and supports all five tasks (detection, segmentation, classification, pose estimation, and OBB) plus open-vocabulary versions. For stable production workloads, both YOLO26 and [YOLO11](yolo11.md) are recommended choices.
 
 ### How can I train a YOLO model on custom data?
 
@@ -139,10 +139,10 @@ For more detailed instructions, visit the [Train](../modes/train.md) documentati
 
 Ultralytics supports a comprehensive range of YOLO (You Only Look Once) versions from YOLOv3 to YOLO11, along with models like YOLO-NAS, SAM, and RT-DETR. Each version is optimized for various tasks such as detection, segmentation, and classification. For detailed information on each model, refer to the [Models Supported by Ultralytics](../models/index.md) documentation.
 
-### Why should I use Ultralytics HUB for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
+### Why should I use Ultralytics Platform for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
 
-[Ultralytics HUB](../hub/index.md) provides a no-code, end-to-end platform for training, deploying, and managing YOLO models. It simplifies complex workflows, enabling users to focus on model performance and application. The HUB also offers [cloud training capabilities](../hub/cloud-training.md), comprehensive dataset management, and user-friendly interfaces for both beginners and experienced developers.
+[Ultralytics Platform](../platform/index.md) provides a no-code, end-to-end platform for training, deploying, and managing YOLO models. It simplifies complex workflows, enabling users to focus on model performance and application. The HUB also offers [cloud training capabilities](../platform/cloud-training.md), comprehensive dataset management, and user-friendly interfaces for both beginners and experienced developers.
 
-### What types of tasks can YOLO11 perform, and how does it compare to other YOLO versions?
+### What types of tasks can Ultralytics YOLO models perform?
 
-YOLO11 is a versatile model capable of performing tasks including object detection, instance segmentation, classification, and pose estimation. Compared to earlier versions, YOLO11 offers significant improvements in speed and accuracy due to its optimized architecture and anchor-free design. For a deeper comparison, refer to the [YOLO11 documentation](../models/yolo11.md) and the [Task pages](../tasks/index.md) for more details on specific tasks.
+Ultralytics YOLO models are versatile and can perform tasks including object detection, instance segmentation, classification, pose estimation, and oriented object detection (OBB). The latest model, [YOLO26](yolo26.md), supports all five tasks plus open-vocabulary detection. For details on specific tasks, refer to the [Task pages](../tasks/index.md).

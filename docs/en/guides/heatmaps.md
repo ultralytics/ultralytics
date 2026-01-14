@@ -1,16 +1,16 @@
 ---
 comments: true
-description: Transform complex data into insightful heatmaps using Ultralytics YOLO11. Discover patterns, trends, and anomalies with vibrant visualizations.
-keywords: Ultralytics, YOLO11, heatmaps, data visualization, data analysis, complex data, patterns, trends, anomalies
+description: Transform complex data into insightful heatmaps using Ultralytics YOLO26. Discover patterns, trends, and anomalies with vibrant visualizations.
+keywords: Ultralytics, YOLO26, heatmaps, data visualization, data analysis, complex data, patterns, trends, anomalies
 ---
 
-# Advanced [Data Visualization](https://www.ultralytics.com/glossary/data-visualization): Heatmaps using Ultralytics YOLO11 🚀
+# Advanced [Data Visualization](https://www.ultralytics.com/glossary/data-visualization): Heatmaps using Ultralytics YOLO26 🚀
 
 ## Introduction to Heatmaps
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-generate-heatmaps-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Heatmaps In Colab"></a>
 
-A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) transforms complex data into a vibrant, color-coded matrix. This visual tool employs a spectrum of colors to represent varying data values, where warmer hues indicate higher intensities and cooler tones signify lower values. Heatmaps excel in visualizing intricate data patterns, correlations, and anomalies, offering an accessible and engaging approach to data interpretation across diverse domains.
+A heatmap generated with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) transforms complex data into a vibrant, color-coded matrix. This visual tool employs a spectrum of colors to represent varying data values, where warmer hues indicate higher intensities and cooler tones signify lower values. Heatmaps excel in visualizing intricate data patterns, correlations, and anomalies, offering an accessible and engaging approach to data interpretation across diverse domains.
 
 <p align="center">
   <br>
@@ -20,7 +20,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Heatmaps using Ultralytics YOLO11
+  <strong>Watch:</strong> Heatmaps using Ultralytics YOLO26
 </p>
 
 ## Why Choose Heatmaps for Data Analysis?
@@ -33,8 +33,8 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
 
 |                                                                    Transportation                                                                    |                                                                Retail                                                                |
 | :--------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO11 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO11 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
-|                                                      Ultralytics YOLO11 Transportation Heatmap                                                       |                                                  Ultralytics YOLO11 Retail Heatmap                                                   |
+| ![Ultralytics YOLO26 Transportation Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO26 Retail Heatmap](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-retail-heatmap.avif) |
+|                                                      Ultralytics YOLO26 Transportation Heatmap                                                       |                                                  Ultralytics YOLO26 Retail Heatmap                                                   |
 
 !!! example "Heatmaps using Ultralytics YOLO"
 
@@ -76,7 +76,7 @@ A heatmap generated with [Ultralytics YOLO11](https://github.com/ultralytics/ult
         # Initialize heatmap object
         heatmap = solutions.Heatmap(
             show=True,  # display the output
-            model="yolo11n.pt",  # path to the YOLO11 model file
+            model="yolo26n.pt",  # path to the YOLO26 model file
             colormap=cv2.COLORMAP_PARULA,  # colormap of heatmap
             # region=region_points,  # object counting with heatmaps, you can pass region_points
             # classes=[0, 2],  # generate heatmap for specific classes, e.g., person and car.
@@ -147,13 +147,13 @@ Additionally, the supported visualization arguments are listed below:
 
 These colormaps are commonly used for visualizing data with different color representations.
 
-## How Heatmaps Work in Ultralytics YOLO11
+## How Heatmaps Work in Ultralytics YOLO26
 
-The [Heatmap solution](../reference/solutions/heatmap.md) in Ultralytics YOLO11 extends the [ObjectCounter](../reference/solutions/object_counter.md) class to generate and visualize movement patterns in video streams. When initialized, the solution creates a blank heatmap layer that gets updated as objects move through the frame.
+The [Heatmap solution](../reference/solutions/heatmap.md) in Ultralytics YOLO26 extends the [ObjectCounter](../reference/solutions/object_counter.md) class to generate and visualize movement patterns in video streams. When initialized, the solution creates a blank heatmap layer that gets updated as objects move through the frame.
 
 For each detected object, the solution:
 
-1. Tracks the object across frames using YOLO11's tracking capabilities
+1. Tracks the object across frames using YOLO26's tracking capabilities
 2. Updates the heatmap intensity at the object's location
 3. Applies a selected colormap to visualize the intensity values
 4. Overlays the colored heatmap on the original frame
@@ -162,13 +162,13 @@ The result is a dynamic visualization that builds up over time, revealing traffi
 
 ## FAQ
 
-### How does Ultralytics YOLO11 generate heatmaps and what are their benefits?
+### How does Ultralytics YOLO26 generate heatmaps and what are their benefits?
 
-Ultralytics YOLO11 generates heatmaps by transforming complex data into a color-coded matrix where different hues represent data intensities. Heatmaps make it easier to visualize patterns, correlations, and anomalies in the data. Warmer hues indicate higher values, while cooler tones represent lower values. The primary benefits include intuitive visualization of data distribution, efficient pattern detection, and enhanced spatial analysis for decision-making. For more details and configuration options, refer to the [Heatmap Configuration](#heatmap-arguments) section.
+Ultralytics YOLO26 generates heatmaps by transforming complex data into a color-coded matrix where different hues represent data intensities. Heatmaps make it easier to visualize patterns, correlations, and anomalies in the data. Warmer hues indicate higher values, while cooler tones represent lower values. The primary benefits include intuitive visualization of data distribution, efficient pattern detection, and enhanced spatial analysis for decision-making. For more details and configuration options, refer to the [Heatmap Configuration](#heatmap-arguments) section.
 
-### Can I use Ultralytics YOLO11 to perform object tracking and generate a heatmap simultaneously?
+### Can I use Ultralytics YOLO26 to perform object tracking and generate a heatmap simultaneously?
 
-Yes, Ultralytics YOLO11 supports object tracking and heatmap generation concurrently. This can be achieved through its `Heatmap` solution integrated with object tracking models. To do so, you need to initialize the heatmap object and use YOLO11's tracking capabilities. Here's a simple example:
+Yes, Ultralytics YOLO26 supports object tracking and heatmap generation concurrently. This can be achieved through its `Heatmap` solution integrated with object tracking models. To do so, you need to initialize the heatmap object and use YOLO26's tracking capabilities. Here's a simple example:
 
 ```python
 import cv2
@@ -176,7 +176,7 @@ import cv2
 from ultralytics import solutions
 
 cap = cv2.VideoCapture("path/to/video.mp4")
-heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolo11n.pt")
+heatmap = solutions.Heatmap(colormap=cv2.COLORMAP_PARULA, show=True, model="yolo26n.pt")
 
 while cap.isOpened():
     success, im0 = cap.read()
@@ -189,11 +189,11 @@ cv2.destroyAllWindows()
 
 For further guidance, check the [Tracking Mode](../modes/track.md) page.
 
-### What makes Ultralytics YOLO11 heatmaps different from other data visualization tools like those from [OpenCV](https://www.ultralytics.com/glossary/opencv) or Matplotlib?
+### What makes Ultralytics YOLO26 heatmaps different from other data visualization tools like those from [OpenCV](https://www.ultralytics.com/glossary/opencv) or Matplotlib?
 
-Ultralytics YOLO11 heatmaps are specifically designed for integration with its [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking models, providing an end-to-end solution for real-time data analysis. Unlike generic visualization tools like OpenCV or Matplotlib, YOLO11 heatmaps are optimized for performance and automated processing, supporting features like persistent tracking, decay factor adjustment, and real-time video overlay. For more information on YOLO11's unique features, visit the [Ultralytics YOLO11 Introduction](https://www.ultralytics.com/blog/introducing-ultralytics-yolov8).
+Ultralytics YOLO26 heatmaps are specifically designed for integration with its [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking models, providing an end-to-end solution for real-time data analysis. Unlike generic visualization tools like OpenCV or Matplotlib, YOLO26 heatmaps are optimized for performance and automated processing, supporting features like persistent tracking, decay factor adjustment, and real-time video overlay. For more information on YOLO26's unique features, visit the [Ultralytics YOLO26 Introduction](https://www.ultralytics.com/blog/introducing-ultralytics-yolov8).
 
-### How can I visualize only specific object classes in heatmaps using Ultralytics YOLO11?
+### How can I visualize only specific object classes in heatmaps using Ultralytics YOLO26?
 
 You can visualize specific object classes by specifying the desired classes in the `track()` method of the YOLO model. For instance, if you only want to visualize cars and persons (assuming their class indices are 0 and 2), you can set the `classes` parameter accordingly.
 
@@ -203,7 +203,7 @@ import cv2
 from ultralytics import solutions
 
 cap = cv2.VideoCapture("path/to/video.mp4")
-heatmap = solutions.Heatmap(show=True, model="yolo11n.pt", classes=[0, 2])
+heatmap = solutions.Heatmap(show=True, model="yolo26n.pt", classes=[0, 2])
 
 while cap.isOpened():
     success, im0 = cap.read()
@@ -214,6 +214,6 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-### Why should businesses choose Ultralytics YOLO11 for heatmap generation in data analysis?
+### Why should businesses choose Ultralytics YOLO26 for heatmap generation in data analysis?
 
-Ultralytics YOLO11 offers seamless integration of advanced object detection and real-time heatmap generation, making it an ideal choice for businesses looking to visualize data more effectively. The key advantages include intuitive data distribution visualization, efficient pattern detection, and enhanced spatial analysis for better decision-making. Additionally, YOLO11's cutting-edge features such as persistent tracking, customizable colormaps, and support for various export formats make it superior to other tools like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and OpenCV for comprehensive data analysis. Learn more about business applications at [Ultralytics Plans](https://www.ultralytics.com/plans).
+Ultralytics YOLO26 offers seamless integration of advanced object detection and real-time heatmap generation, making it an ideal choice for businesses looking to visualize data more effectively. The key advantages include intuitive data distribution visualization, efficient pattern detection, and enhanced spatial analysis for better decision-making. Additionally, YOLO26's cutting-edge features such as persistent tracking, customizable colormaps, and support for various export formats make it superior to other tools like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) and OpenCV for comprehensive data analysis. Learn more about business applications at [Ultralytics Plans](https://www.ultralytics.com/plans).

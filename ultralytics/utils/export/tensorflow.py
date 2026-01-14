@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from functools import partial
 
 import numpy as np
 import torch
@@ -22,10 +23,8 @@ def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
         import types
 
         m._get_decode_boxes = types.MethodType(_tf_decode_boxes, m)
-        if type(m) is Pose:
-            m.kpts_decode = types.MethodType(_tf_kpts_decode, m)
-        elif type(m) is Pose26:
-            m.kpts_decode = types.MethodType(_tf_kpts26_decode, m)
+        if isinstance(m, Pose):
+            m.kpts_decode = types.MethodType(partial(_tf_kpts_decode, is_pose26=type(m) is Pose26), m)
     return model
 
 
@@ -44,7 +43,7 @@ def _tf_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
     return dbox
 
 
-def _tf_kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
+def _tf_kpts_decode(self, kpts: torch.Tensor, is_pose26: bool = False) -> torch.Tensor:
     """Decode keypoints for TensorFlow export."""
     ndim = self.kpt_shape[1]
     bs = kpts.shape[0]
@@ -53,7 +52,7 @@ def _tf_kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
     grid_h, grid_w = self.shape[2], self.shape[3]
     grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
     norm = self.strides / (self.stride[0] * grid_size)
-    a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
+    a = ((y[:, :, :2] + self.anchors) if is_pose26 else (y[:, :, :2] * 2.0 + (self.anchors - 0.5))) * norm
     if ndim == 3:
         a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
     return a.view(bs, self.nk, -1)

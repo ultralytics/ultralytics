@@ -81,6 +81,10 @@ Click **Start Training** to launch your job. The Platform:
 3. Begins training
 4. Streams metrics in real-time
 
+!!! success "Free Credits"
+
+    New accounts receive $5 in credits - enough for several training runs on RTX 4090. [Check your balance](../account/billing.md) in Settings > Billing.
+
 <!-- Screenshot: platform-training-progress.avif -->
 
 ## Monitor Training

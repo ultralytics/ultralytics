@@ -63,9 +63,9 @@ After selecting your region, complete your profile with your information.
 
 <!-- Screenshot: platform-onboarding-profile.avif -->
 
-??? tip
+??? tip "Update Later"
 
-    You can update your profile later from the Settings page.
+    You can update your profile anytime from the Settings page, including your display name, username, bio, and social links.
 
 ## Home Dashboard
 
@@ -197,9 +197,9 @@ Read more about [endpoints](deploy/endpoints.md).
 
 We value your feedback! Use the feedback button to help us improve the platform.
 
-??? info
+??? info "Feedback Privacy"
 
-    Only our team will see your feedback, and we will use it to improve the platform.
+    Your feedback is private and only visible to the Ultralytics team. We use it to prioritize features and fix issues.
 
 ## Need Help?
 

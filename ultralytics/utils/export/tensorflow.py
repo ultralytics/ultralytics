@@ -35,8 +35,7 @@ def _tf_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
     if self.format != "imx" and (self.dynamic or self.shape != shape):
         self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
         self.shape = shape
-    grid_h = shape[2]
-    grid_w = shape[3]
+    grid_h, grid_w = shape[2:4]
     grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=boxes.device).reshape(1, 4, 1)
     norm = self.strides / (self.stride[0] * grid_size)
     dbox = self.decode_bboxes(self.dfl(boxes) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
@@ -49,7 +48,7 @@ def _tf_kpts_decode(self, kpts: torch.Tensor, is_pose26: bool = False) -> torch.
     bs = kpts.shape[0]
     # Precompute normalization factor to increase numerical stability
     y = kpts.view(bs, *self.kpt_shape, -1)
-    grid_h, grid_w = self.shape[2], self.shape[3]
+    grid_h, grid_w = self.shape[2:4]
     grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
     norm = self.strides / (self.stride[0] * grid_size)
     a = ((y[:, :, :2] + self.anchors) if is_pose26 else (y[:, :, :2] * 2.0 + (self.anchors - 0.5))) * norm

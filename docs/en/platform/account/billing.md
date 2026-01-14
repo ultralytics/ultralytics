@@ -139,7 +139,7 @@ flowchart LR
     A[Start Training] --> B[Create Hold]
     B --> C{Training Complete?}
     C -->|Yes| D[Settle: Charge Actual Cost]
-    C -->|Cancelled| E[Release: Full Refund]
+    C -->|Canceled| E[Release: Full Refund]
     D --> F[Refund Excess]
 ```
 
@@ -153,7 +153,7 @@ flowchart LR
 
 !!! success "Consumer Protection"
 
-    You're **never charged more than the estimate** shown before training. If training completes early or is cancelled, you only pay for actual compute time used.
+    You're **never charged more than the estimate** shown before training. If training completes early or is canceled, you only pay for actual compute time used.
 
 ## Training Costs
 
@@ -184,7 +184,7 @@ $0.74 × 2.5 = $1.85
 
 - **Epochs mode**: Charged after each epoch
 - **Timed mode**: Charged at completion
-- **Cancelled**: Charged for completed time only
+- **Canceled**: Charged for completed time only
 
 ## Upgrade to Pro
 

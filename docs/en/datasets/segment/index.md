@@ -90,7 +90,7 @@ Ultralytics YOLO supports various datasets for instance segmentation tasks. Here
 
 ### Adding your own dataset
 
-If you have your own dataset and would like to use it for training segmentation models with Ultralytics YOLO format, ensure that it follows the format specified above under "Ultralytics YOLO format". Convert your annotations to the required format and specify the paths, number of classes, and class names in the YAML configuration file.
+If you have your own dataset and would like to use it for training segmentation models with Ultralytics YOLO format, ensure that it follows the format specified above under "Ultralytics YOLO format". Convert your annotations to the required format and specify the paths, number of classes, and class names in the YAML configuration file. Keep `images/` and `labels/` as separate folders at the same level, with matching subfolder structure; placing label `.txt` files in the image folder can cause the model to miss labels.
 
 ## Port or Convert Label Formats
 

@@ -199,8 +199,7 @@ class DebugCollisionDetectionPipeline:
         return str(warped_path)
 
     def detect_and_visualize(self, conf_threshold=0.45):
-        """YOLO检测 + 可视化 + 统计报告 生成： 1. 带检测框的视频 2. YOLO统计报告 3. 关键帧（带检测框）.
-        """
+        """YOLO检测 + 可视化 + 统计报告 生成： 1. 带检测框的视频 2. YOLO统计报告 3. 关键帧（带检测框）."""
         print("\n【步骤3: YOLO检测 + 可视化】")
 
         print("加载YOLOv11n模型...")

@@ -17,8 +17,7 @@
 # 伪代码框架
 class TTCCalculator:
     def estimate_velocity(track_data):
-        """从轨迹数据估计速度 输入: track_data = [(x, y, t), (x, y, t), ...] 输出: vx, vy (像素/秒 或 米/秒).
-        """
+        """从轨迹数据估计速度 输入: track_data = [(x, y, t), (x, y, t), ...] 输出: vx, vy (像素/秒 或 米/秒)."""
         # 使用最近两帧或最小二乘法
 
     def calculate_ttc(obj1_pos, obj1_vel, obj2_pos, obj2_vel, distance):
@@ -28,8 +27,7 @@ class TTCCalculator:
         # 返回 TTC (秒)
 
     def calculate_pet(obj1_trajectory, obj2_trajectory):
-        """Post Encroachment Time 测量一个物体离开碰撞点的时间到另一个物体到达的时间差.
-        """
+        """Post Encroachment Time 测量一个物体离开碰撞点的时间到另一个物体到达的时间差."""
         # 找到碰撞点
         # 计算时间差
 ```
@@ -106,8 +104,7 @@ class VideoAnnotator:
         """
 
     def process_video(collision_events, fps, total_frames):
-        """遍历整个视频，对每一帧: 1. 读取帧 2. 查找该帧的检测/事件信息 3. 绘制标注 4. 写入输出视频 输出: annotated_video.mp4.
-        """
+        """遍历整个视频，对每一帧: 1. 读取帧 2. 查找该帧的检测/事件信息 3. 绘制标注 4. 写入输出视频 输出: annotated_video.mp4."""
 
     def create_level_color(level):
         """Level 颜色编码: 1=红(255,0,0), 2=黄(0,255,255), 3=绿(0,255,0)."""
@@ -216,8 +213,7 @@ Homography 误差: < 0.1%
 
 ```python
 def detect_collisions(self, conf_threshold=0.45, skip_frame=2):
-    """skip_frame=2: 处理每2帧，检测速度提升2倍 skip_frame=0: 处理所有帧（精度最高）.
-    """
+    """Skip_frame=2: 处理每2帧，检测速度提升2倍 skip_frame=0: 处理所有帧（精度最高）."""
     frame_count = 0
     for result in model.track(...):
         if skip_frame > 0 and frame_count % skip_frame != 0:

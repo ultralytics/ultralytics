@@ -20,8 +20,7 @@ def load_homography(json_path):
 
 
 def compute_remap_matrices(H, world_bounds, output_size, input_shape):
-    """计算用于cv2.remap的映射表 这比手工逐像素插值快得多.
-    """
+    """计算用于cv2.remap的映射表 这比手工逐像素插值快得多."""
     _h, _w = input_shape[:2]
     min_x, max_x, min_y, max_y = world_bounds
     out_w, out_h = output_size

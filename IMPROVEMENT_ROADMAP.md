@@ -16,16 +16,13 @@
 ```python
 class TTCCalculator:
     def estimate_velocity_robust(track_history, window_size=5):
-        """改进版速度估计 - 使用最小二乘法 - 降低噪声影响 - 支持长轨迹的拟合 - 返回速度向量 (vx, vy) 和可信度分数.
-        """
+        """改进版速度估计 - 使用最小二乘法 - 降低噪声影响 - 支持长轨迹的拟合 - 返回速度向量 (vx, vy) 和可信度分数."""
 
     def calculate_ttc_physics_based(pos1, vel1, pos2, vel2):
-        """基于物理的TTC计算 - 投影速度到接近轴 (closing axis) - TTC = distance / relative_closing_velocity - 处理速度相近/相反的情况.
-        """
+        """基于物理的TTC计算 - 投影速度到接近轴 (closing axis) - TTC = distance / relative_closing_velocity - 处理速度相近/相反的情况."""
 
     def calculate_pet(trajectory1, trajectory2):
-        """Post-Encroachment Time (碰撞后时间差) - 找到两条轨迹的最近点 - 计算各自通过该点的时间 - PET = time2 - time1.
-        """
+        """Post-Encroachment Time (碰撞后时间差) - 找到两条轨迹的最近点 - 计算各自通过该点的时间 - PET = time2 - time1."""
 ```
 
 **验收标准**:
@@ -61,8 +58,7 @@ class EventClassifier:
         """
 
     def filter_false_positives(event_list):
-        """虚警过滤： - 同一对物体的短期多次检测应合并 - 静止物体的距离波动应忽略 - 只保留真实的接近趋势.
-        """
+        """虚警过滤： - 同一对物体的短期多次检测应合并 - 静止物体的距离波动应忽略 - 只保留真实的接近趋势."""
 ```
 
 **验收标准**:
@@ -87,24 +83,19 @@ class EventClassifier:
 
 ```python
 class TrajectoryPredictor:
-    """三层预测系统： 1. 线性预测 (baseline) 2. 二阶多项式预测 (高精度) 3. 卡尔曼滤波 (噪声抑制).
-    """
+    """三层预测系统： 1. 线性预测 (baseline) 2. 二阶多项式预测 (高精度) 3. 卡尔曼滤波 (噪声抑制)."""
 
     def predict_quadratic(track_history, ahead_frames=10):
-        """二阶多项式拟合 (抛物线) - 假设运动方程: y = a*t^2 + b*t + c - 使用最小二乘法拟合 - 输出: 拟合参数 + 预测轨迹 + 拟合误差.
-        """
+        """二阶多项式拟合 (抛物线) - 假设运动方程: y = a*t^2 + b*t + c - 使用最小二乘法拟合 - 输出: 拟合参数 + 预测轨迹 + 拟合误差."""
 
     def kalman_smoother(noisy_track):
-        """卡尔曼滤波器： - 状态向量: [x, y, vx, vy] - 处理运动模型噪声和测量噪声 - 输出: 平滑的轨迹 + 不确定性椭圆.
-        """
+        """卡尔曼滤波器： - 状态向量: [x, y, vx, vy] - 处理运动模型噪声和测量噪声 - 输出: 平滑的轨迹 + 不确定性椭圆."""
 
     def detect_anomalies(track_history, threshold=3.0):
-        """异常值检测 (标准差方法) - 识别跳变、跟踪失败等 - 可选修复或标记.
-        """
+        """异常值检测 (标准差方法) - 识别跳变、跟踪失败等 - 可选修复或标记."""
 
     def predict_collision_with_confidence(track1, track2, prediction_method="kalman", ahead_time=2.0):
-        """碰撞预测 + 置信度 - 预测future positions - 计算碰撞概率 - 返回: collision_point, time_to_collision, confidence.
-        """
+        """碰撞预测 + 置信度 - 预测future positions - 计算碰撞概率 - 返回: collision_point, time_to_collision, confidence."""
 ```
 
 **验收标准**:
@@ -139,8 +130,7 @@ class GlobalTracker:
         self.inter_camera_matches = {}  # 跨摄像头关联记录
 
     def update_camera_detection(camera_id, detections, timestamp):
-        """接收单个摄像头的检测结果 - 本地YOLO跟踪 - 与其他摄像头的ID统一.
-        """
+        """接收单个摄像头的检测结果 - 本地YOLO跟踪 - 与其他摄像头的ID统一."""
 
     def match_across_cameras(local_detections_1, local_detections_2):
         """基于多特征进行跨摄像头关联： 1. 外观特征 (appearance) - 颜色直方图 2. 时空特征 (spatio-temporal) - 位置、时间连续性 3. 语义特征 (semantic) -
@@ -150,8 +140,7 @@ class GlobalTracker:
         """
 
     def unify_ids(matches, timestamp):
-        """统一ID： - 为跨摄像头关联的物体分配相同的global_id - 处理ID冲突和歧义.
-        """
+        """统一ID： - 为跨摄像头关联的物体分配相同的global_id - 处理ID冲突和歧义."""
 ```
 
 **实现步骤**:

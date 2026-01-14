@@ -157,7 +157,7 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-Leveraging Ultralytics [HUB](https://docs.ultralytics.com/hub/) can streamline this process by providing a user-friendly platform for deploying and managing your queue management solution.
+Leveraging [Ultralytics Platform](https://docs.ultralytics.com/platform/) can streamline this process by providing a user-friendly platform for deploying and managing your queue management solution.
 
 ### What are the key advantages of using Ultralytics YOLO26 for queue management?
 
@@ -175,7 +175,7 @@ For more details, explore our [Queue Management](https://docs.ultralytics.com/re
 Ultralytics YOLO26 has several advantages over TensorFlow and Detectron2 for queue management:
 
 - **Real-time Performance:** YOLO26 is known for its real-time detection capabilities, offering faster processing speeds.
-- **Ease of Use:** Ultralytics provides a user-friendly experience, from training to deployment, via [Ultralytics HUB](https://docs.ultralytics.com/hub/).
+- **Ease of Use:** Ultralytics provides a user-friendly experience, from training to deployment, via [Ultralytics Platform](https://docs.ultralytics.com/platform/).
 - **Pretrained Models:** Access to a range of pretrained models, minimizing the time needed for setup.
 - **Community Support:** Extensive documentation and active community support make problem-solving easier.
 

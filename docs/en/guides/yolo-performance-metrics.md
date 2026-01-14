@@ -193,7 +193,7 @@ Ultralytics YOLO26 offers multiple advantages for real-time object detection:
 - **Speed and Efficiency**: Optimized for high-speed inference, suitable for applications requiring low latency.
 - **High Accuracy**: Advanced algorithm ensures high mAP and IoU scores, balancing precision and recall.
 - **Flexibility**: Supports various tasks including object detection, segmentation, and classification.
-- **Ease of Use**: User-friendly interfaces, extensive documentation, and seamless integration with platforms like Ultralytics HUB ([HUB Quickstart](../hub/quickstart.md)).
+- **Ease of Use**: User-friendly interfaces, extensive documentation, and seamless integration with tools like Ultralytics Platform ([Platform Quickstart](../platform/quickstart.md)).
 
 This makes YOLO26 ideal for diverse applications from autonomous vehicles to [smart city solutions](https://docs.ultralytics.com/guides/queue-management/).
 

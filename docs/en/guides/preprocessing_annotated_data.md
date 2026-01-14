@@ -134,7 +134,7 @@ Common tools for visualizations include:
 
 !!! warning "Community Note"
 
-    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics HUB](https://hub.ultralytics.com/).
+    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com/).
 
 For a more advanced approach to EDA, you can use the Ultralytics Explorer tool. It offers robust capabilities for exploring computer vision datasets. By supporting semantic search, SQL queries, and vector similarity search, the tool makes it easy to analyze and understand your data. With Ultralytics Explorer, you can create [embeddings](https://www.ultralytics.com/glossary/embeddings) for your dataset to find similar images, run SQL queries for detailed analysis, and perform semantic searches, all through a user-friendly graphical interface.
 

@@ -84,7 +84,7 @@ After installing the runtime, plug your Coral Edge TPU into a USB 3.0 port on th
 
 ## Export to Edge TPU
 
-To use the Edge TPU, you need to convert your model into a compatible format. It is recommended that you run export on Google Colab, x86_64 Linux machine, using the official [Ultralytics Docker container](docker-quickstart.md), or using [Ultralytics HUB](../hub/quickstart.md), since the Edge TPU compiler is not available on ARM. See the [Export Mode](../modes/export.md) for the available arguments.
+To use the Edge TPU, you need to convert your model into a compatible format. It is recommended that you run export on Google Colab, x86_64 Linux machine, using the official [Ultralytics Docker container](docker-quickstart.md), or using [Ultralytics Platform](../platform/quickstart.md), since the Edge TPU compiler is not available on ARM. See the [Export Mode](../modes/export.md) for the available arguments.
 
 !!! example "Exporting the model"
 
@@ -220,7 +220,7 @@ Make sure to uninstall any previous Coral Edge TPU runtime versions by following
 
 ### Can I export my Ultralytics YOLO26 model to be compatible with Coral Edge TPU?
 
-Yes, you can export your Ultralytics YOLO26 model to be compatible with the Coral Edge TPU. It is recommended to perform the export on Google Colab, an x86_64 Linux machine, or using the [Ultralytics Docker container](docker-quickstart.md). You can also use [Ultralytics HUB](../hub/quickstart.md) for exporting. Here is how you can export your model using Python and CLI:
+Yes, you can export your Ultralytics YOLO26 model to be compatible with the Coral Edge TPU. It is recommended to perform the export on Google Colab, an x86_64 Linux machine, or using the [Ultralytics Docker container](docker-quickstart.md). You can also use [Ultralytics Platform](../platform/quickstart.md) for exporting. Here is how you can export your model using Python and CLI:
 
 !!! example "Exporting the model"
 

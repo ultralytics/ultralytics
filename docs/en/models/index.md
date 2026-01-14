@@ -139,9 +139,9 @@ For more detailed instructions, visit the [Train](../modes/train.md) documentati
 
 Ultralytics supports a comprehensive range of YOLO (You Only Look Once) versions from YOLOv3 to YOLO11, along with models like YOLO-NAS, SAM, and RT-DETR. Each version is optimized for various tasks such as detection, segmentation, and classification. For detailed information on each model, refer to the [Models Supported by Ultralytics](../models/index.md) documentation.
 
-### Why should I use Ultralytics HUB for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
+### Why should I use Ultralytics Platform for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
 
-[Ultralytics HUB](../hub/index.md) provides a no-code, end-to-end platform for training, deploying, and managing YOLO models. It simplifies complex workflows, enabling users to focus on model performance and application. The HUB also offers [cloud training capabilities](../hub/cloud-training.md), comprehensive dataset management, and user-friendly interfaces for both beginners and experienced developers.
+[Ultralytics Platform](../platform/index.md) provides a no-code, end-to-end platform for training, deploying, and managing YOLO models. It simplifies complex workflows, enabling users to focus on model performance and application. The HUB also offers [cloud training capabilities](../platform/cloud-training.md), comprehensive dataset management, and user-friendly interfaces for both beginners and experienced developers.
 
 ### What types of tasks can Ultralytics YOLO models perform?
 

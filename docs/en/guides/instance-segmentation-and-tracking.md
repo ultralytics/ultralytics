@@ -178,7 +178,7 @@ Instance segmentation identifies and outlines individual objects within an image
 
 ### Why should I use Ultralytics YOLO26 for instance segmentation and tracking over other models like Mask R-CNN or Faster R-CNN?
 
-Ultralytics YOLO26 offers real-time performance, superior [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of use compared to other models like Mask R-CNN or Faster R-CNN. YOLO26 processes images in a single pass (one-stage detection), making it significantly faster while maintaining high precision. It also provides seamless integration with [Ultralytics HUB](https://www.ultralytics.com/hub), allowing users to manage models, datasets, and training pipelines efficiently. For applications requiring both speed and accuracy, YOLO26 provides an optimal balance.
+Ultralytics YOLO26 offers real-time performance, superior [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of use compared to other models like Mask R-CNN or Faster R-CNN. YOLO26 processes images in a single pass (one-stage detection), making it significantly faster while maintaining high precision. It also provides seamless integration with [Ultralytics Platform](https://platform.ultralytics.com), allowing users to manage models, datasets, and training pipelines efficiently. For applications requiring both speed and accuracy, YOLO26 provides an optimal balance.
 
 ### Are there any datasets provided by Ultralytics suitable for training YOLO26 models for instance segmentation and tracking?
 

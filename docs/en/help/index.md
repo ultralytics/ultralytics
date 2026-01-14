@@ -32,11 +32,11 @@ For more details on YOLO26, visit the [YOLO26 documentation](../models/yolo26.md
 
 Contributing to Ultralytics YOLO repositories is straightforward. Start by reviewing the [Contributing Guide](contributing.md) to understand the protocols for submitting pull requests, reporting bugs, and more. You'll also need to sign the [Contributor License Agreement (CLA)](CLA.md) to ensure your contributions are legally recognized. For effective bug reporting, refer to the [Minimum Reproducible Example (MRE) Guide](minimum-reproducible-example.md).
 
-### Why should I use Ultralytics HUB for my machine learning projects?
+### Why should I use Ultralytics Platform for my machine learning projects?
 
-Ultralytics HUB offers a seamless, no-code solution for managing your machine learning projects. It enables you to generate, train, and deploy AI models like YOLO26 effortlessly. Unique features include cloud training, real-time tracking, and intuitive dataset management. Ultralytics HUB simplifies the entire workflow, from data processing to [model deployment](https://www.ultralytics.com/glossary/model-deployment), making it an indispensable tool for both beginners and advanced users.
+Ultralytics Platform offers a seamless, no-code solution for managing your machine learning projects. It enables you to generate, train, and deploy AI models like YOLO26 effortlessly. Unique features include cloud training, real-time tracking, and intuitive dataset management. Ultralytics Platform simplifies the entire workflow, from data processing to [model deployment](https://www.ultralytics.com/glossary/model-deployment), making it an indispensable tool for both beginners and advanced users.
 
-To get started, visit [Ultralytics HUB Quickstart](../hub/quickstart.md).
+To get started, visit [Ultralytics Platform Quickstart](../platform/quickstart.md).
 
 ### What is Continuous Integration (CI) in Ultralytics, and how does it ensure high-quality code?
 

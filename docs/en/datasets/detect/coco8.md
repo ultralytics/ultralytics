@@ -21,7 +21,7 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8 dataset is a compact yet p
   <strong>Watch:</strong> Ultralytics COCO Dataset Overview
 </p>
 
-COCO8 is fully compatible with [Ultralytics HUB](https://hub.ultralytics.com/) and [YOLO26](../../models/yolo26.md), enabling seamless integration into your computer vision workflows.
+COCO8 is fully compatible with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](../../models/yolo26.md), enabling seamless integration into your computer vision workflows.
 
 ## Dataset YAML
 
@@ -121,9 +121,9 @@ You can train a YOLO26 model on COCO8 using either Python or the CLI:
 
 For additional training options, refer to the [YOLO Training documentation](../../modes/train.md).
 
-### Why Should I Use Ultralytics HUB for Managing My COCO8 Training?
+### Why Should I Use Ultralytics Platform for Managing My COCO8 Training?
 
-[Ultralytics HUB](https://hub.ultralytics.com/) streamlines dataset management, training, and deployment for [YOLO](https://docs.ultralytics.com/models/yolo26/) models—including COCO8. With features like cloud training, real-time monitoring, and intuitive dataset handling, HUB enables you to launch experiments with a single click and eliminates manual setup hassles. Learn more about [Ultralytics HUB](https://hub.ultralytics.com/) and how it can accelerate your computer vision projects.
+[Ultralytics Platform](https://platform.ultralytics.com/) streamlines dataset management, training, and deployment for [YOLO](https://docs.ultralytics.com/models/yolo26/) models—including COCO8. With features like cloud training, real-time monitoring, and intuitive dataset handling, HUB enables you to launch experiments with a single click and eliminates manual setup hassles. Learn more about [Ultralytics Platform](https://platform.ultralytics.com/) and how it can accelerate your computer vision projects.
 
 ### What Are the Benefits of Using Mosaic Augmentation in Training With the COCO8 Dataset?
 

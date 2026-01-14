@@ -428,6 +428,222 @@ POST /api/exports
 GET /api/exports/{exportId}
 ```
 
+## Activity API
+
+Track and manage activity events for your account.
+
+### List Activity
+
+```
+GET /api/activity
+```
+
+**Query Parameters:**
+
+| Parameter    | Type   | Description               |
+| ------------ | ------ | ------------------------- |
+| `startDate`  | string | Filter from date (ISO)    |
+| `endDate`    | string | Filter to date (ISO)      |
+| `search`     | string | Search in event messages  |
+
+### Mark Events Seen
+
+```
+POST /api/activity/mark-seen
+```
+
+### Archive Events
+
+```
+POST /api/activity/archive
+```
+
+## Trash API
+
+Manage soft-deleted resources (30-day retention).
+
+### List Trash
+
+```
+GET /api/trash
+```
+
+### Restore Item
+
+```
+POST /api/trash
+```
+
+**Body:**
+
+```json
+{
+    "itemId": "item_abc123",
+    "type": "dataset"
+}
+```
+
+### Empty Trash
+
+```
+POST /api/trash/empty
+```
+
+Permanently deletes all items in trash.
+
+## Billing API
+
+Manage credits and subscriptions.
+
+### Get Balance
+
+```
+GET /api/billing/balance
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "cashBalance": 5000000,
+        "creditBalance": 20000000,
+        "reservedAmount": 0,
+        "totalBalance": 25000000
+    }
+}
+```
+
+!!! note "Micro-USD"
+
+    All amounts are in micro-USD (1,000,000 = $1.00) for precise accounting.
+
+### Get Usage Summary
+
+```
+GET /api/billing/usage-summary
+```
+
+Returns plan details, limits, and usage metrics.
+
+### Create Checkout Session
+
+```
+POST /api/billing/checkout-session
+```
+
+**Body:**
+
+```json
+{
+    "amount": 25
+}
+```
+
+Creates a Stripe checkout session for credit purchase ($5-$1000).
+
+### Create Subscription Checkout
+
+```
+POST /api/billing/subscription-checkout
+```
+
+Creates a Stripe checkout session for Pro subscription.
+
+### Create Portal Session
+
+```
+POST /api/billing/portal-session
+```
+
+Returns URL to Stripe billing portal for subscription management.
+
+### Get Payment History
+
+```
+GET /api/billing/payments
+```
+
+Returns list of payment transactions from Stripe.
+
+## Storage API
+
+### Get Storage Info
+
+```
+GET /api/storage
+```
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "used": 1073741824,
+        "limit": 107374182400,
+        "percentage": 1.0
+    }
+}
+```
+
+## GDPR API
+
+GDPR compliance endpoints for data export and deletion.
+
+### Export/Delete Account Data
+
+```
+POST /api/gdpr
+```
+
+**Body:**
+
+```json
+{
+    "action": "export"
+}
+```
+
+| Action     | Description                    |
+| ---------- | ------------------------------ |
+| `export`   | Download all account data      |
+| `delete`   | Delete account and all data    |
+
+!!! warning "Irreversible Action"
+
+    Account deletion is permanent and cannot be undone. All data, models, and deployments will be deleted.
+
+## API Keys API
+
+### List API Keys
+
+```
+GET /api/api-keys
+```
+
+### Create API Key
+
+```
+POST /api/api-keys
+```
+
+**Body:**
+
+```json
+{
+    "name": "training-server",
+    "scopes": ["training", "models"]
+}
+```
+
+### Delete API Key
+
+```
+DELETE /api/api-keys/{keyId}
+```
+
 ## Error Codes
 
 | Code               | Description                |

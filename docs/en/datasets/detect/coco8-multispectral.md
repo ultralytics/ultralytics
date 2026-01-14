@@ -14,7 +14,7 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8-Multispectral dataset is a
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/coco8-multispectral-overview.avif" alt="Multispectral Imagery Overview">
 </p>
 
-COCO8-Multispectral is fully compatible with [Ultralytics HUB](https://hub.ultralytics.com/) and [YOLO26](../../models/yolo26.md), ensuring seamless integration into your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workflows.
+COCO8-Multispectral is fully compatible with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](../../models/yolo26.md), ensuring seamless integration into your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workflows.
 
 <p align="center">
   <br>
@@ -133,9 +133,9 @@ The Ultralytics COCO8-Multispectral dataset is designed for rapid testing and de
 
 Multispectral data provides additional spectral information beyond standard RGB, enabling models to distinguish objects based on subtle differences in reflectance across wavelengths. This can enhance detection accuracy, especially in challenging scenarios. Learn more about [multispectral imaging](https://en.wikipedia.org/wiki/Multispectral_imaging) and its applications in [advanced computer vision](https://www.ultralytics.com/blog/ai-in-aviation-a-runway-to-smarter-airports).
 
-### Is COCO8-Multispectral Compatible With Ultralytics HUB and YOLO Models?
+### Is COCO8-Multispectral Compatible With Ultralytics Platform and YOLO Models?
 
-Yes, COCO8-Multispectral is fully compatible with [Ultralytics HUB](https://hub.ultralytics.com/) and all [YOLO models](../../models/yolo26.md), including the latest YOLO26. This allows you to easily integrate the dataset into your training and validation workflows.
+Yes, COCO8-Multispectral is fully compatible with [Ultralytics Platform](https://platform.ultralytics.com/) and all [YOLO models](../../models/yolo26.md), including the latest YOLO26. This allows you to easily integrate the dataset into your training and validation workflows.
 
 ### Where Can I Find More Information on Data Augmentation Techniques?
 

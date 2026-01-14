@@ -219,7 +219,7 @@ model = YOLO("yolo26n-pose.pt")  # load a pretrained model (recommended for trai
 results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
 ```
 
-For comprehensive details on training, refer to the [Train Section](#train). You can also use [Ultralytics HUB](https://www.ultralytics.com/hub) for a no-code approach to training custom pose estimation models.
+For comprehensive details on training, refer to the [Train Section](#train). You can also use [Ultralytics Platform](https://platform.ultralytics.com) for a no-code approach to training custom pose estimation models.
 
 ### How do I validate a trained YOLO26-pose model?
 

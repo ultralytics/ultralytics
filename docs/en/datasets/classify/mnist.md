@@ -148,9 +148,9 @@ For a detailed list of available training arguments, refer to the [Training](../
 
 The MNIST dataset contains only handwritten digits, whereas the Extended MNIST (EMNIST) dataset includes both digits and uppercase and lowercase letters. EMNIST was developed as a successor to MNIST and utilizes the same 28×28 pixel format for the images, making it compatible with tools and models designed for the original MNIST dataset. This broader range of characters in EMNIST makes it useful for a wider variety of machine learning applications.
 
-### Can I use Ultralytics HUB to train models on custom datasets like MNIST?
+### Can I use Ultralytics Platform to train models on custom datasets like MNIST?
 
-Yes, you can use [Ultralytics HUB](https://docs.ultralytics.com/hub/) to train models on custom datasets like MNIST. Ultralytics HUB offers a user-friendly interface for uploading datasets, training models, and managing projects without needing extensive coding knowledge. For more details on how to get started, check out the [Ultralytics HUB Quickstart](https://docs.ultralytics.com/hub/quickstart/) page.
+Yes, you can use [Ultralytics Platform](https://docs.ultralytics.com/platform/) to train models on custom datasets like MNIST. Ultralytics Platform offers a user-friendly interface for uploading datasets, training models, and managing projects without needing extensive coding knowledge. For more details on how to get started, check out the [Ultralytics Platform Quickstart](https://docs.ultralytics.com/platform/quickstart/) page.
 
 ### How does MNIST compare to other image classification datasets?
 

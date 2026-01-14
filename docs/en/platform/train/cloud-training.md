@@ -57,20 +57,28 @@ Choose your compute resources:
 
 <!-- Screenshot: platform-training-gpu.avif -->
 
-| GPU       | VRAM | Speed     | Cost/Hour |
-| --------- | ---- | --------- | --------- |
-| RTX 3090  | 24GB | Good      | $0.44     |
-| RTX 4090  | 24GB | Fast      | $0.74     |
-| L40S      | 48GB | Fast      | $1.14     |
-| A100 40GB | 40GB | Very Fast | $1.29     |
-| A100 80GB | 80GB | Very Fast | $1.99     |
-| H100 80GB | 80GB | Fastest   | $3.99     |
+| GPU            | VRAM | Speed     | Cost/Hour |
+| -------------- | ---- | --------- | --------- |
+| RTX 6000 Pro   | 96GB | Very Fast | **Free**  |
+| M4 Pro (Mac)   | 64GB | Fast      | **Free**  |
+| RTX 3090       | 24GB | Good      | $0.44     |
+| RTX 4090       | 24GB | Fast      | $0.74     |
+| L40S           | 48GB | Fast      | $1.14     |
+| A100 40GB      | 40GB | Very Fast | $1.29     |
+| A100 80GB      | 80GB | Very Fast | $1.99     |
+| H100 80GB      | 80GB | Fastest   | $3.99     |
 
 !!! tip "GPU Selection"
 
-    - **RTX 4090**: Best value for most training jobs
+    - **RTX 6000 Pro** (Free): Excellent for most training jobs on Ultralytics infrastructure
+    - **M4 Pro** (Free): Apple Silicon option for compatible workloads
+    - **RTX 4090**: Best value for paid cloud training
     - **A100 80GB**: Required for large batch sizes or big models
     - **H100**: Maximum performance for time-sensitive training
+
+!!! success "Free Training Tier"
+
+    The RTX 6000 Pro Ada (96GB VRAM) and M4 Pro GPUs are available at no cost, running on Ultralytics infrastructure. These are ideal for getting started and regular training jobs.
 
 ### Step 4: Start Training
 
@@ -285,11 +293,61 @@ Training pauses at the end of the current epoch. Your checkpoint is saved, and y
 
 ### Can I use custom training arguments?
 
-Yes, advanced users can specify additional arguments in the training configuration. Common options:
+Yes, advanced users can specify additional arguments in the training configuration.
 
-| Argument   | Description             |
-| ---------- | ----------------------- |
-| `patience` | Early stopping patience |
-| `lr0`      | Initial learning rate   |
-| `augment`  | Enable augmentation     |
-| `cache`    | Cache images in RAM     |
+## Training Parameters Reference
+
+### Core Parameters
+
+| Parameter  | Type  | Default | Range     | Description                 |
+| ---------- | ----- | ------- | --------- | --------------------------- |
+| `epochs`   | int   | 100     | 1+        | Number of training epochs   |
+| `batch`    | int   | 16      | -1 = auto | Batch size (-1 for auto)    |
+| `imgsz`    | int   | 640     | 32+       | Input image size            |
+| `patience` | int   | 100     | 0+        | Early stopping patience     |
+| `workers`  | int   | 8       | 0+        | Dataloader workers          |
+| `cache`    | bool  | False   | -         | Cache images (ram/disk)     |
+
+### Learning Rate Parameters
+
+| Parameter         | Type  | Default | Range   | Description          |
+| ----------------- | ----- | ------- | ------- | -------------------- |
+| `lr0`             | float | 0.01    | 0.0-1.0 | Initial learning rate |
+| `lrf`             | float | 0.01    | 0.0-1.0 | Final LR factor      |
+| `momentum`        | float | 0.937   | 0.0-1.0 | SGD momentum         |
+| `weight_decay`    | float | 0.0005  | 0.0-1.0 | L2 regularization    |
+| `warmup_epochs`   | float | 3.0     | 0+      | Warmup epochs        |
+| `cos_lr`          | bool  | False   | -       | Cosine LR scheduler  |
+
+### Augmentation Parameters
+
+| Parameter     | Type  | Default | Range   | Description              |
+| ------------- | ----- | ------- | ------- | ------------------------ |
+| `hsv_h`       | float | 0.015   | 0.0-1.0 | HSV hue augmentation     |
+| `hsv_s`       | float | 0.7     | 0.0-1.0 | HSV saturation           |
+| `hsv_v`       | float | 0.4     | 0.0-1.0 | HSV value                |
+| `degrees`     | float | 0.0     | -       | Rotation degrees         |
+| `translate`   | float | 0.1     | 0.0-1.0 | Translation fraction     |
+| `scale`       | float | 0.5     | 0.0-1.0 | Scale factor             |
+| `fliplr`      | float | 0.5     | 0.0-1.0 | Horizontal flip prob     |
+| `flipud`      | float | 0.0     | 0.0-1.0 | Vertical flip prob       |
+| `mosaic`      | float | 1.0     | 0.0-1.0 | Mosaic augmentation      |
+| `mixup`       | float | 0.0     | 0.0-1.0 | Mixup augmentation       |
+| `copy_paste`  | float | 0.0     | 0.0-1.0 | Copy-paste (segment)     |
+
+### Optimizer Selection
+
+| Value    | Description                    |
+| -------- | ------------------------------ |
+| `auto`   | Automatic selection (default)  |
+| `SGD`    | Stochastic Gradient Descent    |
+| `Adam`   | Adam optimizer                 |
+| `AdamW`  | Adam with weight decay         |
+
+!!! tip "Task-Specific Parameters"
+
+    Some parameters only apply to specific tasks:
+
+    - **Segment**: `overlap_mask`, `mask_ratio`, `copy_paste`
+    - **Pose**: `pose` (loss weight), `kobj` (keypoint objectness)
+    - **Classify**: `dropout`, `erasing`, `auto_augment`

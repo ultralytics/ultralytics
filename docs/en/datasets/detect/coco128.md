@@ -21,7 +21,7 @@ keywords: COCO128, Ultralytics, dataset, object detection, YOLO26, training, val
   <strong>Watch:</strong> Ultralytics COCO Dataset Overview
 </p>
 
-This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 

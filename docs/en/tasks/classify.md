@@ -21,7 +21,7 @@ The output of an image classifier is a single class label and a confidence score
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Image Classification using Ultralytics HUB
+  <strong>Watch:</strong> Explore Ultralytics YOLO Tasks: Image Classification using Ultralytics Platform
 </p>
 
 !!! tip

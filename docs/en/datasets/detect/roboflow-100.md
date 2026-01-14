@@ -103,7 +103,7 @@ Roboflow 100 is invaluable for various applications related to [computer vision]
 - Compare model performance across different [neural network](https://www.ultralytics.com/glossary/neural-network-nn) architectures and [optimization](https://www.ultralytics.com/glossary/optimization-algorithm) techniques.
 - Identify domain-specific challenges that may require specialized [model training tips](../../guides/model-training-tips.md) or [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) approaches like [transfer learning](https://www.ultralytics.com/glossary/transfer-learning).
 
-For more ideas and inspiration on real-world applications, explore [our guides on practical projects](../../guides/index.md) or check out [Ultralytics HUB](https://www.ultralytics.com/hub) for streamlined [model training](../../modes/train.md) and [deployment](../../guides/model-deployment-options.md).
+For more ideas and inspiration on real-world applications, explore [our guides on practical projects](../../guides/index.md) or check out [Ultralytics Platform](https://platform.ultralytics.com) for streamlined [model training](../../modes/train.md) and [deployment](../../guides/model-deployment-options.md).
 
 ## Usage
 

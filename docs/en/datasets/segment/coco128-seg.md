@@ -16,7 +16,7 @@ keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, mod
 - **Classes**: Same 80 object categories as COCO.
 - **Labels**: YOLO-format polygons saved beside each image inside `labels/{train,val}`.
 
-This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
@@ -88,7 +88,7 @@ We would like to acknowledge the COCO Consortium for creating and maintaining th
 
 ### What is the COCO128-Seg dataset, and how is it used in Ultralytics YOLO26?
 
-The **COCO128-Seg dataset** is a compact instance segmentation dataset by Ultralytics, consisting of the first 128 images from the COCO train 2017 set. This dataset is tailored for testing and debugging segmentation models or experimenting with new detection methods. It is particularly useful with Ultralytics [YOLO26](https://github.com/ultralytics/ultralytics) and [HUB](https://hub.ultralytics.com/) for rapid iteration and pipeline error-checking before scaling to larger datasets. For detailed usage, refer to the model [Training](../../modes/train.md) page.
+The **COCO128-Seg dataset** is a compact instance segmentation dataset by Ultralytics, consisting of the first 128 images from the COCO train 2017 set. This dataset is tailored for testing and debugging segmentation models or experimenting with new detection methods. It is particularly useful with Ultralytics [YOLO26](https://github.com/ultralytics/ultralytics) and [Platform](https://platform.ultralytics.com/) for rapid iteration and pipeline error-checking before scaling to larger datasets. For detailed usage, refer to the model [Training](../../modes/train.md) page.
 
 ### How can I train a YOLO26n-seg model using the COCO128-Seg dataset?
 

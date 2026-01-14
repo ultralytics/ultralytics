@@ -92,7 +92,7 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO-OBB (Oriented Bounding Boxes) Models on DOTA Dataset using Ultralytics HUB
+  <strong>Watch:</strong> How to Train Ultralytics YOLO-OBB (Oriented Bounding Boxes) Models on DOTA Dataset using Ultralytics Platform
 </p>
 
 ### Dataset format

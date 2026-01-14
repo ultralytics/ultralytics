@@ -93,9 +93,9 @@ For detailed dataset formatting and additional options, refer to our [Tips for M
 
 Evaluating your YOLO model performance is crucial to understanding its efficacy. Key metrics include [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP), [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), and F1 score. These metrics help assess the accuracy and [precision](https://www.ultralytics.com/glossary/precision) of object detection tasks. You can learn more about these metrics and how to improve your model in our [YOLO Performance Metrics](yolo-performance-metrics.md) guide.
 
-### Why should I use Ultralytics HUB for my computer vision projects?
+### Why should I use Ultralytics Platform for my computer vision projects?
 
-Ultralytics HUB is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics HUB](https://docs.ultralytics.com/hub/) quickstart guide.
+Ultralytics Platform is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics Platform](https://docs.ultralytics.com/platform/) quickstart guide.
 
 ### What are the common issues faced during YOLO model training, and how can I resolve them?
 

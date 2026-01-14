@@ -120,7 +120,7 @@ The Crack Segmentation Dataset is a collection of 4029 static images designed fo
 
 ### How do I train a model using the Crack Segmentation Dataset with Ultralytics YOLO26?
 
-To train an [Ultralytics YOLO26](../../models/yolo26.md) model on this dataset, use the provided Python or CLI examples. Detailed instructions and parameters are available on the model [Training](../../modes/train.md) page. You can manage your training process using tools like [Ultralytics HUB](https://www.ultralytics.com/hub).
+To train an [Ultralytics YOLO26](../../models/yolo26.md) model on this dataset, use the provided Python or CLI examples. Detailed instructions and parameters are available on the model [Training](../../modes/train.md) page. You can manage your training process using tools like [Ultralytics Platform](https://platform.ultralytics.com).
 
 !!! example "Train Example"
 

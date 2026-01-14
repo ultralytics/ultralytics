@@ -22,12 +22,23 @@ keywords: Ultralytics Platform, datasets, dataset management, YOLO, data upload,
 
 Ultralytics Platform accepts multiple upload formats for flexibility:
 
-| Format          | Description                                       |
-| --------------- | ------------------------------------------------- |
-| **Images**      | Individual image files (JPG, PNG, WebP, TIFF)     |
-| **ZIP Archive** | Compressed folder with images and optional labels |
-| **Video**       | MP4, AVI files - frames extracted at ~1 fps       |
-| **YOLO Format** | Standard YOLO directory structure with labels     |
+| Format          | Description                                         |
+| --------------- | --------------------------------------------------- |
+| **Images**      | Individual image files (JPG, PNG, WebP, TIFF, RAW)  |
+| **ZIP Archive** | Compressed folder with images and optional labels   |
+| **Video**       | MP4, AVI files - frames extracted at ~1 fps         |
+| **YOLO Format** | Standard YOLO directory structure with labels       |
+
+### Video Frame Extraction
+
+When uploading videos, frames are automatically extracted:
+
+- **Frame rate**: ~1 frame per second
+- **Maximum frames**: 100 frames per video
+- **Processing**: Client-side extraction before upload
+- **Format**: Frames converted to standard image format
+
+This is ideal for creating training datasets from surveillance footage, action recordings, or any video source.
 
 ### Preparing Your Dataset
 
@@ -254,9 +265,19 @@ See [Cloud Training](../train/cloud-training.md) for details.
 Your data is processed and stored in your selected region (US, EU, or AP). Images are:
 
 1. Validated for format and size
-2. Normalized if larger than 4096px
-3. Stored securely with content verification
-4. Never shared without your permission
+2. Normalized if larger than 4096px (preserving aspect ratio)
+3. Stored using Content-Addressable Storage (CAS) with SHA-256 hashing
+4. Thumbnails generated at 256px for fast browsing
+5. Never shared without your permission
+
+### How does storage work?
+
+Ultralytics Platform uses **Content-Addressable Storage (CAS)** for efficient storage:
+
+- **Deduplication**: Identical images uploaded by different users are stored only once
+- **Integrity**: SHA-256 hashing ensures data integrity
+- **Efficiency**: Reduces storage costs and speeds up processing
+- **Regional**: Data stays in your selected region (US, EU, or AP)
 
 ### Can I add images to an existing dataset?
 

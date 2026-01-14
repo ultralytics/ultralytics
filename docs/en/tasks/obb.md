@@ -217,7 +217,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 OBB detection with YOLO26 has numerous practical applications across various industries:
 
-- **Maritime and Port Management**: Detecting ships and vessels at various angles for [fleet management](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo26-for-obb-object-detection) and monitoring.
+- **Maritime and Port Management**: Detecting ships and vessels at various angles for [fleet management](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo11-for-obb-object-detection) and monitoring.
 - **Urban Planning**: Analyzing buildings and infrastructure from aerial imagery.
 - **Agriculture**: Monitoring crops and agricultural equipment from drone footage.
 - **Energy Sector**: Inspecting solar panels and wind turbines at different orientations.

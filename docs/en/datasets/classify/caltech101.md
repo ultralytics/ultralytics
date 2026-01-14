@@ -16,7 +16,7 @@ The [Caltech-101](https://data.caltech.edu/records/mzrjq-6wc02) dataset is a wid
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics HUB
+  <strong>Watch:</strong> How to Train <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> Model using Caltech-256 Dataset with Ultralytics Platform
 </p>
 
 !!! note "Automatic Data Splitting"
@@ -162,6 +162,6 @@ Citing the Caltech-101 dataset in your research acknowledges the creators' contr
 
 Citing helps in maintaining the integrity of academic work and assists peers in locating the original resource.
 
-### Can I use Ultralytics HUB for training models on the Caltech-101 dataset?
+### Can I use Ultralytics Platform for training models on the Caltech-101 dataset?
 
-Yes, you can use [Ultralytics HUB](https://www.ultralytics.com/hub) for training models on the Caltech-101 dataset. Ultralytics HUB provides an intuitive platform for managing datasets, training models, and deploying them without extensive coding. For a detailed guide, refer to the [how to train your custom models with Ultralytics HUB](https://www.ultralytics.com/blog/how-to-train-your-custom-models-with-ultralytics-hub) blog post.
+Yes, you can use [Ultralytics Platform](https://platform.ultralytics.com) for training models on the Caltech-101 dataset. Ultralytics Platform provides an intuitive platform for managing datasets, training models, and deploying them without extensive coding. For a detailed guide, refer to the [how to train your custom models with Ultralytics Platform](https://www.ultralytics.com/blog/how-to-train-your-custom-models-with-ultralytics-hub) blog post.

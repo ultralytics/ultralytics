@@ -18,7 +18,7 @@ A brain tumor detection dataset consists of medical images from MRI or CT scans,
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Brain Tumor Detection using Ultralytics HUB
+  <strong>Watch:</strong> Brain Tumor Detection using Ultralytics Platform
 </p>
 
 ## Dataset Structure

@@ -60,7 +60,7 @@ Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) for Enterprise pri
 
 ## Credits
 
-Credits are the currency for Platform compute services.
+Credits are the currency for Platform compute services. All amounts are stored internally in **micro-USD** (1 dollar = 1,000,000 micro-USD) for precise accounting.
 
 ### Credit Balance
 
@@ -68,11 +68,18 @@ View your balance in Settings > Billing:
 
 <!-- Screenshot: platform-billing-credits.avif -->
 
-| Balance Type  | Description              |
-| ------------- | ------------------------ |
-| **Available** | Credits ready to use     |
-| **Reserved**  | Held for active training |
-| **Expiring**  | Credits expiring soon    |
+| Balance Type       | Description                                   |
+| ------------------ | --------------------------------------------- |
+| **Cash Balance**   | Purchased credits (from Stripe top-ups)       |
+| **Credit Balance** | Promotional credits (signup, monthly rewards) |
+| **Reserved**       | Held for active training jobs                 |
+| **Available**      | Total balance minus reserved amount           |
+
+Your actual available balance for starting new training is calculated as:
+
+```
+Available = (Cash Balance + Credit Balance) - Reserved Amount
+```
 
 ### Credit Uses
 
@@ -88,13 +95,13 @@ Credits are consumed by:
 
 Credits have expiration dates:
 
-- **Signup credits**: 30 days
-- **Monthly credits**: 30 days from issue
+- **Signup credits**: 30 days from account creation
+- **Monthly credits**: 30 days from issue date
 - **Purchased credits**: Never expire
 
-!!! tip "Use Expiring Credits First"
+!!! tip "FIFO Credit Consumption"
 
-    Expiring credits are used before non-expiring credits.
+    Credits are consumed in FIFO (First In, First Out) order - oldest expiring credits are used first. This ensures promotional credits are used before they expire, while your purchased credits remain available longer.
 
 ## Add Credits
 
@@ -122,6 +129,31 @@ Top up your balance:
 | $100   | -     | $100  |
 | $500   | -     | $500  |
 | $1000  | -     | $1000 |
+
+## Training Cost Flow
+
+Cloud training uses a **hold/settle/release** system to ensure you're never charged more than the estimated cost shown before training starts.
+
+```mermaid
+flowchart LR
+    A[Start Training] --> B[Create Hold]
+    B --> C{Training Complete?}
+    C -->|Yes| D[Settle: Charge Actual Cost]
+    C -->|Cancelled| E[Release: Full Refund]
+    D --> F[Refund Excess]
+```
+
+### How It Works
+
+1. **Estimate**: Platform calculates estimated cost based on model size, dataset size, epochs, and GPU
+2. **Hold**: Estimated cost (plus 20% safety margin) is reserved from your balance
+3. **Train**: Reserved amount shows as "Reserved" in your balance during training
+4. **Settle**: After completion, you're charged only for actual GPU time used
+5. **Refund**: Any excess is returned proportionally (credits first, then cash)
+
+!!! success "Consumer Protection"
+
+    You're **never charged more than the estimate** shown before training. If training completes early or is cancelled, you only pay for actual compute time used.
 
 ## Training Costs
 

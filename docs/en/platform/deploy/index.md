@@ -31,8 +31,16 @@ Ultralytics Platform offers multiple deployment paths:
 
 ## Workflow
 
-```
-Train Model → Test in Browser → Deploy Endpoint → Monitor
+```mermaid
+graph LR
+    A[✅ Test] --> B[⚙️ Configure]
+    B --> C[🌐 Deploy]
+    C --> D[📊 Monitor]
+
+    style A fill:#4CAF50,color:#fff
+    style B fill:#2196F3,color:#fff
+    style C fill:#FF9800,color:#fff
+    style D fill:#9C27B0,color:#fff
 ```
 
 | Stage | Description |

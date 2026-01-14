@@ -10,6 +10,18 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 
 <!-- Screenshot: platform-annotate-toolbar.avif -->
 
+```mermaid
+graph TB
+    subgraph Manual["✏️ Manual Tools"]
+        A[Box] & B[Polygon] & C[Keypoint] & D[OBB] & E[Classify]
+    end
+    subgraph AI["🤖 AI-Assisted"]
+        F[SAM Smart] & G[Auto-Annotate]
+    end
+    Manual --> H[📁 Save Labels]
+    AI --> H
+```
+
 ## Supported Task Types
 
 The annotation editor supports all 5 YOLO task types:

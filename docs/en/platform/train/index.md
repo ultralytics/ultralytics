@@ -21,8 +21,18 @@ The Training section helps you:
 
 ## Workflow
 
-```
-Create Project → Upload Model/Train → Monitor → Export
+```mermaid
+graph LR
+    A[📁 Project] --> B[⚙️ Configure]
+    B --> C[🚀 Train]
+    C --> D[📈 Monitor]
+    D --> E[📦 Export]
+
+    style A fill:#4CAF50,color:#fff
+    style B fill:#2196F3,color:#fff
+    style C fill:#FF9800,color:#fff
+    style D fill:#9C27B0,color:#fff
+    style E fill:#00BCD4,color:#fff
 ```
 
 | Stage | Description |

@@ -52,9 +52,24 @@ All in one platform with native support for YOLO11 and YOLO26 models.
 
 ## Workflow: Data → Train → Deploy
 
-<!-- Screenshot: platform-workflow.avif -->
-
 The Platform follows a streamlined three-stage workflow:
+
+```mermaid
+graph LR
+    subgraph Data["📁 Data"]
+        A[Upload] --> B[Annotate]
+        B --> C[Analyze]
+    end
+    subgraph Train["🚀 Train"]
+        D[Configure] --> E[Train on GPU]
+        E --> F[View Metrics]
+    end
+    subgraph Deploy["🌐 Deploy"]
+        G[Test] --> H[Deploy Endpoint]
+        H --> I[Monitor]
+    end
+    Data --> Train --> Deploy
+```
 
 | Stage | Features |
 |-------|----------|

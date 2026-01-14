@@ -8,6 +8,23 @@ keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model t
 
 [Ultralytics Platform](https://platform.ultralytics.com) is designed to be user-friendly and intuitive, allowing users to quickly upload their datasets and train new YOLO models. It offers a range of pretrained models to choose from, making it easy for users to get started. Once a model is trained, it can be tested directly in the browser and deployed to production with a single click.
 
+```mermaid
+journey
+    title Your First Model in 5 Minutes
+    section Sign Up
+      Create account: 5: User
+      Select region: 5: User
+    section Prepare Data
+      Upload dataset: 5: User
+      Review images: 4: User
+    section Train
+      Configure training: 5: User
+      Monitor progress: 3: Platform
+    section Deploy
+      Test model: 5: User
+      Deploy endpoint: 5: User
+```
+
 <p align="center">
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/qE-dfbB5Sis"
     title="YouTube video player" frameborder="0"

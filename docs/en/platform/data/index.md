@@ -21,8 +21,16 @@ The Data section of Ultralytics Platform helps you:
 
 ## Workflow
 
-```
-Upload Data → Annotate → Review Statistics → Train Model
+```mermaid
+graph LR
+    A[📤 Upload] --> B[🏷️ Annotate]
+    B --> C[📊 Analyze]
+    C --> D[🚀 Train]
+
+    style A fill:#4CAF50,color:#fff
+    style B fill:#2196F3,color:#fff
+    style C fill:#FF9800,color:#fff
+    style D fill:#9C27B0,color:#fff
 ```
 
 | Stage | Description |

@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 
 import numpy as np
 import torch
 
-from ultralytics.nn.modules import Detect, Pose
+from ultralytics.nn.modules import Detect, Pose, Pose26
 from ultralytics.utils import LOGGER
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.files import spaces_in_path
@@ -15,43 +16,42 @@ from ultralytics.utils.tal import make_anchors
 
 
 def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
-    """A wrapper to add TensorFlow compatible inference methods to Detect and Pose layers."""
+    """A wrapper for TensorFlow export compatibility (TF-specific handling is now in head modules)."""
     for m in model.modules():
         if not isinstance(m, Detect):
             continue
         import types
 
-        m._inference = types.MethodType(_tf_inference, m)
-        if type(m) is Pose:
-            m.kpts_decode = types.MethodType(tf_kpts_decode, m)
+        m._get_decode_boxes = types.MethodType(_tf_decode_boxes, m)
+        if isinstance(m, Pose):
+            m.kpts_decode = types.MethodType(partial(_tf_kpts_decode, is_pose26=type(m) is Pose26), m)
     return model
 
 
-def _tf_inference(self, x: list[torch.Tensor]) -> tuple[torch.Tensor]:
-    """Decode boxes and cls scores for tf object detection."""
-    shape = x[0].shape  # BCHW
-    x_cat = torch.cat([xi.view(x[0].shape[0], self.no, -1) for xi in x], 2)
-    box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-    if self.dynamic or self.shape != shape:
-        self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+def _tf_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
+    """Decode bounding boxes for TensorFlow export."""
+    shape = x["feats"][0].shape  # BCHW
+    boxes = x["boxes"]
+    if self.format != "imx" and (self.dynamic or self.shape != shape):
+        self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
         self.shape = shape
-    grid_h, grid_w = shape[2], shape[3]
-    grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
+    grid_h, grid_w = shape[2:4]
+    grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=boxes.device).reshape(1, 4, 1)
     norm = self.strides / (self.stride[0] * grid_size)
-    dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
-    return torch.cat((dbox, cls.sigmoid()), 1)
+    dbox = self.decode_bboxes(self.dfl(boxes) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
+    return dbox
 
 
-def tf_kpts_decode(self, bs: int, kpts: torch.Tensor) -> torch.Tensor:
-    """Decode keypoints for tf pose estimation."""
+def _tf_kpts_decode(self, kpts: torch.Tensor, is_pose26: bool = False) -> torch.Tensor:
+    """Decode keypoints for TensorFlow export."""
     ndim = self.kpt_shape[1]
-    # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
+    bs = kpts.shape[0]
     # Precompute normalization factor to increase numerical stability
     y = kpts.view(bs, *self.kpt_shape, -1)
-    grid_h, grid_w = self.shape[2], self.shape[3]
+    grid_h, grid_w = self.shape[2:4]
     grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
     norm = self.strides / (self.stride[0] * grid_size)
-    a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
+    a = ((y[:, :, :2] + self.anchors) if is_pose26 else (y[:, :, :2] * 2.0 + (self.anchors - 0.5))) * norm
     if ndim == 3:
         a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
     return a.view(bs, self.nk, -1)

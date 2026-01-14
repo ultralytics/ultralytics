@@ -18,7 +18,7 @@ The medical-pills detection dataset is a proof-of-concept (POC) dataset, careful
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to train Ultralytics YOLO11 Model on Medical Pills Detection Dataset in <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-medical-pills-dataset.ipynb">Google Colab</a>
+  <strong>Watch:</strong> How to train Ultralytics YOLO26 Model on Medical Pills Detection Dataset in <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-medical-pills-dataset.ipynb">Google Colab</a>
 </p>
 
 This dataset serves as a foundational resource for automating essential [tasks](https://docs.ultralytics.com/tasks/) such as quality control, packaging automation, and efficient sorting in pharmaceutical workflows. By integrating this dataset into projects, researchers and developers can explore innovative [solutions](https://docs.ultralytics.com/solutions/) that enhance [accuracy](https://www.ultralytics.com/glossary/accuracy), streamline operations, and ultimately contribute to improved healthcare outcomes.
@@ -52,7 +52,7 @@ A YAML configuration file is provided to define the dataset's structure, includi
 
 ## Usage
 
-To train a YOLO11n model on the medical-pills dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For detailed arguments, refer to the model's [Training](../../modes/train.md) page.
+To train a YOLO26n model on the medical-pills dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following examples. For detailed arguments, refer to the model's [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -62,7 +62,7 @@ To train a YOLO11n model on the medical-pills dataset for 100 [epochs](https://w
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="medical-pills.yaml", epochs=100, imgsz=640)
@@ -72,7 +72,7 @@ To train a YOLO11n model on the medical-pills dataset for 100 [epochs](https://w
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=medical-pills.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=medical-pills.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 !!! example "Inference Example"
@@ -136,9 +136,9 @@ If you use the Medical-pills dataset in your research or development work, pleas
 
 The dataset includes 92 images for training and 23 images for validation. Each image is annotated with the class `pill`, enabling effective training and evaluation of models for pharmaceutical applications.
 
-### How can I train a YOLO11 model on the medical-pills dataset?
+### How can I train a YOLO26 model on the medical-pills dataset?
 
-You can train a YOLO11 model for 100 epochs with an image size of 640px using the Python or CLI methods provided. Refer to the [Training Example](#usage) section for detailed instructions and check the [YOLO11 documentation](../../models/yolo11.md) for more information on model capabilities.
+You can train a YOLO26 model for 100 epochs with an image size of 640px using the Python or CLI methods provided. Refer to the [Training Example](#usage) section for detailed instructions and check the [YOLO26 documentation](../../models/yolo26.md) for more information on model capabilities.
 
 ### What are the benefits of using the medical-pills dataset in AI projects?
 
@@ -146,7 +146,7 @@ The dataset enables automation in pill detection, contributing to counterfeit pr
 
 ### How do I perform inference on the medical-pills dataset?
 
-Inference can be done using Python or CLI methods with a fine-tuned YOLO11 model. Refer to the [Inference Example](#usage) section for code snippets and the [Predict mode documentation](../../modes/predict.md) for additional options.
+Inference can be done using Python or CLI methods with a fine-tuned YOLO26 model. Refer to the [Inference Example](#usage) section for code snippets and the [Predict mode documentation](../../modes/predict.md) for additional options.
 
 ### Where can I find the YAML configuration file for the medical-pills dataset?
 

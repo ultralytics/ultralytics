@@ -187,7 +187,7 @@ class RTDETR:
         image_data = np.transpose(image_data, (2, 0, 1))  # Channel first
 
         # Expand the dimensions of the image data to match the expected input shape
-        image_data = np.expand_dims(image_data, axis=0).astype(np.float32)
+        image_data = image_data[None].astype(np.float32)
 
         return image_data
 

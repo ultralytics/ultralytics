@@ -386,7 +386,8 @@ class Tuner:
             metrics = {}
             train_args = {**vars(self.args), **mutated_hyp}
             save_dir = get_save_dir(get_cfg(train_args))
-            train_args["save_dir"] = str(save_dir)  # pass save_dir to subprocess to ensure same path is used
+            train_args["project"] = str(save_dir)  # pass save_dir to subprocess to ensure same path is used
+            train_args["exist_ok"] = True
             weights_dir = save_dir / "weights"
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)

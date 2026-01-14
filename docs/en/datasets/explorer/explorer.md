@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Dive into advanced data exploration with Ultralytics Explorer. Perform semantic searches, execute SQL queries, and leverage AI-powered natural language insights for seamless data analysis.
-keywords: Ultralytics Explorer, data exploration, semantic search, vector similarity, SQL queries, AI, natural language queries, machine learning, OpenAI, LLMs, Ultralytics HUB
+keywords: Ultralytics Explorer, data exploration, semantic search, vector similarity, SQL queries, AI, natural language queries, machine learning, OpenAI, LLMs, Ultralytics Platform
 ---
 
 # VOC Exploration Example
@@ -32,7 +32,7 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
     <br>
     <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run Ultralytics on Gradient"></a>
     <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Ultralytics In Colab"></a>
-    <a href="https://www.kaggle.com/models/ultralytics/yolo11"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
+    <a href="https://www.kaggle.com/models/ultralytics/yolo26"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
     <a href="https://mybinder.org/v2/gh/ultralytics/ultralytics/HEAD?labpath=examples%2Ftutorial.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Open Ultralytics In Binder"></a>
 <br>
 </div>
@@ -45,7 +45,7 @@ Install `ultralytics` and run `yolo explorer` in your terminal to run custom que
 
 !!! warning "Community Note ⚠️"
 
-    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics HUB](https://hub.ultralytics.com/).
+    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Setup
 
@@ -61,7 +61,7 @@ yolo checks
 Utilize the power of vector similarity search to find the similar data points in your dataset along with their distance in the embedding space. Simply create an embeddings table for the given dataset-model pair. It is only needed once, and it is reused automatically.
 
 ```python
-exp = Explorer("VOC.yaml", model="yolo11n.pt")
+exp = Explorer("VOC.yaml", model="yolo26n.pt")
 exp.create_embeddings_table()
 ```
 

@@ -31,7 +31,7 @@ The table below outlines the available MobileSAM model, its pretrained weights, 
 
 | Model Type | Pretrained Weights                                                                            | Tasks Supported                              | Inference | Validation | Training | Export |
 | ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| MobileSAM  | [mobile_sam.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/mobile_sam.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| MobileSAM  | [mobile_sam.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/mobile_sam.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 
 ## MobileSAM Comparison vs YOLO
 
@@ -117,7 +117,7 @@ Just like the original [SAM](sam.md), Ultralytics provides a simple interface fo
 
 ### Model Download
 
-Download the MobileSAM pretrained weights from [Ultralytics assets](https://github.com/ultralytics/assets/releases/download/v8.3.0/mobile_sam.pt).
+Download the MobileSAM pretrained weights from [Ultralytics assets](https://github.com/ultralytics/assets/releases/download/v8.4.0/mobile_sam.pt).
 
 ### Point Prompt
 

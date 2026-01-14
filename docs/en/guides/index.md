@@ -18,7 +18,7 @@ Whether you're a beginner or an expert in [deep learning](https://www.ultralytic
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLO11 Guides Overview
+  <strong>Watch:</strong> Ultralytics YOLO26 Guides Overview
 </p>
 
 ## Guides
@@ -44,13 +44,13 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [NVIDIA DGX Spark](nvidia-dgx-spark.md): Quickstart guide for deploying YOLO models on NVIDIA DGX Spark devices.
 - [NVIDIA Jetson](nvidia-jetson.md): Quickstart guide for deploying YOLO models on NVIDIA Jetson devices.
 - [OpenVINO Latency vs Throughput Modes](optimizing-openvino-latency-vs-throughput-modes.md): Learn latency and throughput optimization techniques for peak YOLO inference performance.
-- [Preprocessing Annotated Data](preprocessing_annotated_data.md): Learn about preprocessing and augmenting image data in computer vision projects using YOLO11, including normalization, dataset augmentation, splitting, and exploratory data analysis (EDA).
+- [Preprocessing Annotated Data](preprocessing_annotated_data.md): Learn about preprocessing and augmenting image data in computer vision projects using YOLO26, including normalization, dataset augmentation, splitting, and exploratory data analysis (EDA).
 - [Raspberry Pi](raspberry-pi.md): Quickstart tutorial to run YOLO models on the latest Raspberry Pi hardware.
 - [ROS Quickstart](ros-quickstart.md): Learn how to integrate YOLO with the Robot Operating System (ROS) for real-time object detection in robotics applications, including Point Cloud and Depth images.
-- [SAHI Tiled Inference](sahi-tiled-inference.md): Comprehensive guide on leveraging SAHI's sliced inference capabilities with YOLO11 for object detection in high-resolution images.
+- [SAHI Tiled Inference](sahi-tiled-inference.md): Comprehensive guide on leveraging SAHI's sliced inference capabilities with YOLO26 for object detection in high-resolution images.
 - [Steps of a Computer Vision Project](steps-of-a-cv-project.md): Learn about the key steps involved in a computer vision project, including defining goals, selecting models, preparing data, and evaluating results.
 - [Tips for Model Training](model-training-tips.md): Explore tips on optimizing [batch sizes](https://www.ultralytics.com/glossary/batch-size), using [mixed precision](https://www.ultralytics.com/glossary/mixed-precision), applying pretrained weights, and more to make training your computer vision model a breeze.
-- [Triton Inference Server Integration](triton-inference-server.md): Dive into the integration of Ultralytics YOLO11 with NVIDIA's Triton Inference Server for scalable and efficient deep learning inference deployments.
+- [Triton Inference Server Integration](triton-inference-server.md): Dive into the integration of Ultralytics YOLO26 with NVIDIA's Triton Inference Server for scalable and efficient deep learning inference deployments.
 - [Vertex AI Deployment with Docker](vertex-ai-deployment-with-docker.md): Streamlined guide to containerizing YOLO models with Docker and deploying them on Google Cloud Vertex AI—covering build, push, autoscaling, and monitoring.
 - [View Inference Images in a Terminal](view-results-in-terminal.md): Use VSCode's integrated terminal to view inference results when using Remote Tunnel or SSH sessions.
 - [YOLO Common Issues](yolo-common-issues.md) ⭐ RECOMMENDED: Practical solutions and troubleshooting tips to the most frequently encountered issues when working with Ultralytics YOLO models.
@@ -77,14 +77,14 @@ Training a custom object detection model with Ultralytics YOLO is straightforwar
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.pt")  # Load a pretrained YOLO model
+        model = YOLO("yolo26n.pt")  # Load a pretrained YOLO model
         model.train(data="path/to/dataset.yaml", epochs=50)  # Train on custom dataset
         ```
 
     === "CLI"
 
         ```bash
-        yolo task=detect mode=train model=yolo11n.pt data=path/to/dataset.yaml epochs=50
+        yolo task=detect mode=train model=yolo26n.pt data=path/to/dataset.yaml epochs=50
         ```
 
 For detailed dataset formatting and additional options, refer to our [Tips for Model Training](model-training-tips.md) guide.
@@ -93,9 +93,9 @@ For detailed dataset formatting and additional options, refer to our [Tips for M
 
 Evaluating your YOLO model performance is crucial to understanding its efficacy. Key metrics include [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP), [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), and F1 score. These metrics help assess the accuracy and [precision](https://www.ultralytics.com/glossary/precision) of object detection tasks. You can learn more about these metrics and how to improve your model in our [YOLO Performance Metrics](yolo-performance-metrics.md) guide.
 
-### Why should I use Ultralytics HUB for my computer vision projects?
+### Why should I use Ultralytics Platform for my computer vision projects?
 
-Ultralytics HUB is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics HUB](https://docs.ultralytics.com/hub/) quickstart guide.
+Ultralytics Platform is a no-code platform that simplifies managing, training, and deploying YOLO models. It supports seamless integration, real-time tracking, and cloud training, making it ideal for both beginners and professionals. Discover more about its features and how it can streamline your workflow with our [Ultralytics Platform](https://docs.ultralytics.com/platform/) quickstart guide.
 
 ### What are the common issues faced during YOLO model training, and how can I resolve them?
 

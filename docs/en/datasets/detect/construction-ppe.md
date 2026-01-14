@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover Construction-PPE, a specialized dataset for detecting helmets, vests, gloves, boots, and goggles in real-world construction sites. Includes compliant and non-compliant scenarios for AI-powered safety monitoring.
-keywords: Construction-PPE, PPE dataset, safety compliance, construction workers, object detection, YOLO11, workplace safety, computer vision
+keywords: Construction-PPE, PPE dataset, safety compliance, construction workers, object detection, YOLO26, workplace safety, computer vision
 ---
 
 # Construction-PPE Dataset
@@ -62,7 +62,7 @@ The Construction-PPE dataset includes a YAML configuration file that defines the
 
 ## Usage
 
-You can train a YOLO11n model on the Construction-PPE dataset for 100 epochs with an image size of 640. The following examples show how to get started quickly. For more options and advanced configurations, see the [Training guide](../../modes/train.md).
+You can train a YOLO26n model on the Construction-PPE dataset for 100 epochs with an image size of 640. The following examples show how to get started quickly. For more options and advanced configurations, see the [Training guide](../../modes/train.md).
 
 !!! example "Train Example"
 
@@ -72,7 +72,7 @@ You can train a YOLO11n model on the Construction-PPE dataset for 100 epochs wit
         from ultralytics import YOLO
 
         # Load pretrained model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Train the model on Construction-PPE dataset
         model.train(data="construction-ppe.yaml", epochs=100, imgsz=640)
@@ -81,7 +81,7 @@ You can train a YOLO11n model on the Construction-PPE dataset for 100 epochs wit
     === "CLI"
 
         ```bash
-        yolo detect train data=construction-ppe.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=construction-ppe.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -125,7 +125,7 @@ The dataset covers helmets, vests, gloves, boots, goggles, and workers, along wi
 
 ### How can I train a YOLO model using the Construction-PPE dataset?
 
-To train a YOLO11 model using the Construction-PPE dataset, you can use the following code snippets:
+To train a YOLO26 model using the Construction-PPE dataset, you can use the following code snippets:
 
 !!! example "Train Example"
 
@@ -135,7 +135,7 @@ To train a YOLO11 model using the Construction-PPE dataset, you can use the foll
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="construction-ppe.yaml", epochs=100, imgsz=640)
@@ -145,7 +145,7 @@ To train a YOLO11 model using the Construction-PPE dataset, you can use the foll
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=construction-ppe.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=construction-ppe.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ### Is this dataset suitable for real-world applications?

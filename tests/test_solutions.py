@@ -78,7 +78,7 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             solutions.ObjectCounter,
             False,
             DEMO_VIDEO,
-            {"region": REGION, "model": "yolo11n-obb.pt", "show": SHOW},
+            {"region": REGION, "model": "yolo26n-obb.pt", "show": SHOW},
         ),
         (
             "Heatmap",
@@ -156,7 +156,7 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             solutions.InstanceSegmentation,
             False,
             DEMO_VIDEO,
-            {"model": "yolo11n-seg.pt", "show": SHOW},
+            {"model": "yolo26n-seg.pt", "show": SHOW},
         ),
         ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL, "show": SHOW}),
         (
@@ -273,7 +273,7 @@ def test_config_update_method_with_invalid_argument():
 def test_plot_with_no_masks():
     """Test that instance segmentation handles cases with no masks."""
     im0 = np.zeros((640, 480, 3), dtype=np.uint8)
-    isegment = solutions.InstanceSegmentation(model="yolo11n-seg.pt")
+    isegment = solutions.InstanceSegmentation(model="yolo26n-seg.pt")
     results = isegment(im0)
     assert results.plot_im is not None
 

@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import logging
-import queue
 import shutil
 import sys
 import threading
@@ -9,75 +8,84 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from ultralytics.utils import MACOS, RANK
+from ultralytics.utils import LOGGER, MACOS, RANK
 from ultralytics.utils.checks import check_requirements
-
-# Initialize default log file
-DEFAULT_LOG_PATH = Path("train.log")
-if RANK in {-1, 0} and DEFAULT_LOG_PATH.exists():
-    DEFAULT_LOG_PATH.unlink(missing_ok=True)
 
 
 class ConsoleLogger:
-    """Console output capture with API/file streaming and deduplication.
+    """Console output capture with batched streaming to file, API, or custom callback.
 
-    Captures stdout/stderr output and streams it to either an API endpoint or local file, with intelligent deduplication
-    to reduce noise from repetitive console output.
+    Captures stdout/stderr output and streams it with intelligent deduplication and configurable batching.
 
     Attributes:
-        destination (str | Path): Target destination for streaming (URL or Path object).
-        is_api (bool): Whether destination is an API endpoint (True) or local file (False).
-        original_stdout: Reference to original sys.stdout for restoration.
-        original_stderr: Reference to original sys.stderr for restoration.
-        log_queue (queue.Queue): Thread-safe queue for buffering log messages.
+        destination (str | Path | None): Target destination for streaming (URL, Path, or None for callback-only).
+        batch_size (int): Number of lines to batch before flushing (default: 1 for immediate).
+        flush_interval (float): Seconds between automatic flushes (default: 5.0).
+        on_flush (callable | None): Optional callback function called with batched content on flush.
         active (bool): Whether console capture is currently active.
-        worker_thread (threading.Thread): Background thread for processing log queue.
-        last_line (str): Last processed line for deduplication.
-        last_time (float): Timestamp of last processed line.
-        last_progress_line (str): Last progress bar line for progress deduplication.
-        last_was_progress (bool): Whether the last line was a progress bar.
 
     Examples:
-        Basic file logging:
+        File logging (immediate):
         >>> logger = ConsoleLogger("training.log")
         >>> logger.start_capture()
         >>> print("This will be logged")
         >>> logger.stop_capture()
 
-        API streaming:
-        >>> logger = ConsoleLogger("https://api.example.com/logs")
+        API streaming with batching:
+        >>> logger = ConsoleLogger("https://api.example.com/logs", batch_size=10)
         >>> logger.start_capture()
-        >>> # All output streams to API
-        >>> logger.stop_capture()
+
+        Custom callback with batching:
+        >>> def my_handler(content, line_count, chunk_id):
+        ...     print(f"Received {line_count} lines")
+        >>> logger = ConsoleLogger(on_flush=my_handler, batch_size=5)
+        >>> logger.start_capture()
     """
 
-    def __init__(self, destination):
-        """Initialize with API endpoint or local file path.
+    def __init__(self, destination=None, batch_size=1, flush_interval=5.0, on_flush=None):
+        """Initialize console logger with optional batching.
 
         Args:
-            destination (str | Path): API endpoint URL (http/https) or local file path for streaming output.
+            destination (str | Path | None): API endpoint URL (http/https), local file path, or None.
+            batch_size (int): Lines to accumulate before flush (1 = immediate, higher = batched).
+            flush_interval (float): Max seconds between flushes when batching.
+            on_flush (callable | None): Callback(content: str, line_count: int, chunk_id: int) for custom handling.
         """
         self.destination = destination
         self.is_api = isinstance(destination, str) and destination.startswith(("http://", "https://"))
-        if not self.is_api:
+        if destination is not None and not self.is_api:
             self.destination = Path(destination)
 
-        # Console capture
+        # Batching configuration
+        self.batch_size = max(1, batch_size)
+        self.flush_interval = flush_interval
+        self.on_flush = on_flush
+
+        # Console capture state
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
-        self.log_queue = queue.Queue(maxsize=1000)
         self.active = False
-        self.worker_thread = None
+        self._log_handler = None  # Track handler for cleanup
 
-        # State tracking
+        # Buffer for batching
+        self.buffer = []
+        self.buffer_lock = threading.Lock()
+        self.flush_thread = None
+        self.chunk_id = 0
+
+        # Deduplication state
         self.last_line = ""
         self.last_time = 0.0
-        self.last_progress_line = ""  # Track last progress line for deduplication
+        self.last_progress_line = ""  # Track progress sequence key for deduplication
         self.last_was_progress = False  # Track if last line was a progress bar
 
     def start_capture(self):
-        """Start capturing console output and redirect stdout/stderr to custom capture objects."""
-        if self.active:
+        """Start capturing console output and redirect stdout/stderr.
+
+        Notes:
+            In DDP training, only activates on rank 0/-1 to prevent duplicate logging.
+        """
+        if self.active or RANK not in {-1, 0}:
             return
 
         self.active = True
@@ -86,23 +94,35 @@ class ConsoleLogger:
 
         # Hook Ultralytics logger
         try:
-            handler = self._LogHandler(self._queue_log)
-            logging.getLogger("ultralytics").addHandler(handler)
+            self._log_handler = self._LogHandler(self._queue_log)
+            logging.getLogger("ultralytics").addHandler(self._log_handler)
         except Exception:
             pass
 
-        self.worker_thread = threading.Thread(target=self._stream_worker, daemon=True)
-        self.worker_thread.start()
+        # Start background flush thread for batched mode
+        if self.batch_size > 1:
+            self.flush_thread = threading.Thread(target=self._flush_worker, daemon=True)
+            self.flush_thread.start()
 
     def stop_capture(self):
-        """Stop capturing console output and restore original stdout/stderr."""
+        """Stop capturing console output and flush remaining buffer."""
         if not self.active:
             return
 
         self.active = False
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
-        self.log_queue.put(None)
+
+        # Remove logging handler to prevent memory leak
+        if self._log_handler:
+            try:
+                logging.getLogger("ultralytics").removeHandler(self._log_handler)
+            except Exception:
+                pass
+            self._log_handler = None
+
+        # Final flush
+        self._flush_buffer()
 
     def _queue_log(self, text):
         """Queue console text with deduplication and timestamp processing."""
@@ -126,12 +146,34 @@ class ConsoleLogger:
             if "─" in line:  # Has thin lines but no thick lines
                 continue
 
-            # Deduplicate completed progress bars only if they match the previous progress line
+            # Only show 100% completion lines for progress bars
             if " ━━" in line:
-                progress_core = line.split(" ━━")[0].strip()
-                if progress_core == self.last_progress_line and self.last_was_progress:
+                is_complete = "100%" in line
+
+                # Skip ALL non-complete progress lines
+                if not is_complete:
                     continue
-                self.last_progress_line = progress_core
+
+                # Extract sequence key to deduplicate multiple 100% lines for same sequence
+                parts = line.split()
+                seq_key = ""
+                if parts:
+                    # Check for epoch pattern (X/Y at start)
+                    if "/" in parts[0] and parts[0].replace("/", "").isdigit():
+                        seq_key = parts[0]  # e.g., "1/3"
+                    elif parts[0] == "Class" and len(parts) > 1:
+                        seq_key = f"{parts[0]}_{parts[1]}"  # e.g., "Class_train:" or "Class_val:"
+                    elif parts[0] in ("train:", "val:"):
+                        seq_key = parts[0]  # Phase identifier
+
+                # Skip if we already showed 100% for this sequence
+                if seq_key and self.last_progress_line == f"{seq_key}:done":
+                    continue
+
+                # Mark this sequence as done
+                if seq_key:
+                    self.last_progress_line = f"{seq_key}:done"
+
                 self.last_was_progress = True
             else:
                 # Skip empty line after progress bar
@@ -152,48 +194,62 @@ class ConsoleLogger:
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 line = f"[{timestamp}] {line}"
 
-            # Queue with overflow protection
-            if not self._safe_put(f"{line}\n"):
-                continue  # Skip if queue handling fails
+            # Add to buffer and check if flush needed
+            should_flush = False
+            with self.buffer_lock:
+                self.buffer.append(line)
+                if len(self.buffer) >= self.batch_size:
+                    should_flush = True
 
-    def _safe_put(self, item):
-        """Safely put item in queue with overflow handling."""
-        try:
-            self.log_queue.put_nowait(item)
-            return True
-        except queue.Full:
-            try:
-                self.log_queue.get_nowait()  # Drop oldest
-                self.log_queue.put_nowait(item)
-                return True
-            except queue.Empty:
-                return False
+            # Flush outside lock to avoid deadlock
+            if should_flush:
+                self._flush_buffer()
 
-    def _stream_worker(self):
-        """Background worker for streaming logs to destination."""
+    def _flush_worker(self):
+        """Background worker that flushes buffer periodically."""
         while self.active:
-            try:
-                log_text = self.log_queue.get(timeout=1)
-                if log_text is None:
-                    break
-                self._write_log(log_text)
-            except queue.Empty:
-                continue
+            time.sleep(self.flush_interval)
+            if self.active:
+                self._flush_buffer()
 
-    def _write_log(self, text):
-        """Write log to API endpoint or local file destination."""
+    def _flush_buffer(self):
+        """Flush buffered lines to destination and/or callback."""
+        with self.buffer_lock:
+            if not self.buffer:
+                return
+            lines = self.buffer.copy()
+            self.buffer.clear()
+            self.chunk_id += 1
+            chunk_id = self.chunk_id  # Capture under lock to avoid race
+
+        content = "\n".join(lines)
+        line_count = len(lines)
+
+        # Call custom callback if provided
+        if self.on_flush:
+            try:
+                self.on_flush(content, line_count, chunk_id)
+            except Exception:
+                pass  # Silently ignore callback errors to avoid flooding stderr
+
+        # Write to destination (file or API)
+        if self.destination is not None:
+            self._write_destination(content)
+
+    def _write_destination(self, content):
+        """Write content to file or API destination."""
         try:
             if self.is_api:
-                import requests  # scoped as slow import
+                import requests
 
-                payload = {"timestamp": datetime.now().isoformat(), "message": text.strip()}
+                payload = {"timestamp": datetime.now().isoformat(), "message": content}
                 requests.post(str(self.destination), json=payload, timeout=5)
             else:
                 self.destination.parent.mkdir(parents=True, exist_ok=True)
                 with self.destination.open("a", encoding="utf-8") as f:
-                    f.write(text)
+                    f.write(content + "\n")
         except Exception as e:
-            print(f"Platform logging error: {e}", file=self.original_stderr)
+            print(f"Console logger write error: {e}", file=self.original_stderr)
 
     class _ConsoleCapture:
         """Lightweight stdout/stderr capture."""
@@ -267,53 +323,71 @@ class SystemLogger:
         self.net_start = psutil.net_io_counters()
         self.disk_start = psutil.disk_io_counters()
 
+        # For rate calculation
+        self._prev_net = self.net_start
+        self._prev_disk = self.disk_start
+        self._prev_time = time.time()
+
     def _init_nvidia(self):
         """Initialize NVIDIA GPU monitoring with pynvml."""
+        if MACOS:
+            return False
+
         try:
-            assert not MACOS
             check_requirements("nvidia-ml-py>=12.0.0")
             self.pynvml = __import__("pynvml")
             self.pynvml.nvmlInit()
             return True
-        except Exception:
+        except Exception as e:
+            import torch
+
+            if torch.cuda.is_available():
+                LOGGER.warning(f"SystemLogger NVML init failed: {e}")
             return False
 
-    def get_metrics(self):
-        """Get current system metrics.
+    def get_metrics(self, rates=False):
+        """Get current system metrics including CPU, RAM, disk, network, and GPU usage.
 
         Collects comprehensive system metrics including CPU usage, RAM usage, disk I/O statistics, network I/O
-        statistics, and GPU metrics (if available). Example output:
+        statistics, and GPU metrics (if available).
 
+        Example output (rates=False, default):
         ```python
-        metrics = {
+        {
             "cpu": 45.2,
             "ram": 78.9,
             "disk": {"read_mb": 156.7, "write_mb": 89.3, "used_gb": 256.8},
             "network": {"recv_mb": 157.2, "sent_mb": 89.1},
             "gpus": {
-                0: {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
-                1: {"usage": 94.1, "memory": 82.7, "temp": 70, "power": 278},
+                "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
+                "1": {"usage": 94.1, "memory": 82.7, "temp": 70, "power": 278},
             },
         }
         ```
 
-        - cpu (float): CPU usage percentage (0-100%)
-        - ram (float): RAM usage percentage (0-100%)
-        - disk (dict):
-            - read_mb (float): Cumulative disk read in MB since initialization
-            - write_mb (float): Cumulative disk write in MB since initialization
-            - used_gb (float): Total disk space used in GB
-        - network (dict):
-            - recv_mb (float): Cumulative network received in MB since initialization
-            - sent_mb (float): Cumulative network sent in MB since initialization
-        - gpus (dict): GPU metrics by device index (e.g., 0, 1) containing:
-            - usage (int): GPU utilization percentage (0-100%)
-            - memory (float): CUDA memory usage percentage (0-100%)
-            - temp (int): GPU temperature in degrees Celsius
-            - power (int): GPU power consumption in watts
+        Example output (rates=True):
+        ```python
+        {
+            "cpu": 45.2,
+            "ram": 78.9,
+            "disk": {"read_mbs": 12.5, "write_mbs": 8.3, "used_gb": 256.8},
+            "network": {"recv_mbs": 5.2, "sent_mbs": 1.1},
+            "gpus": {
+                "0": {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
+            },
+        }
+        ```
+
+        Args:
+            rates (bool): If True, return disk/network as MB/s rates instead of cumulative MB.
 
         Returns:
-            metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with usage data.
+            (dict): Metrics dictionary with cpu, ram, disk, network, and gpus keys.
+
+        Examples:
+            >>> logger = SystemLogger()
+            >>> logger.get_metrics()["cpu"]  # CPU percentage
+            >>> logger.get_metrics(rates=True)["network"]["recv_mbs"]  # MB/s download rate
         """
         import psutil  # scoped as slow import
 
@@ -321,21 +395,44 @@ class SystemLogger:
         disk = psutil.disk_io_counters()
         memory = psutil.virtual_memory()
         disk_usage = shutil.disk_usage("/")
+        now = time.time()
 
         metrics = {
             "cpu": round(psutil.cpu_percent(), 3),
             "ram": round(memory.percent, 3),
-            "disk": {
+            "gpus": {},
+        }
+
+        # Calculate elapsed time since last call
+        elapsed = max(0.1, now - self._prev_time)  # Avoid division by zero
+
+        if rates:
+            # Calculate MB/s rates from delta since last call
+            metrics["disk"] = {
+                "read_mbs": round(max(0, (disk.read_bytes - self._prev_disk.read_bytes) / (1 << 20) / elapsed), 3),
+                "write_mbs": round(max(0, (disk.write_bytes - self._prev_disk.write_bytes) / (1 << 20) / elapsed), 3),
+                "used_gb": round(disk_usage.used / (1 << 30), 3),
+            }
+            metrics["network"] = {
+                "recv_mbs": round(max(0, (net.bytes_recv - self._prev_net.bytes_recv) / (1 << 20) / elapsed), 3),
+                "sent_mbs": round(max(0, (net.bytes_sent - self._prev_net.bytes_sent) / (1 << 20) / elapsed), 3),
+            }
+        else:
+            # Cumulative MB since initialization (original behavior)
+            metrics["disk"] = {
                 "read_mb": round((disk.read_bytes - self.disk_start.read_bytes) / (1 << 20), 3),
                 "write_mb": round((disk.write_bytes - self.disk_start.write_bytes) / (1 << 20), 3),
                 "used_gb": round(disk_usage.used / (1 << 30), 3),
-            },
-            "network": {
+            }
+            metrics["network"] = {
                 "recv_mb": round((net.bytes_recv - self.net_start.bytes_recv) / (1 << 20), 3),
                 "sent_mb": round((net.bytes_sent - self.net_start.bytes_sent) / (1 << 20), 3),
-            },
-            "gpus": {},
-        }
+            }
+
+        # Always update previous values for accurate rate calculation on next call
+        self._prev_net = net
+        self._prev_disk = disk
+        self._prev_time = now
 
         # Add GPU metrics (NVIDIA only)
         if self.nvidia_initialized:

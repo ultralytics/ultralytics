@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover HomeObjects-3K, a rich indoor object detection dataset with 12 classes like bed, sofa, TV, and laptop. Ideal for computer vision in smart homes, robotics, and AR.
-keywords: HomeObjects-3K, indoor dataset, household items, object detection, computer vision, YOLO11, smart home AI, robotics dataset
+keywords: HomeObjects-3K, indoor dataset, household items, object detection, computer vision, YOLO26, smart home AI, robotics dataset
 ---
 
 # HomeObjects-3K Dataset
@@ -18,7 +18,7 @@ The HomeObjects-3K dataset is a curated collection of common household object im
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on HomeObjects-3K Dataset | Detection, Validation & ONNX Export 🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on HomeObjects-3K Dataset | Detection, Validation & ONNX Export 🚀
 </p>
 
 ## Dataset Structure
@@ -53,7 +53,7 @@ The dataset supports 12 everyday object categories, covering furniture, electron
 
 HomeObjects-3K enables a wide spectrum of applications in indoor computer vision, spanning both research and real-world product development:
 
-- **Indoor object detection**: Use models like [Ultralytics YOLO11](../../models/yolo11.md) to find and locate common home items like beds, chairs, lamps, and laptops in images. This helps with real-time understanding of indoor scenes.
+- **Indoor object detection**: Use models like [Ultralytics YOLO26](../../models/yolo26.md) to find and locate common home items like beds, chairs, lamps, and laptops in images. This helps with real-time understanding of indoor scenes.
 
 - **Scene layout parsing**: In robotics and smart home systems, this helps devices understand how rooms are arranged, where objects like doors, windows, and furniture are, so they can navigate safely and interact with their environment properly.
 
@@ -76,7 +76,7 @@ You can access the `HomeObjects-3K.yaml` file directly from the Ultralytics repo
 
 ## Usage
 
-You can train a YOLO11n model on the HomeObjects-3K dataset for 100 epochs using an image size of 640. The examples below show how to get started. For more training options and detailed settings, check the [Training](../../modes/train.md) guide.
+You can train a YOLO26n model on the HomeObjects-3K dataset for 100 epochs using an image size of 640. The examples below show how to get started. For more training options and detailed settings, check the [Training](../../modes/train.md) guide.
 
 !!! example "Train Example"
 
@@ -86,7 +86,7 @@ You can train a YOLO11n model on the HomeObjects-3K dataset for 100 epochs using
         from ultralytics import YOLO
 
         # Load pretrained model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Train the model on HomeObjects-3K dataset
         model.train(data="HomeObjects-3K.yaml", epochs=100, imgsz=640)
@@ -95,7 +95,7 @@ You can train a YOLO11n model on the HomeObjects-3K dataset for 100 epochs using
     === "CLI"
 
         ```bash
-        yolo detect train data=HomeObjects-3K.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=HomeObjects-3K.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -138,7 +138,7 @@ The dataset includes 12 of the most commonly encountered household items: bed, s
 
 ### How can I train a YOLO model using the HomeObjects-3K dataset?
 
-To train a YOLO model like YOLO11n, you'll just need the `HomeObjects-3K.yaml` configuration file and the [pretrained model](../../models/index.md) weights. Whether you're using Python or the CLI, training can be launched with a single command. You can customize parameters such as epochs, image size, and batch size depending on your target performance and hardware setup.
+To train a YOLO model like YOLO26n, you'll just need the `HomeObjects-3K.yaml` configuration file and the [pretrained model](../../models/index.md) weights. Whether you're using Python or the CLI, training can be launched with a single command. You can customize parameters such as epochs, image size, and batch size depending on your target performance and hardware setup.
 
 !!! example "Train Example"
 
@@ -148,7 +148,7 @@ To train a YOLO model like YOLO11n, you'll just need the `HomeObjects-3K.yaml` c
         from ultralytics import YOLO
 
         # Load pretrained model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Train the model on HomeObjects-3K dataset
         model.train(data="HomeObjects-3K.yaml", epochs=100, imgsz=640)
@@ -157,7 +157,7 @@ To train a YOLO model like YOLO11n, you'll just need the `HomeObjects-3K.yaml` c
     === "CLI"
 
         ```bash
-        yolo detect train data=HomeObjects-3K.yaml model=yolo11n.pt epochs=100 imgsz=640
+        yolo detect train data=HomeObjects-3K.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
 ### Is this dataset suitable for beginner-level projects?

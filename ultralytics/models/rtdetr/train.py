@@ -7,6 +7,8 @@ from copy import copy
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel
 from ultralytics.utils import RANK, colorstr
+from torch import nn, optim
+from ultralytics.utils import LOGGER
 
 from .val import RTDETRDataset, RTDETRValidator
 
@@ -97,6 +99,102 @@ class RTDETRTrainer(DetectionTrainer):
             data=self.data,
             fraction=self.args.fraction if mode == "train" else 1.0,
         )
+
+    def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
+        """Construct an optimizer for the given model.
+
+        Args:
+            model (torch.nn.Module): The model for which to build an optimizer.
+            name (str, optional): The name of the optimizer to use. If 'auto', the optimizer is selected based on the
+                number of iterations.
+            lr (float, optional): The learning rate for the optimizer.
+            momentum (float, optional): The momentum factor for the optimizer.
+            decay (float, optional): The weight decay for the optimizer.
+            iterations (float, optional): The number of iterations, which determines the optimizer if name is 'auto'.
+            backbone_lr_ratio (float, optional): The learning rate ratio for the backbone parameters.
+
+        Returns:
+            (torch.optim.Optimizer): The constructed optimizer.
+        """
+        backbone_lr_ratio = self.args.backbone_lr_ratio
+        g = [], [], [], [], [], []  # optimizer parameter groups, 6 groups now
+        bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
+        if name == "auto":
+            LOGGER.info(
+                f"{colorstr('optimizer:')} 'optimizer=auto' found, "
+                f"ignoring 'lr0={self.args.lr0}' and 'momentum={self.args.momentum}' and "
+                f"determining best 'optimizer', 'lr0' and 'momentum' automatically... "
+            )
+            nc = self.data.get("nc", 10)  # number of classes
+            lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
+            name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
+            self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
+
+        backbone_len = self.backbone_len
+
+        for module_name, module in model.named_modules():
+            for param_name, param in module.named_parameters(recurse=False):
+                fullname = f"{module_name}.{param_name}" if module_name else param_name
+
+                # Check if this is a backbone layer
+                is_backbone = False
+                parts = fullname.split(".")
+
+                # Handle DDP wrapping: "module.model.0.conv.weight" vs "model.0.conv.weight"
+                if parts[0] == "module":
+                    parts = parts[1:]  # Remove "module" prefix for DDP
+
+                if len(parts) > 1 and parts[0] == "model" and parts[1].isdigit():
+                    layer_idx = int(parts[1])
+                    is_backbone = layer_idx < backbone_len
+
+                if is_backbone:
+                    # Backbone parameters (groups 3, 4, 5)
+                    if "bias" in fullname:
+                        g[5].append(param)  # backbone bias
+                    elif isinstance(module, bn) or "logit_scale" in fullname:
+                        g[4].append(param)  # backbone bn weight
+                    else:
+                        g[3].append(param)  # backbone weight with decay
+                else:
+                    # Head parameters (groups 0, 1, 2)
+                    if "bias" in fullname:
+                        g[2].append(param)  # head bias
+                    elif isinstance(module, bn) or "logit_scale" in fullname:
+                        g[1].append(param)  # head bn weight
+                    else:
+                        g[0].append(param)  # head weight with decay
+
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "auto"}
+        name = {x.lower(): x for x in optimizers}.get(name.lower())
+        if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
+            optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+        elif name == "RMSProp":
+            optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum)
+        elif name == "SGD":
+            optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+        else:
+            raise NotImplementedError(
+                f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
+                "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
+            )
+
+        # Head param groups (normal lr)
+        optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # head weights
+        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})    # head bn
+
+        backbone_lr = lr * backbone_lr_ratio
+        # Backbone param groups (smaller lr)
+        optimizer.add_param_group({"params": g[5], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bias
+        optimizer.add_param_group({"params": g[3], "lr": backbone_lr, "weight_decay": decay}) # backbone weights
+        optimizer.add_param_group({"params": g[4], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bn
+
+        LOGGER.info(
+            f"{colorstr('optimizer:')} {type(optimizer).__name__} with parameter groups:\n"
+            f"  Head:     {len(g[1])} bn, {len(g[0])} weight(decay={decay}), {len(g[2])} bias (lr={lr})\n"
+            f"  Backbone: {len(g[4])} bn, {len(g[3])} weight(decay={decay}), {len(g[5])} bias (lr={backbone_lr})"
+        )
+        return optimizer
 
     def get_validator(self):
         """Return a DetectionValidator suitable for RT-DETR model validation."""

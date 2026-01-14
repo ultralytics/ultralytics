@@ -43,10 +43,10 @@ Together, these innovations deliver a model family that achieves higher accuracy
   Introduces semantic segmentation loss to improve model convergence and an upgraded proto module that leverages multi-scale information for superior mask quality.
 
 - **Precision Pose Estimation**  
-  Integrates Residual Log-Likelihood Estimation (RLE) for more accurate keypoint localization and optimizes the decoding process for increased inference speed.
+  Integrates [Residual Log-Likelihood Estimation](https://arxiv.org/abs/2107.11291) (RLE) for more accurate keypoint localization and optimizes the decoding process for increased inference speed.
 
 - **Refined OBB Decoding**  
-  Introduces a specialized angle loss to improve detection accuracy for square-shaped objects and optimizes OBB decoding to resolve boundary discontinuity issues and introduces a specialized angle loss to improve detection accuracy for square-shaped objects.
+  Introduces a specialized angle loss to improve detection accuracy for square-shaped objects and optimizes OBB decoding to resolve boundary discontinuity issues.
 
 ---
 

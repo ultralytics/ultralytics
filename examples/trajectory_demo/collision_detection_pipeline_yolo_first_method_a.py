@@ -54,20 +54,21 @@ from collision_analyzer import CollisionAnalyzer
 
 
 class YOLOFirstPipelineA:
-    def __init__(self, video_path, homography_path=None, output_base=None, skip_frames=1, model='yolo11n', min_track_length=3):
+    def __init__(self, video_path, homography_path=None, output_base=None, skip_frames=3, model='yolo11n', min_track_length=3):
         """初始化 YOLO-First pipeline 
         
         Args:
             video_path: 原始视频路径
             homography_path: Homography JSON路径 (用于Step 4)
             output_base: 结果基础目录
-            skip_frames: 抽帧参数，每隔 skip_frames 帧处理一帧 (1=处理所有帧, 3=每隔3帧处理一帧)
+            skip_frames: 抽帧参数，每隔 skip_frames 帧处理一帧 (最小值=3，用于性能优化和速度准确性)
             model: YOLO 模型选择 (yolo11n/yolo11m/yolo11l)
             min_track_length: 最小轨迹长度，短于此的被认为是误检
         """
         self.video_path = video_path
         self.homography_path = homography_path
-        self.skip_frames = skip_frames  # 抽帧参数
+        # 强制skip_frames至少为3，避免完全不跳帧的低效处理
+        self.skip_frames = max(3, skip_frames)  # 强制至少跳帧3
         self.model = model  # YOLO 模型
         self.min_track_length = min_track_length  # 最小轨迹长度
         # 使用 /workspace/ultralytics/results 作为输出目录（确保路径正确）
@@ -851,21 +852,22 @@ class YOLOFirstPipelineA:
     # =========================================================================
 
     def extract_key_frames(self, all_detections, tracks, world_distance_threshold=2.0, debug_threshold=5.0):
-        """Step 3: 关键帧检测 (接近事件) - Option B
+        """Step 3: 关键帧检测 (接近事件) - 基于Homography世界坐标
         
-        🔄 Option B改进: 直接使用Step 2中保存的世界坐标，不需要再次转换
-        - 使用轨迹中已经计算好的世界坐标
-        - 避免多次Homography转换导致的误差累积
-        - 更准确的距离计算
+        流程说明:
+        1. Step 2已在轨迹中使用Homography转换得到世界坐标 (center_x_world, center_y_world)
+        2. Step 3使用这些世界坐标计算物体间距离，检测接近事件
+        3. 通过空间验证过滤：确保物体在Homography标定区域内 (X[-1.75,1.75]m, Y[0,25]m)
+           - 若物体世界坐标超出范围，说明Homography变换可能不可靠，应过滤
+        4. 保存通过阈值的接近事件作为关键帧
         
         参数:
         - all_detections: 原始检测结果 (用于保存关键帧图像)
-        - tracks: Step 2返回的轨迹信息 (包含world坐标)
+        - tracks: Step 2返回的轨迹信息 (已包含Homography变换的world坐标)
         - world_distance_threshold: 关键帧检测阈值（默认 4.5 米）
-        - debug_threshold: 调试显示的阈值（默认 10.0 米）
         """
-        print(f"\n【Step 3: 关键帧检测 (世界坐标 - Option B)】")
-        print(f"  ℹ️  直接使用Step 2保存的世界坐标（无需再次转换）")
+        print(f"\n【Step 3: 关键帧检测 (基于Homography世界坐标)】")
+        print(f"  ℹ️  使用Step 2中Homography变换的世界坐标进行距离计算和空间验证")
         
         proximity_events = []
         all_proximity_pairs = []
@@ -948,11 +950,12 @@ class YOLOFirstPipelineA:
                             anchors1 = self._get_object_anchors(obj1['class'], obj1['bbox_xywh'])
                             anchors2 = self._get_object_anchors(obj2['class'], obj2['bbox_xywh'])
                             
-                            # 获取速度信息（如果可用，否则用默认值）
-                            vx1 = track1.get('vx', 0.0)
-                            vy1 = track1.get('vy', 0.0)
-                            vx2 = track2.get('vx', 0.0)
-                            vy2 = track2.get('vy', 0.0)
+                            # 获取速度信息（使用世界坐标速度 m/s，而不是像素速度）
+                            # 世界坐标速度已经考虑了跳帧，单位为 m/s
+                            vx1 = track1.get('vx_world', 0.0)
+                            vy1 = track1.get('vy_world', 0.0)
+                            vx2 = track2.get('vx_world', 0.0)
+                            vy2 = track2.get('vy_world', 0.0)
                             
                             # 创建碰撞分析器
                             analyzer = CollisionAnalyzer(pixel_per_meter=self.pixel_per_meter)
@@ -1429,37 +1432,17 @@ class YOLOFirstPipelineA:
         print(f"\n【Step 3.7: 多锚点距离过滤 (≤1.0m)】")
         
         anchor_filtered_events = []
-        removed_reasons = {'no_anchor_data': [], 'distance_too_far': []}
-        
         for event in proximity_events:
-            frame = event['frame']
-            tid1 = event['track_id_1']
-            tid2 = event['track_id_2']
-            
-            # 检查是否有多锚点分析数据
-            if 'multi_anchor_detailed' not in event:
-                removed_reasons['no_anchor_data'].append((frame, tid1, tid2))
-                continue
-            
-            multi = event['multi_anchor_detailed']
+            multi = event.get('multi_anchor_detailed', {})
             min_distance = multi.get('min_distance_meters', float('inf'))
             
             # 保留距离 ≤ 1.0m 的事件（高风险）
             if min_distance <= 1.0:
                 anchor_filtered_events.append(event)
             else:
-                removed_reasons['distance_too_far'].append((frame, tid1, tid2, min_distance))
-        
-        # 报告被过滤的事件
-        if removed_reasons['no_anchor_data']:
-            print(f"  ⊗ 移除 {len(removed_reasons['no_anchor_data'])} 个无多锚点数据的事件:")
-            for frame, tid1, tid2 in removed_reasons['no_anchor_data']:
-                print(f"     - Frame {frame}: ID{tid1}+ID{tid2} (Step 3.6分析失败)")
-        
-        if removed_reasons['distance_too_far']:
-            print(f"  ⊗ 移除 {len(removed_reasons['distance_too_far'])} 个距离>1.0m的事件:")
-            for frame, tid1, tid2, dist in removed_reasons['distance_too_far']:
-                print(f"     - Frame {frame}: ID{tid1}+ID{tid2} (锚点距离={dist:.2f}m)")
+                frame = event['frame']
+                tid1, tid2 = event['track_id_1'], event['track_id_2']
+                print(f"  ⊗ 过滤 Frame {frame}: Track {tid1}+{tid2} (锚点距离={min_distance:.2f}m > 1.0m)")
         
         filtered_count = len(proximity_events) - len(anchor_filtered_events)
         print(f"  🔍 多锚点距离过滤: 排除 {filtered_count} 个事件")
@@ -1468,18 +1451,19 @@ class YOLOFirstPipelineA:
         return anchor_filtered_events
     
     # =========================================================================
-    # STEP 4: Homography 记录 (仅信息) ✨ 已在Step 3中使用
+    # STEP 4: Homography 信息保存 (仅作元数据保存) ✨ Homography已在Step 2使用
     # =========================================================================
     
     def transform_key_frames_to_world(self, proximity_events):
         """Step 4: Homography 信息保存
         
-        ℹ️ 注意: Homography 变换已经在 Step 3 中完成！
-        - Step 3: 在【世界坐标】中计算接近度
-        - Step 4: 只记录和保存 Homography 信息
+        Warning: Homography transformation already completed in Step 2!
+        - Step 2: Trajectory construction + Homography transform -> world coordinates
+        - Step 3: Use world coordinates to detect keyframes
+        - Step 4: Only save Homography metadata, no duplicate transform
         """
         print(f"\n【Step 4: Homography 信息保存】")
-        print(f"  ℹ️  注意: 坐标变换已在Step 3中完成（使用Homography）")
+        print(f"  ℹ️  注意: 坐标变换已在Step 2中完成（使用Homography）")
         
         if self.H is None:
             print(f"  ⚠️  未加载Homography")
@@ -1573,53 +1557,200 @@ class YOLOFirstPipelineA:
     # =========================================================================
     
     def generate_report(self, proximity_events, analyzed_events, level_counts):
-        """生成最终分析报告"""
+        """生成最终分析报告 (改进版：根据TTC动态分类)"""
         report_path = self.analysis_dir / 'analysis_report.txt'
+        
+        # 辅助函数：格式化TTC值（支持毫秒显示）
+        def format_ttc(ttc_seconds):
+            if ttc_seconds is None or ttc_seconds <= 0:
+                return "N/A"
+            elif ttc_seconds < 0.01:  # 小于10ms，用毫秒显示
+                return f"{ttc_seconds*1000:.2f}ms"
+            elif ttc_seconds < 0.1:   # 小于100ms，用4位小数
+                return f"{ttc_seconds:.4f}s"
+            else:  # 大于等于100ms
+                return f"{ttc_seconds:.2f}s"
         
         with open(report_path, 'w') as f:
             f.write("="*70 + "\n")
-            f.write("YOLO-First 碰撞检测分析报告 (Method A - 导师推荐)\n")
-            f.write("="*70 + "\n\n")
-            
+            f.write("YOLO-First 碰撞检测分析报告\n")
             f.write(f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"输入视频: {self.video_path}\n")
             f.write(f"Homography: {self.homography_path if self.H is not None else '未提供'}\n")
             f.write(f"结果目录: {self.run_dir}\n\n")
             
-            f.write(f"处理方式: YOLO-First (Method A - 导师推荐)\n")
-            f.write(f"流程: YOLO检测 → 轨迹(px) → 关键帧 → Homography(关键帧) → 分析\n")
-            f.write(f"坐标系转换: 仅在关键帧进行\n")
-            f.write(f"优化: 仅对~{len(proximity_events)}个关键帧做Homography\n\n")
+            f.write(f"处理方式: YOLO-First\n")
+            f.write(f"流程: YOLO检测 → 轨迹(px) → 关键帧 → Homography(关键帧) → 分析\n\n")
             
-            f.write(f"关键帧统计:\n")
-            f.write(f"  - 总接近事件: {len(proximity_events)}\n")
+            f.write(f"关键帧统计:\n\n")
+            f.write(f"总接近事件: {len(analyzed_events)}\n")
             if analyzed_events:
-                f.write(f"  - Level 1 (Collision): {level_counts[1]}\n")
-                f.write(f"  - Level 2 (Near Miss): {level_counts[2]}\n")
-                f.write(f"  - Level 3 (Avoidance): {level_counts[3]}\n\n")
+                f.write(f"Level 1 (Collision): {level_counts[1]}\n")
+                f.write(f"Level 2 (Near Miss): {level_counts[2]}\n")
+                f.write(f"Level 3 (Avoidance): {level_counts[3]}\n\n")
+            
+            # 根据TTC分类事件
+            ttc_classified = self._classify_events_by_ttc(analyzed_events)
+            
+            # 输出分类结果
+            f.write("根据TTC值的碰撞风险分类:\n\n")
+            
+            # Rear-end 碰撞
+            if ttc_classified['rear_end_serious']:
+                f.write(f"【Rear-end - Serious Conflict (TTC 0-2.8s)】: {len(ttc_classified['rear_end_serious'])} 个\n")
+                for event in ttc_classified['rear_end_serious'][:5]:
+                    ttc = event['multi_anchor_detailed'].get('ttc_seconds', 0)
+                    ttc_str = format_ttc(ttc)
+                    f.write(f"  Frame {event['frame']}: TTC={ttc_str}, 距离={event['multi_anchor_detailed'].get('min_distance_meters', 0):.3f}m\n")
+                if len(ttc_classified['rear_end_serious']) > 5:
+                    f.write(f"  ... 还有 {len(ttc_classified['rear_end_serious']) - 5} 个\n")
+                f.write("\n")
+            
+            if ttc_classified['rear_end_general']:
+                f.write(f"【Rear-end - General Conflict (TTC 2.8-4.7s)】: {len(ttc_classified['rear_end_general'])} 个\n")
+                for event in ttc_classified['rear_end_general'][:5]:
+                    ttc = event['multi_anchor_detailed'].get('ttc_seconds', 0)
+                    ttc_str = format_ttc(ttc)
+                    f.write(f"  Frame {event['frame']}: TTC={ttc_str}, 距离={event['multi_anchor_detailed'].get('min_distance_meters', 0):.3f}m\n")
+                if len(ttc_classified['rear_end_general']) > 5:
+                    f.write(f"  ... 还有 {len(ttc_classified['rear_end_general']) - 5} 个\n")
+                f.write("\n")
+            
+            # Sideswipe 碰撞
+            if ttc_classified['sideswipe_serious']:
+                f.write(f"【Sideswipe - Serious Conflict (TTC 0-2.3s)】: {len(ttc_classified['sideswipe_serious'])} 个\n")
+                for event in ttc_classified['sideswipe_serious'][:5]:
+                    ttc = event['multi_anchor_detailed'].get('ttc_seconds', 0)
+                    ttc_str = format_ttc(ttc)
+                    f.write(f"  Frame {event['frame']}: TTC={ttc_str}, 距离={event['multi_anchor_detailed'].get('min_distance_meters', 0):.3f}m\n")
+                if len(ttc_classified['sideswipe_serious']) > 5:
+                    f.write(f"  ... 还有 {len(ttc_classified['sideswipe_serious']) - 5} 个\n")
+                f.write("\n")
+            
+            if ttc_classified['sideswipe_general']:
+                f.write(f"【Sideswipe - General Conflict (TTC 2.3-4.2s)】: {len(ttc_classified['sideswipe_general'])} 个\n")
+                for event in ttc_classified['sideswipe_general'][:5]:
+                    ttc = event['multi_anchor_detailed'].get('ttc_seconds', 0)
+                    ttc_str = format_ttc(ttc)
+                    f.write(f"  Frame {event['frame']}: TTC={ttc_str}, 距离={event['multi_anchor_detailed'].get('min_distance_meters', 0):.3f}m\n")
+                if len(ttc_classified['sideswipe_general']) > 5:
+                    f.write(f"  ... 还有 {len(ttc_classified['sideswipe_general']) - 5} 个\n")
+                f.write("\n")
+            
+            if not any([ttc_classified['rear_end_serious'], ttc_classified['rear_end_general'],
+                       ttc_classified['sideswipe_serious'], ttc_classified['sideswipe_general']]):
+                f.write("未检测到具有有效TTC值的碰撞事件\n\n")
+            
+            f.write("\n前10个高风险事件（详细信息）:\n\n")
             
             if analyzed_events:
-                f.write("前10个高风险事件:\n")
-                f.write("-"*70 + "\n")
-                
                 sorted_events = sorted(analyzed_events, key=lambda e: e.get('level', 3))
                 
-                for i, event in enumerate(sorted_events[:10], 1):
-                    f.write(f"\n{i}. Frame {event['frame']} ({event['time']:.2f}s)\n")
-                    # 处理不同的物体ID字段名
+                for event in sorted_events[:10]:
+                    f.write(f"Frame {event['frame']} ({event['time']:.2f}s)\n")
                     obj_ids = event.get('object_ids') or [event.get('track_id_1', -1), event.get('track_id_2', -1)]
-                    f.write(f"   物体ID: {obj_ids}\n")
-                    f.write(f"   风险等级: Level {event['level']} ({event.get('level_name', '?')})\n")
-                    f.write(f"   距离(像素): {event['distance_pixel']:.1f}px\n")
+                    f.write(f"物体ID: {obj_ids}\n")
+                    f.write(f"风险等级: Level {event['level']} ({event.get('level_name', '?')})\n")
+                    f.write(f"距离(像素): {event['distance_pixel']:.1f}px\n")
+                    
                     if 'distance_meters' in event:
-                        f.write(f"   距离(米): {event['distance_meters']:.2f}m\n")
+                        f.write(f"距离(米): {event['distance_meters']:.2f}m\n")
+                    
+                    # 从multi_anchor_detailed中提取TTC和碰撞类型信息
+                    if 'multi_anchor_detailed' in event:
+                        multi_anchor = event['multi_anchor_detailed']
+                        ttc = multi_anchor.get('ttc_seconds')
+                        approaching = multi_anchor.get('heading_analysis', {}).get('approaching', False)
+                        
+                        if ttc is not None and ttc > 0:
+                            ttc_str = format_ttc(ttc)
+                            f.write(f"TTC (时间碰撞): {ttc_str}\n")
+                        else:
+                            # 根据approaching标志判断原因
+                            if approaching:
+                                f.write(f"TTC (时间碰撞): 无法计算 / Insufficient Speed\n")
+                            else:
+                                f.write(f"TTC (时间碰撞): 远离 / Separating\n")
+                        
+                        closest_parts = multi_anchor.get('closest_parts', {})
+                        if 'description' in closest_parts:
+                            f.write(f"碰撞部位: {closest_parts['description']}\n")
+                        
+                        min_dist = multi_anchor.get('min_distance_meters')
+                        if min_dist is not None:
+                            f.write(f"最小距离: {min_dist:.3f}m\n")
+                    
+                    f.write("\n")
             else:
-                f.write("未检测到接近事件\n")
+                f.write("未检测到接近事件\n\n")
             
-            f.write("\n" + "="*70 + "\n")
+            f.write("="*70 + "\n\n")
+            
+            # TTC 分级标准表
+            f.write("TTC (时间碰撞) 分级标准参考:\n\n")
+            f.write("┌─────────────────┬──────────────────┬──────────────────┐\n")
+            f.write("│ 碰撞类型         │ 严重程度         │ TTC阈值 (秒)     │\n")
+            f.write("├─────────────────┼──────────────────┼──────────────────┤\n")
+            f.write("│ Rear-end        │ Serious conflict │ 0 – 2.8 s        │\n")
+            f.write("│ (追尾)          │ General conflict │ 2.8 – 4.7 s      │\n")
+            f.write("├─────────────────┼──────────────────┼──────────────────┤\n")
+            f.write("│ Sideswipe       │ Serious conflict │ 0 – 2.3 s        │\n")
+            f.write("│ (侧面碰撞)      │ General conflict │ 2.3 – 4.2 s      │\n")
+            f.write("└─────────────────┴──────────────────┴──────────────────┘\n\n")
+            
+            f.write("="*70 + "\n")
             f.write("报告结束\n")
         
         print(f"\n  ✓ 报告已保存: {report_path.name}")
+    
+    def _classify_events_by_ttc(self, analyzed_events):
+        """根据TTC值和相对方向判断碰撞类型和严重程度"""
+        classified = {
+            'rear_end_serious': [],      # TTC 0-2.8s
+            'rear_end_general': [],      # TTC 2.8-4.7s
+            'sideswipe_serious': [],     # TTC 0-2.3s
+            'sideswipe_general': [],     # TTC 2.3-4.2s
+            'no_ttc': []                 # 没有有效TTC
+        }
+        
+        for event in analyzed_events:
+            if 'multi_anchor_detailed' not in event:
+                classified['no_ttc'].append(event)
+                continue
+            
+            ttc = event['multi_anchor_detailed'].get('ttc_seconds')
+            if ttc is None or ttc <= 0:
+                classified['no_ttc'].append(event)
+                continue
+            
+            # 根据相对heading判断是rear-end还是sideswipe
+            # heading接近0或π = rear-end (前后向)
+            # heading接近π/2或-π/2 = sideswipe (侧向)
+            relative_heading = event['multi_anchor_detailed'].get('heading_analysis', {}).get('relative_heading_rad', 0)
+            
+            # 将heading标准化到[-π, π]
+            import math
+            heading_abs = abs(relative_heading)
+            is_sideswipe = heading_abs > math.pi / 4  # 大于45度则判定为侧向
+            
+            if is_sideswipe:
+                # Sideswipe 碰撞
+                if ttc < 2.3:
+                    classified['sideswipe_serious'].append(event)
+                elif ttc < 4.2:
+                    classified['sideswipe_general'].append(event)
+                else:
+                    classified['no_ttc'].append(event)
+            else:
+                # Rear-end 碰撞
+                if ttc < 2.8:
+                    classified['rear_end_serious'].append(event)
+                elif ttc < 4.7:
+                    classified['rear_end_general'].append(event)
+                else:
+                    classified['no_ttc'].append(event)
+        
+        return classified
     
     def _copy_results_to_workspace(self):
         """自动复制结果到 /workspace/ultralytics/results（使其在 VS Code 中可见）"""
@@ -1724,6 +1855,54 @@ class YOLOFirstPipelineA:
                     tid2 = event['track_id_2']
                     frame_img_path = self.keyframe_dir / f"keyframe_{frame_num:04d}_ID{tid1}_ID{tid2}.jpg"
                     self.save_keyframe_with_distance(self.video_path, frame_num, frame_img_path, event)
+                
+                # STEP 3.7: 多锚点距离过滤（在这里执行，不是在Step 5）
+                print(f"\n【Step 3.7: 多锚点距离过滤 (≤1.0m)】")
+                anchor_filtered_events = []
+                removed_reasons = {'no_anchor_data': [], 'distance_too_far': []}
+                
+                for event in filtered_events:
+                    frame = event['frame']
+                    tid1 = event['track_id_1']
+                    tid2 = event['track_id_2']
+                    
+                    # 检查是否有多锚点分析数据
+                    if 'multi_anchor_detailed' not in event:
+                        removed_reasons['no_anchor_data'].append((frame, tid1, tid2))
+                        continue
+                    
+                    multi = event['multi_anchor_detailed']
+                    min_distance = multi.get('min_distance_meters', float('inf'))
+                    
+                    # 保留距离 ≤ 1.0m 的事件（高风险）
+                    if min_distance <= 1.0:
+                        anchor_filtered_events.append(event)
+                    else:
+                        removed_reasons['distance_too_far'].append((frame, tid1, tid2, min_distance))
+                
+                # 报告被过滤的事件
+                if removed_reasons['no_anchor_data']:
+                    print(f"  ⊗ 移除 {len(removed_reasons['no_anchor_data'])} 个无多锚点数据的事件")
+                
+                if removed_reasons['distance_too_far']:
+                    print(f"  ⊗ 移除 {len(removed_reasons['distance_too_far'])} 个距离>1.0m的事件:")
+                    for frame, tid1, tid2, dist in removed_reasons['distance_too_far']:
+                        print(f"     - Frame {frame}: ID{tid1}+ID{tid2} (锚点距离={dist:.2f}m)")
+                
+                filtered_count = len(filtered_events) - len(anchor_filtered_events)
+                print(f"  🔍 多锚点距离过滤: 排除 {filtered_count} 个事件")
+                print(f"  ✓ Step 3.7完成: 保留 {len(anchor_filtered_events)} 个关键帧 (≤ 1.0m)")
+                
+                # 清理被过滤掉的关键帧图片
+                self.cleanup_filtered_keyframes(filtered_events, anchor_filtered_events)
+                
+                # 保存Step 3.7后的最终关键帧JSON
+                events_path = self.keyframe_dir / 'proximity_events.json'
+                with open(events_path, 'w') as f:
+                    json.dump(anchor_filtered_events, f, indent=2)
+                
+                # 用Step 3.7过滤后的事件继续后续步骤
+                filtered_events = anchor_filtered_events
                 # Step 4: Homography 变换 (仅关键帧)
                 if self.H is not None:
                     transformed_events = self.transform_key_frames_to_world(filtered_events)
@@ -1781,8 +1960,8 @@ if __name__ == '__main__':
                        help='结果基础目录')
     parser.add_argument('--conf', type=float, default=0.45, 
                        help='YOLO置信度阈值 (越高=越严格，减少误检) (默认: 0.45)')
-    parser.add_argument('--skip-frames', type=int, default=1,
-                       help='抽帧参数: 1=处理所有帧, 3=每隔3帧处理1帧, 5=每隔5帧处理1帧 (默认: 1)')
+    parser.add_argument('--skip-frames', type=int, default=3,
+                       help='抽帧参数: 3=每隔3帧处理1帧, 5=每隔5帧处理1帧 (最小值为3，用于提高速度计算准确性) (默认: 3)')
     parser.add_argument('--model', type=str, default='yolo11m',
                        help='YOLO 模型: yolo11n(快速), yolo11m(中等,更精确), yolo11l(最精确) (默认: yolo11m)')
     parser.add_argument('--min-track-length', type=int, default=3,

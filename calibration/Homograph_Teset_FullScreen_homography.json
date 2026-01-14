@@ -2,18 +2,18 @@
   "video_name": "Homograph_Teset_FullScreen",
   "homography_matrix": [
     [
-      0.07580132832803924,
-      -0.0005955818654345923,
-      -40.17010179035517
+      0.035373953219751605,
+      -0.0002779382038694784,
+      -18.746047502165723
     ],
     [
-      6.4647899720308225e-18,
-      -0.05269997112330337,
-      80.89445567427076
+      0.0,
+      -0.026349985561651725,
+      40.447227837135394
     ],
     [
-      1.2522873702499702e-18,
-      0.0035229569737222073,
+      -1.4122654876404558e-18,
+      0.003522956973722201,
       1.0
     ]
   ],
@@ -53,5 +53,6 @@
       0.0
     ]
   ],
-  "notes": "Use this matrix to convert pixel coordinates to world coordinates"
+  "world_scale": "25m length x 3.5m width (centered at y=12.5m, x=0m)",
+  "notes": "Use this matrix to convert pixel coordinates to world coordinates. Scale: 25m x 3.5m"
 }

@@ -39,6 +39,7 @@ class CollisionResult:
     approach_vector: Tuple[float, float] = (0, 0)  # Direction vector from p1 to p2
     approaching: bool = False           # Whether objects are approaching
     ttc: Optional[float] = None         # Time to collision in seconds
+    pet: Optional[float] = None         # Post-Encroachment Time in seconds
     risk_level: str = 'LOW'             # Risk level: CRITICAL/HIGH/MEDIUM/LOW
     
     description: str = ""               # Human readable description
@@ -74,6 +75,7 @@ class CollisionResult:
                 'approaching': bool(self.approaching),
             },
             'ttc_seconds': float(self.ttc) if self.ttc is not None else None,
+            'pet_seconds': float(self.pet) if self.pet is not None else None,
             'risk_level': self.risk_level,
             'description': self.description,
         }
@@ -175,8 +177,9 @@ class CollisionAnalyzer:
             relative_heading += 2 * np.pi
         
         # Step 5: Calculate approach vector and approaching status
-        approach_vector = (closest_pair['point2_px'][0] - closest_pair['point1_px'][0],
-                          closest_pair['point2_px'][1] - closest_pair['point1_px'][1])
+        # 重要：使用世界坐标的approach_vector，确保与速度单位一致（都是米）
+        approach_vector = (point2_world[0] - point1_world[0],
+                          point2_world[1] - point1_world[1])
         
         ttc, approaching = self._calculate_ttc(
             obj1_velocity, obj2_velocity,
@@ -221,6 +224,10 @@ class CollisionAnalyzer:
             risk_level=risk_level,
             description=description,
         )
+        
+        # Calculate PET (Post-Encroachment Time) if trajectories available
+        if obj1_track and obj2_track:
+            result.pet = self._calculate_pet(obj1_track, obj2_track, obj1_velocity, obj2_velocity)
         
         return result
     
@@ -309,6 +316,79 @@ class CollisionAnalyzer:
             return 'MEDIUM'
         else:
             return 'LOW'
+    
+    @staticmethod
+    def _calculate_pet(obj1_track: List[dict],
+                      obj2_track: List[dict],
+                      v1: Tuple[float, float],
+                      v2: Tuple[float, float],
+                      safety_margin_m: float = 1.5) -> Optional[float]:
+        """
+        Calculate Post-Encroachment Time (PET).
+        
+        PET = time gap between when the first object leaves an encroachment zone
+              and when the second object enters that zone.
+        
+        Smaller PET = higher risk (near miss).
+        
+        Args:
+            obj1_track: List of track points for object 1
+            obj2_track: List of track points for object 2
+            v1, v2: Velocity vectors in m/s
+            safety_margin_m: Safety zone radius in meters
+        
+        Returns:
+            PET in seconds (or None if calculation not possible)
+        """
+        if not obj1_track or not obj2_track:
+            return None
+        
+        try:
+            # Get average position as collision point
+            avg_x = 0
+            avg_y = 0
+            if obj1_track:
+                avg_x = np.mean([p.get('center_x_world', p.get('center_x', 0)) for p in obj1_track])
+                avg_y = np.mean([p.get('center_y_world', p.get('center_y', 0)) for p in obj1_track])
+            
+            # Find times when each object was in the safety zone
+            obj1_in_zone = []
+            obj2_in_zone = []
+            
+            # Check obj1 trajectory
+            for i, point in enumerate(obj1_track):
+                x = point.get('center_x_world', point.get('center_x', 0))
+                y = point.get('center_y_world', point.get('center_y', 0))
+                time = point.get('frame', i) / 30.0  # Assume 30 fps
+                
+                dist = np.sqrt((x - avg_x)**2 + (y - avg_y)**2)
+                if dist < safety_margin_m:
+                    obj1_in_zone.append((i, time))
+            
+            # Check obj2 trajectory
+            for i, point in enumerate(obj2_track):
+                x = point.get('center_x_world', point.get('center_x', 0))
+                y = point.get('center_y_world', point.get('center_y', 0))
+                time = point.get('frame', i) / 30.0
+                
+                dist = np.sqrt((x - avg_x)**2 + (y - avg_y)**2)
+                if dist < safety_margin_m:
+                    obj2_in_zone.append((i, time))
+            
+            if not obj1_in_zone or not obj2_in_zone:
+                return None
+            
+            # Get exit/entry times
+            obj1_exit_time = obj1_in_zone[-1][1]
+            obj2_enter_time = obj2_in_zone[0][1]
+            
+            # PET = absolute time difference
+            pet = abs(obj2_enter_time - obj1_exit_time)
+            
+            return pet if pet > 0 else None
+            
+        except Exception:
+            return None
 
 
 # For testing, try to import cv2 but make it optional

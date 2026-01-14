@@ -57,6 +57,11 @@ This section details the models available with their specific pretrained weights
 | YOLOE-v8S  | [yoloe-v8s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8s-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-v8M  | [yoloe-v8m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8m-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-v8L  | [yoloe-v8l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8l-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26N  | [yoloe-26n-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26S  | [yoloe-26s-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26M  | [yoloe-26m-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26m-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26L  | [yoloe-26l-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26l-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26X  | [yoloe-26x-seg.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26x-seg.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 
 ### Prompt Free models
 
@@ -68,6 +73,15 @@ This section details the models available with their specific pretrained weights
 | YOLOE-v8S-PF | [yoloe-v8s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-v8M-PF | [yoloe-v8m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOE-v8L-PF | [yoloe-v8l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-v8l-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26N-PF | [yoloe-26n-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26S-PF | [yoloe-26s-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26s-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26M-PF | [yoloe-26m-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26m-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26L-PF | [yoloe-26l-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26l-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| YOLOE-26X-PF | [yoloe-26x-seg-pf.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26x-seg-pf.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+
+!!! tip "YOLOE-26 Performance"
+
+    For detailed performance benchmarks of YOLOE-26 models, see the [YOLO26 Documentation](yolo26.md#yoloe-26-open-vocabulary-instance-segmentation).
 
 ## Usage Examples
 
@@ -102,7 +116,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
 
-        model = YOLOE("yoloe-11s-seg.pt")
+        model = YOLOE("yoloe-26s-seg.pt")
 
         # Fine-tune on your segmentation dataset
         results = model.train(
@@ -122,10 +136,10 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         from ultralytics.models.yolo.yoloe import YOLOEPETrainer
 
         # Initialize a detection model from a config
-        model = YOLOE("yoloe-11s.yaml")
+        model = YOLOE("yoloe-26s.yaml")
 
         # Load weights from a pretrained segmentation checkpoint (same scale)
-        model.load("yoloe-11s-seg.pt")
+        model.load("yoloe-26s-seg.pt")
 
         # Fine-tune on your detection dataset
         results = model.train(
@@ -147,7 +161,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
 
         # Load a pretrained segmentation model
-        model = YOLOE("yoloe-11s-seg.pt")
+        model = YOLOE("yoloe-26s-seg.pt")
 
         # Identify the head layer index
         head_index = len(model.model.model) - 1
@@ -191,10 +205,10 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         from ultralytics.models.yolo.yoloe import YOLOEPETrainer
 
         # Initialize a detection model from a config
-        model = YOLOE("yoloe-11s.yaml")
+        model = YOLOE("yoloe-26s.yaml")
 
         # Load weights from a pretrained segmentation checkpoint (same scale)
-        model.load("yoloe-11s-seg.pt")
+        model.load("yoloe-26s-seg.pt")
 
         # Identify the head layer index
         head_index = len(model.model.model) - 1
@@ -243,7 +257,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics import YOLOE
 
         # Initialize a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+        model = YOLOE("yoloe-26l-seg.pt")  # or yoloe-26s/m-seg.pt for different sizes
 
         # Set text prompt to detect person and bus. You only need to do this once after you load the model.
         names = ["person", "bus"]
@@ -273,7 +287,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")
+        model = YOLOE("yoloe-26l-seg.pt")
 
         # Define visual prompts using bounding boxes and their corresponding class IDs.
         # Each box highlights an example of the object you want the model to detect.
@@ -316,7 +330,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")
+        model = YOLOE("yoloe-26l-seg.pt")
 
         # Define visual prompts based on a separate reference image
         visual_prompts = dict(
@@ -354,7 +368,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")
+        model = YOLOE("yoloe-26l-seg.pt")
 
         # Define visual prompts using bounding boxes and their corresponding class IDs.
         # Each box highlights an example of the object you want the model to detect.
@@ -398,7 +412,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics import YOLOE
 
         # Initialize a YOLOE model
-        model = YOLOE("yoloe-11l-seg-pf.pt")
+        model = YOLOE("yoloe-26l-seg-pf.pt")
 
         # Run prediction. No prompts required.
         results = model.predict("path/to/image.jpg")
@@ -419,7 +433,7 @@ Model validation on a dataset is streamlined as follows:
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+        model = YOLOE("yoloe-26l-seg.pt")  # or yoloe-26s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml")
@@ -433,7 +447,7 @@ Model validation on a dataset is streamlined as follows:
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+        model = YOLOE("yoloe-26l-seg.pt")  # or yoloe-26s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml", load_vp=True)
@@ -446,7 +460,7 @@ Model validation on a dataset is streamlined as follows:
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+        model = YOLOE("yoloe-26l-seg.pt")  # or select yoloe-26s/m-seg.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml", load_vp=True, refer_data="coco.yaml")
@@ -459,7 +473,7 @@ Model validation on a dataset is streamlined as follows:
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg-pf.pt")  # or select yoloe-11s/m-seg-pf.pt for different sizes
+        model = YOLOE("yoloe-26l-seg-pf.pt")  # or yoloe-26s/m-seg-pf.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
         metrics = model.val(data="coco128-seg.yaml", single_cls=True)
@@ -474,8 +488,8 @@ The export process is similar to other YOLO models, with the added flexibility o
     ```python
     from ultralytics import YOLOE
 
-    # Select yoloe-11s/m-seg.pt for different sizes
-    model = YOLOE("yoloe-11l-seg.pt")
+    # Select yoloe-26s/m-seg.pt for different sizes
+    model = YOLOE("yoloe-26l-seg.pt")
 
     # Configure the set_classes() before exporting the model
     names = ["person", "bus"]
@@ -544,7 +558,7 @@ The export process is similar to other YOLO models, with the added flexibility o
             val=dict(yolo_data=["lvis.yaml"]),
         )
 
-        model = YOLOE("yoloe-11l-seg.yaml")
+        model = YOLOE("yoloe-26l-seg.yaml")
         model.train(
             data=data,
             batch=128,
@@ -571,10 +585,10 @@ The export process is similar to other YOLO models, with the added flexibility o
         from ultralytics import YOLOE
         from ultralytics.utils.patches import torch_load
 
-        det_model = YOLOE("yoloe-11l.yaml")
-        state = torch_load("yoloe-11l-seg.pt")
+        det_model = YOLOE("yoloe-26l.yaml")
+        state = torch_load("yoloe-26l-seg.pt")
         det_model.load(state["model"])
-        det_model.save("yoloe-11l-seg-det.pt")
+        det_model.save("yoloe-26l-seg-det.pt")
         ```
 
         Start training:
@@ -600,9 +614,9 @@ The export process is similar to other YOLO models, with the added flexibility o
             val=dict(yolo_data=["lvis.yaml"]),
         )
 
-        model = YOLOE("yoloe-11l-seg.pt")
-        # replace to yoloe-11l-seg-det.pt if converted to detection model
-        # model = YOLOE("yoloe-11l-seg-det.pt")
+        model = YOLOE("yoloe-26l-seg.pt")
+        # replace to yoloe-26l-seg-det.pt if converted to detection model
+        # model = YOLOE("yoloe-26l-seg-det.pt")
 
         # freeze every layer except of the savpe module.
         head_index = len(model.model.model) - 1
@@ -635,13 +649,13 @@ The export process is similar to other YOLO models, with the added flexibility o
 
         from ultralytics import YOLOE
 
-        model = YOLOE("yoloe-11l-seg.yaml")
-        model.load("yoloe-11l-seg.pt")
+        model = YOLOE("yoloe-26l-seg.yaml")
+        model.load("yoloe-26l-seg.pt")
 
         vp_model = YOLOE("yoloe-11l-vp.pt")
         model.model.model[-1].savpe = deepcopy(vp_model.model.model[-1].savpe)
         model.eval()
-        model.save("yoloe-11l-seg.pt")
+        model.save("yoloe-26l-seg.pt")
         ```
 
     === "Prompt Free"
@@ -654,10 +668,10 @@ The export process is similar to other YOLO models, with the added flexibility o
         from ultralytics import YOLOE
         from ultralytics.utils.patches import torch_load
 
-        det_model = YOLOE("yoloe-11l.yaml")
-        state = torch_load("yoloe-11l-seg.pt")
+        det_model = YOLOE("yoloe-26l.yaml")
+        state = torch_load("yoloe-26l-seg.pt")
         det_model.load(state["model"])
-        det_model.save("yoloe-11l-seg-det.pt")
+        det_model.save("yoloe-26l-seg-det.pt")
         ```
         Start training:
         ```python
@@ -680,9 +694,9 @@ The export process is similar to other YOLO models, with the added flexibility o
             val=dict(yolo_data=["lvis.yaml"]),
         )
 
-        model = YOLOE("yoloe-11l-seg.pt")
-        # replace to yoloe-11l-seg-det.pt if converted to detection model
-        # model = YOLOE("yoloe-11l-seg-det.pt")
+        model = YOLOE("yoloe-26l-seg.pt")
+        # replace to yoloe-26l-seg-det.pt if converted to detection model
+        # model = YOLOE("yoloe-26l-seg-det.pt")
 
         # freeze layers.
         head_index = len(model.model.model) - 1
@@ -727,10 +741,10 @@ The export process is similar to other YOLO models, with the added flexibility o
 
         from ultralytics import YOLOE
 
-        model = YOLOE("yoloe-11l-seg.pt")
+        model = YOLOE("yoloe-26l-seg.pt")
         model.eval()
 
-        pf_model = YOLOE("yoloe-11l-seg-pf.pt")
+        pf_model = YOLOE("yoloe-26l-seg-pf.pt")
         names = ["object"]
         tpe = model.get_text_pe(names)
         model.set_classes(names, tpe)
@@ -740,24 +754,25 @@ The export process is similar to other YOLO models, with the added flexibility o
         model.model.model[-1].cv3[1][2] = deepcopy(pf_model.model.model[-1].cv3[1][2]).requires_grad_(True)
         model.model.model[-1].cv3[2][2] = deepcopy(pf_model.model.model[-1].cv3[2][2]).requires_grad_(True)
         del model.model.pe
-        model.save("yoloe-11l-seg-pf.pt")
+        model.save("yoloe-26l-seg-pf.pt")
         ```
 
 ## YOLOE Performance Comparison
 
-YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) against corresponding [YOLOv8](yolov8.md) and YOLO11 models:
+YOLOE matches or exceeds the accuracy of closed-set YOLO models on standard benchmarks like COCO and LVIS, without compromising speed or model size. The table below compares YOLOE-L (built on YOLO11) and YOLOE26-L (built on [YOLO26](yolo26.md)) against corresponding closed-set models:
 
-| Model                     | COCO mAP<sub>50-95</sub> | Inference Speed (T4)  | Parameters | GFLOPs (640px)     |
-| ------------------------- | ------------------------ | --------------------- | ---------- | ------------------ |
-| **YOLOv8-L** (closed-set) | 52.9%                    | **9.06 ms** (110 FPS) | 43.7 M     | 165.2 B            |
-| **YOLO11-L** (closed-set) | 53.5%                    | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B             |
-| **YOLOE-L** (open-vocab)  | 52.6%                    | **6.2 ms** (130 FPS)  | 26.2 M     | 86.9 B<sup>†</sup> |
+| Model                      | COCO mAP<sub>50-95</sub> | LVIS mAP<sub>50-95</sub> | Inference Speed (T4)  | Parameters | GFLOPs (640px)     |
+| -------------------------- | ------------------------ | ------------------------ | --------------------- | ---------- | ------------------ |
+| **YOLOv8-L** (closed-set)  | 52.9%                    | -                        | **9.06 ms** (110 FPS) | 43.7 M     | 165.2 B            |
+| **YOLO11-L** (closed-set)  | 53.5%                    | -                        | **6.2 ms** (161 FPS)  | 26.2 M     | 86.9 B             |
+| **YOLOE-L** (open-vocab)   | 52.6%                    | 35.2%                    | **6.2 ms** (161 FPS)  | 26.2 M     | 86.9 B<sup>†</sup> |
+| **YOLOE26-L** (open-vocab) | -                        | 36.8%                    | **6.2 ms** (161 FPS)  | 32.3 M     | 88.3 B<sup>†</sup> |
 
-<sup>†</sup> _YOLO11-L and YOLOE-L have identical architectures (prompt modules disabled in YOLO11-L), resulting in identical inference speed and similar GFLOPs estimates._
+<sup>†</sup> _YOLOE-L shares YOLO11-L's architecture and YOLOE26-L shares YOLO26-L's architecture, resulting in similar inference speed and GFLOPs._
 
-YOLOE-L achieves **52.6% mAP**, surpassing YOLOv8-L (**52.9%**) with roughly **40% fewer parameters** (26M vs. 43.7M). It processes 640×640 images in **6.2 ms (161 FPS)** compared to YOLOv8-L's **9.06 ms (110 FPS)**, highlighting YOLO11's efficiency. Crucially, YOLOE's open-vocabulary modules incur **no inference cost**, demonstrating a **"no free lunch trade-off"** design.
+YOLOE26-L achieves **36.8% LVIS mAP** with **32.3M parameters** and **88.3B FLOPs**, processing 640×640 images at **6.2 ms (161 FPS)** on T4 GPU. This improves over YOLOE-L's **35.2% LVIS mAP** while maintaining the same inference speed. Crucially, YOLOE's open-vocabulary modules incur **no inference cost**, demonstrating a **"no free lunch trade-off"** design.
 
-For zero-shot and transfer tasks, YOLOE excels: on LVIS, YOLOE-small improves over YOLO-Worldv2 by **+3.5 AP** using **3× less training resources**. Fine-tuning YOLOE-L from LVIS to COCO also required **4× less training time** than YOLOv8-L, underscoring its efficiency and adaptability. YOLOE further maintains YOLO's hallmark speed, achieving **300+ FPS** on a T4 GPU and **~64 FPS** on iPhone 12 via CoreML, ideal for edge and mobile deployments.
+For zero-shot tasks, YOLOE26 significantly outperforms prior open-vocabulary detectors: on LVIS, YOLOE26-S achieves **29.9% mAP**, surpassing YOLO-World-S by **+11.4 AP**, while YOLOE26-L achieves **36.8% mAP**, exceeding YOLO-World-L by **+10.0 AP**. YOLOE26 maintains efficient inference at **161 FPS** on T4 GPU, ideal for real-time open-vocabulary applications.
 
 !!! note
 
@@ -776,10 +791,13 @@ YOLOE introduces notable advancements over prior YOLO models and open-vocabulary
 - **YOLOE vs YOLO11:**
   [YOLO11](yolo11.md) improves upon YOLOv8 with enhanced efficiency and fewer parameters (~22% reduction). YOLOE inherits these gains directly, matching YOLO11's inference speed and parameter count (~26M parameters), while adding **open-vocabulary detection and segmentation**. In closed-set scenarios, YOLOE is equivalent to YOLO11, but crucially adds adaptability to detect unseen classes, achieving **YOLO11 + open-world capability** without compromising speed.
 
-- **YOLOE vs previous open-vocabulary detectors:**
-  Earlier open-vocab models (GLIP, OWL-ViT, [YOLO-World](yolo-world.md)) relied heavily on vision-language [transformers](https://www.ultralytics.com/glossary/transformer), leading to slow inference. YOLOE surpasses these in zero-shot accuracy (e.g., **+3.5 AP vs. YOLO-Worldv2**) while running **1.4× faster** with significantly lower training resources. Compared to transformer-based approaches (e.g., GLIP), YOLOE offers orders-of-magnitude faster inference, effectively bridging the accuracy-efficiency gap in open-set detection.
+- **YOLOE26 vs YOLOE (YOLO11-based):**
+  YOLOE26 builds upon [YOLO26](yolo26.md)'s architecture, inheriting its NMS-free end-to-end design for faster inference. On LVIS, YOLOE26-L achieves **36.8% mAP**, improving over YOLOE-L's **35.2% mAP**. YOLOE26 offers all five model scales (N/S/M/L/X) compared to YOLOE's three (S/M/L), providing more flexibility for different deployment scenarios.
 
-In summary, YOLOE maintains YOLO's renowned speed and efficiency, surpasses predecessors in accuracy, integrates segmentation, and introduces powerful open-world detection, making it uniquely versatile and practical.
+- **YOLOE26 vs previous open-vocabulary detectors:**
+  Earlier open-vocab models (GLIP, OWL-ViT, [YOLO-World](yolo-world.md)) relied heavily on vision-language [transformers](https://www.ultralytics.com/glossary/transformer), leading to slow inference. On LVIS, YOLOE26-S achieves **29.9% mAP** (**+11.4 AP** over YOLO-World-S) and YOLOE26-L achieves **36.8% mAP** (**+10.0 AP** over YOLO-World-L), while maintaining real-time inference at **161 FPS** on T4 GPU. Compared to transformer-based approaches (e.g., GLIP), YOLOE26 offers orders-of-magnitude faster inference, effectively bridging the accuracy-efficiency gap in open-set detection.
+
+In summary, YOLOE and YOLOE26 maintain YOLO's renowned speed and efficiency, surpass predecessors in accuracy, integrate segmentation, and introduce powerful open-world detection. YOLOE26 further advances the architecture with NMS-free end-to-end inference from YOLO26, making it ideal for real-time open-vocabulary applications.
 
 ## Use Cases and Applications
 
@@ -827,7 +845,7 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md
         from ultralytics import YOLO
 
         # Load pretrained YOLOE model and train on custom data
-        model = YOLO("yoloe-11s-seg.pt")
+        model = YOLO("yoloe-26s-seg.pt")
         model.train(data="path/to/data.yaml", epochs=50, imgsz=640)
 
         # Run inference using text prompts ("person", "bus")
@@ -842,10 +860,10 @@ YOLOE integrates seamlessly with the [Ultralytics Python API](../usage/python.md
 
         ```bash
         # Training YOLOE on custom dataset
-        yolo train model=yoloe-11s-seg.pt data=path/to/data.yaml epochs=50 imgsz=640
+        yolo train model=yoloe-26s-seg.pt data=path/to/data.yaml epochs=50 imgsz=640
 
         # Inference with text prompts
-        yolo predict model=yoloe-11s-seg.pt source="test_images/street.jpg" classes="person,bus"
+        yolo predict model=yoloe-26s-seg.pt source="test_images/street.jpg" classes="person,bus"
         ```
 
         CLI prompts (`classes`) guide YOLOE similarly to Python's `set_classes`. Visual prompting (image-based queries) currently requires the Python API.
@@ -879,19 +897,19 @@ Quickly set up YOLOE with Ultralytics by following these steps:
     - **Training**: Fine-tuning YOLOE on custom data typically requires just one GPU. Extensive open-vocabulary pre-training (LVIS/Objects365) used by authors required substantial compute (8× RTX 4090 GPUs).
 
 4. **Configuration**:
-   YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-11s-seg.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
+   YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-26s-seg.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
 
 5. **Running YOLOE**:
     - **Quick inference** (prompt-free):
         ```bash
-        yolo predict model=yoloe-11s-seg-pf.pt source="image.jpg"
+        yolo predict model=yoloe-26s-seg-pf.pt source="image.jpg"
         ```
     - **Prompted detection** (text prompt example):
 
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yoloe-11s-seg.pt")
+        model = YOLO("yoloe-26s-seg.pt")
         names = ["bowl", "apple"]
         model.set_classes(names, model.get_text_pe(names))
         results = model.predict("kitchen.jpg")
@@ -964,7 +982,7 @@ Similar to [YOLO-World](yolo-world.md), YOLOE supports a "prompt-then-detect" st
 from ultralytics import YOLO
 
 # Initialize a YOLOE model
-model = YOLO("yoloe-11s-seg.pt")
+model = YOLO("yoloe-26s-seg.pt")
 
 # Define custom classes
 names = ["person", "bus"]

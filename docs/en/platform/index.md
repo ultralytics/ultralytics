@@ -71,20 +71,20 @@ graph LR
     Data --> Train --> Deploy
 ```
 
-| Stage | Features |
-|-------|----------|
-| **Data** | Dataset upload, annotation editor (manual + SAM + auto-label), statistics visualization |
-| **Train** | Project organization, cloud training with GPU instances, real-time metrics streaming |
-| **Deploy** | Inference testing, dedicated endpoints in 43 regions, monitoring dashboards |
+| Stage      | Features                                                                                |
+| ---------- | --------------------------------------------------------------------------------------- |
+| **Data**   | Dataset upload, annotation editor (manual + SAM + auto-label), statistics visualization |
+| **Train**  | Project organization, cloud training with GPU instances, real-time metrics streaming    |
+| **Deploy** | Inference testing, dedicated endpoints in 43 regions, monitoring dashboards             |
 
 ## Multi-Region Infrastructure
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Location |
-|--------|----------|
-| **US** | US Central (Iowa) |
-| **EU** | EU West (Belgium) |
+| Region | Location                 |
+| ------ | ------------------------ |
+| **US** | US Central (Iowa)        |
+| **EU** | EU West (Belgium)        |
 | **AP** | Asia Pacific (Hong Kong) |
 
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
@@ -164,14 +164,14 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| GPU | VRAM | Best For |
-|-----|------|----------|
-| RTX 4090 | 24GB | Fast training, most use cases |
-| RTX 3090 | 24GB | Cost-effective training |
-| A100 40GB | 40GB | Large models, big batches |
-| A100 80GB | 80GB | Very large models |
-| H100 80GB | 80GB | Maximum performance |
-| L40S | 48GB | Balanced performance |
+| GPU       | VRAM | Best For                      |
+| --------- | ---- | ----------------------------- |
+| RTX 4090  | 24GB | Fast training, most use cases |
+| RTX 3090  | 24GB | Cost-effective training       |
+| A100 40GB | 40GB | Large models, big batches     |
+| A100 80GB | 80GB | Very large models             |
+| H100 80GB | 80GB | Maximum performance           |
+| L40S      | 48GB | Balanced performance          |
 
 See [Cloud Training](train/cloud-training.md) for pricing and details.
 

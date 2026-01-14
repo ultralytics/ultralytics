@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import torch
 
+from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.calib import CalibrationParameters, load_kitti_calibration
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
@@ -90,6 +91,10 @@ class Stereo3DDetPredictor(DetectionPredictor):
         self.args.task = "stereo3ddet"
         # Store calibration parameters for each image
         self.calib_params: dict[str, CalibrationParameters] = {}
+        
+        # Initialize letterbox transformer (same as dataset)
+        # Will be updated in setup_source when imgsz is checked
+        self._letterbox = None
 
     def setup_source(self, source=None):
         """Set up input source for stereo prediction.
@@ -103,6 +108,11 @@ class Stereo3DDetPredictor(DetectionPredictor):
             source: Input source(s) for prediction.
         """
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+        
+        # Initialize letterbox transformer (same as dataset)
+        # Use the same parameters: auto=False, scale_fill=False, scaleup=True, stride=32
+        self._letterbox = LetterBox(new_shape=self.imgsz, auto=False, scale_fill=False, scaleup=True, stride=32)
+        
         if source is None:
             source = self.args.source
 
@@ -212,9 +222,20 @@ class Stereo3DDetPredictor(DetectionPredictor):
                 im /= 255
             return im
 
-        # Convert list of numpy arrays to tensor
+        # Apply letterbox to each stereo image (same as dataset)
         # Each image is [H, W, 6] (stereo pair)
-        im = np.stack(im)  # [N, H, W, 6]
+        letterboxed = []
+        for stereo_img in im:
+            # Apply letterbox to resize to target imgsz
+            if self._letterbox is not None:
+                letterboxed_img = self._letterbox(image=stereo_img)
+            else:
+                # Fallback: no letterbox (shouldn't happen if setup_source called)
+                letterboxed_img = stereo_img
+            letterboxed.append(letterboxed_img)
+        
+        # Convert list of letterboxed numpy arrays to tensor
+        im = np.stack(letterboxed)  # [N, H, W, 6]
         im = im[..., ::-1]  # BGR to RGB for all 6 channels
         im = im.transpose((0, 3, 1, 2))  # [N, H, W, 6] -> [N, 6, H, W]
         im = np.ascontiguousarray(im)

@@ -10,11 +10,12 @@ import numpy as np
 import torch
 
 from ultralytics.data.augment import LetterBox
+from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.data.stereo.calib import CalibrationParameters, load_kitti_calibration
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
-from ultralytics.models.yolo.stereo3ddet.val import decode_stereo3d_outputs
-from ultralytics.utils import LOGGER
+from ultralytics.models.yolo.stereo3ddet.val import decode_stereo3d_outputs_yolo11_p3
+from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_imgsz
 
 
@@ -95,6 +96,12 @@ class Stereo3DDetPredictor(DetectionPredictor):
         # Initialize letterbox transformer (same as dataset)
         # Will be updated in setup_source when imgsz is checked
         self._letterbox = None
+        
+        # Mean and std dimensions for decoding (from dataset config)
+        if isinstance(self.data, (str, Path)):
+            data_cfg = YAML.load(str(self.data))
+        self.mean_dims = data_cfg.get("mean_dims")
+        self.std_dims = data_cfg.get("std_dims")
 
     def setup_source(self, source=None):
         """Set up input source for stereo prediction.
@@ -251,7 +258,7 @@ class Stereo3DDetPredictor(DetectionPredictor):
         """Post-process model predictions to Results objects with 3D boxes.
 
         Args:
-            preds: Dictionary of 10-branch model outputs.
+            preds: Dictionary of YOLO11-mapped model outputs.
             img: Preprocessed input tensor.
             orig_imgs: List of original stereo images (6-channel).
             **kwargs: Additional arguments.
@@ -259,81 +266,76 @@ class Stereo3DDetPredictor(DetectionPredictor):
         Returns:
             List of Results objects with boxes3d attribute.
         """
-        results = []
-        batch_size = preds["heatmap"].shape[0]
-
-        for i in range(batch_size):
-            # Extract calibration for this image
-            img_path = self.batch[0][i] if self.batch and len(self.batch[0]) > i else f"image_{i}.jpg"
+        # Get calibration for batch
+        calib = None
+        if self.batch and self.batch[0]:
+            # Try to get calibration from first image
+            img_path = self.batch[0][0]
             calib = self.calib_params.get(img_path)
-
-            # Extract single image predictions
-            single_preds = {k: v[i:i+1] for k, v in preds.items()}
-
-            # Convert CalibrationParameters to dict if needed
-            calib_dict = None
             if calib is not None:
                 if isinstance(calib, CalibrationParameters):
-                    calib_dict = {
+                    # TODO: Refactor to use the CalibrationParameters object instead of dict.
+                    calib = {
                         "fx": calib.fx,
                         "fy": calib.fy,
                         "cx": calib.cx,
                         "cy": calib.cy,
                         "baseline": calib.baseline,
                     }
-                elif isinstance(calib, dict):
-                    calib_dict = calib
+        
+        # Get original shapes
+        ori_shapes = None
+        if orig_imgs and len(orig_imgs) > 0:
+            orig_img = orig_imgs[0]
+            # orig_img is 6-channel stereo image, get height and width
+            ori_shapes = [(orig_img.shape[0], orig_img.shape[1])]  # (H, W)
+        
+        # Get imgsz
+        imgsz = getattr(self.args, 'imgsz', 384)
+        
+        # Get class names from model
+        class_names = self.model.names if hasattr(self.model, "names") else None
+        if class_names is None:
+            raise ValueError("Model must have names attribute for prediction")
+        
+        # Decode 3D boxes using YOLO11 decoder
+        # Use default mean_dims and std_dims for KITTI (will use dataset config if loaded)
+        mean_dims = self.mean_dims
+        std_dims = self.std_dims
 
-            # Decode 3D boxes
-            # T030: Include NMS parameters for inference consistency (GAP-003)
-            # Get NMS config from args (defaults: use_nms=True, nms_kernel=3)
-            use_nms = getattr(self.args, 'use_nms', True)
-            nms_kernel = getattr(self.args, 'nms_kernel', 3)
-            
-            # Get imgsz and original image size for letterbox transformation
-            imgsz = getattr(self.args, 'imgsz', 384)
-            ori_shape = None
-            if orig_imgs and len(orig_imgs) > i:
-                orig_img = orig_imgs[i]
-                # orig_img is 6-channel stereo image, get height and width
-                ori_shape = (orig_img.shape[0], orig_img.shape[1])  # (H, W)
-            
-            boxes3d = decode_stereo3d_outputs(
-                single_preds,
-                conf_threshold=self.args.conf,
-                top_k=self.args.max_det,
-                calib=calib_dict,
-                use_nms=use_nms,
-                nms_kernel=nms_kernel,
-                imgsz=imgsz,
-                ori_shapes=[ori_shape] if ori_shape else None,
-            )
-
-            # Get original left image (first 3 channels of stereo image)
+        # TODO: ugly fix for single calibration parameter.
+        if isinstance(calib, dict):
+            calib = [calib]
+        
+        results_boxes3d = decode_stereo3d_outputs_yolo11_p3(
+            preds,
+            conf_threshold=self.args.conf,
+            top_k=self.args.max_det,
+            calib=calib,
+            imgsz=imgsz,
+            ori_shapes=ori_shapes,
+            iou_thres=getattr(self.args, "iou", 0.45),
+            mean_dims=mean_dims,
+            std_dims=std_dims,
+            class_names=class_names,
+        )
+        
+        # Handle result format (list[Box3D] for batch_size=1, list[list[Box3D]] for batch_size>1)
+        if isinstance(results_boxes3d, list) and len(results_boxes3d) > 0 and isinstance(results_boxes3d[0], Box3D):
+            # Single batch result - wrap in list
+            results_boxes3d = [results_boxes3d]
+        
+        # Create Results objects
+        results = []
+        for i, boxes3d in enumerate(results_boxes3d):
+            img_path = self.batch[0][i] if self.batch and len(self.batch[0]) > i else f"image_{i}.jpg"
             orig_img = orig_imgs[i][:, :, :3] if len(orig_imgs) > i else orig_imgs[0][:, :, :3]
-
-            # Create Results object
             result = Results(
                 orig_img=orig_img,
                 path=img_path,
-                names=self.model.names if hasattr(self.model, "names") else {},
-                boxes3d=boxes3d if boxes3d else [],
+                names=class_names,
+                boxes3d=boxes3d if isinstance(boxes3d, list) else [],
             )
             results.append(result)
 
         return results
-
-    def __call__(self, source=None, model=None, stream: bool = False, *args, **kwargs):
-        """Run prediction on stereo image pairs.
-
-        Args:
-            source: Stereo pair(s) as (left_path, right_path) or [(left1, right1), ...].
-            model: Model to use for prediction.
-            stream: Whether to stream results.
-            *args: Additional arguments.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            List of Results objects with boxes3d attribute.
-        """
-        return super().__call__(source=source, model=model, stream=stream, *args, **kwargs)

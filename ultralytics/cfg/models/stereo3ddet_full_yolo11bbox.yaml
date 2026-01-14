@@ -32,6 +32,3 @@ head:
 
   # P3-only YOLO11-mapped head (Detect + aux stereo/3D branches)
   - [[16], 1, Stereo3DDetHeadYOLO11, [nc, 256]]
-
-
-

@@ -868,8 +868,9 @@ class Stereo3DDetDataset(Dataset):
             "batch_idx": batch_idx_t,
             "cls": cls_t,
             "bboxes": bboxes_t,
-            # Aux targets for stereo/3D heads
-            "aux_targets": aux_targets,
+            # Aux targets for stereo/3D heads (also available as 'targets' for backward compatibility)
+            "targets": aux_targets,  # Primary key used by model.loss()
+            "aux_targets": aux_targets,  # Keep for backward compatibility
         }
 
 

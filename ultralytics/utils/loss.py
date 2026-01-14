@@ -163,6 +163,7 @@ class RLELoss(nn.Module):
 
     References:
         https://arxiv.org/abs/2107.11291
+        https://github.com/open-mmlab/mmpose/blob/main/mmpose/models/losses/regression_loss.py
     """
 
     def __init__(self, use_target_weight: bool = True, size_average: bool = True, residual: bool = True):
@@ -480,7 +481,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = preds["mask_coefficient"].permute(0, 2, 1).contiguous(), preds["proto"]
         loss = torch.zeros(5, device=self.device)  # box, seg, cls, dfl
-        if isinstance(proto, (list, tuple)):
+        if isinstance(proto, tuple) and len(proto) == 2:
             proto, pred_semseg = proto
         else:
             pred_semseg = None

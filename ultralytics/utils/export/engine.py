@@ -143,7 +143,7 @@ def onnx2engine(
         for inp in inputs:
             profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
         config.add_optimization_profile(profile)
-        if int8:
+        if int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
             config.set_calibration_profile(profile)
 
     LOGGER.info(f"{prefix} building {'INT8' if int8 else 'FP' + ('16' if half else '32')} engine as {engine_file}")
@@ -226,12 +226,21 @@ def onnx2engine(
         config.set_flag(trt.BuilderFlag.FP16)
 
     # Write file
-    build = builder.build_serialized_network if is_trt10 else builder.build_engine
-    with build(network, config) as engine, open(engine_file, "wb") as t:
-        # Metadata
-        if metadata is not None:
-            meta = json.dumps(metadata)
-            t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
-            t.write(meta.encode())
-        # Model
-        t.write(engine if is_trt10 else engine.serialize())
+    if is_trt10:
+        # TensorRT 10+ returns bytes directly, not a context manager
+        engine = builder.build_serialized_network(network, config)
+        if engine is None:
+            raise RuntimeError("TensorRT engine build failed, check logs for errors")
+        with open(engine_file, "wb") as t:
+            if metadata is not None:
+                meta = json.dumps(metadata)
+                t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+                t.write(meta.encode())
+            t.write(engine)
+    else:
+        with builder.build_engine(network, config) as engine, open(engine_file, "wb") as t:
+            if metadata is not None:
+                meta = json.dumps(metadata)
+                t.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+                t.write(meta.encode())
+            t.write(engine.serialize())

@@ -66,9 +66,11 @@ def resolve_platform_uri(uri, hard=True):
 
     api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     if not api_key:
-        raise ValueError(f"ULTRALYTICS_API_KEY required for '{uri}'. Get key at https://alpha.ultralytics.com/settings")
+        raise ValueError(
+            f"ULTRALYTICS_API_KEY required for '{uri}'. Get key at https://platform.ultralytics.com/settings"
+        )
 
-    base = "https://alpha.ultralytics.com/api/webhooks"
+    base = "https://platform.ultralytics.com/api/webhooks"
     headers = {"Authorization": f"Bearer {api_key}"}
 
     # ul://username/datasets/slug
@@ -150,7 +152,7 @@ def _send(event, data, project, name, model_id=None):
         if model_id:
             payload["modelId"] = model_id
         r = requests.post(
-            "https://alpha.ultralytics.com/api/webhooks/training/metrics",
+            "https://platform.ultralytics.com/api/webhooks/training/metrics",
             json=payload,
             headers={"Authorization": f"Bearer {_api_key}"},
             timeout=10,
@@ -176,7 +178,7 @@ def _upload_model(model_path, project, name):
 
         # Get signed upload URL
         response = requests.post(
-            "https://alpha.ultralytics.com/api/webhooks/models/upload",
+            "https://platform.ultralytics.com/api/webhooks/models/upload",
             json={"project": project, "name": name, "filename": model_path.name},
             headers={"Authorization": f"Bearer {_api_key}"},
             timeout=10,
@@ -193,7 +195,7 @@ def _upload_model(model_path, project, name):
                 timeout=600,  # 10 min timeout for large models
             ).raise_for_status()
 
-        # url = f"https://alpha.ultralytics.com/{project}/{name}"
+        # url = f"https://platform.ultralytics.com/{project}/{name}"
         # LOGGER.info(f"{PREFIX}Model uploaded to {url}")
         return data.get("gcsPath")
 
@@ -276,7 +278,7 @@ def on_pretrain_routine_start(trainer):
     trainer._platform_last_upload = time()
 
     project, name = _get_project_name(trainer)
-    url = f"https://alpha.ultralytics.com/{project}/{name}"
+    url = f"https://platform.ultralytics.com/{project}/{name}"
     LOGGER.info(f"{PREFIX}Streaming to {url}")
 
     # Create callback to send console output to Platform
@@ -437,7 +439,7 @@ def on_train_end(trainer):
         name,
         getattr(trainer, "_platform_model_id", None),
     )
-    url = f"https://alpha.ultralytics.com/{project}/{name}"
+    url = f"https://platform.ultralytics.com/{project}/{name}"
     LOGGER.info(f"{PREFIX}View results at {url}")
 
 

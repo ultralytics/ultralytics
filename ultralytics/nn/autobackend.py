@@ -221,6 +221,7 @@ class AutoBackend(nn.Module):
             for p in model.parameters():
                 p.requires_grad = False
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
+            end2end = getattr(model, "end2end", False)
 
         # TorchScript
         elif jit:
@@ -545,8 +546,7 @@ class AutoBackend(nn.Module):
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
-            # use git source for ARM64 due to broken PyPI packages https://github.com/Tencent/ncnn/issues/6509
-            check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn", cmds="--no-deps")
+            check_requirements("ncnn", cmds="--no-deps")
             import ncnn as pyncnn
 
             net = pyncnn.Net()
@@ -657,7 +657,7 @@ class AutoBackend(nn.Module):
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
             kpt_names = metadata.get("kpt_names")
-            end2end = metadata.get("args", {}).get("nms", False)
+            end2end = metadata.get("end2end", False) or metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):

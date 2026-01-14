@@ -1,10 +1,10 @@
 ---
 comments: true
 description: Learn to create line graphs, bar plots, and pie charts using Python with guided instructions and code snippets. Maximize your data visualization skills!
-keywords: Ultralytics, YOLO11, data visualization, line graphs, bar plots, pie charts, Python, analytics, tutorial, guide
+keywords: Ultralytics, YOLO26, data visualization, line graphs, bar plots, pie charts, Python, analytics, tutorial, guide
 ---
 
-# Analytics using Ultralytics YOLO11
+# Analytics using Ultralytics YOLO26
 
 ## Introduction
 
@@ -76,7 +76,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
         analytics = solutions.Analytics(
             show=True,  # display the output
             analytics_type="line",  # pass the analytics type, could be "pie", "bar" or "area".
-            model="yolo11n.pt",  # path to the YOLO11 model file
+            model="yolo26n.pt",  # path to the YOLO26 model file
             # classes=[0, 2],  # display analytics for specific detection classes
         )
 
@@ -118,15 +118,15 @@ Additionally, the following visualization arguments are supported:
 
 ## Conclusion
 
-Understanding when and how to use different types of visualizations is crucial for effective data analysis. Line graphs, bar plots, and pie charts are fundamental tools that can help you convey your data's story more clearly and effectively. The Ultralytics YOLO11 Analytics solution provides a streamlined way to generate these visualizations from your [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking results, making it easier to extract meaningful insights from your visual data.
+Understanding when and how to use different types of visualizations is crucial for effective data analysis. Line graphs, bar plots, and pie charts are fundamental tools that can help you convey your data's story more clearly and effectively. The Ultralytics YOLO26 Analytics solution provides a streamlined way to generate these visualizations from your [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking results, making it easier to extract meaningful insights from your visual data.
 
 ## FAQ
 
-### How do I create a line graph using Ultralytics YOLO11 Analytics?
+### How do I create a line graph using Ultralytics YOLO26 Analytics?
 
-To create a line graph using Ultralytics YOLO11 Analytics, follow these steps:
+To create a line graph using Ultralytics YOLO26 Analytics, follow these steps:
 
-1. Load a YOLO11 model and open your video file.
+1. Load a YOLO26 model and open your video file.
 2. Initialize the `Analytics` class with the type set to "line."
 3. Iterate through video frames, updating the line graph with relevant data, such as object counts per frame.
 4. Save the output video displaying the line graph.
@@ -170,11 +170,11 @@ out.release()
 cv2.destroyAllWindows()
 ```
 
-For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLO11](#analytics-using-ultralytics-yolo11) section.
+For further details on configuring the `Analytics` class, visit the [Analytics using Ultralytics YOLO26](#analytics-using-ultralytics-yolo26) section.
 
-### What are the benefits of using Ultralytics YOLO11 for creating bar plots?
+### What are the benefits of using Ultralytics YOLO26 for creating bar plots?
 
-Using Ultralytics YOLO11 for creating bar plots offers several benefits:
+Using Ultralytics YOLO26 for creating bar plots offers several benefits:
 
 1. **Real-time Data Visualization**: Seamlessly integrate [object detection](https://www.ultralytics.com/glossary/object-detection) results into bar plots for dynamic updates.
 2. **Ease of Use**: Simple API and functions make it straightforward to implement and visualize data.
@@ -222,9 +222,9 @@ cv2.destroyAllWindows()
 
 To learn more, visit the [Bar Plot](#visual-samples) section in the guide.
 
-### Why should I use Ultralytics YOLO11 for creating pie charts in my data visualization projects?
+### Why should I use Ultralytics YOLO26 for creating pie charts in my data visualization projects?
 
-Ultralytics YOLO11 is an excellent choice for creating pie charts because:
+Ultralytics YOLO26 is an excellent choice for creating pie charts because:
 
 1. **Integration with Object Detection**: Directly integrate object detection results into pie charts for immediate insights.
 2. **User-Friendly API**: Simple to set up and use with minimal code.
@@ -272,9 +272,9 @@ cv2.destroyAllWindows()
 
 For more information, refer to the [Pie Chart](#visual-samples) section in the guide.
 
-### Can Ultralytics YOLO11 be used to track objects and dynamically update visualizations?
+### Can Ultralytics YOLO26 be used to track objects and dynamically update visualizations?
 
-Yes, Ultralytics YOLO11 can be used to track objects and dynamically update visualizations. It supports tracking multiple objects in real-time and can update various visualizations like line graphs, bar plots, and pie charts based on the tracked objects' data.
+Yes, Ultralytics YOLO26 can be used to track objects and dynamically update visualizations. It supports tracking multiple objects in real-time and can update various visualizations like line graphs, bar plots, and pie charts based on the tracked objects' data.
 
 Example for tracking and updating a line graph:
 
@@ -317,11 +317,11 @@ cv2.destroyAllWindows()
 
 To learn about the complete functionality, see the [Tracking](../modes/track.md) section.
 
-### What makes Ultralytics YOLO11 different from other object detection solutions like [OpenCV](https://www.ultralytics.com/glossary/opencv) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)?
+### What makes Ultralytics YOLO26 different from other object detection solutions like [OpenCV](https://www.ultralytics.com/glossary/opencv) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)?
 
-Ultralytics YOLO11 stands out from other object detection solutions like OpenCV and TensorFlow for multiple reasons:
+Ultralytics YOLO26 stands out from other object detection solutions like OpenCV and TensorFlow for multiple reasons:
 
-1. **State-of-the-art [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: YOLO11 provides superior accuracy in object detection, segmentation, and classification tasks.
+1. **State-of-the-art [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: YOLO26 provides superior accuracy in object detection, segmentation, and classification tasks.
 2. **Ease of Use**: User-friendly API allows for quick implementation and integration without extensive coding.
 3. **Real-time Performance**: Optimized for high-speed inference, suitable for real-time applications.
 4. **Diverse Applications**: Supports various tasks including multi-object tracking, custom model training, and exporting to different formats like ONNX, TensorRT, and CoreML.

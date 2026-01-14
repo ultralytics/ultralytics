@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover Ultralytics integrations for streamlined ML workflows, dataset management, optimized model training, and robust deployment solutions.
-keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics HUB, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite, TFLite Edge TPU, TF.js, PaddlePaddle, NCNN
+keywords: Ultralytics, machine learning, ML workflows, dataset management, model training, model deployment, Roboflow, ClearML, Comet ML, DVC, MLFlow, Ultralytics Platform, Neptune, Ray Tune, TensorBoard, Weights & Biases, Amazon SageMaker, Paperspace Gradient, Google Colab, Neural Magic, Gradio, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, TFLite, TFLite Edge TPU, TF.js, PaddlePaddle, NCNN
 ---
 
 # Ultralytics Integrations
@@ -18,7 +18,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Ultralytics YOLO11 Deployment and Integrations
+  <strong>Watch:</strong> Ultralytics YOLO Deployment and Integrations
 </p>
 
 ## Training Integrations
@@ -45,13 +45,13 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Neptune](neptune.md): Maintain a comprehensive log of your ML experiments with Ultralytics in this metadata store designed for MLOps.
 
-- [Paperspace Gradient](paperspace.md): Paperspace Gradient simplifies working on YOLO11 projects by providing easy-to-use cloud tools for training, testing, and deploying your models quickly.
+- [Paperspace Gradient](paperspace.md): Paperspace Gradient simplifies working on YOLO26 projects by providing easy-to-use cloud tools for training, testing, and deploying your models quickly.
 
 - [Ray Tune](ray-tune.md): Optimize the hyperparameters of your Ultralytics models at any scale.
 
 - [TensorBoard](tensorboard.md): Visualize your Ultralytics ML workflows, monitor model metrics, and foster team collaboration.
 
-- [Ultralytics HUB](https://hub.ultralytics.com/): Access and contribute to a community of pretrained Ultralytics models.
+- [Ultralytics Platform](https://platform.ultralytics.com/): Access and contribute to a community of pretrained Ultralytics models.
 
 - [VS Code](vscode.md): An extension for VS Code that provides code snippets to accelerate Ultralytics development workflows and offers examples to help anyone learn or get started.
 
@@ -83,7 +83,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is an advanced edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
 
-- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
+- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26/) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
 - [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
@@ -123,17 +123,17 @@ Let's collaborate to make the Ultralytics YOLO ecosystem more expansive and feat
 
 ## FAQ
 
-### What is Ultralytics HUB, and how does it streamline the ML workflow?
+### What is Ultralytics Platform, and how does it streamline the ML workflow?
 
-[Ultralytics HUB](https://www.ultralytics.com/hub) is a cloud-based platform designed to make machine learning workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO models without needing extensive coding skills. The platform serves as a centralized workspace where you can manage your entire ML pipeline from data preparation to deployment. You can explore the key features on the [Ultralytics HUB](https://hub.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/hub/quickstart/) guide.
+[Ultralytics Platform](https://platform.ultralytics.com) is a cloud-based platform designed to make machine learning workflows for Ultralytics models seamless and efficient. By using this tool, you can easily upload datasets, train models, perform real-time tracking, and deploy YOLO models without needing extensive coding skills. The platform serves as a centralized workspace where you can manage your entire ML pipeline from data preparation to deployment. You can explore the key features on the [Ultralytics Platform](https://platform.ultralytics.com/) page and get started quickly with our [Quickstart](https://docs.ultralytics.com/platform/quickstart/) guide.
 
 ### Can I track the performance of my Ultralytics models using MLFlow?
 
 Yes, you can. Integrating [MLFlow](https://mlflow.org/) with Ultralytics models allows you to track experiments, improve reproducibility, and streamline the entire ML lifecycle. Detailed instructions for setting up this integration can be found on the [MLFlow](mlflow.md) integration page. This integration is particularly useful for monitoring model metrics, comparing different training runs, and managing the ML workflow efficiently. MLFlow provides a centralized platform to log parameters, metrics, and artifacts, making it easier to understand model behavior and make data-driven improvements.
 
-### What are the benefits of using Neural Magic for YOLO11 model optimization?
+### What are the benefits of using Neural Magic for YOLO26 model optimization?
 
-[Neural Magic](neural-magic.md) optimizes YOLO11 models by leveraging techniques like Quantization Aware Training (QAT) and pruning, resulting in highly efficient, smaller models that perform better on resource-limited hardware. Check out the [Neural Magic](neural-magic.md) integration page to learn how to implement these optimizations for superior performance and leaner models. This is especially beneficial for deployment on edge devices where computational resources are constrained. Neural Magic's DeepSparse engine can deliver up to 6x faster inference on CPUs, making it possible to run complex models without specialized hardware.
+[Neural Magic](neural-magic.md) optimizes YOLO26 models by leveraging techniques like Quantization Aware Training (QAT) and pruning, resulting in highly efficient, smaller models that perform better on resource-limited hardware. Check out the [Neural Magic](neural-magic.md) integration page to learn how to implement these optimizations for superior performance and leaner models. This is especially beneficial for deployment on edge devices where computational resources are constrained. Neural Magic's DeepSparse engine can deliver up to 6x faster inference on CPUs, making it possible to run complex models without specialized hardware.
 
 ### How do I deploy Ultralytics YOLO models with Gradio for interactive demos?
 

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the COCO128-Seg dataset by Ultralytics, a compact yet diverse segmentation dataset ideal for testing and training YOLO11 models.
-keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO11, COCO 2017, model training, computer vision, dataset configuration
+description: Discover the COCO128-Seg dataset by Ultralytics, a compact yet diverse segmentation dataset ideal for testing and training YOLO26 models.
+keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, model training, computer vision, dataset configuration
 ---
 
 # COCO128-Seg Dataset
@@ -16,7 +16,7 @@ keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO11, COCO 2017, mod
 - **Classes**: Same 80 object categories as COCO.
 - **Labels**: YOLO-format polygons saved beside each image inside `labels/{train,val}`.
 
-This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
@@ -30,7 +30,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLO11n-seg model on the COCO128-Seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLO26n-seg model on the COCO128-Seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -40,7 +40,7 @@ To train a YOLO11n-seg model on the COCO128-Seg dataset for 100 [epochs](https:/
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-seg.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco128-seg.yaml", epochs=100, imgsz=640)
@@ -50,7 +50,7 @@ To train a YOLO11n-seg model on the COCO128-Seg dataset for 100 [epochs](https:/
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=coco128-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco128-seg.yaml model=yolo26n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Sample Images and Annotations
@@ -86,13 +86,13 @@ We would like to acknowledge the COCO Consortium for creating and maintaining th
 
 ## FAQ
 
-### What is the COCO128-Seg dataset, and how is it used in Ultralytics YOLO11?
+### What is the COCO128-Seg dataset, and how is it used in Ultralytics YOLO26?
 
-The **COCO128-Seg dataset** is a compact instance segmentation dataset by Ultralytics, consisting of the first 128 images from the COCO train 2017 set. This dataset is tailored for testing and debugging segmentation models or experimenting with new detection methods. It is particularly useful with Ultralytics [YOLO11](https://github.com/ultralytics/ultralytics) and [HUB](https://hub.ultralytics.com/) for rapid iteration and pipeline error-checking before scaling to larger datasets. For detailed usage, refer to the model [Training](../../modes/train.md) page.
+The **COCO128-Seg dataset** is a compact instance segmentation dataset by Ultralytics, consisting of the first 128 images from the COCO train 2017 set. This dataset is tailored for testing and debugging segmentation models or experimenting with new detection methods. It is particularly useful with Ultralytics [YOLO26](https://github.com/ultralytics/ultralytics) and [Platform](https://platform.ultralytics.com/) for rapid iteration and pipeline error-checking before scaling to larger datasets. For detailed usage, refer to the model [Training](../../modes/train.md) page.
 
-### How can I train a YOLO11n-seg model using the COCO128-Seg dataset?
+### How can I train a YOLO26n-seg model using the COCO128-Seg dataset?
 
-To train a **YOLO11n-seg** model on the COCO128-Seg dataset for 100 epochs with an image size of 640, you can use Python or CLI commands. Here's a quick example:
+To train a **YOLO26n-seg** model on the COCO128-Seg dataset for 100 epochs with an image size of 640, you can use Python or CLI commands. Here's a quick example:
 
 !!! example "Train Example"
 
@@ -102,7 +102,7 @@ To train a **YOLO11n-seg** model on the COCO128-Seg dataset for 100 epochs with 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-seg.pt")  # Load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-seg.pt")  # Load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="coco128-seg.yaml", epochs=100, imgsz=640)
@@ -112,7 +112,7 @@ To train a **YOLO11n-seg** model on the COCO128-Seg dataset for 100 epochs with 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo segment train data=coco128-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco128-seg.yaml model=yolo26n-seg.pt epochs=100 imgsz=640
         ```
 
 For a thorough explanation of available arguments and configuration options, you can check the [Training](../../modes/train.md) documentation.

@@ -37,7 +37,7 @@ Package segmentation, facilitated by the Package Segmentation Dataset, is crucia
 
 ### Smart Warehouses and Logistics
 
-In modern warehouses, [vision AI solutions](https://www.ultralytics.com/solutions) can streamline operations by automating package identification and sorting. Computer vision models trained on this dataset can quickly detect and segment packages in real-time, even in challenging environments with dim lighting or cluttered spaces. This leads to faster processing times, reduced errors, and improved overall efficiency in [logistics operations](https://www.ultralytics.com/blog/ultralytics-yolo26-the-key-to-computer-vision-in-logistics).
+In modern warehouses, [vision AI solutions](https://www.ultralytics.com/solutions) can streamline operations by automating package identification and sorting. Computer vision models trained on this dataset can quickly detect and segment packages in real-time, even in challenging environments with dim lighting or cluttered spaces. This leads to faster processing times, reduced errors, and improved overall efficiency in [logistics operations](https://www.ultralytics.com/blog/ultralytics-yolo11-the-key-to-computer-vision-in-logistics).
 
 ### Quality Control and Damage Detection
 

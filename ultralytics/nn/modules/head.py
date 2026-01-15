@@ -170,7 +170,7 @@ class Detect(nn.Module):
     def _get_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Get decoded boxes based on anchors and strides."""
         shape = x["feats"][0].shape  # BCHW
-        if self.format != "imx" and (self.dynamic or self.shape != shape):
+        if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
             self.shape = shape
 

@@ -411,7 +411,7 @@ class BaseTrainer:
                     for j, x in enumerate(self.optimizer.param_groups):
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x["lr"] = np.interp(
-                            ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x["initial_lr"] * self.lf(epoch)]
+                            ni, xi, [self.args.warmup_bias_lr if j == 2 else 0.0, x["initial_lr"] * self.lf(epoch)]
                         )
                         if "momentum" in x:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])

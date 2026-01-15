@@ -102,6 +102,7 @@ def benchmark(
     if isinstance(model, (str, Path)):
         model = YOLO(model)
     is_end2end = getattr(model.model.model[-1], "end2end", False)
+    print("end2end:", is_end2end)
     data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
     key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
 

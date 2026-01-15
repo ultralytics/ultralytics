@@ -192,7 +192,7 @@ You can train models anywhere and stream metrics to Platform.
 export ULTRALYTICS_API_KEY="your_api_key"
 
 # Train with project/name to stream metrics
-yolo train model=yolo11n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
+yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
 ```
 
 See [Cloud Training](train/cloud-training.md) for more details on remote training.

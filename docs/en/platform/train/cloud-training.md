@@ -171,7 +171,7 @@ Use the `project` and `name` parameters to stream metrics:
 === "CLI"
 
     ```bash
-    yolo train model=yolo11n.pt data=coco.yaml epochs=100 \
+    yolo train model=yolo26n.pt data=coco.yaml epochs=100 \
       project=username/my-project name=experiment-1
     ```
 
@@ -180,7 +180,7 @@ Use the `project` and `name` parameters to stream metrics:
     ```python
     from ultralytics import YOLO
 
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
     model.train(
         data="coco.yaml",
         epochs=100,
@@ -194,7 +194,7 @@ Use the `project` and `name` parameters to stream metrics:
 Train with datasets stored on the Platform:
 
 ```bash
-yolo train model=yolo11n.pt data=ul://username/datasets/my-dataset epochs=100
+yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
 ```
 
 The `ul://` URI format automatically downloads and configures your dataset.

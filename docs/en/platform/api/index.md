@@ -676,7 +676,7 @@ from ultralytics import YOLO
 os.environ["ULTRALYTICS_API_KEY"] = "ul_your_key"
 
 # Train with Platform integration
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 model.train(data="ul://username/datasets/my-dataset", project="username/my-project", name="experiment-1", epochs=100)
 ```
 

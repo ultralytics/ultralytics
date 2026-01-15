@@ -333,9 +333,9 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
     Arguments must be passed as `arg=value` pairs, split by an equals `=` sign and delimited by spaces. Do not use `--` argument prefixes or commas `,` between arguments.
 
     - `yolo predict model=yolo26n.pt imgsz=640 conf=0.25`  ✅
-    - `yolo predict model yolo11n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
+    - `yolo predict model yolo26n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
     - `yolo predict model=yolo26n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
-    - `yolo predict --model yolo11n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
+    - `yolo predict --model yolo26n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
     - `yolo solution model=yolo26n.pt imgsz=640 conf=0.25` ❌ (use `solutions`, not `solution`)
 
 [CLI Guide](usage/cli.md){ .md-button }

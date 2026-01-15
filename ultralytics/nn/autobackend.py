@@ -546,10 +546,6 @@ class AutoBackend(nn.Module):
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
-            if ARM64:
-                raise NotImplementedError(
-                    "NCNN inference is not supported on ARM64"
-                )  # https://github.com/Tencent/ncnn/issues/6509
             check_requirements("ncnn", cmds="--no-deps")
             import ncnn as pyncnn
 

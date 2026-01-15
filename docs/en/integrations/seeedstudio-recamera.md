@@ -39,7 +39,7 @@ reCamera comes pre-installed with four Ultralytics YOLO26 models and you can sim
 
 Step 1: If you have connected reCamera to a network, enter the IP address of reCamera on a web browser to open the Node-RED dashboard. If you have connected the reCamera to a PC via USB, you can enter `192.168.42.1`. Here you will see YOLO26n detection model is loaded by default.
 
-![reCamera YOLO26n demo](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-yolo26n-demo.avif)
+![reCamera YOLO11n demo](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-yolo11n-demo.avif)
 
 Step 2: Click the green color circle at the bottom right corner to access the Node-RED flow editor.
 
@@ -50,7 +50,7 @@ Step 3: Click the `model` node and click `On Device`.
 Step 4: Choose one of the four different pre-installed YOLO26n models and click `Done`. For example, here we will select `YOLO26n Pose`
 
 <p align="center">
-  <img width="50%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-yolo26n-pose.avif" alt="Node-RED YOLO26n-pose select">
+  <img width="50%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-yolo11n-pose.avif" alt="Node-RED YOLO11n-pose select">
 </p>
 
 Step 5: Click `Deploy` and when it finishes deploying, click `Dashboard`.
@@ -59,7 +59,7 @@ Step 5: Click `Deploy` and when it finishes deploying, click `Dashboard`.
 
 Now you will be able to see YOLO26n pose estimation model in action!
 
-![reCamera YOLO26n-pose demo](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-yolo26n-pose-demo.avif)
+![reCamera YOLO11n-pose demo](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-yolo11n-pose-demo.avif)
 
 ## Export to cvimodel: Converting Your YOLO26 Model
 

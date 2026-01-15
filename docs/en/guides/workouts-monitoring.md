@@ -160,7 +160,7 @@ You can watch a [YouTube video demonstration](https://www.youtube.com/watch?v=LG
 
 ### How accurate is Ultralytics YOLO26 in detecting and tracking exercises?
 
-Ultralytics YOLO26 is highly accurate in detecting and tracking exercises due to its state-of-the-art [pose estimation](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo-for-pose-estimation) capabilities. It can accurately track key body landmarks and joints, providing real-time feedback on exercise form and performance metrics. The model's pretrained weights and robust architecture ensure high [precision](https://www.ultralytics.com/glossary/precision) and reliability. For real-world examples, check out the [real-world applications](#real-world-applications) section in the documentation, which showcases push-ups and pull-ups counting.
+Ultralytics YOLO26 is highly accurate in detecting and tracking exercises due to its state-of-the-art [pose estimation](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo11-for-pose-estimation) capabilities. It can accurately track key body landmarks and joints, providing real-time feedback on exercise form and performance metrics. The model's pretrained weights and robust architecture ensure high [precision](https://www.ultralytics.com/glossary/precision) and reliability. For real-world examples, check out the [real-world applications](#real-world-applications) section in the documentation, which showcases push-ups and pull-ups counting.
 
 ### Can I use Ultralytics YOLO26 for custom workout routines?
 

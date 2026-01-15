@@ -556,7 +556,7 @@ Yes, you can benchmark YOLO11 models in various formats including PyTorch, Torch
         from ultralytics import YOLO
 
         # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Benchmark YOLO11n speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset for all export formats
         results = model.benchmark(data="coco8.yaml")
@@ -566,7 +566,7 @@ Yes, you can benchmark YOLO11 models in various formats including PyTorch, Torch
 
         ```bash
         # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all export formats
-        yolo benchmark model=yolo11n.pt data=coco8.yaml
+        yolo benchmark model=yolo26n.pt data=coco8.yaml
         ```
 
 For detailed benchmark results, refer to our [benchmarks section](#openvino-yolo11-benchmarks) and [export formats](../modes/export.md) documentation.

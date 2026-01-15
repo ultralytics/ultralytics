@@ -61,7 +61,7 @@ Note the below example spotlights YOLO11 [Detect](../tasks/detect.md) models for
         from ultralytics import YOLO
 
         # Load a COCO-pretrained YOLO11n model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Display model information (optional)
         model.info()
@@ -79,10 +79,10 @@ Note the below example spotlights YOLO11 [Detect](../tasks/detect.md) models for
 
         ```bash
         # Load a COCO-pretrained YOLO11n model and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolo11n.pt data=coco8.yaml epochs=100 imgsz=640
+        yolo train model=yolo26n.pt data=coco8.yaml epochs=100 imgsz=640
 
         # Load a COCO-pretrained YOLO11n model and run inference on the 'bus.jpg' image
-        yolo predict model=yolo11n.pt source=path/to/bus.jpg
+        yolo predict model=yolo26n.pt source=path/to/bus.jpg
         ```
 
 ## Contributing New Models
@@ -121,7 +121,7 @@ Training a YOLO model on custom data can be easily accomplished using Ultralytic
         from ultralytics import YOLO
 
         # Load a YOLO model
-        model = YOLO("yolo11n.pt")  # or any other YOLO model
+        model = YOLO("yolo26n.pt")  # or any other YOLO model
 
         # Train the model on custom dataset
         results = model.train(data="custom_data.yaml", epochs=100, imgsz=640)
@@ -130,7 +130,7 @@ Training a YOLO model on custom data can be easily accomplished using Ultralytic
     === "CLI"
 
         ```bash
-        yolo train model=yolo11n.pt data='custom_data.yaml' epochs=100 imgsz=640
+        yolo train model=yolo26n.pt data='custom_data.yaml' epochs=100 imgsz=640
         ```
 
 For more detailed instructions, visit the [Train](../modes/train.md) documentation page.

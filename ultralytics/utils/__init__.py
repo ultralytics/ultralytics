@@ -110,7 +110,7 @@ HELP_MSG = """
             yolo detect val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
 
         - Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
-            yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+            yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
 
         - Run special commands:
             yolo help

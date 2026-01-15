@@ -984,22 +984,20 @@ class BaseTrainer:
         g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
-        muon, sgd = (0.1, 1.0)  # scale factor for MuSGD
+        muon, sgd = (0.5, 0.5) if iterations > 10000 else (0.1, 1.0)  # scale factor for MuSGD
         if use_muon:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
-            if iterations <= 10000:
-                import re
+            import re
 
-                # higher lr for certain parameters in MuSGD when funetuning
-                pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|flow_model")
-                g_ = []  # new param groups
-                for x in g:
-                    p = x.pop("params")
-                    p1 = [v for k, v in p.items() if pattern.search(k)]
-                    p2 = [v for k, v in p.items() if not pattern.search(k)]
-                    g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
-                g = g_
-                muon = sgd = 0.5
+            # higher lr for certain parameters in MuSGD when funetuning
+            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|flow_model")
+            g_ = []  # new param groups
+            for x in g:
+                p = x.pop("params")
+                p1 = [v for k, v in p.items() if pattern.search(k)]
+                p2 = [v for k, v in p.items() if not pattern.search(k)]
+                g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
+            g = g_
         optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
 
         LOGGER.info(

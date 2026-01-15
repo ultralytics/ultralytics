@@ -15,7 +15,7 @@ import subprocess
 import time
 import warnings
 from copy import copy, deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -124,7 +124,7 @@ class BaseTrainer:
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
-        self.device = select_device(self.args.device)
+        self.device = select_device(self.args.device) if LOCAL_RANK == -1 else torch.device("cuda", LOCAL_RANK)
         # Update "-1" devices so post-training val does not repeat search
         self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
@@ -134,7 +134,14 @@ class BaseTrainer:
 
         # Dirs
         self.save_dir = get_save_dir(self.args)
-        self.args.name = self.save_dir.name  # update name for loggers
+
+        # Broadcast working dir location
+        if RANK != -1:
+            save_dir = [self.save_dir if RANK == 0 else None]
+            dist.broadcast_object_list(save_dir, src=0)
+            self.save_dir = save_dir[0]
+
+        # Setup working directory
         self.wdir = self.save_dir / "weights"  # weights dir
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
@@ -146,6 +153,7 @@ class BaseTrainer:
                 args_dict["augmentations"] = [repr(t) for t in args_dict["augmentations"]]
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
+        self.args.name = self.save_dir.name  # update name for loggers
         self.save_period = self.args.save_period
 
         self.batch_size = self.args.batch
@@ -250,20 +258,9 @@ class BaseTrainer:
             self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
-    def _setup_ddp(self):
-        """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
-        dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
-            timeout=timedelta(seconds=10800),  # 3 hours
-            rank=RANK,
-            world_size=self.world_size,
-        )
-
     def _setup_train(self):
         """Build dataloaders and optimizer on correct rank process."""
+        # Setup model
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
@@ -307,7 +304,9 @@ class BaseTrainer:
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
         if self.world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model, device_ids=[LOCAL_RANK], find_unused_parameters=True
+            )
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
@@ -359,8 +358,6 @@ class BaseTrainer:
 
     def _do_train(self):
         """Train the model with the specified world size."""
-        if self.world_size > 1:
-            self._setup_ddp()
         self._setup_train()
 
         nb = len(self.train_loader)  # number of batches
@@ -781,12 +778,14 @@ class BaseTrainer:
     def final_eval(self):
         """Perform final evaluation and validation for object detection YOLO model."""
         model = self.best if self.best.exists() else None
-        with torch_distributed_zero_first(LOCAL_RANK):  # strip only on GPU 0; other GPUs should wait
-            if RANK in {-1, 0}:
-                ckpt = strip_optimizer(self.last) if self.last.exists() else {}
-                if model:
-                    # update best.pt train_metrics from last.pt
-                    strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
+        # strip only on GPU 0; other GPUs should wait
+        if RANK in {-1, 0}:
+            ckpt = strip_optimizer(self.last) if self.last.exists() else {}
+            if model:
+                # update best.pt train_metrics from last.pt
+                strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
+        if RANK != -1 and dist.is_available() and dist.is_initialized():
+            dist.barrier()  # wait for GPU 0 to strip
         if model:
             LOGGER.info(f"\nValidating {model}...")
             self.validator.args.plots = self.args.plots

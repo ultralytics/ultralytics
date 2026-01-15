@@ -853,7 +853,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     async with aiohttp.ClientSession() as session:
         pbar = TQDM(
             total=len(image_records),
-            desc=f"Converting {ndjson_path.name} ({len(image_records)} images)",
+            desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
         )
 
         async def tracked_process(record):

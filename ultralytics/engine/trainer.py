@@ -415,7 +415,7 @@ class BaseTrainer:
                             ni,
                             xi,
                             [
-                                self.args.warmup_bias_lr if x["param_group"] == "bias" else 0.0,
+                                self.args.warmup_bias_lr if x.get("param_group") == "bias" else 0.0,
                                 x["initial_lr"] * self.lf(epoch),
                             ],
                         )

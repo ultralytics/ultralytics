@@ -749,10 +749,10 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
 async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
     """Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
 
-    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format.
-    For detection/segmentation/pose/obb tasks, it creates separate directories for images and labels.
-    For classification tasks, it creates the ImageNet-style {split}/{class_name}/ folder structure.
-    It supports parallel processing for efficient conversion of large datasets and can download images from URLs.
+    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
+    detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. For classification
+    tasks, it creates the ImageNet-style {split}/{class_name}/ folder structure. It supports parallel processing for
+    efficient conversion of large datasets and can download images from URLs.
 
     The NDJSON format consists of:
     - First line: Dataset metadata with class names, task type, and configuration

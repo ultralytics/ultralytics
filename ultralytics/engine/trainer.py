@@ -17,6 +17,7 @@ import warnings
 from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
+from functools import partial
 
 import numpy as np
 import torch
@@ -942,7 +943,7 @@ class BaseTrainer:
             )
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
-            name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("MuSGD", lr_fit, 0.9)
+            name, lr, momentum = ("MuSGD", 0.01 if iterations > 10000 else lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         use_muon = name == "MuSGD"
@@ -978,7 +979,8 @@ class BaseTrainer:
         g[2] = {"params": g[2], **optim_args}
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0}
-        if name == "MuSGD":
+        muon, sgd = (0.1, 1.0) if iterations > 10000 else (0.5, 0.5)  # scale factor for MuSGD
+        if use_muon:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True}
             import re
 
@@ -991,7 +993,7 @@ class BaseTrainer:
                 p2 = [v for k, v in p.items() if not pattern.search(k)]
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
-        optimizer = getattr(optim, name, MuSGD)(params=g)
+        optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "

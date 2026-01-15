@@ -104,7 +104,7 @@ class FXModel(torch.nn.Module):
         return x
 
 
-def _inference(self, x: list[torch.Tensor] | dict[str, torch.Tensor]) -> tuple[torch.Tensor]:
+def _inference(self, x: dict[str, torch.Tensor]) -> tuple[torch.Tensor]:
     """Decode boxes and cls scores for imx object detection."""
     dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0)) * self.strides
     return dbox.transpose(1, 2), x["scores"].sigmoid().permute(0, 2, 1)

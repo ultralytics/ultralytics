@@ -70,9 +70,7 @@ def resolve_platform_uri(uri, hard=True):
 
     api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     if not api_key:
-        raise ValueError(
-            f"ULTRALYTICS_API_KEY required for '{uri}'. Get key at {PLATFORM_URL}/settings"
-        )
+        raise ValueError(f"ULTRALYTICS_API_KEY required for '{uri}'. Get key at {PLATFORM_URL}/settings")
 
     base = PLATFORM_API_URL
     headers = {"Authorization": f"Bearer {api_key}"}

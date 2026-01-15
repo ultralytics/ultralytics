@@ -632,21 +632,19 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
-            if self.args.task == "classify":
-                data = check_cls_dataset(self.args.data)
-            elif str(self.args.data).rsplit(".", 1)[-1] == "ndjson" or (
-                str(self.args.data).startswith("ul://") and "/datasets/" in str(self.args.data)
-            ):
-                # Convert NDJSON to YOLO format (including ul:// platform dataset URIs)
+            # Convert ul:// platform URIs and NDJSON files to local dataset format first
+            data_str = str(self.args.data)
+            if data_str.endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
                 import asyncio
 
                 from ultralytics.data.converter import convert_ndjson_to_yolo
                 from ultralytics.utils.checks import check_file
 
-                ndjson_file = check_file(self.args.data)  # Resolve ul:// or URL to local .ndjson file
-                yaml_path = asyncio.run(convert_ndjson_to_yolo(ndjson_file))
-                self.args.data = str(yaml_path)
-                data = check_det_dataset(self.args.data)
+                self.args.data = str(asyncio.run(convert_ndjson_to_yolo(check_file(self.args.data))))
+
+            # Task-specific dataset checking
+            if self.args.task == "classify":
+                data = check_cls_dataset(self.args.data)
             elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",

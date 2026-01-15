@@ -420,7 +420,7 @@ def get_github_assets(
         LOGGER.warning(f"GitHub assets check failure for {url}: {r.status_code} {r.reason}")
         return "", []
     data = r.json()
-    return data["tag_name"], [x["name"] for x in data["assets"]]  # tag, assets i.e. ['yolo11n.pt', 'yolov8s.pt', ...]
+    return data["tag_name"], [x["name"] for x in data["assets"]]  # tag, assets i.e. ['yolo26n.pt', 'yolo11s.pt', ...]
 
 
 def attempt_download_asset(
@@ -441,7 +441,7 @@ def attempt_download_asset(
         (str): The path to the downloaded file.
 
     Examples:
-        >>> file_path = attempt_download_asset("yolo11n.pt", repo="ultralytics/assets", release="latest")
+        >>> file_path = attempt_download_asset("yolo26n.pt", repo="ultralytics/assets", release="latest")
     """
     from ultralytics.utils import SETTINGS  # scoped for circular import
 

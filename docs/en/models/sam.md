@@ -213,7 +213,7 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam_b.pt")
+        auto_annotate(data="path/to/images", det_model="yolo26x.pt", sam_model="sam_b.pt")
         ```
 
 {% include "macros/sam-auto-annotate.md" %}

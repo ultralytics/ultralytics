@@ -132,14 +132,14 @@ class AutoBackend(nn.Module):
         _model_type: Determine the model type from file path.
 
     Examples:
-        >>> model = AutoBackend(model="yolo11n.pt", device="cuda")
+        >>> model = AutoBackend(model="yolo26n.pt", device="cuda")
         >>> results = model(img)
     """
 
     @torch.no_grad()
     def __init__(
         self,
-        model: str | torch.nn.Module = "yolo11n.pt",
+        model: str | torch.nn.Module = "yolo26n.pt",
         device: torch.device = torch.device("cpu"),
         dnn: bool = False,
         data: str | Path | None = None,

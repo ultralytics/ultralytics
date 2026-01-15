@@ -126,7 +126,7 @@ Enable metric streaming with your key.
 
 ```bash
 export ULTRALYTICS_API_KEY="ul_your_key_here"
-yolo train model=yolo11n.pt data=coco.yaml project=username/project name=exp1
+yolo train model=yolo26n.pt data=coco.yaml project=username/project name=exp1
 ```
 
 ## Manage Keys

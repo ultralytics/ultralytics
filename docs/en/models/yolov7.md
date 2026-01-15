@@ -101,7 +101,7 @@ To use YOLOv7 ONNX model with Ultralytics:
 
     ```bash
     pip install ultralytics
-    yolo export model=yolo11n.pt format=onnx
+    yolo export model=yolo26n.pt format=onnx
     ```
 
 2. Export the desired YOLOv7 model by using the exporter in the [YOLOv7 repo](https://github.com/WongKinYiu/yolov7):

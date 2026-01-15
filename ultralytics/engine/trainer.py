@@ -3,7 +3,7 @@
 Train a model on a dataset.
 
 Usage:
-    $ yolo mode=train model=yolo11n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
+    $ yolo mode=train model=yolo26n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
 """
 
 from __future__ import annotations
@@ -181,7 +181,7 @@ class BaseTrainer:
             self.run_callbacks("on_pretrain_routine_start")
 
         # Model and Dataset
-        self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo11n -> yolo11n.pt
+        self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo26n -> yolo26n.pt
         with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
             self.data = self.get_dataset()
 

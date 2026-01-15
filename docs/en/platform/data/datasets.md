@@ -197,7 +197,7 @@ Use this URI to train models from anywhere:
 
 ```bash
 export ULTRALYTICS_API_KEY="your_api_key"
-yolo train model=yolo11n.pt data=ul://username/datasets/my-dataset epochs=100
+yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
 ```
 
 !!! example "Train Anywhere with Platform Data"

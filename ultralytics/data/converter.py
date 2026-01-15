@@ -776,7 +776,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
         Use with YOLO training
         >>> from ultralytics import YOLO
-        >>> model = YOLO("yolo11n.pt")
+        >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
     """
     check_requirements("aiohttp")

@@ -530,7 +530,7 @@ def check_torchvision():
             )
 
 
-def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
+def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
     """Check file(s) for acceptable suffix.
 
     Args:
@@ -584,7 +584,7 @@ def check_model_file_from_stem(model="yolo11n"):
     """
     path = Path(model)
     if not path.suffix and path.stem in downloads.GITHUB_ASSETS_STEMS:
-        return path.with_suffix(".pt")  # add suffix, i.e. yolo11n -> yolo11n.pt
+        return path.with_suffix(".pt")  # add suffix, i.e. yolo26n -> yolo26n.pt
     return model
 
 
@@ -812,7 +812,7 @@ def check_amp(model):
     Examples:
         >>> from ultralytics import YOLO
         >>> from ultralytics.utils.checks import check_amp
-        >>> model = YOLO("yolo11n.pt").model.cuda()
+        >>> model = YOLO("yolo26n.pt").model.cuda()
         >>> check_amp(model)
     """
     from ultralytics.utils.torch_utils import autocast
@@ -851,14 +851,14 @@ def check_amp(model):
     try:
         from ultralytics import YOLO
 
-        assert amp_allclose(YOLO("yolo11n.pt"), im)
+        assert amp_allclose(YOLO("yolo26n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO11n for AMP checks. {warning_msg}")
+        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO26n for AMP checks. {warning_msg}")
     except (AttributeError, ModuleNotFoundError):
         LOGGER.warning(
             f"{prefix}checks skipped. "
-            f"Unable to load YOLO11n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
+            f"Unable to load YOLO26n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
         )
     except AssertionError:
         LOGGER.error(

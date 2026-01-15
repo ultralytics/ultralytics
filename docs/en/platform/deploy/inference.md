@@ -265,7 +265,7 @@ The API returns JSON predictions. To visualize:
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 results = model("image.jpg")
 results[0].save("annotated.jpg")
 ```

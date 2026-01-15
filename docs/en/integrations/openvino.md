@@ -544,9 +544,9 @@ Ultralytics YOLO26 is optimized for real-time object detection with high accurac
 
 For in-depth performance analysis, check our detailed [YOLO11 benchmarks](#openvino-yolo11-benchmarks) on different hardware.
 
-### Can I benchmark YOLO11 models on different formats such as PyTorch, ONNX, and OpenVINO?
+### Can I benchmark YOLO26 models on different formats such as PyTorch, ONNX, and OpenVINO?
 
-Yes, you can benchmark YOLO11 models in various formats including PyTorch, TorchScript, ONNX, and OpenVINO. Use the following code snippet to run benchmarks on your chosen dataset:
+Yes, you can benchmark YOLO26 models in various formats including PyTorch, TorchScript, ONNX, and OpenVINO. Use the following code snippet to run benchmarks on your chosen dataset:
 
 !!! example
 
@@ -555,18 +555,18 @@ Yes, you can benchmark YOLO11 models in various formats including PyTorch, Torch
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n PyTorch model
+        model = YOLO("yolo26n.pt")
 
-        # Benchmark YOLO11n speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset for all export formats
+        # Benchmark YOLO26n speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset for all export formats
         results = model.benchmark(data="coco8.yaml")
         ```
 
     === "CLI"
 
         ```bash
-        # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all export formats
-        yolo benchmark model=yolo11n.pt data=coco8.yaml
+        # Benchmark YOLO26n speed and accuracy on the COCO8 dataset for all export formats
+        yolo benchmark model=yolo26n.pt data=coco8.yaml
         ```
 
 For detailed benchmark results, refer to our [benchmarks section](#openvino-yolo11-benchmarks) and [export formats](../modes/export.md) documentation.

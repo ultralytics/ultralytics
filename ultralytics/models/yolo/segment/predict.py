@@ -24,7 +24,7 @@ class SegmentationPredictor(DetectionPredictor):
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.segment import SegmentationPredictor
-        >>> args = dict(model="yolo11n-seg.pt", source=ASSETS)
+        >>> args = dict(model="yolo26n-seg.pt", source=ASSETS)
         >>> predictor = SegmentationPredictor(overrides=args)
         >>> predictor.predict_cli()
     """
@@ -56,7 +56,7 @@ class SegmentationPredictor(DetectionPredictor):
                 Results object includes both bounding boxes and segmentation masks.
 
         Examples:
-            >>> predictor = SegmentationPredictor(overrides=dict(model="yolo11n-seg.pt"))
+            >>> predictor = SegmentationPredictor(overrides=dict(model="yolo26n-seg.pt"))
             >>> results = predictor.postprocess(preds, img, orig_img)
         """
         # Extract protos - tuple if PyTorch model or array if exported

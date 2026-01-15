@@ -80,8 +80,8 @@ HELP_MSG = """
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.yaml")  # build a new model from scratch
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.yaml")  # build a new model from scratch
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Use the model
         results = model.train(data="coco8.yaml", epochs=3)  # train the model
@@ -101,16 +101,16 @@ HELP_MSG = """
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
 
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
-            yolo detect train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+            yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
         - Predict a YouTube video using a pretrained segmentation model at image size 320:
-            yolo segment predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+            yolo segment predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
         - Val a pretrained detection model at batch-size 1 and image size 640:
-            yolo detect val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+            yolo detect val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
 
-        - Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
-            yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+        - Export a YOLO26n classification model to ONNX format at image size 224 by 128 (no TASK required)
+            yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
 
         - Run special commands:
             yolo help
@@ -161,7 +161,7 @@ class DataExportMixin:
         tojson: Deprecated alias for `to_json()`.
 
     Examples:
-        >>> model = YOLO("yolo11n.pt")
+        >>> model = YOLO("yolo26n.pt")
         >>> results = model("image.jpg")
         >>> df = results.to_df()
         >>> print(df)

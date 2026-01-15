@@ -8,9 +8,9 @@ that yield the best model performance. This is particularly crucial in deep lear
 where small changes in hyperparameters can lead to significant differences in model accuracy and efficiency.
 
 Examples:
-    Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=10 for 300 tuning iterations.
+    Tune hyperparameters for YOLO26n on COCO8 at imgsz=640 and epochs=10 for 300 tuning iterations.
     >>> from ultralytics import YOLO
-    >>> model = YOLO("yolo11n.pt")
+    >>> model = YOLO("yolo26n.pt")
     >>> model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
 """
 
@@ -55,9 +55,9 @@ class Tuner:
         __call__: Execute the hyperparameter evolution across multiple iterations.
 
     Examples:
-        Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=10 for 300 tuning iterations.
+        Tune hyperparameters for YOLO26n on COCO8 at imgsz=640 and epochs=10 for 300 tuning iterations.
         >>> from ultralytics import YOLO
-        >>> model = YOLO("yolo11n.pt")
+        >>> model = YOLO("yolo26n.pt")
         >>> model.tune(
         >>>     data="coco8.yaml",
         >>>     epochs=10,

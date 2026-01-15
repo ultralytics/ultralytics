@@ -38,7 +38,7 @@ class OBBValidator(DetectionValidator):
 
     Examples:
         >>> from ultralytics.models.yolo.obb import OBBValidator
-        >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml")
+        >>> args = dict(model="yolo26n-obb.pt", data="dota8.yaml")
         >>> validator = OBBValidator(args=args)
         >>> validator(model=args["model"])
     """

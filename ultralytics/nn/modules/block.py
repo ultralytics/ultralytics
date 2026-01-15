@@ -122,6 +122,10 @@ class Proto26(Proto):
         self.feat_fuse = Conv(ch[0], c_, k=3)
         self.semseg = nn.Sequential(Conv(ch[0], c_, k=3), Conv(c_, c_, k=3), nn.Conv2d(c_, nc, 1))
 
+    def fuse(self) -> None:
+        """Remove semseg for inference optimization."""
+        self.semseg=None
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Perform a forward pass through layers using an upsampled input image."""
         feat = x[0]

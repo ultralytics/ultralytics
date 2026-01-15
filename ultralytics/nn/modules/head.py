@@ -393,6 +393,12 @@ class Segment26(Segment):
         super().__init__(nc, nm, npr, reg_max, end2end, ch)
         self.proto = Proto26(ch, self.npr, self.nm, nc)  # protos
 
+    def fuse(self) -> None:
+        """Remove the one2many head for inference optimization."""
+        super().fuse()
+        if hasattr(self.proto, 'fuse'):
+            self.proto.fuse()
+
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
         outputs = Detect.forward(self, x)

@@ -409,10 +409,15 @@ class BaseTrainer:
                 if ni <= nw:
                     xi = [0, nw]  # x interp
                     self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
-                    for j, x in enumerate(self.optimizer.param_groups):
+                    for x in self.optimizer.param_groups:
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x["lr"] = np.interp(
-                            ni, xi, [self.args.warmup_bias_lr if j == 2 else 0.0, x["initial_lr"] * self.lf(epoch)]
+                            ni,
+                            xi,
+                            [
+                                self.args.warmup_bias_lr if x["param_group"] == "bias" else 0.0,
+                                x["initial_lr"] * self.lf(epoch),
+                            ],
                         )
                         if "momentum" in x:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
@@ -976,23 +981,25 @@ class BaseTrainer:
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
 
-        g[2] = {"params": g[2], **optim_args}
-        g[0] = {"params": g[0], **optim_args, "weight_decay": decay}
-        g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0}
-        muon, sgd = (0.1, 1.0) if iterations > 10000 else (0.5, 0.5)  # scale factor for MuSGD
+        g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
+        g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
+        g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
+        muon, sgd = (0.1, 1.0)  # scale factor for MuSGD
         if use_muon:
-            g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True}
-            import re
+            g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
+            if iterations <= 10000:
+                import re
 
-            # higher lr for certain parameters in MuSGD
-            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|flow_model")
-            g_ = []  # new param groups
-            for x in g:
-                p = x.pop("params")
-                p1 = [v for k, v in p.items() if pattern.search(k)]
-                p2 = [v for k, v in p.items() if not pattern.search(k)]
-                g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
-            g = g_
+                # higher lr for certain parameters in MuSGD when funetuning
+                pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|flow_model")
+                g_ = []  # new param groups
+                for x in g:
+                    p = x.pop("params")
+                    p1 = [v for k, v in p.items() if pattern.search(k)]
+                    p2 = [v for k, v in p.items() if not pattern.search(k)]
+                    g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
+                g = g_
+                muon = sgd = 0.5
         optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
 
         LOGGER.info(

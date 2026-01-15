@@ -667,7 +667,7 @@ class Results(SimpleClass, DataExportMixin):
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             >>>     result.save_txt("output.txt")

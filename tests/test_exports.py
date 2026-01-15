@@ -263,7 +263,7 @@ def test_export_ncnn_matrix(task, half, batch):
 @pytest.mark.skipif(ARM64, reason="IMX export is not supported on ARM64 architectures.")
 def test_export_imx():
     """Test YOLO export to IMX format."""
-    model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
+    model = YOLO("yolo26n.pt")  # IMX export only supports YOLO11
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
 

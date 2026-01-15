@@ -774,6 +774,14 @@ class Results(SimpleClass, DataExportMixin):
         if self.probs is not None:
             # Return top 5 classification results
             for class_id, conf in zip(self.probs.top5, self.probs.top5conf.tolist()):
+                class_id = int(class_id)
+                results.append(
+                    {
+                        "name": self.names[class_id],
+                        "class": class_id,
+                        "confidence": round(conf, decimals),
+                    }
+                )
                 results.append(
                     {
                         "name": self.names[class_id],

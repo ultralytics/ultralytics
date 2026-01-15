@@ -126,7 +126,7 @@ Yes, Ultralytics YOLO26 can be seamlessly integrated with your existing security
 
 ### What are the storage requirements for running Ultralytics YOLO26?
 
-Running Ultralytics YOLO26 on a standard setup typically requires around 5GB of free disk space. This includes space for storing the YOLO26 model and any additional dependencies. For cloud-based solutions, [Ultralytics Platform](https://docs.ultralytics.com/platform/) offers efficient project management and dataset handling, which can optimize storage needs. Learn more about the [Pro Plan](../platform/pro.md) for enhanced features including extended storage.
+Running Ultralytics YOLO26 on a standard setup typically requires around 5GB of free disk space. This includes space for storing the YOLO26 model and any additional dependencies. For cloud-based solutions, [Ultralytics Platform](https://docs.ultralytics.com/platform/) offers efficient project management and dataset handling, which can optimize storage needs. Learn more about the [Pro Plan](../platform/account/billing.md) for enhanced features including extended storage.
 
 ### What makes Ultralytics YOLO26 different from other object detection models like Faster R-CNN or SSD?
 

@@ -32,7 +32,7 @@ The VOC dataset is split into three subsets:
 
 1. **Train**: This subset contains images for training object detection, segmentation, and classification models.
 2. **Validation**: This subset has images used for validation purposes during model training.
-3. **Test**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [PASCAL VOC evaluation server](http://host.robots.ox.ac.uk:8080/leaderboard/displaylb.php) for performance evaluation.
+3. **Test**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results were historically submitted to the PASCAL VOC evaluation server for performance evaluation.
 
 ## Applications
 

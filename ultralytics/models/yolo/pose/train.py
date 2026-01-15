@@ -91,7 +91,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def get_validator(self):
         """Return an instance of the PoseValidator class for validation."""
         head = self.model.model[-1]
-        has_rle_loss = hasattr(head, 'flow_model') and head.flow_model is not None
+        has_rle_loss = hasattr(head, "flow_model") and head.flow_model is not None
         if has_rle_loss:
             self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss", "rle_loss"
         else:

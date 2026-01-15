@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import random
 import shutil
@@ -746,8 +745,8 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         LOGGER.info(f"Converted {output_path}")
 
 
-async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
-    """Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
+def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
+    """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
     detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. For classification
@@ -779,8 +778,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
     """
-    check_requirements("aiohttp")
-    import aiohttp
+    import requests
 
     ndjson_path = Path(check_file(ndjson_path))
     output_path = Path(output_path or DATASETS_DIR)
@@ -810,65 +808,65 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
 
-    async def process_record(session, semaphore, record):
-        """Process single image record with async session."""
-        async with semaphore:
-            split, original_name = record["split"], record["file"]
-            annotations = record.get("annotations", {})
+    # Scale workers with dataset size (max 64)
+    workers = min(64, len(image_records))
 
-            if is_classification:
-                # Classification: place image in {split}/{class_name}/ folder
-                class_ids = annotations.get("classification", [])
-                class_id = class_ids[0] if class_ids else 0
-                class_name = class_names.get(class_id, str(class_id))
-                image_path = dataset_dir / split / class_name / original_name
-            else:
-                # Detection: write label file and place image in images/{split}/
-                image_path = dataset_dir / "images" / split / original_name
-                label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
-                lines_to_write = []
-                for key in annotations.keys():
-                    lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
-                    break
-                label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
+    # Setup session with connection pooling for parallel downloads
+    session = requests.Session()
+    adapter = requests.adapters.HTTPAdapter(pool_connections=workers, pool_maxsize=workers)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
 
-            # Download image if URL provided and file doesn't exist
-            if http_url := record.get("url"):
-                if not image_path.exists():
-                    image_path.parent.mkdir(parents=True, exist_ok=True)  # Ensure parent dir exists
-                    try:
-                        async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
-                            response.raise_for_status()
-                            with open(image_path, "wb") as f:
-                                async for chunk in response.content.iter_chunked(8192):
-                                    f.write(chunk)
-                        return True
-                    except Exception as e:
-                        LOGGER.warning(f"Failed to download {http_url}: {e}")
-                        return False
-            return True
+    # Pre-warm connection pool with HEAD requests to eliminate cold start latency
+    urls_with_downloads = [r for r in image_records if r.get("url")]
+    if urls_with_downloads:
+        sample_url = urls_with_downloads[0]["url"]
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            list(executor.map(lambda _: session.head(sample_url, timeout=10), range(workers)))
 
-    # Process all images with async downloads
-    semaphore = asyncio.Semaphore(64)
-    async with aiohttp.ClientSession() as session:
-        pbar = TQDM(
-            total=len(image_records),
-            desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
-        )
+    def process_record(record):
+        """Process single image record: write labels and download image if needed."""
+        split, original_name = record["split"], record["file"]
+        annotations = record.get("annotations", {})
 
-        async def tracked_process(record):
-            result = await process_record(session, semaphore, record)
+        if is_classification:
+            # Classification: place image in {split}/{class_name}/ folder
+            class_ids = annotations.get("classification", [])
+            class_id = class_ids[0] if class_ids else 0
+            class_name = class_names.get(class_id, str(class_id))
+            image_path = dataset_dir / split / class_name / original_name
+        else:
+            # Detection: write label file and place image in images/{split}/
+            image_path = dataset_dir / "images" / split / original_name
+            label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
+            lines_to_write = []
+            for key in annotations.keys():
+                lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
+                break
+            label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
+
+        # Download image if URL provided and file doesn't exist
+        if http_url := record.get("url"):
+            if not image_path.exists():
+                image_path.parent.mkdir(parents=True, exist_ok=True)
+                try:
+                    response = session.get(http_url, timeout=30)
+                    response.raise_for_status()
+                    image_path.write_bytes(response.content)
+                except Exception as e:
+                    LOGGER.warning(f"Failed to download {http_url}: {e}")
+
+    # Process all images with thread pool
+    pbar = TQDM(total=len(image_records), desc=f"Converting {ndjson_path.name} ({len(image_records)} images)")
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        for _ in executor.map(process_record, image_records):
             pbar.update(1)
-            return result
-
-        await asyncio.gather(*[tracked_process(record) for record in image_records])
-        pbar.close()
+    pbar.close()
+    session.close()
 
     if is_classification:
-        # Classification: return dataset directory (check_cls_dataset expects a directory path)
         return dataset_dir
     else:
-        # Detection: write data.yaml and return its path
         yaml_path = dataset_dir / "data.yaml"
         YAML.save(yaml_path, data_yaml)
         return yaml_path

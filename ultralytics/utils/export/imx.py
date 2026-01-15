@@ -224,7 +224,7 @@ def torch2imx(
 
     Examples:
         >>> from ultralytics import YOLO
-        >>> model = YOLO("yolo26n.pt")
+        >>> model = YOLO("yolo11n.pt")
         >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.7, max_det=300)
 
     Notes:

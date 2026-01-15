@@ -126,7 +126,7 @@ CLI_HELP_MSG = f"""
     3. Validate a pretrained detection model at batch-size 1 and image size 640:
         yolo val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
 
-    4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
+    4. Export a YOLO26n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
 
     5. Ultralytics solutions usage

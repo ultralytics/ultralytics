@@ -40,10 +40,10 @@ class YOLO(Model):
         task_map: Map tasks to their corresponding model, trainer, validator, and predictor classes.
 
     Examples:
-        Load a pretrained YOLO11n detection model
+        Load a pretrained YOLO26n detection model
         >>> model = YOLO("yolo26n.pt")
 
-        Load a pretrained YOLO11n segmentation model
+        Load a pretrained YOLO26n segmentation model
         >>> model = YOLO("yolo26n-seg.pt")
 
         Initialize from a YAML configuration

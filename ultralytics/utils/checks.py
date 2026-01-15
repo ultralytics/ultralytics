@@ -854,11 +854,11 @@ def check_amp(model):
         assert amp_allclose(YOLO("yolo26n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO11n for AMP checks. {warning_msg}")
+        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO26n for AMP checks. {warning_msg}")
     except (AttributeError, ModuleNotFoundError):
         LOGGER.warning(
             f"{prefix}checks skipped. "
-            f"Unable to load YOLO11n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
+            f"Unable to load YOLO26n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
         )
     except AssertionError:
         LOGGER.error(

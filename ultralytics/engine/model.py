@@ -277,7 +277,7 @@ class Model(torch.nn.Module):
         """
         if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://")):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
-        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo11n -> yolo26n.pt
+        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26 -> yolo26n.pt
 
         if str(weights).rpartition(".")[-1] == "pt":
             self.model, self.ckpt = load_checkpoint(weights)

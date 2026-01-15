@@ -44,10 +44,10 @@ class YOLO(Model):
         >>> model = YOLO("yolo26n.pt")
 
         Load a pretrained YOLO11n segmentation model
-        >>> model = YOLO("yolo11n-seg.pt")
+        >>> model = YOLO("yolo26n-seg.pt")
 
         Initialize from a YAML configuration
-        >>> model = YOLO("yolo11n.yaml")
+        >>> model = YOLO("yolo26n.yaml")
     """
 
     def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
@@ -57,7 +57,7 @@ class YOLO(Model):
         YOLOE) based on the model filename.
 
         Args:
-            model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo11n.yaml'.
+            model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml'.
             task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'. Defaults
                 to auto-detection based on model.
             verbose (bool): Display model info on load.

@@ -361,11 +361,11 @@ class DetectionModel(BaseModel):
 
     Examples:
         Initialize a detection model
-        >>> model = DetectionModel("yolo11n.yaml", ch=3, nc=80)
+        >>> model = DetectionModel("yolo26n.yaml", ch=3, nc=80)
         >>> results = model.predict(image_tensor)
     """
 
-    def __init__(self, cfg="yolo11n.yaml", ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolo26n.yaml", ch=3, nc=None, verbose=True):
         """Initialize the YOLO detection model with the given config and parameters.
 
         Args:
@@ -538,11 +538,11 @@ class SegmentationModel(DetectionModel):
 
     Examples:
         Initialize a segmentation model
-        >>> model = SegmentationModel("yolo11n-seg.yaml", ch=3, nc=80)
+        >>> model = SegmentationModel("yolo26n-seg.yaml", ch=3, nc=80)
         >>> results = model.predict(image_tensor)
     """
 
-    def __init__(self, cfg="yolo11n-seg.yaml", ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolo26n-seg.yaml", ch=3, nc=None, verbose=True):
         """Initialize Ultralytics YOLO segmentation model with given config and parameters.
 
         Args:

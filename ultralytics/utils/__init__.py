@@ -104,7 +104,7 @@ HELP_MSG = """
             yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
         - Predict a YouTube video using a pretrained segmentation model at image size 320:
-            yolo segment predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+            yolo segment predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
         - Val a pretrained detection model at batch-size 1 and image size 640:
             yolo detect val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640

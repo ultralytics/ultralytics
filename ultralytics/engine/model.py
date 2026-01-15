@@ -242,7 +242,7 @@ class Model(torch.nn.Module):
 
         Examples:
             >>> model = Model()
-            >>> model._new("yolo11n.yaml", task="detect", verbose=True)
+            >>> model._new("yolo26n.yaml", task="detect", verbose=True)
         """
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg

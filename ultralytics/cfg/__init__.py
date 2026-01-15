@@ -121,7 +121,7 @@ CLI_HELP_MSG = f"""
         yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
     3. Validate a pretrained detection model at batch-size 1 and image size 640:
         yolo val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
@@ -604,7 +604,7 @@ def handle_yolo_settings(args: list[str]) -> None:
 
     Examples:
         >>> handle_yolo_settings(["reset"])  # Reset YOLO settings
-        >>> handle_yolo_settings(["default_cfg_path=yolo11n.yaml"])  # Update a specific setting
+        >>> handle_yolo_settings(["default_cfg_path=yolo26n.yaml"])  # Update a specific setting
 
     Notes:
         - If no arguments are provided, the function will display the current settings.
@@ -835,7 +835,7 @@ def entrypoint(debug: str = "") -> None:
         >>> entrypoint("train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01")
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
-        >>> entrypoint("predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
+        >>> entrypoint("predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
 
         Validate a pretrained detection model at batch-size 1 and image size 640:
         >>> entrypoint("val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640")

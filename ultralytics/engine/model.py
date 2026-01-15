@@ -421,7 +421,7 @@ class Model(torch.nn.Module):
         }
         torch.save({**self.ckpt, **updates}, filename)
 
-    def info(self, detailed: bool = False, verbose: bool = True):
+    def info(self, detailed: bool = False, verbose: bool = True, imgsz: int | list[int, int] = 640):
         """
         Display model information.
 
@@ -442,7 +442,7 @@ class Model(torch.nn.Module):
             >>> info_list = model.info(detailed=True, verbose=False)  # Returns detailed info as a list
         """
         self._check_is_pytorch_model()
-        return self.model.info(detailed=detailed, verbose=verbose)
+        return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
 
     def fuse(self) -> None:
         """
@@ -462,7 +462,7 @@ class Model(torch.nn.Module):
             >>> # Model is now fused and ready for optimized inference
         """
         self._check_is_pytorch_model()
-        self.model.fuse()
+        self.model.fuse(verbose=False)
 
     def embed(
         self,

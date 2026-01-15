@@ -226,15 +226,14 @@ class Detect(nn.Module):
         Returns:
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
-        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,84)
+        anchors = scores.shape[1]  # i.e. shape(16,8400,84)
         # Use max_det directly during export for TensorRT compatibility (requires k to be constant),
         # otherwise use min(max_det, anchors) for safety with small inputs during Python inference
         k = max_det if self.export else min(max_det, anchors)
-        ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
-        scores = scores.gather(dim=1, index=ori_index.repeat(1, 1, nc))
-        scores, index = scores.flatten(1).topk(k)
-        idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index
-        return scores[..., None], (index % nc)[..., None].float(), idx
+        scores, labels = scores.max(dim=-1, keepdim=True)
+        scores, indices = scores.topk(k, dim=1)
+        labels = labels.gather(1, indices)
+        return scores, labels, indices
 
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""

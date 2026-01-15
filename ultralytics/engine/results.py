@@ -782,13 +782,6 @@ class Results(SimpleClass, DataExportMixin):
                         "confidence": round(conf, decimals),
                     }
                 )
-                results.append(
-                    {
-                        "name": self.names[class_id],
-                        "class": class_id,
-                        "confidence": round(conf, decimals),
-                    }
-                )
             return results
 
         is_obb = self.obb is not None

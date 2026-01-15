@@ -178,8 +178,6 @@ def benchmark(
             assert model.task != "pose" or format != "executorch", "ExecuTorch Pose inference is not supported"
             assert format not in {"edgetpu", "tfjs"}, "inference not supported"
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
-            if format == "ncnn":
-                assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate

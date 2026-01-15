@@ -15,7 +15,7 @@ import subprocess
 import time
 import warnings
 from copy import copy, deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -124,7 +124,7 @@ class BaseTrainer:
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
-        self.device = select_device(self.args.device)
+        self.device = select_device(self.args.device) if RANK == -1 else torch.device("cuda", LOCAL_RANK)
         # Update "-1" devices so post-training val does not repeat search
         self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
@@ -250,18 +250,6 @@ class BaseTrainer:
             self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
-    def _setup_ddp(self):
-        """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
-        dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
-            timeout=timedelta(seconds=10800),  # 3 hours
-            rank=RANK,
-            world_size=self.world_size,
-        )
-
     def _setup_train(self):
         """Build dataloaders and optimizer on correct rank process."""
         ckpt = self.setup_model()
@@ -359,8 +347,6 @@ class BaseTrainer:
 
     def _do_train(self):
         """Train the model with the specified world size."""
-        if self.world_size > 1:
-            self._setup_ddp()
         self._setup_train()
 
         nb = len(self.train_loader)  # number of batches

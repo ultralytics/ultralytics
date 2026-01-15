@@ -31,8 +31,11 @@ from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for
 from ultralytics.utils.tqdm import TQDM  # noqa
 
 # PyTorch Multi-GPU DDP Constants
-RANK = int(os.getenv("RANK", -1))
-LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
+if getattr(torch.distributed, "is_initialized", lambda: False)():
+    RANK = int(os.getenv("RANK", -1))
+    LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
+else:
+    RANK = LOCAL_RANK = -1
 
 # Other Constants
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []

@@ -160,6 +160,8 @@ def benchmark(
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
                 assert gpu, "inference not supported on GPU"
+            if format == "ncnn":
+                assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
 
             # Export
             if format == "-":

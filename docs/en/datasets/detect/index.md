@@ -148,6 +148,8 @@ An NDJSON dataset file contains:
 
         Format: `[class_id, x_center, y_center, width, height, x1, y1, v1, x2, y2, v2, ...]`
 
+        Keypoints follow bbox as repeated `(x, y, v)` triplets where `v` is visibility: 0=not labeled, 1=labeled but occluded, 2=labeled and visible. The keypoint count is dataset-specific (e.g., COCO pose has 17 keypoints = 51 values after bbox).
+
     === "OBB"
 
         ```json
@@ -168,6 +170,8 @@ An NDJSON dataset file contains:
         ```
 
         Format: `[class_id, x1, y1, x2, y2, x3, y3, x4, y4]`
+
+        The four corner points define the oriented bounding box in clockwise order starting from the top-left corner. All coordinates are normalized (0-1).
 
     === "Classify"
 

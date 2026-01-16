@@ -160,14 +160,14 @@ An NDJSON dataset file contains:
             "split": "train",
             "annotations": {
                 "obb": [
-                    [0, 0.525, 0.376, 0.284, 0.418, 0.524],
-                    [1, 0.735, 0.298, 0.193, 0.337, 0.785]
+                    [0, 0.480, 0.352, 0.568, 0.356, 0.572, 0.400, 0.484, 0.396],
+                    [1, 0.711, 0.274, 0.759, 0.278, 0.755, 0.322, 0.707, 0.318]
                 ]
             }
         }
         ```
 
-        Format: `[class_id, x_center, y_center, width, height, angle]`
+        Format: `[class_id, x1, y1, x2, y2, x3, y3, x4, y4]`
 
     === "Classify"
 
@@ -180,12 +180,12 @@ An NDJSON dataset file contains:
             "height": 480,
             "split": "train",
             "annotations": {
-                "classification": [0, 2]
+                "classification": [0]
             }
         }
         ```
 
-        Format: `[class_id, ...]` (supports multi-label)
+        Format: `[class_id]`
 
 #### Usage Example
 

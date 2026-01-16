@@ -392,7 +392,7 @@ def model_info_for_loggers(trainer):
     return results
 
 
-def get_flops(model, imgsz=640):
+def get_flops(model, imgsz=640,im=None):
     """
     Calculate FLOPs (floating point operations) for a model in billions.
 
@@ -407,6 +407,10 @@ def get_flops(model, imgsz=640):
     Returns:
         (float): The model FLOPs in billions.
     """
+    if im is None:
+        import cv2 
+        im_file=os.path.join(os.path.dirname(__file__),"../assets/bus.jpg")
+        im= cv2.imread(im_file)
     try:
         import thop
     except ImportError:
@@ -423,12 +427,14 @@ def get_flops(model, imgsz=640):
         try:
             # Method 1: Use stride-based input tensor
             stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
-            im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
+            im = torch.from_numpy(cv2.resize(im, (stride, stride)))[None].permute(0, 3, 1, 2).to(p.device).float() / 255.0
             flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
             return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
         except Exception:
             # Method 2: Use actual image size (required for RTDETR models)
-            im = torch.empty((1, p.shape[1], *imgsz), device=p.device)  # input image in BCHW format
+            LOGGER.warning("method 1 failed in get_flops function, trying method 2 for FLOPs calculation...")
+            im = torch.from_numpy(cv2.resize(im, *imgsz))[None].permute(0, 3, 1, 2).to(p.device).float() / 255.0
+
             return thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
     except Exception:
         return 0.0

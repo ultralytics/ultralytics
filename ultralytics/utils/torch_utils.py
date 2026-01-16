@@ -154,15 +154,30 @@ def select_device(device="", newline=False, verbose=True):
         >>> select_device("cpu")
         device(type='cpu')
 
+        >>> select_device("npu:0")
+        device(type='npu')
+
     Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
+        Set the 'ASCEND_RT_VISIBLE_DEVICES' and 'ASCEND_VISIBLE_DEVICES' environment if device type is npu
     """
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
     device = str(device).lower()
-    for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
+
+    is_npu = device.startswith("npu")
+    if is_npu:
+        try:
+            import torch_npu
+            from torch_npu.contrib import transfer_to_npu
+        except ImportError:
+            LOGGER.warning("WARNING ⚠️ torch_npu not found, falling back to CPU. "
+                           "Please install torch_npu for Ascend NPU support.")
+            device = "cpu"
+
+    for remove in "cuda:", 'npu:',"none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
 
     # Auto-select GPUs
@@ -181,8 +196,31 @@ def select_device(device="", newline=False, verbose=True):
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
+    elif is_npu:
+        if device == "" or device =="none":
+            device = "0"
+
+        try:
+            if not torch_npu.npu.is_available():
+                raise RuntimeError()
+            os.environ["ASCEND_VISIBLE_DEVICES"] = device
+            os.environ["ASCEND_RT_VISIBLE_DEVICES"] = device
+            # Validate that the requested number of devices is available
+            npu_count = torch_npu.npu.device_count()
+            requested_count = len([x for x in device.split(",") if x])
+
+            if npu_count < requested_count:
+                LOGGER.warning(f"WARNING ⚠️ NPU 'device={device}' requested but only {npu_count} device(s) available.")
+                raise RuntimeError("Insufficient NPU devices")
+
+        except RuntimeError:
+            LOGGER.warning(f"WARNING ⚠️ NPU 'device={device}' requested but not available, falling back to CPU.")
+            is_npu = False
+            cpu = True
+            device = "cpu"
+
     elif device:  # non-cpu device requested
-        if device == "cuda":
+        if device == "cuda" :
             device = "0"
         if "," in device:
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
@@ -205,8 +243,11 @@ def select_device(device="", newline=False, verbose=True):
                 f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
                 f"{install}"
             )
-
-    if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
+    if is_npu and not cpu:
+        # NPU formatting
+        s += f"NPU:{device} ({torch_npu.npu.get_device_name(int(device.split(',')[0]))})\n"
+        arg = f"npu:{device.split(',')[0]}"
+    elif not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
         space = " " * len(s)
         for i, d in enumerate(devices):

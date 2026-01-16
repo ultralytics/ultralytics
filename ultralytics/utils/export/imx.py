@@ -23,25 +23,37 @@ MCT_CONFIG = {
         "detect": {
             "layer_names": ["sub", "mul_2", "add_14", "cat_19"],
             "weights_memory": 2585350.2439,
-            "n_layers": 238,
+            "n_layers": {238, 239},
         },
         "pose": {
             "layer_names": ["sub", "mul_2", "add_14", "cat_21", "cat_22", "mul_4", "add_15"],
             "weights_memory": 2437771.67,
-            "n_layers": 257,
+            "n_layers": {257, 258},
         },
-        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 112},
-        "segment": {"layer_names": ["sub", "mul_2", "add_14", "cat_21"], "weights_memory": 2466604.8, "n_layers": 265},
+        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": {112}},
+        "segment": {
+            "layer_names": ["sub", "mul_2", "add_14", "cat_21"],
+            "weights_memory": 2466604.8,
+            "n_layers": {265, 266},
+        },
     },
     "YOLOv8": {
-        "detect": {"layer_names": ["sub", "mul", "add_6", "cat_15"], "weights_memory": 2550540.8, "n_layers": 168},
+        "detect": {
+            "layer_names": ["sub", "mul", "add_6", "cat_15"],
+            "weights_memory": 2550540.8,
+            "n_layers": {168, 169},
+        },
         "pose": {
             "layer_names": ["add_7", "mul_2", "cat_17", "mul", "sub", "add_6", "cat_18"],
             "weights_memory": 2482451.85,
-            "n_layers": 187,
+            "n_layers": {187, 188},
         },
-        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 73},
-        "segment": {"layer_names": ["sub", "mul", "add_6", "cat_17"], "weights_memory": 2580060.0, "n_layers": 195},
+        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": {73}},
+        "segment": {
+            "layer_names": ["sub", "mul", "add_6", "cat_17"],
+            "weights_memory": 2580060.0,
+            "n_layers": {195, 196},
+        },
     },
 }
 

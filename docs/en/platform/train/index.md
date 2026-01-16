@@ -96,7 +96,7 @@ Training time depends on:
 - Number of epochs
 - GPU type selected
 
-A typical training run with 1000 images, YOLO11n, 100 epochs on RTX 4090 takes about 30-60 minutes.
+A typical training run with 1000 images, YOLO26n, 100 epochs on RTX 4090 takes about 30-60 minutes.
 
 ### Can I train multiple models simultaneously?
 

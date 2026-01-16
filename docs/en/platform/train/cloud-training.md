@@ -44,7 +44,7 @@ Select base model and parameters:
 
 | Parameter      | Description                             | Default |
 | -------------- | --------------------------------------- | ------- |
-| **Model**      | Base architecture (YOLO11n, s, m, l, x) | YOLO11n |
+| **Model**      | Base architecture (YOLO26n, s, m, l, x) | YOLO26n |
 | **Epochs**     | Number of training iterations           | 100     |
 | **Image Size** | Input resolution                        | 640     |
 | **Batch Size** | Samples per iteration                   | Auto    |
@@ -242,11 +242,11 @@ After training, view detailed costs in the **Billing** tab:
 
 | Model   | Parameters | Best For                |
 | ------- | ---------- | ----------------------- |
-| YOLO11n | 2.6M       | Real-time, edge devices |
-| YOLO11s | 9.4M       | Balanced speed/accuracy |
-| YOLO11m | 20.1M      | Higher accuracy         |
-| YOLO11l | 25.3M      | Production accuracy     |
-| YOLO11x | 56.9M      | Maximum accuracy        |
+| YOLO26n | 2.4M       | Real-time, edge devices |
+| YOLO26s | 9.5M       | Balanced speed/accuracy |
+| YOLO26m | 20.4M      | Higher accuracy         |
+| YOLO26l | 24.8M      | Production accuracy     |
+| YOLO26x | 55.7M      | Maximum accuracy        |
 
 ### Optimize Training Time
 
@@ -279,9 +279,9 @@ Typical times (1000 images, 100 epochs):
 
 | Model   | RTX 4090 | A100   |
 | ------- | -------- | ------ |
-| YOLO11n | 30 min   | 20 min |
-| YOLO11m | 60 min   | 40 min |
-| YOLO11x | 120 min  | 80 min |
+| YOLO26n | 30 min   | 20 min |
+| YOLO26m | 60 min   | 40 min |
+| YOLO26x | 120 min  | 80 min |
 
 ### Can I train overnight?
 

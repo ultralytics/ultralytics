@@ -190,7 +190,6 @@ __all__ = (
     "Segment",
     "Segment",
     "SemanticSegment",
-    "SemanticSegment",
     "SpatialAttention",
     "SpatialAttention",
     "SpatialAttention",

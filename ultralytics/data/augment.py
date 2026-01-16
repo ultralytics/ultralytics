@@ -2872,7 +2872,8 @@ class SemSegMosaic(BaseMixTransform):
             imgsz (int): Image size (height and width) after mosaic pipeline of a single image.
             p (float): Probability of applying the mosaic augmentation. Must be in the range 0-1.
             n (int): The grid size, either 4 (for 2x2) or 9 (for 3x3).
-            use_background(bool): if True, take the background as a categroy. If False, do not model the background
+            use_background(bool): if True, take the background as a category. If False, do not model the background
+
         Examples:
             >>> from ultralytics.data.augment import Mosaic
             >>> dataset = YourDataset(...)

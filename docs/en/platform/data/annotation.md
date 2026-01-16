@@ -170,7 +170,7 @@ Use trained YOLO models to automatically label images:
 
     You can use:
 
-    - Official Ultralytics models (YOLO11n, YOLO11s, etc.)
+    - Official Ultralytics models (YOLO26n, YOLO26s, etc.)
     - Your own trained models from the Platform
 
 ## Class Management

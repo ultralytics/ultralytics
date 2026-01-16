@@ -48,7 +48,7 @@ Ultralytics Platform is designed to replace fragmented ML tooling with a unified
 - **HuggingFace** - Model deployment
 - **Arize** - Monitoring
 
-All in one platform with native support for YOLO11 and YOLO26 models.
+All in one platform with native support for YOLO26 and YOLO11 models.
 
 ## Workflow: Data → Train → Deploy
 

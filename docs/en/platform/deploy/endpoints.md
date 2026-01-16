@@ -276,9 +276,9 @@ Cold start varies by model size:
 
 | Model   | Cold Start |
 | ------- | ---------- |
-| YOLO11n | ~2 seconds |
-| YOLO11m | ~3 seconds |
-| YOLO11x | ~5 seconds |
+| YOLO26n | ~2 seconds |
+| YOLO26m | ~3 seconds |
+| YOLO26x | ~5 seconds |
 
 Set min instances > 0 to eliminate cold starts.
 

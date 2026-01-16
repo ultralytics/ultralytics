@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import math
-import random
 from copy import copy
 from typing import Any
 
 import numpy as np
 import torch
-import torch.nn as nn
 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
@@ -117,21 +114,6 @@ class DetectionTrainer(BaseTrainer):
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
         batch["img"] = batch["img"].float() / 255
-        multi_scale = self.args.multi_scale
-        if random.random() < multi_scale:
-            imgs = batch["img"]
-            sz = (
-                random.randrange(int(self.args.imgsz * 0.5), int(self.args.imgsz * 1 + self.stride))
-                // self.stride
-                * self.stride
-            )  # size
-            sf = sz / max(imgs.shape[2:])  # scale factor
-            if sf != 1:
-                ns = [
-                    math.ceil(x * sf / self.stride) * self.stride for x in imgs.shape[2:]
-                ]  # new shape (stretched to gs-multiple)
-                imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
-            batch["img"] = imgs
         return batch
 
     def set_model_attributes(self):

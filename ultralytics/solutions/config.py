@@ -35,7 +35,7 @@ class SolutionConfig:
         vision_point (tuple[int, int]): Reference point for directional tracking or perspective drawing.
         crop_dir (str): Directory path to save cropped detection images.
         json_file (str): Path to a JSON file containing data for parking areas.
-        line_width (int): Width for visual display i.e. bounding boxes, keypoints, counts.
+        line_width (int): Width for visual display, e.g. bounding boxes, keypoints, and counts.
         records (int): Number of detection records to send email alerts.
         fps (float): Frame rate (Frames Per Second) for speed estimation calculation.
         max_hist (int): Maximum number of historical points or states stored per tracked object for speed estimation.
@@ -56,7 +56,7 @@ class SolutionConfig:
 
     Examples:
         >>> from ultralytics.solutions.config import SolutionConfig
-        >>> cfg = SolutionConfig(model="yolo11n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
+        >>> cfg = SolutionConfig(model="yolo26n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
         >>> cfg.update(show=False, conf=0.3)
         >>> print(cfg.model)
     """

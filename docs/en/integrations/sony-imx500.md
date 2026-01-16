@@ -13,7 +13,7 @@ Deploying computer vision models on devices with limited computational power, su
 The IMX500 model format is designed to use minimal power while delivering fast performance for neural networks. It allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through exporting and deploying your models to the IMX500 format while making it easier for your models to perform well on the [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/).
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/ai-camera.avif" alt="Raspberry Pi AI Camera">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/imx500-ai-camera.avif" alt="Raspberry Pi AI Camera">
 </p>
 
 ## Why Should You Export to IMX500?
@@ -434,18 +434,17 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
 
         ```python
         import numpy as np
-
         from modlib.apps import Annotator
         from modlib.devices import AiCamera
         from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
         from modlib.models.post_processors import pp_yolo_segment_ultralytics
 
+
         class YOLOSegment(Model):
-        """YOLO segmentation model for IMX500 deployment."""
+            """YOLO segmentation model for IMX500 deployment."""
 
             def __init__(self):
                 """Initialize the YOLO segmentation model for IMX500 deployment."""
-
                 super().__init__(
                     model_file="yolo11n-seg_imx_model/packerOut.zip",  # replace with proper directory
                     model_type=MODEL_TYPE.CONVERTED,
@@ -463,7 +462,8 @@ Step 5: Run YOLO11 object detection, pose estimation, classification and segment
                 """Post-process the output tensors for instance segmentation."""
                 return pp_yolo_segment_ultralytics(output_tensors)
 
-        device = AiCamera(frame_rate=17) # Optimal frame rate for maximum DPS of the YOLO-seg model running on the AI Camera
+
+        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the YOLO-seg model running on the AI Camera
         model = YOLOSegment()
         device.deploy(model)
 
@@ -502,7 +502,7 @@ YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchm
 ## What's Under the Hood?
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/imx500-deploy.avif" alt="IMX500 deployment">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/imx500-deploy.avif" alt="IMX500 deployment">
 </p>
 
 ### Sony Model Compression Toolkit (MCT)

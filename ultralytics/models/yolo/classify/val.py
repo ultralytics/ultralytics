@@ -45,7 +45,7 @@ class ClassificationValidator(BaseValidator):
 
     Examples:
         >>> from ultralytics.models.yolo.classify import ClassificationValidator
-        >>> args = dict(model="yolo11n-cls.pt", data="imagenet10")
+        >>> args = dict(model="yolo26n-cls.pt", data="imagenet10")
         >>> validator = ClassificationValidator(args=args)
         >>> validator()
 
@@ -57,7 +57,7 @@ class ClassificationValidator(BaseValidator):
         """Initialize ClassificationValidator with dataloader, save directory, and other parameters.
 
         Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
+            dataloader (torch.utils.data.DataLoader, optional): DataLoader to use for validation.
             save_dir (str | Path, optional): Directory to save results.
             args (dict, optional): Arguments containing model and validation configuration.
             _callbacks (list, optional): List of callback functions to be called during validation.

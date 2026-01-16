@@ -110,10 +110,12 @@ class Predictor(BasePredictor):
         """Preprocess the input image for model inference.
 
         This method prepares the input image by applying transformations and normalization. It supports both
-        torch.Tensor and list of np.ndarray as input formats.
+        torch.Tensor and list of np.ndarray as input formats. For OpenCV-loaded images, the input is typically BGR and
+        is converted to RGB during preprocessing.
 
         Args:
-            im (torch.Tensor | list[np.ndarray]): Input image(s) in BCHW tensor format or list of HWC numpy arrays.
+            im (torch.Tensor | list[np.ndarray]): Input image(s) in BCHW tensor format or a list of HWC NumPy arrays.
+                NumPy arrays are expected to be in BGR order (as returned by OpenCV) and will be converted to RGB.
 
         Returns:
             (torch.Tensor): The preprocessed image tensor, normalized and converted to the appropriate dtype.
@@ -534,7 +536,7 @@ class Predictor(BasePredictor):
 
         Args:
             image (str | np.ndarray): Path to the image file as a string, or a numpy array representing an image read by
-                cv2.
+                cv2 (BGR channel order).
 
         Raises:
             AssertionError: If more than one image is attempted to be set.
@@ -876,6 +878,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.clear_non_cond_mem_around_input = False
         self.clear_non_cond_mem_for_multi_obj = False
         self.callbacks["on_predict_start"].append(self.init_state)
+        self.clear_non_cond_mem = True  # Whether to clear non-conditioning memory periodically
 
     def get_model(self):
         """Retrieve and configure the model with binarization enabled.
@@ -950,6 +953,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 run_mem_encoder=True,
             )
             output_dict[storage_key][frame] = current_out
+            self._prune_non_cond_memory(frame)
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key)
@@ -1244,14 +1248,11 @@ class SAM2VideoPredictor(SAM2Predictor):
             - If `batch` is greater than 1, the features are expanded to fit the batch size.
             - The method leverages the model's `_prepare_backbone_features` method to prepare the backbone features.
         """
-        backbone_out = self.model.forward_image(im)
-        if batch > 1:  # expand features if there's more than one prompt
-            for i, feat in enumerate(backbone_out["backbone_fpn"]):
-                backbone_out["backbone_fpn"][i] = feat.expand(batch, -1, -1, -1)
-            for i, pos in enumerate(backbone_out["vision_pos_enc"]):
-                pos = pos.expand(batch, -1, -1, -1)
-                backbone_out["vision_pos_enc"][i] = pos
-        _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
+        # check if there's precomputed backbone output
+        backbone_out = getattr(self, "backbone_out", None)
+        if backbone_out is None:
+            backbone_out = self.model.forward_image(im)
+        _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out, batch=batch)
         return vis_feats, vis_pos_embed, feat_sizes
 
     def _obj_id_to_idx(self, obj_id, inference_state: dict[str, Any] | None = None):
@@ -1811,7 +1812,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         inference_state["output_dict_per_obj"].clear()
         inference_state["temp_output_dict_per_obj"].clear()
 
-    def _reset_tracking_results(self, inference_state):
+    @staticmethod
+    def _reset_tracking_results(inference_state):
         """Reset all tracking inputs and results across the videos."""
         for v in inference_state["point_inputs_per_obj"].values():
             v.clear()
@@ -1830,6 +1832,25 @@ class SAM2VideoPredictor(SAM2Predictor):
         inference_state["tracking_has_started"] = False
         inference_state["frames_already_tracked"].clear()
         inference_state["first_ann_frame_idx"] = None
+
+    def _prune_non_cond_memory(self, frame_idx, inference_state=None):
+        """Prune old non-conditioning frames to bound memory usage."""
+        if not self.clear_non_cond_mem:
+            return
+        inference_state = inference_state or self.inference_state
+
+        # Determine window size
+        min_frame = frame_idx - self.model.num_maskmem * self.model.memory_temporal_stride_for_eval
+        output_dict = inference_state["output_dict"]
+
+        # Prune global non_cond_frame_outputs
+        for f in [k for k in output_dict["non_cond_frame_outputs"] if k < min_frame]:
+            output_dict["non_cond_frame_outputs"].pop(f, None)
+
+        # Prune per-object non_cond_frame_outputs
+        for obj_output_dict in inference_state.get("output_dict_per_obj", {}).values():
+            for f in [k for k in obj_output_dict["non_cond_frame_outputs"] if k < min_frame]:
+                obj_output_dict["non_cond_frame_outputs"].pop(f, None)
 
 
 class SAM2DynamicInteractivePredictor(SAM2Predictor):
@@ -2055,11 +2076,12 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         self.memory_bank.append(consolidated_out)
 
     def _prepare_memory_conditioned_features(self, obj_idx: int | None) -> torch.Tensor:
-        """Prepare the memory-conditioned features for the current image state. If obj_idx is provided, it supposes to
-        prepare features for a specific prompted object in the image. If obj_idx is None, it prepares features
-        for all objects in the image. If there is no memory, it will directly add a no-memory embedding to the
-        current vision features. If there is memory, it will use the memory features from previous frames to
-        condition the current vision features using a transformer attention mechanism.
+        """Prepare memory-conditioned features for the current image state.
+
+        If ``obj_idx`` is provided, features are prepared for a specific prompted object in the image. If ``obj_idx`` is
+        None, features are prepared for all objects. If no memory is available, a no-memory embedding is added to the
+        current vision features. Otherwise, memory from previous frames is used to condition the current vision features
+        via a transformer attention mechanism.
 
         Args:
             obj_idx (int | None): The index of the object for which to prepare the features.
@@ -2068,8 +2090,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             pix_feat_with_mem (torch.Tensor): The memory-conditioned pixel features.
         """
         if len(self.memory_bank) == 0 or isinstance(obj_idx, int):
-            # for initial conditioning frames with, encode them without using any previous memory
-            # directly add no-mem embedding (instead of using the transformer encoder)
+            # For initial conditioning frames, encode without using any previous memory.
+            # Directly add the no-memory embedding (instead of using the transformer encoder).
             pix_feat_with_mem = self.vision_feats[-1] + self.model.no_mem_embed
         else:
             # for inference frames, use the memory features from previous frames
@@ -2081,7 +2103,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 memory_pos=memory_pos_embed,
                 num_obj_ptr_tokens=0,  # num_obj_ptr_tokens
             )
-        # reshape the output (HW)BC => BCHW
+        # Reshape output (HW)BC => BCHW
         return pix_feat_with_mem.permute(1, 2, 0).view(
             self._max_obj_num,
             self.model.memory_attention.d_model,
@@ -2145,9 +2167,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *self.feat_sizes[-1])
             _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self.model._use_mask_as_output(mask)
         else:
-            # fused the visual feature with previous memory features in the memory bank
+            # Fuse visual features with previous memory features in the memory bank.
             pix_feat_with_mem = self._prepare_memory_conditioned_features(obj_idx)
-            # calculate the first feature if adding obj_idx exists(means adding prompts)
+            # If ``obj_idx`` is provided (i.e., prompts are being added), keep only the first feature map.
             pix_feat_with_mem = pix_feat_with_mem[:1] if obj_idx is not None else pix_feat_with_mem
             _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self.model._forward_sam_heads(
                 backbone_features=pix_feat_with_mem,
@@ -2182,7 +2204,7 @@ class SAM3Predictor(SAM2Predictor):
         self.std = torch.tensor([127.5, 127.5, 127.5]).view(-1, 1, 1).to(self.device)
 
     def get_model(self):
-        """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
+        """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
         from .build_sam3 import build_interactive_sam3  # slow import
 
         return build_interactive_sam3(self.args.model, compile=self.args.compile)
@@ -2191,16 +2213,11 @@ class SAM3Predictor(SAM2Predictor):
 class SAM3SemanticPredictor(SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None, bpe_path=None):
-        """Initialize the SAM3SemanticPredictor with configuration and optional overrides."""
-        super().__init__(cfg, overrides, _callbacks)
-        self.bpe_path = bpe_path
-
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
         from .build_sam3 import build_sam3_image_model  # slow import
 
-        return build_sam3_image_model(self.args.model, bpe_path=self.bpe_path, compile=self.args.compile)
+        return build_sam3_image_model(self.args.model, compile=self.args.compile)
 
     @smart_inference_mode()
     def get_im_features(self, im):
@@ -2428,6 +2445,7 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
                 inference_state=inference_state,
             )
             output_dict[storage_key][frame] = current_out
+            self._prune_non_cond_memory(frame, inference_state=inference_state)
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key, inference_state=inference_state)
@@ -2436,24 +2454,6 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
         obj_scores = current_out["object_score_logits"]
 
         return obj_ids, pred_masks, obj_scores
-
-    def get_im_features(self, im, batch=1):
-        """A wrapper to get image features, supporting pre-extracted backbone outputs."""
-        if getattr(self, "backbone_out", None):
-            backbone_out = self.backbone_out
-            if batch > 1:  # expand features if there's more than one prompt
-                backbone_out = {
-                    "backbone_fpn": backbone_out["backbone_fpn"].copy(),
-                    "vision_pos_enc": backbone_out["vision_pos_enc"].copy(),
-                }
-                for i, feat in enumerate(backbone_out["backbone_fpn"]):
-                    backbone_out["backbone_fpn"][i] = feat.expand(batch, -1, -1, -1)
-                for i, pos in enumerate(backbone_out["vision_pos_enc"]):
-                    pos = pos.expand(batch, -1, -1, -1)
-                    backbone_out["vision_pos_enc"][i] = pos
-            _, vis_feats, vis_pos_embed, feat_sizes = self.model._prepare_backbone_features(backbone_out)
-            return vis_feats, vis_pos_embed, feat_sizes
-        return super().get_im_features(im, batch)
 
 
 class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
@@ -2479,7 +2479,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         cfg=DEFAULT_CFG,
         overrides=None,
         _callbacks=None,
-        bpe_path="bpe_simple_vocab_16e6.txt.gz",
         # prob threshold for detection outputs -- only keep detections above this threshold
         # enters NMS and det-to-track matching
         score_threshold_detection=0.5,
@@ -2499,14 +2498,12 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         hotstart_delay=0,
         hotstart_unmatch_thresh=3,
         hotstart_dup_thresh=3,
-        # Whether to suppress masks only within hotstart. If False, we can suppress masks even if they start before hotstart period.
-        suppress_unmatched_only_within_hotstart=True,
-        init_trk_keep_alive=0,
-        max_trk_keep_alive=8,
+        init_trk_keep_alive=30,
+        max_trk_keep_alive=30,
         min_trk_keep_alive=-4,
         # Threshold for suppressing overlapping objects based on recent occlusion
         suppress_overlapping_based_on_recent_occlusion_threshold=0.0,
-        decrease_trk_keep_alive_for_empty_masklets=False,
+        decrease_trk_keep_alive_for_empty_masklets=True,
         o2o_matching_masklets_enable=False,  # Enable hungarian matching to match existing masklets
         suppress_det_close_to_boundary=False,
         fill_hole_area=16,
@@ -2523,7 +2520,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         reconstruction_bbox_det_score=0.0,
     ):
         """Initialize the SAM3VideoSemanticPredictor with configuration and optional overrides."""
-        super().__init__(cfg, overrides, _callbacks, bpe_path=bpe_path)
+        super().__init__(cfg, overrides, _callbacks)
         self.score_threshold_detection = score_threshold_detection
         self.det_nms_thresh = det_nms_thresh
         self.assoc_iou_thresh = assoc_iou_thresh
@@ -2537,7 +2534,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self.hotstart_delay = hotstart_delay
         self.hotstart_unmatch_thresh = hotstart_unmatch_thresh
         self.hotstart_dup_thresh = hotstart_dup_thresh
-        self.suppress_unmatched_only_within_hotstart = suppress_unmatched_only_within_hotstart
         self.init_trk_keep_alive = init_trk_keep_alive
         self.max_trk_keep_alive = max_trk_keep_alive
         self.min_trk_keep_alive = min_trk_keep_alive
@@ -2603,9 +2599,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "num_frames": num_frames,
             "tracker_inference_states": [],
             "tracker_metadata": {},
+            "text_prompt": None,
+            "per_frame_geometric_prompt": [None] * num_frames,
         }
-        inference_state["text_prompt"] = None
-        inference_state["per_frame_geometric_prompt"] = [None] * num_frames
         predictor.inference_state = inference_state
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] | None = None, *args, **kwargs):
@@ -2662,7 +2658,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                 ) > 0
 
         # names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
-        names = dict(enumerate(str(i) for i in range(pred_masks.shape[0])))
+        names = dict(enumerate(str(i) for i in range(pred_boxes.shape[0])))
         results = []
         for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
@@ -2713,7 +2709,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         metadata = tracker_metadata_new["metadata"]
         removed_obj_ids = metadata["removed_obj_ids"]
         out["removed_obj_ids"] = removed_obj_ids
-        out["suppressed_obj_ids"] = metadata["suppressed_obj_ids"][frame_idx]
         out["frame_stats"] = frame_stats
         if self.masklet_confirmation_enable:
             status = metadata["masklet_confirmation"]["status"]
@@ -2886,7 +2881,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             tracker_obj_scores_global,  # a dict: obj_id --> tracker frame-level scores
         )
 
-    def _suppress_detections_close_to_boundary(self, boxes, margin=0.025):
+    @staticmethod
+    def _suppress_detections_close_to_boundary(boxes, margin=0.025):
         """Suppress detections too close to image edges (for normalized boxes).
 
         boxes: (N, 4) in xyxy format, normalized [0,1]
@@ -3333,8 +3329,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         return tracker_states_local
 
+    @staticmethod
     def build_outputs(
-        self,
         det_out: dict[str, torch.Tensor],
         tracker_low_res_masks_global: torch.Tensor,
         tracker_metadata_prev: dict[str, np.ndarray],
@@ -3621,7 +3617,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         overlap_pair_to_frame_inds = metadata["overlap_pair_to_frame_inds"]
         # removed_obj_ids: object IDs that are suppressed via hot-start
         removed_obj_ids = metadata["removed_obj_ids"]
-        suppressed_obj_ids = metadata["suppressed_obj_ids"][frame_idx]
 
         obj_ids_newly_removed = set()  # object IDs to be newly removed on this frame
         hotstart_diff = frame_idx - self.hotstart_delay if not reverse else frame_idx + self.hotstart_delay
@@ -3671,12 +3666,12 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     )
             if (
                 trk_keep_alive[obj_id] <= 0  # Object has not been matched for too long
-                and not self.suppress_unmatched_only_within_hotstart
                 and obj_id not in removed_obj_ids
                 and obj_id not in obj_ids_newly_removed
             ):
-                LOGGER.debug(f"Suppressing object {obj_id} at frame {frame_idx}, due to being unmatched")
-                suppressed_obj_ids.add(obj_id)
+                LOGGER.debug(f"Removing object {obj_id} at frame {frame_idx}, due to being unmatched")
+                # directly removed the object instead of suppressing it
+                obj_ids_newly_removed.add(obj_id)
 
         # Step 3: removed tracks that overlaps with another track for `hotstart_dup_thresh` frames
         # a) find overlaps tracks -- we consider overlap if they match to the same detection
@@ -3855,8 +3850,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "trk_keep_alive": defaultdict(int),  # This is used only for object suppression not for removal
             "overlap_pair_to_frame_inds": defaultdict(list),
             "removed_obj_ids": set(),
-            # frame_idx --> set of objects with suppressed outputs, but still continue to be tracked
-            "suppressed_obj_ids": defaultdict(set),
         }
         if self.masklet_confirmation_enable:
             # all the following are np.ndarray with the same shape as `obj_ids_all_gpu`
@@ -3930,7 +3923,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     def _encode_prompt(self, **kwargs):
         return self.model._encode_prompt(**kwargs)
 
-    def _drop_new_det_with_obj_limit(self, new_det_fa_inds, det_scores_np, num_to_keep):
+    @staticmethod
+    def _drop_new_det_with_obj_limit(new_det_fa_inds, det_scores_np, num_to_keep):
         """Drop a few new detections based on the maximum number of objects. We drop new objects based on their
         detection scores, keeping the high-scoring ones and dropping the low-scoring ones.
         """

@@ -38,7 +38,7 @@ class OBBValidator(DetectionValidator):
 
     Examples:
         >>> from ultralytics.models.yolo.obb import OBBValidator
-        >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml")
+        >>> args = dict(model="yolo26n-obb.pt", data="dota8.yaml")
         >>> validator = OBBValidator(args=args)
         >>> validator(model=args["model"])
     """
@@ -50,7 +50,7 @@ class OBBValidator(DetectionValidator):
         extends the DetectionValidator class and configures it specifically for the OBB task.
 
         Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
+            dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (str | Path, optional): Directory to save results.
             args (dict | SimpleNamespace, optional): Arguments containing validation parameters.
             _callbacks (list, optional): List of callback functions to be called during validation.

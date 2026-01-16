@@ -196,12 +196,7 @@ class MobileCLIP(TextModel):
             device (torch.device): Device to load the model on.
         """
         try:
-            import warnings
-
-            # Suppress 'timm.models.layers is deprecated, please import via timm.layers' warning from mobileclip usage
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=FutureWarning)
-                import mobileclip
+            import mobileclip
         except ImportError:
             # Ultralytics fork preferred since Apple MobileCLIP repo has incorrect version of torchvision
             checks.check_requirements("git+https://github.com/ultralytics/mobileclip.git")
@@ -280,7 +275,7 @@ class MobileCLIPTS(TextModel):
         >>> features = text_encoder.encode_text(tokens)
     """
 
-    def __init__(self, device: torch.device):
+    def __init__(self, device: torch.device, weight: str = "mobileclip_blt.ts"):
         """Initialize the MobileCLIP TorchScript text encoder.
 
         This class implements the TextModel interface using Apple's MobileCLIP model in TorchScript format for efficient
@@ -288,11 +283,12 @@ class MobileCLIPTS(TextModel):
 
         Args:
             device (torch.device): Device to load the model on.
+            weight (str): Path to the TorchScript model weights.
         """
         super().__init__()
         from ultralytics.utils.downloads import attempt_download_asset
 
-        self.encoder = torch.jit.load(attempt_download_asset("mobileclip_blt.ts"), map_location=device)
+        self.encoder = torch.jit.load(attempt_download_asset(weight), map_location=device)
         self.tokenizer = clip.clip.tokenize
         self.device = device
 
@@ -308,7 +304,7 @@ class MobileCLIPTS(TextModel):
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).
 
         Examples:
-            >>> model = MobileCLIPTS("cpu")
+            >>> model = MobileCLIPTS(device=torch.device("cpu"))
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
             >>> strict_tokens = model.tokenize(
             ...     ["a very long caption"], truncate=False
@@ -357,5 +353,7 @@ def build_text_model(variant: str, device: torch.device = None) -> TextModel:
         return CLIP(size, device)
     elif base == "mobileclip":
         return MobileCLIPTS(device)
+    elif base == "mobileclip2":
+        return MobileCLIPTS(device, weight="mobileclip2_b.ts")
     else:
         raise ValueError(f"Unrecognized base model: '{base}'. Supported base models: 'clip', 'mobileclip'.")

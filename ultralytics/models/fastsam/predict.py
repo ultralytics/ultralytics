@@ -22,8 +22,7 @@ class FastSAMPredictor(SegmentationPredictor):
     Attributes:
         prompts (dict): Dictionary containing prompt information for segmentation (bboxes, points, labels, texts).
         device (torch.device): Device on which model and tensors are processed.
-        clip_model (Any, optional): CLIP model for text-based prompting, loaded on demand.
-        clip_preprocess (Any, optional): CLIP preprocessing function for images, loaded on demand.
+        clip (Any, optional): CLIP model used for text-based prompting, loaded on demand.
 
     Methods:
         postprocess: Apply postprocessing to FastSAM predictions and handle prompts.
@@ -64,7 +63,7 @@ class FastSAMPredictor(SegmentationPredictor):
         results = super().postprocess(preds, img, orig_imgs)
         for result in results:
             full_box = torch.tensor(
-                [0, 0, result.orig_shape[1], result.orig_shape[0]], device=preds[0].device, dtype=torch.float32
+                [0, 0, result.orig_shape[1], result.orig_shape[0]], device=result.boxes.data.device, dtype=torch.float32
             )
             boxes = adjust_bboxes_to_image_border(result.boxes.xyxy, result.orig_shape)
             idx = torch.nonzero(box_iou(full_box[None], boxes) > 0.9).flatten()
@@ -116,7 +115,7 @@ class FastSAMPredictor(SegmentationPredictor):
                     labels = torch.ones(points.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
                 assert len(labels) == len(points), (
-                    f"Expected `labels` with same size as `point`, but got {len(labels)} and {len(points)}"
+                    f"Expected `labels` to have the same length as `points`, but got {len(labels)} and {len(points)}."
                 )
                 point_idx = (
                     torch.ones(len(result), dtype=torch.bool, device=self.device)

@@ -11,6 +11,7 @@ import torch
 from ultralytics.nn.modules.utils import inverse_sigmoid
 from ultralytics.utils.ops import xywh2xyxy
 
+from ..modules.sam import SAM2Model
 from .geometry_encoders import Prompt
 from .vl_combiner import SAM3VLBackbone
 
@@ -92,25 +93,6 @@ class SAM3SemanticModel(torch.nn.Module):
 
         self.text_embeddings = {}
         self.names = []
-
-    def _prepare_backbone_features(self, backbone_out, num_prompts=1):
-        """Prepare and flatten visual features from the image backbone output for further processing."""
-        if num_prompts > 1:  # expand features if there's more than one prompt
-            for i, feat in enumerate(backbone_out["backbone_fpn"]):
-                backbone_out["backbone_fpn"][i] = feat.expand(num_prompts, -1, -1, -1)
-            for i, pos in enumerate(backbone_out["vision_pos_enc"]):
-                pos = pos.expand(num_prompts, -1, -1, -1)
-                backbone_out["vision_pos_enc"][i] = pos
-        assert len(backbone_out["backbone_fpn"]) == len(backbone_out["vision_pos_enc"])
-        assert len(backbone_out["backbone_fpn"]) >= self.num_feature_levels
-
-        feature_maps = backbone_out["backbone_fpn"][-self.num_feature_levels :]
-        vision_pos_embeds = backbone_out["vision_pos_enc"][-self.num_feature_levels :]
-        feat_sizes = [(x.shape[-2], x.shape[-1]) for x in vision_pos_embeds]
-        # flatten NxCxHxW to HWxNxC
-        vision_feats = [x.flatten(2).permute(2, 0, 1) for x in feature_maps]
-        vision_pos_embeds = [x.flatten(2).permute(2, 0, 1) for x in vision_pos_embeds]
-        return backbone_out, vision_feats, vision_pos_embeds, feat_sizes
 
     def _encode_prompt(
         self,
@@ -304,8 +286,8 @@ class SAM3SemanticModel(torch.nn.Module):
         self, backbone_out: dict[str, torch.Tensor], text_ids: torch.Tensor, geometric_prompt: Prompt = None
     ):
         """Forward pass for grounding (detection + segmentation) given input images and text."""
-        backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = self._prepare_backbone_features(
-            backbone_out, num_prompts=len(text_ids)
+        backbone_out, img_feats, img_pos_embeds, vis_feat_sizes = SAM2Model._prepare_backbone_features(
+            self, backbone_out, batch=len(text_ids)
         )
         backbone_out.update({k: v for k, v in self.text_embeddings.items()})
         with torch.profiler.record_function("SAM3Image._encode_prompt"):

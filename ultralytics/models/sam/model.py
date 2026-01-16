@@ -44,7 +44,7 @@ class SAM(Model):
         >>> sam = SAM("sam_b.pt")
         >>> results = sam.predict("image.jpg", points=[[500, 375]])
         >>> for r in results:
-        >>>     print(f"Detected {len(r.masks)} masks")
+        ...     print(f"Detected {len(r.masks)} masks")
     """
 
     def __init__(self, model: str = "sam_b.pt") -> None:

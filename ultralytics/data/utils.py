@@ -258,12 +258,12 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[
     luminance.
 
     Args:
-        image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL.
-        txt_path (str): The path to the annotation file in YOLO format, that should contain one line per object.
+        image_path (str): Path to the image file to annotate. The file must be readable by PIL.
+        txt_path (str): Path to the annotation file in YOLO format, which should contain one line per object.
         label_map (dict[int, str]): A dictionary that maps class IDs (integers) to class labels (strings).
 
     Examples:
-        >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
+        >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # Should include all annotated classes
         >>> visualize_image_annotations("path/to/image.jpg", "path/to/annotations.txt", label_map)
     """
     import matplotlib.pyplot as plt
@@ -283,7 +283,7 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[
             annotations.append((x, y, w, h, int(class_id)))
     _, ax = plt.subplots(1)  # Plot the image and annotations
     for x, y, w, h, label in annotations:
-        color = tuple(c / 255 for c in colors(label, True))  # Get and normalize the RGB color
+        color = tuple(c / 255 for c in colors(label, False))  # Get and normalize an RGB color for Matplotlib
         rect = plt.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor="none")  # Create a rectangle
         ax.add_patch(rect)
         luminance = 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2]  # Formula for luminance

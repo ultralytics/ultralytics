@@ -27,6 +27,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 requirements.txt
+!examples/**/requirements.txt
 setup.py
 ultralytics.egg-info
 
@@ -198,3 +199,7 @@ calibration_*.npy
 *.heic
 *.ico
 *.raw
+
+# Training logs
+args.yaml
+results.csv

@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn how to define clear goals and objectives for your computer vision project with our practical guide. Includes tips on problem statements, measurable objectives, and key decisions.
-keywords: computer vision, project planning, problem statement, measurable objectives, dataset preparation, model selection, YOLO11, Ultralytics
+keywords: computer vision, project planning, problem statement, measurable objectives, dataset preparation, model selection, YOLO26, Ultralytics
 ---
 
 # A Practical Guide for Defining Your Computer Vision Project
@@ -41,7 +41,7 @@ Let's walk through an example.
 Consider a computer vision project where you want to [estimate the speed of vehicles](./speed-estimation.md) on a highway. The core issue is that current speed monitoring methods are inefficient and error-prone due to outdated radar systems and manual processes. The project aims to develop a real-time computer vision system that can replace legacy [speed estimation](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) systems.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/speed-estimation-using-yolov8.avif" alt="Speed Estimation Using YOLO11">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/speed-estimation-using-yolov8.avif" alt="Speed Estimation Using YOLO26">
 </p>
 
 Primary users include traffic management authorities and law enforcement, while secondary stakeholders are highway planners and the public benefiting from safer roads. Key requirements involve evaluating budget, time, and personnel, as well as addressing technical needs like high-resolution cameras and real-time data processing. Additionally, regulatory constraints on privacy and [data security](https://www.ultralytics.com/glossary/data-security) must be considered.
@@ -94,7 +94,7 @@ The most popular computer vision tasks include [image classification](https://ww
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/image-classification-vs-object-detection-vs-image-segmentation.avif" alt="Overview of Computer Vision Tasks">
 </p>
 
-For a detailed explanation of various tasks, please take a look at the Ultralytics Docs page on [YOLO11 Tasks](../tasks/index.md).
+For a detailed explanation of various tasks, please take a look at the Ultralytics Docs page on [YOLO26 Tasks](../tasks/index.md).
 
 ### Can a Pretrained Model Remember Classes It Knew Before Custom Training?
 
@@ -123,12 +123,12 @@ Connecting with other computer vision enthusiasts can be incredibly helpful for 
 
 ### Community Support Channels
 
-- **GitHub Issues:** Head over to the YOLO11 GitHub repository. You can use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers can assist with specific problems you encounter.
+- **GitHub Issues:** Head over to the YOLO26 GitHub repository. You can use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers can assist with specific problems you encounter.
 - **Ultralytics Discord Server:** Become part of the [Ultralytics Discord server](https://discord.com/invite/ultralytics). Connect with fellow users and developers, seek support, exchange knowledge, and discuss ideas.
 
 ### Comprehensive Guides and Documentation
 
-- **Ultralytics YOLO11 Documentation:** Explore the [official YOLO11 documentation](./index.md) for in-depth guides and valuable tips on various computer vision tasks and projects.
+- **Ultralytics YOLO26 Documentation:** Explore the [official YOLO26 documentation](./index.md) for in-depth guides and valuable tips on various computer vision tasks and projects.
 
 ## Conclusion
 
@@ -147,11 +147,11 @@ To define a clear problem statement for your Ultralytics computer vision project
 
 Providing a well-defined problem statement ensures that the project remains focused and aligned with your objectives. For a detailed guide, refer to our [practical guide](#defining-a-clear-problem-statement).
 
-### Why should I use Ultralytics YOLO11 for speed estimation in my computer vision project?
+### Why should I use Ultralytics YOLO26 for speed estimation in my computer vision project?
 
-Ultralytics YOLO11 is ideal for speed estimation because of its real-time object tracking capabilities, high accuracy, and robust performance in detecting and monitoring vehicle speeds. It overcomes inefficiencies and inaccuracies of traditional radar systems by leveraging cutting-edge computer vision technology. Check out our blog on [speed estimation using YOLO11](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) for more insights and practical examples.
+Ultralytics YOLO26 is ideal for speed estimation because of its real-time object tracking capabilities, high accuracy, and robust performance in detecting and monitoring vehicle speeds. It overcomes inefficiencies and inaccuracies of traditional radar systems by leveraging cutting-edge computer vision technology. Check out our blog on [speed estimation using YOLO26](https://www.ultralytics.com/blog/ultralytics-yolov8-for-speed-estimation-in-computer-vision-projects) for more insights and practical examples.
 
-### How do I set effective measurable objectives for my computer vision project with Ultralytics YOLO11?
+### How do I set effective measurable objectives for my computer vision project with Ultralytics YOLO26?
 
 Set effective and measurable objectives using the SMART criteria:
 

@@ -180,7 +180,7 @@ def test_semseg():
     # Validator
     args = dict(
         model=trainer.best,
-        data="CityscapesYOLO.yaml",
+        data="ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
         imgsz=512,
         device=cfg.device,
         name=cfg.name,

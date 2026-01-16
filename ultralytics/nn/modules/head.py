@@ -456,7 +456,7 @@ class OBB(Detect):
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities, concatenated with rotation angles."""
         # For decode_bboxes convenience
-        self.angle = x["angle"].detach()  # TODO: need to test obb
+        self.angle = x["angle"]  # TODO: need to test obb
         preds = super()._inference(x)
         return torch.cat([preds, x["angle"]], dim=1)
 

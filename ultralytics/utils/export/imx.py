@@ -263,7 +263,7 @@ def torch2imx(
     mct_config = MCT_CONFIG["YOLO11" if "C2PSA" in model.__str__() else "YOLOv8"][model.task]
 
     # Check if the model has the expected number of layers
-    if len(list(model.modules())) != mct_config["n_layers"]:
+    if len(list(model.modules())) not in mct_config["n_layers"]:
         raise ValueError("IMX export only supported for YOLOv8n and YOLO11n models.")
 
     for layer_name in mct_config["layer_names"]:

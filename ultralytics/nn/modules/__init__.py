@@ -93,6 +93,7 @@ from .head import (
     YOLOESegment,
     YOLOESegment26,
     v10Detect,
+    SemanticSegment
 )
 from .transformer import (
     AIFI,
@@ -190,7 +191,6 @@ __all__ = (
     "Segment",
     "Segment",
     "Segment",
-    "SemanticSegment",
     "SemanticSegment",
     "SpatialAttention",
     "SpatialAttention",

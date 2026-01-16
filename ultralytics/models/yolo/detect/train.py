@@ -124,7 +124,8 @@ class DetectionTrainer(BaseTrainer):
             sz = (
                 random.randrange(
                     int(self.args.imgsz * multi_scale_range_low),
-                    int(self.args.imgsz * multi_scale_range_high + self.stride))
+                    int(self.args.imgsz * multi_scale_range_high + self.stride),
+                )
                 // self.stride
                 * self.stride
             )  # size

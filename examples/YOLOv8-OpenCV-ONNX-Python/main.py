@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 from pathlib import Path
 from typing import Any
 
@@ -137,11 +136,11 @@ def main(onnx_model: str, input_image: str) -> list[dict[str, Any]]:
 
     # Read the input image
     original_image: np.ndarray = cv2.imread(input_image)
-    
+
     # Validate that image was loaded successfully
     if original_image is None:
         raise ValueError(f"Failed to load image: {input_image}")
-    
+
     [height, width, _] = original_image.shape
 
     # Validate image dimensions to prevent excessive memory consumption
@@ -159,13 +158,13 @@ def main(onnx_model: str, input_image: str) -> list[dict[str, Any]]:
 
     # Preprocess the image and prepare blob for model
     blob = cv2.dnn.blobFromImage(image, scalefactor=1 / 255, size=(640, 640), swapRB=True)
-    
+
     # Validate blob size to prevent DoS attacks
     blob_size = blob.nbytes
     max_blob_size = 100 * 1024 * 1024  # 100 MB limit for blob
     if blob_size > max_blob_size:
         raise ValueError(f"Input blob too large: {blob_size} bytes (max: {max_blob_size} bytes)")
-    
+
     model.setInput(blob)
 
     # Perform inference
@@ -174,11 +173,11 @@ def main(onnx_model: str, input_image: str) -> list[dict[str, Any]]:
     # Validate model output
     if outputs is None or len(outputs) == 0:
         raise ValueError("Model inference failed: empty output")
-    
+
     # Prepare output array
     outputs = np.array([cv2.transpose(outputs[0])])
     rows = outputs.shape[1]
-    
+
     # Validate output dimensions to prevent excessive processing
     max_detections = 25000  # Reasonable limit for number of detections to process
     if rows > max_detections:

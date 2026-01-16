@@ -15,7 +15,7 @@ import numpy as np
 from PIL import Image
 
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
-from ultralytics.utils.checks import check_file, check_requirements
+from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
@@ -747,7 +747,7 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
 
 
 async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
-    """Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
+    """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
     detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. For classification
@@ -776,9 +776,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
         Use with YOLO training
         >>> from ultralytics import YOLO
-        >>> model = YOLO("yolo11n.pt")
+        >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
     """
+    from ultralytics.utils.checks import check_requirements
+
     check_requirements("aiohttp")
     import aiohttp
 
@@ -835,21 +837,19 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             # Download image if URL provided and file doesn't exist
             if http_url := record.get("url"):
                 if not image_path.exists():
-                    image_path.parent.mkdir(parents=True, exist_ok=True)  # Ensure parent dir exists
+                    image_path.parent.mkdir(parents=True, exist_ok=True)
                     try:
                         async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
                             response.raise_for_status()
-                            with open(image_path, "wb") as f:
-                                async for chunk in response.content.iter_chunked(8192):
-                                    f.write(chunk)
+                            image_path.write_bytes(await response.read())
                         return True
                     except Exception as e:
                         LOGGER.warning(f"Failed to download {http_url}: {e}")
                         return False
             return True
 
-    # Process all images with async downloads
-    semaphore = asyncio.Semaphore(64)
+    # Process all images with async downloads (limit connections for small datasets)
+    semaphore = asyncio.Semaphore(min(128, len(image_records)))
     async with aiohttp.ClientSession() as session:
         pbar = TQDM(
             total=len(image_records),

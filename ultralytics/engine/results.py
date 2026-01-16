@@ -667,7 +667,7 @@ class Results(SimpleClass, DataExportMixin):
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             >>>     result.save_txt("output.txt")
@@ -775,13 +775,6 @@ class Results(SimpleClass, DataExportMixin):
             # Return top 5 classification results
             for class_id, conf in zip(self.probs.top5, self.probs.top5conf.tolist()):
                 class_id = int(class_id)
-                results.append(
-                    {
-                        "name": self.names[class_id],
-                        "class": class_id,
-                        "confidence": round(conf, decimals),
-                    }
-                )
                 results.append(
                     {
                         "name": self.names[class_id],
@@ -1509,7 +1502,7 @@ class OBB(BaseTensor):
         Examples:
             >>> import torch
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo11n-obb.pt")
+            >>> model = YOLO("yolo26n-obb.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     obb = result.obb

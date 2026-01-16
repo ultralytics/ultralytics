@@ -1686,7 +1686,7 @@ def parse_model(d, ch, verbose=True):
                 SemanticSegment,
             }
         ):
-            args.extend([reg_max, end2end, [ch[x] for x in f]])
+            args.extend([reg_max, end2end, [ch[x] for x in f]]) if m is not SemanticSegment else args.append([ch[x] for x in f])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26 or m is SemanticSegment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
@@ -1742,7 +1742,8 @@ def yaml_model_load(path):
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = YAML.load(yaml_file)  # model dict
-    d["scale"] = guess_model_scale(path) if (not with_model_scale) or ("scale" not in d.keys()) else d["scale"]
+    #d["scale"] = guess_model_scale(path) if (not with_model_scale) or ("scale" not in d.keys()) else d["scale"]
+    d["scale"] = guess_model_scale(path)
     d["yaml_file"] = str(path)
     return d
 

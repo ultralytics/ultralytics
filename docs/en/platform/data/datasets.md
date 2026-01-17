@@ -208,27 +208,9 @@ yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     - **Google Colab**: Access your Platform datasets in notebooks
     - **Remote servers**: Train on cloud VMs with full dataset access
 
-## Visibility Settings
-
-Control who can see your dataset:
-
-| Setting     | Description                     |
-| ----------- | ------------------------------- |
-| **Private** | Only you can access             |
-| **Public**  | Anyone can view on Explore page |
-
-<!-- Screenshot: platform-datasets-visibility.avif -->
-
-To change visibility:
-
-1. Open dataset actions menu
-2. Click **Edit**
-3. Toggle visibility setting
-4. Click **Save**
-
 ## Edit Dataset
 
-Update dataset name, description, or visibility:
+Update dataset name or description:
 
 1. Open dataset actions menu
 2. Click **Edit**
@@ -268,7 +250,6 @@ Your data is processed and stored in your selected region (US, EU, or AP). Image
 2. Normalized if larger than 4096px (preserving aspect ratio)
 3. Stored using Content-Addressable Storage (CAS) with SHA-256 hashing
 4. Thumbnails generated at 256px for fast browsing
-5. Never shared without your permission
 
 ### How does storage work?
 

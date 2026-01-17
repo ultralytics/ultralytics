@@ -25,7 +25,7 @@ The Account section helps you:
 | ------------ | ---------------------------------------------- |
 | **API Keys** | Secure keys for remote training and API access |
 | **Billing**  | Credits, payments, and usage tracking          |
-| **Activity** | Track events and collaborator actions          |
+| **Activity** | Track events and account actions               |
 | **Trash**    | Recover deleted items within 30 days           |
 | **Settings** | Profile, region, and preferences               |
 | **GDPR**     | Data export and account deletion               |

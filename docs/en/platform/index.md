@@ -116,7 +116,7 @@ You select your region during onboarding, and all your data, models, and deploym
 
 - **API Keys**: Secure key management for remote training and API access
 - **Credits & Billing**: Pay-as-you-go training with transparent pricing
-- **Activity Feed**: Track all account events and collaborator actions
+- **Activity Feed**: Track all account events and actions
 - **Trash & Restore**: 30-day soft delete with item recovery
 - **GDPR Compliance**: Data export and account deletion
 

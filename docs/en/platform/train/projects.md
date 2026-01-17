@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to organize and manage projects in Ultralytics Platform for efficient model development and collaboration.
-keywords: Ultralytics Platform, projects, model management, collaboration, experiment tracking, YOLO
+description: Learn how to organize and manage projects in Ultralytics Platform for efficient model development.
+keywords: Ultralytics Platform, projects, model management, experiment tracking, YOLO
 ---
 
 # Projects
@@ -49,61 +49,7 @@ Each project contains:
 | **Models**   | Trained checkpoints and their metrics        |
 | **Charts**   | Compare model performance across experiments |
 | **Activity** | History of changes and events                |
-| **Settings** | Project configuration and sharing            |
-
-## Share Project
-
-Share your project with collaborators or make it publicly accessible.
-
-### Visibility Options
-
-| Setting     | Access                                      |
-| ----------- | ------------------------------------------- |
-| **Private** | Only you can access                         |
-| **Shared**  | Specific collaborators can view/edit        |
-| **Public**  | Anyone can view on Explore page             |
-
-### Share Private Projects
-
-Share private projects with specific collaborators without making them public:
-
-1. Open the project you want to share
-2. Click the **Share** button (or use the actions menu)
-3. Enter collaborator's email or username
-4. Select permission level:
-   - **View**: Can view models, charts, and export weights
-   - **Edit**: Can train models, upload, and edit settings
-5. Click **Add** to send the invitation
-6. Collaborator receives access immediately
-
-<!-- Screenshot: platform-projects-share.avif -->
-
-### Manage Collaborators
-
-View and manage who has access to your project:
-
-| Action           | Description                                  |
-| ---------------- | -------------------------------------------- |
-| **View list**    | See all collaborators in Share dialog        |
-| **Change role**  | Update permission level (View ↔ Edit)        |
-| **Remove**       | Revoke access for specific collaborator      |
-| **Transfer**     | Transfer ownership to another user           |
-
-### Shared Project Notifications
-
-When you share a project:
-
-- Collaborators receive an activity notification
-- The project appears in their Projects list with a "Shared" badge
-- All collaborator actions are logged in the project Activity feed
-
-!!! tip "Team Collaboration"
-
-    For teams needing shared projects, billing, and advanced permissions, consider upgrading to Pro or Enterprise plans.
-
-!!! warning "Model Visibility"
-
-    When changing project visibility, models inside the project inherit the same visibility setting.
+| **Settings** | Project configuration                        |
 
 ## Edit Project
 
@@ -134,7 +80,6 @@ Track all changes and events in your project:
 
 - Model uploads and training starts
 - Export jobs and downloads
-- Collaborator actions
 - Settings changes
 
 <!-- Screenshot: platform-projects-activity.avif -->
@@ -196,18 +141,3 @@ Yes, deleted projects go to Trash and can be restored within 30 days:
 2. Find the project
 3. Click **Restore**
 
-### How do I collaborate in real-time?
-
-Multiple collaborators can work on the same project:
-
-- Each user's changes are logged in Activity
-- Model uploads and training are user-attributed
-- Use project chat (coming soon) for communication
-
-### What permissions do collaborators have?
-
-| Permission | Can Do                               |
-| ---------- | ------------------------------------ |
-| **View**   | View models, charts, export weights  |
-| **Edit**   | Train models, upload, edit settings  |
-| **Owner**  | Delete project, manage collaborators |

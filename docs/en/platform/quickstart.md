@@ -122,7 +122,6 @@ Enter a name and optional description for your project. Projects contain:
 
 - **Models**: Trained checkpoints
 - **Activity Log**: History of changes
-- **Sharing**: Collaborate with team members
 
 Read more about [projects](train/projects.md).
 

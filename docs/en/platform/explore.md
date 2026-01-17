@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Discover public datasets, models, and projects shared by the Ultralytics Platform community for computer vision and YOLO applications.
-keywords: Ultralytics Platform, explore, public datasets, public models, community, computer vision, YOLO
+description: Discover public datasets, models, and projects on the Ultralytics Platform for computer vision and YOLO applications.
+keywords: Ultralytics Platform, explore, public datasets, public models, computer vision, YOLO
 ---
 
 # Explore
 
-[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content shared by the community. Discover datasets, models, and projects for inspiration and learning.
+[Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover datasets, models, and projects for inspiration and learning.
 
 <!-- Screenshot: platform-explore-page.avif -->
 
@@ -15,21 +15,18 @@ graph LR
     A[🔍 Browse] --> B[📥 Clone/Fork]
     B --> C[✏️ Customize]
     C --> D[🚀 Train]
-    D --> E[📤 Share Back]
-    E --> A
 
     style A fill:#4CAF50,color:#fff
     style B fill:#2196F3,color:#fff
     style C fill:#FF9800,color:#fff
     style D fill:#9C27B0,color:#fff
-    style E fill:#00BCD4,color:#fff
 ```
 
 ## Overview
 
 The Explore page features:
 
-- **Public Datasets**: Community-shared training data
+- **Public Datasets**: Community training data
 - **Public Models**: Trained checkpoints ready to use
 - **Public Projects**: Complete experiments and workflows
 - **User Profiles**: Creators and their contributions
@@ -132,42 +129,13 @@ Follow creators to:
 - Get notifications
 - Build your network
 
-## Make Your Content Public
-
-Share your work with the community:
-
-### Make Dataset Public
-
-1. Go to your dataset
-2. Open actions menu
-3. Click **Edit**
-4. Set visibility to **Public**
-5. Click **Save**
-
-### Make Model Public
-
-1. Go to your model
-2. Open actions menu
-3. Click **Edit**
-4. Set visibility to **Public**
-5. Click **Save**
-
-!!! tip "Quality Content"
-
-    Before making content public:
-
-    - Add clear descriptions
-    - Include class names
-    - Verify data quality
-    - Test model performance
-
 ## Guidelines
 
-When sharing public content:
+When contributing public content:
 
 ### Do
 
-- Share useful, high-quality content
+- Provide useful, high-quality content
 - Write clear descriptions
 - Include relevant metadata
 - Respond to questions
@@ -175,7 +143,7 @@ When sharing public content:
 
 ### Don't
 
-- Share sensitive/private data
+- Upload sensitive/private data
 - Violate copyrights
 - Upload inappropriate content
 - Spam low-quality content
@@ -202,16 +170,6 @@ Contact creators for commercial licensing.
 
 Our team reviews reports within 24-48 hours.
 
-### Can I make public content private again?
-
-Yes, you can change visibility anytime:
-
-1. Open content settings
-2. Change visibility to **Private**
-3. Save changes
-
-Existing clones/forks are not affected.
-
 ### How do I get featured?
 
 Featured content is selected based on:
@@ -221,7 +179,7 @@ Featured content is selected based on:
 - Novelty and interest
 - Clear documentation
 
-There's no application process - just share great content!
+There's no application process - just create great content!
 
 ### Can I monetize public content?
 

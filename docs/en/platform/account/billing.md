@@ -52,7 +52,6 @@ For serious users and small teams ($29/month):
 - 500 GB storage
 - Unlimited private projects
 - 3 deployments with dedicated endpoints
-- Team collaboration features
 - Priority training queue
 - Email support
 
@@ -221,7 +220,6 @@ After upgrading:
 - Storage increased to 500 GB
 - Unlimited private projects
 - 3 dedicated deployments
-- Team collaboration features
 - Priority training queue
 
 ### Cancel Pro

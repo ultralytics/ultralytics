@@ -167,6 +167,3 @@ No. If a project is permanently deleted, all models that were inside it are also
 
 Each item in Trash shows an "Expires" date indicating when automatic permanent deletion will occur.
 
-### Can collaborators restore items I deleted?
-
-No, only the owner can restore deleted items. Collaborators cannot access or restore items in your Trash.

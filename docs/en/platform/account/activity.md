@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Track all account activity and events on Ultralytics Platform with the activity feed, including training, uploads, and collaborator actions.
+description: Track all account activity and events on Ultralytics Platform with the activity feed, including training, uploads, and system events.
 keywords: Ultralytics Platform, activity feed, audit log, notifications, event tracking, activity history
 ---
 
 # Activity Feed
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress, collaborator activity, and system events in one centralized location.
+[Ultralytics Platform](https://platform.ultralytics.com) provides a comprehensive activity feed that tracks all events and actions across your account. Monitor training progress and system events in one centralized location.
 
 <!-- Screenshot: platform-activity-overview.avif -->
 
@@ -17,7 +17,6 @@ The Activity Feed serves as your central hub for:
 - **Training updates**: Job started, completed, failed, or cancelled
 - **Data changes**: Datasets uploaded, modified, or deleted
 - **Model events**: Exports, deployments, and inference activity
-- **Collaboration**: Sharing, comments, and team actions
 - **System alerts**: Billing, storage, and account notifications
 
 ## Accessing Activity
@@ -46,8 +45,6 @@ The Platform tracks the following event types:
 | **failed**    | Job encountered an error                   | error |
 | **cancelled** | Job stopped by user                        | stop  |
 | **uploaded**  | File or dataset uploaded                   | cloud |
-| **shared**    | Resource shared with collaborator          | share |
-| **unshared**  | Collaborator access removed                | lock  |
 | **exported**  | Model exported to format                   | save  |
 | **cloned**    | Resource duplicated                        | copy  |
 
@@ -85,7 +82,6 @@ Use the search bar to find events by:
 
 - Resource name (dataset, model, project)
 - Event description
-- Collaborator username
 
 ### Filters
 
@@ -96,7 +92,6 @@ Filter events by type:
 | **All**       | All activity types                        |
 | **Training**  | Training started, completed, failed       |
 | **Uploads**   | Dataset and model uploads                 |
-| **Sharing**   | Collaboration events                      |
 | **Exports**   | Model export activity                     |
 | **System**    | Billing, storage, account events          |
 
@@ -164,10 +159,6 @@ Activity history is retained indefinitely for your account. Archived events are 
 ### Can I export my activity history?
 
 Yes, use the GDPR data export feature in Settings > Privacy to download all account data including activity history.
-
-### Do collaborator actions appear in my activity?
-
-Yes, when collaborators make changes to shared projects, those events appear in both your activity feed and theirs.
 
 ### Can I disable activity notifications?
 

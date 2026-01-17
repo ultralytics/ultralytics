@@ -239,42 +239,6 @@ POST /api/projects
 DELETE /api/projects/{projectId}
 ```
 
-### Share Project
-
-```
-POST /api/projects/{projectId}/shares
-```
-
-**Body:**
-
-```json
-{
-    "email": "collaborator@example.com",
-    "permission": "view"
-}
-```
-
-| Permission | Description                               |
-| ---------- | ----------------------------------------- |
-| `view`     | Can view models, charts, export weights   |
-| `edit`     | Can train models, upload, edit settings   |
-
-### List Project Shares
-
-```
-GET /api/projects/{projectId}/shares
-```
-
-Returns list of collaborators with access to the project.
-
-### Remove Project Share
-
-```
-DELETE /api/projects/{projectId}/shares/{shareId}
-```
-
-Revokes collaborator access to the project.
-
 ## Models API
 
 ### List Models

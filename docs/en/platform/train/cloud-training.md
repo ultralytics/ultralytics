@@ -36,7 +36,7 @@ Choose a dataset from your uploads:
 | Option              | Description                  |
 | ------------------- | ---------------------------- |
 | **Your Datasets**   | Datasets you've uploaded     |
-| **Public Datasets** | Shared datasets from Explore |
+| **Public Datasets** | Public datasets from Explore |
 
 ### Step 2: Configure Model
 

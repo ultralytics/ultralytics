@@ -129,6 +129,35 @@ Follow creators to:
 - Get notifications
 - Build your network
 
+## Make Your Content Public
+
+Make your work available to the community:
+
+### Make Dataset Public
+
+1. Go to your dataset
+2. Open actions menu
+3. Click **Edit**
+4. Set visibility to **Public**
+5. Click **Save**
+
+### Make Model Public
+
+1. Go to your model
+2. Open actions menu
+3. Click **Edit**
+4. Set visibility to **Public**
+5. Click **Save**
+
+!!! tip "Quality Content"
+
+    Before making content public:
+
+    - Add clear descriptions
+    - Include class names
+    - Verify data quality
+    - Test model performance
+
 ## Guidelines
 
 When contributing public content:
@@ -169,6 +198,16 @@ Contact creators for commercial licensing.
 4. Submit report
 
 Our team reviews reports within 24-48 hours.
+
+### Can I make public content private again?
+
+Yes, you can change visibility anytime:
+
+1. Open content settings
+2. Change visibility to **Private**
+3. Save changes
+
+Existing clones/forks are not affected.
 
 ### How do I get featured?
 

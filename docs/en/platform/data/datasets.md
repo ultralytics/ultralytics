@@ -208,9 +208,27 @@ yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset epochs=100
     - **Google Colab**: Access your Platform datasets in notebooks
     - **Remote servers**: Train on cloud VMs with full dataset access
 
+## Visibility Settings
+
+Control who can see your dataset:
+
+| Setting     | Description                     |
+| ----------- | ------------------------------- |
+| **Private** | Only you can access             |
+| **Public**  | Anyone can view on Explore page |
+
+<!-- Screenshot: platform-datasets-visibility.avif -->
+
+To change visibility:
+
+1. Open dataset actions menu
+2. Click **Edit**
+3. Toggle visibility setting
+4. Click **Save**
+
 ## Edit Dataset
 
-Update dataset name or description:
+Update dataset name, description, or visibility:
 
 1. Open dataset actions menu
 2. Click **Edit**

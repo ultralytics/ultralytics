@@ -603,7 +603,7 @@ class BaseTrainer:
                         total = torch.npu.get_device_properties(self.device).total_memory
                 except (ImportError, AttributeError):
                     memory, total = 0, 0
-            else: 
+            else:
                 memory = torch.cuda.memory_reserved()
                 if fraction:
                     total = torch.cuda.get_device_properties(self.device).total_memory

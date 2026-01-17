@@ -16,18 +16,18 @@ Choose the plan that fits your needs:
 
 <!-- Screenshot: platform-billing-plans.avif -->
 
-| Feature                  | Free                    | Pro ($29/mo)  | Enterprise |
-| ------------------------ | ----------------------- | ------------- | ---------- |
-| **Signup Credit**        | $5 ($25 company email)  | $25/month     | Custom     |
-| **Credit Expiry**        | 30 days                 | 30 days       | Custom     |
-| **Storage**              | 100 GB                  | 500 GB        | Unlimited  |
-| **Private Projects**     | Unlimited               | Unlimited     | Unlimited  |
-| **Deployments**          | 3 (cold-start)          | 3             | Unlimited  |
-| **Teams**                | -                       | Yes           | Yes        |
-| **Dedicated Endpoints**  | -                       | Yes           | Yes        |
-| **Priority Training**    | -                       | Yes           | Yes        |
-| **SSO/Audit Logs**       | -                       | -             | Yes        |
-| **License**              | AGPL                    | AGPL          | Enterprise |
+| Feature                 | Free                   | Pro ($29/mo) | Enterprise |
+| ----------------------- | ---------------------- | ------------ | ---------- |
+| **Signup Credit**       | $5 ($25 company email) | $25/month    | Custom     |
+| **Credit Expiry**       | 30 days                | 30 days      | Custom     |
+| **Storage**             | 100 GB                 | 500 GB       | Unlimited  |
+| **Private Projects**    | Unlimited              | Unlimited    | Unlimited  |
+| **Deployments**         | 3 (cold-start)         | 3            | Unlimited  |
+| **Teams**               | -                      | Yes          | Yes        |
+| **Dedicated Endpoints** | -                      | Yes          | Yes        |
+| **Priority Training**   | -                      | Yes          | Yes        |
+| **SSO/Audit Logs**      | -                      | -            | Yes        |
+| **License**             | AGPL                   | AGPL         | Enterprise |
 
 ### Free Plan
 

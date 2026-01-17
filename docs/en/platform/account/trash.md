@@ -67,10 +67,10 @@ The item returns to its original location with all data intact.
 
 ### Restore Behavior
 
-| Resource | Restore Behavior                                        |
-| -------- | ------------------------------------------------------- |
-| Project  | Restores project and all contained models               |
-| Dataset  | Restores dataset with all images and annotations        |
+| Resource | Restore Behavior                                                             |
+| -------- | ---------------------------------------------------------------------------- |
+| Project  | Restores project and all contained models                                    |
+| Dataset  | Restores dataset with all images and annotations                             |
 | Model    | Restores model to original project (or orphaned if project was also deleted) |
 
 !!! note "Parent Dependency"
@@ -112,12 +112,12 @@ To permanently delete one item without waiting:
 
 Items in Trash still count toward your storage quota:
 
-| Scenario                     | Storage Impact                        |
-| ---------------------------- | ------------------------------------- |
-| Delete item                  | Storage remains allocated             |
-| Restore item                 | No change (was still counting)        |
-| Permanent deletion           | Storage freed                         |
-| 30-day auto-deletion         | Storage freed automatically           |
+| Scenario             | Storage Impact                 |
+| -------------------- | ------------------------------ |
+| Delete item          | Storage remains allocated      |
+| Restore item         | No change (was still counting) |
+| Permanent deletion   | Storage freed                  |
+| 30-day auto-deletion | Storage freed automatically    |
 
 !!! tip "Free Up Storage"
 

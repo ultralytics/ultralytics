@@ -254,10 +254,10 @@ POST /api/projects/{projectId}/shares
 }
 ```
 
-| Permission | Description                               |
-| ---------- | ----------------------------------------- |
-| `view`     | Can view models, charts, export weights   |
-| `edit`     | Can train models, upload, edit settings   |
+| Permission | Description                             |
+| ---------- | --------------------------------------- |
+| `view`     | Can view models, charts, export weights |
+| `edit`     | Can train models, upload, edit settings |
 
 ### List Project Shares
 

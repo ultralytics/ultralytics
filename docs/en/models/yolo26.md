@@ -52,7 +52,7 @@ Together, these innovations deliver a model family that achieves higher accuracy
   Introduces a specialized angle loss to improve detection accuracy for square-shaped objects and optimizes OBB decoding to resolve boundary discontinuity issues.
 
 ![Ultralytics YOLO26 End-to-End Comparison Plots](https://github.com/ultralytics/assets/releases/download/v0.0.0/Ultralytics-YOLO26-Benchmark-E2E.jpg)
-  
+
 ---
 
 ## Supported Tasks and Modes

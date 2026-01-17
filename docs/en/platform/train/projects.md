@@ -57,11 +57,11 @@ Share your project with collaborators or make it publicly accessible.
 
 ### Visibility Options
 
-| Setting     | Access                                      |
-| ----------- | ------------------------------------------- |
-| **Private** | Only you can access                         |
-| **Shared**  | Specific collaborators can view/edit        |
-| **Public**  | Anyone can view on Explore page             |
+| Setting     | Access                               |
+| ----------- | ------------------------------------ |
+| **Private** | Only you can access                  |
+| **Shared**  | Specific collaborators can view/edit |
+| **Public**  | Anyone can view on Explore page      |
 
 ### Share Private Projects
 
@@ -71,8 +71,8 @@ Share private projects with specific collaborators without making them public:
 2. Click the **Share** button (or use the actions menu)
 3. Enter collaborator's email or username
 4. Select permission level:
-   - **View**: Can view models, charts, and export weights
-   - **Edit**: Can train models, upload, and edit settings
+    - **View**: Can view models, charts, and export weights
+    - **Edit**: Can train models, upload, and edit settings
 5. Click **Add** to send the invitation
 6. Collaborator receives access immediately
 
@@ -82,12 +82,12 @@ Share private projects with specific collaborators without making them public:
 
 View and manage who has access to your project:
 
-| Action           | Description                                  |
-| ---------------- | -------------------------------------------- |
-| **View list**    | See all collaborators in Share dialog        |
-| **Change role**  | Update permission level (View ↔ Edit)        |
-| **Remove**       | Revoke access for specific collaborator      |
-| **Transfer**     | Transfer ownership to another user           |
+| Action          | Description                             |
+| --------------- | --------------------------------------- |
+| **View list**   | See all collaborators in Share dialog   |
+| **Change role** | Update permission level (View ↔ Edit)  |
+| **Remove**      | Revoke access for specific collaborator |
+| **Transfer**    | Transfer ownership to another user      |
 
 ### Shared Project Notifications
 

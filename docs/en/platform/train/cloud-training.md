@@ -57,19 +57,19 @@ Choose your compute resources:
 
 <!-- Screenshot: platform-training-gpu.avif -->
 
-| GPU             | VRAM  | Speed     | Cost/Hour |
-| --------------- | ----- | --------- | --------- |
-| RTX 2000 Ada    | 16GB  | Good      | $0.48     |
-| RTX A4000       | 16GB  | Good      | $0.50     |
-| RTX 3090        | 24GB  | Good      | $0.92     |
-| RTX A6000       | 48GB  | Fast      | $0.98     |
-| RTX 4090        | 24GB  | Fast      | $1.18     |
-| L40S            | 48GB  | Fast      | $1.72     |
-| RTX 5090        | 32GB  | Very Fast | $1.78     |
-| A100 80GB PCIe  | 80GB  | Very Fast | $2.78     |
-| H100 PCIe       | 80GB  | Fastest   | $4.78     |
-| H100 SXM        | 80GB  | Fastest   | $5.38     |
-| B200            | 180GB | Fastest   | $10.38    |
+| GPU            | VRAM  | Speed     | Cost/Hour |
+| -------------- | ----- | --------- | --------- |
+| RTX 2000 Ada   | 16GB  | Good      | $0.48     |
+| RTX A4000      | 16GB  | Good      | $0.50     |
+| RTX 3090       | 24GB  | Good      | $0.92     |
+| RTX A6000      | 48GB  | Fast      | $0.98     |
+| RTX 4090       | 24GB  | Fast      | $1.18     |
+| L40S           | 48GB  | Fast      | $1.72     |
+| RTX 5090       | 32GB  | Very Fast | $1.78     |
+| A100 80GB PCIe | 80GB  | Very Fast | $2.78     |
+| H100 PCIe      | 80GB  | Fastest   | $4.78     |
+| H100 SXM       | 80GB  | Fastest   | $5.38     |
+| B200           | 180GB | Fastest   | $10.38    |
 
 !!! tip "GPU Selection"
 

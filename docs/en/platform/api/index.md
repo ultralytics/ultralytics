@@ -176,6 +176,34 @@ POST /api/datasets/{datasetId}/export
 
 Returns NDJSON format download URL.
 
+### Get Models Trained on Dataset
+
+```
+GET /api/datasets/{datasetId}/models
+```
+
+Returns list of models that were trained using this dataset, showing the relationship between datasets and the models they produced.
+
+**Response:**
+
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "id": "model_abc123",
+            "name": "experiment-1",
+            "projectId": "project_xyz",
+            "trainedAt": "2024-01-15T10:00:00Z",
+            "metrics": {
+                "mAP50": 0.85,
+                "mAP50-95": 0.72
+            }
+        }
+    ]
+}
+```
+
 ## Projects API
 
 ### List Projects

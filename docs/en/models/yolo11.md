@@ -31,6 +31,10 @@ YOLO11 was released by Ultralytics on September 10, 2024, delivering excellent [
   <strong>Watch:</strong> How to Use Ultralytics YOLO11 for Object Detection and Tracking | How to Benchmark | YOLO11 RELEASED🚀
 </p>
 
+!!! tip "Try on Ultralytics Platform"
+
+    Explore and run YOLO11 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo11).
+
 ## Key Features
 
 - **Enhanced Feature Extraction:** YOLO11 employs an improved [backbone](https://www.ultralytics.com/glossary/backbone) and neck architecture, which enhances [feature extraction](https://www.ultralytics.com/glossary/feature-extraction) capabilities for more precise object detection and complex task performance.

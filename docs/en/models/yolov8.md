@@ -23,6 +23,10 @@ YOLOv8 was released by Ultralytics on January 10, 2023, offering cutting-edge pe
   <strong>Watch:</strong> Ultralytics YOLOv8 Model Overview
 </p>
 
+!!! tip "Try on Ultralytics Platform"
+
+    Explore and run YOLOv8 models directly on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolov8).
+
 ## Key Features of YOLOv8
 
 - **Advanced Backbone and Neck Architectures:** YOLOv8 employs state-of-the-art backbone and neck architectures, resulting in improved [feature extraction](https://www.ultralytics.com/glossary/feature-extraction) and [object detection](https://www.ultralytics.com/glossary/object-detection) performance.

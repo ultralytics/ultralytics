@@ -1040,13 +1040,15 @@ class YOLOEModel(DetectionModel):
         """
         from ultralytics.nn.text_model import build_text_model
 
+        clip_weight=None
         if  hasattr(self, "args"):
         
             clip_weight=self.args.get("clip_weight_name")
 
-        assert clip_weight is not None, "clip_weight_name must be specified in model args"
-
-        # clip_weight="mobileclip2:b"
+        if not clip_weight:
+            clip_weight="mobileclip2:b"
+            Warning("clip_weight_name not found in model args, use default mobileclip2:b")
+                
 
         if cache_clip_model:
             if not getattr(self, "clip_model", None):
@@ -1100,7 +1102,7 @@ class YOLOEModel(DetectionModel):
         """
         return self(img, vpe=visual, return_vpe=True)
 
-    def set_vocab(self, vocab, names):
+    def set_vocab(self, vocab, names,one2one_vocab=None):
         """
         Set vocabulary for the prompt-free model.
 
@@ -1112,23 +1114,32 @@ class YOLOEModel(DetectionModel):
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
 
-        # Cache anchors for head
+        # Cache anchors for head - use no_grad to avoid inference mode issues
         device = next(self.parameters()).device
-        self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
+        # with torch.no_grad():
+        #     self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"], device=device))  # warmup
 
 
-        if head.end2end:
+        if self.end2end:
+            assert one2one_vocab is not None, "one2one_vocab must be provided for end2end mode"
             cv3=head.one2one_cv3
             cv2=head.one2one_cv2
+            # re-parameterization for prompt-free model
+            self.model[-1].one2one_lrpc = nn.ModuleList(
+                LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2)
+                for i, (cls, pf, loc) in enumerate(zip(one2one_vocab, cv3, cv2))
+            )     
+            # assert False       
         else:
+            assert vocab is not None, "vocab must be provided for non-end2end mode"
             cv3=head.cv3
             cv2=head.cv2
-
-        # re-parameterization for prompt-free model
-        self.model[-1].lrpc = nn.ModuleList(
-            LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2)
-            for i, (cls, pf, loc) in enumerate(zip(vocab, cv3, cv2))
-        )
+            # re-parameterization for prompt-free model
+            self.model[-1].lrpc = nn.ModuleList(
+                LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2)
+                for i, (cls, pf, loc) in enumerate(zip(vocab, cv3, cv2))
+            )
+    
         for loc_head, cls_head in zip(cv2, cv3):
             assert isinstance(loc_head, nn.Sequential)
             assert isinstance(cls_head, nn.Sequential)
@@ -1158,7 +1169,7 @@ class YOLOEModel(DetectionModel):
         head.fuse(self.pe.to(device))  # fuse prompt embeddings to classify head
 
 
-        if head.end2end:
+        if self.end2end:
             cv3=head.one2one_cv3
             cv2=head.one2one_cv2
         else:

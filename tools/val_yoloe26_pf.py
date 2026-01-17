@@ -39,23 +39,38 @@ def yaml_load(file="data.yaml", append_filename=False):
 
 
 
-def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight,clip_weight_name="mobileclip2:b"):
+def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight,clip_weight_name="mobileclip2:b",end2end=False):
 
-    # load the most model weights
-    det_model = YOLOE(yaml_name).load(model_path)
-    det_model.model.args['clip_weight_name']=clip_weight_name
+
     # set vocab from the unfused model
     unfused_model=YOLOE(unfused_model_weight)
     unfused_model.model.args['clip_weight_name']=clip_weight_name
     unfused_model.eval()
     unfused_model.cuda()
-    unfused_model.args['clip_model_weight']=clip_weight_name
-    with open('../buffer/ram_tag_list.txt', 'r') as f:
+
+    if not end2end:
+        # del unfused_model.model.model[-1].one2one_cv2
+        # del unfused_model.model.model[-1].one2one_cv3
+        # del unfused_model.model.model[-1].one2one_cv4
+        unfused_model.model.end2end = False
+        # unfused_model.model.model[-1].end2end = False
+
+    with open('./tools/ram_tag_list.txt', 'r') as f:
         names = [x.strip() for x in f.readlines()]
     # categories = yaml_load("ultralytics/cfg/datasets/lvis.yaml")["names"].values()
     # names = [c.split("/")[0] for c in categories]     
     vocab = unfused_model.get_vocab(names)
     
+    # load the most model weights
+    det_model = YOLOE(yaml_name).load(model_path)
+    # det_model=YOLOE(model_path)
+    det_model.model.args['clip_weight_name']=clip_weight_name
+    if not end2end:
+        # del det_model.model.model[-1].one2one_cv2
+        # del det_model.model.model[-1].one2one_cv3
+        # del det_model.model.model[-1].one2one_cv4
+        det_model.model.end2end = False
+        # det_model.model.model[-1].end2end = False
 
 
     det_model.eval()
@@ -70,69 +85,11 @@ def read_pf_det_from_seg_unfused(model_path,yaml_name,unfused_model_weight,clip_
 
 
 
-def read_pf_det_from_seg_fused(model_path,yaml_name):
-    """
-        read pd_det from a fused seg model
-    """
-
-    # load the most model weights
-    det_model = YOLOE(yaml_name).load(model_path)
-    det_model.model.args['clip_weight_name']="mobileclip2:b"
-    det_model.eval()
-    det_model.cuda() 
-    import copy
-    seg_model=YOLOE(model_path)
-    seg_model.model.args['clip_weight_name']="mobileclip2:b"
-    seg_model.eval()
-    seg_model.cuda()
-    # copy the lrpc model ()
-    det_model.model.model[-1].lrpc =copy.deepcopy(seg_model.model.model[-1].lrpc)
-    det_model.model.model[-1].is_fused = True
-    det_model.model.model[-1].conf = 0.001
-    det_model.model.model[-1].max_det = 1000
-
-    # del the last layer of loc and cls head (which is copied from the set_vocab function)
-    import torch.nn as nn
-    for loc_head, cls_head in zip(det_model.model.model[-1].cv2, det_model.model.model[-1].cv3):
-        assert isinstance(loc_head, nn.Sequential)
-        assert isinstance(cls_head, nn.Sequential)
-        del loc_head[-1]
-        del cls_head[-1]
-
-    with open('../buffer/ram_tag_list.txt', 'r') as f:
-        names = [x.strip() for x in f.readlines()]
-    tpe = det_model.model.get_text_pe(names)
-    det_model.model.set_classes(names, tpe)
-
-    return det_model
 
 
-yoloe26n_tp="runs/yoloe26_tp/26n_ptwobjv1_bs256_epo30_close2_engine_old_engine_data_tp[ultra8]/weights/best.pt"
-yoloe26s_tp="runs/yoloe26_tp/26s_ptwobjv1_bs256_epo30_close2_engine_old_engine_data_tp[ultra8]/weights/best.pt"
+
 yoloe26m_tp="runs/yoloe26_tp/26m_ptwobjv1_bs256_epo25_close2_engine_old_engine_data_tp[ultra8]/weights/best.pt"
-yoloe26l_tp="runs/yoloe26_tp/26l_ptwobjv1_bs256_epo20_close2_engine_old_engine_data_tp[ultra6]/weights/best.pt"
-yoloe26x_tp="runs/yoloe26_tp/26x_ptwobjv1_bs256_epo15_close2_engine_old_engine_data_tp[ultra6]/weights/best.pt"
-
-yoloe26_vp="runs/yoloe26_vp/26n_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
-yoloe26s_vp="runs/yoloe26_vp/26s_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
-yoloe26m_vp="runs/yoloe26_vp/26m_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
-yoloe26l_vp="runs/yoloe26_vp/26l_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra6]/weights/best.pt"
-yoloe26x_vp="runs/yoloe26_vp/26x_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra6]/weights/best.pt"
-
-yoloe26n_seg="runs/yoloe26_seg/26n-seg_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra2]/weights/best.pt"
-yoloe26s_seg="runs/yoloe26_seg/26s-seg_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
-yoloe26m_seg="runs/yoloe26_seg/26m-seg_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
-yoloe26l_seg="runs/yoloe26_seg/26l-seg_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
-yoloe26x_seg="runs/yoloe26_seg/26x-seg_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_vp[ultra8]/weights/best.pt"
-
-yoloe26n_pf="runs/yoloe26_pf/26n_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra8]/weights/best.pt"
-yoloe26s_pf="runs/yoloe26_pf/26s_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra8]/weights/best.pt"
 yoloe26m_pf="runs/yoloe26_pf/26m_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra8]/weights/best.pt"
-yoloe26l_pf="runs/yoloe26_pf/26l_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra6]/weights/best.pt"
-yoloe26x_pf="runs/yoloe26_pf/26x_ptwbest_tp_bs256_epo10_close2_engine_old_engine_data_pf[ultra6]/weights/best.pt"
-
-
-
 default_tp_weight=yoloe26m_tp
 default_pf_weight=yoloe26m_pf
 default_version="26m"
@@ -144,6 +101,7 @@ parser.add_argument('--tp_weight', type=str, default=default_tp_weight, help='pa
 parser.add_argument('--pf_weight', type=str, default=default_pf_weight, help='path to visual prompt model weight')
 parser.add_argument('--single_cls', type=str, default="False", help='whether to eval as single class')
 parser.add_argument('--version', type=str, default=default_version, help='model version')
+parser.add_argument('--not_end2end', action='store_true', help='whether to use end2end mode')
 
 
 
@@ -156,11 +114,17 @@ single_cls={"True":True, "False":False}[args.single_cls]
 # ['clip_weight_name']="mobileclip2:b"
 
 if single_cls:
-
+    end2end=not args.not_end2end
 
     model_weight=args.pf_weight
     model=YOLOE(model_weight)
     head=model.model.model[-1]
+    if not end2end:
+        del model.model.model[-1].one2one_cv2
+        del model.model.model[-1].one2one_cv3
+        del model.model.model[-1].one2one_cv4
+        model.model.end2end = False
+
     head.set_fixed_nc(1)  # stop the dynamic update of YOLOEDetect.nc
 
     metrics = model.val(data="lvis.yaml",split="minival", single_cls=single_cls ,max_det=1000,save_json= False) # map 0
@@ -173,14 +137,10 @@ else:
     version=args.version
 
     # model_weight="runs/yoloe26s_pf_ultra6/mobileclip2:b_26s_bs128_ptwobject365v1_close2_agdata2_lrf0.5_bn_o2m0.1_pf2/weights/best.pt"
-    model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",model_weight_tp)
+    end2end=not args.not_end2end
 
-    end2end=True
-    if not end2end:
-        del model.model.model[-1].one2one_cv2
-        del model.model.model[-1].one2one_cv3
-        del model.model.model[-1].one2one_cv4
-        model.model.end2end = False
+    model=read_pf_det_from_seg_unfused(model_weight,f"yoloe-{version}.yaml",model_weight_tp,end2end=end2end)
+
 
 
     import time

@@ -842,6 +842,7 @@ class YOLOEDetect(Detect):
 
     is_fused = False
     _fixed_nc=None
+    _end2end=True # end2end by default, can be changed to False for mode switching
     def __init__(
         self, nc: int = 80, embed: int = 512, with_bn: bool = False, reg_max=16, end2end=False, ch: tuple = ()
     ):
@@ -858,6 +859,7 @@ class YOLOEDetect(Detect):
         c3 = max(ch[0], min(self.nc, 100))
         assert c3 <= embed
         assert with_bn
+        c3=80
         self.cv3 = (
             nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
             if self.legacy
@@ -880,6 +882,18 @@ class YOLOEDetect(Detect):
         self.savpe = SAVPE(ch, c3, embed)
         self.embed = embed
         # self._fixed_nc=None 
+
+    @property
+    def end2end(self):
+        """Get or set the end-to-end mode of the model."""
+        return self._end2end
+    
+    @end2end.setter
+    def end2end(self, value: bool):
+        """support change end2end mode after initialization."""
+        self._end2end = value
+
+
 
     @smart_inference_mode()
     def fuse(self, txt_feats: torch.Tensor = None):
@@ -928,6 +942,7 @@ class YOLOEDetect(Detect):
             cls_head[-1] = conv
 
             bn_head.fuse()
+
         for cls_head, bn_head in zip(self.one2one_cv3, self.one2one_cv4):
             assert isinstance(cls_head, nn.Sequential)
             assert isinstance(bn_head, BNContrastiveHead)
@@ -982,7 +997,7 @@ class YOLOEDetect(Detect):
 
     def forward(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
         """Process features with class prompt embeddings to generate detections."""
-        if hasattr(self, "lrpc"):  # for prompt-free inference
+        if hasattr(self, "lrpc") or hasattr(self, "one2one_lrpc"):  # for prompt-free inference
             return self.forward_lrpc(x[:3])
         return super().forward(x)
 
@@ -992,12 +1007,13 @@ class YOLOEDetect(Detect):
         bs = x[0].shape[0]
         cv2 = self.cv2 if not self.end2end else self.one2one_cv2
         cv3 = self.cv3 if not self.end2end else self.one2one_cv3
+        lrpc=self.lrpc if not self.end2end else self.one2one_lrpc
+
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
-            assert isinstance(self.lrpc[i], LRPCHead)
-
-            box, score, idx = self.lrpc[i](
+            assert isinstance(lrpc[i], LRPCHead)
+            box, score, idx = lrpc[i](
                 cls_feat,
                 loc_feat,
                 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
@@ -1014,7 +1030,7 @@ class YOLOEDetect(Detect):
     def _get_decode_boxes(self, x):
         """Decode predicted bounding boxes for inference."""
         dbox = super()._get_decode_boxes(x)
-        if hasattr(self, "lrpc"):
+        if hasattr(self, "lrpc") or hasattr(self, "one2one_lrpc"):
             dbox = dbox if self.export and not self.dynamic else dbox[..., x["index"]]
         return dbox
 
@@ -1145,11 +1161,13 @@ class YOLOESegment(YOLOEDetect):
         cv2 = self.cv2 if not self.end2end else self.one2one_cv2
         cv3 = self.cv3 if not self.end2end else self.one2one_cv3
         cv5 = self.cv5 if not self.end2end else self.one2one_cv5
+
+        lrpc=self.lrpc if not self.end2end else self.one2one_lrpc
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
-            assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](
+            assert isinstance(lrpc[i], LRPCHead)
+            box, score, idx = lrpc[i](
                 cls_feat,
                 loc_feat,
                 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),

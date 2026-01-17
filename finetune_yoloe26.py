@@ -79,11 +79,8 @@ assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeT
 
 
 ###################################################################
-if args.trainer=="YOLOETrainerFromScratch":
-    model = YOLO("yoloe-{}.yaml".format(args.model_version))
-    model=model.load(args.weight_path)
-else:
-    model = YOLOE(args.weight_path)
+model = YOLO("yoloe-{}.yaml".format(args.model_version))
+model=model.load(args.weight_path)
 
 
 

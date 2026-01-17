@@ -175,7 +175,7 @@ def select_device(device="", newline=False, verbose=True):
             # transfer_to_npu: A dedicated utility function to migrate PyTorch tensors/models to Huawei Ascend NPU device,
             # implements optimized tensor data migration and device binding for Ascend NPU hardware,
             # provides consistent usage with torch.to(device) while adding NPU-specific optimization logic
-            from torch_npu.contrib import transfer_to_npu
+            from torch_npu.contrib import transfer_to_npu # noqa: F401
         except ImportError:
             LOGGER.warning(
                 "WARNING ⚠️ torch_npu not found, falling back to CPU. Please install torch_npu for Ascend NPU support."

@@ -57,28 +57,26 @@ Choose your compute resources:
 
 <!-- Screenshot: platform-training-gpu.avif -->
 
-| GPU          | VRAM | Speed     | Cost/Hour |
-| ------------ | ---- | --------- | --------- |
-| RTX 6000 Pro | 96GB | Very Fast | **Free**  |
-| M4 Pro (Mac) | 64GB | Fast      | **Free**  |
-| RTX 3090     | 24GB | Good      | $0.44     |
-| RTX 4090     | 24GB | Fast      | $0.74     |
-| L40S         | 48GB | Fast      | $1.14     |
-| A100 40GB    | 40GB | Very Fast | $1.29     |
-| A100 80GB    | 80GB | Very Fast | $1.99     |
-| H100 80GB    | 80GB | Fastest   | $3.99     |
+| GPU             | VRAM  | Speed     | Cost/Hour |
+| --------------- | ----- | --------- | --------- |
+| RTX 2000 Ada    | 16GB  | Good      | $0.48     |
+| RTX A4000       | 16GB  | Good      | $0.50     |
+| RTX 3090        | 24GB  | Good      | $0.92     |
+| RTX A6000       | 48GB  | Fast      | $0.98     |
+| RTX 4090        | 24GB  | Fast      | $1.18     |
+| L40S            | 48GB  | Fast      | $1.72     |
+| RTX 5090        | 32GB  | Very Fast | $1.78     |
+| A100 80GB PCIe  | 80GB  | Very Fast | $2.78     |
+| H100 PCIe       | 80GB  | Fastest   | $4.78     |
+| H100 SXM        | 80GB  | Fastest   | $5.38     |
+| B200            | 180GB | Fastest   | $10.38    |
 
 !!! tip "GPU Selection"
 
-    - **RTX 6000 Pro** (Free): Excellent for most training jobs on Ultralytics infrastructure
-    - **M4 Pro** (Free): Apple Silicon option for compatible workloads
-    - **RTX 4090**: Best value for paid cloud training
+    - **RTX 4090**: Best value with excellent performance for most jobs
     - **A100 80GB**: Required for large batch sizes or big models
     - **H100**: Maximum performance for time-sensitive training
-
-!!! success "Free Training Tier"
-
-    The RTX 6000 Pro Ada (96GB VRAM) and M4 Pro GPUs are available at no cost, running on Ultralytics infrastructure. These are ideal for getting started and regular training jobs.
+    - **B200**: NVIDIA Blackwell architecture for cutting-edge workloads
 
 ### Step 4: Start Training
 
@@ -91,7 +89,7 @@ Click **Start Training** to launch your job. The Platform:
 
 !!! success "Free Credits"
 
-    New accounts receive $5 in credits - enough for several training runs on RTX 4090. [Check your balance](../account/billing.md) in Settings > Billing.
+    New accounts receive $5 in signup credits ($25 for company emails) - enough for several training runs. [Check your balance](../account/billing.md) in Settings > Billing.
 
 <!-- Screenshot: platform-training-progress.avif -->
 
@@ -211,9 +209,9 @@ Total Cost = GPU Rate × Training Time (hours)
 
 | Example    | GPU       | Time    | Cost   |
 | ---------- | --------- | ------- | ------ |
-| Small job  | RTX 4090  | 1 hour  | $0.74  |
-| Medium job | A100 40GB | 4 hours | $5.16  |
-| Large job  | H100      | 8 hours | $31.92 |
+| Small job  | RTX 4090  | 1 hour  | $1.18  |
+| Medium job | A100 80GB | 4 hours | $11.12 |
+| Large job  | H100 PCIe | 8 hours | $38.24 |
 
 ### Payment Methods
 

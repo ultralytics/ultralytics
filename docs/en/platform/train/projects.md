@@ -57,21 +57,49 @@ Share your project with collaborators or make it publicly accessible.
 
 ### Visibility Options
 
-| Setting     | Access                               |
-| ----------- | ------------------------------------ |
-| **Private** | Only you can access                  |
-| **Shared**  | Specific collaborators can view/edit |
-| **Public**  | Anyone can view on Explore page      |
+| Setting     | Access                                      |
+| ----------- | ------------------------------------------- |
+| **Private** | Only you can access                         |
+| **Shared**  | Specific collaborators can view/edit        |
+| **Public**  | Anyone can view on Explore page             |
 
-### Add Collaborators
+### Share Private Projects
 
-1. Open project actions menu
-2. Click **Share**
-3. Enter collaborator email or username
-4. Set permission level (View or Edit)
-5. Click **Save**
+Share private projects with specific collaborators without making them public:
+
+1. Open the project you want to share
+2. Click the **Share** button (or use the actions menu)
+3. Enter collaborator's email or username
+4. Select permission level:
+   - **View**: Can view models, charts, and export weights
+   - **Edit**: Can train models, upload, and edit settings
+5. Click **Add** to send the invitation
+6. Collaborator receives access immediately
 
 <!-- Screenshot: platform-projects-share.avif -->
+
+### Manage Collaborators
+
+View and manage who has access to your project:
+
+| Action           | Description                                  |
+| ---------------- | -------------------------------------------- |
+| **View list**    | See all collaborators in Share dialog        |
+| **Change role**  | Update permission level (View ↔ Edit)        |
+| **Remove**       | Revoke access for specific collaborator      |
+| **Transfer**     | Transfer ownership to another user           |
+
+### Shared Project Notifications
+
+When you share a project:
+
+- Collaborators receive an activity notification
+- The project appears in their Projects list with a "Shared" badge
+- All collaborator actions are logged in the project Activity feed
+
+!!! tip "Team Collaboration"
+
+    For teams needing shared projects, billing, and advanced permissions, consider upgrading to Pro or Enterprise plans.
 
 !!! warning "Model Visibility"
 

@@ -25,6 +25,8 @@ The Account section helps you:
 | ------------ | ---------------------------------------------- |
 | **API Keys** | Secure keys for remote training and API access |
 | **Billing**  | Credits, payments, and usage tracking          |
+| **Activity** | Track events and account actions               |
+| **Trash**    | Recover deleted items within 30 days           |
 | **Settings** | Profile, region, and preferences               |
 | **GDPR**     | Data export and account deletion               |
 
@@ -54,6 +56,8 @@ Ultralytics Platform implements multiple security measures:
 
 - [**API Keys**](api-keys.md): Create and manage API keys
 - [**Billing**](billing.md): Credits and payment management
+- [**Activity**](activity.md): Track account events and notifications
+- [**Trash**](trash.md): Recover deleted projects, datasets, and models
 - [**Settings**](settings.md): Profile and preferences
 
 ## FAQ

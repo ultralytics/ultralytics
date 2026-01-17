@@ -887,7 +887,7 @@ class AutoBackend(nn.Module):
                                 x[:, 6::3] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
-            if len(y) == 2:  # segment with (det, proto) output order reversed
+            if self.task == "segment":  # segment with (det, proto) output order reversed
                 if len(y[1].shape) != 4:
                     y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
                 if y[1].shape[-1] == 6:  # end-to-end model

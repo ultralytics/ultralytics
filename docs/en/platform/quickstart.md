@@ -122,7 +122,6 @@ Enter a name and optional description for your project. Projects contain:
 
 - **Models**: Trained checkpoints
 - **Activity Log**: History of changes
-- **Sharing**: Collaborate with team members
 
 Read more about [projects](train/projects.md).
 
@@ -135,17 +134,17 @@ From your project, click "Train Model" to start cloud training.
 ### Training Configuration
 
 1. **Select Dataset**: Choose from your uploaded datasets
-2. **Choose Model**: Select a base model (YOLO11n, YOLO11s, etc.)
+2. **Choose Model**: Select a base model (YOLO26n, YOLO26s, etc.)
 3. **Set Epochs**: Number of training iterations
 4. **Select GPU**: Choose compute resources
 
 | Model   | Size        | Speed    | Accuracy |
 | ------- | ----------- | -------- | -------- |
-| YOLO11n | Nano        | Fastest  | Good     |
-| YOLO11s | Small       | Fast     | Better   |
-| YOLO11m | Medium      | Moderate | High     |
-| YOLO11l | Large       | Slower   | Higher   |
-| YOLO11x | Extra Large | Slowest  | Best     |
+| YOLO26n | Nano        | Fastest  | Good     |
+| YOLO26s | Small       | Fast     | Better   |
+| YOLO26m | Medium      | Moderate | High     |
+| YOLO26l | Large       | Slower   | Higher   |
+| YOLO26x | Extra Large | Slowest  | Best     |
 
 ### Monitor Training
 

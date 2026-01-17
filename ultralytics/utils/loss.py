@@ -1047,7 +1047,7 @@ class v8OBBLoss(v8DetectionLoss):
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
         if self.angle_loss:
-            loss[3] *= self.hyp.oa  # ang gain
+            loss[3] *= self.hyp.angle  # ang gain
 
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl, ang)
 

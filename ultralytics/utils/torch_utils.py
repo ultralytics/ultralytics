@@ -176,6 +176,7 @@ def select_device(device="", newline=False, verbose=True):
             LOGGER.warning("WARNING ⚠️ torch_npu not found, falling back to CPU. "
                            "Please install torch_npu for Ascend NPU support.")
             device = "cpu"
+            is_npu = False
 
     for remove in "cuda:", 'npu:',"none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
@@ -201,12 +202,12 @@ def select_device(device="", newline=False, verbose=True):
             device = "0"
 
         try:
-            if not torch_npu.npu.is_available():
+            if not torch.npu.is_available():
                 raise RuntimeError()
             os.environ["ASCEND_VISIBLE_DEVICES"] = device
             os.environ["ASCEND_RT_VISIBLE_DEVICES"] = device
             # Validate that the requested number of devices is available
-            npu_count = torch_npu.npu.device_count()
+            npu_count = torch.npu.device_count()
             requested_count = len([x for x in device.split(",") if x])
 
             if npu_count < requested_count:

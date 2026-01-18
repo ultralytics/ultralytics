@@ -1218,8 +1218,11 @@ def project_box3d_corners(
     orientation = box3d.orientation
 
     # Skip boxes with invalid Z depth (too shallow or negative)
-    # Z < 2.0 can cause extreme pixel coordinates when projecting (u = fx * X / Z)
+    # Z < MIN_VALID_Z can cause extreme pixel coordinates when projecting (u = fx * X / Z)
     # Example: Z=1.36 produced 3.4 billion pixels causing cv2.clipLine TypeError
+    # Use conservative 2.0m threshold for KITTI dataset stability
+    # Objects closer than 2m are rare and can cause projection artifacts
+    # Lower thresholds (1.0, 1.5) can be used but may cause edge cases
     MIN_VALID_Z = 2.0  # Minimum valid Z depth in meters (conservative threshold)
     if z < MIN_VALID_Z or not np.isfinite(z):
         return np.zeros((8, 2), dtype=np.float32)  # Return dummy corners (will be clipped out)
@@ -1328,6 +1331,11 @@ def plot_boxes3d(
             )
         except Exception as exc:  # noqa: BLE001
             LOGGER.warning("Skipping invalid Box3D during visualization: %s", exc)
+            continue
+        
+        # Skip if corners are invalid (all zeros from Z < MIN_VALID_Z)
+        if np.allclose(corners, 0.0, atol=1e-6):
+            LOGGER.debug(f"Skipping Box3D with invalid Z depth (corners all zero)")
             continue
 
         color = _select_color(getattr(box, "class_id", 0), scheme)

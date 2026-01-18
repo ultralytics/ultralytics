@@ -33,14 +33,7 @@ from .predict import Stereo3DDetPredictor
 from .visualize import plot_stereo_sample, plot_stereo_predictions
 from .metrics import Stereo3DDetMetrics
 
-# =============================================================================
-# GAP-003: Heatmap NMS (User Story 3)
-# =============================================================================
-from .nms import heatmap_nms
 
-# =============================================================================
-# GAP-004: Perspective Keypoint Selection (User Story 1)
-# =============================================================================
 from .keypoints import (
     select_perspective_keypoints,
     select_perspective_keypoints_batch,

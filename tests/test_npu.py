@@ -1,7 +1,8 @@
 import os
-import pytest
-import sys
 from unittest import mock
+
+import pytest
+
 from ultralytics.utils.torch_utils import select_device
 
 

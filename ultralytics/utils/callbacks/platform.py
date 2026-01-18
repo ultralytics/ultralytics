@@ -89,7 +89,8 @@ def resolve_platform_uri(uri, hard=True):
         raise ValueError(f"Invalid platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
 
     try:
-        r = requests.head(url, headers=headers, allow_redirects=False, timeout=30)
+        timeout = 3600 if "/datasets/" in url else 90  # NDJSON generation can be slow for large datasets
+        r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
 
         # Handle redirect responses (301, 302, 303, 307, 308)
         if 300 <= r.status_code < 400 and "location" in r.headers:

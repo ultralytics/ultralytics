@@ -4,38 +4,38 @@ Export a YOLO PyTorch model to other formats. TensorFlow exports authored by htt
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
-PyTorch                 | -                         | yolo11n.pt
-TorchScript             | `torchscript`             | yolo11n.torchscript
-ONNX                    | `onnx`                    | yolo11n.onnx
-OpenVINO                | `openvino`                | yolo11n_openvino_model/
-TensorRT                | `engine`                  | yolo11n.engine
-CoreML                  | `coreml`                  | yolo11n.mlpackage
-TensorFlow SavedModel   | `saved_model`             | yolo11n_saved_model/
-TensorFlow GraphDef     | `pb`                      | yolo11n.pb
-TensorFlow Lite         | `tflite`                  | yolo11n.tflite
-TensorFlow Edge TPU     | `edgetpu`                 | yolo11n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
-PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
-MNN                     | `mnn`                     | yolo11n.mnn
-NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
-IMX                     | `imx`                     | yolo11n_imx_model/
-RKNN                    | `rknn`                    | yolo11n_rknn_model/
-ExecuTorch              | `executorch`              | yolo11n_executorch_model/
-Axelera                 | `axelera`                 | yolo11n_axelera_model/
+PyTorch                 | -                         | yolo26n.pt
+TorchScript             | `torchscript`             | yolo26n.torchscript
+ONNX                    | `onnx`                    | yolo26n.onnx
+OpenVINO                | `openvino`                | yolo26n_openvino_model/
+TensorRT                | `engine`                  | yolo26n.engine
+CoreML                  | `coreml`                  | yolo26n.mlpackage
+TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
+TensorFlow GraphDef     | `pb`                      | yolo26n.pb
+TensorFlow Lite         | `tflite`                  | yolo26n.tflite
+TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
+TensorFlow.js           | `tfjs`                    | yolo26n_web_model/
+PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
+MNN                     | `mnn`                     | yolo26n.mnn
+NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
+IMX                     | `imx`                     | yolo26n_imx_model/
+RKNN                    | `rknn`                    | yolo26n_rknn_model/
+ExecuTorch              | `executorch`              | yolo26n_executorch_model/
+Axelera                 | `axelera`                 | yolo26n_axelera_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
 
 Python:
     from ultralytics import YOLO
-    model = YOLO('yolo11n.pt')
+    model = YOLO('yolo26n.pt')
     results = model.export(format='onnx')
 
 CLI:
-    $ yolo mode=export model=yolo11n.pt format=onnx
+    $ yolo mode=export model=yolo26n.pt format=onnx
 
 Inference:
-    $ yolo predict model=yolo11n.pt                 # PyTorch
+    $ yolo predict model=yolo26n.pt                 # PyTorch
                          yolo11n.torchscript        # TorchScript
                          yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
                          yolo11n_openvino_model     # OpenVINO
@@ -614,12 +614,11 @@ class Exporter:
                 f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
-            predict_data = f"data={data}" if model.task == "segment" and pb else ""
             q = "int8" if self.args.int8 else "half" if self.args.half else ""  # quantization
             LOGGER.info(
                 f"\nExport complete ({time.time() - t:.1f}s)"
                 f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q} {predict_data}"
+                f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
                 f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
                 f"\nVisualize:       https://netron.app"
             )
@@ -930,7 +929,7 @@ class Exporter:
             model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
         else:
             if self.args.nms:
-                LOGGER.warning(f"{prefix} 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
+                LOGGER.warning(f"{prefix} 'nms=True' is only available for Detect models like 'yolo26n.pt'.")
                 # TODO CoreML Segment and Pose model pipelining
             model = self.model
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model

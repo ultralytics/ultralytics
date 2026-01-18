@@ -1398,21 +1398,31 @@ def torch_safe_load(weight, safe_only=False):
     function. After installation, the function again attempts to load the model using torch.load().
 
     Args:
-        weight (str): The file path of the PyTorch model.
+        weight (str | bytes | io.BytesIO): The file path of the PyTorch model, or bytes/BytesIO object.
         safe_only (bool): If True, replace unknown classes with SafeClass during loading.
 
     Returns:
         ckpt (dict): The loaded model checkpoint.
-        file (str): The loaded filename.
+        file (str | None): The loaded filename, or None if loaded from bytes.
 
     Examples:
         >>> from ultralytics.nn.tasks import torch_safe_load
         >>> ckpt, file = torch_safe_load("path/to/best.pt", safe_only=True)
     """
+    import io
+
     from ultralytics.utils.downloads import attempt_download_asset
 
-    check_suffix(file=weight, suffix=".pt")
-    file = attempt_download_asset(weight)  # search online if missing locally
+    # Handle bytes/BytesIO input - convert bytes to BytesIO and skip file checks
+    is_bytes = isinstance(weight, (bytes, io.BytesIO))
+    if is_bytes:
+        if isinstance(weight, bytes):
+            weight = io.BytesIO(weight)
+        file = None
+    else:
+        check_suffix(file=weight, suffix=".pt")
+        file = attempt_download_asset(weight)  # search online if missing locally
+
     try:
         with temporary_modules(
             modules={
@@ -1426,7 +1436,9 @@ def torch_safe_load(weight, safe_only=False):
                 "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
             },
         ):
-            if safe_only:
+            if is_bytes:
+                ckpt = torch_load(weight, map_location="cpu")
+            elif safe_only:
                 # Load via custom pickle module
                 safe_pickle = types.ModuleType("safe_pickle")
                 safe_pickle.Unpickler = SafeUnpickler
@@ -1460,7 +1472,11 @@ def torch_safe_load(weight, safe_only=False):
             f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
         )
         check_requirements(e.name)  # install missing module
-        ckpt = torch_load(file, map_location="cpu")
+        if is_bytes:
+            weight.seek(0)  # Reset buffer position for retry
+            ckpt = torch_load(weight, map_location="cpu")
+        else:
+            ckpt = torch_load(file, map_location="cpu")
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")

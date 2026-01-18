@@ -50,18 +50,26 @@ class YOLO(Model):
         >>> model = YOLO("yolo26n.yaml")
     """
 
-    def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
+    def __init__(self, model: str | Path | bytes = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
 
         This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
         YOLOE) based on the model filename.
 
         Args:
-            model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml'.
+            model (str | Path | bytes): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml', or
+                bytes/BytesIO object containing model data.
             task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'. Defaults
                 to auto-detection based on model.
             verbose (bool): Display model info on load.
         """
+        import io
+
+        # Handle bytes/BytesIO directly - can't create Path from bytes
+        if isinstance(model, (bytes, io.BytesIO)):
+            super().__init__(model=model, task=task, verbose=verbose)
+            return
+
         path = Path(model if isinstance(model, (str, Path)) else "")
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)

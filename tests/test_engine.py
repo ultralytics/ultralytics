@@ -48,10 +48,9 @@ def test_detect():
 
     # Check that args.yaml was created
     from pathlib import Path
+
     args_file = Path(val.save_dir) / "args.yaml"
     assert args_file.exists(), f"args.yaml not found at {args_file}"
-
-
 
     # Predictor
     pred = detect.DetectionPredictor(overrides={"imgsz": [64, 64]})

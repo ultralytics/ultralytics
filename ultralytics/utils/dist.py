@@ -49,6 +49,7 @@ def generate_ddp_file(trainer):
 
     content = f"""
 # Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
+from pathlib import Path, PosixPath  # For model arguments stored as Path instead of str
 overrides = {vars(trainer.args)}
 
 if __name__ == "__main__":

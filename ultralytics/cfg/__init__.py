@@ -90,13 +90,13 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions count source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
 
     2. Call heatmap solution
-        yolo solutions heatmap colormap=cv2.COLORMAP_PARULA model=yolo11n.pt
+        yolo solutions heatmap colormap=cv2.COLORMAP_PARULA model=yolo26n.pt
 
     3. Call queue management solution
-        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" model=yolo11n.pt
+        yolo solutions queue region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]" model=yolo26n.pt
 
     4. Call workout monitoring solution for push-ups
-        yolo solutions workout model=yolo11n-pose.pt kpts=[6, 8, 10]
+        yolo solutions workout model=yolo26n-pose.pt kpts=[6, 8, 10]
 
     5. Generate analytical graphs
         yolo solutions analytics analytics_type="pie"
@@ -118,16 +118,16 @@ CLI_HELP_MSG = f"""
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
     1. Train a detection model for 10 epochs with an initial learning_rate of 0.01
-        yolo train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+        yolo predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
     3. Validate a pretrained detection model at batch-size 1 and image size 640:
-        yolo val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+        yolo val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
 
-    4. Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
-        yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+    4. Export a YOLO26n classification model to ONNX format at image size 224 by 128 (no TASK required)
+        yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
 
     5. Ultralytics solutions usage
         yolo solutions count or any of {list(SOLUTION_MAP.keys())[1:-1]} source="path/to/video.mp4"
@@ -305,8 +305,6 @@ def get_cfg(
     # Merge overrides
     if overrides:
         overrides = cfg2dict(overrides)
-        if "save_dir" not in cfg:
-            overrides.pop("save_dir", None)  # special override keys to ignore
         check_dict_alignment(cfg, overrides)
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
@@ -414,7 +412,7 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
         nested = args.project and len(Path(args.project).parts) > 1  # e.g. "user/project" or "org\repo"
         project = runs / args.project if nested else args.project or runs
         name = name or args.name or f"{args.mode}"
-        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True, mkdir=True)
+        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 
     return Path(save_dir).resolve()  # resolve to display full path in console
 
@@ -494,7 +492,7 @@ def check_dict_alignment(
     base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
     # Allow 'augmentations' as a valid custom parameter for custom Albumentations transforms
     if allowed_custom_keys is None:
-        allowed_custom_keys = {"augmentations"}
+        allowed_custom_keys = {"augmentations", "save_dir"}
     if mismatched := [k for k in custom_keys if k not in base_keys and k not in allowed_custom_keys]:
         from difflib import get_close_matches
 
@@ -606,7 +604,7 @@ def handle_yolo_settings(args: list[str]) -> None:
 
     Examples:
         >>> handle_yolo_settings(["reset"])  # Reset YOLO settings
-        >>> handle_yolo_settings(["default_cfg_path=yolo11n.yaml"])  # Update a specific setting
+        >>> handle_yolo_settings(["default_cfg_path=yolo26n.yaml"])  # Update a specific setting
 
     Notes:
         - If no arguments are provided, the function will display the current settings.
@@ -651,7 +649,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
         >>> handle_yolo_solutions(["analytics", "conf=0.25", "source=path/to/video.mp4"])
 
         Run inference with custom configuration, requires Streamlit version 1.29.0 or higher.
-        >>> handle_yolo_solutions(["inference", "model=yolo11n.pt"])
+        >>> handle_yolo_solutions(["inference", "model=yolo26n.pt"])
 
     Notes:
         - Arguments can be provided in the format 'key=value' or as boolean flags
@@ -709,7 +707,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
                 str(ROOT / "solutions/streamlit_inference.py"),
                 "--server.headless",
                 "true",
-                overrides.pop("model", "yolo11n.pt"),
+                overrides.pop("model", "yolo26n.pt"),
             ]
         )
     else:
@@ -760,9 +758,9 @@ def parse_key_value_pair(pair: str = "key=value") -> tuple:
         AssertionError: If the value is missing or empty.
 
     Examples:
-        >>> key, value = parse_key_value_pair("model=yolo11n.pt")
+        >>> key, value = parse_key_value_pair("model=yolo26n.pt")
         >>> print(f"Key: {key}, Value: {value}")
-        Key: model, Value: yolo11n.pt
+        Key: model, Value: yolo26n.pt
 
         >>> key, value = parse_key_value_pair("epochs=100")
         >>> print(f"Key: {key}, Value: {value}")
@@ -834,13 +832,13 @@ def entrypoint(debug: str = "") -> None:
 
     Examples:
         Train a detection model for 10 epochs with an initial learning_rate of 0.01:
-        >>> entrypoint("train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01")
+        >>> entrypoint("train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01")
 
         Predict a YouTube video using a pretrained segmentation model at image size 320:
-        >>> entrypoint("predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
+        >>> entrypoint("predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320")
 
         Validate a pretrained detection model at batch-size 1 and image size 640:
-        >>> entrypoint("val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640")
+        >>> entrypoint("val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640")
 
     Notes:
         - If no arguments are passed, the function will display the usage help message.
@@ -935,7 +933,7 @@ def entrypoint(debug: str = "") -> None:
     # Model
     model = overrides.pop("model", DEFAULT_CFG.model)
     if model is None:
-        model = "yolo11n.pt"
+        model = "yolo26n.pt"
         LOGGER.warning(f"'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
@@ -1024,5 +1022,5 @@ def copy_default_cfg() -> None:
 
 
 if __name__ == "__main__":
-    # Example: entrypoint(debug='yolo predict model=yolo11n.pt')
+    # Example: entrypoint(debug='yolo predict model=yolo26n.pt')
     entrypoint(debug="")

@@ -171,14 +171,19 @@ def select_device(device="", newline=False, verbose=True):
     if is_npu:
         try:
             import torch_npu
-            from torch_npu.contrib import transfer_to_npu
+
+            # transfer_to_npu: A dedicated utility function to migrate PyTorch tensors/models to Huawei Ascend NPU device,
+            # implements optimized tensor data migration and device binding for Ascend NPU hardware,
+            # provides consistent usage with torch.to(device) while adding NPU-specific optimization logic
+            from torch_npu.contrib import transfer_to_npu  # noqa: F401
         except ImportError:
-            LOGGER.warning("WARNING ⚠️ torch_npu not found, falling back to CPU. "
-                           "Please install torch_npu for Ascend NPU support.")
+            LOGGER.warning(
+                "WARNING ⚠️ torch_npu not found, falling back to CPU. Please install torch_npu for Ascend NPU support."
+            )
             device = "cpu"
             is_npu = False
 
-    for remove in "cuda:", 'npu:',"none", "(", ")", "[", "]", "'", " ":
+    for remove in "cuda:", "npu:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
 
     # Auto-select GPUs
@@ -198,7 +203,7 @@ def select_device(device="", newline=False, verbose=True):
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
     elif is_npu:
-        if device == "" or device =="none":
+        if device == "" or device == "none":
             device = "0"
 
         try:
@@ -221,7 +226,7 @@ def select_device(device="", newline=False, verbose=True):
             device = "cpu"
 
     elif device:  # non-cpu device requested
-        if device == "cuda" :
+        if device == "cuda":
             device = "0"
         if "," in device:
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"

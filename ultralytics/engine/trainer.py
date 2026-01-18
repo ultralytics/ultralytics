@@ -262,17 +262,17 @@ class BaseTrainer:
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
     def _setup_ddp(self):
-        """Initialize and set the DistributedDataParallel parameters for training.
-        Compatible with both NVIDIA CUDA (NCCL) and Huawei Ascend NPU (HCCL) distributed training."""
+        """Initialize and set the DistributedDataParallel parameters for training. Compatible with both NVIDIA CUDA
+        (NCCL) and Huawei Ascend NPU (HCCL) distributed training.
+        """
         device_str = str(self.device)
         backend = "gloo"
-        if "cuda" in device_str :
+        if "cuda" in device_str:
             torch.cuda.set_device(RANK)
             self.device = torch.device("cuda", RANK)
             os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         elif "npu" in device_str:
             try:
-                import torch_npu
                 torch.npu.set_device(RANK)
                 self.device = torch.device("npu", RANK)
                 backend = "hccl"
@@ -337,13 +337,15 @@ class BaseTrainer:
 
         if device_type == "npu":
             self.scaler = (
-                torch.amp.GradScaler("npu", enabled=self.amp) if TORCH_2_4 else torch.npu.amp.GradScaler(
-                    enabled=self.amp)
+                torch.amp.GradScaler("npu", enabled=self.amp)
+                if TORCH_2_4
+                else torch.npu.amp.GradScaler(enabled=self.amp)
             )
         else:
             self.scaler = (
-                torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(
-                    enabled=self.amp)
+                torch.amp.GradScaler("cuda", enabled=self.amp)
+                if TORCH_2_4
+                else torch.cuda.amp.GradScaler(enabled=self.amp)
             )
 
         if self.world_size > 1:
@@ -601,7 +603,7 @@ class BaseTrainer:
                         total = torch.npu.get_device_properties(self.device).total_memory
                 except (ImportError, AttributeError):
                     memory, total = 0, 0
-            else: 
+            else:
                 memory = torch.cuda.memory_reserved()
                 if fraction:
                     total = torch.cuda.get_device_properties(self.device).total_memory
@@ -1034,7 +1036,7 @@ class BaseTrainer:
         g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
-        muon, sgd = (0.5, 0.5) if iterations > 10000 else (0.1, 1.0)  # scale factor for MuSGD
+        muon, sgd = (0.1, 1.0) if iterations > 10000 else (0.5, 0.5)  # scale factor for MuSGD
         if use_muon:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re

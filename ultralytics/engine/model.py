@@ -91,9 +91,9 @@ class Model(torch.nn.Module):
         important attributes of the model and prepares it for operations like training, prediction, or export.
 
         Args:
-            model (str | Path | bytes | Model): Path or name of the model to load or create. Can be a local file path,
-                a model name from Ultralytics HUB, a Triton Server model, bytes/BytesIO object containing model data,
-                or an already initialized Model instance.
+            model (str | Path | bytes | Model): Path or name of the model to load or create. Can be a local file path, a
+                model name from Ultralytics HUB, a Triton Server model, bytes/BytesIO object containing model data, or
+                an already initialized Model instance.
             task (str, optional): The specific task for the model. If None, it will be inferred from the config.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent operations.
 
@@ -292,7 +292,9 @@ class Model(torch.nn.Module):
         # Skip URL and stem checks for bytes input
         if not is_bytes:
             if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://")):
-                weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
+                weights = checks.check_file(
+                    weights, download_dir=SETTINGS["weights_dir"]
+                )  # download and return local file
             weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26 -> yolo26n.pt
 
         if is_bytes or str(weights).rpartition(".")[-1] == "pt":

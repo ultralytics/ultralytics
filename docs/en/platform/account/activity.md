@@ -33,20 +33,20 @@ Navigate to the Activity Feed:
 
 The Platform tracks the following event types:
 
-| Event Type    | Description                                | Icon  |
-| ------------- | ------------------------------------------ | ----- |
-| **created**   | New resource created                       | +     |
-| **updated**   | Resource modified                          | edit  |
-| **deleted**   | Resource permanently removed               | trash |
-| **trashed**   | Resource moved to trash (recoverable)      | trash |
-| **restored**  | Resource restored from trash               | undo  |
-| **started**   | Training or export job started             | play  |
-| **completed** | Job finished successfully                  | check |
-| **failed**    | Job encountered an error                   | error |
-| **cancelled** | Job stopped by user                        | stop  |
-| **uploaded**  | File or dataset uploaded                   | cloud |
-| **exported**  | Model exported to format                   | save  |
-| **cloned**    | Resource duplicated                        | copy  |
+| Event Type    | Description                           | Icon  |
+| ------------- | ------------------------------------- | ----- |
+| **created**   | New resource created                  | +     |
+| **updated**   | Resource modified                     | edit  |
+| **deleted**   | Resource permanently removed          | trash |
+| **trashed**   | Resource moved to trash (recoverable) | trash |
+| **restored**  | Resource restored from trash          | undo  |
+| **started**   | Training or export job started        | play  |
+| **completed** | Job finished successfully             | check |
+| **failed**    | Job encountered an error              | error |
+| **cancelled** | Job stopped by user                   | stop  |
+| **uploaded**  | File or dataset uploaded              | cloud |
+| **exported**  | Model exported to format              | save  |
+| **cloned**    | Resource duplicated                   | copy  |
 
 ## Inbox and Archive
 
@@ -87,13 +87,13 @@ Use the search bar to find events by:
 
 Filter events by type:
 
-| Filter        | Shows                                     |
-| ------------- | ----------------------------------------- |
-| **All**       | All activity types                        |
-| **Training**  | Training started, completed, failed       |
-| **Uploads**   | Dataset and model uploads                 |
-| **Exports**   | Model export activity                     |
-| **System**    | Billing, storage, account events          |
+| Filter       | Shows                               |
+| ------------ | ----------------------------------- |
+| **All**      | All activity types                  |
+| **Training** | Training started, completed, failed |
+| **Uploads**  | Dataset and model uploads           |
+| **Exports**  | Model export activity               |
+| **System**   | Billing, storage, account events    |
 
 ### Date Range
 
@@ -110,13 +110,13 @@ Filter by time period:
 
 Click an event to view details:
 
-| Field           | Description                              |
-| --------------- | ---------------------------------------- |
-| **Timestamp**   | When the event occurred                  |
-| **User**        | Who triggered the event                  |
-| **Resource**    | What was affected (with link)            |
-| **Description** | Detailed event information               |
-| **Metadata**    | Additional context (job ID, etc.)        |
+| Field           | Description                       |
+| --------------- | --------------------------------- |
+| **Timestamp**   | When the event occurred           |
+| **User**        | Who triggered the event           |
+| **Resource**    | What was affected (with link)     |
+| **Description** | Detailed event information        |
+| **Metadata**    | Additional context (job ID, etc.) |
 
 ## Mark as Seen
 

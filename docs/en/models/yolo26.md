@@ -229,7 +229,7 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
             cls=np.array(
                 [
                     0,  # ID to be assigned for person
-                    1,  # ID to be assigned for glassses
+                    1,  # ID to be assigned for glasses
                 ]
             ),
         )

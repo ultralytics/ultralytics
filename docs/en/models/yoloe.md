@@ -301,7 +301,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
             cls=np.array(
                 [
                     0,  # ID to be assigned for person
-                    1,  # ID to be assigned for glassses
+                    1,  # ID to be assigned for glasses
                 ]
             ),
         )
@@ -441,7 +441,7 @@ Model validation on a dataset is streamlined as follows:
 
     === "Visual Prompt"
 
-        Be default it's using the provided dataset to extract visual embeddings for each category.
+        By default it's using the provided dataset to extract visual embeddings for each category.
 
         ```python
         from ultralytics import YOLOE

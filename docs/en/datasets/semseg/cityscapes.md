@@ -111,7 +111,7 @@ To train a YOLO11n-semseg model on the Cityscape dataset for 100 epochs with an 
 
 ### What are the key features of the Cityscaps dataset and where can I access the YAML file?
 
-The Cityscaps dataset is known for its large-scale benchmark and the challenges it presents for semantic segment. You can access the `CityscapesYOLO.yaml` file, which contains paths, classes, and configuration details, at this [GitHub link](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/ultralytics/cfg/datasets/CityEscapeYOLO.yaml).
+The Cityscaps dataset is known for its large-scale benchmark and the challenges it presents for semantic segment. You can access the `CityscapesYOLO.yaml` file, which contains paths, classes, and configuration details, at this [GitHub link](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/ultralytics/cfg/datasets/CityscapeYOLO.yaml).
 
 ### How do I convert the official format of Cityscape to YOLO format of it?
 

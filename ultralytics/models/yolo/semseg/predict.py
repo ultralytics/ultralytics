@@ -52,7 +52,8 @@ class SemSegPredictor(DetectionPredictor):
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "semseg"
-        self.args.data = "ultralytics/cfg/datasets/CityscapesYOLO.yaml"
+        if self.args.data in (None, ""):
+            self.args.data = "ultralytics/cfg/datasets/CityscapesYOLO.yaml"
         self.data = check_semseg_dataset(self.args.data)["yaml_file"]
 
     def postprocess(self, preds, img, orig_imgs):

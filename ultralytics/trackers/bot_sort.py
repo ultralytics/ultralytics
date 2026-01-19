@@ -45,9 +45,9 @@ class BOTrack(STrack):
 
     Examples:
         Create a BOTrack instance and update its features
-        >>> bo_track = BOTrack(tlwh=[100, 50, 80, 40], score=0.9, cls=1, feat=np.random.rand(128))
+        >>> bo_track = BOTrack(xywh=np.array([100, 50, 80, 40, 0]), score=0.9, cls=1, feat=np.random.rand(128))
         >>> bo_track.predict()
-        >>> new_track = BOTrack(tlwh=[110, 60, 80, 40], score=0.85, cls=1, feat=np.random.rand(128))
+        >>> new_track = BOTrack(xywh=np.array([110, 60, 80, 40, 0]), score=0.85, cls=1, feat=np.random.rand(128))
         >>> bo_track.update(new_track, frame_id=2)
     """
 
@@ -59,7 +59,8 @@ class BOTrack(STrack):
         """Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
 
         Args:
-            xywh (np.ndarray): Bounding box coordinates in xywh format (center x, center y, width, height).
+            xywh (np.ndarray): Bounding box in `(x, y, w, h, idx)` or `(x, y, w, h, angle, idx)` format, where (x, y) is
+                the center, (w, h) are width and height, and `idx` is the detection index.
             score (float): Confidence score of the detection.
             cls (int): Class ID of the detected object.
             feat (np.ndarray, optional): Feature vector associated with the detection.

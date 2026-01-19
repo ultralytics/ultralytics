@@ -207,6 +207,20 @@ sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/pat
 
 Replace `/path/on/host` with the directory path on your local machine and `/path/in/container` with the desired path inside the Docker container.
 
+### Persisting Training Outputs
+
+Training outputs save to `/ultralytics/runs/<task>/<name>/` inside the container by default. Without mounting a host directory, outputs are lost when the container is removed.
+
+To persist training outputs:
+
+```bash
+# Recommended: mount workspace and specify project path
+sudo docker run --rm -it -v "$(pwd)":/w -w /w ultralytics/ultralytics:latest \
+  yolo train model=yolo26n.pt data=coco8.yaml project=/w/runs
+```
+
+This saves all training outputs to `./runs` on your host machine.
+
 ## Run graphical user interface (GUI) applications in a Docker Container
 
 !!! danger "Highly Experimental - User Assumes All Risk"
@@ -259,10 +273,10 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 
 ### Using Docker with a GUI
 
-Now you can display graphical applications inside your Docker container. For example, you can run the following [CLI command](../usage/cli.md) to visualize the [predictions](../modes/predict.md) from a [YOLO11 model](../models/yolo11.md):
+Now you can display graphical applications inside your Docker container. For example, you can run the following [CLI command](../usage/cli.md) to visualize the [predictions](../modes/predict.md) from a [YOLO26 model](../models/yolo26.md):
 
 ```bash
-yolo predict model=yolo11n.pt show=True
+yolo predict model=yolo26n.pt show=True
 ```
 
 ??? info "Testing"
@@ -285,7 +299,7 @@ yolo predict model=yolo11n.pt show=True
 
 ---
 
-Congratulations! You're now set up to use Ultralytics with Docker and ready to take advantage of its powerful capabilities. For alternate installation methods, feel free to explore the [Ultralytics quickstart documentation](../quickstart.md).
+You are now set up to use Ultralytics with Docker and ready to take advantage of its capabilities. For alternative installation methods, see the [Ultralytics quickstart documentation](../quickstart.md).
 
 ## FAQ
 

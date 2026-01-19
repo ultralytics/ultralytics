@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover essential steps for launching a successful computer vision project, from defining goals to model deployment and maintenance. Boost your AI capabilities now!
+description: Discover essential steps for launching a successful computer vision project, from defining goals to model deployment and maintenance.
 keywords: Computer Vision, AI, Object Detection, Image Classification, Instance Segmentation, Data Annotation, Model Training, Model Evaluation, Model Deployment
 ---
 
@@ -23,7 +23,7 @@ Computer vision is a subfield of [artificial intelligence](https://www.ultralyti
 
 Computer vision techniques like [object detection](../tasks/detect.md), [image classification](../tasks/classify.md), and [instance segmentation](../tasks/segment.md) can be applied across various industries, from [autonomous driving](https://www.ultralytics.com/solutions/ai-in-automotive) to [medical imaging](https://www.ultralytics.com/solutions/ai-in-healthcare) to gain valuable insights.
 
-Working on your own computer vision projects is a great way to understand and learn more about computer vision. However, a computer vision project can consist of many steps, and it might seem confusing at first. By the end of this guide, you'll be familiar with the steps involved in a computer vision project. We'll walk through everything from the beginning to the end of a project, explaining why each part is important. Let's get started and make your computer vision project a success!
+Working on your own computer vision projects is a great way to understand and learn more about computer vision. However, a computer vision project can consist of many steps, and it might seem confusing at first. By the end of this guide, you'll be familiar with the steps involved in a computer vision project. We'll walk through everything from the beginning to the end of a project, explaining why each part is important.
 
 ## An Overview of a Computer Vision Project
 
@@ -62,7 +62,7 @@ After understanding the project objective and suitable computer vision tasks, an
 
 Depending on the objective, you might choose to select the model first or after seeing what data you are able to collect in Step 2. For example, suppose your project is highly dependent on the availability of specific types of data. In that case, it may be more practical to gather and analyze the data first before selecting a model. On the other hand, if you have a clear understanding of the model requirements, you can choose the model first and then collect data that fits those specifications.
 
-Choosing between training from scratch or using [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) affects how you prepare your data. Training from scratch requires a diverse dataset to build the model's understanding from the ground up. Transfer learning, on the other hand, allows you to use a pre-trained model and adapt it with a smaller, more specific dataset. Also, choosing a specific model to train will determine how you need to prepare your data, such as resizing images or adding annotations, according to the model's specific requirements.
+Choosing between training from scratch or using [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) affects how you prepare your data. Training from scratch requires a diverse dataset to build the model's understanding from the ground up. Transfer learning, on the other hand, allows you to use a pretrained model and adapt it with a smaller, more specific dataset. Also, choosing a specific model to train will determine how you need to prepare your data, such as resizing images or adding annotations, according to the model's specific requirements.
 
 <p align="center">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/training-from-scratch-vs-transfer-learning.avif" alt="Training From Scratch Vs. Using Transfer Learning">
@@ -80,7 +80,7 @@ Before getting into the hands-on work of a computer vision project, it's importa
 
 ## Step 2: Data Collection and Data Annotation
 
-The quality of your computer vision models depend on the quality of your dataset. You can either collect images from the internet, take your own pictures, or use pre-existing datasets. Here are some great resources for downloading high-quality datasets: [Google Dataset Search Engine](https://datasetsearch.research.google.com/), [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/), and [Kaggle Datasets](https://www.kaggle.com/datasets).
+The quality of your computer vision models depends on the quality of your dataset. You can either collect images from the internet, take your own pictures, or use pre-existing datasets. Here are some great resources for downloading high-quality datasets: [Google Dataset Search Engine](https://datasetsearch.research.google.com/), [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/), and [Kaggle Datasets](https://www.kaggle.com/datasets).
 
 Some libraries, like Ultralytics, provide [built-in support for various datasets](../datasets/index.md), making it easier to get started with high-quality data. These libraries often include utilities for using popular datasets seamlessly, which can save you a lot of time and effort in the initial stages of your project.
 
@@ -160,7 +160,7 @@ Also, address common problems such as overfitting, [underfitting](https://www.ul
 Once your model has been thoroughly tested, it's time to deploy it. [Model deployment](https://www.ultralytics.com/glossary/model-deployment) involves making your model available for use in a production environment. Here are the steps to deploy a computer vision model:
 
 - **Setting Up the Environment:** Configure the necessary infrastructure for your chosen deployment option, whether it's cloud-based (AWS, Google Cloud, Azure) or edge-based (local devices, IoT).
-- **[Exporting the Model](../modes/export.md):** Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLO11) to ensure compatibility with your deployment platform.
+- **[Exporting the Model](../modes/export.md):** Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLO26) to ensure compatibility with your deployment platform.
 - **Deploying the Model:** Deploy the model by setting up APIs or endpoints and integrating it with your application.
 - **Ensuring Scalability:** Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
 
@@ -184,18 +184,18 @@ Connecting with a community of computer vision enthusiasts can help you tackle a
 
 ### Community Resources
 
-- **GitHub Issues:** Check out the [YOLO11 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The active community and maintainers are there to help with specific issues.
+- **GitHub Issues:** Check out the [YOLO26 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The active community and maintainers are there to help with specific issues.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to interact with other users and developers, get support, and share insights.
 
 ### Official Documentation
 
-- **Ultralytics YOLO11 Documentation:** Explore the [official YOLO11 documentation](./index.md) for detailed guides with helpful tips on different computer vision tasks and projects.
+- **Ultralytics YOLO26 Documentation:** Explore the [official YOLO26 documentation](./index.md) for detailed guides with helpful tips on different computer vision tasks and projects.
 
 Using these resources will help you overcome challenges and stay updated with the latest trends and best practices in the computer vision community.
 
-## Kickstart Your Computer Vision Project Today!
+## Next Steps
 
-Taking on a computer vision project can be exciting and rewarding. By following the steps in this guide, you can build a solid foundation for success. Each step is crucial for developing a solution that meets your objectives and works well in real-world scenarios. As you gain experience, you'll discover advanced techniques and tools to improve your projects. Stay curious, keep learning, and explore new methods and innovations!
+Taking on a computer vision project can be exciting and rewarding. By following the steps in this guide, you can build a solid foundation for success. Each step is crucial for developing a solution that meets your objectives and works well in real-world scenarios. As you gain experience, you'll discover advanced techniques and tools to improve your projects.
 
 ## FAQ
 
@@ -225,7 +225,7 @@ After splitting, apply data augmentation techniques like rotation, scaling, and 
 
 ### How can I export my trained computer vision model for deployment?
 
-Exporting your model ensures compatibility with different deployment platforms. Ultralytics provides multiple formats, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), and [CoreML](../integrations/coreml.md). To export your YOLO11 model, follow this guide:
+Exporting your model ensures compatibility with different deployment platforms. Ultralytics provides multiple formats, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), and [CoreML](../integrations/coreml.md). To export your YOLO26 model, follow this guide:
 
 - Use the `export` function with the desired format parameter.
 - Ensure the exported model fits the specifications of your deployment environment (e.g., edge devices, cloud).

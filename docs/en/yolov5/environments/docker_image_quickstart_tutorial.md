@@ -202,4 +202,4 @@ Learn more about evaluation metrics like [Precision](https://www.ultralytics.com
 
 <p align="center"><img width="1000" src="https://github.com/ultralytics/docs/releases/download/0/gcp-running-docker.avif" alt="Running YOLOv5 inside a Docker container on GCP"></p>
 
-Congratulations! You have successfully set up and run YOLOv5 within a Docker container.
+You have successfully set up and run YOLOv5 within a Docker container.

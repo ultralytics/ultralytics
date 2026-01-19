@@ -21,7 +21,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
 
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationTrainer
-        >>> args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml", epochs=3)
+        >>> args = dict(model="yolo26n-seg.pt", data="coco8-seg.yaml", epochs=3)
         >>> trainer = SegmentationTrainer(overrides=args)
         >>> trainer.train()
     """
@@ -52,8 +52,8 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
 
         Examples:
             >>> trainer = SegmentationTrainer()
-            >>> model = trainer.get_model(cfg="yolo11n-seg.yaml")
-            >>> model = trainer.get_model(weights="yolo11n-seg.pt", verbose=False)
+            >>> model = trainer.get_model(cfg="yolo26n-seg.yaml")
+            >>> model = trainer.get_model(weights="yolo26n-seg.pt", verbose=False)
         """
         model = SegmentationModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
@@ -63,7 +63,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of SegmentationValidator for validation of YOLO model."""
-        self.loss_names = "box_loss", "seg_loss", "cls_loss", "dfl_loss"
+        self.loss_names = "box_loss", "seg_loss", "cls_loss", "dfl_loss", "sem_loss"
         return yolo.segment.SegmentationValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

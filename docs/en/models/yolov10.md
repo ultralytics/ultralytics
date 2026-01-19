@@ -6,7 +6,7 @@ keywords: YOLOv10, real-time object detection, NMS-free, deep learning, Tsinghua
 
 # YOLOv10: Real-Time End-to-End Object Detection
 
-YOLOv10, built on the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieves state-of-the-art performance with significantly reduced computational overhead. Extensive experiments demonstrate its superior accuracy-latency trade-offs across multiple model scales.
+YOLOv10, released in May 2024 and built on the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieved excellent performance with significantly reduced computational overhead at its time of release. Its NMS-free end-to-end design pioneered an approach that has been further developed in [YOLO26](yolo26.md).
 
 ![YOLOv10 consistent dual assignment for NMS-free training](https://github.com/ultralytics/docs/releases/download/0/yolov10-consistent-dual-assignment.avif)
 
@@ -114,7 +114,7 @@ Compared to other state-of-the-art detectors:
 
         Here is a detailed comparison of YOLOv10 variants with other state-of-the-art models:
 
-        | Model             | Params<br><sup>(M) | FLOPs<br><sup>(G) | mAP<sup>val<br>50-95 | Latency<br><sup>(ms) | Latency-forward<br><sup>(ms) |
+        | Model             | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | mAP<sup>val<br>50-95</sup> | Latency<br><sup>(ms)</sup> | Latency-forward<br><sup>(ms)</sup> |
         | ----------------- | ------------------ | ----------------- | -------------------- | -------------------- | ---------------------------- |
         | YOLOv6-3.0-N      | 4.7                | 11.4              | 37.0                 | 2.69                 | **1.76**                     |
         | Gold-YOLO-N       | 5.6                | 12.1              | **39.6**             | 2.92                 | 1.82                         |
@@ -142,12 +142,12 @@ Compared to other state-of-the-art detectors:
         | RT-DETR-R101      | 76.0               | 259.0             | 54.3                 | 13.71                | 13.58                        |
         | **[YOLOv10x][6]** | **29.5**           | **160.4**         | **54.4**             | **10.70**            | **10.60**                    |
 
-        [1]: https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov10n.pt
-        [2]: https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov10s.pt
-        [3]: https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov10m.pt
-        [4]: https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov10b.pt
-        [5]: https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov10l.pt
-        [6]: https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov10x.pt
+        [1]: https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov10n.pt
+        [2]: https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov10s.pt
+        [3]: https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov10m.pt
+        [4]: https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov10b.pt
+        [5]: https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov10l.pt
+        [6]: https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov10x.pt
 
 ## Usage Examples
 
@@ -160,7 +160,7 @@ For predicting new images with YOLOv10:
         ```python
         from ultralytics import YOLO
 
-        # Load a pre-trained YOLOv10n model
+        # Load a pretrained YOLOv10n model
         model = YOLO("yolov10n.pt")
 
         # Perform object detection on an image
@@ -232,7 +232,7 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 
 ## Conclusion
 
-YOLOv10 sets a new standard in real-time object detection by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its ability to deliver high accuracy with low computational cost makes it an ideal choice for a wide range of [real-world applications](https://www.ultralytics.com/solutions) including [manufacturing](https://www.ultralytics.com/solutions/ai-in-manufacturing), [retail](https://www.ultralytics.com/blog/ai-in-fashion-retail), and [autonomous vehicles](https://www.ultralytics.com/solutions/ai-in-automotive).
+YOLOv10 set a new standard in real-time object detection at its release by addressing the shortcomings of previous YOLO versions and incorporating innovative design strategies. Its NMS-free approach pioneered end-to-end object detection in the YOLO family. For the latest Ultralytics model with improved performance and NMS-free inference, see [YOLO26](yolo26.md).
 
 ## Citations and Acknowledgments
 
@@ -272,7 +272,7 @@ For easy inference, you can use the Ultralytics YOLO Python library or the comma
         ```python
         from ultralytics import YOLO
 
-        # Load the pre-trained YOLOv10n model
+        # Load the pretrained YOLOv10n model
         model = YOLO("yolov10n.pt")
         results = model("image.jpg")
         results[0].show()

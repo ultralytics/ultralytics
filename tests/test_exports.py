@@ -12,8 +12,8 @@ import pytest
 from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_9
+from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION, WINDOWS, checks
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 
 def test_export_torchscript():
@@ -112,6 +112,9 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
+@pytest.mark.skipif(
+    MACOS and MACOS_VERSION and MACOS_VERSION >= "15", reason="CoreML YOLO26 matrix test crashes on macOS 15+"
+)
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, nms, batch",
     [  # generate all combinations except for exclusion cases
@@ -141,7 +144,9 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
+@pytest.mark.skipif(
+    not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_1_13, reason="TFLite export requires Python>=3.10 and torch>=1.13"
+)
 @pytest.mark.skipif(
     not LINUX or IS_RASPBERRYPI,
     reason="Test disabled as TF suffers from install conflicts on Windows, macOS and Raspberry Pi",
@@ -210,6 +215,7 @@ def test_export_paddle():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 def test_export_mnn():
     """Test YOLO export to MNN format (WARNING: MNN test must precede NCNN test or CI error on Windows)."""
     file = YOLO(MODEL).export(format="mnn", imgsz=32)
@@ -217,6 +223,7 @@ def test_export_mnn():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 @pytest.mark.parametrize(
     "task, int8, half, batch",
     [  # generate all combinations except for exclusion cases
@@ -233,6 +240,7 @@ def test_export_mnn_matrix(task, int8, half, batch):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
 def test_export_ncnn():
     """Test YOLO export to NCNN format."""
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)
@@ -240,6 +248,7 @@ def test_export_ncnn():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
 @pytest.mark.parametrize("task, half, batch", list(product(TASKS, [True, False], [1])))
 def test_export_ncnn_matrix(task, half, batch):
     """Test YOLO export to NCNN format considering various export configurations."""
@@ -248,15 +257,30 @@ def test_export_ncnn_matrix(task, half, batch):
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
-@pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with TFlite export.")
-@pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
+@pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
+@pytest.mark.skipif(WINDOWS or MACOS, reason="Skipping test on Windows and Macos")
+@pytest.mark.skipif(ARM64, reason="IMX export is not supported on ARM64 architectures.")
 def test_export_imx():
     """Test YOLO export to IMX format."""
-    model = YOLO("yolov8n.pt")
+    model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
 
 
+@pytest.mark.slow
+@pytest.mark.skipif(not TORCH_2_8, reason="Axelera export requires torch>=2.8.0")
+@pytest.mark.skipif(not LINUX, reason="Axelera export only supported on Linux")
+@pytest.mark.skipif(not checks.IS_PYTHON_3_10, reason="Axelera export requires Python 3.10")
+def test_export_axelera():
+    """Test YOLO export to Axelera format."""
+    # For faster testing, use a smaller calibration dataset (32 image size crashes axelera export, so 64 is used)
+    file = YOLO(MODEL).export(format="axelera", imgsz=64, data="coco8.yaml")
+    assert Path(file).exists(), f"Axelera export failed, directory not found: {file}"
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+# @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 def test_export_executorch():

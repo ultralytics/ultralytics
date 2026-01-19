@@ -1,14 +1,14 @@
 ---
 comments: true
 description: Learn to implement K-Fold Cross Validation for object detection datasets using Ultralytics YOLO. Improve your model's reliability and robustness.
-keywords: Ultralytics, YOLO, K-Fold Cross Validation, object detection, sklearn, pandas, PyYaml, machine learning, dataset split
+keywords: Ultralytics, YOLO, K-Fold Cross Validation, object detection, sklearn, pandas, PyYAML, machine learning, dataset split
 ---
 
 # K-Fold Cross Validation with Ultralytics
 
 ## Introduction
 
-This comprehensive guide illustrates the implementation of K-Fold Cross Validation for [object detection](https://www.ultralytics.com/glossary/object-detection) datasets within the Ultralytics ecosystem. We'll leverage the YOLO detection format and key Python libraries such as sklearn, pandas, and PyYaml to guide you through the necessary setup, the process of generating feature vectors, and the execution of a K-Fold dataset split.
+This comprehensive guide illustrates the implementation of K-Fold Cross Validation for [object detection](https://www.ultralytics.com/glossary/object-detection) datasets within the Ultralytics ecosystem. We'll leverage the YOLO detection format and key Python libraries such as sklearn, pandas, and PyYAML to guide you through the necessary setup, the process of generating feature vectors, and the execution of a K-Fold dataset split.
 
 <p align="center">
   <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/k-fold-cross-validation-overview.avif" alt="K-Fold Cross Validation Overview">
@@ -16,7 +16,7 @@ This comprehensive guide illustrates the implementation of K-Fold Cross Validati
 
 Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial aims to help you comprehend and apply K-Fold Cross Validation to bolster the reliability and robustness of your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project.
 
-Without further ado, let's dive in!
+Let's get started.
 
 ## Setup
 
@@ -249,7 +249,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
     ```python
     from ultralytics import YOLO
 
-    weights_path = "path/to/weights.pt"  # use yolo11n.pt for a small model
+    weights_path = "path/to/weights.pt"  # use yolo26n.pt for a small model
     model = YOLO(weights_path, task="detect")
     ```
 
@@ -291,7 +291,7 @@ Finally, we implemented the actual model training using each split in a loop, sa
 
 This technique of K-Fold cross-validation is a robust way of making the most out of your available data, and it helps to ensure that your model performance is reliable and consistent across different data subsets. This results in a more generalizable and reliable model that is less likely to [overfit](https://www.ultralytics.com/glossary/overfitting) to specific data patterns.
 
-Remember that although we used YOLO in this guide, these steps are mostly transferable to other machine learning models. Understanding these steps allows you to apply cross-validation effectively in your own machine learning projects. Happy coding!
+Remember that although we used YOLO in this guide, these steps are mostly transferable to other machine learning models. Understanding these steps allows you to apply cross-validation effectively in your own machine learning projects.
 
 ## FAQ
 
@@ -313,7 +313,7 @@ For a comprehensive guide, see the [K-Fold Dataset Split](#k-fold-dataset-split)
 
 ### Why should I use Ultralytics YOLO for object detection?
 
-Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as detection, segmentation, and classification. Additionally, it integrates seamlessly with tools like [Ultralytics HUB](https://docs.ultralytics.com/hub/) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
+Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as detection, segmentation, and classification. Additionally, it integrates seamlessly with tools like [Ultralytics Platform](https://docs.ultralytics.com/platform/) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
 
 ### How can I ensure my annotations are in the correct format for Ultralytics YOLO?
 

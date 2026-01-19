@@ -298,7 +298,7 @@ def xywh2ltwh(x):
         x (np.ndarray | torch.Tensor): Input bounding box coordinates in xywh format.
 
     Returns:
-        (np.ndarray | torch.Tensor): Bounding box coordinates in xyltwh format.
+        (np.ndarray | torch.Tensor): Bounding box coordinates in ltwh format.
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[..., 0] = x[..., 0] - x[..., 2] / 2  # top left x
@@ -313,7 +313,7 @@ def xyxy2ltwh(x):
         x (np.ndarray | torch.Tensor): Input bounding box coordinates in xyxy format.
 
     Returns:
-        (np.ndarray | torch.Tensor): Bounding box coordinates in xyltwh format.
+        (np.ndarray | torch.Tensor): Bounding box coordinates in ltwh format.
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[..., 2] = x[..., 2] - x[..., 0]  # width
@@ -325,7 +325,7 @@ def ltwh2xywh(x):
     """Convert bounding boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center.
 
     Args:
-        x (torch.Tensor): Input bounding box coordinates.
+        x (np.ndarray | torch.Tensor): Input bounding box coordinates.
 
     Returns:
         (np.ndarray | torch.Tensor): Bounding box coordinates in xywh format.
@@ -344,7 +344,7 @@ def xyxyxyxy2xywhr(x):
 
     Returns:
         (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). Rotation
-            values are in radians from 0 to pi/2.
+            values are in radians from [-pi/4, 3pi/4).
     """
     is_torch = isinstance(x, torch.Tensor)
     points = x.cpu().numpy() if is_torch else x
@@ -354,7 +354,16 @@ def xyxyxyxy2xywhr(x):
         # NOTE: Use cv2.minAreaRect to get accurate xywhr,
         # especially some objects are cut off by augmentations in dataloader.
         (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
-        rboxes.append([cx, cy, w, h, angle / 180 * np.pi])
+        # convert angle to radian and normalize to [-pi/4, 3pi/4)
+        theta = angle / 180 * np.pi
+        if w < h:
+            w, h = h, w
+            theta += np.pi / 2
+        while theta >= 3 * np.pi / 4:
+            theta -= np.pi
+        while theta < -np.pi / 4:
+            theta += np.pi
+        rboxes.append([cx, cy, w, h, theta])
     return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
 
 
@@ -398,8 +407,8 @@ def ltwh2xyxy(x):
         (np.ndarray | torch.Tensor): Bounding box coordinates in xyxy format.
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
-    y[..., 2] = x[..., 2] + x[..., 0]  # width
-    y[..., 3] = x[..., 3] + x[..., 1]  # height
+    y[..., 2] = x[..., 2] + x[..., 0]  # x2
+    y[..., 3] = x[..., 3] + x[..., 1]  # y2
     return y
 
 
@@ -484,15 +493,15 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
             are the height and width of the input image. The mask is applied to the bounding boxes.
     """
     c, mh, mw = protos.shape  # CHW
-    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # CHW
+    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # NHW
 
     width_ratio = mw / shape[1]
     height_ratio = mh / shape[0]
     ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
 
-    masks = crop_mask(masks, boxes=bboxes * ratios)  # CHW
+    masks = crop_mask(masks, boxes=bboxes * ratios)  # NHW
     if upsample:
-        masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # CHW
+        masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # NHW
     return masks.gt_(0.0).byte()
 
 
@@ -506,12 +515,12 @@ def process_mask_native(protos, masks_in, bboxes, shape):
         shape (tuple): Input image size as (height, width).
 
     Returns:
-        (torch.Tensor): Binary mask tensor with shape (H, W, N).
+        (torch.Tensor): Binary mask tensor with shape (N, H, W).
     """
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
-    masks = scale_masks(masks[None], shape)[0]  # CHW
-    masks = crop_mask(masks, bboxes)  # CHW
+    masks = scale_masks(masks[None], shape)[0]  # NHW
+    masks = crop_mask(masks, bboxes)  # NHW
     return masks.gt_(0.0).byte()
 
 
@@ -604,11 +613,11 @@ def regularize_rboxes(rboxes):
     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
-def masks2segments(masks, strategy: str = "all"):
+def masks2segments(masks: np.ndarray | torch.Tensor, strategy: str = "all") -> list[np.ndarray]:
     """Convert masks to segments using contour detection.
 
     Args:
-        masks (torch.Tensor): Binary masks with shape (batch_size, 160, 160).
+        masks (np.ndarray | torch.Tensor): Binary masks with shape (batch_size, 160, 160).
         strategy (str): Segmentation strategy, either 'all' or 'largest'.
 
     Returns:
@@ -616,8 +625,9 @@ def masks2segments(masks, strategy: str = "all"):
     """
     from ultralytics.data.converter import merge_multi_segment
 
+    masks = masks.astype("uint8") if isinstance(masks, np.ndarray) else masks.byte().cpu().numpy()
     segments = []
-    for x in masks.byte().cpu().numpy():
+    for x in np.ascontiguousarray(masks):
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         if c:
             if strategy == "all":  # merge and concatenate all segments
@@ -655,11 +665,9 @@ def clean_str(s):
     Returns:
         (str): A string with special characters replaced by an underscore _.
     """
-    return re.sub(pattern="[|@#!¡·$€%&()=?¿^*;:,¨´><+]", repl="_", string=s)
+    return re.sub(pattern="[|@#!¡·$€%&()=?¿^*;:,¨`><+]", repl="_", string=s)
 
 
 def empty_like(x):
     """Create empty torch.Tensor or np.ndarray with same shape as input and float32 dtype."""
-    return (
-        torch.empty_like(x, dtype=torch.float32) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=np.float32)
-    )
+    return torch.empty_like(x, dtype=x.dtype) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=x.dtype)

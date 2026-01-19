@@ -3,7 +3,7 @@
 Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 
 Usage - sources:
-    $ yolo mode=predict model=yolo11n.pt source=0                               # webcam
+    $ yolo mode=predict model=yolo26n.pt source=0                               # webcam
                                                 img.jpg                         # image
                                                 vid.mp4                         # video
                                                 screen                          # screenshot
@@ -15,22 +15,22 @@ Usage - sources:
                                                 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP, TCP stream
 
 Usage - formats:
-    $ yolo mode=predict model=yolo11n.pt                 # PyTorch
-                              yolo11n.torchscript        # TorchScript
-                              yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                              yolo11n_openvino_model     # OpenVINO
-                              yolo11n.engine             # TensorRT
-                              yolo11n.mlpackage          # CoreML (macOS-only)
-                              yolo11n_saved_model        # TensorFlow SavedModel
-                              yolo11n.pb                 # TensorFlow GraphDef
-                              yolo11n.tflite             # TensorFlow Lite
-                              yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
-                              yolo11n_paddle_model       # PaddlePaddle
-                              yolo11n.mnn                # MNN
-                              yolo11n_ncnn_model         # NCNN
-                              yolo11n_imx_model          # Sony IMX
-                              yolo11n_rknn_model         # Rockchip RKNN
-                              yolo11n.pte                # PyTorch Executorch
+    $ yolo mode=predict model=yolo26n.pt                 # PyTorch
+                              yolo26n.torchscript        # TorchScript
+                              yolo26n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                              yolo26n_openvino_model     # OpenVINO
+                              yolo26n.engine             # TensorRT
+                              yolo26n.mlpackage          # CoreML (macOS-only)
+                              yolo26n_saved_model        # TensorFlow SavedModel
+                              yolo26n.pb                 # TensorFlow GraphDef
+                              yolo26n.tflite             # TensorFlow Lite
+                              yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                              yolo26n_paddle_model       # PaddlePaddle
+                              yolo26n.mnn                # MNN
+                              yolo26n_ncnn_model         # NCNN
+                              yolo26n_imx_model          # Sony IMX
+                              yolo26n_rknn_model         # Rockchip RKNN
+                              yolo26n.pte                # PyTorch Executorch
 """
 
 from __future__ import annotations
@@ -55,8 +55,8 @@ from ultralytics.utils.files import increment_path
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
 
 STREAM_WARNING = """
-inference results will accumulate in RAM unless `stream=True` is passed, causing potential out-of-memory
-errors for large sources or long-running streams and videos. See https://docs.ultralytics.com/modes/predict/ for help.
+Inference results will accumulate in RAM unless `stream=True` is passed, which can cause out-of-memory errors for large
+sources or long-running streams and videos. See https://docs.ultralytics.com/modes/predict/ for help.
 
 Example:
     results = model(source=..., stream=True)  # generator of Results objects
@@ -222,7 +222,7 @@ class BasePredictor:
         if stream:
             return self.stream_inference(source, model, *args, **kwargs)
         else:
-            return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
+            return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Results into one
 
     def predict_cli(self, source=None, model=None):
         """Method used for Command Line Interface (CLI) prediction.
@@ -244,14 +244,15 @@ class BasePredictor:
         for _ in gen:  # sourcery skip: remove-empty-nested-block, noqa
             pass
 
-    def setup_source(self, source):
+    def setup_source(self, source, stride: int | None = None):
         """Set up source and inference mode.
 
         Args:
             source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor): Source for
                 inference.
+            stride (int, optional): Model stride for image size checking.
         """
-        self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+        self.imgsz = check_imgsz(self.args.imgsz, stride=stride or self.model.stride, min_dim=2)  # check image size
         self.dataset = load_inference_source(
             source=source,
             batch=self.args.batch,
@@ -315,7 +316,8 @@ class BasePredictor:
                 ops.Profile(device=self.device),
             )
             self.run_callbacks("on_predict_start")
-            for self.batch in self.dataset:
+            for batch in self.dataset:
+                self.batch = batch
                 self.run_callbacks("on_predict_batch_start")
                 paths, im0s, s = self.batch
 

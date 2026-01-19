@@ -14,6 +14,7 @@ import socket
 import sys
 import threading
 import time
+import warnings
 from functools import lru_cache
 from pathlib import Path
 from threading import Lock
@@ -64,6 +65,7 @@ RKNN_CHIPS = frozenset(
         "rv1103b",
         "rv1106b",
         "rk2118",
+        "rv1126b",
     }
 )  # Rockchip processors available for export
 HELP_MSG = """
@@ -78,8 +80,8 @@ HELP_MSG = """
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n.yaml")  # build a new model from scratch
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n.yaml")  # build a new model from scratch
+        model = YOLO("yolo26n.pt")  # load a pretrained model (recommended for training)
 
         # Use the model
         results = model.train(data="coco8.yaml", epochs=3)  # train the model
@@ -99,16 +101,16 @@ HELP_MSG = """
                         See all ARGS at https://docs.ultralytics.com/usage/cfg or with "yolo cfg"
 
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
-            yolo detect train data=coco8.yaml model=yolo11n.pt epochs=10 lr0=0.01
+            yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
         - Predict a YouTube video using a pretrained segmentation model at image size 320:
-            yolo segment predict model=yolo11n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
+            yolo segment predict model=yolo26n-seg.pt source='https://youtu.be/LNwODJXcvt4' imgsz=320
 
         - Val a pretrained detection model at batch-size 1 and image size 640:
-            yolo detect val model=yolo11n.pt data=coco8.yaml batch=1 imgsz=640
+            yolo detect val model=yolo26n.pt data=coco8.yaml batch=1 imgsz=640
 
-        - Export a YOLO11n classification model to ONNX format at image size 224 by 128 (no TASK required)
-            yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
+        - Export a YOLO26n classification model to ONNX format at image size 224 by 128 (no TASK required)
+            yolo export model=yolo26n-cls.pt format=onnx imgsz=224,128
 
         - Run special commands:
             yolo help
@@ -132,6 +134,14 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warning
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
+# Centralized warning suppression
+warnings.filterwarnings("ignore", message="torch.distributed.reduce_op is deprecated")  # PyTorch deprecation
+warnings.filterwarnings("ignore", message="The figure layout has changed to tight")  # matplotlib>=3.7.2
+warnings.filterwarnings("ignore", category=FutureWarning, module="timm")  # mobileclip timm.layers deprecation
+warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/TorchScript export tracer warnings
+warnings.filterwarnings("ignore", category=UserWarning, message=".*prim::Constant.*")  # ONNX shape warning
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="coremltools")  # CoreML np.bool deprecation
+
 # Precompiled type tuples for faster isinstance() checks
 FLOAT_OR_INT = (float, int)
 STR_OR_PATH = (str, Path)
@@ -142,7 +152,7 @@ class DataExportMixin:
 
     This class provides utilities to export performance metrics (e.g., mAP, precision, recall) or prediction results
     from classification, object detection, segmentation, or pose estimation tasks into various formats: Polars
-    DataFrame, CSV and JSON.
+    DataFrame, CSV, and JSON.
 
     Methods:
         to_df: Convert summary to a Polars DataFrame.
@@ -151,7 +161,7 @@ class DataExportMixin:
         tojson: Deprecated alias for `to_json()`.
 
     Examples:
-        >>> model = YOLO("yolo11n.pt")
+        >>> model = YOLO("yolo26n.pt")
         >>> results = model("image.jpg")
         >>> df = results.to_df()
         >>> print(df)
@@ -159,14 +169,14 @@ class DataExportMixin:
     """
 
     def to_df(self, normalize=False, decimals=5):
-        """Create a polars DataFrame from the prediction results summary or validation metrics.
+        """Create a Polars DataFrame from the prediction results summary or validation metrics.
 
         Args:
             normalize (bool, optional): Normalize numerical values for easier comparison.
             decimals (int, optional): Decimal places to round floats.
 
         Returns:
-            (DataFrame): DataFrame containing the summary data.
+            (polars.DataFrame): Polars DataFrame containing the summary data.
         """
         import polars as pl  # scope for faster 'import ultralytics'
 
@@ -651,6 +661,32 @@ def is_ubuntu() -> bool:
         return False
 
 
+def is_debian(codenames: list[str] | None | str = None) -> list[bool] | bool:
+    """Check if the OS is Debian.
+
+    Args:
+        codenames (list[str] | None | str): Specific Debian codename to check for (e.g., 'buster', 'bullseye'). If None,
+            only checks for Debian.
+
+    Returns:
+        (list[bool] | bool): List of booleans indicating if OS matches each Debian codename, or a single boolean if no
+            codenames provided.
+    """
+    try:
+        with open("/etc/os-release") as f:
+            content = f.read()
+            if codenames is None:
+                return "ID=debian" in content
+            if isinstance(codenames, str):
+                codenames = [codenames]
+            return [
+                f"VERSION_CODENAME={codename}" in content if codename else "ID=debian" in content
+                for codename in codenames
+            ]
+    except FileNotFoundError:
+        return [False] * len(codenames) if codenames else False
+
+
 def is_colab():
     """Check if the current script is running inside a Google Colab notebook.
 
@@ -879,6 +915,8 @@ IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
+IS_DEBIAN, IS_DEBIAN_BOOKWORM, IS_DEBIAN_TRIXIE = is_debian([None, "bookworm", "trixie"])
+IS_UBUNTU = is_ubuntu()
 GIT = GitRepo()
 USER_CONFIG_DIR = get_user_config_dir()  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"

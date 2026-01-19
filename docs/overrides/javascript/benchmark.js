@@ -10,20 +10,20 @@ const loadChartWidget = () =>
     const base =
       (document.currentScript || document.querySelector('script[src*="benchmark.js"]'))?.src.replace(/[^/]*$/, "") ||
       "./";
-    s.src = base + "chart-widget.js";
+    s.src = `${base}chart-widget.js`;
     s.onload = s.onerror = resolve;
     document.head.appendChild(s);
   });
 
 // YOLO models chart ---------------------------------------------------------------------------------------------------
 const data = {
-  //  YOLO12: {
-  //    n: { speed: 1.64, mAP: 40.6 },
-  //    s: { speed: 2.61, mAP: 48.0 },
-  //    m: { speed: 4.86, mAP: 52.5 },
-  //    l: { speed: 6.77, mAP: 53.7 },
-  //    x: { speed: 11.79, mAP: 55.2 },
-  //  },
+  YOLO26: {
+    n: { speed: 1.7, mAP: 40.9 },
+    s: { speed: 2.5, mAP: 48.6 },
+    m: { speed: 4.7, mAP: 53.1 },
+    l: { speed: 6.2, mAP: 55.0 },
+    x: { speed: 11.8, mAP: 57.5 },
+  },
   YOLO11: {
     n: { speed: 1.5, mAP: 39.5 },
     s: { speed: 2.5, mAP: 47.0 },
@@ -107,7 +107,8 @@ const data = {
 
 // Color overrides for specific models
 const colorOverrides = {
-  YOLO11: "#0b23a9",
+  YOLO26: "#0b23a9",
+  YOLO11: "#1e90ff",
   YOLOv10: "#ff7f0e",
   YOLOv9: "#2ca02c",
   YOLOv8: "#d62728",
@@ -125,7 +126,7 @@ let chart = null;
 let chartWidget = null;
 
 const lighten = (hex, amt = 0.6) => {
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
   return `#${[r, g, b]
     .map((c) =>
       Math.min(255, Math.round(c + (255 - c) * amt))
@@ -199,7 +200,7 @@ const chartConfig = {
         grid: { color: "#e0e0e0" },
         ticks: { color: "#808080" },
         min: 36,
-        max: 56,
+        max: 58,
       },
     },
   },

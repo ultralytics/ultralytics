@@ -503,7 +503,7 @@ def check_semseg_dataset(dataset: str, autodownload: bool = True) -> dict[str, A
     # Read YAML
     data = YAML.load(file, append_filename=True)  # dictionary
 
-    #assert color must be existed
+    # assert color must be existed
     if "color" not in data:
         raise ValueError("Semantic segmentation datasets must define 'colors' in dataset YAML.")
     check_class_colors(data["colors"])

@@ -308,7 +308,7 @@ class RF100Benchmark:
         yaml_data = YAML.load(path)
         yaml_data["train"] = "train/images"
         yaml_data["val"] = "valid/images"
-        YAML.save(yaml_data, path)
+        YAML.save(path, yaml_data)
 
     def evaluate(self, yaml_path: str, val_log_file: str, eval_log_file: str, list_ind: int):
         """Evaluate model performance on validation results.

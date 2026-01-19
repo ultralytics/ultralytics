@@ -1,13 +1,15 @@
 import os
-import pytest
-import sys
-import torch
 from unittest import mock
+
+import pytest
+import torch
+
 from ultralytics.utils.torch_utils import select_device
 
 
 class MockDevice:
     """Mock class to replace torch.device, ensuring compatibility with isinstance() checks."""
+
     def __init__(self, arg):
         # Record the input string for future assertions
         self.arg = str(arg)

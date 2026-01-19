@@ -251,7 +251,7 @@ def select_device(device="", newline=False, verbose=True):
             )
     if is_npu and not cpu:
         # NPU formatting
-        s += f"NPU:{device} ({torch_npu.npu.get_device_name(int(device.split(',')[0]))})\n"
+        s += f"NPU:{device} ({torch.npu.get_device_name(int(device.split(',')[0]))})\n"
         arg = f"npu:{device.split(',')[0]}"
     elif not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]

@@ -11,13 +11,16 @@ class MockDevice:
     """Mock class to replace torch.device, ensuring compatibility with isinstance() checks."""
 
     def __init__(self, arg):
+        """Initializes the mock device with a device string."""
         # Record the input string for future assertions
         self.arg = str(arg)
 
     def __str__(self):
+        """Returns the string representation of the device."""
         return self.arg
 
     def __repr__(self):
+        """Returns the formal string representation of the device."""
         return f"device(type='{self.arg}')"
 
 

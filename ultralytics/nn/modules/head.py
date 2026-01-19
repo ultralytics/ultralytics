@@ -859,7 +859,6 @@ class YOLOEDetect(Detect):
         c3 = max(ch[0], min(self.nc, 100))
         assert c3 <= embed
         assert with_bn
-        c3=80
         self.cv3 = (
             nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
             if self.legacy

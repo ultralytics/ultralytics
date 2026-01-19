@@ -523,6 +523,8 @@ class Model(torch.nn.Module):
         custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict", "rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         prompts = args.pop("prompts", None)  # for SAM-type models
+        if not args.get("end2end", True):
+            del self.model.model[-1].one2one_cv2
 
         if not self.predictor or self.predictor.args.device != args.get("device", self.predictor.args.device):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
@@ -608,6 +610,8 @@ class Model(torch.nn.Module):
         custom = {"rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
+        if not args.get("end2end", True):
+            del self.model.model[-1].one2one_cv2
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.metrics = validator.metrics
@@ -707,6 +711,8 @@ class Model(torch.nn.Module):
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
+        if not args.get("end2end", True):
+            del self.model.model[-1].one2one_cv2
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 
     def train(

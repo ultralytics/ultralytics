@@ -58,7 +58,6 @@ class SemSegPredictor(DetectionPredictor):
         self.colors = YAML.load(self.data)["colors"]
         self.nc = YAML.load(self.data)["nc"]
 
-
     def postprocess(self, preds, img, orig_imgs):
         """Apply non-max suppression and process segmentation detections for each image in the input batch.
 

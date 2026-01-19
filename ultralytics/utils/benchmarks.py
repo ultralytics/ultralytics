@@ -167,7 +167,7 @@ def benchmark(
             # Export
             if format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
-                exported_model = model  # PyTorch format
+                exported_model = deepcopy(model)  # PyTorch format
             else:
                 filename = deepcopy(model).export(
                     imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False, **kwargs

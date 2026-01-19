@@ -127,7 +127,7 @@ jobs:
           uv pip list
       - name: Benchmark DetectionModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.225
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.218
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.249
@@ -378,7 +378,7 @@ jobs:
           yolo checks
           uv pip list
       - name: Benchmark DetectionModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n.pt' imgsz=160 verbose=0.225
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n.pt' imgsz=160 verbose=0.218
       - name: Benchmark ClassificationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel

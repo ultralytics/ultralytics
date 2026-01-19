@@ -55,6 +55,8 @@ class SemSegPredictor(DetectionPredictor):
         if self.args.data in (None, ""):
             self.args.data = "ultralytics/cfg/datasets/CityscapesYOLO.yaml"
         self.data = check_semseg_dataset(self.args.data)["yaml_file"]
+        self.nc = YAML.load(self.data)["nc"]
+        self.colors = YAML.load(self.data)["colors"]
 
     def postprocess(self, preds, img, orig_imgs):
         """Apply non-max suppression and process segmentation detections for each image in the input batch.
@@ -119,8 +121,8 @@ class SemSegPredictor(DetectionPredictor):
             self.plot_predict_samples(
                 result.orig_img,
                 result.masks.data,
-                nc=YAML.load(self.data)["nc"],
-                colors=YAML.load(self.data)["colors"],
+                nc=self.nc,
+                colors=self.colors,
                 fname=self.save_dir / "image" / imagename,
                 mname=self.save_dir / "mask" / imagename,
                 one_hot=True,

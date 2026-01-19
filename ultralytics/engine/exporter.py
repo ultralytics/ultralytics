@@ -463,7 +463,7 @@ class Exporter:
             )
         if tfjs and (ARM64 and LINUX):
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
-        if ncnn and hasattr(model.model[-1], "one2one_cv2"):
+        if (rknn or ncnn or executorch or paddle or imx) and hasattr(model.model[-1], "one2one_cv2"):
             del model.model[-1].one2one_cv2  # Disable end2end branch for NCNN export as it does not support topk
             LOGGER.warning("NCNN export does not support end2end models, disabling end2end branch.")
         # Recommend OpenVINO if export and Intel CPU

@@ -33,6 +33,7 @@ from __future__ import annotations
 import glob
 import os
 import platform
+from copy import deepcopy
 import re
 import shutil
 import time
@@ -168,7 +169,7 @@ def benchmark(
                 filename = model.pt_path or model.ckpt_path or model.model_name
                 exported_model = model  # PyTorch format
             else:
-                filename = model.export(
+                filename = deepcopy(model).export(
                     imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False, **kwargs
                 )
                 exported_model = YOLO(filename, task=model.task)

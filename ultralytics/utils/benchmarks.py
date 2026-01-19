@@ -36,6 +36,7 @@ import platform
 import re
 import shutil
 import time
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -135,14 +136,14 @@ def benchmark(
             if format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
-                assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
+                # assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
                 assert (LINUX and not IS_JETSON) or MACOS, "Windows and Jetson Paddle exports not supported yet"
             if format == "mnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
             if format == "ncnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if format == "imx":
-                assert not is_end2end
+                # assert not is_end2end
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
                 assert model.task in {"detect", "classify", "pose"}, (
                     "IMX export is only supported for detection, classification and pose estimation tasks"
@@ -150,25 +151,25 @@ def benchmark(
                 assert "C2f" in model.__str__(), "IMX only supported for YOLOv8n and YOLO11n"
             if format == "rknn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
-                assert not is_end2end, "End-to-end models not supported by RKNN yet"
+                # assert not is_end2end, "End-to-end models not supported by RKNN yet"
                 assert LINUX, "RKNN only supported on Linux"
                 assert not is_rockchip(), "RKNN Inference only supported on Rockchip devices"
             if format == "executorch":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 ExecuTorch exports not supported yet"
-                assert not is_end2end, "End-to-end models not supported by ExecuTorch yet"
+                # assert not is_end2end, "End-to-end models not supported by ExecuTorch yet"
             if "cpu" in device.type:
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
                 assert gpu, "inference not supported on GPU"
-            if format == "ncnn":
-                assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
+            # if format == "ncnn":
+            #     assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
 
             # Export
             if format == "-":
                 filename = model.pt_path or model.ckpt_path or model.model_name
-                exported_model = model  # PyTorch format
+                exported_model = deepcopy(model)  # PyTorch format
             else:
-                filename = model.export(
+                filename = deepcopy(model).export(
                     imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False, **kwargs
                 )
                 exported_model = YOLO(filename, task=model.task)

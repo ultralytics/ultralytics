@@ -845,6 +845,15 @@ class RTDETRDetectionModel(DetectionModel):
         dec_scores = split_outputs["o2o_scores"]
         one_to_many_groups = split_outputs["one_to_many_groups"]
 
+        enc_bboxes_o2m = None
+        enc_scores_o2m = None
+        if self.training and one_to_many_groups > 0 and enc_bboxes.shape[1] > dec_bboxes.shape[2]:
+            num_o2o = dec_bboxes.shape[2]
+            enc_bboxes_o2m = enc_bboxes[:, num_o2o:]
+            enc_scores_o2m = enc_scores[:, num_o2o:]
+            enc_bboxes = enc_bboxes[:, :num_o2o]
+            enc_scores = enc_scores[:, :num_o2o]
+
         dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])  # (7, bs, 300, 4)
         dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
 
@@ -856,6 +865,9 @@ class RTDETRDetectionModel(DetectionModel):
         if self.training and one_to_many_groups > 0:
             o2m_bboxes = split_outputs["o2m_bboxes"].contiguous()
             o2m_scores = split_outputs["o2m_scores"].contiguous()
+            if enc_bboxes_o2m is not None:
+                o2m_bboxes = torch.cat([enc_bboxes_o2m.unsqueeze(0), o2m_bboxes])
+                o2m_scores = torch.cat([enc_scores_o2m.unsqueeze(0), o2m_scores])
             targets_o2m = self.one_to_many_targets(targets, one_to_many_groups)
             loss_o2m = self.criterion(
                 (o2m_bboxes, o2m_scores), targets_o2m, dn_bboxes=None, dn_scores=None, dn_meta=None

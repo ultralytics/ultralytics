@@ -1569,6 +1569,10 @@ class RTDETRDecoder(nn.Module):
         self.enc_output = nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
         self.enc_score_head = nn.Linear(hd, nc)
         self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3)
+        if one_to_many_groups > 0:
+            self.enc_output_o2m = copy.deepcopy(self.enc_output)
+            self.enc_score_head_o2m = copy.deepcopy(self.enc_score_head)
+            self.enc_bbox_head_o2m = copy.deepcopy(self.enc_bbox_head)
 
         # Decoder head
         self.dec_score_head = nn.ModuleList([nn.Linear(hd, nc) for _ in range(ndl)])
@@ -1810,19 +1814,34 @@ class RTDETRDecoder(nn.Module):
         if self.training and self.one_to_many_groups > 0:
             k = self.one_to_many_groups
 
+            features_o2m = self.enc_output_o2m(self.valid_mask * feats)  # bs, h*w, 256
+            enc_outputs_scores_o2m = self.enc_score_head_o2m(features_o2m)  # (bs, h*w, nc)
+
+            topk_ind_o2m = torch.topk(enc_outputs_scores_o2m.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+            batch_ind_o2m = torch.arange(end=bs, dtype=topk_ind_o2m.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
+
+            top_k_features_o2m_base = features_o2m[batch_ind_o2m, topk_ind_o2m].view(bs, self.num_queries, -1)
+            top_k_anchors_o2m_base = self.anchors[:, topk_ind_o2m].view(bs, self.num_queries, -1)
+            enc_scores_o2m_base = enc_outputs_scores_o2m[batch_ind_o2m, topk_ind_o2m].view(bs, self.num_queries, -1)
+            o2m_bbox_head = self.enc_bbox_head_o2m
+
             # Repeat and add noise for diversity
-            top_k_features_o2m = top_k_features.repeat_interleave(k, dim=1)  # (bs, nq*k, 256)
-            top_k_anchors_o2m = top_k_anchors.repeat_interleave(k, dim=1)    # (bs, nq*k, 4)
+            top_k_features_o2m = top_k_features_o2m_base.repeat_interleave(k, dim=1)  # (bs, nq*k, 256)
+            top_k_anchors_o2m = top_k_anchors_o2m_base.repeat_interleave(k, dim=1)    # (bs, nq*k, 4)
 
             if self.query_noise_scale > 0:
                 noise = torch.randn_like(top_k_features_o2m) * self.query_noise_scale
                 top_k_features_o2m = top_k_features_o2m + noise
 
-            refer_bbox_o2m = self.enc_bbox_head(top_k_features_o2m) + top_k_anchors_o2m
+            refer_bbox_o2m = o2m_bbox_head(top_k_features_o2m) + top_k_anchors_o2m
+            enc_bboxes_o2m = refer_bbox_o2m.sigmoid()
+            enc_scores_o2m = enc_scores_o2m_base.repeat_interleave(k, dim=1)
 
             # Concatenate: [o2o queries | o2m queries]
             refer_bbox = torch.cat([refer_bbox, refer_bbox_o2m], dim=1)  # (bs, nq + nq*k, 4)
             top_k_features = torch.cat([top_k_features, top_k_features_o2m], dim=1)
+            enc_bboxes = torch.cat([enc_bboxes, enc_bboxes_o2m], dim=1)
+            enc_scores = torch.cat([enc_scores, enc_scores_o2m], dim=1)
 
         embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
         if self.training:
@@ -1843,6 +1862,10 @@ class RTDETRDecoder(nn.Module):
         constant_(self.enc_score_head.bias, bias_cls)
         constant_(self.enc_bbox_head.layers[-1].weight, 0.0)
         constant_(self.enc_bbox_head.layers[-1].bias, 0.0)
+        if hasattr(self, "enc_score_head_o2m"):
+            constant_(self.enc_score_head_o2m.bias, bias_cls)
+            constant_(self.enc_bbox_head_o2m.layers[-1].weight, 0.0)
+            constant_(self.enc_bbox_head_o2m.layers[-1].bias, 0.0)
         for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
             # linear_init(cls_)
             constant_(cls_.bias, bias_cls)
@@ -1851,6 +1874,9 @@ class RTDETRDecoder(nn.Module):
 
         linear_init(self.enc_output[0])
         xavier_uniform_(self.enc_output[0].weight)
+        if hasattr(self, "enc_output_o2m"):
+            linear_init(self.enc_output_o2m[0])
+            xavier_uniform_(self.enc_output_o2m[0].weight)
         if self.learnt_init_query:
             xavier_uniform_(self.tgt_embed.weight)
         xavier_uniform_(self.query_pos_head.layers[0].weight)

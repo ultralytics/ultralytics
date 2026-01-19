@@ -170,7 +170,7 @@ def select_device(device="", newline=False, verbose=True):
     is_npu = device.startswith("npu")
     if is_npu:
         try:
-            import torch_npu
+            import torch_npu # noqa: F401
 
             # transfer_to_npu: A dedicated utility function to migrate PyTorch tensors/models to Huawei Ascend NPU device,
             # implements optimized tensor data migration and device binding for Ascend NPU hardware,

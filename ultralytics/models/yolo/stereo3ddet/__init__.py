@@ -71,6 +71,19 @@ from .occlusion import (
 )
 
 # =============================================================================
+# Preprocessing and Postprocessing Utilities
+# =============================================================================
+from .preprocess import (
+    preprocess_stereo_batch,
+    preprocess_stereo_images,
+    compute_letterbox_params,
+    decode_and_refine_predictions,
+    get_geometric_config,
+    get_dense_alignment_config,
+    clear_config_cache,
+)
+
+# =============================================================================
 # Utility Functions
 # =============================================================================
 from .utils import (
@@ -137,6 +150,16 @@ __all__ = [
     "classify_occlusion",
     "should_skip_dense_alignment",
     "get_occlusion_stats",
+    # -------------------------------------------------------------------------
+    # Preprocessing and Postprocessing Utilities
+    # -------------------------------------------------------------------------
+    "preprocess_stereo_batch",
+    "preprocess_stereo_images",
+    "compute_letterbox_params",
+    "decode_and_refine_predictions",
+    "get_geometric_config",
+    "get_dense_alignment_config",
+    "clear_config_cache",
     # -------------------------------------------------------------------------
     # Utility Functions
     # -------------------------------------------------------------------------

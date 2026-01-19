@@ -285,16 +285,20 @@ class DenseAlignment:
         baseline = calib.get("baseline", 0.54)
         
         # Generate 8 corners in object coordinates
-        # KITTI convention: rotation around y-axis
-        cos_t, sin_t = np.cos(theta), np.sin(theta)
-        
-        # Corner offsets (length along x, width along z, height along y)
+        # Box3D uses camera coordinate system:
+        #   - center_3d: x (right), y (down), z (forward)
+        #   - dimensions: (length, width, height) where:
+        #       - length: extends along forward/z direction
+        #       - width: extends along right/x direction
+        #       - height: extends along up/(-y) direction
+        # Corner offsets: width along x, length along z, height along y
         # Order: 4 bottom corners, then 4 top corners
-        corners_x = np.array([l/2, l/2, -l/2, -l/2, l/2, l/2, -l/2, -l/2])
+        corners_x = np.array([w/2, w/2, -w/2, -w/2, w/2, w/2, -w/2, -w/2])
         corners_y = np.array([-h/2, -h/2, -h/2, -h/2, h/2, h/2, h/2, h/2])
-        corners_z = np.array([w/2, -w/2, -w/2, w/2, w/2, -w/2, -w/2, w/2])
+        corners_z = np.array([l/2, l/2, -l/2, -l/2, l/2, l/2, -l/2, -l/2])
         
         # Rotate corners by yaw angle
+        # With new coordinate system (x=width, z=length), rotation formula stays the same
         corners_x_rot = cos_t * corners_x - sin_t * corners_z
         corners_z_rot = sin_t * corners_x + cos_t * corners_z
         

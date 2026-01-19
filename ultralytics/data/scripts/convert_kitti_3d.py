@@ -492,20 +492,22 @@ class KITTIToYOLO3D:
                     
                     try:
                         class_id = int(float(parts[0]))
-                        # Extract dimensions: h, w, l (indices 7, 8, 9 in YOLO format)
-                        h = float(parts[7])
-                        w = float(parts[8])
-                        l = float(parts[9])
-                        
+                        # Extract 3D dimensions from converted label format:
+                        # Format: class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h ...
+                        # Indices:   0    1   2   3   4   5   6   7   8    9    10    11
+                        dim_l = float(parts[9])   # Length in meters
+                        dim_w = float(parts[10])  # Width in meters
+                        dim_h = float(parts[11])  # Height in meters
+
                         # Map class_id to class name
                         class_name = id_to_name.get(class_id)
                         if class_name is None:
                             continue
-                        
+
                         # Store dimensions as [L, W, H] (length, width, height)
                         if class_name not in class_dimensions:
                             class_dimensions[class_name] = []
-                        class_dimensions[class_name].append([l, w, h])
+                        class_dimensions[class_name].append([dim_l, dim_w, dim_h])
                         total_labels += 1
                     except (ValueError, IndexError) as e:
                         LOGGER.debug(f"Error parsing label line in {label_file}: {e}")
@@ -581,20 +583,22 @@ class KITTIToYOLO3D:
                     
                     try:
                         class_id = int(float(parts[0]))
-                        # Extract dimensions: h, w, l (indices 7, 8, 9 in YOLO format)
-                        h = float(parts[7])
-                        w = float(parts[8])
-                        l = float(parts[9])
-                        
+                        # Extract 3D dimensions from converted label format:
+                        # Format: class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h ...
+                        # Indices:   0    1   2   3   4   5   6   7   8    9    10    11
+                        dim_l = float(parts[9])   # Length in meters
+                        dim_w = float(parts[10])  # Width in meters
+                        dim_h = float(parts[11])  # Height in meters
+
                         # Map class_id to class name
                         class_name = id_to_name.get(class_id)
                         if class_name is None:
                             continue
-                        
+
                         # Store dimensions as [L, W, H] (length, width, height)
                         if class_name not in class_dimensions:
                             class_dimensions[class_name] = []
-                        class_dimensions[class_name].append([l, w, h])
+                        class_dimensions[class_name].append([dim_l, dim_w, dim_h])
                         total_labels += 1
                     except (ValueError, IndexError) as e:
                         LOGGER.debug(f"Error parsing label line in {label_file}: {e}")
@@ -665,20 +669,22 @@ class KITTIToYOLO3D:
                     
                     try:
                         class_id = int(float(parts[0]))
-                        # Extract dimensions: h, w, l (indices 7, 8, 9 in YOLO format)
-                        h = float(parts[7])
-                        w = float(parts[8])
-                        l = float(parts[9])
-                        
+                        # Extract 3D dimensions from converted label format:
+                        # Format: class x_l y_l w_l h_l x_r y_r w_r h_r dim_l dim_w dim_h ...
+                        # Indices:   0    1   2   3   4   5   6   7   8    9    10    11
+                        dim_l = float(parts[9])   # Length in meters
+                        dim_w = float(parts[10])  # Width in meters
+                        dim_h = float(parts[11])  # Height in meters
+
                         # Map class_id to class name
                         class_name = id_to_name.get(class_id)
                         if class_name is None:
                             continue
-                        
+
                         # Store dimensions as [L, W, H] (length, width, height)
                         if class_name not in class_dimensions:
                             class_dimensions[class_name] = []
-                        class_dimensions[class_name].append([l, w, h])
+                        class_dimensions[class_name].append([dim_l, dim_w, dim_h])
                         total_labels += 1
                     except (ValueError, IndexError) as e:
                         LOGGER.debug(f"Error parsing label line in {label_file}: {e}")

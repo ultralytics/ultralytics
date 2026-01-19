@@ -14,7 +14,11 @@ from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.data.stereo.calib import CalibrationParameters, load_kitti_calibration
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
-from ultralytics.models.yolo.stereo3ddet.val import decode_stereo3d_outputs_yolo11_p3
+
+from ultralytics.models.yolo.stereo3ddet.preprocess import (
+    preprocess_stereo_images,
+    decode_and_refine_predictions,
+)
 from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_imgsz
 
@@ -215,47 +219,27 @@ class Stereo3DDetPredictor(DetectionPredictor):
     def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
         """Preprocess stereo image pairs for inference.
 
+        Uses shared preprocessing from preprocess.py for consistency with validator.
+
         Args:
             im: List of stereo images (6-channel) or tensor.
 
         Returns:
             Preprocessed tensor of shape (N, 6, H, W).
         """
-        if isinstance(im, torch.Tensor):
-            # Already a tensor, just move to device and normalize
-            im = im.to(self.device)
-            im = im.half() if self.model.fp16 else im.float()
-            if im.dtype == torch.uint8:
-                im /= 255
-            return im
-
-        # Apply letterbox to each stereo image (same as dataset)
-        # Each image is [H, W, 6] (stereo pair)
-        letterboxed = []
-        for stereo_img in im:
-            # Apply letterbox to resize to target imgsz
-            if self._letterbox is not None:
-                letterboxed_img = self._letterbox(image=stereo_img)
-            else:
-                # Fallback: no letterbox (shouldn't happen if setup_source called)
-                letterboxed_img = stereo_img
-            letterboxed.append(letterboxed_img)
-        
-        # Convert list of letterboxed numpy arrays to tensor
-        im = np.stack(letterboxed)  # [N, H, W, 6]
-        im = im[..., ::-1]  # BGR to RGB for all 6 channels
-        im = im.transpose((0, 3, 1, 2))  # [N, H, W, 6] -> [N, 6, H, W]
-        im = np.ascontiguousarray(im)
-        im = torch.from_numpy(im)
-
-        im = im.to(self.device)
-        im = im.half() if self.model.fp16 else im.float()
-        im /= 255  # 0-255 to 0.0-1.0
-
-        return im
+        return preprocess_stereo_images(
+            images=im,
+            imgsz=self.imgsz,
+            device=self.device,
+            half=self.model.fp16,
+            letterbox=self._letterbox,
+        )
 
     def postprocess(self, preds: dict[str, torch.Tensor], img: torch.Tensor, orig_imgs: list[np.ndarray], **kwargs) -> list[Results]:
         """Post-process model predictions to Results objects with 3D boxes.
+
+        Uses shared decode_and_refine_predictions from preprocess.py which handles
+        decoding, geometric construction, and dense alignment refinement.
 
         Args:
             preds: Dictionary of YOLO11-mapped model outputs.
@@ -266,65 +250,57 @@ class Stereo3DDetPredictor(DetectionPredictor):
         Returns:
             List of Results objects with boxes3d attribute.
         """
-        # Get calibration for batch
-        calib = None
+        # Build calibration list from stored parameters
+        calibs = []
         if self.batch and self.batch[0]:
-            # Try to get calibration from first image
-            img_path = self.batch[0][0]
-            calib = self.calib_params.get(img_path)
-            if calib is not None:
-                if isinstance(calib, CalibrationParameters):
-                    # TODO: Refactor to use the CalibrationParameters object instead of dict.
-                    calib = {
-                        "fx": calib.fx,
-                        "fy": calib.fy,
-                        "cx": calib.cx,
-                        "cy": calib.cy,
-                        "baseline": calib.baseline,
-                    }
-        
-        # Get original shapes
-        ori_shapes = None
-        if orig_imgs and len(orig_imgs) > 0:
-            orig_img = orig_imgs[0]
-            # orig_img is 6-channel stereo image, get height and width
-            ori_shapes = [(orig_img.shape[0], orig_img.shape[1])]  # (H, W)
-        
-        # Get imgsz
-        imgsz = getattr(self.args, 'imgsz', 384)
-        
+            for img_path in self.batch[0]:
+                calib = self.calib_params.get(img_path)
+                if calib is not None:
+                    if isinstance(calib, CalibrationParameters):
+                        calibs.append({
+                            "fx": calib.fx,
+                            "fy": calib.fy,
+                            "cx": calib.cx,
+                            "cy": calib.cy,
+                            "baseline": calib.baseline,
+                        })
+                    else:
+                        calibs.append(calib)
+
+        # Get original shapes from all images
+        ori_shapes = []
+        if orig_imgs:
+            for orig_img in orig_imgs:
+                ori_shapes.append((orig_img.shape[0], orig_img.shape[1]))  # (H, W)
+
         # Get class names from model
         class_names = self.model.names if hasattr(self.model, "names") else None
         if class_names is None:
             raise ValueError("Model must have names attribute for prediction")
-        
-        # Decode 3D boxes using YOLO11 decoder
-        # Use default mean_dims and std_dims for KITTI (will use dataset config if loaded)
-        mean_dims = self.mean_dims
-        std_dims = self.std_dims
 
-        # TODO: ugly fix for single calibration parameter.
-        if isinstance(calib, dict):
-            calib = [calib]
-        
-        results_boxes3d = decode_stereo3d_outputs_yolo11_p3(
-            preds,
+        # Build batch dict for decode_and_refine_predictions
+        batch = {
+            "calib": calibs,
+            "ori_shape": ori_shapes,
+            "img": img,  # Include preprocessed images for dense alignment
+        }
+
+        # Use shared decode and refine pipeline (includes geometric + dense alignment)
+        results_boxes3d = decode_and_refine_predictions(
+            preds=preds,
+            batch=batch,
+            args=self.args,
+            use_geometric=getattr(self.args, "use_geometric", None),
+            use_dense_alignment=getattr(self.args, "use_dense_alignment", None),
             conf_threshold=self.args.conf,
             top_k=self.args.max_det,
-            calib=calib,
-            imgsz=imgsz,
-            ori_shapes=ori_shapes,
             iou_thres=getattr(self.args, "iou", 0.45),
-            mean_dims=mean_dims,
-            std_dims=std_dims,
+            imgsz=getattr(self.args, "imgsz", 384),
+            mean_dims=self.mean_dims,
+            std_dims=self.std_dims,
             class_names=class_names,
         )
-        
-        # Handle result format (list[Box3D] for batch_size=1, list[list[Box3D]] for batch_size>1)
-        if isinstance(results_boxes3d, list) and len(results_boxes3d) > 0 and isinstance(results_boxes3d[0], Box3D):
-            # Single batch result - wrap in list
-            results_boxes3d = [results_boxes3d]
-        
+
         # Create Results objects
         results = []
         for i, boxes3d in enumerate(results_boxes3d):

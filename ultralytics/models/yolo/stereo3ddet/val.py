@@ -12,20 +12,12 @@ import numpy as np
 import torch
 
 from ultralytics.data.stereo.box3d import Box3D
-
 from ultralytics.data.stereo.calib import CalibrationParameters
-from ultralytics.models.yolo.stereo3ddet.dense_align_optimized import (
-    create_dense_alignment_optimized,
-    DenseAlignmentOptimized,
-)
-from ultralytics.models.yolo.stereo3ddet.occlusion import (
-    classify_occlusion,
-    should_skip_dense_alignment,
-)
-
-from ultralytics.models.yolo.stereo3ddet.geometric import (
-    GeometricConstruction,
-    solve_geometric_batch,
+from ultralytics.models.yolo.stereo3ddet.preprocess import (
+    preprocess_stereo_batch,
+    compute_letterbox_params,
+    decode_and_refine_predictions,
+    clear_config_cache,
 )
 
 from ultralytics.models.yolo.stereo3ddet.metrics import Stereo3DDetMetrics
@@ -293,284 +285,6 @@ def decode_stereo3d_outputs_yolo11_p3(
 
 
 
-def get_geometric_config(config_path: str | Path | None = None) -> dict:
-    """Load geometric construction configuration from stereo3ddet_full.yaml.
-
-    T015: Parse geometric_construction config section for solver parameters.
-
-    Args:
-        config_path: Optional path to config YAML. If None, uses default path.
-
-    Returns:
-        Dict with geometric_construction settings:
-        - enabled: bool (default True)
-        - max_iterations: int (default 10)
-        - tolerance: float (default 1e-6)
-        - damping: float (default 1e-3)
-        - fallback_on_failure: bool (default True)
-    """
-    global _geometric_config
-
-    # Return cached config if available
-    if _geometric_config is not None:
-        return _geometric_config
-
-    # Default configuration
-    default_config = {
-        "enabled": True,
-        "max_iterations": 10,
-        "tolerance": 1e-6,
-        "damping": 1e-3,
-        "fallback_on_failure": True,
-    }
-
-    # Try to load from config file
-    if config_path is None:
-        # Try default location
-        config_path = (
-            Path(__file__).parent.parent.parent
-            / "cfg"
-            / "models"
-            / "stereo3ddet_full.yaml"
-        )
-    else:
-        config_path = Path(config_path)
-
-    if config_path.exists():
-        try:
-            full_config = YAML.load(str(config_path))
-            geo_config = full_config.get("geometric_construction", {})
-            # Merge with defaults
-            _geometric_config = {**default_config, **geo_config}
-        except Exception as e:
-            LOGGER.debug("Failed to load geometric config from %s: %s", config_path, e)
-            _geometric_config = default_config
-    else:
-        _geometric_config = default_config
-
-    return _geometric_config
-
-
-def get_geometric_solver() -> GeometricConstruction:
-    """Get or create the global geometric solver instance.
-
-    T014/T016: Provides a singleton solver for consistent convergence tracking.
-
-    Returns:
-        GeometricConstruction solver instance with config-based parameters.
-    """
-    global _geometric_solver
-
-    if _geometric_solver is None:
-        config = get_geometric_config()
-        _geometric_solver = GeometricConstruction(
-            max_iterations=config.get("max_iterations", 10),
-            tolerance=config.get("tolerance", 1e-6),
-            damping=config.get("damping", 1e-3),
-        )
-
-    return _geometric_solver
-
-
-def reset_geometric_solver() -> None:
-    """Reset the global geometric solver and its statistics.
-
-    Call this at the start of validation to reset convergence tracking.
-    """
-    global _geometric_solver, _geometric_config
-    _geometric_solver = None
-    _geometric_config = None
-
-
-def get_geometric_convergence_rate() -> float:
-    """Get the convergence rate for SC-007 validation.
-
-    T016: Returns the fraction of geometric solver calls that converged.
-
-    Returns:
-        Convergence rate between 0.0 and 1.0. Returns 1.0 if no solves yet.
-    """
-    if _geometric_solver is None:
-        return 1.0
-    return _geometric_solver.convergence_rate
-
-
-def log_geometric_statistics() -> None:
-    """Log geometric solver statistics for SC-007 validation.
-
-    T016: Logs convergence rate and total solve count.
-    """
-    if _geometric_solver is None:
-        LOGGER.info("Geometric solver: not initialized (disabled or no detections)")
-        return
-
-    rate = _geometric_solver.convergence_rate
-    total = _geometric_solver._total_solves
-    converged = _geometric_solver._converged_solves
-
-    status = "✓ PASS" if rate >= 0.95 else "✗ FAIL"
-    LOGGER.info(
-        "Geometric solver: %d/%d converged (%.1f%%) [%s]",
-        converged,
-        total,
-        rate * 100,
-        status,
-    )
-
-
-# Global dense alignment instance (GAP-002)
-_dense_aligner: DenseAlignmentOptimized | None = None
-
-
-def get_dense_alignment_config(config_path: str | Path | None = None) -> dict:
-    """Load dense alignment configuration from stereo3ddet_full.yaml.
-
-    T023: Parse dense_alignment config section for depth refinement parameters.
-
-    Args:
-        config_path: Optional path to config YAML. If None, uses default path.
-
-    Returns:
-        Dict with dense_alignment settings:
-        - enabled: bool (default True)
-        - method: "ncc" or "sad" (default "ncc")
-        - depth_search_range: float in meters (default 2.0)
-        - depth_steps: int (default 32)
-        - patch_size: int in pixels (default 7)
-    """
-    global _dense_alignment_config
-
-    # Return cached config if available
-
-    # Default configuration
-    default_config = {
-        "enabled": True,
-        "method": "ncc",
-        "depth_search_range": 2.0,
-        "depth_steps": 32,
-        "patch_size": 7,
-    }
-
-    # Try to load from config file
-    if config_path is None:
-        config_path = (
-            Path(__file__).parent.parent.parent
-            / "cfg"
-            / "models"
-            / "stereo3ddet_full.yaml"
-        )
-    else:
-        config_path = Path(config_path)
-
-    if config_path.exists():
-        try:
-            full_config = YAML.load(str(config_path))
-            dense_config = full_config.get("dense_alignment", {})
-            # Merge with defaults
-            _dense_alignment_config = {**default_config, **dense_config}
-        except Exception as e:
-            LOGGER.debug(
-                "Failed to load dense alignment config from %s: %s", config_path, e
-            )
-            _dense_alignment_config = default_config
-    else:
-        _dense_alignment_config = default_config
-
-    return _dense_alignment_config
-
-
-def get_dense_aligner() -> DenseAlignmentOptimized | None:
-    """Get or create the global dense alignment instance.
-
-    T023: Provides a singleton aligner for consistent depth refinement.
-
-    Returns:
-        DenseAlignment instance if enabled, None if disabled.
-    """
-    global _dense_aligner
-    
-    if _dense_aligner is None:
-        config = get_dense_alignment_config()
-        if not config["enabled"]:
-            return None
-        _dense_aligner = create_dense_alignment_optimized(config)
-    return _dense_aligner
-
-
-def reset_dense_aligner() -> None:
-    """Reset the global dense aligner.
-
-    Call this at the start of validation to reset dense alignment state.
-    """
-    global _dense_aligner, _dense_alignment_config
-    _dense_aligner = None
-    _dense_alignment_config = None
-
-
-# Import occlusion classification for GAP-006 (T040)
-
-# Global occlusion config cache
-_occlusion_config: dict | None = None
-
-
-def get_occlusion_config(config_path: str | Path | None = None) -> dict:
-    """Load occlusion configuration from stereo3ddet_full.yaml.
-
-    T040: Parse occlusion config section for dense alignment skipping.
-
-    Args:
-        config_path: Optional path to config YAML. If None, uses default path.
-
-    Returns:
-        Dict with occlusion settings:
-            - enabled: Whether occlusion classification is enabled
-            - skip_dense_for_occluded: Whether to skip dense alignment for occluded objects
-    """
-    global _occlusion_config
-
-    # Return cached config if available
-    if _occlusion_config is not None:
-        return _occlusion_config
-
-    # Default configuration
-    default_config = {
-        "enabled": True,
-        "skip_dense_for_occluded": True,
-    }
-
-    # Try to load from YAML config
-    if config_path is None:
-        config_path = (
-            Path(__file__).parent.parent.parent
-            / "cfg"
-            / "models"
-            / "stereo3ddet_full.yaml"
-        )
-
-    try:
-        if Path(config_path).exists():
-            full_config = YAML.load(str(config_path))
-            occ_config = full_config.get("occlusion", {})
-            _occlusion_config = {**default_config, **occ_config}
-        else:
-            LOGGER.debug("Occlusion config file not found at %s", config_path)
-            _occlusion_config = default_config
-    except Exception as e:
-        LOGGER.debug("Failed to load occlusion config from %s: %s", config_path, e)
-        _occlusion_config = default_config
-
-    return _occlusion_config
-
-
-def reset_occlusion_config() -> None:
-    """Reset the cached occlusion configuration.
-
-    Useful for testing or when configuration changes.
-    """
-    global _occlusion_config
-    _occlusion_config = None
-
-
 @profile_function(name="compute_3d_iou_batch")
 def compute_3d_iou_batch(
     pred_boxes: list[Box3D],
@@ -697,29 +411,18 @@ def _compute_letterbox_params(
 ) -> tuple[float, int, int]:
     """Compute letterbox scale and padding from original image size.
 
+    This is a wrapper around compute_letterbox_params from preprocess.py
+    for backwards compatibility. New code should import from preprocess.py.
+
     Args:
         ori_h: Original image height.
         ori_w: Original image width.
         imgsz: Letterboxed input size. May be a square int (e.g., 384) or (H, W).
 
     Returns:
-        (scale, pad_left, pad_top) tuple where:
-        - scale: Letterbox scale factor (min(imgsz / ori_h, imgsz / ori_w))
-        - pad_left: Left padding added by letterbox
-        - pad_top: Top padding added by letterbox
+        (scale, pad_left, pad_top) tuple.
     """
-    if isinstance(imgsz, int):
-        out_h, out_w = imgsz, imgsz
-    else:
-        out_h, out_w = int(imgsz[0]), int(imgsz[1])
-    scale = min(out_h / ori_h, out_w / ori_w)
-    new_unpad_w = int(round(ori_w * scale))
-    new_unpad_h = int(round(ori_h * scale))
-    dw = out_w - new_unpad_w
-    dh = out_h - new_unpad_h
-    pad_left = dw // 2
-    pad_top = dh // 2
-    return scale, pad_left, pad_top
+    return compute_letterbox_params(ori_h, ori_w, imgsz)
 
 def _labels_to_box3d_list(
     labels: list[dict[str, Any]],
@@ -967,33 +670,19 @@ class Stereo3DDetValidator(BaseValidator):
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Normalize 6-channel images to float [0,1] and move targets to device.
 
-        Targets are now generated in the dataset's collate_fn, so we just need to
-        move them to the device if they're not already there.
+        Uses shared preprocessing from preprocess.py for consistency with trainer.
+        Also stores the current batch for postprocess() access.
         """
-        imgs = batch["img"].to(self.device, non_blocking=True)
-        batch["img"] = (imgs.half() if self.args.half else imgs.float()) / 255.0
-
+        batch = preprocess_stereo_batch(batch, self.device, half=self.args.half)
         # Make the *current* batch available to postprocess(); BaseValidator calls postprocess() before update_metrics().
         self._current_batch = batch
-        # Move targets to device if present (dataset-dependent)
-        if "targets" in batch and isinstance(batch["targets"], dict):
-            batch["targets"] = {
-                k: v.to(self.device, non_blocking=True)
-                for k, v in batch["targets"].items()
-            }
-        if "aux_targets" in batch and isinstance(batch["aux_targets"], dict):
-            batch["aux_targets"] = {
-                k: v.to(self.device, non_blocking=True)
-                for k, v in batch["aux_targets"].items()
-            }
-        for k in ("batch_idx", "cls", "bboxes"):
-            if k in batch and isinstance(batch[k], torch.Tensor):
-                batch[k] = batch[k].to(self.device, non_blocking=True)
-
         return batch
 
     def postprocess(self, preds: dict[str, torch.Tensor]) -> list[list[Box3D]]:
         """Postprocess model outputs to Box3D objects.
+
+        Uses shared decode_and_refine_predictions from preprocess.py which handles
+        decoding, geometric construction, and dense alignment refinement.
 
         Args:
             preds: Dictionary of 10-branch model outputs.
@@ -1001,363 +690,27 @@ class Stereo3DDetValidator(BaseValidator):
         Returns:
             List of Box3D lists (one per batch item).
         """
-        det_out = preds["det"]
-        det_inf = det_out[0] if isinstance(det_out, (tuple, list)) else det_out
-        batch_size = int(det_inf.shape[0])
-        mode = "det"
+        # Get batch for calibration and images
+        batch = self._current_batch if hasattr(self, "_current_batch") else None
 
-        # T212: Get calibration from batch if available
-        calib = None
-        calibs = []
-        ori_shapes = None
-        if hasattr(self, "_current_batch") and self._current_batch:
-            # Try to get calibration from batch
-            calibs = self._current_batch.get("calib", [])
-            if calibs:
-                # T211: Handle batch calibration - pass list if different per sample, single dict if shared
-                if len(calibs) == batch_size and all(
-                    isinstance(c, dict) for c in calibs
-                ):
-                    # Different calibration per sample
-                    calib = calibs
-                elif len(calibs) > 0 and isinstance(calibs[0], dict):
-                    # Shared calibration (use first one)
-                    calib = calibs[0]
+        # Get use_geometric and use_dense_alignment from args
+        use_geometric = getattr(self.args, "use_geometric", None)
+        use_dense_alignment = getattr(self.args, "use_dense_alignment", None)
 
-            # Get original shapes from batch
-            ori_shapes = self._current_batch.get("ori_shape", [])
-
-        # Get imgsz from args
-        imgsz = getattr(self.args, "imgsz", 384)
-
-        results = decode_stereo3d_outputs_yolo11_p3(
-            preds,
+        return decode_and_refine_predictions(
+            preds=preds,
+            batch=batch,
+            args=self.args,
+            use_geometric=use_geometric,
+            use_dense_alignment=use_dense_alignment,
             conf_threshold=self.args.conf,
             top_k=100,
-            # IMPORTANT: pass resolved `calib` (None, dict, or list[dict]) rather than raw `calibs`.
-            # `calibs` may be an empty list if the batch has no calibration (shouldn't happen, but guard anyway).
-            calib=calib,
-            imgsz=imgsz,
-            ori_shapes=ori_shapes,
             iou_thres=getattr(self.args, "iou", 0.45),
+            imgsz=getattr(self.args, "imgsz", 384),
             mean_dims=self.mean_dims if hasattr(self, "mean_dims") else None,
             std_dims=self.std_dims if hasattr(self, "std_dims") else None,
             class_names=self.names if hasattr(self, "names") else None,
         )
-
-        # T212: Ensure results is list of lists
-        # decode_stereo3d_outputs returns list[list[Box3D]] for batch_size > 1
-        # or list[Box3D] for batch_size == 1 (backward compatibility)
-        if (
-            batch_size == 1
-            and isinstance(results, list)
-            and len(results) > 0
-            and isinstance(results[0], Box3D)
-        ):
-            # Single sample result - wrap in list for consistency
-            results = [results]
-
-        # Apply geometric construction to refine initial 3D estimates
-        use_geometric = getattr(self.args, "use_geometric", None)
-        geo_config = get_geometric_config()
-        should_apply_geo = use_geometric is True or (
-            use_geometric is None and geo_config.get("enabled", True)
-        )
-
-        if should_apply_geo and hasattr(self, "_current_batch") and self._current_batch:
-            results = self._apply_geometric_construction(results, calibs, batch_size)
-
-        # T023: Apply dense alignment for depth refinement (GAP-002)
-        # Only apply if enabled in config and we have access to images
-        use_dense_alignment = getattr(self.args, "use_dense_alignment", None)
-        dense_config = get_dense_alignment_config()
-
-        # Check if dense alignment should be applied
-        should_apply_dense = use_dense_alignment is True or (
-            use_dense_alignment is None and dense_config.get("enabled", True)
-        )
-
-        if (
-            should_apply_dense
-            and hasattr(self, "_current_batch")
-            and self._current_batch
-        ):
-            results = self._apply_dense_alignment(results, calibs, batch_size)
-
-        return results
-
-    def _apply_dense_alignment(
-        self,
-        results: list[list[Box3D]],
-        calibs: list[dict],
-        batch_size: int,
-    ) -> list[list[Box3D]]:
-        """Apply dense photometric alignment to refine depth estimates.
-
-        T023: Integrate dense alignment into decode pipeline after geometric construction.
-        T025: Performance profiling to ensure ≥20 FPS (SC-004/SC-005).
-
-        This method refines the depth estimates of detected 3D boxes using photometric
-        matching between left and right stereo images.
-
-        Performance Notes (T025):
-            - Typical runtime: ~1-3ms per object (CPU)
-            - With 20 objects at 30 FPS: budget ~1.5ms/object → OK
-            - Skip occluded objects to reduce overhead
-            - Consider reducing depth_steps if too slow
-
-        Args:
-            results: List of Box3D lists (one per batch item).
-            calibs: List of calibration dictionaries.
-            batch_size: Number of images in batch.
-
-        Returns:
-            Results with refined depth values.
-        """
-        # T025: Profile dense alignment for performance monitoring (SC-004/SC-005)
-        with profile_section("dense_alignment"):
-            # Get dense aligner (returns None if disabled)
-            aligner = get_dense_aligner()
-            if aligner is None:
-                return results
-
-            # Get images from batch
-            imgs = self._current_batch.get("img", None)
-            if imgs is None:
-                return results
-
-            # Images are [B, 6, H, W] tensor - split into left [B, 3, H, W] and right [B, 3, H, W]
-            # Channels: [0:3] = left RGB, [3:6] = right RGB
-            # Convert to numpy HWC format for dense alignment
-            try:
-                # Move to CPU and convert to numpy
-                imgs_np = imgs.cpu().numpy()  # [B, 6, H, W]
-
-                # Get occlusion config for skipping heavily occluded objects
-                occlusion_config = get_dense_alignment_config()
-                skip_occluded = occlusion_config.get("skip_dense_for_occluded", True)
-
-                for b in range(min(batch_size, len(results))):
-                    boxes = results[b]
-                    if not boxes:
-                        continue
-
-                    # Extract left and right images for this batch item
-                    # Note: images are normalized [0, 1] - convert back to [0, 255] for patch matching
-                    left_img = (imgs_np[b, :3].transpose(1, 2, 0) * 255).astype(
-                        np.uint8
-                    )  # [H, W, 3] RGB
-                    right_img = (imgs_np[b, 3:].transpose(1, 2, 0) * 255).astype(
-                        np.uint8
-                    )  # [H, W, 3] RGB
-
-                    # Get calibration for this sample
-                    if calibs and b < len(calibs):
-                        sample_calib = (
-                            calibs[b] if isinstance(calibs[b], dict) else calibs[0]
-                        )
-                    elif calibs and len(calibs) > 0:
-                        sample_calib = calibs[0] if isinstance(calibs[0], dict) else {}
-                    else:
-                        sample_calib = {}
-
-                    # Optionally classify occlusion to skip heavily occluded objects
-                    occluded_indices = []
-                    if skip_occluded and len(boxes) > 1:
-                        try:
-                            # Build detection list for occlusion classification
-                            detections = []
-                            for box in boxes:
-                                det = {
-                                    "bbox_2d": (
-                                        box.bbox_2d if box.bbox_2d else (0, 0, 100, 100)
-                                    ),
-                                    "center_3d": box.center_3d,
-                                }
-                                detections.append(det)
-                            occluded_indices, _ = classify_occlusion(detections)
-                        except Exception as e:
-                            LOGGER.debug(
-                                "Occlusion classification failed for box %d: %s", i, e
-                            )
-                            occluded_indices = []
-
-                    # Refine depth for each box
-                    refined_boxes = []
-                    for i, box in enumerate(boxes):
-                        # Skip dense alignment for heavily occluded objects
-                        if skip_occluded and should_skip_dense_alignment(
-                            i, occluded_indices
-                        ):
-                            refined_boxes.append(box)
-                            continue
-
-                        # Create box dict for dense alignment
-                        box3d_dict = {
-                            "center_3d": box.center_3d,
-                            "dimensions": box.dimensions,
-                            "orientation": box.orientation,
-                        }
-
-                        try:
-                            # Refine depth using photometric alignment
-                            refined_depth = aligner.refine_depth(
-                                left_img=left_img,
-                                right_img=right_img,
-                                box3d_init=box3d_dict,
-                                calib=sample_calib,
-                            )
-
-                            # Create new Box3D with refined depth
-                            # Update x_3d proportionally with depth change
-                            x, y, z = box.center_3d
-                            if z > 0 and refined_depth > 0:
-                                # Scale x proportionally to depth change
-                                depth_ratio = refined_depth / z
-                                x_refined = x * depth_ratio
-                                y_refined = y * depth_ratio
-                            else:
-                                x_refined, y_refined = x, y
-
-                            refined_box = Box3D(
-                                center_3d=(
-                                    float(x_refined),
-                                    float(y_refined),
-                                    float(refined_depth),
-                                ),
-                                dimensions=box.dimensions,
-                                orientation=box.orientation,
-                                class_label=box.class_label,
-                                class_id=box.class_id,
-                                confidence=box.confidence,
-                                bbox_2d=box.bbox_2d,
-                                truncated=box.truncated,
-                                occluded=box.occluded,
-                            )
-                            refined_boxes.append(refined_box)
-                        except Exception as e:
-                            LOGGER.debug("Dense alignment failed for box %d: %s", i, e)
-                            refined_boxes.append(box)  # Keep original on failure
-
-                    results[b] = refined_boxes
-
-            except Exception as e:
-                LOGGER.debug("Dense alignment batch processing failed: %s", e)
-                # Return original results on failure
-
-            return results
-
-    def _apply_geometric_construction(
-        self,
-        results: list[list[Box3D]],
-        calibs: list[dict],
-        batch_size: int,
-    ) -> list[list[Box3D]]:
-        """Apply geometric construction to refine initial 3D estimates.
-
-        Refines 3D box center (x, y, z) and orientation (θ) using Gauss-Newton
-        optimization with 7 geometric constraint equations. This improves initial
-        estimates before dense alignment.
-
-        Args:
-            results: List of Box3D lists (one per batch item).
-            calibs: List of calibration dictionaries.
-            batch_size: Number of images in batch.
-
-        Returns:
-            Results with geometrically refined 3D estimates.
-        """
-        with profile_section("geometric_construction"):
-            config = get_geometric_config()
-            if not config.get("enabled", True):
-                return results
-
-            solver = get_geometric_solver()
-            if solver is None:
-                return results
-
-            for b in range(min(batch_size, len(results))):
-                boxes = results[b]
-                if not boxes:
-                    continue
-
-                # Get calibration for this sample
-                sample_calib = {}
-                if calibs and b < len(calibs) and isinstance(calibs[b], dict):
-                    sample_calib = calibs[b]
-                elif calibs and len(calibs) > 0 and isinstance(calibs[0], dict):
-                    sample_calib = calibs[0]
-
-                # Convert Box3D to detection dicts for geometric solver
-                detections = []
-                for box in boxes:
-                    if box.bbox_2d is None:
-                        continue
-                    x1, y1, x2, y2 = box.bbox_2d
-                    u_left = (x1 + x2) / 2.0
-                    v_left = (y1 + y2) / 2.0
-
-                    # Extract center_3d and compute disparity
-                    _, _, z_3d = box.center_3d
-                    if sample_calib and z_3d > 0:
-                        fx = sample_calib.get("fx", 721.5)
-                        baseline = sample_calib.get("baseline", 0.54)
-                        # Disparity from depth: d = (f * baseline) / z
-                        disparity = (fx * baseline) / z_3d
-                    else:
-                        disparity = 0.0
-
-                    # Dimensions: Box3D stores (length, width, height)
-                    l, w, h = box.dimensions
-
-                    det = {
-                        "center_2d": (u_left, v_left),
-                        "lr_distance": disparity,
-                        "dimensions": (l, w, h),
-                        "orientation": box.orientation,
-                    }
-                    detections.append(det)
-
-                if not detections:
-                    continue
-
-                # Solve geometric construction batch
-                refined_dets, _ = solve_geometric_batch(
-                    detections=detections,
-                    calib=sample_calib,
-                    max_iterations=config.get("max_iterations", 10),
-                    tolerance=config.get("tolerance", 1e-6),
-                    damping=config.get("damping", 1e-3),
-                    fallback_on_failure=True,
-                )
-
-                # Convert refined detections back to Box3D
-                refined_boxes = []
-                for i, box in enumerate(boxes):
-                    if i >= len(refined_dets):
-                        refined_boxes.append(box)
-                        continue
-
-                    refined_det = refined_dets[i]
-                    if "center_3d" in refined_det:
-                        refined_box = Box3D(
-                            center_3d=refined_det["center_3d"],
-                            dimensions=box.dimensions,
-                            orientation=refined_det.get("orientation", box.orientation),
-                            class_label=box.class_label,
-                            class_id=box.class_id,
-                            confidence=box.confidence,
-                            bbox_2d=box.bbox_2d,
-                            truncated=box.truncated,
-                            occluded=box.occluded,
-                        )
-                        refined_boxes.append(refined_box)
-                    else:
-                        refined_boxes.append(box)
-
-                results[b] = refined_boxes
-
-        return results
 
     def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize metrics with model information.
@@ -1365,8 +718,8 @@ class Stereo3DDetValidator(BaseValidator):
         Args:
             model: Model being validated.
         """
-        # T016: Reset geometric solver statistics at start of validation
-        reset_geometric_solver()
+        # Clear config cache at start of validation to reload fresh configs
+        clear_config_cache()
 
         # Get class names from dataset, not from metrics results_dict (which contains metric keys, not class names)
         # Get class names from dataset configuration - names must be provided
@@ -1388,34 +741,57 @@ class Stereo3DDetValidator(BaseValidator):
             self.nc
         )  # Also update metrics.nc to match the correct number of classes
 
-        # Parse and convert mean_dims from YAML format (class ID -> [L, W, H]) to (class ID -> (H, W, L))
+        # Create reverse mapping from class name to class ID
+        # self.names is {0: "Car", 1: "Van", ...} so we need {"Car": 0, "Van": 1, ...}
+        name_to_id = {}
+        if isinstance(self.names, dict):
+            name_to_id = {name: idx for idx, name in self.names.items()}
+        elif isinstance(self.names, (list, tuple)):
+            name_to_id = {name: idx for idx, name in enumerate(self.names)}
+
+        # Parse and convert mean_dims from YAML format (class name -> [L, W, H]) to (class ID -> (H, W, L))
         mean_dims_raw = (
             self.data.get("mean_dims") if hasattr(self, "data") and self.data else None
         )
         if mean_dims_raw is not None:
-            # Convert from {class_id: [L, W, H]} to {class_id: (H, W, L)}
+            # Convert from {class_name or class_id: [L, W, H]} to {class_id: (H, W, L)}
             self.mean_dims = {}
-            for class_id, dims in mean_dims_raw.items():
+            for class_key, dims in mean_dims_raw.items():
                 if isinstance(dims, (list, tuple)) and len(dims) == 3:
                     l, w, h = dims  # YAML has [L, W, H]
+                    # Convert class name to class ID if needed
+                    if isinstance(class_key, str) and class_key in name_to_id:
+                        class_id = name_to_id[class_key]
+                    elif isinstance(class_key, int):
+                        class_id = class_key
+                    else:
+                        LOGGER.warning("Unknown class key in mean_dims: %s", class_key)
+                        continue
                     self.mean_dims[class_id] = (h, w, l)  # Store as (H, W, L)
-            LOGGER.info("Loaded mean_dims with %d classes", len(self.mean_dims))
         else:
             self.mean_dims = None
             LOGGER.info("No mean_dims in dataset config, will use defaults")
 
-        # Parse and convert std_dims from YAML format (class ID -> [L, W, H]) to (class ID -> (H, W, L))
+        # Parse and convert std_dims from YAML format (class name -> [L, W, H]) to (class ID -> (H, W, L))
         std_dims_raw = (
             self.data.get("std_dims") if hasattr(self, "data") and self.data else None
         )
         if std_dims_raw is not None:
-            # Convert from {class_id: [L, W, H]} to {class_id: (H, W, L)}
+            # Convert from {class_name: [L, W, H]} to {class_id: (H, W, L)}
             self.std_dims = {}
-            for class_id, dims in std_dims_raw.items():
+            for class_key, dims in std_dims_raw.items():
                 if isinstance(dims, (list, tuple)) and len(dims) == 3:
                     l, w, h = dims  # YAML has [L, W, H]
+                    # Convert class name to class ID if needed
+                    if isinstance(class_key, str) and class_key in name_to_id:
+                        class_id = name_to_id[class_key]
+                    elif isinstance(class_key, int):
+                        class_id = class_key
+                    else:
+                        LOGGER.warning("Unknown class key in std_dims: %s", class_key)
+                        continue
                     self.std_dims[class_id] = (h, w, l)  # Store as (H, W, L)
-            LOGGER.info("Loaded std_dims with %d classes", len(self.std_dims))
+            LOGGER.info("Loaded std_dims with %d classes: %s", len(self.std_dims), list(self.std_dims.keys()))
         else:
             self.std_dims = None
             LOGGER.info("No std_dims in dataset config, will use defaults")

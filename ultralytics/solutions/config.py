@@ -56,7 +56,7 @@ class SolutionConfig:
 
     Examples:
         >>> from ultralytics.solutions.config import SolutionConfig
-        >>> cfg = SolutionConfig(model="yolo11n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
+        >>> cfg = SolutionConfig(model="yolo26n.pt", region=[(0, 0), (100, 0), (100, 100), (0, 100)])
         >>> cfg.update(show=False, conf=0.3)
         >>> print(cfg.model)
     """

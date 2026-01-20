@@ -26,7 +26,7 @@ class ClassificationPredictor(BasePredictor):
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.classify import ClassificationPredictor
-        >>> args = dict(model="yolo11n-cls.pt", source=ASSETS)
+        >>> args = dict(model="yolo26n-cls.pt", source=ASSETS)
         >>> predictor = ClassificationPredictor(overrides=args)
         >>> predictor.predict_cli()
 

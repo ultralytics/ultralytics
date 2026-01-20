@@ -3,7 +3,7 @@
 Train a model on a dataset.
 
 Usage:
-    $ yolo mode=train model=yolo11n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
+    $ yolo mode=train model=yolo26n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ import time
 import warnings
 from copy import copy, deepcopy
 from datetime import datetime, timedelta
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -180,7 +181,7 @@ class BaseTrainer:
             self.run_callbacks("on_pretrain_routine_start")
 
         # Model and Dataset
-        self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo11n -> yolo11n.pt
+        self.model = check_model_file_from_stem(self.args.model)  # add suffix, i.e. yolo26n -> yolo26n.pt
         with torch_distributed_zero_first(LOCAL_RANK):  # avoid auto-downloading dataset multiple times
             self.data = self.get_dataset()
 
@@ -408,10 +409,15 @@ class BaseTrainer:
                 if ni <= nw:
                     xi = [0, nw]  # x interp
                     self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
-                    for j, x in enumerate(self.optimizer.param_groups):
+                    for x in self.optimizer.param_groups:
                         # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x["lr"] = np.interp(
-                            ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x["initial_lr"] * self.lf(epoch)]
+                            ni,
+                            xi,
+                            [
+                                self.args.warmup_bias_lr if x.get("param_group") == "bias" else 0.0,
+                                x["initial_lr"] * self.lf(epoch),
+                            ],
                         )
                         if "momentum" in x:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
@@ -632,21 +638,19 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
-            if self.args.task == "classify":
-                data = check_cls_dataset(self.args.data)
-            elif str(self.args.data).rsplit(".", 1)[-1] == "ndjson" or (
-                str(self.args.data).startswith("ul://") and "/datasets/" in str(self.args.data)
-            ):
-                # Convert NDJSON to YOLO format (including ul:// platform dataset URIs)
+            # Convert ul:// platform URIs and NDJSON files to local dataset format first
+            data_str = str(self.args.data)
+            if data_str.endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
                 import asyncio
 
                 from ultralytics.data.converter import convert_ndjson_to_yolo
                 from ultralytics.utils.checks import check_file
 
-                ndjson_file = check_file(self.args.data)  # Resolve ul:// or URL to local .ndjson file
-                yaml_path = asyncio.run(convert_ndjson_to_yolo(ndjson_file))
-                self.args.data = str(yaml_path)
-                data = check_det_dataset(self.args.data)
+                self.args.data = str(asyncio.run(convert_ndjson_to_yolo(check_file(self.args.data))))
+
+            # Task-specific dataset checking
+            if self.args.task == "classify":
+                data = check_cls_dataset(self.args.data)
             elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",
@@ -944,7 +948,7 @@ class BaseTrainer:
             )
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
-            name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("MuSGD", lr_fit, 0.9)
+            name, lr, momentum = ("MuSGD", 0.01 if iterations > 10000 else lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         use_muon = name == "MuSGD"
@@ -977,14 +981,15 @@ class BaseTrainer:
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
 
-        g[2] = {"params": g[2], **optim_args}
-        g[0] = {"params": g[0], **optim_args, "weight_decay": decay}
-        g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0}
-        if name == "MuSGD":
-            g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True}
+        g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
+        g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
+        g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
+        muon, sgd = (0.1, 1.0) if iterations > 10000 else (0.5, 0.5)  # scale factor for MuSGD
+        if use_muon:
+            g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re
 
-            # higher lr for certain parameters in MuSGD
+            # higher lr for certain parameters in MuSGD when funetuning
             pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|flow_model")
             g_ = []  # new param groups
             for x in g:
@@ -993,7 +998,7 @@ class BaseTrainer:
                 p2 = [v for k, v in p.items() if not pattern.search(k)]
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
-        optimizer = getattr(optim, name, MuSGD)(params=g)
+        optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "

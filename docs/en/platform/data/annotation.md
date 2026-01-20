@@ -170,7 +170,7 @@ Use trained YOLO models to automatically label images:
 
     You can use:
 
-    - Official Ultralytics models (YOLO11n, YOLO11s, etc.)
+    - Official Ultralytics models (YOLO26n, YOLO26s, etc.)
     - Your own trained models from the Platform
 
 ## Class Management
@@ -184,6 +184,21 @@ Define annotation classes for your dataset:
 3. A color is assigned automatically
 
 <!-- Screenshot: platform-annotate-classes.avif -->
+
+### Add New Class During Annotation
+
+You can create new classes directly while annotating without leaving the editor:
+
+1. Draw an annotation on the image
+2. In the class dropdown, click **Add New Class**
+3. Enter the class name
+4. Press Enter to create and assign
+
+This allows for a seamless workflow where you can define classes as you encounter new object types in your data.
+
+!!! tip "Unified Classes Table"
+
+    All classes across your dataset are managed in a unified table. Changes to class names or colors apply throughout the entire dataset automatically.
 
 ### Editing Classes
 

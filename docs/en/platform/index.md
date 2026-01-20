@@ -110,7 +110,7 @@ You select your region during onboarding, and all your data, models, and deploym
 - **Auto-Annotation**: Use trained models to pre-label new data
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
-![Ultralytics Platform Dataset Screenshot](https://raw.githubusercontent.com/ultralytics/assets/main/docs/platform/dataset-screenshot.avif)
+![Ultralytics Platform Dataset Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/dataset-screenshot.avif)
 
 ### Model Training
 
@@ -119,7 +119,7 @@ You select your region during onboarding, and all your data, models, and deploym
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more
 
-![Ultralytics Platform Project Screenshot](https://raw.githubusercontent.com/ultralytics/assets/main/docs/platform/project-screenshot.avif)
+![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
 
 ### Deployment
 

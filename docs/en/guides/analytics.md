@@ -25,7 +25,7 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
 |                                            Line Graph                                             |                                           Bar Plot                                            |                                            Pie Chart                                            |
 | :-----------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------: |
-| ![Line Graph](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-line-graph.avif) | ![Bar Plot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-bar-plot.avif) | ![Pie Chart](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-pie-chart.avif) |
+| ![YOLO analytics line graph for object tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-line-graph.avif) | ![YOLO analytics bar plot for detection counts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-bar-plot.avif) | ![YOLO analytics pie chart for class distribution](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-pie-chart.avif) |
 
 ### Why Graphs are Important
 

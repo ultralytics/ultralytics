@@ -109,7 +109,7 @@ Here's how to split your data:
 After splitting your data, you can perform data augmentation by applying transformations like rotating, scaling, and flipping images to artificially increase the size of your dataset. Data augmentation makes your model more robust to variations and improves its performance on unseen images.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/examples-of-data-augmentations.avif" alt="Examples of Data Augmentations">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/examples-of-data-augmentations.avif" alt="Data augmentation examples showing rotation, scaling, flipping, and color adjustments for training">
 </p>
 
 Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), [Albumentations](../integrations/albumentations.md), and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) offer flexible augmentation functions that you can use. Additionally, some libraries, such as Ultralytics, have [built-in augmentation settings](../modes/train.md) directly within its model training function, simplifying the process.
@@ -173,7 +173,7 @@ Once your model is deployed, it's important to continuously monitor its performa
 Monitoring tools can help you track key performance indicators (KPIs) and detect anomalies or drops in accuracy. By monitoring the model, you can be aware of model drift, where the model's performance declines over time due to changes in the input data. Periodically retrain the model with updated data to maintain accuracy and relevance.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/model-monitoring-maintenance-loop.avif" alt="Model Monitoring">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/model-monitoring-maintenance-loop.avif" alt="Model monitoring and maintenance lifecycle diagram showing continuous improvement process">
 </p>
 
 In addition to monitoring and maintenance, documentation is also key. Thoroughly document the entire process, including model architecture, training procedures, hyperparameters, data preprocessing steps, and any changes made during deployment and maintenance. Good documentation ensures reproducibility and makes future updates or troubleshooting easier. By effectively [monitoring, maintaining, and documenting your model](./model-monitoring-and-maintenance.md), you can ensure it remains accurate, reliable, and easy to manage over its lifecycle.

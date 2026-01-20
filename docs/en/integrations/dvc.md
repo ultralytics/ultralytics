@@ -13,7 +13,7 @@ Integrating DVCLive with [Ultralytics YOLO26](https://www.ultralytics.com/) tran
 ## DVCLive
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dvclive-overview.avif" alt="DVCLive Overview">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dvclive-overview.avif" alt="DVCLive experiment tracking integration">
 </p>
 
 [DVCLive](https://doc.dvc.org/dvclive), developed by DVC, is an innovative open-source tool for experiment tracking in machine learning. Integrating seamlessly with Git and DVC, it automates the logging of crucial experiment data like model parameters and training metrics. Designed for simplicity, DVCLive enables effortless comparison and analysis of multiple runs, enhancing the efficiency of machine learning projects with intuitive [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis tools.

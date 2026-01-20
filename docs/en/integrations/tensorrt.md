@@ -13,7 +13,7 @@ By using the TensorRT export format, you can enhance your [Ultralytics YOLO26](h
 ## TensorRT
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorrt-overview.avif" alt="TensorRT Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorrt-overview.avif" alt="NVIDIA TensorRT optimization workflow">
 </p>
 
 [TensorRT](https://developer.nvidia.com/tensorrt), developed by NVIDIA, is an advanced software development kit (SDK) designed for high-speed deep learning inference. It's well-suited for real-time applications like [object detection](https://www.ultralytics.com/glossary/object-detection).
@@ -47,7 +47,7 @@ TensorRT offers several deployment options, and each option balances ease of int
 - **Deploying within [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)**: This method integrates TensorRT into TensorFlow, allowing optimized models to run in a familiar TensorFlow environment. It's useful for models with a mix of supported and unsupported layers, as TF-TRT can handle these efficiently.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tf-trt-workflow.avif" alt="TensorRT Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tf-trt-workflow.avif" alt="NVIDIA TensorRT optimization workflow">
 </p>
 
 - **Standalone TensorRT Runtime API**: Offers granular control, ideal for performance-critical applications. It's more complex but allows for custom implementation of unsupported operators.

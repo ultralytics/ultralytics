@@ -17,7 +17,7 @@ Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) model
 ONNX models can be used to transition between different frameworks seamlessly. For instance, a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model trained in PyTorch can be exported to ONNX format and then easily imported into TensorFlow.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/onnx-model-portability.avif" alt="ONNX">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/onnx-model-portability.avif" alt="ONNX model portability diagram showing cross-framework compatibility">
 </p>
 
 Alternatively, ONNX models can be used with ONNX Runtime. [ONNX Runtime](https://onnxruntime.ai/) is a versatile cross-platform accelerator for machine learning models that is compatible with frameworks like PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), TFLite, scikit-learn, etc.

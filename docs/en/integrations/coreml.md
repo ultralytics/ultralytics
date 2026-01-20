@@ -24,7 +24,7 @@ The CoreML export format allows you to optimize your [Ultralytics YOLO26](https:
 ## CoreML
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coreml-overview.avif" alt="CoreML Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coreml-overview.avif" alt="Apple CoreML deployment pipeline">
 </p>
 
 [CoreML](https://developer.apple.com/documentation/coreml) is Apple's foundational machine learning framework that builds upon Accelerate, BNNS, and Metal Performance Shaders. It provides a machine-learning model format that seamlessly integrates into iOS applications and supports tasks such as image analysis, [natural language processing](https://www.ultralytics.com/glossary/natural-language-processing-nlp), audio-to-text conversion, and sound analysis.

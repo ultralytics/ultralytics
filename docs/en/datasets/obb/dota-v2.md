@@ -146,7 +146,7 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
 
 Having a glance at the dataset illustrates its depth:
 
-![Dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instances-DOTA.avif)
+![DOTA dataset  with oriented bounding box annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instances-DOTA.avif)
 
 - **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) annotations, capturing objects in their natural orientation.
 

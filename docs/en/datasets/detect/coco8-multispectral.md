@@ -96,7 +96,7 @@ For more details on model selection and best practices, explore the [Ultralytics
 
 Below is an example of a mosaiced training batch from the COCO8-Multispectral dataset:
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coco8-multispectral-mosaic-batch.avif" alt="Dataset sample image" width="800">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coco8-multispectral-mosaic-batch.avif" alt="COCO8 multispectral dataset mosaic training batch" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch where multiple dataset images are combined using [mosaic augmentation](https://docs.ultralytics.com/reference/data/augment/). Mosaic augmentation increases the diversity of objects and scenes within each batch, helping the model generalize better to various object sizes, aspect ratios, and backgrounds.
 

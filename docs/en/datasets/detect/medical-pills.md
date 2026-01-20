@@ -100,7 +100,7 @@ To train a YOLO26n model on the medical-pills dataset for 100 [epochs](https://w
 
 The medical-pills dataset features labeled images showcasing the diversity of pills. Below is an example of a labeled image from the dataset:
 
-![Medical-pills dataset sample image](https://github.com/ultralytics/docs/releases/download/0/medical-pills-dataset-sample-image.avif)
+![Medical-pills dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/medical-pills-dataset-sample-image.avif)
 
 - **Mosaiced Image**: Displayed is a training batch comprising mosaiced dataset images. Mosaicing enhances training diversity by consolidating multiple images into one, improving model generalization.
 

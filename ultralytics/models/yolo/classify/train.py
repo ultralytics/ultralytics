@@ -44,7 +44,7 @@ class ClassificationTrainer(BaseTrainer):
     Examples:
         Initialize and train a classification model
         >>> from ultralytics.models.yolo.classify import ClassificationTrainer
-        >>> args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)
+        >>> args = dict(model="yolo26n-cls.pt", data="imagenet10", epochs=3)
         >>> trainer = ClassificationTrainer(overrides=args)
         >>> trainer.train()
     """

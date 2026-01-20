@@ -7,7 +7,7 @@ keywords: Ultralytics, Docker, Quickstart Guide, CPU support, GPU support, NVIDI
 # Docker Quickstart Guide for Ultralytics
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-docker-package-visual.avif" alt="Ultralytics Docker Package Visual">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-docker-package-visual.avif" alt="Ultralytics Docker Package Visual">
 </p>
 
 This guide serves as a comprehensive introduction to setting up a Docker environment for your Ultralytics projects. [Docker](https://www.docker.com/) is a platform for developing, shipping, and running applications in containers. It is particularly beneficial for ensuring that the software will always run the same, regardless of where it's deployed. For more details, visit the Ultralytics Docker repository on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics).

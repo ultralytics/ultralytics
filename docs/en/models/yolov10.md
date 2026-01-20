@@ -8,7 +8,7 @@ keywords: YOLOv10, real-time object detection, NMS-free, deep learning, Tsinghua
 
 YOLOv10, released in May 2024 and built on the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/) by researchers at [Tsinghua University](https://www.tsinghua.edu.cn/en/), introduces a new approach to real-time object detection, addressing both the post-processing and model architecture deficiencies found in previous YOLO versions. By eliminating non-maximum suppression (NMS) and optimizing various model components, YOLOv10 achieved excellent performance with significantly reduced computational overhead at its time of release. Its NMS-free end-to-end design pioneered an approach that has been further developed in [YOLO26](yolo26.md).
 
-![YOLOv10 consistent dual assignment for NMS-free training](https://github.com/ultralytics/docs/releases/download/0/yolov10-consistent-dual-assignment.avif)
+![YOLOv10 consistent dual assignment for NMS-free training](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov10-consistent-dual-assignment.avif)
 
 <p align="center">
   <br>
@@ -100,7 +100,7 @@ YOLOv10 has been extensively tested on standard benchmarks like [COCO](../datase
 
 ## Comparisons
 
-![YOLOv10 comparison with SOTA object detectors](https://github.com/ultralytics/docs/releases/download/0/yolov10-comparison-sota-detectors.avif)
+![YOLOv10 comparison with SOTA object detectors](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov10-comparison-sota-detectors.avif)
 
 Compared to other state-of-the-art detectors:
 

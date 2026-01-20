@@ -129,7 +129,7 @@ class Detect(nn.Module):
 
     @end2end.setter
     def end2end(self, value):
-        """Override the end2end detection mode."""
+        """Override the end-to-end detection mode."""
         self._end2end = value
 
     def forward_head(

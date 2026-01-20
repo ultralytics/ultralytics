@@ -427,7 +427,7 @@ class DetectionModel(BaseModel):
 
     @end2end.setter
     def end2end(self, value):
-        """Override the end2end detection mode."""
+        """Override the end-to-end detection mode."""
         self.model[-1].end2end = value
 
     def _predict_augment(self, x):

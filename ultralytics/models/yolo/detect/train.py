@@ -47,7 +47,7 @@ class DetectionTrainer(BaseTrainer):
 
     Examples:
         >>> from ultralytics.models.yolo.detect import DetectionTrainer
-        >>> args = dict(model="yolo11n.pt", data="coco8.yaml", epochs=3)
+        >>> args = dict(model="yolo26n.pt", data="coco8.yaml", epochs=3)
         >>> trainer = DetectionTrainer(overrides=args)
         >>> trainer.train()
     """

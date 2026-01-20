@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO, model architecture, YAML configuration, neural netw
 
 The model YAML configuration file serves as the architectural blueprint for Ultralytics neural networks. It defines how layers connect, what parameters each module uses, and how the entire network scales across different model sizes.
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/yaml-configuration-guide.avif" alt="Model YAML configuration workflow.">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yaml-configuration-guide.avif" alt="Model YAML configuration workflow.">
 
 ## Configuration Structure
 

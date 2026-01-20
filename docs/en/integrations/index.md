@@ -8,7 +8,7 @@ keywords: Ultralytics, machine learning, ML workflows, dataset management, model
 
 Welcome to the Ultralytics Integrations page! This page provides an overview of our partnerships with various tools and platforms, designed to streamline your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) workflows, enhance dataset management, simplify model training, and facilitate efficient deployment.
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 <p align="center">
   <br>

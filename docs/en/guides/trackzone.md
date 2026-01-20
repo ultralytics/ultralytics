@@ -32,10 +32,10 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 
 ## Real World Applications
 
-|                                                                             Agriculture                                                                             |                                                                            Transportation                                                                             |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Plants Tracking in Field Using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/plants-tracking-in-zone-using-ultralytics-yolo11.avif) | ![Vehicles Tracking on Road using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/vehicle-tracking-in-zone-using-ultralytics-yolo11.avif) |
-|                                                          Plants Tracking in Field Using Ultralytics YOLO26                                                          |                                                          Vehicles Tracking on Road using Ultralytics YOLO26                                                           |
+|                                                                             Agriculture                                                                              |                                                                             Transportation                                                                             |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Plants Tracking in Field Using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/plants-tracking-in-zone-using-ultralytics-yolo11.avif) | ![Vehicles Tracking on Road using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vehicle-tracking-in-zone-using-ultralytics-yolo11.avif) |
+|                                                          Plants Tracking in Field Using Ultralytics YOLO26                                                           |                                                           Vehicles Tracking on Road using Ultralytics YOLO26                                                           |
 
 !!! example "TrackZone using Ultralytics YOLO"
 

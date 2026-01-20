@@ -346,7 +346,7 @@ The following benchmarks summarizes how YOLO26 models perform at different Tenso
 
 ### Comparison Chart
 
-<div align=center><img width=1000 src="https://github.com/ultralytics/assets/releases/download/v0.0.0/jetson-deepstream-benchmarks.avif" alt="Jetson DeepStream Benchmarks Chart"></div>
+<div align=center><img width=1000 src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-deepstream-benchmarks.avif" alt="Jetson DeepStream Benchmarks Chart"></div>
 
 ### Detailed Comparison Table
 

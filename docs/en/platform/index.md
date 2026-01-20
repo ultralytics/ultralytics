@@ -27,7 +27,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 [Ultralytics Platform](https://platform.ultralytics.com) is a comprehensive end-to-end computer vision platform that streamlines the entire ML workflow from data preparation to model deployment. Built for teams and individuals who need production-ready [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions without the infrastructure complexity.
 
-![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
+![Ultralytics Platform Dataset Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/dataset-screenshot.avif)
 
 ## What is Ultralytics Platform?
 
@@ -102,14 +102,14 @@ You select your region during onboarding, and all your data, models, and deploym
 - **Auto-Annotation**: Use trained models to pre-label new data
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
-![Ultralytics Platform Dataset Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/dataset-screenshot.avif)
-
 ### Model Training
 
 - **Cloud Training**: Train on cloud GPUs (RTX 4090, A100, H100) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to Platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more
+
+![Ultralytics Platform Project Screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/platform/project-screenshot.avif)
 
 ### Deployment
 

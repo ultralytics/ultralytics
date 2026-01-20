@@ -522,6 +522,8 @@ nav:
           - platform/account/index.md
           - API Keys: platform/account/api-keys.md
           - Billing: platform/account/billing.md
+          - Activity: platform/account/activity.md
+          - Trash: platform/account/trash.md
           - Settings: platform/account/settings.md
       - Explore: platform/explore.md
       - REST API: platform/api/index.md

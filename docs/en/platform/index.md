@@ -48,7 +48,7 @@ Ultralytics Platform is designed to replace fragmented ML tooling with a unified
 - **HuggingFace** - Model deployment
 - **Arize** - Monitoring
 
-All in one platform with native support for YOLO11 and YOLO26 models.
+All in one platform with native support for YOLO26 and YOLO11 models.
 
 ## Workflow: Data → Train → Deploy
 
@@ -116,6 +116,8 @@ You select your region during onboarding, and all your data, models, and deploym
 
 - **API Keys**: Secure key management for remote training and API access
 - **Credits & Billing**: Pay-as-you-go training with transparent pricing
+- **Activity Feed**: Track all account events and actions
+- **Trash & Restore**: 30-day soft delete with item recovery
 - **GDPR Compliance**: Data export and account deletion
 
 ## Quick Links
@@ -132,6 +134,8 @@ Get started with these resources:
 - [**Monitoring**](deploy/monitoring.md): Track deployment performance
 - [**API Keys**](account/api-keys.md): Manage API access
 - [**Billing**](account/billing.md): Credits and payment
+- [**Activity**](account/activity.md): Track account events
+- [**Trash**](account/trash.md): Recover deleted items
 - [**REST API**](api/index.md): API reference
 
 ## FAQ
@@ -164,16 +168,15 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| GPU       | VRAM | Best For                      |
-| --------- | ---- | ----------------------------- |
-| RTX 4090  | 24GB | Fast training, most use cases |
-| RTX 3090  | 24GB | Cost-effective training       |
-| A100 40GB | 40GB | Large models, big batches     |
-| A100 80GB | 80GB | Very large models             |
-| H100 80GB | 80GB | Maximum performance           |
-| L40S      | 48GB | Balanced performance          |
+| GPU       | VRAM  | Cost      | Best For                  |
+| --------- | ----- | --------- | ------------------------- |
+| RTX 4090  | 24GB  | $1.18/hr  | Fast training, best value |
+| L40S      | 48GB  | $1.72/hr  | Balanced performance      |
+| A100 80GB | 80GB  | $2.78/hr  | Large models, big batches |
+| H100 PCIe | 80GB  | $4.78/hr  | Maximum performance       |
+| B200      | 180GB | $10.38/hr | Cutting-edge workloads    |
 
-See [Cloud Training](train/cloud-training.md) for pricing and details.
+See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 
 ### How does remote training work?
 
@@ -192,7 +195,7 @@ You can train models anywhere and stream metrics to Platform.
 export ULTRALYTICS_API_KEY="your_api_key"
 
 # Train with project/name to stream metrics
-yolo train model=yolo11n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
+yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-project name=exp1
 ```
 
 See [Cloud Training](train/cloud-training.md) for more details on remote training.

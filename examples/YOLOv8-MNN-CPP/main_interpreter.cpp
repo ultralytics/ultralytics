@@ -171,7 +171,6 @@ public:
             float score = score_ptr[idx];
             printf("Detection: box = {%.2f, %.2f, %.2f, %.2f}, class = %s, score = %.2f\n",
                 x1, y1, x2, y2, classNames[class_idx].c_str(), score);
-            rectangle(originalImage, { x1, y1 }, { x2, y2 }, { 0, 255, 0 }, 2);
             MNN::CV::rectangle(originalImage, { x1, y1 }, { x2, y2 }, { 0, 255, 0 }, 2);
             // Note: MNN::CV does not offer a putText function.
             // For text annotations, consider converting the image to cv::Mat and using OpenCV.

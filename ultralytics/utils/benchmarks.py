@@ -1,31 +1,31 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Benchmark a YOLO model formats for speed and accuracy.
+Benchmark YOLO model formats for speed and accuracy.
 
 Usage:
     from ultralytics.utils.benchmarks import ProfileModels, benchmark
-    ProfileModels(['yolo11n.yaml', 'yolov8s.yaml']).run()
-    benchmark(model='yolo11n.pt', imgsz=160)
+    ProfileModels(['yolo26n.yaml', 'yolov8s.yaml']).run()
+    benchmark(model='yolo26n.pt', imgsz=160)
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
-PyTorch                 | -                         | yolo11n.pt
-TorchScript             | `torchscript`             | yolo11n.torchscript
-ONNX                    | `onnx`                    | yolo11n.onnx
-OpenVINO                | `openvino`                | yolo11n_openvino_model/
-TensorRT                | `engine`                  | yolo11n.engine
-CoreML                  | `coreml`                  | yolo11n.mlpackage
-TensorFlow SavedModel   | `saved_model`             | yolo11n_saved_model/
-TensorFlow GraphDef     | `pb`                      | yolo11n.pb
-TensorFlow Lite         | `tflite`                  | yolo11n.tflite
-TensorFlow Edge TPU     | `edgetpu`                 | yolo11n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
-PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
-MNN                     | `mnn`                     | yolo11n.mnn
-NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
-IMX                     | `imx`                     | yolo11n_imx_model/
-RKNN                    | `rknn`                    | yolo11n_rknn_model/
-ExecuTorch              | `executorch`              | yolo11n_executorch_model/
+PyTorch                 | -                         | yolo26n.pt
+TorchScript             | `torchscript`             | yolo26n.torchscript
+ONNX                    | `onnx`                    | yolo26n.onnx
+OpenVINO                | `openvino`                | yolo26n_openvino_model/
+TensorRT                | `engine`                  | yolo26n.engine
+CoreML                  | `coreml`                  | yolo26n.mlpackage
+TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
+TensorFlow GraphDef     | `pb`                      | yolo26n.pb
+TensorFlow Lite         | `tflite`                  | yolo26n.tflite
+TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
+TensorFlow.js           | `tfjs`                    | yolo26n_web_model/
+PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
+MNN                     | `mnn`                     | yolo26n.mnn
+NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
+IMX                     | `imx`                     | yolo26n_imx_model/
+RKNN                    | `rknn`                    | yolo26n_rknn_model/
+ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ from ultralytics.utils.torch_utils import get_cpu_info, select_device
 
 
 def benchmark(
-    model=WEIGHTS_DIR / "yolo11n.pt",
+    model=WEIGHTS_DIR / "yolo26n.pt",
     data=None,
     imgsz=160,
     half=False,
@@ -79,13 +79,13 @@ def benchmark(
         **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
-        (polars.DataFrame): A polars DataFrame with benchmark results for each format, including file size, metric, and
+        (polars.DataFrame): A Polars DataFrame with benchmark results for each format, including file size, metric, and
             inference time.
 
     Examples:
         Benchmark a YOLO model with default settings:
         >>> from ultralytics.utils.benchmarks import benchmark
-        >>> benchmark(model="yolo11n.pt", imgsz=640)
+        >>> benchmark(model="yolo26n.pt", imgsz=640)
     """
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
@@ -161,6 +161,8 @@ def benchmark(
                 assert cpu, "inference not supported on CPU"
             if "cuda" in device.type:
                 assert gpu, "inference not supported on GPU"
+            if format == "ncnn":
+                assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
 
             # Export
             if format == "-":
@@ -179,8 +181,6 @@ def benchmark(
             assert model.task != "pose" or format != "executorch", "ExecuTorch Pose inference is not supported"
             assert format not in {"edgetpu", "tfjs"}, "inference not supported"
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
-            if format == "ncnn":
-                assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate
@@ -402,7 +402,7 @@ class ProfileModels:
     Examples:
         Profile models and print results
         >>> from ultralytics.utils.benchmarks import ProfileModels
-        >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
+        >>> profiler = ProfileModels(["yolo26n.yaml", "yolov8s.yaml"], imgsz=640)
         >>> profiler.run()
     """
 
@@ -430,12 +430,6 @@ class ProfileModels:
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
 
-        Examples:
-            Initialize and profile models
-            >>> from ultralytics.utils.benchmarks import ProfileModels
-            >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"], imgsz=640)
-            >>> profiler.run()
-
         Notes:
             FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
         """
@@ -458,7 +452,7 @@ class ProfileModels:
         Examples:
             Profile models and print results
             >>> from ultralytics.utils.benchmarks import ProfileModels
-            >>> profiler = ProfileModels(["yolo11n.yaml", "yolov8s.yaml"])
+            >>> profiler = ProfileModels(["yolo26n.yaml", "yolo11s.yaml"])
             >>> results = profiler.run()
         """
         files = self.get_files()
@@ -474,7 +468,7 @@ class ProfileModels:
             if file.suffix in {".pt", ".yaml", ".yml"}:
                 model = YOLO(str(file))
                 model.fuse()  # to report correct params and GFLOPs in model.info()
-                model_info = model.info()
+                model_info = model.info(imgsz=self.imgsz)
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
                         format="engine",
@@ -616,7 +610,7 @@ class ProfileModels:
         sess_options.intra_op_num_threads = 8  # Limit the number of threads
         sess = ort.InferenceSession(onnx_file, sess_options, providers=["CPUExecutionProvider"])
 
-        input_data_dict = dict()
+        input_data_dict = {}
         for input_tensor in sess.get_inputs():
             input_type = input_tensor.type
             if self.check_dynamic(input_tensor.shape):
@@ -644,7 +638,7 @@ class ProfileModels:
 
             input_data = np.random.rand(*input_shape).astype(input_dtype)
             input_name = input_tensor.name
-            input_data_dict.update({input_name: input_data})
+            input_data_dict[input_name] = input_data
 
         output_name = sess.get_outputs()[0].name
 

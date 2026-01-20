@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import functools
 import glob
 import inspect
@@ -11,6 +12,7 @@ import platform
 import re
 import shutil
 import subprocess
+import sys
 import time
 from importlib import metadata
 from pathlib import Path
@@ -53,8 +55,7 @@ from ultralytics.utils import (
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
-    """
-    Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
+    """Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
 
     Args:
         file_path (Path): Path to the requirements.txt file.
@@ -86,8 +87,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
 
 @functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
-    """
-    Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
+    """Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
 
     Args:
         version (str): Version string, i.e. '2.0.1+cpu'
@@ -103,8 +103,7 @@ def parse_version(version="0.0.0") -> tuple:
 
 
 def is_ascii(s) -> bool:
-    """
-    Check if a string is composed of only ASCII characters.
+    """Check if a string is composed of only ASCII characters.
 
     Args:
         s (str | list | tuple | dict): Input to be checked (all are converted to string for checking).
@@ -116,8 +115,7 @@ def is_ascii(s) -> bool:
 
 
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
-    """
-    Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
+    """Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
@@ -139,7 +137,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     elif isinstance(imgsz, (list, tuple)):
         imgsz = list(imgsz)
     elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
-        imgsz = [int(imgsz)] if imgsz.isnumeric() else eval(imgsz)
+        imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
     else:
         raise TypeError(
             f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
@@ -187,8 +185,7 @@ def check_version(
     verbose: bool = False,
     msg: str = "",
 ) -> bool:
-    """
-    Check current version against the required version or range.
+    """Check current version against the required version or range.
 
     Args:
         current (str): Current version or package name to get version from.
@@ -268,8 +265,7 @@ def check_version(
 
 
 def check_latest_pypi_version(package_name="ultralytics"):
-    """
-    Return the latest version of a PyPI package without downloading or installing it.
+    """Return the latest version of a PyPI package without downloading or installing it.
 
     Args:
         package_name (str): The name of the package to find the latest version for.
@@ -289,8 +285,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
 
 
 def check_pip_update_available():
-    """
-    Check if a new version of the ultralytics package is available on PyPI.
+    """Check if a new version of the ultralytics package is available on PyPI.
 
     Returns:
         (bool): True if an update is available, False otherwise.
@@ -314,8 +309,7 @@ def check_pip_update_available():
 @ThreadingLocked()
 @functools.lru_cache
 def check_font(font="Arial.ttf"):
-    """
-    Find font locally or download to user's configuration directory if it does not already exist.
+    """Find font locally or download to user's configuration directory if it does not already exist.
 
     Args:
         font (str): Path or name of font.
@@ -344,8 +338,7 @@ def check_font(font="Arial.ttf"):
 
 
 def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = False) -> bool:
-    """
-    Check current python version against the required minimum version.
+    """Check current python version against the required minimum version.
 
     Args:
         minimum (str): Required minimum version of python.
@@ -359,9 +352,48 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 
 
 @TryExcept()
-def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
+def check_apt_requirements(requirements):
+    """Check if apt packages are installed and install missing ones.
+
+    Args:
+        requirements: List of apt package names to check and install
     """
-    Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
+    prefix = colorstr("red", "bold", "apt requirements:")
+    # Check which packages are missing
+    missing_packages = []
+    for package in requirements:
+        try:
+            # Use dpkg -l to check if package is installed
+            result = subprocess.run(["dpkg", "-l", package], capture_output=True, text=True, check=False)
+            # Check if package is installed (look for "ii" status)
+            if result.returncode != 0 or not any(
+                line.startswith("ii") and package in line for line in result.stdout.splitlines()
+            ):
+                missing_packages.append(package)
+        except Exception:
+            # If check fails, assume package is not installed
+            missing_packages.append(package)
+
+    # Install missing packages if any
+    if missing_packages:
+        LOGGER.info(
+            f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, attempting AutoUpdate..."
+        )
+        # Optionally update package list first
+        cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "update"]
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+        # Build and run the install command
+        cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y"] + missing_packages
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+        LOGGER.info(f"{prefix} AutoUpdate success ✅")
+        LOGGER.warning(f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n")
+
+
+@TryExcept()
+def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
+    """Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
         requirements (Path | str | list[str|tuple] | tuple[str]): Path to a requirements.txt file, a single package
@@ -387,6 +419,11 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         >>> check_requirements([("onnxruntime", "onnxruntime-gpu"), "numpy"])
     """
     prefix = colorstr("red", "bold", "requirements:")
+
+    if os.environ.get("ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS", "0") == "1":
+        LOGGER.info(f"{prefix} ULTRALYTICS_SKIP_REQUIREMENTS_CHECKS=1 detected, skipping requirements check.")
+        return True
+
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
         assert file.exists(), f"{prefix} {file} not found, check failed."
@@ -417,22 +454,18 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
-            base = (
-                f"uv pip install --no-cache-dir {packages} {commands} "
-                f"--index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+            # Use --python to explicitly target current interpreter (venv or system)
+            # This ensures correct installation when VIRTUAL_ENV env var isn't set
+            return subprocess.check_output(
+                f'uv pip install --no-cache-dir --python "{sys.executable}" {packages} {commands} '
+                f"--index-strategy=unsafe-best-match --break-system-packages",
+                shell=True,
+                stderr=subprocess.STDOUT,
+                text=True,
             )
-            try:
-                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE, text=True)
-            except subprocess.CalledProcessError as e:
-                if e.stderr and "No virtual environment found" in e.stderr:
-                    return subprocess.check_output(
-                        base.replace("uv pip install", "uv pip install --system"),
-                        shell=True,
-                        stderr=subprocess.PIPE,
-                        text=True,
-                    )
-                raise
-        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True, text=True)
+        return subprocess.check_output(
+            f"pip install --no-cache-dir {packages} {commands}", shell=True, stderr=subprocess.STDOUT, text=True
+        )
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
@@ -443,14 +476,18 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             try:
                 t = time.time()
                 assert ONLINE, "AutoUpdate skipped (offline)"
-                LOGGER.info(attempt_install(s, cmds, use_uv=not ARM64 and check_uv()))
+                use_uv = not ARM64 and check_uv()  # uv fails on ARM64
+                LOGGER.info(attempt_install(s, cmds, use_uv=use_uv))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
                 LOGGER.warning(
                     f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
                 )
             except Exception as e:
-                LOGGER.warning(f"{prefix} ❌ {e}")
+                msg = f"{prefix} ❌ {e}"
+                if hasattr(e, "output") and e.output:
+                    msg += f"\n{e.output}"
+                LOGGER.warning(msg)
                 return False
         else:
             return False
@@ -459,8 +496,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
 
 def check_torchvision():
-    """
-    Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
+    """Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
     This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
@@ -494,9 +530,8 @@ def check_torchvision():
             )
 
 
-def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
-    """
-    Check file(s) for acceptable suffix.
+def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
+    """Check file(s) for acceptable suffix.
 
     Args:
         file (str | list[str]): File or list of files to check.
@@ -512,8 +547,7 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True):
-    """
-    Replace legacy YOLOv5 filenames with updated YOLOv5u filenames.
+    """Replace legacy YOLOv5 filenames with updated YOLOv5u filenames.
 
     Args:
         file (str): Filename to check and potentially update.
@@ -540,8 +574,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
 
 
 def check_model_file_from_stem(model="yolo11n"):
-    """
-    Return a model filename from a valid model stem.
+    """Return a model filename from a valid model stem.
 
     Args:
         model (str): Model stem to check.
@@ -551,16 +584,15 @@ def check_model_file_from_stem(model="yolo11n"):
     """
     path = Path(model)
     if not path.suffix and path.stem in downloads.GITHUB_ASSETS_STEMS:
-        return path.with_suffix(".pt")  # add suffix, i.e. yolo11n -> yolo11n.pt
+        return path.with_suffix(".pt")  # add suffix, i.e. yolo26n -> yolo26n.pt
     return model
 
 
 def check_file(file, suffix="", download=True, download_dir=".", hard=True):
-    """
-    Search/download file (if necessary), check suffix (if provided), and return path.
+    """Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
-        file (str): File name or path.
+        file (str): File name or path, URL, platform URI (ul://), or GCS path (gs://).
         suffix (str | tuple): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
         download_dir (str): Directory to download the file to.
@@ -578,7 +610,26 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         or file.lower().startswith("grpc://")
     ):  # file exists or gRPC Triton images
         return file
-    elif download and file.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")):  # download
+    elif download and file.lower().startswith("ul://"):  # Ultralytics Platform URI
+        from ultralytics.utils.callbacks.platform import resolve_platform_uri
+
+        url = resolve_platform_uri(file, hard=hard)  # Convert to signed HTTPS URL
+        if url is None:
+            return []  # Not found, soft fail (consistent with file search behavior)
+        # Use URI path for unique directory structure: ul://user/project/model -> user/project/model/filename.pt
+        uri_path = file[5:]  # Remove "ul://"
+        local_file = Path(download_dir) / uri_path / url2file(url)
+        if local_file.exists():
+            LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
+        else:
+            local_file.parent.mkdir(parents=True, exist_ok=True)
+            downloads.safe_download(url=url, file=local_file, unzip=False)
+        return str(local_file)
+    elif download and file.lower().startswith(
+        ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "gs://")
+    ):  # download
+        if file.startswith("gs://"):
+            file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
         if file.exists():
@@ -596,8 +647,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
 
 
 def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
-    """
-    Search/download YAML file (if necessary) and return path, checking suffix.
+    """Search/download YAML file (if necessary) and return path, checking suffix.
 
     Args:
         file (str | Path): File name or path.
@@ -611,8 +661,7 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
 
 
 def check_is_path_safe(basedir, path):
-    """
-    Check if the resolved path is under the intended directory to prevent path traversal.
+    """Check if the resolved path is under the intended directory to prevent path traversal.
 
     Args:
         basedir (Path | str): The intended directory.
@@ -629,8 +678,7 @@ def check_is_path_safe(basedir, path):
 
 @functools.lru_cache
 def check_imshow(warn=False):
-    """
-    Check if environment supports image displays.
+    """Check if environment supports image displays.
 
     Args:
         warn (bool): Whether to warn if environment doesn't support image displays.
@@ -654,8 +702,7 @@ def check_imshow(warn=False):
 
 
 def check_yolo(verbose=True, device=""):
-    """
-    Return a human-readable YOLO software and hardware summary.
+    """Return a human-readable YOLO software and hardware summary.
 
     Args:
         verbose (bool): Whether to print verbose information.
@@ -691,8 +738,7 @@ def check_yolo(verbose=True, device=""):
 
 
 def collect_system_info():
-    """
-    Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA.
+    """Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA.
 
     Returns:
         (dict): Dictionary containing system information.
@@ -752,8 +798,7 @@ def collect_system_info():
 
 
 def check_amp(model):
-    """
-    Check the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO model.
+    """Check the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLO model.
 
     If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
     results, so AMP will be disabled during training.
@@ -767,7 +812,7 @@ def check_amp(model):
     Examples:
         >>> from ultralytics import YOLO
         >>> from ultralytics.utils.checks import check_amp
-        >>> model = YOLO("yolo11n.pt").model.cuda()
+        >>> model = YOLO("yolo26n.pt").model.cuda()
         >>> check_amp(model)
     """
     from ultralytics.utils.torch_utils import autocast
@@ -806,14 +851,14 @@ def check_amp(model):
     try:
         from ultralytics import YOLO
 
-        assert amp_allclose(YOLO("yolo11n.pt"), im)
+        assert amp_allclose(YOLO("yolo26n.pt"), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO11n for AMP checks. {warning_msg}")
+        LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO26n for AMP checks. {warning_msg}")
     except (AttributeError, ModuleNotFoundError):
         LOGGER.warning(
             f"{prefix}checks skipped. "
-            f"Unable to load YOLO11n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
+            f"Unable to load YOLO26n for AMP checks due to possible Ultralytics package modifications. {warning_msg}"
         )
     except AssertionError:
         LOGGER.error(
@@ -849,8 +894,7 @@ def check_multiple_install():
 
 
 def print_args(args: dict | None = None, show_file=True, show_func=False):
-    """
-    Print function arguments (optional args dict).
+    """Print function arguments (optional args dict).
 
     Args:
         args (dict, optional): Arguments to print.
@@ -876,8 +920,7 @@ def print_args(args: dict | None = None, show_file=True, show_func=False):
 
 
 def cuda_device_count() -> int:
-    """
-    Get the number of NVIDIA GPUs available in the environment.
+    """Get the number of NVIDIA GPUs available in the environment.
 
     Returns:
         (int): The number of NVIDIA GPUs available.
@@ -902,8 +945,7 @@ def cuda_device_count() -> int:
 
 
 def cuda_is_available() -> bool:
-    """
-    Check if CUDA is available in the environment.
+    """Check if CUDA is available in the environment.
 
     Returns:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.
@@ -912,8 +954,7 @@ def cuda_is_available() -> bool:
 
 
 def is_rockchip():
-    """
-    Check if the current environment is running on a Rockchip SoC.
+    """Check if the current environment is running on a Rockchip SoC.
 
     Returns:
         (bool): True if running on a Rockchip SoC, False otherwise.
@@ -923,7 +964,7 @@ def is_rockchip():
             with open("/proc/device-tree/compatible") as f:
                 dev_str = f.read()
                 *_, soc = dev_str.split(",")
-                if soc.replace("\x00", "") in RKNN_CHIPS:
+                if soc.replace("\x00", "").split("-", 1)[0] in RKNN_CHIPS:
                     return True
         except OSError:
             return False
@@ -932,8 +973,7 @@ def is_rockchip():
 
 
 def is_intel():
-    """
-    Check if the system has Intel hardware (CPU or GPU).
+    """Check if the system has Intel hardware (CPU or GPU).
 
     Returns:
         (bool): True if Intel hardware is detected, False otherwise.
@@ -953,8 +993,7 @@ def is_intel():
 
 
 def is_sudo_available() -> bool:
-    """
-    Check if the sudo command is available in the environment.
+    """Check if the sudo command is available in the environment.
 
     Returns:
         (bool): True if the sudo command is available, False otherwise.
@@ -971,8 +1010,11 @@ check_torchvision()  # check torch-torchvision compatibility
 
 # Define constants
 IS_PYTHON_3_8 = PYTHON_VERSION.startswith("3.8")
+IS_PYTHON_3_9 = PYTHON_VERSION.startswith("3.9")
+IS_PYTHON_3_10 = PYTHON_VERSION.startswith("3.10")
 IS_PYTHON_3_12 = PYTHON_VERSION.startswith("3.12")
 IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 
+IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)

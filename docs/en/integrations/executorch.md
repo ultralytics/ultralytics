@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Export YOLO11 models to ExecuTorch format for efficient on-device inference on mobile and edge devices. Optimize your AI models for iOS, Android, and embedded systems.
-keywords: Ultralytics, YOLO11, ExecuTorch, model export, PyTorch, edge AI, mobile deployment, on-device inference, XNNPACK, embedded systems
+description: Export YOLO26 models to ExecuTorch format for efficient on-device inference on mobile and edge devices. Optimize your AI models for iOS, Android, and embedded systems.
+keywords: Ultralytics, YOLO26, ExecuTorch, model export, PyTorch, edge AI, mobile deployment, on-device inference, XNNPACK, embedded systems
 ---
 
-# Deploy YOLO11 on Mobile & Edge with ExecuTorch
+# Deploy YOLO26 on Mobile & Edge with ExecuTorch
 
 Deploying computer vision models on edge devices like smartphones, tablets, and embedded systems requires an optimized runtime that balances performance with resource constraints. ExecuTorch, PyTorch's solution for edge computing, enables efficient on-device inference for [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models.
 
@@ -13,10 +13,10 @@ This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, 
 ## Why export to ExecuTorch?
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/executorch-pipeline.avif" alt="PyTorch ExecuTorch overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/executorch-pipeline.avif" alt="PyTorch ExecuTorch mobile inference framework">
 </p>
 
-[ExecuTorch](https://pytorch.org/executorch/) is PyTorch's end-to-end solution for enabling on-device inference capabilities across mobile and edge devices. Built with the goal of being portable and efficient, ExecuTorch can be used to run PyTorch programs on a wide variety of computing platforms.
+[ExecuTorch](https://docs.pytorch.org/executorch/) is PyTorch's end-to-end solution for enabling on-device inference capabilities across mobile and edge devices. Built with the goal of being portable and efficient, ExecuTorch can be used to run PyTorch programs on a wide variety of computing platforms.
 
 ## Key features of ExecuTorch
 
@@ -44,9 +44,9 @@ ExecuTorch models can be deployed across various edge and mobile platforms:
 
 - **IoT Devices**: Integrate into IoT devices for on-device inference without cloud connectivity requirements.
 
-## Exporting Ultralytics YOLO11 Models to ExecuTorch
+## Exporting Ultralytics YOLO26 Models to ExecuTorch
 
-Converting Ultralytics YOLO11 models to ExecuTorch format enables efficient deployment on mobile and edge devices.
+Converting Ultralytics YOLO26 models to ExecuTorch format enables efficient deployment on mobile and edge devices.
 
 ### Installation
 
@@ -61,11 +61,11 @@ ExecuTorch export requires Python 3.10 or higher and specific dependencies:
         pip install ultralytics
         ```
 
-For detailed instructions and best practices related to the installation process, check our [YOLO11 Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+For detailed instructions and best practices related to the installation process, check our [YOLO26 Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ### Usage
 
-Exporting YOLO11 models to ExecuTorch is straightforward:
+Exporting YOLO26 models to ExecuTorch is straightforward:
 
 !!! example "Usage"
 
@@ -74,13 +74,13 @@ Exporting YOLO11 models to ExecuTorch is straightforward:
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO11 model
-        model = YOLO("yolo11n.pt")
+        # Load the YOLO26 model
+        model = YOLO("yolo26n.pt")
 
         # Export the model to ExecuTorch format
-        model.export(format="executorch")  # creates 'yolo11n_executorch_model' directory
+        model.export(format="executorch")  # creates 'yolo26n_executorch_model' directory
 
-        executorch_model = YOLO("yolo11n_executorch_model")
+        executorch_model = YOLO("yolo26n_executorch_model")
 
         results = executorch_model.predict("https://ultralytics.com/images/bus.jpg")
         ```
@@ -88,12 +88,14 @@ Exporting YOLO11 models to ExecuTorch is straightforward:
     === "CLI"
 
         ```bash
-        # Export a YOLO11n PyTorch model to ExecuTorch format
-        yolo export model=yolo11n.pt format=executorch # creates 'yolo11n_executorch_model' directory
+        # Export a YOLO26n PyTorch model to ExecuTorch format
+        yolo export model=yolo26n.pt format=executorch # creates 'yolo26n_executorch_model' directory
 
         # Run inference with the exported model
-        yolo predict model=yolo11n_executorch_model source=https://ultralytics.com/images/bus.jpg
+        yolo predict model=yolo26n_executorch_model source=https://ultralytics.com/images/bus.jpg
         ```
+
+    ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference.
 
 ### Export Arguments
 
@@ -109,8 +111,8 @@ When exporting to ExecuTorch format, you can specify the following arguments:
 The ExecuTorch export creates a directory containing the model and metadata:
 
 ```text
-yolo11n_executorch_model/
-├── yolo11n.pte              # ExecuTorch model file
+yolo26n_executorch_model/
+├── yolo26n.pte              # ExecuTorch model file
 └── metadata.yaml            # Model metadata (classes, image size, etc.)
 ```
 
@@ -137,7 +139,7 @@ Example iOS integration (Objective-C/C++):
 using namespace ::executorch::extension;
 
 // Load the model
-Module module("/path/to/yolo11n.pte");
+Module module("/path/to/yolo26n.pte");
 
 // Create input tensor
 float input[1 * 3 * 640 * 640];
@@ -155,7 +157,7 @@ import org.pytorch.executorch.Module
 import org.pytorch.executorch.Tensor
 
 // Load the model
-val module = Module.load("/path/to/yolo11n.pte")
+val module = Module.load("/path/to/yolo26n.pte")
 
 // Prepare input tensor
 val inputTensor = Tensor.fromBlob(floatData, longArrayOf(1, 3, 640, 640))
@@ -174,7 +176,7 @@ For embedded Linux systems, use the ExecuTorch C++ API:
 #include <executorch/extension/module/module.h>
 
 // Load model
-auto module = torch::executor::Module("yolo11n.pte");
+auto module = torch::executor::Module("yolo26n.pte");
 
 // Prepare input
 std::vector<float> input_data = preprocessImage(image);
@@ -184,7 +186,7 @@ auto input_tensor = torch::executor::Tensor(input_data, {1, 3, 640, 640});
 auto outputs = module.forward({input_tensor});
 ```
 
-For more details on integrating ExecuTorch into your applications, visit the [ExecuTorch Documentation](https://pytorch.org/executorch/).
+For more details on integrating ExecuTorch into your applications, visit the [ExecuTorch Documentation](https://docs.pytorch.org/executorch/).
 
 ## Performance Optimization
 
@@ -192,7 +194,7 @@ For more details on integrating ExecuTorch into your applications, visit the [Ex
 
 To reduce model size for deployment:
 
-- **Use Smaller Models**: Start with YOLO11n (nano) for the smallest footprint
+- **Use Smaller Models**: Start with YOLO26n (nano) for the smallest footprint
 - **Lower Input Resolution**: Use smaller image sizes (e.g., `imgsz=320` or `imgsz=416`)
 - **Quantization**: Apply quantization techniques (supported in future ExecuTorch versions)
 
@@ -206,7 +208,7 @@ For faster inference:
 
 ## Benchmarks
 
-The Ultralytics team benchmarked YOLO11 models, comparing speed and accuracy between PyTorch and ExecuTorch.
+The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy between PyTorch and ExecuTorch.
 
 !!! tip "Performance"
 
@@ -233,33 +235,33 @@ The Ultralytics team benchmarked YOLO11 models, comparing speed and accuracy bet
 
 **Solution**: ExecuTorch requires Python 3.10 or higher. Upgrade your Python installation:
 
-    ```bash
-    # Using conda
-    conda create -n executorch python=3.10
-    conda activate executorch
-    ```
+```bash
+# Using conda
+conda create -n executorch python=3.10
+conda activate executorch
+```
 
 **Issue**: `Export fails during first run`
 
 **Solution**: ExecuTorch may need to download and compile components on first use. Ensure you have:
 
-    ```bash
-    pip install --upgrade executorch
-    ```
+```bash
+pip install --upgrade executorch
+```
 
 **Issue**: `Import errors for ExecuTorch modules`
 
 **Solution**: Ensure ExecuTorch is properly installed:
 
-    ```bash
-    pip install executorch --force-reinstall
-    ```
+```bash
+pip install executorch --force-reinstall
+```
 
-For more troubleshooting help, visit the [Ultralytics GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [ExecuTorch Documentation](https://pytorch.org/executorch/stable/getting-started-setup.html).
+For more troubleshooting help, visit the [Ultralytics GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [ExecuTorch Documentation](https://docs.pytorch.org/executorch/stable/getting-started-setup.html).
 
 ## Summary
 
-Exporting YOLO11 models to ExecuTorch format enables efficient deployment on mobile and edge devices. With PyTorch-native integration, cross-platform support, and optimized performance, ExecuTorch is an excellent choice for edge AI applications.
+Exporting YOLO26 models to ExecuTorch format enables efficient deployment on mobile and edge devices. With PyTorch-native integration, cross-platform support, and optimized performance, ExecuTorch is an excellent choice for edge AI applications.
 
 Key takeaways:
 
@@ -271,22 +273,22 @@ Key takeaways:
 
 ## FAQ
 
-### How do I export a YOLO11 model to ExecuTorch format?
+### How do I export a YOLO26 model to ExecuTorch format?
 
-Export a YOLO11 model to ExecuTorch using either Python or CLI:
+Export a YOLO26 model to ExecuTorch using either Python or CLI:
 
-    ```python
-    from ultralytics import YOLO
+```python
+from ultralytics import YOLO
 
-    model = YOLO("yolo11n.pt")
-    model.export(format="executorch")
-    ```
+model = YOLO("yolo26n.pt")
+model.export(format="executorch")
+```
 
 or
 
-    ```bash
-    yolo export model=yolo11n.pt format=executorch
-    ```
+```bash
+yolo export model=yolo26n.pt format=executorch
+```
 
 ### What are the system requirements for ExecuTorch export?
 

@@ -27,7 +27,7 @@ class ClassificationPredictor(BasePredictor):
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.classify import ClassificationPredictor
-        >>> args = dict(model="yolo11n-cls.pt", source=ASSETS)
+        >>> args = dict(model="yolo26n-cls.pt", source=ASSETS)
         >>> predictor = ClassificationPredictor(overrides=args)
         >>> predictor.predict_cli()
 
@@ -84,7 +84,7 @@ class ClassificationPredictor(BasePredictor):
             (list[Results]): List of Results objects containing classification results for each image.
         """
         if not isinstance(orig_imgs, list):  # Input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         preds = preds[0] if isinstance(preds, (list, tuple)) else preds
         return [

@@ -38,7 +38,7 @@ When you define your classes, another important distinction to make is whether t
 - **Coarse Class-Count**: These are broader, more inclusive categories, such as "vehicle" and "non-vehicle." They simplify annotation and require fewer computational resources but provide less detailed information, potentially limiting the model's effectiveness in complex scenarios.
 - **Fine Class-Count**: More categories with finer distinctions, such as "sedan," "SUV," "pickup truck," and "motorcycle." They capture more detailed information, improving model accuracy and performance. However, they are more time-consuming and labor-intensive to annotate and require more computational resources.
 
-Starting with more specific classes can be very helpful, especially in complex projects where details are important. More specific classes lets you collect more detailed data, gain deeper insights, and establish clearer distinctions between categories. Not only does it improve the accuracy of the model, but it also makes it easier to adjust the model later if needed, saving both time and resources.
+Starting with more specific classes can be very helpful, especially in complex projects where details are important. More specific classes let you collect more detailed data, gain deeper insights, and establish clearer distinctions between categories. Not only does it improve the accuracy of the model, but it also makes it easier to adjust the model later if needed, saving both time and resources.
 
 ### Sources of Data
 
@@ -73,7 +73,7 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 - **Keypoints**: Specific points marked within an image to identify locations of interest. Keypoints are used in tasks like [pose estimation](../tasks/pose.md) and facial landmark detection.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/types-of-data-annotation.avif" alt="Types of Data Annotation">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/types-of-data-annotation.avif" alt="Data annotation types including bounding boxes, polygons, and masks">
 </p>
 
 ### Common Annotation Formats
@@ -86,7 +86,7 @@ Commonly used formats include [COCO](../datasets/detect/coco.md), which supports
 
 Now, assuming you've chosen a type of annotation and format, it's time to establish clear and objective labeling rules. These rules are like a roadmap for consistency and [accuracy](https://www.ultralytics.com/glossary/accuracy) throughout the annotation process. Key aspects of these rules include:
 
-- **Clarity and Detail**: Make sure your instructions are clear. Use examples and illustrations to understand what's expected.
+- **Clarity and Detail**: Make sure your instructions are clear. Use examples and illustrations to show what's expected.
 - **Consistency**: Keep your annotations uniform. Set standard criteria for annotating different types of data, so all annotations follow the same rules.
 - **Reducing Bias**: Stay neutral. Train yourself to be objective and minimize personal biases to ensure fair annotations.
 - **Efficiency**: Work smarter, not harder. Use tools and workflows that automate repetitive tasks, making the annotation process faster and more efficient.
@@ -103,7 +103,7 @@ Let's say you are ready to annotate now. There are several open-source tools ava
 - **[LabelImg](https://github.com/HumanSignal/labelImg)**: An easy-to-use graphical image annotation tool that's particularly good for creating bounding box annotations in YOLO format.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/labelme-instance-segmentation-annotation.avif" alt="LabelMe Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/labelme-instance-segmentation-annotation.avif" alt="LabelMe annotation tool for instance segmentation">
 </p>
 
 These open-source tools are budget-friendly and provide a range of features to meet different annotation needs.
@@ -117,7 +117,7 @@ Before you dive into annotating your data, there are a few more things to keep i
 It's important to understand the difference between accuracy and precision and how it relates to annotation. Accuracy refers to how close the annotated data is to the true values. It helps us measure how closely the labels reflect real-world scenarios. Precision indicates the consistency of annotations. It checks if you are giving the same label to the same object or feature throughout the dataset. High accuracy and precision lead to better-trained models by reducing noise and improving the model's ability to generalize from the [training data](https://www.ultralytics.com/glossary/training-data).
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/example-of-precision.avif" alt="Example of Precision">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-of-precision.avif" alt="Accuracy vs precision comparison for data annotation">
 </p>
 
 #### Identifying Outliers
@@ -160,12 +160,12 @@ Bouncing your ideas and queries off other [computer vision](https://www.ultralyt
 
 ### Where to Find Help and Support
 
-- **GitHub Issues:** Visit the YOLO11 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers are there to help with any issues you face.
+- **GitHub Issues:** Visit the YOLO26 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers are there to help with any issues you face.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
 
 ### Official Documentation
 
-- **Ultralytics YOLO11 Documentation:** Refer to the [official YOLO11 documentation](./index.md) for thorough guides and valuable insights on numerous computer vision tasks and projects.
+- **Ultralytics YOLO26 Documentation:** Refer to the [official YOLO26 documentation](./index.md) for thorough guides and valuable insights on numerous computer vision tasks and projects.
 
 ## Conclusion
 
@@ -183,7 +183,7 @@ Ensuring high consistency and accuracy in data annotation involves establishing 
 
 ### How many images do I need for training Ultralytics YOLO models?
 
-For effective [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) and object detection with Ultralytics YOLO models, start with a minimum of a few hundred annotated objects per class. If training for just one class, begin with at least 100 annotated images and train for approximately 100 [epochs](https://www.ultralytics.com/glossary/epoch). More complex tasks might require thousands of images per class to achieve high reliability and performance. Quality annotations are crucial, so ensure your data collection and annotation processes are rigorous and aligned with your project's specific goals. Explore detailed training strategies in the [YOLO11 training guide](../modes/train.md).
+For effective [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) and object detection with Ultralytics YOLO models, start with a minimum of a few hundred annotated objects per class. If training for just one class, begin with at least 100 annotated images and train for approximately 100 [epochs](https://www.ultralytics.com/glossary/epoch). More complex tasks might require thousands of images per class to achieve high reliability and performance. Quality annotations are crucial, so ensure your data collection and annotation processes are rigorous and aligned with your project's specific goals. Explore detailed training strategies in the [YOLO26 training guide](../modes/train.md).
 
 ### What are some popular tools for data annotation?
 

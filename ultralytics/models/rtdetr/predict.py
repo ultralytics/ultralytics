@@ -57,7 +57,7 @@ class RTDETRPredictor(BasePredictor):
         bboxes, scores = preds[0].split((4, nd - 4), dim=-1)
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         results = []
         for bbox, score, orig_img, img_path in zip(bboxes, scores, orig_imgs, self.batch[0]):  # (300, 4)
@@ -78,11 +78,10 @@ class RTDETRPredictor(BasePredictor):
         """
         Pre-transform input images before feeding them into the model for inference.
 
-        The input images are letterboxed to ensure a square aspect ratio and scale-filled. The size must be square (640)
-        and scale_filled.
+        The input images are letterboxed to ensure a square aspect ratio and scale-filled.
 
         Args:
-            im (list[np.ndarray]  | torch.Tensor): Input images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for
+            im (list[np.ndarray] | torch.Tensor): Input images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for
                 list.
 
         Returns:

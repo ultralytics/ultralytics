@@ -26,7 +26,7 @@ class DetectionPredictor(BasePredictor):
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.detect import DetectionPredictor
-        >>> args = dict(model="yolo11n.pt", source=ASSETS)
+        >>> args = dict(model="yolo26n.pt", source=ASSETS)
         >>> predictor = DetectionPredictor(overrides=args)
         >>> predictor.predict_cli()
     """
@@ -48,7 +48,7 @@ class DetectionPredictor(BasePredictor):
             (list): List of Results objects containing the post-processed predictions.
 
         Examples:
-            >>> predictor = DetectionPredictor(overrides=dict(model="yolo11n.pt"))
+            >>> predictor = DetectionPredictor(overrides=dict(model="yolo26n.pt"))
             >>> results = predictor.predict("path/to/image.jpg")
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
@@ -67,7 +67,7 @@ class DetectionPredictor(BasePredictor):
         )
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         if save_feats:
             obj_feats = self.get_obj_feats(self._feats, preds[1])
@@ -81,7 +81,8 @@ class DetectionPredictor(BasePredictor):
 
         return results
 
-    def get_obj_feats(self, feat_maps, idxs):
+    @staticmethod
+    def get_obj_feats(feat_maps, idxs):
         """Extract object features from the feature maps."""
         import torch
 

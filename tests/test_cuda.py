@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import os
 from itertools import product
 from pathlib import Path
 
@@ -40,7 +41,7 @@ def test_checks():
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_amp():
     """Test AMP training checks."""
-    model = YOLO("yolo11n.pt").model.to(f"cuda:{DEVICES[0]}")
+    model = YOLO("yolo26n.pt").model.to(f"cuda:{DEVICES[0]}")
     assert check_amp(model)
 
 
@@ -90,6 +91,12 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 )
 def test_export_engine_matrix(task, dynamic, int8, half, batch):
     """Test YOLO model export to TensorRT format for various configurations and run inference."""
+    import tensorrt as trt
+
+    is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10
+    if is_trt10 and int8 and dynamic:
+        pytest.skip("YOLO26 INT8+dynamic export requires explicit quantization on TensorRT 10+")
+
     file = YOLO(TASK2MODEL[task]).export(
         format="engine",
         imgsz=32,
@@ -110,26 +117,22 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_train():
     """Test model training on a minimal dataset using available CUDA devices."""
-    import os
-
     device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
     # NVIDIA Jetson only has one GPU and therefore skipping checks
     if not IS_JETSON:
-        results = YOLO(MODEL).train(
-            data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15
-        )  # requires imgsz>=64
+        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15)
+        results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
-        assert (
-            (results is None) if len(DEVICES) > 1 else (results is not None)
-        )  # DDP returns None, single-GPU returns metrics
+        # Note DDP training returns None, single-GPU returns metrics
+        assert (results is None) if len(DEVICES) > 1 else (results is not None)
 
 
 @pytest.mark.slow
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_predict_multiple_devices():
     """Validate model prediction consistency across CPU and CUDA devices."""
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     # Test CPU
     model = model.cpu()

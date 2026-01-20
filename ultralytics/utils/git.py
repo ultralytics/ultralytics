@@ -65,7 +65,8 @@ class GitRepo:
                 return (root / t.split(":", 1)[1].strip()).resolve()
         return None
 
-    def _read(self, p: Path | None) -> str | None:
+    @staticmethod
+    def _read(p: Path | None) -> str | None:
         """Read and strip file if exists."""
         return p.read_text(errors="ignore").strip() if p and p.exists() else None
 
@@ -77,8 +78,7 @@ class GitRepo:
     def _ref_commit(self, ref: str) -> str | None:
         """Commit for ref (handles packed-refs)."""
         rf = self.gitdir / ref
-        s = self._read(rf)
-        if s:
+        if s := self._read(rf):
             return s
         pf = self.gitdir / "packed-refs"
         b = pf.read_bytes().splitlines() if pf.exists() else []

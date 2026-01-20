@@ -270,9 +270,9 @@ class BYTETracker:
             args (Namespace): Command-line arguments containing tracking parameters.
             frame_rate (int): Frame rate of the video sequence.
         """
-        self.tracked_stracks = []  # type: list[STrack]
-        self.lost_stracks = []  # type: list[STrack]
-        self.removed_stracks = []  # type: list[STrack]
+        self.tracked_stracks: list[STrack] = []
+        self.lost_stracks: list[STrack] = []
+        self.removed_stracks: list[STrack] = []
 
         self.frame_id = 0
         self.args = args
@@ -304,7 +304,7 @@ class BYTETracker:
         detections = self.init_track(results, feats_keep)
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
-        tracked_stracks = []  # type: list[STrack]
+        tracked_stracks: list[STrack] = []
         for track in self.tracked_stracks:
             if not track.is_activated:
                 unconfirmed.append(track)
@@ -423,9 +423,9 @@ class BYTETracker:
 
     def reset(self):
         """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""
-        self.tracked_stracks = []  # type: list[STrack]
-        self.lost_stracks = []  # type: list[STrack]
-        self.removed_stracks = []  # type: list[STrack]
+        self.tracked_stracks: list[STrack] = []
+        self.lost_stracks: list[STrack] = []
+        self.removed_stracks: list[STrack] = []
         self.frame_id = 0
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()

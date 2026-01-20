@@ -146,7 +146,7 @@ See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytic
     [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA requirements, so install PyTorch first by following the instructions at [PyTorch](https://pytorch.org/get-started/locally/).
 
     <a href="https://pytorch.org/get-started/locally/">
-        <img width="800" alt="PyTorch Installation Instructions" src="https://github.com/ultralytics/docs/releases/download/0/pytorch-installation-instructions.avif">
+        <img width="800" alt="PyTorch Installation Instructions" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pytorch-installation-instructions.avif">
     </a>
 
 ## Headless Server Installation
@@ -333,9 +333,9 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
     Arguments must be passed as `arg=value` pairs, split by an equals `=` sign and delimited by spaces. Do not use `--` argument prefixes or commas `,` between arguments.
 
     - `yolo predict model=yolo26n.pt imgsz=640 conf=0.25`  ✅
-    - `yolo predict model yolo11n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
+    - `yolo predict model yolo26n.pt imgsz 640 conf 0.25`  ❌ (missing `=`)
     - `yolo predict model=yolo26n.pt, imgsz=640, conf=0.25`  ❌ (do not use `,`)
-    - `yolo predict --model yolo11n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
+    - `yolo predict --model yolo26n.pt --imgsz 640 --conf 0.25`  ❌ (do not use `--`)
     - `yolo solution model=yolo26n.pt imgsz=640 conf=0.25` ❌ (use `solutions`, not `solution`)
 
 [CLI Guide](usage/cli.md){ .md-button }

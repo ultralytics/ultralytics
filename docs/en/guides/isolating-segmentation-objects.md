@@ -160,7 +160,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 There are no additional steps required if keeping full size image.
 
                 <figure markdown>
-                    ![Example Full size Isolated Object Image Black Background](https://github.com/ultralytics/docs/releases/download/0/full-size-isolated-object-black-background.avif){ width=240 }
+                    ![Example Full size Isolated Object Image Black Background](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/full-size-isolated-object-black-background.avif){ width=240 }
                     <figcaption>Example full-size output</figcaption>
                 </figure>
 
@@ -168,7 +168,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
                 Additional steps required to crop image to only include object region.
 
-                ![Example Crop Isolated Object Image Black Background](https://github.com/ultralytics/docs/releases/download/0/example-crop-isolated-object-image-black-background.avif){ align="right" }
+                ![Example Crop Isolated Object Image Black Background](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-crop-isolated-object-image-black-background.avif){ align="right" }
                 ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)
@@ -206,7 +206,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
                 There are no additional steps required if keeping full size image.
 
                 <figure markdown>
-                    ![Example Full size Isolated Object Image No Background](https://github.com/ultralytics/docs/releases/download/0/example-full-size-isolated-object-image-no-background.avif){ width=240 }
+                    ![Example Full size Isolated Object Image No Background](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-full-size-isolated-object-image-no-background.avif){ width=240 }
                     <figcaption>Example full-size output + transparent background</figcaption>
                 </figure>
 
@@ -214,7 +214,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
 
                 Additional steps required to crop image to only include object region.
 
-                ![Example Crop Isolated Object Image No Background](https://github.com/ultralytics/docs/releases/download/0/example-crop-isolated-object-image-no-background.avif){ align="right" }
+                ![Example Crop Isolated Object Image No Background](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/example-crop-isolated-object-image-no-background.avif){ align="right" }
                 ```{ .py .annotate }
                 # (1) Bounding box coordinates
                 x1, y1, x2, y2 = c.boxes.xyxy.cpu().numpy().squeeze().astype(np.int32)

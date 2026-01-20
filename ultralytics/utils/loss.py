@@ -512,7 +512,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             )
             if pred_semseg is not None:
                 sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
-                mask_zero = sem_masks == 0  # NxHxW
+                mask_zero = masks == 0  # NxHxW
                 sem_masks = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2).float()  # NxCxHxW
                 sem_masks[mask_zero.unsqueeze(1).expand_as(sem_masks)] = 0
                 loss[4] = self.bcedice_loss(pred_semseg, sem_masks)

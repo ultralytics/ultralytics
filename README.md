@@ -82,6 +82,8 @@ yolo predict model=yolo26n.pt source='https://ultralytics.com/images/bus.jpg'
 
 The `yolo` command supports various tasks and modes, accepting additional arguments like `imgsz=640`. Explore the YOLO [CLI Docs](https://docs.ultralytics.com/usage/cli/) for more examples.
 
+<img width="3456" height="1938" alt="image" src="https://github.com/user-attachments/assets/bf1d7ac6-fbe9-4ecd-99bc-cdbebbaa8518" />
+
 ### Python
 
 Ultralytics YOLO can also be integrated directly into your Python projects. It accepts the same [configuration arguments](https://docs.ultralytics.com/usage/cfg/) as the CLI:

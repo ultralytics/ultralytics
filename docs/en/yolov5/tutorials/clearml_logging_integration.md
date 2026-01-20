@@ -6,7 +6,7 @@ keywords: ClearML, YOLOv5, machine learning, experiment tracking, data versionin
 
 # ClearML Integration
 
-<img align="center" src="https://github.com/thepycoder/clearml_screenshots/raw/main/logos_dark.png#gh-light-mode-only" alt="Clear|ML"><img align="center" src="https://github.com/thepycoder/clearml_screenshots/raw/main/logos_light.png#gh-dark-mode-only" alt="Clear|ML">
+<img align="center" src="https://github.com/thepycoder/clearml_screenshots/raw/main/logos_dark.png#gh-light-mode-only" alt="ClearML MLOps experiment tracking platform"><img align="center" src="https://github.com/thepycoder/clearml_screenshots/raw/main/logos_light.png#gh-dark-mode-only" alt="ClearML MLOps experiment tracking platform">
 
 ## About ClearML
 
@@ -27,7 +27,7 @@ And so much more. It's up to you how many of these tools you want to use, you ca
 <br>
 <br>
 
-![ClearML scalars dashboard](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-scalars-dashboard.avif)
+![ClearML scalars dashboard showing YOLOv5 training metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-scalars-dashboard.avif)
 
 <br>
 <br>
@@ -98,7 +98,7 @@ There's even more we can do with all of this information, like [hyperparameter o
 
 Versioning your data separately from your code is generally a good idea and makes it easy to acquire the latest version too. This repository supports supplying a dataset version ID, and it will make sure to get the data if it's not there yet. Next to that, this workflow also saves the used dataset ID as part of the task parameters, so you will always know for sure which data was used in which experiment!
 
-![ClearML Dataset Interface](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-dataset-interface.avif)
+![ClearML dataset version management interface](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-dataset-interface.avif)
 
 ### Prepare Your Dataset
 
@@ -178,7 +178,7 @@ pip install optuna
 python utils/loggers/clearml/hpo.py
 ```
 
-![HPO](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hpo-clearml-experiment.avif)
+![ClearML HPO dashboard with YOLOv5 metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hpo-clearml-experiment.avif)
 
 ## 🤯 Remote Execution (advanced)
 

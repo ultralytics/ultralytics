@@ -29,13 +29,13 @@ Before diving into how to deploy YOLO26 using DeepSparse, let's understand the b
 - **Enhanced Inference Speed**: Achieves up to 525 FPS (on YOLO11n), significantly speeding up YOLO's inference capabilities compared to traditional methods.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/enhanced-inference-speed.avif" alt="Enhanced Inference Speed">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/enhanced-inference-speed.avif" alt="Neural Magic DeepSparse inference acceleration">
 </p>
 
 - **Optimized Model Efficiency**: Uses pruning and quantization to enhance YOLO26's efficiency, reducing model size and computational requirements while maintaining [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/optimized-model-efficiency.avif" alt="Optimized Model Efficiency">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/optimized-model-efficiency.avif" alt="Neural Magic model optimization and pruning">
 </p>
 
 - **High Performance on Standard CPUs**: Delivers GPU-like performance on CPUs, providing a more accessible and cost-effective option for various applications.
@@ -150,7 +150,7 @@ DeepSparse provides additional features for practical integration of YOLO26 in a
 Running the annotate command processes your specified image, detecting objects, and saving the annotated image with bounding boxes and classifications. The annotated image will be stored in an annotation-results folder. This helps provide a visual representation of the model's detection capabilities.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-annotation-feature.avif" alt="Image Annotation Feature">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-annotation-feature.avif" alt="Neural Magic annotation feature interface">
 </p>
 
 After running the eval command, you will receive detailed output metrics such as [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) (mean Average Precision). This provides a comprehensive view of your model's performance on the dataset and is particularly useful for fine-tuning and optimizing your YOLO26 models for specific use cases, ensuring high accuracy and efficiency.

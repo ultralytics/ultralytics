@@ -8,16 +8,6 @@ keywords: Ultralytics Platform, datasets, dataset management, YOLO, data upload,
 
 [Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. Once uploaded, datasets can be immediately used for model training, with automatic processing and statistics generation.
 
-<p align="center">
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/R42s2zFtNIY"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> Upload Datasets to Ultralytics Platform
-</p>
-
 ## Upload Dataset
 
 Ultralytics Platform accepts multiple upload formats for flexibility.

@@ -522,7 +522,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                     for i in range(batch_size):
                         instance_mask_i = masks[batch_idx == i]  # [num_instances_i, H, W]
                         if len(instance_mask_i) > 0:
-                            mask_zero_i = (instance_mask_i.sum(dim=0) == 0)  # [H, W]
+                            mask_zero_i = instance_mask_i.sum(dim=0) == 0  # [H, W]
                             sem_masks[i, :, mask_zero_i] = 0
 
                 loss[4] = self.bcedice_loss(pred_semseg, sem_masks)

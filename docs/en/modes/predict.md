@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-t
 
 # Model Prediction with Ultralytics YOLO
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Introduction
 
@@ -847,9 +847,9 @@ Here's a Python script using OpenCV (`cv2`) and YOLO to run inference on video f
 
 This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
 
-[car spare parts]: https://github.com/ultralytics/docs/releases/download/0/car-parts-detection-for-predict.avif
-[football player detect]: https://github.com/ultralytics/docs/releases/download/0/football-players-detection.avif
-[human fall detect]: https://github.com/ultralytics/docs/releases/download/0/person-fall-detection.avif
+[car spare parts]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/car-parts-detection-for-predict.avif
+[football player detect]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/football-players-detection.avif
+[human fall detect]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/person-fall-detection.avif
 
 ## FAQ
 

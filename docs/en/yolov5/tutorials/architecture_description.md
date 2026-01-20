@@ -18,7 +18,7 @@ YOLOv5's architecture consists of three main parts:
 
 The structure of the model is depicted in the image below. The model structure details can be found in [`models/yolov5l.yaml`](https://github.com/ultralytics/yolov5/blob/master/models/yolov5l.yaml).
 
-![yolov5](https://github.com/ultralytics/docs/releases/download/0/yolov5-model-structure.avif)
+![yolov5](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-model-structure.avif)
 
 YOLOv5 introduces some notable improvements compared to its predecessors:
 
@@ -108,29 +108,29 @@ YOLOv5 employs various data augmentation techniques to improve the model's abili
 
 - **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage [object detection](https://www.ultralytics.com/glossary/object-detection) models to better handle various object scales and translations.
 
-    ![mosaic](https://github.com/ultralytics/docs/releases/download/0/mosaic-augmentation.avif)
+    ![mosaic](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaic-augmentation.avif)
 
 - **Copy-Paste Augmentation**: An innovative data augmentation method that copies random patches from an image and pastes them onto another randomly chosen image, effectively generating a new training sample.
 
-    ![copy-paste](https://github.com/ultralytics/docs/releases/download/0/copy-paste.avif)
+    ![copy-paste](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/copy-paste.avif)
 
 - **Random Affine Transformations**: This includes random rotation, scaling, translation, and shearing of the images.
 
-    ![random-affine](https://github.com/ultralytics/docs/releases/download/0/random-affine-transformations.avif)
+    ![random-affine](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/random-affine-transformations.avif)
 
 - **MixUp Augmentation**: A method that creates composite images by taking a linear combination of two images and their associated labels.
 
-    ![mixup](https://github.com/ultralytics/docs/releases/download/0/mixup.avif)
+    ![mixup](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mixup.avif)
 
 - **Albumentations**: A powerful image augmentation library that supports a wide variety of augmentation techniques. Learn more about [using Albumentations augmentations](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data).
 
 - **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
 
-    ![hsv](https://github.com/ultralytics/docs/releases/download/0/hsv-augmentation.avif)
+    ![hsv](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hsv-augmentation.avif)
 
 - **Random Horizontal Flip**: An augmentation method that randomly flips images horizontally.
 
-    ![horizontal-flip](https://github.com/ultralytics/docs/releases/download/0/random-horizontal-flip.avif)
+    ![horizontal-flip](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/random-horizontal-flip.avif)
 
 ## 3. Training Strategies
 

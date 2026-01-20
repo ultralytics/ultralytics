@@ -104,7 +104,7 @@ To train a [YOLO26](https://docs.ultralytics.com/models/yolo26/) model on the br
 
 The brain tumor dataset encompasses a wide array of medical images featuring brain scans with and without tumors. Presented below are examples of images from the dataset, accompanied by their respective annotations.
 
-![Brain tumor dataset sample image](https://github.com/ultralytics/docs/releases/download/0/brain-tumor-dataset-sample-image.avif)
+![Brain tumor dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/brain-tumor-dataset-sample-image.avif)
 
 - **Mosaiced Image**: Displayed here is a training batch comprising mosaiced dataset images. Mosaicing, a training technique, consolidates multiple images into one, enhancing batch diversity. This approach aids in improving the model's capacity to generalize across various tumor sizes, shapes, and locations within brain scans.
 

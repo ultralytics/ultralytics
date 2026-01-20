@@ -19,7 +19,7 @@ YOLOv9 marks a significant advancement in real-time object detection, introducin
   <strong>Watch:</strong> YOLOv9 Training on Custom Data using Ultralytics | Industrial Package Dataset
 </p>
 
-![YOLOv9 performance comparison](https://github.com/ultralytics/docs/releases/download/0/yolov9-performance-comparison.avif)
+![YOLOv9 performance comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov9-performance-comparison.avif)
 
 ## Introduction to YOLOv9
 
@@ -61,7 +61,7 @@ PGI is a novel concept introduced in YOLOv9 to combat the information bottleneck
 
 GELAN represents a strategic architectural advancement, enabling YOLOv9 to achieve superior parameter utilization and computational efficiency. Its design allows for flexible integration of various computational blocks, making YOLOv9 adaptable to a wide range of applications without sacrificing speed or accuracy.
 
-![YOLOv9 architecture comparison](https://github.com/ultralytics/docs/releases/download/0/yolov9-architecture-comparison.avif)
+![YOLOv9 architecture comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov9-architecture-comparison.avif)
 
 ## YOLOv9 Benchmarks
 

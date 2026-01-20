@@ -13,7 +13,7 @@ This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, 
 ## Why export to ExecuTorch?
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/executorch-pipeline.avif" alt="PyTorch ExecuTorch overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/executorch-pipeline.avif" alt="PyTorch ExecuTorch mobile inference framework">
 </p>
 
 [ExecuTorch](https://docs.pytorch.org/executorch/) is PyTorch's end-to-end solution for enabling on-device inference capabilities across mobile and edge devices. Built with the goal of being portable and efficient, ExecuTorch can be used to run PyTorch programs on a wide variety of computing platforms.

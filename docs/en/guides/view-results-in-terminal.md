@@ -93,7 +93,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 ## Example Inference Results
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/view-image-in-terminal.avif" alt="View Image in Terminal">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/view-image-in-terminal.avif" alt="YOLO inference results displayed in terminal">
 </p>
 
 !!! danger

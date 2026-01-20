@@ -2490,6 +2490,10 @@ class SAM3SemanticPredictor(SAM3Predictor):
         for image in images:
             orig_img = cv2.imread(str(image)) if isinstance(image, (str, Path)) else image
             path = str(image) if isinstance(image, (str, Path)) else ""
+            if orig_img is None:
+                raise FileNotFoundError(
+                    f"Image '{path}' could not be loaded. Please check that the file exists and is a valid image."
+                )
             image_infos.append({"orig_img": orig_img, "path": path, "shape": orig_img.shape})
             im = torch.from_numpy(np.ascontiguousarray(letterbox(image=orig_img)[..., ::-1].transpose((2, 0, 1))))
             im = (

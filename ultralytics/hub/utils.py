@@ -21,8 +21,7 @@ HELP_MSG = "If this issue persists please visit https://github.com/ultralytics/h
 
 
 def request_with_credentials(url: str) -> Any:
-    """
-    Make an AJAX request with cookies attached in a Google Colab environment.
+    """Make an AJAX request with cookies attached in a Google Colab environment.
 
     Args:
         url (str): The URL to make the request to.
@@ -62,8 +61,7 @@ def request_with_credentials(url: str) -> Any:
 
 
 def requests_with_progress(method: str, url: str, **kwargs):
-    """
-    Make an HTTP request using the specified method and URL, with an optional progress bar.
+    """Make an HTTP request using the specified method and URL, with an optional progress bar.
 
     Args:
         method (str): The HTTP method to use (e.g. 'GET', 'POST').
@@ -106,8 +104,7 @@ def smart_request(
     progress: bool = False,
     **kwargs,
 ):
-    """
-    Make an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
+    """Make an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
 
     Args:
         method (str): The HTTP method to use for the request. Choices are 'post' and 'get'.

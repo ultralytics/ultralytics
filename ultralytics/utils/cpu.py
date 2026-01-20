@@ -10,8 +10,7 @@ from pathlib import Path
 
 
 class CPUInfo:
-    """
-    Provide cross-platform CPU brand and model information.
+    """Provide cross-platform CPU brand and model information.
 
     Query platform-specific sources to retrieve a human-readable CPU descriptor and normalize it for consistent
     presentation across macOS, Linux, and Windows. If platform-specific probing fails, generic platform identifiers are

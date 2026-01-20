@@ -41,8 +41,7 @@ from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_
 
 
 class BaseValidator:
-    """
-    A base class for creating validators.
+    """A base class for creating validators.
 
     This class provides the foundation for validation processes, including model evaluation, metric computation, and
     result visualization.
@@ -93,8 +92,7 @@ class BaseValidator:
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
-        """
-        Initialize a BaseValidator instance.
+        """Initialize a BaseValidator instance.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
@@ -131,8 +129,7 @@ class BaseValidator:
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
-        """
-        Execute validation process, running inference on dataloader and computing performance metrics.
+        """Execute validation process, running inference on dataloader and computing performance metrics.
 
         Args:
             trainer (object, optional): Trainer object that contains the model to validate.
@@ -269,8 +266,7 @@ class BaseValidator:
     def match_predictions(
         self, pred_classes: torch.Tensor, true_classes: torch.Tensor, iou: torch.Tensor, use_scipy: bool = False
     ) -> torch.Tensor:
-        """
-        Match predictions to ground truth objects using IoU.
+        """Match predictions to ground truth objects using IoU.
 
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape (N,).

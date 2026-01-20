@@ -45,8 +45,7 @@ GITHUB_ASSETS_STEMS = frozenset(k.rpartition(".")[0] for k in GITHUB_ASSETS_NAME
 
 
 def is_url(url: str | Path, check: bool = False) -> bool:
-    """
-    Validate if the given string is a URL and optionally check if the URL exists online.
+    """Validate if the given string is a URL and optionally check if the URL exists online.
 
     Args:
         url (str): The string to be validated as a URL.
@@ -73,8 +72,7 @@ def is_url(url: str | Path, check: bool = False) -> bool:
 
 
 def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_Store", "__MACOSX")) -> None:
-    """
-    Delete all specified system files in a directory.
+    """Delete all specified system files in a directory.
 
     Args:
         path (str | Path): The directory path where the files should be deleted.
@@ -101,8 +99,7 @@ def zip_directory(
     exclude: tuple[str, ...] = (".DS_Store", "__MACOSX"),
     progress: bool = True,
 ) -> Path:
-    """
-    Zip the contents of a directory, excluding specified files.
+    """Zip the contents of a directory, excluding specified files.
 
     The resulting zip file is named after the directory and placed alongside it.
 
@@ -144,8 +141,7 @@ def unzip_file(
     exist_ok: bool = False,
     progress: bool = True,
 ) -> Path:
-    """
-    Unzip a *.zip file to the specified path, excluding specified files.
+    """Unzip a *.zip file to the specified path, excluding specified files.
 
     If the zipfile does not contain a single top-level directory, the function will create a new directory with the same
     name as the zipfile (without the extension) to extract its contents. If a path is not provided, the function will
@@ -212,8 +208,7 @@ def check_disk_space(
     sf: float = 1.5,
     hard: bool = True,
 ) -> bool:
-    """
-    Check if there is sufficient disk space to download and store a file.
+    """Check if there is sufficient disk space to download and store a file.
 
     Args:
         file_bytes (int): The file size in bytes.
@@ -240,8 +235,7 @@ def check_disk_space(
 
 
 def get_google_drive_file_info(link: str) -> tuple[str, str | None]:
-    """
-    Retrieve the direct download link and filename for a shareable Google Drive file link.
+    """Retrieve the direct download link and filename for a shareable Google Drive file link.
 
     Args:
         link (str): The shareable link of the Google Drive file.
@@ -291,8 +285,7 @@ def safe_download(
     exist_ok: bool = False,
     progress: bool = True,
 ) -> Path | str:
-    """
-    Download files from a URL with options for retrying, unzipping, and deleting the downloaded file. Enhanced with
+    """Download files from a URL with options for retrying, unzipping, and deleting the downloaded file. Enhanced with
     robust partial download detection using Content-Length validation.
 
     Args:
@@ -399,8 +392,7 @@ def get_github_assets(
     version: str = "latest",
     retry: bool = False,
 ) -> tuple[str, list[str]]:
-    """
-    Retrieve the specified version's tag and assets from a GitHub repository.
+    """Retrieve the specified version's tag and assets from a GitHub repository.
 
     If the version is not specified, the function fetches the latest release assets.
 
@@ -437,8 +429,7 @@ def attempt_download_asset(
     release: str = "v8.4.0",
     **kwargs,
 ) -> str:
-    """
-    Attempt to download a file from GitHub release assets if it is not found locally.
+    """Attempt to download a file from GitHub release assets if it is not found locally.
 
     Args:
         file (str | Path): The filename or file path to be downloaded.
@@ -497,8 +488,7 @@ def download(
     retry: int = 3,
     exist_ok: bool = False,
 ) -> None:
-    """
-    Download files from specified URLs to a given directory.
+    """Download files from specified URLs to a given directory.
 
     Supports concurrent downloads if multiple threads are specified.
 

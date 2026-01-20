@@ -7,8 +7,7 @@ from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 
 
 class InstanceSegmentation(BaseSolution):
-    """
-    A class to manage instance segmentation in images or video streams.
+    """A class to manage instance segmentation in images or video streams.
 
     This class extends the BaseSolution class and provides functionality for performing instance segmentation, including
     drawing segmented masks with bounding boxes and labels.
@@ -36,8 +35,7 @@ class InstanceSegmentation(BaseSolution):
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """
-        Initialize the InstanceSegmentation class for detecting and annotating segmented instances.
+        """Initialize the InstanceSegmentation class for detecting and annotating segmented instances.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the BaseSolution parent class including:
@@ -51,8 +49,7 @@ class InstanceSegmentation(BaseSolution):
         self.show_boxes = self.CFG.get("show_boxes", True)
 
     def process(self, im0) -> SolutionResults:
-        """
-        Perform instance segmentation on the input image and annotate the results.
+        """Perform instance segmentation on the input image and annotate the results.
 
         Args:
             im0 (np.ndarray): The input image for segmentation.

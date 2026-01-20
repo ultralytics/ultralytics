@@ -6,7 +6,7 @@ keywords: Ultralytics YOLO, OpenVINO optimization, deep learning, model inferenc
 
 # OpenVINO Inference Optimization for YOLO
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ecosystem.avif" alt="OpenVINO Ecosystem">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ecosystem.avif" alt="OpenVINO Ecosystem">
 
 ## Introduction
 

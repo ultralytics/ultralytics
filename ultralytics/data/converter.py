@@ -15,7 +15,7 @@ import numpy as np
 from PIL import Image
 
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
-from ultralytics.utils.checks import check_file, check_requirements
+from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
@@ -747,14 +747,15 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
 
 
 async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
-    """Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
+    """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
-    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format with
-    separate directories for images and labels. It supports parallel processing for efficient conversion of large
-    datasets and can download images from URLs if they don't exist locally.
+    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
+    detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. For classification
+    tasks, it creates the ImageNet-style {split}/{class_name}/ folder structure. It supports parallel processing for
+    efficient conversion of large datasets and can download images from URLs.
 
     The NDJSON format consists of:
-    - First line: Dataset metadata with class names and configuration
+    - First line: Dataset metadata with class names, task type, and configuration
     - Subsequent lines: Individual image records with annotations and optional URLs
 
     Args:
@@ -763,7 +764,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
             None, uses the parent directory of the NDJSON file. Defaults to None.
 
     Returns:
-        (Path): Path to the generated data.yaml file that can be used for YOLO training.
+        (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).
 
     Examples:
         Convert a local NDJSON file:
@@ -775,9 +776,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
         Use with YOLO training
         >>> from ultralytics import YOLO
-        >>> model = YOLO("yolo11n.pt")
+        >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
     """
+    from ultralytics.utils.checks import check_requirements
+
     check_requirements("aiohttp")
     import aiohttp
 
@@ -790,50 +793,63 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     dataset_dir = output_path / ndjson_path.stem
     splits = {record["split"] for record in image_records}
 
-    # Create directories and prepare YAML structure
-    dataset_dir.mkdir(parents=True, exist_ok=True)
-    data_yaml = dict(dataset_record)
-    data_yaml["names"] = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
-    data_yaml.pop("class_names")
+    # Check if this is a classification dataset
+    is_classification = dataset_record.get("task") == "classify"
+    class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
 
-    for split in sorted(splits):
-        (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
-        (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
-        data_yaml[split] = f"images/{split}"
+    # Create base directories
+    dataset_dir.mkdir(parents=True, exist_ok=True)
+    data_yaml = None
+
+    if not is_classification:
+        # Detection/segmentation/pose/obb: prepare YAML and create base structure
+        data_yaml = dict(dataset_record)
+        data_yaml["names"] = class_names
+        data_yaml.pop("class_names", None)
+        data_yaml.pop("type", None)  # Remove NDJSON-specific fields
+        for split in sorted(splits):
+            (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
+            (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
+            data_yaml[split] = f"images/{split}"
 
     async def process_record(session, semaphore, record):
         """Process single image record with async session."""
         async with semaphore:
             split, original_name = record["split"], record["file"]
-            label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
-            image_path = dataset_dir / "images" / split / original_name
-
             annotations = record.get("annotations", {})
-            lines_to_write = []
-            for key in annotations.keys():
-                lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
-                break
-            if "classification" in annotations:
-                lines_to_write = [str(cls) for cls in annotations["classification"]]
 
-            label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
+            if is_classification:
+                # Classification: place image in {split}/{class_name}/ folder
+                class_ids = annotations.get("classification", [])
+                class_id = class_ids[0] if class_ids else 0
+                class_name = class_names.get(class_id, str(class_id))
+                image_path = dataset_dir / split / class_name / original_name
+            else:
+                # Detection: write label file and place image in images/{split}/
+                image_path = dataset_dir / "images" / split / original_name
+                label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
+                lines_to_write = []
+                for key in annotations.keys():
+                    lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
+                    break
+                label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
+            # Download image if URL provided and file doesn't exist
             if http_url := record.get("url"):
                 if not image_path.exists():
+                    image_path.parent.mkdir(parents=True, exist_ok=True)
                     try:
                         async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
                             response.raise_for_status()
-                            with open(image_path, "wb") as f:
-                                async for chunk in response.content.iter_chunked(8192):
-                                    f.write(chunk)
+                            image_path.write_bytes(await response.read())
                         return True
                     except Exception as e:
                         LOGGER.warning(f"Failed to download {http_url}: {e}")
                         return False
             return True
 
-    # Process all images with async downloads
-    semaphore = asyncio.Semaphore(64)
+    # Process all images with async downloads (limit connections for small datasets)
+    semaphore = asyncio.Semaphore(min(128, len(image_records)))
     async with aiohttp.ClientSession() as session:
         pbar = TQDM(
             total=len(image_records),
@@ -848,8 +864,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         await asyncio.gather(*[tracked_process(record) for record in image_records])
         pbar.close()
 
-    # Write data.yaml
-    yaml_path = dataset_dir / "data.yaml"
-    YAML.save(yaml_path, data_yaml)
-
-    return yaml_path
+    if is_classification:
+        # Classification: return dataset directory (check_cls_dataset expects a directory path)
+        return dataset_dir
+    else:
+        # Detection: write data.yaml and return its path
+        yaml_path = dataset_dir / "data.yaml"
+        YAML.save(yaml_path, data_yaml)
+        return yaml_path

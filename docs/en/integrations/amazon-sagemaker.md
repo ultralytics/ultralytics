@@ -23,7 +23,7 @@ This guide will take you through the process of deploying YOLO26 [PyTorch](https
 Deploying YOLO26 on Amazon SageMaker lets you use its managed environment for real-time inference and take advantage of features like autoscaling. Take a look at the AWS architecture below.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/aws-architecture.avif" alt="AWS Architecture">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/aws-architecture.avif" alt="AWS SageMaker YOLO training architecture">
 </p>
 
 ### Step 1: Setup Your AWS Environment

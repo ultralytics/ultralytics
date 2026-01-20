@@ -104,7 +104,7 @@ Pruning reduces the size of the model by removing weights that contribute little
 Quantization converts the model's weights and activations from high [precision](https://www.ultralytics.com/glossary/precision) (like 32-bit floats) to lower precision (like 8-bit integers). By reducing the model size, it speeds up inference. Quantization-aware training (QAT) is a method where the model is trained with quantization in mind, preserving accuracy better than post-training quantization. By handling quantization during the training phase, the model learns to adjust to lower precision, maintaining performance while reducing computational demands.
 
 <p align="center">
-  <img width="100%" src="https://miro.medium.com/v2/resize:fit:1032/format:webp/1*Jlq_cyLvRdmp_K5jCd3LkA.png" alt="Model Quantization Overview">
+  <img width="100%" src="https://miro.medium.com/v2/resize:fit:1032/format:webp/1*Jlq_cyLvRdmp_K5jCd3LkA.png" alt="Model quantization reducing precision for efficiency">
 </p>
 
 ### Knowledge Distillation

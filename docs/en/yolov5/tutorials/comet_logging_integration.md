@@ -181,11 +181,11 @@ python train.py \
 
 You can find the uploaded dataset in the Artifacts tab in your Comet Workspace:
 
-![Comet Artifacts Tab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-artifact-panel.avif)
+![Comet artifacts panel for dataset versioning](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-artifact-panel.avif)
 
 You can preview the data directly in the Comet UI:
 
-![Comet Data Preview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-artifact-versions.avif)
+![Comet dataset preview and version history](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-artifact-versions.avif)
 
 Artifacts are versioned and also support adding metadata about the dataset. Comet will automatically log the metadata from your dataset `yaml` file:
 

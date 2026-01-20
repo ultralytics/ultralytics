@@ -68,7 +68,7 @@ If you want to use a [custom-trained YOLO26 model](../modes/train.md) with reCam
 Here, we'll first convert a `PyTorch` model to `ONNX` and then convert it to the `MLIR` model format. Finally, `MLIR` will be converted to `cvimodel` to run inference on-device.
 
 <p align="center">
-  <img width="80%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recamera-toolchain-workflow.avif" alt="reCamera Toolchain">
+  <img width="80%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recamera-toolchain-workflow.avif" alt="Seeed Studio reCamera AI development toolchain">
 </p>
 
 ### Export to ONNX
@@ -142,7 +142,7 @@ reCamera advanced computer vision capabilities and modular design make it suitab
 
 - **Car Parts Detection**: In manufacturing and automotive industries, it aids in detecting and analyzing car parts for quality control, assembly line monitoring, and inventory management.
 
-![Car parts detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/carparts-detection.avif)
+![YOLO car parts detection for automotive inspection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/carparts-detection.avif)
 
 ## FAQ
 

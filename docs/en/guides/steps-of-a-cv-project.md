@@ -91,7 +91,7 @@ However, if you choose to collect images or take your own pictures, you'll need 
 - **[Image Segmentation](https://www.ultralytics.com/glossary/image-segmentation):** You'll label each pixel in the image according to the object it belongs to, creating detailed object boundaries.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/different-types-of-image-annotation.avif" alt="Different Types of Image Annotation">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/different-types-of-image-annotation.avif" alt="Bounding box, polygon, and keypoint annotations">
 </p>
 
 [Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. Annotation tools can help make this process easier. Here are some useful open annotation tools: [LabeI Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/wkentaro/labelme).

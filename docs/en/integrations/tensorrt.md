@@ -31,7 +31,7 @@ TensorRT models offer a range of key features that contribute to their efficienc
 - **Layer Fusion**: The TensorRT optimization process includes layer fusion, where multiple layers of a [neural network](https://www.ultralytics.com/glossary/neural-network-nn) are combined into a single operation. This reduces computational overhead and improves inference speed by minimizing memory access and computation.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorrt-layer-fusion.avif" alt="TensorRT Layer Fusion">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorrt-layer-fusion.avif" alt="TensorRT neural network layer fusion optimization">
 </p>
 
 - **Dynamic Tensor Memory Management**: TensorRT efficiently manages tensor memory usage during inference, reducing memory overhead and optimizing memory allocation. This results in more efficient GPU memory utilization.

@@ -38,7 +38,7 @@ Apple's CoreML framework offers robust features for on-device machine learning. 
 - **Comprehensive Model Support**: Converts and runs models from popular frameworks like TensorFlow, [PyTorch](https://www.ultralytics.com/glossary/pytorch), scikit-learn, XGBoost, and LibSVM.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coreml-supported-models.avif" alt="CoreML Supported Models">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coreml-supported-models.avif" alt="CoreML supported deep learning frameworks">
 </p>
 
 - **On-device [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml)**: Ensures data privacy and swift processing by executing models directly on the user's device, eliminating the need for network connectivity.

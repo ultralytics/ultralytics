@@ -20,7 +20,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained 
 </p>
 
 <p align="center">
-    <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/lvis-dataset-example-images.avif" alt="LVIS Dataset example images">
+    <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/lvis-dataset-example-images.avif" alt="LVIS large vocabulary instance segmentation dataset">
 </p>
 
 ## Key Features

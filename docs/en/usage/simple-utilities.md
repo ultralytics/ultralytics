@@ -7,7 +7,7 @@ keywords: Ultralytics, utilities, data processing, auto annotation, YOLO, datase
 # Simple Utilities
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/code-with-perspective.avif" alt="YOLO code 3D visualization">
+  <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/code-with-perspective.avif" alt="YOLO model code with 3D perspective visualization">
 </p>
 
 The `ultralytics` package provides a variety of utilities to support, enhance, and accelerate your workflows. While there are many more available, this guide highlights some of the most useful ones for developers, serving as a practical reference for programming with Ultralytics tools.

@@ -101,7 +101,7 @@ For a detailed explanation of various tasks, please take a look at the Ultralyti
 No, pretrained models don't "remember" classes in the traditional sense. They learn patterns from massive datasets, and during custom training (fine-tuning), these patterns are adjusted for your specific task. The model's capacity is limited, and focusing on new information can overwrite some previous learnings.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-transfer-learning.avif" alt="Transfer learning overview diagram">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-transfer-learning.avif" alt="Transfer learning from pretrained to custom model">
 </p>
 
 If you want to use the classes the model was pretrained on, a practical approach is to use two models: one retains the original performance, and the other is fine-tuned for your specific task. This way, you can combine the outputs of both models. There are other options like freezing layers, using the pretrained model as a feature extractor, and task-specific branching, but these are more complex solutions and require more expertise.

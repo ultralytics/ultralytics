@@ -6,7 +6,7 @@ keywords: ClearML, YOLOv5, machine learning, experiment tracking, data versionin
 
 # ClearML Integration
 
-<img align="center" src="https://github.com/thepycoder/clearml_screenshots/raw/main/logos_dark.png#gh-light-mode-only" alt="ClearML logo"><img align="center" src="https://github.com/thepycoder/clearml_screenshots/raw/main/logos_light.png#gh-dark-mode-only" alt="ClearML logo">
+<img align="center" src="https://github.com/thepycoder/clearml_screenshots/raw/main/logos_dark.png#gh-light-mode-only" alt="ClearML MLOps experiment tracking platform"><img align="center" src="https://github.com/thepycoder/clearml_screenshots/raw/main/logos_light.png#gh-dark-mode-only" alt="ClearML MLOps experiment tracking platform">
 
 ## About ClearML
 
@@ -178,7 +178,7 @@ pip install optuna
 python utils/loggers/clearml/hpo.py
 ```
 
-![ClearML hyperparameter optimization experiment dashboard showing YOLOv5 training metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hpo-clearml-experiment.avif)
+![ClearML HPO dashboard with YOLOv5 metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hpo-clearml-experiment.avif)
 
 ## 🤯 Remote Execution (advanced)
 

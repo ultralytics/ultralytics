@@ -51,7 +51,7 @@ For example, in this VOC Exploration dashboard, the user selects a few airplane 
 After running the similarity search, you should see similar results:
 
 <p>
-<img width="1710" alt="Explorer similarity search results" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/explorer-dashboard-screenshot-3.avif">
+<img width="1710" alt="Ultralytics Explorer semantic similarity search" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/explorer-dashboard-screenshot-3.avif">
 </p>
 
 ## Ask AI

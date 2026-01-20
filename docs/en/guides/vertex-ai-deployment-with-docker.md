@@ -465,7 +465,7 @@ To import your containerized model in Vertex AI, you need to upload the Docker i
 Open the [Artifact Registry page](https://console.cloud.google.com/artifacts) in the Google Cloud Console. If you are using the Artifact Registry for the first time, you may be prompted to enable the Artifact Registry API first.
 
 <p align="center">
-  <img width="70%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/create-artifact-registry-repo.png" alt="Google Cloud Artifact Registry setup">
+  <img width="70%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/create-artifact-registry-repo.png" alt="Google Cloud Artifact Registry repository creation">
 </p>
 
 1. Select Create Repository.
@@ -515,7 +515,7 @@ Using the Docker image you've just pushed, you can now import the model in Verte
 
 1. In Google Cloud navigation menu, go to Vertex AI > Model Registry. Alternatively, search for "Vertex AI" in the search bar at the top of the Google Cloud Console.
  <p align="center">
-   <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/vertex-ai-import.png" alt="Vertex AI Model Registry import">
+   <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/vertex-ai-import.png" alt="Vertex AI Model Registry import interface">
  </p>
 1. Click Import.
 1. Select Import as a new model.

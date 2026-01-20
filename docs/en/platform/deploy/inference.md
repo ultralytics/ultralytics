@@ -57,7 +57,7 @@ Adjust detection behavior with parameters:
 | Parameter      | Range   | Default | Description                  |
 | -------------- | ------- | ------- | ---------------------------- |
 | **Confidence** | 0.0-1.0 | 0.25    | Minimum confidence threshold |
-| **IoU**        | 0.0-1.0 | 0.45    | NMS IoU threshold            |
+| **IoU**        | 0.0-1.0 | 0.70    | NMS IoU threshold            |
 | **Image Size** | 32-1280 | 640     | Input resize dimension       |
 
 ### Confidence Threshold
@@ -72,9 +72,9 @@ Filter predictions by confidence:
 
 Control Non-Maximum Suppression:
 
-- **Higher (0.7+)**: Allow overlapping boxes
-- **Lower (0.3-0.45)**: Merge nearby detections
-- **Default (0.45)**: Standard NMS behavior
+- **Higher (0.7+)**: Allow more overlapping boxes
+- **Lower (0.3-0.5)**: Merge nearby detections more aggressively
+- **Default (0.70)**: Balanced NMS behavior for most use cases
 
 ## REST API
 
@@ -104,7 +104,7 @@ POST https://platform.ultralytics.com/api/models/{model_slug}/predict
       -H "Authorization: Bearer YOUR_API_KEY" \
       -F "file=@image.jpg" \
       -F "conf=0.25" \
-      -F "iou=0.45"
+      -F "iou=0.7"
     ```
 
 === "Python"
@@ -115,7 +115,7 @@ POST https://platform.ultralytics.com/api/models/{model_slug}/predict
     url = "https://platform.ultralytics.com/api/models/username/project/model/predict"
     headers = {"Authorization": "Bearer YOUR_API_KEY"}
     files = {"file": open("image.jpg", "rb")}
-    data = {"conf": 0.25, "iou": 0.45}
+    data = {"conf": 0.25, "iou": 0.7}
 
     response = requests.post(url, headers=headers, files=files, data=data)
     print(response.json())

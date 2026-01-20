@@ -8,16 +8,6 @@ keywords: Ultralytics Platform, cloud training, GPU training, remote training, Y
 
 [Ultralytics Platform](https://platform.ultralytics.com) Cloud Training offers single-click training on cloud GPUs, making model training accessible without complex setup. Train YOLO models with real-time metrics streaming and automatic checkpoint saving.
 
-<p align="center">
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ie3vLUDNYZo"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> Cloud Training with Ultralytics Platform
-</p>
-
 ## Train from UI
 
 Start cloud training directly from the Platform:
@@ -57,25 +47,28 @@ Choose your compute resources:
 
 <!-- Screenshot: platform-training-gpu.avif -->
 
-| GPU            | VRAM  | Speed     | Cost/Hour |
-| -------------- | ----- | --------- | --------- |
-| RTX 2000 Ada   | 16GB  | Good      | $0.48     |
-| RTX A4000      | 16GB  | Good      | $0.50     |
-| RTX 3090       | 24GB  | Good      | $0.92     |
-| RTX A6000      | 48GB  | Fast      | $0.98     |
-| RTX 4090       | 24GB  | Fast      | $1.18     |
-| L40S           | 48GB  | Fast      | $1.72     |
-| RTX 5090       | 32GB  | Very Fast | $1.78     |
-| A100 80GB PCIe | 80GB  | Very Fast | $2.78     |
-| H100 PCIe      | 80GB  | Fastest   | $4.78     |
-| H100 SXM       | 80GB  | Fastest   | $5.38     |
-| B200           | 180GB | Fastest   | $10.38    |
+| Tier        | GPU          | VRAM   | Price/Hour | Best For                   |
+| ----------- | ------------ | ------ | ---------- | -------------------------- |
+| Budget      | RTX A2000    | 6 GB   | $0.12      | Small datasets, testing    |
+| Budget      | RTX 3080     | 10 GB  | $0.25      | Medium datasets            |
+| Budget      | RTX 3080 Ti  | 12 GB  | $0.30      | Medium datasets            |
+| Budget      | A30          | 24 GB  | $0.44      | Larger batch sizes         |
+| Mid         | RTX 4090     | 24 GB  | $0.60      | Great price/performance    |
+| Mid         | A6000        | 48 GB  | $0.90      | Large models               |
+| Mid         | L4           | 24 GB  | $0.54      | Inference optimized        |
+| Mid         | L40S         | 48 GB  | $1.72      | Large batch training       |
+| Pro         | A100 40GB    | 40 GB  | $2.78      | Production training        |
+| Pro         | A100 80GB    | 80 GB  | $3.44      | Very large models          |
+| Pro         | H100         | 80 GB  | $5.38      | Fastest training           |
+| Enterprise  | H200         | 141 GB | $5.38      | Maximum performance        |
+| Enterprise  | B200         | 192 GB | $10.38     | Largest models             |
+| Ultralytics | RTX PRO 6000 | 48 GB  | $3.68      | Ultralytics infrastructure |
 
 !!! tip "GPU Selection"
 
-    - **RTX 4090**: Best value with excellent performance for most jobs
+    - **RTX 4090**: Best price/performance ratio for most jobs at $0.60/hr
     - **A100 80GB**: Required for large batch sizes or big models
-    - **H100**: Maximum performance for time-sensitive training
+    - **H100/H200**: Maximum performance for time-sensitive training
     - **B200**: NVIDIA Blackwell architecture for cutting-edge workloads
 
 ### Step 4: Start Training
@@ -201,17 +194,45 @@ The `ul://` URI format automatically downloads and configures your dataset.
 
 Training costs are based on GPU usage:
 
-### Cost Calculation
+### Cost Estimation
+
+Before training starts, the Platform estimates total cost based on:
 
 ```
-Total Cost = GPU Rate × Training Time (hours)
+Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Speed Factor × GPU Rate
 ```
 
-| Example    | GPU       | Time    | Cost   |
-| ---------- | --------- | ------- | ------ |
-| Small job  | RTX 4090  | 1 hour  | $1.18  |
-| Medium job | A100 80GB | 4 hours | $11.12 |
-| Large job  | H100 PCIe | 8 hours | $38.24 |
+**Factors affecting cost:**
+
+| Factor               | Impact                                           |
+| -------------------- | ------------------------------------------------ |
+| **Dataset Size**     | More images = longer training time               |
+| **Model Size**       | Larger models (m, l, x) train slower than (n, s) |
+| **Number of Epochs** | Direct multiplier on training time               |
+| **Image Size**       | Larger imgsz increases computation               |
+| **GPU Speed**        | Faster GPUs reduce training time                 |
+
+### Cost Examples
+
+| Scenario                          | GPU       | Time     | Cost    |
+| --------------------------------- | --------- | -------- | ------- |
+| 1000 images, YOLO26n, 100 epochs  | RTX 4090  | ~1 hour  | ~$0.60  |
+| 5000 images, YOLO26m, 100 epochs  | A100 80GB | ~4 hours | ~$13.76 |
+| 10000 images, YOLO26x, 200 epochs | H100      | ~8 hours | ~$43.04 |
+
+### Hold/Settle System
+
+The Platform uses a consumer-protection billing model:
+
+1. **Estimate**: Cost calculated before training starts
+2. **Hold**: Estimated amount + 20% safety margin reserved from balance
+3. **Train**: Reserved amount shown as "Reserved" in your balance
+4. **Settle**: After completion, charged only for actual GPU time used
+5. **Refund**: Any excess automatically returned to your balance
+
+!!! success "Consumer Protection"
+
+    You're **never charged more than the estimate** shown before training. If training completes early or is canceled, you only pay for actual compute time used.
 
 ### Payment Methods
 

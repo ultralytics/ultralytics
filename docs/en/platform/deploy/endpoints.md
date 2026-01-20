@@ -52,19 +52,19 @@ View all regions with details:
 
 ## Available Regions
 
-### Americas (15 regions)
+### Americas (14 regions)
 
-| Region                  | Location            |
+| Zone                    | Location            |
 | ----------------------- | ------------------- |
 | us-central1             | Iowa, USA           |
 | us-east1                | South Carolina, USA |
 | us-east4                | Virginia, USA       |
-| us-east5                | Columbus, USA       |
-| us-south1               | Dallas, USA         |
+| us-east5                | Ohio, USA           |
 | us-west1                | Oregon, USA         |
 | us-west2                | Los Angeles, USA    |
 | us-west3                | Salt Lake City, USA |
 | us-west4                | Las Vegas, USA      |
+| us-south1               | Dallas, USA         |
 | northamerica-northeast1 | Montreal, Canada    |
 | northamerica-northeast2 | Toronto, Canada     |
 | southamerica-east1      | São Paulo, Brazil   |
@@ -72,11 +72,8 @@ View all regions with details:
 
 ### Europe (12 regions)
 
-| Region            | Location            |
+| Zone              | Location            |
 | ----------------- | ------------------- |
-| europe-central2   | Warsaw, Poland      |
-| europe-north1     | Finland             |
-| europe-southwest1 | Madrid, Spain       |
 | europe-west1      | Belgium             |
 | europe-west2      | London, UK          |
 | europe-west3      | Frankfurt, Germany  |
@@ -86,25 +83,33 @@ View all regions with details:
 | europe-west9      | Paris, France       |
 | europe-west10     | Berlin, Germany     |
 | europe-west12     | Turin, Italy        |
+| europe-north1     | Finland             |
+| europe-central2   | Warsaw, Poland      |
+| europe-southwest1 | Madrid, Spain       |
 
-### Asia Pacific (16 regions)
+### Asia-Pacific (14 regions)
 
-| Region               | Location             |
+| Zone                 | Location             |
 | -------------------- | -------------------- |
 | asia-east1           | Taiwan               |
 | asia-east2           | Hong Kong            |
 | asia-northeast1      | Tokyo, Japan         |
 | asia-northeast2      | Osaka, Japan         |
-| asia-northeast3      | Seoul, Korea         |
+| asia-northeast3      | Seoul, South Korea   |
 | asia-south1          | Mumbai, India        |
 | asia-south2          | Delhi, India         |
 | asia-southeast1      | Singapore            |
 | asia-southeast2      | Jakarta, Indonesia   |
 | australia-southeast1 | Sydney, Australia    |
 | australia-southeast2 | Melbourne, Australia |
-| me-central1          | Doha, Qatar          |
-| me-central2          | Dammam, Saudi Arabia |
-| me-west1             | Tel Aviv, Israel     |
+
+### Middle East & Africa (3 regions)
+
+| Zone        | Location             |
+| ----------- | -------------------- |
+| me-central1 | Doha, Qatar          |
+| me-central2 | Dammam, Saudi Arabia |
+| me-west1    | Tel Aviv, Israel     |
 
 ## Endpoint Configuration
 

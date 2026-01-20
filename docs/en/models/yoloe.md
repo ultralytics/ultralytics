@@ -8,7 +8,7 @@ keywords: YOLOE, open-vocabulary detection, real-time object detection, instance
 
 ## Introduction
 
-![YOLOE Prompting Options](https://github.com/ultralytics/docs/releases/download/0/yoloe-visualization.avif)
+![YOLOE Prompting Options](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yoloe-visualization.avif)
 
 [YOLOE (Real-Time Seeing Anything)](https://arxiv.org/html/2503.07465v1) is a new advancement in zero-shot, promptable YOLO models, designed for **open-vocabulary** detection and segmentation. Unlike previous YOLO models limited to fixed categories, YOLOE uses text, image, or internal vocabulary prompts, enabling real-time detection of any object class. Built upon YOLOv10 and inspired by [YOLO-World](yolo-world.md), YOLOE achieves **state-of-the-art zero-shot performance** with minimal impact on speed and accuracy.
 

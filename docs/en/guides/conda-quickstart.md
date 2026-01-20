@@ -7,7 +7,7 @@ keywords: Ultralytics, Conda, setup, installation, environment, guide, machine l
 # Conda Quickstart Guide for Ultralytics
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-conda-package-visual.avif" alt="Ultralytics Conda Package Visual">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-conda-package-visual.avif" alt="Ultralytics Conda Package Visual">
 </p>
 
 This guide provides a comprehensive introduction to setting up a Conda environment for your Ultralytics projects. Conda is an open-source package and environment management system that offers an excellent alternative to pip for installing packages and dependencies. Its isolated environments make it particularly well-suited for data science and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) endeavors. For more details, visit the Ultralytics Conda package on [Anaconda](https://anaconda.org/conda-forge/ultralytics) and check out the Ultralytics feedstock repository for package updates on [GitHub](https://github.com/conda-forge/ultralytics-feedstock/).

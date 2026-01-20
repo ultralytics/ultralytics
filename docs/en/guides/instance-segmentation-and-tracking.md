@@ -31,10 +31,10 @@ There are two types of instance segmentation tracking available in the Ultralyti
 
 ## Samples
 
-|                                                        Instance Segmentation                                                         |                                                                  Instance Segmentation + Object Tracking                                                                  |
-| :----------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics Instance Segmentation](https://github.com/ultralytics/docs/releases/download/0/ultralytics-instance-segmentation.avif) | ![Ultralytics Instance Segmentation with Object Tracking](https://github.com/ultralytics/docs/releases/download/0/ultralytics-instance-segmentation-object-tracking.avif) |
-|                                                 Ultralytics Instance Segmentation 😍                                                 |                                                         Ultralytics Instance Segmentation with Object Tracking 🔥                                                         |
+|                                                         Instance Segmentation                                                         |                                                                  Instance Segmentation + Object Tracking                                                                   |
+| :-----------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| ![Ultralytics Instance Segmentation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-instance-segmentation.avif) | ![Ultralytics Instance Segmentation with Object Tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-instance-segmentation-object-tracking.avif) |
+|                                                 Ultralytics Instance Segmentation 😍                                                  |                                                         Ultralytics Instance Segmentation with Object Tracking 🔥                                                          |
 
 !!! example "Instance segmentation using Ultralytics YOLO"
 

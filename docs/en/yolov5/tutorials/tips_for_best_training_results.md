@@ -25,7 +25,7 @@ We've put together a full guide for users looking to get the best results on the
 - **Label verification.** View `train_batch*.jpg` on train start to verify your labels appear correct, i.e. see [example](./train_custom_data.md#local-logging) mosaic.
 - **Background images.** Background images are images with no objects that are added to a dataset to reduce False Positives (FP). We recommend about 0-10% background images to help reduce FPs (COCO has 1000 background images for reference, 1% of the total). No labels are required for background images.
 
-<a href="https://arxiv.org/abs/1405.0312"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coco-analysis.avif" alt="COCO Analysis"></a>
+<a href="https://arxiv.org/abs/1405.0312"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/coco-analysis.avif" alt="COCO dataset class distribution analysis"></a>
 
 ## Model Selection
 

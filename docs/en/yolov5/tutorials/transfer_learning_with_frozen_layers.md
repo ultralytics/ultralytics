@@ -126,7 +126,7 @@ _mAP50 comparison during training_
 ![Training mAP50-95 results comparing different freezing strategies](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/freezing-training-map50-95-results.avif)
 _mAP50-95 comparison during training_
 
-<img width="922" alt="Table summarizing performance results" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/table-results.avif">
+<img width="922" alt="YOLOv5 frozen layer training performance" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/table-results.avif">
 *Summary table of performance metrics*
 
 ### Resource Utilization

@@ -845,7 +845,7 @@ class Exporter:
         """Export YOLO model to liteRT format using ai_edge_torch."""
         check_requirements("ai_edge_torch")
         import ai_edge_torch
-        
+
         f = Path(str(self.file).replace(self.file.suffix, "_litert_model"))
         f.mkdir(parents=True, exist_ok=True)
 

@@ -632,11 +632,12 @@ class AutoBackend(nn.Module):
 
             program = Runtime.get().load_program(str(model_file))
             model = program.load_method("forward")
-            
+
         # LiteRT
         elif litert:
             check_requirements("ai-edge-litert")
             from ai_edge_litert.interpreter import Interpreter
+
             interpreter = Interpreter(w)
 
         # Any other format (unsupported)

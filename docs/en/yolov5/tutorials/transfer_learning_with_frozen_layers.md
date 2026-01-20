@@ -120,23 +120,23 @@ python train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --ca
 
 The results show that freezing layers can accelerate training significantly but may lead to a slight reduction in final [mAP (mean Average Precision)](https://www.ultralytics.com/glossary/mean-average-precision-map). Training all layers generally yields the best accuracy, while freezing more layers offers faster training at the cost of potentially lower performance.
 
-![Training mAP50 results comparing different freezing strategies](https://github.com/ultralytics/docs/releases/download/0/freezing-training-map50-results.avif)
+![Training mAP50 results comparing different freezing strategies](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/freezing-training-map50-results.avif)
 _mAP50 comparison during training_
 
-![Training mAP50-95 results comparing different freezing strategies](https://github.com/ultralytics/docs/releases/download/0/freezing-training-map50-95-results.avif)
+![Training mAP50-95 results comparing different freezing strategies](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/freezing-training-map50-95-results.avif)
 _mAP50-95 comparison during training_
 
-<img width="922" alt="Table summarizing performance results" src="https://github.com/ultralytics/docs/releases/download/0/table-results.avif">
+<img width="922" alt="YOLOv5 frozen layer training performance" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/table-results.avif">
 *Summary table of performance metrics*
 
 ### Resource Utilization
 
 Freezing more layers substantially reduces [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) memory requirements and overall utilization. This makes transfer learning with frozen layers an attractive option when working with limited hardware resources, allowing for training larger models or using larger image sizes than might otherwise be possible.
 
-![GPU memory allocated percentage during training](https://github.com/ultralytics/docs/releases/download/0/training-gpu-memory-allocated-percent.avif)
+![GPU memory allocated percentage during training](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/training-gpu-memory-allocated-percent.avif)
 _GPU Memory Allocated (%)_
 
-![GPU memory utilization percentage during training](https://github.com/ultralytics/docs/releases/download/0/training-gpu-memory-utilization-percent.avif)
+![GPU memory utilization percentage during training](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/training-gpu-memory-utilization-percent.avif)
 _GPU Utilization (%)_
 
 ## When to Use Layer Freezing

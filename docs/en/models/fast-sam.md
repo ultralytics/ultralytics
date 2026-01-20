@@ -21,7 +21,7 @@ The Fast Segment Anything Model (FastSAM) is a novel, real-time CNN-based soluti
 
 ## Model Architecture
 
-![Fast Segment Anything Model (FastSAM) architecture overview](https://github.com/ultralytics/docs/releases/download/0/fastsam-architecture-overview.avif)
+![Fast Segment Anything Model (FastSAM) architecture overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fastsam-architecture-overview.avif)
 
 ## Overview
 
@@ -49,8 +49,8 @@ This table presents the available models with their specific pretrained weights,
 
 | Model Type | Pretrained Weights                                                                          | Tasks Supported                              | Inference | Validation | Training | Export |
 | ---------- | ------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
-| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
+| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
+| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
 
 ## FastSAM Comparison vs YOLO
 

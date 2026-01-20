@@ -47,7 +47,7 @@ class DetectionTrainer(BaseTrainer):
 
     Examples:
         >>> from ultralytics.models.yolo.detect import DetectionTrainer
-        >>> args = dict(model="yolo11n.pt", data="coco8.yaml", epochs=3)
+        >>> args = dict(model="yolo26n.pt", data="coco8.yaml", epochs=3)
         >>> trainer = DetectionTrainer(overrides=args)
         >>> trainer.train()
     """
@@ -117,10 +117,11 @@ class DetectionTrainer(BaseTrainer):
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
         batch["img"] = batch["img"].float() / 255
-        if self.args.multi_scale:
+        multi_scale = self.args.multi_scale
+        if random.random() < multi_scale:
             imgs = batch["img"]
             sz = (
-                random.randrange(int(self.args.imgsz * 0.5), int(self.args.imgsz * 1.5 + self.stride))
+                random.randrange(int(self.args.imgsz * 0.5), int(self.args.imgsz * 1 + self.stride))
                 // self.stride
                 * self.stride
             )  # size

@@ -73,7 +73,7 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 - **Keypoints**: Specific points marked within an image to identify locations of interest. Keypoints are used in tasks like [pose estimation](../tasks/pose.md) and facial landmark detection.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/types-of-data-annotation.avif" alt="Data annotation types: bounding boxes, polygons, masks, and keypoints">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/types-of-data-annotation.avif" alt="Annotation types: boxes, polygons, masks">
 </p>
 
 ### Common Annotation Formats
@@ -103,7 +103,7 @@ Let's say you are ready to annotate now. There are several open-source tools ava
 - **[LabelImg](https://github.com/HumanSignal/labelImg)**: An easy-to-use graphical image annotation tool that's particularly good for creating bounding box annotations in YOLO format.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/labelme-instance-segmentation-annotation.avif" alt="LabelMe annotation tool interface for instance segmentation labeling">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/labelme-instance-segmentation-annotation.avif" alt="LabelMe segmentation annotation tool">
 </p>
 
 These open-source tools are budget-friendly and provide a range of features to meet different annotation needs.

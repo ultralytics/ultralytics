@@ -18,7 +18,7 @@ Developed by the creators of PyTorch, TorchScript is a powerful tool for optimiz
 
 The process involves two techniques: tracing and scripting. Tracing records operations during model execution, while scripting allows for the definition of models using a subset of Python. These techniques ensure that models like YOLO26 can still work their magic even outside their usual Python environment.
 
-![TorchScript scripting vs tracing comparison for PyTorch model conversion](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torchscript-script-and-trace.avif)
+![TorchScript scripting vs tracing comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torchscript-script-and-trace.avif)
 
 TorchScript models can also be optimized through techniques such as operator fusion and refinements in memory usage, ensuring efficient execution. Another advantage of exporting to TorchScript is its potential to accelerate model execution across various hardware platforms. It creates a standalone, production-ready representation of your PyTorch model that can be integrated into C++ environments, embedded systems, or deployed in web or mobile applications.
 
@@ -26,7 +26,7 @@ TorchScript models can also be optimized through techniques such as operator fus
 
 TorchScript, a key part of the PyTorch ecosystem, provides powerful features for optimizing and deploying [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models.
 
-![TorchScript key features including JIT compilation, serialization, and cross-platform deployment](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torchscript-features.avif)
+![TorchScript key features overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torchscript-features.avif)
 
 Here are the key features that make TorchScript a valuable tool for developers:
 

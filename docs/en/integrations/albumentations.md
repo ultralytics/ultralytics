@@ -25,7 +25,7 @@ Albumentations offers many useful features that simplify complex image augmentat
 - **Wide Range of Transformations**: Albumentations offers over [70 different transformations](https://github.com/albumentations-team/albumentations?tab=readme-ov-file#list-of-augmentations), including geometric changes (e.g., rotation, flipping), color adjustments (e.g., brightness, contrast), and noise addition (e.g., Gaussian noise). Having multiple options enables the creation of highly diverse and robust training datasets.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-augmentation.avif" alt="Albumentations image augmentation examples for YOLO training">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/albumentations-augmentation.avif" alt="Albumentations augmentation examples">
 </p>
 
 - **High Performance Optimization**: Built on OpenCV and NumPy, Albumentations uses advanced optimization techniques like SIMD (Single Instruction, Multiple Data), which processes multiple data points simultaneously to speed up processing. It handles large datasets quickly, making it one of the fastest options available for image augmentation.

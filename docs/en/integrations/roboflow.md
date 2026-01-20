@@ -177,7 +177,7 @@ Hover over cells to see values, and click cells to view corresponding images wit
 Click "Vector Analysis" for a scatter plot visualizing image similarity based on CLIP embeddings. Images closer together are semantically similar. Dots represent images, colored from white (good performance) to red (poor performance).
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vector-analysis-plot.avif" alt="A vector analysis plot in Roboflow using CLIP embeddings" width="800">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vector-analysis-plot.avif" alt="Roboflow CLIP embeddings vector plot" width="800">
 </p>
 
 Vector Analysis helps:

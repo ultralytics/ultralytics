@@ -45,7 +45,7 @@ DeepSparse takes advantage of model sparsity to gain its performance speedup.
 Sparsification through pruning and quantization is a broadly studied technique, allowing order-of-magnitude reductions in the size and compute needed to execute a network, while maintaining high [accuracy](https://www.ultralytics.com/glossary/accuracy). DeepSparse is sparsity-aware, meaning it skips the zeroed out parameters, shrinking amount of compute in a forward pass. Since the sparse computation is now memory bound, DeepSparse executes the network depth-wise, breaking the problem into Tensor Columns, vertical stripes of computation that fit in cache.
 
 <p align="center">
-  <img width="60%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensor-columns.avif" alt="DeepSparse tensor columns sparse inference architecture">
+  <img width="60%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensor-columns.avif" alt="DeepSparse sparse inference architecture">
 </p>
 
 Sparse networks with compressed computation, executed depth-wise in cache, allows DeepSparse to deliver GPU-class performance on CPUs!

@@ -23,7 +23,7 @@ The hand-keypoints dataset contains 26,768 images of hands annotated with keypoi
 
 ## Hand Landmarks
 
-![Hand keypoints landmark diagram showing 21 points on fingers and wrist](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hand_landmarks.jpg)
+![Hand keypoints landmark diagram with 21 points](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hand_landmarks.jpg)
 
 ## Keypoints
 

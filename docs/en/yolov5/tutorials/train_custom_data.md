@@ -21,7 +21,7 @@ pip install -r requirements.txt # Install dependencies
 ## Train On Custom Data
 
 <a href="https://platform.ultralytics.com" target="_blank">
-<img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-active-learning-loop.avif" alt="Ultralytics active learning loop diagram showing data collection, labeling, training, deployment, and edge case collection"></a>
+<img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-active-learning-loop.avif" alt="Ultralytics active learning loop diagram"></a>
 <br>
 <br>
 
@@ -105,7 +105,7 @@ The YOLO format `*.txt` file specifications are precise:
 
 The label file corresponding to the image above, containing two 'person' objects (class index `0`) and one 'tie' object (class index `27`), would look like this:
 
-<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="Example YOLO format label file content for the annotated image"></p>
+<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="YOLO label file format example"></p>
 
 ### 1.3 Organize Directories
 

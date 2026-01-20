@@ -23,9 +23,9 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
 ### Visual Samples
 
-|                                       Line Graph                                       |                                      Bar Plot                                      |                                      Pie Chart                                       |
-| :------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------: |
-| ![Line Graph](https://github.com/ultralytics/docs/releases/download/0/line-graph.avif) | ![Bar Plot](https://github.com/ultralytics/docs/releases/download/0/bar-plot.avif) | ![Pie Chart](https://github.com/ultralytics/docs/releases/download/0/pie-chart.avif) |
+|                                            Line Graph                                             |                                           Bar Plot                                            |                                            Pie Chart                                            |
+| :-----------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------: |
+| ![Line Graph](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-line-graph.avif) | ![Bar Plot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-bar-plot.avif) | ![Pie Chart](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-pie-chart.avif) |
 
 ### Why Graphs are Important
 

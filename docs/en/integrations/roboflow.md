@@ -89,7 +89,7 @@ Health Check might suggest changes to enhance performance, such as addressing cl
 To export your data, you need to create a dataset version, which is a snapshot of your dataset at a specific point in time. Click "Versions" in the sidebar, then "Create New Version." Here, you can apply preprocessing steps and [data augmentations](https://www.ultralytics.com/glossary/data-augmentation) to potentially enhance model robustness.
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/creating-dataset-version-on-roboflow.avif" alt="Creating a dataset version on Roboflow with preprocessing and augmentation options" width="800">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/creating-dataset-version-on-roboflow.avif" alt="Roboflow dataset version with augmentation" width="800">
 </p>
 
 For each selected augmentation, a pop-up allows you to fine-tune its parameters such as brightness. Proper augmentation can significantly improve model generalization, a key concept discussed in our [model training tips guide](../guides/model-training-tips.md).
@@ -149,7 +149,7 @@ When you run the code above, you will be asked to authenticate (usually via an A
 To test your model and find deployment instructions for supported SDKs, go to the "Deploy" tab in the Roboflow sidebar. At the top of this page, a widget will appear allowing you to test your model using your webcam or by uploading images or videos.
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/running-inference-example-image.avif" alt="Running inference on an example image using the Roboflow deployment widget" width="800">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/running-inference-example-image.avif" alt="Roboflow model deployment testing" width="800">
 </p>
 
 Your uploaded model can also be used as a labeling assistant, suggesting annotations on new images based on its training.

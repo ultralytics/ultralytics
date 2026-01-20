@@ -31,7 +31,7 @@ Object cropping with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 |                                                                                Airport Luggage                                                                                 |
 | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO26](https://github.com/ultralytics/docs/releases/download/0/suitcases-cropping-airport-conveyor-belt.avif) |
+| ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/suitcases-cropping-airport-conveyor-belt.avif) |
 |                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO26                                                      |
 
 !!! example "Object Cropping using Ultralytics YOLO"

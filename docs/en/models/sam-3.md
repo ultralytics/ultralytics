@@ -247,6 +247,44 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
             cv2.waitKey(0)
         ```
 
+#### Batch Image Inference
+
+!!! example "Process Multiple Images"
+
+    Process multiple images in a single call for improved efficiency. The batch API supports both uniform prompts (same for all images) and per-image prompts.
+
+    === "Python"
+
+        ```python
+        from ultralytics.models.sam import SAM3SemanticPredictor
+
+        # Initialize predictor
+        predictor = SAM3SemanticPredictor(overrides={"model": "sam3.pt"})
+
+        # Batch inference with same prompts for all images
+        images = ["image1.jpg", "image2.jpg", "image3.jpg", "image4.jpg"]
+        results = predictor(images, text=["person", "car"])
+
+        # Batch inference with per-image prompts
+        results = predictor(["street.jpg", "office.jpg"], text=[["car", "pedestrian"], ["person", "laptop"]])
+
+        # Control GPU batch size for memory/speed tradeoff
+        results = predictor(images, text=["person"], batch_size=4)
+
+        # Process results
+        for i, result in enumerate(results):
+            print(f"Image {i}: {len(result.masks)} masks detected")
+            result.save(f"output_{i}.jpg")
+        ```
+
+    !!! tip "Batch Size Optimization"
+
+        The `batch_size` parameter controls how many images are processed together through the GPU backbone:
+
+        - **Higher batch_size**: Better GPU utilization, faster overall throughput
+        - **Lower batch_size**: Less GPU memory usage, useful for large images
+        - Default is 1 (sequential processing)
+
 ### Video Concept Segmentation
 
 #### Track Concepts Across Video with Bounding Boxes
@@ -274,9 +312,9 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
 #### Track Concepts with Text Prompts
 
-!!! example "Video Tracking with Semantic Queries"
+!!! example "Video Tracking with Text Prompts"
 
-    Track all instances of concepts specified by text across video frames.
+    Track all instances of concepts specified by text across video frames using streaming mode.
 
     === "Python"
 
@@ -284,24 +322,30 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3VideoSemanticPredictor
 
         # Initialize semantic video predictor
-        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=640, model="sam3.pt", half=True, save=True)
-        predictor = SAM3VideoSemanticPredictor(overrides=overrides)
-
-        # Track concepts using text prompts
-        results = predictor(source="path/to/video.mp4", text=["person", "bicycle"], stream=True)
-
-        # Process results
-        for r in results:
-            r.show()  # Display frame with tracked objects
-
-        # Alternative: Track with bounding box prompts
-        results = predictor(
-            source="path/to/video.mp4",
-            bboxes=[[864, 383, 975, 620], [705, 229, 782, 402]],
-            labels=[1, 1],  # Positive labels
-            stream=True,
+        predictor = SAM3VideoSemanticPredictor(
+            overrides={
+                "model": "sam3.pt",
+                "conf": 0.25,
+                "imgsz": 640,
+                "half": True,
+                "save": True,
+            }
         )
+
+        # Stream video results frame by frame
+        for result in predictor("path/to/video.mp4", text=["person", "bicycle"], stream=True):
+            # Process each frame
+            print(f"Frame: {result.path}, Detections: {len(result.boxes) if result.boxes else 0}")
+            result.show()  # Display frame with tracked objects
+
+        # Or collect all results (uses more memory)
+        results = predictor("path/to/video.mp4", text=["person"], stream=False)
+        print(f"Processed {len(results)} frames")
         ```
+
+    !!! tip "Streaming for Memory Efficiency"
+
+        Use `stream=True` (default) for video processing to avoid loading all frames into memory at once. This is essential for long videos or when processing multiple videos sequentially.
 
 ### Visual Prompts (SAM 2 Compatibility)
 
@@ -529,6 +573,41 @@ While SAM 3 represents a major advancement, it has certain limitations:
           note      = {Paper ID: 4183, under double-blind review}
         }
         ```
+
+---
+
+## Performance Tips
+
+### Batch Processing for Multiple Images
+
+When processing multiple images, use the batch API for significant speedup:
+
+```python
+from ultralytics.models.sam import SAM3SemanticPredictor
+
+predictor = SAM3SemanticPredictor(overrides={"model": "sam3.pt", "half": True})
+
+# Slow: Sequential processing
+for img in images:
+    predictor.set_image(img)
+    result = predictor(text=["person"])
+
+# Fast: Batch processing with GPU batching
+results = predictor(images, text=["person"], batch_size=4)
+```
+
+### Video Streaming
+
+For video processing, always use `stream=True` to avoid loading all frames into memory:
+
+```python
+# Memory efficient: streaming mode
+for result in predictor(video, text=["person"], stream=True):
+    process(result)
+
+# Memory intensive: loads all frames
+results = predictor(video, text=["person"], stream=False)  # Avoid for long videos
+```
 
 ---
 

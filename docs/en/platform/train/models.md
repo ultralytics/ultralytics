@@ -31,7 +31,7 @@ Supported model formats:
 After upload, the Platform parses model metadata:
 
 - Task type (detect, segment, pose, OBB, classify)
-- Architecture (YOLO11n, YOLO11s, etc.)
+- Architecture (YOLO26n, YOLO26s, etc.)
 - Class names and count
 - Input size and parameters
 
@@ -192,8 +192,8 @@ Remove a model you no longer need:
 
 Ultralytics Platform supports all YOLO architectures:
 
+- **YOLO26**: n, s, m, l, x variants (recommended)
 - **YOLO11**: n, s, m, l, x variants
-- **YOLO26**: Latest generation (when available)
 - **YOLOv10**: Legacy support
 - **YOLOv8**: Legacy support
 - **YOLOv5**: Legacy support

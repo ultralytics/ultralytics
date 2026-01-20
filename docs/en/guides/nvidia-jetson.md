@@ -23,7 +23,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
   <strong>Watch:</strong> How to use Ultralytics YOLO26 on NVIDIA Jetson Devices
 </p>
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/nvidia-jetson-ecosystem.avif" alt="NVIDIA Jetson Ecosystem">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-jetson-ecosystem.avif" alt="NVIDIA Jetson Ecosystem">
 
 !!! note
 
@@ -873,7 +873,7 @@ When using NVIDIA Jetson, there are a couple of best practices to follow in orde
     jtop
     ```
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/jetson-stats-application.avif" alt="Jetson Stats">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-stats-application.avif" alt="Jetson Stats">
 
 ## Next Steps
 

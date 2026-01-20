@@ -30,7 +30,7 @@ class SegmentationValidator(DetectionValidator):
 
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationValidator
-        >>> args = dict(model="yolo11n-seg.pt", data="coco8-seg.yaml")
+        >>> args = dict(model="yolo26n-seg.pt", data="coco8-seg.yaml")
         >>> validator = SegmentationValidator(args=args)
         >>> validator()
     """
@@ -99,9 +99,7 @@ class SegmentationValidator(DetectionValidator):
         Returns:
             list[dict[str, torch.Tensor]]: Processed detection predictions with masks.
         """
-        proto = (
-            preds[0][-1] if isinstance(preds[0], tuple) else preds[-1]
-        )  # second output is len 3 if pt, but only 1 if exported
+        proto = preds[0][1] if isinstance(preds[0], tuple) else preds[1]
         preds = super().postprocess(preds[0])
         imgsz = [4 * x for x in proto.shape[2:]]  # get image size from proto
         for i, pred in enumerate(preds):

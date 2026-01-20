@@ -121,7 +121,7 @@ Results saved to runs/detect/exp
 Done. (0.156s)
 ```
 
-<img src="https://github.com/ultralytics/docs/releases/download/0/yolov5-test-time-augmentations.avif" width="500" alt="YOLOv5 test time augmentations">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-test-time-augmentations.avif" width="500" alt="YOLOv5 test time augmentations">
 
 ### PyTorch Hub TTA
 

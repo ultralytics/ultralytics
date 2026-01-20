@@ -10,7 +10,7 @@ keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, simpl
 
 [Ultralytics](https://www.ultralytics.com/) YOLO26 is the latest evolution in the YOLO series of real-time object detectors, engineered from the ground up for **edge and low-power devices**. It introduces a streamlined design that removes unnecessary complexity while integrating targeted innovations to deliver faster, lighter, and more accessible deployment.
 
-![Ultralytics YOLO26 Comparison Plots](https://github.com/ultralytics/assets/releases/download/v0.0.0/Ultralytics-YOLO26-Benchmark.jpg)
+![Ultralytics YOLO26 Comparison Plots](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/Ultralytics-YOLO26-Benchmark.jpg)
 
 !!! tip "Try on Ultralytics Platform"
 
@@ -51,7 +51,7 @@ Together, these innovations deliver a model family that achieves higher accuracy
 - **Refined OBB Decoding**  
   Introduces a specialized angle loss to improve detection accuracy for square-shaped objects and optimizes OBB decoding to resolve boundary discontinuity issues.
 
-![Ultralytics YOLO26 End-to-End Comparison Plots](https://github.com/ultralytics/assets/releases/download/v0.0.0/Ultralytics-YOLO26-Benchmark-E2E.jpg)
+![Ultralytics YOLO26 End-to-End Comparison Plots](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/Ultralytics-YOLO26-Benchmark-E2E.jpg)
 
 ---
 

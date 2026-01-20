@@ -39,27 +39,27 @@ reCamera comes pre-installed with four Ultralytics YOLO26 models and you can sim
 
 Step 1: If you have connected reCamera to a network, enter the IP address of reCamera on a web browser to open the Node-RED dashboard. If you have connected the reCamera to a PC via USB, you can enter `192.168.42.1`. Here you will see YOLO26n detection model is loaded by default.
 
-![reCamera YOLO11n demo](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-yolo11n-demo.avif)
+![reCamera YOLO11n demo](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recamera-yolo11n-demo.avif)
 
 Step 2: Click the green color circle at the bottom right corner to access the Node-RED flow editor.
 
 Step 3: Click the `model` node and click `On Device`.
 
-![Node-RED model selection](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-model-select.avif)
+![Node-RED model selection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recamera-nodered-model-select.avif)
 
 Step 4: Choose one of the four different pre-installed YOLO26n models and click `Done`. For example, here we will select `YOLO26n Pose`
 
 <p align="center">
-  <img width="50%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-yolo11n-pose.avif" alt="Node-RED YOLO11n-pose select">
+  <img width="50%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recamera-nodered-yolo11n-pose.avif" alt="Node-RED YOLO11n-pose select">
 </p>
 
 Step 5: Click `Deploy` and when it finishes deploying, click `Dashboard`.
 
-![reCamera Node-RED deploy](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-deploy.avif)
+![reCamera Node-RED deploy](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recamera-nodered-deploy.avif)
 
 Now you will be able to see YOLO26n pose estimation model in action!
 
-![reCamera YOLO11n-pose demo](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-yolo11n-pose-demo.avif)
+![reCamera YOLO11n-pose demo](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recamera-yolo11n-pose-demo.avif)
 
 ## Export to cvimodel: Converting Your YOLO26 Model
 
@@ -68,7 +68,7 @@ If you want to use a [custom-trained YOLO26 model](../modes/train.md) with reCam
 Here, we'll first convert a `PyTorch` model to `ONNX` and then convert it to the `MLIR` model format. Finally, `MLIR` will be converted to `cvimodel` to run inference on-device.
 
 <p align="center">
-  <img width="80%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-toolchain-workflow.avif" alt="reCamera Toolchain">
+  <img width="80%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recamera-toolchain-workflow.avif" alt="Seeed Studio reCamera AI development toolchain">
 </p>
 
 ### Export to ONNX
@@ -142,7 +142,7 @@ reCamera advanced computer vision capabilities and modular design make it suitab
 
 - **Car Parts Detection**: In manufacturing and automotive industries, it aids in detecting and analyzing car parts for quality control, assembly line monitoring, and inventory management.
 
-![Car parts detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/carparts-detection.avif)
+![YOLO car parts detection for automotive inspection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/carparts-detection.avif)
 
 ## FAQ
 

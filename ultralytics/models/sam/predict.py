@@ -2463,8 +2463,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
         if images is None:
             if self.features is None:
                 raise ValueError("No image set. Call set_image() first or pass images to __call__().")
-            # Use cached features from set_image() - pass None since features already cached
-            return self.inference(None, bboxes=bboxes, labels=labels, text=text)
+            # Use the image previously provided to set_image() as the source for this call
+            # so that we follow the same batch processing path and return Results.
+            images = self.batch[0][0]
 
         # Normalize to list
         if not isinstance(images, list):

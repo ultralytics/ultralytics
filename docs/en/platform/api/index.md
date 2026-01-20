@@ -683,29 +683,148 @@ DELETE /api/api-keys/{keyId}
 | `RATE_LIMITED`     | Too many requests          |
 | `INTERNAL_ERROR`   | Server error               |
 
-## SDK Support
+## Python Integration
 
 For easier integration, use the Ultralytics Python package.
+
+### Installation & Setup
+
+```bash
+pip install ultralytics
+```
+
+Verify installation:
+
+```bash
+yolo check
+```
 
 !!! warning "Package Version Requirement"
 
     Platform integration requires **ultralytics>=8.4.0**. Lower versions will NOT work with Platform.
 
-    ```bash
-    pip install "ultralytics>=8.4.0"
-    ```
+### Authentication
+
+**Method 1: CLI Configuration (Recommended)**
+
+```bash
+yolo settings api_key=YOUR_API_KEY
+```
+
+**Method 2: Environment Variable**
+
+```bash
+export ULTRALYTICS_API_KEY=YOUR_API_KEY
+```
+
+**Method 3: In Code**
 
 ```python
-import os
+from ultralytics import settings
 
+settings.api_key = "YOUR_API_KEY"
+```
+
+### Using Platform Datasets
+
+Reference datasets with `ul://` URIs:
+
+```python
 from ultralytics import YOLO
 
-# Set API key
-os.environ["ULTRALYTICS_API_KEY"] = "ul_your_key"
+model = YOLO("yolo11n.pt")
 
-# Train with Platform integration
-model = YOLO("yolo26n.pt")
-model.train(data="ul://username/datasets/my-dataset", project="username/my-project", name="experiment-1", epochs=100)
+# Train on your Platform dataset
+model.train(
+    data="ul://your-username/your-dataset",
+    epochs=100,
+    imgsz=640,
+)
+```
+
+**URI Format:**
+
+```
+ul://{username}/{resource-type}/{name}
+
+Examples:
+ul://john/datasets/coco-custom     # Dataset
+ul://john/my-project               # Project
+ul://john/my-project/exp-1         # Specific model
+ul://ultralytics/yolo26/yolo26n    # Official model
+```
+
+### Pushing to Platform
+
+Send results to a Platform project:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo11n.pt")
+
+# Results automatically sync to Platform
+model.train(
+    data="coco8.yaml",
+    epochs=100,
+    project="ul://your-username/my-project",
+    name="experiment-1",
+)
+```
+
+**What syncs:**
+
+- Training metrics (real-time)
+- Final model weights
+- Validation plots
+- Console output
+- System metrics
+
+### API Examples
+
+**Load a model from Platform:**
+
+```python
+# Your own model
+model = YOLO("ul://username/project/model-name")
+
+# Official model
+model = YOLO("ul://ultralytics/yolo26/yolo26n")
+```
+
+**Run inference:**
+
+```python
+results = model("image.jpg")
+
+# Access results
+for r in results:
+    boxes = r.boxes  # Detection boxes
+    masks = r.masks  # Segmentation masks
+    keypoints = r.keypoints  # Pose keypoints
+    probs = r.probs  # Classification probabilities
+```
+
+**Export model:**
+
+```python
+# Export to ONNX
+model.export(format="onnx", imgsz=640, half=True)
+
+# Export to TensorRT
+model.export(format="engine", imgsz=640, half=True)
+
+# Export to CoreML
+model.export(format="coreml", imgsz=640)
+```
+
+**Validation:**
+
+```python
+metrics = model.val(data="ul://username/my-dataset")
+
+print(f"mAP50: {metrics.box.map50}")
+print(f"mAP50-95: {metrics.box.map}")
 ```
 
 ## Webhooks

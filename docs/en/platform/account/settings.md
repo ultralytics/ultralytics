@@ -61,11 +61,11 @@ View your data region:
 
 <!-- Screenshot: platform-settings-region.avif -->
 
-| Region | Location                 |
-| ------ | ------------------------ |
-| **US** | US Central (Iowa)        |
-| **EU** | EU West (Belgium)        |
-| **AP** | Asia Pacific (Hong Kong) |
+| Region | Location             | Best For                                |
+| ------ | -------------------- | --------------------------------------- |
+| **US** | Iowa, USA            | Americas users, fastest for Americas    |
+| **EU** | Belgium, Europe      | European users, GDPR compliance         |
+| **AP** | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 !!! note "Region is Permanent"
 

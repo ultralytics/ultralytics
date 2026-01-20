@@ -984,7 +984,7 @@ class BaseTrainer:
         g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
-        muon, sgd = (0.1, 1.0)# if iterations > 10000 else (0.5, 0.5)  # scale factor for MuSGD
+        muon, sgd = (0.2, 1.0)# if iterations > 10000 else (0.5, 0.5)  # scale factor for MuSGD
         if use_muon:
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re

@@ -70,13 +70,13 @@ graph LR
     Data --> Train --> Deploy
 ```
 
-| Stage        | Features                                                                                |
-| ------------ | --------------------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), ZIP archives (50GB) with automatic processing              |
-| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types             |
-| **Train**    | Cloud GPUs (RTX 4090 to H200), real-time metrics, project organization                  |
-| **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)                            |
-| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                    |
+| Stage        | Features                                                                    |
+| ------------ | --------------------------------------------------------------------------- |
+| **Upload**   | Images (50MB), videos (1GB), ZIP archives (50GB) with automatic processing  |
+| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types |
+| **Train**    | Cloud GPUs (RTX 4090 to H200), real-time metrics, project organization      |
+| **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)                |
+| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring        |
 
 **What you can do:**
 
@@ -92,11 +92,11 @@ graph LR
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Location              | Best For                              |
-| ------ | --------------------- | ------------------------------------- |
-| **US** | Iowa, USA             | Americas users, fastest for Americas  |
-| **EU** | Belgium, Europe       | European users, GDPR compliance       |
-| **AP** | Taiwan, Asia-Pacific  | Asia-Pacific users, lowest APAC latency |
+| Region | Location             | Best For                                |
+| ------ | -------------------- | --------------------------------------- |
+| **US** | Iowa, USA            | Americas users, fastest for Americas    |
+| **EU** | Belgium, Europe      | European users, GDPR compliance         |
+| **AP** | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
 
@@ -183,22 +183,22 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| Tier       | GPU          | VRAM   | Cost/Hour | Best For                    |
-| ---------- | ------------ | ------ | --------- | --------------------------- |
-| Budget     | RTX A2000    | 6 GB   | $0.12     | Small datasets, testing     |
-| Budget     | RTX 3080     | 10 GB  | $0.25     | Medium datasets             |
-| Budget     | RTX 3080 Ti  | 12 GB  | $0.30     | Medium datasets             |
-| Budget     | A30          | 24 GB  | $0.44     | Larger batch sizes          |
-| Mid        | RTX 4090     | 24 GB  | $0.60     | Great price/performance     |
-| Mid        | A6000        | 48 GB  | $0.90     | Large models                |
-| Mid        | L4           | 24 GB  | $0.54     | Inference optimized         |
-| Mid        | L40S         | 48 GB  | $1.72     | Large batch training        |
-| Pro        | A100 40GB    | 40 GB  | $2.78     | Production training         |
-| Pro        | A100 80GB    | 80 GB  | $3.44     | Very large models           |
-| Pro        | H100         | 80 GB  | $5.38     | Fastest training            |
-| Enterprise | H200         | 141 GB | $5.38     | Maximum performance         |
-| Enterprise | B200         | 192 GB | $10.38    | Largest models              |
-| Ultralytics| RTX PRO 6000 | 48 GB  | $3.68     | Ultralytics infrastructure  |
+| Tier        | GPU          | VRAM   | Cost/Hour | Best For                   |
+| ----------- | ------------ | ------ | --------- | -------------------------- |
+| Budget      | RTX A2000    | 6 GB   | $0.12     | Small datasets, testing    |
+| Budget      | RTX 3080     | 10 GB  | $0.25     | Medium datasets            |
+| Budget      | RTX 3080 Ti  | 12 GB  | $0.30     | Medium datasets            |
+| Budget      | A30          | 24 GB  | $0.44     | Larger batch sizes         |
+| Mid         | RTX 4090     | 24 GB  | $0.60     | Great price/performance    |
+| Mid         | A6000        | 48 GB  | $0.90     | Large models               |
+| Mid         | L4           | 24 GB  | $0.54     | Inference optimized        |
+| Mid         | L40S         | 48 GB  | $1.72     | Large batch training       |
+| Pro         | A100 40GB    | 40 GB  | $2.78     | Production training        |
+| Pro         | A100 80GB    | 80 GB  | $3.44     | Very large models          |
+| Pro         | H100         | 80 GB  | $5.38     | Fastest training           |
+| Enterprise  | H200         | 141 GB | $5.38     | Maximum performance        |
+| Enterprise  | B200         | 192 GB | $10.38    | Largest models             |
+| Ultralytics | RTX PRO 6000 | 48 GB  | $3.68     | Ultralytics infrastructure |
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 
@@ -239,30 +239,30 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 ### Dataset Issues
 
-| Problem | Solution |
-| ------- | -------- |
-| Dataset won't process | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 50GB |
-| Missing annotations | Verify labels are in YOLO format with `.txt` files matching image filenames |
-| "Train split required" | Add `train/` folder to your dataset structure, or create splits in the dataset settings |
-| Class names undefined | Add a `data.yaml` file with `names:` list, or define classes in dataset settings |
+| Problem                | Solution                                                                                                 |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| Dataset won't process  | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 50GB |
+| Missing annotations    | Verify labels are in YOLO format with `.txt` files matching image filenames                              |
+| "Train split required" | Add `train/` folder to your dataset structure, or create splits in the dataset settings                  |
+| Class names undefined  | Add a `data.yaml` file with `names:` list, or define classes in dataset settings                         |
 
 ### Training Issues
 
-| Problem | Solution |
-| ------- | -------- |
-| Training won't start | Check credit balance in Settings > Billing. Minimum $5.00 required |
-| Out of memory error | Reduce batch size, use smaller model (n/s), or select GPU with more VRAM |
-| Poor metrics | Check dataset quality, increase epochs, try data augmentation, verify class balance |
-| Training slow | Select faster GPU, reduce image size, check dataset isn't bottlenecked |
+| Problem              | Solution                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| Training won't start | Check credit balance in Settings > Billing. Minimum $5.00 required                  |
+| Out of memory error  | Reduce batch size, use smaller model (n/s), or select GPU with more VRAM            |
+| Poor metrics         | Check dataset quality, increase epochs, try data augmentation, verify class balance |
+| Training slow        | Select faster GPU, reduce image size, check dataset isn't bottlenecked              |
 
 ### Deployment Issues
 
-| Problem | Solution |
-| ------- | -------- |
-| Endpoint not responding | Check endpoint status (Running vs Stopped). Cold start may take 2-5 seconds |
-| 401 Unauthorized | Verify API key is correct and has required scopes |
-| Slow inference | Check model size, consider TensorRT export, select closer region |
-| Export failed | Some formats require specific model architectures. Try ONNX for broadest compatibility |
+| Problem                 | Solution                                                                               |
+| ----------------------- | -------------------------------------------------------------------------------------- |
+| Endpoint not responding | Check endpoint status (Running vs Stopped). Cold start may take 2-5 seconds            |
+| 401 Unauthorized        | Verify API key is correct and has required scopes                                      |
+| Slow inference          | Check model size, consider TensorRT export, select closer region                       |
+| Export failed           | Some formats require specific model architectures. Try ONNX for broadest compatibility |
 
 ### Common Questions
 

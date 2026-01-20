@@ -8,7 +8,7 @@ keywords: YOLOv7, real-time object detection, Ultralytics, AI, computer vision, 
 
 YOLOv7, released in July 2022, was a significant advancement in real-time object detection at its time of release. It achieved 56.8% AP on GPU V100, setting new benchmarks when introduced. YOLOv7 outperformed contemporary object detectors such as YOLOR, YOLOX, Scaled-YOLOv4, and YOLOv5 in speed and [accuracy](https://www.ultralytics.com/glossary/accuracy). The model is trained on the MS COCO dataset from scratch without using any other datasets or pretrained weights. Source code for YOLOv7 is available on GitHub. Note that newer models like [YOLO11](yolo11.md) and [YOLO26](yolo26.md) have since achieved higher accuracy with improved efficiency.
 
-![YOLOv7 comparison with SOTA object detectors](https://github.com/ultralytics/docs/releases/download/0/yolov7-comparison-sota-object-detectors.avif)
+![YOLOv7 comparison with SOTA object detectors](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov7-comparison-sota-object-detectors.avif)
 
 ## Comparison of SOTA object detectors
 

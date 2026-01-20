@@ -14,7 +14,7 @@ keywords: YOLO-NAS, Deci AI, object detection, deep learning, Neural Architectur
 
 Developed by Deci AI, YOLO-NAS is a groundbreaking object detection foundational model. It is the product of advanced [Neural Architecture Search](https://www.ultralytics.com/glossary/neural-architecture-search-nas) technology, meticulously designed to address the limitations of previous YOLO models. With significant improvements in quantization support and [accuracy](https://www.ultralytics.com/glossary/accuracy)-latency trade-offs, YOLO-NAS represents a major leap in object detection.
 
-![Model example image](https://github.com/ultralytics/docs/releases/download/0/yolo-nas-coco-map-metrics.avif) **Overview of YOLO-NAS.** YOLO-NAS employs quantization-aware blocks and selective quantization for optimal performance. The model, when converted to its INT8 quantized version, experiences a minimal precision drop, a significant improvement over other models. These advancements culminate in a superior architecture with unprecedented object detection capabilities and outstanding performance.
+![YOLO-NAS model accuracy comparison on COCO benchmark](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-nas-coco-map-metrics.avif) **Overview of YOLO-NAS.** YOLO-NAS employs quantization-aware blocks and selective quantization for optimal performance. The model, when converted to its INT8 quantized version, experiences a minimal precision drop, a significant improvement over other models. These advancements culminate in a superior architecture with unprecedented object detection capabilities and outstanding performance.
 
 ### Key Features
 
@@ -99,9 +99,9 @@ Below is a detailed overview of each model, including links to their pretrained 
 
 | Model Type | Pretrained Weights                                                                            | Tasks Supported                        | Inference | Validation | Training | Export |
 | ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
-| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-s | [yolo_nas_s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_s.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_m.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
+| YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
 
 ## Citations and Acknowledgments
 
@@ -168,6 +168,6 @@ YOLO-NAS models support various object detection tasks and modes such as inferen
 
 Yes, Ultralytics provides pretrained YOLO-NAS models that you can access directly. These models are pretrained on datasets like COCO, ensuring high performance in terms of both speed and accuracy. You can download these models using the links provided in the [Pretrained Models](#pretrained-models) section. Here are some examples:
 
-- [YOLO-NAS-s](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_s.pt)
-- [YOLO-NAS-m](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.pt)
-- [YOLO-NAS-l](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.pt)
+- [YOLO-NAS-s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_s.pt)
+- [YOLO-NAS-m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_m.pt)
+- [YOLO-NAS-l](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo_nas_l.pt)

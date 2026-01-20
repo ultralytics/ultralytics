@@ -157,7 +157,7 @@ def select_device(device="", newline=False, verbose=True):
     Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-    if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
+    if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "

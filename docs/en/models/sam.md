@@ -20,7 +20,7 @@ The Segment Anything Model, or SAM, is a cutting-edge image segmentation model t
 
 SAM's advanced design allows it to adapt to new image distributions and tasks without prior knowledge, a feature known as zero-shot transfer. Trained on the expansive [SA-1B dataset](https://ai.meta.com/datasets/segment-anything/), which contains more than 1 billion masks spread over 11 million carefully curated images, SAM has displayed impressive zero-shot performance, surpassing previous fully supervised results in many cases.
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/sa-1b-dataset-sample.avif) **SA-1B Example images.** Dataset images overlaid masks from the newly introduced SA-1B dataset. SA-1B contains 11M diverse, high-resolution, licensed, and privacy protecting images and 1.1B high-quality segmentation masks. These masks were annotated fully automatically by SAM, and as verified by human ratings and numerous experiments, are of high quality and diversity. Images are grouped by number of masks per image for visualization (there are ∼100 masks per image on average).
+![SA-1B dataset sample with automatic segmentation masks](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sa-1b-dataset-sample.avif) **SA-1B Example images.** Dataset images overlaid masks from the newly introduced SA-1B dataset. SA-1B contains 11M diverse, high-resolution, licensed, and privacy protecting images and 1.1B high-quality segmentation masks. These masks were annotated fully automatically by SAM, and as verified by human ratings and numerous experiments, are of high quality and diversity. Images are grouped by number of masks per image for visualization (there are ∼100 masks per image on average).
 
 ## Key Features of the Segment Anything Model (SAM)
 
@@ -37,8 +37,8 @@ This table presents the available models with their specific pretrained weights,
 
 | Model Type | Pretrained Weights                                                                  | Tasks Supported                              | Inference | Validation | Training | Export |
 | ---------- | ----------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| SAM base   | [sam_b.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
-| SAM large  | [sam_l.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/sam_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM base   | [sam_b.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam_b.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM large  | [sam_l.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/sam_l.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 
 ## How to Use SAM: Versatility and Power in Image Segmentation
 
@@ -213,7 +213,7 @@ To auto-annotate your dataset with the Ultralytics framework, use the `auto_anno
         ```python
         from ultralytics.data.annotator import auto_annotate
 
-        auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam_b.pt")
+        auto_annotate(data="path/to/images", det_model="yolo26x.pt", sam_model="sam_b.pt")
         ```
 
 {% include "macros/sam-auto-annotate.md" %}

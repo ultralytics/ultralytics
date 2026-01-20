@@ -10,7 +10,7 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segm
 
     SAM 3 is fully integrated into the Ultralytics package as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Install or upgrade with `pip install -U ultralytics` to access all SAM 3 features including text-based concept segmentation, image exemplar prompts, and video tracking.
 
-![SAM 3 Overview](https://github.com/ultralytics/docs/releases/download/0/sam-3-overview.webp)
+![SAM 3 promptable concept segmentation overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-overview.webp)
 
 **SAM 3** (Segment Anything Model 3) is Meta's released foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
 
@@ -31,7 +31,7 @@ SAM 3 is now fully integrated into the `ultralytics` package, providing native s
 
 SAM 3 achieves a **2× performance gain** over existing systems in Promptable Concept Segmentation while maintaining and improving SAM 2's capabilities for interactive [visual segmentation](../tasks/segment.md). The model excels at open-vocabulary segmentation, allowing users to specify concepts using simple noun phrases (e.g., "yellow school bus", "striped cat") or by providing example images of the target object. These capabilities complement production-ready pipelines that rely on streamlined [predict](../modes/predict.md) and [track](../modes/track.md) workflows.
 
-![SAM 3 Segmentation](https://github.com/ultralytics/docs/releases/download/0/sam-3-segmentation.webp)
+![SAM 3 text-prompt segmentation examples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-segmentation.webp)
 
 ### What is Promptable Concept Segmentation (PCS)?
 
@@ -77,7 +77,7 @@ SAM 3 consists of a **detector** and **tracker** that share a Perception Encoder
 
 - **Presence Token**: A learned global token that predicts whether the target concept is present in the image/frame, improving detection by separating recognition from localization.
 
-![SAM 3 Architecture](https://github.com/ultralytics/docs/releases/download/0/sam-3-architecture.webp)
+![SAM 3 model architecture diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-architecture.webp)
 
 ### Key Innovations
 

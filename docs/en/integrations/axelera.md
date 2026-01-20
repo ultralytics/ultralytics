@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Deploy Ultralytics YOLO models on Axelera AI's Metis hardware. Learn how to export, compile, and run high-performance edge inference with up to 856 TOPS.
-keywords: Axelera AI, Metis AIPU, Voyager SDK, Edge AI, YOLOv8, YOLO11, Model Export, Computer Vision, PCIe, M.2, Object Detection, quantization
+keywords: Axelera AI, Metis AIPU, Voyager SDK, Edge AI, YOLOv8, YOLO26, Model Export, Computer Vision, PCIe, M.2, Object Detection, quantization
 ---
 
 # Axelera AI Export and Deployment
@@ -12,7 +12,7 @@ keywords: Axelera AI, Metis AIPU, Voyager SDK, Edge AI, YOLOv8, YOLO11, Model Ex
 
 Ultralytics partners with [Axelera AI](https://www.axelera.ai/) to enable high-performance, energy-efficient inference on [Edge AI](https://www.ultralytics.com/glossary/edge-ai) devices. Export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** using the **Voyager SDK**.
 
-![Axelera AI Ecosystem](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
+![Axelera AI edge deployment ecosystem for YOLO](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
 
 Axelera AI provides dedicated hardware acceleration for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) at the edge, using a proprietary dataflow architecture and [in-memory computing](https://www.ultralytics.com/glossary/edge-computing) to deliver up to **856 TOPS** with low power consumption.
 
@@ -44,7 +44,7 @@ graph TD
 
 ## Hardware Portfolio
 
-The Axelera hardware lineup is optimized to run [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) and legacy versions with high FPS-per-watt efficiency.
+The Axelera hardware lineup is optimized to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26/) and legacy versions with high FPS-per-watt efficiency.
 
 ### Accelerator Cards
 
@@ -128,17 +128,17 @@ Export your trained YOLO models using the standard Ultralytics export command.
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11 model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26 model
+        model = YOLO("yolo26n.pt")
 
         # Export to Axelera format
-        model.export(format="axelera")  # creates 'yolo11n_axelera_model' directory
+        model.export(format="axelera")  # creates 'yolo26n_axelera_model' directory
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=axelera
+        yolo export model=yolo26n.pt format=axelera
         ```
 
 ### Export Arguments
@@ -157,8 +157,8 @@ For all export options, see the [Export Mode documentation](https://docs.ultraly
 ### Output Structure
 
 ```text
-yolo11n_axelera_model/
-├── yolo11n.axm              # Axelera model file
+yolo26n_axelera_model/
+├── yolo26n.axm              # Axelera model file
 └── metadata.yaml            # Model metadata (classes, image size, etc.)
 ```
 
@@ -174,7 +174,7 @@ Load the exported model with the Ultralytics API and run inference, similar to l
         from ultralytics import YOLO
 
         # Load the exported Axelera model
-        model = YOLO("yolo11n_axelera_model")
+        model = YOLO("yolo26n_axelera_model")
 
         # Run inference
         results = model("https://ultralytics.com/images/bus.jpg")
@@ -188,7 +188,7 @@ Load the exported model with the Ultralytics API and run inference, similar to l
     === "CLI"
 
         ```bash
-        yolo predict model='yolo11n_axelera_model' source='https://ultralytics.com/images/bus.jpg'
+        yolo predict model='yolo26n_axelera_model' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 !!! warning "Known Issue"
@@ -261,7 +261,7 @@ For support, visit the [Axelera Community](https://community.axelera.ai/).
 
 ### What YOLO versions are supported on Axelera?
 
-The Voyager SDK supports export of [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/) models.
+The Voyager SDK supports export of [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO26](https://docs.ultralytics.com/models/yolo26/) models.
 
 ### Can I deploy custom-trained models?
 

@@ -13,6 +13,10 @@ from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SE
 
 PREFIX = colorstr("Platform: ")
 
+# Configurable platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
+PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
+PLATFORM_API_URL = f"{PLATFORM_URL}/api/webhooks"
+
 
 def slugify(text):
     """Convert text to URL-safe slug (e.g., 'My Project 1' -> 'my-project-1')."""
@@ -66,11 +70,9 @@ def resolve_platform_uri(uri, hard=True):
 
     api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     if not api_key:
-        raise ValueError(
-            f"ULTRALYTICS_API_KEY required for '{uri}'. Get key at https://platform.ultralytics.com/settings"
-        )
+        raise ValueError(f"ULTRALYTICS_API_KEY required for '{uri}'. Get key at {PLATFORM_URL}/settings")
 
-    base = "https://platform.ultralytics.com/api/webhooks"
+    base = PLATFORM_API_URL
     headers = {"Authorization": f"Bearer {api_key}"}
 
     # ul://username/datasets/slug
@@ -87,7 +89,8 @@ def resolve_platform_uri(uri, hard=True):
         raise ValueError(f"Invalid platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
 
     try:
-        r = requests.head(url, headers=headers, allow_redirects=False, timeout=30)
+        timeout = 3600 if "/datasets/" in url else 90  # NDJSON generation can be slow for large datasets
+        r = requests.head(url, headers=headers, allow_redirects=False, timeout=timeout)
 
         # Handle redirect responses (301, 302, 303, 307, 308)
         if 300 <= r.status_code < 400 and "location" in r.headers:
@@ -152,7 +155,7 @@ def _send(event, data, project, name, model_id=None):
         if model_id:
             payload["modelId"] = model_id
         r = requests.post(
-            "https://platform.ultralytics.com/api/webhooks/training/metrics",
+            f"{PLATFORM_API_URL}/training/metrics",
             json=payload,
             headers={"Authorization": f"Bearer {_api_key}"},
             timeout=10,
@@ -178,7 +181,7 @@ def _upload_model(model_path, project, name):
 
         # Get signed upload URL
         response = requests.post(
-            "https://platform.ultralytics.com/api/webhooks/models/upload",
+            f"{PLATFORM_API_URL}/models/upload",
             json={"project": project, "name": name, "filename": model_path.name},
             headers={"Authorization": f"Bearer {_api_key}"},
             timeout=10,
@@ -195,7 +198,7 @@ def _upload_model(model_path, project, name):
                 timeout=600,  # 10 min timeout for large models
             ).raise_for_status()
 
-        # url = f"https://platform.ultralytics.com/{project}/{name}"
+        # url = f"{PLATFORM_URL}/{project}/{name}"
         # LOGGER.info(f"{PREFIX}Model uploaded to {url}")
         return data.get("gcsPath")
 
@@ -278,7 +281,7 @@ def on_pretrain_routine_start(trainer):
     trainer._platform_last_upload = time()
 
     project, name = _get_project_name(trainer)
-    url = f"https://platform.ultralytics.com/{project}/{name}"
+    url = f"{PLATFORM_URL}/{project}/{name}"
     LOGGER.info(f"{PREFIX}Streaming to {url}")
 
     # Create callback to send console output to Platform
@@ -439,7 +442,7 @@ def on_train_end(trainer):
         name,
         getattr(trainer, "_platform_model_id", None),
     )
-    url = f"https://platform.ultralytics.com/{project}/{name}"
+    url = f"{PLATFORM_URL}/{project}/{name}"
     LOGGER.info(f"{PREFIX}View results at {url}")
 
 

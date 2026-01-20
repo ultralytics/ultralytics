@@ -23,25 +23,37 @@ MCT_CONFIG = {
         "detect": {
             "layer_names": ["sub", "mul_2", "add_14", "cat_19"],
             "weights_memory": 2585350.2439,
-            "n_layers": 238,
+            "n_layers": {238, 239},
         },
         "pose": {
             "layer_names": ["sub", "mul_2", "add_14", "cat_21", "cat_22", "mul_4", "add_15"],
             "weights_memory": 2437771.67,
-            "n_layers": 257,
+            "n_layers": {257, 258},
         },
-        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 112},
-        "segment": {"layer_names": ["sub", "mul_2", "add_14", "cat_21"], "weights_memory": 2466604.8, "n_layers": 265},
+        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": {112}},
+        "segment": {
+            "layer_names": ["sub", "mul_2", "add_14", "cat_21"],
+            "weights_memory": 2466604.8,
+            "n_layers": {265, 266},
+        },
     },
     "YOLOv8": {
-        "detect": {"layer_names": ["sub", "mul", "add_6", "cat_15"], "weights_memory": 2550540.8, "n_layers": 168},
+        "detect": {
+            "layer_names": ["sub", "mul", "add_6", "cat_15"],
+            "weights_memory": 2550540.8,
+            "n_layers": {168, 169},
+        },
         "pose": {
             "layer_names": ["add_7", "mul_2", "cat_17", "mul", "sub", "add_6", "cat_18"],
             "weights_memory": 2482451.85,
-            "n_layers": 187,
+            "n_layers": {187, 188},
         },
-        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 73},
-        "segment": {"layer_names": ["sub", "mul", "add_6", "cat_17"], "weights_memory": 2580060.0, "n_layers": 195},
+        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": {73}},
+        "segment": {
+            "layer_names": ["sub", "mul", "add_6", "cat_17"],
+            "weights_memory": 2580060.0,
+            "n_layers": {195, 196},
+        },
     },
 }
 
@@ -104,15 +116,10 @@ class FXModel(torch.nn.Module):
         return x
 
 
-def _inference(self, x: list[torch.Tensor] | dict[str, torch.Tensor]) -> tuple[torch.Tensor]:
+def _inference(self, x: dict[str, torch.Tensor]) -> tuple[torch.Tensor]:
     """Decode boxes and cls scores for imx object detection."""
-    if isinstance(x, dict):
-        box, cls = x["boxes"], x["scores"]
-    else:
-        x_cat = torch.cat([xi.view(x[0].shape[0], self.no, -1) for xi in x], 2)
-        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-    dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
-    return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
+    dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0)) * self.strides
+    return dbox.transpose(1, 2), x["scores"].sigmoid().permute(0, 2, 1)
 
 
 def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -256,7 +263,7 @@ def torch2imx(
     mct_config = MCT_CONFIG["YOLO11" if "C2PSA" in model.__str__() else "YOLOv8"][model.task]
 
     # Check if the model has the expected number of layers
-    if len(list(model.modules())) != mct_config["n_layers"]:
+    if len(list(model.modules())) not in mct_config["n_layers"]:
         raise ValueError("IMX export only supported for YOLOv8n and YOLO11n models.")
 
     for layer_name in mct_config["layer_names"]:

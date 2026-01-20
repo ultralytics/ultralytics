@@ -361,11 +361,11 @@ class DetectionModel(BaseModel):
 
     Examples:
         Initialize a detection model
-        >>> model = DetectionModel("yolo11n.yaml", ch=3, nc=80)
+        >>> model = DetectionModel("yolo26n.yaml", ch=3, nc=80)
         >>> results = model.predict(image_tensor)
     """
 
-    def __init__(self, cfg="yolo11n.yaml", ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolo26n.yaml", ch=3, nc=None, verbose=True):
         """Initialize the YOLO detection model with the given config and parameters.
 
         Args:
@@ -506,11 +506,11 @@ class OBBModel(DetectionModel):
 
     Examples:
         Initialize an OBB model
-        >>> model = OBBModel("yolo11n-obb.yaml", ch=3, nc=80)
+        >>> model = OBBModel("yolo26n-obb.yaml", ch=3, nc=80)
         >>> results = model.predict(image_tensor)
     """
 
-    def __init__(self, cfg="yolo11n-obb.yaml", ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolo26n-obb.yaml", ch=3, nc=None, verbose=True):
         """Initialize YOLO OBB model with given config and parameters.
 
         Args:
@@ -538,11 +538,11 @@ class SegmentationModel(DetectionModel):
 
     Examples:
         Initialize a segmentation model
-        >>> model = SegmentationModel("yolo11n-seg.yaml", ch=3, nc=80)
+        >>> model = SegmentationModel("yolo26n-seg.yaml", ch=3, nc=80)
         >>> results = model.predict(image_tensor)
     """
 
-    def __init__(self, cfg="yolo11n-seg.yaml", ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolo26n-seg.yaml", ch=3, nc=None, verbose=True):
         """Initialize Ultralytics YOLO segmentation model with given config and parameters.
 
         Args:
@@ -573,11 +573,11 @@ class PoseModel(DetectionModel):
 
     Examples:
         Initialize a pose model
-        >>> model = PoseModel("yolo11n-pose.yaml", ch=3, nc=1, data_kpt_shape=(17, 3))
+        >>> model = PoseModel("yolo26n-pose.yaml", ch=3, nc=1, data_kpt_shape=(17, 3))
         >>> results = model.predict(image_tensor)
     """
 
-    def __init__(self, cfg="yolo11n-pose.yaml", ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
+    def __init__(self, cfg="yolo26n-pose.yaml", ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
         """Initialize Ultralytics YOLO Pose model.
 
         Args:
@@ -619,11 +619,11 @@ class ClassificationModel(BaseModel):
 
     Examples:
         Initialize a classification model
-        >>> model = ClassificationModel("yolo11n-cls.yaml", ch=3, nc=1000)
+        >>> model = ClassificationModel("yolo26n-cls.yaml", ch=3, nc=1000)
         >>> results = model.predict(image_tensor)
     """
 
-    def __init__(self, cfg="yolo11n-cls.yaml", ch=3, nc=None, verbose=True):
+    def __init__(self, cfg="yolo26n-cls.yaml", ch=3, nc=None, verbose=True):
         """Initialize ClassificationModel with YAML, channels, number of classes, verbose flag.
 
         Args:
@@ -1444,7 +1444,7 @@ def torch_safe_load(weight, safe_only=False):
                     f"with https://github.com/ultralytics/yolov5.\nThis model is NOT forwards compatible with "
                     f"YOLOv8 at https://github.com/ultralytics/ultralytics."
                     f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
-                    f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo11n.pt'"
+                    f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
                 )
             ) from e
         elif e.name == "numpy._core":
@@ -1457,7 +1457,7 @@ def torch_safe_load(weight, safe_only=False):
             f"{weight} appears to require '{e.name}', which is not in Ultralytics requirements."
             f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
             f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
-            f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo11n.pt'"
+            f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
         )
         check_requirements(e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")

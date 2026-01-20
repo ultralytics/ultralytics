@@ -50,9 +50,9 @@ Ultralytics Platform is designed to replace fragmented ML tooling with a unified
 
 All in one platform with native support for YOLO26 and YOLO11 models.
 
-## Workflow: Data → Train → Deploy
+## Workflow: Upload → Annotate → Train → Export → Deploy
 
-The Platform follows a streamlined three-stage workflow:
+The Platform provides an end-to-end workflow:
 
 ```mermaid
 graph LR
@@ -65,27 +65,39 @@ graph LR
         E --> F[View Metrics]
     end
     subgraph Deploy["🌐 Deploy"]
-        G[Test] --> H[Deploy Endpoint]
+        G[Export] --> H[Deploy Endpoint]
         H --> I[Monitor]
     end
     Data --> Train --> Deploy
 ```
 
-| Stage      | Features                                                                                |
-| ---------- | --------------------------------------------------------------------------------------- |
-| **Data**   | Dataset upload, annotation editor (manual + SAM + auto-label), statistics visualization |
-| **Train**  | Project organization, cloud training with GPU instances, real-time metrics streaming    |
-| **Deploy** | Inference testing, dedicated endpoints in 43 regions, monitoring dashboards             |
+| Stage        | Features                                                                                |
+| ------------ | --------------------------------------------------------------------------------------- |
+| **Upload**   | Images (50MB), videos (1GB), ZIP archives (50GB) with automatic processing              |
+| **Annotate** | Manual tools, SAM smart annotation, YOLO auto-labeling for all 5 task types             |
+| **Train**    | Cloud GPUs (RTX 4090 to H200), real-time metrics, project organization                  |
+| **Export**   | 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)                            |
+| **Deploy**   | 43 global regions with dedicated endpoints, auto-scaling, monitoring                    |
+
+**What you can do:**
+
+- **Upload** images, videos, and ZIP archives to create training datasets
+- **Visualize** annotations with interactive overlays for all 5 YOLO task types
+- **Train** models on cloud GPUs (RTX 4090 to H200) with real-time metrics
+- **Export** to 17 deployment formats (ONNX, TensorRT, CoreML, TFLite, etc.)
+- **Deploy** to 43 global regions with one-click dedicated endpoints
+- **Monitor** training progress, deployment health, and usage metrics
+- **Collaborate** by making projects and datasets public for the community
 
 ## Multi-Region Infrastructure
 
 Your data stays in your region. Ultralytics Platform operates infrastructure in three global regions:
 
-| Region | Location                 |
-| ------ | ------------------------ |
-| **US** | US Central (Iowa)        |
-| **EU** | EU West (Belgium)        |
-| **AP** | Asia Pacific (Hong Kong) |
+| Region | Location              | Best For                              |
+| ------ | --------------------- | ------------------------------------- |
+| **US** | Iowa, USA             | Americas users, fastest for Americas  |
+| **EU** | Belgium, Europe       | European users, GDPR compliance       |
+| **AP** | Taiwan, Asia-Pacific  | Asia-Pacific users, lowest APAC latency |
 
 You select your region during onboarding, and all your data, models, and deployments remain in that region.
 
@@ -168,13 +180,19 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 
 Ultralytics Platform supports multiple GPU types for cloud training:
 
-| GPU       | VRAM  | Cost      | Best For                  |
-| --------- | ----- | --------- | ------------------------- |
-| RTX 4090  | 24GB  | $1.18/hr  | Fast training, best value |
-| L40S      | 48GB  | $1.72/hr  | Balanced performance      |
-| A100 80GB | 80GB  | $2.78/hr  | Large models, big batches |
-| H100 PCIe | 80GB  | $4.78/hr  | Maximum performance       |
-| B200      | 180GB | $10.38/hr | Cutting-edge workloads    |
+| Tier       | GPU          | VRAM   | Cost/Hour | Best For                    |
+| ---------- | ------------ | ------ | --------- | --------------------------- |
+| Budget     | RTX A2000    | 6 GB   | $0.12     | Small datasets, testing     |
+| Budget     | RTX 3080     | 10 GB  | $0.25     | Medium datasets             |
+| Budget     | A30          | 24 GB  | $0.44     | Larger batch sizes          |
+| Mid        | RTX 4090     | 24 GB  | $0.60     | Great price/performance     |
+| Mid        | L4           | 24 GB  | $0.54     | Inference optimized         |
+| Mid        | L40S         | 48 GB  | $1.72     | Large batch training        |
+| Pro        | A100 40GB    | 40 GB  | $2.78     | Production training         |
+| Pro        | A100 80GB    | 80 GB  | $3.44     | Very large models           |
+| Pro        | H100         | 80 GB  | $5.38     | Fastest training            |
+| Enterprise | H200         | 141 GB | $5.38     | Maximum performance         |
+| Enterprise | B200         | 192 GB | $10.38    | Largest models              |
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 

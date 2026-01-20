@@ -173,8 +173,8 @@ def export_formats():
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
-        ["liteRT", "litert", "_litert_model", True, False, ["batch"]],
         ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction"]],
+        ["liteRT", "litert", "_litert_model", True, False, ["batch"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -358,8 +358,8 @@ class Exporter:
             imx,
             rknn,
             executorch,
-            litert,
             axelera,
+            litert,
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
@@ -845,14 +845,15 @@ class Exporter:
         """Export YOLO model to liteRT format using ai_edge_torch."""
         check_requirements("ai_edge_torch")
         import ai_edge_torch
-
-        f = str(self.file.with_suffix(".tflite"))
+        
+        f = Path(str(self.file).replace(self.file.suffix, "_litert_model"))
+        f.mkdir(parents=True, exist_ok=True)
 
         sample_inputs = (torch.randn(1, 3, 640, 640),)
 
         edge_model = ai_edge_torch.convert(self.model, sample_inputs)
-        edge_model.export(f)
-        YAML.save("metadata.yaml", self.metadata)
+        edge_model.export(f / Path(str(self.file).replace(self.file.suffix, ".tflite")))
+        YAML.save(f / Path("metadata.yaml"), self.metadata)
         return f
 
     @try_export

@@ -179,8 +179,8 @@ class AutoBackend(nn.Module):
             rknn,
             pte,
             axelera,
-            triton,
             litert,
+            triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCHW)
@@ -632,6 +632,12 @@ class AutoBackend(nn.Module):
 
             program = Runtime.get().load_program(str(model_file))
             model = program.load_method("forward")
+            
+        # LiteRT
+        elif litert:
+            check_requirements("ai-edge-litert")
+            from ai_edge_litert.interpreter import Interpreter
+            interpreter = Interpreter(w)
 
         # Any other format (unsupported)
         else:

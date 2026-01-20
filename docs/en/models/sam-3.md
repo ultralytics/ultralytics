@@ -266,17 +266,15 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         results = predictor(images, text=["person", "car"])
 
         # Batch inference with per-image prompts
-        results = predictor(
-            ["street.jpg", "office.jpg"],
-            text=[["car", "pedestrian"], ["person", "laptop"]]
-        )
+        results = predictor(["street.jpg", "office.jpg"], text=[["car", "pedestrian"], ["person", "laptop"]])
 
         # Control GPU batch size for memory/speed tradeoff
         results = predictor(images, text=["person"], batch_size=4)
 
         # Process results
         for i, result in enumerate(results):
-            print(f"Image {i}: {len(result.masks)} masks detected")
+            mask_count = len(result.masks) if result.masks is not None else 0
+            print(f"Image {i}: {mask_count} masks detected")
             result.save(f"output_{i}.jpg")
         ```
 
@@ -325,13 +323,15 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3VideoSemanticPredictor
 
         # Initialize semantic video predictor
-        predictor = SAM3VideoSemanticPredictor(overrides={
-            "model": "sam3.pt",
-            "conf": 0.25,
-            "imgsz": 640,
-            "half": True,
-            "save": True,
-        })
+        predictor = SAM3VideoSemanticPredictor(
+            overrides={
+                "model": "sam3.pt",
+                "conf": 0.25,
+                "imgsz": 640,
+                "half": True,
+                "save": True,
+            }
+        )
 
         # Stream video results frame by frame
         for result in predictor("path/to/video.mp4", text=["person", "bicycle"], stream=True):

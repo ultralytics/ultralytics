@@ -2425,8 +2425,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
                 - Single array - applies to all images
                 - List matching image count - per-image bboxes
             labels (list | None): Labels for bboxes, same structure as bboxes.
-            batch_size (int | None): Number of images per GPU batch for encoding.
-                Defaults to self.args.batch.
+            batch_size (int | None): Number of images per GPU batch for encoding. Defaults to self.args.batch.
             stream (bool): Whether to stream results (for video sources).
             **kwargs: Additional arguments passed to stream_inference.
 
@@ -2492,9 +2491,17 @@ class SAM3SemanticPredictor(SAM3Predictor):
         for image in images:
             orig_img = cv2.imread(str(image)) if isinstance(image, (str, Path)) else image
             path = str(image) if isinstance(image, (str, Path)) else ""
+            if orig_img is None:
+                raise FileNotFoundError(
+                    f"Image '{path}' could not be loaded. Please check that the file exists and is a valid image."
+                )
             image_infos.append({"orig_img": orig_img, "path": path, "shape": orig_img.shape})
             im = torch.from_numpy(np.ascontiguousarray(letterbox(image=orig_img)[..., ::-1].transpose((2, 0, 1))))
-            im = ((im.to(self.device) - self.mean) / self.std).half() if self.model.fp16 else (im.to(self.device) - self.mean) / self.std
+            im = (
+                ((im.to(self.device) - self.mean) / self.std).half()
+                if self.model.fp16
+                else (im.to(self.device) - self.mean) / self.std
+            )
             preprocessed_images.append(im)
 
         # Batch encode images and run inference
@@ -2522,7 +2529,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
                 )
 
                 names = text_per_image[idx] if text_per_image[idx] else getattr(self.model, "names", ["object"])
-                results.append(Results(info["orig_img"], path=info["path"], names=names, masks=pred_masks, boxes=pred_bboxes))
+                results.append(
+                    Results(info["orig_img"], path=info["path"], names=names, masks=pred_masks, boxes=pred_bboxes)
+                )
 
         return results[0] if len(results) == 1 else results
 

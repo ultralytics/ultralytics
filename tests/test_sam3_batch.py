@@ -1,4 +1,4 @@
-# Ultralytics AGPL-3.0 License - https://ultralytics.com/license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import pytest
 
@@ -64,6 +64,7 @@ class TestSAM3BatchInference:
         result = predictor(test_images[0], text=["person"])
         # Single image should return single Result, not list
         from ultralytics.engine.results import Results
+
         assert isinstance(result, Results)
 
     def test_batch_many_images(self, predictor, test_images):
@@ -80,9 +81,10 @@ class TestSAM3BatchInference:
     def test_inference_features_api(self, predictor, test_images):
         """Test inference_features API for feature reuse."""
         import cv2
+
         predictor.set_image(test_images[0])
         src_shape = cv2.imread(str(test_images[0])).shape[:2]
-        masks, boxes = predictor.inference_features(predictor.features, src_shape=src_shape, text=["person"])
+        masks, _boxes = predictor.inference_features(predictor.features, src_shape=src_shape, text=["person"])
         # Should return masks and boxes (may be None if no detections)
         assert masks is None or hasattr(masks, "shape")
 
@@ -108,6 +110,7 @@ class TestSAM3VideoInference:
         assert len(results) > 0
         # Each result should be a Results object
         from ultralytics.engine.results import Results
+
         assert all(isinstance(r, Results) for r in results)
 
     def test_video_inference_stream(self, video_predictor):

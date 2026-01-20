@@ -110,7 +110,7 @@ jobs:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
         os: [ubuntu-latest, macos-26, ubuntu-24.04-arm]
         python: ["3.12"]
-        model: [yolo11n]
+        model: [yolo26n]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -127,7 +127,7 @@ jobs:
           uv pip list
       - name: Benchmark DetectionModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.309
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.225
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.249
@@ -136,13 +136,13 @@ jobs:
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.337
       - name: Benchmark SegmentationModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.195
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.267
       - name: Benchmark PoseModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.197
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.194
       - name: Benchmark OBBModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.597
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.374
       - name: Merge Coverage Reports
         run: |
           coverage xml -o coverage-benchmarks.xml
@@ -378,17 +378,17 @@ jobs:
           yolo checks
           uv pip list
       - name: Benchmark DetectionModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n.pt' imgsz=160 verbose=0.309
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n.pt' imgsz=160 verbose=0.225
       - name: Benchmark ClassificationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-cls.pt' imgsz=160 verbose=0.249
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-cls.pt' imgsz=160 verbose=0.249
       - name: Benchmark YOLOWorld DetectionModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.337
       - name: Benchmark SegmentationModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-seg.pt' imgsz=160 verbose=0.195
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-seg.pt' imgsz=160 verbose=0.267
       - name: Benchmark PoseModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-pose.pt' imgsz=160 verbose=0.197
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-pose.pt' imgsz=160 verbose=0.194
       - name: Benchmark OBBModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo11n-obb.pt' imgsz=160 verbose=0.597
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-obb.pt' imgsz=160 verbose=0.374
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -475,18 +475,18 @@ jobs:
         run: conda list
       - name: Test CLI
         run: |
-          yolo predict model=yolo11n.pt imgsz=320
-          yolo train model=yolo11n.pt data=coco8.yaml epochs=1 imgsz=32
-          yolo val model=yolo11n.pt data=coco8.yaml imgsz=32
-          yolo export model=yolo11n.pt format=torchscript imgsz=160
-          yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 format=onnx
+          yolo predict model=yolo26n.pt imgsz=320
+          yolo train model=yolo26n.pt data=coco8.yaml epochs=1 imgsz=32
+          yolo val model=yolo26n.pt data=coco8.yaml imgsz=32
+          yolo export model=yolo26n.pt format=torchscript imgsz=160
+          yolo benchmark model=yolo26n.pt data='coco8.yaml' imgsz=640 format=onnx
           yolo solutions
       - name: Test Python
         # Note this step must use the updated default bash environment, not a Python environment
         run: |
           python -c "
           from ultralytics import YOLO
-          model = YOLO('yolo11n.pt')
+          model = YOLO('yolo26n.pt')
           results = model.train(data='coco8.yaml', epochs=3, imgsz=160)
           results = model.val(imgsz=160)
           results = model.predict(imgsz=160)

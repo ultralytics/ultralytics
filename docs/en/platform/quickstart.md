@@ -47,10 +47,10 @@ During signup, you'll be asked to select your data region. This is an important 
 
 <!-- Screenshot: platform-onboarding-region.avif -->
 
-| Region | Location             | Best For                              |
-| ------ | -------------------- | ------------------------------------- |
-| **US** | Iowa, USA            | Americas users, fastest for Americas  |
-| **EU** | Belgium, Europe      | European users, GDPR compliance       |
+| Region | Location             | Best For                                |
+| ------ | -------------------- | --------------------------------------- |
+| **US** | Iowa, USA            | Americas users, fastest for Americas    |
+| **EU** | Belgium, Europe      | European users, GDPR compliance         |
 | **AP** | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 !!! warning "Region is Permanent"
@@ -61,10 +61,10 @@ During signup, you'll be asked to select your data region. This is an important 
 
 Every new account receives free credits for cloud GPU training:
 
-| Email Type            | Sign-up Credits | How to Qualify                        |
-| --------------------- | --------------- | ------------------------------------- |
+| Email Type             | Sign-up Credits | How to Qualify                         |
+| ---------------------- | --------------- | -------------------------------------- |
 | **Work/Company Email** | **$25.00**      | Use your company domain (@company.com) |
-| **Personal Email**    | **$5.00**       | Gmail, Yahoo, Outlook, etc.           |
+| **Personal Email**     | **$5.00**       | Gmail, Yahoo, Outlook, etc.            |
 
 !!! tip "Maximize Your Credits"
 
@@ -90,27 +90,27 @@ The sidebar provides access to all Platform sections:
 
 **Top Section:**
 
-| Item       | Description                                        |
-| ---------- | -------------------------------------------------- |
-| **Search** | Quick search across all your resources (Cmd+K)     |
-| **Home**   | Dashboard with quick actions and recent activity   |
-| **Explore** | Discover public projects and datasets             |
+| Item        | Description                                      |
+| ----------- | ------------------------------------------------ |
+| **Search**  | Quick search across all your resources (Cmd+K)   |
+| **Home**    | Dashboard with quick actions and recent activity |
+| **Explore** | Discover public projects and datasets            |
 
 **My Workspace:**
 
-| Section      | Description                              |
-| ------------ | ---------------------------------------- |
-| **Annotate** | Your datasets organized for annotation   |
-| **Train**    | Your projects containing trained models  |
-| **Deploy**   | Your active deployments                  |
+| Section      | Description                             |
+| ------------ | --------------------------------------- |
+| **Annotate** | Your datasets organized for annotation  |
+| **Train**    | Your projects containing trained models |
+| **Deploy**   | Your active deployments                 |
 
 **Bottom Section:**
 
-| Item         | Description                          |
-| ------------ | ------------------------------------ |
+| Item         | Description                             |
+| ------------ | --------------------------------------- |
 | **Trash**    | Deleted items (recoverable for 30 days) |
-| **Settings** | Account, billing, and preferences    |
-| **Feedback** | Send feedback to Ultralytics         |
+| **Settings** | Account, billing, and preferences       |
+| **Feedback** | Send feedback to Ultralytics            |
 
 ### Quick Actions
 

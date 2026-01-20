@@ -24,31 +24,31 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 
 ### Supported Image Formats
 
-| Format | Extensions         | Notes                    |
-| ------ | ------------------ | ------------------------ |
-| JPEG   | `.jpg`, `.jpeg`    | Most common, recommended |
-| PNG    | `.png`             | Supports transparency    |
-| WebP   | `.webp`            | Modern, good compression |
-| BMP    | `.bmp`             | Uncompressed             |
-| GIF    | `.gif`             | First frame extracted    |
-| TIFF   | `.tiff`, `.tif`    | High quality             |
-| HEIC   | `.heic`            | iPhone photos            |
-| AVIF   | `.avif`            | Next-gen format          |
-| PFM    | `.pfm`             | Floating point           |
-| DNG    | `.dng`             | Raw camera               |
+| Format | Extensions      | Notes                    |
+| ------ | --------------- | ------------------------ |
+| JPEG   | `.jpg`, `.jpeg` | Most common, recommended |
+| PNG    | `.png`          | Supports transparency    |
+| WebP   | `.webp`         | Modern, good compression |
+| BMP    | `.bmp`          | Uncompressed             |
+| GIF    | `.gif`          | First frame extracted    |
+| TIFF   | `.tiff`, `.tif` | High quality             |
+| HEIC   | `.heic`         | iPhone photos            |
+| AVIF   | `.avif`         | Next-gen format          |
+| PFM    | `.pfm`          | Floating point           |
+| DNG    | `.dng`          | Raw camera               |
 
 ### Supported Video Formats
 
 Videos are automatically extracted to frames:
 
-| Format | Extensions | Extraction              |
-| ------ | ---------- | ----------------------- |
-| MP4    | `.mp4`     | 1 FPS, max 100 frames   |
-| WebM   | `.webm`    | 1 FPS, max 100 frames   |
-| MOV    | `.mov`     | 1 FPS, max 100 frames   |
-| AVI    | `.avi`     | 1 FPS, max 100 frames   |
-| MKV    | `.mkv`     | 1 FPS, max 100 frames   |
-| M4V    | `.m4v`     | 1 FPS, max 100 frames   |
+| Format | Extensions | Extraction            |
+| ------ | ---------- | --------------------- |
+| MP4    | `.mp4`     | 1 FPS, max 100 frames |
+| WebM   | `.webm`    | 1 FPS, max 100 frames |
+| MOV    | `.mov`     | 1 FPS, max 100 frames |
+| AVI    | `.avi`     | 1 FPS, max 100 frames |
+| MKV    | `.mkv`     | 1 FPS, max 100 frames |
+| M4V    | `.m4v`     | 1 FPS, max 100 frames |
 
 ### File Size Limits
 
@@ -316,12 +316,12 @@ Use the bulk selection feature:
 
 Ultralytics Platform supports YOLO format labels:
 
-| Task     | Format                                     | Example                                       |
-| -------- | ------------------------------------------ | --------------------------------------------- |
-| Detect   | `class cx cy w h`                          | `0 0.5 0.5 0.2 0.3`                           |
-| Segment  | `class x1 y1 x2 y2 ...`                    | `0 0.1 0.1 0.9 0.1 0.9 0.9`                   |
-| Pose     | `class cx cy w h kx1 ky1 v1 ...`           | `0 0.5 0.5 0.2 0.3 0.6 0.7 2`                 |
-| OBB      | `class x1 y1 x2 y2 x3 y3 x4 y4`            | `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9`           |
-| Classify | Directory structure                        | `train/cats/`, `train/dogs/`                  |
+| Task     | Format                           | Example                             |
+| -------- | -------------------------------- | ----------------------------------- |
+| Detect   | `class cx cy w h`                | `0 0.5 0.5 0.2 0.3`                 |
+| Segment  | `class x1 y1 x2 y2 ...`          | `0 0.1 0.1 0.9 0.1 0.9 0.9`         |
+| Pose     | `class cx cy w h kx1 ky1 v1 ...` | `0 0.5 0.5 0.2 0.3 0.6 0.7 2`       |
+| OBB      | `class x1 y1 x2 y2 x3 y3 x4 y4`  | `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` |
+| Classify | Directory structure              | `train/cats/`, `train/dogs/`        |
 
 All coordinates are normalized (0-1 range). Pose visibility flags: 0=not labeled, 1=labeled but occluded, 2=labeled and visible.

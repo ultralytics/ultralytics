@@ -57,22 +57,22 @@ Choose your compute resources:
 
 <!-- Screenshot: platform-training-gpu.avif -->
 
-| Tier       | GPU              | VRAM   | Price/Hour | Best For                    |
-| ---------- | ---------------- | ------ | ---------- | --------------------------- |
-| Budget     | RTX A2000        | 6 GB   | $0.12      | Small datasets, testing     |
-| Budget     | RTX 3080         | 10 GB  | $0.25      | Medium datasets             |
-| Budget     | RTX 3080 Ti      | 12 GB  | $0.30      | Medium datasets             |
-| Budget     | A30              | 24 GB  | $0.44      | Larger batch sizes          |
-| Mid        | RTX 4090         | 24 GB  | $0.60      | Great price/performance     |
-| Mid        | A6000            | 48 GB  | $0.90      | Large models                |
-| Mid        | L4               | 24 GB  | $0.54      | Inference optimized         |
-| Mid        | L40S             | 48 GB  | $1.72      | Large batch training        |
-| Pro        | A100 40GB        | 40 GB  | $2.78      | Production training         |
-| Pro        | A100 80GB        | 80 GB  | $3.44      | Very large models           |
-| Pro        | H100             | 80 GB  | $5.38      | Fastest training            |
-| Enterprise | H200             | 141 GB | $5.38      | Maximum performance         |
-| Enterprise | B200             | 192 GB | $10.38     | Largest models              |
-| Ultralytics| RTX PRO 6000     | 48 GB  | $3.68      | Ultralytics infrastructure  |
+| Tier        | GPU          | VRAM   | Price/Hour | Best For                   |
+| ----------- | ------------ | ------ | ---------- | -------------------------- |
+| Budget      | RTX A2000    | 6 GB   | $0.12      | Small datasets, testing    |
+| Budget      | RTX 3080     | 10 GB  | $0.25      | Medium datasets            |
+| Budget      | RTX 3080 Ti  | 12 GB  | $0.30      | Medium datasets            |
+| Budget      | A30          | 24 GB  | $0.44      | Larger batch sizes         |
+| Mid         | RTX 4090     | 24 GB  | $0.60      | Great price/performance    |
+| Mid         | A6000        | 48 GB  | $0.90      | Large models               |
+| Mid         | L4           | 24 GB  | $0.54      | Inference optimized        |
+| Mid         | L40S         | 48 GB  | $1.72      | Large batch training       |
+| Pro         | A100 40GB    | 40 GB  | $2.78      | Production training        |
+| Pro         | A100 80GB    | 80 GB  | $3.44      | Very large models          |
+| Pro         | H100         | 80 GB  | $5.38      | Fastest training           |
+| Enterprise  | H200         | 141 GB | $5.38      | Maximum performance        |
+| Enterprise  | B200         | 192 GB | $10.38     | Largest models             |
+| Ultralytics | RTX PRO 6000 | 48 GB  | $3.68      | Ultralytics infrastructure |
 
 !!! tip "GPU Selection"
 
@@ -214,21 +214,21 @@ Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Spee
 
 **Factors affecting cost:**
 
-| Factor              | Impact                                           |
-| ------------------- | ------------------------------------------------ |
-| **Dataset Size**    | More images = longer training time               |
-| **Model Size**      | Larger models (m, l, x) train slower than (n, s) |
-| **Number of Epochs** | Direct multiplier on training time              |
-| **Image Size**      | Larger imgsz increases computation               |
-| **GPU Speed**       | Faster GPUs reduce training time                 |
+| Factor               | Impact                                           |
+| -------------------- | ------------------------------------------------ |
+| **Dataset Size**     | More images = longer training time               |
+| **Model Size**       | Larger models (m, l, x) train slower than (n, s) |
+| **Number of Epochs** | Direct multiplier on training time               |
+| **Image Size**       | Larger imgsz increases computation               |
+| **GPU Speed**        | Faster GPUs reduce training time                 |
 
 ### Cost Examples
 
-| Scenario                       | GPU       | Time    | Cost   |
-| ------------------------------ | --------- | ------- | ------ |
-| 1000 images, YOLO26n, 100 epochs | RTX 4090  | ~1 hour | ~$0.60 |
-| 5000 images, YOLO26m, 100 epochs | A100 80GB | ~4 hours | ~$13.76 |
-| 10000 images, YOLO26x, 200 epochs | H100     | ~8 hours | ~$43.04 |
+| Scenario                          | GPU       | Time     | Cost    |
+| --------------------------------- | --------- | -------- | ------- |
+| 1000 images, YOLO26n, 100 epochs  | RTX 4090  | ~1 hour  | ~$0.60  |
+| 5000 images, YOLO26m, 100 epochs  | A100 80GB | ~4 hours | ~$13.76 |
+| 10000 images, YOLO26x, 200 epochs | H100      | ~8 hours | ~$43.04 |
 
 ### Hold/Settle System
 

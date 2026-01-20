@@ -112,12 +112,12 @@ Copy a public project:
 
 Featured at the top of Explore, you'll find official Ultralytics models:
 
-| Project    | Description                | Models                       |
-| ---------- | -------------------------- | ---------------------------- |
+| Project    | Description                 | Models                       |
+| ---------- | --------------------------- | ---------------------------- |
 | **YOLO26** | Latest January 2026 release | 27 models (all sizes, tasks) |
-| **YOLO11** | Current stable release     | 10+ models                   |
-| **YOLOv8** | Previous generation        | Various                      |
-| **YOLOv5** | Legacy, widely adopted     | Various                      |
+| **YOLO11** | Current stable release      | 10+ models                   |
+| **YOLOv8** | Previous generation         | Various                      |
+| **YOLOv5** | Legacy, widely adopted      | Various                      |
 
 **Project Cards Show:**
 

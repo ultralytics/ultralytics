@@ -268,7 +268,6 @@ Your data is processed and stored in your selected region (US, EU, or AP). Image
 2. Normalized if larger than 4096px (preserving aspect ratio)
 3. Stored using Content-Addressable Storage (CAS) with SHA-256 hashing
 4. Thumbnails generated at 256px for fast browsing
-5. Never shared without your permission
 
 ### How does storage work?
 

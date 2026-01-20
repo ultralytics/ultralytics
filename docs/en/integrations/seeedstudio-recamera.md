@@ -10,7 +10,7 @@ keywords: Seeed Studio reCamera, YOLO26, ONNX export, edge AI, computer vision, 
 
 With support for diverse hardware configurations and open-source resources, it serves as an ideal platform for prototyping and deploying innovative [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [solutions](https://docs.ultralytics.com/solutions/#solutions) at the edge.
 
-![Seeed Studio reCamera](https://github.com/ultralytics/docs/releases/download/0/saeed-studio-recamera.avif)
+![Seeed Studio reCamera](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/saeed-studio-recamera.avif)
 
 ## Why Choose reCamera?
 
@@ -134,7 +134,7 @@ reCamera advanced computer vision capabilities and modular design make it suitab
 
 - **Personal Protective Equipment Detection**: The reCamera can be used to ensure workplace safety by detecting PPE compliance in real-time. It helps identify whether workers are wearing helmets, gloves, or other safety gear, reducing risks in industrial environments.
 
-![Personal protective equipment detection](https://github.com/ultralytics/docs/releases/download/0/personal-protective-equipment-detection.avif)
+![Personal protective equipment detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/personal-protective-equipment-detection.avif)
 
 - **Fire Detection**: The reCamera's real-time processing capabilities make it an excellent choice for [fire detection](https://www.ultralytics.com/blog/computer-vision-in-fire-detection-and-prevention) in industrial and residential areas, providing early warnings to prevent potential disasters.
 
@@ -142,7 +142,7 @@ reCamera advanced computer vision capabilities and modular design make it suitab
 
 - **Car Parts Detection**: In manufacturing and automotive industries, it aids in detecting and analyzing car parts for quality control, assembly line monitoring, and inventory management.
 
-![Car parts detection](https://github.com/ultralytics/docs/releases/download/0/carparts-detection.avif)
+![Car parts detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/carparts-detection.avif)
 
 ## FAQ
 

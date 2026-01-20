@@ -31,10 +31,10 @@ Object counting with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ## Real World Applications
 
-|                                                                        Logistics                                                                        |                                                                         Aquaculture                                                                          |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                                        Logistics                                                                         |                                                                          Aquaculture                                                                          |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | ![Conveyor Belt Packets Counting Using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/conveyor-belt-packets-counting.avif) | ![Fish Counting in Sea using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-counting-in-sea-using-ultralytics-yolov8.avif) |
-|                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO26                                                 |                                                        Fish Counting in Sea using Ultralytics YOLO26                                                         |
+|                                                 Conveyor Belt Packets Counting Using Ultralytics YOLO26                                                  |                                                         Fish Counting in Sea using Ultralytics YOLO26                                                         |
 
 !!! example "Object Counting using Ultralytics YOLO"
 

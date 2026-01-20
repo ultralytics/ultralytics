@@ -23,8 +23,8 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ## Visuals
 
-|                                         Distance Calculation using Ultralytics YOLO26                                         |
-| :---------------------------------------------------------------------------------------------------------------------------: |
+|                                         Distance Calculation using Ultralytics YOLO26                                          |
+| :----------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics YOLO26 Distance Calculation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/distance-calculation.avif) |
 
 ## Advantages of Distance Calculation

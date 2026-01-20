@@ -31,10 +31,10 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO26](https://gi
 
 ## Real World Applications
 
-|                                        Workouts Monitoring                                         |                                        Workouts Monitoring                                         |
-| :------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------: |
+|                                         Workouts Monitoring                                         |                                         Workouts Monitoring                                         |
+| :-------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------: |
 | ![PushUps Counting](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pushups-counting.avif) | ![PullUps Counting](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pullups-counting.avif) |
-|                                          PushUps Counting                                          |                                          PullUps Counting                                          |
+|                                          PushUps Counting                                           |                                          PullUps Counting                                           |
 
 !!! example "Workouts Monitoring using Ultralytics YOLO"
 

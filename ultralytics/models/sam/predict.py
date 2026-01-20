@@ -2446,9 +2446,6 @@ class SAM3SemanticPredictor(SAM3Predictor):
         """
         # For video/stream sources, delegate to base class stream_inference
         if stream or self._is_video_source(source):
-            self._pending_text = text
-            self._pending_bboxes = bboxes
-            self._pending_labels = labels
             if stream:
                 return self.stream_inference(source, text=text, bboxes=bboxes, labels=labels, **kwargs)
             else:

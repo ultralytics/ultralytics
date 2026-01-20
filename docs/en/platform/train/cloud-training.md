@@ -204,17 +204,45 @@ The `ul://` URI format automatically downloads and configures your dataset.
 
 Training costs are based on GPU usage:
 
-### Cost Calculation
+### Cost Estimation
+
+Before training starts, the Platform estimates total cost based on:
 
 ```
-Total Cost = GPU Rate × Training Time (hours)
+Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Speed Factor × GPU Rate
 ```
 
-| Example    | GPU       | Time    | Cost   |
-| ---------- | --------- | ------- | ------ |
-| Small job  | RTX 4090  | 1 hour  | $1.18  |
-| Medium job | A100 80GB | 4 hours | $11.12 |
-| Large job  | H100 PCIe | 8 hours | $38.24 |
+**Factors affecting cost:**
+
+| Factor              | Impact                                           |
+| ------------------- | ------------------------------------------------ |
+| **Dataset Size**    | More images = longer training time               |
+| **Model Size**      | Larger models (m, l, x) train slower than (n, s) |
+| **Number of Epochs** | Direct multiplier on training time              |
+| **Image Size**      | Larger imgsz increases computation               |
+| **GPU Speed**       | Faster GPUs reduce training time                 |
+
+### Cost Examples
+
+| Scenario                       | GPU       | Time    | Cost   |
+| ------------------------------ | --------- | ------- | ------ |
+| 1000 images, YOLO26n, 100 epochs | RTX 4090  | ~1 hour | ~$0.60 |
+| 5000 images, YOLO26m, 100 epochs | A100 80GB | ~4 hours | ~$13.76 |
+| 10000 images, YOLO26x, 200 epochs | H100     | ~8 hours | ~$43.04 |
+
+### Hold/Settle System
+
+The Platform uses a consumer-protection billing model:
+
+1. **Estimate**: Cost calculated before training starts
+2. **Hold**: Estimated amount + 20% safety margin reserved from balance
+3. **Train**: Reserved amount shown as "Reserved" in your balance
+4. **Settle**: After completion, charged only for actual GPU time used
+5. **Refund**: Any excess automatically returned to your balance
+
+!!! success "Consumer Protection"
+
+    You're **never charged more than the estimate** shown before training. If training completes early or is canceled, you only pay for actual compute time used.
 
 ### Payment Methods
 

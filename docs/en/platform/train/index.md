@@ -61,11 +61,15 @@ Available GPUs for cloud training:
 | ---------- | ------------ | ------ | --------- | --------------------------- |
 | Budget     | RTX A2000    | 6 GB   | $0.12     | Small datasets, testing     |
 | Budget     | RTX 3080     | 10 GB  | $0.25     | Medium datasets             |
+| Budget     | RTX 3080 Ti  | 12 GB  | $0.30     | Medium datasets             |
 | Budget     | A30          | 24 GB  | $0.44     | Larger batch sizes          |
+| Mid        | L4           | 24 GB  | $0.54     | Inference optimized         |
 | Mid        | RTX 4090     | 24 GB  | $0.60     | Great price/performance     |
+| Mid        | A6000        | 48 GB  | $0.90     | Large models                |
 | Mid        | L40S         | 48 GB  | $1.72     | Large batch training        |
 | Pro        | A100 40GB    | 40 GB  | $2.78     | Production training         |
 | Pro        | A100 80GB    | 80 GB  | $3.44     | Very large models           |
+| Pro        | RTX PRO 6000 | 48 GB  | $3.68     | Ultralytics infrastructure  |
 | Pro        | H100         | 80 GB  | $5.38     | Fastest training            |
 | Enterprise | H200         | 141 GB | $5.38     | Maximum performance         |
 | Enterprise | B200         | 192 GB | $10.38    | Largest models              |

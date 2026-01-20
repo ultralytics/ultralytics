@@ -7,7 +7,6 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 # Ultralytics Platform
 
 <div align="center">
-<!-- Screenshot: platform-banner.avif -->
 <a href="https://docs.ultralytics.com/zh/platform/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/platform/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/platform/">日本語</a> |
@@ -111,12 +110,16 @@ You select your region during onboarding, and all your data, models, and deploym
 - **Auto-Annotation**: Use trained models to pre-label new data
 - **Statistics**: Class distribution, location heatmaps, and dimension analysis
 
+![Ultralytics Platform Dataset Screenshot](https://raw.githubusercontent.com/ultralytics/assets/main/docs/platform/dataset-screenshot.avif)
+
 ### Model Training
 
 - **Cloud Training**: Train on cloud GPUs (RTX 4090, A100, H100) with real-time metrics
 - **Remote Training**: Train anywhere and stream metrics to Platform (W&B-style)
 - **Project Organization**: Group related models, compare experiments, track activity
 - **17 Export Formats**: ONNX, TensorRT, CoreML, TFLite, and more
+
+![Ultralytics Platform Project Screenshot](https://raw.githubusercontent.com/ultralytics/assets/main/docs/platform/project-screenshot.avif)
 
 ### Deployment
 
@@ -184,8 +187,10 @@ Ultralytics Platform supports multiple GPU types for cloud training:
 | ---------- | ------------ | ------ | --------- | --------------------------- |
 | Budget     | RTX A2000    | 6 GB   | $0.12     | Small datasets, testing     |
 | Budget     | RTX 3080     | 10 GB  | $0.25     | Medium datasets             |
+| Budget     | RTX 3080 Ti  | 12 GB  | $0.30     | Medium datasets             |
 | Budget     | A30          | 24 GB  | $0.44     | Larger batch sizes          |
 | Mid        | RTX 4090     | 24 GB  | $0.60     | Great price/performance     |
+| Mid        | A6000        | 48 GB  | $0.90     | Large models                |
 | Mid        | L4           | 24 GB  | $0.54     | Inference optimized         |
 | Mid        | L40S         | 48 GB  | $1.72     | Large batch training        |
 | Pro        | A100 40GB    | 40 GB  | $2.78     | Production training         |
@@ -193,6 +198,7 @@ Ultralytics Platform supports multiple GPU types for cloud training:
 | Pro        | H100         | 80 GB  | $5.38     | Fastest training            |
 | Enterprise | H200         | 141 GB | $5.38     | Maximum performance         |
 | Enterprise | B200         | 192 GB | $10.38    | Largest models              |
+| Ultralytics| RTX PRO 6000 | 48 GB  | $3.68     | Ultralytics infrastructure  |
 
 See [Cloud Training](train/cloud-training.md) for complete pricing and GPU options.
 
@@ -228,3 +234,70 @@ The Platform includes a full-featured annotation editor supporting:
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys
 
 See [Annotation](data/annotation.md) for the complete guide.
+
+## Troubleshooting
+
+### Dataset Issues
+
+| Problem | Solution |
+| ------- | -------- |
+| Dataset won't process | Check file format is supported (JPEG, PNG, WebP, etc.). Max file size: images 50MB, videos 1GB, ZIP 50GB |
+| Missing annotations | Verify labels are in YOLO format with `.txt` files matching image filenames |
+| "Train split required" | Add `train/` folder to your dataset structure, or create splits in the dataset settings |
+| Class names undefined | Add a `data.yaml` file with `names:` list, or define classes in dataset settings |
+
+### Training Issues
+
+| Problem | Solution |
+| ------- | -------- |
+| Training won't start | Check credit balance in Settings > Billing. Minimum $5.00 required |
+| Out of memory error | Reduce batch size, use smaller model (n/s), or select GPU with more VRAM |
+| Poor metrics | Check dataset quality, increase epochs, try data augmentation, verify class balance |
+| Training slow | Select faster GPU, reduce image size, check dataset isn't bottlenecked |
+
+### Deployment Issues
+
+| Problem | Solution |
+| ------- | -------- |
+| Endpoint not responding | Check endpoint status (Running vs Stopped). Cold start may take 2-5 seconds |
+| 401 Unauthorized | Verify API key is correct and has required scopes |
+| Slow inference | Check model size, consider TensorRT export, select closer region |
+| Export failed | Some formats require specific model architectures. Try ONNX for broadest compatibility |
+
+### Common Questions
+
+??? question "Can I change my username after signup?"
+
+    No, usernames are permanent and cannot be changed. Choose carefully during signup.
+
+??? question "Can I change my data region?"
+
+    No, data region is selected during signup and cannot be changed. To switch regions, create a new account and re-upload your data.
+
+??? question "How do I get more credits?"
+
+    Go to Settings > Billing > Add Credits. Purchase credits from $5 to $1000. Purchased credits never expire.
+
+??? question "What happens if training fails?"
+
+    You're only charged for completed compute time. Checkpoints are saved, and you can resume training.
+
+??? question "Can I download my trained model?"
+
+    Yes, click the download icon on any model page to download the `.pt` file or exported formats.
+
+??? question "How do I share my work publicly?"
+
+    Edit your project or dataset settings and toggle visibility to "Public". Public content appears on the Explore page.
+
+??? question "What are the file size limits?"
+
+    Images: 50MB, Videos: 1GB, ZIP archives: 50GB. For larger files, split into multiple uploads.
+
+??? question "How long are deleted items kept in Trash?"
+
+    30 days. After that, items are permanently deleted and cannot be recovered.
+
+??? question "Can I use Platform models commercially?"
+
+    Free and Pro plans use AGPL license. For commercial use without AGPL requirements, contact sales@ultralytics.com for Enterprise licensing.

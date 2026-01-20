@@ -22,15 +22,15 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
 
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
 
-<p align="center"><img width="750" src="https://github.com/ultralytics/docs/releases/download/0/two-persons-tie.avif" alt="Example labeled image"></p>
+<p align="center"><img width="750" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie.avif" alt="Example labeled image"></p>
 
 The label file corresponding to the above image contains 2 persons (class `0`) and a tie (class `27`):
 
-<p align="center"><img width="428" src="https://github.com/ultralytics/docs/releases/download/0/two-persons-tie-1.avif" alt="Example label file"></p>
+<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="Example label file"></p>
 
 When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the [COCO8 dataset](coco8.md) example below.
 
-<p align="center"><img width="800" src="https://github.com/ultralytics/docs/releases/download/0/two-persons-tie-2.avif" alt="Example dataset directory structure"></p>
+<p align="center"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-2.avif" alt="Example dataset directory structure"></p>
 
 #### Usage Example
 
@@ -85,7 +85,7 @@ An NDJSON dataset file contains:
         }
         ```
 
-    === "Image record (lines 2+)"
+    === "Detect"
 
         ```json
         {
@@ -97,20 +97,99 @@ An NDJSON dataset file contains:
             "split": "train",
             "annotations": {
                 "boxes": [
-                    [0, 0.52481, 0.37629, 0.28394, 0.41832],
-                    [1, 0.73526, 0.29847, 0.19275, 0.33691]
+                    [0, 0.525, 0.376, 0.284, 0.418],
+                    [1, 0.735, 0.298, 0.193, 0.337]
                 ]
             }
         }
         ```
 
-**Annotation formats by task:**
+        Format: `[class_id, x_center, y_center, width, height]`
 
-- **Detection:** `"annotations": {"boxes": [[class_id, x_center, y_center, width, height], ...]}`
-- **Segmentation:** `"annotations": {"segments": [[class_id, x1, y1, x2, y2, ...], ...]}`
-- **Pose:** `"annotations": {"pose": [[class_id, x1, y1, v1, x2, y2, v2, ...], ...]}`
-- **OBB:** `"annotations": {"obb": [[class_id, x_center, y_center, width, height, angle], ...]}`
-- **Classification:** `"annotations": {"classification": [class_id]}`
+    === "Segment"
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "annotations": {
+                "segments": [
+                    [0, 0.681, 0.485, 0.670, 0.487, 0.676, 0.487, 0.688, 0.515],
+                    [1, 0.422, 0.315, 0.438, 0.330, 0.445, 0.328, 0.450, 0.320]
+                ]
+            }
+        }
+        ```
+
+        Format: `[class_id, x1, y1, x2, y2, x3, y3, ...]`
+
+    === "Pose"
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "annotations": {
+                "pose": [
+                    [0, 0.523, 0.376, 0.283, 0.418, 0.374, 0.169, 2, 0.364, 0.178, 2],
+                    [0, 0.735, 0.298, 0.193, 0.337, 0.412, 0.225, 2, 0.408, 0.231, 2]
+                ]
+            }
+        }
+        ```
+
+        Format: `[class_id, x_center, y_center, width, height, x1, y1, v1, x2, y2, v2, ...]`
+
+        Keypoints follow bbox as repeated `(x, y, v)` triplets where `v` is visibility: 0=not labeled, 1=labeled but occluded, 2=labeled and visible. The keypoint count is dataset-specific (e.g., COCO pose has 17 keypoints = 51 values after bbox).
+
+    === "OBB"
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "annotations": {
+                "obb": [
+                    [0, 0.480, 0.352, 0.568, 0.356, 0.572, 0.400, 0.484, 0.396],
+                    [1, 0.711, 0.274, 0.759, 0.278, 0.755, 0.322, 0.707, 0.318]
+                ]
+            }
+        }
+        ```
+
+        Format: `[class_id, x1, y1, x2, y2, x3, y3, x4, y4]`
+
+        The four corner points define the oriented bounding box in clockwise order starting from the top-left corner. All coordinates are normalized (0-1).
+
+    === "Classify"
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "annotations": {
+                "classification": [0]
+            }
+        }
+        ```
+
+        Format: `[class_id]`
 
 #### Usage Example
 

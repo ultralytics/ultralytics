@@ -8,7 +8,7 @@ keywords: YOLOv4, object detection, real-time detection, Alexey Bochkovskiy, neu
 
 Welcome to the Ultralytics documentation page for YOLOv4, a state-of-the-art, real-time object detector launched in 2020 by Alexey Bochkovskiy at [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet). YOLOv4 is designed to provide the optimal balance between speed and accuracy, making it an excellent choice for many applications.
 
-![YOLOv4 architecture diagram](https://github.com/ultralytics/docs/releases/download/0/yolov4-architecture-diagram.avif) **YOLOv4 architecture diagram**. Showcasing the intricate network design of YOLOv4, including the backbone, neck, and head components, and their interconnected layers for optimal real-time object detection.
+![YOLOv4 architecture diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov4-architecture-diagram.avif) **YOLOv4 architecture diagram**. Showcasing the intricate network design of YOLOv4, including the backbone, neck, and head components, and their interconnected layers for optimal real-time object detection.
 
 ## Introduction
 

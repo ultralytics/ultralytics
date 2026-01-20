@@ -16,45 +16,56 @@ Choose the plan that fits your needs:
 
 <!-- Screenshot: platform-billing-plans.avif -->
 
-| Feature              | Free      | Pro ($29/mo) | Enterprise |
-| -------------------- | --------- | ------------ | ---------- |
-| **Signup Credit**    | $5        | $20/month    | Custom     |
-| **Storage**          | 100 GB    | 500 GB       | Unlimited  |
-| **Private Projects** | 3         | Unlimited    | Unlimited  |
-| **Deployments**      | 1         | 5            | Unlimited  |
-| **Support**          | Community | Email        | Dedicated  |
-| **SSO**              | -         | -            | Yes        |
-| **Audit Logs**       | -         | -            | Yes        |
+| Feature                 | Free                   | Pro ($29/mo) | Enterprise |
+| ----------------------- | ---------------------- | ------------ | ---------- |
+| **Signup Credit**       | $5 ($25 company email) | $25/month    | Custom     |
+| **Credit Expiry**       | 30 days                | 30 days      | Custom     |
+| **Storage**             | 100 GB                 | 500 GB       | Unlimited  |
+| **Private Projects**    | Unlimited              | Unlimited    | Unlimited  |
+| **Deployments**         | 3 (cold-start)         | 3            | Unlimited  |
+| **Teams**               | -                      | Yes          | Yes        |
+| **Dedicated Endpoints** | -                      | Yes          | Yes        |
+| **Priority Training**   | -                      | Yes          | Yes        |
+| **SSO/Audit Logs**      | -                      | -            | Yes        |
+| **License**             | AGPL                   | AGPL         | Enterprise |
 
 ### Free Plan
 
 Get started at no cost:
 
-- $5 signup credit (expires in 30 days)
+- $5 signup credit ($25 for company/work emails)
+- Credits expire in 30 days
 - 100 GB storage
-- 3 private projects
-- 1 deployment
+- Unlimited private projects
+- 3 deployments (cold-start, scale to zero when idle)
 - Community support
+
+!!! tip "Company Email Bonus"
+
+    Sign up with a company email address (not gmail.com, outlook.com, etc.) to receive $25 in signup credits instead of $5.
 
 ### Pro Plan
 
-For serious users and small teams:
+For serious users and small teams ($29/month):
 
-- $20 monthly credit (expires in 30 days)
+- $25 monthly credit (recurring, expires in 30 days)
 - 500 GB storage
 - Unlimited private projects
-- 5 deployments
+- 3 deployments with dedicated endpoints
+- Priority training queue
 - Email support
 
 ### Enterprise
 
 For organizations with advanced needs:
 
-- Custom credit allocation
+- Custom credit allocation and expiry
 - Unlimited storage
+- Unlimited deployments
 - SSO/SAML integration
 - Audit logging
 - Dedicated support
+- Enterprise license (non-AGPL)
 
 Contact [sales@ultralytics.com](mailto:sales@ultralytics.com) for Enterprise pricing.
 
@@ -161,12 +172,16 @@ Cloud training costs depend on GPU selection:
 
 | GPU       | Rate/Hour | Typical Job (1h) |
 | --------- | --------- | ---------------- |
-| RTX 3090  | $0.44     | $0.44            |
-| RTX 4090  | $0.74     | $0.74            |
-| L40S      | $1.14     | $1.14            |
-| A100 40GB | $1.29     | $1.29            |
-| A100 80GB | $1.99     | $1.99            |
-| H100 80GB | $3.99     | $3.99            |
+| RTX 3090  | $0.92     | $0.92            |
+| RTX 4090  | $1.18     | $1.18            |
+| L40S      | $1.72     | $1.72            |
+| RTX 5090  | $1.78     | $1.78            |
+| A100 80GB | $2.78     | $2.78            |
+| H100 PCIe | $4.78     | $4.78            |
+| H100 SXM  | $5.38     | $5.38            |
+| B200      | $10.38    | $10.38           |
+
+See [Cloud Training](../train/cloud-training.md) for complete GPU options and pricing.
 
 ### Cost Calculation
 
@@ -177,7 +192,7 @@ Total Cost = GPU Rate × Training Time (hours)
 Example: Training for 2.5 hours on RTX 4090
 
 ```
-$0.74 × 2.5 = $1.85
+$1.18 × 2.5 = $2.95
 ```
 
 ### Billing Timing
@@ -200,11 +215,12 @@ Upgrade for more features and monthly credits:
 
 After upgrading:
 
-- $20 credit added immediately
-- $20 credit added each month
+- $25 credit added immediately
+- $25 credit added each month (recurring)
 - Storage increased to 500 GB
 - Unlimited private projects
-- 5 deployments
+- 3 dedicated deployments
+- Priority training queue
 
 ### Cancel Pro
 

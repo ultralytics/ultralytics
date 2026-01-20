@@ -42,7 +42,7 @@ YOLO12, released in early 2025, introduces an attention-centric architecture tha
 - **Enhanced Efficiency**: Achieves higher accuracy with fewer parameters compared to many prior models, demonstrating an improved balance between speed and accuracy.
 - **Flexible Deployment**: Designed for deployment across diverse platforms, from edge devices to cloud infrastructure.
 
-![YOLO12 comparison visualization](https://github.com/ultralytics/docs/releases/download/0/yolo12-comparison-visualization.avif)
+![YOLO12 comparison visualization](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo12-comparison-visualization.avif)
 
 ## Supported Tasks and Modes
 

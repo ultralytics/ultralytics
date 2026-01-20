@@ -180,7 +180,7 @@ def get_latest_run(search_dir: str = ".") -> str:
     return max(last_list, key=os.path.getctime) if last_list else ""
 
 
-def update_models(model_names: tuple = ("yolo11n.pt",), source_dir: Path = Path("."), update_names: bool = False):
+def update_models(model_names: tuple = ("yolo26n.pt",), source_dir: Path = Path("."), update_names: bool = False):
     """Update and re-save specified YOLO models in an 'updated_models' subdirectory.
 
     Args:
@@ -191,7 +191,7 @@ def update_models(model_names: tuple = ("yolo11n.pt",), source_dir: Path = Path(
     Examples:
         Update specified YOLO models and save them in 'updated_models' subdirectory:
         >>> from ultralytics.utils.files import update_models
-        >>> model_names = ("yolo11n.pt", "yolov8s.pt")
+        >>> model_names = ("yolo26n.pt", "yolo11s.pt")
         >>> update_models(model_names, source_dir=Path("/models"), update_names=True)
     """
     from ultralytics import YOLO

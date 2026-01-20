@@ -25,7 +25,7 @@ class DetectionPredictor(BasePredictor):
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.detect import DetectionPredictor
-        >>> args = dict(model="yolo11n.pt", source=ASSETS)
+        >>> args = dict(model="yolo26n.pt", source=ASSETS)
         >>> predictor = DetectionPredictor(overrides=args)
         >>> predictor.predict_cli()
     """
@@ -46,7 +46,7 @@ class DetectionPredictor(BasePredictor):
             (list): List of Results objects containing the post-processed predictions.
 
         Examples:
-            >>> predictor = DetectionPredictor(overrides=dict(model="yolo11n.pt"))
+            >>> predictor = DetectionPredictor(overrides=dict(model="yolo26n.pt"))
             >>> results = predictor.predict("path/to/image.jpg")
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """

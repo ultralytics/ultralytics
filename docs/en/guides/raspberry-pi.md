@@ -135,56 +135,56 @@ The YOLO26n model in PyTorch format is converted to NCNN to run inference with t
 
     For more details about supported export options, visit the [Ultralytics documentation page on deployment options](https://docs.ultralytics.com/guides/model-deployment-options/).
 
-## Raspberry Pi 5 YOLO11 Benchmarks
+## Raspberry Pi 5 YOLO26 Benchmarks
 
-YOLO11 benchmarks were run by the Ultralytics team on ten different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, MNN, NCNN. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
+YOLO26 benchmarks were run by the Ultralytics team on ten different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 ### Comparison Chart
 
-We have only included benchmarks for YOLO11n and YOLO11s models because other model sizes are too big to run on the Raspberry Pis and do not offer decent performance.
+We have only included benchmarks for YOLO26n and YOLO26s models because other model sizes are too big to run on the Raspberry Pis and do not offer decent performance.
 
 <figure style="text-align: center;">
-    <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo11-benchmarks-coco128.avif" alt="YOLO11 benchmarks on RPi 5">
-    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.3.152</figcaption>
+    <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo26-benchmarks-coco128.avif" alt="YOLO26 benchmarks on RPi 5">
+    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.4.1</figcaption>
 </figure>
 
 ### Detailed Comparison Table
 
-The below table represents the benchmark results for two different models (YOLO11n, YOLO11s) across ten different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, PaddlePaddle, MNN, NCNN), running on a Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for two different models (YOLO26n, YOLO26s) across ten different formats (PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch), running on a Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 
-    === "YOLO11n"
+    === "YOLO26n"
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 5.4               | 0.5101      | 387.63                |
-        | TorchScript   | ✅      | 10.5              | 0.5077      | 457.84                |
-        | ONNX          | ✅      | 10.2              | 0.5077      | 191.09                |
-        | OpenVINO      | ✅      | 10.4              | 0.5058      | 84.76                 |
-        | TF SavedModel | ✅      | 25.9              | 0.5077      | 306.94                |
-        | TF GraphDef   | ✅      | 10.3              | 0.5077      | 309.82                |
-        | TF Lite       | ✅      | 10.3              | 0.5077      | 425.77                |
-        | PaddlePaddle  | ✅      | 20.5              | 0.5077      | 463.93                |
-        | MNN           | ✅      | 10.1              | 0.5059      | 114.97                |
-        | NCNN          | ✅      | 10.2              | 0.5031      | 94.03                 |
+        | PyTorch       | ✅      | 5.3               | 0.4798      | 302.15                |
+        | TorchScript   | ✅      | 9.8              | 0.4764      | 357.58                |
+        | ONNX          | ✅      | 9.5              | 0.4764      | 130.33                |
+        | OpenVINO      | ✅      | 9.6              | 0.4818      | 70.74                 |
+        | TF SavedModel | ✅      | 24.6              | 0.4764      | 213.58                |
+        | TF GraphDef   | ✅      | 9.5              | 0.4764      | 213.5                |
+        | TF Lite       | ✅      | 9.9              | 0.4764      | 251.41                |
+        | MNN           | ✅      | 9.4              | 0.4784      | 90.89                |
+        | NCNN          | ✅      | 9.4              | 0.4805      | 67.69                 |
+        | ExecuTorch    | ✅      | 9.4              | 0.4764      | 148.36                 |
 
-    === "YOLO11s"
+    === "YOLO26s"
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 18.4              | 0.5791      | 962.69                |
-        | TorchScript   | ✅      | 36.5              | 0.5782      | 1181.94               |
-        | ONNX          | ✅      | 36.3              | 0.5782      | 449.85                |
-        | OpenVINO      | ✅      | 36.4              | 0.5810      | 181.53                |
-        | TF SavedModel | ✅      | 91.0              | 0.5782      | 660.62                |
-        | TF GraphDef   | ✅      | 36.4              | 0.5782      | 669.23                |
-        | TF Lite       | ✅      | 36.3              | 0.5782      | 1093.41               |
-        | PaddlePaddle  | ✅      | 72.6              | 0.5782      | 1140.61               |
-        | MNN           | ✅      | 36.2              | 0.5805      | 274.63                |
-        | NCNN          | ✅      | 36.2              | 0.5784      | 224.20                |
+        | PyTorch       | ✅      | 19.5              | 0.5740      | 836.54                 |
+        | TorchScript   | ✅      | 36.8              | 0.5665      | 1032.25               |
+        | ONNX          | ✅      | 36.5              | 0.5665      | 351.96                |
+        | OpenVINO      | ✅      | 36.7              | 0.5654      | 158.6                |
+        | TF SavedModel | ✅      | 92.2               | 0.5665      | 507.6                |
+        | TF GraphDef   | ✅      | 36.5              | 0.5665      | 525.64                 |
+        | TF Lite       | ✅      | 36.9               | 0.5665      | 805.3               |
+        | MNN           | ✅      | 36.4              | 0.5644      | 236.47                |
+        | NCNN          | ✅      | 36.4              | 0.5697      | 168.47                |
+        | ExecuTorch    | ✅      | 36.5              | 0.5665      | 388.72                |
 
-    Benchmarked with Ultralytics 8.3.152
+    Benchmarked with Ultralytics 8.4.1
 
     !!! note
 
@@ -201,18 +201,18 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n PyTorch model
+        model = YOLO("yolo26n.pt")
 
-        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all export formats
+        # Benchmark YOLO26n speed and accuracy on the COCO128 dataset for all export formats
         results = model.benchmark(data="coco128.yaml", imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all export formats
-        yolo benchmark model=yolo11n.pt data=coco128.yaml imgsz=640
+        # Benchmark YOLO26n speed and accuracy on the COCO128 dataset for all export formats
+        yolo benchmark model=yolo26n.pt data=coco128.yaml imgsz=640
         ```
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results, use a dataset with a large number of images, e.g., `data='coco.yaml'` (5000 val images).

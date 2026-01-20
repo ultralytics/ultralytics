@@ -273,7 +273,8 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
         # Process results
         for i, result in enumerate(results):
-            print(f"Image {i}: {len(result.masks)} masks detected")
+            mask_count = len(result.masks) if result.masks is not None else 0
+            print(f"Image {i}: {mask_count} masks detected")
             result.save(f"output_{i}.jpg")
         ```
 

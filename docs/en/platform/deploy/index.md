@@ -56,11 +56,11 @@ graph LR
 
 The shared inference service runs in 3 key regions:
 
-| Region | Location                 |
-| ------ | ------------------------ |
-| US     | US Central (Iowa)        |
-| EU     | EU West (Belgium)        |
-| AP     | Asia Pacific (Hong Kong) |
+| Region | Location             |
+| ------ | -------------------- |
+| US     | Iowa, USA            |
+| EU     | Belgium, Europe      |
+| AP     | Taiwan, Asia-Pacific |
 
 Requests are routed to your data region automatically.
 

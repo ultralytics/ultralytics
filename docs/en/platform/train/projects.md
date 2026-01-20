@@ -8,16 +8,6 @@ keywords: Ultralytics Platform, projects, model management, experiment tracking,
 
 [Ultralytics Platform](https://platform.ultralytics.com) projects provide an effective solution for organizing and managing your models. Group related models together to facilitate easier management, comparison, and development.
 
-<p align="center">
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Gc6K5eKrTNQ"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> Train YOLO Models Using Ultralytics Platform
-</p>
-
 ## Create Project
 
 Navigate to **Projects** in the sidebar and click **Create Project**.

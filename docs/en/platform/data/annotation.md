@@ -34,6 +34,58 @@ The annotation editor supports all 5 YOLO task types:
 | **OBB**      | Oriented Box   | Rotated bounding boxes (4 corners)     |
 | **Classify** | Class Selector | Image-level labels                     |
 
+### Task Details
+
+??? info "Object Detection"
+
+    **What it does:** Identifies objects and their locations with axis-aligned bounding boxes.
+
+    **Label format:** `class_id center_x center_y width height` (all normalized 0-1)
+
+    **Example:** `0 0.5 0.5 0.2 0.3` — Class 0 centered at (50%, 50%) with 20% width and 30% height
+
+    **Use cases:** Inventory counting, traffic monitoring, wildlife detection, security systems
+
+??? info "Instance Segmentation"
+
+    **What it does:** Creates pixel-precise masks for each object instance.
+
+    **Label format:** `class_id x1 y1 x2 y2 x3 y3 ...` (polygon vertices, normalized 0-1)
+
+    **Example:** `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` — Quadrilateral mask
+
+    **Use cases:** Medical imaging, autonomous vehicles, photo editing, agricultural analysis
+
+??? info "Pose Estimation"
+
+    **What it does:** Detects body keypoints for skeleton tracking.
+
+    **Label format:** `class_id cx cy w h kx1 ky1 v1 kx2 ky2 v2 ...`
+
+    - Visibility flags: `0`=not labeled, `1`=labeled but occluded, `2`=labeled and visible
+
+    **Example:** `0 0.5 0.5 0.2 0.3 0.6 0.7 2 0.4 0.8 1` — Person with 2 keypoints
+
+    **Use cases:** Sports analysis, physical therapy, animation, gesture recognition
+
+??? info "Oriented Bounding Box (OBB)"
+
+    **What it does:** Detects rotated objects with angle-aware bounding boxes.
+
+    **Label format:** `class_id x1 y1 x2 y2 x3 y3 x4 y4` (four corner points, normalized)
+
+    **Example:** `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` — Rotated rectangle
+
+    **Use cases:** Aerial imagery, document analysis, manufacturing inspection, ship detection
+
+??? info "Image Classification"
+
+    **What it does:** Assigns a single label to the entire image.
+
+    **Label format:** Folder-based — images organized by class name (`train/cats/`, `train/dogs/`)
+
+    **Use cases:** Content moderation, quality control, medical diagnosis, scene recognition
+
 ## Getting Started
 
 To annotate images:

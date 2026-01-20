@@ -667,7 +667,7 @@ class Results(SimpleClass, DataExportMixin):
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             >>>     result.save_txt("output.txt")
@@ -750,8 +750,8 @@ class Results(SimpleClass, DataExportMixin):
         """Convert inference results to a summarized dictionary with optional normalization for box coordinates.
 
         This method creates a list of detection dictionaries, each containing information about a single detection or
-        classification result. For classification tasks, it returns the top class and its
-        confidence. For detection tasks, it includes class information, bounding box coordinates, and
+        classification result. For classification tasks, it returns the top 5 classes and their
+        confidences. For detection tasks, it includes class information, bounding box coordinates, and
         optionally mask segments and keypoints.
 
         Args:
@@ -772,14 +772,16 @@ class Results(SimpleClass, DataExportMixin):
         # Create list of detection dictionaries
         results = []
         if self.probs is not None:
-            class_id = self.probs.top1
-            results.append(
-                {
-                    "name": self.names[class_id],
-                    "class": class_id,
-                    "confidence": round(self.probs.top1conf.item(), decimals),
-                }
-            )
+            # Return top 5 classification results
+            for class_id, conf in zip(self.probs.top5, self.probs.top5conf.tolist()):
+                class_id = int(class_id)
+                results.append(
+                    {
+                        "name": self.names[class_id],
+                        "class": class_id,
+                        "confidence": round(conf, decimals),
+                    }
+                )
             return results
 
         is_obb = self.obb is not None
@@ -801,12 +803,17 @@ class Results(SimpleClass, DataExportMixin):
                     "y": (self.masks.xy[i][:, 1] / h).round(decimals).tolist(),
                 }
             if self.keypoints is not None:
-                x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
+                kpt = self.keypoints[i]
+                if kpt.has_visible:
+                    x, y, visible = kpt.data[0].cpu().unbind(dim=1)
+                else:
+                    x, y = kpt.data[0].cpu().unbind(dim=1)
                 result["keypoints"] = {
-                    "x": (x / w).numpy().round(decimals).tolist(),  # decimals named argument required
+                    "x": (x / w).numpy().round(decimals).tolist(),
                     "y": (y / h).numpy().round(decimals).tolist(),
-                    "visible": visible.numpy().round(decimals).tolist(),
                 }
+                if kpt.has_visible:
+                    result["keypoints"]["visible"] = visible.numpy().round(decimals).tolist()
             results.append(result)
 
         return results
@@ -1500,7 +1507,7 @@ class OBB(BaseTensor):
         Examples:
             >>> import torch
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo11n-obb.pt")
+            >>> model = YOLO("yolo26n-obb.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     obb = result.obb

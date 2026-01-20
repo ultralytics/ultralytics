@@ -85,7 +85,7 @@ Here are some other benefits of data augmentation:
 Common augmentation techniques include flipping, rotation, scaling, and color adjustments. Several libraries, such as [Albumentations](../integrations/albumentations.md), Imgaug, and TensorFlow's ImageDataGenerator, can generate these augmentations.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-data-augmentations.avif" alt="Overview of Data Augmentations">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-data-augmentations.avif" alt="Overview of Data Augmentations">
 </p>
 
 With respect to YOLO26, you can [augment your custom dataset](../modes/train.md) by modifying the dataset configuration file, a .yaml file. In this file, you can add an augmentation section with parameters that specify how you want to augment your data.
@@ -139,7 +139,7 @@ Common tools for visualizations include:
 For a more advanced approach to EDA, you can use the Ultralytics Explorer tool. It offers robust capabilities for exploring computer vision datasets. By supporting semantic search, SQL queries, and vector similarity search, the tool makes it easy to analyze and understand your data. With Ultralytics Explorer, you can create [embeddings](https://www.ultralytics.com/glossary/embeddings) for your dataset to find similar images, run SQL queries for detailed analysis, and perform semantic searches, all through a user-friendly graphical interface.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-explorer-openai-integration.avif" alt="Overview of Ultralytics Explorer">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-explorer-openai-integration.avif" alt="Overview of Ultralytics Explorer">
 </p>
 
 ## Reach Out and Connect

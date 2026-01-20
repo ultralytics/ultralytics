@@ -240,7 +240,6 @@ def test_export_mnn_matrix(task, int8, half, batch):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(ARM64, reason="NCNN not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
 @pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
 def test_export_ncnn():
     """Test YOLO export to NCNN format."""
@@ -249,7 +248,6 @@ def test_export_ncnn():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(ARM64, reason="NCNN not supported on ARM64")  # https://github.com/Tencent/ncnn/issues/6509
 @pytest.mark.skipif(not TORCH_2_0, reason="NCNN inference causes segfault on PyTorch<2.0")
 @pytest.mark.parametrize("task, half, batch", list(product(TASKS, [True, False], [1])))
 def test_export_ncnn_matrix(task, half, batch):

@@ -981,11 +981,13 @@ class BaseTrainer:
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
 
+        num_params = [len(g[0]), len(g[1]), len(g[2])]  # number of param groups
         g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
         g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
         g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
         muon, sgd = (0.1, 1.0) if iterations > 10000 else (0.5, 0.5)  # scale factor for MuSGD
         if use_muon:
+            num_params[0] = len(g[3])  # update number of params
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
             import re
 
@@ -1002,6 +1004,6 @@ class BaseTrainer:
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
-            f"{len(g[1]['params'])} weight(decay=0.0), {len(g[0]['params']) if len(g[0]) else len(g[3]['params'])} weight(decay={decay}), {len(g[2]['params'])} bias(decay=0.0)"
+            f"{num_params[1]} weight(decay=0.0), {num_params[0]} weight(decay={decay}), {num_params[2]} bias(decay=0.0)"
         )
         return optimizer

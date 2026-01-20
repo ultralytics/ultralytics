@@ -23,9 +23,9 @@ This guide provides a comprehensive overview of three fundamental types of [data
 
 ### Visual Samples
 
-|                                       Line Graph                                       |                                      Bar Plot                                      |                                      Pie Chart                                       |
-| :------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------: |
-| ![Line Graph](https://github.com/ultralytics/docs/releases/download/0/line-graph.avif) | ![Bar Plot](https://github.com/ultralytics/docs/releases/download/0/bar-plot.avif) | ![Pie Chart](https://github.com/ultralytics/docs/releases/download/0/pie-chart.avif) |
+|                                                              Line Graph                                                              |                                                             Bar Plot                                                              |                                                               Pie Chart                                                               |
+| :----------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------: |
+| ![YOLO analytics line graph for object tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-line-graph.avif) | ![YOLO analytics bar plot for detection counts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-bar-plot.avif) | ![YOLO analytics pie chart for class distribution](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-pie-chart.avif) |
 
 ### Why Graphs are Important
 

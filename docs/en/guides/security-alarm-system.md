@@ -6,7 +6,7 @@ keywords: YOLO26, Security Alarm System, real-time object detection, Ultralytics
 
 # Security Alarm System Project Using Ultralytics YOLO26
 
-<img src="https://github.com/ultralytics/docs/releases/download/0/security-alarm-system-ultralytics-yolov8.avif" alt="Security Alarm System">
+<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/security-alarm-system-ultralytics-yolov8.avif" alt="AI-powered security alarm system with object detection">
 
 The Security Alarm System Project utilizing Ultralytics YOLO26 integrates advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) capabilities to enhance security measures. YOLO26, developed by Ultralytics, provides real-time [object detection](https://www.ultralytics.com/glossary/object-detection), allowing the system to identify and respond to potential security threats promptly. This project offers several advantages:
 
@@ -83,7 +83,7 @@ When you run the code, you will receive a single email notification if any objec
 
 #### Email Received Sample
 
-<img width="256" src="https://github.com/ultralytics/docs/releases/download/0/email-received-sample.avif" alt="Email Received Sample">
+<img width="256" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/email-received-sample.avif" alt="Security alert email notification example">
 
 ### `SecurityAlarm` Arguments
 

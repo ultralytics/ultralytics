@@ -11,7 +11,7 @@ When you are deploying cutting-edge [computer vision](https://www.ultralytics.co
 In this guide, we'll walk you step by step through how to export your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to the TF GraphDef model format. By converting your model, you can streamline deployment and use YOLO26's computer vision capabilities in a broader range of applications and platforms.
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/tensorflow-graphdef.avif" alt="TensorFlow GraphDef">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorflow-graphdef.avif" alt="TensorFlow GraphDef model serialization format">
 </p>
 
 ## Why Should You Export to TF GraphDef?

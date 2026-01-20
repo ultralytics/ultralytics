@@ -19,7 +19,7 @@ keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, embedded s
 
 This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO26 on [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) devices using DeepStream SDK and TensorRT. Here we use TensorRT to maximize the inference performance on the Jetson platform.
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/deepstream-nvidia-jetson.avif" alt="DeepStream on NVIDIA Jetson">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepstream-nvidia-jetson.avif" alt="NVIDIA DeepStream SDK on Jetson platform">
 
 !!! note
 
@@ -203,7 +203,7 @@ deepstream-app -c deepstream_app_config.txt
 
     It will take a long time to generate the TensorRT engine file before starting the inference. So please be patient.
 
-<div align=center><img width=1000 src="https://github.com/ultralytics/docs/releases/download/0/yolov8-with-deepstream.avif" alt="YOLO26 with deepstream"></div>
+<div align=center><img width=1000 src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov8-with-deepstream.avif" alt="YOLO26 with deepstream"></div>
 
 !!! tip
 
@@ -338,7 +338,7 @@ To set up multiple streams under a single DeepStream application, make the follo
 deepstream-app -c deepstream_app_config.txt
 ```
 
-<div align=center><img width=1000 src="https://github.com/ultralytics/docs/releases/download/0/multistream-setup.avif" alt="Multistream setup"></div>
+<div align=center><img width=1000 src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/multistream-setup.avif" alt="DeepStream multi-camera streaming configuration"></div>
 
 ## Benchmark Results
 
@@ -346,7 +346,7 @@ The following benchmarks summarizes how YOLO26 models perform at different Tenso
 
 ### Comparison Chart
 
-<div align=center><img width=1000 src="https://github.com/ultralytics/assets/releases/download/v0.0.0/jetson-deepstream-benchmarks.avif" alt="Jetson DeepStream Benchmarks Chart"></div>
+<div align=center><img width=1000 src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-deepstream-benchmarks.avif" alt="NVIDIA Jetson DeepStream performance benchmarks"></div>
 
 ### Detailed Comparison Table
 

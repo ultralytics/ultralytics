@@ -14,7 +14,7 @@ keywords: SAM 2, SAM 2.1, Segment Anything, video segmentation, image segmentati
 
 SAM 2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutting-edge tool designed for comprehensive object segmentation in both images and videos. It excels in handling complex visual data through a unified, promptable model architecture that supports real-time processing and zero-shot generalization.
 
-![SAM 2 Example Results](https://github.com/ultralytics/docs/releases/download/0/sa-v-dataset.avif)
+![SAM 2 Example Results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sa-v-dataset.avif)
 
 ## Key Features
 
@@ -71,7 +71,7 @@ SAM 2 sets a new benchmark in the field, outperforming previous models on variou
 - **Memory Mechanism**: Includes a memory encoder, memory bank, and memory attention module. These components collectively store and utilize information from past frames, enabling the model to maintain consistent [object tracking](https://www.ultralytics.com/glossary/object-tracking) over time.
 - **Mask Decoder**: Generates the final segmentation masks based on the encoded image features and prompts. In video, it also uses memory context to ensure accurate tracking across frames.
 
-![SAM 2 Architecture Diagram](https://github.com/ultralytics/docs/releases/download/0/sam2-architecture-diagram.avif)
+![SAM 2 Architecture Diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam2-architecture-diagram.avif)
 
 ### Memory Mechanism and Occlusion Handling
 
@@ -230,7 +230,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 SAM2DynamicInteractivePredictor is an advanced training-free extension of SAM2 that enables dynamic interaction with multiple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor rebuilds the inference flow to make the best use of pretrained SAM2 models without requiring additional training.
 
-![SAM 2 Example Results](https://github.com/ultralytics/assets/releases/download/v0.0.0/sam2-interative-sample.avif)
+![SAM 2 Example Results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam2-interactive-sample.avif)
 
 ### Key Features
 

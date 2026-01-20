@@ -10,7 +10,7 @@ keywords: YOLOv8, real-time object detection, YOLO series, Ultralytics, computer
 
 YOLOv8 was released by Ultralytics on January 10, 2023, offering cutting-edge performance in terms of accuracy and speed. Building upon the advancements of previous YOLO versions, YOLOv8 introduced new features and optimizations that make it an ideal choice for various [object detection](https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025) tasks in a wide range of applications.
 
-![Ultralytics YOLOv8](https://github.com/ultralytics/docs/releases/download/0/yolov8-comparison-plots.avif)
+![YOLOv8 performance comparison charts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov8-comparison-plots.avif)
 
 <p align="center">
   <br>

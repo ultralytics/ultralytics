@@ -98,7 +98,7 @@ To train an [Ultralytics YOLO26](../../models/yolo26.md) model on the Carparts S
 
 The Carparts Segmentation dataset includes a diverse array of images and videos captured from various perspectives. Below are examples showcasing the data and its corresponding annotations:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/dataset-sample-image.avif)
+![Car parts segmentation dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/carparts-seg-sample.avif)
 
 - The image demonstrates [object segmentation](https://docs.ultralytics.com/tasks/segment/) within a car image sample. Annotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) with masks highlight the identified car parts (e.g., headlights, grille).
 - The dataset features a variety of images captured under different conditions (locations, lighting, object densities), providing a comprehensive resource for training robust car part segmentation models.

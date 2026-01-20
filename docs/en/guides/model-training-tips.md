@@ -30,7 +30,7 @@ A computer vision model is trained by adjusting its internal parameters to minim
 During training, the model iteratively makes predictions, calculates errors, and updates its parameters through a process called [backpropagation](https://www.ultralytics.com/glossary/backpropagation). In this process, the model adjusts its internal parameters (weights and biases) to reduce the errors. By repeating this cycle many times, the model gradually improves its accuracy. Over time, it learns to recognize complex patterns such as shapes, colors, and textures.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/backpropagation-diagram.avif" alt="What is Backpropagation?">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/backpropagation-diagram.avif" alt="What is Backpropagation?">
 </p>
 
 This learning process makes it possible for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) model to perform various [tasks](../tasks/index.md), including [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), and [image classification](../tasks/classify.md). The ultimate goal is to create a model that can generalize its learning to new, unseen images so that it can accurately understand visual data in real-world applications.
@@ -86,7 +86,7 @@ Caching can be controlled when training YOLO26 using the `cache` parameter:
 Mixed precision training uses both 16-bit (FP16) and 32-bit (FP32) floating-point types. The strengths of both FP16 and FP32 are leveraged by using FP16 for faster computation and FP32 to maintain precision where needed. Most of the [neural network](https://www.ultralytics.com/glossary/neural-network-nn)'s operations are done in FP16 to benefit from faster computation and lower memory usage. However, a master copy of the model's weights is kept in FP32 to ensure accuracy during the weight update steps. You can handle larger models or larger batch sizes within the same hardware constraints.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/mixed-precision-training-overview.avif" alt="Mixed Precision Training Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mixed-precision-training-overview.avif" alt="Mixed precision FP16 training benefits">
 </p>
 
 To implement mixed precision training, you'll need to modify your training scripts and ensure your hardware (like GPUs) supports it. Many modern [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks, such as [PyTorch](https://www.ultralytics.com/glossary/pytorch) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), offer built-in support for mixed precision.
@@ -121,7 +121,7 @@ Early stopping is a valuable technique for optimizing model training. By monitor
 The process involves setting a patience parameter that determines how many epochs to wait for an improvement in validation metrics before stopping training. If the model's performance does not improve within these epochs, training is stopped to avoid wasting time and resources.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/early-stopping-overview.avif" alt="Early Stopping Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/early-stopping-overview.avif" alt="Early stopping to prevent model overfitting">
 </p>
 
 For YOLO26, you can enable early stopping by setting the patience parameter in your training configuration. For example, `patience=5` means training will stop if there's no improvement in validation metrics for 5 consecutive epochs. Using this method ensures the training process remains efficient and achieves optimal performance without excessive computation.

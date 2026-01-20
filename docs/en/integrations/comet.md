@@ -24,7 +24,7 @@ Logging key training details such as parameters, metrics, image predictions, and
 ## Comet
 
 <p align="center">
-  <img width="640" src="https://www.comet.com/docs/v2/img/landing/home-hero.svg" alt="Comet Overview">
+  <img width="640" src="https://www.comet.com/docs/v2/img/landing/home-hero.svg" alt="Comet ML experiment tracking dashboard">
 </p>
 
 [Comet](https://www.comet.com/site/) is a platform for tracking, comparing, explaining, and optimizing machine learning models and experiments. It allows you to log metrics, parameters, media, and more during your model training and monitor your experiments through an aesthetically pleasing web interface. Comet helps data scientists iterate more rapidly, enhances transparency and reproducibility, and aids in the development of production models.
@@ -111,7 +111,7 @@ Let's dive into what you'll see on the Comet dashboard once your YOLO26 model be
 The experiment panels section of the Comet dashboard organizes and presents the different runs and their metrics, such as segment mask loss, class loss, precision, and [mean average precision](https://www.ultralytics.com/glossary/mean-average-precision-map).
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-dashboard-overview.avif" alt="Comet Overview">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-ml-dashboard-overview.avif" alt="Comet ML experiment tracking dashboard">
 </p>
 
 **Metrics**
@@ -119,7 +119,7 @@ The experiment panels section of the Comet dashboard organizes and presents the 
 In the metrics section, you have the option to examine the metrics in a tabular format as well, which is displayed in a dedicated pane as illustrated here.
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-metrics-tabular.avif" alt="Comet Overview">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-ml-metrics-tabular.avif" alt="Comet ML experiment tracking dashboard">
 </p>
 
 **Interactive [Confusion Matrix](https://www.ultralytics.com/glossary/confusion-matrix)**
@@ -127,7 +127,7 @@ In the metrics section, you have the option to examine the metrics in a tabular 
 The confusion matrix, found in the Confusion Matrix tab, provides an interactive way to assess the model's classification [accuracy](https://www.ultralytics.com/glossary/accuracy). It details the correct and incorrect predictions, allowing you to understand the model's strengths and weaknesses.
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-interactive-confusion-matrix.avif" alt="Comet Overview">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-ml-interactive-confusion-matrix.avif" alt="Comet ML experiment tracking dashboard">
 </p>
 
 **System Metrics**
@@ -135,7 +135,7 @@ The confusion matrix, found in the Confusion Matrix tab, provides an interactive
 Comet logs system metrics to help identify any bottlenecks in the training process. It includes metrics such as GPU utilization, GPU memory usage, CPU utilization, and RAM usage. These are essential for monitoring the efficiency of resource usage during model training.
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/comet-ml-system-metrics.avif" alt="Comet Overview">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-ml-system-metrics.avif" alt="Comet ML experiment tracking dashboard">
 </p>
 
 ## Customizing Comet Logging

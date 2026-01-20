@@ -25,7 +25,7 @@ Let's begin by creating a virtual machine optimized for [deep learning](https://
 
 This VM comes pre-loaded with essential tools and frameworks, including the [Anaconda](https://www.anaconda.com/) Python distribution, which conveniently bundles many necessary dependencies for YOLOv5.
 
-![GCP Marketplace illustration of setting up a Deep Learning VM](https://github.com/ultralytics/docs/releases/download/0/gcp-deep-learning-vm-setup.avif)
+![GCP Marketplace illustration of setting up a Deep Learning VM](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/gcp-deep-learning-vm-setup.avif)
 
 ## Step 2: Prepare the VM for YOLOv5
 
@@ -62,7 +62,7 @@ python export.py --weights yolov5s.pt --include onnx coreml tflite
 
 Using just a few commands, YOLOv5 enables you to train custom [object detection](https://docs.ultralytics.com/tasks/detect/) models tailored to your specific needs or utilize pretrained weights for rapid results across various tasks. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.
 
-![Terminal command image illustrating model training on a GCP Deep Learning VM](https://github.com/ultralytics/docs/releases/download/0/terminal-command-model-training.avif)
+![YOLOv5 model training on GCP VM](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/terminal-command-model-training.avif)
 
 ## Allocate Swap Space (Optional)
 

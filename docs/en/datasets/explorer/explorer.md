@@ -8,7 +8,7 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 
 <div align="center">
 
-<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
+<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
 <a href="https://docs.ultralytics.com/zh/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/">日本語</a> |
@@ -72,7 +72,7 @@ Once the embeddings table is built, you can run semantic search in any of the fo
 
 You get a pandas DataFrame with the limit number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering.
 
-![Similarity search table](https://github.com/ultralytics/docs/releases/download/0/similarity-search-table.avif)
+![Ultralytics Explorer similarity search results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-search-table.avif)
 
 ```python
 # Search dataset by index
@@ -82,7 +82,7 @@ similar.head()
 
 You can use the also plot the similar samples directly using the `plot_similar` util
 
-![Similarity search image 1](https://github.com/ultralytics/docs/releases/download/0/similarity-search-image-1.avif)
+![Similar images found by vector search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-search-image-1.avif)
 
 ```python
 exp.plot_similar(idx=6500, limit=20)
@@ -91,13 +91,13 @@ exp.plot_similar(idx=[100, 101], limit=10)  # Can also pass list of idxs or imgs
 exp.plot_similar(img="https://ultralytics.com/images/bus.jpg", limit=10, labels=False)  # Can also pass external images
 ```
 
-![Similarity search image 2](https://github.com/ultralytics/docs/releases/download/0/similarity-search-image-2.avif)
+![Similarity search visualization with embeddings](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-search-image-2.avif)
 
 ## Ask AI: Search or Filter with Natural Language
 
 You can prompt the Explorer object with the kind of data points you want to see, and it will try to return a DataFrame with those results. Because it is powered by LLMs, it does not always get it right. In that case, it will return `None`.
 
-![Ask AI table](https://github.com/ultralytics/docs/releases/download/0/ask-ai-nlp-table.avif)
+![Ultralytics Explorer Ask AI natural language query results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ask-ai-nlp-table.avif)
 
 ```python
 df = exp.ask_ai("show me images containing more than 10 objects with at least 2 persons")
@@ -111,7 +111,7 @@ plt = plot_query_result(exp.ask_ai("show me 10 images containing exactly 2 perso
 Image.fromarray(plt)
 ```
 
-![Ask AI image 1](https://github.com/ultralytics/docs/releases/download/0/ask-ai-nlp-image-1.avif)
+![Ask AI query result showing matched images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ask-ai-nlp-image-1.avif)
 
 ```python
 # plot
@@ -140,7 +140,7 @@ table = exp.sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%do
 exp.plot_sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%dog%' LIMIT 10", labels=True)
 ```
 
-![SQL queries table](https://github.com/ultralytics/docs/releases/download/0/sql-queries-table.avif)
+![Explorer SQL query results table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sql-queries-table.avif)
 
 ```python
 table = exp.sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%dog%' LIMIT 10")
@@ -149,7 +149,7 @@ print(table)
 
 Just like similarity search, you also get a util to directly plot the sql queries using `exp.plot_sql_query`
 
-![SQL queries image 1](https://github.com/ultralytics/docs/releases/download/0/sql-query-image-1.avif)
+![SQL query matched images visualization](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sql-query-image-1.avif)
 
 ```python
 exp.plot_sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%dog%' LIMIT 10", labels=True)
@@ -176,7 +176,7 @@ Metric In LanceDB, a Metric is the way to describe the distance between a pair o
 - Cosine
 - Dot Explorer's similarity search uses L2 by default. You can run queries on tables directly, or use the lance format to build custom utilities to manage datasets. More details on available LanceDB table ops in the [docs](https://lancedb.github.io/lancedb/)
 
-![Raw-queries-table](https://github.com/ultralytics/docs/releases/download/0/raw-queries-table.avif)
+![Explorer raw SQL queries results table](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/raw-queries-table.avif)
 
 ```python
 dummy_img_embedding = [i for i in range(256)]
@@ -205,7 +205,7 @@ embeddings = np.array(embeddings)
 
 One of the preliminary steps in analyzing embeddings is by plotting them in 2D space via dimensionality reduction. Let's try an example
 
-![Scatterplot Example](https://github.com/ultralytics/docs/releases/download/0/scatterplot-sql-queries.avif)
+![Explorer embeddings scatterplot visualization](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/scatterplot-sql-queries.avif)
 
 ```python
 import matplotlib.pyplot as plt
@@ -243,7 +243,7 @@ sim_idx = exp.similarity_index(max_dist=0.2, top_k=0.01)
 exp.plot_similarity_index(max_dist=0.2, top_k=0.01)
 ```
 
-![Similarity Index](https://github.com/ultralytics/docs/releases/download/0/similarity-index.avif)
+![Dataset similarity index analysis](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-index.avif)
 
 at the plot first
 
@@ -270,7 +270,7 @@ sim_idx["im_file"][sim_count > 30]
 
 You should see something like this
 
-![similarity-index-image](https://github.com/ultralytics/docs/releases/download/0/similarity-index-image.avif)
+![Similarity index visualization for dataset analysis](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-index-image.avif)
 
 ```python
 exp.plot_similar(idx=[7146, 14035])  # Using avg embeddings of 2 images

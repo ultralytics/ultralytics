@@ -8,7 +8,7 @@ keywords: COCO-Pose, pose estimation, dataset, keypoints, COCO Keypoints 2017, Y
 
 The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialized version of the COCO (Common Objects in Context) dataset, designed for pose estimation tasks. It leverages the COCO Keypoints 2017 images and labels to enable the training of models like YOLO for pose estimation tasks.
 
-![Pose sample image](https://github.com/ultralytics/docs/releases/download/0/pose-sample-image.avif)
+![COCO pose estimation with human keypoints](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pose-sample-image.avif)
 
 ## COCO-Pose Pretrained Models
 
@@ -71,7 +71,7 @@ To train a YOLO26n-pose model on the COCO-Pose dataset for 100 [epochs](https://
 
 The COCO-Pose dataset contains a diverse set of images with human figures annotated with keypoints. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/mosaiced-training-batch-6.avif)
+![COCO pose estimation dataset mosaic training batch](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-6.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

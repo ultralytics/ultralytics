@@ -82,7 +82,7 @@ class TestSAM3BatchInference:
         import cv2
         predictor.set_image(test_images[0])
         src_shape = cv2.imread(str(test_images[0])).shape[:2]
-        masks, boxes = predictor.inference_features(predictor.features, src_shape=src_shape, text=["person"])
+        masks, _boxes = predictor.inference_features(predictor.features, src_shape=src_shape, text=["person"])
         # Should return masks and boxes (may be None if no detections)
         assert masks is None or hasattr(masks, "shape")
 

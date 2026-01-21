@@ -2486,50 +2486,77 @@ class SAM3SemanticPredictor(SAM3Predictor):
         self.model.set_imgsz(imgsz)
         letterbox = LetterBox(imgsz, auto=False, center=False, scale_fill=True)
 
-        for image in images:
-            orig_img = cv2.imread(str(image)) if isinstance(image, (str, Path)) else image
-            path = str(image) if isinstance(image, (str, Path)) else ""
-            if orig_img is None:
-                raise FileNotFoundError(
-                    f"Image '{path}' could not be loaded. Please check that the file exists and is a valid image."
+        # Initialize profilers for timing
+        profilers = (ops.Profile(device=self.device), ops.Profile(device=self.device), ops.Profile(device=self.device))
+
+        with profilers[0]:
+            for image in images:
+                orig_img = cv2.imread(str(image)) if isinstance(image, (str, Path)) else image
+                path = str(image) if isinstance(image, (str, Path)) else ""
+                if orig_img is None:
+                    raise FileNotFoundError(
+                        f"Image '{path}' could not be loaded. Please check that the file exists and is a valid image."
+                    )
+                image_infos.append({"orig_img": orig_img, "path": path, "shape": orig_img.shape})
+                im = torch.from_numpy(np.ascontiguousarray(letterbox(image=orig_img)[..., ::-1].transpose((2, 0, 1))))
+                im = (
+                    ((im.to(self.device) - self.mean) / self.std).half()
+                    if self.model.fp16
+                    else (im.to(self.device) - self.mean) / self.std
                 )
-            image_infos.append({"orig_img": orig_img, "path": path, "shape": orig_img.shape})
-            im = torch.from_numpy(np.ascontiguousarray(letterbox(image=orig_img)[..., ::-1].transpose((2, 0, 1))))
-            im = (
-                ((im.to(self.device) - self.mean) / self.std).half()
-                if self.model.fp16
-                else (im.to(self.device) - self.mean) / self.std
-            )
-            preprocessed_images.append(im)
+                preprocessed_images.append(im)
 
         # Batch encode images and run inference
         results = []
-        for i in range(0, n_images, batch_size):
-            batch_end = min(i + batch_size, n_images)
-            batch_imgs = preprocessed_images[i:batch_end]
-            batch_tensor = torch.stack(batch_imgs, dim=0)
+        inference_outputs = []  # Store inference outputs for postprocess
+        with profilers[1]:
+            for i in range(0, n_images, batch_size):
+                batch_end = min(i + batch_size, n_images)
+                batch_imgs = preprocessed_images[i:batch_end]
+                batch_tensor = torch.stack(batch_imgs, dim=0)
 
-            # GPU forward pass for backbone
-            features = self.get_im_features(batch_tensor)
+                # GPU forward pass for backbone
+                features = self.get_im_features(batch_tensor)
 
-            # Run decoder for each image in batch
-            for j in range(len(batch_imgs)):
-                idx = i + j
-                single_features = self._extract_single_features(features, j)
+                # Run decoder for each image in batch
+                for j in range(len(batch_imgs)):
+                    idx = i + j
+                    single_features = self._extract_single_features(features, j)
+                    info = image_infos[idx]
+
+                    pred_masks, pred_bboxes = self.inference_features(
+                        features=single_features,
+                        src_shape=info["shape"],
+                        bboxes=bboxes_per_image[idx],
+                        labels=labels_per_image[idx],
+                        text=text_per_image[idx],
+                    )
+                    inference_outputs.append((idx, pred_masks, pred_bboxes))
+
+        # Postprocess: create Results objects
+        with profilers[2]:
+            for idx, pred_masks, pred_bboxes in inference_outputs:
                 info = image_infos[idx]
-
-                pred_masks, pred_bboxes = self.inference_features(
-                    features=single_features,
-                    src_shape=info["shape"],
-                    bboxes=bboxes_per_image[idx],
-                    labels=labels_per_image[idx],
-                    text=text_per_image[idx],
-                )
-
                 names = text_per_image[idx] if text_per_image[idx] else getattr(self.model, "names", ["object"])
                 results.append(
                     Results(info["orig_img"], path=info["path"], names=names, masks=pred_masks, boxes=pred_bboxes)
                 )
+
+        # Set speed dict on each result
+        for result in results:
+            result.speed = {
+                "preprocess": profilers[0].dt * 1e3 / n_images,
+                "inference": profilers[1].dt * 1e3 / n_images,
+                "postprocess": profilers[2].dt * 1e3 / n_images,
+            }
+
+        # Log speed summary
+        if self.args.verbose and n_images:
+            t = tuple(x.t / n_images * 1e3 for x in profilers)
+            LOGGER.info(
+                f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
+                f"{(batch_size, 3, *imgsz)}" % t
+            )
 
         return results[0] if len(results) == 1 else results
 

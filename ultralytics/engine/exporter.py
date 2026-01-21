@@ -859,8 +859,7 @@ class Exporter:
         # Apply quantization using ai-edge-quantizer-nightly
         if self.args.int8 or self.args.half:
             check_requirements("ai-edge-quantizer-nightly")
-            from ai_edge_quantizer import quantizer
-            from ai_edge_quantizer import recipe
+            from ai_edge_quantizer import quantizer, recipe
 
             LOGGER.info(f"{prefix} applying {'INT8' if self.args.int8 else 'FP16'} quantization...")
             qt = quantizer.Quantizer(str(tflite_file))

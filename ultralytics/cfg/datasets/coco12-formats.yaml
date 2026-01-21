@@ -1,15 +1,15 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# COCO12 dataset (12 images testing all supported image formats) by Ultralytics
-# Documentation: https://docs.ultralytics.com/datasets/detect/coco12/
-# Example usage: yolo train data=coco12.yaml
+# COCO12-Formats dataset (12 images testing all supported image formats) by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/detect/coco12-formats/
+# Example usage: yolo train data=coco12-formats.yaml
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── coco12 ← downloads here (1 MB)
+#     └── coco12-formats ← downloads here (1 MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: coco12 # dataset root dir
+path: coco12-formats # dataset root dir
 train: images/train # train images (relative to 'path') 6 images
 val: images/val # val images (relative to 'path') 6 images
 test: # test images (optional)
@@ -98,4 +98,4 @@ names:
   79: toothbrush
 
 # Download script/URL (optional)
-download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco12.zip
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco12-formats.zip

@@ -1,12 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Generate COCO12 dataset for testing all supported image formats.
+Generate COCO12-Formats dataset for testing all supported image formats.
 
 This script creates a test dataset with images in all 12 supported format extensions:
     avif, bmp, dng, heic, jpeg, jpg, mpo, pfm, png, tif, tiff, webp
 
 Usage:
-    python generate_coco12.py
+    python generate_coco12_formats.py
 
 Requirements:
     pip install pillow pillow-heif pillow-avif-plugin numpy
@@ -119,16 +119,16 @@ def convert_image(src_path: Path, dst_path: Path, fmt: str):
         raise ValueError(f"Unsupported format: {fmt}")
 
 
-def generate_coco12(
+def generate_coco12_formats(
     output_dir: str | Path = None,
     coco8_dir: str | Path = None,
     coco128_dir: str | Path = None,
 ):
     """
-    Generate the COCO12 dataset with all 12 supported image formats.
+    Generate the COCO12-Formats dataset with all 12 supported image formats.
 
     Args:
-        output_dir: Output directory for coco12 dataset
+        output_dir: Output directory for coco12-formats dataset
         coco8_dir: Path to coco8 dataset (will download if not exists)
         coco128_dir: Path to coco128 dataset (will download if not exists)
     """
@@ -137,7 +137,7 @@ def generate_coco12(
 
     # Set default paths
     if output_dir is None:
-        output_dir = DATASETS_DIR / "coco12"
+        output_dir = DATASETS_DIR / "coco12-formats"
     output_dir = Path(output_dir)
 
     if coco8_dir is None:
@@ -243,4 +243,4 @@ def find_label(img_path: Path, coco8_dir: Path, coco128_dir: Path) -> Path | Non
 
 
 if __name__ == "__main__":
-    generate_coco12()
+    generate_coco12_formats()

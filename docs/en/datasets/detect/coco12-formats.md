@@ -1,14 +1,14 @@
 ---
 comments: true
-description: Explore the Ultralytics COCO12 dataset, a test dataset featuring all 12 supported image formats (AVIF, BMP, DNG, HEIC, JPEG, JPG, MPO, PFM, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
-keywords: COCO12, Ultralytics, dataset, image formats, object detection, YOLO, AVIF, BMP, DNG, HEIC, JPEG, PNG, TIFF, WebP, PFM, MPO
+description: Explore the Ultralytics COCO12-Formats dataset, a test dataset featuring all 12 supported image formats (AVIF, BMP, DNG, HEIC, JPEG, JPG, MPO, PFM, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
+keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection, YOLO, AVIF, BMP, DNG, HEIC, JPEG, PNG, TIFF, WebP, PFM, MPO
 ---
 
-# COCO12 Dataset
+# COCO12-Formats Dataset
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) COCO12 dataset is a specialized test dataset designed to validate image loading across all 12 supported image format extensions. It contains 12 images (6 for training, 6 for validation), each saved in a different format to ensure comprehensive testing of the image loading pipeline.
+The [Ultralytics](https://www.ultralytics.com/) COCO12-Formats dataset is a specialized test dataset designed to validate image loading across all 12 supported image format extensions. It contains 12 images (6 for training, 6 for validation), each saved in a different format to ensure comprehensive testing of the image loading pipeline.
 
 This dataset is invaluable for:
 
@@ -39,24 +39,24 @@ The dataset includes one image for each of the 12 supported format extensions de
 ## Dataset Structure
 
 ```
-coco12/
+coco12-formats/
 ├── images/
 │   ├── train/          # 6 images (avif, bmp, dng, heic, jpeg, jpg)
 │   └── val/            # 6 images (mpo, pfm, png, tif, tiff, webp)
 ├── labels/
 │   ├── train/          # Corresponding YOLO format labels
 │   └── val/
-└── coco12.yaml         # Dataset configuration
+└── coco12-formats.yaml # Dataset configuration
 ```
 
 ## Dataset YAML
 
-The COCO12 dataset is configured using a YAML file that defines dataset paths and class names. You can review the official `coco12.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco12.yaml).
+The COCO12-Formats dataset is configured using a YAML file that defines dataset paths and class names. You can review the official `coco12-formats.yaml` file in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco12-formats.yaml).
 
-!!! example "ultralytics/cfg/datasets/coco12.yaml"
+!!! example "ultralytics/cfg/datasets/coco12-formats.yaml"
 
     ```yaml
-    --8<-- "ultralytics/cfg/datasets/coco12.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco12-formats.yaml"
     ```
 
 ## Dataset Generation
@@ -64,10 +64,10 @@ The COCO12 dataset is configured using a YAML file that defines dataset paths an
 The dataset can be generated using the provided script that converts source images from COCO8 and COCO128 to all supported formats:
 
 ```python
-from ultralytics.data.scripts.generate_coco12 import generate_coco12
+from ultralytics.data.scripts.generate_coco12_formats import generate_coco12_formats
 
 # Generate the dataset
-generate_coco12()
+generate_coco12_formats()
 ```
 
 ### Requirements
@@ -110,7 +110,7 @@ For OpenCV to read AVIF files directly, `libavif` must be installed **before** b
 
 ## Usage
 
-To train a YOLO model on the COCO12 dataset, use the following examples:
+To train a YOLO model on the COCO12-Formats dataset, use the following examples:
 
 !!! example "Train Example"
 
@@ -122,15 +122,15 @@ To train a YOLO model on the COCO12 dataset, use the following examples:
         # Load a pretrained YOLO model
         model = YOLO("yolo11n.pt")
 
-        # Train on COCO12 to test all image formats
-        results = model.train(data="coco12.yaml", epochs=1, imgsz=640)
+        # Train on COCO12-Formats to test all image formats
+        results = model.train(data="coco12-formats.yaml", epochs=1, imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Train YOLO on COCO12
-        yolo detect train data=coco12.yaml model=yolo11n.pt epochs=1 imgsz=640
+        # Train YOLO on COCO12-Formats
+        yolo detect train data=coco12-formats.yaml model=yolo11n.pt epochs=1 imgsz=640
         ```
 
 ## Format-Specific Notes
@@ -179,7 +179,7 @@ from ultralytics import YOLO
 def test_all_image_formats():
     """Test that all image formats load correctly."""
     model = YOLO("yolo11n.pt")
-    results = model.train(data="coco12.yaml", epochs=1, imgsz=64)
+    results = model.train(data="coco12-formats.yaml", epochs=1, imgsz=64)
     assert results is not None
 ```
 
@@ -191,7 +191,7 @@ from pathlib import Path
 from ultralytics.data.utils import IMG_FORMATS
 
 # Verify all formats are represented
-dataset_dir = Path("datasets/coco12/images")
+dataset_dir = Path("datasets/coco12-formats/images")
 found_formats = {f.suffix[1:].lower() for f in dataset_dir.rglob("*.*")}
 assert found_formats == IMG_FORMATS, f"Missing formats: {IMG_FORMATS - found_formats}"
 ```
@@ -217,9 +217,9 @@ If you use the COCO dataset in your research, please cite:
 
 ## FAQ
 
-### What Is the COCO12 Dataset Used For?
+### What Is the COCO12-Formats Dataset Used For?
 
-The COCO12 dataset is designed for testing image format compatibility in Ultralytics YOLO training pipelines. It ensures all 12 supported image formats (AVIF, BMP, DNG, HEIC, JPEG, JPG, MPO, PFM, PNG, TIF, TIFF, WebP) load and process correctly.
+The COCO12-Formats dataset is designed for testing image format compatibility in Ultralytics YOLO training pipelines. It ensures all 12 supported image formats (AVIF, BMP, DNG, HEIC, JPEG, JPG, MPO, PFM, PNG, TIF, TIFF, WebP) load and process correctly.
 
 ### Why Test Multiple Image Formats?
 
@@ -237,4 +237,4 @@ Different image formats have unique characteristics (compression, bit depth, col
 
 ### Can I Add New Format Tests?
 
-Yes! Modify the `generate_coco12.py` script to include additional formats. Ensure you also update `IMG_FORMATS` in `ultralytics/data/utils.py`.
+Yes! Modify the `generate_coco12_formats.py` script to include additional formats. Ensure you also update `IMG_FORMATS` in `ultralytics/data/utils.py`.

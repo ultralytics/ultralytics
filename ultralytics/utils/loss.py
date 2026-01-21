@@ -521,9 +521,9 @@ class v8SegmentationLoss(v8DetectionLoss):
                     batch_idx = batch["batch_idx"].view(-1)  # [total_instances]
                     for i in range(batch_size):
                         instance_mask_i = masks[batch_idx == i]  # [num_instances_i, H, W]
-                        if len(instance_mask_i) > 0:
-                            mask_zero_i = instance_mask_i.sum(dim=0) == 0  # [H, W]
-                            sem_masks[i, :, mask_zero_i] = 0
+                        if len(instance_mask_i) == 0:
+                            continue
+                        sem_masks[i, :, instance_mask_i.sum(dim=0) == 0] = 0
 
                 loss[4] = self.bcedice_loss(pred_semseg, sem_masks)
                 loss[4] *= self.hyp.box  # seg gain

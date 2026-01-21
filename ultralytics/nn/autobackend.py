@@ -626,7 +626,6 @@ class AutoBackend(nn.Module):
 
         # ExecuTorch
         elif pte:
-
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
 
             if LINUX and ARM64 and IS_DOCKER:
@@ -635,11 +634,13 @@ class AutoBackend(nn.Module):
             check_requirements("ruamel.yaml<0.19.0")
 
             if TORCH_2_10:
-                check_requirements(requirements=["executorch==1.1.0.dev20260120", "flatbuffers"], 
-                                   cmds="--index-url https://download.pytorch.org/whl/nightly/cpu/")
+                check_requirements(
+                    requirements=["executorch==1.1.0.dev20260120", "flatbuffers"],
+                    cmds="--index-url https://download.pytorch.org/whl/nightly/cpu/",
+                )
             else:
                 check_requirements("executorch==1.0.1", "flatbuffers")
-            
+
             # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
             check_requirements("numpy<=2.3.5")
 

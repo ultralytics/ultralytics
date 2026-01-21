@@ -1,8 +1,18 @@
 """
-YOLO Pre/Post Export Diagnostic Tool.
+YOLO Pre/Post Export Diagnostic Tool
 
 Compares detection outputs before (PyTorch) and after (ONNX Runtime) export.
 Reports pairing IoU, confidence drift, and unmatched detections.
+
+Usage:
+  python pre_post_export_diagnosis.py [options]
+
+Options:
+  --weights PATH     Path to PyTorch weights (default: yolov8n.pt)
+  --source PATH      Image or video source (default: bus.jpg)
+  --export           Force ONNX export even if .onnx exists
+  --opset INT        ONNX opset version (default: Ultralytics default)
+  --verbose          Print raw detections for both backends
 """
 
 import argparse
@@ -10,7 +20,6 @@ import sys
 from pathlib import Path
 
 import numpy as np
-
 from ultralytics import YOLO
 
 
@@ -32,16 +41,16 @@ def iou(box_a, box_b):
 
 
 def extract_detections(results):
-    dets = []
+    detections = []
     for b in results.boxes.data.cpu().numpy():
-        dets.append(
+        detections.append(
             {
                 "box": b[:4].tolist(),
                 "score": float(b[4]),
                 "cls": int(b[5]),
             }
         )
-    return dets
+    return detections
 
 
 def run_pytorch(weights, source):
@@ -50,18 +59,21 @@ def run_pytorch(weights, source):
     return extract_detections(res)
 
 
-def run_onnx(weights, source, do_export):
+def run_onnx(weights, source, export, opset):
     onnx_path = Path(weights).with_suffix(".onnx")
 
-    if do_export or not onnx_path.exists():
-        YOLO(weights).export(format="onnx", opset=20)
+    if export or not onnx_path.exists():
+        export_kwargs = {}
+        if opset is not None:
+            export_kwargs["opset"] = opset
+        YOLO(weights).export(format="onnx", **export_kwargs)
 
     model = YOLO(onnx_path, task="detect")
     res = model(source)[0]
     return extract_detections(res)
 
 
-def pair_and_report(pre, post):
+def pair_detections(pre, post, iou_thresh=0.5):
     matched = []
     matched_pre_idx = set()
     matched_post_idx = set()
@@ -79,7 +91,7 @@ def pair_and_report(pre, post):
                 best_iou = v
                 best_j = j
 
-        if best_j is not None and best_iou > 0.5:
+        if best_j is not None and best_iou >= iou_thresh:
             matched_pre_idx.add(i)
             matched_post_idx.add(best_j)
             matched.append(
@@ -101,6 +113,8 @@ def main():
     parser.add_argument("--weights", default="yolov8n.pt")
     parser.add_argument("--source", default="bus.jpg")
     parser.add_argument("--export", action="store_true")
+    parser.add_argument("--opset", type=int, default=None)
+    parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
     weights = Path(args.weights)
@@ -119,9 +133,9 @@ def main():
     print("=" * 38)
 
     pre = run_pytorch(weights, source)
-    post = run_onnx(weights, source, args.export)
+    post = run_onnx(weights, source, args.export, args.opset)
 
-    matched, un_pre, un_post = pair_and_report(pre, post)
+    matched, un_pre, un_post = pair_detections(pre, post)
 
     print("\nSummary:")
     print(f"Matched detections : {len(matched)}")
@@ -149,6 +163,14 @@ def main():
     if un_post:
         print("\nUnmatched POST detections:")
         for d in un_post:
+            print(d)
+
+    if args.verbose:
+        print("\n[VERBOSE] PRE detections:")
+        for d in pre:
+            print(d)
+        print("\n[VERBOSE] POST detections:")
+        for d in post:
             print(d)
 
 

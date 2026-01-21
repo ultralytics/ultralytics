@@ -42,7 +42,9 @@ def test_val(task: str, model: str, data: str) -> None:
 def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model."""
     for end2end in {False, True}:
-        run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt visualize end2end={end2end}")
+        run(
+            f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt visualize end2end={end2end}"
+        )
 
 
 @pytest.mark.parametrize("model", MODELS)

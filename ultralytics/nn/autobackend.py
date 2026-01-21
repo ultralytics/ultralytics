@@ -635,7 +635,7 @@ class AutoBackend(nn.Module):
 
             if TORCH_2_10:
                 check_requirements(
-                    requirements=["executorch==1.1.0.dev20260120", "flatbuffers"],
+                    requirements=["executorch==1.1.0.dev20260120", "flatbuffers", "torchao"],
                     cmds="--extra-index-url https://download.pytorch.org/whl/nightly",
                 )
             else:

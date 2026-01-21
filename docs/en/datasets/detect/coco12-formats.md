@@ -172,7 +172,6 @@ pip install pillow-heif
 ### CI/CD Testing
 
 ```python
-import pytest
 from ultralytics import YOLO
 
 

@@ -1,5 +1,5 @@
 """
-YOLO Pre/Post Export Diagnostic Tool
+YOLO Pre/Post Export Diagnostic Tool.
 
 Compares YOLO detection behavior before and after ONNX export.
 Focuses on numerical drift and missing detections.
@@ -8,6 +8,7 @@ Focuses on numerical drift and missing detections.
 import argparse
 import contextlib
 import io
+
 from ultralytics import YOLO
 
 
@@ -36,11 +37,13 @@ def extract_detections(result):
     detections = []
 
     for i in range(len(boxes)):
-        detections.append({
-            "box": boxes.xyxy[i].tolist(),
-            "score": float(boxes.conf[i]),
-            "cls": int(boxes.cls[i]),
-        })
+        detections.append(
+            {
+                "box": boxes.xyxy[i].tolist(),
+                "score": float(boxes.conf[i]),
+                "cls": int(boxes.cls[i]),
+            }
+        )
 
     return detections
 
@@ -65,13 +68,15 @@ def pair_detections(pre_dets, post_dets, iou_thresh=0.5):
                 best_idx = j
 
         if best_idx is not None and best_iou >= iou_thresh:
-            matches.append({
-                "cls": pre["cls"],
-                "iou": best_iou,
-                "score_diff": abs(pre["score"] - post_dets[best_idx]["score"]),
-                "pre": pre,
-                "post": post_dets[best_idx],
-            })
+            matches.append(
+                {
+                    "cls": pre["cls"],
+                    "iou": best_iou,
+                    "score_diff": abs(pre["score"] - post_dets[best_idx]["score"]),
+                    "pre": pre,
+                    "post": post_dets[best_idx],
+                }
+            )
             used_post.add(best_idx)
 
     unmatched_pre = [d for d in pre_dets if d not in [m["pre"] for m in matches]]

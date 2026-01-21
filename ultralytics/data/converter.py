@@ -847,7 +847,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
                             return True
                         except Exception as e:
                             if attempt < 2:  # Don't sleep after last attempt
-                                await asyncio.sleep(2 ** attempt)  # 1s, 2s backoff
+                                await asyncio.sleep(2**attempt)  # 1s, 2s backoff
                             else:
                                 LOGGER.warning(f"Failed to download {http_url} after 3 attempts: {e}")
                                 return False

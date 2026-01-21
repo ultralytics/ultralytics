@@ -1206,7 +1206,7 @@ class Exporter:
                 requirements=["executorch==1.1.0.dev20260120", "flatbuffers"],
                 cmds="--index-url https://download.pytorch.org/whl/nightly",
             )
-            
+
         else:
             check_requirements("executorch==1.0.1", "flatbuffers")
         # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate

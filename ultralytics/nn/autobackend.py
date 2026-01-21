@@ -627,7 +627,8 @@ class AutoBackend(nn.Module):
         # ExecuTorch
         elif pte:
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
-
+            
+            # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
             if LINUX and ARM64 and IS_DOCKER:
                 check_requirements("packaging>=22.0")
 

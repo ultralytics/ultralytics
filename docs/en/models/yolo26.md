@@ -187,7 +187,6 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
 
     The choice depends on your deployment requirements: use the one-to-one head for maximum speed and simplicity, or the one-to-many head when accuracy is the top priority.
 
-
 ## YOLOE-26: Open-Vocabulary Instance Segmentation
 
 YOLOE-26 integrates the high-performance YOLO26 architecture with the open-vocabulary capabilities of the [YOLOE](yoloe.md) series. It enables real-time detection and segmentation of any object class using **text prompts**, **visual prompts**, or a **prompt-free mode** for zero-shot inference, effectively removing the constraints of fixed-category training.

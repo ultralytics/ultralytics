@@ -174,6 +174,7 @@ def export_formats():
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction"]],
+        ["liteRT", "litert", "_litert_model", True, False, ["batch", "half", "int8"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -358,6 +359,7 @@ class Exporter:
             rknn,
             executorch,
             axelera,
+            litert,
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
@@ -599,8 +601,10 @@ class Exporter:
             f[14] = self.export_rknn()
         if executorch:
             f[15] = self.export_executorch()
+        if litert:
+            f[16] = self.export_litert()
         if axelera:
-            f[16] = self.export_axelera()
+            f[17] = self.export_axelera()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -834,6 +838,39 @@ class Exporter:
 
         pytorch2paddle(module=self.model, save_dir=f, jit_type="trace", input_examples=[self.im])  # export
         YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
+        return f
+
+    @try_export
+    def export_litert(self, prefix=colorstr("liteRT:")):
+        """Export YOLO model to liteRT format using ai_edge_torch with optional FP16/INT8 quantization."""
+        check_requirements("ai-edge-torch-nightly")
+        import ai_edge_torch
+
+        LOGGER.info(f"\n{prefix} starting export with ai_edge_torch...")
+        f = Path(str(self.file).replace(self.file.suffix, "_litert_model"))
+        f.mkdir(parents=True, exist_ok=True)
+
+        sample_inputs = (self.im,)
+        edge_model = ai_edge_torch.convert(self.model, sample_inputs)
+
+        tflite_file = f / f"{self.file.stem}.tflite"
+        edge_model.export(tflite_file)
+
+        # Apply quantization using ai-edge-quantizer-nightly
+        if self.args.int8 or self.args.half:
+            check_requirements("ai-edge-quantizer-nightly")
+            from ai_edge_quantizer import quantizer
+            from ai_edge_quantizer import recipe
+
+            LOGGER.info(f"{prefix} applying {'INT8' if self.args.int8 else 'FP16'} quantization...")
+            qt = quantizer.Quantizer(str(tflite_file))
+            if self.args.int8:
+                qt.load_quantization_recipe(recipe.dynamic_wi8_afp32())
+            else:  # half (FP16) - use weight-only int8 for size reduction while keeping float compute
+                qt.load_quantization_recipe(recipe.weight_only_wi8_afp32())
+            qt.quantize().export_model(str(tflite_file), overwrite=True)
+
+        YAML.save(f / "metadata.yaml", self.metadata)
         return f
 
     @try_export

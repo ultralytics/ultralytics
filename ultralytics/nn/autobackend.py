@@ -179,6 +179,7 @@ class AutoBackend(nn.Module):
             rknn,
             pte,
             axelera,
+            litert,
             triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -632,6 +633,24 @@ class AutoBackend(nn.Module):
             program = Runtime.get().load_program(str(model_file))
             model = program.load_method("forward")
 
+        # LiteRT
+        elif litert:
+            check_requirements("ai-edge-litert-nightly")
+            from ai_edge_litert.interpreter import Interpreter
+
+            w = Path(w)
+            if w.is_dir():
+                tflite_file = next(w.glob("*.tflite"))
+                metadata = w / "metadata.yaml"
+            else:
+                tflite_file = w
+                metadata = w.parent / "metadata.yaml"
+            LOGGER.info(f"Loading {tflite_file} for LiteRT inference...")
+            interpreter = Interpreter(str(tflite_file))
+            interpreter.allocate_tensors()
+            input_details = interpreter.get_input_details()
+            output_details = interpreter.get_output_details()
+
         # Any other format (unsupported)
         else:
             from ultralytics.engine.exporter import export_formats
@@ -846,6 +865,17 @@ class AutoBackend(nn.Module):
         # ExecuTorch
         elif self.pte:
             y = self.model.execute([im])
+
+        # LiteRT (ai_edge_torch exported models)
+        elif self.litert:
+            im = im.cpu().numpy()
+            details = self.input_details[0]
+            self.interpreter.set_tensor(details["index"], im)
+            self.interpreter.invoke()
+            y = []
+            for output in self.output_details:
+                x = self.interpreter.get_tensor(output["index"])
+                y.append(x)
 
         # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
         else:

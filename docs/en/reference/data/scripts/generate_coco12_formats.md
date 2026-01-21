@@ -11,10 +11,6 @@ keywords: TODO ADD KEYWORDS
 
 <br>
 
-## ::: ultralytics.data.scripts.generate_coco12_formats.write_pfm
-
-<br><br><hr><br>
-
 ## ::: ultralytics.data.scripts.generate_coco12_formats.write_mpo
 
 <br><br><hr><br>

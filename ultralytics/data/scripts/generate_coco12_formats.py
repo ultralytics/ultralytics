@@ -11,6 +11,7 @@ Usage:
 Requirements:
     pip install pillow pillow-heif pillow-avif-plugin
 """
+from __future__ import annotations
 
 import shutil
 from pathlib import Path

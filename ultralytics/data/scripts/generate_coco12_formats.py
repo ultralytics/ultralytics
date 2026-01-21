@@ -11,6 +11,7 @@ Usage:
 Requirements:
     pip install pillow pillow-heif pillow-avif-plugin numpy
 """
+from __future__ import annotations
 
 import shutil
 from pathlib import Path
@@ -120,9 +121,9 @@ def convert_image(src_path: Path, dst_path: Path, fmt: str):
 
 
 def generate_coco12_formats(
-    output_dir: str | Path = None,
-    coco8_dir: str | Path = None,
-    coco128_dir: str | Path = None,
+    output_dir: str | Path | None = None,
+    coco8_dir: str | Path | None = None,
+    coco128_dir: str | Path | None = None,
 ):
     """
     Generate the COCO12-Formats dataset with all 12 supported image formats.

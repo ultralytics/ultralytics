@@ -3,51 +3,26 @@
 Generate COCO12-Formats dataset for testing all supported image formats.
 
 This script creates a test dataset with images in all 12 supported format extensions:
-    avif, bmp, dng, heic, jpeg, jpg, mpo, pfm, png, tif, tiff, webp
+    avif, bmp, dng, heic, jp2, jpeg, jpg, mpo, png, tif, tiff, webp
 
 Usage:
     python generate_coco12_formats.py
 
 Requirements:
-    pip install pillow pillow-heif pillow-avif-plugin numpy
+    pip install pillow pillow-heif pillow-avif-plugin
 """
-
-from __future__ import annotations
 
 import shutil
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
 
 # Supported formats from ultralytics/data/utils.py (alphabetically sorted)
-# IMG_FORMATS = {"avif", "bmp", "dng", "heic", "jpeg", "jpg", "mpo", "pfm", "png", "tif", "tiff", "webp"}
+# IMG_FORMATS = {"avif", "bmp", "dng", "heic", "jp2", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp"}
 
 # Format assignments: 6 train + 6 val = 12 total
 TRAIN_FORMATS = ["avif", "bmp", "dng", "heic", "jpeg", "jpg"]
-VAL_FORMATS = ["mpo", "pfm", "png", "tif", "tiff", "webp"]
-
-
-def write_pfm(path: Path, image: np.ndarray, scale: float = 1.0):
-    """Write a PFM (Portable FloatMap) file."""
-    if image.ndim == 2:
-        color = False
-    elif image.ndim == 3 and image.shape[2] == 3:
-        color = True
-    else:
-        raise ValueError(f"Image must be 2D grayscale or 3D RGB, got shape {image.shape}")
-
-    image = image.astype(np.float32)
-    height, width = image.shape[:2]
-
-    with open(path, "wb") as f:
-        f.write(b"PF\n" if color else b"Pf\n")
-        f.write(f"{width} {height}\n".encode())
-        endian = -1.0 if np.little_endian else 1.0
-        f.write(f"{endian * scale}\n".encode())
-        # PFM stores rows bottom-to-top
-        image = np.flipud(image)
-        image.tofile(f)
+VAL_FORMATS = ["jp2", "mpo", "png", "tif", "tiff", "webp"]
 
 
 def write_mpo(path: Path, img: Image.Image):
@@ -88,9 +63,8 @@ def convert_image(src_path: Path, dst_path: Path, fmt: str):
         img.save(dst_path, "TIFF")
     elif fmt_lower == "webp":
         img.save(dst_path, "WEBP", quality=95)
-    elif fmt_lower == "pfm":
-        arr = np.array(img).astype(np.float32) / 255.0
-        write_pfm(dst_path, arr)
+    elif fmt_lower == "jp2":
+        img.save(dst_path, "JPEG2000")
     elif fmt_lower == "mpo":
         write_mpo(dst_path, img)
     elif fmt_lower == "dng":

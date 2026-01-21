@@ -40,10 +40,13 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
         return None
     else:
         im = cv2.imdecode(file_bytes, flags)
-        # Fallback to PIL for formats OpenCV may not support (AVIF, HEIC)
+        # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC)
         if im is None and filename.lower().endswith((".avif", ".heic")):
             im = _imread_pil(filename, flags)
         return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
+
+
+_pil_plugins_registered = False
 
 
 def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
@@ -56,28 +59,28 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
     Returns:
         (np.ndarray | None): The read image array in BGR format, or None if reading fails.
     """
+    global _pil_plugins_registered
     try:
         from PIL import Image
 
-        # Register HEIF/AVIF plugins if available
-        try:
-            import pillow_heif
+        # Register HEIF/AVIF plugins once
+        if not _pil_plugins_registered:
+            try:
+                import pillow_heif
 
-            pillow_heif.register_heif_opener()
-        except ImportError:
-            pass
-        try:
-            import pillow_avif  # noqa: F401
-        except ImportError:
-            pass
+                pillow_heif.register_heif_opener()
+            except ImportError:
+                pass
+            try:
+                import pillow_avif  # noqa: F401
+            except ImportError:
+                pass
+            _pil_plugins_registered = True
 
         with Image.open(filename) as img:
             if flags == cv2.IMREAD_GRAYSCALE:
-                img = img.convert("L")
-                return np.array(img)
-            else:
-                img = img.convert("RGB")
-                return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                return np.asarray(img.convert("L"))
+            return cv2.cvtColor(np.asarray(img.convert("RGB")), cv2.COLOR_RGB2BGR)
     except Exception:
         return None
 

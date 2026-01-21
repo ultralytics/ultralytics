@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the Ultralytics COCO12-Formats dataset, a test dataset featuring all 12 supported image formats (AVIF, BMP, DNG, HEIC, JPEG, JPG, MPO, PFM, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
-keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection, YOLO, AVIF, BMP, DNG, HEIC, JPEG, PNG, TIFF, WebP, PFM, MPO
+description: Explore the Ultralytics COCO12-Formats dataset, a test dataset featuring all 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
+keywords: COCO12-Formats, Ultralytics, dataset, image formats, object detection, YOLO, AVIF, BMP, DNG, HEIC, JP2, JPEG, PNG, TIFF, WebP, MPO
 ---
 
 # COCO12-Formats Dataset
@@ -29,8 +29,8 @@ The dataset includes one image for each of the 12 supported format extensions de
 | HEIC   | `.heic`   | High Efficiency Image Coding         | Train     |
 | JPEG   | `.jpeg`   | JPEG with full extension             | Train     |
 | JPG    | `.jpg`    | JPEG with short extension            | Train     |
+| JP2    | `.jp2`    | JPEG 2000 - medical/geospatial       | Val       |
 | MPO    | `.mpo`    | Multi-Picture Object (stereo images) | Val       |
-| PFM    | `.pfm`    | Portable FloatMap (HDR format)       | Val       |
 | PNG    | `.png`    | Portable Network Graphics            | Val       |
 | TIF    | `.tif`    | TIFF with short extension            | Val       |
 | TIFF   | `.tiff`   | Tagged Image File Format             | Val       |
@@ -42,7 +42,7 @@ The dataset includes one image for each of the 12 supported format extensions de
 coco12-formats/
 ├── images/
 │   ├── train/          # 6 images (avif, bmp, dng, heic, jpeg, jpg)
-│   └── val/            # 6 images (mpo, pfm, png, tif, tiff, webp)
+│   └── val/            # 6 images (jp2, mpo, png, tif, tiff, webp)
 ├── labels/
 │   ├── train/          # Corresponding YOLO format labels
 │   └── val/
@@ -143,17 +143,13 @@ AVIF is a modern image format based on the AV1 video codec, offering excellent c
 pip install pillow-avif-plugin
 ```
 
-### PFM (Portable FloatMap)
-
-PFM files store floating-point pixel values, commonly used for HDR imaging. The dataset generator normalizes RGB values to the 0-1 range:
-
-```python
-arr = np.array(img).astype(np.float32) / 255.0
-```
-
 ### DNG (Digital Negative)
 
 DNG is Adobe's open RAW format based on TIFF. For testing purposes, the dataset uses TIFF-based files with the `.dng` extension.
+
+### JP2 (JPEG 2000)
+
+JPEG 2000 is a wavelet-based image compression standard offering better compression and quality than traditional JPEG. Commonly used in medical imaging (DICOM), geospatial applications, and digital cinema. Natively supported by both OpenCV and Pillow.
 
 ### MPO (Multi-Picture Object)
 
@@ -218,7 +214,7 @@ If you use the COCO dataset in your research, please cite:
 
 ### What Is the COCO12-Formats Dataset Used For?
 
-The COCO12-Formats dataset is designed for testing image format compatibility in Ultralytics YOLO training pipelines. It ensures all 12 supported image formats (AVIF, BMP, DNG, HEIC, JPEG, JPG, MPO, PFM, PNG, TIF, TIFF, WebP) load and process correctly.
+The COCO12-Formats dataset is designed for testing image format compatibility in Ultralytics YOLO training pipelines. It ensures all 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) load and process correctly.
 
 ### Why Test Multiple Image Formats?
 
@@ -232,7 +228,6 @@ Different image formats have unique characteristics (compression, bit depth, col
 
 - **AVIF**: Requires `pillow-avif-plugin`
 - **HEIC**: Requires `pillow-heif`
-- **PFM**: Built-in support (custom read/write)
 
 ### Can I Add New Format Tests?
 

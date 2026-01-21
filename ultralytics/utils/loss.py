@@ -808,7 +808,7 @@ class PoseLoss26(v8PoseLoss):
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 
         batch_size = pred_kpts.shape[0]
-        imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=pred_kpts.dtype)  # image size (h,w)
+        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=pred_kpts.dtype) * self.stride[0]
 
         pred_kpts = pred_kpts.view(batch_size, -1, *self.kpt_shape)  # (b, h*w, 17, 3)
 
@@ -1002,7 +1002,7 @@ class v8OBBLoss(v8DetectionLoss):
         batch_size = pred_angle.shape[0]  # batch size, number of masks, mask height, mask width
 
         dtype = pred_scores.dtype
-        imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=dtype)  # image size (h,w)
+        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]
 
         # targets
         try:

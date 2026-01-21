@@ -496,7 +496,7 @@ class Exporter:
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
-        elif ncnn:
+        elif ncnn or rknn:
             from ultralytics.utils.export.end2end import end2end_wrapper
 
             model = end2end_wrapper(model)

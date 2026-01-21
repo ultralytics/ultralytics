@@ -828,10 +828,6 @@ class AutoBackend(nn.Module):
                 ex.input(self.net.input_names()[0], mat_in)
                 # WARNING: 'output_names' sorted as a temporary fix for https://github.com/pnnx/pnnx/issues/130
                 y = [np.array(ex.extract(x)[1])[None] for x in sorted(self.net.output_names())]
-            if self.end2end:
-                from ultralytics.utils.export.end2end import postprocess
-
-                y[0] = postprocess(torch.from_numpy(y[0]).permute(0, 2, 1), self.max_det, len(self.names))
 
         # NVIDIA Triton Inference Server
         elif self.triton:
@@ -900,6 +896,11 @@ class AutoBackend(nn.Module):
                 else:
                     y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
+
+        if (self.ncnn or self.rknn) and self.end2end:
+            from ultralytics.utils.export.end2end import postprocess
+
+            y[0] = postprocess(torch.from_numpy(y[0]).permute(0, 2, 1), self.max_det, len(self.names))
 
         if isinstance(y, (list, tuple)):
             if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined

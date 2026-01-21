@@ -92,7 +92,7 @@ This section will address common issues faced while training and their respectiv
 
     ```python
     # Adjust the batch size and other settings as needed to optimize training speed
-    model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
+    model.train(data="/path/to/your/data.yaml", batch=32)
     ```
 
 #### Continuous Monitoring Parameters
@@ -279,7 +279,7 @@ Installation errors can often be due to compatibility issues or missing dependen
 Training on a single GPU might be slow due to large batch sizes or insufficient memory. To speed up training, use multiple GPUs. Ensure your system has multiple GPUs available and adjust your `.yaml` configuration file to specify the number of GPUs, e.g., `gpus: 4`. Increase the batch size accordingly to fully utilize the GPUs without exceeding memory limits. Example command:
 
 ```python
-model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
+model.train(data="/path/to/your/data.yaml", batch=32)
 ```
 
 ### How can I ensure my YOLO26 model is training on the GPU?

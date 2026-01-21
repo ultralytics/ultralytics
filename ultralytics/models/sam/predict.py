@@ -24,6 +24,7 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
+from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.metrics import box_iou, mask_iou
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
@@ -2480,8 +2481,8 @@ class SAM3SemanticPredictor(SAM3Predictor):
         preprocessed_images = []
         image_infos = []
         imgsz = self.imgsz if self.imgsz is not None else self.args.imgsz
-        if isinstance(imgsz, int):
-            imgsz = (imgsz, imgsz)
+        # Adjust imgsz to be compatible with stride (same as setup_source does)
+        imgsz = check_imgsz(imgsz, stride=self.stride, min_dim=2)
         self.model.set_imgsz(imgsz)
         letterbox = LetterBox(imgsz, auto=False, center=False, scale_fill=True)
 

@@ -16,22 +16,25 @@ from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 
-def test_export_torchscript():
+@pytest.mark.parametrize("end2end", [False, True])
+def test_export_torchscript(end2end):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
-    file = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32)
+    file = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-def test_export_onnx():
+@pytest.mark.parametrize("end2end", [False, True])
+def test_export_onnx(end2end):
     """Test YOLO model export to ONNX format with dynamic axes."""
-    file = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32)
+    file = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
-def test_export_openvino():
+@pytest.mark.parametrize("end2end", [False, True])
+def test_export_openvino(end2end):
     """Test YOLO export to OpenVINO format for model inference compatibility."""
-    file = YOLO(MODEL).export(format="openvino", imgsz=32)
+    file = YOLO(MODEL).export(format="openvino", imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
@@ -129,7 +132,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2en
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, nms, batch, end2end)
         for task, dynamic, int8, half, nms, batch, end2end in product(
-            TASKS, [True, False], [True, False], [True, False], [True, False], [1]
+            TASKS, [True, False], [True, False], [True, False], [True, False], [1], [True, False]
         )
         if not (int8 and half)
         and not (task != "detect" and nms)
@@ -242,7 +245,7 @@ def test_export_mnn():
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 @pytest.mark.parametrize(
-    "task, int8, half, batch",
+    "task, int8, half, batch, end2end",
     [  # generate all combinations except for exclusion cases
         (task, int8, half, batch, end2end)
         for task, int8, half, batch, end2end in product(TASKS, [True, False], [True, False], [1, 2], [True, False])

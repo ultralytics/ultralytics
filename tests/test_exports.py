@@ -187,7 +187,6 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms, end2end):
     Path(file).unlink()  # cleanup
 
 
-# TODO
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")

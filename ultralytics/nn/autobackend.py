@@ -16,7 +16,8 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML, is_jetson
+from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, IS_DOCKER, TORCH_VERSION, YAML, is_jetson
+from ultralytics.utils.torch_utils import TORCH_2_9, TORCH_2_10
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 from ultralytics.utils.nms import non_max_suppression
@@ -615,10 +616,23 @@ class AutoBackend(nn.Module):
 
         # ExecuTorch
         elif pte:
+
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
-            # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
-            check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-            check_requirements(("executorch==1.0.1", "flatbuffers"))
+
+            if LINUX and ARM64 and IS_DOCKER:
+                check_requirements("packaging>=22.0")
+
+            check_requirements("ruamel.yaml<0.19.0")
+
+            if TORCH_2_10:
+                check_requirements(requirements=["executorch==1.1.0.dev20260120", "flatbuffers"], 
+                                   cmds="--index-url https://download.pytorch.org/whl/nightly/cpu/")
+            else:
+                check_requirements("executorch==1.0.1", "flatbuffers")
+            
+            # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
+            check_requirements("numpy<=2.3.5")
+
             from executorch.runtime import Runtime
 
             w = Path(w)

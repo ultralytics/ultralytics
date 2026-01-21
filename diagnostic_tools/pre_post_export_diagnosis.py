@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+
 from ultralytics import YOLO
 
 
@@ -33,11 +34,13 @@ def iou(box_a, box_b):
 def extract_detections(results):
     dets = []
     for b in results.boxes.data.cpu().numpy():
-        dets.append({
-            "box": b[:4].tolist(),
-            "score": float(b[4]),
-            "cls": int(b[5]),
-        })
+        dets.append(
+            {
+                "box": b[:4].tolist(),
+                "score": float(b[4]),
+                "cls": int(b[5]),
+            }
+        )
     return dets
 
 
@@ -79,11 +82,13 @@ def pair_and_report(pre, post):
         if best_j is not None and best_iou > 0.5:
             matched_pre_idx.add(i)
             matched_post_idx.add(best_j)
-            matched.append({
-                "cls": p["cls"],
-                "iou": best_iou,
-                "score_diff": abs(p["score"] - post[best_j]["score"]),
-            })
+            matched.append(
+                {
+                    "cls": p["cls"],
+                    "iou": best_iou,
+                    "score_diff": abs(p["score"] - post[best_j]["score"]),
+                }
+            )
 
     unmatched_pre = [p for i, p in enumerate(pre) if i not in matched_pre_idx]
     unmatched_post = [q for j, q in enumerate(post) if j not in matched_post_idx]

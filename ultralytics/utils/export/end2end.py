@@ -9,11 +9,9 @@ import torch
 from ultralytics.nn.tasks import DetectionModel
 
 
-def _forward_end2end_nopost(self, x: list[torch.Tensor]) -> torch.Tensor:
-    """Perform forward pass of the v10Detect module without postprocess."""
-    x_detach = [xi.detach() for xi in x]
-    preds = self.forward_head(x_detach, **self.one2one)
-    return self._inference(preds)
+def _noop_post(self, preds: torch.Tensor) -> torch.Tensor:
+    """Overrides postprocess."""
+    return preds.permute(0, 2, 1)  # TODO: avoid redundant permute
 
 
 def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
@@ -50,5 +48,5 @@ def end2end_wrapper(model: DetectionModel) -> DetectionModel:
         model (DetectionModel): Patched end2end model.
     """
     if getattr(model.model[-1], "end2end", False):
-        model.model[-1].forward = MethodType(_forward_end2end_nopost, model.model[-1])
+        model.model[-1].postprocess = MethodType(_noop_post, model.model[-1])
     return model

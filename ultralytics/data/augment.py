@@ -2067,9 +2067,14 @@ class Format:
                     sem_masks = cls_tensor[masks[0].long() - 1]  # (H, W) from (1, H, W) instance indices
                 else:
                     # Create sem_masks consistent with mask_overlap=True
-                    sem_masks = torch.zeros(masks.shape[-2:], dtype=cls_tensor.dtype)  # (H, W)
-                    for i in range(len(masks)):  # large to small area
-                        sem_masks[masks[i] > 0] = cls_tensor[i]
+                    sem_masks = (masks * cls_tensor[:, None, None]).max(0).values  # (H, W) from (N, H, W) binary
+                    overlap = masks.sum(dim=0) > 1  # (H, W)
+                    if overlap.any():
+                        weights = masks.sum(axis=(1, 2))
+                        weighted_masks = masks * weights[:, None, None]  # (N, H, W)
+                        weighted_masks[masks == 0] = weights.max() + 1  # handle background
+                        smallest_idx = weighted_masks.argmin(dim=0)  # (H, W)
+                        sem_masks[overlap] = cls_tensor[smallest_idx[overlap]]
             else:
                 masks = torch.zeros(
                     1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio
@@ -2159,12 +2164,6 @@ class Format:
             cls = cls[sorted_idx]
         else:
             masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
-            # Sort by area (descending) to handle overlaps consistently with mask_overlap=True
-            areas = masks.sum(axis=(1, 2))
-            sorted_idx = np.argsort(-areas)
-            masks = masks[sorted_idx]
-            instances = instances[sorted_idx]
-            cls = cls[sorted_idx]
 
         return masks, instances, cls
 

@@ -36,7 +36,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages
 RUN pip install uv && \
-    uv pip install --system -e . --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match && \
+    uv pip install --system -e . --index-strategy unsafe-best-match && \
     # Remove extra build files
     rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
 

@@ -65,7 +65,7 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          uv pip install --system . --extra-index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system .
       - name: Check environment
         run: |
           yolo checks
@@ -120,7 +120,7 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          uv pip install --system -e ".[export]" "coverage[toml]" --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install --system -e ".[export]" "coverage[toml]" --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -191,7 +191,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install --system -e ".[export,solutions]" $torch pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install --system -e ".[export,solutions]" $torch pytest-cov --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -293,7 +293,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install --system -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install --system -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -358,7 +358,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -372,7 +372,7 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks

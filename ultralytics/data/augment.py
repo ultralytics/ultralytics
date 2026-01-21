@@ -2470,19 +2470,36 @@ def rtdetr_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch
     import torchvision.transforms.v2 as T
 
     fliplr = getattr(hyp, "fliplr", 0.5)
-    return Compose(
-        [
-            _RTDETRToTvTensors(),
-            T.RandomPhotometricDistort(p=0.5),
-            T.RandomZoomOut(fill=0),
-            _RTDETRRandomIoUCrop(p=0.8),
-            T.SanitizeBoundingBoxes(min_size=1),
-            T.RandomHorizontalFlip(p=fliplr),
-            T.Resize(size=[imgsz, imgsz]),
-            T.SanitizeBoundingBoxes(min_size=1),
-            _RTDETRFromTvTensors(),
-        ]
-    )  # transforms
+    mosaic = Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic)
+    copy_paste = CopyPaste(p=hyp.copy_paste, mode="flip")
+
+    rtdetr_pre = Compose([
+        mosaic,
+        copy_paste,
+        _RTDETRToTvTensors(),
+        T.RandomZoomOut(fill=0),
+        _RTDETRRandomIoUCrop(p=0.8),
+        T.SanitizeBoundingBoxes(min_size=1),
+        T.Resize(size=[imgsz, imgsz]),
+        T.SanitizeBoundingBoxes(min_size=1),
+        _RTDETRFromTvTensors(),
+    ])
+
+    rtdetr_post = Compose([
+        _RTDETRToTvTensors(),
+        T.RandomPhotometricDistort(p=0.5),
+        T.RandomHorizontalFlip(p=fliplr),
+        _RTDETRFromTvTensors(),
+    ])
+
+    transforms = Compose([
+        rtdetr_pre,
+        MixUp(dataset, pre_transform=rtdetr_pre, p=hyp.mixup),
+        CutMix(dataset, pre_transform=rtdetr_pre, p=hyp.cutmix),
+        rtdetr_post,
+    ])
+
+    return transforms
 
 
 def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bool = False):

@@ -23,7 +23,7 @@ import torch.nn.functional as F
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr, ops
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.metrics import box_iou, mask_iou
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
@@ -2542,13 +2542,35 @@ class SAM3SemanticPredictor(SAM3Predictor):
                     Results(info["orig_img"], path=info["path"], names=names, masks=pred_masks, boxes=pred_bboxes)
                 )
 
-        # Set speed dict on each result
+        # Set speed dict and save_dir on each result
         for result in results:
             result.speed = {
                 "preprocess": profilers[0].dt * 1e3 / n_images,
                 "inference": profilers[1].dt * 1e3 / n_images,
                 "postprocess": profilers[2].dt * 1e3 / n_images,
             }
+            result.save_dir = str(self.save_dir)
+
+        # Save results if requested
+        if self.args.save or self.args.save_txt or self.args.save_crop:
+            self.save_dir.mkdir(parents=True, exist_ok=True)
+            if self.args.save_txt:
+                (self.save_dir / "labels").mkdir(parents=True, exist_ok=True)
+            for i, result in enumerate(results):
+                info = image_infos[i]
+                p = Path(info["path"]) if info["path"] else Path(f"image{i}.jpg")
+                if self.args.save_txt:
+                    result.save_txt(self.save_dir / "labels" / f"{p.stem}.txt", save_conf=self.args.save_conf)
+                if self.args.save_crop:
+                    result.save_crop(save_dir=self.save_dir / "crops", file_name=p.stem)
+                if self.args.save:
+                    plotted = result.plot(
+                        line_width=self.args.line_width,
+                        boxes=self.args.show_boxes,
+                        conf=self.args.show_conf,
+                        labels=self.args.show_labels,
+                    )
+                    cv2.imwrite(str(self.save_dir / p.name), plotted)
 
         # Log speed summary
         if self.args.verbose and n_images:
@@ -2557,6 +2579,12 @@ class SAM3SemanticPredictor(SAM3Predictor):
                 f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
                 f"{(batch_size, 3, *imgsz)}" % t
             )
+
+        # Log save location
+        if self.args.save or self.args.save_txt or self.args.save_crop:
+            nl = len(list(self.save_dir.glob("labels/*.txt"))) if self.args.save_txt else 0
+            s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
+            LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         return results[0] if len(results) == 1 else results
 

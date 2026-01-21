@@ -365,7 +365,7 @@ class MLP(nn.Module):
         hidden_dim: int,
         output_dim: int,
         num_layers: int,
-        act=nn.ReLU,
+        act=nn.ReLU(),
         sigmoid: bool = False,
         residual: bool = False,
         out_norm: nn.Module = None,
@@ -387,7 +387,7 @@ class MLP(nn.Module):
         h = [hidden_dim] * (num_layers - 1)
         self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim, *h], [*h, output_dim]))
         self.sigmoid = sigmoid
-        self.act = act()
+        self.act = act
         if residual and input_dim != output_dim:
             raise ValueError("residual is only supported if input_dim == output_dim")
         self.residual = residual
@@ -657,7 +657,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
         # Cross attention
         self.cross_attn = MSDeformAttn(
-            d_model, n_levels, n_heads, n_points, 
+            d_model, n_levels, n_heads, n_points,
             enable_cuda_acceleration=enable_cuda_acceleration)
         self.dropout2 = nn.Dropout(dropout)
         self.norm2 = nn.LayerNorm(d_model)

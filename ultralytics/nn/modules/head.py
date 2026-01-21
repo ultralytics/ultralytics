@@ -17,10 +17,22 @@ from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_in
 
 from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Proto26, RealNVP, Residual, SwiGLUFFN
 from .conv import Conv, DWConv
+from .dfine_transformer import DFineTransformerDecoder, DFineTransformerDecoderLayer, Integral
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "OBB", "Classify", "Detect", "Pose", "RTDETRDecoder", "Segment", "YOLOEDetect", "YOLOESegment", "v10Detect"
+__all__ = (
+    "OBB",
+    "Classify",
+    "Detect",
+    "DFineDecoder",
+    "Pose",
+    "RTDETRDecoder",
+    "Segment",
+    "YOLOEDetect",
+    "YOLOESegment",
+    "v10Detect",
+)
 
 
 class Detect(nn.Module):
@@ -1524,14 +1536,7 @@ class RTDETRDecoder(nn.Module):
         self.num_decoder_layers = ndl
         self.efficient_msdeformable_attn = efficient_msdeformable_attn
 
-        if act == "relu":
-            act = nn.ReLU()
-        elif act == "gelu":
-            act = nn.GELU()
-        elif act == "silu":
-            act = nn.SiLU()
-        else:
-            raise ValueError(f"Unsupported activation function: {act}")
+        act = self._select_activation(act)
 
         # Backbone feature projection
         self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
@@ -1586,6 +1591,25 @@ class RTDETRDecoder(nn.Module):
         # Add default value for missing attribute from older checkpoints
         if 'dab_sine_embedding' not in self.__dict__:
             self.query_pos_scale_head = None
+
+    @staticmethod
+    def _select_activation(act: str) -> nn.Module:
+        """Select activation function based on string identifier.
+
+        Args:
+            act (str): Activation function name ('relu', 'gelu', 'silu').
+
+        Returns:
+            nn.Module: Corresponding activation function module.
+        """
+        if act == "relu":
+            return nn.ReLU()
+        elif act == "gelu":
+            return nn.GELU()
+        elif act == "silu":
+            return nn.SiLU()
+        else:
+            raise ValueError(f"Unsupported activation function: {act}")
 
     def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:
         """Run the forward pass of the module, returning bounding box and classification scores for the input.
@@ -1761,6 +1785,10 @@ class RTDETRDecoder(nn.Module):
         feats = torch.cat(feats, 1)
         return feats, shapes
 
+    def _select_topk(self, outputs_logits: torch.Tensor, topk: int) -> torch.Tensor:
+        """Select top-k indices based on max class confidence."""
+        return torch.topk(outputs_logits.max(-1).values, topk, dim=1).indices
+
     def _get_decoder_input(
         self,
         feats: torch.Tensor,
@@ -1793,7 +1821,7 @@ class RTDETRDecoder(nn.Module):
 
         # Query selection
         # (bs*num_queries,)
-        topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+        topk_ind = self._select_topk(enc_outputs_scores, self.num_queries).view(-1)
         # (bs*num_queries,)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
@@ -1817,7 +1845,7 @@ class RTDETRDecoder(nn.Module):
             features_o2m = self.enc_output_o2m(self.valid_mask * feats)  # bs, h*w, 256
             enc_outputs_scores_o2m = self.enc_score_head_o2m(features_o2m)  # (bs, h*w, nc)
 
-            topk_ind_o2m = torch.topk(enc_outputs_scores_o2m.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+            topk_ind_o2m = self._select_topk(enc_outputs_scores_o2m, self.num_queries).view(-1)
             batch_ind_o2m = torch.arange(end=bs, dtype=topk_ind_o2m.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
             top_k_features_o2m_base = features_o2m[batch_ind_o2m, topk_ind_o2m].view(bs, self.num_queries, -1)
@@ -1883,6 +1911,215 @@ class RTDETRDecoder(nn.Module):
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
+
+
+class DFineDecoder(RTDETRDecoder):
+    """DFine decoder head using the DFine transformer decoder and layer implementations."""
+
+    def __init__(
+        self,
+        nc: int = 80,
+        ch: tuple = (512, 1024, 2048),
+        hd: int = 256,  # hidden dim
+        nq: int = 300,  # num queries
+        ndp: int = 4,  # num decoder points
+        nh: int = 8,  # num head
+        ndl: int = 6,  # num decoder layers
+        d_ffn: int = 1024,  # dim of feedforward
+        dropout: float = 0.0,
+        act: str = "relu",
+        eval_idx: int = -1,
+        # Training args
+        nd: int = 100,  # num denoising
+        label_noise_ratio: float = 0.5,
+        box_noise_scale: float = 1.0,
+        learnt_init_query: bool = False,
+        enable_cuda_acceleration: bool = False,
+        one_to_many_groups: int = 0,
+        dab_sine_embedding: bool = False,
+        efficient_msdeformable_attn: bool = False,
+        # DFine args
+        query_select_method: str = "default",
+        reg_max: int = 32,
+        reg_scale: float = 4.0,
+        layer_scale: float = 1.0,
+        mlp_act: str = "relu",
+    ):
+        nn.Module.__init__(self)
+        self.hidden_dim = hd
+        self.nhead = nh
+        self.nl = len(ch)
+        self.nc = nc
+        self.num_queries = nq
+        self.num_decoder_layers = ndl
+        self.reg_max = reg_max
+        self.layer_scale = layer_scale
+        self.query_select_method = query_select_method
+        self.one_to_many_groups = one_to_many_groups
+        self.query_noise_scale = 0.0
+
+        if dab_sine_embedding:
+            raise ValueError("DFineDecoder does not support dab_sine_embedding yet.")
+        if efficient_msdeformable_attn:
+            raise ValueError("DFineDecoder does not support efficient_msdeformable_attn yet.")
+
+        act_layer = self._select_activation(act)
+        act_mlp = self._select_activation(mlp_act)
+
+        if self.query_select_method not in {"default", "one2many"}:
+            raise ValueError(f"Unsupported query_select_method: {self.query_select_method}")
+
+        # Backbone feature projection
+        self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
+
+        # Transformer module
+        self.up = nn.Parameter(torch.tensor([0.5]), requires_grad=False)
+        self.reg_scale = nn.Parameter(torch.tensor([reg_scale]), requires_grad=False)
+        decoder_layer = DFineTransformerDecoderLayer(
+            hd,
+            nh,
+            d_ffn,
+            dropout,
+            act_layer,
+            self.nl,
+            ndp,
+            enable_cuda_acceleration=enable_cuda_acceleration,
+        )
+        decoder_layer_wide = DFineTransformerDecoderLayer(
+            hd,
+            nh,
+            d_ffn,
+            dropout,
+            act_layer,
+            self.nl,
+            ndp,
+            enable_cuda_acceleration=enable_cuda_acceleration,
+            layer_scale=layer_scale if layer_scale > 1 else None,
+        )
+        self.decoder = DFineTransformerDecoder(
+            hd,
+            decoder_layer,
+            decoder_layer_wide,
+            ndl,
+            nh,
+            reg_max,
+            self.reg_scale,
+            self.up,
+            eval_idx,
+            layer_scale,
+            act=act_layer,
+        )
+
+        # Denoising part
+        self.denoising_class_embed = nn.Embedding(nc, hd)
+        self.num_denoising = nd
+        self.label_noise_ratio = label_noise_ratio
+        self.box_noise_scale = box_noise_scale
+
+        # Decoder embedding
+        self.learnt_init_query = learnt_init_query
+        if learnt_init_query:
+            self.tgt_embed = nn.Embedding(nq, hd)
+
+        self.query_pos_head = MLP(4, 2 * hd, hd, num_layers=2, act=act_mlp)
+
+        # Encoder head
+        self.enc_output = nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
+        self.enc_score_head = nn.Linear(hd, nc)
+        self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3, act=act_mlp)
+        if one_to_many_groups > 0:
+            self.enc_output_o2m = copy.deepcopy(self.enc_output)
+            self.enc_score_head_o2m = copy.deepcopy(self.enc_score_head)
+            self.enc_bbox_head_o2m = copy.deepcopy(self.enc_bbox_head)
+
+        # Decoder head
+        self.eval_idx = eval_idx if eval_idx >= 0 else ndl + eval_idx
+        scaled_dim = round(layer_scale * hd)
+        self.dec_score_head = nn.ModuleList(
+            [nn.Linear(hd, nc) for _ in range(self.eval_idx + 1)]
+            + [nn.Linear(scaled_dim, nc) for _ in range(ndl - self.eval_idx - 1)]
+        )
+        self.pre_bbox_head = MLP(hd, hd, 4, num_layers=3, act=act_mlp)
+        self.dec_bbox_head = nn.ModuleList(
+            [MLP(hd, hd, 4 * (reg_max + 1), num_layers=3, act=act_mlp) for _ in range(self.eval_idx + 1)]
+            + [
+                MLP(scaled_dim, scaled_dim, 4 * (reg_max + 1), num_layers=3, act=act_mlp)
+                for _ in range(ndl - self.eval_idx - 1)
+            ]
+        )
+        self.integral = Integral(reg_max)
+
+        self._reset_parameters()
+
+    def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:
+        """Run the forward pass of the module."""
+        from ultralytics.models.utils.ops import get_cdn_group
+
+        # Input projection and embedding
+        feats, shapes = self._get_encoder_input(x)
+
+        # Prepare denoising training
+        dn_embed, dn_bbox, attn_mask, dn_meta = get_cdn_group(
+            batch,
+            self.nc,
+            self.num_queries,
+            self.denoising_class_embed.weight,
+            self.num_denoising,
+            self.label_noise_ratio,
+            self.box_noise_scale,
+            self.training,
+        )
+
+        embed, refer_bbox, enc_bboxes, enc_scores = self._get_decoder_input(feats, shapes, dn_embed, dn_bbox)
+
+        # === EXTEND ATTENTION MASK FOR ONE-TO-MANY ===
+        if dn_meta is not None:
+            dn_meta["one_to_many_groups"] = self.one_to_many_groups
+        if self.training and self.one_to_many_groups > 0:
+            num_o2m = self.num_queries * self.one_to_many_groups
+            attn_mask = self._extend_attn_mask_for_o2m(attn_mask, dn_meta, num_o2m, device=feats.device)
+
+        # Decoder
+        dec_bboxes, dec_scores, dec_pred_corners, dec_refs, pre_bboxes, pre_scores = self.decoder(
+            embed,
+            refer_bbox,
+            feats,
+            shapes,
+            self.dec_bbox_head,
+            self.dec_score_head,
+            self.query_pos_head,
+            self.pre_bbox_head,
+            self.integral,
+            self.up,
+            self.reg_scale,
+            attn_mask=attn_mask,
+            memory_mask=None,
+            dn_meta=dn_meta,
+        )
+        if dn_meta is not None:
+            dn_meta["out_corners"] = dec_pred_corners
+            dn_meta["out_refs"] = dec_refs
+            dn_meta["pre_bboxes"] = pre_bboxes
+            dn_meta["pre_logits"] = pre_scores
+        x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta
+        if self.training:
+            return x
+        # (bs, 300, 4+nc)
+        y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
+        return y if self.export else (y, x)
+
+    def _select_topk(self, outputs_logits: torch.Tensor, topk: int) -> torch.Tensor:
+        if self.query_select_method == "default":
+            return torch.topk(outputs_logits.max(-1).values, topk, dim=1).indices
+        if self.query_select_method == "one2many":
+            return torch.topk(outputs_logits.flatten(1), topk, dim=1).indices // self.nc
+        raise ValueError(f"Unsupported query_select_method: {self.query_select_method}")
+
+    def _reset_parameters(self):
+        """Initialize or reset parameters of DFine decoder components."""
+        super()._reset_parameters()
+        constant_(self.pre_bbox_head.layers[-1].weight, 0.0)
+        constant_(self.pre_bbox_head.layers[-1].bias, 0.0)
 
 
 class v10Detect(Detect):

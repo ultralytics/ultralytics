@@ -788,6 +788,67 @@ class RTDETRDetectionModel(DetectionModel):
         outputs["o2m_scores"] = dec_scores[:, :, o2o_end:o2m_end]
         return outputs
 
+    @staticmethod
+    def _split_dfine_meta(dfine_meta, dn_meta):
+        """Split DFine extras into DN/O2O/O2M groups to align with decoder predictions."""
+        if dfine_meta is None:
+            return None, None
+        if dn_meta is None or "dn_num_split" not in dn_meta:
+            return dfine_meta, None
+
+        num_dn, num_o2o = dn_meta["dn_num_split"]
+        one_to_many_groups = dn_meta.get("one_to_many_groups", 0)
+        num_o2m = num_o2o * one_to_many_groups
+
+        dn_end = num_dn
+        o2o_end = dn_end + num_o2o
+        o2m_end = o2o_end + num_o2m
+
+        def split_layered(tensor):
+            if tensor is None:
+                return None, None, None
+            o2m = tensor[:, :, o2o_end:o2m_end] if num_o2m > 0 else None
+            return tensor[:, :, :dn_end], tensor[:, :, dn_end:o2o_end], o2m
+
+        def split_flat(tensor):
+            if tensor is None:
+                return None, None, None
+            o2m = tensor[:, o2o_end:o2m_end] if num_o2m > 0 else None
+            return tensor[:, :dn_end], tensor[:, dn_end:o2o_end], o2m
+
+        dn_corners, o2o_corners, o2m_corners = split_layered(dfine_meta["pred_corners"])
+        dn_refs, o2o_refs, o2m_refs = split_layered(dfine_meta["ref_points"])
+        dn_pre_bboxes, o2o_pre_bboxes, o2m_pre_bboxes = split_flat(dfine_meta["pre_bboxes"])
+        dn_pre_logits, o2o_pre_logits, o2m_pre_logits = split_flat(dfine_meta["pre_logits"])
+
+        base_meta = {
+            "up": dfine_meta["up"],
+            "reg_scale": dfine_meta["reg_scale"],
+        }
+        o2o_meta = {
+            **base_meta,
+            "pred_corners": o2o_corners,
+            "ref_points": o2o_refs,
+            "pre_bboxes": o2o_pre_bboxes,
+            "pre_logits": o2o_pre_logits,
+        }
+        if dn_corners is not None:
+            o2o_meta["dn_pred_corners"] = dn_corners
+            o2o_meta["dn_ref_points"] = dn_refs
+            o2o_meta["dn_pre_bboxes"] = dn_pre_bboxes
+            o2o_meta["dn_pre_logits"] = dn_pre_logits
+
+        o2m_meta = None
+        if num_o2m > 0:
+            o2m_meta = {
+                **base_meta,
+                "pred_corners": o2m_corners,
+                "ref_points": o2m_refs,
+                "pre_bboxes": o2m_pre_bboxes,
+                "pre_logits": o2m_pre_logits,
+            }
+        return o2o_meta, o2m_meta
+
     def _apply(self, fn):
         """Apply a function to all tensors in the model that are not parameters or registered buffers.
 
@@ -805,9 +866,13 @@ class RTDETRDetectionModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the RTDETRDetectionModel."""
-        from ultralytics.models.utils.loss import RTDETRDetectionLoss
+        from ultralytics.models.utils.loss import RTDETRDetectionLoss, RTDETRv4DetectionLoss
 
         loss_cfg = self.yaml.get("loss", {})
+        loss_gain = loss_cfg.get("loss_gain", {}) if isinstance(loss_cfg, dict) else {}
+        has_dfine_gain = any(k in loss_gain for k in ("fgl", "ddf", "mal"))
+        if has_dfine_gain:
+            return RTDETRv4DetectionLoss(nc=self.nc, **loss_cfg)
         return RTDETRDetectionLoss(nc=self.nc, **loss_cfg)
 
     def loss(self, batch, preds=None):
@@ -838,8 +903,17 @@ class RTDETRDetectionModel(DetectionModel):
 
         if preds is None:
             preds = self.predict(img, batch=targets)
-        dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds if self.training else preds[1]
+        pred_tuple = preds if self.training else preds[1]
+        dfine_meta = None
+        if len(pred_tuple) == 6:
+            dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta, dfine_meta = pred_tuple
+        else:
+            dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = pred_tuple
         split_outputs = self._split_decoder_predictions(dec_bboxes, dec_scores, dn_meta)
+        supports_dfine = getattr(self.criterion, "supports_dfine", False)
+        dfine_meta_o2m = None
+        if supports_dfine and dfine_meta is not None:
+            dfine_meta, dfine_meta_o2m = self._split_dfine_meta(dfine_meta, dn_meta)
         dn_bboxes = split_outputs["dn_bboxes"]
         dn_scores = split_outputs["dn_scores"]
         dec_bboxes = split_outputs["o2o_bboxes"]
@@ -858,9 +932,10 @@ class RTDETRDetectionModel(DetectionModel):
         dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])  # (7, bs, 300, 4)
         dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
 
-        loss = self.criterion(
-            (dec_bboxes, dec_scores), targets, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta
-        )
+        loss_kwargs = {"dn_bboxes": dn_bboxes, "dn_scores": dn_scores, "dn_meta": dn_meta}
+        if supports_dfine:
+            loss_kwargs["dfine_meta"] = dfine_meta
+        loss = self.criterion((dec_bboxes, dec_scores), targets, **loss_kwargs)
 
         # One-to-many loss (auxiliary)
         if self.training and one_to_many_groups > 0:
@@ -870,18 +945,24 @@ class RTDETRDetectionModel(DetectionModel):
                 o2m_bboxes = torch.cat([enc_bboxes_o2m.unsqueeze(0), o2m_bboxes])
                 o2m_scores = torch.cat([enc_scores_o2m.unsqueeze(0), o2m_scores])
             targets_o2m = self.one_to_many_targets(targets, one_to_many_groups)
-            loss_o2m = self.criterion(
-                (o2m_bboxes, o2m_scores), targets_o2m, dn_bboxes=None, dn_scores=None, dn_meta=None
-            )
+            loss_o2m_kwargs = {"dn_bboxes": None, "dn_scores": None, "dn_meta": None}
+            if supports_dfine:
+                loss_o2m_kwargs["dfine_meta"] = dfine_meta_o2m
+            loss_o2m = self.criterion((o2m_bboxes, o2m_scores), targets_o2m, **loss_o2m_kwargs)
             # Combine losses (o2m with lower weight)
             o2m_weight = 0.5
             for k in loss:
                 loss[k] = loss[k] + o2m_weight * loss_o2m[k]
 
-        # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
-        return sum(loss.values()), torch.as_tensor(
-            [loss[k].detach() for k in ["loss_giou", "loss_class", "loss_bbox"]], device=img.device
-        )
+        # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show enabled losses.
+        loss_keys = ["loss_giou", "loss_class", "loss_bbox"]
+        if getattr(self.criterion, "fgl_gain", 0.0) > 0:
+            loss_keys.append("loss_fgl")
+        if getattr(self.criterion, "ddf_gain", 0.0) > 0:
+            loss_keys.append("loss_ddf")
+        if getattr(self.criterion, "mal_gain", 0.0) > 0:
+            loss_keys.append("loss_mal")
+        return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in loss_keys], device=img.device)
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
         """Perform a forward pass through the model.

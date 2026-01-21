@@ -234,5 +234,13 @@ class RTDETRTrainer(DetectionTrainer):
 
     def get_validator(self):
         """Return a DetectionValidator suitable for RT-DETR model validation."""
-        self.loss_names = "giou_loss", "cls_loss", "l1_loss"
+        loss_names = ["giou_loss", "cls_loss", "l1_loss"]
+        loss_gain = self.model.yaml.get("loss", {}).get("loss_gain", {}) if hasattr(self.model, "yaml") else {}
+        if "fgl" in loss_gain:
+            loss_names.append("fgl_loss")
+        if "ddf" in loss_gain:
+            loss_names.append("ddf_loss")
+        if "mal" in loss_gain:
+            loss_names.append("mal_loss")
+        self.loss_names = tuple(loss_names)
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

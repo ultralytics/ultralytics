@@ -536,3 +536,597 @@ class RTDETRDetectionLoss(DETRLoss):
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.long), torch.zeros([0], dtype=torch.long)))
         return dn_match_indices
+
+
+class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
+    """RT-DETRv4 detection loss with optional DFine-specific components."""
+
+    supports_dfine = True
+
+    def __init__(
+        self,
+        nc: int = 80,
+        reg_max: int = 32,
+        mal_alpha: float | None = None,
+        mal_gamma: float | None = None,
+        local_temperature: float = 5.0,
+        loss_gain: dict[str, float] | None = None,
+        aux_loss: bool = True,
+        use_fl: bool = True,
+        use_vfl: bool = True,
+        use_uni_match: bool = False,
+        uni_match_ind: int = 0,
+        gamma: float = 1.5,
+        alpha: float = 0.25,
+        matcher: dict[str, Any] | None = None,
+    ):
+        """Initialize RTDETRDetectionLoss with optional DFine loss components."""
+        super().__init__(
+            nc=nc,
+            loss_gain=loss_gain,
+            aux_loss=aux_loss,
+            use_fl=use_fl,
+            use_vfl=use_vfl,
+            use_uni_match=use_uni_match,
+            uni_match_ind=uni_match_ind,
+            gamma=gamma,
+            alpha=alpha,
+            matcher=matcher,
+        )
+        self.reg_max = reg_max
+        self.mal_alpha = mal_alpha
+        self.mal_gamma = mal_gamma if mal_gamma is not None else gamma
+        self.local_temperature = local_temperature
+
+        loss_gain = loss_gain or {}
+        self.mal_gain = loss_gain["mal"] if "mal" in loss_gain else 0.0
+        self.fgl_gain = loss_gain["fgl"] if "fgl" in loss_gain else 0.0
+        self.ddf_gain = loss_gain["ddf"] if "ddf" in loss_gain else 0.0
+
+    @staticmethod
+    def _box_cxcywh_to_xyxy(x: torch.Tensor) -> torch.Tensor:
+        """Convert box format from cxcywh to xyxy."""
+        x_c, y_c, w, h = x.unbind(-1)
+        b = [x_c - 0.5 * w, y_c - 0.5 * h, x_c + 0.5 * w, y_c + 0.5 * h]
+        return torch.stack(b, dim=-1)
+
+    @staticmethod
+    def _weighting_function(reg_max: int, up: torch.Tensor, reg_scale: torch.Tensor) -> torch.Tensor:
+        """Generate the non-uniform weighting sequence used by DFine."""
+        upper_bound1 = torch.abs(up[0]) * torch.abs(reg_scale)
+        upper_bound2 = upper_bound1 * 2
+        step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
+        left_values = [-(step) ** i + 1 for i in range(reg_max // 2 - 1, 0, -1)]
+        right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
+        values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
+        return torch.cat(values, 0)
+
+    def _bbox2distance(
+        self, points: torch.Tensor, boxes_xyxy: torch.Tensor, up: torch.Tensor, reg_scale: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Convert target boxes into DFine distance targets and interpolation weights."""
+        reg_scale = torch.abs(reg_scale)
+        px, py, pw, ph = points.unbind(-1)
+        x1, y1, x2, y2 = boxes_xyxy.unbind(-1)
+
+        left = (px - x1) * reg_scale / pw - 0.5 * reg_scale
+        top = (py - y1) * reg_scale / ph - 0.5 * reg_scale
+        right = (x2 - px) * reg_scale / pw - 0.5 * reg_scale
+        bottom = (y2 - py) * reg_scale / ph - 0.5 * reg_scale
+        dist = torch.stack([left, top, right, bottom], dim=-1)
+
+        project = self._weighting_function(self.reg_max, up, reg_scale).to(dist.device).to(dist.dtype)
+        dist_flat = dist.reshape(-1)
+        idx_right = torch.bucketize(dist_flat, project).clamp(min=1, max=self.reg_max)
+        idx_left = idx_right - 1
+        proj_left = project[idx_left]
+        proj_right = project[idx_right]
+        denom = proj_right - proj_left
+        weight_right = torch.where(denom > 0, (dist_flat - proj_left) / denom, torch.zeros_like(dist_flat))
+        weight_right = weight_right.clamp(0.0, 1.0)
+        weight_left = 1.0 - weight_right
+
+        target_left = idx_left.reshape(dist.shape)
+        weight_left = weight_left.reshape(dist.shape)
+        weight_right = weight_right.reshape(dist.shape)
+        return target_left, weight_right, weight_left
+
+    @staticmethod
+    def _unimodal_distribution_focal_loss(
+        pred: torch.Tensor,
+        label: torch.Tensor,
+        weight_right: torch.Tensor,
+        weight_left: torch.Tensor,
+        weight: torch.Tensor | None = None,
+        avg_factor: float | None = None,
+    ) -> torch.Tensor:
+        """Compute distribution focal loss with unimodal targets."""
+        dis_left = label.long()
+        dis_right = dis_left + 1
+
+        loss = F.cross_entropy(pred, dis_left, reduction="none") * weight_left.reshape(-1)
+        loss = loss + F.cross_entropy(pred, dis_right, reduction="none") * weight_right.reshape(-1)
+        if weight is not None:
+            loss = loss * weight.float()
+        if avg_factor is not None:
+            loss = loss.sum() / avg_factor
+        else:
+            loss = loss.sum()
+        return loss
+
+    def _loss_mal(
+        self,
+        pred_bboxes: torch.Tensor,
+        pred_scores: torch.Tensor,
+        gt_bboxes: torch.Tensor,
+        gt_cls: torch.Tensor,
+        gt_groups: list[int],
+        global_num_gts: float,
+        match_indices: list[tuple] | None = None,
+        postfix: str = "",
+    ) -> dict[str, torch.Tensor]:
+        name = f"loss_mal{postfix}"
+        if self.mal_gain <= 0:
+            return {name: torch.tensor(0.0, device=pred_scores.device)}
+        if match_indices is None:
+            match_indices = self.matcher(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
+        idx, gt_idx = self._get_index(match_indices)
+        if gt_idx.numel() == 0:
+            return {name: torch.tensor(0.0, device=pred_scores.device)}
+
+        ious = bbox_iou(pred_bboxes[idx].detach(), gt_bboxes[gt_idx], xywh=True).squeeze(-1)
+        bs, nq = pred_scores.shape[:2]
+        target_classes = torch.full((bs, nq), self.nc, device=pred_scores.device, dtype=gt_cls.dtype)
+        target_classes[idx] = gt_cls[gt_idx]
+        target = F.one_hot(target_classes, num_classes=self.nc + 1)[..., :-1]
+
+        target_score_o = torch.zeros_like(target_classes, dtype=pred_scores.dtype)
+        target_score_o[idx] = ious.to(target_score_o.dtype)
+        target_score = target_score_o.unsqueeze(-1) * target
+
+        pred_score = pred_scores.sigmoid().detach()
+        target_score = target_score.pow(self.mal_gamma)
+        if self.mal_alpha is not None:
+            weight = self.mal_alpha * pred_score.pow(self.mal_gamma) * (1 - target) + target
+        else:
+            weight = pred_score.pow(self.mal_gamma) * (1 - target) + target
+
+        loss = F.binary_cross_entropy_with_logits(pred_scores, target_score, weight=weight, reduction="none")
+        loss = loss.mean(1).sum() * pred_scores.shape[1] / max(global_num_gts, 1.0)
+        return {name: loss * self.mal_gain}
+
+    def _get_mal_losses(
+        self,
+        pred_bboxes: torch.Tensor,
+        pred_scores: torch.Tensor,
+        batch: dict[str, Any],
+        global_num_gts: float,
+        match_indices: list[tuple] | None = None,
+        postfix: str = "",
+    ) -> dict[str, torch.Tensor]:
+        """Compute MAL loss independent of DFine/local losses."""
+        if self.mal_gain <= 0:
+            return {}
+
+        gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
+        return self._loss_mal(
+            pred_bboxes,
+            pred_scores,
+            gt_bboxes,
+            gt_cls,
+            gt_groups,
+            global_num_gts,
+            match_indices=match_indices,
+            postfix=postfix,
+        )
+
+    def _get_mal_aux_losses(
+        self,
+        pred_bboxes: torch.Tensor,
+        pred_scores: torch.Tensor,
+        batch: dict[str, Any],
+        global_num_gts: float,
+        match_indices: list[tuple] | None = None,
+        postfix: str = "",
+    ) -> dict[str, torch.Tensor]:
+        """Compute aggregated MAL loss over auxiliary decoder layers."""
+        if self.mal_gain <= 0:
+            return {}
+
+        gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
+        if match_indices is None and self.use_uni_match and pred_bboxes.numel():
+            match_indices = self.matcher(
+                pred_bboxes[self.uni_match_ind], pred_scores[self.uni_match_ind], gt_bboxes, gt_cls, gt_groups
+            )
+
+        loss_mal = torch.tensor(0.0, device=pred_bboxes.device)
+        for aux_bboxes, aux_scores in zip(pred_bboxes, pred_scores):
+            losses = self._loss_mal(
+                aux_bboxes,
+                aux_scores,
+                gt_bboxes,
+                gt_cls,
+                gt_groups,
+                global_num_gts,
+                match_indices=match_indices,
+                postfix=postfix,
+            )
+            loss_mal = loss_mal + losses[f"loss_mal{postfix}"]
+
+        return {f"loss_mal_aux{postfix}": loss_mal}
+
+    def _loss_local(
+        self,
+        pred_bboxes: torch.Tensor,
+        pred_scores: torch.Tensor,
+        pred_corners: torch.Tensor | None,
+        ref_points: torch.Tensor | None,
+        gt_bboxes: torch.Tensor,
+        gt_cls: torch.Tensor,
+        gt_groups: list[int],
+        global_num_gts: float,
+        up: torch.Tensor | None,
+        reg_scale: torch.Tensor | None,
+        match_indices: list[tuple] | None = None,
+        teacher_corners: torch.Tensor | None = None,
+        teacher_logits: torch.Tensor | None = None,
+        postfix: str = "",
+        is_dn: bool = False,
+    ) -> dict[str, torch.Tensor]:
+        name_fgl = f"loss_fgl{postfix}"
+        name_ddf = f"loss_ddf{postfix}"
+        if self.fgl_gain <= 0 and self.ddf_gain <= 0:
+            return {
+                name_fgl: torch.tensor(0.0, device=pred_bboxes.device),
+                name_ddf: torch.tensor(0.0, device=pred_bboxes.device),
+            }
+        if pred_corners is None or ref_points is None or up is None or reg_scale is None:
+            return {
+                name_fgl: torch.tensor(0.0, device=pred_bboxes.device),
+                name_ddf: torch.tensor(0.0, device=pred_bboxes.device),
+            }
+        if match_indices is None:
+            match_indices = self.matcher(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
+        idx, gt_idx = self._get_index(match_indices)
+        if gt_idx.numel() == 0:
+            return {
+                name_fgl: torch.tensor(0.0, device=pred_bboxes.device),
+                name_ddf: torch.tensor(0.0, device=pred_bboxes.device),
+            }
+
+        target_boxes = gt_bboxes[gt_idx]
+        target_boxes_xyxy = self._box_cxcywh_to_xyxy(target_boxes)
+        target_corners, weight_right, weight_left = self._bbox2distance(
+            ref_points[idx].detach(), target_boxes_xyxy, up, reg_scale
+        )
+
+        pred_corners_sel = pred_corners[idx].reshape(-1, self.reg_max + 1)
+        target_corners = target_corners.reshape(-1)
+        weight_right = weight_right.reshape(-1)
+        weight_left = weight_left.reshape(-1)
+
+        ious = bbox_iou(pred_bboxes[idx], target_boxes, xywh=True).squeeze(-1)
+        weight_targets = ious.unsqueeze(-1).repeat(1, 4).reshape(-1).detach()
+        loss_fgl = self._unimodal_distribution_focal_loss(
+            pred_corners_sel,
+            target_corners,
+            weight_right,
+            weight_left,
+            weight=weight_targets,
+            avg_factor=max(global_num_gts, 1.0),
+        )
+
+        loss_ddf = torch.tensor(0.0, device=pred_bboxes.device)
+        if self.ddf_gain > 0 and teacher_corners is not None and teacher_logits is not None:
+            pred_all = pred_corners.reshape(-1, self.reg_max + 1)
+            teacher_all = teacher_corners.reshape(-1, self.reg_max + 1)
+            if not torch.equal(pred_all, teacher_all):
+                weight_targets_local = teacher_logits.sigmoid().max(dim=-1)[0]
+                mask = torch.zeros_like(weight_targets_local, dtype=torch.bool)
+                mask[idx] = True
+                mask = mask.unsqueeze(-1).repeat(1, 1, 4).reshape(-1)
+
+                weight_targets_local[idx] = ious.to(weight_targets_local.dtype)
+                weight_targets_local = weight_targets_local.unsqueeze(-1).repeat(1, 1, 4).reshape(-1).detach()
+                loss_match_local = weight_targets_local * (self.local_temperature ** 2) * (
+                    nn.KLDivLoss(reduction="none")(
+                        F.log_softmax(pred_all / self.local_temperature, dim=1),
+                        F.softmax(teacher_all.detach() / self.local_temperature, dim=1),
+                    ).sum(-1)
+                )
+                if not is_dn:
+                    batch_scale = 8 / pred_bboxes.shape[0]
+                    self.num_pos = (mask.sum() * batch_scale) ** 0.5
+                    self.num_neg = ((~mask).sum() * batch_scale) ** 0.5
+                loss_pos = loss_match_local[mask].mean() if mask.any() else 0.0
+                loss_neg = loss_match_local[~mask].mean() if (~mask).any() else 0.0
+                denom = max(self.num_pos + self.num_neg, 1.0)
+                loss_ddf = (loss_pos * self.num_pos + loss_neg * self.num_neg) / denom
+
+        return {
+            name_fgl: loss_fgl * self.fgl_gain,
+            name_ddf: loss_ddf * self.ddf_gain,
+        }
+
+    def _get_local_losses(
+        self,
+        pred_bboxes: torch.Tensor,
+        pred_scores: torch.Tensor,
+        batch: dict[str, Any],
+        dfine_meta: dict[str, Any] | None,
+        global_num_gts: float,
+        match_indices: list[tuple] | None = None,
+        postfix: str = "",
+        is_dn: bool = False,
+    ) -> dict[str, torch.Tensor]:
+        if dfine_meta is None:
+            return {}
+
+        gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
+        if match_indices is None:
+            match_indices = self.matcher(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
+
+        pred_corners = dfine_meta["pred_corners"]
+        if isinstance(pred_corners, torch.Tensor) and pred_corners.dim() == 4:
+            pred_corners = pred_corners[-1]
+        ref_points = dfine_meta["ref_points"]
+        if isinstance(ref_points, torch.Tensor) and ref_points.dim() == 4:
+            ref_points = ref_points[-1]
+
+        losses = {}
+        if self.fgl_gain > 0 or self.ddf_gain > 0:
+            losses.update(
+                self._loss_local(
+                    pred_bboxes,
+                    pred_scores,
+                    pred_corners,
+                    ref_points,
+                    gt_bboxes,
+                    gt_cls,
+                    gt_groups,
+                    global_num_gts,
+                    dfine_meta["up"],
+                    dfine_meta["reg_scale"],
+                    match_indices=match_indices,
+                    teacher_corners=None,
+                    teacher_logits=None,
+                    postfix=postfix,
+                    is_dn=is_dn,
+                )
+            )
+        return losses
+
+    def _get_local_aux_losses(
+        self,
+        pred_bboxes: torch.Tensor,
+        pred_scores: torch.Tensor,
+        dfine_meta: dict[str, Any] | None,
+        batch: dict[str, Any],
+        global_num_gts: float,
+        teacher_logits: torch.Tensor | None = None,
+        postfix: str = "",
+    ) -> dict[str, torch.Tensor]:
+        if dfine_meta is None:
+            return {}
+
+        gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
+        match_indices = None
+        if self.use_uni_match and pred_bboxes.numel():
+            match_indices = self.matcher(
+                pred_bboxes[self.uni_match_ind], pred_scores[self.uni_match_ind], gt_bboxes, gt_cls, gt_groups
+            )
+
+        pred_corners_all = dfine_meta["pred_corners"]
+        ref_points_all = dfine_meta["ref_points"]
+        if pred_corners_all is None or ref_points_all is None:
+            result = {}
+            if self.fgl_gain > 0:
+                result[f"loss_fgl_aux{postfix}"] = torch.tensor(0.0, device=pred_bboxes.device)
+            if self.ddf_gain > 0:
+                result[f"loss_ddf_aux{postfix}"] = torch.tensor(0.0, device=pred_bboxes.device)
+            return result
+
+        loss_fgl = torch.tensor(0.0, device=pred_bboxes.device)
+        loss_ddf = torch.tensor(0.0, device=pred_bboxes.device)
+
+        if isinstance(pred_corners_all, torch.Tensor) and pred_corners_all.dim() == 4:
+            teacher_corners = pred_corners_all[-1]
+        else:
+            teacher_corners = pred_corners_all
+
+        for i, (aux_bboxes, aux_scores) in enumerate(zip(pred_bboxes, pred_scores)):
+            if isinstance(pred_corners_all, torch.Tensor) and pred_corners_all.dim() == 4:
+                layer_pred_corners = pred_corners_all[i]
+            else:
+                layer_pred_corners = pred_corners_all
+            if isinstance(ref_points_all, torch.Tensor) and ref_points_all.dim() == 4:
+                layer_ref_points = ref_points_all[i]
+            else:
+                layer_ref_points = ref_points_all
+            losses = self._loss_local(
+                aux_bboxes,
+                aux_scores,
+                layer_pred_corners,
+                layer_ref_points,
+                gt_bboxes,
+                gt_cls,
+                gt_groups,
+                global_num_gts,
+                dfine_meta["up"],
+                dfine_meta["reg_scale"],
+                match_indices=match_indices,
+                teacher_corners=teacher_corners,
+                teacher_logits=teacher_logits,
+                postfix=postfix,
+            )
+            loss_fgl = loss_fgl + losses[f"loss_fgl{postfix}"]
+            loss_ddf = loss_ddf + losses[f"loss_ddf{postfix}"]
+
+        result = {}
+        if self.fgl_gain > 0:
+            result[f"loss_fgl_aux{postfix}"] = loss_fgl
+        if self.ddf_gain > 0:
+            result[f"loss_ddf_aux{postfix}"] = loss_ddf
+        return result
+
+    def _get_mal_local_bundle(
+        self,
+        pred_bboxes: torch.Tensor,
+        pred_scores: torch.Tensor,
+        batch: dict[str, Any],
+        global_num_gts: float,
+        dfine_meta: dict[str, Any] | None = None,
+        match_indices: list[tuple] | None = None,
+        postfix: str = "",
+        is_dn: bool = False,
+        include_mal: bool = True,
+        include_local: bool = True,
+        include_mal_aux: bool = True,
+        include_local_aux: bool = True,
+    ) -> dict[str, torch.Tensor]:
+        """Compute MAL and local (FGL/DDF) losses for main and aux layers."""
+        losses = {}
+        has_aux = self.aux_loss and pred_bboxes.shape[0] > 1
+
+        if include_mal and self.mal_gain > 0:
+            losses.update(
+                self._get_mal_losses(
+                    pred_bboxes[-1],
+                    pred_scores[-1],
+                    batch,
+                    global_num_gts,
+                    match_indices=match_indices,
+                    postfix=postfix,
+                )
+            )
+            if include_mal_aux and has_aux:
+                losses.update(
+                    self._get_mal_aux_losses(
+                        pred_bboxes[:-1],
+                        pred_scores[:-1],
+                        batch,
+                        global_num_gts,
+                        match_indices=match_indices,
+                        postfix=postfix,
+                    )
+                )
+
+        if include_local and dfine_meta is not None and (self.fgl_gain > 0 or self.ddf_gain > 0):
+            teacher_corners = dfine_meta["pred_corners"]
+            if isinstance(teacher_corners, torch.Tensor) and teacher_corners.dim() == 4:
+                teacher_corners = teacher_corners[-1]
+            teacher_logits = pred_scores[-1] if isinstance(pred_scores, torch.Tensor) and pred_scores.dim() == 4 else None
+            losses.update(
+                self._get_local_losses(
+                    pred_bboxes[-1],
+                    pred_scores[-1],
+                    batch,
+                    dfine_meta,
+                    global_num_gts,
+                    match_indices=match_indices,
+                    postfix=postfix,
+                    is_dn=is_dn,
+                )
+            )
+            if include_local_aux and has_aux:
+                aux_losses = self._get_local_aux_losses(
+                    pred_bboxes[:-1],
+                    pred_scores[:-1],
+                    dfine_meta,
+                    batch,
+                    global_num_gts,
+                    teacher_logits=teacher_logits,
+                    postfix=postfix,
+                )
+                ddf_aux_key = f"loss_ddf_aux{postfix}"
+                if ddf_aux_key in aux_losses:
+                    main_ddf_key = f"loss_ddf{postfix}"
+                    losses[main_ddf_key] = (
+                        losses[main_ddf_key]
+                        if main_ddf_key in losses
+                        else torch.tensor(0.0, device=pred_bboxes.device)
+                    )
+                    losses[main_ddf_key] = losses[main_ddf_key] + aux_losses.pop(ddf_aux_key)
+                losses.update(aux_losses)
+
+        return losses
+
+    def forward(
+        self,
+        preds: tuple[torch.Tensor, torch.Tensor],
+        batch: dict[str, Any],
+        dn_bboxes: torch.Tensor | None = None,
+        dn_scores: torch.Tensor | None = None,
+        dn_meta: dict[str, Any] | None = None,
+        dfine_meta: dict[str, Any] | None = None,
+    ) -> dict[str, torch.Tensor]:
+        """Forward pass to compute detection loss with optional denoising loss.
+
+        Args:
+            preds (tuple[torch.Tensor, torch.Tensor]): Tuple containing predicted bounding boxes and scores.
+            batch (dict[str, Any]): Batch data containing ground truth information.
+            dn_bboxes (torch.Tensor, optional): Denoising bounding boxes.
+            dn_scores (torch.Tensor, optional): Denoising scores.
+            dn_meta (dict[str, Any], optional): Metadata for denoising.
+
+        Returns:
+            (dict[str, torch.Tensor]): Dictionary containing total loss and denoising loss if applicable.
+        """
+        pred_bboxes, pred_scores = preds
+        if self.training and torch.is_grad_enabled():
+            global_num_gts = _global_num_gts(len(batch["bboxes"]), pred_scores.device)
+        else:
+            global_num_gts = max(len(batch["bboxes"]), 1.0)
+
+        total_loss = super().forward(
+            preds,
+            batch,
+            dn_bboxes=dn_bboxes,
+            dn_scores=dn_scores,
+            dn_meta=dn_meta,
+        )
+
+        total_loss.update(
+            self._get_mal_local_bundle(
+                pred_bboxes,
+                pred_scores,
+                batch,
+                global_num_gts,
+                dfine_meta=dfine_meta,
+            )
+        )
+
+        dn_match_indices = None
+        dn_global_num_gts = None
+        if dn_meta is not None:
+            dn_pos_idx, dn_num_group = dn_meta["dn_pos_idx"], dn_meta["dn_num_group"]
+            dn_match_indices = self.get_dn_match_indices(dn_pos_idx, dn_num_group, batch["gt_groups"])
+            dn_global_num_gts = max(global_num_gts * dn_num_group, 1.0)
+
+        if dn_meta is not None:
+            dn_dfine_meta = None
+            if dfine_meta is not None:
+                dn_dfine_meta = {
+                    "pred_corners": dfine_meta["dn_pred_corners"],
+                    "ref_points": dfine_meta["dn_ref_points"],
+                    "up": dfine_meta["up"],
+                    "reg_scale": dfine_meta["reg_scale"],
+                }
+                if dn_dfine_meta["pred_corners"] is None or dn_dfine_meta["ref_points"] is None:
+                    dn_dfine_meta = None
+
+            total_loss.update(
+                self._get_mal_local_bundle(
+                    dn_bboxes,
+                    dn_scores,
+                    batch,
+                    dn_global_num_gts,
+                    dfine_meta=dn_dfine_meta,
+                    match_indices=dn_match_indices,
+                    postfix="_dn",
+                    is_dn=True,
+                    include_local_aux=False,
+                )
+            )
+
+        return total_loss

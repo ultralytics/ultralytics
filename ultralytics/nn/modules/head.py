@@ -2096,12 +2096,16 @@ class DFineDecoder(RTDETRDecoder):
             memory_mask=None,
             dn_meta=dn_meta,
         )
-        if dn_meta is not None:
-            dn_meta["out_corners"] = dec_pred_corners
-            dn_meta["out_refs"] = dec_refs
-            dn_meta["pre_bboxes"] = pre_bboxes
-            dn_meta["pre_logits"] = pre_scores
-        x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta
+        # Build DFine meta for loss (keep dn_meta separate from DFine extras).
+        dfine_meta = {
+            "pred_corners": dec_pred_corners,
+            "ref_points": dec_refs,
+            "pre_bboxes": pre_bboxes,
+            "pre_logits": pre_scores,
+            "up": self.up,
+            "reg_scale": self.reg_scale,
+        }
+        x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta, dfine_meta
         if self.training:
             return x
         # (bs, 300, 4+nc)

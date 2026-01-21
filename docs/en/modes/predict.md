@@ -442,12 +442,15 @@ The below table contains valid Ultralytics image formats.
 
 !!! note
 
-    HEIC images are supported for inference only, not for training.
+    AVIF and HEIC formats require additional dependencies: `pip install pillow-avif-plugin pillow-heif`
 
 | Image Suffixes | Example Predict Command          | Reference                                                                  |
 | -------------- | -------------------------------- | -------------------------------------------------------------------------- |
+| `.avif`        | `yolo predict source=image.avif` | [AV1 Image File Format](https://en.wikipedia.org/wiki/AVIF)                |
 | `.bmp`         | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format) |
 | `.dng`         | `yolo predict source=image.dng`  | [Adobe DNG](https://en.wikipedia.org/wiki/Digital_Negative)                |
+| `.heic`        | `yolo predict source=image.heic` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
+| `.jp2`         | `yolo predict source=image.jp2`  | [JPEG 2000](https://en.wikipedia.org/wiki/JPEG_2000)                       |
 | `.jpeg`        | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
 | `.jpg`         | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                 |
 | `.mpo`         | `yolo predict source=image.mpo`  | [Multi Picture Object](https://fileinfo.com/extension/mpo)                 |
@@ -455,8 +458,6 @@ The below table contains valid Ultralytics image formats.
 | `.tif`         | `yolo predict source=image.tif`  | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
 | `.tiff`        | `yolo predict source=image.tiff` | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                |
 | `.webp`        | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                 |
-| `.pfm`         | `yolo predict source=image.pfm`  | [Portable FloatMap](https://en.wikipedia.org/wiki/Netpbm#File_formats)     |
-| `.HEIC`        | `yolo predict source=image.HEIC` | [High Efficiency Image Format](https://en.wikipedia.org/wiki/HEIF)         |
 
 ### Videos
 

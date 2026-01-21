@@ -24,7 +24,7 @@ Ultralytics Platform accepts multiple upload formats for flexibility.
 | TIFF   | `.tiff`, `.tif` | High quality             |
 | HEIC   | `.heic`         | iPhone photos            |
 | AVIF   | `.avif`         | Next-gen format          |
-| PFM    | `.pfm`          | Floating point           |
+| JP2    | `.jp2`          | JPEG 2000                |
 | DNG    | `.dng`          | Raw camera               |
 
 ### Supported Video Formats

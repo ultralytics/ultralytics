@@ -1272,19 +1272,14 @@ class YOLOESegment26(YOLOESegment):
         proto=self.proto([ xi.detach() for xi in x])  # mask protos
 
         if isinstance(preds, dict):  # training and validating during training
-            print(preds.keys())
             if self.end2end:
-                if "one2many" in preds:
-                    preds["one2many"]["proto"] = proto
-                elif "one2one" in preds:
-                    if isinstance(proto, tuple):
-                        preds["one2one"]["proto"] = tuple(p.detach() for p in proto)
-                    else:
-                        preds["one2one"]["proto"] = proto.detach()
+                preds["one2many"]["proto"] = proto
+                if isinstance(proto, tuple):
+                    preds["one2one"]["proto"] = tuple(p.detach() for p in proto)
                 else:
-                    preds["proto"] = proto
+                    preds["one2one"]["proto"] = proto.detach()
             else:
-                    preds["proto"] = proto
+                preds["proto"] = proto
         if self.training:
             return preds
         return (outputs, proto) if self.export else ((outputs[0], proto), preds)

@@ -332,6 +332,7 @@ nav:
           - COCO8: datasets/detect/coco8.md
           - COCO8-Grayscale: datasets/detect/coco8-grayscale.md
           - COCO8-Multispectral: datasets/detect/coco8-multispectral.md
+          - COCO12-Formats: datasets/detect/coco12-formats.md
           - COCO128: datasets/detect/coco128.md
           - Construction-PPE: datasets/detect/construction-ppe.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
@@ -540,6 +541,8 @@ nav:
           - converter: reference/data/converter.md
           - dataset: reference/data/dataset.md
           - loaders: reference/data/loaders.md
+          - scripts:
+              - generate_coco12_formats: reference/data/scripts/generate_coco12_formats.md
           - split: reference/data/split.md
           - split_dota: reference/data/split_dota.md
           - utils: reference/data/utils.md

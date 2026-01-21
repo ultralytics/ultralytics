@@ -16,11 +16,21 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, IS_DOCKER, TORCH_VERSION, YAML, is_jetson
-from ultralytics.utils.torch_utils import TORCH_2_9, TORCH_2_10
+from ultralytics.utils import (
+    ARM64,
+    IS_DOCKER,
+    IS_JETSON,
+    LINUX,
+    LOGGER,
+    PYTHON_VERSION,
+    ROOT,
+    YAML,
+    is_jetson,
+)
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 from ultralytics.utils.nms import non_max_suppression
+from ultralytics.utils.torch_utils import TORCH_2_10
 
 
 def check_class_names(names: list | dict) -> dict[int, str]:

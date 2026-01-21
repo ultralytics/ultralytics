@@ -12,6 +12,8 @@ Requirements:
     pip install pillow pillow-heif pillow-avif-plugin numpy
 """
 
+from __future__ import annotations
+
 import shutil
 from pathlib import Path
 
@@ -58,9 +60,8 @@ def write_mpo(path: Path, img: Image.Image):
 def write_dng(path: Path, img: Image.Image):
     """Write a minimal DNG file for testing.
 
-    Note: Creating a proper DNG requires complex TIFF/DNG specification compliance.
-    For testing purposes, we create a simple TIFF-based file with .dng extension
-    that can be read by most image libraries.
+    Note: Creating a proper DNG requires complex TIFF/DNG specification compliance. For testing purposes, we create a
+    simple TIFF-based file with .dng extension that can be read by most image libraries.
     """
     # Save as TIFF with DNG extension (DNG is based on TIFF format)
     # This creates a readable file for testing the format extension handling
@@ -120,12 +121,11 @@ def convert_image(src_path: Path, dst_path: Path, fmt: str):
 
 
 def generate_coco12_formats(
-    output_dir: str | Path = None,
-    coco8_dir: str | Path = None,
-    coco128_dir: str | Path = None,
+    output_dir: str | Path | None = None,
+    coco8_dir: str | Path | None = None,
+    coco128_dir: str | Path | None = None,
 ):
-    """
-    Generate the COCO12-Formats dataset with all 12 supported image formats.
+    """Generate the COCO12-Formats dataset with all 12 supported image formats.
 
     Args:
         output_dir: Output directory for coco12-formats dataset

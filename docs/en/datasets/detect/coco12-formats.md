@@ -120,7 +120,7 @@ To train a YOLO model on the COCO12-Formats dataset, use the following examples:
         from ultralytics import YOLO
 
         # Load a pretrained YOLO model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Train on COCO12-Formats to test all image formats
         results = model.train(data="coco12-formats.yaml", epochs=1, imgsz=640)
@@ -130,7 +130,7 @@ To train a YOLO model on the COCO12-Formats dataset, use the following examples:
 
         ```bash
         # Train YOLO on COCO12-Formats
-        yolo detect train data=coco12-formats.yaml model=yolo11n.pt epochs=1 imgsz=640
+        yolo detect train data=coco12-formats.yaml model=yolo26n.pt epochs=1 imgsz=640
         ```
 
 ## Format-Specific Notes
@@ -172,13 +172,12 @@ pip install pillow-heif
 ### CI/CD Testing
 
 ```python
-import pytest
 from ultralytics import YOLO
 
 
 def test_all_image_formats():
     """Test that all image formats load correctly."""
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
     results = model.train(data="coco12-formats.yaml", epochs=1, imgsz=64)
     assert results is not None
 ```

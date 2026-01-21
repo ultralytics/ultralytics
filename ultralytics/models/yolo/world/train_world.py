@@ -136,7 +136,41 @@ class WorldTrainerFromScratch(WorldTrainer):
             AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
         """
         final_data = {}
-        data_yaml = self.args.data
+
+        # Load data config
+        if isinstance(self.args.data, str):
+            data_path = Path(self.args.data)
+            
+            # If data is just a filename (no path), look in default datasets dir
+            if not data_path.is_absolute() and data_path.parent == Path('.'):
+                from ultralytics.utils import ROOT
+                # Remove .yaml/.yml extension if present, then add .yaml
+                stem = data_path.stem if data_path.suffix in {'.yaml', '.yml'} else data_path.name
+                data_path = ROOT / 'cfg' / 'datasets' / f'{stem}.yaml'
+            
+            # Validate YAML file
+            assert data_path.suffix in {'.yaml', '.yml'}, \
+                f"Data file must be YAML format, got {data_path.suffix}"
+            assert data_path.exists(), \
+                f"Data file not found: {data_path}"
+            
+            # Load YAML
+            from ultralytics.utils import YAML
+            data_yaml = YAML.load(str(data_path))
+            LOGGER.info(f"Loaded data config from {data_path}")
+            
+        elif isinstance(self.args.data, dict):
+            # Use dict directly
+            data_yaml = self.args.data
+            LOGGER.info("Using dict data config")
+            
+        else:
+            raise TypeError(
+                f"data must be a YAML file path (str) or dict, "
+                f"got {type(self.args.data).__name__}"
+            )
+
+
         assert data_yaml.get("train", False), "train dataset not found"  # object365.yaml
         assert data_yaml.get("val", False), "validation dataset not found"  # lvis.yaml
         data = {k: [check_det_dataset(d) for d in v.get("yolo_data", [])] for k, v in data_yaml.items()}

@@ -1,180 +1,151 @@
 """
 YOLO Pre/Post Export Diagnostic Tool.
 
-Compares YOLO detection behavior before and after ONNX export.
-Focuses on numerical drift and missing detections.
+Compares detection outputs before (PyTorch) and after (ONNX Runtime) export.
+Reports pairing IoU, confidence drift, and unmatched detections.
 """
 
 import argparse
-import contextlib
-import io
+import sys
+from pathlib import Path
 
+import numpy as np
 from ultralytics import YOLO
 
 
-def compute_iou(box_a, box_b):
+def iou(box_a, box_b):
     xA = max(box_a[0], box_b[0])
     yA = max(box_a[1], box_b[1])
     xB = min(box_a[2], box_b[2])
     yB = min(box_a[3], box_b[3])
 
-    inter_w = max(0, xB - xA)
-    inter_h = max(0, yB - yA)
+    inter_w = max(0.0, xB - xA)
+    inter_h = max(0.0, yB - yA)
     inter_area = inter_w * inter_h
 
-    area_a = (box_a[2] - box_a[0]) * (box_a[3] - box_a[1])
-    area_b = (box_b[2] - box_b[0]) * (box_b[3] - box_b[1])
+    area_a = max(0.0, box_a[2] - box_a[0]) * max(0.0, box_a[3] - box_a[1])
+    area_b = max(0.0, box_b[2] - box_b[0]) * max(0.0, box_b[3] - box_b[1])
 
     union = area_a + area_b - inter_area
-    if union == 0:
-        return 0.0
-
-    return inter_area / union
+    return inter_area / union if union > 0 else 0.0
 
 
-def extract_detections(result):
-    boxes = result.boxes
-    detections = []
-
-    for i in range(len(boxes)):
-        detections.append(
-            {
-                "box": boxes.xyxy[i].tolist(),
-                "score": float(boxes.conf[i]),
-                "cls": int(boxes.cls[i]),
-            }
-        )
-
-    return detections
+def extract_detections(results):
+    dets = []
+    for b in results.boxes.data.cpu().numpy():
+        dets.append({
+            "box": b[:4].tolist(),
+            "score": float(b[4]),
+            "cls": int(b[5]),
+        })
+    return dets
 
 
-def pair_detections(pre_dets, post_dets, iou_thresh=0.5):
-    matches = []
-    used_post = set()
+def run_pytorch(weights, source):
+    model = YOLO(weights)
+    res = model(source)[0]
+    return extract_detections(res)
 
-    for pre in pre_dets:
+
+def run_onnx(weights, source, do_export):
+    onnx_path = Path(weights).with_suffix(".onnx")
+
+    if do_export or not onnx_path.exists():
+        YOLO(weights).export(format="onnx", opset=20)
+
+    model = YOLO(onnx_path, task="detect")
+    res = model(source)[0]
+    return extract_detections(res)
+
+
+def pair_and_report(pre, post):
+    matched = []
+    matched_pre_idx = set()
+    matched_post_idx = set()
+
+    for i, p in enumerate(pre):
         best_iou = 0.0
-        best_idx = None
+        best_j = None
 
-        for j, post in enumerate(post_dets):
-            if j in used_post:
-                continue
-            if pre["cls"] != post["cls"]:
+        for j, q in enumerate(post):
+            if j in matched_post_idx or p["cls"] != q["cls"]:
                 continue
 
-            iou = compute_iou(pre["box"], post["box"])
-            if iou > best_iou:
-                best_iou = iou
-                best_idx = j
+            v = iou(p["box"], q["box"])
+            if v > best_iou:
+                best_iou = v
+                best_j = j
 
-        if best_idx is not None and best_iou >= iou_thresh:
-            matches.append(
-                {
-                    "cls": pre["cls"],
-                    "iou": best_iou,
-                    "score_diff": abs(pre["score"] - post_dets[best_idx]["score"]),
-                    "pre": pre,
-                    "post": post_dets[best_idx],
-                }
-            )
-            used_post.add(best_idx)
+        if best_j is not None and best_iou > 0.5:
+            matched_pre_idx.add(i)
+            matched_post_idx.add(best_j)
+            matched.append({
+                "cls": p["cls"],
+                "iou": best_iou,
+                "score_diff": abs(p["score"] - post[best_j]["score"]),
+            })
 
-    unmatched_pre = [d for d in pre_dets if d not in [m["pre"] for m in matches]]
-    unmatched_post = [d for i, d in enumerate(post_dets) if i not in used_post]
+    unmatched_pre = [p for i, p in enumerate(pre) if i not in matched_pre_idx]
+    unmatched_post = [q for j, q in enumerate(post) if j not in matched_post_idx]
 
-    return matches, unmatched_pre, unmatched_post
+    return matched, unmatched_pre, unmatched_post
 
 
-def compute_metrics(matches):
-    box_diffs = []
-    score_diffs = []
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--weights", default="yolov8n.pt")
+    parser.add_argument("--source", default="bus.jpg")
+    parser.add_argument("--export", action="store_true")
+    args = parser.parse_args()
 
-    for m in matches:
-        for a, b in zip(m["pre"]["box"], m["post"]["box"]):
-            box_diffs.append(abs(a - b))
-        score_diffs.append(m["score_diff"])
+    weights = Path(args.weights)
+    source = Path(args.source)
 
-    return {
-        "box_mean": sum(box_diffs) / len(box_diffs) if box_diffs else 0.0,
-        "box_max": max(box_diffs) if box_diffs else 0.0,
-        "score_mean": sum(score_diffs) / len(score_diffs) if score_diffs else 0.0,
-        "score_max": max(score_diffs) if score_diffs else 0.0,
-    }
+    if not weights.exists():
+        print(f"[ERROR] Weights not found: {weights}")
+        sys.exit(1)
 
+    if not source.exists():
+        print(f"[ERROR] Source not found: {source}")
+        sys.exit(1)
 
-def run_pre_inference():
-    model = YOLO("yolov8n.pt")
-    with contextlib.redirect_stdout(io.StringIO()):
-        results = model("bus.jpg", verbose=False)
-    return extract_detections(results[0])
+    print("=" * 38)
+    print("YOLO Pre/Post Export Diagnostic Report")
+    print("=" * 38)
 
+    pre = run_pytorch(weights, source)
+    post = run_onnx(weights, source, args.export)
 
-def run_post_inference():
-    model = YOLO("yolov8n.pt")
-    with contextlib.redirect_stdout(io.StringIO()):
-        onnx_path = model.export(format="onnx", imgsz=640, simplify=False, opset=20)
-        onnx_model = YOLO(onnx_path, task="detect")
-        results = onnx_model("bus.jpg", verbose=False)
-    return extract_detections(results[0])
+    matched, un_pre, un_post = pair_and_report(pre, post)
+
+    print("\nSummary:")
+    print(f"Matched detections : {len(matched)}")
+    print(f"Unmatched PRE      : {len(un_pre)}")
+    print(f"Unmatched POST     : {len(un_post)}")
+
+    if matched:
+        ious = [m["iou"] for m in matched]
+        diffs = [m["score_diff"] for m in matched]
+
+        print("\nDrift:")
+        print(f"Mean IoU           : {np.mean(ious):.3f}")
+        print(f"Mean score diff    : {np.mean(diffs):.4f}")
+        print(f"Max score diff     : {np.max(diffs):.4f}")
+
+        print("\nPer-detection pairing:")
+        for m in matched:
+            print(f"CLS {m['cls']} | IoU {m['iou']:.3f} | Score Δ {m['score_diff']:.4f}")
+
+    if un_pre:
+        print("\nUnmatched PRE detections:")
+        for d in un_pre:
+            print(d)
+
+    if un_post:
+        print("\nUnmatched POST detections:")
+        for d in un_post:
+            print(d)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="YOLO pre/post export diagnostic tool")
-    parser.add_argument(
-        "--verbose-detections",
-        action="store_true",
-        help="Print raw PRE and POST detections",
-    )
-    args = parser.parse_args()
-
-    print("======================================")
-    print("YOLO Pre/Post Export Diagnostic Report")
-    print("======================================\n")
-
-    pre = run_pre_inference()
-    post = run_post_inference()
-
-    matches, unmatched_pre, unmatched_post = pair_detections(pre, post)
-    metrics = compute_metrics(matches)
-
-    print("Paired detection comparison (CLS | IoU | Δscore):")
-    for m in matches:
-        print(f"CLS {m['cls']} | IoU: {m['iou']:.3f} | Score Δ: {m['score_diff']:.4f}")
-
-    print("\nSummary:")
-    print(f"Matched detections     : {len(matches)}")
-    print(f"Unmatched PRE          : {len(unmatched_pre)}")
-    print(f"Unmatched POST         : {len(unmatched_post)}\n")
-
-    print("Box drift (pixels):")
-    print(f"  Mean absolute diff   : {metrics['box_mean']:.3f}")
-    print(f"  Max absolute diff    : {metrics['box_max']:.3f}\n")
-
-    print("Confidence drift:")
-    print(f"  Mean score diff      : {metrics['score_mean']:.4f}")
-    print(f"  Max score diff       : {metrics['score_max']:.4f}\n")
-
-    verdict = "PASS"
-    if metrics["score_max"] > 0.15 or unmatched_pre or unmatched_post:
-        verdict = "WARN"
-
-    print(f"Verification verdict   : {verdict}\n")
-
-    if unmatched_pre:
-        print("Unmatched PRE detections:")
-        for d in unmatched_pre:
-            print(d)
-
-    if unmatched_post:
-        print("\nUnmatched POST detections:")
-        for d in unmatched_post:
-            print(d)
-
-    if args.verbose_detections:
-        print("\n--------------------------------------")
-        print("Raw PRE detections:")
-        for d in pre:
-            print(d)
-        print("\nRaw POST detections:")
-        for d in post:
-            print(d)
+    main()

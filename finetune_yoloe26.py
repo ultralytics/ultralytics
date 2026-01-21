@@ -67,9 +67,16 @@ assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeT
 
 from overrides import DATA_CONFIG, OVERRIDES ,refer_data_yaml
 assert args.data is not None, "data argument must be provided"
-assert args.data in DATA_CONFIG.keys(), f"data {args.data} not found in DATA_CONFIG"
-data=DATA_CONFIG[args.data]
- 
+
+
+if args.data.endswith(".yaml"):
+    data=args.data
+else:
+    assert args.data in DATA_CONFIG.keys(), f"data {args.data} not found in DATA_CONFIG"
+    data=DATA_CONFIG[args.data]
+assert data.endswith(".yaml"), "data must be a yaml file path or a key in DATA_CONFIG" 
+
+
 
 assert args.trainer in ["YOLOETrainerFromScratch","YOLOEVPTrainer","YOLOEPEFreeTrainer","YOLOESegTrainerFromScratch","YOLOESegTrainerSegHead"], \
     "trainer must be YOLOETrainerFromScratch, YOLOEVPTrainer, YOLOEPEFreeTrainer, YOLOESegTrainerFromScratch, or YOLOESegTrainerSegHead"

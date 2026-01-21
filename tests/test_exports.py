@@ -166,7 +166,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
     "task, dynamic, int8, half, batch, nms, end2end",
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms, end2end)
-        for task, dynamic, int8, half, batch, nms in product(
+        for task, dynamic, int8, half, batch, nms, end2end in product(
             TASKS, [False], [True, False], [True, False], [1], [True, False], [True, False]
         )
         if not (
@@ -246,8 +246,8 @@ def test_export_mnn():
     "task, int8, half, batch",
     [  # generate all combinations except for exclusion cases
         (task, int8, half, batch, end2end)
-        for task, int8, half, batch in product(TASKS, [True, False], [True, False], [1, 2], [True, False])
-        if not (int8 and half) and not (end2end and nms)
+        for task, int8, half, batch, end2end in product(TASKS, [True, False], [True, False], [1, 2], [True, False])
+        if not (int8 and half)
     ],
 )
 def test_export_mnn_matrix(task, int8, half, batch, end2end):

@@ -1201,6 +1201,8 @@ class Exporter:
             check_requirements("packaging>=22.0")
 
         check_requirements("ruamel.yaml<0.19.0")
+        
+        # Use nightly build for executorch 1.1.0 until stable release on 01/26/2026 https://github.com/pytorch/executorch/issues/16365
         if TORCH_2_10:
             check_requirements(
                 requirements=["executorch==1.1.0.dev20260120", "flatbuffers", "torchao"],

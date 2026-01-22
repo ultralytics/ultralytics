@@ -624,6 +624,9 @@ class GroundingDataset(YOLODataset):
                 self.verify_labels(labels)
             except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
                 cache, _ = self.cache_labels(cache_path), False  # run cache ops
+                labels = cache["labels"]
+                self.verify_labels(labels)
+
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Loaded {len(labels)} labels from {cache_path}")

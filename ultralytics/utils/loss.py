@@ -1105,7 +1105,7 @@ class v8OBBLoss(v8DetectionLoss):
         pred_theta = pred_bboxes[..., 4]
         target_theta = target_bboxes[..., 4]
 
-        log_ar = torch.log(w_gt / h_gt)
+        log_ar = torch.log((w_gt + 1e-9) / (h_gt + 1e-9))
         scale_weight = torch.exp(-(log_ar**2) / (lambda_val**2))
 
         delta_theta = pred_theta - target_theta

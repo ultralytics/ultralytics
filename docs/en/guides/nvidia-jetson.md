@@ -162,7 +162,7 @@ The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted 
 Here we will download and install `onnxruntime-gpu 1.24.0` with `Python3.12` support.
 
 ```bash
-pip install https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl
 ```
 
 ### Run on JetPack 6.1
@@ -198,8 +198,8 @@ The above ultralytics installation will install Torch and Torchvision. However, 
 Install `torch 2.5.0` and `torchvision 0.20` according to JP6.1
 
 ```bash
-pip install https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl
-pip install https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl
 ```
 
 !!! note
@@ -224,13 +224,13 @@ You can find all available `onnxruntime-gpu` packages—organized by JetPack ver
 For **JetPack 6** with `Python 3.10` support, you can install `onnxruntime-gpu 1.23.0`:
 
 ```bash
-pip install https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/onnxruntime_gpu-1.23.0-cp310-cp310-linux_aarch64.whl
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.23.0-cp310-cp310-linux_aarch64.whl
 ```
 
 Alternatively, for `onnxruntime-gpu 1.20.0`:
 
 ```bash
-pip install https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl
 ```
 
 ### Run on JetPack 5.1.2
@@ -272,8 +272,8 @@ The above ultralytics installation will install Torch and Torchvision. However, 
 2. Install `torch 2.2.0` and `torchvision 0.17.2` according to JP5.1.2
 
     ```bash
-    pip install https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torch-2.2.0-cp38-cp38-linux_aarch64.whl
-    pip install https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl
+    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.2.0-cp38-cp38-linux_aarch64.whl
+    pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl
     ```
 
 !!! note

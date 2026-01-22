@@ -146,7 +146,7 @@ The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted 
 Here we will download and install `onnxruntime-gpu 1.24.0` with `Python3.12` support.
 
 ```bash
-pip install https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl
 ```
 
 ## Use TensorRT on NVIDIA DGX Spark

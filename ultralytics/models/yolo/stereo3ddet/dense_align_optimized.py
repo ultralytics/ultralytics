@@ -7,7 +7,7 @@ This module implements dense photometric alignment for depth refinement from
 Stereo CenterNet paper. This optimized version includes performance
 improvements:
 - Pre-convert images to grayscale (32x speedup)
-- Use cv2.getRectSubPix for patch extraction (5-10x speedup)
+- Manual patch extraction with boundary handling (preserves exact pixel values)
 - Early termination when error is already good (2-4x speedup)
 - Cache calibration parameters (10% speedup)
 - Remove per-iteration allocations
@@ -30,7 +30,7 @@ class DenseAlignmentOptimized:
     
     This optimized version includes:
     1. Pre-convert to grayscale once (eliminate 32 conversions per box)
-    2. Use cv2.getRectSubPix for efficient patch extraction
+    2. Manual patch extraction with boundary handling (preserves exact pixel values)
     3. Early termination when error is sufficiently good
     4. Cache calibration parameters
     5. Eliminate unnecessary array allocations in loops
@@ -66,7 +66,7 @@ class DenseAlignmentOptimized:
             patch_size: Size of square patches for matching (pixels).
             method: Photometric matching method ("ncc" or "sad").
         """
-        if method not in ("ncc", "sad"):
+        if method not in ("ncc", "sad"): 
             raise ValueError(f"method must be 'ncc' or 'sad', got '{method}'")
         
         self.depth_search_range = depth_search_range
@@ -221,10 +221,11 @@ class DenseAlignmentOptimized:
         return (x1, y1, x2, y2)
     
     def _extract_patch_cv2(self, img: np.ndarray, roi: Tuple[int, int, int, int]) -> np.ndarray:
-        """Extract image patch using cv2.getRectSubPix (much faster than manual slicing).
+        """Extract image patch using manual slicing with boundary handling.
         
-        This is a key optimization - avoids array allocation and boundary checks
-        for each depth iteration.
+        Note: cv2.getRectSubPix uses bilinear interpolation which changes pixel values,
+        making it unsuitable for exact photometric matching. Manual slicing preserves
+        exact pixel values needed for accurate NCC/SAD computation.
         """
         x1, y1, x2, y2 = roi
         
@@ -234,14 +235,37 @@ class DenseAlignmentOptimized:
         
         h, w = img.shape[:2]
         
-        # Use cv2.getRectSubPix instead of manual slicing
-        # This is ~5-10x faster and handles boundary checks automatically
-        patch = cv2.getRectSubPix(
-            img,
-            (x1, y1),
-            (x2 - x1, y2 - y1),
-            cv2.BORDER_REPLICATE  # Replicate boundary instead of zeros
-        )
+        # Compute valid region overlap
+        src_x1 = max(0, x1)
+        src_y1 = max(0, y1)
+        src_x2 = min(w, x2)
+        src_y2 = min(h, y2)
+        
+        # Check if there's any overlap
+        if src_x2 <= src_x1 or src_y2 <= src_y1:
+            # No overlap - return zero patch
+            roi_h = y2 - y1
+            roi_w = x2 - x1
+            if len(img.shape) == 3:
+                return np.zeros((roi_h, roi_w, img.shape[2]), dtype=img.dtype)
+            return np.zeros((roi_h, roi_w), dtype=img.dtype)
+        
+        # Create output patch with zeros
+        roi_h = y2 - y1
+        roi_w = x2 - x1
+        if len(img.shape) == 3:
+            patch = np.zeros((roi_h, roi_w, img.shape[2]), dtype=img.dtype)
+        else:
+            patch = np.zeros((roi_h, roi_w), dtype=img.dtype)
+        
+        # Compute destination coordinates in patch
+        dst_x1 = src_x1 - x1
+        dst_y1 = src_y1 - y1
+        dst_x2 = dst_x1 + (src_x2 - src_x1)
+        dst_y2 = dst_y1 + (src_y2 - src_y1)
+        
+        # Copy valid region to patch
+        patch[dst_y1:dst_y2, dst_x1:dst_x2] = img[src_y1:src_y2, src_x1:src_x2]
         
         return patch
     
@@ -268,13 +292,21 @@ class DenseAlignmentOptimized:
         roi_h = y2 - y1
         roi_w = x2 - x1
         
-        # Extract with cv2.getRectSubPix (faster than manual slicing)
-        patch = cv2.getRectSubPix(
-            img,
-            (src_x1, src_y1),
-            (roi_w, roi_h),
-            cv2.BORDER_REPLICATE
-        )
+        # Extract with manual slicing (preserves exact pixel values for photometric matching)
+        # Create output patch with zeros
+        if len(img.shape) == 3:
+            patch = np.zeros((roi_h, roi_w, img.shape[2]), dtype=img.dtype)
+        else:
+            patch = np.zeros((roi_h, roi_w), dtype=img.dtype)
+        
+        # Compute destination coordinates in patch
+        dst_x1 = src_x1 - x1
+        dst_y1 = src_y1 - y1
+        dst_x2 = dst_x1 + (src_x2 - src_x1)
+        dst_y2 = dst_y1 + (src_y2 - src_y1)
+        
+        # Copy valid region to patch
+        patch[dst_y1:dst_y2, dst_x1:dst_x2] = img[src_y1:src_y2, src_x1:src_x2]
         
         # Resize to target size if needed
         if patch.shape[:2] != (target_h, target_w):
@@ -297,7 +329,8 @@ class DenseAlignmentOptimized:
         x2_right = int(round(x2 - disparity))
         
         # Extract patch using cv2.getRectSubPix
-        roi_right = (x1_right, y1, x2_right - x1_right, y2 - y1)
+        # ROI format: (x1, y1, x2, y2)
+        roi_right = (x1_right, y1, x2_right, y2)
         return self._extract_patch_cv2(right_img, roi_right)
     
     def refine_depth(
@@ -349,7 +382,8 @@ class DenseAlignmentOptimized:
             right_img_gray = right_img.astype(np.float32)
         
         # Project 3D box to get ROI in left image
-        roi_left = self._project_box_to_roi(box3d_init, calib, "left")
+        # Note: calib is cached via _set_calibration() call above
+        roi_left = self._project_box_to_roi(box3d_init, "left")
         x1, y1, x2, y2 = roi_left
         
         if x2 <= x1 or y2 <= y1:
@@ -396,19 +430,25 @@ class DenseAlignmentOptimized:
                 continue
             
             # Ensure warped patch matches target size
-            warped_right_fixed = self._extract_patch_with_pad(
-                warped_right, (0, 0, target_w, target_h)
-            )
+            # warped_right is already a patch, so just resize if needed
+            if warped_right.shape[:2] != (target_h, target_w):
+                warped_right_fixed = cv2.resize(
+                    warped_right, 
+                    (target_w, target_h), 
+                    interpolation=cv2.INTER_LINEAR
+                )
+            else:
+                warped_right_fixed = warped_right
             
             # Ensure patches have same shape
-            if left_patch_gray.shape != warped_right_fixed.shape:
+            if left_patch.shape != warped_right_fixed.shape:
                 continue
             
             # Compute photometric error
             if self.method == "ncc":
-                error = self._ncc_error(left_patch_gray, warped_right_fixed)
+                error = self._ncc_error(left_patch, warped_right_fixed)
             else:
-                error = self._sad_error(left_patch_gray, warped_right_fixed)
+                error = self._sad_error(left_patch, warped_right_fixed)
             
             # Set early termination threshold on first iteration
             if np.isinf(early_termination_threshold) and error < float("inf"):

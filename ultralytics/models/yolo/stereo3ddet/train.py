@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from copy import copy
 from pathlib import Path
 from typing import Any
@@ -17,9 +18,11 @@ from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
 from ultralytics.models.yolo.stereo3ddet.preprocess import preprocess_stereo_batch
 from ultralytics.models.yolo.stereo3ddet.visualize import labels_to_box3d, plot_stereo_sample
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, ROOT, YAML
 from ultralytics.utils.checks import check_yaml
 from ultralytics.utils.plotting import VisualizationConfig, plot_labels, plot_stereo3d_boxes
+from ultralytics.utils.torch_utils import intersect_dicts
 
 
 class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
@@ -67,13 +70,13 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             "box",
             "cls",
             "dfl",
-            "lr_distance",
-            "right_width",
-            "dimensions",
-            "orientation",
-            "vertices",
-            "vertex_offset",
-            "vertex_dist",
+            "lr_dist",
+            "r_width",
+            "dims",
+            "orient",
+            "verts",
+            "v_off",
+            "v_dist",
         )
         # Fallback to default YOLO11 loss names
         self.loss_names = default_loss_names

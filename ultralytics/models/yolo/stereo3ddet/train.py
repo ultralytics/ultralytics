@@ -75,45 +75,6 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
             "vertex_offset",
             "vertex_dist",
         )
-        
-        # Check if loss_names is already set correctly
-        if hasattr(self, "loss_names") and self.loss_names:
-            if isinstance(self.loss_names, (tuple, list)) and len(self.loss_names) == 10:
-                if set(self.loss_names) == set(default_loss_names):
-                    return  # Already set correctly
-        
-        # Try to get from model
-        if hasattr(self, "model") and self.model is not None:
-            # Option 1: Check if model has loss_names attribute
-            if hasattr(self.model, "loss_names") and self.model.loss_names:
-                self.loss_names = tuple(self.model.loss_names) if isinstance(self.model.loss_names, (list, tuple)) else (self.model.loss_names,)
-                return
-            
-            # Option 2: Check if model uses Stereo3DDetLossYOLO11P3
-            if hasattr(self.model, "_stereo_yolo11_criterion"):
-                self.loss_names = default_loss_names
-                return
-            
-            # Option 3: Check if model.core.criterion exists (for wrapper models)
-            if hasattr(self.model, "core") and hasattr(self.model.core, "criterion"):
-                criterion = self.model.core.criterion
-                criterion_name = type(criterion).__name__
-                if "YOLO11" in criterion_name or "Stereo3DDetLossYOLO11" in criterion_name:
-                    self.loss_names = default_loss_names
-                    return
-            
-            # Option 4: Try to infer from model forward output structure
-            try:
-                with torch.no_grad():
-                    dummy_img = torch.zeros(1, 6, 384, 1248, device=next(self.model.parameters()).device)
-                    dummy_output = self.model(dummy_img)
-                    if isinstance(dummy_output, dict) and "det" in dummy_output:
-                        self.loss_names = default_loss_names
-                        return
-            except Exception:
-                # If inference fails, continue to fallback
-                pass
-        
         # Fallback to default YOLO11 loss names
         self.loss_names = default_loss_names
 

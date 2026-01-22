@@ -156,6 +156,94 @@ class Stereo3DDetModel(DetectionModel):
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
 
+    def _forward_head_with_stereo(self, y_fused, y_left, y_right, profile=False, visualize=False, embed=None):
+        """Process head layers with separate stereo features.
+        
+        Args:
+            y_fused: List of fused backbone features (None for non-saved layers)
+            y_left: List of left backbone features
+            y_right: List of right backbone features
+            profile: Print computation time of each layer if True
+            visualize: Save feature maps if True
+            embed: List of feature vectors/embeddings to return
+            
+        Returns:
+            Model output (dict, tensor, or tuple depending on head type).
+        """
+        y = [None] * len(self.model)
+        y_l = [None] * len(self.model)
+        y_r = [None] * len(self.model)
+        
+        # Copy backbone outputs
+        for i in range(self.backbone_end_idx + 1):
+            if y_fused[i] is not None:
+                y[i] = y_fused[i]
+            y_l[i] = y_left[i]
+            y_r[i] = y_right[i]
+        
+        x = y_fused[self.backbone_end_idx]
+        x_left = y_left[self.backbone_end_idx]
+        x_right = y_right[self.backbone_end_idx]
+        
+        # Reuse parent's _predict_once pattern starting from head
+        dt, embeddings = [], []
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
+        
+        # Find the head module index
+        head_idx = None
+        for i in range(self.backbone_end_idx + 1, len(self.model)):
+            m = self.model[i]
+            if hasattr(m, 'stereo_aux'):
+                head_idx = i
+                break
+        
+        # Process head layers up to (but not including) the Stereo3DDet head
+        for i in range(self.backbone_end_idx + 1, head_idx if head_idx is not None else len(self.model)):
+            m = self.model[i]
+            if m.f != -1:
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+                # Process left and right with same skip connections
+                if isinstance(m.f, int):
+                    x_left = y_l[m.f]
+                    x_right = y_r[m.f]
+                else:
+                    # Handle list of indices (for concat operations)
+                    left_inputs = [x_left if j == -1 else y_l[j] for j in m.f]
+                    right_inputs = [x_right if j == -1 else y_r[j] for j in m.f]
+                    x_left = left_inputs
+                    x_right = right_inputs
+            
+            if profile:
+                self._profile_one_layer(m, x, dt)
+            
+            x = m(x)
+            # Process left and right through the same layer
+            # If x_left/x_right are lists (from concat), the module will handle them
+            x_left = m(x_left)
+            x_right = m(x_right)
+            
+            y[i] = x if m.i in self.save else None
+            y_l[i] = x_left if m.i in self.save else None
+            y_r[i] = x_right if m.i in self.save else None
+            if visualize:
+                from ultralytics.nn.tasks import feature_visualization
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if m.i in embed:
+                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))
+                if m.i == max_idx:
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
+        
+        # If we found the head, process it with stereo concat
+        if head_idx is not None:
+            m = self.model[head_idx]
+            # Concatenate left and right at P3 resolution
+            stereo_concat = torch.cat([x_left, x_right], dim=1)  # [B, 2C, H, W]
+            x = m([x] if not isinstance(x, list) else x, x_stereo=stereo_concat)
+            y[head_idx] = x if m.i in self.save else None
+        
+        return x
+
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
         """Override to handle weight-shared backbone for stereo input.
         
@@ -179,11 +267,12 @@ class Stereo3DDetModel(DetectionModel):
         y_left = self._process_backbone(left)
         y_right = self._process_backbone(right)
         
-        # Fuse features
+        # Fuse features for detection and 3D branches
         y_fused = self._fuse_stereo_features(y_left, y_right, x.device)
         
-        # Continue with head using parent's _predict_once pattern
-        return self._forward_head(y_fused, profile, visualize, embed)
+        # Forward through head with both feature sets
+        # Left and right will be processed separately through head layers to P3, then concatenated
+        return self._forward_head_with_stereo(y_fused, y_left, y_right, profile, visualize, embed)
 
     def init_criterion(self):
         """Initialize the loss criterion for the Stereo3DDetModel.

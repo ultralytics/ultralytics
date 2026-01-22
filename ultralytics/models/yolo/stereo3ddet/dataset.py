@@ -743,7 +743,7 @@ class Stereo3DDetDataset(Dataset):
 
                 right_w_px = float(rb["width"]) * input_w
                 right_w_feat = right_w_px / stride
-                rw_list.append(torch.tensor([1.0 / (right_w_feat + 1.0)], dtype=torch.float32))
+                rw_list.append(torch.tensor([right_w_feat], dtype=torch.float32))
 
                 # -------------------------
                 # 3D aux targets (object-level, reused from TargetGenerator logic)

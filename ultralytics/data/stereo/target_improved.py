@@ -222,12 +222,13 @@ class TargetGenerator:
         # Paper Equation 4: distance between left and right object centers
         right_center_x = right_box["center_x"] * input_w
         lr_dist = center_x - right_center_x  # Disparity in pixels
-        targets["lr_distance"][0, center_y_int, center_x_int] = lr_dist * scale_w
+        lr_distance_stored = lr_dist * scale_w
+        targets["lr_distance"][0, center_y_int, center_x_int] = lr_distance_stored
 
-        # 2. Right width (with sigmoid transform - Paper Equation 5)
-        # Target is transformed: wr = 1/σ(ŵr) - 1, so we store 1/(wr + 1)
+        # 2. Right width (in feature map units, same scale as lr_distance)
+        # Store raw value in feature map units for consistent magnitude with lr_distance
         right_w = right_box["width"] * input_w * scale_w
-        targets["right_width"][0, center_y_int, center_x_int] = 1.0 / (right_w + 1.0)
+        targets["right_width"][0, center_y_int, center_x_int] = right_w
 
         # ============================================================
         # 3D Components (5 branches)

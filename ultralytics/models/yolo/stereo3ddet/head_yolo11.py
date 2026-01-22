@@ -29,10 +29,9 @@ class Stereo3DDetHeadYOLO11(Detect):
     def __init__(self, nc: int, ch: int = 256):
         super().__init__(nc=nc, ch=(ch,))  # P3-only Detect
 
+        # Standard aux branches (use fused or left features)
         self.aux = nn.ModuleDict(
             {
-                "lr_distance": _branch(ch, 1),
-                "right_width": _branch(ch, 1),
                 "dimensions": _branch(ch, 3),
                 "orientation": _branch(ch, 8),
                 "vertices": _branch(ch, 8),
@@ -40,8 +39,23 @@ class Stereo3DDetHeadYOLO11(Detect):
                 "vertex_dist": _branch(ch, 4),
             }
         )
+        
+        # Stereo association branches - take CONCATENATED left+right (2*ch channels)
+        # These need to see both views separately to learn correspondence
+        self.stereo_aux = nn.ModuleDict(
+            {
+                "lr_distance": _branch(ch * 2, 1),  # Input is 2*ch
+                "right_width": _branch(ch * 2, 1),  # Input is 2*ch
+            }
+        )
 
-    def forward(self, x: List[torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def forward(self, x: List[torch.Tensor], x_stereo: torch.Tensor = None) -> Dict[str, torch.Tensor]:
+        """
+        Args:
+            x: List containing fused/left feature map [B, C, H, W]
+            x_stereo: Concatenated [left, right] features [B, 2C, H, W] for stereo branches.
+                     If None (e.g., during initialization), duplicates x[0] to create [B, 2C, H, W]
+        """
         if not isinstance(x, list):
             x = [x]
         if len(x) != 1:
@@ -51,8 +65,18 @@ class Stereo3DDetHeadYOLO11(Detect):
         det_out = super().forward([feat])  # keep Detect semantics (training vs inference)
 
         out: Dict[str, torch.Tensor] = {"det": det_out}
+        
+        # 3D branches use fused/left features
         for k, m in self.aux.items():
             out[k] = m(feat)
+        
+        # Stereo branches use concatenated left+right
+        # If x_stereo not provided (initialization), duplicate features
+        if x_stereo is None:
+            x_stereo = torch.cat([feat, feat], dim=1)  # [B, 2C, H, W]
+        for k, m in self.stereo_aux.items():
+            out[k] = m(x_stereo)
+        
         return out
 
 

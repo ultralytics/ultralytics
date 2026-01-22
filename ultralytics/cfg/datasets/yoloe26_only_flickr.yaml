@@ -1,0 +1,10 @@
+
+
+
+train:
+  grounding_data:
+    - img_path: ../datasets/flickr/full_images/
+      json_file: ../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json
+val:
+  yolo_data:
+    - ../datasets/lvis.yaml

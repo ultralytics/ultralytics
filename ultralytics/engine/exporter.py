@@ -855,7 +855,12 @@ class Exporter:
         sample_inputs = (self.im,)
         edge_model = ai_edge_torch.convert(self.model, sample_inputs)
 
-        tflite_file = f / f"{self.file.stem}.tflite"
+        if self.args.int8:
+            tflite_file = f / f"{self.file.stem}_int8.tflite"  # fp32 in/out
+        elif self.args.half:
+            tflite_file = f / f"{self.file.stem}_float16.tflite"  # fp32 in/out
+        else:
+            tflite_file = f / f"{self.file.stem}_float32.tflite"
         edge_model.export(tflite_file)
 
         # Apply quantization using ai-edge-quantizer-nightly

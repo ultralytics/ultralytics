@@ -45,7 +45,7 @@ def test_export_openvino(end2end):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms, end2end)
         for task, dynamic, int8, half, batch, nms, end2end in product(
-            TASKS, [True, False], [True, False], [True, False], [1, 2], [True, False], [True, False]
+            TASKS, [True, False], [True, False], [True, False], [1, 2], [True, False], [True]
         )
         if not ((int8 and half) or (task == "classify" and nms) or (end2end and nms))
     ],

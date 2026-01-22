@@ -290,22 +290,37 @@ def compute_3d_iou(
     # Generate 8 corners for each box in object coordinate system
     # Order: [front-left-top, front-right-top, back-right-top, back-left-top,
     #         front-left-bottom, front-right-bottom, back-right-bottom, back-left-bottom]
-    # KITTI convention: rotation_y=0 means object faces camera X direction
-    # So object's length (forward direction) should be along X axis
-    # Coordinate system: x: length, y: height (down), z: width
+    #
+    # IMPORTANT: Box3D uses camera coordinate system where:
+    #   - center_3d: x (right), y (down), z (forward)
+    #   - dimensions: (length, width, height) where:
+    #       - length: extends along forward/z direction
+    #       - width: extends along right/x direction
+    #       - height: extends along up/(-y) direction
+    #
+    # To align with Box3D's coordinate system, the object coordinate corners should use:
+    #   - x axis: width (lateral direction)
+    #   - y axis: height (vertical direction, but inverted: +y is down in camera coords)
+    #   - z axis: length (forward direction)
+    #
+    # This mapping ensures that:
+    #   - Orientation=0 means box faces forward (+z direction)
+    #   - Length extends along z-axis when not rotated
+    #   - Width extends along x-axis when not rotated
+    #   - Height extends along y-axis (inverted in camera coords)
     corners1_obj = np.array(
         [
-            [-l1 / 2, l1 / 2, l1 / 2, -l1 / 2, -l1 / 2, l1 / 2, l1 / 2, -l1 / 2],  # x (length)
-            [-h1 / 2, -h1 / 2, -h1 / 2, -h1 / 2, h1 / 2, h1 / 2, h1 / 2, h1 / 2],  # y (height)
-            [w1 / 2, w1 / 2, -w1 / 2, -w1 / 2, w1 / 2, w1 / 2, -w1 / 2, -w1 / 2],  # z (width)
+            [-w1 / 2, w1 / 2, w1 / 2, -w1 / 2, -w1 / 2, w1 / 2, w1 / 2, -w1 / 2],  # x (width/lateral)
+            [-h1 / 2, -h1 / 2, -h1 / 2, -h1 / 2, h1 / 2, h1 / 2, h1 / 2, h1 / 2],  # y (height/vertical)
+            [l1 / 2, l1 / 2, -l1 / 2, -l1 / 2, l1 / 2, l1 / 2, -l1 / 2, -l1 / 2],  # z (length/forward)
         ]
     )
 
     corners2_obj = np.array(
         [
-            [-l2 / 2, l2 / 2, l2 / 2, -l2 / 2, -l2 / 2, l2 / 2, l2 / 2, -l2 / 2],  # x (length)
-            [-h2 / 2, -h2 / 2, -h2 / 2, -h2 / 2, h2 / 2, h2 / 2, h2 / 2, h2 / 2],  # y (height)
-            [w2 / 2, w2 / 2, -w2 / 2, -w2 / 2, w2 / 2, w2 / 2, -w2 / 2, -w2 / 2],  # z (width)
+            [-w2 / 2, w2 / 2, w2 / 2, -w2 / 2, -w2 / 2, w2 / 2, w2 / 2, -w2 / 2],  # x (width/lateral)
+            [-h2 / 2, -h2 / 2, -h2 / 2, -h2 / 2, h2 / 2, h2 / 2, h2 / 2, h2 / 2],  # y (height/vertical)
+            [l2 / 2, l2 / 2, -l2 / 2, -l2 / 2, l2 / 2, l2 / 2, -l2 / 2, -l2 / 2],  # z (length/forward)
         ]
     )
 

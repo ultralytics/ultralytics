@@ -16,6 +16,7 @@ Key Functions:
 
 from __future__ import annotations
 
+import math
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,7 @@ import torch
 from ultralytics.data.augment import LetterBox
 from ultralytics.data.stereo.box3d import Box3D
 from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils.nms import non_max_suppression
 
 
 # =============================================================================
@@ -136,6 +138,229 @@ def compute_letterbox_params(
     pad_left = dw // 2
     pad_top = dh // 2
     return scale, pad_left, pad_top
+
+
+# =============================================================================
+# Decoding Functions
+# =============================================================================
+
+
+def _decode_orientation_multibin(alpha_bins: torch.Tensor) -> float:
+    """Decode Multi-Bin orientation encoding to alpha (observation angle) in radians.
+
+    alpha_bins: Tensor [8] with layout:
+      [conf0, conf1, sin0, cos0, sin1, cos1, pad, pad]
+    """
+    conf0 = float(alpha_bins[0].item())
+    conf1 = float(alpha_bins[1].item())
+    if conf0 >= conf1:
+        bin_center = -math.pi / 2
+        sin_v = float(alpha_bins[2].item())
+        cos_v = float(alpha_bins[3].item())
+    else:
+        bin_center = math.pi / 2
+        sin_v = float(alpha_bins[4].item())
+        cos_v = float(alpha_bins[5].item())
+    residual = math.atan2(sin_v, cos_v)
+    alpha = bin_center + residual
+    return math.atan2(math.sin(alpha), math.cos(alpha))
+
+
+def decode_stereo3d_outputs(
+    outputs: dict[str, torch.Tensor],
+    conf_threshold: float = 0.25,
+    top_k: int = 100,
+    calib: dict[str, float] | list[dict[str, float]] | None = None,
+    imgsz: int | tuple[int, int] | list[int] | None = None,
+    ori_shapes: list[tuple[int, int]] | None = None,
+    iou_thres: float = 0.45,
+    mean_dims: dict[int, tuple[float, float, float]] | None = None,
+    std_dims: dict[int, tuple[float, float, float]] | None = None,
+    class_names: dict[int, str] | None = None,
+) -> list[Box3D] | list[list[Box3D]]:
+    """Decode stereo3ddet outputs to Box3D objects.
+
+    Uses Detect inference output for candidate 2D boxes and class scores, then samples
+    the auxiliary stereo/3D maps at the kept P3 indices to estimate depth/dimensions/orientation.
+
+    Args:
+        outputs: Model outputs dictionary.
+        conf_threshold: Confidence threshold for filtering detections.
+        top_k: Maximum number of detections to extract.
+        calib: Calibration parameters (dict or list of dicts).
+        imgsz: Input image size.
+        ori_shapes: Original image shapes per batch item.
+        iou_thres: IoU threshold for NMS.
+        mean_dims: Mean dimensions per class (class ID -> (H, W, L) in meters).
+        std_dims: Standard deviation of dimensions per class.
+        class_names: Mapping from class ID to class name.
+    """
+    if "det" not in outputs:
+        raise KeyError("decode_stereo3d_outputs expected outputs['det']")
+
+    det_out = outputs["det"]
+    det_inf = det_out[0] if isinstance(det_out, (tuple, list)) else det_out
+    bs = int(det_inf.shape[0])
+    nc = int(det_inf.shape[1] - 4)
+
+    # Determine letterbox input size
+    if imgsz is None:
+        imgsz = (384, 384)
+    input_h, input_w = (imgsz, imgsz) if isinstance(imgsz, int) else (int(imgsz[0]), int(imgsz[1]))
+
+    # Feature map size from any aux map (P3 grid)
+    sample_aux = None
+    for k in ("lr_distance", "dimensions", "orientation"):
+        if k in outputs and isinstance(outputs[k], torch.Tensor):
+            sample_aux = outputs[k]
+            break
+    if sample_aux is None:
+        raise KeyError("decode_stereo3d_outputs expected at least one aux map in outputs")
+    _, _, fh, fw = sample_aux.shape
+
+    # Infer stride in pixels
+    stride_w = input_w / fw
+    stride_h = input_h / fh
+    stride = (stride_w + stride_h) / 2.0
+
+    # NMS on Detect inference output (BCN format)
+    dets, keepi = non_max_suppression(
+        det_inf,
+        conf_thres=conf_threshold,
+        iou_thres=iou_thres,
+        max_det=top_k,
+        nc=nc,
+        return_idxs=True,
+    )
+
+    # Validate required parameters
+    if mean_dims is None:
+        raise ValueError("mean_dims must be provided by dataset configuration")
+    if std_dims is None:
+        raise ValueError("std_dims must be provided by dataset configuration")
+    if class_names is None:
+        raise ValueError("class_names must be provided by dataset configuration")
+
+    # Original shapes fallback
+    if ori_shapes is None or len(ori_shapes) == 0:
+        ori_shapes = [(375, 1242)] * bs
+
+    results_per_batch: list[list[Box3D]] = []
+    eps = 1e-6
+
+    for b in range(bs):
+        # Calibration per sample
+        if calib is None or len(calib) == 0:
+            fx = fy = 721.5377
+            cx, cy = 609.5593, 172.8540
+            baseline = 0.54
+        else:
+            cdict = calib[b] if b < len(calib) else calib[0]
+            fx = float(cdict.get("fx", 721.5377))
+            fy = float(cdict.get("fy", 721.5377))
+            cx = float(cdict.get("cx", 609.5593))
+            cy = float(cdict.get("cy", 172.8540))
+            baseline = float(cdict.get("baseline", 0.54))
+
+        ori_h, ori_w = ori_shapes[b]
+        letterbox_scale, pad_left, pad_top = compute_letterbox_params(ori_h, ori_w, imgsz)
+
+        # Convert calib and measurements back to original coordinate frame
+        fx_orig = fx / letterbox_scale
+        fy_orig = fy / letterbox_scale
+        cx_orig = (cx - pad_left) / letterbox_scale
+        cy_orig = (cy - pad_top) / letterbox_scale
+
+        boxes3d: list[Box3D] = []
+        det_b = dets[b]
+        idx_b = keepi[b].view(-1).long() if keepi is not None else None
+        if det_b is None or det_b.numel() == 0:
+            results_per_batch.append(boxes3d)
+            continue
+
+        for j, det_row in enumerate(det_b):
+            x1_l, y1_l, x2_l, y2_l, conf, cls_f = det_row[:6]
+            c = int(cls_f.item())
+            confidence = float(conf.item())
+
+            # Map kept index -> feature map location for sampling aux maps
+            if idx_b is None or j >= idx_b.numel():
+                u_letterbox = float(((x1_l + x2_l) / 2.0).item())
+                v_letterbox = float(((y1_l + y2_l) / 2.0).item())
+                gx = int(max(0, min(fw - 1, u_letterbox / stride)))
+                gy = int(max(0, min(fh - 1, v_letterbox / stride)))
+            else:
+                flat = int(idx_b[j].item())
+                gy = flat // fw
+                gx = flat % fw
+                gy = max(0, min(fh - 1, gy))
+                gx = max(0, min(fw - 1, gx))
+
+            # Sample aux predictions
+            lr_feat = float(outputs["lr_distance"][b, 0, gy, gx].item()) if "lr_distance" in outputs else 0.0
+            dim_off = outputs["dimensions"][b, :, gy, gx].float() if "dimensions" in outputs else torch.zeros(3)
+            ori_enc = outputs["orientation"][b, :, gy, gx].float() if "orientation" in outputs else torch.zeros(8)
+
+            # Depth from disparity
+            disparity_letterbox = lr_feat * stride
+            disparity_orig = disparity_letterbox / letterbox_scale
+            z_3d = (fx_orig * baseline) / max(disparity_orig, eps)
+
+            # Use bbox center as (u,v)
+            u_letterbox = float(((x1_l + x2_l) / 2.0).item())
+            v_letterbox = float(((y1_l + y2_l) / 2.0).item())
+            u_orig = (u_letterbox - pad_left) / letterbox_scale
+            v_orig = (v_letterbox - pad_top) / letterbox_scale
+
+            x_3d = (u_orig - cx_orig) * z_3d / fx_orig
+            y_3d = (v_orig - cy_orig) * z_3d / fy_orig
+
+            # Dimensions decode (H, W, L) - de-normalize from offset to actual dimensions
+            mean_h, mean_w, mean_l = mean_dims.get(c, mean_dims[0])
+            std_h, std_w, std_l = std_dims.get(c, std_dims[0])
+
+            height = mean_h + float(dim_off[0].item()) * std_h
+            width = mean_w + float(dim_off[1].item()) * std_w
+            length = mean_l + float(dim_off[2].item()) * std_l
+
+            # Clamp to reasonable bounds
+            height = np.clip(height, 0.5, 3.0)
+            width = np.clip(width, 0.3, 2.5)
+            length = np.clip(length, 0.5, 6.0)
+
+            # Orientation decode: alpha -> theta
+            alpha = _decode_orientation_multibin(ori_enc)
+            ray_angle = math.atan2(x_3d, z_3d)
+            theta = alpha + ray_angle
+            theta = math.atan2(math.sin(theta), math.cos(theta))
+
+            # Map bbox back to original image coords
+            x1 = (float(x1_l.item()) - pad_left) / letterbox_scale
+            y1 = (float(y1_l.item()) - pad_top) / letterbox_scale
+            x2 = (float(x2_l.item()) - pad_left) / letterbox_scale
+            y2 = (float(y2_l.item()) - pad_top) / letterbox_scale
+            if x1 > x2:
+                x1, x2 = x2, x1
+            if y1 > y2:
+                y1, y2 = y2, y1
+
+            box3d = Box3D(
+                center_3d=(float(x_3d), float(y_3d), float(z_3d)),
+                dimensions=(float(length), float(width), float(height)),
+                orientation=float(theta),
+                class_label=class_names.get(c, str(c)),
+                class_id=c,
+                confidence=confidence,
+                bbox_2d=(float(x1), float(y1), float(x2), float(y2)),
+            )
+            boxes3d.append(box3d)
+
+        results_per_batch.append(boxes3d)
+
+    # Match legacy return format
+    if bs == 1:
+        return results_per_batch[0]
+    return results_per_batch
 
 
 # =============================================================================
@@ -273,9 +498,6 @@ def decode_and_refine_predictions(
     Returns:
         List of Box3D lists (one per batch item).
     """
-    # Import here to avoid circular imports
-    from ultralytics.models.yolo.stereo3ddet.val import decode_stereo3d_outputs_yolo11_p3
-
     # Get parameters from args if provided
     if args is not None:
         conf_threshold = getattr(args, "conf", conf_threshold)
@@ -310,7 +532,7 @@ def decode_and_refine_predictions(
                 calib = calibs[0]
 
     # Decode predictions
-    results = decode_stereo3d_outputs_yolo11_p3(
+    results = decode_stereo3d_outputs(
         preds,
         conf_threshold=conf_threshold,
         top_k=top_k,

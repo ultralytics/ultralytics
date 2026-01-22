@@ -185,15 +185,28 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         # Import compute_ap from utils.metrics
         from ultralytics.utils.metrics import compute_ap
 
-        # Sort by confidence (descending)
-        i = np.argsort(-stats["conf"])
-        tp = stats["tp"][i]
-        fp = stats["fp"][i]
-        conf = stats["conf"][i]
-        pred_cls = stats["pred_cls"][i]
-
-        # Find unique classes
-        unique_classes = np.unique(stats["target_cls"]) if len(stats["target_cls"]) > 0 else np.unique(pred_cls) if len(pred_cls) > 0 else np.array([])
+        # Handle case where there are no predictions but there are ground truth boxes
+        # In this case, we still want to compute metrics (they'll be 0, but structure should be there)
+        if len(stats["conf"]) == 0:
+            # No predictions, but may have ground truth - use target_cls to determine classes
+            unique_classes = np.unique(stats["target_cls"]) if len(stats["target_cls"]) > 0 else np.array([])
+            if len(unique_classes) == 0:
+                return {}
+            # Create empty arrays for predictions
+            tp = np.zeros((0, 2), dtype=bool)
+            fp = np.zeros((0, 2), dtype=bool)
+            conf = np.array([])
+            pred_cls = np.array([], dtype=int)
+        else:
+            # Sort by confidence (descending)
+            i = np.argsort(-stats["conf"])
+            tp = stats["tp"][i]
+            fp = stats["fp"][i]
+            conf = stats["conf"][i]
+            pred_cls = stats["pred_cls"][i]
+            # Find unique classes from both predictions and ground truth
+            unique_classes = np.unique(np.concatenate([stats["target_cls"], pred_cls])) if len(stats["target_cls"]) > 0 or len(pred_cls) > 0 else np.array([])
+        
         if len(unique_classes) == 0:
             return {}
 
@@ -218,9 +231,14 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             f1_results[iou_thresh] = {}
 
             for ci, c in enumerate(unique_classes):
+                # Number of ground truth for this class
+                n_gt = int(nt_per_class[c]) if c < len(nt_per_class) else 0
+                
                 # Filter predictions for this class
-                class_mask = pred_cls == c
+                class_mask = pred_cls == c if len(pred_cls) > 0 else np.array([], dtype=bool)
+                
                 if not class_mask.any():
+                    # No predictions for this class - AP is 0
                     ap3d_results[iou_thresh][c] = 0.0
                     precision_results[iou_thresh][c] = 0.0
                     recall_results[iou_thresh][c] = 0.0
@@ -228,14 +246,12 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
                     continue
 
                 # Get TP/FP for this class and IoU threshold
-                tp_class = tp[class_mask, iou_idx]
-                fp_class = fp[class_mask, iou_idx]
-                conf_class = conf[class_mask]
-
-                # Number of ground truth for this class
-                n_gt = int(nt_per_class[c]) if c < len(nt_per_class) else 0
+                tp_class = tp[class_mask, iou_idx] if tp.size > 0 else np.array([], dtype=bool)
+                fp_class = fp[class_mask, iou_idx] if fp.size > 0 else np.array([], dtype=bool)
+                conf_class = conf[class_mask] if len(conf) > 0 else np.array([])
 
                 if n_gt == 0:
+                    # No ground truth for this class - AP is 0
                     ap3d_results[iou_thresh][c] = 0.0
                     precision_results[iou_thresh][c] = 0.0
                     recall_results[iou_thresh][c] = 0.0
@@ -243,21 +259,31 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
                     continue
 
                 # Sort by confidence (already sorted, but ensure)
-                sort_idx = np.argsort(-conf_class)
-                tp_class = tp_class[sort_idx]
-                fp_class = fp_class[sort_idx]
-                conf_class = conf_class[sort_idx]
+                if len(conf_class) > 0:
+                    sort_idx = np.argsort(-conf_class)
+                    tp_class = tp_class[sort_idx]
+                    fp_class = fp_class[sort_idx]
+                    conf_class = conf_class[sort_idx]
 
                 # Accumulate TP and FP
-                tp_cumsum = tp_class.cumsum()
-                fp_cumsum = fp_class.cumsum()
+                tp_cumsum = tp_class.cumsum() if len(tp_class) > 0 else np.array([0], dtype=int)
+                fp_cumsum = fp_class.cumsum() if len(fp_class) > 0 else np.array([0], dtype=int)
 
                 # Compute precision and recall
                 precision = tp_cumsum / (tp_cumsum + fp_cumsum + 1e-16)
                 recall = tp_cumsum / (n_gt + 1e-16)
 
                 # Compute AP using 11-point interpolation (KITTI standard)
-                ap, _, _ = compute_ap(recall.tolist(), precision.tolist())
+                # If no predictions, AP is 0
+                if len(precision) == 0 or len(recall) == 0:
+                    ap = 0.0
+                else:
+                    ap, _, _ = compute_ap(recall.tolist(), precision.tolist())
+                    
+                    # DIAGNOSTIC: Log AP computation details
+                    if ci < 3 and iou_idx < 2:  # Log for first few classes and both IoU thresholds
+                        class_name = self.names.get(c, f'class_{c}')
+                        
 
                 # DIAGNOSTIC START
                 # self._diagnostic_log_ap3d_computation(tp_class, fp_class, n_gt, c, iou_thresh)
@@ -278,6 +304,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         self.recall = recall_results
         self.f1 = f1_results
 
+        
         return {
             "ap3d_50": self.ap3d_50,
             "ap3d_70": self.ap3d_70,
@@ -319,11 +346,14 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         ap3d_50_scalar = flatten_metric(self.ap3d_50) if isinstance(self.ap3d_50, dict) else (float(self.ap3d_50) if isinstance(self.ap3d_50, (int, float)) else 0.0)
         ap3d_70_scalar = flatten_metric(self.ap3d_70) if isinstance(self.ap3d_70, dict) else (float(self.ap3d_70) if isinstance(self.ap3d_70, (int, float)) else 0.0)
         
+        maps3d_50_val = self.maps3d_50
+        maps3d_70_val = self.maps3d_70
+        
         return {
             "ap3d_50": ap3d_50_scalar,
             "ap3d_70": ap3d_70_scalar,
-            "maps3d_50": self.maps3d_50,
-            "maps3d_70": self.maps3d_70,
+            "maps3d_50": maps3d_50_val,
+            "maps3d_70": maps3d_70_val,
             "precision": precision_scalar,
             "recall": recall_scalar,
             "f1": f1_scalar,
@@ -340,7 +370,11 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         if not self.ap3d_50:
             return 0.0
         values = [v for v in self.ap3d_50.values() if v > 0]
-        return float(np.mean(values)) if values else 0.0
+        result = float(np.mean(values)) if values else 0.0
+        
+        # DIAGNOSTIC: Log maps3d_50 computation
+        
+        return result
 
     @property
     def maps3d_70(self) -> float:
@@ -348,7 +382,11 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         if not self.ap3d_70:
             return 0.0
         values = [v for v in self.ap3d_70.values() if v > 0]
-        return float(np.mean(values)) if values else 0.0
+        result = float(np.mean(values)) if values else 0.0
+        
+        # DIAGNOSTIC: Log maps3d_70 computation
+        
+        return result
 
     def clear_stats(self) -> None:
         """Clear stored statistics."""

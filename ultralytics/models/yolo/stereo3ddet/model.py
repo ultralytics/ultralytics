@@ -35,8 +35,7 @@ class Stereo3DDetModel(DetectionModel):
     def loss(self, batch, preds=None):
         """Compute loss for stereo3ddet model.
         
-        Overrides DetectionModel.loss() to handle models that return dict predictions.
-        If preds is a dict (stereo3ddet format), we need to use StereoCenterNetLoss instead of v8DetectionLoss.
+        Overrides DetectionModel.loss() to handle YOLO11-style dict predictions with "det" + aux branches.
         
         Args:
             batch (dict): Batch to compute loss on.
@@ -49,7 +48,7 @@ class Stereo3DDetModel(DetectionModel):
         if preds is None:
             preds = self.forward(batch["img"])
         
-        # New path: YOLO11 bbox mapping head (P3-only) returns dict with "det" + aux branches.
+        # YOLO11 bbox mapping head (P3-only) returns dict with "det" + aux branches.
         if isinstance(preds, dict) and "det" in preds:
             from ultralytics.models.yolo.stereo3ddet.loss_yolo11 import Stereo3DDetLossYOLO11P3
 
@@ -64,57 +63,6 @@ class Stereo3DDetModel(DetectionModel):
 
             out = self._stereo_yolo11_criterion(preds, batch)
             return out.total, out.loss_items
-
-        # Legacy path: CenterNet-style stereo3ddet dict prediction - use StereoCenterNetLoss
-        stereo_keys = {"heatmap", "offset", "bbox_size", "lr_distance", "right_width",
-                       "dimensions", "orientation", "vertices", "vertex_offset", "vertex_dist"}
-        if isinstance(preds, dict) and stereo_keys.issubset(set(preds.keys())):
-            # This is a stereo3ddet dict prediction - we need to use StereoCenterNetLoss
-            # Check if we have access to the criterion through the model structure
-            from ultralytics.models.yolo.stereo3ddet.stereo_yolo_v11 import StereoCenterNetLoss
-            
-            # Initialize criterion if needed
-            if not hasattr(self, "_stereo_criterion"):
-                # Try to get num_classes from model or batch
-                num_classes = getattr(self, "nc", 3)
-                if "targets" in batch and isinstance(batch["targets"], dict):
-                    # Infer from targets if available
-                    if "heatmap" in batch["targets"]:
-                        num_classes = batch["targets"]["heatmap"].shape[1] if len(batch["targets"]["heatmap"].shape) > 1 else 3
-                
-                # Read loss weights from config if available
-                loss_weights = None
-                if hasattr(self, "yaml") and self.yaml is not None:
-                    training_config = self.yaml.get("training", {})
-                    if training_config and "loss_weights" in training_config:
-                        loss_weights = training_config["loss_weights"]
-                
-                self._stereo_criterion = StereoCenterNetLoss(num_classes=num_classes, loss_weights=loss_weights)
-            
-            # Compute loss using StereoCenterNetLoss
-            targets = batch.get("targets", {})
-            if not targets:
-                # If targets not in batch, we can't compute loss
-                raise ValueError("Stereo3ddet requires 'targets' dict in batch for loss computation")
-            
-            total_loss, loss_dict = self._stereo_criterion(preds, targets)
-            
-            # Convert loss_dict to loss_items tensor in fixed order
-            loss_items_list = [
-                loss_dict.get("heatmap", torch.tensor(0.0, device=total_loss.device)),
-                loss_dict.get("offset", torch.tensor(0.0, device=total_loss.device)),
-                loss_dict.get("bbox_size", torch.tensor(0.0, device=total_loss.device)),
-                loss_dict.get("lr_distance", torch.tensor(0.0, device=total_loss.device)),
-                loss_dict.get("right_width", torch.tensor(0.0, device=total_loss.device)),
-                loss_dict.get("dimensions", torch.tensor(0.0, device=total_loss.device)),
-                loss_dict.get("orientation", torch.tensor(0.0, device=total_loss.device)),
-                loss_dict.get("vertices", torch.tensor(0.0, device=total_loss.device)),
-                loss_dict.get("vertex_offset", torch.tensor(0.0, device=total_loss.device)),
-                loss_dict.get("vertex_dist", torch.tensor(0.0, device=total_loss.device)),
-            ]
-            loss_items = torch.stack(loss_items_list)  # [10]
-            
-            return total_loss, loss_items
         
         # Fallback to parent implementation for standard detection models
         return super().loss(batch, preds=preds)

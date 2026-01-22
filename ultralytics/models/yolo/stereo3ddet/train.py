@@ -54,33 +54,33 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         
         Priority order:
         1. Check if model has loss_names attribute
-        2. Check if model.core.criterion returns loss_dict with keys (StereoYOLOv11Wrapper)
-        3. Fallback to hardcoded list if model structure unknown
+        2. Check if model uses Stereo3DDetLossYOLO11P3
+        3. Check model.core.criterion for wrapper models
+        4. Infer from model forward output structure (check for "det" key)
+        5. Fallback to YOLO11 loss names
         
         Sets self.loss_names as tuple matching DetectionTrainer pattern.
         """
-        # Default loss names for stereo 3D detection (10 branches)
-        # Order matches stereo_yolo_v11.py:677-688
+        # Loss names for YOLO11-style stereo 3D detection (10 branches)
+
         default_loss_names = (
-            "heatmap_loss",
-            "offset_loss",
-            "bbox_size_loss",
-            "lr_distance_loss",
-            "right_width_loss",
-            "dimensions_loss",
-            "orientation_loss",
-            "vertices_loss",
-            "vertex_offset_loss",
-            "vertex_dist_loss",
+            "box",
+            "cls",
+            "dfl",
+            "lr_distance",
+            "right_width",
+            "dimensions",
+            "orientation",
+            "vertices",
+            "vertex_offset",
+            "vertex_dist",
         )
         
-        # Check if loss_names is already set to stereo 3D detection names (10 branches)
+        # Check if loss_names is already set correctly
         if hasattr(self, "loss_names") and self.loss_names:
             if isinstance(self.loss_names, (tuple, list)) and len(self.loss_names) == 10:
-                expected_set = set(default_loss_names)
-                current_set = set(self.loss_names)
-                if expected_set == current_set:
-                    return  # Already set correctly to stereo loss names
+                if set(self.loss_names) == set(default_loss_names):
+                    return  # Already set correctly
         
         # Try to get from model
         if hasattr(self, "model") and self.model is not None:
@@ -89,22 +89,32 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
                 self.loss_names = tuple(self.model.loss_names) if isinstance(self.model.loss_names, (list, tuple)) else (self.model.loss_names,)
                 return
             
-            # Option 2: Check if model is StereoYOLOv11Wrapper and has core.criterion
-            # The criterion returns loss_dict with keys matching default_loss_names
-            if hasattr(self.model, "core") and hasattr(self.model.core, "criterion"):
-                # StereoYOLOv11Wrapper uses StereoCenterNetLoss which returns loss_dict with 10 keys
-                # We can use the default loss names directly
+            # Option 2: Check if model uses Stereo3DDetLossYOLO11P3
+            if hasattr(self.model, "_stereo_yolo11_criterion"):
                 self.loss_names = default_loss_names
                 return
             
-            # Option 3: Try to extract from model.loss() return value
-            # Note: StereoYOLOv11Wrapper.loss() returns (total_loss, loss_items) not (total_loss, loss_dict)
-            # So we need to check the model structure instead
+            # Option 3: Check if model.core.criterion exists (for wrapper models)
             if hasattr(self.model, "core") and hasattr(self.model.core, "criterion"):
-                # Already handled above
+                criterion = self.model.core.criterion
+                criterion_name = type(criterion).__name__
+                if "YOLO11" in criterion_name or "Stereo3DDetLossYOLO11" in criterion_name:
+                    self.loss_names = default_loss_names
+                    return
+            
+            # Option 4: Try to infer from model forward output structure
+            try:
+                with torch.no_grad():
+                    dummy_img = torch.zeros(1, 6, 384, 1248, device=next(self.model.parameters()).device)
+                    dummy_output = self.model(dummy_img)
+                    if isinstance(dummy_output, dict) and "det" in dummy_output:
+                        self.loss_names = default_loss_names
+                        return
+            except Exception:
+                # If inference fails, continue to fallback
                 pass
         
-        # Option 4: Fallback to default loss names for stereo 3D detection
+        # Fallback to default YOLO11 loss names
         self.loss_names = default_loss_names
 
     def progress_string(self):
@@ -209,8 +219,19 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
                         dummy_img = torch.zeros(1, 6, imgsz_hw[0], imgsz_hw[1], device=self.device)
                         dummy_output = self.model(dummy_img)
                         if isinstance(dummy_output, dict):
-                            sample_branch = dummy_output.get("heatmap", list(dummy_output.values())[0])
-                            if sample_branch is not None:
+                            # YOLO11 returns "det" (list) + aux branches (tensors)
+                            # Use first aux branch or "det" to get output size
+                            sample_branch = None
+                            if "det" in dummy_output:
+                                det_out = dummy_output["det"]
+                                if isinstance(det_out, list) and len(det_out) > 0:
+                                    sample_branch = det_out[0]
+                            if sample_branch is None:
+                                # Fallback to first aux branch
+                                aux_branches = [k for k in dummy_output.keys() if k != "det"]
+                                if aux_branches:
+                                    sample_branch = dummy_output[aux_branches[0]]
+                            if sample_branch is not None and len(sample_branch.shape) >= 2:
                                 _, _, output_h, output_w = sample_branch.shape
                                 output_size = (output_h, output_w)
                 except Exception:

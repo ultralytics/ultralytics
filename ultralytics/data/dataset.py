@@ -591,43 +591,43 @@ class GroundingDataset(YOLODataset):
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
-def get_labels(self) -> list[dict]:
-    """Load labels from cache or generate them from JSON file.
+    def get_labels(self) -> list[dict]:
+        """Load labels from cache or generate them from JSON file.
 
-    Returns:
-        (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
-    
-    Raises:
-        FileNotFoundError: If a .cache file is specified but does not exist.
-    """
-    # Check if json_file ends with .cache
-    if self.json_file.endswith('.cache'):
-        cache_path = Path(self.json_file)
-        if not cache_path.exists():
-            raise FileNotFoundError(f"Cache file specified but not found: {cache_path}")
-        LOGGER.info(f"Loading directly from cache file: {cache_path}")
-        try:
-            cache = load_dataset_cache_file(cache_path)
-            [cache.pop(k) for k in ("hash", "version")]  # remove items
-            labels = cache["labels"]
-        except (AssertionError, AttributeError, KeyError):
-            raise RuntimeError(f"Invalid or corrupted cache file: {cache_path}")
+        Returns:
+            (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         
-    else:
-        cache_path = Path(self.json_file).with_suffix(".cache")
-        try:
-            cache, _ = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
-            assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
-            assert cache["hash"] == get_hash(self.json_file)  # identical hash
-            [cache.pop(k) for k in ("hash", "version")]  # remove items
-            labels = cache["labels"]
-            self.verify_labels(labels)
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
-            cache, _ = self.cache_labels(cache_path), False  # run cache ops
-    self.im_files = [str(label["im_file"]) for label in labels]
-    if LOCAL_RANK in {-1, 0}:
-        LOGGER.info(f"Loaded {len(labels)} labels from {cache_path}")
-    return labels
+        Raises:
+            FileNotFoundError: If a .cache file is specified but does not exist.
+        """
+        # Check if json_file ends with .cache
+        if self.json_file.endswith('.cache'):
+            cache_path = Path(self.json_file)
+            if not cache_path.exists():
+                raise FileNotFoundError(f"Cache file specified but not found: {cache_path}")
+            LOGGER.info(f"Loading directly from cache file: {cache_path}")
+            try:
+                cache = load_dataset_cache_file(cache_path)
+                [cache.pop(k) for k in ("hash", "version")]  # remove items
+                labels = cache["labels"]
+            except (AssertionError, AttributeError, KeyError):
+                raise RuntimeError(f"Invalid or corrupted cache file: {cache_path}")
+            
+        else:
+            cache_path = Path(self.json_file).with_suffix(".cache")
+            try:
+                cache, _ = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
+                assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
+                assert cache["hash"] == get_hash(self.json_file)  # identical hash
+                [cache.pop(k) for k in ("hash", "version")]  # remove items
+                labels = cache["labels"]
+                self.verify_labels(labels)
+            except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
+                cache, _ = self.cache_labels(cache_path), False  # run cache ops
+        self.im_files = [str(label["im_file"]) for label in labels]
+        if LOCAL_RANK in {-1, 0}:
+            LOGGER.info(f"Loaded {len(labels)} labels from {cache_path}")
+        return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:
         """Configure augmentations for training with optional text loading.

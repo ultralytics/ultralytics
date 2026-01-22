@@ -184,39 +184,39 @@ class DetectionValidator(BaseValidator):
             if no_pred or cls.shape[0] == 0:
                 tp_center_offsets = np.zeros(0)
             else:
-                    # TP-RMSE calculation (normalised by img diagonal)
-                    tp = self._process_batch(predn, pbatch)["tp"]
-                    tp_preds = tp[:, 0]  # 0 index -> use the first IoU - usually 0.5
-                    tp_idx = np.where(tp_preds)[0]
+                # TP-RMSE calculation (normalised by img diagonal)
+                tp = self._process_batch(predn, pbatch)["tp"]
+                tp_preds = tp[:, 0]  # 0 index -> use the first IoU - usually 0.5
+                tp_idx = np.where(tp_preds)[0]
 
-                    if tp_idx.size == 0:
-                        tp_center_offsets = np.zeros(0)
-                    else:
-                        gt_boxes = pbatch["bboxes"].cpu().numpy()
-                        pred_boxes = predn["bboxes"].cpu().numpy()
+                if tp_idx.size == 0:
+                    tp_center_offsets = np.zeros(0)
+                else:
+                    gt_boxes = pbatch["bboxes"].cpu().numpy()
+                    pred_boxes = predn["bboxes"].cpu().numpy()
 
-                        # compute centers
-                        gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:]) / 2.0
-                        pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:]) / 2.0
-                        # keep only TP predictions
-                        pred_centers_tp = pred_centers[tp_idx]
-                        # distance matrix (GT x TP)
-                        dist_mat = np.linalg.norm(
-                            gt_centers[:, None, :] - pred_centers_tp[None, :, :],
-                            axis=2,
-                        )
-                        # assign closest GT to each TP prediction
-                        gt_idx = dist_mat.argmin(axis=0)
-                        # final distances
-                        dists = np.linalg.norm(
-                            pred_centers_tp - gt_centers[gt_idx],
-                            axis=1,
-                        )
+                    # compute centers
+                    gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:]) / 2.0
+                    pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:]) / 2.0
+                    # keep only TP predictions
+                    pred_centers_tp = pred_centers[tp_idx]
+                    # distance matrix (GT x TP)
+                    dist_mat = np.linalg.norm(
+                        gt_centers[:, None, :] - pred_centers_tp[None, :, :],
+                        axis=2,
+                    )
+                    # assign closest GT to each TP prediction
+                    gt_idx = dist_mat.argmin(axis=0)
+                    # final distances
+                    dists = np.linalg.norm(
+                        pred_centers_tp - gt_centers[gt_idx],
+                        axis=1,
+                    )
 
-                        # normalize by image diagonal
-                        imgsz_arr = np.array(pbatch["imgsz"])
-                        diag = np.sqrt((imgsz_arr ** 2).sum()) + 1e-7
-                        tp_center_offsets = dists / diag
+                    # normalize by image diagonal
+                    imgsz_arr = np.array(pbatch["imgsz"])
+                    diag = np.sqrt((imgsz_arr**2).sum()) + 1e-7
+                    tp_center_offsets = dists / diag
 
             self.metrics.update_stats(
                 {

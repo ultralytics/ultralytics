@@ -921,7 +921,16 @@ class Metric(SimpleClass):
         Returns:
             (float): The mAP at an IoU threshold of 0.5.
         """
-        return self.all_ap[:, 0].mean() if len(self.all_ap) else 0.0
+        return self.coco_map50 if hasattr(self, "coco_map50") else self.all_ap[:, 0].mean() if len(self.all_ap) else 0.0
+
+    @map50.setter
+    def map50(self, value: float) -> None:
+        """Set the mean Average Precision (mAP) value from coco mAP at IoU 0.5.
+
+        Args:
+            value (float): The mAP value to set.
+        """
+        self.coco_map50 = value
 
     @property
     def map75(self) -> float:
@@ -939,7 +948,16 @@ class Metric(SimpleClass):
         Returns:
             (float): The mAP over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
         """
-        return self.all_ap.mean() if len(self.all_ap) else 0.0
+        return self.coco_map if hasattr(self, "coco_map") else self.all_ap.mean() if len(self.all_ap) else 0.0
+
+    @map.setter
+    def map(self, value: float) -> None:
+        """Set the mean Average Precision (mAP) value from coco mAP.
+
+        Args:
+            value (float): The mAP value to set.
+        """
+        self.coco_map = value
 
     def mean_results(self) -> list[float]:
         """Return mean of results, mp, mr, map50, map."""

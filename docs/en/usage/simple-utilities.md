@@ -690,10 +690,10 @@ Need to programmatically use the supported [image or video formats](../modes/pre
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 
 print(IMG_FORMATS)
-# {'tiff', 'pfm', 'bmp', 'mpo', 'dng', 'jpeg', 'png', 'webp', 'tif', 'jpg'}
+# {'avif', 'bmp', 'dng', 'heic', 'jp2', 'jpeg', 'jpeg2000', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp'}
 
 print(VID_FORMATS)
-# {'avi', 'mpg', 'wmv', 'mpeg', 'm4v', 'mov', 'mp4', 'asf', 'mkv', 'ts', 'gif', 'webm'}
+# {'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'}
 ```
 
 ### Make Divisible

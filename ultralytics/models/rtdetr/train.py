@@ -230,16 +230,16 @@ class RTDETRTrainer(DetectionTrainer):
         if name == "MuSGD":
             # MuSGD: 8 parameter groups with dict structure
             # Head groups (lr = lr)
-            g[2] = {"params": g[2], **optim_args}  # head bias
-            g[0] = {"params": g[0], **optim_args, "weight_decay": decay}  # head weight (1D)
-            g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0}  # head bn
-            g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True}  # head muon params
+            g[2] = {"params": list(g[2].values()), **optim_args}  # head bias
+            g[0] = {"params": list(g[0].values()), **optim_args, "weight_decay": decay}  # head weight (1D)
+            g[1] = {"params": list(g[1].values()), **optim_args, "weight_decay": 0.0}  # head bn
+            g[3] = {"params": list(g[3].values()), **optim_args, "weight_decay": decay, "use_muon": True}  # head muon params
 
             # Backbone groups (lr = lr * backbone_lr_ratio)
-            g[6] = {"params": g[6], **optim_args, "lr": backbone_lr, "weight_decay": 0.0}  # backbone bias
-            g[4] = {"params": g[4], **optim_args, "lr": backbone_lr, "weight_decay": decay}  # backbone weight (1D)
-            g[5] = {"params": g[5], **optim_args, "lr": backbone_lr, "weight_decay": 0.0}  # backbone bn
-            g[7] = {"params": g[7], **optim_args, "lr": backbone_lr, "weight_decay": decay, "use_muon": True}  # backbone muon params
+            g[6] = {"params": list(g[6].values()), **optim_args, "lr": backbone_lr, "weight_decay": 0.0}  # backbone bias
+            g[4] = {"params": list(g[4].values()), **optim_args, "lr": backbone_lr, "weight_decay": decay}  # backbone weight (1D)
+            g[5] = {"params": list(g[5].values()), **optim_args, "lr": backbone_lr, "weight_decay": 0.0}  # backbone bn
+            g[7] = {"params": list(g[7].values()), **optim_args, "lr": backbone_lr, "weight_decay": decay, "use_muon": True}  # backbone muon params
 
             optimizer = MuSGD(params=g)
 

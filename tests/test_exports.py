@@ -50,6 +50,7 @@ def test_export_openvino(end2end):
         if not ((int8 and half) or (task == "classify" and nms) or (end2end and nms))
     ],
 )
+# disable end2end=False test for now due to github runner OOM during openvino tests
 def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms, end2end):
     """Test YOLO model export to OpenVINO under various configuration matrix conditions."""
     file = YOLO(TASK2MODEL[task]).export(

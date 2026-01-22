@@ -470,10 +470,6 @@ class Exporter:
             )
         if tfjs and (ARM64 and LINUX):
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
-        if (rknn or ncnn or executorch or paddle or imx) and hasattr(model.model[-1], "one2one_cv2"):
-            # Disable end2end branch for certain export formats as they does not support topk
-            del model.model[-1].one2one_cv2
-            LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
         # Recommend OpenVINO if export and Intel CPU
         if SETTINGS.get("openvino_msg"):
             if is_intel():

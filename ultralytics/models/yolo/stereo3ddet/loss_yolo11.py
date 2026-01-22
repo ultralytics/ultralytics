@@ -1,25 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Dict
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.utils.loss import BboxLoss
-from ultralytics.utils.ops import xywh2xyxy
-from ultralytics.utils.tal import TaskAlignedAssigner, make_anchors
+from ultralytics.utils.loss import v8DetectionLoss
+from ultralytics.utils.tal import make_anchors
 
 
-@dataclass
-class Stereo3DDetYolo11LossOutput:
-    total: torch.Tensor
-    loss_items: torch.Tensor
-    loss_dict: Dict[str, torch.Tensor]
-
-
-class Stereo3DDetLossYOLO11P3(nn.Module):
+class Stereo3DDetLossYOLO11P3(v8DetectionLoss):
     """P3-only loss for stereo3ddet using YOLO11-style bbox assignment.
 
     This reuses:
@@ -44,27 +34,18 @@ class Stereo3DDetLossYOLO11P3(nn.Module):
         reg_max: int | None = None,
         loss_weights: Dict[str, float] | None = None,
     ):
-        super().__init__()
-        device = next(model.parameters()).device
-
-        # Last module is our Detect-subclass head.
-        detect = model.model[-1]
-        if not hasattr(detect, "reg_max") or not hasattr(detect, "nc"):
-            raise AttributeError("Stereo3DDetLossYOLO11P3 expected model.model[-1] to be a Detect-like head")
-
-        self.device = device
-        self.nc = detect.nc
-        self.reg_max = int(detect.reg_max if reg_max is None else reg_max)
-        self.no = self.nc + self.reg_max * 4
-        self.use_dfl = self.reg_max > 1
-
-        # Hyperparameters (same container as standard losses)
-        h = model.args
-        self.hyp = h
-
-        self.assigner = TaskAlignedAssigner(topk=tal_topk, num_classes=self.nc, alpha=0.5, beta=6.0)
-        self.bbox_loss = BboxLoss(self.reg_max).to(device)
-        self.bce = nn.BCEWithLogitsLoss(reduction="none")
+        # Initialize parent with model and tal_topk
+        super().__init__(model, tal_topk=tal_topk)
+        
+        # Override reg_max if specified
+        if reg_max is not None:
+            self.reg_max = reg_max
+            self.no = self.nc + self.reg_max * 4
+            self.use_dfl = self.reg_max > 1
+            # Recreate bbox_loss with new reg_max
+            from ultralytics.utils.loss import BboxLoss
+            self.bbox_loss = BboxLoss(self.reg_max).to(self.device)
+            self.proj = torch.arange(self.reg_max, dtype=torch.float, device=self.device)
 
         # Loss weights for aux heads (defaults = 1.0; can be overridden via YAML later)
         self.aux_w = loss_weights or {}
@@ -81,33 +62,6 @@ class Stereo3DDetLossYOLO11P3(nn.Module):
             # allow slight mismatch due to rounding, but warn via exception to catch config issues early
             raise ValueError(f"Non-uniform stride inferred: sh={sh:.4f}, sw={sw:.4f} (ih={ih},iw={iw},fh={fh},fw={fw})")
         return torch.tensor([s], device=img.device, dtype=feat.dtype)
-
-    def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
-        """Match v8DetectionLoss.preprocess(): batchify + scale + xywh->xyxy."""
-        nl, ne = targets.shape
-        if nl == 0:
-            out = torch.zeros(batch_size, 0, ne - 1, device=self.device)
-        else:
-            i = targets[:, 0]  # image index
-            _, counts = i.unique(return_counts=True)
-            counts = counts.to(dtype=torch.int32)
-            out = torch.zeros(batch_size, counts.max(), ne - 1, device=self.device)
-            for j in range(batch_size):
-                matches = i == j
-                if n := matches.sum():
-                    out[j, :n] = targets[matches, 1:]
-            out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
-        return out
-
-    def bbox_decode(self, anchor_points: torch.Tensor, pred_dist: torch.Tensor) -> torch.Tensor:
-        """Decode DFL distances to xyxy in feature units."""
-        from ultralytics.utils.tal import dist2bbox
-
-        if self.use_dfl:
-            b, a, c = pred_dist.shape
-            proj = torch.arange(self.reg_max, dtype=torch.float, device=pred_dist.device)
-            pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(proj.type(pred_dist.dtype))
-        return dist2bbox(pred_dist, anchor_points, xywh=False)
 
     def _aux_loss(
         self,
@@ -136,7 +90,40 @@ class Stereo3DDetLossYOLO11P3(nn.Module):
             return F.smooth_l1_loss(pred_pos, tgt_pos, reduction="mean")
         raise ValueError(f"Unknown aux loss_type={loss_type}")
 
-    def forward(self, preds: Dict[str, torch.Tensor], batch: Dict[str, torch.Tensor]) -> Stereo3DDetYolo11LossOutput:
+    def _compute_aux_losses(
+        self,
+        preds: Dict[str, torch.Tensor],
+        batch: Dict[str, torch.Tensor],
+        target_gt_idx: torch.Tensor,
+        fg_mask: torch.Tensor,
+    ) -> Dict[str, torch.Tensor]:
+        """Compute auxiliary losses for 3D detection tasks.
+        
+        Args:
+            preds: Dictionary of predictions including auxiliary heads
+            batch: Batch dictionary containing aux_targets
+            target_gt_idx: Ground truth indices for each anchor
+            fg_mask: Foreground mask indicating positive anchors
+            
+        Returns:
+            Dictionary of auxiliary losses
+        """
+        aux_losses: Dict[str, torch.Tensor] = {}
+        aux_targets = batch.get("aux_targets", {})
+        
+        # Only compute aux when we have targets in batch (train/val).
+        if isinstance(aux_targets, dict) and aux_targets:
+            for k in ("lr_distance", "right_width", "dimensions", "orientation", "vertices", "vertex_offset", "vertex_dist"):
+                if k not in preds or k not in aux_targets:
+                    continue
+                aux_gt = aux_targets[k].to(self.device)
+                # Use smooth_l1 for regression-like heads, l1 for bounded targets.
+                loss_type = "smooth_l1" if k in {"lr_distance", "right_width", "dimensions"} else "l1"
+                aux_losses[k] = self._aux_loss(preds[k], aux_gt, target_gt_idx, fg_mask, loss_type=loss_type)
+        
+        return aux_losses
+
+    def __call__(self, preds: Dict[str, torch.Tensor], batch: Dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         # Detect feats are in preds["det"] as list with one tensor [B, no, H, W].
         det_feats = preds["det"]
         if isinstance(det_feats, tuple):
@@ -196,23 +183,12 @@ class Stereo3DDetLossYOLO11P3(nn.Module):
                 fg_mask,
             )
 
-        loss_box *= getattr(self.hyp, "box", 7.5)
-        loss_cls *= getattr(self.hyp, "cls", 0.5)
-        loss_dfl *= getattr(self.hyp, "dfl", 1.5)
+        loss_box *= self.hyp.box
+        loss_cls *= self.hyp.cls
+        loss_dfl *= self.hyp.dfl
 
-        # Auxiliary losses (masked by fg_mask, targets gathered by target_gt_idx).
-        aux_targets = batch.get("aux_targets", {})
-        aux_losses: Dict[str, torch.Tensor] = {}
-
-        # Only compute aux when we have targets in batch (train/val).
-        if isinstance(aux_targets, dict) and aux_targets:
-            for k in ("lr_distance", "right_width", "dimensions", "orientation", "vertices", "vertex_offset", "vertex_dist"):
-                if k not in preds or k not in aux_targets:
-                    continue
-                aux_gt = aux_targets[k].to(self.device)
-                # Use smooth_l1 for regression-like heads, l1 for bounded targets.
-                loss_type = "smooth_l1" if k in {"lr_distance", "right_width", "dimensions"} else "l1"
-                aux_losses[k] = self._aux_loss(preds[k], aux_gt, target_gt_idx, fg_mask, loss_type=loss_type)
+        # Compute auxiliary losses
+        aux_losses = self._compute_aux_losses(preds, batch, target_gt_idx, fg_mask)
 
         # Weight aux losses (default 1.0)
         aux_total = torch.tensor(0.0, device=self.device)
@@ -227,22 +203,17 @@ class Stereo3DDetLossYOLO11P3(nn.Module):
             loss_box,
             loss_cls,
             loss_dfl,
-            aux_losses.get("lr_distance", total * 0.0),
-            aux_losses.get("right_width", total * 0.0),
-            aux_losses.get("dimensions", total * 0.0),
-            aux_losses.get("orientation", total * 0.0),
-            aux_losses.get("vertices", total * 0.0),
-            aux_losses.get("vertex_offset", total * 0.0),
-            aux_losses.get("vertex_dist", total * 0.0),
+            aux_losses.get("lr_distance", torch.tensor(0.0, device=self.device)),
+            aux_losses.get("right_width", torch.tensor(0.0, device=self.device)),
+            aux_losses.get("dimensions", torch.tensor(0.0, device=self.device)),
+            aux_losses.get("orientation", torch.tensor(0.0, device=self.device)),
+            aux_losses.get("vertices", torch.tensor(0.0, device=self.device)),
+            aux_losses.get("vertex_offset", torch.tensor(0.0, device=self.device)),
+            aux_losses.get("vertex_dist", torch.tensor(0.0, device=self.device)),
         ]
         loss_items = torch.stack(items)
-        loss_dict = {
-            "box": loss_box.detach(),
-            "cls": loss_cls.detach(),
-            "dfl": loss_dfl.detach(),
-            **{k: v.detach() for k, v in aux_losses.items()},
-        }
-        return Stereo3DDetYolo11LossOutput(total=total, loss_items=loss_items, loss_dict=loss_dict)
+
+        return total * bs, loss_items.detach()
 
 
 

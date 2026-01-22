@@ -3,14 +3,18 @@
 # Stereo3DDet (P3-only) using YOLO11 bbox mapping (TaskAlignedAssigner positives)
 #
 # This config keeps the same backbone/neck as stereo3ddet_full.yaml but replaces the final head.
+# Usage: model=yolo11n-stereo3ddet-full-yolo11bbox.yaml (scale 'n' will be auto-detected from filename)
 
 stereo: true
 input_channels: 6
 nc: 3
-scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call yolo11.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=yolo11n-stereo3ddet-full-yolo11bbox.yaml' will call this file with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024] # summary: matches yolo11n structure for backbone weight transfer
-scale: n  # Use 'n' scale to match yolo11n structure
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
 
 backbone:
   # Weight-shared backbone: processes left and right images separately (ch=3 each)
@@ -37,5 +41,6 @@ head:
   - [-1, 2, C3k2, [256, False]]  # 16 (P3/8)
 
   # P3-only YOLO11-mapped head (Detect + aux stereo/3D branches)
-  # Channel scaled: 256 * 0.25 (width) = 64 to match scaled C3k2 output
-  - [[16], 1, Stereo3DDetHeadYOLO11, [nc, 64]]
+  # Channel will be auto-scaled by width_multiple: 256 * width_multiple
+  # For scale 'n': 256 * 0.25 = 64, for scale 's': 256 * 0.50 = 128, etc.
+  - [[16], 1, Stereo3DDetHeadYOLO11, [nc, 256]]

@@ -22,6 +22,7 @@ IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera                 | `axelera`                 | yolo26n_axelera_model/
+LiteRT                  | `litert`                  | yolo26n_litert_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -52,6 +53,7 @@ Inference:
                          yolo11n_rknn_model         # RKNN
                          yolo11n_executorch_model   # ExecuTorch
                          yolo11n_axelera_model      # Axelera
+                         yolo11n_litert_model       # LiteRT
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example

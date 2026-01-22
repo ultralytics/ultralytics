@@ -44,14 +44,10 @@ from .utils import (
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
 DATASET_CACHE_VERSION = "1.0.3"
-# CACHE_SUFFIX=".cache"
-CACHE_SUFFIX=".engine1.cache" #
-#CACHE_SUFFIX=".cache" # refine
 
 
 class YOLODataset(BaseDataset):
-    """
-    Dataset class for loading object detection and/or segmentation labels in YOLO format.
+    """Dataset class for loading object detection and/or segmentation labels in YOLO format.
 
     This class supports loading data for object detection, segmentation, pose estimation, and oriented bounding box
     (OBB) tasks using the YOLO format.
@@ -170,11 +166,11 @@ class YOLODataset(BaseDataset):
             (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         self.label_files = img2label_paths(self.im_files)
-        cache_path = Path(self.label_files[0]).parent.with_suffix(CACHE_SUFFIX)
+        cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
         try:
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
-            # assert cache["hash"] == get_hash(self.label_files + self.im_files)  # identical hash
+            assert cache["hash"] == get_hash(self.label_files + self.im_files)  # identical hash
         except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
 
@@ -457,8 +453,6 @@ class GroundingDataset(YOLODataset):
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
-        # assert CACHE_SUFFIX in {".cache", ".engine.segment.cache", ".engine.cache"}, f"cache_suffix must be either '.cache' or '.merged.cache', but got {CACHE_SUFFIX}"
-
     def get_img_files(self, img_path: str) -> list:
         """
         The image files would be read in `get_labels` function, return empty list here.
@@ -475,9 +469,9 @@ class GroundingDataset(YOLODataset):
         """
         Verify the number of instances in the dataset matches expected counts.
 
-        This method checks if the total number of bounding box instances in the provided
-        labels matches the expected count for known datasets. It performs validation
-        against a predefined set of datasets with known instance counts.
+        This method checks if the total number of bounding box instances in the provided labels matches the expected
+        count for known datasets. It performs validation against a predefined set of datasets with known instance
+        counts.
 
         Args:
             labels (list[dict[str, Any]]): List of label dictionaries, where each dictionary
@@ -571,7 +565,7 @@ class GroundingDataset(YOLODataset):
                                 .reshape(-1)
                                 .tolist()
                             )
-                        s = [cls] + s
+                        s = [cls, *s]
                         segments.append(s)
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
 
@@ -594,43 +588,49 @@ class GroundingDataset(YOLODataset):
                 }
             )
         x["hash"] = get_hash(self.json_file)
-
-
-        if CACHE_SUFFIX == ".merged.cache":
-            x["labels"] = self.run_merge_labels(x["labels"])
-
-
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
-    def get_labels(self) -> list[dict]:
-        """
-        Load labels from cache or generate them from JSON file.
+def get_labels(self) -> list[dict]:
+    """Load labels from cache or generate them from JSON file.
 
-        Returns:
-            (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
-        """
-        cache_path = Path(self.json_file).with_suffix(CACHE_SUFFIX)
+    Returns:
+        (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
+    
+    Raises:
+        FileNotFoundError: If a .cache file is specified but does not exist.
+    """
+    # Check if json_file ends with .cache
+    if self.json_file.endswith('.cache'):
+        cache_path = Path(self.json_file)
+        if not cache_path.exists():
+            raise FileNotFoundError(f"Cache file specified but not found: {cache_path}")
+        LOGGER.info(f"Loading directly from cache file: {cache_path}")
+        try:
+            cache = load_dataset_cache_file(cache_path)
+            [cache.pop(k) for k in ("hash", "version")]  # remove items
+            labels = cache["labels"]
+        except (AssertionError, AttributeError, KeyError):
+            raise RuntimeError(f"Invalid or corrupted cache file: {cache_path}")
+        
+    else:
+        cache_path = Path(self.json_file).with_suffix(".cache")
         try:
             cache, _ = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
-            # assert cache["hash"] == get_hash(self.json_file)  # identical hash
+            assert cache["hash"] == get_hash(self.json_file)  # identical hash
+            [cache.pop(k) for k in ("hash", "version")]  # remove items
+            labels = cache["labels"]
+            self.verify_labels(labels)
         except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
-            
             cache, _ = self.cache_labels(cache_path), False  # run cache ops
-        [cache.pop(k) for k in ("hash", "version")]  # remove items
-        labels = cache["labels"]
-        # if CACHE_SUFFIX == ".cache":
-        #     self.verify_labels(labels)
-
-        self.im_files = [str(label["im_file"]) for label in labels]
-        if LOCAL_RANK in {-1, 0}:
-            LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")
-        return labels
+    self.im_files = [str(label["im_file"]) for label in labels]
+    if LOCAL_RANK in {-1, 0}:
+        LOGGER.info(f"Loaded {len(labels)} labels from {cache_path}")
+    return labels
 
     def build_transforms(self, hyp: dict | None = None) -> Compose:
-        """
-        Configure augmentations for training with optional text loading.
+        """Configure augmentations for training with optional text loading.
 
         Args:
             hyp (dict, optional): Hyperparameters for transforms.
@@ -676,8 +676,7 @@ class GroundingDataset(YOLODataset):
 
 
 class YOLOConcatDataset(ConcatDataset):
-    """
-    Dataset as a concatenation of multiple datasets.
+    """Dataset as a concatenation of multiple datasets.
 
     This class is useful to assemble different existing datasets for YOLO training, ensuring they use the same
     collation function.

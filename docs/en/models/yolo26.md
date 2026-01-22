@@ -144,6 +144,49 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
         yolo predict model=yolo26n.pt source=path/to/bus.jpg
         ```
 
+!!! note "Dual-Head Architecture"
+
+    YOLO26 features a **dual-head architecture** that provides flexibility for different deployment scenarios:
+
+    - **One-to-One Head (Default)**: Produces end-to-end predictions without NMS, outputting `(N, 300, 6)` with a maximum of 300 detections per image. This head is optimized for fast inference and simplified deployment.
+    - **One-to-Many Head**: Generates traditional YOLO outputs requiring NMS post-processing, outputting `(N, nc + 4, 8400)` where `nc` is the number of classes. This head typically achieves slightly higher accuracy at the cost of additional processing.
+
+    You can switch between heads during export, prediction, or validation:
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+
+        # Use one-to-one head (default, no NMS required)
+        results = model.predict("image.jpg")  # inference
+        metrics = model.val(data="coco.yaml")  # validation
+        model.export(format="onnx")  # export
+
+        # Use one-to-many head (requires NMS)
+        results = model.predict("image.jpg", end2end=False)  # inference
+        metrics = model.val(data="coco.yaml", end2end=False)  # validation
+        model.export(format="onnx", end2end=False)  # export
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Use one-to-one head (default, no NMS required)
+        yolo predict model=yolo26n.pt source=image.jpg
+        yolo val model=yolo26n.pt data=coco.yaml
+        yolo export model=yolo26n.pt format=onnx
+
+        # Use one-to-many head (requires NMS)
+        yolo predict model=yolo26n.pt source=image.jpg end2end=False
+        yolo val model=yolo26n.pt data=coco.yaml end2end=False
+        yolo export model=yolo26n.pt format=onnx end2end=False
+        ```
+
+    The choice depends on your deployment requirements: use the one-to-one head for maximum speed and simplicity, or the one-to-many head when accuracy is the top priority.
+
 ## YOLOE-26: Open-Vocabulary Instance Segmentation
 
 YOLOE-26 integrates the high-performance YOLO26 architecture with the open-vocabulary capabilities of the [YOLOE](yoloe.md) series. It enables real-time detection and segmentation of any object class using **text prompts**, **visual prompts**, or a **prompt-free mode** for zero-shot inference, effectively removing the constraints of fixed-category training.

@@ -180,44 +180,47 @@ class DetectionValidator(BaseValidator):
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
 
-            # compute per-TP center offsets (normalized by image diagonal) for mAP@0.5
+            # compute per-TP center offsets (normalized by image diagonal)
             if no_pred or cls.shape[0] == 0:
                 tp_center_offsets = np.zeros(0)
             else:
-                iou = (
-                    box_iou(pbatch["bboxes"], predn["bboxes"])
-                    if (pbatch["bboxes"].shape[0] and predn["bboxes"].shape[0])
-                    else torch.zeros((cls.shape[0], predn["bboxes"].shape[0]), device=self.device)
-                )
-                iou = iou.cpu().numpy()
-                pred_cls_np = predn["cls"].cpu().numpy()
-                # mask by class equality
-                class_mask = cls[:, None] == pred_cls_np[None, :]
-                iou_masked = iou * class_mask
-                matches = np.nonzero(iou_masked >= 0.5)
-                matches = np.array(matches).T
-                if matches.shape[0]:
-                    if matches.shape[0] > 1:
-                        # prioritize higher IoUs for matching
-                        matches = matches[iou_masked[matches[:, 0], matches[:, 1]].argsort()[::-1]]
-                        # remove duplicated preds and GTs
-                        matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                        matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
+                    # TP-RMSE calculation (normalised by img diagonal)
+                    tp = self._process_batch(predn, pbatch)["tp"]
+                    tp_preds = tp[:, 0]  # 0 index -> use the first IoU - usually 0.5
+                    tp_idx = np.where(tp_preds)[0]
 
-                    gt_boxes = pbatch["bboxes"].cpu().numpy()
-                    pred_boxes = predn["bboxes"].cpu().numpy()
-                    gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:]) / 2.0
-                    pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:]) / 2.0
-                    dists = np.linalg.norm(pred_centers[matches[:, 1]] - gt_centers[matches[:, 0]], axis=1)
-                    imgsz_arr = np.array(pbatch["imgsz"])
-                    diag = np.sqrt((imgsz_arr**2).sum()) + 1e-7
-                    tp_center_offsets = dists / diag
-                else:
-                    tp_center_offsets = np.zeros(0)
+                    if tp_idx.size == 0:
+                        tp_center_offsets = np.zeros(0)
+                    else:
+                        gt_boxes = pbatch["bboxes"].cpu().numpy()
+                        pred_boxes = predn["bboxes"].cpu().numpy()
+
+                        # compute centers
+                        gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:]) / 2.0
+                        pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:]) / 2.0
+                        # keep only TP predictions
+                        pred_centers_tp = pred_centers[tp_idx]
+                        # distance matrix (GT x TP)
+                        dist_mat = np.linalg.norm(
+                            gt_centers[:, None, :] - pred_centers_tp[None, :, :],
+                            axis=2,
+                        )
+                        # assign closest GT to each TP prediction
+                        gt_idx = dist_mat.argmin(axis=0)
+                        # final distances
+                        dists = np.linalg.norm(
+                            pred_centers_tp - gt_centers[gt_idx],
+                            axis=1,
+                        )
+
+                        # normalize by image diagonal
+                        imgsz_arr = np.array(pbatch["imgsz"])
+                        diag = np.sqrt((imgsz_arr ** 2).sum()) + 1e-7
+                        tp_center_offsets = dists / diag
 
             self.metrics.update_stats(
                 {
-                    **self._process_batch(predn, pbatch),
+                    "tp": tp,
                     "target_cls": cls,
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),

@@ -95,6 +95,11 @@ class DistillationModel(nn.Module):
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill.detach()])
 
+    @property
+    def criterion(self):
+        """Get the criterion from the student model."""
+        return self.student_model.criterion
+
     def fuse(self, verbose: bool = True):
         """Fuse model layers for inference speedup."""
         self.student_model.fuse(verbose)

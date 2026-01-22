@@ -121,22 +121,12 @@ class WorldTrainerFromScratch(WorldTrainer):
         self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
-    def get_dataset(self):
+
+    def get_data_config(self):
         """
-        Get train and validation paths from data dictionary.
-
-        Processes the data configuration to extract paths for training and validation datasets,
-        handling both YOLO detection datasets and grounding datasets.
-
-        Returns:
-            train_path (str): Train dataset path.
-            val_path (str): Validation dataset path.
-
-        Raises:
-            AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
+        Load and return the data configuration. If the data is provided as a file path, it loads the YAML file. If the data is provided as a dictionary, it uses it directly.
+        
         """
-        final_data = {}
-
         # Load data config
         if isinstance(self.args.data, str):
             data_path = Path(self.args.data)
@@ -169,7 +159,24 @@ class WorldTrainerFromScratch(WorldTrainer):
                 f"data must be a YAML file path (str) or dict, "
                 f"got {type(self.args.data).__name__}"
             )
+        return data_yaml
 
+    def get_dataset(self):
+        """Get train and validation paths from data dictionary.
+
+        Processes the data configuration to extract paths for training and validation datasets, handling both YOLO
+        detection datasets and grounding datasets.
+
+        Returns:
+            train_path (str): Train dataset path.
+            val_path (str): Validation dataset path.
+
+        Raises:
+            AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
+        """
+        final_data = {}
+
+        data_yaml = self.get_data_config()
 
         assert data_yaml.get("train", False), "train dataset not found"  # object365.yaml
         assert data_yaml.get("val", False), "validation dataset not found"  # lvis.yaml
@@ -229,7 +236,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         Returns:
             (dict): Dictionary containing evaluation metrics and results.
         """
-        val = self.args.data["val"]["yolo_data"][0]
+        val = self.get_data_config()["val"]["yolo_data"][0]
         self.validator.args.data = val
         self.validator.args.split = "minival" if isinstance(val, str) and "lvis" in val else "val"
         return super().final_eval()

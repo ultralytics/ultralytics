@@ -11,6 +11,7 @@ from ultralytics.nn.tasks import RTDETRDetectionModel
 from ultralytics.utils import RANK, colorstr
 from torch import nn, optim
 from ultralytics.utils import LOGGER
+from ultralytics.optim.muon import MuSGD
 import torch
 
 from .val import RTDETRDataset, RTDETRValidator
@@ -153,7 +154,7 @@ class RTDETRTrainer(DetectionTrainer):
             (torch.optim.Optimizer): The constructed optimizer.
         """
         backbone_lr_ratio = self.args.backbone_lr_ratio
-        g = [], [], [], [], [], []  # optimizer parameter groups, 6 groups now
+        g = [{}, {}, {}, {}, {}, {}, {}, {}]  # optimizer parameter groups, 8 groups for MuSGD support
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         if name == "auto":
             LOGGER.info(
@@ -163,9 +164,10 @@ class RTDETRTrainer(DetectionTrainer):
             )
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
-            name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
+            name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("MuSGD", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
+        use_muon = name == "MuSGD"
         backbone_len = self.backbone_len
 
         for module_name, module in model.named_modules():
@@ -185,51 +187,93 @@ class RTDETRTrainer(DetectionTrainer):
                     is_backbone = layer_idx < backbone_len
 
                 if is_backbone:
-                    # Backbone parameters (groups 3, 4, 5)
-                    if "bias" in fullname:
-                        g[5].append(param)  # backbone bias
+                    # Backbone parameters (groups 4, 5, 6, 7)
+                    if param.ndim >= 2 and use_muon:
+                        g[7][fullname] = param  # backbone muon params
+                    elif "bias" in fullname:
+                        g[6][fullname] = param  # backbone bias
                     elif isinstance(module, bn) or "logit_scale" in fullname:
-                        g[4].append(param)  # backbone bn weight
+                        g[5][fullname] = param  # backbone bn weight
                     else:
-                        g[3].append(param)  # backbone weight with decay
+                        g[4][fullname] = param  # backbone weight with decay (1D params)
                 else:
-                    # Head parameters (groups 0, 1, 2)
-                    if "bias" in fullname:
-                        g[2].append(param)  # head bias
+                    # Head parameters (groups 0, 1, 2, 3)
+                    if param.ndim >= 2 and use_muon:
+                        g[3][fullname] = param  # head muon params
+                    elif "bias" in fullname:
+                        g[2][fullname] = param  # head bias
                     elif isinstance(module, bn) or "logit_scale" in fullname:
-                        g[1].append(param)  # head bn weight
+                        g[1][fullname] = param  # head bn weight
                     else:
-                        g[0].append(param)  # head weight with decay
+                        g[0][fullname] = param  # head weight with decay (1D params)
 
-        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "auto"}
+        if not use_muon:
+            # Convert to list of params for non-MuSGD optimizers (skip muon groups 3 and 7)
+            g = [list(x.values()) for i, x in enumerate(g) if i not in [3, 7]]
+
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
-            optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+            optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":
-            optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum)
-        elif name == "SGD":
-            optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+            optim_args = dict(lr=lr, momentum=momentum)
+        elif name == "SGD" or name == "MuSGD":
+            optim_args = dict(lr=lr, momentum=momentum, nesterov=True)
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
 
-        # Head param groups (normal lr)
-        optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # head weights
-        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})    # head bn
-
         backbone_lr = lr * backbone_lr_ratio
-        # Backbone param groups (smaller lr)
-        optimizer.add_param_group({"params": g[5], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bias
-        optimizer.add_param_group({"params": g[3], "lr": backbone_lr, "weight_decay": decay}) # backbone weights
-        optimizer.add_param_group({"params": g[4], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bn
 
-        LOGGER.info(
-            f"{colorstr('optimizer:')} {type(optimizer).__name__} with parameter groups:\n"
-            f"  Head:     {len(g[1])} bn, {len(g[0])} weight(decay={decay}), {len(g[2])} bias (lr={lr})\n"
-            f"  Backbone: {len(g[4])} bn, {len(g[3])} weight(decay={decay}), {len(g[5])} bias (lr={backbone_lr})"
-        )
+        if name == "MuSGD":
+            # MuSGD: 8 parameter groups with dict structure
+            # Head groups (lr = lr)
+            g[2] = {"params": g[2], **optim_args}  # head bias
+            g[0] = {"params": g[0], **optim_args, "weight_decay": decay}  # head weight (1D)
+            g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0}  # head bn
+            g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True}  # head muon params
+
+            # Backbone groups (lr = lr * backbone_lr_ratio)
+            g[6] = {"params": g[6], **optim_args, "lr": backbone_lr, "weight_decay": 0.0}  # backbone bias
+            g[4] = {"params": g[4], **optim_args, "lr": backbone_lr, "weight_decay": decay}  # backbone weight (1D)
+            g[5] = {"params": g[5], **optim_args, "lr": backbone_lr, "weight_decay": 0.0}  # backbone bn
+            g[7] = {"params": g[7], **optim_args, "lr": backbone_lr, "weight_decay": decay, "use_muon": True}  # backbone muon params
+
+            optimizer = MuSGD(params=g)
+
+            LOGGER.info(
+                f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups:\n"
+                f"  Head:     {len(g[1]['params'])} bn, {len(g[0]['params'])} weight(1D, decay={decay}), "
+                f"{len(g[3]['params'])} muon(2D+, decay={decay}), {len(g[2]['params'])} bias (lr={lr})\n"
+                f"  Backbone: {len(g[5]['params'])} bn, {len(g[4]['params'])} weight(1D, decay={decay}), "
+                f"{len(g[7]['params'])} muon(2D+, decay={decay}), {len(g[6]['params'])} bias (lr={backbone_lr})"
+            )
+        else:
+            # Traditional optimizers: 6 parameter groups with list structure
+            if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
+                optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+            elif name == "RMSProp":
+                optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum)
+            elif name == "SGD":
+                optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+
+            # Head param groups (normal lr)
+            optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # head weights
+            optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})    # head bn
+
+            # Backbone param groups (smaller lr)
+            optimizer.add_param_group({"params": g[5], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bias
+            optimizer.add_param_group({"params": g[3], "lr": backbone_lr, "weight_decay": decay}) # backbone weights
+            optimizer.add_param_group({"params": g[4], "lr": backbone_lr, "weight_decay": 0.0})   # backbone bn
+
+            LOGGER.info(
+                f"{colorstr('optimizer:')} {type(optimizer).__name__} with parameter groups:\n"
+                f"  Head:     {len(g[1])} bn, {len(g[0])} weight(decay={decay}), {len(g[2])} bias (lr={lr})\n"
+                f"  Backbone: {len(g[4])} bn, {len(g[3])} weight(decay={decay}), {len(g[5])} bias (lr={backbone_lr})"
+            )
+
         return optimizer
 
     def get_validator(self):

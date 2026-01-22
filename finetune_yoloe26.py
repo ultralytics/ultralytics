@@ -199,7 +199,8 @@ train_args=dict( data=data,
     single_cls=single_cls, # for YOLOEPEFreeTrainer
     freeze=freeze, # for YOLOEVPTrainer
     refer_data=refer_data, # for YOLOEVPTrainer
-    semseg_loss=args.semseg_loss)
+    save_json=False if args.trainer == "YOLOEPEFreeTrainer" else True,  # for YOLOEPEFreeTrainer, do not save json that leads to lvis evaluation state
+    )
 
 
 

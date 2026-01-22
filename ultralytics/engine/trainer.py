@@ -125,9 +125,18 @@ class BaseTrainer:
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
+        original_device_arg = self.args.device
         self.device = select_device(self.args.device)
         # Update "-1" devices so post-training val does not repeat search
-        self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
+        if (
+            isinstance(original_device_arg, str)
+            and original_device_arg.lower().startswith("xpu")
+            and "," in original_device_arg
+        ):
+            # Preserve explicit multi-XPU request for world size calculation
+            self.args.device = original_device_arg.replace(" ", "")
+        else:
+            self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
         self.metrics = None
         self.plots = {}
@@ -253,15 +262,35 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
-        dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
-            timeout=timedelta(seconds=10800),  # 3 hours
-            rank=RANK,
-            world_size=self.world_size,
-        )
+        local_rank = int(os.getenv("LOCAL_RANK", RANK))
+        if self.device.type == "xpu":
+            try:
+                import intel_extension_for_pytorch  # noqa: F401
+                import oneccl_bindings_for_pytorch  # noqa: F401
+            except Exception as e:
+                raise RuntimeError(
+                    "CCL backend for XPU is not available, please install IPEXintel-extension-for-pytorch/oneccl_bind_pt.\n"
+                    "See https://pytorch-extension.intel.com/installation?platform=gpu for up-to-date torch install instructions"
+                ) from e
+
+            torch.xpu.set_device(local_rank)
+            self.device = torch.device("xpu", local_rank)
+            dist.init_process_group(
+                backend="ccl",
+                timeout=timedelta(seconds=10800),  # 3 hours
+                rank=RANK,
+                world_size=self.world_size,
+            )
+        else:
+            torch.cuda.set_device(local_rank)
+            self.device = torch.device("cuda", local_rank)
+            os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+            dist.init_process_group(
+                backend="nccl" if dist.is_nccl_available() else "gloo",
+                timeout=timedelta(seconds=10800),  # 3 hours
+                rank=RANK,
+                world_size=self.world_size,
+            )
 
     def _setup_train(self):
         """Build dataloaders and optimizer on correct rank process."""
@@ -304,9 +333,20 @@ class BaseTrainer:
         if RANK > -1 and self.world_size > 1:  # DDP
             dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
-        )
+        if self.device.type == "xpu":
+            try:
+                self.scaler = torch.amp.GradScaler("xpu", enabled=self.amp)
+            except Exception:
+                # XPU GradScaler not available; disable AMP to keep training running.
+                self.amp = False
+                self.scaler = None
+                LOGGER.warning("AMP scaler for XPU not available, disabling AMP.")
+        else:
+            self.scaler = (
+                torch.amp.GradScaler("cuda", enabled=self.amp)
+                if TORCH_2_4
+                else torch.cuda.amp.GradScaler(enabled=self.amp)
+            )
         if self.world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
@@ -423,7 +463,7 @@ class BaseTrainer:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
-                with autocast(self.amp):
+                with autocast(self.amp, device=self.device.type):
                     batch = self.preprocess_batch(batch)
                     if self.args.compile:
                         # Decouple inference and loss calculations for improved compile performance
@@ -553,6 +593,10 @@ class BaseTrainer:
             memory = torch.mps.driver_allocated_memory()
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
+        elif self.device.type == "xpu":
+            memory = torch.xpu.memory_allocated(self.device)
+            total = torch.xpu.get_device_properties(self.device).total_memory
+            return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
         elif self.device.type != "cpu":
             memory = torch.cuda.memory_reserved()
             if fraction:
@@ -570,6 +614,8 @@ class BaseTrainer:
             torch.mps.empty_cache()
         elif self.device.type == "cpu":
             return
+        elif self.device.type == "xpu":
+            torch.xpu.empty_cache()
         else:
             torch.cuda.empty_cache()
 

@@ -1257,7 +1257,7 @@ class Exporter:
             ONNX Runtime Web instead, which offers better performance (WebGPU support) and
             doesn't require TensorFlow dependencies.
 
-            Example:
+        Example:
                 yolo export model=yolo11n.pt format=onnx  # Export to ONNX
                 # Then use onnxruntime-web in browser: https://onnxruntime.ai/docs/tutorials/web/
         """

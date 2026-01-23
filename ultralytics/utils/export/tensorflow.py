@@ -63,7 +63,7 @@ def torch2tflite(
     int8: bool = False,
     nms: bool = False,
     calibration_loader=None,
-    metadata: dict = None,
+    metadata: dict | None = None,
     prefix: str = "",
 ) -> tuple[Path, list[Path]]:
     """Convert PyTorch model directly to TFLite using ai-edge-torch.

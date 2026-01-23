@@ -1056,7 +1056,7 @@ class Exporter:
             calibration_loader = self.get_int8_calibration_dataloader(prefix)
 
         # Direct PyTorch -> TFLite using ai-edge-torch
-        primary_file, tflite_files = torch2tflite(
+        _primary_file, tflite_files = torch2tflite(
             model=self.model,
             sample_input=self.im,
             output_dir=f,

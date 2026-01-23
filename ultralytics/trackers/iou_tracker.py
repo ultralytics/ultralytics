@@ -169,7 +169,7 @@ class IOUTracker:
         self.match_thresh = args.match_thresh
         self.reset_id()
 
-    def update(self, results, img=None):
+    def update(self, results, img=None, feats=None):
         """Updates object tracker with new detections and returns tracked object bounding boxes."""
         self.frame_id += 1
         activated_utracks = []

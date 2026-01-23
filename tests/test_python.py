@@ -808,7 +808,7 @@ def test_offline_tracking(tmp_path):
     project_path = tmp_path / "saved_detections_for_offline_tracking"
     tracker = "botsort.yaml"
     # ensuring same confidence for both trackers.
-    # If left to default, conf will be overriden at track time for online tracker and set to 0.1
+    # If left to default, conf will be overridden at track time for online tracker and set to 0.1
     # but offline tracker will have only saved detections with conf greater than 0.25 (default)
     confidence = 0.01
     offline_model = YOLO(MODEL)
@@ -817,10 +817,20 @@ def test_offline_tracking(tmp_path):
     online_results = online_model.track(source=video_url, imgsz=160, tracker=tracker, conf=confidence)
     # save detections and run offline tracking
     offline_results = offline_model.predict(
-        source=video_url, imgsz=160, project=project_path, name="test_with_conf", save_txt=True, save_conf=True, conf=confidence
+        source=video_url,
+        imgsz=160,
+        project=project_path,
+        name="test_with_conf",
+        save_txt=True,
+        save_conf=True,
+        conf=confidence,
     )
     offline_results = offline_model.track(
-        source=video_url, imgsz=160, tracker=tracker, offline_tracking=Path(offline_results[0].save_dir) / "labels", conf=confidence
+        source=video_url,
+        imgsz=160,
+        tracker=tracker,
+        offline_tracking=Path(offline_results[0].save_dir) / "labels",
+        conf=confidence,
     )
     for offline_res, online_res in zip(offline_results, online_results):
         # check equality, account for loss of precision from saving/loading values

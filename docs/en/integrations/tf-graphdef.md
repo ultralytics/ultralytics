@@ -1,213 +1,109 @@
 ---
 comments: true
-description: Learn how to export YOLO26 models to the TF GraphDef format for seamless deployment on various platforms, including mobile and web.
-keywords: YOLO26, export, TensorFlow, GraphDef, model deployment, TensorFlow Serving, TensorFlow Lite, TensorFlow.js, machine learning, AI, computer vision
+description: Learn about TF GraphDef format (deprecated). For TensorFlow deployment, use TFLite format instead.
+keywords: YOLO, TensorFlow, GraphDef, TFLite, model deployment, deprecated, machine learning, AI, computer vision
 ---
 
-# How to Export to TF GraphDef from YOLO26 for Deployment
+# TF GraphDef Export (DEPRECATED)
 
-When you are deploying cutting-edge [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like YOLO26, in different environments, you might run into compatibility issues. Google's [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) GraphDef, or TF GraphDef, offers a solution by providing a serialized, platform-independent representation of your model. Using the TF GraphDef model format, you can deploy your YOLO26 model in environments where the complete TensorFlow ecosystem may not be available, such as mobile devices or specialized hardware.
+!!! warning "Deprecation Notice"
 
-In this guide, we'll walk you step by step through how to export your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to the TF GraphDef model format. By converting your model, you can streamline deployment and use YOLO26's computer vision capabilities in a broader range of applications and platforms.
+    **TensorFlow GraphDef (.pb) export is deprecated and no longer supported.**
 
-<p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorflow-graphdef.avif" alt="TensorFlow GraphDef model serialization format">
-</p>
+    The GraphDef format is a legacy TensorFlow 1.x format. With the migration to Google's `ai-edge-torch` library for TensorFlow exports, this format is no longer available.
 
-## Why Should You Export to TF GraphDef?
+    **Please use TensorFlow Lite (TFLite) format instead:**
 
-TF GraphDef is a powerful component of the TensorFlow ecosystem that was developed by Google. It can be used to optimize and deploy models like YOLO26. Exporting to TF GraphDef lets you move models from research to real-world applications. It allows models to run in environments without the full TensorFlow framework.
+    ```bash
+    yolo export model=yolo11n.pt format=tflite
+    ```
 
-The GraphDef format represents the model as a serialized computation graph. This enables various optimization techniques like constant folding, quantization, and graph transformations. These optimizations ensure efficient execution, reduced memory usage, and faster inference speeds.
+    See the [TFLite integration guide](../integrations/tflite.md) for more information.
 
-GraphDef models can use hardware accelerators such as GPUs, TPUs, and AI chips, unlocking significant performance gains for the YOLO26 inference pipeline. The TF GraphDef format creates a self-contained package with the model and its dependencies, simplifying deployment and integration into diverse systems.
+## Migration Guide
 
-## Key Features of TF GraphDef Models
+If you were previously using TF GraphDef format, here's how to migrate:
 
-TF GraphDef offers distinct features for streamlining [model deployment](https://www.ultralytics.com/glossary/model-deployment) and optimization.
+| Previous (Deprecated) | New (Recommended) |
+|-----------------------|-------------------|
+| `format="pb"` | `format="tflite"` |
+| `yolo11n.pb` | `yolo11n_saved_model/yolo11n_float32.tflite` |
 
-Here's a look at its key characteristics:
+### Updated Export Example
 
-- **Model Serialization**: TF GraphDef provides a way to serialize and store TensorFlow models in a platform-independent format. This serialized representation allows you to load and execute your models without the original Python codebase, making deployment easier.
-
-- **Graph Optimization**: TF GraphDef enables the optimization of computational graphs. These optimizations can boost performance by streamlining execution flow, reducing redundancies, and tailoring operations to suit specific hardware.
-
-- **Deployment Flexibility**: Models exported to the GraphDef format can be used in various environments, including resource-constrained devices, web browsers, and systems with specialized hardware. This opens up possibilities for wider deployment of your TensorFlow models.
-
-- **Production Focus**: GraphDef is designed for production deployment. It supports efficient execution, serialization features, and optimizations that align with real-world use cases.
-
-## Deployment Options with TF GraphDef
-
-Before we dive into the process of exporting YOLO26 models to TF GraphDef, let's take a look at some typical deployment situations where this format is used.
-
-Here's how you can deploy with TF GraphDef efficiently across various platforms.
-
-- **TensorFlow Serving:** This framework is designed to deploy TensorFlow models in production environments. TensorFlow Serving offers model management, versioning, and the infrastructure for efficient model serving at scale. It's a seamless way to integrate your GraphDef-based models into production web services or APIs.
-
-- **Mobile and Embedded Devices:** With tools like [TensorFlow Lite](../integrations/tflite.md), you can convert TF GraphDef models into formats optimized for smartphones, tablets, and various embedded devices. Your models can then be used for on-device inference, where execution is done locally, often providing performance gains and offline capabilities.
-
-- **Web Browsers:** [TensorFlow.js](../integrations/tfjs.md) enables the deployment of TF GraphDef models directly within web browsers. It paves the way for real-time object detection applications running on the client side, using the capabilities of YOLO26 through JavaScript.
-
-- **Specialized Hardware:** TF GraphDef's platform-agnostic nature allows it to target custom hardware, such as accelerators and TPUs (Tensor Processing Units). These devices can provide performance advantages for computationally intensive models.
-
-## Exporting YOLO26 Models to TF GraphDef
-
-You can convert your YOLO26 object detection model to the TF GraphDef format, which is compatible with various systems, to improve its performance across platforms.
-
-### Installation
-
-To install the required package, run:
-
-!!! tip "Installation"
-
-    === "CLI"
-
-        ```bash
-        # Install the required package for YOLO26
-        pip install ultralytics
-        ```
-
-For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
-
-### Usage
-
-All [Ultralytics YOLO26 models](../models/index.md) are designed to support export out of the box, making it easy to integrate them into your preferred deployment workflow. You can [view the full list of supported export formats and configuration options](../modes/export.md) to choose the best setup for your application.
-
-!!! example "Usage"
+!!! example "Export to TFLite"
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        # Load the YOLO26 model
-        model = YOLO("yolo26n.pt")
+        # Load the YOLO model
+        model = YOLO("yolo11n.pt")
 
-        # Export the model to TF GraphDef format
-        model.export(format="pb")  # creates 'yolo26n.pb'
+        # Export to TFLite format (recommended)
+        model.export(format="tflite")
 
-        # Load the exported TF GraphDef model
-        tf_graphdef_model = YOLO("yolo26n.pb")
-
-        # Run inference
-        results = tf_graphdef_model("https://ultralytics.com/images/bus.jpg")
+        # Load and run inference
+        tflite_model = YOLO("yolo11n_saved_model/yolo11n_float32.tflite")
+        results = tflite_model("https://ultralytics.com/images/bus.jpg")
         ```
 
     === "CLI"
 
         ```bash
-        # Export a YOLO26n PyTorch model to TF GraphDef format
-        yolo export model=yolo26n.pt format=pb # creates 'yolo26n.pb'
+        # Export to TFLite format
+        yolo export model=yolo11n.pt format=tflite
 
-        # Run inference with the exported model
-        yolo predict model='yolo26n.pb' source='https://ultralytics.com/images/bus.jpg'
+        # Run inference
+        yolo predict model=yolo11n_saved_model/yolo11n_float32.tflite source=https://ultralytics.com/images/bus.jpg
         ```
 
-### Export Arguments
+## Why TFLite Instead of GraphDef?
 
-| Argument | Type             | Default | Description                                                                                                                             |
-| -------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'pb'`  | Target format for the exported model, defining compatibility with various deployment environments.                                      |
-| `imgsz`  | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
-| `batch`  | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `device` | `str`            | `None`  | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                           |
+TensorFlow Lite offers several advantages over the legacy GraphDef format:
 
-For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
+- **Direct PyTorch conversion**: Uses Google's `ai-edge-torch` for direct PyTorch to TFLite conversion
+- **Better mobile support**: Optimized for mobile and embedded deployment
+- **Simpler dependency tree**: No longer requires `onnx2tf` and its dependencies
+- **Active development**: TFLite is actively maintained by Google
+- **Hardware acceleration**: Better support for Edge TPU, GPU delegates, and NPUs
 
-## Deploying Exported YOLO26 TF GraphDef Models
+## Inference with Existing .pb Files
 
-Once you've exported your YOLO26 model to the TF GraphDef format, the next step is deployment. The primary and recommended first step for running a TF GraphDef model is to use the YOLO("model.pb") method, as previously shown in the usage code snippet.
+If you have existing .pb files, they can still be loaded for inference:
 
-However, for more information on deploying your TF GraphDef models, take a look at the following resources:
+```python
+from ultralytics import YOLO
 
-- **[TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving)**: A guide on TensorFlow Serving that teaches how to deploy and serve [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models efficiently in production environments.
+# Load existing .pb file for inference only
+model = YOLO("existing_model.pb")
+results = model("image.jpg")
+```
 
-- **[TensorFlow Lite](https://www.tensorflow.org/api_docs/python/tf/lite/TFLiteConverter)**: This page describes how to convert machine learning models into a format optimized for on-device inference with TensorFlow Lite.
+However, creating new .pb exports is no longer supported.
 
-- **[TensorFlow.js](https://www.tensorflow.org/js/guide/conversion)**: A guide on model conversion that teaches how to convert TensorFlow or Keras models into TensorFlow.js format for use in web applications.
+## Related Resources
 
-## Summary
-
-In this guide, we explored how to export Ultralytics YOLO26 models to the TF GraphDef format. By doing this, you can flexibly deploy your optimized YOLO26 models in different environments.
-
-For further details on usage, visit the [TF GraphDef official documentation](https://www.tensorflow.org/api_docs/python/tf/Graph).
-
-For more information on integrating Ultralytics YOLO26 with other platforms and frameworks, see our [integration guide page](index.md).
+- [TFLite Integration Guide](../integrations/tflite.md)
+- [Edge TPU Integration Guide](../integrations/edge-tpu.md)
+- [TensorFlow.js Integration Guide](../integrations/tfjs.md)
+- [Export Mode Documentation](../modes/export.md)
 
 ## FAQ
 
-### How do I export a YOLO26 model to TF GraphDef format?
+### Why was TF GraphDef export deprecated?
 
-Ultralytics YOLO26 models can be exported to TensorFlow GraphDef (TF GraphDef) format seamlessly. This format provides a serialized, platform-independent representation of the model, ideal for deploying in varied environments like mobile and web. To export a YOLO26 model to TF GraphDef, follow these steps:
+The GraphDef (.pb) format is a legacy TensorFlow 1.x format. Ultralytics has migrated to using Google's `ai-edge-torch` library, which provides direct PyTorch to TFLite conversion without requiring the complex `onnx2tf` dependency chain. This results in a cleaner, more reliable export process.
 
-!!! example "Usage"
+### What should I use instead of TF GraphDef?
 
-    === "Python"
+Use TensorFlow Lite (TFLite) format: `yolo export model=yolo11n.pt format=tflite`. TFLite is the recommended format for TensorFlow-based deployment and offers better mobile/embedded device support.
 
-        ```python
-        from ultralytics import YOLO
+### Can I still run inference on existing .pb files?
 
-        # Load the YOLO26 model
-        model = YOLO("yolo26n.pt")
+Yes, existing .pb files can still be loaded for inference using `YOLO("model.pb")`. However, creating new .pb exports is no longer supported.
 
-        # Export the model to TF GraphDef format
-        model.export(format="pb")  # creates 'yolo26n.pb'
+### What about TensorFlow.js export?
 
-        # Load the exported TF GraphDef model
-        tf_graphdef_model = YOLO("yolo26n.pb")
-
-        # Run inference
-        results = tf_graphdef_model("https://ultralytics.com/images/bus.jpg")
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Export a YOLO26n PyTorch model to TF GraphDef format
-        yolo export model="yolo26n.pt" format="pb" # creates 'yolo26n.pb'
-
-        # Run inference with the exported model
-        yolo predict model="yolo26n.pb" source="https://ultralytics.com/images/bus.jpg"
-        ```
-
-For more information on different export options, visit the [Ultralytics documentation on model export](../modes/export.md).
-
-### What are the benefits of using TF GraphDef for YOLO26 model deployment?
-
-Exporting YOLO26 models to the TF GraphDef format offers multiple advantages, including:
-
-1. **Platform Independence**: TF GraphDef provides a platform-independent format, allowing models to be deployed across various environments including mobile and web browsers.
-2. **Optimizations**: The format enables several optimizations, such as constant folding, quantization, and graph transformations, which enhance execution efficiency and reduce memory usage.
-3. **Hardware Acceleration**: Models in TF GraphDef format can leverage hardware accelerators like GPUs, TPUs, and AI chips for performance gains.
-
-Read more about the benefits in the [TF GraphDef section](#why-should-you-export-to-tf-graphdef) of our documentation.
-
-### Why should I use Ultralytics YOLO26 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models?
-
-Ultralytics YOLO26 offers numerous advantages compared to other models like YOLOv5 and YOLOv7. Some key benefits include:
-
-1. **State-of-the-Art Performance**: YOLO26 provides exceptional speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for real-time object detection, segmentation, and classification.
-2. **Ease of Use**: Features a user-friendly API for model training, validation, prediction, and export, making it accessible for both beginners and experts.
-3. **Broad Compatibility**: Supports multiple export formats including ONNX, TensorRT, CoreML, and TensorFlow, for versatile deployment options.
-
-Explore further details in our [introduction to YOLO26](../models/yolo26.md).
-
-### How can I deploy a YOLO26 model on specialized hardware using TF GraphDef?
-
-Once a YOLO26 model is exported to TF GraphDef format, you can deploy it across various specialized hardware platforms. Typical deployment scenarios include:
-
-- **TensorFlow Serving**: Use TensorFlow Serving for scalable model deployment in production environments. It supports model management and efficient serving.
-- **Mobile Devices**: Convert TF GraphDef models to TensorFlow Lite, optimized for mobile and embedded devices, enabling on-device inference.
-- **Web Browsers**: Deploy models using TensorFlow.js for client-side inference in web applications.
-- **AI Accelerators**: Leverage TPUs and custom AI chips for accelerated inference.
-
-Check the [deployment options](#deployment-options-with-tf-graphdef) section for detailed information.
-
-### Where can I find solutions for common issues while exporting YOLO26 models?
-
-For troubleshooting common issues with exporting YOLO26 models, Ultralytics provides comprehensive guides and resources. If you encounter problems during installation or model export, refer to:
-
-- **[Common Issues Guide](../guides/yolo-common-issues.md)**: Offers solutions to frequently faced problems.
-- **[Installation Guide](../quickstart.md)**: Step-by-step instructions for setting up the required packages.
-
-These resources should help you resolve most issues related to YOLO26 model export and deployment.
+TensorFlow.js export (`format=tfjs`) is still supported and now uses TFLite as an intermediate format instead of GraphDef.

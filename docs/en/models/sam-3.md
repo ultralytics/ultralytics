@@ -134,7 +134,7 @@ pip install -U ultralytics
     If you get the above error during prediction, it means you have the incorrect `clip` package installed. Install the correct `clip` package by running the following:
     ```bash
     pip uninstall clip -y
-    pip install git+https://github.com/ultralytics/CLIP/
+    pip install git+https://github.com/ultralytics/CLIP.git
     ```
 
 ## How to Use SAM 3: Versatility in Concept Segmentation

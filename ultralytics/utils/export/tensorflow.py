@@ -212,8 +212,8 @@ def gd_outputs(gd):
     """Retrieve output names from a TensorFlow GraphDef for inference compatibility.
 
     Args:
-        gd (tensorflow.core.framework.graph_pb2.GraphDef): TensorFlow GraphDef object containing
-            the model graph structure.
+        gd (tensorflow.core.framework.graph_pb2.GraphDef): TensorFlow GraphDef object containing the model graph
+            structure.
 
     Returns:
         (list[str]): List of output node names with ':0' suffix, suitable for TensorFlow session

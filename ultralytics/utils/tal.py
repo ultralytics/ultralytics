@@ -357,19 +357,21 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         """Calculate IoU for rotated bounding boxes."""
         return probiou(gt_bboxes, pd_bboxes).squeeze(-1).clamp_(0)
 
-    @staticmethod
-    def select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt):
+    def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt):
         """Select the positive anchor center in gt for rotated bounding boxes.
 
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates with shape (h*w, 2).
             gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (b, n_boxes, 5).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes with shape (b, n_boxes, 1).
-            stride (list[int]): List of stride values for each feature map level.
 
         Returns:
             (torch.Tensor): Boolean mask of positive anchors with shape (b, n_boxes, h*w).
         """
+        wh_mask = gt_bboxes[..., 2:4] < self.stride[0]
+        stride_val = torch.tensor(self.stride[1], dtype=gt_bboxes.dtype, device=gt_bboxes.device)
+        gt_bboxes[..., 2:4] = torch.where((wh_mask * mask_gt).bool(), stride_val, gt_bboxes[..., 2:4])
+
         # (b, n_boxes, 5) --> (b, n_boxes, 4, 2)
         corners = xywhr2xyxyxyxy(gt_bboxes)
         # (b, n_boxes, 1, 2)

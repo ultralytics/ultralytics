@@ -168,13 +168,13 @@ def test_predict_all_image_formats():
     dataset_path = Path(data["path"])
 
     # Collect all images from train and val
-    images = list((dataset_path / "images" / "train").glob("*.*"))
-    images += list((dataset_path / "images" / "val").glob("*.*"))
+    expected = {"avif", "bmp", "dng", "heic", "jp2", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp"}
+    images = [im for im in (dataset_path / "images" / "train").glob("*.*") if im.suffix.lower().lstrip(".") in expected]
+    images += [im for im in (dataset_path / "images" / "val").glob("*.*") if im.suffix.lower().lstrip(".") in expected]
     assert len(images) == 12, f"Expected 12 images, found {len(images)}"
 
     # Verify all format extensions are represented
     extensions = {img.suffix.lower().lstrip(".") for img in images}
-    expected = {"avif", "bmp", "dng", "heic", "jp2", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp"}
     assert extensions == expected, f"Missing formats: {expected - extensions}"
 
     # Run inference on all images

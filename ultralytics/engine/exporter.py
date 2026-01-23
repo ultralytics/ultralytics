@@ -160,7 +160,7 @@ def export_formats():
             ["batch", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
-        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "half", "int8", "nms"]],
+        ["TensorFlow SavedModel (DEPRECATED)", "saved_model", "_saved_model", True, True, []],  # use tflite instead
         ["TensorFlow GraphDef (DEPRECATED)", "pb", ".pb", True, True, []],  # pb format is deprecated
         ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms", "fraction"]],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
@@ -579,14 +579,20 @@ class Exporter:
             f[4] = self.export_coreml()
         if is_tf_format:  # TensorFlow formats
             self.args.int8 |= edgetpu
-            f[5], _ = self.export_saved_model()
+            if saved_model:  # saved_model format is deprecated
+                LOGGER.warning(
+                    "TensorFlow SavedModel export is deprecated. Use `format=tflite` instead. "
+                    "See https://docs.ultralytics.com/modes/export/"
+                )
+                f[5] = ""  # Skip saved_model export
             if pb:  # pb format is deprecated
                 LOGGER.warning("TensorFlow GraphDef (.pb) export is deprecated. Please use TFLite format instead.")
                 f[6] = ""  # Skip pb export
-            if tflite:
+            if tflite or edgetpu:  # TFLite export (also needed for EdgeTPU)
                 f[7] = self.export_tflite()
             if edgetpu:
-                f[8] = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_int8.tflite")
+                tflite_dir = Path(str(self.file).replace(self.file.suffix, "_tflite"))
+                f[8] = self.export_edgetpu(tflite_model=tflite_dir / f"{self.file.stem}_int8.tflite")
             if tfjs:  # tfjs format is deprecated
                 LOGGER.warning(
                     "TensorFlow.js export is deprecated. For web deployment, use ONNX with ONNX Runtime Web: "
@@ -1037,7 +1043,35 @@ class Exporter:
 
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
-        """Export YOLO model to TFLite format using ai-edge-torch (SavedModel directory with TFLite files)."""
+        """Export YOLO model to TensorFlow SavedModel format (DEPRECATED).
+
+        Notes:
+            TensorFlow SavedModel export is deprecated. With the migration to ai-edge-torch,
+            TFLite files are created directly without a SavedModel intermediate. Use `format=tflite` instead.
+        """
+        raise NotImplementedError(
+            f"{prefix} TensorFlow SavedModel export is deprecated. "
+            "Use `format=tflite` for TensorFlow Lite export instead.\n"
+            "Example: `yolo export model=yolo11n.pt format=tflite`"
+        )
+
+    @try_export
+    def export_pb(self, keras_model=None, prefix=colorstr("TensorFlow GraphDef:")):
+        """Export YOLO model to TensorFlow GraphDef *.pb format (DEPRECATED).
+
+        Notes:
+            GraphDef (.pb) is a legacy TensorFlow 1.x format. With the migration to ai-edge-torch,
+            this format is no longer supported. Please use TFLite format instead:
+            `yolo export model=yolo11n.pt format=tflite`
+        """
+        raise NotImplementedError(
+            f"{prefix} GraphDef (.pb) export is deprecated and no longer supported. "
+            "Please use TFLite format instead: `yolo export model=yolo11n.pt format=tflite`"
+        )
+
+    @try_export
+    def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
+        """Export YOLO model to TensorFlow Lite format using ai-edge-torch."""
         assert not WINDOWS, (
             f"{prefix} TFLite export via ai-edge-torch is not supported on Windows. "
             "Please use Linux or macOS, or export to a different format (e.g., ONNX)."
@@ -1056,9 +1090,10 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with ai-edge-torch {ai_edge_torch.__version__}...")
 
-        f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
-        if f.is_dir():
-            shutil.rmtree(f)  # delete output folder
+        # Create output directory for TFLite files
+        output_dir = Path(str(self.file).replace(self.file.suffix, "_tflite"))
+        if output_dir.is_dir():
+            shutil.rmtree(output_dir)  # delete output folder
 
         # Prepare calibration data for INT8
         calibration_loader = None
@@ -1066,10 +1101,10 @@ class Exporter:
             calibration_loader = self.get_int8_calibration_dataloader(prefix)
 
         # Direct PyTorch -> TFLite using ai-edge-torch
-        _primary_file, tflite_files = torch2tflite(
+        primary_file, tflite_files = torch2tflite(
             model=self.model,
             sample_input=self.im,
-            output_dir=f,
+            output_dir=output_dir,
             file_stem=self.file.stem,
             half=self.args.half,
             int8=self.args.int8,
@@ -1083,37 +1118,8 @@ class Exporter:
         for tflite_file in tflite_files:
             self._add_tflite_metadata(tflite_file)
 
-        YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return str(f), None  # No keras_model returned with ai-edge-torch
-
-    @try_export
-    def export_pb(self, keras_model=None, prefix=colorstr("TensorFlow GraphDef:")):
-        """Export YOLO model to TensorFlow GraphDef *.pb format (DEPRECATED).
-
-        Notes:
-            GraphDef (.pb) is a legacy TensorFlow 1.x format. With the migration to ai-edge-torch,
-            this format is no longer supported. Please use TFLite format instead:
-            `yolo export model=yolo11n.pt format=tflite`
-        """
-        raise NotImplementedError(
-            f"{prefix} GraphDef (.pb) export is deprecated and no longer supported. "
-            "Please use TFLite format instead: `yolo export model=yolo11n.pt format=tflite`"
-        )
-
-    @try_export
-    def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
-        """Export YOLO model to TensorFlow Lite format."""
-        import ai_edge_torch
-
-        LOGGER.info(f"\n{prefix} returning TFLite file from ai-edge-torch {ai_edge_torch.__version__} export...")
-        saved_model = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
-        if self.args.int8:
-            f = saved_model / f"{self.file.stem}_int8.tflite"
-        elif self.args.half:
-            f = saved_model / f"{self.file.stem}_float16.tflite"
-        else:
-            f = saved_model / f"{self.file.stem}_float32.tflite"
-        return str(f)
+        YAML.save(output_dir / "metadata.yaml", self.metadata)  # add metadata.yaml
+        return str(primary_file)
 
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):

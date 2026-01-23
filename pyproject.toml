@@ -94,8 +94,8 @@ export = [
     "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
     "openvino>=2024.0.0",  # OpenVINO export
-    "ai-edge-torch>=0.3.0; python_version >= '3.10'",  # Google's PyTorch to TFLite converter
-    "ai-edge-litert>=1.2.0",  # TFLite runtime
+    "ai-edge-torch>=0.3.0; python_version >= '3.10' and platform_system != 'Windows'",  # Google's PyTorch to TFLite converter (Linux/macOS only)
+    "ai-edge-litert>=1.2.0; python_version >= '3.9' and platform_system != 'Windows'",  # TFLite runtime (Linux/macOS only)
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

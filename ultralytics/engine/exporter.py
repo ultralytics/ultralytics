@@ -1037,6 +1037,10 @@ class Exporter:
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
         """Export YOLO model to TFLite format using ai-edge-torch (SavedModel directory with TFLite files)."""
+        assert not WINDOWS, (
+            f"{prefix} TFLite export via ai-edge-torch is not supported on Windows. "
+            "Please use Linux or macOS, or export to a different format (e.g., ONNX)."
+        )
         assert IS_PYTHON_3_10, (
             f"{prefix} ai-edge-torch export requires Python>=3.10. "
             f"Please upgrade Python or use a different export format."

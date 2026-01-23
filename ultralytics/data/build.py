@@ -166,7 +166,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.shuffle = shuffle
         self.total_size = len(dataset)
         # ensure all ranks have a sample if batch size >= total size; degenerates to round-robin sampler
-        self.batch_size = 1 if batch_size >= self.total_size else batch_size
+        self.batch_size = 1 if (batch_size * num_replicas) >= self.total_size else batch_size
         self.num_batches = math.ceil(self.total_size / self.batch_size)
 
     def _get_rank_indices(self) -> tuple[int, int]:

@@ -637,13 +637,24 @@ def main():
         # Minify files
         minify_files(html=False, css=False, js=False)
 
-        # Compare sitemap URLs vs HTML pages
-        sitemap_file = SITE / "sitemap.xml"
-        if sitemap_file.exists():
-            sitemap_urls = len(re.findall(r"<loc>", sitemap_file.read_text()))
-            html_pages = len([f for f in SITE.rglob("*.html") if f.name != "404.html"])
-            status = "✅" if sitemap_urls == html_pages else "⚠️"
-            LOGGER.info(f"{sitemap_urls}/{html_pages} pages in sitemap.xml {status}")
+        # Add missing pages to sitemap
+        sitemap = SITE / "sitemap.xml"
+        if sitemap.exists():
+            content = sitemap.read_text()
+            in_sitemap = set(re.findall(r"<loc>([^<]+)</loc>", content))
+            all_pages = {
+                f"https://docs.ultralytics.com/{f.relative_to(SITE).as_posix().replace('index.html', '')}"
+                for f in SITE.rglob("*.html")
+                if f.name != "404.html"
+            }
+            if missing := (all_pages - in_sitemap):
+                entries = "\n".join(f"  <url>\n    <loc>{u}</loc>\n  </url>" for u in sorted(missing))
+                sitemap.write_text(content.replace("</urlset>", f"{entries}\n</urlset>"))
+            LOGGER.info(
+                f"{len(all_pages)}/{len(all_pages)} pages in sitemap.xml ✅ (+{len(missing)} added)"
+                if missing
+                else f"{len(in_sitemap)}/{len(all_pages)} pages in sitemap.xml ✅"
+            )
 
         # Print results and auto-serve on macOS
         size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20

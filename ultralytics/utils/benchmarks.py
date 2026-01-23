@@ -124,9 +124,7 @@ def benchmark(
             if format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
             elif format == "coreml":
-                assert MACOS or (LINUX and not ARM64), (
-                    "CoreML export only supported on macOS and non-aarch64 Linux"
-                )
+                assert MACOS or (LINUX and not ARM64), "CoreML export only supported on macOS and non-aarch64 Linux"
             if format == "coreml":
                 assert not IS_PYTHON_3_13, "CoreML not supported on Python 3.13"
             if format in {"saved_model", "tflite", "edgetpu"}:

@@ -192,7 +192,6 @@ validation:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 not_in_nav: |
-  /compare
   /macros
 
 nav:
@@ -237,7 +236,9 @@ nav:
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
   - Models:
-      - Models: models/index.md
+      - models/index.md
+      - Compare Models:
+          - compare/index.md
       - YOLOv3: models/yolov3.md
       - YOLOv4: models/yolov4.md
       - YOLOv5: models/yolov5.md

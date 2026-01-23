@@ -241,7 +241,9 @@ class RTDETRTrainer(DetectionTrainer):
             g[5] = {"params": list(g[5].values()), **optim_args, "lr": backbone_lr, "weight_decay": 0.0}  # backbone bn
             g[7] = {"params": list(g[7].values()), **optim_args, "lr": backbone_lr, "weight_decay": decay, "use_muon": True}  # backbone muon params
 
-            optimizer = MuSGD(params=g)
+            muon = self.args.muon_w
+            sgd = self.args.sgd_w
+            optimizer = MuSGD(params=g, muon=muon, sgd=sgd)
 
             LOGGER.info(
                 f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups:\n"

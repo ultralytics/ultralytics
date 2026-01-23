@@ -99,6 +99,8 @@ lrf: 0.01 # (float) final LR fraction; final LR = lr0 * lrf
 backbone_lr_ratio: 1.0 # (float) learning rate ratio for backbone (1.0 means lr0 for backbone)
 momentum: 0.937 # (float) SGD momentum or Adam beta1
 weight_decay: 0.0005 # (float) weight decay (L2 regularization)
+muon_w: 0.45 # (float) Muon scaling factor for MuSGD optimizer (0.2 recommended)
+sgd_w: 0.55 # (float) SGD scaling factor for MuSGD optimizer (1.0 recommended)
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
 warmup_momentum: 0.8 # (float) initial momentum during warmup
 warmup_bias_lr: 0.1 # (float) bias learning rate during warmup

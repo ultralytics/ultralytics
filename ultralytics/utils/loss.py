@@ -1174,9 +1174,9 @@ class E2ELoss:
 class TVPDetectLoss:
     """Criterion class for computing training losses for text-visual prompt detection."""
 
-    def __init__(self, model, tal_topk=10):
+    def __init__(self, model, tal_topk=10,tal_topk2: int | None = None):
         """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
-        self.vp_criterion = v8DetectionLoss(model, tal_topk)
+        self.vp_criterion = v8DetectionLoss(model, tal_topk, tal_topk2)
         # NOTE: store following info as it's changeable in __call__
         self.hyp = self.vp_criterion.hyp
         self.ori_nc = self.vp_criterion.nc
@@ -1207,7 +1207,7 @@ class TVPDetectLoss:
     def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""
         # NOTE: remove empty placeholder
-        scores = preds["scores"][:, self.ori_nc :, :]
+        scores = preds["scores"]
         vnc = scores.shape[1]
 
         self.vp_criterion.nc = vnc

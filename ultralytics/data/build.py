@@ -167,7 +167,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.total_size = len(dataset)
         # Ensure all ranks have a batch
         if (batch_size * num_replicas) >= self.total_size:
-            self.batch_size = 1 
+            self.batch_size = 1
             dataset.rect = False  # force non-rect because of possible shape mismatch
         else:
             self.batch_size = batch_size

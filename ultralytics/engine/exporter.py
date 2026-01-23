@@ -1256,14 +1256,14 @@ class Exporter:
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """Export YOLO model to TensorFlow.js format (DEPRECATED).
 
-        Note:
+        Examples:
+                yolo export model=yolo11n.pt format=onnx  # Export to ONNX
+                # Then use onnxruntime-web in browser: https://onnxruntime.ai/docs/tutorials/web/
+
+        Notes:
             TensorFlow.js export is deprecated. For browser deployment, use ONNX format with
             ONNX Runtime Web instead, which offers better performance (WebGPU support) and
             doesn't require TensorFlow dependencies.
-
-            Example:
-                yolo export model=yolo11n.pt format=onnx  # Export to ONNX
-                # Then use onnxruntime-web in browser: https://onnxruntime.ai/docs/tutorials/web/
         """
         raise NotImplementedError(
             f"{prefix} TensorFlow.js export is deprecated. For browser/web deployment, "

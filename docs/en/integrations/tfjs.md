@@ -33,11 +33,11 @@ yolo export model=yolo11n.pt format=onnx
 ### Step 2: Use ONNX Runtime Web in Browser
 
 ```javascript
-import * as ort from 'onnxruntime-web';
+import * as ort from "onnxruntime-web";
 
 // Load model
-const session = await ort.InferenceSession.create('yolo11n.onnx', {
-    executionProviders: ['webgpu', 'webgl', 'wasm']  // Falls back automatically
+const session = await ort.InferenceSession.create("yolo11n.onnx", {
+    executionProviders: ["webgpu", "webgl", "wasm"], // Falls back automatically
 });
 
 // Run inference
@@ -53,13 +53,13 @@ npm install onnxruntime-web
 
 ## Why ONNX Runtime Web?
 
-| Feature | TensorFlow.js (old) | ONNX Runtime Web (recommended) |
-|---------|---------------------|-------------------------------|
-| Export dependency | Full TensorFlow | None (uses existing ONNX) |
-| GPU backends | WebGL, WASM | **WebGPU**, WebGL, WASM, WebNN |
-| Performance | Good | **Better** (WebGPU ~20x faster) |
-| Maintenance | Google | Microsoft (active development) |
-| YOLO support | Required conversion | Direct ONNX loading |
+| Feature           | TensorFlow.js (old) | ONNX Runtime Web (recommended)  |
+| ----------------- | ------------------- | ------------------------------- |
+| Export dependency | Full TensorFlow     | None (uses existing ONNX)       |
+| GPU backends      | WebGL, WASM         | **WebGPU**, WebGL, WASM, WebNN  |
+| Performance       | Good                | **Better** (WebGPU ~20x faster) |
+| Maintenance       | Google              | Microsoft (active development)  |
+| YOLO support      | Required conversion | Direct ONNX loading             |
 
 ## Example Projects
 
@@ -71,12 +71,12 @@ Several production-ready implementations exist:
 
 ## Browser Compatibility
 
-| Browser | WebGPU | WebGL | WASM |
-|---------|--------|-------|------|
-| Chrome 113+ | Yes | Yes | Yes |
-| Edge 113+ | Yes | Yes | Yes |
-| Firefox 141+ | Yes | Yes | Yes |
-| Safari 18+ | Partial | Yes | Yes |
+| Browser      | WebGPU  | WebGL | WASM |
+| ------------ | ------- | ----- | ---- |
+| Chrome 113+  | Yes     | Yes   | Yes  |
+| Edge 113+    | Yes     | Yes   | Yes  |
+| Firefox 141+ | Yes     | Yes   | Yes  |
+| Safari 18+   | Partial | Yes   | Yes  |
 
 ## Related Resources
 

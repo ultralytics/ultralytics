@@ -199,30 +199,14 @@ nav:
   - Home:
       - Home: index.md
       - Quickstart: quickstart.md
-      - Modes:
-          - modes/index.md
-          - Train: modes/train.md
-          - Val: modes/val.md
-          - Predict: modes/predict.md
-          - Export: modes/export.md
-          - Track: modes/track.md
-          - Benchmark: modes/benchmark.md
-      - Tasks:
-          - tasks/index.md
-          - Detect: tasks/detect.md
-          - Segment: tasks/segment.md
-          - Classify: tasks/classify.md
-          - Pose: tasks/pose.md
-          - OBB: tasks/obb.md
-      - Models:
-          - models/index.md
-      - Datasets:
-          - datasets/index.md
-      - Solutions:
-          - solutions/index.md
-      - Guides:
-          - guides/index.md
-      - YOLO26 🚀: models/yolo26.md # for promotion of new pages
+      - Usage:
+          - CLI: usage/cli.md
+          - Python: usage/python.md
+          - Callbacks: usage/callbacks.md
+          - Configuration: usage/cfg.md
+          - Simple Utilities: usage/simple-utilities.md
+          - Advanced Customization: usage/engine.md
+      - YOLO26 🚀: models/yolo26.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -237,68 +221,21 @@ nav:
           - 🇹🇷&nbsp Türkçe: https://docs.ultralytics.com/tr/
           - 🇻🇳&nbsp Tiếng Việt: https://docs.ultralytics.com/vi/
           - 🇸🇦&nbsp العربية: https://docs.ultralytics.com/ar/
-  - Quickstart:
-      - quickstart.md
-      - Usage:
-          - CLI: usage/cli.md
-          - Python: usage/python.md
-          - Callbacks: usage/callbacks.md
-          - Configuration: usage/cfg.md
-          - Simple Utilities: usage/simple-utilities.md
-          - Advanced Customization: usage/engine.md
-      - Modes:
-          - Modes: modes/index.md
-          - Train: modes/train.md
-          - Val: modes/val.md
-          - Predict: modes/predict.md
-          - Export: modes/export.md
-          - Track: modes/track.md
-          - Benchmark: modes/benchmark.md
-      - Tasks:
-          - Tasks: tasks/index.md
-          - Detect: tasks/detect.md
-          - Segment: tasks/segment.md
-          - Classify: tasks/classify.md
-          - Pose: tasks/pose.md
-          - OBB: tasks/obb.md
-      - Models:
-          - models/index.md
-      - Datasets:
-          - datasets/index.md
-      - Solutions:
-          - solutions/index.md
-      - Guides:
-          - guides/index.md
   - Modes:
-      - Modes: modes/index.md
+      - modes/index.md
       - Train: modes/train.md
       - Val: modes/val.md
       - Predict: modes/predict.md
       - Export: modes/export.md
       - Track: modes/track.md
       - Benchmark: modes/benchmark.md
-      - Tasks:
-          - tasks/index.md
-          - Detect: tasks/detect.md
-          - Segment: tasks/segment.md
-          - Classify: tasks/classify.md
-          - Pose: tasks/pose.md
-          - OBB: tasks/obb.md
   - Tasks:
-      - Tasks: tasks/index.md
+      - tasks/index.md
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
-      - Modes:
-          - modes/index.md
-          - Train: modes/train.md
-          - Val: modes/val.md
-          - Predict: modes/predict.md
-          - Export: modes/export.md
-          - Track: modes/track.md
-          - Benchmark: modes/benchmark.md
   - Models:
       - Models: models/index.md
       - YOLOv3: models/yolov3.md
@@ -332,6 +269,7 @@ nav:
           - COCO8: datasets/detect/coco8.md
           - COCO8-Grayscale: datasets/detect/coco8-grayscale.md
           - COCO8-Multispectral: datasets/detect/coco8-multispectral.md
+          - COCO12-Formats: datasets/detect/coco12-formats.md
           - COCO128: datasets/detect/coco128.md
           - Construction-PPE: datasets/detect/construction-ppe.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md

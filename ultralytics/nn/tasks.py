@@ -425,6 +425,11 @@ class DetectionModel(BaseModel):
         """Return whether the model uses end-to-end NMS-free detection."""
         return getattr(self.model[-1], "end2end", False)
 
+    @end2end.setter
+    def end2end(self, value):
+        """Override the end-to-end detection mode."""
+        self.model[-1].end2end = value
+
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs.
 

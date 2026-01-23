@@ -193,12 +193,12 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         output_dir (str | Path): Output directory path for the compiled Edge TPU model.
         prefix (str, optional): Logging prefix. Defaults to "".
 
+    Raises:
+        AssertionError: If EdgeTPU compilation fails (e.g., unsupported ops from ai-edge-torch).
+
     Notes:
         Requires the Edge TPU compiler to be installed. The function compiles the TFLite model
         for optimal performance on Google's Edge TPU hardware accelerator.
-
-    Raises:
-        AssertionError: If EdgeTPU compilation fails (e.g., unsupported ops from ai-edge-torch).
     """
     import subprocess
 

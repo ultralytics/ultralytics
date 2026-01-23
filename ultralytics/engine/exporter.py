@@ -104,7 +104,6 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_intel,
-    is_sudo_available,
 )
 from ultralytics.utils.export import (
     onnx2engine,
@@ -154,7 +153,14 @@ def export_formats():
         ["TensorFlow SavedModel (DEPRECATED)", "saved_model", "_saved_model", True, True, []],  # use tflite instead
         ["TensorFlow GraphDef (DEPRECATED)", "pb", ".pb", True, True, []],  # pb format is deprecated
         ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms", "fraction"]],
-        ["TensorFlow Edge TPU (DEPRECATED)", "edgetpu", "_edgetpu.tflite", True, False, []],  # incompatible with ai-edge-torch
+        [
+            "TensorFlow Edge TPU (DEPRECATED)",
+            "edgetpu",
+            "_edgetpu.tflite",
+            True,
+            False,
+            [],
+        ],  # incompatible with ai-edge-torch
         ["TensorFlow.js (DEPRECATED)", "tfjs", "_web_model", True, False, []],  # use ONNX + ONNX Runtime Web
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],

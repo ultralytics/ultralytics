@@ -5,13 +5,10 @@ from __future__ import annotations
 from functools import partial
 from pathlib import Path
 
-import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
 from ultralytics.utils import LOGGER
-from ultralytics.utils.downloads import attempt_download_asset
-from ultralytics.utils.files import spaces_in_path
 from ultralytics.utils.tal import make_anchors
 
 
@@ -57,102 +54,152 @@ def _tf_kpts_decode(self, kpts: torch.Tensor, is_pose26: bool = False) -> torch.
     return a.view(bs, self.nk, -1)
 
 
-def onnx2saved_model(
-    onnx_file: str,
+def torch2tflite(
+    model: torch.nn.Module,
+    sample_input: torch.Tensor,
     output_dir: Path,
+    file_stem: str,
+    half: bool = False,
     int8: bool = False,
-    images: np.ndarray = None,
-    disable_group_convolution: bool = False,
-    prefix="",
-):
-    """Convert a ONNX model to TensorFlow SavedModel format via ONNX.
+    nms: bool = False,
+    calibration_loader=None,
+    metadata: dict | None = None,
+    prefix: str = "",
+) -> tuple[Path, list[Path]]:
+    """Convert PyTorch model directly to TFLite using ai-edge-torch.
 
     Args:
-        onnx_file (str): ONNX file path.
-        output_dir (Path): Output directory path for the SavedModel.
+        model (torch.nn.Module): PyTorch model to convert.
+        sample_input (torch.Tensor): Sample input tensor for tracing (BCHW format).
+        output_dir (Path): Output directory for TFLite files.
+        file_stem (str): Base filename stem for output files.
+        half (bool, optional): Enable FP16 quantization. Defaults to False.
         int8 (bool, optional): Enable INT8 quantization. Defaults to False.
-        images (np.ndarray, optional): Calibration images for INT8 quantization in BHWC format.
-        disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
+        nms (bool, optional): Whether NMS is embedded in model. Defaults to False.
+        calibration_loader (DataLoader, optional): Calibration data for INT8 quantization.
+        metadata (dict, optional): Metadata to embed in TFLite file.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
-        (keras.Model): Converted Keras model.
+        (tuple[Path, list[Path]]): Tuple of (primary output file, list of all TFLite files created).
 
-    Notes:
-        - Requires onnx2tf package. Downloads calibration data if INT8 quantization is enabled.
-        - Removes temporary files and renames quantized models after conversion.
+    Raises:
+        ValueError: If INT8 quantization is requested but no calibration data is provided.
     """
-    # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
-    onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")
-    if not onnx2tf_file.exists():
-        attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
-    np_data = None
+    import ai_edge_torch
+
+    LOGGER.info(f"{prefix} starting TFLite export with ai-edge-torch {ai_edge_torch.__version__}...")
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    tflite_files = []
+
+    # Ensure model is in eval mode and on CPU for export
+    model = model.eval().cpu()
+    sample_input = sample_input.cpu()
+
+    # Convert sample input from BCHW to BHWC for TFLite
+    sample_input_nhwc = sample_input.permute(0, 2, 3, 1).contiguous()
+
+    # Wrap model to handle BCHW -> BHWC conversion internally
+    class TFLiteWrapper(torch.nn.Module):
+        """Wrapper to convert BHWC input to BCHW for internal model processing."""
+
+        def __init__(self, m):
+            super().__init__()
+            self.m = m
+
+        def forward(self, x):
+            # Input x is BHWC from TFLite, convert to BCHW for PyTorch model
+            x = x.permute(0, 3, 1, 2).contiguous()
+            return self.m(x)
+
+    wrapped_model = TFLiteWrapper(model).eval()
+
+    # Handle INT8 quantization
     if int8:
-        tmp_file = output_dir / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
-        if images is not None:
-            output_dir.mkdir(parents=True, exist_ok=True)
-            np.save(str(tmp_file), images)  # BHWC
-            np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
+        if calibration_loader is None:
+            raise ValueError(f"{prefix} INT8 quantization requires calibration data (calibration_loader)")
 
-    # Patch onnx.helper for onnx_graphsurgeon compatibility with ONNX>=1.17
-    # The float32_to_bfloat16 function was removed in ONNX 1.17, but onnx_graphsurgeon still uses it
-    import onnx.helper
+        try:
+            from ai_edge_torch.quantize import pt2e_quantizer
+            from ai_edge_torch.quantize.pt2e_quantizer import PT2EQuantizer
+            from torch.ao.quantization.quantize_pt2e import convert_pt2e, prepare_pt2e
 
-    if not hasattr(onnx.helper, "float32_to_bfloat16"):
-        import struct
+            LOGGER.info(f"{prefix} preparing INT8 quantization with calibration data...")
 
-        def float32_to_bfloat16(fval):
-            """Convert float32 to bfloat16 (truncates lower 16 bits of mantissa)."""
-            ival = struct.unpack("=I", struct.pack("=f", fval))[0]
-            return ival >> 16
+            # Create quantizer for INT8
+            quantizer = PT2EQuantizer().set_global(pt2e_quantizer.get_symmetric_quantization_config())
 
-        onnx.helper.float32_to_bfloat16 = float32_to_bfloat16
+            # Export model for quantization
+            exported_model = torch.export.export(wrapped_model, (sample_input_nhwc,))
+            prepared_model = prepare_pt2e(exported_model.module(), quantizer)
 
-    import onnx2tf  # scoped for after ONNX export for reduced conflict during import
+            # Calibrate with data
+            n_calibration = 0
+            with torch.no_grad():
+                for batch in calibration_loader:
+                    img = batch["img"].float() / 255.0  # Normalize
+                    # Resize if needed to match sample input size
+                    if img.shape[2:4] != sample_input.shape[2:4]:
+                        img = torch.nn.functional.interpolate(
+                            img, size=sample_input.shape[2:4], mode="bilinear", align_corners=False
+                        )
+                    # Convert to NHWC
+                    img_nhwc = img.permute(0, 2, 3, 1).contiguous()
+                    prepared_model(img_nhwc)
+                    n_calibration += img_nhwc.shape[0]
+                    if n_calibration >= 100:  # Use at least 100 samples
+                        break
+            LOGGER.info(f"{prefix} calibrated with {n_calibration} images")
 
-    LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
-    keras_model = onnx2tf.convert(
-        input_onnx_file_path=onnx_file,
-        output_folder_path=str(output_dir),
-        not_use_onnxsim=True,
-        verbosity="error",  # note INT8-FP16 activation bug https://github.com/ultralytics/ultralytics/issues/15873
-        output_integer_quantized_tflite=int8,
-        custom_input_op_name_np_data_path=np_data,
-        enable_batchmatmul_unfold=True and not int8,  # fix lower no. of detected objects on GPU delegate
-        output_signaturedefs=True,  # fix error with Attention block group convolution
-        disable_group_convolution=disable_group_convolution,  # fix error with group convolution
-    )
+            # Convert to quantized model
+            quantized_model = convert_pt2e(prepared_model)
 
-    # Remove/rename TFLite models
-    if int8:
-        tmp_file.unlink(missing_ok=True)
-        for file in output_dir.rglob("*_dynamic_range_quant.tflite"):
-            file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
-        for file in output_dir.rglob("*_integer_quant_with_int16_act.tflite"):
-            file.unlink()  # delete extra fp16 activation TFLite files
-    return keras_model
+            # Export INT8 model
+            edge_model = ai_edge_torch.convert(quantized_model, (sample_input_nhwc,))
+            f_int8 = output_dir / f"{file_stem}_int8.tflite"
+            edge_model.export(str(f_int8))
+            tflite_files.append(f_int8)
+            LOGGER.info(f"{prefix} INT8 TFLite model exported to {f_int8}")
 
+        except Exception as e:
+            LOGGER.warning(f"{prefix} INT8 quantization failed: {e}. Falling back to FP32.")
+            int8 = False  # Fall back to FP32
 
-def keras2pb(keras_model, file: Path, prefix=""):
-    """Convert a Keras model to TensorFlow GraphDef (.pb) format.
+    # Handle FP16 quantization
+    if half and not int8:
+        try:
+            from ai_edge_torch.quantize import quant_recipes
 
-    Args:
-        keras_model (keras.Model): Keras model to convert to frozen graph format.
-        file (Path): Output file path (suffix will be changed to .pb).
-        prefix (str, optional): Logging prefix. Defaults to "".
+            LOGGER.info(f"{prefix} exporting with FP16 quantization...")
+            quant_config = quant_recipes.full_fp16_recipe()
+            edge_model = ai_edge_torch.convert(wrapped_model, (sample_input_nhwc,), quant_config=quant_config)
+            f_fp16 = output_dir / f"{file_stem}_float16.tflite"
+            edge_model.export(str(f_fp16))
+            tflite_files.append(f_fp16)
+            LOGGER.info(f"{prefix} FP16 TFLite model exported to {f_fp16}")
+        except Exception as e:
+            LOGGER.warning(f"{prefix} FP16 quantization failed: {e}. Falling back to FP32.")
+            half = False  # Fall back to FP32
 
-    Notes:
-        Creates a frozen graph by converting variables to constants for inference optimization.
-    """
-    import tensorflow as tf
-    from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
+    # Always create FP32 model as fallback/reference
+    LOGGER.info(f"{prefix} exporting FP32 TFLite model...")
+    edge_model_fp32 = ai_edge_torch.convert(wrapped_model, (sample_input_nhwc,))
+    f_fp32 = output_dir / f"{file_stem}_float32.tflite"
+    edge_model_fp32.export(str(f_fp32))
+    tflite_files.append(f_fp32)
+    LOGGER.info(f"{prefix} FP32 TFLite model exported to {f_fp32}")
 
-    LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
-    m = tf.function(lambda x: keras_model(x))  # full model
-    m = m.get_concrete_function(tf.TensorSpec(keras_model.inputs[0].shape, keras_model.inputs[0].dtype))
-    frozen_func = convert_variables_to_constants_v2(m)
-    frozen_func.graph.as_graph_def()
-    tf.io.write_graph(graph_or_graph_def=frozen_func.graph, logdir=str(file.parent), name=file.name, as_text=False)
+    # Determine primary output file
+    if int8 and (output_dir / f"{file_stem}_int8.tflite").exists():
+        primary_file = output_dir / f"{file_stem}_int8.tflite"
+    elif half and (output_dir / f"{file_stem}_float16.tflite").exists():
+        primary_file = output_dir / f"{file_stem}_float16.tflite"
+    else:
+        primary_file = f_fp32
+
+    return primary_file, tflite_files
 
 
 def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str = ""):
@@ -182,48 +229,19 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     subprocess.run(cmd, shell=True)
 
 
-def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = False, prefix: str = ""):
-    """Convert a TensorFlow GraphDef (.pb) model to TensorFlow.js format.
+def gd_outputs(gd):
+    """Return TensorFlow GraphDef model output node names.
 
     Args:
-        pb_file (str): Path to the input TensorFlow GraphDef (.pb) model file.
-        output_dir (str): Output directory path for the converted TensorFlow.js model.
-        half (bool, optional): Enable FP16 quantization. Defaults to False.
-        int8 (bool, optional): Enable INT8 quantization. Defaults to False.
-        prefix (str, optional): Logging prefix. Defaults to "".
+        gd: TensorFlow GraphDef object.
+
+    Returns:
+        (list[str]): Sorted list of output node names with ':0' suffix.
 
     Notes:
-        Requires tensorflowjs package. Uses tensorflowjs_converter command-line tool for conversion.
-        Handles spaces in file paths and warns if output directory contains spaces.
+        This function is kept for backward compatibility with existing .pb model inference.
+        GraphDef (.pb) export is deprecated - use TFLite format for new models.
     """
-    import subprocess
-
-    import tensorflow as tf
-    import tensorflowjs as tfjs
-
-    LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
-
-    gd = tf.Graph().as_graph_def()  # TF GraphDef
-    with open(pb_file, "rb") as file:
-        gd.ParseFromString(file.read())
-    outputs = ",".join(gd_outputs(gd))
-    LOGGER.info(f"\n{prefix} output node names: {outputs}")
-
-    quantization = "--quantize_float16" if half else "--quantize_uint8" if int8 else ""
-    with spaces_in_path(pb_file) as fpb_, spaces_in_path(output_dir) as f_:  # exporter cannot handle spaces in paths
-        cmd = (
-            "tensorflowjs_converter "
-            f'--input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
-        )
-        LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd, shell=True)
-
-    if " " in output_dir:
-        LOGGER.warning(f"{prefix} your model may not work correctly with spaces in path '{output_dir}'.")
-
-
-def gd_outputs(gd):
-    """Return TensorFlow GraphDef model output node names."""
     name_list, input_list = [], []
     for node in gd.node:  # tensorflow.core.framework.node_def_pb2.NodeDef
         name_list.append(node.name)

@@ -15,7 +15,6 @@ ONNX                    | `onnx`                    | yolo26n.onnx
 OpenVINO                | `openvino`                | yolo26n_openvino_model/
 TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
-TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
 TensorFlow Lite         | `tflite`                  | yolo26n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/

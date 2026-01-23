@@ -10,8 +10,8 @@ ONNX                    | `onnx`                    | yolo26n.onnx
 OpenVINO                | `openvino`                | yolo26n_openvino_model/
 TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
-TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
-TensorFlow GraphDef     | `pb` (DEPRECATED)         | yolo26n.pb
+TensorFlow SavedModel   | `saved_model` (DEPRECATED)| Use `tflite` instead
+TensorFlow GraphDef     | `pb` (DEPRECATED)         | Use `tflite` instead
 TensorFlow Lite         | `tflite`                  | yolo26n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
 TensorFlow.js           | `tfjs` (DEPRECATED)       | Use ONNX + ONNX Runtime Web
@@ -41,7 +41,6 @@ Inference:
                          yolo11n_openvino_model     # OpenVINO
                          yolo11n.engine             # TensorRT
                          yolo11n.mlpackage          # CoreML (macOS-only)
-                         yolo11n_saved_model        # TensorFlow SavedModel
                          yolo11n.tflite             # TensorFlow Lite
                          yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
                          yolo11n_paddle_model       # PaddlePaddle
@@ -51,12 +50,6 @@ Inference:
                          yolo11n_rknn_model         # RKNN
                          yolo11n_executorch_model   # ExecuTorch
                          yolo11n_axelera_model      # Axelera
-
-TensorFlow.js:
-    $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
-    $ npm install
-    $ ln -s ../../yolo11n_web_model public/yolo11n_web_model
-    $ npm start
 """
 
 import json
@@ -591,8 +584,9 @@ class Exporter:
             if tflite or edgetpu:  # TFLite export (also needed for EdgeTPU)
                 f[7] = self.export_tflite()
             if edgetpu:
-                tflite_dir = Path(str(self.file).replace(self.file.suffix, "_tflite"))
-                f[8] = self.export_edgetpu(tflite_model=tflite_dir / f"{self.file.stem}_int8.tflite")
+                # EdgeTPU uses the INT8 TFLite model (int8=True is set above for edgetpu)
+                tflite_file = Path(str(self.file).replace(self.file.suffix, ".tflite"))
+                f[8] = self.export_edgetpu(tflite_model=tflite_file)
             if tfjs:  # tfjs format is deprecated
                 LOGGER.warning(
                     "TensorFlow.js export is deprecated. For web deployment, use ONNX with ONNX Runtime Web: "
@@ -1090,10 +1084,8 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with ai-edge-torch {ai_edge_torch.__version__}...")
 
-        # Create output directory for TFLite files
-        output_dir = Path(str(self.file).replace(self.file.suffix, "_tflite"))
-        if output_dir.is_dir():
-            shutil.rmtree(output_dir)  # delete output folder
+        # Determine output filename
+        f = Path(str(self.file).replace(self.file.suffix, ".tflite"))
 
         # Prepare calibration data for INT8
         calibration_loader = None
@@ -1101,11 +1093,10 @@ class Exporter:
             calibration_loader = self.get_int8_calibration_dataloader(prefix)
 
         # Direct PyTorch -> TFLite using ai-edge-torch
-        primary_file, tflite_files = torch2tflite(
+        torch2tflite(
             model=self.model,
             sample_input=self.im,
-            output_dir=output_dir,
-            file_stem=self.file.stem,
+            output_file=f,
             half=self.args.half,
             int8=self.args.int8,
             nms=self.args.nms,
@@ -1114,12 +1105,10 @@ class Exporter:
             prefix=prefix,
         )
 
-        # Add TFLite metadata to all generated files
-        for tflite_file in tflite_files:
-            self._add_tflite_metadata(tflite_file)
+        # Add TFLite metadata (embedded in file)
+        self._add_tflite_metadata(f)
 
-        YAML.save(output_dir / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return str(primary_file)
+        return str(f)
 
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
@@ -1237,7 +1226,7 @@ class Exporter:
         if not tflite_model.exists():
             raise FileNotFoundError(
                 f"{prefix} INT8 TFLite model not found at {tflite_model}. "
-                "Ensure export_saved_model() completed with int8=True."
+                "Ensure export_tflite() completed with int8=True."
             )
 
         LOGGER.warning(

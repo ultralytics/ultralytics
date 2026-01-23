@@ -2,6 +2,6 @@
 
 from .engine import onnx2engine, torch2onnx
 from .imx import torch2imx
-from .tensorflow import keras2pb, onnx2saved_model, pb2tfjs, tflite2edgetpu
+from .tensorflow import gd_outputs, tflite2edgetpu, tflite2tfjs, torch2tflite
 
-__all__ = ["keras2pb", "onnx2engine", "onnx2saved_model", "pb2tfjs", "tflite2edgetpu", "torch2imx", "torch2onnx"]
+__all__ = ["gd_outputs", "onnx2engine", "tflite2edgetpu", "tflite2tfjs", "torch2imx", "torch2onnx", "torch2tflite"]

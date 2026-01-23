@@ -130,7 +130,7 @@ def benchmark(
             if format == "coreml":
                 assert not IS_PYTHON_3_13, "CoreML not supported on Python 3.13"
             if format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
-                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported yet"
                 # assert not IS_PYTHON_MINIMUM_3_12, "TFLite exports not supported on Python>=3.12 yet"
             if format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"

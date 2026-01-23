@@ -92,7 +92,7 @@ Every dataset includes automatic statistics:
 
 Ultralytics Platform supports:
 
-**Images:** JPEG, PNG, WebP, BMP, GIF, TIFF, HEIC, AVIF, PFM, DNG (max 50MB each)
+**Images:** JPEG, PNG, WebP, BMP, GIF, TIFF, HEIC, AVIF, JP2, DNG (max 50MB each)
 
 **Videos:** MP4, WebM, MOV, AVI, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 

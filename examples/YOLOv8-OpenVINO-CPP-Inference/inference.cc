@@ -107,14 +107,14 @@ void Inference::PostProcessing(cv::Mat &frame) {
 			class_list.push_back(class_id.y);
 			confidence_list.push_back(score);
 
-			const float x = detection_outputs.at<float>(0, i);
-			const float y = detection_outputs.at<float>(1, i);
+			const float cx = detection_outputs.at<float>(0, i);
+			const float cy = detection_outputs.at<float>(1, i);
 			const float w = detection_outputs.at<float>(2, i);
 			const float h = detection_outputs.at<float>(3, i);
 
 			cv::Rect box;
-			box.x = static_cast<int>(x);
-			box.y = static_cast<int>(y);
+			box.x = static_cast<int>((cx - w / 2));
+			box.y = static_cast<int>((cy - h / 2));
 			box.width = static_cast<int>(w);
 			box.height = static_cast<int>(h);
 			box_list.push_back(box);
@@ -141,10 +141,10 @@ void Inference::PostProcessing(cv::Mat &frame) {
 // Method to get the bounding box in the correct scale
 cv::Rect Inference::GetBoundingBox(const cv::Rect &src) const {
 	cv::Rect box = src;
-	box.x = (box.x - box.width / 2) * scale_factor_.x;
-	box.y = (box.y - box.height / 2) * scale_factor_.y;
-	box.width *= scale_factor_.x;
-	box.height *= scale_factor_.y;
+	box.x = static_cast<int>(box.x * scale_factor_.x);
+	box.y = static_cast<int>(box.y * scale_factor_.y);
+	box.width = static_cast<int>(box.width * scale_factor_.x);
+	box.height = static_cast<int>(box.height * scale_factor_.y);
 	return box;
 }
 

@@ -581,9 +581,7 @@ class Exporter:
             self.args.int8 |= edgetpu
             f[5], _ = self.export_saved_model()
             if pb:  # pb format is deprecated
-                LOGGER.warning(
-                    "TensorFlow GraphDef (.pb) export is deprecated. Please use TFLite format instead."
-                )
+                LOGGER.warning("TensorFlow GraphDef (.pb) export is deprecated. Please use TFLite format instead.")
                 f[6] = ""  # Skip pb export
             if tflite:
                 f[7] = self.export_tflite()
@@ -1056,7 +1054,7 @@ class Exporter:
             calibration_loader = self.get_int8_calibration_dataloader(prefix)
 
         # Direct PyTorch -> TFLite using ai-edge-torch
-        primary_file, tflite_files = torch2tflite(
+        _primary_file, tflite_files = torch2tflite(
             model=self.model,
             sample_input=self.im,
             output_dir=f,
@@ -1080,7 +1078,7 @@ class Exporter:
     def export_pb(self, keras_model=None, prefix=colorstr("TensorFlow GraphDef:")):
         """Export YOLO model to TensorFlow GraphDef *.pb format (DEPRECATED).
 
-        Note:
+        Notes:
             GraphDef (.pb) is a legacy TensorFlow 1.x format. With the migration to ai-edge-torch,
             this format is no longer supported. Please use TFLite format instead:
             `yolo export model=yolo11n.pt format=tflite`

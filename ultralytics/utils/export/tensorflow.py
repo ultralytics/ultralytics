@@ -63,7 +63,7 @@ def torch2tflite(
     int8: bool = False,
     nms: bool = False,
     calibration_loader=None,
-    metadata: dict = None,
+    metadata: dict | None = None,
     prefix: str = "",
 ) -> tuple[Path, list[Path]]:
     """Convert PyTorch model directly to TFLite using ai-edge-torch.
@@ -260,7 +260,7 @@ def gd_outputs(gd):
     Returns:
         (list[str]): Sorted list of output node names with ':0' suffix.
 
-    Note:
+    Notes:
         This function is kept for backward compatibility with existing .pb model inference.
         GraphDef (.pb) export is deprecated - use TFLite format for new models.
     """

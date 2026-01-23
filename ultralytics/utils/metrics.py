@@ -873,7 +873,7 @@ class Metric(SimpleClass):
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
         self.nc = 0
-        self.center_rmse = [] # (nc, )
+        self.center_rmse = []  # (nc, )
 
     @property
     def ap50(self) -> np.ndarray | list:
@@ -937,11 +937,11 @@ class Metric(SimpleClass):
             (float): The mAP over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
         """
         return self.all_ap.mean() if len(self.all_ap) else 0.0
-    
+
     @property
-    def mcenter_offset (self) -> float:
+    def mcenter_offset(self) -> float:
         """REturn the mean TP-RMSE Center Offset over all detected classes.
-        
+
         Returns:
             (float): The mcenter_offset of all classes
         """
@@ -952,7 +952,7 @@ class Metric(SimpleClass):
         return [self.mp, self.mr, self.map50, self.map, self.mcenter_offset]
 
     def class_result(self, i: int) -> tuple[float, float, float, float]:
-        """Return class-aware result, p[i], r[i], ap50[i], ap[i], center_offset[i]: Not Calculated"""
+        """Return class-aware result, p[i], r[i], ap50[i], ap[i], center_offset[i]: Not Calculated."""
         return self.p[i], self.r[i], self.ap50[i], self.ap[i], self.center_rmse[i]
 
     @property
@@ -1108,18 +1108,18 @@ class DetMetrics(SimpleClass, DataExportMixin):
             else:
                 tp_offsets = tp_offsets.astype(float)
 
-                tp_mask = stats["tp"][:, 0].astype(bool) # iou 0.5 should be the first one
+                tp_mask = stats["tp"][:, 0].astype(bool)  # iou 0.5 should be the first one
 
                 pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)
 
-                self.center_rmse = float(np.sqrt(np.mean(tp_offsets ** 2)))
+                self.center_rmse = float(np.sqrt(np.mean(tp_offsets**2)))
 
                 rmse_per_class = np.zeros(len(self.names), dtype=float)
                 for c in range(len(self.names)):
                     cls_mask = pred_cls_tp == c
                     if cls_mask.any():
                         offs = tp_offsets[cls_mask]
-                        rmse_per_class[c] = float(np.sqrt(np.mean(offs ** 2)))
+                        rmse_per_class[c] = float(np.sqrt(np.mean(offs**2)))
                     else:
                         rmse_per_class[c] = 0.0
 

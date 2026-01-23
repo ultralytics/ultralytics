@@ -129,6 +129,14 @@ pip install -U ultralytics
 
     Unlike other Ultralytics models, SAM 3 weights (`sam3.pt`) are **not automatically downloaded**. You must first request access for the model weights on the [SAM 3 model page on Hugging Face](https://huggingface.co/facebook/sam3) and then, once approved, download the [`sam3.pt` file](https://huggingface.co/facebook/sam3/resolve/main/sam3.pt?download=true). Place the downloaded `sam3.pt` file in your working directory or specify the full path when loading the model.
 
+!!! warning "`TypeError: 'SimpleTokenizer' object is not callable`"
+
+    If you get the above error during prediction, it means you have the incorrect `clip` package installed. Install the correct `clip` package by running the following:
+    ```bash
+    pip uninstall clip -y
+    pip install git+https://github.com/ultralytics/CLIP.git
+    ```
+
 ## How to Use SAM 3: Versatility in Concept Segmentation
 
 SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks through different predictor interfaces:

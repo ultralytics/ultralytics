@@ -31,7 +31,7 @@ def test_shape_assignment():
     print(f"  - Height:   {simulated_shape[2]}")
     print(f"  - Width:    {simulated_shape[3]}")
     print()
-    print(f"Assigned values:")
+    print("Assigned values:")
     print(f"  input_height = input_shape[2] = {input_height}")
     print(f"  input_width  = input_shape[3] = {input_width}")
 

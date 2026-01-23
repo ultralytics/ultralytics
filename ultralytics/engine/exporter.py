@@ -13,7 +13,7 @@ CoreML                  | `coreml`                  | yolo26n.mlpackage
 TensorFlow SavedModel   | `saved_model` (DEPRECATED)| Use `tflite` instead
 TensorFlow GraphDef     | `pb` (DEPRECATED)         | Use `tflite` instead
 TensorFlow Lite         | `tflite`                  | yolo26n.tflite
-TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
+TensorFlow Edge TPU     | `edgetpu` (DEPRECATED)    | Use `tflite int8=True` instead
 TensorFlow.js           | `tfjs` (DEPRECATED)       | Use ONNX + ONNX Runtime Web
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
@@ -42,7 +42,6 @@ Inference:
                          yolo11n.engine             # TensorRT
                          yolo11n.mlpackage          # CoreML (macOS-only)
                          yolo11n.tflite             # TensorFlow Lite
-                         yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
                          yolo11n_paddle_model       # PaddlePaddle
                          yolo11n.mnn                # MNN
                          yolo11n_ncnn_model         # NCNN
@@ -109,7 +108,6 @@ from ultralytics.utils.checks import (
 )
 from ultralytics.utils.export import (
     onnx2engine,
-    tflite2edgetpu,
     torch2imx,
     torch2onnx,
     torch2tflite,
@@ -351,7 +349,7 @@ class Exporter:
             axelera,
         ) = flags  # export booleans
 
-        is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
+        is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))  # edgetpu and others deprecated
 
         # Device
         dla = None
@@ -438,14 +436,6 @@ class Exporter:
             LOGGER.warning(
                 f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
             )
-        if edgetpu:
-            if not LINUX or ARM64:
-                raise SystemError(
-                    "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
-                )
-            elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
-                LOGGER.warning("Edge TPU export requires batch size 1, setting batch=1.")
-                self.args.batch = 1
         if isinstance(model, WorldModel):
             LOGGER.warning(
                 "YOLOWorld (original version) export is not supported to any format. "
@@ -490,7 +480,7 @@ class Exporter:
             from ultralytics.utils.export.imx import FXModel
 
             model = FXModel(model, self.imgsz)
-        if tflite or edgetpu:
+        if tflite:
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)

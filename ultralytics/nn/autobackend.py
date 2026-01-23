@@ -85,7 +85,6 @@ class AutoBackend(nn.Module):
             | CoreML                | *.mlpackage       |
             | TensorRT              | *.engine          |
             | TensorFlow Lite       | *.tflite          |
-            | TensorFlow Edge TPU   | *_edgetpu.tflite  |
             | PaddlePaddle          | *_paddle_model/   |
             | MNN                   | *.mnn             |
             | NCNN                  | *_ncnn_model/     |
@@ -112,7 +111,7 @@ class AutoBackend(nn.Module):
         saved_model (bool): Whether the model is a TensorFlow SavedModel (DEPRECATED).
         pb (bool): Whether the model is a TensorFlow GraphDef (DEPRECATED).
         tflite (bool): Whether the model is a TensorFlow Lite model.
-        edgetpu (bool): Whether the model is a TensorFlow Edge TPU model.
+        edgetpu (bool): Whether the model is a TensorFlow Edge TPU model (DEPRECATED).
         tfjs (bool): Whether the model is a TensorFlow.js model (DEPRECATED).
         paddle (bool): Whether the model is a PaddlePaddle model.
         mnn (bool): Whether the model is an MNN model.

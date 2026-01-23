@@ -22,7 +22,6 @@ Usage - formats:
                               yolo26n.engine             # TensorRT
                               yolo26n.mlpackage          # CoreML (macOS-only)
                               yolo26n.tflite             # TensorFlow Lite
-                              yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolo26n_paddle_model       # PaddlePaddle
                               yolo26n.mnn                # MNN
                               yolo26n_ncnn_model         # NCNN

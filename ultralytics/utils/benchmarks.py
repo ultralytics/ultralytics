@@ -16,7 +16,6 @@ OpenVINO                | `openvino`                | yolo26n_openvino_model/
 TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
 TensorFlow Lite         | `tflite`                  | yolo26n.tflite
-TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -123,12 +122,12 @@ def benchmark(
             if format == "tfjs":
                 continue  # TF.js inference not supported in Python
             if format == "edgetpu":
-                assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
-            elif format == "coreml":
+                continue  # EdgeTPU export is deprecated, incompatible with ai-edge-torch
+            if format == "coreml":
                 assert MACOS or (LINUX and not ARM64), "CoreML export only supported on macOS and non-aarch64 Linux"
             if format == "coreml":
                 assert not IS_PYTHON_3_13, "CoreML not supported on Python 3.13"
-            if format in {"tflite", "edgetpu"}:
+            if format == "tflite":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported yet"
                 # assert not IS_PYTHON_MINIMUM_3_12, "TFLite exports not supported on Python>=3.12 yet"
             if format == "paddle":
@@ -170,7 +169,6 @@ def benchmark(
 
             # Predict
             assert model.task != "pose" or format != "executorch", "ExecuTorch Pose inference is not supported"
-            assert format != "edgetpu", "EdgeTPU inference not supported"
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 

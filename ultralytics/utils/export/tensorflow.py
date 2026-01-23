@@ -196,15 +196,20 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     Notes:
         Requires the Edge TPU compiler to be installed. The function compiles the TFLite model
         for optimal performance on Google's Edge TPU hardware accelerator.
+
+    Raises:
+        AssertionError: If EdgeTPU compilation fails (e.g., unsupported ops from ai-edge-torch).
     """
     import subprocess
 
-    cmd = (
-        f'edgetpu_compiler -s -d -k 10 --out_dir "{output_dir}" "{tflite_file}"',
-        f'edgetpu_compiler -s -d -k 10 --out_dir "{output_dir}" "{tflite_file}"',
-    )
-    for c in cmd:
-        subprocess.run(c, shell=True, check=True)
+    cmd = f'edgetpu_compiler -s -d -k 10 --out_dir "{output_dir}" "{tflite_file}"'
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise AssertionError(
+            f"{prefix} EdgeTPU compilation failed. This is expected with ai-edge-torch models "
+            f"as the EdgeTPU compiler doesn't support all modern TFLite ops.\n"
+            f"Error: {result.stderr or result.stdout}"
+        )
     LOGGER.info(f"{prefix} Edge TPU model exported to {output_dir}")
 
 

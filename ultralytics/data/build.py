@@ -165,8 +165,12 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.epoch = 0
         self.shuffle = shuffle
         self.total_size = len(dataset)
-        # ensure all ranks have a sample if batch size >= total size; degenerates to round-robin sampler
-        self.batch_size = 1 if (batch_size * num_replicas) >= self.total_size else batch_size
+        # Ensure all ranks have a batch
+        if (batch_size * num_replicas) >= self.total_size:
+            self.batch_size = 1 
+            dataset.rect = False  # force non-rect because of possible shape mismatch
+        else:
+            self.batch_size = batch_size
         self.num_batches = math.ceil(self.total_size / self.batch_size)
 
     def _get_rank_indices(self) -> tuple[int, int]:
@@ -311,7 +315,6 @@ def build_dataloader(
         >>> dataset = YOLODataset(...)
         >>> dataloader = build_dataloader(dataset, batch=16, workers=4, shuffle=True)
     """
-    batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
     sampler = (
@@ -321,6 +324,7 @@ def build_dataloader(
         if shuffle
         else ContiguousDistributedSampler(dataset)
     )
+    batch = sampler.batch_size if hasattr(sampler, "batch_size") else min(batch, len(dataset))
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
     return InfiniteDataLoader(

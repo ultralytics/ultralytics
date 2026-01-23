@@ -637,6 +637,14 @@ def main():
         # Minify files
         minify_files(html=False, css=False, js=False)
 
+        # Compare sitemap URLs vs HTML pages
+        sitemap_file = SITE / "sitemap.xml"
+        if sitemap_file.exists():
+            sitemap_urls = len(re.findall(r"<loc>", sitemap_file.read_text()))
+            html_pages = len([f for f in SITE.rglob("*.html") if f.name != "404.html"])
+            status = "✅" if sitemap_urls == html_pages else "⚠️"
+            LOGGER.info(f"{sitemap_urls}/{html_pages} pages in sitemap.xml {status}")
+
         # Print results and auto-serve on macOS
         size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
         duration = time.perf_counter() - start_time

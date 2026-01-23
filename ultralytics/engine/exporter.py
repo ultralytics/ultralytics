@@ -14,7 +14,7 @@ TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
 TensorFlow GraphDef     | `pb` (DEPRECATED)         | yolo26n.pb
 TensorFlow Lite         | `tflite`                  | yolo26n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolo26n_web_model/
+TensorFlow.js           | `tfjs` (DEPRECATED)       | Use ONNX + ONNX Runtime Web
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -116,7 +116,6 @@ from ultralytics.utils.checks import (
 from ultralytics.utils.export import (
     onnx2engine,
     tflite2edgetpu,
-    tflite2tfjs,
     torch2imx,
     torch2onnx,
     torch2tflite,
@@ -164,7 +163,7 @@ def export_formats():
         ["TensorFlow GraphDef (DEPRECATED)", "pb", ".pb", True, True, []],  # pb format is deprecated
         ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms", "fraction"]],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch"]],  # tfjs now uses TFLite input
+        ["TensorFlow.js (DEPRECATED)", "tfjs", "_web_model", True, False, []],  # use ONNX + ONNX Runtime Web
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
@@ -587,8 +586,12 @@ class Exporter:
                 f[7] = self.export_tflite()
             if edgetpu:
                 f[8] = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_int8.tflite")
-            if tfjs:
-                f[9] = self.export_tfjs()
+            if tfjs:  # tfjs format is deprecated
+                LOGGER.warning(
+                    "TensorFlow.js export is deprecated. For web deployment, use ONNX with ONNX Runtime Web: "
+                    "https://onnxruntime.ai/docs/tutorials/web/"
+                )
+                f[9] = ""  # Skip tfjs export
         if paddle:  # PaddlePaddle
             f[10] = self.export_paddle()
         if mnn:  # MNN
@@ -1247,25 +1250,24 @@ class Exporter:
 
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
-        """Export YOLO model to TensorFlow.js format via TFLite."""
-        check_requirements("tensorflowjs>=4.0.0")  # TFLite input support requires 4.0+
+        """Export YOLO model to TensorFlow.js format (DEPRECATED).
 
-        # Get TFLite file from saved_model directory
-        saved_model = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
-        tflite_file = saved_model / f"{self.file.stem}_float32.tflite"
+        Note:
+            TensorFlow.js export is deprecated. For browser deployment, use ONNX format with
+            ONNX Runtime Web instead, which offers better performance (WebGPU support) and
+            doesn't require TensorFlow dependencies.
 
-        if not tflite_file.exists():
-            raise FileNotFoundError(
-                f"{prefix} TFLite file not found at {tflite_file}. "
-                "Ensure TensorFlow SavedModel export completed successfully."
-            )
-
-        f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
-        tflite2tfjs(tflite_file=tflite_file, output_dir=f, prefix=prefix)
-
-        # Add metadata
-        YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return f
+            Example:
+                yolo export model=yolo11n.pt format=onnx  # Export to ONNX
+                # Then use onnxruntime-web in browser: https://onnxruntime.ai/docs/tutorials/web/
+        """
+        raise NotImplementedError(
+            f"{prefix} TensorFlow.js export is deprecated. For browser/web deployment, "
+            "use ONNX format with ONNX Runtime Web instead:\n"
+            "  1. Export: yolo export model=yolo11n.pt format=onnx\n"
+            "  2. Use onnxruntime-web in browser: https://onnxruntime.ai/docs/tutorials/web/\n"
+            "ONNX Runtime Web offers WebGPU acceleration (~20x faster) and requires no TensorFlow."
+        )
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):

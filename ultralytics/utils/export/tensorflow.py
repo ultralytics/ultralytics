@@ -229,28 +229,6 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     subprocess.run(cmd, shell=True)
 
 
-def tflite2tfjs(tflite_file: str | Path, output_dir: str | Path, prefix: str = ""):
-    """Convert a TFLite model to TensorFlow.js format.
-
-    Args:
-        tflite_file (str | Path): Path to the input TFLite model file.
-        output_dir (str | Path): Output directory path for the TensorFlow.js model.
-        prefix (str, optional): Logging prefix. Defaults to "".
-
-    Notes:
-        Requires tensorflowjs package with TFLite input format support (tensorflowjs>=4.0.0).
-    """
-    import subprocess
-
-    import tensorflowjs as tfjs
-
-    LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
-
-    cmd = f'tensorflowjs_converter --input_format=tf_lite "{tflite_file}" "{output_dir}"'
-    LOGGER.info(f"{prefix} running '{cmd}'")
-    subprocess.run(cmd, shell=True, check=True)
-
-
 def gd_outputs(gd):
     """Return TensorFlow GraphDef model output node names.
 

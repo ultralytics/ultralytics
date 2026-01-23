@@ -31,10 +31,6 @@ keywords: Ultralytics, TensorFlow Lite, TFLite, Edge TPU, TensorFlow.js, ai-edge
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.export.tensorflow.tflite2tfjs
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.export.tensorflow.gd_outputs
 
 <br><br>

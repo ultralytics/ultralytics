@@ -96,7 +96,6 @@ export = [
     "openvino>=2024.0.0",  # OpenVINO export
     "ai-edge-torch>=0.3.0; python_version >= '3.10'",  # Google's PyTorch to TFLite converter
     "ai-edge-litert>=1.2.0",  # TFLite runtime
-    "tensorflowjs>=4.0.0",  # TF.js export via TFLite input format
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

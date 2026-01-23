@@ -1042,6 +1042,10 @@ class Exporter:
             f"{prefix} TFLite export via ai-edge-torch is not supported on Windows. "
             "Please use Linux or macOS, or export to a different format (e.g., ONNX)."
         )
+        assert not (LINUX and ARM64), (
+            f"{prefix} TFLite export via ai-edge-torch is not supported on ARM64 Linux (aarch64). "
+            "Please use x86_64 Linux or macOS (including Apple Silicon), or export to a different format (e.g., ONNX)."
+        )
         assert IS_PYTHON_MINIMUM_3_10, (
             f"{prefix} ai-edge-torch export requires Python>=3.10. "
             f"Please upgrade Python or use a different export format."

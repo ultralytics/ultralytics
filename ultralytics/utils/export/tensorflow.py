@@ -260,7 +260,7 @@ def gd_outputs(gd):
     Returns:
         (list[str]): Sorted list of output node names with ':0' suffix.
 
-    Note:
+    Notes:
         This function is kept for backward compatibility with existing .pb model inference.
         GraphDef (.pb) export is deprecated - use TFLite format for new models.
     """

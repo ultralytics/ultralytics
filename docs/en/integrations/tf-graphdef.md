@@ -24,10 +24,10 @@ keywords: YOLO, TensorFlow, GraphDef, TFLite, model deployment, deprecated, mach
 
 If you were previously using TF GraphDef format, here's how to migrate:
 
-| Previous (Deprecated) | New (Recommended) |
-|-----------------------|-------------------|
-| `format="pb"` | `format="tflite"` |
-| `yolo11n.pb` | `yolo11n_saved_model/yolo11n_float32.tflite` |
+| Previous (Deprecated) | New (Recommended)                            |
+| --------------------- | -------------------------------------------- |
+| `format="pb"`         | `format="tflite"`                            |
+| `yolo11n.pb`          | `yolo11n_saved_model/yolo11n_float32.tflite` |
 
 ### Updated Export Example
 

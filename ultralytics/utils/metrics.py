@@ -846,6 +846,7 @@ class Metric(SimpleClass):
         all_ap (list): AP scores for all classes and all IoU thresholds. Shape: (nc, 10).
         ap_class_index (list): Index of class for each AP score. Shape: (nc,).
         nc (int): Number of classes.
+        center_rmse (list): TP-RMSE center-based offset per class. Shape: (nc,).
 
     Methods:
         ap50: AP at IoU threshold of 0.5 for all classes.
@@ -872,6 +873,7 @@ class Metric(SimpleClass):
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
         self.nc = 0
+        self.center_rmse = [] # (nc, )
 
     @property
     def ap50(self) -> np.ndarray | list:
@@ -935,14 +937,23 @@ class Metric(SimpleClass):
             (float): The mAP over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
         """
         return self.all_ap.mean() if len(self.all_ap) else 0.0
+    
+    @property
+    def mcenter_offset (self) -> float:
+        """REturn the mean TP-RMSE Center Offset over all detected classes.
+        
+        Returns:
+            (float): The mcenter_offset of all classes
+        """
+        return self.center_rmse.mean() if len(self.center_rmse) else 0.0
 
     def mean_results(self) -> list[float]:
         """Return mean of results, mp, mr, map50, map."""
-        return [self.mp, self.mr, self.map50, self.map]
+        return [self.mp, self.mr, self.map50, self.map, self.mcenter_offset]
 
     def class_result(self, i: int) -> tuple[float, float, float, float]:
-        """Return class-aware result, p[i], r[i], ap50[i], ap[i]."""
-        return self.p[i], self.r[i], self.ap50[i], self.ap[i]
+        """Return class-aware result, p[i], r[i], ap50[i], ap[i], center_offset[i]: Not Calculated"""
+        return self.p[i], self.r[i], self.ap50[i], self.ap[i], self.center_rmse[i]
 
     @property
     def maps(self) -> np.ndarray:
@@ -955,7 +966,7 @@ class Metric(SimpleClass):
     def fitness(self) -> float:
         """Return model fitness as a weighted combination of metrics."""
         w = [0.0, 0.0, 0.0, 1.0]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-        return (np.nan_to_num(np.array(self.mean_results())) * w).sum()
+        return (np.nan_to_num(np.array(self.mean_results()[:4])) * w).sum()
 
     def update(self, results: tuple):
         """Update the evaluation metrics with a new set of results.
@@ -1083,17 +1094,39 @@ class DetMetrics(SimpleClass, DataExportMixin):
             prefix="Box",
         )[2:]
         self.box.nc = len(self.names)
-        self.box.update(results)
-        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
-        self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
 
         # compute center offset RMSE (normalized) across all true positives
         tp_offsets = stats.get("tp_center_offset") if "tp_center_offset" in stats else None
         if tp_offsets is None or tp_offsets.size == 0:
             self.center_rmse = 0.0
         else:
-            tp_offsets = tp_offsets.astype(float)
-            self.center_rmse = float(np.sqrt(np.mean(tp_offsets**2)))
+            tp_offsets = stats.get("tp_center_offset")
+
+            if tp_offsets is None or tp_offsets.size == 0:
+                self.center_rmse = 0.0
+                rmse_per_class = np.zeros(len(self.names), dtype=float)
+            else:
+                tp_offsets = tp_offsets.astype(float)
+
+                tp_mask = stats["tp"][:, 0].astype(bool) # iou 0.5 should be the first one
+
+                pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)
+
+                self.center_rmse = float(np.sqrt(np.mean(tp_offsets ** 2)))
+
+                rmse_per_class = np.zeros(len(self.names), dtype=float)
+                for c in range(len(self.names)):
+                    cls_mask = pred_cls_tp == c
+                    if cls_mask.any():
+                        offs = tp_offsets[cls_mask]
+                        rmse_per_class[c] = float(np.sqrt(np.mean(offs ** 2)))
+                    else:
+                        rmse_per_class[c] = 0.0
+
+        self.box.update(results)
+        self.box.center_rmse = rmse_per_class
+        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
+        self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
 
         return stats
 
@@ -1119,7 +1152,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
         The returned list length matches `self.keys` so it can be used directly in formatted outputs.
         """
         base = list(self.box.mean_results())
-        base.append(self.center_rmse)
         return base
 
     def class_result(self, i: int) -> tuple[float, float, float, float]:

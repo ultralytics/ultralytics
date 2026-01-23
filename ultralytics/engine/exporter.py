@@ -104,7 +104,6 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_intel,
-    is_sudo_available,
 )
 from ultralytics.utils.export import (
     onnx2engine,

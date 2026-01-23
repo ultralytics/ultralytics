@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Export a YOLO PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit.
+Export a YOLO PyTorch model to other formats. TensorFlow exports use Google's ai-edge-torch library.
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
@@ -11,10 +11,10 @@ OpenVINO                | `openvino`                | yolo26n_openvino_model/
 TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
 TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
-TensorFlow GraphDef     | `pb`                      | yolo26n.pb
+TensorFlow GraphDef     | `pb` (DEPRECATED)         | yolo26n.pb
 TensorFlow Lite         | `tflite`                  | yolo26n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolo26n_web_model/
+TensorFlow.js           | `tfjs` (DEPRECATED)       | Use ONNX + ONNX Runtime Web
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -42,7 +42,6 @@ Inference:
                          yolo11n.engine             # TensorRT
                          yolo11n.mlpackage          # CoreML (macOS-only)
                          yolo11n_saved_model        # TensorFlow SavedModel
-                         yolo11n.pb                 # TensorFlow GraphDef
                          yolo11n.tflite             # TensorFlow Lite
                          yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
                          yolo11n_paddle_model       # PaddlePaddle
@@ -106,6 +105,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import (
     IS_PYTHON_3_10,
+    IS_PYTHON_MINIMUM_3_10,
     IS_PYTHON_MINIMUM_3_9,
     check_apt_requirements,
     check_imgsz,
@@ -115,13 +115,11 @@ from ultralytics.utils.checks import (
     is_sudo_available,
 )
 from ultralytics.utils.export import (
-    keras2pb,
     onnx2engine,
-    onnx2saved_model,
-    pb2tfjs,
     tflite2edgetpu,
     torch2imx,
     torch2onnx,
+    torch2tflite,
 )
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
@@ -162,11 +160,11 @@ def export_formats():
             ["batch", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
-        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras", "nms"]],
-        ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
+        ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "half", "int8", "nms"]],
+        ["TensorFlow GraphDef (DEPRECATED)", "pb", ".pb", True, True, []],  # pb format is deprecated
         ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms", "fraction"]],
         ["TensorFlow Edge TPU", "edgetpu", "_edgetpu.tflite", True, False, []],
-        ["TensorFlow.js", "tfjs", "_web_model", True, False, ["batch", "half", "int8", "nms"]],
+        ["TensorFlow.js (DEPRECATED)", "tfjs", "_web_model", True, False, []],  # use ONNX + ONNX Runtime Web
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
@@ -581,15 +579,20 @@ class Exporter:
             f[4] = self.export_coreml()
         if is_tf_format:  # TensorFlow formats
             self.args.int8 |= edgetpu
-            f[5], keras_model = self.export_saved_model()
-            if pb or tfjs:  # pb prerequisite to tfjs
-                f[6] = self.export_pb(keras_model=keras_model)
+            f[5], _ = self.export_saved_model()
+            if pb:  # pb format is deprecated
+                LOGGER.warning("TensorFlow GraphDef (.pb) export is deprecated. Please use TFLite format instead.")
+                f[6] = ""  # Skip pb export
             if tflite:
                 f[7] = self.export_tflite()
             if edgetpu:
-                f[8] = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_full_integer_quant.tflite")
-            if tfjs:
-                f[9] = self.export_tfjs()
+                f[8] = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_int8.tflite")
+            if tfjs:  # tfjs format is deprecated
+                LOGGER.warning(
+                    "TensorFlow.js export is deprecated. For web deployment, use ONNX with ONNX Runtime Web: "
+                    "https://onnxruntime.ai/docs/tutorials/web/"
+                )
+                f[9] = ""  # Skip tfjs export
         if paddle:  # PaddlePaddle
             f[10] = self.export_paddle()
         if mnn:  # MNN
@@ -1034,91 +1037,76 @@ class Exporter:
 
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
-        """Export YOLO model to TensorFlow SavedModel format."""
-        cuda = torch.cuda.is_available()
-        try:
-            import tensorflow as tf
-        except ImportError:
-            check_requirements("tensorflow>=2.0.0,<=2.19.0")
-            import tensorflow as tf
-        check_requirements(
-            (
-                "tf_keras<=2.19.0",  # required by 'onnx2tf' package
-                "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
-                "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
-                "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
-                "onnx>=1.12.0,<2.0.0",
-                "onnx2tf>=1.26.3,<1.29.0",  # pin to avoid h5py build issues on aarch64
-                "onnxslim>=0.1.71",
-                "onnxruntime-gpu" if cuda else "onnxruntime",
-                "protobuf>=5",
-            ),
-            cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
+        """Export YOLO model to TFLite format using ai-edge-torch (SavedModel directory with TFLite files)."""
+        assert not WINDOWS, (
+            f"{prefix} TFLite export via ai-edge-torch is not supported on Windows. "
+            "Please use Linux or macOS, or export to a different format (e.g., ONNX)."
         )
+        assert IS_PYTHON_MINIMUM_3_10, (
+            f"{prefix} ai-edge-torch export requires Python>=3.10. "
+            f"Please upgrade Python or use a different export format."
+        )
+        check_requirements(("ai-edge-torch>=0.3.0", "ai-edge-litert>=1.2.0"))
 
-        LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
-        check_version(
-            tf.__version__,
-            ">=2.0.0",
-            name="tensorflow",
-            verbose=True,
-            msg="https://github.com/ultralytics/ultralytics/issues/5161",
-        )
+        import ai_edge_torch
+
+        LOGGER.info(f"\n{prefix} starting export with ai-edge-torch {ai_edge_torch.__version__}...")
+
         f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
 
-        # Export to TF
-        images = None
+        # Prepare calibration data for INT8
+        calibration_loader = None
         if self.args.int8 and self.args.data:
-            images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-            images = (
-                torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
-                .permute(0, 2, 3, 1)
-                .numpy()
-                .astype(np.float32)
-            )
+            calibration_loader = self.get_int8_calibration_dataloader(prefix)
 
-        # Export to ONNX
-        if isinstance(self.model.model[-1], RTDETRDecoder):
-            self.args.opset = self.args.opset or 19
-            assert 16 <= self.args.opset <= 19, "RTDETR export requires opset>=16;<=19"
-        self.args.simplify = True
-        f_onnx = self.export_onnx()  # ensure ONNX is available
-        keras_model = onnx2saved_model(
-            f_onnx,
-            f,
+        # Direct PyTorch -> TFLite using ai-edge-torch
+        _primary_file, tflite_files = torch2tflite(
+            model=self.model,
+            sample_input=self.im,
+            output_dir=f,
+            file_stem=self.file.stem,
+            half=self.args.half,
             int8=self.args.int8,
-            images=images,
-            disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},
+            nms=self.args.nms,
+            calibration_loader=calibration_loader,
+            metadata=self.metadata,
             prefix=prefix,
         )
-        YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
-        # Add TFLite metadata
-        for file in f.rglob("*.tflite"):
-            file.unlink() if "quant_with_int16_act.tflite" in str(file) else self._add_tflite_metadata(file)
 
-        return str(f), keras_model  # or keras_model = tf.saved_model.load(f, tags=None, options=None)
+        # Add TFLite metadata to all generated files
+        for tflite_file in tflite_files:
+            self._add_tflite_metadata(tflite_file)
+
+        YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
+        return str(f), None  # No keras_model returned with ai-edge-torch
 
     @try_export
-    def export_pb(self, keras_model, prefix=colorstr("TensorFlow GraphDef:")):
-        """Export YOLO model to TensorFlow GraphDef *.pb format https://github.com/leimao/Frozen-Graph-TensorFlow."""
-        f = self.file.with_suffix(".pb")
-        keras2pb(keras_model, f, prefix)
-        return f
+    def export_pb(self, keras_model=None, prefix=colorstr("TensorFlow GraphDef:")):
+        """Export YOLO model to TensorFlow GraphDef *.pb format (DEPRECATED).
+
+        Notes:
+            GraphDef (.pb) is a legacy TensorFlow 1.x format. With the migration to ai-edge-torch,
+            this format is no longer supported. Please use TFLite format instead:
+            `yolo export model=yolo11n.pt format=tflite`
+        """
+        raise NotImplementedError(
+            f"{prefix} GraphDef (.pb) export is deprecated and no longer supported. "
+            "Please use TFLite format instead: `yolo export model=yolo11n.pt format=tflite`"
+        )
 
     @try_export
     def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
         """Export YOLO model to TensorFlow Lite format."""
-        # BUG https://github.com/ultralytics/ultralytics/issues/13436
-        import tensorflow as tf
+        import ai_edge_torch
 
-        LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
+        LOGGER.info(f"\n{prefix} returning TFLite file from ai-edge-torch {ai_edge_torch.__version__} export...")
         saved_model = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
         if self.args.int8:
-            f = saved_model / f"{self.file.stem}_int8.tflite"  # fp32 in/out
+            f = saved_model / f"{self.file.stem}_int8.tflite"
         elif self.args.half:
-            f = saved_model / f"{self.file.stem}_float16.tflite"  # fp32 in/out
+            f = saved_model / f"{self.file.stem}_float16.tflite"
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
         return str(f)
@@ -1233,6 +1221,20 @@ class Exporter:
         cmd = "edgetpu_compiler --version"
         help_url = "https://coral.ai/docs/edgetpu/compiler/"
         assert LINUX, f"export only supported on Linux. See {help_url}"
+
+        # Verify TFLite model exists
+        tflite_model = Path(tflite_model)
+        if not tflite_model.exists():
+            raise FileNotFoundError(
+                f"{prefix} INT8 TFLite model not found at {tflite_model}. "
+                "Ensure export_saved_model() completed with int8=True."
+            )
+
+        LOGGER.warning(
+            f"{prefix} Note: ai-edge-torch converted models may have reduced EdgeTPU op coverage. "
+            "If compilation fails or shows low EdgeTPU delegation, consider testing with your hardware."
+        )
+
         if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
             sudo = "sudo " if is_sudo_available() else ""
@@ -1253,15 +1255,24 @@ class Exporter:
 
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
-        """Export YOLO model to TensorFlow.js format."""
-        check_requirements("tensorflowjs")
+        """Export YOLO model to TensorFlow.js format (DEPRECATED).
 
-        f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
-        f_pb = str(self.file.with_suffix(".pb"))  # *.pb path
-        pb2tfjs(pb_file=f_pb, output_dir=f, half=self.args.half, int8=self.args.int8, prefix=prefix)
-        # Add metadata
-        YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return f
+        Examples:
+                yolo export model=yolo11n.pt format=onnx  # Export to ONNX
+                # Then use onnxruntime-web in browser: https://onnxruntime.ai/docs/tutorials/web/
+
+        Notes:
+            TensorFlow.js export is deprecated. For browser deployment, use ONNX format with
+            ONNX Runtime Web instead, which offers better performance (WebGPU support) and
+            doesn't require TensorFlow dependencies.
+        """
+        raise NotImplementedError(
+            f"{prefix} TensorFlow.js export is deprecated. For browser/web deployment, "
+            "use ONNX format with ONNX Runtime Web instead:\n"
+            "  1. Export: yolo export model=yolo11n.pt format=onnx\n"
+            "  2. Use onnxruntime-web in browser: https://onnxruntime.ai/docs/tutorials/web/\n"
+            "ONNX Runtime Web offers WebGPU acceleration (~20x faster) and requires no TensorFlow."
+        )
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):

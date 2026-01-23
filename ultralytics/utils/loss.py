@@ -1174,7 +1174,7 @@ class E2ELoss:
 class TVPDetectLoss:
     """Criterion class for computing training losses for text-visual prompt detection."""
 
-    def __init__(self, model, tal_topk=10,tal_topk2: int | None = None):
+    def __init__(self, model, tal_topk=10, tal_topk2: int | None = None):
         """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
         self.vp_criterion = v8DetectionLoss(model, tal_topk, tal_topk2)
         # NOTE: store following info as it's changeable in __call__

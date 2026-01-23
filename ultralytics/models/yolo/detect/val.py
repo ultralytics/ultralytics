@@ -220,7 +220,7 @@ class DetectionValidator(BaseValidator):
 
             self.metrics.update_stats(
                 {
-                    "tp": tp,
+                    **self._process_batch(predn, pbatch),
                     "target_cls": cls,
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),

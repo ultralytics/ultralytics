@@ -108,7 +108,11 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for name, format, suffix, cpu, gpu, _ in zip(*export_formats().values()):
+    # Custom order: run paddle/mnn/ncnn before tflite to avoid ai-edge-torch JAX conflicts
+    export_items = list(zip(*export_formats().values()))
+    tflite_priority = {"tflite": 100}  # Run tflite last among TF formats to avoid JAX/Paddle conflicts
+    export_items.sort(key=lambda x: tflite_priority.get(x[1], 0))
+    for name, format, suffix, cpu, gpu, _ in export_items:
         emoji, filename = "❌", None  # export defaults
         try:
             if format_arg and format_arg != format:

@@ -166,6 +166,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
     not LINUX or IS_RASPBERRYPI,
     reason="Test disabled as TF suffers from install conflicts on Windows, macOS and Raspberry Pi",
 )
+@pytest.mark.skipif(LINUX and ARM64, reason="ai-edge-torch TFLite export not supported on ARM64 Linux")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms, end2end",
     [  # generate all combinations except for exclusion cases
@@ -213,6 +214,7 @@ def test_export_coreml():
 
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
+@pytest.mark.skipif(LINUX and ARM64, reason="ai-edge-torch TFLite export not supported on ARM64 Linux")
 def test_export_tflite():
     """Test YOLO export to TFLite format under specific OS and Python version conditions."""
     model = YOLO(MODEL)

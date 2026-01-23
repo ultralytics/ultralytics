@@ -304,8 +304,11 @@ class TaskAlignedAssigner(nn.Module):
         """
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
         wh_mask = gt_bboxes_xywh[..., 2:] < self.stride[0]  # the smallest stride
-        stride_val = torch.tensor(self.stride_val, dtype=gt_bboxes_xywh.dtype, device=gt_bboxes_xywh.device)
-        gt_bboxes_xywh[..., 2:] = torch.where((wh_mask * mask_gt).bool(), stride_val, gt_bboxes_xywh[..., 2:])
+        gt_bboxes_xywh[..., 2:] = torch.where(
+            (wh_mask * mask_gt).bool(),
+            torch.tensor(self.stride_val, dtype=gt_bboxes_xywh.dtype, device=gt_bboxes_xywh.device),
+            gt_bboxes_xywh[..., 2:],
+        )
         gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
 
         n_anchors = xy_centers.shape[0]
@@ -371,8 +374,11 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
             (torch.Tensor): Boolean mask of positive anchors with shape (b, n_boxes, h*w).
         """
         wh_mask = gt_bboxes[..., 2:4] < self.stride[0]
-        stride_val = torch.tensor(self.stride_val, dtype=gt_bboxes.dtype, device=gt_bboxes.device)
-        gt_bboxes[..., 2:4] = torch.where((wh_mask * mask_gt).bool(), stride_val, gt_bboxes[..., 2:4])
+        gt_bboxes[..., 2:4] = torch.where(
+            (wh_mask * mask_gt).bool(),
+            torch.tensor(self.stride_val, dtype=gt_bboxes.dtype, device=gt_bboxes.device),
+            gt_bboxes[..., 2:4],
+        )
 
         # (b, n_boxes, 5) --> (b, n_boxes, 4, 2)
         corners = xywhr2xyxyxyxy(gt_bboxes)

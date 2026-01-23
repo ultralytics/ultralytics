@@ -237,12 +237,14 @@ def test_zero_area_bbox_filtering():
 
     # Create Boxes with mix of valid and zero-area bboxes
     # Format: x1, y1, x2, y2, confidence, class (xyxy format - Boxes.xywh converts to xywh)
-    boxes_data = torch.tensor([
-        [75, 75, 125, 125, 0.9, 0],    # valid: 50x50
-        [200, 175, 200, 225, 0.9, 0],  # zero width (x1==x2)
-        [275, 300, 325, 300, 0.9, 0],  # zero height (y1==y2)
-        [370, 370, 430, 430, 0.8, 0],  # valid: 60x60
-    ])
+    boxes_data = torch.tensor(
+        [
+            [75, 75, 125, 125, 0.9, 0],  # valid: 50x50
+            [200, 175, 200, 225, 0.9, 0],  # zero width (x1==x2)
+            [275, 300, 325, 300, 0.9, 0],  # zero height (y1==y2)
+            [370, 370, 430, 430, 0.8, 0],  # valid: 60x60
+        ]
+    )
 
     img = np.zeros((640, 640, 3), dtype=np.uint8)
     boxes = Boxes(boxes_data, orig_shape=(640, 640))

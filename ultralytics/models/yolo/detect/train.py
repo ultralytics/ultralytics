@@ -161,6 +161,8 @@ class DetectionTrainer(BaseTrainer):
         model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
+        if hasattr(model, "end2end"):
+            model.model[-1].max_det = self.args.max_det
         return model
 
     def get_validator(self):

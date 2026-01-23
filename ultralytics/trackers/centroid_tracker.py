@@ -3,15 +3,11 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 
-from ..utils import LOGGER
-from .basetrack import TrackState
 from .iou_tracker import IOUTracker, UTrack
-from .utils import matching
 
 
 class CentroidTrack(UTrack):
-    """
-    Single object tracking representation.
+    """Single object tracking representation.
 
     This class is responsible for storing all the information regarding individual tracklets. Uses simple IOU matching.
     Lost tracks are not re-activated.
@@ -37,8 +33,7 @@ class CentroidTrack(UTrack):
 
 
 class CentroidTracker(IOUTracker):
-    """
-    CentroidTracker: Basic Centroid tracking algorithm.
+    """CentroidTracker: Basic Centroid tracking algorithm.
 
     The class is responsible for initializing, updating, and managing the tracks for detected objects in a video
     sequence. It maintains the state of tracked, lost, and removed tracks over frames.
@@ -54,7 +49,8 @@ class CentroidTracker(IOUTracker):
     Methods:
         init_track(dets, scores, cls, img=None): Initialize object tracking with detections.
         get_dists(tracks, detections): Calculates the euclidean distance between tracks and detections.
-        remove_duplicate_utracks(centroidtracksa, centroidtracksb): Removes duplicate centroidtracks based on euclidean distance
+        remove_duplicate_utracks(centroidtracksa, centroidtracksb): Removes duplicate centroidtracks based on euclidean
+            distance
     """
 
     def __init__(self, args, frame_rate=30):

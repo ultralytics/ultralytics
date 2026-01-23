@@ -9,8 +9,7 @@ from .utils import matching
 
 
 class UTrack(BaseTrack):
-    """
-    Single object tracking representation.
+    """Single object tracking representation.
 
     This class is responsible for storing all the information regarding individual tracklets. Uses simple IOU matching.
     Lost tracks are not re-activated.
@@ -59,8 +58,7 @@ class UTrack(BaseTrack):
         self.start_frame = frame_id
 
     def update(self, new_track, frame_id):
-        """
-        Update the state of a matched track.
+        """Update the state of a matched track.
 
         Args:
             new_track (STrack): The new track containing updated information.
@@ -124,7 +122,7 @@ class UTrack(BaseTrack):
     def result(self):
         """Get current tracking results."""
         coords = self.xyxy if self.angle is None else self.xywha
-        return coords.tolist() + [self.track_id, self.score, self.cls, self.idx]
+        return [*coords.tolist(), self.track_id, self.score, self.cls, self.idx]
 
     def __repr__(self):
         """Return a string representation of the IOUTracker object with start and end frames and track ID."""
@@ -132,8 +130,7 @@ class UTrack(BaseTrack):
 
 
 class IOUTracker:
-    """
-    IOUTracker: Basic IOU tracking algorithm.
+    """IOUTracker: Basic IOU tracking algorithm.
 
     The class is responsible for initializing, updating, and managing the tracks for detected objects in a video
     sequence. It maintains the state of tracked, lost, and removed tracks over frames.
@@ -228,9 +225,7 @@ class IOUTracker:
         self.tracked_utracks = self.joint_utracks(self.tracked_utracks, refind_utracks)
         self.lost_utracks = self.sub_utracks(self.lost_utracks, self.removed_utracks)
         self.lost_utracks.extend(lost_utracks)
-        self.tracked_utracks, self.lost_utracks = self.remove_duplicate_utracks(
-            self.tracked_utracks, self.lost_utracks
-        )
+        self.tracked_utracks, self.lost_utracks = self.remove_duplicate_utracks(self.tracked_utracks, self.lost_utracks)
         self.removed_utracks.extend(removed_utracks)
         if len(self.removed_utracks) > 1000:
             self.removed_utracks = self.removed_utracks[-999:]  # clip remove utracks to 1000 maximum

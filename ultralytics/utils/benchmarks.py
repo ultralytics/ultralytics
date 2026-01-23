@@ -108,10 +108,11 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    # Custom order: run paddle/mnn/ncnn before tflite to avoid ai-edge-torch JAX conflicts
+    # Custom order: run paddle early, before coreml/tflite which load TensorFlow/JAX and cause paddle segfaults
     export_items = list(zip(*export_formats().values()))
-    tflite_priority = {"tflite": 100}  # Run tflite last among TF formats to avoid JAX/Paddle conflicts
-    export_items.sort(key=lambda x: tflite_priority.get(x[1], 0))
+    # Paddle must run before CoreML/TFLite as those import TensorFlow/JAX which conflicts with Paddle
+    format_priority = {"paddle": -10, "mnn": -9, "ncnn": -8, "coreml": 50, "tflite": 100}
+    export_items.sort(key=lambda x: format_priority.get(x[1], 0))
     for name, format, suffix, cpu, gpu, _ in export_items:
         emoji, filename = "❌", None  # export defaults
         try:

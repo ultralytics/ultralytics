@@ -1075,7 +1075,7 @@ class Exporter:
             f"{prefix} ai-edge-torch export requires Python>=3.10. "
             f"Please upgrade Python or use a different export format."
         )
-        check_requirements(("ai-edge-torch>=0.3.0", "ai-edge-litert>=1.2.0"))
+        check_requirements("ai-edge-torch>=0.3.0")  # also installs ai-edge-litert as dependency
 
         import ai_edge_torch
 

@@ -800,11 +800,12 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
-@pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
-def test_offline_tracking():
+
+
+def test_offline_tracking(tmp_path):
     """Test offline tracking. Compares results of offline tracking to online tracking."""
     video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
-    project_path = TMP / "saved_detections_for_offline_tracking"
+    project_path = tmp_path / "saved_detections_for_offline_tracking"
     tracker = "botsort.yaml"
     # ensuring same confidence for both trackers.
     # If left to default, conf will be overriden at track time for online tracker and set to 0.1

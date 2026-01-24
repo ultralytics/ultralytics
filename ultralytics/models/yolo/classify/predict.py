@@ -88,6 +88,6 @@ class ClassificationPredictor(BasePredictor):
 
         preds = preds[0] if isinstance(preds, (list, tuple)) else preds
         return [
-            Results(orig_img, path=img_path, names=self.model.names, probs=pred)
+            Results(orig_img, path=img_path, names=self.model.names, probs=pred.softmax(0))
             for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0])
         ]

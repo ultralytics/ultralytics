@@ -43,8 +43,7 @@ class DistillationModel(nn.Module):
 
     def loss_kl(self, teacher_logits, student_logits, temperature: float = 5):
         """The KL divergence loss for knowledge distillation."""
-        # soft_targets = F.softmax(teacher_logits / temperature, dim=1)  # train does not have softmax
-        soft_targets = teacher_logits / temperature  # eval already have softmax
+        soft_targets = F.softmax(teacher_logits / temperature, dim=1)  # train does not have softmax
         student_soft_logits = F.log_softmax(student_logits / temperature, dim=1)
 
         # Distillation loss (Kullback-Leibler divergence)

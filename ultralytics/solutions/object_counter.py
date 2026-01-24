@@ -163,13 +163,16 @@ class ObjectCounter(BaseSolution):
         self.annotator.draw_region(
             reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
         )  # Draw region
+        
+        #store list of bboxes around the tracked objects
+        bboxes_around_tracked_objects = []
 
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             # Draw bounding box and counting region
             self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
             self.store_tracking_history(track_id, box)  # Store track history
-
+            bboxes_around_tracked_objects.append(box)
             # Store previous position of track for object counting
             prev_position = None
             if len(self.track_history[track_id]) > 1:
@@ -187,4 +190,6 @@ class ObjectCounter(BaseSolution):
             out_count=self.out_count,
             classwise_count=dict(self.classwise_count),
             total_tracks=len(self.track_ids),
+            bbox=bboxes_around_tracked_objects,
+            track_ids=self.track_ids,
         )

@@ -202,6 +202,7 @@ For [model training](https://www.ultralytics.com/glossary/model-training), you'l
         model = YOLO("yolo26n.pt")
 
         # Train using built-in COCO8 dataset
+        # Weights are auto-saved to /data/runs/train/weights/best.pt
         results = model.train(
             data="coco8.yaml",
             epochs=10,
@@ -209,9 +210,7 @@ For [model training](https://www.ultralytics.com/glossary/model-training), you'l
             project="/data/runs",
         )
 
-        # Save model to volume
-        model.save("/data/best_model.pt")
-        return "Training complete!"
+        return "Training complete! Weights saved to /data/runs/train/weights/"
 
 
     @app.local_entrypoint()

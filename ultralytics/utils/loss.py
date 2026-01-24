@@ -1206,7 +1206,6 @@ class TVPDetectLoss:
 
     def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""
-        # NOTE: remove empty placeholder
         scores = preds["scores"]
         vnc = scores.shape[1]
 

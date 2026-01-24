@@ -86,14 +86,18 @@ class DistillationModel(nn.Module):
         loss_distill = torch.zeros(1, device=batch["img"].device)
         for i, feat_idx in enumerate(self.feats_idx):
             student_feat = self.projector[i](feats[feat_idx].permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
-            student_feat = F.normalize(student_feat.flatten(2).permute(0, 2, 1), p=2, dim=-1)
-            teacher_feat = F.normalize(teacher_feats[i].flatten(2).permute(0, 2, 1), p=2, dim=-1)
-
-            cos_sim = F.cosine_similarity(student_feat, teacher_feat, dim=-1)
-            loss_distill += (1 - cos_sim).mean() * self.student_model.args.dis
+            loss_distill += self.loss_cosine(teacher_feats[i], student_feat) * self.student_model.args.dis
 
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill.detach()])
+
+    def loss_cosine(self, teacher_feat, student_feat):
+        """Compute cosine similarity loss between teacher and student features."""
+        student_feat = F.normalize(student_feat.flatten(2).permute(0, 2, 1), p=2, dim=-1)
+        teacher_feat = F.normalize(teacher_feat.flatten(2).permute(0, 2, 1), p=2, dim=-1)
+        cos_sim = F.cosine_similarity(student_feat, teacher_feat, dim=-1)
+        loss = (1 - cos_sim).mean()
+        return loss
 
     @property
     def criterion(self):

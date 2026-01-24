@@ -97,8 +97,12 @@ class DistillationModel(nn.Module):
 
     def loss_cosine(self, teacher_feat, student_feat):
         """Compute cosine similarity loss between teacher and student features."""
-        student_feat = F.normalize(student_feat.flatten(2).permute(0, 2, 1), p=2, dim=-1)
-        teacher_feat = F.normalize(teacher_feat.flatten(2).permute(0, 2, 1), p=2, dim=-1)
+        if student_feat.ndim == 4:
+           student_feat = student_feat.flatten(2).permute(0, 2, 1)
+        if teacher_feat.ndim == 4:
+           teacher_feat = teacher_feat.flatten(2).permute(0, 2, 1)
+        student_feat = F.normalize(student_feat, p=2, dim=-1)
+        teacher_feat = F.normalize(teacher_feat, p=2, dim=-1)
         cos_sim = F.cosine_similarity(student_feat, teacher_feat, dim=-1)
         loss = (1 - cos_sim).mean()
         return loss

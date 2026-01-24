@@ -192,44 +192,56 @@ class DetectionValidator(BaseValidator):
                 if tp_idx.size == 0:
                     tp_center_offsets = np.zeros(0)
                 else:
-                    gt_boxes = np.array(pbatch["bboxes"].cpu().numpy())
-                    pred_boxes = np.array(predn["bboxes"].cpu().numpy())
+                    # TP-RMSE calculation (normalised by img diagonal)
+                    tp = self._process_batch(predn, pbatch)["tp"]
+                    tp_preds = tp[:, 0]  # 0 index -> use the first IoU - usually 0.5
+                    tp_idx = np.where(tp_preds)[0]
 
-                    # compute centers
-                    # YOLO-OBB model bboxes differ in output such as (class_index x1 y1 x2 y2 x3 y3 x4 y4)
-                    # instead of only (x1 y1 x2 y2)
-                    if gt_boxes.shape[1] > 4:
-                        # calculate the hypotenuse and then divide it by two to find the center point
-                        gt_positions = gt_boxes[:, 1:]
-                        pred_positions = pred_boxes[:, 1:]
-                        gt_positions = gt_positions.reshape(-1, 4, 2)
-                        pred_positions = pred_positions.reshape(-1, 4, 2)
-
-                        gt_centers = gt_positions.mean(axis=1)
-                        pred_centers = pred_positions.mean(axis=1)
+                    if tp_idx.size == 0:
+                        tp_center_offsets = np.zeros(0)
                     else:
-                        gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:]) / 2.0
-                        pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:]) / 2.0
+                        gt_boxes = np.asarray(pbatch["bboxes"].cpu().numpy())
+                        pred_boxes = np.asarray(predn["bboxes"].cpu().numpy())
 
-                    # keep only TP predictions
-                    pred_centers_tp = pred_centers[tp_idx]
-                    # distance matrix (GT x TP)
-                    dist_mat = np.linalg.norm(
-                        gt_centers[:, None, :] - pred_centers_tp[None, :, :],
-                        axis=2,
-                    )
-                    # assign closest GT to each TP prediction
-                    gt_idx = dist_mat.argmin(axis=0)
-                    # final distances
-                    dists = np.linalg.norm(
-                        pred_centers_tp - gt_centers[gt_idx],
-                        axis=1,
-                    )
+                        # compute centers
+                        # YOLO-OBB model bboxes differ in output such as (class_index x1 y1 x2 y2 x3 y3 x4 y4)
+                        # instead of only (x1 y1 x2 y2)
+                        if gt_boxes.shape[1] == 9:
+                            gt_positions = gt_boxes[:, 1:]
+                            gt_positions = gt_positions.reshape(-1, 4, 2)
+                            gt_centers = gt_positions.mean(axis=1)
+                        else:
+                            gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:4]) / 2.0
 
-                    # normalize by image diagonal
-                    imgsz_arr = np.array(pbatch["imgsz"])
-                    diag = np.sqrt((imgsz_arr**2).sum()) + 1e-7
-                    tp_center_offsets = dists / diag
+                        if pred_boxes.shape[1] == 9:
+                            pred_positions = pred_boxes[:, 1:]
+                            pred_positions = pred_positions.reshape(-1, 4, 2)
+                            pred_centers = pred_positions.mean(axis=1)
+                        else:
+                            pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:4]) / 2.0
+
+                        # keep only TP predictions
+                        pred_centers_tp = pred_centers[tp_idx]
+
+                        # distance matrix (GT x TP)
+                        dist_mat = np.linalg.norm(
+                            gt_centers[:, None, :] - pred_centers_tp[None, :, :],
+                            axis=2,
+                        )
+
+                        # assign closest GT to each TP prediction
+                        gt_idx = dist_mat.argmin(axis=0)
+
+                        # final distances
+                        dists = np.linalg.norm(
+                            pred_centers_tp - gt_centers[gt_idx],
+                            axis=1,
+                        )
+
+                        # normalize by image diagonal
+                        imgsz_arr = np.asarray(pbatch["imgsz"])
+                        diag = np.sqrt((imgsz_arr ** 2).sum()) + 1e-7
+                        tp_center_offsets = dists / diag
 
             self.metrics.update_stats(
                 {

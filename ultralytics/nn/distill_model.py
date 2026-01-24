@@ -79,6 +79,8 @@ class DistillationModel(nn.Module):
             teacher_feats = self.teacher_model(batch["img"], embed=self.feats_idx, direct_return=True)
         preds, feats = self.student_model(batch["img"], return_feats=True)
         loss_distill = torch.zeros(1, device=batch["img"].device)
+        if isinstance(teacher_feats, tuple):
+            teacher_feats = teacher_feats[1]
         for i, feat_idx in enumerate(self.feats_idx):
             # handle head ouput
             feat = feats[feat_idx][1] if isinstance(feats[feat_idx], tuple) else feats[feat_idx]

@@ -66,10 +66,6 @@ class ClassificationTrainer(BaseTrainer):
             overrides["imgsz"] = 224
         super().__init__(cfg, overrides, _callbacks)
 
-    def set_model_attributes(self):
-        """Set the YOLO model's class names from the loaded dataset."""
-        self.model.names = self.data["names"]
-
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
         """
         Return a modified PyTorch model configured for training YOLO classification.

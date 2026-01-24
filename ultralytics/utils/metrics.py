@@ -939,9 +939,9 @@ class Metric(SimpleClass):
         return self.all_ap.mean() if len(self.all_ap) else 0.0
 
     @property
-    def mcenter_offset(self) -> float:
-        """REturn the mean TP-RMSE Center Offset over all detected classes.
-
+    def mcenter_offset (self) -> float:
+        """Return the mean TP-RMSE Center Offset over all detected classes.
+        
         Returns:
             (float): The mcenter_offset of all classes
         """
@@ -949,11 +949,19 @@ class Metric(SimpleClass):
 
     def mean_results(self) -> list[float]:
         """Return mean of results, mp, mr, map50, map."""
-        return [self.mp, self.mr, self.map50, self.map, self.mcenter_offset]
+        metrics = [self.mp, self.mr, self.map50, self.map]
+        # as segmentation models also use base metrics, it is important to assure
+        # that it is possible to use that metric
+        if self.center_rmse is not None and len(self.center_rmse):
+            metrics.append(self.mcenter_offset)
+        return metrics
 
-    def class_result(self, i: int) -> tuple[float, float, float, float]:
-        """Return class-aware result, p[i], r[i], ap50[i], ap[i], center_offset[i]: Not Calculated."""
-        return self.p[i], self.r[i], self.ap50[i], self.ap[i], self.center_rmse[i]
+    def class_result(self, i: int) -> tuple[float, float, float, float, float]:
+        """Return class-aware result, p[i], r[i], ap50[i], ap[i], center_offset[i]: if the model is (detect, obb)"""
+        metrics = [self.p[i], self.r[i], self.ap50[i], self.ap[i]]
+        if self.center_rmse is not None and len(self.center_rmse):
+            metrics.append(self.center_rmse[i])
+        return tuple(metrics)
 
     @property
     def maps(self) -> np.ndarray:
@@ -1056,7 +1064,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[], tp_center_offset=[])
         self.nt_per_class = None
         self.nt_per_image = None
-        self.center_rmse = 0.0
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Update statistics by appending new values to existing stat collections.
@@ -1094,26 +1101,19 @@ class DetMetrics(SimpleClass, DataExportMixin):
             prefix="Box",
         )[2:]
         self.box.nc = len(self.names)
+        self.box.update(results)
 
-        # compute center offset RMSE (normalized) across all true positives
-        tp_offsets = stats.get("tp_center_offset") if "tp_center_offset" in stats else None
-        if tp_offsets is None or tp_offsets.size == 0:
-            self.center_rmse = 0.0
-        else:
-            tp_offsets = stats.get("tp_center_offset")
-
+        if self.task in {"detect", "obb"}:
+            # compute center offset RMSE (normalized) across all true positives
+            tp_offsets = stats.get("tp_center_offset") if "tp_center_offset" in stats else None
+            rmse_per_class = np.zeros(len(self.names), dtype=float)
             if tp_offsets is None or tp_offsets.size == 0:
                 self.center_rmse = 0.0
-                rmse_per_class = np.zeros(len(self.names), dtype=float)
             else:
                 tp_offsets = tp_offsets.astype(float)
-
-                tp_mask = stats["tp"][:, 0].astype(bool)  # iou 0.5 should be the first one
-
+                tp_mask = stats["tp"][:, 0].astype(bool) # iou 0.5 should be the first one
                 pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)
-
-                self.center_rmse = float(np.sqrt(np.mean(tp_offsets**2)))
-
+                self.center_rmse = float(np.sqrt(np.mean(tp_offsets ** 2)))
                 rmse_per_class = np.zeros(len(self.names), dtype=float)
                 for c in range(len(self.names)):
                     cls_mask = pred_cls_tp == c
@@ -1123,8 +1123,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
                     else:
                         rmse_per_class[c] = 0.0
 
-        self.box.update(results)
-        self.box.center_rmse = rmse_per_class
+            self.box.center_rmse = rmse_per_class
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
 
@@ -1138,13 +1137,15 @@ class DetMetrics(SimpleClass, DataExportMixin):
     @property
     def keys(self) -> list[str]:
         """Return a list of keys for accessing specific metrics."""
-        return [
+        keys = [
             "metrics/precision(B)",
             "metrics/recall(B)",
             "metrics/mAP50(B)",
             "metrics/mAP50-95(B)",
-            "metrics/center_rmse(B)",
-        ]
+            ]
+        if self.task in ("detect", "obb"):
+            keys.append("metrics/center_rmse(B)")
+        return keys
 
     def mean_results(self) -> list[float]:
         """Calculate mean of detected objects & return precision, recall, mAP50, mAP50-95 and center_rmse.

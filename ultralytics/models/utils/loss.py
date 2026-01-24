@@ -1304,4 +1304,5 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
         elif self.use_uni_set:
             total_loss.update({f"{k}_dn": torch.tensor(0.0, device=pred_scores.device) for k in total_loss.keys()})
 
+        total_loss = {k: torch.nan_to_num(v, nan=0.0) for k, v in total_loss.items()}
         return total_loss

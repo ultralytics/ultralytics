@@ -163,8 +163,8 @@ class ObjectCounter(BaseSolution):
         self.annotator.draw_region(
             reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
         )  # Draw region
-        
-        #store list of bboxes around the tracked objects
+
+        # store list of bboxes around the tracked objects
         bboxes_around_tracked_objects = []
 
         # Iterate over bounding boxes, track ids and classes index

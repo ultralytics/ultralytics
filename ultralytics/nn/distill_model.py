@@ -18,7 +18,8 @@ class DistillationModel(nn.Module):
         if isinstance(teacher_model, str):
             teacher_model = load_checkpoint(teacher_model)[0]
         device = next(student_model.parameters()).device
-        self.teacher_model = teacher_model.to(device).eval()
+        # self.teacher_model = teacher_model.to(device).eval()
+        self.teacher_model = teacher_model.to(device).train()
         for v in self.teacher_model.parameters():
             v.requires_grad = False
         self.student_model = student_model
@@ -35,7 +36,7 @@ class DistillationModel(nn.Module):
         )
         copy_attr(self, student_model)
 
-    def loss_kl(self, student_logits, teacher_logits, temperature: float = 5):
+    def loss_kl(self, teacher_logits, student_logits, temperature: float = 5):
         """The KL divergence loss for knowledge distillation."""
         soft_targets = F.log_softmax(teacher_logits / temperature, dim=1)
         student_soft_logits = F.log_softmax(student_logits / temperature, dim=1)
@@ -79,8 +80,13 @@ class DistillationModel(nn.Module):
         preds, feats = self.student_model(batch["img"], return_feats=True)
         loss_distill = torch.zeros(1, device=batch["img"].device)
         for i, feat_idx in enumerate(self.feats_idx):
-            student_feat = self.projector[i](feats[feat_idx].permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
-            loss_distill += self.loss_cosine(teacher_feats[i], student_feat) * self.student_model.args.dis
+            student_feat = (
+                self.projector[i](feats[feat_idx].permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+                if feats[feat_idx].ndim == 4
+                else feats[feat_idx]
+            )
+            # loss_distill += self.loss_cosine(teacher_feats[i], student_feat) * self.student_model.args.dis
+            loss_distill += self.loss_kl(teacher_feats[i], student_feat) * self.student_model.args.dis
 
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill.detach()])

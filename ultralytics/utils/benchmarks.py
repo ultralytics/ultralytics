@@ -108,10 +108,13 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    # Custom order: run paddle early, before coreml/tflite which load TensorFlow/JAX and cause paddle segfaults
+    # Custom order to avoid dependency conflicts:
+    # 1. Paddle first - must run before TFLite/CoreML which import TensorFlow/JAX (causes Paddle segfaults)
+    # 2. TFLite second - must run before MNN which downgrades protobuf from 6.x to 5.x (breaks ai-edge-torch)
+    # 3. MNN/NCNN after TFLite - MNN's aliyun-log-python-sdk requires protobuf<6.0.0
+    # 4. CoreML late - imports TensorFlow/JAX
     export_items = list(zip(*export_formats().values()))
-    # Paddle must run before CoreML/TFLite as those import TensorFlow/JAX which conflicts with Paddle
-    format_priority = {"paddle": -10, "mnn": -9, "ncnn": -8, "coreml": 50, "tflite": 100}
+    format_priority = {"paddle": -10, "tflite": -9, "mnn": -8, "ncnn": -7, "coreml": 50}
     export_items.sort(key=lambda x: format_priority.get(x[1], 0))
     for name, format, suffix, cpu, gpu, _ in export_items:
         emoji, filename = "❌", None  # export defaults

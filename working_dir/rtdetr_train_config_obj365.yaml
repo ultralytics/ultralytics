@@ -1,0 +1,32 @@
+# RT-DETR Training Configuration
+# Use with: model.train(cfg='rtdetr_train_config.yaml')
+
+# Task
+task: detect
+mode: train
+
+# Dataset
+data: coco.yaml  # COCO8 dataset (small subset for testing)
+# datasets_dir: /Users/esat/datasets  # Base directory for datasets
+
+# Training hyperparameters
+epochs: 150  # Increased for real training (DETR models need more epochs, use 300+ for production)
+batch: 128
+nbs: 128
+imgsz: 640
+
+# Device configurations
+device: [0,1,2,3]  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
+workers: 4
+amp: True  # Explicitly False for CPU training (set to True for GPU with mixed precision)
+sync_bn: True  # Enable SyncBatchNorm for multi-GPU training
+
+# Output and logging
+project: detr_trainings
+name: yolo11_rtdetr_res50_coco
+exist_ok: True
+verbose: True
+
+cache: disk
+
+

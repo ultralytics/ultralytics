@@ -240,7 +240,7 @@ class DetectionValidator(BaseValidator):
 
                         # normalize by image diagonal
                         imgsz_arr = np.asarray(pbatch["imgsz"])
-                        diag = np.sqrt((imgsz_arr ** 2).sum()) + 1e-7
+                        diag = np.sqrt((imgsz_arr**2).sum()) + 1e-7
                         tp_center_offsets = dists / diag
 
             self.metrics.update_stats(

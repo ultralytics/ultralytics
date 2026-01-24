@@ -92,7 +92,7 @@ class DetectionTrainer(BaseTrainer):
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode, batch_size)
         shuffle = mode == "train"
-        if getattr(dataset, "rect", False) and shuffle:
+        if getattr(dataset, "rect", False) and shuffle and np.unique(dataset.batch_shapes).shape[0] == 1:
             LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
         return build_dataloader(

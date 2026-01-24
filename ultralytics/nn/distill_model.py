@@ -32,7 +32,12 @@ class DistillationModel(nn.Module):
         self.projector = nn.ModuleList(
             nn.Linear(student_dim, teacher_dim) if student_dim != teacher_dim else nn.Identity()
             for student_out, teacher_out in zip(student_output, teacher_output)
-            for student_dim, teacher_dim in [(student_out.shape[1], teacher_out.shape[1])]
+            for student_dim, teacher_dim in [
+                (
+                    student_out.shape[1],
+                    teacher_out[1].shape[1] if isinstance(teacher_out, tuple) else teacher_out.shape[1],
+                )
+            ]
         )
         copy_attr(self, student_model)
 

@@ -8,16 +8,6 @@ keywords: Ultralytics Platform, cloud training, GPU training, remote training, Y
 
 [Ultralytics Platform](https://platform.ultralytics.com) Cloud Training offers single-click training on cloud GPUs, making model training accessible without complex setup. Train YOLO models with real-time metrics streaming and automatic checkpoint saving.
 
-<p align="center">
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ie3vLUDNYZo"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> Cloud Training with Ultralytics Platform
-</p>
-
 ## Train from UI
 
 Start cloud training directly from the Platform:
@@ -36,7 +26,7 @@ Choose a dataset from your uploads:
 | Option              | Description                  |
 | ------------------- | ---------------------------- |
 | **Your Datasets**   | Datasets you've uploaded     |
-| **Public Datasets** | Shared datasets from Explore |
+| **Public Datasets** | Public datasets from Explore |
 
 ### Step 2: Configure Model
 
@@ -44,7 +34,7 @@ Select base model and parameters:
 
 | Parameter      | Description                             | Default |
 | -------------- | --------------------------------------- | ------- |
-| **Model**      | Base architecture (YOLO11n, s, m, l, x) | YOLO11n |
+| **Model**      | Base architecture (YOLO26n, s, m, l, x) | YOLO26n |
 | **Epochs**     | Number of training iterations           | 100     |
 | **Image Size** | Input resolution                        | 640     |
 | **Batch Size** | Samples per iteration                   | Auto    |
@@ -57,28 +47,29 @@ Choose your compute resources:
 
 <!-- Screenshot: platform-training-gpu.avif -->
 
-| GPU          | VRAM | Speed     | Cost/Hour |
-| ------------ | ---- | --------- | --------- |
-| RTX 6000 Pro | 96GB | Very Fast | **Free**  |
-| M4 Pro (Mac) | 64GB | Fast      | **Free**  |
-| RTX 3090     | 24GB | Good      | $0.44     |
-| RTX 4090     | 24GB | Fast      | $0.74     |
-| L40S         | 48GB | Fast      | $1.14     |
-| A100 40GB    | 40GB | Very Fast | $1.29     |
-| A100 80GB    | 80GB | Very Fast | $1.99     |
-| H100 80GB    | 80GB | Fastest   | $3.99     |
+| Tier        | GPU          | VRAM   | Price/Hour | Best For                   |
+| ----------- | ------------ | ------ | ---------- | -------------------------- |
+| Budget      | RTX A2000    | 6 GB   | $0.12      | Small datasets, testing    |
+| Budget      | RTX 3080     | 10 GB  | $0.25      | Medium datasets            |
+| Budget      | RTX 3080 Ti  | 12 GB  | $0.30      | Medium datasets            |
+| Budget      | A30          | 24 GB  | $0.44      | Larger batch sizes         |
+| Mid         | RTX 4090     | 24 GB  | $0.60      | Great price/performance    |
+| Mid         | A6000        | 48 GB  | $0.90      | Large models               |
+| Mid         | L4           | 24 GB  | $0.54      | Inference optimized        |
+| Mid         | L40S         | 48 GB  | $1.72      | Large batch training       |
+| Pro         | A100 40GB    | 40 GB  | $2.78      | Production training        |
+| Pro         | A100 80GB    | 80 GB  | $3.44      | Very large models          |
+| Pro         | H100         | 80 GB  | $5.38      | Fastest training           |
+| Enterprise  | H200         | 141 GB | $5.38      | Maximum performance        |
+| Enterprise  | B200         | 192 GB | $10.38     | Largest models             |
+| Ultralytics | RTX PRO 6000 | 48 GB  | $3.68      | Ultralytics infrastructure |
 
 !!! tip "GPU Selection"
 
-    - **RTX 6000 Pro** (Free): Excellent for most training jobs on Ultralytics infrastructure
-    - **M4 Pro** (Free): Apple Silicon option for compatible workloads
-    - **RTX 4090**: Best value for paid cloud training
+    - **RTX 4090**: Best price/performance ratio for most jobs at $0.60/hr
     - **A100 80GB**: Required for large batch sizes or big models
-    - **H100**: Maximum performance for time-sensitive training
-
-!!! success "Free Training Tier"
-
-    The RTX 6000 Pro Ada (96GB VRAM) and M4 Pro GPUs are available at no cost, running on Ultralytics infrastructure. These are ideal for getting started and regular training jobs.
+    - **H100/H200**: Maximum performance for time-sensitive training
+    - **B200**: NVIDIA Blackwell architecture for cutting-edge workloads
 
 ### Step 4: Start Training
 
@@ -91,7 +82,7 @@ Click **Start Training** to launch your job. The Platform:
 
 !!! success "Free Credits"
 
-    New accounts receive $5 in credits - enough for several training runs on RTX 4090. [Check your balance](../account/billing.md) in Settings > Billing.
+    New accounts receive $5 in signup credits ($25 for company emails) - enough for several training runs. [Check your balance](../account/billing.md) in Settings > Billing.
 
 <!-- Screenshot: platform-training-progress.avif -->
 
@@ -203,17 +194,45 @@ The `ul://` URI format automatically downloads and configures your dataset.
 
 Training costs are based on GPU usage:
 
-### Cost Calculation
+### Cost Estimation
+
+Before training starts, the Platform estimates total cost based on:
 
 ```
-Total Cost = GPU Rate × Training Time (hours)
+Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Speed Factor × GPU Rate
 ```
 
-| Example    | GPU       | Time    | Cost   |
-| ---------- | --------- | ------- | ------ |
-| Small job  | RTX 4090  | 1 hour  | $0.74  |
-| Medium job | A100 40GB | 4 hours | $5.16  |
-| Large job  | H100      | 8 hours | $31.92 |
+**Factors affecting cost:**
+
+| Factor               | Impact                                           |
+| -------------------- | ------------------------------------------------ |
+| **Dataset Size**     | More images = longer training time               |
+| **Model Size**       | Larger models (m, l, x) train slower than (n, s) |
+| **Number of Epochs** | Direct multiplier on training time               |
+| **Image Size**       | Larger imgsz increases computation               |
+| **GPU Speed**        | Faster GPUs reduce training time                 |
+
+### Cost Examples
+
+| Scenario                          | GPU       | Time     | Cost    |
+| --------------------------------- | --------- | -------- | ------- |
+| 1000 images, YOLO26n, 100 epochs  | RTX 4090  | ~1 hour  | ~$0.60  |
+| 5000 images, YOLO26m, 100 epochs  | A100 80GB | ~4 hours | ~$13.76 |
+| 10000 images, YOLO26x, 200 epochs | H100      | ~8 hours | ~$43.04 |
+
+### Hold/Settle System
+
+The Platform uses a consumer-protection billing model:
+
+1. **Estimate**: Cost calculated before training starts
+2. **Hold**: Estimated amount + 20% safety margin reserved from balance
+3. **Train**: Reserved amount shown as "Reserved" in your balance
+4. **Settle**: After completion, charged only for actual GPU time used
+5. **Refund**: Any excess automatically returned to your balance
+
+!!! success "Consumer Protection"
+
+    You're **never charged more than the estimate** shown before training. If training completes early or is canceled, you only pay for actual compute time used.
 
 ### Payment Methods
 
@@ -242,11 +261,11 @@ After training, view detailed costs in the **Billing** tab:
 
 | Model   | Parameters | Best For                |
 | ------- | ---------- | ----------------------- |
-| YOLO11n | 2.6M       | Real-time, edge devices |
-| YOLO11s | 9.4M       | Balanced speed/accuracy |
-| YOLO11m | 20.1M      | Higher accuracy         |
-| YOLO11l | 25.3M      | Production accuracy     |
-| YOLO11x | 56.9M      | Maximum accuracy        |
+| YOLO26n | 2.4M       | Real-time, edge devices |
+| YOLO26s | 9.5M       | Balanced speed/accuracy |
+| YOLO26m | 20.4M      | Higher accuracy         |
+| YOLO26l | 24.8M      | Production accuracy     |
+| YOLO26x | 55.7M      | Maximum accuracy        |
 
 ### Optimize Training Time
 
@@ -279,9 +298,9 @@ Typical times (1000 images, 100 epochs):
 
 | Model   | RTX 4090 | A100   |
 | ------- | -------- | ------ |
-| YOLO11n | 30 min   | 20 min |
-| YOLO11m | 60 min   | 40 min |
-| YOLO11x | 120 min  | 80 min |
+| YOLO26n | 30 min   | 20 min |
+| YOLO26m | 60 min   | 40 min |
+| YOLO26x | 120 min  | 80 min |
 
 ### Can I train overnight?
 

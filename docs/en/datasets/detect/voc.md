@@ -32,7 +32,7 @@ The VOC dataset is split into three subsets:
 
 1. **Train**: This subset contains images for training object detection, segmentation, and classification models.
 2. **Validation**: This subset has images used for validation purposes during model training.
-3. **Test**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results are submitted to the [PASCAL VOC evaluation server](http://host.robots.ox.ac.uk:8080/leaderboard/displaylb.php) for performance evaluation.
+3. **Test**: This subset consists of images used for testing and benchmarking the trained models. Ground truth annotations for this subset are not publicly available, and the results were historically submitted to the PASCAL VOC evaluation server for performance evaluation.
 
 ## Applications
 
@@ -77,7 +77,7 @@ To train a YOLO26n model on the VOC dataset for 100 [epochs](https://www.ultraly
 
 The VOC dataset contains a diverse set of images with various object categories and complex scenes. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/mosaiced-voc-dataset-sample.avif)
+![Pascal VOC dataset mosaic training batch](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-voc-dataset-sample.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

@@ -6,7 +6,7 @@ keywords: ImageNet10, ImageNet, Ultralytics, CI tests, sanity checks, training p
 
 # ImageNet10 Dataset
 
-The [ImageNet10](https://github.com/ultralytics/assets/releases/download/v0.0.0/imagenet10.zip) dataset is a small-scale subset of the [ImageNet](https://www.image-net.org/) database, developed by [Ultralytics](https://www.ultralytics.com/) and designed for CI tests, sanity checks, and fast testing of training pipelines. This dataset is composed of the first image in the training set and the first image from the validation set of the first 10 classes in ImageNet. Although significantly smaller, it retains the structure and diversity of the original ImageNet dataset.
+The [ImageNet10](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imagenet10.zip) dataset is a small-scale subset of the [ImageNet](https://www.image-net.org/) database, developed by [Ultralytics](https://www.ultralytics.com/) and designed for CI tests, sanity checks, and fast testing of training pipelines. This dataset is composed of the first image in the training set and the first image from the validation set of the first 10 classes in ImageNet. Although significantly smaller, it retains the structure and diversity of the original ImageNet dataset.
 
 ## Key Features
 
@@ -52,7 +52,7 @@ To test a deep learning model on the ImageNet10 dataset with an image size of 22
 
 The ImageNet10 dataset contains a subset of images from the original ImageNet dataset. These images are chosen to represent the first 10 classes in the dataset, providing a diverse yet compact dataset for quick testing and evaluation.
 
-![Dataset sample images](https://github.com/ultralytics/docs/releases/download/0/imagenet10-sample-images.avif)
+![ImageNet-10 classification dataset sample images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imagenet10-sample-images.avif)
 
 The example showcases the variety and complexity of the images in the ImageNet10 dataset, highlighting its usefulness for sanity checks and quick testing of computer vision models.
 
@@ -82,7 +82,7 @@ We would like to acknowledge the ImageNet team, led by Olga Russakovsky, Jia Den
 
 ### What is the ImageNet10 dataset and how is it different from the full ImageNet dataset?
 
-The [ImageNet10](https://github.com/ultralytics/assets/releases/download/v0.0.0/imagenet10.zip) dataset is a compact subset of the original [ImageNet](https://www.image-net.org/) database, created by Ultralytics for rapid CI tests, sanity checks, and training pipeline evaluations. ImageNet10 comprises only 20 images, representing the first image in the training and validation sets of the first 10 classes in ImageNet. Despite its small size, it maintains the structure and diversity of the full dataset, making it ideal for quick testing but not for benchmarking models.
+The [ImageNet10](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imagenet10.zip) dataset is a compact subset of the original [ImageNet](https://www.image-net.org/) database, created by Ultralytics for rapid CI tests, sanity checks, and training pipeline evaluations. ImageNet10 comprises only 20 images, representing the first image in the training and validation sets of the first 10 classes in ImageNet. Despite its small size, it maintains the structure and diversity of the full dataset, making it ideal for quick testing but not for benchmarking models.
 
 ### How can I use the ImageNet10 dataset to test my deep learning model?
 

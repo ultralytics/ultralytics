@@ -6,7 +6,7 @@ keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tr
 
 # Multi-Object Tracking with Ultralytics YOLO
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/multi-object-tracking-examples.avif" alt="Multi-object tracking examples">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/multi-object-tracking-examples.avif" alt="YOLO multi-object tracking with trajectory paths">
 
 Object tracking in the realm of video analytics is a critical task that not only identifies the location and class of objects within the frame but also maintains a unique ID for each detected object as the video progresses. The applications are limitless—ranging from surveillance and security to real-time sports analytics.
 
@@ -398,9 +398,9 @@ To initiate your contribution, please refer to our [Contributing Guide](../help/
 
 Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosystem 🙏!
 
-[fish track]: https://github.com/ultralytics/docs/releases/download/0/fish-tracking.avif
-[people track]: https://github.com/ultralytics/docs/releases/download/0/people-tracking.avif
-[vehicle track]: https://github.com/ultralytics/docs/releases/download/0/vehicle-tracking.avif
+[fish track]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-tracking.avif
+[people track]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/people-tracking.avif
+[vehicle track]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vehicle-tracking.avif
 
 ## FAQ
 

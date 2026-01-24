@@ -13,7 +13,7 @@ This guide covers how to use TensorBoard with YOLO26. You'll learn about various
 ## TensorBoard
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/tensorboard-overview.avif" alt="TensorBoard Overview">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorboard-overview.avif" alt="TensorBoard training visualization dashboard">
 </p>
 
 [TensorBoard](https://www.tensorflow.org/tensorboard), [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)'s visualization toolkit, is essential for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) experimentation. TensorBoard features a range of visualization tools, crucial for monitoring machine learning models. These tools include tracking key metrics like loss and accuracy, visualizing model graphs, and viewing histograms of weights and biases over time. It also provides capabilities for projecting [embeddings](https://www.ultralytics.com/glossary/embeddings) to lower-dimensional spaces and displaying multimedia data.
@@ -102,7 +102,7 @@ Now, let's focus on understanding the various features and components of TensorB
 
 The Time Series feature in the TensorBoard offers a dynamic and detailed perspective of various training metrics over time for YOLO26 models. It focuses on the progression and trends of metrics across training epochs. Here's an example of what you can expect to see.
 
-![image](https://github.com/ultralytics/docs/releases/download/0/time-series-tensorboard-yolov8.avif)
+![TensorBoard time series training metrics visualization](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/time-series-tensorboard-yolov8.avif)
 
 #### Key Features of Time Series in TensorBoard
 
@@ -122,7 +122,7 @@ The Time Series section is essential for a thorough analysis of the YOLO26 model
 
 Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics like loss and accuracy during the training of YOLO26 models. They offer a clear and concise view of how these metrics evolve with each training [epoch](https://www.ultralytics.com/glossary/epoch), providing insights into the model's learning effectiveness and stability. Here's an example of what you can expect to see.
 
-![image](https://github.com/ultralytics/docs/releases/download/0/scalars-metrics-tensorboard.avif)
+![TensorBoard scalars dashboard showing YOLO training metrics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/scalars-metrics-tensorboard.avif)
 
 #### Key Features of Scalars in TensorBoard
 
@@ -153,7 +153,7 @@ While both Scalars and Time Series in TensorBoard are used for tracking metrics,
 
 The Graphs section of the TensorBoard visualizes the computational graph of the YOLO26 model, showing how operations and data flow within the model. It's a powerful tool for understanding the model's structure, ensuring that all layers are connected correctly, and for identifying any potential bottlenecks in data flow. Here's an example of what you can expect to see.
 
-![image](https://github.com/ultralytics/docs/releases/download/0/tensorboard-yolov8-computational-graph.avif)
+![TensorBoard computational graph visualization for YOLO model](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensorboard-yolov8-computational-graph.avif)
 
 Graphs are particularly useful for debugging the model, especially in complex architectures typical in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like YOLO26. They help in verifying layer connections and the overall design of the model.
 

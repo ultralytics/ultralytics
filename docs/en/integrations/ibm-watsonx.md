@@ -15,7 +15,7 @@ You can train [Ultralytics YOLO26 models](https://github.com/ultralytics/ultraly
 [Watsonx](https://www.ibm.com/products/watsonx) is IBM's cloud-based platform designed for commercial [generative AI](https://www.ultralytics.com/glossary/generative-ai) and scientific data. IBM Watsonx's three components - `watsonx.ai`, `watsonx.data`, and `watsonx.governance` - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-ibm-watsonx.avif" alt="Overview of IBM Watsonx">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-ibm-watsonx.avif" alt="IBM Watsonx AI platform architecture overview">
 </p>
 
 Its user-friendly interface and collaborative capabilities streamline the development process and help with efficient model management and deployment. Whether for computer vision, predictive analytics, [natural language processing](https://www.ultralytics.com/glossary/natural-language-processing-nlp), or other AI applications, IBM Watsonx provides the tools and support needed to drive innovation.
@@ -135,7 +135,7 @@ If you see "trash_ICRA19" among the directory's contents, then it has loaded suc
 We will use the `config.yaml` file and the contents of the dataset directory to train our [object detection](https://www.ultralytics.com/glossary/object-detection) model. Here is a sample image from our marine litter data set.
 
 <p align="center">
-  <img width="400" src="https://github.com/ultralytics/docs/releases/download/0/marine-litter-bounding-box.avif" alt="Marine Litter with Bounding Box">
+  <img width="400" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/marine-litter-bounding-box.avif" alt="Marine Litter with Bounding Box">
 </p>
 
 ### Step 4: Preprocess the Data
@@ -143,13 +143,13 @@ We will use the `config.yaml` file and the contents of the dataset directory to 
 Fortunately, all labels in the marine litter data set are already formatted as YOLO .txt files. However, we need to rearrange the structure of the image and label directories in order to help our model process the image and labels. Right now, our loaded data set directory follows this structure:
 
 <p align="center">
-  <img width="400" src="https://github.com/ultralytics/docs/releases/download/0/marine-litter-bounding-box-1.avif" alt="Loaded Dataset Directory">
+  <img width="400" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/marine-litter-bounding-box-1.avif" alt="Loaded Dataset Directory">
 </p>
 
 But, YOLO models by default require separate images and labels in subdirectories within the train/val/test split. We need to reorganize the directory into the following structure:
 
 <p align="center">
-  <img width="400" src="https://github.com/ultralytics/docs/releases/download/0/yolo-directory-structure.avif" alt="YOLO Directory Structure">
+  <img width="400" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-directory-structure.avif" alt="YOLO Directory Structure">
 </p>
 
 To reorganize the data set directory, we can run the following script:
@@ -296,7 +296,7 @@ The code above displays ten images from the test set with their predicted boundi
 We can produce visualizations of the model's [precision](https://www.ultralytics.com/glossary/precision) and recall for each class. These visualizations are saved in the home directory, under the train folder. The precision score is displayed in the P_curve.png:
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/precision-confidence-curve.avif" alt="Precision Confidence Curve">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/precision-confidence-curve.avif" alt="Model precision-confidence evaluation curve">
 </p>
 
 The graph shows an exponential increase in precision as the model's confidence level for predictions increases. However, the model precision has not yet leveled out at a certain confidence level after two [epochs](https://www.ultralytics.com/glossary/epoch).
@@ -304,7 +304,7 @@ The graph shows an exponential increase in precision as the model's confidence l
 The [recall](https://www.ultralytics.com/glossary/recall) graph (R_curve.png) displays an inverse trend:
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/recall-confidence-curve.avif" alt="Recall Confidence Curve">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/recall-confidence-curve.avif" alt="Model recall-confidence evaluation curve">
 </p>
 
 Unlike precision, recall moves in the opposite direction, showing greater recall with lower confidence instances and lower recall with higher confidence instances. This is an apt example of the trade-off in precision and recall for classification models.

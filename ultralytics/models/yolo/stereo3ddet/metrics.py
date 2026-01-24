@@ -369,7 +369,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         """Mean AP3D@0.5 across all classes."""
         if not self.ap3d_50:
             return 0.0
-        values = [v for v in self.ap3d_50.values() if v > 0]
+        values = list(self.ap3d_50.values())
         result = float(np.mean(values)) if values else 0.0
         
         # DIAGNOSTIC: Log maps3d_50 computation
@@ -381,7 +381,7 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         """Mean AP3D@0.7 across all classes."""
         if not self.ap3d_70:
             return 0.0
-        values = [v for v in self.ap3d_70.values() if v > 0]
+        values = list(self.ap3d_70.values())
         result = float(np.mean(values)) if values else 0.0
         
         # DIAGNOSTIC: Log maps3d_70 computation

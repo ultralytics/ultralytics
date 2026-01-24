@@ -629,8 +629,9 @@ class v8ClassificationLoss:
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute the classification loss between predictions and true labels."""
+        loss = torch.zeros(1, device=batch["img"].device)
         preds = preds[1] if isinstance(preds, (list, tuple)) else preds
-        loss = F.cross_entropy(preds, batch["cls"], reduction="mean")
+        loss += F.cross_entropy(preds, batch["cls"], reduction="mean")
         return loss, loss.detach()
 
 

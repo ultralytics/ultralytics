@@ -24,7 +24,6 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, LOGGER, colorstr, ops
-from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.metrics import box_iou, mask_iou
 from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 

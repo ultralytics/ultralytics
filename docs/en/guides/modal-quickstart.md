@@ -118,16 +118,15 @@ modal run modal_yolo.py
 
 Expected output:
 
-```
-Running YOLO26 inference on: https://ultralytics.com/images/bus.jpg
+<p align="center">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/modal-terminal-output.avif" alt="Modal YOLO26 Terminal Output">
+</p>
 
-Detected 5 objects:
-  - bus: 0.94
-  - person: 0.89
-  - person: 0.88
-  - person: 0.86
-  - person: 0.62
-```
+You can also monitor your function execution in the Modal dashboard:
+
+<p align="center">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/modal-dashboard-function-calls.avif" alt="Modal Dashboard Function Calls">
+</p>
 
 !!! note "OpenCV Dependencies"
 

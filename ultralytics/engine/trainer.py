@@ -752,6 +752,7 @@ class BaseTrainer:
     def set_model_attributes(self):
         """Set or update model parameters before training."""
         self.model.names = self.data["names"]
+        self.model.args = self.args  # attach hyperparameters to model
 
     def build_targets(self, preds, targets):
         """Build target tensors for training YOLO model."""

@@ -56,7 +56,7 @@ Create a new Python file called `modal_yolo.py` with the following code:
     ```python
     """
     Modal + Ultralytics YOLO26 Quickstart
-    Run: modal run modal_yolo.py
+    Run: modal run modal_yolo.py.
     """
 
     import modal
@@ -87,11 +87,13 @@ Create a new Python file called `modal_yolo.py` with the following code:
         detections = []
         for r in results:
             for box in r.boxes:
-                detections.append({
-                    "class": model.names[int(box.cls)],
-                    "confidence": float(box.conf),
-                    "bbox": box.xyxy[0].tolist(),
-                })
+                detections.append(
+                    {
+                        "class": model.names[int(box.cls)],
+                        "confidence": float(box.conf),
+                        "bbox": box.xyxy[0].tolist(),
+                    }
+                )
         return detections
 
 
@@ -149,23 +151,25 @@ For faster inference, add a GPU to your function by specifying the `gpu` paramet
         detections = []
         for r in results:
             for box in r.boxes:
-                detections.append({
-                    "class": model.names[int(box.cls)],
-                    "confidence": float(box.conf),
-                    "bbox": box.xyxy[0].tolist(),
-                })
+                detections.append(
+                    {
+                        "class": model.names[int(box.cls)],
+                        "confidence": float(box.conf),
+                        "bbox": box.xyxy[0].tolist(),
+                    }
+                )
         return detections
     ```
 
 The available GPU options are:
 
-| GPU       | Memory | Best For                                       |
-| --------- | ------ | ---------------------------------------------- |
-| T4        | 16 GB  | Inference, small model training                |
+| GPU       | Memory | Best For                                                                                    |
+| --------- | ------ | ------------------------------------------------------------------------------------------- |
+| T4        | 16 GB  | Inference, small model training                                                             |
 | A10G      | 24 GB  | Medium training jobs, larger [batch sizes](https://www.ultralytics.com/glossary/batch-size) |
-| A100-40GB | 40 GB  | Large-scale training, fine-tuning large models |
-| A100-80GB | 80 GB  | Large models, bigger batch sizes               |
-| H100      | 80 GB  | Maximum performance for intensive training     |
+| A100-40GB | 40 GB  | Large-scale training, fine-tuning large models                                              |
+| A100-80GB | 80 GB  | Large models, bigger batch sizes                                                            |
+| H100      | 80 GB  | Maximum performance for intensive training                                                  |
 
 ## Training YOLO26 on Modal
 
@@ -181,11 +185,7 @@ For [model training](https://www.ultralytics.com/glossary/model-training), you'l
     # Create a volume for storing datasets and checkpoints
     volume = modal.Volume.from_name("yolo-training-vol", create_if_missing=True)
 
-    image = (
-        modal.Image.debian_slim(python_version="3.11")
-        .apt_install("libgl1", "libglib2.0-0")
-        .pip_install("ultralytics")
-    )
+    image = modal.Image.debian_slim(python_version="3.11").apt_install("libgl1", "libglib2.0-0").pip_install("ultralytics")
 
 
     @app.function(
@@ -260,11 +260,13 @@ Modal can expose your YOLO26 model as a persistent HTTP endpoint for real-time [
         detections = []
         for r in results:
             for box in r.boxes:
-                detections.append({
-                    "class": model.names[int(box.cls)],
-                    "confidence": float(box.conf),
-                    "bbox": box.xyxy[0].tolist(),
-                })
+                detections.append(
+                    {
+                        "class": model.names[int(box.cls)],
+                        "confidence": float(box.conf),
+                        "bbox": box.xyxy[0].tolist(),
+                    }
+                )
 
         return {"detections": detections, "count": len(detections)}
     ```
@@ -317,11 +319,13 @@ def predict_batch(image_urls: list[str]):
         detections = []
         for r in results:
             for box in r.boxes:
-                detections.append({
-                    "class": model.names[int(box.cls)],
-                    "confidence": float(box.conf),
-                    "bbox": box.xyxy[0].tolist(),
-                })
+                detections.append(
+                    {
+                        "class": model.names[int(box.cls)],
+                        "confidence": float(box.conf),
+                        "bbox": box.xyxy[0].tolist(),
+                    }
+                )
         all_results.append({"url": url, "detections": detections})
 
     return all_results

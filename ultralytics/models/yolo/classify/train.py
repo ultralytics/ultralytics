@@ -168,6 +168,8 @@ class ClassificationTrainer(BaseTrainer):
     def get_validator(self):
         """Return an instance of ClassificationValidator for validation."""
         self.loss_names = ["loss"]
+        if self.args.distill_model is not None:
+            self.loss_names += ("dis_loss",)
         return yolo.classify.ClassificationValidator(
             self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

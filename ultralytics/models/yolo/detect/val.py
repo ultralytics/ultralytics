@@ -207,10 +207,10 @@ class DetectionValidator(BaseValidator):
 
                         gt_centers = gt_positions.mean(axis=1)
                         pred_centers = pred_positions.mean(axis=1)
-                    else: 
+                    else:
                         gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:]) / 2.0
                         pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:]) / 2.0
-                    
+
                     # keep only TP predictions
                     pred_centers_tp = pred_centers[tp_idx]
                     # distance matrix (GT x TP)

@@ -939,9 +939,9 @@ class Metric(SimpleClass):
         return self.all_ap.mean() if len(self.all_ap) else 0.0
 
     @property
-    def mcenter_offset (self) -> float:
+    def mcenter_offset(self) -> float:
         """Return the mean TP-RMSE Center Offset over all detected classes.
-        
+
         Returns:
             (float): The mcenter_offset of all classes
         """
@@ -957,7 +957,7 @@ class Metric(SimpleClass):
         return metrics
 
     def class_result(self, i: int) -> tuple[float, float, float, float, float]:
-        """Return class-aware result, p[i], r[i], ap50[i], ap[i], center_offset[i]: if the model is (detect, obb)"""
+        """Return class-aware result, p[i], r[i], ap50[i], ap[i], center_offset[i]: if the model is (detect, obb)."""
         metrics = [self.p[i], self.r[i], self.ap50[i], self.ap[i]]
         if self.center_rmse is not None and len(self.center_rmse):
             metrics.append(self.center_rmse[i])
@@ -1111,9 +1111,9 @@ class DetMetrics(SimpleClass, DataExportMixin):
                 self.center_rmse = 0.0
             else:
                 tp_offsets = tp_offsets.astype(float)
-                tp_mask = stats["tp"][:, 0].astype(bool) # iou 0.5 should be the first one
+                tp_mask = stats["tp"][:, 0].astype(bool)  # iou 0.5 should be the first one
                 pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)
-                self.center_rmse = float(np.sqrt(np.mean(tp_offsets ** 2)))
+                self.center_rmse = float(np.sqrt(np.mean(tp_offsets**2)))
                 rmse_per_class = np.zeros(len(self.names), dtype=float)
                 for c in range(len(self.names)):
                     cls_mask = pred_cls_tp == c
@@ -1142,7 +1142,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             "metrics/recall(B)",
             "metrics/mAP50(B)",
             "metrics/mAP50-95(B)",
-            ]
+        ]
         if self.task in ("detect", "obb"):
             keys.append("metrics/center_rmse(B)")
         return keys

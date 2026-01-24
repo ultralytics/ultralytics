@@ -35,20 +35,14 @@ class DistillationModel(nn.Module):
         )
         copy_attr(self, student_model)
 
-    # def distillation_loss(self, student_logits, teacher_logits, true_labels):
-    #     # Soft targets from teacher
-    #     soft_targets = F.log_softmax(teacher_logits / self.temperature, dim=1)
-    #     student_soft_logits = F.log_softmax(student_logits / self.temperature, dim=1)
-    #
-    #     # Distillation loss (Kullback-Leibler divergence)
-    #     distillation_loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (self.temperature**2)
-    #
-    #     # Hard target loss (Cross-entropy)
-    #     hard_target_loss = F.cross_entropy(student_logits, true_labels)
-    #
-    #     # Combined loss
-    #     total_loss = self.alpha * distillation_loss + (1 - self.alpha) * hard_target_loss
-    #     return total_loss
+    def loss_kl(self, student_logits, teacher_logits, temperature: float = 5):
+        """The KL divergence loss for knowledge distillation."""
+        soft_targets = F.log_softmax(teacher_logits / temperature, dim=1)
+        student_soft_logits = F.log_softmax(student_logits / temperature, dim=1)
+
+        # Distillation loss (Kullback-Leibler divergence)
+        distillation_loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (temperature**2)
+        return distillation_loss
 
     def forward(self, x, *args, **kwargs):
         """Forward pass through the student model."""

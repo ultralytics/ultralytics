@@ -79,14 +79,13 @@ class DistillationModel(nn.Module):
             teacher_feats = self.teacher_model(batch["img"], embed=self.feats_idx, direct_return=True)
         preds, feats = self.student_model(batch["img"], return_feats=True)
         loss_distill = torch.zeros(1, device=batch["img"].device)
-        if isinstance(teacher_feats, tuple):
-            teacher_feats = teacher_feats[1]
         for i, feat_idx in enumerate(self.feats_idx):
             # handle head ouput
+            teacher_feat = teacher_feats[i][1] if isinstance(teacher_feats[i], tuple) else teacher_feats[i]
             feat = feats[feat_idx][1] if isinstance(feats[feat_idx], tuple) else feats[feat_idx]
             student_feat = self.projector[i](feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2) if feat.ndim == 4 else feat
-            # loss_distill += self.loss_cosine(teacher_feats[i], student_feat) * self.student_model.args.dis
-            loss_distill += self.loss_kl(teacher_feats[i], student_feat) * self.student_model.args.dis
+            # loss_distill += self.loss_cosine(teacher_feat, student_feat) * self.student_model.args.dis
+            loss_distill += self.loss_kl(teacher_feat, student_feat) * self.student_model.args.dis
 
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill.detach()])

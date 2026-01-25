@@ -1197,7 +1197,11 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
                     indices_aux_list.append(indices_aux)
 
             indices_go = self._get_union_indices(indices_main, indices_aux_list)
-            global_num_gts_go = _global_num_gts(sum(len(x[0]) for x in indices_go), pred_scores.device)
+            local_num_gts_go = sum(len(x[0]) for x in indices_go)
+            if self.training and torch.is_grad_enabled():
+                global_num_gts_go = _global_num_gts(local_num_gts_go, pred_scores.device)
+            else:
+                global_num_gts_go = max(local_num_gts_go, 1.0)
 
             fixed_indices = None
             if self.use_uni_match and pred_bboxes.numel():

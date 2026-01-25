@@ -141,7 +141,7 @@ class ClassificationTrainer(BaseTrainer):
         # Filter out samples with class indices >= nc (prevents CUDA assertion errors)
         nc = self.data.get("nc", 0)
         dataset_nc = len(dataset.base.classes)
-        if dataset_nc > nc:
+        if nc and dataset_nc > nc:
             extra_classes = dataset.base.classes[nc:]
             original_count = len(dataset.samples)
             dataset.samples = [s for s in dataset.samples if s[1] < nc]

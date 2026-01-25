@@ -796,6 +796,17 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     # Check if this is a classification dataset
     is_classification = dataset_record.get("task") == "classify"
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+    len(class_names)
+
+    # Validate required fields before downloading images
+    task = dataset_record.get("task", "detect")
+    if not is_classification:
+        if "train" not in splits:
+            raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
+        if "val" not in splits and "test" not in splits:
+            raise ValueError(f"Dataset missing required 'val' split. Found splits: {sorted(splits)}")
+    if task == "pose" and "kpt_shape" not in dataset_record:
+        raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
 
     # Create base directories
     dataset_dir.mkdir(parents=True, exist_ok=True)

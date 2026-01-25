@@ -24,6 +24,7 @@ from ultralytics.utils import (
     LOGGER,
     PYTHON_VERSION,
     ROOT,
+    TORCH_VERSION,
     YAML,
     is_jetson,
 )
@@ -634,14 +635,17 @@ class AutoBackend(nn.Module):
 
             check_requirements("ruamel.yaml<0.19.0")
 
-            # Use nightly build for executorch 1.1.0 until stable release on 01/26/2026 https://github.com/pytorch/executorch/issues/16365
-            if TORCH_2_10:
+            # Attempt stable first with the current torch version as forced guard for resolution
+            torch_version = TORCH_VERSION.split("+")[0]
+            if not check_requirements(
+                requirements=["executorch", "flatbuffers", "torchao"],
+                cmds=f"torch=={torch_version}",
+            ):
+                # Fallback to nightly if resolution fails
                 check_requirements(
-                    requirements=["executorch==1.1.0.dev20260120", "flatbuffers", "torchao"],
-                    cmds="--extra-index-url https://download.pytorch.org/whl/nightly",
+                    requirements=["executorch", "flatbuffers", "torchao"],
+                    cmds=f"torch=={torch_version} --extra-index-url https://download.pytorch.org/whl/nightly --prerelease=allow",
                 )
-            else:
-                check_requirements("executorch==1.0.1", "flatbuffers")
 
             # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
             check_requirements("numpy<=2.3.5")

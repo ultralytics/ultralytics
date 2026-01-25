@@ -1,11 +1,19 @@
 """
 YOLO Pre/Post Export Diagnostic Tool
 
-Compares detection outputs before (PyTorch) and after (ONNX Runtime) export.
-Reports pairing IoU, confidence drift, and unmatched detections.
+Compares detection outputs before (PyTorch) and after (ONNX Runtime) export
+to help diagnose numerical and structural drift introduced during model export.
 
-Usage:
-  python pre_post_export_diagnosis.py [options]
+The tool pairs detections by class and IoU, reports confidence drift,
+and highlights unmatched detections across backends.
+
+All model weights and input sources are provided via CLI arguments.
+Default values are example placeholders only and can be overridden.
+
+Quick start:
+  python diagnostic_tools/pre_post_export_diagnosis.py \
+    --weights yolov8n.pt \
+    --source path/to/image.jpg
 
 Options:
   --weights PATH     Path to PyTorch weights (default: yolov8n.pt)

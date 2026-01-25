@@ -18,8 +18,8 @@ class DistillationModel(nn.Module):
         if isinstance(teacher_model, str):
             teacher_model = load_checkpoint(teacher_model)[0]
         device = next(student_model.parameters()).device
-        self.teacher_model = teacher_model.to(device).eval()
-        # self.teacher_model = teacher_model.to(device).train()
+        # self.teacher_model = teacher_model.to(device).eval()
+        self.teacher_model = teacher_model.to(device).train()
         for v in self.teacher_model.parameters():
             v.requires_grad = False
         self.student_model = student_model

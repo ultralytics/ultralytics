@@ -6,7 +6,7 @@ keywords: MLflow, Ultralytics YOLO, machine learning, experiment tracking, metri
 
 # MLflow Integration for Ultralytics YOLO
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/mlflow-integration-ultralytics-yolo.avif" alt="MLflow ecosystem">
+<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mlflow-integration-ultralytics-yolo.avif" alt="MLflow experiment tracking with Ultralytics YOLO">
 
 ## Introduction
 
@@ -102,9 +102,9 @@ The logging is taken care of by the `on_pretrain_routine_end`, `on_fit_epoch_end
 
 1. **Logging Custom Metrics**: You can add custom metrics to be logged by modifying the `trainer.metrics` dictionary before `on_fit_epoch_end` is called.
 
-2. **View Experiment**: To view your logs, navigate to your MLflow server (usually `http://127.0.0.1:5000`) and select your experiment and run. <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/yolo-mlflow-experiment.avif" alt="YOLO MLflow Experiment">
+2. **View Experiment**: To view your logs, navigate to your MLflow server (usually `http://127.0.0.1:5000`) and select your experiment and run. <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-mlflow-experiment.avif" alt="MLflow experiment tracking interface for YOLO">
 
-3. **View Run**: Runs are individual models inside an experiment. Click on a Run and see the Run details, including uploaded artifacts and model weights. <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/yolo-mlflow-run.avif" alt="YOLO MLflow Run">
+3. **View Run**: Runs are individual models inside an experiment. Click on a Run and see the Run details, including uploaded artifacts and model weights. <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-mlflow-run.avif" alt="MLflow run details with YOLO artifacts">
 
 ## Disabling MLflow
 

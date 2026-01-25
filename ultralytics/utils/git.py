@@ -63,7 +63,8 @@ class GitRepo:
                 return (root / t.split(":", 1)[1].strip()).resolve()
         return None
 
-    def _read(self, p: Path | None) -> str | None:
+    @staticmethod
+    def _read(p: Path | None) -> str | None:
         """Read and strip file if exists."""
         return p.read_text(errors="ignore").strip() if p and p.exists() else None
 

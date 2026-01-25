@@ -5,9 +5,9 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 
 # Reference for `ultralytics/utils/checks.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/checks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/checks.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/utils/checks.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/checks.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/checks.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 
@@ -48,6 +48,10 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.checks.check_python
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.checks.check_apt_requirements
 
 <br><br><hr><br>
 

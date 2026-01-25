@@ -2,23 +2,22 @@
 
 <!--Site announcement bar-->
 {% extends "base.html" %} {% block announce %}
-<a class="banner-wrapper" href="https://www.ultralytics.com/events/yolovision" target="_blank">
+<a class="banner-wrapper" href="https://docs.ultralytics.com/models/yolo26">
   <div class="banner-content-wrapper">
-    <p>Join now</p>
     <img
-      src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/6895ca9b3ece7244d9981ab9_yv25-logo.avif"
-      loading="lazy"
+      src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/6967372a0d67914985d322e7_Ultralytics%20YOLO26%201.svg"
+      alt="Ultralytics YOLO26"
       height="40"
-      alt="Ultralytics YOLO Vision"
     />
-    <p class="shenzhen-text">Shenzhen</p>
+    <p>Built End-to-End. Built for the Edge.</p>
   </div>
 </a>
 {% endblock %}
 
 <!--Page titles-->
-{% block htmltitle %} {% if page.toc|first is defined %} {% set page_specific_title = page.toc.items[0].title %} {% else
-%} {% set page_specific_title = page.title | striptags %} {% endif %}
+{% block htmltitle %} {% if page and page.toc is defined and page.toc.items is defined and page.toc.items %} {% set
+page_specific_title = page.toc.items[0].title %} {% elif page %} {% set page_specific_title = page.title | striptags %}
+{% else %} {% set page_specific_title = "" %} {% endif %}
 <title>
   {%- if page_specific_title -%} {{ page_specific_title }} - {{ config.site_name }} {%- else -%} {{ config.site_name }}
   {%- endif -%}

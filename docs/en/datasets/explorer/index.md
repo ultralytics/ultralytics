@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover Ultralytics Explorer for semantic search, SQL queries, vector similarity, and natural language dataset exploration. Enhance your CV datasets effortlessly.
+description: Discover Ultralytics Explorer for semantic search, SQL queries, vector similarity, and natural language dataset exploration.
 keywords: Ultralytics Explorer, CV datasets, semantic search, SQL queries, vector similarity, dataset visualization, python API, machine learning, computer vision
 ---
 
@@ -8,10 +8,10 @@ keywords: Ultralytics Explorer, CV datasets, semantic search, SQL queries, vecto
 
 !!! warning "Community Note ⚠️"
 
-    As of **`ultralytics>=8.3.10`**, Ultralytics explorer support has been deprecated. But don't worry! You can now access similar and even enhanced functionality through [Ultralytics HUB](https://hub.ultralytics.com/), our intuitive no-code platform designed to streamline your workflow. With Ultralytics HUB, you can continue exploring, visualizing, and managing your data effortlessly, all without writing a single line of code. Make sure to check it out and take advantage of its powerful features!🚀
+    As of **`ultralytics>=8.3.10`**, Ultralytics Explorer support is deprecated. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com/).
 
 <p>
-    <img width="1709" alt="Ultralytics Explorer Screenshot 1" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-1.avif">
+    <img width="1709" alt="Ultralytics Explorer dataset visualization GUI" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/explorer-dashboard-screenshot-1.avif">
 </p>
 
 <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
@@ -61,7 +61,7 @@ yolo explorer
     You can set it like this - `yolo settings openai_api_key="..."`
 
 <p>
-    <img width="1709" alt="Ultralytics Explorer OpenAI Integration" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-explorer-openai-integration.avif">
+    <img width="1709" alt="Ultralytics Explorer OpenAI Integration" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-explorer-openai-integration.avif">
 </p>
 
 ## FAQ

@@ -1,13 +1,13 @@
 ---
-description: Explore detailed documentation of block modules in Ultralytics, available for deep learning tasks. Contribute and improve the codebase!.
+description: Explore detailed documentation of block modules in Ultralytics, available for deep learning tasks. Contribute and improve the codebase.
 keywords: Ultralytics, YOLO, neural networks, block modules, DFL, Proto, HGStem, HGBlock, SPP, SPPF, C1, C2, C2f, C3, C3x, RepC3, C3TR, C3Ghost, GhostBottleneck, Bottleneck, BottleneckCSP, ResNetBlock, MaxSigmoidAttnBlock, ImagePoolingAttn, ContrastiveHead, RepBottleneck, RepCSP, RepNCSPELAN4, ADown, SPPELAN, Silence, CBLinear, CBFuse
 ---
 
 # Reference for `ultralytics/nn/modules/block.py`
 
-!!! note
+!!! success "Improvements"
 
-    This file is available at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py). If you spot a problem please help fix it by [contributing](https://docs.ultralytics.com/help/contributing/) a [Pull Request](https://github.com/ultralytics/ultralytics/edit/main/ultralytics/nn/modules/block.py) 🛠️. Thank you 🙏!
+    This page is sourced from [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py). Have an improvement or example to add? Open a [Pull Request](https://docs.ultralytics.com/help/contributing/) — thank you! 🙏
 
 <br>
 
@@ -216,5 +216,13 @@ keywords: Ultralytics, YOLO, neural networks, block modules, DFL, Proto, HGStem,
 <br><br><hr><br>
 
 ## ::: ultralytics.nn.modules.block.SAVPE
+
+<br><br><hr><br>
+
+## ::: ultralytics.nn.modules.block.Proto26
+
+<br><br><hr><br>
+
+## ::: ultralytics.nn.modules.block.RealNVP
 
 <br><br>

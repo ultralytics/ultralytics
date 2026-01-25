@@ -20,7 +20,7 @@ class OBBPredictor(DetectionPredictor):
     Examples:
         >>> from ultralytics.utils import ASSETS
         >>> from ultralytics.models.yolo.obb import OBBPredictor
-        >>> args = dict(model="yolo11n-obb.pt", source=ASSETS)
+        >>> args = dict(model="yolo26n-obb.pt", source=ASSETS)
         >>> predictor = OBBPredictor(overrides=args)
         >>> predictor.predict_cli()
     """
@@ -32,12 +32,6 @@ class OBBPredictor(DetectionPredictor):
             cfg (dict, optional): Default configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over the default config.
             _callbacks (list, optional): List of callback functions to be invoked during prediction.
-
-        Examples:
-            >>> from ultralytics.utils import ASSETS
-            >>> from ultralytics.models.yolo.obb import OBBPredictor
-            >>> args = dict(model="yolo11n-obb.pt", source=ASSETS)
-            >>> predictor = OBBPredictor(overrides=args)
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "obb"
@@ -56,7 +50,7 @@ class OBBPredictor(DetectionPredictor):
             (Results): The result object containing the original image, image path, class names, and oriented bounding
                 boxes.
         """
-        rboxes = ops.regularize_rboxes(torch.cat([pred[:, :4], pred[:, -1:]], dim=-1))
+        rboxes = torch.cat([pred[:, :4], pred[:, -1:]], dim=-1)
         rboxes[:, :4] = ops.scale_boxes(img.shape[2:], rboxes[:, :4], orig_img.shape, xywh=True)
         obb = torch.cat([rboxes, pred[:, 4:6]], dim=-1)
         return Results(orig_img, path=img_path, names=self.model.names, obb=obb)

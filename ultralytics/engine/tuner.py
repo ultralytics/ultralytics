@@ -8,9 +8,9 @@ that yield the best model performance. This is particularly crucial in deep lear
 where small changes in hyperparameters can lead to significant differences in model accuracy and efficiency.
 
 Examples:
-    Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
+    Tune hyperparameters for YOLO26n on COCO8 at imgsz=640 and epochs=10 for 300 tuning iterations.
     >>> from ultralytics import YOLO
-    >>> model = YOLO("yolo11n.pt")
+    >>> model = YOLO("yolo26n.pt")
     >>> model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
 """
 
@@ -55,9 +55,9 @@ class Tuner:
         __call__: Execute the hyperparameter evolution across multiple iterations.
 
     Examples:
-        Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
+        Tune hyperparameters for YOLO26n on COCO8 at imgsz=640 and epochs=10 for 300 tuning iterations.
         >>> from ultralytics import YOLO
-        >>> model = YOLO("yolo11n.pt")
+        >>> model = YOLO("yolo26n.pt")
         >>> model.tune(
         >>>     data="coco8.yaml",
         >>>     epochs=10,
@@ -90,15 +90,15 @@ class Tuner:
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
-            "lr0": (1e-5, 1e-1),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
-            "lrf": (0.0001, 0.1),  # final OneCycleLR learning rate (lr0 * lrf)
+            "lr0": (1e-5, 1e-2),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
+            "lrf": (0.01, 1.0),  # final OneCycleLR learning rate (lr0 * lrf)
             "momentum": (0.7, 0.98, 0.3),  # SGD momentum/Adam beta1
             "weight_decay": (0.0, 0.001),  # optimizer weight decay 5e-4
             "warmup_epochs": (0.0, 5.0),  # warmup epochs (fractions ok)
             "warmup_momentum": (0.0, 0.95),  # warmup initial momentum
             "box": (1.0, 20.0),  # box loss gain
             "cls": (0.1, 4.0),  # cls loss gain (scale with pixels)
-            "dfl": (0.4, 6.0),  # dfl loss gain
+            "dfl": (0.4, 12.0),  # dfl loss gain
             "hsv_h": (0.0, 0.1),  # image HSV-Hue augmentation (fraction)
             "hsv_s": (0.0, 0.9),  # image HSV-Saturation augmentation (fraction)
             "hsv_v": (0.0, 0.9),  # image HSV-Value augmentation (fraction)
@@ -254,14 +254,15 @@ class Tuner:
                 f.write(headers)
                 for result in all_results:
                     fitness = result["fitness"]
-                    hyp_values = [result["hyperparameters"][k] for k in self.space.keys()]
+                    hyp_values = [result["hyperparameters"].get(k, self.args.get(k)) for k in self.space.keys()]
                     log_row = [round(fitness, 5), *hyp_values]
                     f.write(",".join(map(str, log_row)) + "\n")
 
         except Exception as e:
             LOGGER.warning(f"{self.prefix}MongoDB to CSV sync failed: {e}")
 
-    def _crossover(self, x: np.ndarray, alpha: float = 0.2, k: int = 9) -> np.ndarray:
+    @staticmethod
+    def _crossover(x: np.ndarray, alpha: float = 0.2, k: int = 9) -> np.ndarray:
         """BLX-α crossover from up to top-k parents (x[:,0]=fitness, rest=genes)."""
         k = min(k, len(x))
         # fitness weights (shifted to >0); fallback to uniform if degenerate
@@ -272,6 +273,8 @@ class Tuner:
         parents_mat = np.stack([x[i][1:] for i in idxs], 0)  # (k, ng) strip fitness
         lo, hi = parents_mat.min(0), parents_mat.max(0)
         span = hi - lo
+        # given a small value when span is zero to avoid no mutation
+        span = np.where(span == 0, np.random.uniform(0.01, 0.1, span.shape), span)
         return np.random.uniform(lo - alpha * span, hi + alpha * span)
 
     def _mutate(
@@ -283,7 +286,6 @@ class Tuner:
         """Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
-            parent (str): Parent selection method (kept for API compatibility, unused in BLX mode).
             n (int): Number of top parents to consider.
             mutation (float): Probability of a parameter mutation in any given iteration.
             sigma (float): Standard deviation for Gaussian random number generator.
@@ -297,7 +299,12 @@ class Tuner:
         if self.mongodb:
             if results := self._get_mongodb_results(n):
                 # MongoDB already sorted by fitness DESC, so results[0] is best
-                x = np.array([[r["fitness"]] + [r["hyperparameters"][k] for k in self.space.keys()] for r in results])
+                x = np.array(
+                    [
+                        [r["fitness"]] + [r["hyperparameters"].get(k, self.args.get(k)) for k in self.space.keys()]
+                        for r in results
+                    ]
+                )
             elif self.collection.name in self.collection.database.list_collection_names():  # Tuner started elsewhere
                 x = np.array([[0.0] + [getattr(self.args, k) for k in self.space.keys()]])
 
@@ -335,10 +342,12 @@ class Tuner:
         # Update types
         if "close_mosaic" in hyp:
             hyp["close_mosaic"] = round(hyp["close_mosaic"])
+        if "epochs" in hyp:
+            hyp["epochs"] = round(hyp["epochs"])
 
         return hyp
 
-    def __call__(self, model=None, iterations: int = 10, cleanup: bool = True):
+    def __call__(self, iterations: int = 10, cleanup: bool = True):
         """Execute the hyperparameter evolution process when the Tuner instance is called.
 
         This method iterates through the specified number of iterations, performing the following steps:
@@ -349,7 +358,6 @@ class Tuner:
         5. Track the best performing configuration across all iterations
 
         Args:
-            model (Model | None, optional): A pre-initialized YOLO model to be used for training.
             iterations (int): The number of generations to run the evolution for.
             cleanup (bool): Whether to delete iteration weights to reduce storage space during tuning.
         """
@@ -378,6 +386,7 @@ class Tuner:
             metrics = {}
             train_args = {**vars(self.args), **mutated_hyp}
             save_dir = get_save_dir(get_cfg(train_args))
+            train_args["save_dir"] = str(save_dir)  # pass save_dir to subprocess to ensure same path is used
             weights_dir = save_dir / "weights"
             try:
                 # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)

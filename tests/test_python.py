@@ -161,6 +161,30 @@ def test_predict_gray_and_4ch(tmp_path):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
+def test_predict_all_image_formats():
+    """Test YOLO prediction all 12 image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP)."""
+    # Download dataset if needed
+    data = check_det_dataset("coco12-formats.yaml")
+    dataset_path = Path(data["path"])
+
+    # Collect all images from train and val
+    expected = {"avif", "bmp", "dng", "heic", "jp2", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp"}
+    images = [im for im in (dataset_path / "images" / "train").glob("*.*") if im.suffix.lower().lstrip(".") in expected]
+    images += [im for im in (dataset_path / "images" / "val").glob("*.*") if im.suffix.lower().lstrip(".") in expected]
+    assert len(images) == 12, f"Expected 12 images, found {len(images)}"
+
+    # Verify all format extensions are represented
+    extensions = {img.suffix.lower().lstrip(".") for img in images}
+    assert extensions == expected, f"Missing formats: {expected - extensions}"
+
+    # Run inference on all images
+    model = YOLO(MODEL)
+    results = model(images, imgsz=32)
+    assert len(results) == 12, f"Expected 12 results, got {len(results)}"
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")
 def test_youtube():
     """Test YOLO model on a YouTube video stream, handling potential network-related errors."""
@@ -209,11 +233,12 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_json()
 
 
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
-    """Test training the YOLO model from scratch using the provided configuration."""
+    """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)
-    model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
+    model.train(data="coco12-formats.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
     model(SOURCE)
 
 

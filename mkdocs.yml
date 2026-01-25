@@ -192,37 +192,20 @@ validation:
 
 # Primary navigation ---------------------------------------------------------------------------------------------------
 not_in_nav: |
-  /compare
   /macros
 
 nav:
   - Home:
       - Home: index.md
       - Quickstart: quickstart.md
-      - Modes:
-          - modes/index.md
-          - Train: modes/train.md
-          - Val: modes/val.md
-          - Predict: modes/predict.md
-          - Export: modes/export.md
-          - Track: modes/track.md
-          - Benchmark: modes/benchmark.md
-      - Tasks:
-          - tasks/index.md
-          - Detect: tasks/detect.md
-          - Segment: tasks/segment.md
-          - Classify: tasks/classify.md
-          - Pose: tasks/pose.md
-          - OBB: tasks/obb.md
-      - Models:
-          - models/index.md
-      - Datasets:
-          - datasets/index.md
-      - Solutions:
-          - solutions/index.md
-      - Guides:
-          - guides/index.md
-      - YOLO26 🚀: models/yolo26.md # for promotion of new pages
+      - Usage:
+          - CLI: usage/cli.md
+          - Python: usage/python.md
+          - Callbacks: usage/callbacks.md
+          - Configuration: usage/cfg.md
+          - Simple Utilities: usage/simple-utilities.md
+          - Advanced Customization: usage/engine.md
+      - YOLO26 🚀: models/yolo26.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -237,70 +220,23 @@ nav:
           - 🇹🇷&nbsp Türkçe: https://docs.ultralytics.com/tr/
           - 🇻🇳&nbsp Tiếng Việt: https://docs.ultralytics.com/vi/
           - 🇸🇦&nbsp العربية: https://docs.ultralytics.com/ar/
-  - Quickstart:
-      - quickstart.md
-      - Usage:
-          - CLI: usage/cli.md
-          - Python: usage/python.md
-          - Callbacks: usage/callbacks.md
-          - Configuration: usage/cfg.md
-          - Simple Utilities: usage/simple-utilities.md
-          - Advanced Customization: usage/engine.md
-      - Modes:
-          - Modes: modes/index.md
-          - Train: modes/train.md
-          - Val: modes/val.md
-          - Predict: modes/predict.md
-          - Export: modes/export.md
-          - Track: modes/track.md
-          - Benchmark: modes/benchmark.md
-      - Tasks:
-          - Tasks: tasks/index.md
-          - Detect: tasks/detect.md
-          - Segment: tasks/segment.md
-          - Classify: tasks/classify.md
-          - Pose: tasks/pose.md
-          - OBB: tasks/obb.md
-      - Models:
-          - models/index.md
-      - Datasets:
-          - datasets/index.md
-      - Solutions:
-          - solutions/index.md
-      - Guides:
-          - guides/index.md
   - Modes:
-      - Modes: modes/index.md
+      - modes/index.md
       - Train: modes/train.md
       - Val: modes/val.md
       - Predict: modes/predict.md
       - Export: modes/export.md
       - Track: modes/track.md
       - Benchmark: modes/benchmark.md
-      - Tasks:
-          - tasks/index.md
-          - Detect: tasks/detect.md
-          - Segment: tasks/segment.md
-          - Classify: tasks/classify.md
-          - Pose: tasks/pose.md
-          - OBB: tasks/obb.md
   - Tasks:
-      - Tasks: tasks/index.md
+      - tasks/index.md
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
-      - Modes:
-          - modes/index.md
-          - Train: modes/train.md
-          - Val: modes/val.md
-          - Predict: modes/predict.md
-          - Export: modes/export.md
-          - Track: modes/track.md
-          - Benchmark: modes/benchmark.md
   - Models:
-      - Models: models/index.md
+      - models/index.md
       - YOLOv3: models/yolov3.md
       - YOLOv4: models/yolov4.md
       - YOLOv5: models/yolov5.md
@@ -321,6 +257,177 @@ nav:
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
       - YOLO-World (Real-Time Open-Vocabulary Object Detection): models/yolo-world.md
       - YOLOE (Real-Time Seeing Anything): models/yoloe.md
+  - Compare:
+      - compare/index.md
+      - YOLO26:
+          - YOLO26 vs YOLO11: compare/yolo26-vs-yolo11.md
+          - YOLO26 vs YOLOv10: compare/yolo26-vs-yolov10.md
+          - YOLO26 vs YOLOv9: compare/yolo26-vs-yolov9.md
+          - YOLO26 vs YOLOv8: compare/yolo26-vs-yolov8.md
+          - YOLO26 vs YOLOv7: compare/yolo26-vs-yolov7.md
+          - YOLO26 vs YOLOv6: compare/yolo26-vs-yolov6.md
+          - YOLO26 vs YOLOv5: compare/yolo26-vs-yolov5.md
+          - YOLO26 vs RT-DETR: compare/yolo26-vs-rtdetr.md
+          - YOLO26 vs PP-YOLOE+: compare/yolo26-vs-pp-yoloe.md
+          - YOLO26 vs DAMO-YOLO: compare/yolo26-vs-damo-yolo.md
+          - YOLO26 vs YOLOX: compare/yolo26-vs-yolox.md
+          - YOLO26 vs EfficientDet: compare/yolo26-vs-efficientdet.md
+      - YOLO11:
+          - YOLO11 vs YOLO26: compare/yolo11-vs-yolo26.md
+          - YOLO11 vs YOLOv10: compare/yolo11-vs-yolov10.md
+          - YOLO11 vs YOLOv9: compare/yolo11-vs-yolov9.md
+          - YOLO11 vs YOLOv8: compare/yolo11-vs-yolov8.md
+          - YOLO11 vs YOLOv7: compare/yolo11-vs-yolov7.md
+          - YOLO11 vs YOLOv6: compare/yolo11-vs-yolov6.md
+          - YOLO11 vs YOLOv5: compare/yolo11-vs-yolov5.md
+          - YOLO11 vs RT-DETR: compare/yolo11-vs-rtdetr.md
+          - YOLO11 vs PP-YOLOE+: compare/yolo11-vs-pp-yoloe.md
+          - YOLO11 vs DAMO-YOLO: compare/yolo11-vs-damo-yolo.md
+          - YOLO11 vs YOLOX: compare/yolo11-vs-yolox.md
+          - YOLO11 vs EfficientDet: compare/yolo11-vs-efficientdet.md
+      - YOLOv10:
+          - YOLOv10 vs YOLO26: compare/yolov10-vs-yolo26.md
+          - YOLOv10 vs YOLO11: compare/yolov10-vs-yolo11.md
+          - YOLOv10 vs YOLOv9: compare/yolov10-vs-yolov9.md
+          - YOLOv10 vs YOLOv8: compare/yolov10-vs-yolov8.md
+          - YOLOv10 vs YOLOv7: compare/yolov10-vs-yolov7.md
+          - YOLOv10 vs YOLOv6: compare/yolov10-vs-yolov6.md
+          - YOLOv10 vs YOLOv5: compare/yolov10-vs-yolov5.md
+          - YOLOv10 vs RT-DETR: compare/yolov10-vs-rtdetr.md
+          - YOLOv10 vs PP-YOLOE+: compare/yolov10-vs-pp-yoloe.md
+          - YOLOv10 vs DAMO-YOLO: compare/yolov10-vs-damo-yolo.md
+          - YOLOv10 vs YOLOX: compare/yolov10-vs-yolox.md
+          - YOLOv10 vs EfficientDet: compare/yolov10-vs-efficientdet.md
+      - YOLOv9:
+          - YOLOv9 vs YOLO26: compare/yolov9-vs-yolo26.md
+          - YOLOv9 vs YOLO11: compare/yolov9-vs-yolo11.md
+          - YOLOv9 vs YOLOv10: compare/yolov9-vs-yolov10.md
+          - YOLOv9 vs YOLOv8: compare/yolov9-vs-yolov8.md
+          - YOLOv9 vs YOLOv7: compare/yolov9-vs-yolov7.md
+          - YOLOv9 vs YOLOv6: compare/yolov9-vs-yolov6.md
+          - YOLOv9 vs YOLOv5: compare/yolov9-vs-yolov5.md
+          - YOLOv9 vs RT-DETR: compare/yolov9-vs-rtdetr.md
+          - YOLOv9 vs PP-YOLOE+: compare/yolov9-vs-pp-yoloe.md
+          - YOLOv9 vs DAMO-YOLO: compare/yolov9-vs-damo-yolo.md
+          - YOLOv9 vs YOLOX: compare/yolov9-vs-yolox.md
+          - YOLOv9 vs EfficientDet: compare/yolov9-vs-efficientdet.md
+      - YOLOv8:
+          - YOLOv8 vs YOLO26: compare/yolov8-vs-yolo26.md
+          - YOLOv8 vs YOLO11: compare/yolov8-vs-yolo11.md
+          - YOLOv8 vs YOLOv10: compare/yolov8-vs-yolov10.md
+          - YOLOv8 vs YOLOv9: compare/yolov8-vs-yolov9.md
+          - YOLOv8 vs YOLOv7: compare/yolov8-vs-yolov7.md
+          - YOLOv8 vs YOLOv6: compare/yolov8-vs-yolov6.md
+          - YOLOv8 vs YOLOv5: compare/yolov8-vs-yolov5.md
+          - YOLOv8 vs RT-DETR: compare/yolov8-vs-rtdetr.md
+          - YOLOv8 vs PP-YOLOE+: compare/yolov8-vs-pp-yoloe.md
+          - YOLOv8 vs DAMO-YOLO: compare/yolov8-vs-damo-yolo.md
+          - YOLOv8 vs YOLOX: compare/yolov8-vs-yolox.md
+          - YOLOv8 vs EfficientDet: compare/yolov8-vs-efficientdet.md
+      - YOLOv7:
+          - YOLOv7 vs YOLO26: compare/yolov7-vs-yolo26.md
+          - YOLOv7 vs YOLO11: compare/yolov7-vs-yolo11.md
+          - YOLOv7 vs YOLOv10: compare/yolov7-vs-yolov10.md
+          - YOLOv7 vs YOLOv9: compare/yolov7-vs-yolov9.md
+          - YOLOv7 vs YOLOv8: compare/yolov7-vs-yolov8.md
+          - YOLOv7 vs YOLOv6: compare/yolov7-vs-yolov6.md
+          - YOLOv7 vs YOLOv5: compare/yolov7-vs-yolov5.md
+          - YOLOv7 vs RT-DETR: compare/yolov7-vs-rtdetr.md
+          - YOLOv7 vs PP-YOLOE+: compare/yolov7-vs-pp-yoloe.md
+          - YOLOv7 vs DAMO-YOLO: compare/yolov7-vs-damo-yolo.md
+          - YOLOv7 vs YOLOX: compare/yolov7-vs-yolox.md
+          - YOLOv7 vs EfficientDet: compare/yolov7-vs-efficientdet.md
+      - YOLOv6:
+          - YOLOv6 vs YOLO26: compare/yolov6-vs-yolo26.md
+          - YOLOv6 vs YOLO11: compare/yolov6-vs-yolo11.md
+          - YOLOv6 vs YOLOv10: compare/yolov6-vs-yolov10.md
+          - YOLOv6 vs YOLOv9: compare/yolov6-vs-yolov9.md
+          - YOLOv6 vs YOLOv8: compare/yolov6-vs-yolov8.md
+          - YOLOv6 vs YOLOv7: compare/yolov6-vs-yolov7.md
+          - YOLOv6 vs YOLOv5: compare/yolov6-vs-yolov5.md
+          - YOLOv6 vs RT-DETR: compare/yolov6-vs-rtdetr.md
+          - YOLOv6 vs PP-YOLOE+: compare/yolov6-vs-pp-yoloe.md
+          - YOLOv6 vs DAMO-YOLO: compare/yolov6-vs-damo-yolo.md
+          - YOLOv6 vs YOLOX: compare/yolov6-vs-yolox.md
+          - YOLOv6 vs EfficientDet: compare/yolov6-vs-efficientdet.md
+      - YOLOv5:
+          - YOLOv5 vs YOLO26: compare/yolov5-vs-yolo26.md
+          - YOLOv5 vs YOLO11: compare/yolov5-vs-yolo11.md
+          - YOLOv5 vs YOLOv10: compare/yolov5-vs-yolov10.md
+          - YOLOv5 vs YOLOv9: compare/yolov5-vs-yolov9.md
+          - YOLOv5 vs YOLOv8: compare/yolov5-vs-yolov8.md
+          - YOLOv5 vs YOLOv7: compare/yolov5-vs-yolov7.md
+          - YOLOv5 vs YOLOv6: compare/yolov5-vs-yolov6.md
+          - YOLOv5 vs RT-DETR: compare/yolov5-vs-rtdetr.md
+          - YOLOv5 vs PP-YOLOE+: compare/yolov5-vs-pp-yoloe.md
+          - YOLOv5 vs DAMO-YOLO: compare/yolov5-vs-damo-yolo.md
+          - YOLOv5 vs YOLOX: compare/yolov5-vs-yolox.md
+          - YOLOv5 vs EfficientDet: compare/yolov5-vs-efficientdet.md
+      - RT-DETR:
+          - RT-DETR vs YOLO26: compare/rtdetr-vs-yolo26.md
+          - RT-DETR vs YOLO11: compare/rtdetr-vs-yolo11.md
+          - RT-DETR vs YOLOv10: compare/rtdetr-vs-yolov10.md
+          - RT-DETR vs YOLOv9: compare/rtdetr-vs-yolov9.md
+          - RT-DETR vs YOLOv8: compare/rtdetr-vs-yolov8.md
+          - RT-DETR vs YOLOv7: compare/rtdetr-vs-yolov7.md
+          - RT-DETR vs YOLOv6: compare/rtdetr-vs-yolov6.md
+          - RT-DETR vs YOLOv5: compare/rtdetr-vs-yolov5.md
+          - RT-DETR vs PP-YOLOE+: compare/rtdetr-vs-pp-yoloe.md
+          - RT-DETR vs DAMO-YOLO: compare/rtdetr-vs-damo-yolo.md
+          - RT-DETR vs YOLOX: compare/rtdetr-vs-yolox.md
+          - RT-DETR vs EfficientDet: compare/rtdetr-vs-efficientdet.md
+      - PP-YOLOE+:
+          - PP-YOLOE+ vs YOLO26: compare/pp-yoloe-vs-yolo26.md
+          - PP-YOLOE+ vs YOLO11: compare/pp-yoloe-vs-yolo11.md
+          - PP-YOLOE+ vs YOLOv10: compare/pp-yoloe-vs-yolov10.md
+          - PP-YOLOE+ vs YOLOv9: compare/pp-yoloe-vs-yolov9.md
+          - PP-YOLOE+ vs YOLOv8: compare/pp-yoloe-vs-yolov8.md
+          - PP-YOLOE+ vs YOLOv7: compare/pp-yoloe-vs-yolov7.md
+          - PP-YOLOE+ vs YOLOv6: compare/pp-yoloe-vs-yolov6.md
+          - PP-YOLOE+ vs YOLOv5: compare/pp-yoloe-vs-yolov5.md
+          - PP-YOLOE+ vs RT-DETR: compare/pp-yoloe-vs-rtdetr.md
+          - PP-YOLOE+ vs DAMO-YOLO: compare/pp-yoloe-vs-damo-yolo.md
+          - PP-YOLOE+ vs YOLOX: compare/pp-yoloe-vs-yolox.md
+          - PP-YOLOE+ vs EfficientDet: compare/pp-yoloe-vs-efficientdet.md
+      - DAMO-YOLO:
+          - DAMO-YOLO vs YOLO26: compare/damo-yolo-vs-yolo26.md
+          - DAMO-YOLO vs YOLO11: compare/damo-yolo-vs-yolo11.md
+          - DAMO-YOLO vs YOLOv10: compare/damo-yolo-vs-yolov10.md
+          - DAMO-YOLO vs YOLOv9: compare/damo-yolo-vs-yolov9.md
+          - DAMO-YOLO vs YOLOv8: compare/damo-yolo-vs-yolov8.md
+          - DAMO-YOLO vs YOLOv7: compare/damo-yolo-vs-yolov7.md
+          - DAMO-YOLO vs YOLOv6: compare/damo-yolo-vs-yolov6.md
+          - DAMO-YOLO vs YOLOv5: compare/damo-yolo-vs-yolov5.md
+          - DAMO-YOLO vs RT-DETR: compare/damo-yolo-vs-rtdetr.md
+          - DAMO-YOLO vs PP-YOLOE+: compare/damo-yolo-vs-pp-yoloe.md
+          - DAMO-YOLO vs YOLOX: compare/damo-yolo-vs-yolox.md
+          - DAMO-YOLO vs EfficientDet: compare/damo-yolo-vs-efficientdet.md
+      - YOLOX:
+          - YOLOX vs YOLO26: compare/yolox-vs-yolo26.md
+          - YOLOX vs YOLO11: compare/yolox-vs-yolo11.md
+          - YOLOX vs YOLOv10: compare/yolox-vs-yolov10.md
+          - YOLOX vs YOLOv9: compare/yolox-vs-yolov9.md
+          - YOLOX vs YOLOv8: compare/yolox-vs-yolov8.md
+          - YOLOX vs YOLOv7: compare/yolox-vs-yolov7.md
+          - YOLOX vs YOLOv6: compare/yolox-vs-yolov6.md
+          - YOLOX vs YOLOv5: compare/yolox-vs-yolov5.md
+          - YOLOX vs RT-DETR: compare/yolox-vs-rtdetr.md
+          - YOLOX vs PP-YOLOE+: compare/yolox-vs-pp-yoloe.md
+          - YOLOX vs DAMO-YOLO: compare/yolox-vs-damo-yolo.md
+          - YOLOX vs EfficientDet: compare/yolox-vs-efficientdet.md
+      - EfficientDet:
+          - EfficientDet vs YOLO26: compare/efficientdet-vs-yolo26.md
+          - EfficientDet vs YOLO11: compare/efficientdet-vs-yolo11.md
+          - EfficientDet vs YOLOv10: compare/efficientdet-vs-yolov10.md
+          - EfficientDet vs YOLOv9: compare/efficientdet-vs-yolov9.md
+          - EfficientDet vs YOLOv8: compare/efficientdet-vs-yolov8.md
+          - EfficientDet vs YOLOv7: compare/efficientdet-vs-yolov7.md
+          - EfficientDet vs YOLOv6: compare/efficientdet-vs-yolov6.md
+          - EfficientDet vs YOLOv5: compare/efficientdet-vs-yolov5.md
+          - EfficientDet vs RT-DETR: compare/efficientdet-vs-rtdetr.md
+          - EfficientDet vs PP-YOLOE+: compare/efficientdet-vs-pp-yoloe.md
+          - EfficientDet vs DAMO-YOLO: compare/efficientdet-vs-damo-yolo.md
+          - EfficientDet vs YOLOX: compare/efficientdet-vs-yolox.md
   - Datasets:
       - Datasets: datasets/index.md
       - Detection:
@@ -332,6 +439,7 @@ nav:
           - COCO8: datasets/detect/coco8.md
           - COCO8-Grayscale: datasets/detect/coco8-grayscale.md
           - COCO8-Multispectral: datasets/detect/coco8-multispectral.md
+          - COCO12-Formats: datasets/detect/coco12-formats.md
           - COCO128: datasets/detect/coco128.md
           - Construction-PPE: datasets/detect/construction-ppe.md
           - GlobalWheat2020: datasets/detect/globalwheat2020.md

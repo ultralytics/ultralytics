@@ -31,7 +31,7 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
 - **Architecture Specifics**: Such as channel counts, number of layers, types of activation functions, etc.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hyperparameter-tuning-visual.avif" alt="Hyperparameter Tuning Visual">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hyperparameter-tuning-visual.avif" alt="Hyperparameter optimization search space visualization">
 </p>
 
 For a full list of augmentation hyperparameters used in YOLO26 please refer to the [configurations page](../usage/cfg.md#augmentation-settings).
@@ -268,7 +268,7 @@ This file contains scatter plots generated from `tune_results.csv`, helping you 
 - **Usage**: Exploratory data analysis
 
 <p align="center">
-  <img width="1000" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tune-scatter-plots.avif" alt="Hyperparameter Tuning Scatter Plots">
+  <img width="1000" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tune-scatter-plots.avif" alt="Hyperparameter tuning results scatter plot analysis">
 </p>
 
 #### weights/

@@ -399,28 +399,28 @@ Even though all model exports work on NVIDIA Jetson, we have only included **PyT
 #### NVIDIA Jetson AGX Thor Developer Kit
 
 <figure style="text-align: center;">
-    <img src="https://github.com/ultralytics/assets/releases/download/v0.0.0/jetson-agx-thor-benchmarks-coco128.avif" alt="Jetson AGX Thor Benchmarks">
+    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-agx-thor-benchmarks-coco128.avif" alt="Jetson AGX Thor Benchmarks">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.3.226</figcaption>
 </figure>
 
 #### NVIDIA Jetson AGX Orin Developer Kit (64GB)
 
 <figure style="text-align: center;">
-    <img src="https://github.com/ultralytics/assets/releases/download/v0.0.0/jetson-agx-orin-benchmarks-coco128.avif" alt="Jetson AGX Orin Benchmarks">
+    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-agx-orin-benchmarks-coco128.avif" alt="Jetson AGX Orin Benchmarks">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.3.157</figcaption>
 </figure>
 
 #### NVIDIA Jetson Orin Nano Super Developer Kit
 
 <figure style="text-align: center;">
-    <img src="https://github.com/ultralytics/assets/releases/download/v0.0.0/jetson-orin-nano-super-benchmarks-coco128.avif" alt="Jetson Orin Nano Super Benchmarks">
+    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-orin-nano-super-benchmarks-coco128.avif" alt="Jetson Orin Nano Super Benchmarks">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.3.157</figcaption>
 </figure>
 
 #### NVIDIA Jetson Orin NX 16GB
 
 <figure style="text-align: center;">
-    <img src="https://github.com/ultralytics/assets/releases/download/v0.0.0/jetson-orin-nx-16-benchmarks-coco128.avif" alt="Jetson Orin NX 16GB Benchmarks">
+    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-orin-nx-16-benchmarks-coco128.avif" alt="Jetson Orin NX 16GB Benchmarks">
     <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.3.157</figcaption>
 </figure>
 

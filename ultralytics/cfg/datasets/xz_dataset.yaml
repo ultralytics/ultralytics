@@ -1,0 +1,10 @@
+path: /home/nanyuanchaliang/codespace/YOLO/ultralytics/datasets/xz_dataset # dataset root dir
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+test: # test images (optional)
+
+# Classes
+names:
+  0: mooncake
+  1: earphone_box
+  2: bottle

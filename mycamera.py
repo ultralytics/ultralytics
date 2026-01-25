@@ -1,8 +1,9 @@
-from ultralytics import YOLO
-
-import cv2
 import argparse
 import sys
+
+import cv2
+
+from ultralytics import YOLO
 
 
 def _open_camera(index: int) -> cv2.VideoCapture:
@@ -46,19 +47,20 @@ def main() -> None:
         print("If using RealSense, ensure it is exposed as /dev/video* and permissions are set.")
         sys.exit(1)
 
-    model = YOLO("/home/nanyuanchaliang/codespace/YOLO/ultralytics/runs/detect/train3/weights/best.pt")  # Load a pretrained YOLOv10n model
+    model = YOLO(
+        "/home/nanyuanchaliang/codespace/YOLO/ultralytics/runs/detect/train3/weights/best.pt"
+    )  # Load a pretrained YOLOv10n model
     results = model(
         source=args.source,  # Use 0 for webcam input
-        stream=True  # Enable streaming mode
+        stream=True,  # Enable streaming mode
     )
 
     for result in results:
-        frame = result.orig_img  # Get the original frame
         annotated_frame = result.plot()  # Get the annotated frame with detections
 
         cv2.imshow("YOLOv10 Detection", annotated_frame)  # Display the annotated frame
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to exit
+        if cv2.waitKey(1) & 0xFF == ord("q"):  # Press 'q' to exit
             break
 
 

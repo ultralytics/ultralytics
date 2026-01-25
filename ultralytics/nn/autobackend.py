@@ -28,7 +28,7 @@ from ultralytics.utils import (
     YAML,
     is_jetson,
 )
-from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
+from ultralytics.utils.checks import check_requirements, check_suffix, check_uv, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 from ultralytics.utils.nms import non_max_suppression
 
@@ -641,9 +641,10 @@ class AutoBackend(nn.Module):
                 cmds=f"torch=={torch_version}",
             ):
                 # Fallback to nightly if resolution fails
+                cmd_prerelease = "--prerelease=allow" if (not ARM64 and check_uv()) else "--pre"
                 check_requirements(
                     requirements=["executorch", "flatbuffers", "torchao"],
-                    cmds=f"torch=={torch_version} --extra-index-url https://download.pytorch.org/whl/nightly --prerelease=allow",
+                    cmds=f"torch=={torch_version} --extra-index-url https://download.pytorch.org/whl/nightly {cmd_prerelease}",
                 )
 
             # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate

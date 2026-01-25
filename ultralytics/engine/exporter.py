@@ -110,6 +110,7 @@ from ultralytics.utils.checks import (
     check_apt_requirements,
     check_imgsz,
     check_requirements,
+    check_uv,
     check_version,
     is_intel,
     is_sudo_available,
@@ -1211,9 +1212,10 @@ class Exporter:
             cmds=f"torch=={torch_version}",
         ):
             # Fallback to nightly if resolution fails
+            cmd_prerelease = "--prerelease=allow" if (not ARM64 and check_uv()) else "--pre"
             check_requirements(
                 requirements=["executorch", "flatbuffers", "torchao"],
-                cmds=f"torch=={torch_version} --extra-index-url https://download.pytorch.org/whl/nightly --prerelease=allow",
+                cmds=f"torch=={torch_version} --extra-index-url https://download.pytorch.org/whl/nightly {cmd_prerelease}",
             )
         # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
         check_requirements("numpy<=2.3.5")

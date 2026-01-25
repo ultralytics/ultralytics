@@ -99,6 +99,64 @@ class WorldTrainerFromScratch(WorldTrainer):
         ]
         self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
+    def check_data_config(self):
+        """
+        Check and load the data configuration from a YAML file or dictionary.
+        
+        Returns:
+            (dict): Data configuration dictionary loaded from YAML file or passed directly.
+            
+        Raises:
+            TypeError: If data is not a string path or dictionary.
+            FileNotFoundError: If the specified YAML file does not exist.
+            ValueError: If the YAML file format is invalid.
+        """
+        # If already a dictionary, return as-is
+        if isinstance(self.args.data, dict):
+            LOGGER.info("Using data config from dictionary")
+            return self.args.data
+        
+        # If string, load from YAML file
+        if isinstance(self.args.data, str):
+            data_path = Path(self.args.data)
+            
+            # If data is just a filename (no path), look in default datasets dir
+            if not data_path.is_absolute() and data_path.parent == Path('.'):
+                from ultralytics.utils import ROOT
+                # Remove .yaml/.yml extension if present, then add .yaml
+                stem = data_path.stem if data_path.suffix in {'.yaml', '.yml'} else data_path.name
+                data_path = ROOT / 'cfg' / 'datasets' / f'{stem}.yaml'
+            
+            # Validate YAML file exists
+            if not data_path.exists():
+                raise FileNotFoundError(f"Data config file not found: {data_path}")
+            
+            # Validate YAML file extension
+            if data_path.suffix not in {'.yaml', '.yml'}:
+                raise ValueError(f"Data file must be YAML format (.yaml/.yml), got {data_path.suffix}")
+            
+            # Load YAML with error handling
+            try:
+                from ultralytics.utils import YAML
+                data_yaml = YAML.load(str(data_path))
+                
+                # Validate loaded data is a dictionary
+                if not isinstance(data_yaml, dict):
+                    raise ValueError(f"YAML file must contain a dictionary, got {type(data_yaml).__name__}")
+                
+                LOGGER.info(f"Loaded data config from {data_path}")
+                
+                self.args.data=data_yaml  # update args.data to the loaded dict 
+                return data_yaml
+                
+            except Exception as e:
+                raise ValueError(f"Failed to load YAML file {data_path}: {e}")
+        
+        # Invalid type
+        raise TypeError(
+            f"data must be a YAML file path (str) or dict, "
+            f"got {type(self.args.data).__name__}"
+        )
 
     def get_dataset(self):
         """Get train and validation paths from data dictionary.
@@ -114,7 +172,7 @@ class WorldTrainerFromScratch(WorldTrainer):
             AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
         """
         final_data = {}
-        data_yaml = self.args.data
+        data_yaml=self.check_data_config()
         assert data_yaml.get("train", False), "train dataset not found"  # object365.yaml
         assert data_yaml.get("val", False), "validation dataset not found"  # lvis.yaml
         data = {k: [check_det_dataset(d) for d in v.get("yolo_data", [])] for k, v in data_yaml.items()}
@@ -172,6 +230,9 @@ class WorldTrainerFromScratch(WorldTrainer):
         Returns:
             (dict): Dictionary containing evaluation metrics and results.
         """
+
+        # Ensure self.args.data is a dict (should be after get_dataset call)
+        assert isinstance(self.args.data, dict), "self.args.data should be a dict at this point"
         val = self.args.data["val"]["yolo_data"][0]
         self.validator.args.data = val
         self.validator.args.split = "minival" if isinstance(val, str) and "lvis" in val else "val"

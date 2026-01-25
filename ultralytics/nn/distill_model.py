@@ -126,6 +126,11 @@ class DistillationModel(nn.Module):
         """Get the criterion from the student model."""
         return self.student_model.criterion
 
+    @criterion.setter
+    def criterion(self, value) -> None:
+        """Set value for student criterion."""
+        self.student_model.criterion = value
+
     def fuse(self, verbose: bool = True):
         """Fuse model layers for inference speedup."""
         self.student_model.fuse(verbose)

@@ -1,0 +1,9 @@
+path: /hdd_data/at/gjy/roboflow_data
+train: images/train
+val: images/valid
+# test: ../test/images
+
+names:
+  0: bottle
+  1: mooncake
+  2: earphone

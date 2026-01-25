@@ -40,6 +40,12 @@ class DistillationModel(nn.Module):
             ]
         )
         copy_attr(self, student_model)
+        self.distill_box_loss = self.student_model.args.distill_box_loss
+        self.distill_branch = self.student_model.args.distill_branch
+        self.distill_branch = self.student_model.args.distill_branch.split(",")
+        assert self.distill_box_loss in {"cos", "l1"}
+        for branch in self.distill_branch:
+            assert branch in {"one2one", "one2many"}
 
     def loss_kl(self, teacher_logits, student_logits, temperature: float = 5):
         """The KL divergence loss for knowledge distillation."""
@@ -86,28 +92,33 @@ class DistillationModel(nn.Module):
         loss_distill = torch.zeros(1, device=batch["img"].device)
         for i, feat_idx in enumerate(self.feats_idx):
             # handle head ouput
-            teacher_feat = self.decouple_outputs(teacher_feats[i])
-            student_feat = self.decouple_outputs(feats[feat_idx])
-            assert type(teacher_feat) == type(student_feat), (
-                f"Expect same type for teacher feature and student feature, but got teacher: {type(teacher_feat)} and student: {type(student_feat)}"
-            )
-            if isinstance(teacher_feat, dict):  # means distill head, and the output shape should be exactly the same
-                assert "boxes" in teacher_feat and "scores" in teacher_feat
-                loss_distill += (
-                    self.loss_kl(teacher_feat["scores"], student_feat["scores"]) * self.student_model.args.dis
-                ) / teacher_feat["scores"].shape[-1]  # divide the number of anchors
-                loss_distill += (
-                    self.loss_cosine(teacher_feat["boxes"], student_feat["boxes"]) * self.student_model.args.dis
+            for branch in self.distill_branch:
+                teacher_feat = self.decouple_outputs(teacher_feats[i], branch=branch)
+                student_feat = self.decouple_outputs(feats[feat_idx], branch=branch)
+                assert type(teacher_feat) == type(student_feat), (
+                    f"Expect same type for teacher feature and student feature, but got teacher: {type(teacher_feat)} and student: {type(student_feat)}"
                 )
-                # loss_distill += F.l1_loss(teacher_feat["boxes"], student_feat["boxes"]).mean()
-            else:
-                student_feat = (
-                    self.projector[i](student_feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
-                    if student_feat.ndim == 4
-                    else student_feat
-                )
-                loss_distill += self.loss_cosine(teacher_feat, student_feat) * self.student_model.args.dis
-                # loss_distill += self.loss_kl(teacher_feat, student_feat) * self.student_model.args.dis
+                if isinstance(
+                    teacher_feat, dict
+                ):  # means distill head, and the output shape should be exactly the same
+                    assert "boxes" in teacher_feat and "scores" in teacher_feat
+                    loss_distill += (
+                        self.loss_kl(teacher_feat["scores"], student_feat["scores"]) * self.student_model.args.dis
+                    ) / teacher_feat["scores"].shape[-1]  # divide the number of anchors
+                    loss_distill_box = (
+                        self.loss_cosine(teacher_feat["boxes"], student_feat["boxes"])
+                        if self.distill_box_loss == "cos"
+                        else F.l1_loss(teacher_feat["boxes"], student_feat["boxes"]).mean()
+                    )
+                    loss_distill += loss_distill_box * self.student_model.args.dis
+                else:
+                    student_feat = (
+                        self.projector[i](student_feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+                        if student_feat.ndim == 4
+                        else student_feat
+                    )
+                    loss_distill += self.loss_cosine(teacher_feat, student_feat) * self.student_model.args.dis
+                    # loss_distill += self.loss_kl(teacher_feat, student_feat) * self.student_model.args.dis
 
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill.detach()])
@@ -139,13 +150,13 @@ class DistillationModel(nn.Module):
         self.student_model.fuse(verbose)
         return self
 
-    def decouple_outputs(self, preds, shape_check=False):
+    def decouple_outputs(self, preds, shape_check=False, branch="one2one"):
         """Decouple outputs for teacher/student models."""
         if isinstance(preds, tuple):  # decouple for val mode
             preds = preds[1]
         if isinstance(preds, dict):
-            if "one2one" in preds:
-                preds = preds["one2one"]
+            if branch in preds:
+                preds = preds[branch]
             if shape_check:
                 preds = preds["boxes"]
         return preds

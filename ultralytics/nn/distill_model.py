@@ -95,13 +95,16 @@ class DistillationModel(nn.Module):
                 assert "boxes" in teacher_feat and "scores" in teacher_feat
                 loss_distill += (
                     self.loss_kl(teacher_feat["scores"], student_feat["scores"]) * self.student_model.args.dis
-                )
+                ) / teacher_feat["scores"].shape[-1]  # divide the number of anchors
                 loss_distill += (
                     self.loss_cosine(teacher_feat["boxes"], student_feat["boxes"]) * self.student_model.args.dis
                 )
+                # loss_distill += F.l1_loss(teacher_feat["boxes"], student_feat["boxes"]).mean()
             else:
                 student_feat = (
-                    self.projector[i](student_feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2) if student_feat.ndim == 4 else student_feat
+                    self.projector[i](student_feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+                    if student_feat.ndim == 4
+                    else student_feat
                 )
                 loss_distill += self.loss_cosine(teacher_feat, student_feat) * self.student_model.args.dis
                 # loss_distill += self.loss_kl(teacher_feat, student_feat) * self.student_model.args.dis

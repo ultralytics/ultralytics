@@ -135,7 +135,6 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_1,
     TORCH_2_4,
     TORCH_2_9,
-    TORCH_2_10,
     select_device,
 )
 

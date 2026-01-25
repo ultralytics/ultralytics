@@ -34,8 +34,8 @@ class DistillationModel(nn.Module):
             for student_out, teacher_out in zip(student_output, teacher_output)
             for student_dim, teacher_dim in [
                 (
-                    student_out.shape[1],
-                    teacher_out[1].shape[1] if isinstance(teacher_out, tuple) else teacher_out.shape[1],
+                    self.decouple_outputs(student_out, shape_check=True).shape[1],
+                    self.decouple_outputs(teacher_out, shape_check=True).shape[1],
                 )
             ]
         )
@@ -86,11 +86,25 @@ class DistillationModel(nn.Module):
         loss_distill = torch.zeros(1, device=batch["img"].device)
         for i, feat_idx in enumerate(self.feats_idx):
             # handle head ouput
-            teacher_feat = teacher_feats[i][1] if isinstance(teacher_feats[i], tuple) else teacher_feats[i]
-            feat = feats[feat_idx][1] if isinstance(feats[feat_idx], tuple) else feats[feat_idx]
-            student_feat = self.projector[i](feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2) if feat.ndim == 4 else feat
-            loss_distill += self.loss_cosine(teacher_feat, student_feat) * self.student_model.args.dis
-            # loss_distill += self.loss_kl(teacher_feat, student_feat) * self.student_model.args.dis
+            teacher_feat = self.decouple_outputs(teacher_feats[i])
+            student_feat = self.decouple_outputs(feats[feat_idx])
+            assert type(teacher_feat) == type(student_feat), (
+                f"Expect same type for teacher feature and student feature, but got teacher: {type(teacher_feat)} and student: {type(student_feat)}"
+            )
+            if isinstance(teacher_feat, dict):  # means distill head, and the output shape should be exactly the same
+                assert "boxes" in teacher_feat and "scores" in teacher_feat
+                loss_distill += (
+                    self.loss_kl(teacher_feat["scores"], student_feat["scores"]) * self.student_model.args.dis
+                )
+                loss_distill += (
+                    self.loss_cosine(teacher_feat["boxes"], student_feat["boxes"]) * self.student_model.args.dis
+                )
+            else:
+                student_feat = (
+                    self.projector[i](student_feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2) if student_feat.ndim == 4 else student_feat
+                )
+                loss_distill += self.loss_cosine(teacher_feat, student_feat) * self.student_model.args.dis
+                # loss_distill += self.loss_kl(teacher_feat, student_feat) * self.student_model.args.dis
 
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill.detach()])
@@ -98,9 +112,9 @@ class DistillationModel(nn.Module):
     def loss_cosine(self, teacher_feat, student_feat):
         """Compute cosine similarity loss between teacher and student features."""
         if student_feat.ndim == 4:
-           student_feat = student_feat.flatten(2).permute(0, 2, 1)
+            student_feat = student_feat.flatten(2).permute(0, 2, 1)
         if teacher_feat.ndim == 4:
-           teacher_feat = teacher_feat.flatten(2).permute(0, 2, 1)
+            teacher_feat = teacher_feat.flatten(2).permute(0, 2, 1)
         student_feat = F.normalize(student_feat, p=2, dim=-1)
         teacher_feat = F.normalize(teacher_feat, p=2, dim=-1)
         cos_sim = F.cosine_similarity(student_feat, teacher_feat, dim=-1)
@@ -116,3 +130,14 @@ class DistillationModel(nn.Module):
         """Fuse model layers for inference speedup."""
         self.student_model.fuse(verbose)
         return self
+
+    def decouple_outputs(self, preds, shape_check=False):
+        """Decouple outputs for teacher/student models."""
+        if isinstance(preds, tuple):  # decouple for val mode
+            preds = preds[1]
+        if isinstance(preds, dict):
+            if "one2one" in preds:
+                preds = preds["one2one"]
+            if shape_check:
+                preds = preds["boxes"]
+        return preds

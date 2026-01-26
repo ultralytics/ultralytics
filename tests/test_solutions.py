@@ -369,3 +369,26 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
+def test_action_recognition_process_method():
+    """Test ActionRecognition.process() returns valid SolutionResults."""
+    from ultralytics.solutions.solutions import SolutionResults
+
+    # Initialize with TorchVision s3d model (lightweight for testing)
+    action = solutions.ActionRecognition(
+        model=MODEL,
+        video_classifier_model="s3d",
+        show=False,
+    )
+
+    # Create test frame
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+
+    # Process multiple frames to test frame counter and tracking
+    for _ in range(5):
+        result = action.process(frame)
+        assert isinstance(result, SolutionResults)
+        assert result.plot_im is not None
+        assert result.plot_im.shape == frame.shape

@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from .action_recognition import ActionRecognition
 from .ai_gym import AIGym
 from .analytics import Analytics
 from .distance_calculation import DistanceCalculation
@@ -19,6 +20,7 @@ from .trackzone import TrackZone
 from .vision_eye import VisionEye
 
 __all__ = (
+    "ActionRecognition",
     "AIGym",
     "Analytics",
     "DistanceCalculation",

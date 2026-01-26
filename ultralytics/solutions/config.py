@@ -50,6 +50,11 @@ class SolutionConfig:
         tracker (str): Path to tracking configuration YAML file (e.g., 'botsort.yaml').
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.
+        video_classifier_model (str): TorchVision model name for action recognition (s3d, r3d_18, etc.).
+        crop_margin_percentage (int): Margin percentage for cropping detected persons.
+        num_video_sequence_samples (int): Number of frames per classification sequence.
+        skip_frame (int): Frame skip interval for collecting crops.
+        video_cls_overlap_ratio (float): Overlap ratio for classification window.
 
     Methods:
         update: Update the configuration with user-defined keyword arguments and raise error on invalid keys.
@@ -94,6 +99,11 @@ class SolutionConfig:
     tracker: str = "botsort.yaml"
     verbose: bool = True
     data: str = "images"
+    video_classifier_model: str = "s3d"
+    crop_margin_percentage: int = 10
+    num_video_sequence_samples: int = 8
+    skip_frame: int = 2
+    video_cls_overlap_ratio: float = 0.25
 
     def update(self, **kwargs: Any):
         """Update configuration parameters with new values provided as keyword arguments."""

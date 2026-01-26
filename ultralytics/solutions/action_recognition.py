@@ -72,7 +72,7 @@ class TorchVisionVideoClassifier:
                 v2.Normalize(mean=self.weights.transforms().mean, std=self.weights.transforms().std),
             ]
         )
-        frames = [transform(torch.from_numpy(c).permute(2, 0, 1)) for c in crops]
+        frames = [transform(torch.from_numpy(c[..., ::-1].copy()).permute(2, 0, 1)) for c in crops]  # BGR to RGB
         return torch.stack(frames).unsqueeze(0).permute(0, 2, 1, 3, 4).to(self.device)
 
     def __call__(self, sequences: torch.Tensor) -> tuple:
@@ -140,7 +140,7 @@ class ActionRecognition(BaseSolution):
 
         self.crop_margin_percentage = int(self.CFG.get("crop_margin_percentage", 10))
         self.num_video_sequence_samples = int(self.CFG.get("num_video_sequence_samples", 8))
-        self.skip_frame = int(self.CFG.get("skip_frame", 2))
+        self.skip_frame = max(1, int(self.CFG.get("skip_frame", 2)))
         self.video_cls_overlap_ratio = float(self.CFG.get("video_cls_overlap_ratio", 0.25))
 
         video_classifier_model = self.CFG.get("video_classifier_model", "s3d")

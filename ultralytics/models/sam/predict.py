@@ -2657,7 +2657,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                     ).squeeze(1)
                 ) > 0
 
-        names = getattr(self.model, "names", dict(enumerate(str(i) for i in range(pred_boxes[:, 6].max())])))
+        names = getattr(self.model, "names", dict(enumerate(str(i) for i in range(pred_boxes[:, 6].max()))))
         results = []
         for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))

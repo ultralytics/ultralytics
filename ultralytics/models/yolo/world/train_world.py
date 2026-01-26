@@ -7,7 +7,7 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
 from ultralytics.utils import DATASETS_DIR, DEFAULT_CFG, LOGGER
 from ultralytics.utils.torch_utils import unwrap_model
-
+from ultralytics.utils.checks import check_file
 
 class WorldTrainerFromScratch(WorldTrainer):
     """A class extending the WorldTrainer for training a world model from scratch on open-set datasets.
@@ -118,23 +118,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         
         # If string, load from YAML file
         if isinstance(self.args.data, str):
-            data_path = Path(self.args.data)
-            
-            # If data is just a filename (no path), look in default datasets dir
-            if not data_path.is_absolute() and data_path.parent == Path('.'):
-                from ultralytics.utils import ROOT
-                # Remove .yaml/.yml extension if present, then add .yaml
-                stem = data_path.stem if data_path.suffix in {'.yaml', '.yml'} else data_path.name
-                data_path = ROOT / 'cfg' / 'datasets' / f'{stem}.yaml'
-            
-            # Validate YAML file exists
-            if not data_path.exists():
-                raise FileNotFoundError(f"Data config file not found: {data_path}")
-            
-            # Validate YAML file extension
-            if data_path.suffix not in {'.yaml', '.yml'}:
-                raise ValueError(f"Data file must be YAML format (.yaml/.yml), got {data_path.suffix}")
-            
+            data_path = self.args.data
+            check_file(data_path)  
             # Load YAML with error handling
             try:
                 from ultralytics.utils import YAML

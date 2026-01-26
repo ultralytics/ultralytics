@@ -448,7 +448,7 @@ class Tuner:
                 f"{self.prefix}Best fitness model is {best_save_dir}"
             )
             LOGGER.info("\n" + header)
-            data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
+            data = {k: int(v) if k == "close_mosaic" else float(v) for k, v in zip(self.space.keys(), x[best_idx, i + 1])}
             YAML.save(
                 self.tune_dir / "best_hyperparameters.yaml",
                 data=data,

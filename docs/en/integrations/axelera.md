@@ -12,7 +12,7 @@ keywords: Axelera AI, Metis AIPU, Voyager SDK, Edge AI, YOLOv8, YOLO26, Model Ex
 
 Ultralytics partners with [Axelera AI](https://www.axelera.ai/) to enable high-performance, energy-efficient inference on [Edge AI](https://www.ultralytics.com/glossary/edge-ai) devices. Export and deploy **Ultralytics YOLO models** directly to the **Metis® AIPU** using the **Voyager SDK**.
 
-![Axelera AI Ecosystem](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
+![Axelera AI edge deployment ecosystem for YOLO](https://github.com/user-attachments/assets/c97a0297-390d-47df-bb13-ff1aa499f34a)
 
 Axelera AI provides dedicated hardware acceleration for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) at the edge, using a proprietary dataflow architecture and [in-memory computing](https://www.ultralytics.com/glossary/edge-computing) to deliver up to **856 TOPS** with low power consumption.
 

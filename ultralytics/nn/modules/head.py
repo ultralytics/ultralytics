@@ -125,7 +125,12 @@ class Detect(nn.Module):
     @property
     def end2end(self):
         """Checks if the model has one2one for v5/v5/v8/v9/11 backward compatibility."""
-        return hasattr(self, "one2one")
+        return getattr(self, "_end2end", True) and hasattr(self, "one2one")
+
+    @end2end.setter
+    def end2end(self, value):
+        """Override the end-to-end detection mode."""
+        self._end2end = value
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None
@@ -1098,7 +1103,7 @@ class YOLOEDetect(Detect):
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
         cv2 = self.cv2 if not self.end2end else self.one2one_cv2
-        cv3 = self.cv3 if not self.end2end else self.one2one_cv2
+        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])

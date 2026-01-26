@@ -156,6 +156,8 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
+            if hasattr(model, "end2end") and self.args.end2end is not None:
+                model.end2end = self.args.end2end
             model = AutoBackend(
                 model=model or self.args.model,
                 device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),

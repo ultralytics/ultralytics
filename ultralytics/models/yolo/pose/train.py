@@ -9,6 +9,7 @@ from typing import Any
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils.torch_utils import unwrap_model
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
@@ -91,7 +92,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def get_validator(self):
         """Return an instance of the PoseValidator class for validation."""
         self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
-        if getattr(self.model.model[-1], "flow_model", None) is not None:
+        if getattr(unwrap_model(self.model).model[-1], "flow_model", None) is not None:
             self.loss_names += ("rle_loss",)
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks

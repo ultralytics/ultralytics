@@ -8,37 +8,49 @@ keywords: Ultralytics Platform, datasets, dataset management, YOLO, data upload,
 
 [Ultralytics Platform](https://platform.ultralytics.com) datasets provide a streamlined solution for managing your training data. Once uploaded, datasets can be immediately used for model training, with automatic processing and statistics generation.
 
-<p align="center">
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/R42s2zFtNIY"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> Upload Datasets to Ultralytics Platform
-</p>
-
 ## Upload Dataset
 
-Ultralytics Platform accepts multiple upload formats for flexibility:
+Ultralytics Platform accepts multiple upload formats for flexibility.
 
-| Format          | Description                                        |
-| --------------- | -------------------------------------------------- |
-| **Images**      | Individual image files (JPG, PNG, WebP, TIFF, RAW) |
-| **ZIP Archive** | Compressed folder with images and optional labels  |
-| **Video**       | MP4, AVI files - frames extracted at ~1 fps        |
-| **YOLO Format** | Standard YOLO directory structure with labels      |
+### Supported Image Formats
 
-### Video Frame Extraction
+| Format | Extensions      | Notes                    |
+| ------ | --------------- | ------------------------ |
+| JPEG   | `.jpg`, `.jpeg` | Most common, recommended |
+| PNG    | `.png`          | Supports transparency    |
+| WebP   | `.webp`         | Modern, good compression |
+| BMP    | `.bmp`          | Uncompressed             |
+| GIF    | `.gif`          | First frame extracted    |
+| TIFF   | `.tiff`, `.tif` | High quality             |
+| HEIC   | `.heic`         | iPhone photos            |
+| AVIF   | `.avif`         | Next-gen format          |
+| JP2    | `.jp2`          | JPEG 2000                |
+| DNG    | `.dng`          | Raw camera               |
 
-When uploading videos, frames are automatically extracted:
+### Supported Video Formats
 
-- **Frame rate**: ~1 frame per second
-- **Maximum frames**: 100 frames per video
-- **Processing**: Client-side extraction before upload
-- **Format**: Frames converted to standard image format
+Videos are automatically extracted to frames:
 
-This is ideal for creating training datasets from surveillance footage, action recordings, or any video source.
+| Format | Extensions | Extraction            |
+| ------ | ---------- | --------------------- |
+| MP4    | `.mp4`     | 1 FPS, max 100 frames |
+| WebM   | `.webm`    | 1 FPS, max 100 frames |
+| MOV    | `.mov`     | 1 FPS, max 100 frames |
+| AVI    | `.avi`     | 1 FPS, max 100 frames |
+| MKV    | `.mkv`     | 1 FPS, max 100 frames |
+| M4V    | `.m4v`     | 1 FPS, max 100 frames |
+
+### File Size Limits
+
+| Type      | Maximum Size |
+| --------- | ------------ |
+| Images    | 50 MB each   |
+| Videos    | 1 GB each    |
+| ZIP files | 50 GB        |
+
+### Archives
+
+ZIP files up to 50GB are supported with folder structure preserved and automatic extraction and processing.
 
 ### Preparing Your Dataset
 
@@ -294,9 +306,12 @@ Use the bulk selection feature:
 
 Ultralytics Platform supports YOLO format labels:
 
-- **Detect**: `class_id x_center y_center width height`
-- **Segment**: `class_id x1 y1 x2 y2 ...` (polygon points)
-- **Pose**: `class_id x_center y_center width height kp1_x kp1_y kp1_v ...`
-- **OBB**: `class_id x1 y1 x2 y2 x3 y3 x4 y4`
+| Task     | Format                           | Example                             |
+| -------- | -------------------------------- | ----------------------------------- |
+| Detect   | `class cx cy w h`                | `0 0.5 0.5 0.2 0.3`                 |
+| Segment  | `class x1 y1 x2 y2 ...`          | `0 0.1 0.1 0.9 0.1 0.9 0.9`         |
+| Pose     | `class cx cy w h kx1 ky1 v1 ...` | `0 0.5 0.5 0.2 0.3 0.6 0.7 2`       |
+| OBB      | `class x1 y1 x2 y2 x3 y3 x4 y4`  | `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` |
+| Classify | Directory structure              | `train/cats/`, `train/dogs/`        |
 
-All coordinates are normalized (0-1 range).
+All coordinates are normalized (0-1 range). Pose visibility flags: 0=not labeled, 1=labeled but occluded, 2=labeled and visible.

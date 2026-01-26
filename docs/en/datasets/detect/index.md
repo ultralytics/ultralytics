@@ -22,15 +22,15 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
 
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
 
-<p align="center"><img width="750" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie.avif" alt="Example labeled image"></p>
+<p align="center"><img width="750" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie.avif" alt="YOLO labeled image with bounding boxes on persons and tie"></p>
 
 The label file corresponding to the above image contains 2 persons (class `0`) and a tie (class `27`):
 
-<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="Example label file"></p>
+<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="YOLO format label file with normalized coordinates"></p>
 
 When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the [COCO8 dataset](coco8.md) example below.
 
-<p align="center"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-2.avif" alt="Example dataset directory structure"></p>
+<p align="center"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-2.avif" alt="YOLO dataset directory structure with train and val folders"></p>
 
 #### Usage Example
 
@@ -235,6 +235,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [COCO8](coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
 - [COCO8-Grayscale](coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.
 - [COCO8-Multispectral](coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
+- [COCO12-Formats](coco12-formats.md): A test dataset with 12 images covering all supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.
 - [COCO128](coco128.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
 - [Construction-PPE](construction-ppe.md): A dataset featuring construction site workers with labeled safety gear such as helmets, vests, gloves, boots, and goggles, including missing-equipment annotations like no_helmet, no_googles for real-world compliance monitoring.
 - [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.

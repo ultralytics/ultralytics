@@ -20,8 +20,8 @@ from .trackzone import TrackZone
 from .vision_eye import VisionEye
 
 __all__ = (
-    "ActionRecognition",
     "AIGym",
+    "ActionRecognition",
     "Analytics",
     "DistanceCalculation",
     "Heatmap",

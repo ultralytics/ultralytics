@@ -14,8 +14,8 @@ from ultralytics.utils.torch_utils import select_device
 class TorchVisionVideoClassifier:
     """Video classifier using pretrained TorchVision models for action recognition.
 
-    This class provides an interface for video classification using pretrained models from TorchVision's
-    video model collection, supporting S3D, R3D, Swin3D, and MViT architectures trained on Kinetics-400.
+    This class provides an interface for video classification using pretrained models from TorchVision's video model
+    collection, supporting S3D, R3D, Swin3D, and MViT architectures trained on Kinetics-400.
 
     Attributes:
         model (torch.nn.Module): The loaded TorchVision model.
@@ -108,8 +108,8 @@ def crop_and_pad(frame: np.ndarray, box: list, margin_percent: int) -> np.ndarra
 class ActionRecognition(BaseSolution):
     """Real-time action recognition by combining YOLO tracking with video classification.
 
-    This class extends BaseSolution to track persons and classify their actions using
-    TorchVision video models pretrained on Kinetics-400.
+    This class extends BaseSolution to track persons and classify their actions using TorchVision video models
+    pretrained on Kinetics-400.
 
     Attributes:
         video_classifier (TorchVisionVideoClassifier): The video classification model.
@@ -174,7 +174,10 @@ class ActionRecognition(BaseSolution):
                 if len(self.track_history[track_id]) > self.num_video_sequence_samples:
                     self.track_history[track_id].pop(0)
 
-                if len(self.track_history[track_id]) == self.num_video_sequence_samples and self.frame_counter % self.skip_frame == 0:
+                if (
+                    len(self.track_history[track_id]) == self.num_video_sequence_samples
+                    and self.frame_counter % self.skip_frame == 0
+                ):
                     crops_to_infer.append(self.video_classifier.preprocess(self.track_history[track_id]))
                     tracks_to_infer.append(track_id)
 

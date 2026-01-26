@@ -88,24 +88,24 @@ pip install ultralytics torchvision
 
 All models are pretrained on [Kinetics-400](https://www.deepmind.com/open-source/kinetics) with 400 action classes.
 
-| Model       | Description                    |
-| ----------- | ------------------------------ |
-| `s3d`       | S3D - fast and lightweight     |
-| `r3d_18`    | R3D-18 - good balance          |
-| `swin3d_t`  | Swin Transformer 3D (tiny)     |
-| `swin3d_b`  | Swin Transformer 3D (base)     |
-| `mvit_v1_b` | MViT v1 (base)                 |
-| `mvit_v2_s` | MViT v2 (small)                |
+| Model       | Description                |
+| ----------- | -------------------------- |
+| `s3d`       | S3D - fast and lightweight |
+| `r3d_18`    | R3D-18 - good balance      |
+| `swin3d_t`  | Swin Transformer 3D (tiny) |
+| `swin3d_b`  | Swin Transformer 3D (base) |
+| `mvit_v1_b` | MViT v1 (base)             |
+| `mvit_v2_s` | MViT v2 (small)            |
 
 ### Arguments
 
-| Argument                     | Type  | Default     | Description                              |
-| ---------------------------- | ----- | ----------- | ---------------------------------------- |
-| `model`                      | `str` | `yolo26n.pt`| YOLO model for person detection          |
-| `video_classifier_model`     | `str` | `s3d`       | TorchVision video classifier model       |
-| `crop_margin_percentage`     | `int` | `10`        | Margin percentage for person crop        |
-| `num_video_sequence_samples` | `int` | `8`         | Number of frames per sequence            |
-| `skip_frame`                 | `int` | `2`         | Frame skip interval                      |
+| Argument                     | Type  | Default      | Description                        |
+| ---------------------------- | ----- | ------------ | ---------------------------------- |
+| `model`                      | `str` | `yolo26n.pt` | YOLO model for person detection    |
+| `video_classifier_model`     | `str` | `s3d`        | TorchVision video classifier model |
+| `crop_margin_percentage`     | `int` | `10`         | Margin percentage for person crop  |
+| `num_video_sequence_samples` | `int` | `8`          | Number of frames per sequence      |
+| `skip_frame`                 | `int` | `2`          | Frame skip interval                |
 
 ## FAQ
 

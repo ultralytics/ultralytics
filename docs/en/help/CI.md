@@ -16,7 +16,7 @@ Here's a brief description of our CI actions:
 - **[Docker Deployment](https://github.com/ultralytics/ultralytics/actions/workflows/docker.yml):** This test checks the deployment of the project using Docker to ensure the Dockerfile and related scripts are working correctly.
 - **[Broken Links](https://github.com/ultralytics/ultralytics/actions/workflows/links.yml):** This test scans the codebase for any broken or dead links in our markdown or HTML files.
 - **[CodeQL](https://github.com/ultralytics/ultralytics/actions/workflows/codeql.yaml):** CodeQL is a tool from GitHub that performs semantic analysis on our code, helping to find potential security vulnerabilities and maintain high-quality code.
-- **[PyPI Publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml):** This test checks if the project can be packaged and published to PyPi without any errors.
+- **[PyPI Publishing](https://github.com/ultralytics/ultralytics/actions/workflows/publish.yml):** This test checks if the project can be packaged and published to PyPI without any errors.
 
 ### CI Results
 
@@ -57,7 +57,7 @@ By integrating with Codecov, we aim to maintain and improve the quality of our c
 
 ### Coverage Results
 
-To quickly get a glimpse of the code coverage status of the `ultralytics` python package, we have included a badge and sunburst visual of the `ultralytics` coverage results. These images show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts. For full details please see [https://codecov.io/github/ultralytics/ultralytics](https://app.codecov.io/github/ultralytics/ultralytics).
+To quickly get a glimpse of the code coverage status of the `ultralytics` Python package, we have included a badge and sunburst visual of the `ultralytics` coverage results. These images show the percentage of code covered by our tests, offering an at-a-glance metric of our testing efforts. For full details, visit the [Ultralytics Codecov report](https://app.codecov.io/github/ultralytics/ultralytics).
 
 | Repository                                                | Code Coverage                                                                                                                                           |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |

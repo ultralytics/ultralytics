@@ -10,7 +10,7 @@ keywords: YOLOv5, transfer learning, freeze layers, machine learning, deep learn
 
 ## Before You Start
 
-First, clone the YOLOv5 repository and install the necessary dependencies listed in [`requirements.txt`](https://github.com/ultralytics/yolov5/blob/master/requirements.txt). Ensure you have a [**Python>=3.8.0**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) installed. Pre-trained [models](https://github.com/ultralytics/yolov5/tree/master/models) and required [datasets](https://github.com/ultralytics/yolov5/tree/master/data) will be downloaded automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
+First, clone the YOLOv5 repository and install the necessary dependencies listed in [`requirements.txt`](https://github.com/ultralytics/yolov5/blob/master/requirements.txt). Ensure you have a [**Python>=3.8.0**](https://www.python.org/) environment with [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/) installed. Pretrained [models](https://github.com/ultralytics/yolov5/tree/master/models) and required [datasets](https://github.com/ultralytics/yolov5/tree/master/data) will be downloaded automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
 git clone https://github.com/ultralytics/yolov5 # clone repository
@@ -85,7 +85,7 @@ head:
 
 ## Freezing Options
 
-You can control which layers are frozen using the `--freeze` argument in the training command. This argument specifies the index of the first _unfrozen_ module; all modules before this index will have their weights frozen.
+You can control which layers are frozen using the `--freeze` argument in the training command. This argument specifies the index of the first _unfrozen_ module; all modules before this index will have their weights frozen. Use `model.model` (a `nn.Sequential`) to inspect the module ordering if you need to confirm which indices correspond to a particular block.
 
 ### Freeze Backbone Only
 
@@ -109,7 +109,7 @@ This approach is useful when you primarily need to adjust the model for a differ
 
 ## Performance Comparison
 
-To illustrate the effects of freezing layers, we trained YOLOv5m on the [Pascal VOC dataset](https://docs.ultralytics.com/datasets/detect/voc/) for 50 [epochs](https://www.ultralytics.com/glossary/epoch), starting from the official COCO pre-trained [weights](https://www.ultralytics.com/glossary/model-weights) (`yolov5m.pt`). We compared three scenarios: training all layers (`--freeze 0`), freezing the backbone (`--freeze 10`), and freezing all but the final detection layers (`--freeze 24`).
+To illustrate the effects of freezing layers, we trained YOLOv5m on the [Pascal VOC dataset](https://docs.ultralytics.com/datasets/detect/voc/) for 50 [epochs](https://www.ultralytics.com/glossary/epoch), starting from the official COCO pretrained [weights](https://www.ultralytics.com/glossary/model-weights) (`yolov5m.pt`). We compared three scenarios: training all layers (`--freeze 0`), freezing the backbone (`--freeze 10`), and freezing all but the final detection layers (`--freeze 24`).
 
 ```bash
 # Example command for training with backbone frozen
@@ -120,23 +120,23 @@ python train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --ca
 
 The results show that freezing layers can accelerate training significantly but may lead to a slight reduction in final [mAP (mean Average Precision)](https://www.ultralytics.com/glossary/mean-average-precision-map). Training all layers generally yields the best accuracy, while freezing more layers offers faster training at the cost of potentially lower performance.
 
-![Training mAP50 results comparing different freezing strategies](https://github.com/ultralytics/docs/releases/download/0/freezing-training-map50-results.avif)
+![Training mAP50 results comparing different freezing strategies](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/freezing-training-map50-results.avif)
 _mAP50 comparison during training_
 
-![Training mAP50-95 results comparing different freezing strategies](https://github.com/ultralytics/docs/releases/download/0/freezing-training-map50-95-results.avif)
+![Training mAP50-95 results comparing different freezing strategies](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/freezing-training-map50-95-results.avif)
 _mAP50-95 comparison during training_
 
-<img width="922" alt="Table summarizing performance results" src="https://github.com/ultralytics/docs/releases/download/0/table-results.avif">
+<img width="922" alt="YOLOv5 frozen layer training performance" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/table-results.avif">
 *Summary table of performance metrics*
 
 ### Resource Utilization
 
 Freezing more layers substantially reduces [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) memory requirements and overall utilization. This makes transfer learning with frozen layers an attractive option when working with limited hardware resources, allowing for training larger models or using larger image sizes than might otherwise be possible.
 
-![GPU memory allocated percentage during training](https://github.com/ultralytics/docs/releases/download/0/training-gpu-memory-allocated-percent.avif)
+![GPU memory allocated percentage during training](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/training-gpu-memory-allocated-percent.avif)
 _GPU Memory Allocated (%)_
 
-![GPU memory utilization percentage during training](https://github.com/ultralytics/docs/releases/download/0/training-gpu-memory-utilization-percent.avif)
+![GPU memory utilization percentage during training](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/training-gpu-memory-utilization-percent.avif)
 _GPU Utilization (%)_
 
 ## When to Use Layer Freezing
@@ -146,15 +146,15 @@ Layer freezing during transfer learning is particularly advantageous in several 
 1.  **Limited Computational Resources**: If you have constraints on GPU memory or processing power.
 2.  **Small Datasets**: When your target dataset is significantly smaller than the original pre-training dataset, freezing helps prevent [overfitting](https://www.ultralytics.com/glossary/overfitting).
 3.  **Rapid Prototyping**: When you need to quickly adapt an existing model to a new task or domain for initial evaluation.
-4.  **Similar Feature Domains**: If the low-level features in your new dataset are very similar to those in the dataset the model was pre-trained on.
+4.  **Similar Feature Domains**: If the low-level features in your new dataset are very similar to those in the dataset the model was pretrained on.
 
 Explore more about the nuances of transfer learning in our [glossary entry](https://www.ultralytics.com/glossary/transfer-learning) and consider techniques like [hyperparameter tuning](https://docs.ultralytics.com/guides/hyperparameter-tuning/) for optimizing performance.
 
 ## Supported Environments
 
-Ultralytics offers various ready-to-use environments with essential dependencies like [CUDA](https://developer.nvidia.com/cuda-zone), [CuDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/) pre-installed.
+Ultralytics offers various ready-to-use environments with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [CuDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/) pre-installed.
 
-- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://github.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+- **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google_cloud_quickstart_tutorial.md)
 - **Amazon**: [AWS Quickstart Guide](../environments/aws_quickstart_tutorial.md)
 - **Azure**: [AzureML Quickstart Guide](../environments/azureml_quickstart_tutorial.md)

@@ -79,6 +79,7 @@ class MaskDownSampler(nn.Module):
         padding: int = 0,
         total_stride: int = 16,
         activation: type[nn.Module] = nn.GELU,
+        interpol_size: tuple[int, int] | None = None,
     ):
         """Initialize a mask downsampler module for progressive downsampling and channel expansion."""
         super().__init__()
@@ -102,9 +103,24 @@ class MaskDownSampler(nn.Module):
             mask_in_chans = mask_out_chans
 
         self.encoder.append(nn.Conv2d(mask_out_chans, embed_dim, kernel_size=1))
+        self.interpol_size = interpol_size
+        if self.interpol_size is not None:
+            assert isinstance(self.interpol_size, (list, tuple)), (
+                f"Unsupported type {type(self.interpol_size)}. Should be a list or tuple."
+            )
+            self.interpol_size = list(interpol_size)
+            assert len(self.interpol_size) == 2
 
     def forward(self, x: Tensor) -> Tensor:
         """Downsample and encode input mask to embed_dim channels using convolutional layers and LayerNorm2d."""
+        if self.interpol_size is not None and self.interpol_size != list(x.shape[-2:]):
+            x = F.interpolate(
+                x.float(),
+                size=self.interpol_size,
+                align_corners=False,
+                mode="bilinear",
+                antialias=True,
+            ).to(x.dtype)
         return self.encoder(x)
 
 
@@ -156,13 +172,6 @@ class CXBlock(nn.Module):
             drop_path (float): Stochastic depth rate.
             layer_scale_init_value (float): Initial value for Layer Scale.
             use_dwconv (bool): Whether to use depthwise convolution.
-
-        Examples:
-            >>> block = CXBlock(dim=64, kernel_size=7, padding=3)
-            >>> x = torch.randn(1, 64, 32, 32)
-            >>> output = block(x)
-            >>> print(output.shape)
-            torch.Size([1, 64, 32, 32])
         """
         super().__init__()
         self.dwconv = nn.Conv2d(
@@ -231,12 +240,6 @@ class Fuser(nn.Module):
             num_layers (int): The number of times to replicate the layer.
             dim (int | None): The dimension for input projection, if used.
             input_projection (bool): Whether to use input projection.
-
-        Examples:
-            >>> layer = nn.Linear(64, 64)
-            >>> fuser = Fuser(layer, num_layers=3, dim=64, input_projection=True)
-            >>> input_tensor = torch.randn(1, 64)
-            >>> output = fuser(input_tensor)
         """
         super().__init__()
         self.proj = nn.Identity()
@@ -304,12 +307,6 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
             activation (Type[nn.Module]): The activation function of the MLP block.
             attention_downsample_rate (int): The downsample rate for attention computations.
             skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
-
-        Examples:
-            >>> block = SAM2TwoWayAttentionBlock(embedding_dim=256, num_heads=8, mlp_dim=2048)
-            >>> sparse_inputs = torch.randn(1, 100, 256)
-            >>> dense_inputs = torch.randn(1, 256, 32, 32)
-            >>> sparse_outputs, dense_outputs = block(sparse_inputs, dense_inputs)
         """
         super().__init__(embedding_dim, num_heads, mlp_dim, activation, attention_downsample_rate, skip_first_layer_pe)
         self.mlp = MLP(embedding_dim, mlp_dim, embedding_dim, num_layers=2, act=activation)
@@ -364,17 +361,6 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
             mlp_dim (int): Channel dimension internal to the MLP block.
             activation (Type[nn.Module]): Activation function to use in the MLP block.
             attention_downsample_rate (int): Downsampling rate for attention computations.
-
-        Examples:
-            >>> transformer = SAM2TwoWayTransformer(depth=5, embedding_dim=256, num_heads=8, mlp_dim=2048)
-            >>> transformer
-            SAM2TwoWayTransformer(
-              (layers): ModuleList(
-                (0-4): 5 x SAM2TwoWayAttentionBlock(...)
-              )
-              (final_attn_token_to_image): Attention(...)
-              (norm_final_attn): LayerNorm(...)
-            )
         """
         super().__init__(depth, embedding_dim, num_heads, mlp_dim, activation, attention_downsample_rate)
         self.layers = nn.ModuleList()
@@ -459,13 +445,7 @@ class RoPEAttention(Attention):
         )
 
         # Attention
-        _, _, _, c_per_head = q.shape
-        attn = q @ k.permute(0, 1, 3, 2)  # B x N_heads x N_tokens x N_tokens
-        attn = attn / math.sqrt(c_per_head)
-        attn = torch.softmax(attn, dim=-1)
-
-        # Get output
-        out = attn @ v
+        out = F.scaled_dot_product_attention(q, k, v)
 
         out = self._recombine_heads(out)
         out = self.out_proj(out)
@@ -917,13 +897,6 @@ class Block(nn.Module):
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window. If 0, uses global attention.
             input_size (tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
-
-        Examples:
-            >>> block = Block(dim=256, num_heads=8, window_size=7)
-            >>> x = torch.randn(1, 56, 56, 256)
-            >>> output = block(x)
-            >>> print(output.shape)
-            torch.Size([1, 56, 56, 256])
         """
         super().__init__()
         self.norm1 = norm_layer(dim)
@@ -1008,13 +981,6 @@ class REAttention(nn.Module):
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             input_size (tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
                 Required if use_rel_pos is True.
-
-        Examples:
-            >>> attention = REAttention(dim=256, num_heads=8, input_size=(32, 32))
-            >>> x = torch.randn(1, 32, 32, 256)
-            >>> output = attention(x)
-            >>> print(output.shape)
-            torch.Size([1, 32, 32, 256])
         """
         super().__init__()
         self.num_heads = num_heads
@@ -1077,6 +1043,7 @@ class PatchEmbed(nn.Module):
         padding: tuple[int, int] = (0, 0),
         in_chans: int = 3,
         embed_dim: int = 768,
+        bias: bool = True,
     ) -> None:
         """Initialize the PatchEmbed module for converting image patches to embeddings.
 
@@ -1089,17 +1056,11 @@ class PatchEmbed(nn.Module):
             padding (tuple[int, int]): Padding applied to the input before convolution.
             in_chans (int): Number of input image channels.
             embed_dim (int): Dimensionality of the output patch embeddings.
-
-        Examples:
-            >>> patch_embed = PatchEmbed(kernel_size=(16, 16), stride=(16, 16), in_chans=3, embed_dim=768)
-            >>> x = torch.randn(1, 3, 224, 224)
-            >>> output = patch_embed(x)
-            >>> print(output.shape)
-            torch.Size([1, 768, 14, 14])
+            bias (bool): Whether to include a bias term in the convolutional layer.
         """
         super().__init__()
 
-        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Compute patch embedding by applying convolution and transposing resulting tensor."""

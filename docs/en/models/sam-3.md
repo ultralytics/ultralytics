@@ -6,20 +6,32 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segm
 
 # SAM 3: Segment Anything with Concepts
 
-!!! note "Coming Soon ⚠️"
+!!! success "Now Available in Ultralytics"
 
-    🚧 SAM 3 models have not yet been publicly released by Meta. The information below is based on the research paper submitted to ICLR 2026.
-    Model downloads and final benchmarks will be available following Meta's official release.
+    SAM 3 is fully integrated into the Ultralytics package as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Install or upgrade with `pip install -U ultralytics` to access all SAM 3 features including text-based concept segmentation, image exemplar prompts, and video tracking.
 
-![SAM 3 Overview](https://github.com/ultralytics/docs/releases/download/0/sam-3-overview.webp)
+![SAM 3 promptable concept segmentation overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-overview.webp)
 
-**SAM 3** (Segment Anything Model 3) represents Meta's next-generation foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
+**SAM 3** (Segment Anything Model 3) is Meta's released foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/BE2Nu3edyOo"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Use Meta Segment Anything 3 with Ultralytics | Text-Prompt Segmentation on Images & Videos
+</p>
+
+SAM 3 is now fully integrated into the `ultralytics` package, providing native support for concept segmentation with text prompts, image exemplar prompts, and video tracking capabilities.
 
 ## Overview
 
 SAM 3 achieves a **2× performance gain** over existing systems in Promptable Concept Segmentation while maintaining and improving SAM 2's capabilities for interactive [visual segmentation](../tasks/segment.md). The model excels at open-vocabulary segmentation, allowing users to specify concepts using simple noun phrases (e.g., "yellow school bus", "striped cat") or by providing example images of the target object. These capabilities complement production-ready pipelines that rely on streamlined [predict](../modes/predict.md) and [track](../modes/track.md) workflows.
 
-![SAM 3 Segmentation](https://github.com/ultralytics/docs/releases/download/0/sam-3-segmentation.webp)
+![SAM 3 text-prompt segmentation examples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-segmentation.webp)
 
 ### What is Promptable Concept Segmentation (PCS)?
 
@@ -65,7 +77,7 @@ SAM 3 consists of a **detector** and **tracker** that share a Perception Encoder
 
 - **Presence Token**: A learned global token that predicts whether the target concept is present in the image/frame, improving detection by separating recognition from localization.
 
-![SAM 3 Architecture](https://github.com/ultralytics/docs/releases/download/0/sam-3-architecture.webp)
+![SAM 3 model architecture diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-architecture.webp)
 
 ### Key Innovations
 
@@ -107,28 +119,29 @@ SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotat
 
 ## Installation
 
-SAM 3 will be supported natively in the Ultralytics package upon release:
+SAM 3 is available in Ultralytics **version 8.3.237** and later. Install or upgrade with:
 
 ```bash
-pip install ultralytics
+pip install -U ultralytics
 ```
 
-Models will download automatically when first used. You can then use standard [predict mode](../modes/predict.md) and later [export](../modes/export.md) models to formats like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md) for deployment.
+!!! warning "SAM 3 Model Weights Required"
+
+    Unlike other Ultralytics models, SAM 3 weights (`sam3.pt`) are **not automatically downloaded**. You must first request access for the model weights on the [SAM 3 model page on Hugging Face](https://huggingface.co/facebook/sam3) and then, once approved, download the [`sam3.pt` file](https://huggingface.co/facebook/sam3/resolve/main/sam3.pt?download=true). Place the downloaded `sam3.pt` file in your working directory or specify the full path when loading the model.
+
+!!! warning "`TypeError: 'SimpleTokenizer' object is not callable`"
+
+    If you get the above error during prediction, it means you have the incorrect `clip` package installed. Install the correct `clip` package by running the following:
+    ```bash
+    pip uninstall clip -y
+    pip install git+https://github.com/ultralytics/CLIP.git
+    ```
 
 ## How to Use SAM 3: Versatility in Concept Segmentation
 
-!!! warning "Preview API - Subject to Change"
-
-    The code examples below demonstrate intended usage patterns based on the research paper. The actual API will be available after:
-
-    1. Meta open-sources SAM 3 model weights
-    2. Ultralytics integrates SAM 3 into the package
-
-    Syntax and parameters may differ in the final implementation. These examples serve as a preview of expected functionality.
+SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks through different predictor interfaces:
 
 ### Supported Tasks and Models
-
-SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual Segmentation (PVS) tasks:
 
 | Task Type                      | Prompt Types                               | Output                                      |
 | ------------------------------ | ------------------------------------------ | ------------------------------------------- |
@@ -140,112 +153,115 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
 #### Segment with Text Prompts
 
-!!! Example "Text-based Concept Segmentation"
+!!! example "Text-based Concept Segmentation"
 
-    Find and segment all instances of a concept using a text description.
+    Find and segment all instances of a concept using a text description. Text prompts require the `SAM3SemanticPredictor` interface.
 
     === "Python"
 
         ```python
-        from ultralytics import SAM
+        from ultralytics.models.sam import SAM3SemanticPredictor
 
-        # Load SAM 3 model
-        model = SAM("sam3.pt")
+        # Initialize predictor with configuration
+        overrides = dict(
+            conf=0.25,
+            task="segment",
+            mode="predict",
+            model="sam3.pt",
+            half=True,  # Use FP16 for faster inference
+            save=True,
+        )
+        predictor = SAM3SemanticPredictor(overrides=overrides)
 
-        # Segment all instances of a concept
-        results = model("path/to/image.jpg", prompt="yellow school bus")
+        # Set image once for multiple queries
+        predictor.set_image("path/to/image.jpg")
+
+        # Query with multiple text prompts
+        results = predictor(text=["person", "bus", "glasses"])
 
         # Works with descriptive phrases
-        results = model("path/to/image.jpg", prompt="person wearing a red hat")
+        results = predictor(text=["person with red cloth", "person with blue cloth"])
 
-        # Or simple object names
-        results = model("path/to/image.jpg", prompt="striped cat")
+        # Query with a single concept
+        results = predictor(text=["a person"])
         ```
-
-    === "CLI"
-
-        ```bash
-        # Segment all matching concepts in an image
-        yolo segment model=sam3.pt source=path/to/image.jpg prompt="yellow school bus"
-        ```
-
-    !!! warning "API Preview"
-
-        This example shows intended usage. Actual implementation pending Meta's release and Ultralytics integration.
 
 #### Segment with Image Exemplars
 
-!!! Example "Image Exemplar-based Segmentation"
+!!! example "Image Exemplar-based Segmentation"
 
-    Use one or more example objects to find all similar instances.
-
-    === "Python"
-
-        ```python
-        from ultralytics import SAM
-
-        model = SAM("sam3.pt")
-
-        # Provide a positive example box - finds all similar objects
-        results = model("path/to/image.jpg", bboxes=[100, 150, 300, 400], labels=[1])
-
-        # Add negative examples to exclude certain instances
-        results = model(
-            "path/to/image.jpg",
-            bboxes=[[100, 150, 300, 400], [500, 200, 600, 350]],  # Two boxes
-            labels=[1, 0],  # First is positive, second is negative
-        )
-
-        # Combine text and image exemplars for precision
-        results = model("path/to/image.jpg", prompt="dog", bboxes=[100, 150, 300, 400], labels=[1])
-        ```
-
-    !!! warning "API Preview"
-
-        This example shows intended usage. Actual implementation pending Meta's release and Ultralytics integration.
-
-#### Interactive Refinement
-
-!!! Example "Iterative Refinement with Exemplars"
-
-    Progressively improve results by adding exemplar prompts based on initial output.
+    Use bounding boxes as visual prompts to find all similar instances. This also requires `SAM3SemanticPredictor` for concept-based matching.
 
     === "Python"
 
         ```python
-        from ultralytics import SAM
+        from ultralytics.models.sam import SAM3SemanticPredictor
 
-        model = SAM("sam3.pt")
+        # Initialize predictor
+        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True, save=True)
+        predictor = SAM3SemanticPredictor(overrides=overrides)
 
-        # Initial segmentation with text
-        results = model("path/to/image.jpg", prompt="car")
+        # Set image
+        predictor.set_image("path/to/image.jpg")
 
-        # If some cars are missed, add a positive exemplar
-        results = model(
-            "path/to/image.jpg",
-            prompt="car",
-            bboxes=[missed_car_box],
-            labels=[1],  # Positive example
-        )
+        # Provide bounding box examples to segment similar objects
+        results = predictor(bboxes=[[480.0, 290.0, 590.0, 650.0]])
 
-        # If false positives appear, add negative exemplars
-        results = model(
-            "path/to/image.jpg",
-            prompt="car",
-            bboxes=[false_positive_box],
-            labels=[0],  # Negative example
-        )
+        # Multiple bounding boxes for different concepts
+        results = predictor(bboxes=[[539, 599, 589, 639], [343, 267, 499, 662]])
         ```
 
-    !!! warning "API Preview"
+#### Feature-based Inference for Efficiency
 
-        This example shows intended usage. Actual implementation pending Meta's release and Ultralytics integration.
+!!! example "Reusing Image Features for Multiple Queries"
+
+    Extract image features once and reuse them for multiple segmentation queries to improve efficiency.
+
+    === "Python"
+
+        ```python
+        import cv2
+
+        from ultralytics.models.sam import SAM3SemanticPredictor
+        from ultralytics.utils.plotting import Annotator, colors
+
+        # Initialize predictors
+        overrides = dict(conf=0.50, task="segment", mode="predict", model="sam3.pt", verbose=False)
+        predictor = SAM3SemanticPredictor(overrides=overrides)
+        predictor2 = SAM3SemanticPredictor(overrides=overrides)
+
+        # Extract features from the first predictor
+        source = "path/to/image.jpg"
+        predictor.set_image(source)
+        src_shape = cv2.imread(source).shape[:2]
+
+        # Setup second predictor and reuse features
+        predictor2.setup_model()
+
+        # Perform inference using shared features with text prompt
+        masks, boxes = predictor2.inference_features(predictor.features, src_shape=src_shape, text=["person"])
+
+        # Perform inference using shared features with bounding box prompt
+        masks, boxes = predictor2.inference_features(predictor.features, src_shape=src_shape, bboxes=[[439, 437, 524, 709]])
+
+        # Visualize results
+        if masks is not None:
+            masks, boxes = masks.cpu().numpy(), boxes.cpu().numpy()
+            im = cv2.imread(source)
+            annotator = Annotator(im, pil=False)
+            annotator.masks(masks, [colors(x, True) for x in range(len(masks))])
+
+            cv2.imshow("result", annotator.result())
+            cv2.waitKey(0)
+        ```
 
 ### Video Concept Segmentation
 
-!!! Example "Track Concepts Across Video"
+#### Track Concepts Across Video with Bounding Boxes
 
-    Detect and track all instances of a concept throughout a video.
+!!! example "Video Tracking with Visual Prompts"
+
+    Detect and track object instances across video frames using bounding box prompts.
 
     === "Python"
 
@@ -253,31 +269,55 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
         from ultralytics.models.sam import SAM3VideoPredictor
 
         # Create video predictor
-        predictor = SAM3VideoPredictor(model="sam3.pt", imgsz=1024, conf=0.25)
+        overrides = dict(conf=0.25, task="segment", mode="predict", model="sam3.pt", half=True)
+        predictor = SAM3VideoPredictor(overrides=overrides)
 
-        # Track all instances of a concept
-        results = predictor(source="video.mp4", prompt="person wearing blue shirt")
+        # Track objects using bounding box prompts
+        results = predictor(source="path/to/video.mp4", bboxes=[[706.5, 442.5, 905.25, 555], [598, 635, 725, 750]], stream=True)
 
-        # Combine text with exemplar for precision
+        # Process and display results
+        for r in results:
+            r.show()  # Display frame with segmentation masks
+        ```
+
+#### Track Concepts with Text Prompts
+
+!!! example "Video Tracking with Semantic Queries"
+
+    Track all instances of concepts specified by text across video frames.
+
+    === "Python"
+
+        ```python
+        from ultralytics.models.sam import SAM3VideoSemanticPredictor
+
+        # Initialize semantic video predictor
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=640, model="sam3.pt", half=True, save=True)
+        predictor = SAM3VideoSemanticPredictor(overrides=overrides)
+
+        # Track concepts using text prompts
+        results = predictor(source="path/to/video.mp4", text=["person", "bicycle"], stream=True)
+
+        # Process results
+        for r in results:
+            r.show()  # Display frame with tracked objects
+
+        # Alternative: Track with bounding box prompts
         results = predictor(
-            source="video.mp4",
-            prompt="kangaroo",
-            bboxes=[initial_box],  # Exemplar from first frame
-            labels=[1],
+            source="path/to/video.mp4",
+            bboxes=[[864, 383, 975, 620], [705, 229, 782, 402]],
+            labels=[1, 1],  # Positive labels
+            stream=True,
         )
         ```
 
-    !!! warning "API Preview"
-
-        This example shows intended usage. Actual implementation pending Meta's release and Ultralytics integration.
-
-For broader streaming and production setups, see [object tracking](../guides/object-counting.md) and [view results in terminal](../guides/view-results-in-terminal.md).
-
 ### Visual Prompts (SAM 2 Compatibility)
 
-SAM 3 maintains full backward compatibility with SAM 2's visual prompting:
+SAM 3 maintains full backward compatibility with SAM 2's visual prompting for single-object segmentation:
 
-!!! Example "SAM 2 Style Visual Prompts"
+!!! example "SAM 2 Style Visual Prompts"
+
+    The basic `SAM` interface behaves exactly like SAM 2, segmenting only the specific area indicated by visual prompts (points, boxes, or masks).
 
     === "Python"
 
@@ -286,19 +326,21 @@ SAM 3 maintains full backward compatibility with SAM 2's visual prompting:
 
         model = SAM("sam3.pt")
 
-        # Single point prompt (SAM 2 style)
-        results = model(points=[900, 370], labels=[1])
+        # Single point prompt - segments object at specific location
+        results = model.predict(source="path/to/image.jpg", points=[900, 370], labels=[1])
+        results[0].show()
 
-        # Multiple points
-        results = model(points=[[400, 370], [900, 370]], labels=[1, 1])
+        # Multiple points - segments single object with multiple point hints
+        results = model.predict(source="path/to/image.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
 
-        # Box prompt
-        results = model(bboxes=[100, 150, 300, 400])
+        # Box prompt - segments object within bounding box
+        results = model.predict(source="path/to/image.jpg", bboxes=[100, 150, 300, 400])
+        results[0].show()
         ```
 
-    !!! warning "API Preview"
+    !!! warning "Visual Prompts vs Concept Segmentation"
 
-        This example shows intended usage. Actual implementation pending Meta's release and Ultralytics integration.
+        Using `SAM("sam3.pt")` with visual prompts (points/boxes/masks) will segment **only the specific object** at that location, just like SAM 2. To segment **all instances of a concept**, use `SAM3SemanticPredictor` with text or exemplar prompts as shown above.
 
 ## Performance Benchmarks
 
@@ -373,7 +415,7 @@ Here we compare SAM 3's capabilities with SAM 2 and [YOLO11](../models/yolo11.md
 | **LVIS Mask AP (zero-shot)** | **47.0**                              | N/A                  | N/A                |
 | **MOSEv2 J&F**               | **60.1**                              | 47.9                 | N/A                |
 | **Inference Speed (H200)**   | **30 ms** (100+ objects)              | ~23 ms (per object)  | **2-3 ms** (image) |
-| **Model Size**               | Large (~400+ MB expected)             | 162 MB (base)        | **5.9 MB**         |
+| **Model Size**               | 3.4GB                                 | 162 MB (base)        | **5.9 MB**         |
 
 **Key Takeaways**:
 
@@ -500,17 +542,13 @@ While SAM 3 represents a major advancement, it has certain limitations:
 
 ## FAQ
 
-### When Will SAM 3 Be Released?
+### When Was SAM 3 Released?
 
-SAM 3 is currently under review at ICLR 2026 (conference in 2026, review in 2025). Official models, weights, and benchmarks will be released publicly following the review process, likely in 2026. Ultralytics will provide immediate support for SAM 3 integration upon Meta's release and document usage in [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
+SAM 3 was released by Meta on **November 20th, 2025** and is fully integrated into Ultralytics as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Full support is available for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
 
-### Will SAM 3 Be Integrated Into Ultralytics?
+### Is SAM 3 Integrated Into Ultralytics?
 
-Yes. SAM 3 will be supported in the Ultralytics Python package upon release, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. You will be able to [export](../modes/export.md) to formats like [ONNX](../integrations/onnx.md) and [TensorRT](../integrations/tensorrt.md) for deployment, with streamlined [Python](../usage/python.md) and [CLI](../usage/cli.md) workflows.
-
-!!! warning "Implementation Timeline"
-
-    Code examples in this documentation are preview versions showing intended usage patterns. Actual implementation will be available after Meta releases SAM 3 weights and Ultralytics completes integration.
+Yes! SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking.
 
 ### What Is Promptable Concept Segmentation (PCS)?
 
@@ -570,7 +608,7 @@ SAM 3 and YOLO11 serve different use cases:
 **YOLO11 Advantages**:
 
 - **Speed**: 10-15× faster inference (2-3ms vs 30ms per image)
-- **Efficiency**: 70× smaller models (5.9MB vs ~400MB expected)
+- **Efficiency**: 576× smaller models (5.9MB vs 3.4GB)
 - **Resource-friendly**: Runs on edge devices and mobile
 - **Real-time**: Optimized for production deployments
 

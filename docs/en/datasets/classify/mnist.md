@@ -22,6 +22,11 @@ The MNIST dataset is split into two subsets:
 1. **Training Set**: This subset contains 60,000 images of handwritten digits used for training machine learning models.
 2. **Testing Set**: This subset consists of 10,000 images used for testing and benchmarking the trained models.
 
+## Dataset Access
+
+- **Original files**: Download the gzip archives from [Yann LeCun's MNIST page](http://yann.lecun.com/exdb/mnist/) if you want direct control over preprocessing.
+- **Ultralytics loader**: Use `data="mnist"` (or `data="mnist160"` for the subset below) in your command and the dataset will be downloaded, converted to PNG, and cached automatically.
+
 Each image in the dataset is labeled with the corresponding digit (0-9), making it a supervised learning dataset ideal for classification tasks.
 
 ## Extended MNIST (EMNIST)
@@ -41,7 +46,7 @@ Some common applications include:
 
 ## Usage
 
-To train a CNN model on the MNIST dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 32×32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a CNN model on the MNIST dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 28×28, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -51,24 +56,24 @@ To train a CNN model on the MNIST dataset for 100 [epochs](https://www.ultralyti
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="mnist", epochs=100, imgsz=32)
+        results = model.train(data="mnist", epochs=100, imgsz=28)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=mnist model=yolo11n-cls.pt epochs=100 imgsz=28
+        yolo classify train data=mnist model=yolo26n-cls.pt epochs=100 imgsz=28
         ```
 
 ## Sample Images and Annotations
 
 The MNIST dataset contains grayscale images of handwritten digits, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png)
+![MNIST handwritten digit classification dataset samples](https://upload.wikimedia.org/wikipedia/commons/2/27/MnistExamples.png)
 
 The example showcases the variety and complexity of the handwritten digits in the MNIST dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 
@@ -92,6 +97,20 @@ If you use the MNIST dataset in your research or development work, please cite t
 
 We would like to acknowledge Yann LeCun, Corinna Cortes, and Christopher J.C. Burges for creating and maintaining the MNIST dataset as a valuable resource for the machine learning and computer vision research community. For more information about the MNIST dataset and its creators, visit the [MNIST dataset website](https://en.wikipedia.org/wiki/MNIST_database).
 
+## MNIST160 Quick Tests
+
+Need a lightning-fast regression test? Ultralytics also exposes `data="mnist160"`, a 160-image slice containing the first eight samples from each digit class. It mirrors the MNIST directory structure, so you can swap datasets without changing any other arguments:
+
+!!! example "Train Example with MNIST160"
+
+    === "CLI"
+
+        ```bash
+        yolo classify train data=mnist160 model=yolo26n-cls.pt epochs=5 imgsz=28
+        ```
+
+Use this subset for CI pipelines or sanity checks before committing to the full 70,000-image dataset.
+
 ## FAQ
 
 ### What is the MNIST dataset, and why is it important in machine learning?
@@ -110,17 +129,17 @@ To train a model on the MNIST dataset using Ultralytics YOLO, you can follow the
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data="mnist", epochs=100, imgsz=32)
+        results = model.train(data="mnist", epochs=100, imgsz=28)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=mnist model=yolo11n-cls.pt epochs=100 imgsz=28
+        yolo classify train data=mnist model=yolo26n-cls.pt epochs=100 imgsz=28
         ```
 
 For a detailed list of available training arguments, refer to the [Training](../../modes/train.md) page.
@@ -129,9 +148,9 @@ For a detailed list of available training arguments, refer to the [Training](../
 
 The MNIST dataset contains only handwritten digits, whereas the Extended MNIST (EMNIST) dataset includes both digits and uppercase and lowercase letters. EMNIST was developed as a successor to MNIST and utilizes the same 28×28 pixel format for the images, making it compatible with tools and models designed for the original MNIST dataset. This broader range of characters in EMNIST makes it useful for a wider variety of machine learning applications.
 
-### Can I use Ultralytics HUB to train models on custom datasets like MNIST?
+### Can I use Ultralytics Platform to train models on custom datasets like MNIST?
 
-Yes, you can use [Ultralytics HUB](https://docs.ultralytics.com/hub/) to train models on custom datasets like MNIST. Ultralytics HUB offers a user-friendly interface for uploading datasets, training models, and managing projects without needing extensive coding knowledge. For more details on how to get started, check out the [Ultralytics HUB Quickstart](https://docs.ultralytics.com/hub/quickstart/) page.
+Yes, you can use [Ultralytics Platform](https://docs.ultralytics.com/platform/) to train models on custom datasets like MNIST. Ultralytics Platform offers a user-friendly interface for uploading datasets, training models, and managing projects without needing extensive coding knowledge. For more details on how to get started, check out the [Ultralytics Platform Quickstart](https://docs.ultralytics.com/platform/quickstart/) page.
 
 ### How does MNIST compare to other image classification datasets?
 

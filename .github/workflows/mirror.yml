@@ -21,7 +21,7 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
     steps:
       - name: Checkout Source Repository (${{ github.repository }})
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Fetch all history for mirroring
       - name: Run Git Config

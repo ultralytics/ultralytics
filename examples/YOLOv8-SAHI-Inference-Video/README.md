@@ -44,7 +44,7 @@ python yolov8_sahi.py --source "path/to/your/video.mp4" --save-img --weights "yo
 python yolov8_sahi.py --source "path/to/your/video.mp4" --save-img --slice-height 512 --slice-width 512
 ```
 
-This script processes the video frame by frame, applying SAHI's slicing and inference logic before stitching the detections back onto the original frame dimensions. The output, annotated images with detections, will be saved in the `runs/detect/predict` directory. Learn more about prediction with Ultralytics models in the [Predict mode documentation](https://docs.ultralytics.com/modes/predict/).
+This script processes the video frame by frame, applying SAHI's slicing and inference logic. When saving is enabled, it exports annotated frames to `runs/detect/predict`. Learn more about prediction with Ultralytics models in the [Predict mode documentation](https://docs.ultralytics.com/modes/predict/).
 
 ## 🛠️ Usage Options
 
@@ -52,7 +52,7 @@ The script `yolov8_sahi.py` accepts several command-line arguments to customize 
 
 - `--source`: **Required**. Path to the input video file (e.g., `"../path/to/video.mp4"`).
 - `--weights`: Optional. Path to the YOLO11 model weights file (e.g., `"yolo11n.pt"`, `"yolo11s.pt"`). Defaults to `"yolo11n.pt"`. You can download various models or use your custom-trained ones. See [Ultralytics YOLO models](https://docs.ultralytics.com/models/) for more options.
-- `--save-vid`: Optional. Flag to save the output video with detection results. Saved to `runs/detect/predict`.
+- `--save-img`: Optional. Flag to export annotated frames. Saved to `runs/detect/predict`.
 - `--slice-height`: Optional. Height of each image slice for SAHI. Defaults to `1024`.
 - `--slice-width`: Optional. Width of each image slice for SAHI. Defaults to `1024`.
 

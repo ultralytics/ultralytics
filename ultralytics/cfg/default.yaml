@@ -57,6 +57,7 @@ half: False # (bool) use half precision (FP16) if supported
 dnn: False # (bool) use OpenCV DNN for ONNX inference
 plots: True # (bool) save plots and images during train/val
 end2end: # (bool, optional) whether to use end2end head(YOLO26, YOLOv10) for predict/val/export
+obb_iou: probiou # (str) OBB IoU calculation method: 'probiou' (faster, approximate) or 'polygon' (slower, exact)
 
 # Predict settings -----------------------------------------------------------------------------------------------------
 source: # (str, optional) path/dir/URL/stream for images or videos; e.g. 'ultralytics/assets' or '0' for webcam

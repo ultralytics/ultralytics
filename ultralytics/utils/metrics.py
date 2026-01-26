@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings
+from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, TryExcept, checks, plt_settings, ops
 
 OKS_SIGMA = (
     np.array(
@@ -287,6 +287,63 @@ def batch_probiou(obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.ndarr
     bd = (t1 + t2 + t3).clamp(eps, 100.0)
     hd = (1.0 - (-bd).exp() + eps).sqrt()
     return 1 - hd
+
+
+def batch_polygon_iou(obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.ndarray, eps: float = 1e-7) -> torch.Tensor:
+    """Calculate polygon IoU between oriented bounding boxes.
+
+    Args:
+        obb1 (torch.Tensor | np.ndarray): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
+        obb2 (torch.Tensor | np.ndarray): A tensor of shape (M, 5) representing predicted obbs, with xywhr format.
+        eps (float, optional): A small value to avoid division by zero.
+
+    Returns:
+        (torch.Tensor): A tensor of shape (N, M) representing obb similarities.
+    """
+    try:
+        from ultralytics.utils.checks import check_requirements
+
+        check_requirements("shapely>=2.0.0")
+        from shapely.geometry import Polygon
+    except Exception as exc:  # fall back to probabilistic IoU if shapely is unavailable
+        LOGGER.warning(f"Shapely IoU fallback to probabilistic IoU: {exc}")
+        return batch_probiou(obb1, obb2, eps=eps)
+
+    obb1 = torch.from_numpy(obb1) if isinstance(obb1, np.ndarray) else obb1
+    obb2 = torch.from_numpy(obb2) if isinstance(obb2, np.ndarray) else obb2
+    n, m = obb1.shape[0], obb2.shape[0]
+    device = obb1.device
+    if n == 0 or m == 0:
+        return torch.zeros((n, m), device=device)
+
+    obb1_cpu = obb1.detach().float().cpu()
+    obb2_cpu = obb2.detach().float().cpu()
+    polys1 = ops.xywhr2xyxyxyxy(obb1_cpu).numpy().reshape(-1, 4, 2)
+    polys2 = ops.xywhr2xyxyxyxy(obb2_cpu).numpy().reshape(-1, 4, 2)
+
+    lt1 = polys1.min(axis=1)
+    rb1 = polys1.max(axis=1)
+    lt2 = polys2.min(axis=1)
+    rb2 = polys2.max(axis=1)
+    inter_lt = np.maximum(lt1[:, None, :], lt2[None, :, :])
+    inter_rb = np.minimum(rb1[:, None, :], rb2[None, :, :])
+    wh = np.clip(inter_rb - inter_lt, 0, np.inf)
+    aabb_overlap = (wh[..., 0] > 0) & (wh[..., 1] > 0)
+
+    sg_polys1 = [Polygon(p) for p in polys1]
+    sg_polys2 = [Polygon(p) for p in polys2]
+    areas1 = np.array([p.area for p in sg_polys1], dtype=np.float32)
+    areas2 = np.array([p.area for p in sg_polys2], dtype=np.float32)
+
+    ious = np.zeros((n, m), dtype=np.float32)
+    for i, j in zip(*np.nonzero(aabb_overlap)):
+        if areas1[i] <= eps or areas2[j] <= eps:
+            continue
+        inter = sg_polys1[i].intersection(sg_polys2[j]).area
+        union = areas1[i] + areas2[j] - inter
+        if union > eps:
+            ious[i, j] = inter / union
+    return torch.from_numpy(ious).to(device=device)
 
 
 def smooth_bce(eps: float = 0.1) -> tuple[float, float]:

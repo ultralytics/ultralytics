@@ -10,7 +10,7 @@ import torch
 
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
-from ultralytics.utils.metrics import OBBMetrics, batch_probiou
+from ultralytics.utils.metrics import OBBMetrics, batch_probiou, batch_polygon_iou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.plotting import plot_images
 
@@ -92,7 +92,17 @@ class OBBValidator(DetectionValidator):
         """
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
             return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
-        iou = batch_probiou(batch["bboxes"], preds["bboxes"])
+        obb_iou_method = getattr(self.args, "obb_iou", "probiou")
+        if obb_iou_method == "polygon":
+            iou = batch_polygon_iou(batch["bboxes"], preds["bboxes"])
+        elif obb_iou_method == "probiou":
+            iou = batch_probiou(batch["bboxes"], preds["bboxes"])
+        else:
+            LOGGER.warning(
+                f"Invalid obb_iou='{obb_iou_method}'. Supported values are 'probiou' or 'polygon'. "
+                f"Using default 'probiou'."
+            )
+            iou = batch_probiou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:

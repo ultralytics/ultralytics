@@ -68,8 +68,8 @@ dependencies = [
     "pyyaml>=5.3.1",
     "requests>=2.23.0",
     "scipy>=1.4.1",
-    "torch>=1.8.0",
-    "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
+    "torch>=1.8.0,<2.10",
+    "torch>=1.8.0,<2.10,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
     "torchvision>=0.9.0",
     "psutil>=5.8.0", # system utilization
     "polars>=0.20.0",
@@ -83,7 +83,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage[toml]",
-    "zensical>=0.0.9; python_version >= '3.10'",
+    "zensical>=0.0.15; python_version >= '3.10'",
     "mkdocs-ultralytics-plugin>=0.2.4", # for meta descriptions and images, dates and authors
     "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
 ]
@@ -91,7 +91,7 @@ export = [
     "numpy<2.0.0", # TF 2.20 compatibility
     "onnx>=1.12.0; platform_system != 'Darwin'", # ONNX export
     "onnx>=1.12.0,<1.18.0; platform_system == 'Darwin'",  # TF inference hanging on MacOS (tested up to onnx==1.20.0)
-    "onnxslim>=0.1.80",
+    "onnxslim>=0.1.82",
     "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
     "openvino>=2024.0.0",  # OpenVINO export
@@ -111,7 +111,6 @@ logging = [
     "mlflow",  # https://docs.ultralytics.com/integrations/mlflow/
 ]
 extra = [
-    "hub-sdk>=0.0.12", # Ultralytics HUB
     "ipython", # interactive notebook
     "albumentations>=1.4.6", # training augmentations
     "faster-coco-eval>=1.6.7", # COCO mAP

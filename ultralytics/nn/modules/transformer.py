@@ -305,16 +305,16 @@ class TransformerBlock(nn.Module):
         """Forward propagate the input through the transformer block.
 
         Args:
-            x (torch.Tensor): Input tensor with shape [b, c1, w, h].
+            x (torch.Tensor): Input tensor with shape [b, c1, h, w].
 
         Returns:
-            (torch.Tensor): Output tensor with shape [b, c2, w, h].
+            (torch.Tensor): Output tensor with shape [b, c2, h, w].
         """
         if self.conv is not None:
             x = self.conv(x)
-        b, _, w, h = x.shape
+        b, _, h, w = x.shape
         p = x.flatten(2).permute(2, 0, 1)
-        return self.tr(p + self.linear(p)).permute(1, 2, 0).reshape(b, self.c2, w, h)
+        return self.tr(p + self.linear(p)).permute(1, 2, 0).reshape(b, self.c2, h, w)
 
 
 class MLPBlock(nn.Module):

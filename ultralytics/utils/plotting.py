@@ -401,7 +401,7 @@ class Annotator:
             masks = masks.unsqueeze(3)  # shape(n,h,w,1)
             masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
             inv_alpha_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
-            mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
+            mcs = masks_color.max(dim=0).values  # shape(h,w,3)
 
             im_gpu = im_gpu.flip(dims=[0]).permute(1, 2, 0).contiguous()  # shape(h,w,3)
             im_gpu = im_gpu * inv_alpha_masks[-1] + mcs
@@ -786,7 +786,6 @@ def plot_images(
                 boxes[..., 0] += x
                 boxes[..., 1] += y
                 is_obb = boxes.shape[-1] == 5  # xywhr
-                # TODO: this transformation might be unnecessary
                 boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]
@@ -973,6 +972,9 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
     if exclude_zero_fitness_points:
         mask = fitness > 0  # exclude zero-fitness points
         x, fitness = x[mask], fitness[mask]
+    if len(fitness) == 0:
+        LOGGER.warning("No valid fitness values to plot (all iterations may have failed)")
+        return
     # Iterative sigma rejection on lower bound only
     for _ in range(3):  # max 3 iterations
         mean, std = fitness.mean(), fitness.std()

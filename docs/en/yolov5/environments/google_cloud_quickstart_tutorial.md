@@ -25,7 +25,7 @@ Let's begin by creating a virtual machine optimized for [deep learning](https://
 
 This VM comes pre-loaded with essential tools and frameworks, including the [Anaconda](https://www.anaconda.com/) Python distribution, which conveniently bundles many necessary dependencies for YOLOv5.
 
-![GCP Marketplace illustration of setting up a Deep Learning VM](https://github.com/ultralytics/docs/releases/download/0/gcp-deep-learning-vm-setup.avif)
+![GCP Marketplace illustration of setting up a Deep Learning VM](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/gcp-deep-learning-vm-setup.avif)
 
 ## Step 2: Prepare the VM for YOLOv5
 
@@ -62,7 +62,7 @@ python export.py --weights yolov5s.pt --include onnx coreml tflite
 
 Using just a few commands, YOLOv5 enables you to train custom [object detection](https://docs.ultralytics.com/tasks/detect/) models tailored to your specific needs or utilize pretrained weights for rapid results across various tasks. Explore different [model deployment options](../../guides/model-deployment-options.md) after exporting.
 
-![Terminal command image illustrating model training on a GCP Deep Learning VM](https://github.com/ultralytics/docs/releases/download/0/terminal-command-model-training.avif)
+![YOLOv5 model training on GCP VM](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/terminal-command-model-training.avif)
 
 ## Allocate Swap Space (Optional)
 
@@ -123,7 +123,7 @@ This approach allows you to store large datasets and trained models securely and
 
 Congratulations! You are now equipped to harness the capabilities of Ultralytics YOLOv5 combined with the computational power of Google Cloud Platform. This setup provides scalability, efficiency, and versatility for your object detection projects. Whether for personal exploration, academic research, or building industrial [solutions](../../solutions/index.md), you have taken a significant step into the world of AI and ML on the cloud.
 
-Consider using [Ultralytics HUB](../../hub/index.md) for a streamlined, no-code experience to train and manage your models.
+Consider using [Ultralytics Platform](../../platform/index.md) for a streamlined, no-code experience to train and manage your models.
 
 Remember to document your progress, share insights with the vibrant Ultralytics community, and utilize resources like [GitHub discussions](https://github.com/ultralytics/yolov5/discussions) for collaboration and support. Now, go forth and innovate with YOLOv5 and GCP!
 

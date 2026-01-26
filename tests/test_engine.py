@@ -162,6 +162,7 @@ def test_nan_recovery():
 
 
 def _make_dummy_trainer(tmp_path: Path, save_period: int, save_after: int, epoch: int, best: bool):
+    """Create a minimal trainer-like object sufficient to call BaseTrainer.save_model()."""
     model = torch.nn.Linear(1, 1)
 
     t = SimpleNamespace()
@@ -191,6 +192,7 @@ def _make_dummy_trainer(tmp_path: Path, save_period: int, save_after: int, epoch
 
 
 def test_save_after_gates_periodic_checkpoints(tmp_path):
+    """Test save_after gates periodic epoch*.pt checkpoints while last.pt/best.pt remain unchanged."""
     save_period = 2
     save_after = 3
 

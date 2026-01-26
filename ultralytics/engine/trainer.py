@@ -268,7 +268,8 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        self.backbone_len = len(self.model.yaml["backbone"])
+        self.model_yaml = deepcopy(self.model.yaml)
+        self.backbone_len = len(self.model_yaml["backbone"])
         # Compile model
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 

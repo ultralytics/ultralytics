@@ -145,6 +145,8 @@ class DetectionTrainer(BaseTrainer):
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
+        if getattr(self.model, "end2end"):
+            self.model.model[-1].max_det = self.args.max_det
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
@@ -161,8 +163,6 @@ class DetectionTrainer(BaseTrainer):
         model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
-        if hasattr(model, "end2end"):
-            model.model[-1].max_det = self.args.max_det
         return model
 
     def get_validator(self):

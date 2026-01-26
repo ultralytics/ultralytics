@@ -242,7 +242,7 @@ class Detect(nn.Module):
             labels = labels.gather(1, indices)
             return scores, labels, indices
         else:
-            ori_index = scores.amax(dim=-1).topk(k)[1].unsqueeze(-1)
+            ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
             scores = scores.gather(dim=1, index=ori_index.repeat(1, 1, nc))
             scores, index = scores.flatten(1).topk(k)
             idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index

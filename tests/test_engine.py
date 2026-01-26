@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import sys
+from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 import torch
@@ -9,8 +11,10 @@ from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
+from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models.yolo import classify, detect, segment
 from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
+from ultralytics.utils.torch_utils import ModelEMA
 
 
 def test_func(*args, **kwargs):
@@ -155,3 +159,54 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+
+
+def _make_dummy_trainer(tmp_path: Path, save_period: int, save_after: int, epoch: int, best: bool):
+    model = torch.nn.Linear(1, 1)
+
+    t = SimpleNamespace()
+    t.epoch = epoch
+    t.fitness = 1.0
+    t.best_fitness = 1.0 if best else 0.0
+
+    t.ema = ModelEMA(model)
+    t.ema.updates = 0
+    t.optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+    t.scaler = SimpleNamespace(state_dict=lambda: {})
+
+    t.args = SimpleNamespace()
+    t.metrics = {}
+    t.read_results_csv = lambda: {}
+
+    t.wdir = tmp_path / "weights"
+    t.wdir.mkdir(parents=True, exist_ok=True)
+    t.last = t.wdir / "last.pt"
+    t.best = t.wdir / "best.pt"
+
+    t.save_period = save_period
+    t.save_after = save_after
+
+    t.save_model = BaseTrainer.save_model.__get__(t, BaseTrainer)
+    return t
+
+
+def test_save_after_gates_periodic_checkpoints(tmp_path):
+    save_period = 2
+    save_after = 3
+
+    t0 = _make_dummy_trainer(tmp_path / "case0", save_period, save_after, epoch=0, best=True)
+    t0.save_model()
+    assert t0.last.exists()
+    assert t0.best.exists()
+    assert not (t0.wdir / "epoch0.pt").exists()
+
+    t1 = _make_dummy_trainer(tmp_path / "case1", save_period, save_after, epoch=1, best=False)
+    t1.save_model()
+    assert t1.last.exists()
+    assert not t1.best.exists()
+    assert not (t1.wdir / "epoch1.pt").exists()
+
+    t2 = _make_dummy_trainer(tmp_path / "case2", save_period, save_after, epoch=2, best=False)
+    t2.save_model()
+    assert t2.last.exists()
+    assert (t2.wdir / "epoch2.pt").exists()

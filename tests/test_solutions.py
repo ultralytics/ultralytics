@@ -372,7 +372,10 @@ def test_display_output_method():
 
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
-@pytest.mark.skipif(not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"), reason="TorchVision video models require torchvision>=0.10.0")
+@pytest.mark.skipif(
+    not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"),
+    reason="TorchVision video models require torchvision>=0.10.0",
+)
 def test_action_recognition_process_method():
     """Test ActionRecognition.process() returns valid SolutionResults."""
     from ultralytics.solutions.solutions import SolutionResults

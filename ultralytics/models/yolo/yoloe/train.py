@@ -196,7 +196,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         Returns:
             (dict): Dictionary mapping text samples to their embeddings.
         """
-        model = "mobileclip:blt"
+        model = unwrap_model(self.model).text_model
         cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
@@ -204,7 +204,6 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
             if sorted(txt_map.keys()) == sorted(texts):
                 return txt_map
         LOGGER.info(f"Caching text embeddings to '{cache_path}'")
-        assert self.model is not None
         txt_feats = unwrap_model(self.model).get_text_pe(texts, batch, without_reprta=True, cache_clip_model=False)
         txt_map = dict(zip(texts, txt_feats.squeeze(0)))
         torch.save(txt_map, cache_path)

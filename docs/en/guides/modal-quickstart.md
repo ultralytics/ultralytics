@@ -49,18 +49,14 @@ Create a new Python file called `modal_yolo.py` with the following code:
 ```python
 """
 Modal + Ultralytics YOLO26 Quickstart
-Run: modal run modal_yolo.py
+Run: modal run modal_yolo.py.
 """
 
 import modal
 
 app = modal.App("ultralytics-yolo")
 
-image = (
-    modal.Image.debian_slim(python_version="3.11")
-    .apt_install("libgl1", "libglib2.0-0")
-    .pip_install("ultralytics")
-)
+image = modal.Image.debian_slim(python_version="3.11").apt_install("libgl1", "libglib2.0-0").pip_install("ultralytics")
 
 
 @app.function(image=image)
@@ -133,12 +129,12 @@ def predict_gpu(image_url: str):
     print(results[0].boxes)
 ```
 
-| GPU   | Memory | Best For                         |
-| ----- | ------ | -------------------------------- |
-| T4    | 16 GB  | Inference, small model training  |
-| A10G  | 24 GB  | Medium training jobs             |
-| A100  | 40 GB  | Large-scale training             |
-| H100  | 80 GB  | Maximum performance              |
+| GPU  | Memory | Best For                        |
+| ---- | ------ | ------------------------------- |
+| T4   | 16 GB  | Inference, small model training |
+| A10G | 24 GB  | Medium training jobs            |
+| A100 | 40 GB  | Large-scale training            |
+| H100 | 80 GB  | Maximum performance             |
 
 ---
 
@@ -153,11 +149,7 @@ app = modal.App("ultralytics-training")
 
 volume = modal.Volume.from_name("yolo-training-vol", create_if_missing=True)
 
-image = (
-    modal.Image.debian_slim(python_version="3.11")
-    .apt_install("libgl1", "libglib2.0-0")
-    .pip_install("ultralytics")
-)
+image = modal.Image.debian_slim(python_version="3.11").apt_install("libgl1", "libglib2.0-0").pip_install("ultralytics")
 
 
 @app.function(image=image, gpu="T4", timeout=3600, volumes={"/data": volume})

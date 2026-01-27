@@ -739,8 +739,6 @@ def test_yoloe(tmp_path):
         imgsz=32,
     )
     # Train, from scratch
-    model = YOLOE("yoloe-26s-seg.yaml")
-
     data_dict = dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"]))
     data_yaml = tmp_path / "yoloe-data.yaml"
     YAML.save(data=data_dict, file=data_yaml)

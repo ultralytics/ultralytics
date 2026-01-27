@@ -1,26 +1,30 @@
 from ultralytics import YOLO
 from ultralytics import RTDETR
+from ultralytics.utils import ROOT, YAML
+import torch
 
-# 1. Load the YOLO11 model (n = nano, s = small, etc.)
-# It will automatically download 'yolo11n.pt' if not present.
-model = YOLO('yolo11l.pt')
-# model = RTDETR('rtdetr-resnet50.yaml')
-# model = RTDETR('ultralytics/cfg/models/rt-detr/rtdetr-resnet50_pretrained_timm.yaml')
-# model = RTDETR('ultralytics/cfg/models/rt-detr/rtdetr-resnet50_pretrained.yaml')
+# model = YOLO('ultralytics/cfg/models/26/yolo26l.yaml')
+# model.load('yolo26l.pt')
+
+# model = RTDETR('ultralytics/cfg/models/rt-detr/rtdetr-l.yaml')
+# model.load('rtdetr-l.pt')
 # model = RTDETR('rtdetr-l')
-# model = RTDETR('ultralytics/cfg/models/11/yolo11-rtdetr_p2_l3_efms.yaml')
-# model = RTDETR('ultralytics/cfg/models/11/yolo11l-rtdetr.yaml')
-# model.load('yolo11n.pt')
-# model = RTDETR('ultralytics/cfg/models/rt-detr/rtdetr-resnet50d_gluon_in1k_timm.yaml')
-# model.load('yolo11n.pt')
-# model = YOLO('ultralytics/cfg/models/11/yolo11.yaml')
-# model.load('yolo11n-cls.pt')
-# model = YOLO("https://ultralytics.com/assets/yolo11n.pt")
 
+# Yolo26-rtdetr results
+model = RTDETR('ultralytics/cfg/models/26/yolo26l-rtdetr.yaml')
+model.load('/Users/esat/workspace/runs/rtdetr_yolo26l_PObj_origaugV2_imgsz640_epc90_clsmos15_lrf05/weights/best.pt')
+# Load COCO class names from the dataset config
+coco_names = YAML.load(ROOT / "cfg/datasets/coco.yaml").get("names")
+model.model.names = coco_names  # Set names on the underlying model object
+
+# ckpt = torch.load("yolo26l-objv1-150.pt", weights_only=False)
+# ckpt = torch.load("yolo26l.pt", weights_only=False)
+# train_args = ckpt.get("train_args")
+# print(ckpt["train_args"])
 
 # 2. Run inference on a source (can be a file path, URL, or '0' for webcam)
 # We use a standard URL image for this example.
-results = model('https://ultralytics.com/images/bus.jpg')
+results = model('https://ultralytics.com/images/bus.jpg', conf=0.10)
 
 # 3. Iterate through results (usually a list, one per image)
 for i, r in enumerate(results):
@@ -43,5 +47,5 @@ for i, r in enumerate(results):
 
     # OPTIONAL: Visualize the result
     # r.show()  # Opens a window with the image
-    r.save(filename=f'result_{i}.jpg') # Saves the image to disk
-    print(f"\nSaved visualization to 'result_{i}.jpg'")
+    r.save(filename=f'working_dir/results/result_{i}.jpg') # Saves the image to disk
+    print(f"\nSaved visualization to 'working_dir/results/result_{i}.jpg'")

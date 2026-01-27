@@ -192,8 +192,6 @@ class WorldTrainerFromScratch(WorldTrainer):
         Returns:
             (dict): Dictionary containing evaluation metrics and results.
         """
-        # Ensure self.args.data is a dict (should be after get_dataset call)
-        assert isinstance(self.args.data, dict), "self.args.data should be a dict at this point"
         val = self.args.data["val"]["yolo_data"][0]
         self.validator.args.data = val
         self.validator.args.split = "minival" if isinstance(val, str) and "lvis" in val else "val"

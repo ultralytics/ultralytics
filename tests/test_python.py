@@ -742,7 +742,7 @@ def test_yoloe(tmp_path):
     model = YOLOE("yoloe-11s-seg.yaml")
 
     data_dict = dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"]))
-    data_yaml = tmp_path / f"yoloe-data.yaml"
+    data_yaml = tmp_path / "yoloe-data.yaml"
     YAML.save(data=data_dict, file=data_yaml)
     for data in {data_dict, data_yaml}:
         model.train(

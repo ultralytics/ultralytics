@@ -692,6 +692,7 @@ def test_yolo_world():
 
 
 @pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOE with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
@@ -700,7 +701,7 @@ def test_yoloe(tmp_path):
     """Test YOLOE models with MobileClip support."""
     # Predict
     # text-prompts
-    model = YOLO(WEIGHTS_DIR / "yoloe-26s-seg.pt")
+    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     names = ["person", "bus"]
     model.set_classes(names, model.get_text_pe(names))
     model(SOURCE, conf=0.01)
@@ -720,7 +721,7 @@ def test_yoloe(tmp_path):
     )
 
     # Val
-    model = YOLOE(WEIGHTS_DIR / "yoloe-26s-seg.pt")
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     # text prompts
     model.val(data="coco128-seg.yaml", imgsz=32)
     # visual prompts
@@ -729,7 +730,7 @@ def test_yoloe(tmp_path):
     # Train, fine-tune
     from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer, YOLOESegTrainerFromScratch
 
-    model = YOLOE("yoloe-26s-seg.pt")
+    model = YOLOE("yoloe-11s-seg.pt")
     model.train(
         data="coco128-seg.yaml",
         epochs=1,
@@ -742,7 +743,7 @@ def test_yoloe(tmp_path):
     data_yaml = tmp_path / "yoloe-data.yaml"
     YAML.save(data=data_dict, file=data_yaml)
     for data in [data_dict, data_yaml]:
-        model = YOLOE("yoloe-26s-seg.yaml")
+        model = YOLOE("yoloe-11s-seg.yaml")
         model.train(
             data=data,
             epochs=1,
@@ -753,10 +754,10 @@ def test_yoloe(tmp_path):
 
     # prompt-free
     # predict
-    model = YOLOE(WEIGHTS_DIR / "yoloe-26s-seg-pf.pt")
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
     model.predict(SOURCE)
     # val
-    model = YOLOE("yoloe-26s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+    model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
     model.val(data="coco128-seg.yaml", imgsz=32)
 
 

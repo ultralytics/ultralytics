@@ -697,11 +697,11 @@ def test_yolo_world():
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
-def test_yoloe():
+def test_yoloe(tmp_path):
     """Test YOLOE models with MobileClip support."""
     # Predict
     # text-prompts
-    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model = YOLO(WEIGHTS_DIR / "yoloe-26s-seg.pt")
     names = ["person", "bus"]
     model.set_classes(names, model.get_text_pe(names))
     model(SOURCE, conf=0.01)
@@ -721,7 +721,7 @@ def test_yoloe():
     )
 
     # Val
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model = YOLOE(WEIGHTS_DIR / "yoloe-26s-seg.pt")
     # text prompts
     model.val(data="coco128-seg.yaml", imgsz=32)
     # visual prompts
@@ -730,7 +730,7 @@ def test_yoloe():
     # Train, fine-tune
     from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer, YOLOESegTrainerFromScratch
 
-    model = YOLOE("yoloe-11s-seg.pt")
+    model = YOLOE("yoloe-26s-seg.pt")
     model.train(
         data="coco128-seg.yaml",
         epochs=1,
@@ -739,21 +739,26 @@ def test_yoloe():
         imgsz=32,
     )
     # Train, from scratch
-    model = YOLOE("yoloe-11s-seg.yaml")
-    model.train(
-        data=dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"])),
-        epochs=1,
-        close_mosaic=1,
-        trainer=YOLOESegTrainerFromScratch,
-        imgsz=32,
-    )
+    model = YOLOE("yoloe-26s-seg.yaml")
+
+    data_dict = dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"]))
+    data_yaml = tmp_path / "yoloe-data.yaml"
+    YAML.save(data=data_dict, file=data_yaml)
+    for data in {data_dict, data_yaml}:
+        model.train(
+            data=data,
+            epochs=1,
+            close_mosaic=1,
+            trainer=YOLOESegTrainerFromScratch,
+            imgsz=32,
+        )
 
     # prompt-free
     # predict
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
+    model = YOLOE(WEIGHTS_DIR / "yoloe-26s-seg-pf.pt")
     model.predict(SOURCE)
     # val
-    model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+    model = YOLOE("yoloe-26s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
     model.val(data="coco128-seg.yaml", imgsz=32)
 
 

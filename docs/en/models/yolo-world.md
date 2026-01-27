@@ -321,6 +321,7 @@ This approach provides a powerful means of customizing state-of-the-art [object 
         from ultralytics import YOLOWorld
         from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
 
+        # Option 1: Use Python dictionary
         data = dict(
             train=dict(
                 yolo_data=["Objects365.yaml"],
@@ -337,8 +338,27 @@ This approach provides a powerful means of customizing state-of-the-art [object 
             ),
             val=dict(yolo_data=["lvis.yaml"]),
         )
+
+        # Option 2: Use YAML file (yolo_world_data.yaml)
+        # train:
+        #   yolo_data:
+        #     - Objects365.yaml
+        #   grounding_data:
+        #     - img_path: flickr/full_images/
+        #       json_file: flickr/annotations/final_flickr_separateGT_train_segm.json
+        #     - img_path: mixed_grounding/gqa/images
+        #       json_file: mixed_grounding/annotations/final_mixed_train_no_coco_segm.json
+        # val:
+        #   yolo_data:
+        #     - lvis.yaml
+
         model = YOLOWorld("yolov8s-worldv2.yaml")
-        model.train(data=data, batch=128, epochs=100, trainer=WorldTrainerFromScratch)
+        model.train(
+            data=data,  # or data="yolo_world_data.yaml" if using YAML file
+            batch=128,
+            epochs=100,
+            trainer=WorldTrainerFromScratch,
+        )
         ```
 
 ## Citations and Acknowledgments

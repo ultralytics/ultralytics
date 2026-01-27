@@ -541,6 +541,7 @@ The export process is similar to other YOLO models, with the added flexibility o
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOESegTrainerFromScratch
 
+        # Option 1: Use Python dictionary
         data = dict(
             train=dict(
                 yolo_data=["Objects365.yaml"],
@@ -558,9 +559,22 @@ The export process is similar to other YOLO models, with the added flexibility o
             val=dict(yolo_data=["lvis.yaml"]),
         )
 
+        # Option 2: Use YAML file (yoloe_data.yaml)
+        # train:
+        #   yolo_data:
+        #     - Objects365.yaml
+        #   grounding_data:
+        #     - img_path: flickr/full_images/
+        #       json_file: flickr/annotations/final_flickr_separateGT_train_segm.json
+        #     - img_path: mixed_grounding/gqa/images
+        #       json_file: mixed_grounding/annotations/final_mixed_train_no_coco_segm.json
+        # val:
+        #   yolo_data:
+        #     - lvis.yaml
+
         model = YOLOE("yoloe-26l-seg.yaml")
         model.train(
-            data=data,
+            data=data,  # or data="yoloe_data.yaml" if using YAML file
             batch=128,
             epochs=30,
             close_mosaic=2,

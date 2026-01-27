@@ -697,7 +697,7 @@ def test_yolo_world():
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
-def test_yoloe():
+def test_yoloe(tmp_path):
     """Test YOLOE models with MobileClip support."""
     # Predict
     # text-prompts
@@ -739,14 +739,18 @@ def test_yoloe():
         imgsz=32,
     )
     # Train, from scratch
-    model = YOLOE("yoloe-11s-seg.yaml")
-    model.train(
-        data=dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"])),
-        epochs=1,
-        close_mosaic=1,
-        trainer=YOLOESegTrainerFromScratch,
-        imgsz=32,
-    )
+    data_dict = dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"]))
+    data_yaml = tmp_path / "yoloe-data.yaml"
+    YAML.save(data=data_dict, file=data_yaml)
+    for data in [data_dict, data_yaml]:
+        model = YOLOE("yoloe-11s-seg.yaml")
+        model.train(
+            data=data,
+            epochs=1,
+            close_mosaic=1,
+            trainer=YOLOESegTrainerFromScratch,
+            imgsz=32,
+        )
 
     # prompt-free
     # predict

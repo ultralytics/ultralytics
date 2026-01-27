@@ -109,6 +109,7 @@ hungarian: False
 end2end: True
 distill_box_loss: "cos"  # distill box loss, could be cos(cosine loss) or l1(l1 loss)
 distill_branch: "one2one"  # distill branch, could be "one2one", "one2many", "one2one, one2many"
+distill_cls_loss: "softmax"  # distill class loss, could be "softmax" or "sigmoid"
 distill_model: # (str, optional) path to teacher model for knowledge distillation
 distill_layer: # (int) the layer index to distill features from
 dis: 0.2 # (float) distillation loss weight

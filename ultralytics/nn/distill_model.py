@@ -47,13 +47,27 @@ class DistillationModel(nn.Module):
         for branch in self.distill_branch:
             assert branch in {"one2one", "one2many"}
 
-    def loss_kl(self, teacher_logits, student_logits, temperature: float = 5):
+    def loss_kl(self, teacher_logits, student_logits, temperature: float = 5, distill_cls_loss: str = "softmax"):
         """The KL divergence loss for knowledge distillation."""
-        soft_targets = F.softmax(teacher_logits / temperature, dim=1)  # train does not have softmax
-        student_soft_logits = F.log_softmax(student_logits / temperature, dim=1)
+        from ultralytics.utils.torch_utils import autocast
 
-        # Distillation loss (Kullback-Leibler divergence)
-        distillation_loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (temperature**2)
+        with autocast(enabled=False):
+            teacher_logits = teacher_logits.float()
+            student_logits = student_logits.float()
+
+            if distill_cls_loss == "softmax":
+                soft_targets = F.softmax(teacher_logits / temperature, dim=1)  # train does not have softmax
+                student_soft_logits = F.log_softmax(student_logits / temperature, dim=1)
+
+                # Distillation loss (Kullback-Leibler divergence)
+                distillation_loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (temperature**2)
+            elif distill_cls_loss == "sigmoid":
+                soft_t = torch.sigmoid(teacher_logits / temperature)
+                soft_s = torch.sigmoid(student_logits / temperature)
+                loss = F.binary_cross_entropy(soft_s, soft_t, reduction='sum') * (temperature ** 2)
+                distillation_loss = loss / (teacher_logits.shape[0] * teacher_logits.shape[1])
+            else:
+                raise ValueError(f"Unknown kd_cls: {distill_cls_loss}")
         return distillation_loss
 
     def forward(self, x, *args, **kwargs):
@@ -104,7 +118,7 @@ class DistillationModel(nn.Module):
                     student_feat = self.decouple_outputs(feats[feat_idx], branch=branch)
                     assert "boxes" in teacher_feat and "scores" in teacher_feat
                     loss_distill += (
-                        self.loss_kl(teacher_feat["scores"], student_feat["scores"]) * self.student_model.args.dis
+                        self.loss_kl(teacher_feat["scores"], student_feat["scores"], distill_cls_loss=self.student_model.args.distill_cls_loss) * self.student_model.args.dis
                     ) / teacher_feat["scores"].shape[-1]  # divide the number of anchors
                     loss_distill_box = (
                         self.loss_cosine(teacher_feat["boxes"], student_feat["boxes"])

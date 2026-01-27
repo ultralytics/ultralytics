@@ -1562,6 +1562,11 @@ class RTDETRDecoder(nn.Module):
         self.learnt_init_query = learnt_init_query
         if learnt_init_query:
             self.tgt_embed = nn.Embedding(nq, hd)
+            self.learnt_bbox_head = MLP(hd, hd, 4, num_layers=3)
+            self.learnt_score_head = nn.Linear(hd, nc)
+            # Separate embeddings for one-to-many (reuse the same prediction heads)
+            if one_to_many_groups > 0:
+                self.tgt_embed_o2m = nn.Embedding(nq * one_to_many_groups, hd)
 
         if dab_sine_embedding:
             self.query_pos_head = MLP(2 * hd, 2 * hd, hd, num_layers=2)
@@ -1570,14 +1575,15 @@ class RTDETRDecoder(nn.Module):
             self.query_pos_head = MLP(4, 2 * hd, hd, num_layers=2)
             self.query_pos_scale_head = None
 
-        # Encoder head
-        self.enc_output = nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
-        self.enc_score_head = nn.Linear(hd, nc)
-        self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3)
-        if one_to_many_groups > 0:
-            self.enc_output_o2m = copy.deepcopy(self.enc_output)
-            self.enc_score_head_o2m = copy.deepcopy(self.enc_score_head)
-            self.enc_bbox_head_o2m = copy.deepcopy(self.enc_bbox_head)
+        # Encoder head (only needed when not using learnable queries)
+        if not learnt_init_query:
+            self.enc_output = nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
+            self.enc_score_head = nn.Linear(hd, nc)
+            self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3)
+            if one_to_many_groups > 0:
+                self.enc_output_o2m = copy.deepcopy(self.enc_output)
+                self.enc_score_head_o2m = copy.deepcopy(self.enc_score_head)
+                self.enc_bbox_head_o2m = copy.deepcopy(self.enc_bbox_head)
 
         # Decoder head
         self.dec_score_head = nn.ModuleList([nn.Linear(hd, nc) for _ in range(ndl)])
@@ -1811,67 +1817,101 @@ class RTDETRDecoder(nn.Module):
             enc_scores (torch.Tensor): Encoded scores.
         """
         bs = feats.shape[0]
-        if self.dynamic or self.shapes != shapes:
-            self.anchors, self.valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
-            self.shapes = shapes
 
-        # Prepare input for decoder
-        features = self.enc_output(self.valid_mask * feats)  # bs, h*w, 256
-        enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
+        # Two separate paths: learnable queries vs encoder-based queries
+        if self.learnt_init_query:
+            # ========== LEARNABLE QUERY PATH ==========
+            # Use learnable embeddings directly, no encoder processing needed
+            embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1)  # (bs, nq, hd)
 
-        # Query selection
-        # (bs*num_queries,)
-        topk_ind = self._select_topk(enc_outputs_scores, self.num_queries).view(-1)
-        # (bs*num_queries,)
-        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
+            # Generate initial predictions from learnable embeddings
+            refer_bbox = self.learnt_bbox_head(embeddings)  # (bs, nq, 4)
+            enc_bboxes = refer_bbox.sigmoid()
+            enc_scores = self.learnt_score_head(embeddings)  # (bs, nq, nc)
 
-        # (bs, num_queries, 256)
-        top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
-        # (bs, num_queries, 4)
-        top_k_anchors = self.anchors[:, topk_ind].view(bs, self.num_queries, -1)
+            # Handle denoising
+            if dn_bbox is not None:
+                refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
 
-        # Dynamic anchors + static content
-        refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
+            # === ONE-TO-MANY: Use separate learnable embeddings ===
+            if self.training and self.one_to_many_groups > 0:
+                k = self.one_to_many_groups
+                # Use separate o2m embeddings
+                learnt_embed_o2m = self.tgt_embed_o2m.weight.unsqueeze(0).repeat(bs, 1, 1)  # (bs, nq*k, hd)
 
-        enc_bboxes = refer_bbox.sigmoid()
-        if dn_bbox is not None:
-            refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
-        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+                # Generate o2m predictions
+                refer_bbox_o2m = self.learnt_bbox_head(learnt_embed_o2m)
+                enc_bboxes_o2m = refer_bbox_o2m.sigmoid()
+                enc_scores_o2m = self.learnt_score_head(learnt_embed_o2m)
 
-        # === ONE-TO-MANY: Concatenate repeated queries ===
-        if self.training and self.one_to_many_groups > 0:
-            k = self.one_to_many_groups
+                # Concatenate embeddings and predictions: [o2o queries | o2m queries]
+                embeddings = torch.cat([embeddings, learnt_embed_o2m], dim=1)
+                refer_bbox = torch.cat([refer_bbox, refer_bbox_o2m], dim=1)
+                enc_bboxes = torch.cat([enc_bboxes, enc_bboxes_o2m], dim=1)
+                enc_scores = torch.cat([enc_scores, enc_scores_o2m], dim=1)
 
-            features_o2m = self.enc_output_o2m(self.valid_mask * feats)  # bs, h*w, 256
-            enc_outputs_scores_o2m = self.enc_score_head_o2m(features_o2m)  # (bs, h*w, nc)
+        else:
+            # ========== ENCODER-BASED QUERY PATH (ORIGINAL RTDETR) ==========
+            if self.dynamic or self.shapes != shapes:
+                self.anchors, self.valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
+                self.shapes = shapes
 
-            topk_ind_o2m = self._select_topk(enc_outputs_scores_o2m, self.num_queries).view(-1)
-            batch_ind_o2m = torch.arange(end=bs, dtype=topk_ind_o2m.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
+            # Prepare input for decoder
+            features = self.enc_output(self.valid_mask * feats)  # bs, h*w, 256
+            enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
-            top_k_features_o2m_base = features_o2m[batch_ind_o2m, topk_ind_o2m].view(bs, self.num_queries, -1)
-            top_k_anchors_o2m_base = self.anchors[:, topk_ind_o2m].view(bs, self.num_queries, -1)
-            enc_scores_o2m_base = enc_outputs_scores_o2m[batch_ind_o2m, topk_ind_o2m].view(bs, self.num_queries, -1)
-            o2m_bbox_head = self.enc_bbox_head_o2m
+            # Query selection
+            topk_ind = self._select_topk(enc_outputs_scores, self.num_queries).view(-1)
+            batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
-            # Repeat and add noise for diversity
-            top_k_features_o2m = top_k_features_o2m_base.repeat_interleave(k, dim=1)  # (bs, nq*k, 256)
-            top_k_anchors_o2m = top_k_anchors_o2m_base.repeat_interleave(k, dim=1)    # (bs, nq*k, 4)
+            # (bs, num_queries, 256)
+            top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+            # (bs, num_queries, 4)
+            top_k_anchors = self.anchors[:, topk_ind].view(bs, self.num_queries, -1)
 
-            if self.query_noise_scale > 0:
-                noise = torch.randn_like(top_k_features_o2m) * self.query_noise_scale
-                top_k_features_o2m = top_k_features_o2m + noise
+            # Dynamic anchors + static content
+            refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
 
-            refer_bbox_o2m = o2m_bbox_head(top_k_features_o2m) + top_k_anchors_o2m
-            enc_bboxes_o2m = refer_bbox_o2m.sigmoid()
-            enc_scores_o2m = enc_scores_o2m_base.repeat_interleave(k, dim=1)
+            enc_bboxes = refer_bbox.sigmoid()
+            if dn_bbox is not None:
+                refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
+            enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
-            # Concatenate: [o2o queries | o2m queries]
-            refer_bbox = torch.cat([refer_bbox, refer_bbox_o2m], dim=1)  # (bs, nq + nq*k, 4)
-            top_k_features = torch.cat([top_k_features, top_k_features_o2m], dim=1)
-            enc_bboxes = torch.cat([enc_bboxes, enc_bboxes_o2m], dim=1)
-            enc_scores = torch.cat([enc_scores, enc_scores_o2m], dim=1)
+            # === ONE-TO-MANY: Concatenate repeated queries ===
+            if self.training and self.one_to_many_groups > 0:
+                k = self.one_to_many_groups
 
-        embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+                features_o2m = self.enc_output_o2m(self.valid_mask * feats)  # bs, h*w, 256
+                enc_outputs_scores_o2m = self.enc_score_head_o2m(features_o2m)  # (bs, h*w, nc)
+
+                topk_ind_o2m = self._select_topk(enc_outputs_scores_o2m, self.num_queries).view(-1)
+                batch_ind_o2m = torch.arange(end=bs, dtype=topk_ind_o2m.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
+
+                top_k_features_o2m_base = features_o2m[batch_ind_o2m, topk_ind_o2m].view(bs, self.num_queries, -1)
+                top_k_anchors_o2m_base = self.anchors[:, topk_ind_o2m].view(bs, self.num_queries, -1)
+                enc_scores_o2m_base = enc_outputs_scores_o2m[batch_ind_o2m, topk_ind_o2m].view(bs, self.num_queries, -1)
+                o2m_bbox_head = self.enc_bbox_head_o2m
+
+                # Repeat and add noise for diversity
+                top_k_features_o2m = top_k_features_o2m_base.repeat_interleave(k, dim=1)  # (bs, nq*k, 256)
+                top_k_anchors_o2m = top_k_anchors_o2m_base.repeat_interleave(k, dim=1)    # (bs, nq*k, 4)
+
+                if self.query_noise_scale > 0:
+                    noise = torch.randn_like(top_k_features_o2m) * self.query_noise_scale
+                    top_k_features_o2m = top_k_features_o2m + noise
+
+                refer_bbox_o2m = o2m_bbox_head(top_k_features_o2m) + top_k_anchors_o2m
+                enc_bboxes_o2m = refer_bbox_o2m.sigmoid()
+                enc_scores_o2m = enc_scores_o2m_base.repeat_interleave(k, dim=1)
+
+                # Concatenate: [o2o queries | o2m queries]
+                refer_bbox = torch.cat([refer_bbox, refer_bbox_o2m], dim=1)  # (bs, nq + nq*k, 4)
+                top_k_features = torch.cat([top_k_features, top_k_features_o2m], dim=1)
+                enc_bboxes = torch.cat([enc_bboxes, enc_bboxes_o2m], dim=1)
+                enc_scores = torch.cat([enc_scores, enc_scores_o2m], dim=1)
+
+            embeddings = top_k_features
+
         if self.training:
             refer_bbox = refer_bbox.detach()
             if not self.learnt_init_query:
@@ -1887,26 +1927,40 @@ class RTDETRDecoder(nn.Module):
         bias_cls = bias_init_with_prob(0.01) / 80 * self.nc
         # NOTE: the weight initialization in `linear_init` would cause NaN when training with custom datasets.
         # linear_init(self.enc_score_head)
-        constant_(self.enc_score_head.bias, bias_cls)
-        constant_(self.enc_bbox_head.layers[-1].weight, 0.0)
-        constant_(self.enc_bbox_head.layers[-1].bias, 0.0)
+
+        # Initialize encoder heads (only if not using learnable queries)
+        if hasattr(self, "enc_score_head"):
+            constant_(self.enc_score_head.bias, bias_cls)
+            constant_(self.enc_bbox_head.layers[-1].weight, 0.0)
+            constant_(self.enc_bbox_head.layers[-1].bias, 0.0)
         if hasattr(self, "enc_score_head_o2m"):
             constant_(self.enc_score_head_o2m.bias, bias_cls)
             constant_(self.enc_bbox_head_o2m.layers[-1].weight, 0.0)
             constant_(self.enc_bbox_head_o2m.layers[-1].bias, 0.0)
+
+        # Initialize decoder heads
         for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
             # linear_init(cls_)
             constant_(cls_.bias, bias_cls)
             constant_(reg_.layers[-1].weight, 0.0)
             constant_(reg_.layers[-1].bias, 0.0)
 
-        linear_init(self.enc_output[0])
-        xavier_uniform_(self.enc_output[0].weight)
+        # Initialize encoder output projection (only if not using learnable queries)
+        if hasattr(self, "enc_output"):
+            linear_init(self.enc_output[0])
+            xavier_uniform_(self.enc_output[0].weight)
         if hasattr(self, "enc_output_o2m"):
             linear_init(self.enc_output_o2m[0])
             xavier_uniform_(self.enc_output_o2m[0].weight)
+
+        # Initialize learnable query heads
         if self.learnt_init_query:
             xavier_uniform_(self.tgt_embed.weight)
+            if hasattr(self, "tgt_embed_o2m"):
+                xavier_uniform_(self.tgt_embed_o2m.weight)
+            constant_(self.learnt_score_head.bias, bias_cls)
+            constant_(self.learnt_bbox_head.layers[-1].weight, 0.0)
+            constant_(self.learnt_bbox_head.layers[-1].bias, 0.0)
         xavier_uniform_(self.query_pos_head.layers[0].weight)
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         for layer in self.input_proj:
@@ -2020,17 +2074,23 @@ class DFineDecoder(RTDETRDecoder):
         self.learnt_init_query = learnt_init_query
         if learnt_init_query:
             self.tgt_embed = nn.Embedding(nq, hd)
+            self.learnt_bbox_head = MLP(hd, hd, 4, num_layers=3, act=act_mlp)
+            self.learnt_score_head = nn.Linear(hd, nc)
+            # Separate embeddings for one-to-many (reuse the same prediction heads)
+            if one_to_many_groups > 0:
+                self.tgt_embed_o2m = nn.Embedding(nq * one_to_many_groups, hd)
 
         self.query_pos_head = MLP(4, 2 * hd, hd, num_layers=2, act=act_mlp)
 
-        # Encoder head
-        self.enc_output = nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
-        self.enc_score_head = nn.Linear(hd, nc)
-        self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3, act=act_mlp)
-        if one_to_many_groups > 0:
-            self.enc_output_o2m = copy.deepcopy(self.enc_output)
-            self.enc_score_head_o2m = copy.deepcopy(self.enc_score_head)
-            self.enc_bbox_head_o2m = copy.deepcopy(self.enc_bbox_head)
+        # Encoder head (only needed when not using learnable queries)
+        if not learnt_init_query:
+            self.enc_output = nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
+            self.enc_score_head = nn.Linear(hd, nc)
+            self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3, act=act_mlp)
+            if one_to_many_groups > 0:
+                self.enc_output_o2m = copy.deepcopy(self.enc_output)
+                self.enc_score_head_o2m = copy.deepcopy(self.enc_score_head)
+                self.enc_bbox_head_o2m = copy.deepcopy(self.enc_bbox_head)
 
         # Decoder head
         self.eval_idx = eval_idx if eval_idx >= 0 else ndl + eval_idx

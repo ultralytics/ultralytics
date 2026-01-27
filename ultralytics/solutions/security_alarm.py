@@ -62,7 +62,7 @@ class SecurityAlarm(BaseSolution):
         """
         import smtplib
 
-        self.server = smtplib.SMTP("smtp.gmail.com: 587")
+        self.server = smtplib.SMTP("smtp.gmail.com", 587)
         self.server.starttls()
         self.server.login(from_email, password)
         self.to_email = to_email

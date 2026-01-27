@@ -101,46 +101,24 @@ class WorldTrainerFromScratch(WorldTrainer):
         self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
-    def check_data_config(self):
+    @staticmethod
+    def check_data_config(data: dict | str) -> dict:
         """Check and load the data configuration from a YAML file or dictionary.
+
+        Args:
+            data (dict | str): Data configuration as a dictionary or path to a YAML file.
 
         Returns:
             (dict): Data configuration dictionary loaded from YAML file or passed directly.
-
-        Raises:
-            TypeError: If data is not a string path or dictionary.
-            FileNotFoundError: If the specified YAML file does not exist.
-            ValueError: If the YAML file format is invalid.
         """
-        # If already a dictionary, return as-is
-        if isinstance(self.args.data, dict):
-            LOGGER.info("Using data config from dictionary")
-            return self.args.data
-
         # If string, load from YAML file
-        if isinstance(self.args.data, str):
-            data_path = self.args.data
-            check_file(data_path)
-            # Load YAML with error handling
-            try:
-                from ultralytics.utils import YAML
+        if isinstance(data, str):
+            file = check_file(data)
 
-                data_yaml = YAML.load(str(data_path))
+            from ultralytics.utils import YAML
 
-                # Validate loaded data is a dictionary
-                if not isinstance(data_yaml, dict):
-                    raise ValueError(f"YAML file must contain a dictionary, got {type(data_yaml).__name__}")
-
-                LOGGER.info(f"Loaded data config from {data_path}")
-
-                self.args.data = data_yaml  # update args.data to the loaded dict
-                return data_yaml
-
-            except Exception as e:
-                raise ValueError(f"Failed to load YAML file {data_path}: {e}")
-
-        # Invalid type
-        raise TypeError(f"data must be a YAML file path (str) or dict, got {type(self.args.data).__name__}")
+            return YAML.load(file)
+        return data
 
     def get_dataset(self):
         """Get train and validation paths from data dictionary.
@@ -156,7 +134,7 @@ class WorldTrainerFromScratch(WorldTrainer):
             AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
         """
         final_data = {}
-        data_yaml = self.check_data_config()
+        self.args.data = data_yaml = self.check_data_config(self.args.data)
         assert data_yaml.get("train", False), "train dataset not found"  # object365.yaml
         assert data_yaml.get("val", False), "validation dataset not found"  # lvis.yaml
         data = {k: [check_det_dataset(d) for d in v.get("yolo_data", [])] for k, v in data_yaml.items()}

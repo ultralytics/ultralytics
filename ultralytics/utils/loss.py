@@ -349,6 +349,9 @@ class v8DetectionLoss:
 
         self.use_dfl = m.reg_max > 1
 
+        # Check if model has objectness head
+        self.has_objectness = hasattr(m, "objectness")
+
         self.assigner = TaskAlignedAssigner(
             topk=tal_topk,
             num_classes=self.nc,
@@ -376,6 +379,82 @@ class v8DetectionLoss:
                     out[j, :n] = targets[matches, 1:]
             out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
         return out
+
+    def build_objectness_targets(
+        self, gt_bboxes: torch.Tensor, mask_gt: torch.Tensor, feat_shapes: list[tuple[int, int]], sigma: float = 2.0
+    ) -> torch.Tensor:
+        """Build binary objectness targets (1 if center is inside GT, 0 otherwise)."""
+        batch_size = gt_bboxes.shape[0]
+        all_targets = []
+
+        for level_idx, (H, W) in enumerate(feat_shapes):
+            stride = self.stride[level_idx].item()
+
+            # Create grid of anchor centers in pixel coords
+            sy, sx = torch.meshgrid(
+                torch.arange(H, device=self.device, dtype=torch.float32) + 0.5,
+                torch.arange(W, device=self.device, dtype=torch.float32) + 0.5,
+                indexing="ij",
+            )
+            anchor_centers = torch.stack([sx * stride, sy * stride], dim=-1)  # [H, W, 2]
+            anchor_centers = anchor_centers.view(1, H * W, 2)  # [1, H*W, 2]
+
+            # Check which anchors are inside any GT box
+            # gt_bboxes: [B, max_gt, 4] in xyxy
+            # anchor_centers: [1, H*W, 2]
+
+            targets = torch.zeros(batch_size, H * W, device=self.device)
+
+            for b in range(batch_size):
+                valid_gt = mask_gt[b, :, 0] > 0  # [max_gt]
+                if not valid_gt.any():
+                    continue
+
+                boxes = gt_bboxes[b, valid_gt]  # [num_gt, 4]
+                centers = anchor_centers[0]  # [H*W, 2]
+
+                # Check if anchor center is inside any GT box
+                # centers: [H*W, 2], boxes: [num_gt, 4]
+                x, y = centers[:, 0:1], centers[:, 1:2]  # [H*W, 1]
+                x1, y1, x2, y2 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]  # [num_gt]
+
+                inside_x = (x >= x1) & (x <= x2)  # [H*W, num_gt]
+                inside_y = (y >= y1) & (y <= y2)
+                inside = (inside_x & inside_y).any(dim=1).float()  # [H*W]
+
+                targets[b] = inside
+
+            all_targets.append(targets)
+
+        return torch.cat(all_targets, dim=1)  # [B, total_anchors]
+
+    def objectness_loss(
+        self,
+        obj_logits: torch.Tensor,
+        pred_bboxes: torch.Tensor,
+        target_bboxes: torch.Tensor,
+        fg_mask: torch.Tensor,
+    ) -> torch.Tensor:
+        """YOLOv5-style objectness loss: target = IoU with assigned GT."""
+        obj_logits = obj_logits.squeeze(1)  # [B, total_anchors]
+
+        # Build objectness targets: IoU for positives, 0 for negatives
+        obj_targets = torch.zeros_like(obj_logits)
+
+        if fg_mask.sum() > 0:
+            ious = (
+                bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=False)
+                .squeeze(-1)
+                .detach()
+                .clamp(0)
+                .to(obj_targets.dtype)
+            )
+
+            obj_targets[fg_mask] = ious
+
+        loss = F.binary_cross_entropy_with_logits(obj_logits, obj_targets, reduction="mean")
+
+        return loss
 
     def bbox_decode(self, anchor_points: torch.Tensor, pred_dist: torch.Tensor) -> torch.Tensor:
         """Decode predicted object bounding box coordinates from anchor points and distribution."""
@@ -407,8 +486,7 @@ class v8DetectionLoss:
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
-        # Pboxes
-        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # [B, num_anchors, 4] in stride units
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
@@ -441,11 +519,17 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
+
+        # Return pred_bboxes and target_bboxes in pixel coords for objectness
         return (
-            (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
+            (
+                pred_bboxes * stride_tensor,  # [B, num_anchors, 4] pixel coords
+                target_bboxes,  # [B, num_anchors, 4] pixel coords
+                fg_mask,
+            ),
             loss,
             loss.detach(),
-        )  # loss(box, cls, dfl)
+        )
 
     def parse_output(
         self, preds: dict[str, torch.Tensor] | tuple[torch.Tensor, dict[str, torch.Tensor]]
@@ -463,9 +547,35 @@ class v8DetectionLoss:
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """A wrapper for get_assigned_targets_and_loss and parse_output."""
+        # Check if this is one2one with objectness
+        if "obj_logits" in preds:
+            return self.loss_with_objectness(preds, batch)
+
+        # Standard loss
         batch_size = preds["boxes"].shape[0]
-        loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)[1:]
-        return loss * batch_size, loss_detach
+        _, loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)
+        return loss.sum() * batch_size, loss_detach
+
+    def loss_with_objectness(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        batch_size = preds["boxes"].shape[0]
+
+        (pred_bboxes, target_bboxes, fg_mask), loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)
+
+        # YOLOv5-style objectness loss
+        obj_loss = self.objectness_loss(
+            preds["obj_logits"],
+            pred_bboxes,
+            target_bboxes,
+            fg_mask,
+        )
+        obj_loss *= getattr(self.hyp, "obj", 1.0)
+
+        loss_detach = torch.cat([loss_detach, obj_loss.detach().unsqueeze(0)])
+        total_loss = (loss.sum() + obj_loss) * batch_size
+
+        return total_loss, loss_detach
 
 
 class v8SegmentationLoss(v8DetectionLoss):
@@ -1118,12 +1228,11 @@ class E2EDetectLoss:
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
-        preds = preds[1] if isinstance(preds, tuple) else preds
-        one2many = preds["one2many"]
-        loss_one2many = self.one2many(one2many, batch)
-        one2one = preds["one2one"]
-        loss_one2one = self.one2one(one2one, batch)
-        return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]
+        preds = self.one2many.parse_output(preds)
+        one2many, one2one = preds["one2many"], preds["one2one"]
+        loss_one2many = self.one2many.loss(one2many, batch)  # no obj_logits, standard loss
+        loss_one2one = self.one2one.loss(one2one, batch)  # has obj_logits, adds objectness loss
+        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
 
 
 class E2ELoss:

@@ -153,74 +153,198 @@ class Detect(nn.Module):
 
     def forward(self, x: list[torch.Tensor]):
         """Forward pass."""
-        # One2many: always dense
         preds = self.forward_head(x, **self.one2many)
-
+        
         if self.end2end:
             x_detach = [xi.detach() for xi in x]
-            # One2one: dense forward
-            one2one = self.forward_head(x_detach, **self.one2one)
-            # Objectness: for training supervision and inference filtering
-            one2one["obj_logits"] = self.forward_objectness(x_detach)
+            
+            # Sparse forward only during export (no loss computation)
+            # Training and validation need dense preds for loss
+            if self.export:
+                one2one = self.forward_head_sparse(x_detach)
+            else:
+                one2one = self.forward_head(x_detach, **self.one2one)
+                one2one["obj_logits"] = self.forward_objectness(x_detach)
+            
             preds = {"one2many": preds, "one2one": one2one}
+        
         if self.training:
             return preds
-
-        # Inference: use sparse path
+        
         y = self._inference_sparse(preds["one2one"]) if self.end2end else self._inference(preds)
         return y if self.export else (y, preds)
 
-    def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
+    def forward_head_sparse(self, x: list[torch.Tensor]) -> dict[str, torch.Tensor]:
+        """Sparse forward: run objectness first, then cv2/cv3 only at selected locations."""
+        bs = x[0].shape[0]
+        device = x[0].device
+
+        # Step 1: Run cheap objectness on all levels first
+        obj_logits_list = []
+        for i in range(self.nl):
+            obj = self.objectness[i](x[i])  # [B, 1, H, W]
+            obj_logits_list.append(obj)
+
+        all_boxes = []
+        all_scores = []
+        all_obj_scores = []
+        all_anchors = []
+        all_strides = []
+
+        for i in range(self.nl):
+            feat = x[i]
+            B, C, H, W = feat.shape
+
+            # Step 2: Select top-K locations based on objectness
+            obj_scores = obj_logits_list[i].sigmoid().view(B, -1)  # [B, H*W]
+            k = self.topk_per_level if self.export else min(self.topk_per_level, H * W)
+            topk_obj, indices = torch.topk(obj_scores, k=k, dim=1)  # [B, K]
+
+            # Step 3: Extract 3x3 patches at selected locations using unfold
+            sparse_feat = self._extract_patches_at_indices(feat, indices, H, W)  # [B*K, C, 3, 3]
+
+            # Step 4: Run box head (cv2) on sparse patches
+            boxes = self._run_conv_head_on_patches(sparse_feat, self.one2one_cv2[i], bs, k)
+
+            # Step 5: Run cls head (cv3) on sparse patches
+            scores = self._run_conv_head_on_patches(sparse_feat, self.one2one_cv3[i], bs, k)
+
+            all_boxes.append(boxes)
+            all_scores.append(scores)
+            all_obj_scores.append(topk_obj)
+
+            # Compute anchors at selected locations
+            stride = self.stride[i]
+            y_coords = (indices // W).float()
+            x_coords = (indices % W).float()
+            anchors = torch.stack([(x_coords + 0.5) * stride, (y_coords + 0.5) * stride], dim=-1)
+            all_anchors.append(anchors)
+            all_strides.append(torch.full((bs, k), stride, device=device))
+
+        # Concatenate across levels
+        boxes = torch.cat(all_boxes, dim=2)  # [B, 4*reg_max, K*nl]
+        scores = torch.cat(all_scores, dim=2)  # [B, nc, K*nl]
+        obj_scores = torch.cat(all_obj_scores, dim=1)  # [B, K*nl]
+        anchors = torch.cat(all_anchors, dim=1)  # [B, K*nl, 2]
+        strides = torch.cat(all_strides, dim=1)  # [B, K*nl]
+        obj_logits = torch.cat([o.view(bs, 1, -1) for o in obj_logits_list], dim=-1)
+
+        return dict(
+            boxes=boxes,
+            scores=scores,
+            obj_scores=obj_scores,
+            sparse_anchors=anchors.permute(0, 2, 1),  # [B, 2, K*nl]
+            sparse_strides=strides.unsqueeze(1),  # [B, 1, K*nl]
+            obj_logits=obj_logits,
+            feats=x,
+        )
+
+    def _extract_patches_at_indices(
+        self, feat: torch.Tensor, indices: torch.Tensor, H: int, W: int, patch_size: int = 3
+    ) -> torch.Tensor:
+        """Extract 3x3 patches at selected flat indices.
 
         Args:
-            x (dict[str, torch.Tensor]): List of feature maps from different detection layers.
+            feat: [B, C, H, W] feature map
+            indices: [B, K] flat indices into H*W
 
         Returns:
-            (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
+            [B*K, C, 3, 3] patches at selected locations
         """
-        # Inference path
-        dbox = self._get_decode_boxes(x)
-        return torch.cat((dbox, x["scores"].sigmoid()), 1)
+        B, C, _, _ = feat.shape
+        K = indices.shape[1]
+        pad = patch_size // 2
+
+        # Unfold extracts all patches: [B, C*patch_size*patch_size, H*W]
+        patches = F.unfold(feat, kernel_size=patch_size, padding=pad)  # [B, C*9, H*W]
+
+        # Gather patches at selected indices
+        indices_expanded = indices.unsqueeze(1).expand(-1, C * patch_size * patch_size, -1)
+        selected = patches.gather(2, indices_expanded)  # [B, C*9, K]
+
+        # Reshape to [B*K, C, 3, 3]
+        selected = selected.permute(0, 2, 1)  # [B, K, C*9]
+        selected = selected.reshape(B * K, C, patch_size, patch_size)
+
+        return selected
+
+    def _run_conv_head_on_patches(
+        self, patches: torch.Tensor, head: nn.Sequential, batch_size: int, k: int
+    ) -> torch.Tensor:
+        """Run a conv head on extracted patches.
+        
+        Args:
+            patches: [B*K, C_in, 3, 3] input patches
+            head: Sequential of Conv layers
+            
+        Returns:
+            [B, C_out, K] output features
+        """
+        x = patches  # [B*K, C_in, 3, 3]
+        x = head(x)  # [B*K, C_out, 3, 3] - spatial preserved due to padding
+        
+        # Take center pixel (the selected location)
+        x = x[:, :, 1, 1]  # [B*K, C_out]
+        
+        c_out = x.shape[1]
+        x = x.view(batch_size, k, c_out)  # [B, K, C_out]
+        x = x.permute(0, 2, 1)  # [B, C_out, K]
+        
+        return x
 
     def _inference_sparse(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Sparse inference: filter by objectness, then decode only top-K."""
+        """Decode sparse predictions from forward_head_sparse."""
+        # Check if we have precomputed sparse anchors (from forward_head_sparse)
+        if "sparse_anchors" in x:
+            boxes = x["boxes"]  # [B, 4*reg_max, K]
+            anchors = x["sparse_anchors"]  # [B, 2, K]
+            strides = x["sparse_strides"]  # [B, 1, K]
+            obj_scores = x["obj_scores"]  # [B, K]
+
+            # DFL decoding
+            dfl_out = self.dfl(boxes)  # [B, 4, K]
+
+            # Decode boxes (anchors already in pixel coords)
+            lt, rb = dfl_out.chunk(2, dim=1)  # [B, 2, K] each
+            x1y1 = anchors - lt * strides
+            x2y2 = anchors + rb * strides
+            dbox = torch.cat([x1y1, x2y2], dim=1)  # [B, 4, K]
+
+            # Weight class scores by objectness
+            cls_scores = x["scores"].sigmoid() * obj_scores.unsqueeze(1)
+
+            return torch.cat((dbox, cls_scores), dim=1).permute(0, 2, 1)  # [B, K, 4+nc]
+
+        # Fallback: dense predictions, select by objectness (old path)
         shape = x["feats"][0].shape
         if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
             self.shape = shape
 
-        # Get objectness scores and select top-K
         obj_scores = x["obj_logits"].sigmoid().squeeze(1)  # [B, total_anchors]
 
-        # Total anchors across all levels
         total_k = self.topk_per_level * self.nl
         k = total_k if self.export else min(total_k, obj_scores.shape[1])
+        topk_obj, indices = torch.topk(obj_scores, k=k, dim=1)
 
-        topk_obj, indices = torch.topk(obj_scores, k=k, dim=1)  # [B, K]
-
-        # Gather boxes and scores at selected indices
-        boxes = x["boxes"].permute(0, 2, 1)  # [B, total_anchors, 4*reg_max]
-        scores = x["scores"].permute(0, 2, 1)  # [B, total_anchors, nc]
+        boxes = x["boxes"].permute(0, 2, 1)
+        scores = x["scores"].permute(0, 2, 1)
 
         idx_expand_box = indices.unsqueeze(-1).expand(-1, -1, 4 * self.reg_max)
         idx_expand_cls = indices.unsqueeze(-1).expand(-1, -1, self.nc)
 
-        sparse_boxes = boxes.gather(1, idx_expand_box)  # [B, K, 4*reg_max]
-        sparse_scores = scores.gather(1, idx_expand_cls)  # [B, K, nc]
+        sparse_boxes = boxes.gather(1, idx_expand_box)
+        sparse_scores = scores.gather(1, idx_expand_cls)
 
-        # Gather anchors and strides
-        sparse_anchors = self.anchors[:, indices[0]]  # [2, K] - same for batch
-        sparse_strides = self.strides[:, indices[0]]  # [1, K]
+        sparse_anchors = self.anchors[:, indices[0]]
+        sparse_strides = self.strides[:, indices[0]]
 
-        # Decode sparse boxes
-        dfl_out = self.dfl(sparse_boxes.permute(0, 2, 1))  # [B, 4, K]
+        dfl_out = self.dfl(sparse_boxes.permute(0, 2, 1))
         dbox = self.decode_bboxes(dfl_out, sparse_anchors.unsqueeze(0)) * sparse_strides
 
-        # Weight class scores by objectness
         cls_scores = sparse_scores.permute(0, 2, 1).sigmoid() * topk_obj.unsqueeze(1)
 
-        return torch.cat((dbox, cls_scores), dim=1).permute(0, 2, 1)  # [B, K, 4+nc]
+        return torch.cat((dbox, cls_scores), dim=1).permute(0, 2, 1)
 
     def _get_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         shape = x["feats"][0].shape

@@ -380,54 +380,6 @@ class v8DetectionLoss:
             out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
         return out
 
-    def build_objectness_targets(
-        self, gt_bboxes: torch.Tensor, mask_gt: torch.Tensor, feat_shapes: list[tuple[int, int]], sigma: float = 2.0
-    ) -> torch.Tensor:
-        """Build binary objectness targets (1 if center is inside GT, 0 otherwise)."""
-        batch_size = gt_bboxes.shape[0]
-        all_targets = []
-
-        for level_idx, (H, W) in enumerate(feat_shapes):
-            stride = self.stride[level_idx].item()
-
-            # Create grid of anchor centers in pixel coords
-            sy, sx = torch.meshgrid(
-                torch.arange(H, device=self.device, dtype=torch.float32) + 0.5,
-                torch.arange(W, device=self.device, dtype=torch.float32) + 0.5,
-                indexing="ij",
-            )
-            anchor_centers = torch.stack([sx * stride, sy * stride], dim=-1)  # [H, W, 2]
-            anchor_centers = anchor_centers.view(1, H * W, 2)  # [1, H*W, 2]
-
-            # Check which anchors are inside any GT box
-            # gt_bboxes: [B, max_gt, 4] in xyxy
-            # anchor_centers: [1, H*W, 2]
-
-            targets = torch.zeros(batch_size, H * W, device=self.device)
-
-            for b in range(batch_size):
-                valid_gt = mask_gt[b, :, 0] > 0  # [max_gt]
-                if not valid_gt.any():
-                    continue
-
-                boxes = gt_bboxes[b, valid_gt]  # [num_gt, 4]
-                centers = anchor_centers[0]  # [H*W, 2]
-
-                # Check if anchor center is inside any GT box
-                # centers: [H*W, 2], boxes: [num_gt, 4]
-                x, y = centers[:, 0:1], centers[:, 1:2]  # [H*W, 1]
-                x1, y1, x2, y2 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]  # [num_gt]
-
-                inside_x = (x >= x1) & (x <= x2)  # [H*W, num_gt]
-                inside_y = (y >= y1) & (y <= y2)
-                inside = (inside_x & inside_y).any(dim=1).float()  # [H*W]
-
-                targets[b] = inside
-
-            all_targets.append(targets)
-
-        return torch.cat(all_targets, dim=1)  # [B, total_anchors]
-
     def objectness_loss(
         self,
         obj_logits: torch.Tensor,

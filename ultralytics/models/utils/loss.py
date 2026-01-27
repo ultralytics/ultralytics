@@ -1035,5 +1035,4 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
                 )
             )
 
-        total_loss = {k: torch.nan_to_num(v, nan=0.0) for k, v in total_loss.items()}
         return total_loss

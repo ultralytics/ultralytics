@@ -9,7 +9,7 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.utils.loss import FocalLoss, VarifocalLoss
+from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
 from ultralytics.utils.metrics import bbox_iou
 
 from .ops import HungarianMatcher
@@ -47,6 +47,7 @@ class DETRLoss(nn.Module):
         aux_loss (bool): Whether to compute auxiliary losses.
         use_fl (bool): Whether to use FocalLoss.
         use_vfl (bool): Whether to use VarifocalLoss.
+        use_mal (bool): Whether to use MAL for classification loss.
         use_uni_match (bool): Whether to use a fixed layer for auxiliary branch label assignment.
         uni_match_ind (int): Index of fixed layer to use if use_uni_match is True.
         matcher (HungarianMatcher): Object to compute matching cost and indices.
@@ -62,6 +63,7 @@ class DETRLoss(nn.Module):
         aux_loss: bool = True,
         use_fl: bool = True,
         use_vfl: bool = True,
+        use_mal: bool = False,
         use_uni_match: bool = False,
         uni_match_ind: int = 0,
         gamma: float = 1.5,
@@ -79,6 +81,7 @@ class DETRLoss(nn.Module):
             aux_loss (bool): Whether to use auxiliary losses from each decoder layer.
             use_fl (bool): Whether to use FocalLoss.
             use_vfl (bool): Whether to use VarifocalLoss.
+            use_mal (bool): Whether to use MAL for classification loss.
             use_uni_match (bool): Whether to use fixed layer for auxiliary branch label assignment.
             uni_match_ind (int): Index of fixed layer for uni_match.
             gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
@@ -97,6 +100,7 @@ class DETRLoss(nn.Module):
         self.aux_loss = aux_loss
         self.fl = FocalLoss(gamma, alpha) if use_fl else None
         self.vfl = VarifocalLoss(gamma, alpha) if use_vfl else None
+        self.mal = MALoss(gamma, alpha) if use_mal else None
 
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind
@@ -139,7 +143,10 @@ class DETRLoss(nn.Module):
         one_hot = one_hot[..., :-1]
         gt_scores = gt_scores.view(bs, nq, 1) * one_hot
 
-        if self.fl:
+        if self.mal is not None:
+            loss_cls = self.mal(pred_scores, gt_scores, one_hot)
+            loss_cls /= max(global_num_gts, 1) / nq
+        elif self.fl:
             if local_num_gts and self.vfl:
                 loss_cls = self.vfl(pred_scores, gt_scores, one_hot)
             else:
@@ -550,13 +557,12 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
         self,
         nc: int = 80,
         reg_max: int = 32,
-        mal_alpha: float | None = None,
-        mal_gamma: float | None = None,
         local_temperature: float = 5.0,
         loss_gain: dict[str, float] | None = None,
         aux_loss: bool = True,
         use_fl: bool = True,
         use_vfl: bool = True,
+        use_mal: bool = False,
         use_uni_set: bool = False,
         use_uni_match: bool = False,
         uni_match_ind: int = 0,
@@ -571,6 +577,7 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
             aux_loss=aux_loss,
             use_fl=use_fl,
             use_vfl=use_vfl,
+            use_mal=use_mal,
             use_uni_match=use_uni_match,
             uni_match_ind=uni_match_ind,
             gamma=gamma,
@@ -578,13 +585,10 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
             matcher=matcher,
         )
         self.reg_max = reg_max
-        self.mal_alpha = mal_alpha
-        self.mal_gamma = mal_gamma if mal_gamma is not None else gamma
         self.local_temperature = local_temperature
         self.use_uni_set = use_uni_set
 
         loss_gain = loss_gain or {}
-        self.mal_gain = loss_gain["mal"] if "mal" in loss_gain else 0.0
         self.fgl_gain = loss_gain["fgl"] if "fgl" in loss_gain else 0.0
         self.ddf_gain = loss_gain["ddf"] if "ddf" in loss_gain else 0.0
 
@@ -719,107 +723,6 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
         pred_sel = pred_bboxes[idx]
         gt_sel = gt_bboxes[gt_idx]
         return self._get_loss_bbox(pred_sel, gt_sel, global_num_gts, postfix)
-
-    def _loss_mal(
-        self,
-        pred_bboxes: torch.Tensor,
-        pred_scores: torch.Tensor,
-        gt_bboxes: torch.Tensor,
-        gt_cls: torch.Tensor,
-        gt_groups: list[int],
-        global_num_gts: float,
-        match_indices: list[tuple] | None = None,
-        postfix: str = "",
-    ) -> dict[str, torch.Tensor]:
-        name = f"loss_mal{postfix}"
-        if self.mal_gain <= 0:
-            return {name: torch.tensor(0.0, device=pred_scores.device)}
-        if match_indices is None:
-            match_indices = self.matcher(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
-        idx, gt_idx = self._get_index(match_indices)
-        if gt_idx.numel() == 0:
-            return {name: torch.tensor(0.0, device=pred_scores.device)}
-
-        ious = bbox_iou(pred_bboxes[idx].detach(), gt_bboxes[gt_idx], xywh=True).squeeze(-1)
-        bs, nq = pred_scores.shape[:2]
-        target_classes = torch.full((bs, nq), self.nc, device=pred_scores.device, dtype=gt_cls.dtype)
-        target_classes[idx] = gt_cls[gt_idx]
-        target = F.one_hot(target_classes, num_classes=self.nc + 1)[..., :-1]
-
-        target_score_o = torch.zeros_like(target_classes, dtype=pred_scores.dtype)
-        target_score_o[idx] = ious.to(target_score_o.dtype)
-        target_score = target_score_o.unsqueeze(-1) * target
-
-        pred_score = pred_scores.sigmoid().detach()
-        target_score = target_score.pow(self.mal_gamma)
-        if self.mal_alpha is not None:
-            weight = self.mal_alpha * pred_score.pow(self.mal_gamma) * (1 - target) + target
-        else:
-            weight = pred_score.pow(self.mal_gamma) * (1 - target) + target
-
-        loss = F.binary_cross_entropy_with_logits(pred_scores, target_score, weight=weight, reduction="none")
-        loss = loss.mean(1).sum() * pred_scores.shape[1] / max(global_num_gts, 1.0)
-        return {name: loss * self.mal_gain}
-
-    def _get_mal_losses(
-        self,
-        pred_bboxes: torch.Tensor,
-        pred_scores: torch.Tensor,
-        batch: dict[str, Any],
-        global_num_gts: float,
-        match_indices: list[tuple] | None = None,
-        postfix: str = "",
-    ) -> dict[str, torch.Tensor]:
-        """Compute MAL loss independent of DFine/local losses."""
-        if self.mal_gain <= 0:
-            return {}
-
-        gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
-        return self._loss_mal(
-            pred_bboxes,
-            pred_scores,
-            gt_bboxes,
-            gt_cls,
-            gt_groups,
-            global_num_gts,
-            match_indices=match_indices,
-            postfix=postfix,
-        )
-
-    def _get_mal_aux_losses(
-        self,
-        pred_bboxes: torch.Tensor,
-        pred_scores: torch.Tensor,
-        batch: dict[str, Any],
-        global_num_gts: float,
-        match_indices: list[tuple] | None = None,
-        postfix: str = "",
-    ) -> dict[str, torch.Tensor]:
-        """Compute aggregated MAL loss over auxiliary decoder layers."""
-        if self.mal_gain <= 0:
-            return {}
-
-        gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
-        if match_indices is None and self.use_uni_match and pred_bboxes.numel():
-            match_indices = self.matcher(
-                pred_bboxes[self.uni_match_ind], pred_scores[self.uni_match_ind], gt_bboxes, gt_cls, gt_groups
-            )
-
-        loss_mal = torch.tensor(0.0, device=pred_bboxes.device)
-        for aux_bboxes, aux_scores in zip(pred_bboxes, pred_scores):
-            losses = self._loss_mal(
-                aux_bboxes,
-                aux_scores,
-                gt_bboxes,
-                gt_cls,
-                gt_groups,
-                global_num_gts,
-                match_indices=match_indices,
-                postfix=postfix,
-            )
-            loss_mal = loss_mal + losses[f"loss_mal{postfix}"]
-
-        return {f"loss_mal_aux{postfix}": loss_mal}
 
     def _loss_local(
         self,
@@ -1035,7 +938,7 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
             result[f"loss_ddf_aux{postfix}"] = loss_ddf
         return result
 
-    def _get_mal_local_bundle(
+    def _get_local_bundle(
         self,
         pred_bboxes: torch.Tensor,
         pred_scores: torch.Tensor,
@@ -1046,39 +949,13 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
         local_match_indices: list[tuple] | None = None,
         postfix: str = "",
         is_dn: bool = False,
-        include_mal: bool = True,
         include_local: bool = True,
-        include_mal_aux: bool = True,
         include_local_aux: bool = True,
     ) -> dict[str, torch.Tensor]:
-        """Compute MAL and local (FGL/DDF) losses for main and aux layers."""
+        """Compute local (FGL/DDF) losses for main and aux layers."""
         losses = {}
-        has_aux = self.aux_loss and pred_bboxes.shape[0] > 1
         if local_match_indices is None:
             local_match_indices = match_indices
-
-        if include_mal and self.mal_gain > 0:
-            losses.update(
-                self._get_mal_losses(
-                    pred_bboxes[-1],
-                    pred_scores[-1],
-                    batch,
-                    global_num_gts,
-                    match_indices=match_indices,
-                    postfix=postfix,
-                )
-            )
-            if include_mal_aux and has_aux:
-                losses.update(
-                    self._get_mal_aux_losses(
-                        pred_bboxes[:-1],
-                        pred_scores[:-1],
-                        batch,
-                        global_num_gts,
-                        match_indices=match_indices,
-                        postfix=postfix,
-                    )
-                )
 
         if include_local and dfine_meta is not None and (self.fgl_gain > 0 or self.ddf_gain > 0):
             pred_corners_all = dfine_meta["pred_corners"]
@@ -1091,7 +968,6 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
                     f"pred_corners has {pred_corners_all.shape[0]} layers."
                 )
             has_local_aux = self.aux_loss and pred_bboxes.shape[0] > 1
-            # For main layer: no teacher (no self-distillation)
             losses.update(
                 self._get_local_losses(
                     pred_bboxes[-1],
@@ -1105,7 +981,6 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
                 )
             )
             if include_local_aux and has_local_aux:
-                # For auxiliary layers: use last layer as teacher for DDF loss
                 teacher_logits = pred_scores[-1]
                 aux_losses = self._get_local_aux_losses(
                     pred_bboxes[:-1],
@@ -1177,7 +1052,7 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
                 match_indices=fixed_indices,
             )
             total_loss.update(
-                self._get_mal_local_bundle(
+                self._get_local_bundle(
                     pred_bboxes,
                     pred_scores,
                     batch,
@@ -1249,7 +1124,7 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
                 )
 
             total_loss.update(
-                self._get_mal_local_bundle(
+                self._get_local_bundle(
                     pred_bboxes,
                     pred_scores,
                     batch,
@@ -1292,7 +1167,7 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
                     dn_dfine_meta = None
 
             total_loss.update(
-                self._get_mal_local_bundle(
+                self._get_local_bundle(
                     dn_bboxes,
                     dn_scores,
                     batch,

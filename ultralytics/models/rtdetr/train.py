@@ -286,7 +286,5 @@ class RTDETRTrainer(DetectionTrainer):
             loss_names.append("fgl_loss")
         if "ddf" in loss_gain:
             loss_names.append("ddf_loss")
-        if "mal" in loss_gain:
-            loss_names.append("mal_loss")
         self.loss_names = tuple(loss_names)
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

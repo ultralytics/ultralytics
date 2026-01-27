@@ -86,6 +86,26 @@ class FocalLoss(nn.Module):
         return loss.mean(1).sum()
 
 
+class MALoss(nn.Module):
+    """Matcher-Aware Loss for classification using IoU-weighted targets."""
+
+    def __init__(self, gamma: float = 2.0, alpha: float | None = None):
+        super().__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+
+    def forward(self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+        """Compute MAL loss between predicted logits and IoU-weighted targets."""
+        pred_prob = pred_score.sigmoid().detach()
+        target_score = gt_score.pow(self.gamma)
+        if self.alpha is not None:
+            weight = self.alpha * pred_prob.pow(self.gamma) * (1 - label) + label
+        else:
+            weight = pred_prob.pow(self.gamma) * (1 - label) + label
+        loss = F.binary_cross_entropy_with_logits(pred_score, target_score, weight=weight, reduction="none")
+        return loss.mean(1).sum()
+
+
 class DFLoss(nn.Module):
     """Criterion class for computing Distribution Focal Loss (DFL)."""
 

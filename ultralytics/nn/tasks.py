@@ -870,7 +870,7 @@ class RTDETRDetectionModel(DetectionModel):
 
         loss_cfg = self.yaml.get("loss", {})
         loss_gain = loss_cfg.get("loss_gain", {}) if isinstance(loss_cfg, dict) else {}
-        has_dfine_gain = any(k in loss_gain for k in ("fgl", "ddf", "mal"))
+        has_dfine_gain = any(k in loss_gain for k in ("fgl", "ddf"))
         if has_dfine_gain:
             return RTDETRv4DetectionLoss(nc=self.nc, **loss_cfg)
         return RTDETRDetectionLoss(nc=self.nc, **loss_cfg)

@@ -241,12 +241,11 @@ class Detect(nn.Module):
             scores, indices = scores.topk(k, dim=1)
             labels = labels.gather(1, indices)
             return scores, labels, indices
-        else:
-            ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
-            scores = scores.gather(dim=1, index=ori_index.repeat(1, 1, nc))
-            scores, index = scores.flatten(1).topk(k)
-            idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index
-            return scores[..., None], (index % nc)[..., None].float(), idx
+        ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)
+        scores = scores.gather(dim=1, index=ori_index.repeat(1, 1, nc))
+        scores, index = scores.flatten(1).topk(k)
+        idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index
+        return scores[..., None], (index % nc)[..., None].float(), idx
 
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""

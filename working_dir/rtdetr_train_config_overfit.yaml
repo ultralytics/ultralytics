@@ -1,0 +1,90 @@
+# RT-DETR Training Configuration
+# Use with: model.train(cfg='rtdetr_train_config.yaml')
+
+# Task (model is loaded in Python code, not here)
+# task: detect
+mode: train
+
+# Dataset
+data: coco8.yaml  # COCO8 dataset (small subset for testing)
+# datasets_dir: /Users/esat/datasets  # Base directory for datasets
+
+# Training hyperparameters
+epochs: 1000
+batch: 16
+nbs: 16
+imgsz: 640
+
+# Device configuration
+device: cpu  # Use 'cpu', 0 for single GPU, or [0,1,2,3] for multi-GPU
+workers: 0
+sync_bn: False  # Disable SyncBatchNorm for CPU training
+
+# Output and logging
+project: detr_trainings
+name: yolo11_rtdetr_res50_coco8
+exist_ok: True
+verbose: True
+
+# Optimizer settings (AdamW for DETR-like models)
+optimizer: AdamW  # Best for DETR-like models (AdamW, Adam, SGD, etc.)
+lr0: 0.0001  # Initial learning rate
+lrf: 0.01  # Final learning rate = lr0 * lrf = 0.000001
+momentum: 0.9  # The default value in AdamW implementations
+weight_decay: 0.0001  # L2 regularization (typical for DETR models)
+backbone_lr_ratio: 0.1  # Learning rate ratio for backbone (0.1 means lr0 * 0.1 for backbone)
+clip_grad_norm: 0.1  # Gradient clipping value
+
+# Learning rate scheduler
+warmup_epochs: 3.0
+warmup_momentum: 0.8
+warmup_bias_lr: 0.1
+
+# Loss function weights
+box: 7.5
+cls: 0.5
+dfl: 1.5
+
+# Augmentation settings - ALL DISABLED FOR OVERFITTING
+hsv_h: 0.0  # HSV-Hue augmentation (disabled)
+hsv_s: 0.0  # HSV-Saturation augmentation (disabled)
+hsv_v: 0.0  # HSV-Value augmentation (disabled)
+degrees: 0.0  # Rotation augmentation (disabled)
+translate: 0.0  # Translation augmentation (disabled)
+scale: 0.0  # Scale augmentation (disabled)
+shear: 0.0  # Shear augmentation (disabled)
+perspective: 0.0  # Perspective augmentation (disabled)
+flipud: 0.0  # Vertical flip (disabled)
+fliplr: 0.0  # Horizontal flip (disabled)
+bgr: 0.0  # RGB↔BGR channel swap (disabled)
+mosaic: 0.0  # Mosaic augmentation (disabled)
+mixup: 0.0  # MixUp augmentation (disabled)
+cutmix: 0.0  # CutMix augmentation (disabled)
+copy_paste: 0.0  # Copy-paste augmentation (disabled)
+copy_paste_mode: flip  # Copy-paste strategy (not used when copy_paste=0.0)
+auto_augment: False  # AutoAugment (disabled)
+erasing: 0.0  # Random erasing (disabled)
+multi_scale: 0.0  # Multi-scale training (disabled)
+rtdetr_augmentations: False  # RT-DETR specific augmentations (disabled)
+
+# Training optimization
+# amp: True  # Uncomment for GPU training with Automatic Mixed Precision
+fraction: 1.0
+
+# Checkpointing and validation
+save: True
+save_period: -1
+cache: False
+val: True
+patience: 50
+
+# Visualization
+plots: True
+
+# Resume training
+resume: False
+
+# Advanced settings
+close_mosaic: 10
+seed: 0
+deterministic: True

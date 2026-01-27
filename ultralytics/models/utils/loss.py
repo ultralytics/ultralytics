@@ -840,9 +840,9 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
         loss_ddf = torch.tensor(0.0, device=pred_bboxes.device)
 
         if isinstance(pred_corners_all, torch.Tensor) and pred_corners_all.dim() == 4:
-            teacher_corners = pred_corners_all[-1]
+            teacher_corners = pred_corners_all[-1].detach()
         else:
-            teacher_corners = pred_corners_all
+            teacher_corners = pred_corners_all.detach() if isinstance(pred_corners_all, torch.Tensor) else pred_corners_all
 
         for i, (aux_bboxes, aux_scores) in enumerate(zip(pred_bboxes, pred_scores)):
             if isinstance(pred_corners_all, torch.Tensor) and pred_corners_all.dim() == 4:
@@ -866,7 +866,7 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
                 dfine_meta["reg_scale"],
                 match_indices=match_indices,
                 teacher_corners=teacher_corners,
-                teacher_logits=teacher_logits,
+                teacher_logits=teacher_logits.detach() if isinstance(teacher_logits, torch.Tensor) else teacher_logits,
                 postfix=postfix,
             )
             loss_fgl = loss_fgl + losses[f"loss_fgl{postfix}"]

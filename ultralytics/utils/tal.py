@@ -285,30 +285,22 @@ class TaskAlignedAssigner(nn.Module):
         return target_labels, target_bboxes, target_scores
 
     def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt, eps=1e-9):
-        """Select positive anchor centers within ground truth bounding boxes.
-
-        Args:
-            xy_centers (torch.Tensor): Anchor center coordinates, shape (h*w, 2).
-            gt_bboxes (torch.Tensor): Ground truth bounding boxes, shape (b, n_boxes, 4).
-            mask_gt (torch.Tensor): Mask for valid ground truth boxes, shape (b, n_boxes, 1).
-            eps (float, optional): Small value for numerical stability.
-
-        Returns:
-            (torch.Tensor): Boolean mask of positive anchors, shape (b, n_boxes, h*w).
-
-        Notes:
-            - b: batch size, n_boxes: number of ground truth boxes, h: height, w: width.
-            - Bounding box format: [x_min, y_min, x_max, y_max].
-        """
+        """Select positive anchor centers within ground truth bounding boxes."""
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
-        wh_mask = gt_bboxes_xywh[..., 2:] < self.stride[0]  # the smallest stride
-        stride_val = torch.tensor(self.stride[1], dtype=gt_bboxes_xywh.dtype, device=gt_bboxes_xywh.device)
+
+        # Handle tiny objects: expand boxes smaller than smallest stride
+        min_stride = self.stride[0]
+        # Use stride[1] if available, otherwise use 2× smallest stride as fallback
+        expand_stride = self.stride[1] if len(self.stride) > 1 else min_stride * 2
+
+        wh_mask = gt_bboxes_xywh[..., 2:] < min_stride
+        stride_val = torch.tensor(expand_stride, dtype=gt_bboxes_xywh.dtype, device=gt_bboxes_xywh.device)
         gt_bboxes_xywh[..., 2:] = torch.where((wh_mask * mask_gt).bool(), stride_val, gt_bboxes_xywh[..., 2:])
         gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
 
         n_anchors = xy_centers.shape[0]
         bs, n_boxes, _ = gt_bboxes.shape
-        lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
+        lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
         return bbox_deltas.amin(3).gt_(eps)
 

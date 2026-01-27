@@ -53,13 +53,14 @@ head:
 
   # RTDETRDecoder - ALL positional arguments must match __init__ signature
   # [nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale, learnt_init_query]
-  - [[16, 19, 22], 1, DFineDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, False]]
+  - [[16, 19, 22], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, True]]
 
 loss: 
-  gamma: 2.0
+  gamma: 1.5
   alpha: 0.75
-  use_uni_match: True
-  uni_match_ind: -1
-  loss_gain: {class: 1, bbox: 5, giou: 2, fgl: 0.15, ddf: 1.5}
+  use_vfl: False
+  use_fl: False
+  use_mal: True
+  loss_gain: {class: 1, bbox: 5, giou: 2}
   matcher:
     cost_gain: {class: 2, bbox: 5, giou: 2}

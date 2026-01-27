@@ -1643,6 +1643,10 @@ def parse_model(d, ch, verbose=True):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]
+        elif m.__name__ == "EdgeY":
+            from_idxs = f if isinstance(f, (list, tuple)) else [f]
+            args = [args[0], [ch[x] for x in from_idxs], *args[1:]]
+            c2 = ch[from_idxs[-1]]
         else:
             c2 = ch[f]
 

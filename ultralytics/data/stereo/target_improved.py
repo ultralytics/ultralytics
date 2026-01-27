@@ -46,10 +46,10 @@ class TargetGenerator:
 
     def __init__(
         self,
+        mean_dims,
+        std_dims,
         output_size: tuple[int, int] = (96, 320),  # Example: (96, 320) for 384×1280 input with 4x downsampling
         num_classes: int = 3,
-        mean_dims: dict[int, list[float]] | dict[str, list[float]] | None = None,
-        std_dims: dict[int, list[float]] | dict[str, list[float]] | None = None,
         class_names: dict[int, str] | None = None,
     ):
         """Initialize target generator.

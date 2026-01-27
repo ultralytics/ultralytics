@@ -1685,6 +1685,13 @@ def parse_model(d, ch, verbose=True):
             in_channels = ch[f[0]] if isinstance(f, list) else ch[f]
             if len(args) >= 1:
                 args[0] = in_channels  # Override with actual channel count
+        elif Stereo3DDetHeadYOLO11 is not None and m is Stereo3DDetHeadYOLO11:
+            # Stereo3DDetHeadYOLO11 takes (nc, ch) where ch is input channels
+            # Config format: [nc, 256] means [num_classes, in_channels]
+            # Use actual scaled channel from previous layer instead of YAML value
+            in_channels = ch[f[0]] if isinstance(f, list) else ch[f]
+            if len(args) >= 2:
+                args[1] = in_channels  # Override channel arg with actual scaled channel count
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
@@ -1733,10 +1740,14 @@ def yaml_model_load(path):
         LOGGER.warning(f"Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
         path = path.with_name(new_stem + path.suffix)
 
+    # Strip scale suffix to find base file: yolo11n-stereo3ddet.yaml -> yolo11-stereo3ddet.yaml
+    # Also handles: stereo3ddet11n.yaml -> stereo3ddet11.yaml, yolo11n.yaml -> yolo11.yaml
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = YAML.load(yaml_file)  # model dict
-    d["scale"] = guess_model_scale(path)
+    # Preserve scale from YAML if filename doesn't contain scale pattern
+    guessed_scale = guess_model_scale(path)
+    d["scale"] = guessed_scale if guessed_scale else d.get("scale")
     d["yaml_file"] = str(path)
     return d
 

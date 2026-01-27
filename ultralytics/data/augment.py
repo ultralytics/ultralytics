@@ -137,6 +137,7 @@ class BaseTransform:
         self.apply_image(labels)
         self.apply_instances(labels)
         self.apply_semantic(labels)
+        return labels
 
 
 class Compose:

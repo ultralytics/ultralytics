@@ -228,14 +228,17 @@ class RandomCropAugmentor:
             rw_px = float(rb["width"]) * W
             rh_px = float(rb["height"]) * H
 
-            # shift
+            # shift both left and right box centers by crop offset
             cx_px -= x0
             cy_px -= y0
             rx_px -= x0
+            ry_px -= y0  # FIX: was missing - right box y must also be shifted
 
-            # clamp box to crop bounds
+            # clamp box centers to crop bounds
             cx_px = float(min(max(cx_px, 0.0), cw))
             cy_px = float(min(max(cy_px, 0.0), ch))
+            rx_px = float(min(max(rx_px, 0.0), cw))  # FIX: also clamp right box
+            ry_px = float(min(max(ry_px, 0.0), ch))  # FIX: also clamp right box
 
             # renorm to new size
             lb_new = {
@@ -332,3 +335,229 @@ class StereoAugmentationPipeline:
         # Photometric last
         left, right = self.photometric(left, right)
         return left, right, labels, calibration
+
+
+# ============================================================================
+# Ultralytics-compatible transforms for dataset integration
+# ============================================================================
+
+
+class StereoLetterBox:
+    """Letterbox transform for stereo images.
+    
+    Resizes and pads a 6-channel stereo image to the target size while preserving aspect ratio.
+    """
+
+    def __init__(self, new_shape: Tuple[int, int] = (640, 640), scaleup: bool = True, stride: int = 32):
+        """Initialize StereoLetterBox.
+        
+        Args:
+            new_shape: Target (height, width).
+            scaleup: Whether to scale up smaller images.
+            stride: Stride for padding alignment.
+        """
+        self.new_shape = new_shape
+        self.scaleup = scaleup
+        self.stride = stride
+
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+        """Apply letterbox transform to stereo image.
+        
+        Args:
+            labels: Dict with 'img' (6-channel stereo image).
+            
+        Returns:
+            Updated labels dict with letterboxed image.
+        """
+        img = labels.get("img")
+        if img is None:
+            return labels
+            
+        # Handle 6-channel stereo image
+        if img.shape[-1] != 6:
+            return labels
+            
+        h, w = img.shape[:2]
+        new_h, new_w = self.new_shape
+        
+        # Compute scale
+        r = min(new_h / h, new_w / w)
+        if not self.scaleup:
+            r = min(r, 1.0)
+            
+        # Compute new size
+        new_unpad_h = int(round(h * r))
+        new_unpad_w = int(round(w * r))
+        
+        # Compute padding
+        dh = new_h - new_unpad_h
+        dw = new_w - new_unpad_w
+        
+        # Divide padding evenly
+        top = dh // 2
+        bottom = dh - top
+        left_pad = dw // 2
+        right_pad = dw - left_pad
+        
+        # Resize and pad
+        if (h, w) != (new_unpad_h, new_unpad_w):
+            img = cv2.resize(img, (new_unpad_w, new_unpad_h), interpolation=cv2.INTER_LINEAR)
+        
+        # Pad with gray (114)
+        img = cv2.copyMakeBorder(
+            img, top, bottom, left_pad, right_pad,
+            cv2.BORDER_CONSTANT, value=(114, 114, 114, 114, 114, 114)
+        )
+        
+        labels["img"] = img
+        labels["resized_shape"] = (new_h, new_w)
+        
+        # Update instances if present
+        if "instances" in labels and len(labels["instances"]) > 0:
+            instances = labels["instances"]
+            # Denormalize to original size
+            instances.denormalize(w, h)
+            # Scale
+            instances.mul_scale(r, r)
+            # Add padding offset
+            instances.add_padding(left_pad, top)
+            # Normalize to new size
+            instances.normalize(new_w, new_h)
+        
+        return labels
+
+
+class StereoFormat:
+    """Format stereo image for model input.
+    
+    Converts image to float32, optionally normalizes to [0,1], and transposes to (C, H, W).
+    """
+
+    def __init__(self, normalize: bool = True):
+        """Initialize StereoFormat.
+        
+        Args:
+            normalize: Whether to normalize pixel values to [0, 1].
+        """
+        self.normalize = normalize
+
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+        """Apply format transform.
+        
+        Args:
+            labels: Dict with 'img' key.
+            
+        Returns:
+            Updated labels dict with formatted image.
+        """
+        img = labels.get("img")
+        if img is None:
+            return labels
+            
+        # Convert to float32
+        img = img.astype(np.float32)
+        
+        # Normalize to [0, 1]
+        if self.normalize:
+            img = img / 255.0
+            
+        # Transpose from (H, W, C) to (C, H, W)
+        img = np.ascontiguousarray(img.transpose(2, 0, 1))
+        
+        labels["img"] = img
+        return labels
+
+
+def stereo3d_transforms(dataset, imgsz: Tuple[int, int], hyp: Dict[str, Any]) -> "Compose":
+    """Build stereo 3D detection augmentation pipeline.
+    
+    Args:
+        dataset: Dataset instance (for accessing augmentation flags).
+        imgsz: Target image size (height, width).
+        hyp: Hyperparameters dict with augmentation settings.
+        
+    Returns:
+        Compose transform pipeline.
+    """
+    from ultralytics.data.augment import Compose
+    
+    transforms = []
+    
+    # Add augmentation transforms if enabled
+    if getattr(dataset, 'augment', False):
+        # Wrap the StereoAugmentationPipeline to work with labels dict
+        class StereoAugmentWrapper:
+            """Wrapper to apply StereoAugmentationPipeline to labels dict."""
+            
+            def __init__(self, pipeline: StereoAugmentationPipeline):
+                self.pipeline = pipeline
+                
+            def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+                img = labels.get("img")
+                if img is None or img.shape[-1] != 6:
+                    return labels
+                    
+                # Split stereo image
+                left = img[:, :, :3]
+                right = img[:, :, 3:6]
+                
+                # Get labels in dict format
+                stereo_labels = labels.get("stereo_labels", [])
+                
+                # Get calibration
+                calib_dict = labels.get("calibration", {})
+                if calib_dict:
+                    calib = StereoCalibration(
+                        fx=calib_dict.get("fx", 1.0),
+                        fy=calib_dict.get("fy", 1.0),
+                        cx=calib_dict.get("cx", 0.0),
+                        cy=calib_dict.get("cy", 0.0),
+                        baseline=calib_dict.get("baseline", 0.54),
+                        height=img.shape[0],
+                        width=img.shape[1],
+                    )
+                else:
+                    calib = None
+                
+                # Apply augmentation
+                aug_left, aug_right, aug_labels, aug_calib = self.pipeline.augment(
+                    left, right, stereo_labels, calib
+                )
+                
+                # Reconstruct 6-channel image
+                # Handle size changes from augmentation
+                if aug_left.shape[:2] != left.shape[:2]:
+                    # Size changed, need to resize back to target
+                    h, w = aug_left.shape[:2]
+                    labels["img"] = np.concatenate([aug_left, aug_right], axis=-1)
+                else:
+                    labels["img"] = np.concatenate([aug_left, aug_right], axis=-1)
+                
+                labels["stereo_labels"] = aug_labels
+                if aug_calib is not None:
+                    labels["calibration"] = aug_calib.to_dict()
+                    
+                return labels
+        
+        # Create pipeline with hyperparameters
+        flip_p = float(hyp.get("fliplr", 0.5))
+        scale_p = float(hyp.get("scale", 0.5))
+        crop_p = float(hyp.get("crop_fraction", 0.3))
+        hsv_h = float(hyp.get("hsv_h", 0.015))
+        hsv_s = float(hyp.get("hsv_s", 0.7))
+        hsv_v = float(hyp.get("hsv_v", 0.4))
+        
+        pipeline = StereoAugmentationPipeline(
+            photometric=PhotometricAugmentor(hgain=hsv_h, sgain=hsv_s, vgain=hsv_v, p_apply=0.5),
+            hflip=HorizontalFlipAugmentor(p_apply=flip_p),
+            rscale=RandomScaleAugmentor(scale_range=(0.8, 1.2), p_apply=scale_p),
+            rcrop=RandomCropAugmentor(crop_height_ratio=0.9, crop_width_ratio=0.9, p_apply=crop_p),
+        )
+        
+        transforms.append(StereoAugmentWrapper(pipeline))
+    
+    # Always apply letterbox and format
+    transforms.append(StereoLetterBox(new_shape=imgsz, scaleup=not getattr(dataset, 'rect', False), stride=32))
+    transforms.append(StereoFormat(normalize=True))
+    
+    return Compose(transforms)

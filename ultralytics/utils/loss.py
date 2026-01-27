@@ -349,9 +349,6 @@ class v8DetectionLoss:
 
         self.use_dfl = m.reg_max > 1
 
-        # Check if model has objectness head
-        self.has_objectness = hasattr(m, "objectness")
-
         self.assigner = TaskAlignedAssigner(
             topk=tal_topk,
             num_classes=self.nc,
@@ -379,34 +376,6 @@ class v8DetectionLoss:
                     out[j, :n] = targets[matches, 1:]
             out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
         return out
-
-    def objectness_loss(
-        self,
-        obj_logits: torch.Tensor,
-        pred_bboxes: torch.Tensor,
-        target_bboxes: torch.Tensor,
-        fg_mask: torch.Tensor,
-    ) -> torch.Tensor:
-        """YOLOv5-style objectness loss: target = IoU with assigned GT."""
-        obj_logits = obj_logits.squeeze(1)  # [B, total_anchors]
-
-        # Build objectness targets: IoU for positives, 0 for negatives
-        obj_targets = torch.zeros_like(obj_logits)
-
-        if fg_mask.sum() > 0:
-            ious = (
-                bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=False)
-                .squeeze(-1)
-                .detach()
-                .clamp(0)
-                .to(obj_targets.dtype)
-            )
-
-            obj_targets[fg_mask] = ious
-
-        loss = F.binary_cross_entropy_with_logits(obj_logits, obj_targets, reduction="mean")
-
-        return loss
 
     def bbox_decode(self, anchor_points: torch.Tensor, pred_dist: torch.Tensor) -> torch.Tensor:
         """Decode predicted object bounding box coordinates from anchor points and distribution."""
@@ -438,7 +407,8 @@ class v8DetectionLoss:
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
-        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # [B, num_anchors, 4] in stride units
+        # Pboxes
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
@@ -471,17 +441,11 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
-
-        # Return pred_bboxes and target_bboxes in pixel coords for objectness
         return (
-            (
-                pred_bboxes * stride_tensor,  # [B, num_anchors, 4] pixel coords
-                target_bboxes,  # [B, num_anchors, 4] pixel coords
-                fg_mask,
-            ),
+            (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
             loss,
             loss.detach(),
-        )
+        )  # loss(box, cls, dfl)
 
     def parse_output(
         self, preds: dict[str, torch.Tensor] | tuple[torch.Tensor, dict[str, torch.Tensor]]
@@ -499,35 +463,9 @@ class v8DetectionLoss:
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """A wrapper for get_assigned_targets_and_loss and parse_output."""
-        # Check if this is one2one with objectness
-        if "obj_logits" in preds:
-            return self.loss_with_objectness(preds, batch)
-
-        # Standard loss
         batch_size = preds["boxes"].shape[0]
-        _, loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)
-        return loss.sum() * batch_size, loss_detach
-
-    def loss_with_objectness(
-        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        batch_size = preds["boxes"].shape[0]
-
-        (pred_bboxes, target_bboxes, fg_mask), loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)
-
-        # YOLOv5-style objectness loss
-        obj_loss = self.objectness_loss(
-            preds["obj_logits"],
-            pred_bboxes,
-            target_bboxes,
-            fg_mask,
-        )
-        obj_loss *= getattr(self.hyp, "obj", 1.0)
-
-        loss_detach = torch.cat([loss_detach, obj_loss.detach().unsqueeze(0)])
-        total_loss = (loss.sum() + obj_loss) * batch_size
-
-        return total_loss, loss_detach
+        loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)[1:]
+        return loss * batch_size, loss_detach
 
 
 class v8SegmentationLoss(v8DetectionLoss):
@@ -1180,11 +1118,12 @@ class E2EDetectLoss:
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
-        preds = self.one2many.parse_output(preds)
-        one2many, one2one = preds["one2many"], preds["one2one"]
-        loss_one2many = self.one2many.loss(one2many, batch)  # no obj_logits, standard loss
-        loss_one2one = self.one2one.loss(one2one, batch)  # has obj_logits, adds objectness loss
-        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
+        preds = preds[1] if isinstance(preds, tuple) else preds
+        one2many = preds["one2many"]
+        loss_one2many = self.one2many(one2many, batch)
+        one2one = preds["one2one"]
+        loss_one2one = self.one2one(one2one, batch)
+        return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]
 
 
 class E2ELoss:

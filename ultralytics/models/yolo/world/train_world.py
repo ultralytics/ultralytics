@@ -114,11 +114,9 @@ class WorldTrainerFromScratch(WorldTrainer):
         """
         # If string, load from YAML file
         if isinstance(data, str):
-            file = check_file(data)
-
             from ultralytics.utils import YAML
 
-            return YAML.load(file)
+            return YAML.load(check_file(data))
         return data
 
     def get_dataset(self):

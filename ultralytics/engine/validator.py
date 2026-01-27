@@ -160,8 +160,7 @@ class BaseValidator:
                 if self.args.end2end is not None:
                     model.end2end = self.args.end2end
                 if model.end2end:
-                    model.model[-1].max_det = self.args.max_det
-                    model.model[-1].agnostic_nms = self.args.agnostic_nms
+                    model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
             model = AutoBackend(
                 model=model or self.args.model,
                 device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),

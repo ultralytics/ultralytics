@@ -428,7 +428,7 @@ class DetectionModel(BaseModel):
     @end2end.setter
     def end2end(self, value):
         """Override the end-to-end detection mode."""
-        self.model[-1].end2end = value
+        self.set_head_attr(end2end=value)
 
     def set_head_attr(self, **kwargs):
         """Set attributes of the model head (last layer).

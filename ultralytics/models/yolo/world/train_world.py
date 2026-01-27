@@ -104,17 +104,17 @@ class WorldTrainerFromScratch(WorldTrainer):
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
     @staticmethod
-    def check_data_config(data: dict | str) -> dict:
+    def check_data_config(data: dict | str | Path) -> dict:
         """Check and load the data configuration from a YAML file or dictionary.
 
         Args:
-            data (dict | str): Data configuration as a dictionary or path to a YAML file.
+            data (dict | str | Path): Data configuration as a dictionary or path to a YAML file.
 
         Returns:
             (dict): Data configuration dictionary loaded from YAML file or passed directly.
         """
         # If string, load from YAML file
-        if isinstance(data, str):
+        if not isinstance(data, dict):
             from ultralytics.utils import YAML
 
             return YAML.load(check_file(data))

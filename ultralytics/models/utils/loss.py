@@ -11,6 +11,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
 from ultralytics.utils.metrics import bbox_iou
+from ultralytics.nn.modules.dfine_utils import bbox2distance, box_cxcywh_to_xyxy
 
 from .ops import HungarianMatcher
 
@@ -593,54 +594,6 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
         self.ddf_gain = loss_gain["ddf"] if "ddf" in loss_gain else 0.0
 
     @staticmethod
-    def _box_cxcywh_to_xyxy(x: torch.Tensor) -> torch.Tensor:
-        """Convert box format from cxcywh to xyxy."""
-        x_c, y_c, w, h = x.unbind(-1)
-        b = [x_c - 0.5 * w, y_c - 0.5 * h, x_c + 0.5 * w, y_c + 0.5 * h]
-        return torch.stack(b, dim=-1)
-
-    @staticmethod
-    def _weighting_function(reg_max: int, up: torch.Tensor, reg_scale: torch.Tensor) -> torch.Tensor:
-        """Generate the non-uniform weighting sequence used by DFine."""
-        upper_bound1 = torch.abs(up[0]) * torch.abs(reg_scale)
-        upper_bound2 = upper_bound1 * 2
-        step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
-        left_values = [-(step) ** i + 1 for i in range(reg_max // 2 - 1, 0, -1)]
-        right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
-        values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
-        return torch.cat(values, 0)
-
-    def _bbox2distance(
-        self, points: torch.Tensor, boxes_xyxy: torch.Tensor, up: torch.Tensor, reg_scale: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Convert target boxes into DFine distance targets and interpolation weights."""
-        reg_scale = torch.abs(reg_scale)
-        px, py, pw, ph = points.unbind(-1)
-        x1, y1, x2, y2 = boxes_xyxy.unbind(-1)
-
-        left = (px - x1) * reg_scale / pw - 0.5 * reg_scale
-        top = (py - y1) * reg_scale / ph - 0.5 * reg_scale
-        right = (x2 - px) * reg_scale / pw - 0.5 * reg_scale
-        bottom = (y2 - py) * reg_scale / ph - 0.5 * reg_scale
-        dist = torch.stack([left, top, right, bottom], dim=-1)
-
-        project = self._weighting_function(self.reg_max, up, reg_scale).to(dist.device).to(dist.dtype)
-        dist_flat = dist.reshape(-1)
-        idx_right = torch.bucketize(dist_flat, project).clamp(min=1, max=self.reg_max)
-        idx_left = idx_right - 1
-        proj_left = project[idx_left]
-        proj_right = project[idx_right]
-        denom = proj_right - proj_left
-        weight_right = torch.where(denom > 0, (dist_flat - proj_left) / denom, torch.zeros_like(dist_flat))
-        weight_right = weight_right.clamp(0.0, 1.0)
-        weight_left = 1.0 - weight_right
-
-        target_left = idx_left.reshape(dist.shape)
-        weight_left = weight_left.reshape(dist.shape)
-        weight_right = weight_right.reshape(dist.shape)
-        return target_left, weight_right, weight_left
-
-    @staticmethod
     def _unimodal_distribution_focal_loss(
         pred: torch.Tensor,
         label: torch.Tensor,
@@ -764,9 +717,9 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
             }
 
         target_boxes = gt_bboxes[gt_idx]
-        target_boxes_xyxy = self._box_cxcywh_to_xyxy(target_boxes)
-        target_corners, weight_right, weight_left = self._bbox2distance(
-            ref_points[idx].detach(), target_boxes_xyxy, up, reg_scale
+        target_boxes_xyxy = box_cxcywh_to_xyxy(target_boxes)
+        target_corners, weight_right, weight_left = bbox2distance(
+            ref_points[idx].detach(), target_boxes_xyxy, self.reg_max, reg_scale, up
         )
 
         pred_corners_sel = pred_corners[idx].reshape(-1, self.reg_max + 1)

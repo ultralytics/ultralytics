@@ -9,79 +9,13 @@ import torch.nn.init as init
 import math
 import copy
 from .utils import inverse_sigmoid
+from .dfine_utils import weighting_function, distance2bbox
 
 
 def bias_init_with_prob(prior_prob=0.01):
     """initialize conv/fc bias value according to a given probability value."""
     bias_init = float(-math.log((1 - prior_prob) / prior_prob))
     return bias_init
-
-
-def box_xyxy_to_cxcywh(x: torch.Tensor) -> torch.Tensor:
-    x0, y0, x1, y1 = x.unbind(-1)
-    b = [(x0 + x1) / 2, (y0 + y1) / 2,
-         (x1 - x0), (y1 - y0)]
-    return torch.stack(b, dim=-1)
-
-
-def weighting_function(reg_max, up, reg_scale, deploy=False):
-    """
-    Generates the non-uniform Weighting Function W(n) for bounding box regression.
-
-    Args:
-        reg_max (int): Max number of the discrete bins.
-        up (Tensor): Controls upper bounds of the sequence,
-                     where maximum offset is ±up * H / W.
-        reg_scale (float): Controls the curvature of the Weighting Function.
-                           Larger values result in flatter weights near the central axis W(reg_max/2)=0
-                           and steeper weights at both ends.
-        deploy (bool): If True, uses deployment mode settings.
-
-    Returns:
-        Tensor: Sequence of Weighting Function.
-    """
-    if deploy:
-        upper_bound1 = (abs(up[0]) * abs(reg_scale)).item()
-        upper_bound2 = (abs(up[0]) * abs(reg_scale) * 2).item()
-        step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
-        left_values = [-(step) ** i + 1 for i in range(reg_max // 2 - 1, 0, -1)]
-        right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
-        values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
-        return torch.tensor(values, dtype=up.dtype, device=up.device)
-    else:
-        upper_bound1 = abs(up[0]) * abs(reg_scale)
-        upper_bound2 = abs(up[0]) * abs(reg_scale) * 2
-        step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
-        left_values = [-(step) ** i + 1 for i in range(reg_max // 2 - 1, 0, -1)]
-        right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
-        values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
-        return torch.cat(values, 0)
-
-
-def distance2bbox(points, distance, reg_scale):
-    """
-    Decodes edge-distances into bounding box coordinates.
-
-    Args:
-        points (Tensor): (B, N, 4) or (N, 4) format, representing [x, y, w, h],
-                         where (x, y) is the center and (w, h) are width and height.
-        distance (Tensor): (B, N, 4) or (N, 4), representing distances from the
-                           point to the left, top, right, and bottom boundaries.
-
-        reg_scale (float): Controls the curvature of the Weighting Function.
-
-    Returns:
-        Tensor: Bounding boxes in (N, 4) or (B, N, 4) format [cx, cy, w, h].
-    """
-    reg_scale = abs(reg_scale)
-    x1 = points[..., 0] - (0.5 * reg_scale + distance[..., 0]) * (points[..., 2] / reg_scale)
-    y1 = points[..., 1] - (0.5 * reg_scale + distance[..., 1]) * (points[..., 3] / reg_scale)
-    x2 = points[..., 0] + (0.5 * reg_scale + distance[..., 2]) * (points[..., 2] / reg_scale)
-    y2 = points[..., 1] + (0.5 * reg_scale + distance[..., 3]) * (points[..., 3] / reg_scale)
-
-    bboxes = torch.stack([x1, y1, x2, y2], -1)
-
-    return box_xyxy_to_cxcywh(bboxes)
 
 
 def deformable_attention_core_func_v2(

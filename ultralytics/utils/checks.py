@@ -619,7 +619,8 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         # Use URI path for unique directory structure: ul://user/project/model -> user/project/model/filename.pt
         uri_path = file[5:]  # Remove "ul://"
         local_file = Path(download_dir) / uri_path / url2file(url)
-        if local_file.exists():
+        # Always re-download NDJSON datasets (cheap, ensures fresh data after updates)
+        if local_file.exists() and local_file.suffix != ".ndjson":
             LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
         else:
             local_file.parent.mkdir(parents=True, exist_ok=True)

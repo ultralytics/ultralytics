@@ -162,6 +162,18 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
+        from ultralytics.nn.distill_model import DistillationModel
+        
+        # Check if weights is already a DistillationModel (e.g., when resuming from checkpoint)
+        if isinstance(weights, DistillationModel):
+            # Return the complete DistillationModel directly to preserve teacher + student
+            if verbose and RANK == -1:
+                LOGGER.info("Resuming DistillationModel with teacher and student from checkpoint")
+            weights.nc = self.data["nc"]  # update number of classes
+            weights.names = self.data["names"]  # update class names
+            return weights
+        
+        # Otherwise, create a new DetectionModel and load weights if provided
         model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)

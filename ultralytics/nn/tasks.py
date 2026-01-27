@@ -317,6 +317,14 @@ class BaseModel(torch.nn.Module):
         """
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
+
+        # Check if loading from a DistillationModel checkpoint
+        # If so, extract the student_model state_dict
+        if any(k.startswith("student_model.") for k in csd.keys()):
+            if verbose:
+                LOGGER.info("Detected DistillationModel checkpoint, extracting student_model weights")
+            csd = {k.replace("student_model.", ""): v for k, v in csd.items() if k.startswith("student_model.")}
+
         updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(updated_csd, strict=False)  # load
         len_updated_csd = len(updated_csd)

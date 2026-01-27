@@ -305,7 +305,8 @@ class BaseTrainer:
         self.scaler = (
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
-        if self.args.distill_model is not None:
+        if self.args.distill_model is not None and not isinstance(unwrap_model(self.model), DistillationModel):
+            # Only wrap with DistillationModel if not already wrapped (e.g., when resuming from checkpoint)
             self.model = DistillationModel(
                 student_model=self.model,
                 teacher_model=self.args.distill_model,

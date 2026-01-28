@@ -10,18 +10,16 @@ nc: 80 # number of classes
 backbone:
   # [from, repeats, module, args]
   # Timm args: [model_name, pretrained, out_indices, split]
-  - [-1, 1, Timm, [None, vit_small_patch16_dinov3.lvd1689m, True, [5, 8, 11], True]]
+  - [-1, 1, Timm, [None, vit_small_patch16_dinov3.lvd1689m, True, [11], True]]
   - [0, 1, Index, [384, 1]]    # P3 1
-  - [0, 1, Index, [384, 2]]    # P4 2
-  - [0, 1, Index, [384, 3]]    # P5 3
 
 # Single C3k2 block
 head:
-  - [-1, 1, C3k2, [256, True, 0.5, True]] # 4 
+  - [-1, 1, C3k2, [256, True, 0.5, True]] # 2
 
   # RTDETRDecoder - ALL positional arguments must match __init__ signature
   # [nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale, learnt_init_query]
-  - [[4], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 3, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, False]]
+  - [[2], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 3, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, False]]
 
 loss: 
   gamma: 2.0

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Dict, Tuple, Optional, List, Any
-
+import torch
 import cv2
 import numpy as np
 
@@ -403,10 +403,12 @@ class StereoLetterBox:
         if (h, w) != (new_unpad_h, new_unpad_w):
             img = cv2.resize(img, (new_unpad_w, new_unpad_h), interpolation=cv2.INTER_LINEAR)
         
-        # Pad with gray (114)
-        img = cv2.copyMakeBorder(
-            img, top, bottom, left_pad, right_pad,
-            cv2.BORDER_CONSTANT, value=(114, 114, 114, 114, 114, 114)
+        # Pad with gray (114) - use numpy for 6-channel images since cv2 only supports up to 4
+        img = np.pad(
+            img,
+            ((top, bottom), (left_pad, right_pad), (0, 0)),
+            mode='constant',
+            constant_values=114
         )
         
         labels["img"] = img
@@ -418,7 +420,7 @@ class StereoLetterBox:
             # Denormalize to original size
             instances.denormalize(w, h)
             # Scale
-            instances.mul_scale(r, r)
+            instances.scale(r, r)
             # Add padding offset
             instances.add_padding(left_pad, top)
             # Normalize to new size
@@ -463,8 +465,7 @@ class StereoFormat:
             
         # Transpose from (H, W, C) to (C, H, W)
         img = np.ascontiguousarray(img.transpose(2, 0, 1))
-        
-        labels["img"] = img
+        labels["img"] = torch.from_numpy(img)
         return labels
 
 

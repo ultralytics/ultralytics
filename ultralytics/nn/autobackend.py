@@ -18,7 +18,6 @@ from PIL import Image
 
 from ultralytics.utils import (
     ARM64,
-    IS_DOCKER,
     IS_JETSON,
     LINUX,
     LOGGER,

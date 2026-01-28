@@ -497,9 +497,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
 
 def check_executorch_requirements():
-    """Check and install ExecuTorch requirements including platform-specific dependencies.
-
-    """
+    """Check and install ExecuTorch requirements including platform-specific dependencies."""
     # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
     if LINUX and ARM64 and IS_DOCKER:
         check_requirements("packaging>=22.0")

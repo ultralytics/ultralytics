@@ -87,7 +87,6 @@ from ultralytics.utils import (
     IS_COLAB,
     IS_DEBIAN_BOOKWORM,
     IS_DEBIAN_TRIXIE,
-    IS_DOCKER,
     IS_JETSON,
     IS_RASPBERRYPI,
     IS_UBUNTU,

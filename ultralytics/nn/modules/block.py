@@ -1683,6 +1683,7 @@ class Timm(nn.Module):
         pretrained: bool = True,
         out_indices: tuple[int, ...] = (2, 3, 4),
         split: bool = True,
+        imgsz: int | tuple[int, int] | None = None,
     ):
         """Load the model and weights from timm.
 
@@ -1691,15 +1692,20 @@ class Timm(nn.Module):
             pretrained (bool): Whether to load pre-trained weights.
             out_indices (tuple): Indices of feature maps to return (0=stem, 1=stage1, 2=stage2, etc.).
             split (bool): Whether to return features as a list (for use with Index module).
+            imgsz (None): Image size for the model.
         """
         import timm  # scope for faster 'import ultralytics'
 
         super().__init__()
+        kwargs = {}
+        if imgsz is not None:
+            kwargs['img_size'] = imgsz
         self.m = timm.create_model(
             model,
             pretrained=pretrained,
             features_only=True,
             out_indices=list(out_indices),
+            **kwargs,
         )
         self.split = split
         # Store channel info for downstream modules

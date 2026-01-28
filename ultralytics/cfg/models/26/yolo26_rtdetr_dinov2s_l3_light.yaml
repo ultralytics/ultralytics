@@ -1,0 +1,30 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO26 object detection model with P3/8 - P5/32 outputs
+# Model docs: https://docs.ultralytics.com/models/yolo26
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 80 # number of classes
+
+backbone:
+  # [from, repeats, module, args]
+  # Timm args: [model_name, pretrained, out_indices, split]
+  - [-1, 1, Timm, [None, vit_small_patch14_reg4_dinov2.lvd142m, True, [11], True, 512]]
+  # - [-1, 1, Timm, [None, vit_small_patch14_dinov2.lvd142m, True, [11], True]]
+  - [0, 1, Index, [384, 1]]    # P3 1
+
+# Single C3k2 block
+head:
+  - [-1, 1, C3k2, [256, True, 0.5, True]] # 2
+
+  # RTDETRDecoder - ALL positional arguments must match __init__ signature
+  # [nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale, learnt_init_query]
+  - [[2], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 3, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, False]]
+
+loss: 
+  gamma: 2.0
+  alpha: 0.75
+  loss_gain: {class: 1, bbox: 5, giou: 2}
+  matcher:
+    cost_gain: {class: 2, bbox: 5, giou: 2}

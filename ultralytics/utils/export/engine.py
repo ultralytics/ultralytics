@@ -43,6 +43,10 @@ def torch2onnx(
             2: 32 * torch.export.Dim("height", min=1),
             3: 32 * torch.export.Dim("width", min=1),
         }
+        if im.shape[2] == 32:
+            im = torch.empty(
+                *im.shape[:2], 64, 64, device=im.device, dtype=im.dtype
+            )  # dynamo requires at least (1, 3, 64, 64) to infer dynamic shapes
     kwargs = (
         dict(
             dynamo=TORCH_2_9 and dynamo,  # TorchDynamo-based export

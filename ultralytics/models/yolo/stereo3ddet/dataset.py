@@ -514,20 +514,6 @@ class Stereo3DDetDataset(BaseDataset):
             vertices = np.array(vertices_list, dtype=np.float32)
         
         # Create Instances with 3D data included (normalized xywh format)
-        from ultralytics.utils import LOGGER
-        if len(bboxes) > 0:
-            LOGGER.info(f"[Stereo3DDetDataset] Creating Instances with {len(bboxes)} objects")
-            LOGGER.info(f"[Stereo3DDetDataset] Initial left bboxes (xywh normalized): {bboxes}")
-            if right_bboxes is not None and len(right_bboxes) > 0:
-                LOGGER.info(f"[Stereo3DDetDataset] Initial right bboxes (xywh normalized): {right_bboxes}")
-            LOGGER.info(f"[Stereo3DDetDataset] Image shape: {label.get('img', np.array([])).shape}")
-            if "calibration" in label:
-                calib = label["calibration"]
-                LOGGER.info(f"[Stereo3DDetDataset] Calibration: fx={calib.get('fx', 0):.2f}, fy={calib.get('fy', 0):.2f}, "
-                          f"cx={calib.get('cx', 0):.2f}, cy={calib.get('cy', 0):.2f}, "
-                          f"width={calib.get('width', calib.get('image_width', 0))}, "
-                          f"height={calib.get('height', calib.get('image_height', 0))}")
-        
         label["instances"] = Instances(
             bboxes=bboxes,
             bbox_format="xywh",

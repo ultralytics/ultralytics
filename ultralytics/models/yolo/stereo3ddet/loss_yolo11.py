@@ -75,6 +75,9 @@ class Stereo3DDetLossYOLO11P3(v8DetectionLoss):
         bs, c, h, w = pred_map.shape
         pred_flat = pred_map.permute(0, 2, 3, 1).reshape(bs, -1, c)  # [B, HW, C]
         # aux_gt: [B, max_n, C]
+        # Convert type gt_idx to int64 if not
+        if gt_idx.dtype != torch.int64:
+            gt_idx = gt_idx.to(torch.int64)
         gathered = aux_gt.gather(1, gt_idx.unsqueeze(-1).expand(-1, -1, c))  # [B, HW, C]
 
         pred_pos = pred_flat[fg_mask]  # [npos, C]

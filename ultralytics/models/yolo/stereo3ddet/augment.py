@@ -5,7 +5,7 @@ from typing import Dict, Tuple, Optional, List, Any
 import torch
 import cv2
 import numpy as np
-
+from ultralytics.data.augment import Compose, Format
 
 @dataclass
 class StereoCalibration:
@@ -480,7 +480,7 @@ def stereo3d_transforms(dataset, imgsz: Tuple[int, int], hyp: Dict[str, Any]) ->
     Returns:
         Compose transform pipeline.
     """
-    from ultralytics.data.augment import Compose
+    
     
     transforms = []
     
@@ -560,5 +560,6 @@ def stereo3d_transforms(dataset, imgsz: Tuple[int, int], hyp: Dict[str, Any]) ->
     # Always apply letterbox and format
     transforms.append(StereoLetterBox(new_shape=imgsz, scaleup=not getattr(dataset, 'rect', False), stride=32))
     transforms.append(StereoFormat(normalize=True))
+    # transforms.append(Format(normalize=True))
     
     return Compose(transforms)

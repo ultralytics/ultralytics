@@ -62,9 +62,11 @@ class DistillationModel(nn.Module):
                 # Distillation loss (Kullback-Leibler divergence)
                 distillation_loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (temperature**2)
             elif distill_cls_loss == "sigmoid":
-                soft_t = torch.sigmoid(teacher_logits / temperature)
-                soft_s = torch.sigmoid(student_logits / temperature)
-                loss = F.binary_cross_entropy(soft_s, soft_t, reduction='sum') * (temperature ** 2)
+                loss = F.binary_cross_entropy_with_logits(
+                    student_logits / temperature,
+                    torch.sigmoid(teacher_logits / temperature),
+                    reduction='sum'
+                ) * (temperature ** 2)
                 distillation_loss = loss / (teacher_logits.shape[0] * teacher_logits.shape[1])
             else:
                 raise ValueError(f"Unknown kd_cls: {distill_cls_loss}")
@@ -104,11 +106,13 @@ class DistillationModel(nn.Module):
             teacher_feats = self.teacher_model(batch["img"], embed=self.feats_idx, direct_return=True)
         preds, feats = self.student_model(batch["img"], return_feats=True)
         loss_distill = torch.zeros(1, device=batch["img"].device)
+        loss_distill_cls = torch.zeros(1, device=batch["img"].device)
+        loss_distill_box = torch.zeros(1, device=batch["img"].device)
         for i, feat_idx in enumerate(self.feats_idx):
             # handle head ouput
             teacher_feat = self.decouple_outputs(teacher_feats[i])
             student_feat = self.decouple_outputs(feats[feat_idx])
-            assert type(teacher_feat) == type(student_feat), (
+            assert isinstance(teacher_feat, type(student_feat)), (
                 f"Expect same type for teacher feature and student feature, but got teacher: {type(teacher_feat)} and student: {type(student_feat)}"
             )
             # means distill head, and the output shape should be exactly the same
@@ -117,15 +121,16 @@ class DistillationModel(nn.Module):
                     teacher_feat = self.decouple_outputs(teacher_feats[i], branch=branch)
                     student_feat = self.decouple_outputs(feats[feat_idx], branch=branch)
                     assert "boxes" in teacher_feat and "scores" in teacher_feat
-                    loss_distill += (
-                        self.loss_kl(teacher_feat["scores"], student_feat["scores"], distill_cls_loss=self.student_model.args.distill_cls_loss) * self.student_model.args.dis
+                    loss_distill_cls += (
+                        self.loss_kl(
+                            teacher_feat["scores"], student_feat["scores"], distill_cls_loss=self.student_model.args.distill_cls_loss
+                        ) * self.student_model.args.dis
                     ) / teacher_feat["scores"].shape[-1]  # divide the number of anchors
-                    loss_distill_box = (
+                    loss_distill_box += (
                         self.loss_cosine(teacher_feat["boxes"], student_feat["boxes"])
                         if self.distill_box_loss == "cos"
                         else F.l1_loss(teacher_feat["boxes"], student_feat["boxes"]).mean()
-                    )
-                    loss_distill += loss_distill_box * self.student_model.args.dis
+                    ) * self.student_model.args.dis
             else:
                 student_feat = (
                     self.projector[i](student_feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
@@ -136,7 +141,10 @@ class DistillationModel(nn.Module):
                 # loss_distill += self.loss_kl(teacher_feat, student_feat) * self.student_model.args.dis
 
         regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
-        return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill.detach()])
+        loss_distill_detach = (loss_distill + loss_distill_cls + loss_distill_box).detach()
+        batch_size = batch["img"].shape[0]
+        loss_distill += loss_distill_cls + loss_distill_box
+        return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill_detach])
 
     def loss_cosine(self, teacher_feat, student_feat):
         """Compute cosine similarity loss between teacher and student features."""

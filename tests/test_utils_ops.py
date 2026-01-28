@@ -1,5 +1,4 @@
 import torch
-import pytest
 
 from ultralytics.utils.ops import make_divisible
 

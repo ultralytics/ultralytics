@@ -168,13 +168,13 @@ def test_predict_all_image_formats():
     dataset_path = Path(data["path"])
 
     # Collect all images from train and val
-    images = list((dataset_path / "images" / "train").glob("*.*"))
-    images += list((dataset_path / "images" / "val").glob("*.*"))
+    expected = {"avif", "bmp", "dng", "heic", "jp2", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp"}
+    images = [im for im in (dataset_path / "images" / "train").glob("*.*") if im.suffix.lower().lstrip(".") in expected]
+    images += [im for im in (dataset_path / "images" / "val").glob("*.*") if im.suffix.lower().lstrip(".") in expected]
     assert len(images) == 12, f"Expected 12 images, found {len(images)}"
 
     # Verify all format extensions are represented
     extensions = {img.suffix.lower().lstrip(".") for img in images}
-    expected = {"avif", "bmp", "dng", "heic", "jp2", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp"}
     assert extensions == expected, f"Missing formats: {expected - extensions}"
 
     # Run inference on all images
@@ -697,7 +697,7 @@ def test_yolo_world():
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
-def test_yoloe():
+def test_yoloe(tmp_path):
     """Test YOLOE models with MobileClip support."""
     # Predict
     # text-prompts
@@ -739,14 +739,18 @@ def test_yoloe():
         imgsz=32,
     )
     # Train, from scratch
-    model = YOLOE("yoloe-11s-seg.yaml")
-    model.train(
-        data=dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"])),
-        epochs=1,
-        close_mosaic=1,
-        trainer=YOLOESegTrainerFromScratch,
-        imgsz=32,
-    )
+    data_dict = dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"]))
+    data_yaml = tmp_path / "yoloe-data.yaml"
+    YAML.save(data=data_dict, file=data_yaml)
+    for data in [data_dict, data_yaml]:
+        model = YOLOE("yoloe-11s-seg.yaml")
+        model.train(
+            data=data,
+            epochs=1,
+            close_mosaic=1,
+            trainer=YOLOESegTrainerFromScratch,
+            imgsz=32,
+        )
 
     # prompt-free
     # predict

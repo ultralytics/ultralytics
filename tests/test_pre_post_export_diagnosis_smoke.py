@@ -9,6 +9,7 @@ from PIL import Image
 
 @pytest.mark.slow
 def test_pre_post_export_diagnosis_smoke(tmp_path):
+    """Smoke test for the pre/post export diagnostic CLI."""
     pytest.importorskip("onnxruntime")
 
     weights_path = Path("yolov8n.pt")

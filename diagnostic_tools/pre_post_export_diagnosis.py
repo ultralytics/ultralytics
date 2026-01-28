@@ -32,6 +32,7 @@ from ultralytics import YOLO
 
 
 def iou(box_a, box_b):
+    """Compute intersection-over-union (IoU) between two bounding boxes."""
     xA = max(box_a[0], box_b[0])
     yA = max(box_a[1], box_b[1])
     xB = min(box_a[2], box_b[2])
@@ -49,6 +50,7 @@ def iou(box_a, box_b):
 
 
 def extract_detections(results):
+    """Extract bounding boxes, scores, and class IDs from YOLO results."""
     detections = []
     for b in results.boxes.data.cpu().numpy():
         detections.append(
@@ -62,12 +64,14 @@ def extract_detections(results):
 
 
 def run_pytorch(weights, source):
+    """Run inference using the PyTorch backend and return detections."""
     model = YOLO(weights)
     res = model(source)[0]
     return extract_detections(res)
 
 
 def run_onnx(weights, source, export, opset):
+    """Run inference using the ONNX Runtime backend and return detections."""
     onnx_path = Path(weights).with_suffix(".onnx")
 
     if export or not onnx_path.exists():
@@ -82,6 +86,7 @@ def run_onnx(weights, source, export, opset):
 
 
 def pair_detections(pre, post, iou_thresh=0.5):
+    """Pair pre- and post-export detections using class match and IoU threshold."""
     matched = []
     matched_pre_idx = set()
     matched_post_idx = set()
@@ -117,6 +122,7 @@ def pair_detections(pre, post, iou_thresh=0.5):
 
 
 def main():
+    """Parse CLI arguments and run the pre/post export diagnostic workflow."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--weights", default="yolov8n.pt")
     parser.add_argument("--source", default="bus.jpg")

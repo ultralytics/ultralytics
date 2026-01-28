@@ -108,6 +108,7 @@ from ultralytics.utils.checks import (
     IS_PYTHON_3_10,
     IS_PYTHON_MINIMUM_3_9,
     check_apt_requirements,
+    check_executorch_requirements,
     check_imgsz,
     check_requirements,
     check_version,
@@ -1197,16 +1198,9 @@ class Exporter:
         following Ultralytics conventions.
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
-        assert TORCH_2_9, f"ExecuTorch export requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
 
-        # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
-        if LINUX and ARM64 and IS_DOCKER:
-            check_requirements("packaging>=22.0")
-
-        check_requirements("ruamel.yaml<0.19.0")
-        check_requirements("executorch")
-        # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
-        check_requirements("numpy<=2.3.5")
+        check_executorch_requirements()
 
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
         from executorch.exir import to_edge_transform_and_lower

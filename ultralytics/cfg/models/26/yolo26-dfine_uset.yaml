@@ -58,7 +58,7 @@ head:
 loss: 
   gamma: 2.0
   alpha: 0.75
-  use_uni_set: True
+  use_union_set: True
   loss_gain: {class: 1, bbox: 5, giou: 2, fgl: 0.15, ddf: 1.5}
   matcher:
     cost_gain: {class: 2, bbox: 5, giou: 2}

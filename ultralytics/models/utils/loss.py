@@ -610,7 +610,7 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
         use_fl: bool = True,
         use_vfl: bool = True,
         use_mal: bool = False,
-        use_uni_set: bool = False,
+        use_union_set: bool = False,
         use_uni_match: bool = False,
         uni_match_ind: int = 0,
         gamma: float = 1.5,
@@ -626,6 +626,7 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
             use_fl=use_fl,
             use_vfl=use_vfl,
             use_mal=use_mal,
+            use_union_set=use_union_set,
             use_uni_match=use_uni_match,
             uni_match_ind=uni_match_ind,
             gamma=gamma,
@@ -634,7 +635,7 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
         )
         self.reg_max = reg_max
         self.local_temperature = local_temperature
-        self.use_uni_set = use_uni_set
+        self.use_union_set = use_union_set
 
         self.fgl_gain = loss_gain.get("fgl", 0.0)
         self.ddf_gain = loss_gain.get("ddf", 0.0)
@@ -968,7 +969,7 @@ class RTDETRv4DetectionLoss(RTDETRDetectionLoss):
         gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
         match_indices = (
             self._get_union_match_indices(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
-            if self.use_uni_set
+            if self.use_union_set
             else (
                 self.matcher(
                     pred_bboxes[self.uni_match_ind],

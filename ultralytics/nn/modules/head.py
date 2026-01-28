@@ -70,8 +70,6 @@ class Detect(nn.Module):
     format = None  # export format
     max_det = 300  # max_det
     shape = None
-    anchors = torch.empty(0)  # init
-    strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
 
@@ -90,6 +88,8 @@ class Detect(nn.Module):
         self.reg_max = reg_max  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
+        self.register_buffer("anchors", torch.empty(0), persistent=False)
+        self.register_buffer("strides", torch.empty(0), persistent=False)
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
@@ -111,6 +111,15 @@ class Detect(nn.Module):
         if end2end:
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
+
+    def __setstate__(self, state):
+        """Adds 'strides' and 'anchors' as buffers in older .pt files."""
+        super().__setstate__(state)
+        for name in ("anchors", "strides"):
+            if name not in self._buffers:
+                if hasattr(self, name):
+                    delattr(self, name)
+                self.register_buffer(name, torch.empty(0), persistent=False)
 
     @property
     def one2many(self):

@@ -482,3 +482,16 @@ class Instances:
     def bboxes(self) -> np.ndarray:
         """Return bounding boxes."""
         return self._bboxes.bboxes
+
+    def __repr__(self) -> str:
+        """Return a string representation of the Instances object."""
+        # Map private to public names and include direct attributes
+        attr_map = {'_bboxes': 'bboxes'}
+        parts = []
+        for key, value in self.__dict__.items():
+            name = attr_map.get(key, key)
+            if name == 'bboxes':
+                value = self.bboxes  # Use the property
+            if value is not None:
+                parts.append(f'{name}={value!r}')
+        return "Instances({})".format('\n'.join(parts))

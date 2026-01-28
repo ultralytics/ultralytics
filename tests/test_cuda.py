@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 import torch
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE, TASK_MODEL_DATA
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
@@ -115,13 +115,15 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
-def test_train():
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
+def test_train(task: str, model: str, data: str) -> None:
     """Test model training on a minimal dataset using available CUDA devices."""
     device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
     # NVIDIA Jetson only has one GPU and therefore skipping checks
     if not IS_JETSON:
-        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15)
-        results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
+        results = YOLO(model).train(data=data, imgsz=64, epochs=1, device=device, batch=15)
+        if task == "detect":
+            results = YOLO(model).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
         # Note DDP training returns None, single-GPU returns metrics

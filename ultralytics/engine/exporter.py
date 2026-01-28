@@ -1204,7 +1204,7 @@ class Exporter:
             check_requirements("packaging>=22.0")
 
         check_requirements("ruamel.yaml<0.19.0")
-        check_requirements("executorch", "flatbuffers", "torchao")
+        check_requirements("executorch")
         # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
         check_requirements("numpy<=2.3.5")
 

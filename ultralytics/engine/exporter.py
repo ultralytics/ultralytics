@@ -110,7 +110,6 @@ from ultralytics.utils.checks import (
     check_apt_requirements,
     check_imgsz,
     check_requirements,
-    check_uv,
     check_version,
     is_intel,
     is_sudo_available,

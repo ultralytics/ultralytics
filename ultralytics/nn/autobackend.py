@@ -27,7 +27,7 @@ from ultralytics.utils import (
     YAML,
     is_jetson,
 )
-from ultralytics.utils.checks import check_requirements, check_suffix, check_uv, check_version, check_yaml, is_rockchip
+from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 from ultralytics.utils.nms import non_max_suppression
 

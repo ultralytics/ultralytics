@@ -62,7 +62,7 @@ class SecurityAlarm(BaseSolution):
         """
         import smtplib
 
-        self.server = smtplib.SMTP("smtp.gmail.com: 587")
+        self.server = smtplib.SMTP("smtp.gmail.com", 587)
         self.server.starttls()
         self.server.login(from_email, password)
         self.to_email = to_email
@@ -98,7 +98,7 @@ class SecurityAlarm(BaseSolution):
         message["Subject"] = "Security Alert"
 
         # Add the text message body
-        message_body = f"Ultralytics ALERT!!! {records} objects have been detected!!"
+        message_body = f"Ultralytics alert: {records} object(s) detected."
         message.attach(MIMEText(message_body))
 
         # Attach the image

@@ -91,17 +91,17 @@ class BaseTensor(SimpleClass):
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu(), self.orig_shape)
 
     def numpy(self):
-        """Return a copy of the tensor as a numpy array.
+        """Return a copy of this object with its data converted to a NumPy array.
 
         Returns:
-            (np.ndarray): A numpy array containing the same data as the original tensor.
+            (BaseTensor): A new instance with `data` as a NumPy array.
 
         Examples:
             >>> data = torch.tensor([[1, 2, 3], [4, 5, 6]])
             >>> orig_shape = (720, 1280)
             >>> base_tensor = BaseTensor(data, orig_shape)
-            >>> numpy_array = base_tensor.numpy()
-            >>> print(type(numpy_array))
+            >>> numpy_tensor = base_tensor.numpy()
+            >>> print(type(numpy_tensor.data))
             <class 'numpy.ndarray'>
         """
         return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.numpy(), self.orig_shape)
@@ -110,8 +110,7 @@ class BaseTensor(SimpleClass):
         """Move the tensor to GPU memory.
 
         Returns:
-            (BaseTensor): A new BaseTensor instance with the data moved to GPU memory if it's not already a numpy array,
-                otherwise returns self.
+            (BaseTensor): A new BaseTensor instance with the data moved to GPU memory.
 
         Examples:
             >>> import torch
@@ -201,14 +200,14 @@ class Results(SimpleClass, DataExportMixin):
         cuda: Move all tensors in the Results object to GPU memory.
         to: Move all tensors to the specified device and dtype.
         new: Create a new Results object with the same image, path, names, and speed attributes.
-        plot: Plot detection results on an input RGB image.
+        plot: Plot detection results on an input BGR image.
         show: Display the image with annotated inference results.
         save: Save annotated inference results image to file.
         verbose: Return a log string for each task in the results.
         save_txt: Save detection results to a text file.
         save_crop: Save cropped detection images to specified directory.
         summary: Convert inference results to a summarized dictionary.
-        to_df: Convert detection results to a Polars Dataframe.
+        to_df: Convert detection results to a Polars DataFrame.
         to_json: Convert detection results to JSON format.
         to_csv: Convert detection results to a CSV format.
 
@@ -461,7 +460,7 @@ class Results(SimpleClass, DataExportMixin):
         color_mode: str = "class",
         txt_color: tuple[int, int, int] = (255, 255, 255),
     ) -> np.ndarray:
-        """Plot detection results on an input RGB image.
+        """Plot detection results on an input BGR image.
 
         Args:
             conf (bool): Whether to plot detection confidence scores.
@@ -481,10 +480,10 @@ class Results(SimpleClass, DataExportMixin):
             save (bool): Whether to save the annotated image.
             filename (str | None): Filename to save image if save is True.
             color_mode (str): Specify the color mode, e.g., 'instance' or 'class'.
-            txt_color (tuple[int, int, int]): Specify the RGB text color for classification task.
+            txt_color (tuple[int, int, int]): Text color in BGR format for classification output.
 
         Returns:
-            (np.ndarray): Annotated image as a numpy array.
+            (np.ndarray | PIL.Image.Image): Annotated image as a NumPy array (BGR) or PIL image (RGB) if `pil=True`.
 
         Examples:
             >>> results = model("image.jpg")
@@ -668,7 +667,7 @@ class Results(SimpleClass, DataExportMixin):
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo11n.pt")
+            >>> model = YOLO("yolo26n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             >>>     result.save_txt("output.txt")
@@ -734,10 +733,10 @@ class Results(SimpleClass, DataExportMixin):
             - Original image is copied before cropping to avoid modifying the original.
         """
         if self.probs is not None:
-            LOGGER.warning("Classify task do not support `save_crop`.")
+            LOGGER.warning("Classify task does not support `save_crop`.")
             return
         if self.obb is not None:
-            LOGGER.warning("OBB task do not support `save_crop`.")
+            LOGGER.warning("OBB task does not support `save_crop`.")
             return
         for d in self.boxes:
             save_one_box(
@@ -751,8 +750,8 @@ class Results(SimpleClass, DataExportMixin):
         """Convert inference results to a summarized dictionary with optional normalization for box coordinates.
 
         This method creates a list of detection dictionaries, each containing information about a single detection or
-        classification result. For classification tasks, it returns the top class and its
-        confidence. For detection tasks, it includes class information, bounding box coordinates, and
+        classification result. For classification tasks, it returns the top 5 classes and their
+        confidences. For detection tasks, it includes class information, bounding box coordinates, and
         optionally mask segments and keypoints.
 
         Args:
@@ -773,14 +772,16 @@ class Results(SimpleClass, DataExportMixin):
         # Create list of detection dictionaries
         results = []
         if self.probs is not None:
-            class_id = self.probs.top1
-            results.append(
-                {
-                    "name": self.names[class_id],
-                    "class": class_id,
-                    "confidence": round(self.probs.top1conf.item(), decimals),
-                }
-            )
+            # Return top 5 classification results
+            for class_id, conf in zip(self.probs.top5, self.probs.top5conf.tolist()):
+                class_id = int(class_id)
+                results.append(
+                    {
+                        "name": self.names[class_id],
+                        "class": class_id,
+                        "confidence": round(conf, decimals),
+                    }
+                )
             return results
 
         is_obb = self.obb is not None
@@ -802,12 +803,17 @@ class Results(SimpleClass, DataExportMixin):
                     "y": (self.masks.xy[i][:, 1] / h).round(decimals).tolist(),
                 }
             if self.keypoints is not None:
-                x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
+                kpt = self.keypoints[i]
+                if kpt.has_visible:
+                    x, y, visible = kpt.data[0].cpu().unbind(dim=1)
+                else:
+                    x, y = kpt.data[0].cpu().unbind(dim=1)
                 result["keypoints"] = {
-                    "x": (x / w).numpy().round(decimals).tolist(),  # decimals named argument required
+                    "x": (x / w).numpy().round(decimals).tolist(),
                     "y": (y / h).numpy().round(decimals).tolist(),
-                    "visible": visible.numpy().round(decimals).tolist(),
                 }
+                if kpt.has_visible:
+                    result["keypoints"]["visible"] = visible.numpy().round(decimals).tolist()
             results.append(result)
 
         return results
@@ -955,8 +961,8 @@ class Boxes(BaseTensor):
             >>> boxes = Boxes(torch.tensor([[100, 50, 150, 100], [200, 150, 300, 250]]), orig_shape=(480, 640))
             >>> xywh = boxes.xywh
             >>> print(xywh)
-            tensor([[100.0000,  50.0000,  50.0000,  50.0000],
-                    [200.0000, 150.0000, 100.0000, 100.0000]])
+            tensor([[125.0000,  75.0000,  50.0000,  50.0000],
+                    [250.0000, 200.0000, 100.0000, 100.0000]])
         """
         return ops.xyxy2xywh(self.xyxy)
 
@@ -1501,7 +1507,7 @@ class OBB(BaseTensor):
         Examples:
             >>> import torch
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo11n-obb.pt")
+            >>> model = YOLO("yolo26n-obb.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
             ...     obb = result.obb

@@ -29,15 +29,12 @@ def run_ray_tune(
 
     Examples:
         >>> from ultralytics import YOLO
-        >>> model = YOLO("yolo11n.pt")  # Load a YOLO11n model
+        >>> model = YOLO("yolo26n.pt")  # Load a YOLO26n model
 
-        Start tuning hyperparameters for YOLO11n training on the COCO8 dataset
+        Start tuning hyperparameters for YOLO26n training on the COCO8 dataset
         >>> result_grid = model.tune(data="coco8.yaml", use_ray=True)
     """
     LOGGER.info("💡 Learn about RayTune at https://docs.ultralytics.com/integrations/ray-tune")
-    if train_args is None:
-        train_args = {}
-
     try:
         checks.check_requirements("ray[tune]")
 
@@ -77,7 +74,7 @@ def run_ray_tune(
         "perspective": tune.uniform(0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
         "flipud": tune.uniform(0.0, 1.0),  # image flip up-down (probability)
         "fliplr": tune.uniform(0.0, 1.0),  # image flip left-right (probability)
-        "bgr": tune.uniform(0.0, 1.0),  # image channel BGR (probability)
+        "bgr": tune.uniform(0.0, 1.0),  # swap RGB↔BGR channels (probability)
         "mosaic": tune.uniform(0.0, 1.0),  # image mosaic (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "cutmix": tune.uniform(0.0, 1.0),  # image cutmix (probability)
@@ -87,12 +84,23 @@ def run_ray_tune(
     # Put the model in ray store
     task = model.task
     model_in_store = ray.put(model)
+    base_name = train_args.get("name", "tune")
 
     def _tune(config):
         """Train the YOLO model with the specified hyperparameters and return results."""
         model_to_train = ray.get(model_in_store)  # get the model from ray store for tuning
         model_to_train.reset_callbacks()
         config.update(train_args)
+
+        # Set trial-specific name for W&B logging
+        try:
+            trial_id = tune.get_trial_id()  # Get current trial ID (e.g., "2c2fc_00000")
+            trial_suffix = trial_id.split("_")[-1] if "_" in trial_id else trial_id
+            config["name"] = f"{base_name}_{trial_suffix}"
+        except Exception:
+            # Not in Ray Tune context or error getting trial ID, use base name
+            config["name"] = base_name
+
         results = model_to_train.train(**config)
         return results.results_dict
 

@@ -35,12 +35,54 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
     if filename.endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         if success:
-            # Handle RGB images in tif/tiff format
+            # Handle multi-frame TIFFs and color images
             return frames[0] if len(frames) == 1 and frames[0].ndim == 3 else np.stack(frames, axis=2)
         return None
     else:
         im = cv2.imdecode(file_bytes, flags)
+        # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC)
+        if im is None and filename.lower().endswith((".avif", ".heic")):
+            im = _imread_pil(filename, flags)
         return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
+
+
+_pil_plugins_registered = False
+
+
+def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
+    """Read an image using PIL as fallback for formats not supported by OpenCV.
+
+    Args:
+        filename (str): Path to the file to read.
+        flags (int, optional): OpenCV imread flags (used to determine grayscale conversion).
+
+    Returns:
+        (np.ndarray | None): The read image array in BGR format, or None if reading fails.
+    """
+    global _pil_plugins_registered
+    try:
+        from PIL import Image
+
+        # Register HEIF/AVIF plugins once
+        if not _pil_plugins_registered:
+            try:
+                import pillow_heif
+
+                pillow_heif.register_heif_opener()
+            except ImportError:
+                pass
+            try:
+                import pillow_avif  # noqa: F401
+            except ImportError:
+                pass
+            _pil_plugins_registered = True
+
+        with Image.open(filename) as img:
+            if flags == cv2.IMREAD_GRAYSCALE:
+                return np.asarray(img.convert("L"))
+            return cv2.cvtColor(np.asarray(img.convert("RGB")), cv2.COLOR_RGB2BGR)
+    except Exception:
+        return None
 
 
 def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:
@@ -105,8 +147,8 @@ def torch_load(*args, **kwargs):
         (Any): The loaded PyTorch object.
 
     Notes:
-        For PyTorch versions 2.0 and above, this function automatically sets 'weights_only=False'
-        if the argument is not provided, to avoid deprecation warnings.
+        For PyTorch versions 1.13 and above, this function automatically sets `weights_only=False` if the argument is
+        not provided, to avoid deprecation warnings.
     """
     from ultralytics.utils.torch_utils import TORCH_1_13
 

@@ -124,7 +124,7 @@ The video file will be saved in the project's working directory when you quit th
 
 - **Alireza**
 - [Connect on LinkedIn](https://www.linkedin.com/in/alireza787b)
-- Published Date ![Published date](https://img.shields.io/badge/published_Date-2025--04--01-purple)
+- Published: 2025-04-01
 
 ## 📜 License & Disclaimer
 

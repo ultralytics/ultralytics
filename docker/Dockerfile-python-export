@@ -15,29 +15,20 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install export dependencies and run exports to AutoInstall packages
-# Prevent torch upgrade to 2.9.0 which has issues with imx export
-RUN sed -i -e 's/"torch>=1.8.0/"torch>=1.8.0,<=2.8.0/' pyproject.toml
 RUN uv pip install --system -e ".[export]" && \
-    # Need lower version of 'numpy' for Sony IMX export
-    uv pip install --system numpy==1.26.4 && \
-    # Run exports to AutoInstall packages
-    yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 && \
-    yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32 && \
+    # Run exports to AutoInstall packages (IMX can only export to YOLO11)
+    yolo export model=tmp/yolo26n.pt format=edgetpu imgsz=32 && \
+    yolo export model=tmp/yolo26n.pt format=ncnn imgsz=32 && \
     yolo export model=tmp/yolo11n.pt format=imx imgsz=32 && \
     uv pip install --system paddlepaddle x2paddle && \
     # Remove extra build files
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
-# Usage Examples -------------------------------------------------------------------------------------------------------
+# Usage --------------------------------------------------------------------------------------------------------------
 
-# Build and Push
-# t=ultralytics/ultralytics:latest-python-export && sudo docker build -f docker/Dockerfile-python-export -t $t . && sudo docker push $t
-
-# Run
-# t=ultralytics/ultralytics:latest-python-export && sudo docker run -it --ipc=host $t
-
-# Pull and Run
-# t=ultralytics/ultralytics:latest-python-export && sudo docker pull $t && sudo docker run -it --ipc=host $t
-
-# Pull and Run with local volume mounted
-# t=ultralytics/ultralytics:latest-python-export && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/shared/datasets:/datasets $t
+# Production builds: https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml
+# Example (build): t=ultralytics/ultralytics:latest-python-export && docker build -f docker/Dockerfile-python-export -t $t .
+# Example (push): docker push $t
+# Example (pull): t=ultralytics/ultralytics:latest-python-export && docker pull $t
+# Example (run): docker run -it --ipc=host $t
+# Example (run-with-volume): docker run -it --ipc=host -v "$PWD/shared/datasets:/datasets" $t

@@ -28,15 +28,15 @@ class WorkingDirectory(contextlib.ContextDecorator):
 
     Examples:
         Using as a context manager:
-        >>> with WorkingDirectory('/path/to/new/dir'):
-        >>> # Perform operations in the new directory
-        >>>     pass
+        >>> with WorkingDirectory("/path/to/new/dir"):
+        ...     # Perform operations in the new directory
+        ...     pass
 
         Using as a decorator:
-        >>> @WorkingDirectory('/path/to/new/dir')
-        >>> def some_function():
-        >>> # Perform operations in the new directory
-        >>>     pass
+        >>> @WorkingDirectory("/path/to/new/dir")
+        ... def some_function():
+        ...     # Perform operations in the new directory
+        ...     pass
     """
 
     def __init__(self, new_dir: str | Path):
@@ -67,9 +67,9 @@ def spaces_in_path(path: str | Path):
         (Path | str): Temporary path with any spaces replaced by underscores.
 
     Examples:
-        >>> with spaces_in_path('/path/with spaces') as new_path:
-        >>> # Your code here
-        >>>     pass
+        >>> with spaces_in_path("/path/with spaces") as new_path:
+        ...     # Your code here
+        ...     pass
     """
     # If path has spaces, replace them with underscores
     if " " in str(path):
@@ -180,7 +180,7 @@ def get_latest_run(search_dir: str = ".") -> str:
     return max(last_list, key=os.path.getctime) if last_list else ""
 
 
-def update_models(model_names: tuple = ("yolo11n.pt",), source_dir: Path = Path("."), update_names: bool = False):
+def update_models(model_names: tuple = ("yolo26n.pt",), source_dir: Path = Path("."), update_names: bool = False):
     """Update and re-save specified YOLO models in an 'updated_models' subdirectory.
 
     Args:
@@ -191,18 +191,19 @@ def update_models(model_names: tuple = ("yolo11n.pt",), source_dir: Path = Path(
     Examples:
         Update specified YOLO models and save them in 'updated_models' subdirectory:
         >>> from ultralytics.utils.files import update_models
-        >>> model_names = ("yolo11n.pt", "yolov8s.pt")
+        >>> model_names = ("yolo26n.pt", "yolo11s.pt")
         >>> update_models(model_names, source_dir=Path("/models"), update_names=True)
     """
     from ultralytics import YOLO
     from ultralytics.nn.autobackend import default_class_names
+    from ultralytics.utils import LOGGER
 
     target_dir = source_dir / "updated_models"
     target_dir.mkdir(parents=True, exist_ok=True)  # Ensure target directory exists
 
     for model_name in model_names:
         model_path = source_dir / model_name
-        print(f"Loading model from {model_path}")
+        LOGGER.info(f"Loading model from {model_path}")
 
         # Load model
         model = YOLO(model_path)
@@ -214,5 +215,5 @@ def update_models(model_names: tuple = ("yolo11n.pt",), source_dir: Path = Path(
         save_path = target_dir / model_name
 
         # Save model using model.save()
-        print(f"Re-saving {model_name} model to {save_path}")
+        LOGGER.info(f"Re-saving {model_name} model to {save_path}")
         model.save(save_path)

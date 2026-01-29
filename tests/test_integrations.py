@@ -18,14 +18,14 @@ from ultralytics.utils.checks import check_requirements
 def test_tensorboard():
     """Test training with TensorBoard logging enabled."""
     SETTINGS["tensorboard"] = True
-    YOLO("yolo11n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=3, plots=False, device="cpu")
+    YOLO("yolo26n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=3, plots=False, device="cpu")
     SETTINGS["tensorboard"] = False
 
 
 @pytest.mark.skipif(not check_requirements("ray", install=False), reason="ray[tune] not installed")
 def test_model_ray_tune():
     """Tune YOLO model using Ray for hyperparameter optimization."""
-    YOLO("yolo11n-cls.yaml").tune(
+    YOLO("yolo26n-cls.yaml").tune(
         use_ray=True, data="imagenet10", grace_period=1, iterations=1, imgsz=32, epochs=1, plots=False, device="cpu"
     )
 
@@ -34,7 +34,7 @@ def test_model_ray_tune():
 def test_mlflow():
     """Test training with MLflow tracking enabled."""
     SETTINGS["mlflow"] = True
-    YOLO("yolo11n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=3, plots=False, device="cpu")
+    YOLO("yolo26n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=3, plots=False, device="cpu")
     SETTINGS["mlflow"] = False
 
 
@@ -50,7 +50,7 @@ def test_mlflow_keep_run_active():
 
     # Test with MLFLOW_KEEP_RUN_ACTIVE=True
     os.environ["MLFLOW_KEEP_RUN_ACTIVE"] = "True"
-    YOLO("yolo11n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=1, plots=False, device="cpu")
+    YOLO("yolo26n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=1, plots=False, device="cpu")
     status = mlflow.active_run().info.status
     assert status == "RUNNING", "MLflow run should be active when MLFLOW_KEEP_RUN_ACTIVE=True"
 
@@ -58,13 +58,13 @@ def test_mlflow_keep_run_active():
 
     # Test with MLFLOW_KEEP_RUN_ACTIVE=False
     os.environ["MLFLOW_KEEP_RUN_ACTIVE"] = "False"
-    YOLO("yolo11n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=1, plots=False, device="cpu")
+    YOLO("yolo26n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=1, plots=False, device="cpu")
     status = mlflow.get_run(run_id=run_id).info.status
     assert status == "FINISHED", "MLflow run should be ended when MLFLOW_KEEP_RUN_ACTIVE=False"
 
     # Test with MLFLOW_KEEP_RUN_ACTIVE not set
     os.environ.pop("MLFLOW_KEEP_RUN_ACTIVE", None)
-    YOLO("yolo11n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=1, plots=False, device="cpu")
+    YOLO("yolo26n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=1, plots=False, device="cpu")
     status = mlflow.get_run(run_id=run_id).info.status
     assert status == "FINISHED", "MLflow run should be ended by default when MLFLOW_KEEP_RUN_ACTIVE is not set"
     SETTINGS["mlflow"] = False
@@ -129,21 +129,21 @@ def test_faster_coco_eval():
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator
 
-    args = {"model": "yolo11n.pt", "data": "coco8.yaml", "save_json": True, "imgsz": 64}
+    args = {"model": "yolo26n.pt", "data": "coco8.yaml", "save_json": True, "imgsz": 64}
     validator = DetectionValidator(args=args)
     validator()
     validator.is_coco = True
     download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "coco8/annotations")
     _ = validator.eval_json(validator.stats)
 
-    args = {"model": "yolo11n-seg.pt", "data": "coco8-seg.yaml", "save_json": True, "imgsz": 64}
+    args = {"model": "yolo26n-seg.pt", "data": "coco8-seg.yaml", "save_json": True, "imgsz": 64}
     validator = SegmentationValidator(args=args)
     validator()
     validator.is_coco = True
     download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "coco8-seg/annotations")
     _ = validator.eval_json(validator.stats)
 
-    args = {"model": "yolo11n-pose.pt", "data": "coco8-pose.yaml", "save_json": True, "imgsz": 64}
+    args = {"model": "yolo26n-pose.pt", "data": "coco8-pose.yaml", "save_json": True, "imgsz": 64}
     validator = PoseValidator(args=args)
     validator()
     validator.is_coco = True

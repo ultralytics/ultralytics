@@ -14,13 +14,13 @@ The ultimate goal of training a model is to deploy it for real-world application
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/WbomGeoOT_k?si=aGmuyooWftA0ue9X"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/KGHYU-MKYeE"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How To Export Custom Trained Ultralytics YOLO Model and Run Live Inference on Webcam.
+  <strong>Watch:</strong> How to Export Ultralytics YOLO26 in different formats for Deployment | ONNX, TensorRT, CoreML 🚀
 </p>
 
 ## Why Choose YOLO26's Export Mode?

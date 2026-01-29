@@ -7,14 +7,17 @@ import pytest
 from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
-from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
+from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 
 def run(cmd: str) -> None:
     """Execute a shell command using subprocess."""
     subprocess.run(cmd.split(), check=True)
-
+    if result.returncode != 0:
+        LOGGER.error(result.stdout)
+        LOGGER.error(result.stderr)
+        raise subprocess.CalledProcessError(result.returncode, cmd)
 
 def test_special_modes() -> None:
     """Test various special command-line modes for YOLO functionality."""

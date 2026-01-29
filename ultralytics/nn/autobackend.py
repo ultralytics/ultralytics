@@ -18,17 +18,22 @@ from PIL import Image
 
 from ultralytics.utils import (
     ARM64,
-    IS_DOCKER,
     IS_JETSON,
     LINUX,
     LOGGER,
     PYTHON_VERSION,
     ROOT,
-    TORCH_VERSION,
     YAML,
     is_jetson,
 )
-from ultralytics.utils.checks import check_requirements, check_suffix, check_uv, check_version, check_yaml, is_rockchip
+from ultralytics.utils.checks import (
+    check_executorch_requirements,
+    check_requirements,
+    check_suffix,
+    check_version,
+    check_yaml,
+    is_rockchip,
+)
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 from ultralytics.utils.nms import non_max_suppression
 
@@ -628,27 +633,7 @@ class AutoBackend(nn.Module):
         elif pte:
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
 
-            # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
-            if LINUX and ARM64 and IS_DOCKER:
-                check_requirements("packaging>=22.0")
-
-            check_requirements("ruamel.yaml<0.19.0")
-
-            # Attempt stable first with the current torch version as forced guard for resolution
-            torch_version = TORCH_VERSION.split("+")[0]
-            if not check_requirements(
-                requirements=["executorch", "flatbuffers", "torchao"],
-                cmds=f"torch=={torch_version}",
-            ):
-                # Fallback to nightly if resolution fails
-                cmd_prerelease = "--prerelease=allow" if (not ARM64 and check_uv()) else "--pre"
-                check_requirements(
-                    requirements=["executorch", "flatbuffers", "torchao"],
-                    cmds=f"torch=={torch_version} --extra-index-url https://download.pytorch.org/whl/nightly {cmd_prerelease}",
-                )
-
-            # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
-            check_requirements("numpy<=2.3.5")
+            check_executorch_requirements()
 
             from executorch.runtime import Runtime
 

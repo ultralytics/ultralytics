@@ -546,7 +546,7 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
                 assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
 
 
-def check_yolov5u_filename(file: str, verbose: bool = True):
+def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
     """Replace legacy YOLOv5 filenames with updated YOLOv5u filenames.
 
     Args:
@@ -573,7 +573,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     return file
 
 
-def check_model_file_from_stem(model="yolo11n"):
+def check_model_file_from_stem(model: str = "yolo11n") -> str | Path:
     """Return a model filename from a valid model stem.
 
     Args:
@@ -663,7 +663,7 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
     return check_file(file, suffix, hard=hard)
 
 
-def check_is_path_safe(basedir, path):
+def check_is_path_safe(basedir: Path | str, path: Path | str) -> bool:
     """Check if the resolved path is under the intended directory to prevent path traversal.
 
     Args:

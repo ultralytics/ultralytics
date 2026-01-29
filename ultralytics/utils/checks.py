@@ -502,7 +502,6 @@ def check_executorch_requirements():
     if LINUX and ARM64 and IS_DOCKER:
         check_requirements("packaging>=22.0")
 
-    check_requirements("ruamel.yaml<0.19.0")
     check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
     # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
     check_requirements("numpy<=2.3.5")

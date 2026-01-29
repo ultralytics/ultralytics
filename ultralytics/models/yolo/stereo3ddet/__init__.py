@@ -98,11 +98,12 @@ from .utils import (
 # =============================================================================
 from .augment import (
     StereoCalibration,
-    PhotometricAugmentor,
-    HorizontalFlipAugmentor,
-    RandomScaleAugmentor,
-    RandomCropAugmentor,
-    StereoAugmentationPipeline,
+    StereoLabels,
+    StereoHSV,
+    StereoHFlip,
+    StereoScale,
+    StereoCrop,
+    StereoLetterBox,
 )
 
 __all__ = [
@@ -171,9 +172,10 @@ __all__ = [
     # Data Augmentation
     # -------------------------------------------------------------------------
     "StereoCalibration",
-    "PhotometricAugmentor",
-    "HorizontalFlipAugmentor",
-    "RandomScaleAugmentor",
-    "RandomCropAugmentor",
-    "StereoAugmentationPipeline",
+    "StereoLabels",
+    "StereoHSV",
+    "StereoHFlip",
+    "StereoScale",
+    "StereoCrop",
+    "StereoLetterBox",
 ]

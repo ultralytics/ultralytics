@@ -8,13 +8,16 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from ultralytics.data.augment import LetterBox
+from ultralytics.data.augment import Compose, Format, LetterBox
 from ultralytics.data.base import BaseDataset
 from ultralytics.data.utils import IMG_FORMATS, load_dataset_cache_file, save_dataset_cache_file
 from ultralytics.models.yolo.stereo3ddet.augment import (
-    StereoAugmentationPipeline,
     StereoCalibration,
-    stereo3d_transforms,
+    StereoHFlip,
+    StereoHSV,
+    StereoScale,
+    StereoCrop,
+    StereoLetterBox,
 )
 from ultralytics.utils import DEFAULT_CFG, LOGGER
 from ultralytics.data.stereo.target_improved import TargetGenerator
@@ -412,18 +415,25 @@ class Stereo3DDetDataset(BaseDataset):
         if hyp is None:
             hyp = DEFAULT_CFG
 
-        if self.augment:
-            return stereo3d_transforms(self, self.imgsz_tuple, hyp)  # Use tuple for transforms
-        else:
-            from ultralytics.data.augment import Compose
-            from ultralytics.models.yolo.stereo3ddet.augment import StereoLetterBox, StereoFormat
+        transforms = []
 
-            return Compose(
-                [
-                    StereoLetterBox(new_shape=self.imgsz_tuple, scaleup=False, stride=32),  # Use tuple
-                    StereoFormat(normalize=True),
-                ]
-            )
+        if self.augment:
+            transforms.extend([
+                StereoHFlip(p=float(hyp.get("fliplr", 0.5))),
+                StereoScale(scale_range=(0.8, 1.2), p=float(hyp.get("scale", 0.5))),
+                StereoCrop(crop_h=0.9, crop_w=0.9, p=float(hyp.get("crop_fraction", 0.3))),
+                StereoHSV(
+                    hgain=float(hyp.get("hsv_h", 0.015)),
+                    sgain=float(hyp.get("hsv_s", 0.7)),
+                    vgain=float(hyp.get("hsv_v", 0.4)),
+                    p=0.5,
+                ),
+            ])
+
+        transforms.append(StereoLetterBox(new_shape=self.imgsz_tuple, scaleup=self.augment, stride=32))
+        transforms.append(Format(normalize=True, return_stereo=True))
+
+        return Compose(transforms)
 
     def update_labels_info(self, label: dict[str, Any]) -> dict[str, Any]:
         """Convert stereo labels to Instances format with 3D data included.
@@ -962,51 +972,53 @@ class Stereo3DDetDataset(BaseDataset):
         class_names_map = self.target_generator.class_names_map
 
         for i, (b, calib, ori_shape) in enumerate(zip(batch, calibs, ori_shapes)):
-            # Extract from instances (which now contains 3D data)
-            instances = b.get("instances")
-            cls_array = b.get("cls", np.array([], dtype=np.int64))
-            occluded = b.get("occluded", np.zeros((0,), dtype=np.int32))
-            stereo_labels = b.get("stereo_labels", [])  # For backward compatibility with target_generator
-            
-            # Get number of objects and extract data from Instances
-            if instances is not None and len(instances) > 0:
-                n = len(instances)
-                # Convert instances to xywh format if needed
-                instances.convert_bbox(format="xywh")
-                bboxes_xywh = instances.bboxes  # Already normalized
-                
-                # Extract 3D data from Instances (now stored as attributes)
-                right_bboxes = instances.right_bboxes if instances.right_bboxes is not None else np.zeros((n, 4), dtype=np.float32)
-                dimensions_3d = instances.dimensions_3d if instances.dimensions_3d is not None else np.zeros((n, 3), dtype=np.float32)
-                location_3d = instances.location_3d if instances.location_3d is not None else np.zeros((n, 3), dtype=np.float32)
-                rotation_y = instances.rotation_y if instances.rotation_y is not None else np.zeros((n,), dtype=np.float32)
+            # Extract from Format output tensors (instances was already popped by Format)
+            bboxes_tensor = b.get("bboxes")  # torch.Tensor (N, 4) normalized xywh
+            cls_tensor = b.get("cls")  # torch.Tensor (N,)
+            right_bboxes_tensor = b.get("right_bboxes")  # torch.Tensor (N, 4)
+            dimensions_3d_tensor = b.get("dimensions_3d")  # torch.Tensor (N, 3)
+            location_3d_tensor = b.get("location_3d")  # torch.Tensor (N, 3)
+            rotation_y_tensor = b.get("rotation_y")  # torch.Tensor (N,)
+            occluded_tensor = b.get("occluded")  # torch.Tensor (N,) or None
+            stereo_labels = b.get("stereo_labels", [])  # For backward compatibility
+
+            # Convert tensors to numpy for processing
+            if bboxes_tensor is not None and len(bboxes_tensor) > 0:
+                n = len(bboxes_tensor)
+                bboxes_xywh = bboxes_tensor.numpy()
+                cls_array = cls_tensor.numpy() if cls_tensor is not None else np.zeros((n,), dtype=np.int64)
+                right_bboxes = right_bboxes_tensor.numpy() if right_bboxes_tensor is not None else np.zeros((n, 4), dtype=np.float32)
+                dimensions_3d = dimensions_3d_tensor.numpy() if dimensions_3d_tensor is not None else np.zeros((n, 3), dtype=np.float32)
+                location_3d = location_3d_tensor.numpy() if location_3d_tensor is not None else np.zeros((n, 3), dtype=np.float32)
+                rotation_y = rotation_y_tensor.numpy() if rotation_y_tensor is not None else np.zeros((n,), dtype=np.float32)
+                occluded = occluded_tensor.numpy().astype(np.int32) if occluded_tensor is not None else np.zeros((n,), dtype=np.int32)
             else:
                 n = 0
+                bboxes_xywh = np.zeros((0, 4), dtype=np.float32)
+                cls_array = np.zeros((0,), dtype=np.int64)
                 right_bboxes = np.zeros((0, 4), dtype=np.float32)
                 dimensions_3d = np.zeros((0, 3), dtype=np.float32)
                 location_3d = np.zeros((0, 3), dtype=np.float32)
                 rotation_y = np.zeros((0,), dtype=np.float32)
-            
+                occluded = np.zeros((0,), dtype=np.int32)
+
             # Filter occluded objects if enabled (for training only)
             if self.filter_occluded and n > 0:
                 valid_mask = occluded <= self.max_occlusion_level
                 filtered_count = n - valid_mask.sum()
-                
+
                 if filtered_count > 0:
-                    # Filter using Instances indexing (preserves 3D attributes)
-                    if instances is not None and len(instances) > 0:
-                        instances = instances[valid_mask]
-                        bboxes_xywh = instances.bboxes
-                        right_bboxes = instances.right_bboxes if instances.right_bboxes is not None else np.zeros((0, 4), dtype=np.float32)
-                        dimensions_3d = instances.dimensions_3d if instances.dimensions_3d is not None else np.zeros((0, 3), dtype=np.float32)
-                        location_3d = instances.location_3d if instances.location_3d is not None else np.zeros((0, 3), dtype=np.float32)
-                        rotation_y = instances.rotation_y if instances.rotation_y is not None else np.zeros((0,), dtype=np.float32)
+                    bboxes_xywh = bboxes_xywh[valid_mask]
                     cls_array = cls_array[valid_mask]
+                    right_bboxes = right_bboxes[valid_mask]
+                    dimensions_3d = dimensions_3d[valid_mask]
+                    location_3d = location_3d[valid_mask]
+                    rotation_y = rotation_y[valid_mask]
                     occluded = occluded[valid_mask]
                     if len(stereo_labels) > 0:
                         stereo_labels = [stereo_labels[j] for j in range(len(stereo_labels)) if valid_mask[j]]
                     n = valid_mask.sum()
-                    
+
                     # Log filtered objects for the first few batches
                     if i < 5:
                         LOGGER.debug(

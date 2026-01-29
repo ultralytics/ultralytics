@@ -1745,7 +1745,7 @@ class CopyPaste(BaseMixTransform):
         instances.convert_bbox(format="xyxy")
         instances.denormalize(w, h)
 
-        im_new = np.zeros(im.shape, np.uint8)
+        im_new = np.zeros(im.shape[:2], np.uint8)
         instances2 = labels2.pop("instances", None)
         if instances2 is None:
             instances2 = deepcopy(instances)
@@ -1758,7 +1758,7 @@ class CopyPaste(BaseMixTransform):
         for j in indexes[: round(self.p * n)]:
             cls = np.concatenate((cls, labels2.get("cls", cls)[[j]]), axis=0)
             instances = Instances.concatenate((instances, instances2[[j]]), axis=0)
-            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
+            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, 1, cv2.FILLED)
 
         result = labels2.get("img", cv2.flip(im, 1))  # augment segments
         if result.ndim == 2:  # cv2.flip would eliminate the last dimension for grayscale images

@@ -17,7 +17,7 @@ def run(cmd: str) -> None:
     if result.returncode != 0:
         LOGGER.error(result.stdout)
         LOGGER.error(result.stderr)
-        raise subprocess.CalledProcessError(result.returncode, cmd)
+        raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=result.stderr)
 
 
 def test_special_modes() -> None:

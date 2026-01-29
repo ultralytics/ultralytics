@@ -474,11 +474,7 @@ class ProfileModels:
                 model_info = self.get_onnx_model_info(file)
                 onnx_file = file
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
-                    engine_file = onnx2engine(
-                        onnx_file=str(onnx_file),
-                        half=self.half,
-                        device=self.device,
-                    )
+                    engine_file = onnx2engine(onnx_file=str(onnx_file), half=self.half)
             else:
                 continue
 

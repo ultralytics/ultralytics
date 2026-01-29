@@ -19,6 +19,7 @@ def run(cmd: str) -> None:
         LOGGER.error(result.stderr)
         raise subprocess.CalledProcessError(result.returncode, cmd)
 
+
 def test_special_modes() -> None:
     """Test various special command-line modes for YOLO functionality."""
     run("yolo help")

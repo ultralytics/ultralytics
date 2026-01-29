@@ -477,7 +477,6 @@ class ProfileModels:
                     engine_file = onnx2engine(
                         onnx_file=str(onnx_file),
                         half=self.half,
-                        imgsz=self.imgsz,
                         device=self.device,
                     )
             else:

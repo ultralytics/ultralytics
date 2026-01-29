@@ -6,55 +6,61 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
+# Apple M5 CPU ONNX benchmarks
+# Format: (size_label, latency_ms, mAP50-95)
+
 YOLO26 = [
-    ("n", 1.7, 40.9),
-    ("s", 2.8, 48.6),
-    ("m", 5.1, 53.1),
-    ("l", 7.1, 55.0),
-    ("x", 13.2, 57.5),
-]
-
-YOLO26_RTDETR = [
-    ("n", 1.7, 41.2),
-    ("ns", 2.3, 46.5),
-    # ("s", 2.7, 47.7),
-    ("s", 3.1, 49.5),
-    ("sm", 3.8, 50.8),
-    ("m", 5.6, 53.5),
-    ("l", 7.0, 55.2),
-    ("x", 11.6, 56.6),
-]
-
-RTDETR_V4 = [
-    ("s", 3.66, 49.8),
-    ("m", 5.91, 53.7),
-    ("l", 8.07, 55.4),
-    ("x", 12.90, 57.0),
-]
-
-LW_DETR = [
-    ("n", 1.9, 42.9),
-    ("s", 2.6, 48.0),
-    ("m", 4.4, 52.6),
-    ("l", 6.9, 56.1),
-    ("x", 13.0, 58.3),
+    ("n", 21.0, 40.9),
+    ("s", 61.7, 48.6),
+    ("m", 168.6, 53.1),
+    ("l", 219.1, 55.0),
+    ("x", 439.3, 57.5),
 ]
 
 RF_DETR = [
-    ("n", 2.3, 48.0),
-    ("s", 3.5, 52.9),
-    ("m", 4.4, 54.7),
-    ("l", 6.8, 56.5),
-    ("xl", 11.5, 58.6),
-    ("2xl", 17.2, 60.1),
+    ("n", 79.6, 48.4),
+    ("s", 145.5, 53.0),
+    ("m", 192.0, 54.7),
+    ("l", 307.2, 56.5),
+    ("x", 688.3, 58.6),
+    ("xxl", 956.2, 60.1),
+]
+
+LWDETR = [
+    ("t", 73.2, 42.9),
+    ("s", 110.9, 48.1),
+    ("m", 226.7, 52.6),
+    ("l", 353.3, 56.1),
+    ("x", 765.1, 58.3),
+]
+
+DEIM_DFINE = [
+    ("n", 31.4, 43.0),
+    ("s", 78.7, 49.0),
+    ("m", 158.4, 52.7),
+    ("l", 244.5, 54.7),
+    ("x", 486.8, 56.5),
+]
+
+DEIM_RTDETRV2 = [
+    ("r18", 157.8, 49.0),
+    ("r34", 233.6, 50.9),
+    ("r50m", 254.3, 53.2),
+    ("r50", 335.4, 54.3),
+    ("r101", 584.6, 55.5),
+]
+
+DEIMV2 = [
+    ("pico", 22.4, 38.5),
+    ("n", 30.5, 43.0),
+    ("s", 157.2, 50.9),
+    ("m", 240.9, 53.0),
+    ("l", 386.2, 56.0),
+    ("x", 525.0, 57.8),
 ]
 
 # Free points without connecting lines: (label, latency_ms, mAP, color_index, marker, label_offset)
-FREE_POINTS = [
-    # ("x", 2.3, 46.5, 3, "D", -14),  # palette(3), diamond, label below
-    ("y", 2.7, 47.7, 4, "^", 10),   # palette(4), triangle up, label above
-    ("z", 9.4, 56.0, 2, "v", 5),   # palette(4), triangle up, label above
-]
+FREE_POINTS = []
 
 
 def plot_series(ax, points, label, color, marker, label_offset):
@@ -83,16 +89,17 @@ def plot_series(ax, points, label, color, marker, label_offset):
 
 def build_plot(output_path: Path, show: bool) -> None:
     plt.style.use("seaborn-v0_8-whitegrid")
-    fig, ax = plt.subplots(figsize=(7.5, 4.5), dpi=120)
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=120)
     ax.set_axisbelow(True)
     ax.grid(True, which="major", linestyle="--", linewidth=0.6, alpha=0.6)
 
     palette = plt.get_cmap("tab10")
     plot_series(ax, YOLO26, "YOLO26", palette(0), "o", 8)
-    plot_series(ax, YOLO26_RTDETR, "YOLO26-RTDETR", palette(1), "s", -14)
-    plot_series(ax, RTDETR_V4, "RT-DETRv4", palette(2), "D", 10)
-    plot_series(ax, LW_DETR, "LW-DETR", palette(3), "^", 14)
-    plot_series(ax, RF_DETR, "RF-DETR", palette(4), "v", -12)
+    plot_series(ax, RF_DETR, "RF-DETR", palette(1), "s", -12)
+    plot_series(ax, LWDETR, "LW-DETR", palette(2), "^", 8)
+    plot_series(ax, DEIM_DFINE, "DEIM D-FINE", palette(3), "D", -12)
+    plot_series(ax, DEIM_RTDETRV2, "DEIM RT-DETRv2", palette(4), "v", 8)
+    plot_series(ax, DEIMV2, "DEIMv2", palette(5), "p", -12)
 
     # Add free points without connecting to a line
     for label, latency, mAP, color_idx, marker, label_offset in FREE_POINTS:
@@ -107,13 +114,11 @@ def build_plot(output_path: Path, show: bool) -> None:
             color=palette(color_idx),
         )
 
-    ax.set_title(
-        "Latency vs mAP: YOLO26, YOLO26-RTDETR, RT-DETRv4, LW-DETR, RF-DETR"
-    )
+    ax.set_title("Object Detection Models: Latency vs mAP (Apple M5 CPU, ONNX)")
     ax.set_xlabel("Latency (ms)")
-    ax.set_ylabel("mAP (COCO)")
-    ax.legend(frameon=False, loc="lower right")
-    ax.margins(x=0.08, y=0.08)
+    ax.set_ylabel("mAP50-95 (COCO)")
+    ax.legend(frameon=True, loc="lower right", fontsize=9)
+    ax.margins(x=0.05, y=0.08)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
@@ -124,11 +129,9 @@ def build_plot(output_path: Path, show: bool) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    default_output = Path(__file__).with_name("benchmark_plot.png")
+    default_output = Path(__file__).with_name("benchmark_plot_cpu.png")
     parser = argparse.ArgumentParser(
-        description=(
-            "Plot YOLO26, YOLO26-RTDETR, RT-DETRv4, LW-DETR, and RF-DETR latency vs mAP benchmarks."
-        )
+        description="Plot object detection model latency vs mAP benchmarks (Apple M5 CPU, ONNX)."
     )
     parser.add_argument("--output", type=Path, default=default_output)
     parser.add_argument("--show", action="store_true", help="Display the plot window.")

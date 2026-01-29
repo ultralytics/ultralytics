@@ -13,7 +13,7 @@ from ultralytics.utils.torch_utils import TORCH_1_11
 
 def run(cmd: str) -> None:
     """Execute a shell command using subprocess."""
-    subprocess.run(cmd.split(), check=True)
+    result = subprocess.run(cmd.split(), check=True)
     if result.returncode != 0:
         LOGGER.error(result.stdout)
         LOGGER.error(result.stderr)

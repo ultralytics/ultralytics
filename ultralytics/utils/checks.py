@@ -29,6 +29,7 @@ from ultralytics.utils import (
     AUTOINSTALL,
     GIT,
     IS_COLAB,
+    IS_DOCKER,
     IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
@@ -493,6 +494,17 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             return False
 
     return True
+
+
+def check_executorch_requirements():
+    """Check and install ExecuTorch requirements including platform-specific dependencies."""
+    # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
+    if LINUX and ARM64 and IS_DOCKER:
+        check_requirements("packaging>=22.0")
+
+    check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
+    # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
+    check_requirements("numpy<=2.3.5")
 
 
 def check_torchvision():

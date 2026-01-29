@@ -112,6 +112,7 @@ from ultralytics.utils.checks import (
     check_apt_requirements,
     check_imgsz,
     check_requirements,
+    check_uv,
     check_version,
     is_intel,
     is_sudo_available,
@@ -517,6 +518,7 @@ class Exporter:
                 # Clamp max_det to anchor count for small image sizes (required for TensorRT compatibility)
                 anchors = sum(int(self.imgsz[0] / s) * int(self.imgsz[1] / s) for s in model.stride.tolist())
                 m.max_det = min(self.args.max_det, anchors)
+                m.agnostic_nms = self.args.agnostic_nms
                 m.xyxy = self.args.nms and not coreml
                 m.shape = None  # reset cached shape for new export input size
                 if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models
@@ -1246,7 +1248,19 @@ class Exporter:
             check_requirements("packaging>=22.0")
 
         check_requirements("ruamel.yaml<0.19.0")
-        check_requirements("executorch==1.0.1", "flatbuffers")
+
+        # Attempt stable first with the current torch version as forced guard for resolution
+        torch_version = TORCH_VERSION.split("+")[0]
+        if not check_requirements(
+            requirements=["executorch", "flatbuffers", "torchao"],
+            cmds=f"torch=={torch_version}",
+        ):
+            # Fallback to nightly if resolution fails
+            cmd_prerelease = "--prerelease=allow" if (not ARM64 and check_uv()) else "--pre"
+            check_requirements(
+                requirements=["executorch", "flatbuffers", "torchao"],
+                cmds=f"torch=={torch_version} --extra-index-url https://download.pytorch.org/whl/nightly {cmd_prerelease}",
+            )
         # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
         check_requirements("numpy<=2.3.5")
 

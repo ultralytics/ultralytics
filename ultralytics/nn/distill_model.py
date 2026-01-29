@@ -62,7 +62,8 @@ class DistillationModel(nn.Module):
                 student_soft_logits = F.log_softmax(student_logits / temperature, dim=1)
 
                 # Distillation loss (Kullback-Leibler divergence)
-                distillation_loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (temperature**2)
+                loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (temperature**2)
+                distillation_loss = loss / teacher_logits.shape[-1]  # divide the number of anchors
             elif distill_cls_loss == "sigmoid":
                 loss = F.binary_cross_entropy_with_logits(
                     student_logits / temperature,
@@ -131,7 +132,7 @@ class DistillationModel(nn.Module):
                             self.loss_kl(
                                 teacher_feat["scores"], student_feat["scores"], distill_cls_loss=self.distill_cls_loss
                             ) * self.student_model.args.dis
-                        ) / teacher_feat["scores"].shape[-1]  # divide the number of anchors
+                        )
                     if self.distill_box_loss:
                         loss_distill_box += (
                             self.loss_cosine(teacher_feat["boxes"], student_feat["boxes"])

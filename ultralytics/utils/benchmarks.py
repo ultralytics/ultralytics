@@ -45,6 +45,7 @@ import torch.cuda
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
+from ultralytics.utils.export import onnx2engine
 from ultralytics.utils import ARM64, ASSETS, ASSETS_URL, IS_JETSON, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
 from ultralytics.utils.checks import IS_PYTHON_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
@@ -472,6 +473,13 @@ class ProfileModels:
             elif file.suffix == ".onnx":
                 model_info = self.get_onnx_model_info(file)
                 onnx_file = file
+                if self.trt and self.device.type != "cpu" and not engine_file.is_file():
+                    engine_file = onnx2engine(
+                        onnx_file=str(onnx_file),
+                        half=self.half,
+                        imgsz=self.imgsz,
+                        device=self.device,
+                    )
             else:
                 continue
 

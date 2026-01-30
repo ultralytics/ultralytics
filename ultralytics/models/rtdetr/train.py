@@ -286,5 +286,8 @@ class RTDETRTrainer(DetectionTrainer):
             loss_names.append("fgl_loss")
         if "ddf" in loss_gain:
             loss_names.append("ddf_loss")
+        # Add o2m loss names if one_to_many_groups > 0
+        if getattr(self.model.model[-1], "one_to_many_groups", 0) > 0:
+            loss_names.extend(["giou_o2m", "cls_o2m", "l1_o2m"])
         self.loss_names = tuple(loss_names)
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

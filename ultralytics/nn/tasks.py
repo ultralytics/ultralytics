@@ -950,9 +950,9 @@ class RTDETRDetectionModel(DetectionModel):
                 loss_o2m_kwargs["dfine_meta"] = dfine_meta_o2m
             loss_o2m = self.criterion((o2m_bboxes, o2m_scores), targets_o2m, **loss_o2m_kwargs)
             # Combine losses (o2m with lower weight)
-            o2m_weight = 0.5
-            for k in loss:
-                loss[k] = loss[k] + o2m_weight * loss_o2m[k]
+            o2m_weight = 1.0
+            for k in ["loss_giou", "loss_class", "loss_bbox"]:
+                loss[f"{k}_o2m"] = loss_o2m[k] * o2m_weight
 
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show enabled losses.
         loss_keys = ["loss_giou", "loss_class", "loss_bbox"]
@@ -960,8 +960,15 @@ class RTDETRDetectionModel(DetectionModel):
             loss_keys.append("loss_fgl")
         if getattr(self.criterion, "ddf_gain", 0.0) > 0:
             loss_keys.append("loss_ddf")
-        if getattr(self.criterion, "mal_gain", 0.0) > 0:
-            loss_keys.append("loss_mal")
+        # Add o2m losses for debugging if configured (fill with zeros during validation)
+        # Check head attribute directly since dn_meta is None during validation
+        head_o2m_groups = getattr(self.model[-1], "one_to_many_groups", 0)
+        if head_o2m_groups > 0:
+            loss_keys.extend(["loss_giou_o2m", "loss_class_o2m", "loss_bbox_o2m"])
+            # Fill with zeros if not training (o2m only computed during training)
+            if not self.training:
+                for k in ["loss_giou_o2m", "loss_class_o2m", "loss_bbox_o2m"]:
+                    loss[k] = torch.tensor(0.0, device=img.device)
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in loss_keys], device=img.device)
 
     def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):

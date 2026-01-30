@@ -10,7 +10,7 @@ import torch
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR, LINUX
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp, check_requirements
 from ultralytics.utils.torch_utils import TORCH_1_13
@@ -91,7 +91,9 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 )
 def test_export_engine_matrix(task, dynamic, int8, half, batch):
     """Test YOLO model export to TensorRT format for various configurations and run inference."""
-    check_requirements("tensorrt>=7.0.0,!=10.1.0")
+    if LINUX:
+        cuda_version = torch.version.cuda.split(".")[0]
+        check_requirements(f"tensorrt-cu{cuda_version}>7.0.0,!=10.1.0")
     import tensorrt as trt
 
     is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10

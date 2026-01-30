@@ -50,7 +50,7 @@ class DistillationModel(nn.Module):
         for branch in self.distill_branch:
             assert branch in {"one2one", "one2many"}
 
-    def loss_kl(self, teacher_logits, student_logits, temperature: float = 5, distill_cls_loss: str = "softmax"):
+    def loss_kl(self, student_logits, teacher_logits, temperature: float = 5, distill_cls_loss: str = "softmax"):
         """The KL divergence loss for knowledge distillation."""
         from ultralytics.utils.torch_utils import autocast
 
@@ -138,7 +138,7 @@ class DistillationModel(nn.Module):
                             student_logits = student_logits[fg_mask]
                         loss_distill_cls += (
                             self.loss_kl(
-                                teacher_logits, student_logits, distill_cls_loss=self.distill_cls_loss
+                                student_logits, teacher_logits, distill_cls_loss=self.distill_cls_loss
                             ) * self.student_model.args.dis
                         )
                     if self.distill_box_loss:
@@ -151,9 +151,9 @@ class DistillationModel(nn.Module):
                             teacher_boxes = teacher_boxes[fg_mask]  # (n, c)
                             student_boxes = student_boxes[fg_mask]
                         loss_distill_box += (
-                            self.loss_cosine(teacher_boxes, student_boxes)
+                            self.loss_cosine(student_boxes, teacher_boxes)
                             if self.distill_box_loss == "cos"
-                            else F.l1_loss(teacher_boxes, student_boxes).mean()
+                            else F.l1_loss(student_boxes, teacher_boxes).mean()
                         ) * self.student_model.args.dis
             else:
                 student_feat = (
@@ -161,15 +161,15 @@ class DistillationModel(nn.Module):
                     if student_feat.ndim == 4
                     else student_feat
                 )
-                loss_distill += self.loss_cosine(teacher_feat, student_feat) * self.student_model.args.dis
-                # loss_distill += self.loss_kl(teacher_feat, student_feat) * self.student_model.args.dis
+                loss_distill += self.loss_cosine(student_feat, teacher_feat) * self.student_model.args.dis
+                # loss_distill += self.loss_kl(student_feat, teacher_feat) * self.student_model.args.dis
 
         loss_distill_detach = (loss_distill + loss_distill_cls + loss_distill_box).detach()
         batch_size = batch["img"].shape[0]
         loss_distill += loss_distill_cls + loss_distill_box
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill_detach])
 
-    def loss_cosine(self, teacher_feat, student_feat):
+    def loss_cosine(self, student_feat, teacher_feat):
         """Compute cosine similarity loss between teacher and student features."""
         if student_feat.ndim == 4:
             student_feat = student_feat.flatten(2).permute(0, 2, 1)

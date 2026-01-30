@@ -42,37 +42,21 @@ class DistillationModel(nn.Module):
         copy_attr(self, student_model)
         self.distill_box_loss = self.student_model.args.distill_box_loss
         self.distill_cls_loss = self.student_model.args.distill_cls_loss
+        self.distill_feature_loss = self.student_model.args.distill_feature_loss
         self.distill_area = self.student_model.args.distill_area
         self.distill_branch = self.student_model.args.distill_branch
         self.distill_branch = self.student_model.args.distill_branch.split(",")
-        assert self.distill_box_loss in {"cos", "l1", None}, f"distill_box_loss must be 'cos', 'l1', or None, got {self.distill_box_loss}"
-        assert self.distill_cls_loss in {"softmax", "sigmoid", None}, f"distill_cls_loss must be 'softmax', 'sigmoid', or None, got {self.distill_cls_loss}"
         for branch in self.distill_branch:
             assert branch in {"one2one", "one2many"}
 
-    def loss_kl(self, student_logits, teacher_logits, temperature: float = 5, distill_cls_loss: str = "softmax"):
+    def loss_kl(self, student_logits, teacher_logits, temperature: float = 5.0):
         """The KL divergence loss for knowledge distillation."""
-        from ultralytics.utils.torch_utils import autocast
+        soft_targets = F.softmax(teacher_logits / temperature, dim=1)  # train does not have softmax
+        student_soft_logits = F.log_softmax(student_logits / temperature, dim=1)
 
-        with autocast(enabled=False):
-            teacher_logits = teacher_logits.float()
-            student_logits = student_logits.float()
-
-            if distill_cls_loss == "softmax":
-                soft_targets = F.softmax(teacher_logits / temperature, dim=1)  # train does not have softmax
-                student_soft_logits = F.log_softmax(student_logits / temperature, dim=1)
-
-                # Distillation loss (Kullback-Leibler divergence)
-                loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (temperature**2)
-                distillation_loss = loss / teacher_logits.shape[-1]  # divide the number of anchors
-            elif distill_cls_loss == "sigmoid":
-                distillation_loss = F.binary_cross_entropy_with_logits(
-                    student_logits / temperature,
-                    torch.sigmoid(teacher_logits / temperature),
-                    reduction='mean'
-                ) * (temperature ** 2)
-            else:
-                raise ValueError(f"Unknown kd_cls: {distill_cls_loss}")
+        # Distillation loss (Kullback-Leibler divergence)
+        loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (temperature**2)
+        distillation_loss = loss / teacher_logits.shape[-1]  # divide the number of anchors
         return distillation_loss
 
     def forward(self, x, *args, **kwargs):
@@ -111,9 +95,9 @@ class DistillationModel(nn.Module):
 
         regular_loss, regular_loss_detach, targets = self.student_model.loss(batch, preds, return_targets=True)
 
-        loss_distill = torch.zeros(1, device=batch["img"].device)
         loss_distill_cls = torch.zeros(1, device=batch["img"].device)
         loss_distill_box = torch.zeros(1, device=batch["img"].device)
+        loss_distill_feature = torch.zeros(1, device=batch["img"].device)
         for i, feat_idx in enumerate(self.feats_idx):
             # handle head ouput
             teacher_feat = self.decouple_outputs(teacher_feats[i])
@@ -136,11 +120,7 @@ class DistillationModel(nn.Module):
                             fg_mask = targets[branch][0]
                             teacher_logits = teacher_logits[fg_mask]  # (n, c)
                             student_logits = student_logits[fg_mask]
-                        loss_distill_cls += (
-                            self.loss_kl(
-                                student_logits, teacher_logits, distill_cls_loss=self.distill_cls_loss
-                            ) * self.student_model.args.dis
-                        )
+                        loss_distill_cls += self.cls_kd_loss(student_logits, teacher_logits) * self.student_model.args.dis
                     if self.distill_box_loss:
                         teacher_boxes = teacher_feat["boxes"]
                         student_boxes = student_feat["boxes"]
@@ -150,23 +130,19 @@ class DistillationModel(nn.Module):
                             fg_mask = targets[branch][0]
                             teacher_boxes = teacher_boxes[fg_mask]  # (n, c)
                             student_boxes = student_boxes[fg_mask]
-                        loss_distill_box += (
-                            self.loss_cosine(student_boxes, teacher_boxes)
-                            if self.distill_box_loss == "cos"
-                            else F.l1_loss(student_boxes, teacher_boxes).mean()
-                        ) * self.student_model.args.dis
+                        loss_distill_box += self.box_kd_loss(student_boxes, teacher_boxes) * self.student_model.args.dis
             else:
-                student_feat = (
-                    self.projector[i](student_feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
-                    if student_feat.ndim == 4
-                    else student_feat
-                )
-                loss_distill += self.loss_cosine(student_feat, teacher_feat) * self.student_model.args.dis
-                # loss_distill += self.loss_kl(student_feat, teacher_feat) * self.student_model.args.dis
+                if self.distill_feature_loss:
+                    student_feat = (
+                        self.projector[i](student_feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+                        if student_feat.ndim == 4
+                        else student_feat
+                    )
+                    loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat) * self.student_model.args.dis
 
-        loss_distill_detach = (loss_distill + loss_distill_cls + loss_distill_box).detach()
+        loss_distill_detach = (loss_distill_cls + loss_distill_box + loss_distill_feature).detach()
         batch_size = batch["img"].shape[0]
-        loss_distill += loss_distill_cls + loss_distill_box
+        loss_distill = loss_distill_cls + loss_distill_box + loss_distill_feature
         return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill_detach])
 
     def loss_cosine(self, student_feat, teacher_feat):
@@ -180,6 +156,43 @@ class DistillationModel(nn.Module):
         cos_sim = F.cosine_similarity(student_feat, teacher_feat, dim=-1)
         loss = (1 - cos_sim).mean()
         return loss
+
+    def box_kd_loss(self, student_boxes, teacher_boxes):
+        if self.distill_box_loss == "cos":
+            return self.loss_cosine(student_boxes, teacher_boxes)
+        elif self.distill_box_loss == "l1":
+            return F.l1_loss(student_boxes, teacher_boxes).mean()
+        elif self.distill_box_loss == "l2":
+            return F.mse_loss(student_boxes, teacher_boxes).mean()
+        else:
+            raise ValueError(f"Unknown box distillation loss: {self.distill_box_loss}")
+
+    def cls_kd_loss(self, student_logits, teacher_logits, temperature=5.0):
+        from ultralytics.utils.torch_utils import autocast
+        with autocast(enabled=False):
+            student_logits = student_logits.float()
+            teacher_logits = teacher_logits.float()
+            if self.distill_cls_loss == "softmax":
+                return self.loss_kl(student_logits, teacher_logits, temperature)
+            elif self.distill_cls_loss == "sigmoid":
+                distillation_loss = F.binary_cross_entropy_with_logits(
+                        student_logits / temperature,
+                        torch.sigmoid(teacher_logits / temperature),
+                        reduction='mean'
+                    ) * (temperature ** 2)
+                return distillation_loss
+            else:
+                raise ValueError(f"Unknown cls distillation loss: {self.distill_cls_loss}")
+
+    def feature_kd_loss(self, student_feat, teacher_feat):
+        if self.distill_feature_loss == "cos":
+            return self.loss_cosine(student_feat, teacher_feat)
+        elif self.distill_feature_loss == "l1":
+            return F.l1_loss(student_feat, teacher_feat).mean()
+        elif self.distill_feature_loss == "l2":
+            return F.mse_loss(student_feat, teacher_feat).mean()
+        else:
+            raise ValueError(f"Unknown box distillation loss: {self.distill_feature_loss}")
 
     @property
     def criterion(self):

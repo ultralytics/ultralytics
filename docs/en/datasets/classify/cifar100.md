@@ -67,7 +67,7 @@ To train a YOLO model on the CIFAR-100 dataset for 100 [epochs](https://www.ultr
 
 The CIFAR-100 dataset contains color images of various objects, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/cifar100-sample-image.avif)
+![CIFAR-100 image classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/cifar100-sample-image.avif)
 
 The example showcases the variety and complexity of the objects in the CIFAR-100 dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 

@@ -1776,7 +1776,7 @@ class CopyPaste(BaseMixTransform):
         instances.convert_bbox(format="xyxy")
         instances.denormalize(w, h)
 
-        im_new = np.zeros(im.shape, np.uint8)
+        im_new = np.zeros(im.shape[:2], np.uint8)
         instances2 = labels2.pop("instances", None)
         if instances2 is None:
             instances2 = deepcopy(instances)
@@ -1789,7 +1789,7 @@ class CopyPaste(BaseMixTransform):
         for j in indexes[: round(self.p * n)]:
             cls = np.concatenate((cls, labels2.get("cls", cls)[[j]]), axis=0)
             instances = Instances.concatenate((instances, instances2[[j]]), axis=0)
-            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
+            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, 1, cv2.FILLED)
 
         result = labels2.get("img", cv2.flip(im, 1))  # augment segments
         if result.ndim == 2:  # cv2.flip would eliminate the last dimension for grayscale images
@@ -2097,7 +2097,15 @@ class Format:
                 if self.mask_overlap:
                     sem_masks = cls_tensor[masks[0].long() - 1]  # (H, W) from (1, H, W) instance indices
                 else:
+                    # Create sem_masks consistent with mask_overlap=True
                     sem_masks = (masks * cls_tensor[:, None, None]).max(0).values  # (H, W) from (N, H, W) binary
+                    overlap = masks.sum(dim=0) > 1  # (H, W)
+                    if overlap.any():
+                        weights = masks.sum(axis=(1, 2))
+                        weighted_masks = masks * weights[:, None, None]  # (N, H, W)
+                        weighted_masks[masks == 0] = weights.max() + 1  # handle background
+                        smallest_idx = weighted_masks.argmin(dim=0)  # (H, W)
+                        sem_masks[overlap] = cls_tensor[smallest_idx[overlap]]
             else:
                 masks = torch.zeros(
                     1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio

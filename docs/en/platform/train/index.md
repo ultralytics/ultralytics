@@ -57,18 +57,26 @@ Ultralytics Platform supports multiple training approaches:
 
 Available GPUs for cloud training:
 
-| GPU       | VRAM | Performance | Cost     |
-| --------- | ---- | ----------- | -------- |
-| RTX 3090  | 24GB | Good        | $0.44/hr |
-| RTX 4090  | 24GB | Excellent   | $0.74/hr |
-| L40S      | 48GB | Very Good   | $1.14/hr |
-| A100 40GB | 40GB | Excellent   | $1.29/hr |
-| A100 80GB | 80GB | Excellent   | $1.99/hr |
-| H100 80GB | 80GB | Best        | $3.99/hr |
+| Tier       | GPU          | VRAM   | Cost/Hour | Best For                   |
+| ---------- | ------------ | ------ | --------- | -------------------------- |
+| Budget     | RTX A2000    | 6 GB   | $0.12     | Small datasets, testing    |
+| Budget     | RTX 3080     | 10 GB  | $0.25     | Medium datasets            |
+| Budget     | RTX 3080 Ti  | 12 GB  | $0.30     | Medium datasets            |
+| Budget     | A30          | 24 GB  | $0.44     | Larger batch sizes         |
+| Mid        | L4           | 24 GB  | $0.54     | Inference optimized        |
+| Mid        | RTX 4090     | 24 GB  | $0.60     | Great price/performance    |
+| Mid        | A6000        | 48 GB  | $0.90     | Large models               |
+| Mid        | L40S         | 48 GB  | $1.72     | Large batch training       |
+| Pro        | A100 40GB    | 40 GB  | $2.78     | Production training        |
+| Pro        | A100 80GB    | 80 GB  | $3.44     | Very large models          |
+| Pro        | RTX PRO 6000 | 48 GB  | $3.68     | Ultralytics infrastructure |
+| Pro        | H100         | 80 GB  | $5.38     | Fastest training           |
+| Enterprise | H200         | 141 GB | $5.38     | Maximum performance        |
+| Enterprise | B200         | 192 GB | $10.38    | Largest models             |
 
-!!! tip "Free Training"
+!!! tip "Signup Credits"
 
-    New accounts receive credits for training. Check [Billing](../account/billing.md) for details.
+    New accounts receive signup credits for training. Check [Billing](../account/billing.md) for details.
 
 ## Real-Time Metrics
 
@@ -96,7 +104,7 @@ Training time depends on:
 - Number of epochs
 - GPU type selected
 
-A typical training run with 1000 images, YOLO11n, 100 epochs on RTX 4090 takes about 30-60 minutes.
+A typical training run with 1000 images, YOLO26n, 100 epochs on RTX 4090 takes about 30-60 minutes.
 
 ### Can I train multiple models simultaneously?
 

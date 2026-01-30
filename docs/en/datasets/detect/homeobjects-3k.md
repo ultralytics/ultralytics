@@ -102,7 +102,7 @@ You can train a YOLO26n model on the HomeObjects-3K dataset for 100 epochs using
 
 The dataset features a rich collection of indoor scene images that capture a wide range of household objects in natural home environments. Below are sample visuals from the dataset, each paired with its corresponding annotations to illustrate object positions, scales, and spatial relationships.
 
-![HomeObjects-3K dataset sample image, highlighting different objects i.e, beds, chair, door, sofas, and plants](https://github.com/ultralytics/docs/releases/download/0/homeobjects-3k-dataset-sample.avif)
+![HomeObjects-3K dataset sample with household objects](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/homeobjects-3k-dataset-sample.avif)
 
 ## License and Attribution
 

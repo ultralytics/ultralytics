@@ -11,7 +11,7 @@ keywords: YOLO26, SAHI, Sliced Inference, Object Detection, Ultralytics, High-re
 Welcome to the Ultralytics documentation on how to use YOLO26 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). This comprehensive guide aims to furnish you with all the essential knowledge you'll need to implement SAHI alongside YOLO26. We'll deep-dive into what SAHI is, why sliced inference is critical for large-scale applications, and how to integrate these functionalities with YOLO26 for enhanced [object detection](https://www.ultralytics.com/glossary/object-detection) performance.
 
 <p align="center">
-  <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/sahi-sliced-inference-overview.avif" alt="SAHI Sliced Inference Overview">
+  <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sahi-sliced-inference-overview.avif" alt="SAHI tiled inference for small objects">
 </p>
 
 ## Introduction to SAHI
@@ -53,8 +53,8 @@ Sliced Inference refers to the practice of subdividing a large or high-resolutio
     <th>YOLO26 with SAHI</th>
   </tr>
   <tr>
-    <td><img src="https://github.com/ultralytics/docs/releases/download/0/yolov8-without-sahi.avif" alt="YOLO26 without SAHI" width="640"></td>
-    <td><img src="https://github.com/ultralytics/docs/releases/download/0/yolov8-with-sahi.avif" alt="YOLO26 with SAHI" width="640"></td>
+    <td><img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov8-without-sahi.avif" alt="YOLO26 without SAHI" width="640"></td>
+    <td><img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov8-with-sahi.avif" alt="YOLO26 with SAHI" width="640"></td>
   </tr>
 </table>
 

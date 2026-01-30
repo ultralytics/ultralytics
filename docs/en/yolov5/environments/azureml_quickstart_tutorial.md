@@ -29,7 +29,7 @@ A compute instance in AzureML provides a managed cloud-based workstation for dat
 3.  Go to the **Compute instances** tab and click **New**.
 4.  Configure your instance by selecting the appropriate CPU or [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) resources based on your needs for training or inference.
 
-<img width="1741" alt="create-compute-arrow" src="https://github.com/ultralytics/docs/releases/download/0/create-compute-arrow.avif">
+<img width="1741" alt="Azure ML create compute instance interface" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/create-compute-arrow.avif">
 
 ## Open a Terminal
 
@@ -39,7 +39,7 @@ Once your compute instance is running, you can access its terminal directly from
 2.  Find your compute instance in the top dropdown menu.
 3.  Click on the **Terminal** option below the file browser to open a command-line interface to your instance.
 
-![open-terminal-arrow](https://github.com/ultralytics/docs/releases/download/0/open-terminal-arrow.avif)
+![Azure ML open terminal button location](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/open-terminal-arrow.avif)
 
 ## Setup and Run YOLOv5
 

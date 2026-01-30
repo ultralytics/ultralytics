@@ -132,17 +132,15 @@ class YOLOEPETrainer(DetectionTrainer):
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
         # NOTE: Following the official config, nc hard-coded to 80 for now.
         model = YOLOEModel(
-            cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
-            ch=self.data["channels"],
-            nc=self.data["nc"],
-            verbose=verbose and RANK == -1,
+            cfg["yaml_file"] if isinstance(cfg, dict) else cfg
         )
 
-        del model.model[-1].savpe
 
         assert weights is not None, "Pretrained weights must be provided for linear probing."
         if weights:
             model.load(weights)
+
+        del model.model[-1].savpe
 
         model.eval()
         names = list(self.data["names"].values())

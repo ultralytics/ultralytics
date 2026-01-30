@@ -108,9 +108,12 @@ topk: 10
 hungarian: False
 end2end: True
 distill_box_loss: "cos"  # distill box loss, could be cos(cosine loss) or l1(l1 loss)
+distill_box: 1.5
 distill_branch: "one2one"  # distill branch, could be "one2one", "one2many", "one2one, one2many"
 distill_cls_loss: "softmax"  # distill class loss, could be "softmax" or "sigmoid"
+distill_cls: 5
 distill_feature_loss: "l2"  # distill feature loss, could be cos(cosine loss) or l1(l1 loss) or l2(l2 loss)
+distill_feature: 7.5
 distill_model: # (str, optional) path to teacher model for knowledge distillation
 distill_layer: # (int) the layer index to distill features from
 distill_area: # (str) the area to distill head from, could be "main", "all"

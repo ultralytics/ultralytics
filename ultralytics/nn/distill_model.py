@@ -43,6 +43,9 @@ class DistillationModel(nn.Module):
         self.distill_box_loss = self.student_model.args.distill_box_loss
         self.distill_cls_loss = self.student_model.args.distill_cls_loss
         self.distill_feature_loss = self.student_model.args.distill_feature_loss
+        self.distill_box = self.student_model.args.distill_box
+        self.distill_cls = self.student_model.args.distill_cls
+        self.distill_feature = self.student_model.args.distill_feature
         self.distill_area = self.student_model.args.distill_area
         self.distill_branch = self.student_model.args.distill_branch
         self.distill_branch = self.student_model.args.distill_branch.split(",")
@@ -138,7 +141,7 @@ class DistillationModel(nn.Module):
                         if student_feat.ndim == 4
                         else student_feat
                     )
-                    loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat) * self.student_model.args.dis
+                    loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat) * self.distill_feature
 
         loss_distill_detach = (loss_distill_cls + loss_distill_box + loss_distill_feature).detach()
         batch_size = batch["img"].shape[0]

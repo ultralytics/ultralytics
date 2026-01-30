@@ -1,0 +1,69 @@
+# Contract: stereo3ddet_full.yaml Configuration Schema
+# Purpose: Define the expected structure and validation rules for the refactored config
+
+# YAML Schema Contract for stereo3ddet_full.yaml
+
+required_sections:
+  - parameters
+  - backbone
+  - head
+  - inference
+  - geometric_construction
+  - dense_alignment
+  - occlusion
+  - training
+
+parameters:
+  stereo: 
+    type: boolean
+    required: true
+    value: true
+  input_channels:
+    type: integer
+    required: true
+    value: 6
+  nc:
+    type: integer
+    required: true
+    min: 1
+    default: 3
+
+backbone:
+  type: list
+  required: true
+  min_items: 1
+  first_layer_constraints:
+    module: "StereoConv"
+    args_pattern: [out_channels, kernel_size, stride]
+    out_channels: integer
+    min: 32
+  subsequent_layers:
+    allowed_modules:
+      - Conv
+      - C3k2
+      - SPPF
+      - C2PSA
+    channel_flow: "Must maintain consistent channel progression"
+
+head:
+  type: list
+  required: true
+  min_items: 1
+  structure:
+    - neck_layers: "FPN-style upsampling and concatenation"
+    - detection_head: "Must end with StereoCenterNetHead"
+  last_layer_constraints:
+    module: "StereoCenterNetHead"
+    args_pattern: [num_classes, in_channels]
+    in_channels: 256  # Must match output of previous layer
+
+validation_rules:
+  - "First backbone layer must be StereoConv"
+  - "Head must end with StereoCenterNetHead"
+  - "Channel dimensions must be consistent between connected layers"
+  - "Layer indices in 'from' field must reference valid previous layers"
+
+compatibility:
+  trainer_override: "Stereo3DDetTrainer.get_model() may override this config"
+  purpose: "Documentation and potential future model builder integration"
+

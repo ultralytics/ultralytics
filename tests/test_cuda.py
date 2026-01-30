@@ -10,7 +10,7 @@ import torch
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR, LINUX
+from ultralytics.utils import ASSETS, IS_JETSON, LINUX, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp, check_requirements
 from ultralytics.utils.torch_utils import TORCH_1_13

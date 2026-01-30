@@ -12,7 +12,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
-from ultralytics.utils.checks import check_amp
+from ultralytics.utils.checks import check_amp, check_tensorrt
 from ultralytics.utils.torch_utils import TORCH_1_13
 
 # Try to find idle devices if CUDA is available
@@ -91,6 +91,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 )
 def test_export_engine_matrix(task, dynamic, int8, half, batch):
     """Test YOLO model export to TensorRT format for various configurations and run inference."""
+    check_tensorrt()
     import tensorrt as trt
 
     is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10

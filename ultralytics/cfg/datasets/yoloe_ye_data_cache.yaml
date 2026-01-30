@@ -1,0 +1,17 @@
+
+
+
+
+train:
+  grounding_data:
+    - img_path: /data/shared-datasets/yoloe26_data/flickr/full_images/
+      json_file: /data/shared-datasets/yoloe26_data/flickr/pipeline_outputs/v4/merged.engine1.cache
+    - img_path: /data/shared-datasets/yoloe26_data/mixed_grounding/gqa/images
+      json_file: /data/shared-datasets/yoloe26_data/mixed_grounding/pipeline_outputs/v4/merged.engine1.cache
+    - img_path: /data/shared-datasets/yoloe26_data/Objects365v1/images/train
+      json_file: /data/shared-datasets/yoloe26_data/Objects365v1/pipeline_outputs/train/v4/merged.engine1.cache
+    - img_path: /data/shared-datasets/yoloe26_data/yolo-enterprise/images/train
+      json_file: /data/shared-datasets/yoloe26_data/yolo-enterprise/pipeline_outputs/train/v5/merged_simplified.engine1.cache
+val:
+  yolo_data:
+    - ../datasets/lvis.yaml

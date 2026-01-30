@@ -253,8 +253,7 @@ class TargetGenerator:
         targets["dimensions"][:, center_y_int, center_x_int] = torch.tensor(dim_offset)
 
         # 7. Orientation (Multi-Bin encoding - Paper Section 3.1)
-        orientation_target = self._encode_orientation(alpha)
-        targets["orientation"][:, center_y_int, center_x_int] = orientation_target
+        targets["orientation"][:, center_y_int, center_x_int] = encode_orientation(alpha)
 
         # ============================================================
         # 8-10. Vertices (Paper Section 3.1 and Figure 4)
@@ -473,58 +472,103 @@ class TargetGenerator:
             vertices_2d.append((u, v))
         return vertices_2d
 
-    def _encode_orientation(self, alpha: float) -> torch.Tensor:
-        """Encode orientation angle into Multi-Bin format.
 
-        Multi-Bin encoding (2 bins) as described in Paper Section 3.1:
-        - Bin 0: α ∈ [-π, 0], center = -π/2
-        - Bin 1: α ∈ [0, π], center = +π/2
+def compute_dimension_offset(
+    dims: tuple[float, float, float],
+    class_id: int,
+    mean_dims: dict,
+    std_dims: dict,
+) -> torch.Tensor:
+    """Compute normalized dimension offset [ΔH, ΔW, ΔL] for 3D detection.
 
-        The residual angle is encoded as (sin, cos) for each bin.
+    The offset is computed as (dim - mean) / std for each dimension,
+    following the paper's approach for stable training.
 
-        Output format: [conf_0, conf_1, sin_0, cos_0, sin_1, cos_1, pad, pad]
+    Args:
+        dims: Object dimensions as (length, width, height) in meters.
+        class_id: Integer class ID for looking up mean/std values.
+        mean_dims: Dict mapping class_id -> [mean_L, mean_W, mean_H].
+        std_dims: Dict mapping class_id -> [std_L, std_W, std_H].
 
-        Args:
-            alpha: Observation angle in radians, range [-π, π].
+    Returns:
+        Tensor of shape [3] with normalized offsets [ΔH, ΔW, ΔL].
+    """
+    mean_dim = mean_dims.get(class_id, [1.0, 1.0, 1.0])
+    std_dim = std_dims.get(class_id, [0.2, 0.2, 0.5])
+    return torch.tensor(
+        [
+            (dims[2] - mean_dim[2]) / std_dim[2],  # height
+            (dims[1] - mean_dim[1]) / std_dim[1],  # width
+            (dims[0] - mean_dim[0]) / std_dim[0],  # length
+        ],
+        dtype=torch.float32,
+    )
 
-        Returns:
-            Orientation encoding tensor of shape [8].
-        """
-        # Normalize alpha to [-π, π]
-        alpha = math.atan2(math.sin(alpha), math.cos(alpha))
 
-        # Determine bin based on angle sign
-        if alpha < 0:
-            bin_idx = 0
-            bin_center = -math.pi / 2
-        else:
-            bin_idx = 1
-            bin_center = math.pi / 2
+def encode_orientation(alpha: float) -> torch.Tensor:
+    """Encode orientation angle into Multi-Bin format.
 
-        # Compute residual angle within bin
-        residual = alpha - bin_center
+    Multi-Bin encoding (2 bins) as described in Paper Section 3.1:
+    - Bin 0: α ∈ [-π, 0], center = -π/2
+    - Bin 1: α ∈ [0, π], center = +π/2
 
-        # Initialize encoding
-        encoding = torch.zeros(8)
+    The residual angle is encoded as (sin, cos) for each bin.
 
-        # Set bin confidence (one-hot encoding)
-        encoding[0] = 1.0 if bin_idx == 0 else 0.0
-        encoding[1] = 1.0 if bin_idx == 1 else 0.0
+    Output format: [conf_0, conf_1, sin_0, cos_0, sin_1, cos_1, pad, pad]
 
-        # Set sin/cos for the active bin only
-        sin_val = math.sin(residual)
-        cos_val = math.cos(residual)
+    Args:
+        alpha: Observation angle in radians, range [-π, π].
 
-        if bin_idx == 0:
-            encoding[2] = sin_val  # sin_0
-            encoding[3] = cos_val  # cos_0
-        else:
-            encoding[4] = sin_val  # sin_1
-            encoding[5] = cos_val  # cos_1
+    Returns:
+        Orientation encoding tensor of shape [8].
+    """
+    # Normalize alpha to [-π, π]
+    alpha = math.atan2(math.sin(alpha), math.cos(alpha))
 
-        # Channels 6-7 are padding (remain 0)
+    # Determine bin based on angle sign
+    if alpha < 0:
+        bin_idx = 0
+        bin_center = -math.pi / 2
+    else:
+        bin_idx = 1
+        bin_center = math.pi / 2
 
-        return encoding
+    # Compute residual angle within bin
+    residual = alpha - bin_center
+
+    # Initialize encoding
+    encoding = torch.zeros(8, dtype=torch.float32)
+
+    # Set bin confidence (one-hot encoding)
+    encoding[0] = 1.0 if bin_idx == 0 else 0.0
+    encoding[1] = 1.0 if bin_idx == 1 else 0.0
+
+    # Set sin/cos for the active bin only
+    if bin_idx == 0:
+        encoding[2] = math.sin(residual)
+        encoding[3] = math.cos(residual)
+    else:
+        encoding[4] = math.sin(residual)
+        encoding[5] = math.cos(residual)
+
+    # Channels 6-7 are padding (remain 0)
+    return encoding
+
+
+def compute_alpha_from_rotation_y(rotation_y: float, x_3d: float, z_3d: float) -> float:
+    """Compute observation angle alpha from rotation_y and 3D position.
+
+    Args:
+        rotation_y: Global yaw angle in radians.
+        x_3d: X coordinate in camera frame (meters).
+        z_3d: Z coordinate (depth) in camera frame (meters).
+
+    Returns:
+        Alpha (observation angle) in radians, normalized to [-π, π].
+    """
+    ray_angle = math.atan2(x_3d, z_3d)
+    alpha = rotation_y - ray_angle
+    return math.atan2(math.sin(alpha), math.cos(alpha))
 
 
 def compute_perspective_keypoints(

@@ -20,7 +20,12 @@ from ultralytics.models.yolo.stereo3ddet.augment import (
     StereoLetterBox,
 )
 from ultralytics.utils import DEFAULT_CFG, LOGGER
-from ultralytics.data.stereo.target_improved import TargetGenerator
+from ultralytics.data.stereo.target_improved import (
+    TargetGenerator,
+    compute_alpha_from_rotation_y,
+    compute_dimension_offset,
+    encode_orientation,
+)
 import math
 
 def _to_hw(imgsz: int | tuple[int, int] | list[int]) -> tuple[int, int]:
@@ -1066,49 +1071,18 @@ class Stereo3DDetDataset(BaseDataset):
                 rw_list.append(torch.tensor([right_w_feat], dtype=torch.float32))
 
                 # -------------------------
-                # 3D aux targets (object-level, reused from TargetGenerator logic)
+                # 3D aux targets (using shared utilities from target_improved)
                 # -------------------------
                 dims = dimensions_3d[j]  # [length, width, height] in meters
-                # mean_dims now uses integer keys (class_id) instead of string keys (class_name)
-                mean_dim = mean_dims.get(cls_i, [1.0, 1.0, 1.0])
-                std_dim = std_dims.get(cls_i, [0.2, 0.2, 0.5])
-                # [ΔH, ΔW, ΔL]
-                dim_offset = torch.tensor(
-                    [
-                        float(dims[2] - mean_dim[2]) / std_dim[2],  # height
-                        float(dims[1] - mean_dim[1]) / std_dim[1],  # width
-                        float(dims[0] - mean_dim[0]) / std_dim[0],  # length
-                    ],
-                    dtype=torch.float32,
-                )
-                dim_list.append(dim_offset)
+                dim_list.append(compute_dimension_offset(tuple(dims), cls_i, mean_dims, std_dims))
 
-                # Orientation encoding (8-d) using same encoding as target generator
+                # Orientation encoding (8-d Multi-Bin format)
                 rot_y = float(rotation_y[j])
                 loc_3d = location_3d[j]
                 x_3d = float(loc_3d[0])
                 z_3d = float(loc_3d[2])
-                ray_angle = math.atan2(x_3d, z_3d)
-                alpha = rot_y - ray_angle
-                alpha = math.atan2(math.sin(alpha), math.cos(alpha))
-                # 2-bin encoding: [conf0, conf1, sin0, cos0, sin1, cos1, pad, pad]
-                enc = torch.zeros(8, dtype=torch.float32)
-                if alpha < 0:
-                    bin_idx = 0
-                    bin_center = -math.pi / 2
-                else:
-                    bin_idx = 1
-                    bin_center = math.pi / 2
-                residual = alpha - bin_center
-                enc[0] = 1.0 if bin_idx == 0 else 0.0
-                enc[1] = 1.0 if bin_idx == 1 else 0.0
-                if bin_idx == 0:
-                    enc[2] = math.sin(residual)
-                    enc[3] = math.cos(residual)
-                else:
-                    enc[4] = math.sin(residual)
-                    enc[5] = math.cos(residual)
-                ori_list.append(enc)
+                alpha = compute_alpha_from_rotation_y(rot_y, x_3d, z_3d)
+                ori_list.append(encode_orientation(alpha))
 
                 # Vertices targets as object-level offsets relative to object center (normalized by feature map size)
                 # We reuse the same projection logic by calling into the target generator, then extracting computed values.
@@ -1192,47 +1166,9 @@ class Stereo3DDetDataset(BaseDataset):
                 padded[bi, : t.shape[0]] = t
             aux_targets[k] = padded
 
-        # Reconstruct labels_list from instances and stereo data for backward compatibility
-        labels_list = []
-        for i, b in enumerate(batch):
-            instances = b.get("instances")
-            cls_array = b.get("cls", np.array([], dtype=np.int64))
-            right_bboxes = b.get("right_bboxes", np.zeros((0, 4), dtype=np.float32))
-            dimensions_3d = b.get("dimensions_3d", np.zeros((0, 3), dtype=np.float32))
-            location_3d = b.get("location_3d", np.zeros((0, 3), dtype=np.float32))
-            rotation_y = b.get("rotation_y", np.zeros((0,), dtype=np.float32))
-            stereo_labels = b.get("stereo_labels", [])
-            
-            if instances is not None and len(instances) > 0:
-                instances.convert_bbox(format="xywh")
-                bboxes_xywh = instances.bboxes
-                n = len(instances)
-                
-                image_labels = []
-                for j in range(n):
-                    if j < len(stereo_labels):
-                        # Use original stereo_labels if available
-                        image_labels.append(stereo_labels[j])
-                    else:
-                        # Reconstruct dict format
-                        cx, cy, bw, bh = bboxes_xywh[j]
-                        right_cx, right_cy, right_bw, right_bh = right_bboxes[j] if j < len(right_bboxes) else [0, 0, 0, 0]
-                        dims = dimensions_3d[j] if j < len(dimensions_3d) else [1, 1, 1]
-                        loc_3d = location_3d[j] if j < len(location_3d) else [0, 0, 1]
-                        rot_y = rotation_y[j] if j < len(rotation_y) else 0.0
-                        
-                        image_labels.append({
-                            "class_id": int(cls_array[j]),
-                            "left_box": {"center_x": float(cx), "center_y": float(cy), "width": float(bw), "height": float(bh)},
-                            "right_box": {"center_x": float(right_cx), "center_y": float(right_cy), "width": float(right_bw), "height": float(right_bh)},
-                            "dimensions": {"length": float(dims[0]), "width": float(dims[1]), "height": float(dims[2])},
-                            "location_3d": {"x": float(loc_3d[0]), "y": float(loc_3d[1]), "z": float(loc_3d[2])},
-                            "rotation_y": float(rot_y),
-                        })
-                labels_list.append(image_labels)
-            else:
-                labels_list.append([])
-        
+        # Use stereo_labels directly (already in dict format from dataset)
+        labels_list = [b.get("stereo_labels", []) for b in batch]
+
         return {
             "img": imgs,
             "labels": labels_list,  # Keep labels for metrics computation

@@ -1,9 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from __future__ import annotations
-
 from ultralytics.cfg import TASK2DATA, TASK2METRIC, get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, NUM_THREADS, checks, colorstr
+
+# wandb-only keys that should NOT be forwarded to model.train()
+WANDB_ONLY_KEYS = {"entity"}
 
 
 def run_ray_tune(
@@ -81,6 +82,9 @@ def run_ray_tune(
         "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)
     }
 
+    # Extract wandb-only kwargs from train_args to avoid forwarding to model.train()
+    wandb_kwargs = {k: train_args.pop(k) for k in WANDB_ONLY_KEYS if k in train_args}
+
     # Put the model in ray store
     task = model.task
     model_in_store = ray.put(model)
@@ -128,8 +132,19 @@ def run_ray_tune(
         reduction_factor=3,
     )
 
-    # Define the callbacks for the hyperparameter search
-    tuner_callbacks = [WandbLoggerCallback(project="YOLOv8-tune")] if wandb else []
+    # Define wandb callback with precedence: active wandb.run > train_args/wandb_kwargs > default
+    tuner_callbacks = []
+    if wandb:
+        wandb_project = (
+            wandb.run.project if wandb.run else None
+        ) or train_args.get("project") or "YOLOv8-tune"
+        wandb_entity = (
+            wandb.run.entity if wandb.run else None
+        ) or wandb_kwargs.get("entity")
+        cb_kwargs = {"project": wandb_project}
+        if wandb_entity:
+            cb_kwargs["entity"] = wandb_entity
+        tuner_callbacks = [WandbLoggerCallback(**cb_kwargs)]
 
     # Create the Ray Tune hyperparameter search tuner
     tune_dir = get_save_dir(

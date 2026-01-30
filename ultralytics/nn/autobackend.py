@@ -274,6 +274,7 @@ class AutoBackend(nn.Module):
                 session = onnxruntime.InferenceSession(w, session_options, providers=["CPUExecutionProvider"])
 
             output_names = [x.name for x in session.get_outputs()]
+            input_name = session.get_inputs()[0].name  # Store the actual input name
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
             fp16 = "float16" in session.get_inputs()[0].type
@@ -375,6 +376,7 @@ class AutoBackend(nn.Module):
 
             bindings = OrderedDict()
             output_names = []
+            input_name = None  # Store the input tensor name
             fp16 = False  # default updated below
             dynamic = False
             is_trt10 = not hasattr(model, "num_bindings")
@@ -396,6 +398,7 @@ class AutoBackend(nn.Module):
 
                 # Process input/output tensors
                 if is_input:
+                    input_name = name  # Store the actual input name
                     if -1 in shape:
                         dynamic = True
                         if is_trt10:
@@ -720,7 +723,7 @@ class AutoBackend(nn.Module):
                 if not self.cuda:
                     im = im.cpu()
                 self.io.bind_input(
-                    name="images",
+                    name=self.input_name,
                     device_type=im.device.type,
                     device_id=im.device.index if im.device.type == "cuda" else 0,
                     element_type=np.float16 if self.fp16 else np.float32,
@@ -731,7 +734,7 @@ class AutoBackend(nn.Module):
                 y = self.bindings
             else:
                 im = im.cpu().numpy()  # torch to numpy
-                y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
+                y = self.session.run(self.output_names, {self.input_name: im})
             if self.imx:
                 if self.task == "detect":
                     # boxes, conf, cls
@@ -771,23 +774,23 @@ class AutoBackend(nn.Module):
 
         # TensorRT
         elif self.engine:
-            if self.dynamic and im.shape != self.bindings["images"].shape:
+            if self.dynamic and im.shape != self.bindings[self.input_name].shape:
                 if self.is_trt10:
-                    self.context.set_input_shape("images", im.shape)
-                    self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
+                    self.context.set_input_shape(self.input_name, im.shape)
+                    self.bindings[self.input_name] = self.bindings[self.input_name]._replace(shape=im.shape)
                     for name in self.output_names:
                         self.bindings[name].data.resize_(tuple(self.context.get_tensor_shape(name)))
                 else:
-                    i = self.model.get_binding_index("images")
+                    i = self.model.get_binding_index(self.input_name)
                     self.context.set_binding_shape(i, im.shape)
-                    self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
+                    self.bindings[self.input_name] = self.bindings[self.input_name]._replace(shape=im.shape)
                     for name in self.output_names:
                         i = self.model.get_binding_index(name)
                         self.bindings[name].data.resize_(tuple(self.context.get_binding_shape(i)))
 
-            s = self.bindings["images"].shape
+            s = self.bindings[self.input_name].shape
             assert im.shape == s, f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
-            self.binding_addrs["images"] = int(im.data_ptr())
+            self.binding_addrs[self.input_name] = int(im.data_ptr())
             self.context.execute_v2(list(self.binding_addrs.values()))
             y = [self.bindings[x].data for x in sorted(self.output_names)]
 

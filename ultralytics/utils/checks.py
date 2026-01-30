@@ -154,12 +154,14 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
             raise ValueError(f"imgsz={imgsz} is not a valid image size. {msg}")
         LOGGER.warning(f"updating to 'imgsz={max(imgsz)}'. {msg}")
         imgsz = [max(imgsz)]
-    # Make image size a multiple of the stride
-    sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
-
-    # Print warning message if image size was updated
-    if sz != imgsz:
-        LOGGER.warning(f"imgsz={imgsz} must be multiple of max stride {stride}, updating to {sz}")
+    # Make image size a multiple of the stride (skip if stride is 1)
+    if stride > 1:
+        sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
+        # Print warning message if image size was updated
+        if sz != imgsz:
+            LOGGER.warning(f"imgsz={imgsz} must be multiple of max stride {stride}, updating to {sz}")
+    else:
+        sz = imgsz  # No rounding when stride is 1
 
     # Add missing dimensions if necessary
     sz = [sz[0], sz[0]] if min_dim == 2 and len(sz) == 1 else sz[0] if min_dim == 1 and len(sz) == 1 else sz

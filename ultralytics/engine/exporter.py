@@ -401,7 +401,7 @@ class Exporter:
                 raise ValueError(
                     "IMX export only supported for detection, pose estimation, classification, and segmentation models."
                 )
-        if coreml: # check if nms=True or not
+        if coreml:  # check if nms=True or not
             if self.args.agnostic_nms and not self.args.nms and model.task == "detect":
                 LOGGER.info("CoreML export with agnostic_nms=True requires nms=True, setting nms=True.")
                 self.args.nms = True
@@ -1399,7 +1399,7 @@ class Exporter:
         nms.confidenceThresholdInputFeatureName = "confidenceThreshold"
         nms.iouThreshold = self.args.iou
         nms.confidenceThreshold = self.args.conf
-        nms.pickTop.perClass = not bool(self.args.agnostic_nms) # True=per-class, False=all-class
+        nms.pickTop.perClass = not bool(self.args.agnostic_nms)  # True=per-class, False=all-class
         nms.stringClassLabels.vector.extend(names.values())
         nms_model = ct.models.MLModel(nms_spec)
 

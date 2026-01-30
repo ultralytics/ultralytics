@@ -1,0 +1,9 @@
+
+
+
+train:
+  yolo_data:
+    - coco128.yaml
+val:
+  yolo_data:
+    - coco128.yaml

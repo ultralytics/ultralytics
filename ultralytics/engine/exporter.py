@@ -110,6 +110,7 @@ from ultralytics.utils.checks import (
     check_executorch_requirements,
     check_imgsz,
     check_requirements,
+    check_tensorrt,
     check_version,
     is_intel,
     is_sudo_available,
@@ -1005,9 +1006,7 @@ class Exporter:
         try:
             import tensorrt as trt
         except ImportError:
-            if LINUX:
-                cuda_version = torch.version.cuda.split(".")[0]
-                check_requirements(f"tensorrt-cu{cuda_version}>7.0.0,!=10.1.0")
+            check_tensorrt()
             import tensorrt as trt
         check_version(trt.__version__, ">=7.0.0", hard=True)
         check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")

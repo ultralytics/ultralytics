@@ -23,9 +23,9 @@
 
 **Purpose**: Add required module imports so `parse_model()` can resolve `StereoCenterNetHead` and `StereoConv`
 
-- [X] T001 Add `StereoCenterNetHead` import to `ultralytics/nn/tasks.py` from `ultralytics.nn.modules`
-- [X] T002 Add `StereoConv` import to `ultralytics/nn/tasks.py` from `ultralytics.nn.modules`
-- [X] T003 Verify imports are available in `globals()` for `parse_model()` resolution in `ultralytics/nn/tasks.py`
+- [x] T001 Add `StereoCenterNetHead` import to `ultralytics/nn/tasks.py` from `ultralytics.nn.modules`
+- [x] T002 Add `StereoConv` import to `ultralytics/nn/tasks.py` from `ultralytics.nn.modules`
+- [x] T003 Verify imports are available in `globals()` for `parse_model()` resolution in `ultralytics/nn/tasks.py`
 
 **Checkpoint**: Module imports ready - `parse_model()` can now resolve stereo modules
 
@@ -39,17 +39,17 @@
 
 ### Backbone Section
 
-- [X] T004 [P] Replace TorchVision ResNet18 backbone with YOLO11-style backbone in `ultralytics/cfg/models/stereo3ddet_full.yaml` (copy from `yolo11-obb.yaml:18-30`)
-- [X] T005 Replace first `Conv` layer with `StereoConv` for 6-channel input in `ultralytics/cfg/models/stereo3ddet_full.yaml` backbone section
-- [X] T006 Verify backbone layer indices match `yolo11-obb.yaml` structure (layers 0-10) in `ultralytics/cfg/models/stereo3ddet_full.yaml`
+- [x] T004 [P] Replace TorchVision ResNet18 backbone with YOLO11-style backbone in `ultralytics/cfg/models/stereo3ddet_full.yaml` (copy from `yolo11-obb.yaml:18-30`)
+- [x] T005 Replace first `Conv` layer with `StereoConv` for 6-channel input in `ultralytics/cfg/models/stereo3ddet_full.yaml` backbone section
+- [x] T006 Verify backbone layer indices match `yolo11-obb.yaml` structure (layers 0-10) in `ultralytics/cfg/models/stereo3ddet_full.yaml`
 
 ### Head Section (PAN Neck)
 
-- [X] T007 [P] Add PAN neck top-down path (like `yolo11-obb.yaml:34-40`) to head section in `ultralytics/cfg/models/stereo3ddet_full.yaml`
-- [X] T008 Add PAN neck bottom-up path (like `yolo11-obb.yaml:42-48`) to head section in `ultralytics/cfg/models/stereo3ddet_full.yaml`
-- [X] T009 Replace `Detect` head with `StereoCenterNetHead` in `ultralytics/cfg/models/stereo3ddet_full.yaml` (single-scale P3: `[[16], 1, StereoCenterNetHead, [nc, 256]]`)
-- [X] T010 Verify layer indices and skip connections match `yolo11-obb.yaml` structure in `ultralytics/cfg/models/stereo3ddet_full.yaml`
-- [X] T011 Preserve all existing config sections (inference, geometric_construction, dense_alignment, occlusion, training) in `ultralytics/cfg/models/stereo3ddet_full.yaml`
+- [x] T007 [P] Add PAN neck top-down path (like `yolo11-obb.yaml:34-40`) to head section in `ultralytics/cfg/models/stereo3ddet_full.yaml`
+- [x] T008 Add PAN neck bottom-up path (like `yolo11-obb.yaml:42-48`) to head section in `ultralytics/cfg/models/stereo3ddet_full.yaml`
+- [x] T009 Replace `Detect` head with `StereoCenterNetHead` in `ultralytics/cfg/models/stereo3ddet_full.yaml` (single-scale P3: `[[16], 1, StereoCenterNetHead, [nc, 256]]`)
+- [x] T010 Verify layer indices and skip connections match `yolo11-obb.yaml` structure in `ultralytics/cfg/models/stereo3ddet_full.yaml`
+- [x] T011 Preserve all existing config sections (inference, geometric_construction, dense_alignment, occlusion, training) in `ultralytics/cfg/models/stereo3ddet_full.yaml`
 
 **Checkpoint**: Config structure matches `yolo11-obb.yaml` with stereo-specific modifications
 
@@ -61,11 +61,11 @@
 
 **Dependencies**: Requires Phase 2 (config refactoring)
 
-- [X] T012 Remove prototype override behavior in `Stereo3DDetTrainer.get_model()` in `ultralytics/models/yolo/stereo3ddet/train.py`
-- [X] T013 Implement YAML-based model building following `PoseTrainer.get_model()` pattern in `ultralytics/models/yolo/stereo3ddet/train.py`
-- [X] T014 Call `Stereo3DDetModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose)` in `ultralytics/models/yolo/stereo3ddet/train.py`
-- [X] T015 Handle weights loading if provided in `ultralytics/models/yolo/stereo3ddet/train.py`
-- [X] T016 Add verbose logging for model initialization in `ultralytics/models/yolo/stereo3ddet/train.py`
+- [x] T012 Remove prototype override behavior in `Stereo3DDetTrainer.get_model()` in `ultralytics/models/yolo/stereo3ddet/train.py`
+- [x] T013 Implement YAML-based model building following `PoseTrainer.get_model()` pattern in `ultralytics/models/yolo/stereo3ddet/train.py`
+- [x] T014 Call `Stereo3DDetModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose)` in `ultralytics/models/yolo/stereo3ddet/train.py`
+- [x] T015 Handle weights loading if provided in `ultralytics/models/yolo/stereo3ddet/train.py`
+- [x] T016 Add verbose logging for model initialization in `ultralytics/models/yolo/stereo3ddet/train.py`
 
 **Checkpoint**: Trainer builds model from YAML config (production-ready approach)
 
@@ -77,10 +77,10 @@
 
 **Dependencies**: Requires Phase 1 (imports) and Phase 2 (config)
 
-- [X] T017 [P] Verify `Stereo3DDetModel.__init__()` properly handles YAML config with `StereoCenterNetHead` in `ultralytics/models/yolo/stereo3ddet/model.py`
-- [X] T018 Verify `parse_model()` correctly instantiates `StereoCenterNetHead` from YAML in `ultralytics/nn/tasks.py`
-- [X] T019 Test model instantiation from refactored config in `tests/test_stereo3ddet_config.py`
-- [X] T020 Verify model forward pass works with `StereoCenterNetHead` from YAML in `tests/test_stereo3ddet_config.py`
+- [x] T017 [P] Verify `Stereo3DDetModel.__init__()` properly handles YAML config with `StereoCenterNetHead` in `ultralytics/models/yolo/stereo3ddet/model.py`
+- [x] T018 Verify `parse_model()` correctly instantiates `StereoCenterNetHead` from YAML in `ultralytics/nn/tasks.py`
+- [x] T019 Test model instantiation from refactored config in `tests/test_stereo3ddet_config.py`
+- [x] T020 Verify model forward pass works with `StereoCenterNetHead` from YAML in `tests/test_stereo3ddet_config.py`
 
 **Checkpoint**: Model can be built and run from YAML config
 
@@ -92,14 +92,14 @@
 
 **Dependencies**: Requires all previous phases
 
-- [X] T021 [P] Create test to verify config can be loaded via `yaml_model_load()` in `tests/test_stereo3ddet_config.py`
-- [X] T022 [P] Create test to verify backbone structure matches `yolo11-obb.yaml` (with `StereoConv` first layer) in `tests/test_stereo3ddet_config.py`
-- [X] T023 [P] Create test to verify PAN neck structure matches `yolo11-obb.yaml:34-48` in `tests/test_stereo3ddet_config.py`
-- [X] T024 [P] Create test to verify head uses `StereoCenterNetHead` instead of `Detect` in `tests/test_stereo3ddet_config.py`
-- [X] T025 [P] Create test to verify model can be instantiated from config in `tests/test_stereo3ddet_config.py`
-- [X] T026 [P] Create test to verify model forward pass produces 10-branch output in `tests/test_stereo3ddet_config.py`
-- [X] T027 Verify all existing config sections are preserved in `ultralytics/cfg/models/stereo3ddet_full.yaml`
-- [X] T028 Test training can start with refactored config in `tests/test_stereo3ddet_training.py`
+- [x] T021 [P] Create test to verify config can be loaded via `yaml_model_load()` in `tests/test_stereo3ddet_config.py`
+- [x] T022 [P] Create test to verify backbone structure matches `yolo11-obb.yaml` (with `StereoConv` first layer) in `tests/test_stereo3ddet_config.py`
+- [x] T023 [P] Create test to verify PAN neck structure matches `yolo11-obb.yaml:34-48` in `tests/test_stereo3ddet_config.py`
+- [x] T024 [P] Create test to verify head uses `StereoCenterNetHead` instead of `Detect` in `tests/test_stereo3ddet_config.py`
+- [x] T025 [P] Create test to verify model can be instantiated from config in `tests/test_stereo3ddet_config.py`
+- [x] T026 [P] Create test to verify model forward pass produces 10-branch output in `tests/test_stereo3ddet_config.py`
+- [x] T027 Verify all existing config sections are preserved in `ultralytics/cfg/models/stereo3ddet_full.yaml`
+- [x] T028 Test training can start with refactored config in `tests/test_stereo3ddet_training.py`
 
 **Checkpoint**: Config validated and model works end-to-end
 
@@ -180,14 +180,14 @@ Phase 5: Validation & Testing (T021-T028)
 
 ## Summary
 
-| Metric | Value |
-|--------|-------|
-| **Total Tasks** | 28 |
-| **Setup Phase** | 3 tasks |
-| **Config Refactoring** | 8 tasks |
-| **Trainer Modification** | 5 tasks |
-| **Model Compatibility** | 4 tasks |
-| **Validation & Testing** | 8 tasks |
+| Metric                     | Value               |
+| -------------------------- | ------------------- |
+| **Total Tasks**            | 28                  |
+| **Setup Phase**            | 3 tasks             |
+| **Config Refactoring**     | 8 tasks             |
+| **Trainer Modification**   | 5 tasks             |
+| **Model Compatibility**    | 4 tasks             |
+| **Validation & Testing**   | 8 tasks             |
 | **Parallel Opportunities** | 10 tasks marked [P] |
 
 **MVP Scope**: Phase 1 + Phase 2 + Phase 3 = 16 tasks for core refactoring

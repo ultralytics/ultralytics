@@ -6,6 +6,7 @@
 ## Overview
 
 The `stereo3ddet_full.yaml` config has been refactored to:
+
 - Use YOLO11-style backbone (exactly like `yolo11-obb.yaml`) with `StereoConv` for 6-channel input
 - Include PAN-style neck (Path Aggregation Network, like `yolo11-obb.yaml:34-48`) for feature refinement
 - Use correct `StereoCenterNetHead` instead of placeholder `Detect` head
@@ -14,37 +15,39 @@ The `stereo3ddet_full.yaml` config has been refactored to:
 ## Key Changes
 
 ### Before (Placeholder)
+
 ```yaml
 backbone:
   - [-1, 1, TorchVision, [512, resnet18, DEFAULT, True, 2]]
 head:
   - [-1, 1, Conv, [256, 3, 1]]
   - [-1, 1, Conv, [256, 3, 1]]
-  - [[-1], 1, Detect, [nc]]  # ❌ Wrong head
+  - [[-1], 1, Detect, [nc]] # ❌ Wrong head
 ```
 
 ### After (Correct - follows `yolo11-obb.yaml` structure)
+
 ```yaml
 backbone:
   # Exactly like yolo11-obb.yaml:18-30, but first layer uses StereoConv
-  - [-1, 1, StereoConv, [64, 3, 2]]  # ✅ 6-channel input (was Conv in yolo11-obb.yaml)
+  - [-1, 1, StereoConv, [64, 3, 2]] # ✅ 6-channel input (was Conv in yolo11-obb.yaml)
   # ... rest same as yolo11-obb.yaml:21-30 ...
 head:
   # PAN neck - top-down then bottom-up (like yolo11-obb.yaml:34-48)
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # Top-down path
-  - [[-1, 6], 1, Concat, [1]]  # cat backbone P4
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # Top-down path
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
   - [-1, 2, C3k2, [512, False]]
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
-  - [[-1, 4], 1, Concat, [1]]  # cat backbone P3
-  - [-1, 2, C3k2, [256, False]]  # P3 output
-  - [-1, 1, Conv, [256, 3, 2]]  # Bottom-up path
-  - [[-1, 13], 1, Concat, [1]]  # cat head P4
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 2, C3k2, [256, False]] # P3 output
+  - [-1, 1, Conv, [256, 3, 2]] # Bottom-up path
+  - [[-1, 13], 1, Concat, [1]] # cat head P4
   - [-1, 2, C3k2, [512, False]]
   - [-1, 1, Conv, [512, 3, 2]]
-  - [[-1, 10], 1, Concat, [1]]  # cat head P5
+  - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 2, C3k2, [1024, True]]
   # Detection head (replaces OBB in yolo11-obb.yaml)
-  - [[16], 1, StereoCenterNetHead, [nc, 256]]  # ✅ Correct head (single-scale P3)
+  - [[16], 1, StereoCenterNetHead, [nc, 256]] # ✅ Correct head (single-scale P3)
 ```
 
 ## Usage
@@ -91,7 +94,7 @@ Outputs: heatmap, offset, bbox_size, lr_distance, right_width,
 
 1. **Trainer Modification**: `Stereo3DDetTrainer.get_model()` will be modified to build `Stereo3DDetModel` from YAML config (production-ready approach, following PoseTrainer/OBBTrainer pattern)
 
-2. **Channel Flow** (follows `yolo11-obb.yaml` exactly): 
+2. **Channel Flow** (follows `yolo11-obb.yaml` exactly):
    - Input: 6 channels
    - After StereoConv: 64 channels
    - Backbone: 64 → 128 → 256 → 512 → 1024 (P1 → P2 → P3 → P4 → P5)
@@ -121,4 +124,3 @@ assert config["head"][-1][2] == "StereoCenterNetHead"
 2. 🔄 Modify `Stereo3DDetTrainer.get_model()` to build from YAML config
 3. 🔄 Add `StereoCenterNetHead` and `StereoConv` imports to `tasks.py`
 4. 🔄 Add tests to verify config can be parsed correctly and model builds successfully
-

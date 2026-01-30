@@ -14,7 +14,7 @@
 - Q: Which photometric error method should be the primary implementation for dense alignment? → A: Support both NCC and SAD with zero-mean normalization, with NCC as the default. This provides flexibility for ablation studies.
 - Q: At what confidence score threshold should detections proceed to 3D refinement? → A: Configurable threshold with 0.3 as default. This allows tuning for different use cases while matching standard KITTI evaluation practices.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Accurate 3D Box Estimation via Geometric Construction (Priority: P1)
 
@@ -126,20 +126,16 @@ As an ML researcher training the model, I need the multi-task loss to automatica
 
 - What happens when geometric construction fails to converge within max iterations?
   - Fallback to simple stereo triangulation result
-  
 - How does the system handle objects at extreme depths (very close < 2m or very far > 70m)?
   - Apply depth clipping and mark as low confidence
-  
 - What happens when stereo baseline information is missing from calibration?
   - Raise clear error during model initialization, not at inference time
-  
 - How does dense alignment behave when left/right images have significant exposure differences?
   - Use normalized cross-correlation (NCC) which is robust to brightness changes
-  
 - What happens when all detected objects are classified as occluded?
   - All objects skip dense alignment; geometric construction results are used directly
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -195,7 +191,7 @@ As an ML researcher training the model, I need the multi-task loss to automatica
 
 - **Box3D**: 3D bounding box representation containing center (x, y, z), dimensions (l, w, h), and orientation (θ).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

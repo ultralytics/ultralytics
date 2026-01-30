@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Contract: stereo3ddet_full.yaml Configuration Schema
 # Purpose: Define the expected structure and validation rules for the refactored config
 
@@ -14,7 +16,7 @@ required_sections:
   - training
 
 parameters:
-  stereo: 
+  stereo:
     type: boolean
     required: true
     value: true
@@ -55,7 +57,7 @@ head:
   last_layer_constraints:
     module: "StereoCenterNetHead"
     args_pattern: [num_classes, in_channels]
-    in_channels: 256  # Must match output of previous layer
+    in_channels: 256 # Must match output of previous layer
 
 validation_rules:
   - "First backbone layer must be StereoConv"
@@ -66,4 +68,3 @@ validation_rules:
 compatibility:
   trainer_override: "Stereo3DDetTrainer.get_model() may override this config"
   purpose: "Documentation and potential future model builder integration"
-

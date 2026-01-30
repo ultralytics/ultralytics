@@ -348,11 +348,15 @@ class v8DetectionLoss:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         return self.loss(self.parse_output(preds), batch)
 
-    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor], return_targets=False) -> tuple[torch.Tensor, torch.Tensor]:
         """A wrapper for get_assigned_targets_and_loss and parse_output."""
         batch_size = preds["boxes"].shape[0]
-        loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)[1:]
-        return loss * batch_size, loss_detach
+        if return_targets:
+            targets, loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)
+            return loss * batch_size, loss_detach, targets
+        else:
+            loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)[1:]
+            return loss * batch_size, loss_detach
 
 
 class v8SegmentationLoss(v8DetectionLoss):
@@ -799,12 +803,14 @@ class E2ELoss:
             self.o2o = 1.0
             self.o2m = 1.0
 
-    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor], **kwargs) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = self.one2many.parse_output(preds)
         one2many, one2one = preds["one2many"], preds["one2one"]
-        loss_one2many = self.one2many.loss(one2many, batch)
-        loss_one2one = self.one2one.loss(one2one, batch)
+        loss_one2many = self.one2many.loss(one2many, batch, **kwargs)
+        loss_one2one = self.one2one.loss(one2one, batch, **kwargs)
+        if kwargs.get("return_targets", True):
+            return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1], {"one2many": loss_one2many[2], "one2one": loss_one2one[2]}
         return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
 
     def update(self) -> None:

@@ -42,6 +42,7 @@ class DistillationModel(nn.Module):
         copy_attr(self, student_model)
         self.distill_box_loss = self.student_model.args.distill_box_loss
         self.distill_cls_loss = self.student_model.args.distill_cls_loss
+        self.distill_area = self.student_model.args.distill_area
         self.distill_branch = self.student_model.args.distill_branch
         self.distill_branch = self.student_model.args.distill_branch.split(",")
         assert self.distill_box_loss in {"cos", "l1", None}, f"distill_box_loss must be 'cos', 'l1', or None, got {self.distill_box_loss}"
@@ -65,12 +66,11 @@ class DistillationModel(nn.Module):
                 loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (temperature**2)
                 distillation_loss = loss / teacher_logits.shape[-1]  # divide the number of anchors
             elif distill_cls_loss == "sigmoid":
-                loss = F.binary_cross_entropy_with_logits(
+                distillation_loss = F.binary_cross_entropy_with_logits(
                     student_logits / temperature,
                     torch.sigmoid(teacher_logits / temperature),
-                    reduction='sum'
+                    reduction='mean'
                 ) * (temperature ** 2)
-                distillation_loss = loss / (teacher_logits.shape[0] * teacher_logits.shape[1])
             else:
                 raise ValueError(f"Unknown kd_cls: {distill_cls_loss}")
         return distillation_loss
@@ -109,7 +109,7 @@ class DistillationModel(nn.Module):
             teacher_feats = self.teacher_model(batch["img"], embed=self.feats_idx, direct_return=True)
         preds, feats = self.student_model(batch["img"], return_feats=True)
 
-        regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
+        regular_loss, regular_loss_detach, targets = self.student_model.loss(batch, preds, return_targets=True)
 
         loss_distill = torch.zeros(1, device=batch["img"].device)
         loss_distill_cls = torch.zeros(1, device=batch["img"].device)
@@ -128,16 +128,32 @@ class DistillationModel(nn.Module):
                     student_feat = self.decouple_outputs(feats[feat_idx], branch=branch)
                     assert "boxes" in teacher_feat and "scores" in teacher_feat
                     if self.distill_cls_loss:
+                        teacher_logits = teacher_feat["scores"]
+                        student_logits = student_feat["scores"]
+                        if self.distill_area == "main":
+                            teacher_logits = teacher_logits.permute(0, 2, 1).contiguous()  # (bs, c, anchors) -> (bs, anchors, c)
+                            student_logits = student_logits.permute(0, 2, 1).contiguous()
+                            fg_mask = targets[branch][0]
+                            teacher_logits = teacher_logits[fg_mask]  # (n, c)
+                            student_logits = student_logits[fg_mask]
                         loss_distill_cls += (
                             self.loss_kl(
-                                teacher_feat["scores"], student_feat["scores"], distill_cls_loss=self.distill_cls_loss
+                                teacher_logits, student_logits, distill_cls_loss=self.distill_cls_loss
                             ) * self.student_model.args.dis
                         )
                     if self.distill_box_loss:
+                        teacher_boxes = teacher_feat["boxes"]
+                        student_boxes = student_feat["boxes"]
+                        if self.distill_area == "main":
+                            teacher_boxes = teacher_boxes.permute(0, 2, 1).contiguous()  # (bs, c, anchors) -> (bs, anchors, c)
+                            student_boxes = student_boxes.permute(0, 2, 1).contiguous()
+                            fg_mask = targets[branch][0]
+                            teacher_boxes = teacher_boxes[fg_mask]  # (n, c)
+                            student_boxes = student_boxes[fg_mask]
                         loss_distill_box += (
-                            self.loss_cosine(teacher_feat["boxes"], student_feat["boxes"])
+                            self.loss_cosine(teacher_boxes, student_boxes)
                             if self.distill_box_loss == "cos"
-                            else F.l1_loss(teacher_feat["boxes"], student_feat["boxes"]).mean()
+                            else F.l1_loss(teacher_boxes, student_boxes).mean()
                         ) * self.student_model.args.dis
             else:
                 student_feat = (

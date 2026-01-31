@@ -339,7 +339,7 @@ class AutoBackend(nn.Module):
                 batch = metadata["batch"]
                 dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
-            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 and dynamic else "LATENCY"
+            inference_mode = "CUMULATIVE_THROUGHPUT" if dynamic and batch > 1 else "LATENCY"
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name=device_name,

@@ -81,15 +81,22 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         >>> on_predict_postprocess_end(predictor, persist=True)
     """
     is_obb = predictor.args.task == "obb"
+    is_semseg = predictor.args.task == "semseg"
     is_stream = predictor.dataset.mode == "stream"
+
     for i, result in enumerate(predictor.results):
         tracker = predictor.trackers[i if is_stream else 0]
         vid_path = predictor.save_dir / Path(result.path).name
         if not persist and predictor.vid_path[i if is_stream else 0] != vid_path:
             tracker.reset()
             predictor.vid_path[i if is_stream else 0] = vid_path
+        if is_obb:
+            det = result.obb.cpu().numpy()
+        elif is_semseg:
+            continue
+        else:
+            det = result.boxes.cpu().numpy()
 
-        det = (result.obb if is_obb else result.boxes).cpu().numpy()
         tracks = tracker.update(det, result.orig_img, getattr(result, "feats", None))
         if len(tracks) == 0:
             continue

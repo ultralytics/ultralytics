@@ -17,7 +17,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
-from ultralytics.nn.autobackend import check_class_names
+from ultralytics.nn.autobackend import check_class_colors, check_class_names
 from ultralytics.utils import (
     ASSETS_URL,
     DATASETS_DIR,
@@ -477,6 +477,105 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     return data  # dictionary
 
 
+def check_semseg_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
+    """Download, verify, and/or unzip a dataset if not found locally.
+
+    This function checks the availability of a specified dataset, and if not found, it has the option to download and
+    unzip the dataset. It then reads and parses the accompanying YAML data, ensuring key requirements are met and also
+    resolves paths related to the dataset.
+
+    Args:
+        dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
+        autodownload (bool, optional): Whether to automatically download the dataset if not found.
+
+    Returns:
+        (dict[str, Any]): Parsed dataset information and paths.
+    """
+    file = check_file(dataset)
+
+    # Download (optional)
+    extract_dir = ""
+    if zipfile.is_zipfile(file) or is_tarfile(file):
+        new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
+        file = find_dataset_yaml(DATASETS_DIR / new_dir)
+        extract_dir, autodownload = file.parent, False
+
+    # Read YAML
+    data = YAML.load(file, append_filename=True)  # dictionary
+
+    # assert color must be existed
+    if "colors" not in data:
+        raise ValueError("Semantic segmentation datasets must define 'colors' in dataset YAML.")
+    check_class_colors(data["colors"])
+    # Checks
+    for k in "train", "val":
+        if k not in data:
+            if k != "val" or "validation" not in data:
+                raise SyntaxError(
+                    emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs.")
+                )
+            LOGGER.warning("renaming data YAML 'validation' key to 'val' to match YOLO format.")
+            data["val"] = data.pop("validation")  # replace 'validation' key with 'val' key
+    if "names" not in data and "nc" not in data:
+        raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+    if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
+        raise SyntaxError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
+    if "names" not in data:
+        data["names"] = [f"class_{i}" for i in range(data["nc"])]
+    else:
+        data["nc"] = len(data["names"])
+
+    data["names"] = check_class_names(data["names"])
+    data["colors"] = check_class_colors(data["colors"])
+    data["channels"] = data.get("channels", 3)  # get image channels, default to 3
+
+    # Resolve paths
+    path = Path(extract_dir or data.get("path") or Path(data.get("yaml_file", "")).parent)  # dataset root
+    if not path.exists() and not path.is_absolute():
+        path = (DATASETS_DIR / path).resolve()  # path relative to DATASETS_DIR
+
+    # Set paths
+    data["path"] = path  # download scripts
+    for k in "train", "val", "test", "minival":
+        if data.get(k):  # prepend path
+            if isinstance(data[k], str):
+                x = (path / data[k]).resolve()
+                if not x.exists() and data[k].startswith("../"):
+                    x = (path / data[k][3:]).resolve()
+                data[k] = str(x)
+            else:
+                data[k] = [str((path / x).resolve()) for x in data[k]]
+
+    # Parse YAML
+    val, s = (data.get(x) for x in ("val", "download"))
+    if val:
+        val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
+        if not all(x.exists() for x in val):
+            name = clean_url(dataset)  # dataset name with URL auth stripped
+            LOGGER.info("")
+            m = f"Dataset '{name}' images not found, missing path '{next(x for x in val if not x.exists())}'"
+            if s and autodownload:
+                LOGGER.warning(m)
+            else:
+                m += f"\nNote dataset download directory is '{DATASETS_DIR}'. You can update this in '{SETTINGS_FILE}'"
+                raise FileNotFoundError(m)
+            t = time.time()
+            r = None  # success
+            if s.startswith("http") and s.endswith(".zip"):  # URL
+                safe_download(url=s, dir=DATASETS_DIR, delete=True)
+            elif s.startswith("bash "):  # bash script
+                LOGGER.info(f"Running {s} ...")
+                subprocess.run(s.split(), check=True)
+            else:  # python script
+                exec(s, {"yaml": data})
+            dt = f"({round(time.time() - t, 1)}s)"
+            s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in {0, None} else f"failure {dt} ❌"
+            LOGGER.info(f"Dataset download {s}\n")
+    check_font("Arial.ttf" if is_ascii(data["names"]) else "Arial.Unicode.ttf")  # download fonts
+
+    return data  # dictionary
+
+
 def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     """Check a classification dataset such as Imagenet.
 
@@ -796,3 +895,105 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writable, cache not saved.")
+
+
+def mask2polygon(mask):
+    """Get polygon from mask."""
+    mask_gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY) if len(mask.shape) == 3 and mask.shape[2] == 3 else mask
+    _, mask_gray = cv2.threshold(mask_gray, 125, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(mask_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    polygons = []
+    for c in contours:
+        area = cv2.contourArea(c)
+        if area > 10:
+            polygons.append(c[:, 0, :].astype(np.float32))
+
+    return polygons
+
+
+def get_boundingbox_from_polygons(polygons, format="xyxy"):
+    """Get bounding box of polygons."""
+    bboxes = []
+    for polygon in polygons:
+        x_min, y_min, x_max, y_max = polygon[:, 0].min(), polygon[:, 1].min(), polygon[:, 0].max(), polygon[:, 1].max()
+        w, h = x_max - x_min, y_max - y_min
+        if format == "xywh":
+            bboxes.append([x_min + 0.5 * w, y_min + 0.5 * h, w, h])
+        elif format == "xyxy":
+            bboxes.append(
+                [
+                    x_min,
+                    y_min,
+                    x_min + w,
+                    y_min + h,
+                ]
+            )
+        elif format == "ltwh":
+            bboxes.append([x_min, y_min, w, h])
+    return np.array(bboxes).astype(np.float32)
+
+
+def verify_image_and_mask(args: tuple) -> list:
+    """Verify image and its mask."""
+    im_file, lb_file, colors, prefix, _keypoint, num_cls, _nkpt, _ndim = args
+    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
+    try:
+        image = cv2.imread(im_file)
+        assert image is not None
+        img_shape = image.shape
+
+        # verify mask
+        mask = cv2.imread(lb_file)
+        if mask is None:
+            nm = 1
+            raise FileNotFoundError("Mask file is not existed")
+
+        msk_shape = mask.shape
+        assert msk_shape == img_shape
+
+        mask_b = mask[:, :, 0]
+        mask_g = mask[:, :, 1]
+        mask_r = mask[:, :, 2]
+
+        segments, masks, categoris = [], [], []
+
+        for i in range(num_cls):
+            r, g, b = colors[i]
+            mb = mask_b == b
+            mg = mask_g == g
+            mr = mask_r == r
+            mask_i = (mb * mg * mr).astype(np.uint8) * 255
+            segment = mask2polygon(mask_i)
+            category = [i] * len(segment)
+
+            for j in range(len(segment)):
+                segments.append(segment[j])
+                categoris.append(category[j])
+            masks.append(mask_i)
+        nl = len(segments)
+
+        if nl > 0:
+            h, w, _ = img_shape
+            lb = np.zeros((nl, 5), dtype=np.float32)
+            lb[:, 0] = np.array(categoris)
+            lb[:, 1:] = get_boundingbox_from_polygons(segments, format="xyxy")
+
+            for segment in segments:
+                segment[:, 0] = segment[:, 0] / w
+                segment[:, 1] = segment[:, 1] / h
+            lb[:, 1] = lb[:, 1] / w
+            lb[:, 2] = lb[:, 2] / h
+            lb[:, 3] = lb[:, 3] / w
+            lb[:, 4] = lb[:, 4] / h
+            nf = 1
+
+        else:
+            ne = 1
+            lb = np.zeros((nl, 5), dtype=np.float32)
+
+        return im_file, lb_file, lb, img_shape, segments, keypoints, nm, nf, ne, nc, msg
+
+    except Exception as e:
+        nc = 1
+        msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        return None, None, None, None, None, None, nm, nf, ne, nc, msg

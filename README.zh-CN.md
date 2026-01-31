@@ -210,6 +210,22 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 
 </details>
 
+<details><summary>语义分割 (CityEcapse)</summary>
+
+请查阅 [Semseg Docs](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/docs/en/tasks/semseg.md)获取使用示例。这些模型在 [Cityscapes](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/docs/en/datasets/semseg/cityscapes.md) 数据集上训练，包含 19 个类别。
+
+| 模型                                                                                                                            | 尺寸<br><sup>(像素) | mAP<sup>test<br>50 | 速度<br><sup>CPU ONNX<br>(毫秒) | 速度<br><sup>T4 TensorRT10<br>(毫秒) | 参数<br><sup>(百万) | FLOPs<br><sup>(十亿) |
+| ------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------ | ------------------------------- | ------------------------------------ | ------------------- | -------------------- |
+| [YOLO11n-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11n-semseg.pt) | 512                 | 72.9               | 20.9 ± 1.3                      | 0.8 ± 0.1                            | 9.3                 | 4.62                 |
+| [YOLO11s-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11s-semseg.pt) | 512                 | 74.1               | 71.4 ± 2.8                      | 2.3 ± 1.2                            | 17.3                | 18.2                 |
+| [YOLO11m-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11m-semseg.pt) | 512                 | 76.1               | 170.1 ± 5.9                     | 4.4 ± 2.2                            | 81.5                | 61.3                 |
+| [YOLO11l-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11l-semseg.pt) | 512                 | 76.2               | 184.7 ± 5.9                     | 4.9 ± 2.7                            | 92.2                | 80.3                 |
+| [YOLO11x-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11x-semseg.pt) | 512                 | 77.7               | 394.6 ± 10.7                    | 10.2 ± 5.1                           | 206.3               | 180.3                |
+
+- **IoU<sup>val</sup>** 值指的是在 [Cityscapes 验证集](https://www.cityscapes-dataset.com/)上的单模型多尺度性能。<br>通过 `yolo val semseg data=CityscapesYOLO.yaml device=0 ` 复现结果，并将合并后的结果提交到 [CityEcapse evaluation tools](https://github.com/mcordts/cityscapesScripts)。
+- **速度** 指标是在 NVIDIA RTX 4090 实例上对 [Cityscapes val 图像](tps://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/docs/en/datasets/semseg/cityscapes.md)进行平均测量的。CPU 速度使用 [ONNX](https://onnx.ai/) 导出进行测量。GPU 速度使用 [TensorRT](https://developer.nvidia.com/tensorrt) 导出进行测量。<br>通过 `yolo val semseg data=CityscapesYOLO.yaml batch=1 device=0|cpu` 复现结果。
+</details>
+
 ## 🧩 集成
 
 我们与领先 AI 平台的关键集成扩展了 Ultralytics 产品的功能，增强了数据集标注、训练、可视化和模型管理等任务。了解 Ultralytics 如何与 [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases/)、[Comet ML](https://docs.ultralytics.com/integrations/comet/)、[Roboflow](https://docs.ultralytics.com/integrations/roboflow/) 和 [Intel OpenVINO](https://docs.ultralytics.com/integrations/openvino/) 等合作伙伴协作，优化您的 AI 工作流程。在 [Ultralytics 集成](https://docs.ultralytics.com/integrations/)了解更多信息。

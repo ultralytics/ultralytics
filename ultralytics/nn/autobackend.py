@@ -38,6 +38,35 @@ from ultralytics.utils.downloads import attempt_download_asset, is_url
 from ultralytics.utils.nms import non_max_suppression
 
 
+def check_class_colors(colors: list | dict) -> dict[int, str]:
+    """Check class names and convert to dict format if needed.
+
+    Args:
+        colors (list | dict): Class colors as list or dict format.
+
+    Returns:
+        (dict): Class colors in dict format with integer keys and string values.
+
+    Raises:
+        KeyError: If colors indices are invalid for the dataset size.
+    """
+    if isinstance(colors, list):  # names is a list
+        colors = dict(enumerate(colors))  # convert to dict
+    if isinstance(colors, dict):
+        # Convert 1) string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True'
+        colors = {int(k): str(v) for k, v in colors.items()}
+        n = len(colors)
+        if max(colors.keys()) >= n:
+            raise KeyError(
+                f"{n}-class dataset requires class indices 0-{n - 1}, but you have invalid class indices "
+                f"{min(colors.keys())}-{max(colors.keys())} defined in your dataset YAML."
+            )
+        if isinstance(colors[0], str) and colors[0].startswith("n0"):  # imagenet class codes, i.e. 'n01440764'
+            colors_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
+            colors = {k: colors_map[v] for k, v in colors.items()}
+    return colors
+
+
 def check_class_names(names: list | dict) -> dict[int, str]:
     """Check class names and convert to dict format if needed.
 

@@ -969,7 +969,18 @@ class BaseTrainer:
 
         optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
+
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
+            # Adam/AdamW typically needs lr=0.001, while SGD uses lr=0.01
+            # This prevents training failure when user specifies AdamW but forgets to adjust lr0
+            if lr >= 0.01:
+                lr_adjusted = lr / 10  # 0.01 -> 0.001
+                LOGGER.info(
+                    f"{colorstr('optimizer:')} Auto-adjusting lr from {lr} to {lr_adjusted} for {name} optimizer "
+                    f"(Adam-family optimizers typically need lr=1e-3, not 1e-2)"
+                )
+                lr = lr_adjusted
+                self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
             optim_args = dict(lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == "RMSProp":
             optim_args = dict(lr=lr, momentum=momentum)

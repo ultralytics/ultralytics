@@ -2,6 +2,8 @@
 
 from .bot_sort import BOTSORT
 from .byte_tracker import BYTETracker
+from .centroid_tracker import CentroidTracker
+from .iou_tracker import IOUTracker
 from .track import register_tracker
 
-__all__ = "BOTSORT", "BYTETracker", "register_tracker"  # allow simpler import
+__all__ = "BOTSORT", "BYTETracker", "CentroidTracker", "IOUTracker", "register_tracker"  # allow simpler import

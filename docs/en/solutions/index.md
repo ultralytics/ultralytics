@@ -25,6 +25,7 @@ Ultralytics Solutions provide cutting-edge applications of YOLO models, offering
 
 Here's our curated list of Ultralytics solutions that can be used to create awesome [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects.
 
+- [Action Recognition](../guides/action-recognition.md): Recognize human actions in real-time video streams by combining YOLO detection with video classification models.
 - [Analytics](../guides/analytics.md): Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO26 for descriptive, predictive, and prescriptive analytics.
 - [Distance Calculation](../guides/distance-calculation.md): Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLO26, essential for spatial analysis.
 - [Heatmaps](../guides/heatmaps.md): Utilize detection heatmaps to visualize data intensity across a matrix, providing clear insights in computer vision tasks.

@@ -491,6 +491,7 @@ nav:
           - datasets/track/index.md
   - Solutions:
       - Solutions: solutions/index.md
+      - Action Recognition: guides/action-recognition.md
       - Analytics: guides/analytics.md
       - Distance Calculation: guides/distance-calculation.md
       - Heatmaps: guides/heatmaps.md

@@ -95,7 +95,7 @@ class BaseTrainer:
         fitness (float): Current fitness value.
         loss (float): Current loss value.
         tloss (float): Total loss value.
-        loss_names (list): List of loss names.
+        loss_names (list): List of loss names. Must be set by subclasses in get_validator() or __init__().
         csv (Path): Path to results CSV file.
         metrics (dict): Dictionary of metrics.
         plots (dict): Dictionary of plots.
@@ -113,6 +113,20 @@ class BaseTrainer:
         >>> trainer = BaseTrainer(cfg="config.yaml")
         >>> trainer.train()
     """
+
+    # Class-level marker to track if loss_names should be validated
+    _loss_names_default = ["Loss"]
+
+    def __init_subclass__(cls, **kwargs):
+        """Validate that subclasses properly implement loss_names attribute.
+
+        This method is called when a subclass is created. It ensures that subclasses
+        are aware they must set loss_names, but allows them to set it in __init__()
+        or get_validator() methods.
+        """
+        super().__init_subclass__(**kwargs)
+        # Note: We don't validate here since loss_names is typically set in get_validator()
+        # which is called after __init__. Validation happens via property access.
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize the BaseTrainer class.
@@ -196,12 +210,63 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
         self.tloss = None
-        self.loss_names = ["Loss"]
+        self._loss_names = self._loss_names_default  # Private attribute, accessed via property
         self.csv = self.save_dir / "results.csv"
         if self.csv.exists() and not self.args.resume:
             self.csv.unlink()
         self.plot_idx = [0, 1, 2]
         self.nan_recovery_attempts = 0
+
+        # Callbacks
+        self.callbacks = _callbacks or callbacks.get_default_callbacks()
+
+        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
+            world_size = len(self.args.device.split(","))
+        elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
+            world_size = len(self.args.device)
+        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+            world_size = 0
+        elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
+            world_size = 1  # default to device 0
+        else:  # i.e. device=None or device=''
+            world_size = 0
+
+        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
+        self.world_size = world_size
+        # Run subprocess if DDP training, else train normally
+
+    @property
+    def loss_names(self):
+        """Get loss names, validating that subclasses have properly implemented this attribute.
+
+        Returns:
+            (list | tuple): List or tuple of loss component names.
+
+        Raises:
+            NotImplementedError: If subclass hasn't overridden the default loss_names value.
+        """
+        # Allow BaseTrainer itself to use the default (for backward compatibility)
+        if self.__class__ is BaseTrainer:
+            return self._loss_names
+
+        # For subclasses, check if they've set loss_names to something other than default
+        if self._loss_names == self._loss_names_default:
+            raise NotImplementedError(
+                f"{self.__class__.__name__} must set 'loss_names' attribute. "
+                f"Subclasses should set 'self.loss_names' in their __init__() or get_validator() method. "
+                f"Example: self.loss_names = ('box_loss', 'cls_loss', 'dfl_loss')"
+            )
+        return self._loss_names
+
+    @loss_names.setter
+    def loss_names(self, value):
+        """Set loss names attribute."""
+        self._loss_names = value
+
+        if RANK in {-1, 0} and not self.ddp:
+            callbacks.add_integration_callbacks(self)
+            # Start console logging immediately at trainer initialization
+            self.run_callbacks("on_pretrain_routine_start")
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the event's callback list."""

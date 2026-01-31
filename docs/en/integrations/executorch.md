@@ -224,7 +224,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
     === "More devices coming soon!"
 
     Benchmarked with Ultralytics 8.4.9
-    
+
     !!! note
 
         Inference time does not include pre/ post-processing.

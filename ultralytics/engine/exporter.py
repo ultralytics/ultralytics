@@ -88,6 +88,7 @@ from ultralytics.utils import (
     IS_DEBIAN_BOOKWORM,
     IS_DEBIAN_TRIXIE,
     IS_JETSON,
+    is_jetson,
     IS_RASPBERRYPI,
     IS_UBUNTU,
     LINUX,
@@ -1003,6 +1004,10 @@ class Exporter:
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
         f_onnx = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
+        # Force re-install pre-installed TensorRT on CUDA 13 ARM devices to latest version to fix a bug with TensorRT RT-DETR exports https://github.com/ultralytics/ultralytics/issues/22873
+        if is_jetson(jetpack=7):
+            check_tensorrt()
+            
         try:
             import tensorrt as trt
         except ImportError:

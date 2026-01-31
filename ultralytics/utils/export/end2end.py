@@ -1,0 +1,52 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+from __future__ import annotations
+
+from types import MethodType
+
+import torch
+
+from ultralytics.nn.tasks import DetectionModel
+
+
+def _noop_post(self, preds: torch.Tensor) -> torch.Tensor:
+    """Overrides postprocess."""
+    return preds.permute(0, 2, 1)  # TODO: avoid redundant permute
+
+
+def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
+    """Post-process YOLO model predictions with support for extras.
+
+    Args:
+        preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + extras) with last dimension
+            format [x, y, w, h, class_probs].
+        max_det (int): Maximum detections per image.
+        nc (int, optional): Number of classes.
+
+    Returns:
+        (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + extras) and last
+            dimension format [x, y, w, h, max_class_prob, class_index, extras].
+    """
+    batch_size, anchors, np = preds.shape  # i.e. shape(16,8400,84)
+    boxes, scores, extras = preds.split([4, nc, np - (4 + nc)], dim=-1)
+    index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
+    boxes = boxes.gather(dim=1, index=index.expand(-1, -1, 4))
+    scores = scores.gather(dim=1, index=index.expand(-1, -1, nc))
+    extras = extras.gather(dim=1, index=index.expand(-1, -1, extras.shape[-1]))
+    scores, index = scores.flatten(1).topk(min(max_det, anchors))
+    i, pi = torch.arange(batch_size)[..., None], index // nc  # batch indices, pred indices
+    return torch.cat([boxes[i, pi], scores[..., None], (index % nc)[..., None].float(), extras[i, pi]], dim=-1)
+
+
+def end2end_wrapper(model: DetectionModel) -> DetectionModel:
+    """Patch end2end forward pass to remove postprocessing.
+
+    Args:
+        model (DetectionModel): YOLO end2end model to patch.
+
+    Returns:
+        model (DetectionModel): Patched end2end model.
+    """
+    if getattr(model.model[-1], "end2end", False):
+        model.model[-1].postprocess = MethodType(_noop_post, model.model[-1])
+    return model

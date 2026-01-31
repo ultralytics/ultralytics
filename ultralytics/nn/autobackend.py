@@ -675,6 +675,7 @@ class AutoBackend(nn.Module):
             kpt_names = metadata.get("kpt_names")
             end2end = metadata.get("end2end", False) or metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
+            max_det = metadata.get("args", {}).get("max_det", 300)
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"Metadata not found for 'model={w}'")
@@ -911,6 +912,11 @@ class AutoBackend(nn.Module):
                 else:
                     y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
+
+        if (self.ncnn or self.rknn) and self.end2end:
+            from ultralytics.utils.export.end2end import postprocess
+
+            y[0] = postprocess(torch.from_numpy(y[0]).permute(0, 2, 1), self.max_det, len(self.names))
 
         if isinstance(y, (list, tuple)):
             if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined

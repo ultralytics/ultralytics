@@ -51,7 +51,7 @@ def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = Tr
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html
         x, y = scipy.optimize.linear_sum_assignment(cost_matrix)  # row x, col y
         matches = np.asarray([[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh])
-        if len(matches) == 0:
+        if not len(matches):
             unmatched_a = list(np.arange(cost_matrix.shape[0]))
             unmatched_b = list(np.arange(cost_matrix.shape[1]))
         else:

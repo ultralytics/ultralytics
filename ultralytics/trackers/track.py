@@ -91,7 +91,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
         det = (result.obb if is_obb else result.boxes).cpu().numpy()
         tracks = tracker.update(det, result.orig_img, getattr(result, "feats", None))
-        if len(tracks) == 0:
+        if not len(tracks):
             continue
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = result[idx]

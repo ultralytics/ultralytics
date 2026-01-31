@@ -43,3 +43,10 @@ head:
   - [-1, 3, RepC3, [256]] # F5 (22), pan_blocks.1
 
   - [[16, 19, 22], 1, RTDETRDecoder, [nc]] # Detect(P3, P4, P5)
+
+loss:
+  gamma: 2.0
+  alpha: 0.75
+  loss_gain: { class: 1, bbox: 5, giou: 2 }
+  matcher:
+    cost_gain: { class: 2, bbox: 5, giou: 2 }

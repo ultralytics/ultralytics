@@ -228,8 +228,12 @@ class AutoBackend(nn.Module):
                 model, _ = load_checkpoint(model, device=device, fuse=fuse)  # load model, ckpt
 
             # Common PyTorch model processing
+            kpt_shape = None
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
+            kpt_names = None
+            if hasattr(model, "kpt_names"):
+                kpt_names = model.kpt_names  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
@@ -683,6 +687,9 @@ class AutoBackend(nn.Module):
         if "names" not in locals():  # names missing
             names = default_class_names(data)
         names = check_class_names(names)
+
+        if kpt_names is None and kpt_shape is not None:  # Fallback to numeric names if kpt_names not found
+            kpt_names = {i: [f"{j}" for j in range(self.model.kpt_shape[0])] for i in range(len(names))}
 
         self.__dict__.update(locals())  # assign all variables to self
 

@@ -566,6 +566,7 @@ class Results(SimpleClass, DataExportMixin):
                     radius=kpt_radius,
                     kpt_line=kpt_line,
                     kpt_color=colors(i, True) if color_mode == "instance" else None,
+                    kpt_names=self.kpt_names if labels else None,
                 )
 
         # Show results

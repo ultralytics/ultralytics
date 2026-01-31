@@ -527,6 +527,7 @@ nav:
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Model Deployment Options: guides/model-deployment-options.md
       - Model YAML Configuration Guide: guides/model-yaml-config.md
+      - Modal Quickstart: guides/modal-quickstart.md
       - NVIDIA DGX Spark: guides/nvidia-dgx-spark.md
       - NVIDIA Jetson: guides/nvidia-jetson.md
       - OpenVINO Latency vs Throughput modes: guides/optimizing-openvino-latency-vs-throughput-modes.md

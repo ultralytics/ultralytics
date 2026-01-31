@@ -18,6 +18,7 @@ save: True # (bool) save train checkpoints and predict results
 save_period: -1 # (int) save checkpoint every N epochs; disabled if < 1
 cache: False # (bool | str) cache images in RAM (True/'ram') or on 'disk' to speed dataloading; False disables
 device: # (int | str | list) device: 0 or [0,1,2,3] for CUDA, 'cpu'/'mps', or -1/[-1,-1] to auto-select idle GPUs
+nnodes: 1 # (int) number of nodes for DDP multi-node training
 workers: 8 # (int) dataloader workers (per RANK if DDP)
 project: # (str, optional) project name for results root
 name: # (str, optional) experiment name; results in 'project/name'

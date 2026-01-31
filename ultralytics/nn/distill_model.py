@@ -58,8 +58,8 @@ class DistillationModel(nn.Module):
         student_soft_logits = F.log_softmax(student_logits / temperature, dim=1)
 
         # Distillation loss (Kullback-Leibler divergence)
-        loss = F.kl_div(student_soft_logits, soft_targets, reduction="batchmean") * (temperature**2)
-        distillation_loss = loss / teacher_logits.shape[-1]  # divide the number of anchors
+        distillation_loss = F.kl_div(student_soft_logits, soft_targets, reduction="mean") * (temperature**2)
+        # distillation_loss = distillation_loss / teacher_logits.shape[-1]  # divide the number of anchors
         return distillation_loss
 
     def forward(self, x, *args, **kwargs):
@@ -117,13 +117,16 @@ class DistillationModel(nn.Module):
                     if self.distill_cls_loss:
                         teacher_logits = teacher_feat["scores"]
                         student_logits = student_feat["scores"]
+                        teacher_logits = teacher_logits.permute(0, 2, 1).contiguous()  # (bs, c, anchors) -> (bs, anchors, c)
+                        student_logits = student_logits.permute(0, 2, 1).contiguous()
                         if self.distill_area == "main":
-                            teacher_logits = teacher_logits.permute(0, 2, 1).contiguous()  # (bs, c, anchors) -> (bs, anchors, c)
-                            student_logits = student_logits.permute(0, 2, 1).contiguous()
                             fg_mask = targets[branch][0]
                             teacher_logits = teacher_logits[fg_mask]  # (n, c)
                             student_logits = student_logits[fg_mask]
-                        loss_distill_cls += self.cls_kd_loss(student_logits, teacher_logits) * self.student_model.args.dis
+                        else:
+                            teacher_logits = teacher_logits.view(-1, teacher_logits.shape[-1])  # (bs, anchors, c) -> (bs*anchors, c)
+                            student_logits = student_logits.view(-1, student_logits.shape[-1])
+                        loss_distill_cls += self.cls_kd_loss(student_logits, teacher_logits) * self.distill_cls
                     if self.distill_box_loss:
                         teacher_boxes = teacher_feat["boxes"]
                         student_boxes = student_feat["boxes"]
@@ -133,7 +136,7 @@ class DistillationModel(nn.Module):
                             fg_mask = targets[branch][0]
                             teacher_boxes = teacher_boxes[fg_mask]  # (n, c)
                             student_boxes = student_boxes[fg_mask]
-                        loss_distill_box += self.box_kd_loss(student_boxes, teacher_boxes) * self.student_model.args.dis
+                        loss_distill_box += self.box_kd_loss(student_boxes, teacher_boxes) * self.distill_box
             else:
                 if self.distill_feature_loss:
                     student_feat = (

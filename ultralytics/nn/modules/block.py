@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
+from .conv import Conv, DWConv, GhostConv, GhostConvV2, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -36,12 +36,15 @@ __all__ = (
     "C2fCIB",
     "C2fPSA",
     "C3Ghost",
+    "C3GhostV2",
     "C3k2",
     "C3x",
     "CBFuse",
     "CBLinear",
     "ContrastiveHead",
+    "DFCAttn",
     "GhostBottleneck",
+    "GhostBottleneckV2",
     "HGBlock",
     "HGStem",
     "ImagePoolingAttn",
@@ -424,6 +427,103 @@ class C3Ghost(C3):
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
         self.m = nn.Sequential(*(GhostBottleneck(c_, c_) for _ in range(n)))
+
+
+class C3GhostV2(C3):
+    """C3 module with GhostBottleneckV2()."""
+
+    def __init__(
+        self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5, attn_k: int = 7
+    ):
+        """Initialize C3 module with GhostBottleneckV2.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            n (int): Number of Ghost bottleneck blocks.
+            shortcut (bool): Whether to use shortcut connections.
+            g (int): Groups for convolutions.
+            e (float): Expansion ratio.
+            attn_k (int): DFC attention kernel size.
+        """
+        super().__init__(c1, c2, n, shortcut, g, e)
+        c_ = int(c2 * e)  # hidden channels
+        self.m = nn.Sequential(*(GhostBottleneckV2(c_, c_, attn_k=attn_k) for _ in range(n)))
+
+
+class DFCAttn(nn.Module):
+    """Dynamic Feature Control (DFC) attention module for GhostNetV2."""
+
+    def __init__(self, c1: int, c2: int, k: int = 7, pool_stride: int = 2):
+        """Initialize the DFC attention module.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            k (int): Depthwise kernel size for attention filtering.
+            pool_stride (int): Downsampling stride for the attention branch.
+        """
+        super().__init__()
+        self.conv = nn.Conv2d(c1, c2, 1, 1, 0, bias=True)
+        self.pool_stride = pool_stride
+        self.pool = nn.MaxPool2d(kernel_size=pool_stride, stride=pool_stride)
+        self.conv_v = nn.Conv2d(c2, c2, (k, 1), 1, (k // 2, 0), groups=c2, bias=False)
+        self.bn_v = nn.BatchNorm2d(c2)
+        self.conv_h = nn.Conv2d(c2, c2, (1, k), 1, (0, k // 2), groups=c2, bias=False)
+        self.bn_h = nn.BatchNorm2d(c2)
+        self.act = nn.Sigmoid()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Generate the DFC attention map for input features."""
+        attn = self.conv(x)
+        h, w = attn.shape[2:]
+        if h >= self.pool_stride and w >= self.pool_stride:
+            attn = self.pool(attn)
+            pooled = True
+        else:
+            pooled = False
+        attn = self.bn_v(self.conv_v(attn))
+        attn = self.bn_h(self.conv_h(attn))
+        attn = self.act(attn)
+        if pooled:
+            attn = F.interpolate(attn, size=(h, w), mode="bilinear", align_corners=False)
+        return attn
+
+
+class GhostBottleneckV2(nn.Module):
+    """GhostNetV2 bottleneck with DFC attention."""
+
+    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, attn_k: int = 7):
+        """Initialize GhostNetV2 bottleneck module.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            k (int): Kernel size for the depthwise downsampling conv.
+            s (int): Stride.
+            attn_k (int): DFC attention kernel size.
+        """
+        super().__init__()
+        c_ = c2 // 2
+        self.ghost1 = GhostConvV2(c1, c_, 1, 1)
+        self.attn = DFCAttn(c1, c_, k=attn_k)
+        self.dw = DWConv(c_, c_, k, s, act=False) if s == 2 else nn.Identity()
+        self.ghost2 = GhostConvV2(c_, c2, 1, 1, act=False)
+        if s == 1 and c1 == c2:
+            self.shortcut = nn.Identity()
+        else:
+            self.shortcut = nn.Sequential(
+                DWConv(c1, c1, k, s, act=False) if s == 2 else nn.Identity(),
+                Conv(c1, c2, 1, 1, act=False),
+            )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply GhostNetV2 bottleneck with DFC gating."""
+        y = self.ghost1(x)
+        y = y * self.attn(x)
+        y = self.dw(y)
+        y = self.ghost2(y)
+        return y + self.shortcut(x)
 
 
 class GhostBottleneck(nn.Module):

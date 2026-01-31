@@ -245,4 +245,7 @@ class PoseValidator(DetectionValidator):
         """Evaluate object detection model using COCO JSON format."""
         anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
         pred_json = self.save_dir / "predictions.json"  # predictions
-        return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "keypoints"], suffix=["Box", "Pose"])
+        stats = super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "keypoints"], suffix=["Box", "Pose"])
+        self.metrics.pose.map50 = stats["metrics/mAP50(P)"]
+        self.metrics.pose.map = stats["metrics/mAP50-95(P)"]
+        return stats

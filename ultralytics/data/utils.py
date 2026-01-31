@@ -15,7 +15,7 @@ from typing import Any
 
 import cv2
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
@@ -290,6 +290,125 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[
         ax.text(x, y - 5, label_map[label], color="white" if luminance < 0.5 else "black", backgroundcolor=color)
     ax.imshow(img)
     plt.show()
+
+
+def visualize_image_annotations_multiformat(
+    image_path,
+    txt_path,
+    label_map=None,
+    draw_boxes=True,
+    draw_segments=True,
+    box_color=(255, 0, 0),
+    segment_color=(0, 255, 0),
+    line_width=2,
+):
+    """Displays YOLO Detection and YOLO Segmentation annotations automatically.
+
+    Supports both:
+    - YOLO Detection format: class x_center y_center width height
+    - YOLO Segmentation format: class x1 y1 x2 y2 ... xn yn
+
+    Args:
+        image_path (str): Path to the image file.
+        txt_path (str): Path to the YOLO label file (.txt).
+        label_map (dict, optional): Mapping from class_id to class_name.
+        draw_boxes (bool, optional): Whether to draw bounding boxes.
+        draw_segments (bool, optional): Whether to draw segmentation polygons.
+        box_color (tuple, optional): RGB color for bounding boxes.
+        segment_color (tuple, optional): RGB color for segmentation polygons.
+        line_width (int, optional): Line thickness for drawn shapes.
+
+    Returns:
+        PIL.Image.Image: Image object with rendered annotations (bounding boxes, segmentation polygons, and class
+            labels). The image is returned in memory and is not saved to disk.
+    """
+    img = Image.open(image_path).convert("RGB")
+    draw = ImageDraw.Draw(img)
+    img_width, img_height = img.size
+
+    with open(txt_path, encoding="utf-8") as file:
+        for raw_line in file:
+            line = raw_line.strip()
+            if not line:
+                continue  # skip empty lines
+
+            parts = line.split()
+            if len(parts) < 5:
+                continue  # invalid label line
+
+            try:
+                values = list(map(float, parts))
+            except ValueError:
+                continue  # non-numeric values
+
+            class_id = int(values[0])
+            label = label_map.get(class_id, str(class_id)) if label_map else str(class_id)
+
+            # ============================
+            # YOLO DETECTION FORMAT
+            # ============================
+            if len(values) == 5:
+                _, x, y, w, h = values
+
+                x1 = (x - w / 2) * img_width
+                y1 = (y - h / 2) * img_height
+                x2 = (x + w / 2) * img_width
+                y2 = (y + h / 2) * img_height
+
+                if draw_boxes:
+                    draw.rectangle(
+                        [x1, y1, x2, y2],
+                        outline=box_color,
+                        width=line_width,
+                    )
+
+                draw.text((x1, y1), label, fill=box_color)
+
+            # ============================
+            # YOLO SEGMENTATION FORMAT
+            # ============================
+            elif len(values) > 5:
+                coords = values[1:]
+
+                if len(coords) % 2 != 0:
+                    continue  # invalid number of coordinates
+
+                coords = np.array(coords, dtype=np.float32).reshape(-1, 2)
+
+                if coords.shape[0] < 3:
+                    continue  # not enough points for a polygon
+
+                # Normalizado → pixel
+                polygon = [(x * img_width, y * img_height) for x, y in coords]
+
+                if draw_segments:
+                    draw.polygon(
+                        polygon,
+                        outline=segment_color,
+                        width=line_width,
+                    )
+
+                if draw_boxes:
+                    bbox = segments2boxes([coords])[0]
+                    bx, by, bw, bh = bbox
+
+                    x1 = (bx - bw / 2) * img_width
+                    y1 = (by - bh / 2) * img_height
+                    x2 = (bx + bw / 2) * img_width
+                    y2 = (by + bh / 2) * img_height
+
+                    draw.rectangle(
+                        [x1, y1, x2, y2],
+                        outline=box_color,
+                        width=line_width,
+                    )
+                px, py = polygon[0]
+                draw.text((px, py), label, fill=segment_color)
+
+            else:
+                raise ValueError(f"Invalid label format: {line}")
+
+    return img
 
 
 def polygon2mask(

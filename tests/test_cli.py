@@ -7,7 +7,7 @@ import pytest
 from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
-from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
+from ultralytics.utils import ARM64, ASSETS, ASSETS_URL, LINUX, ONLINE, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 
@@ -136,3 +136,9 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
 def test_solutions(solution: str) -> None:
     """Test yolo solutions command-line modes."""
     run(f"yolo solutions {solution} verbose=False")
+
+
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+def test_convert() -> None:
+    """Test YOLO convert command for NDJSON dataset conversion."""
+    run(f"yolo convert data={ASSETS_URL}/coco8-ndjson.ndjson")

@@ -33,8 +33,13 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     if hasattr(predictor, "trackers") and persist:
         return
 
-    tracker = check_yaml(predictor.args.tracker)
-    cfg = IterableSimpleNamespace(**YAML.load(tracker))
+    tracker = predictor.args.tracker
+
+    if isinstance(tracker, dict):
+        cfg = IterableSimpleNamespace(**tracker)  # Directly use dict
+    else:
+        tracker = check_yaml(tracker)  # Validate/check YAML file path
+        cfg = IterableSimpleNamespace(**YAML.load(tracker))  # Load YAML contents
 
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")

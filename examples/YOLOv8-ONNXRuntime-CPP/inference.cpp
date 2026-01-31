@@ -271,7 +271,8 @@ char* YOLO_V8::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std::
             data += signalResultNum;
         }
         std::vector<int> nmsResult;
-        cv::dnn::NMSBoxes(boxes, confidences, rectConfidenceThreshold, iouThreshold, nmsResult);
+//      cv::dnn::NMSBoxes(boxes, confidences, rectConfidenceThreshold, iouThreshold, nmsResult);
+        cv::dnn::NMSBoxesBatched(boxes, confidences, class_ids, rectConfidenceThreshold, iouThreshold, nmsResult);
         for (int i = 0; i < nmsResult.size(); ++i)
         {
             int idx = nmsResult[i];

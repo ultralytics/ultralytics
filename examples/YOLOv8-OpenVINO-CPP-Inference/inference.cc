@@ -123,7 +123,8 @@ void Inference::PostProcessing(cv::Mat &frame) {
 
 	// Apply Non-Maximum Suppression (NMS) to filter overlapping bounding boxes
 	std::vector<int> NMS_result;
-	cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
+//	cv::dnn::NMSBoxes(box_list, confidence_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
+	cv::dnn::NMSBoxesBatched(box_list, confidence_list, class_list, model_confidence_threshold_, model_NMS_threshold_, NMS_result);
 
 	// Collect final detections after NMS
 	for (int i = 0; i < NMS_result.size(); ++i) {

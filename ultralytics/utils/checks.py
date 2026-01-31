@@ -515,7 +515,7 @@ def check_tensorrt(min_version: str = "7.0.0"):
     """
     if LINUX:
         cuda_version = torch.version.cuda.split(".")[0]
-        check_requirements(f"tensorrt-cu{cuda_version}>{min_version},!=10.1.0")
+        check_requirements(f"tensorrt-cu{cuda_version}>={min_version},!=10.1.0")
 
 
 def check_torchvision():

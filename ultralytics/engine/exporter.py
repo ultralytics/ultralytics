@@ -1006,7 +1006,7 @@ class Exporter:
 
         # Force re-install pre-installed TensorRT on CUDA 13 ARM devices to latest version to fix a bug with TensorRT RT-DETR exports https://github.com/ultralytics/ultralytics/issues/22873
         if is_jetson(jetpack=7):
-            check_tensorrt()
+            check_tensorrt("10.15")
 
         try:
             import tensorrt as trt

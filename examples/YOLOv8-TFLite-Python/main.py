@@ -244,13 +244,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="yolov8n_saved_model/yolov8n_full_integer_quant.tflite",
+        default="yolov8n.tflite",
         help="Path to TFLite model.",
     )
     parser.add_argument("--img", type=str, default=str(ASSETS / "bus.jpg"), help="Path to input image")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
     parser.add_argument("--iou", type=float, default=0.45, help="NMS IoU threshold")
-    parser.add_argument("--metadata", type=str, default="yolov8n_saved_model/metadata.yaml", help="Metadata yaml")
+    parser.add_argument("--metadata", type=str, default=None, help="Metadata yaml (optional, embedded in TFLite)")
     args = parser.parse_args()
 
     detector = YOLOv8TFLite(args.model, args.conf, args.iou, args.metadata)

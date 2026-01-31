@@ -100,10 +100,7 @@ class AutoBackend(nn.Module):
             | OpenVINO              | *openvino_model/  |
             | CoreML                | *.mlpackage       |
             | TensorRT              | *.engine          |
-            | TensorFlow SavedModel | *_saved_model/    |
-            | TensorFlow GraphDef   | *.pb              |
             | TensorFlow Lite       | *.tflite          |
-            | TensorFlow Edge TPU   | *_edgetpu.tflite  |
             | PaddlePaddle          | *_paddle_model/   |
             | MNN                   | *.mnn             |
             | NCNN                  | *_ncnn_model/     |
@@ -127,11 +124,11 @@ class AutoBackend(nn.Module):
         xml (bool): Whether the model is an OpenVINO model.
         engine (bool): Whether the model is a TensorRT engine.
         coreml (bool): Whether the model is a CoreML model.
-        saved_model (bool): Whether the model is a TensorFlow SavedModel.
-        pb (bool): Whether the model is a TensorFlow GraphDef.
+        saved_model (bool): Whether the model is a TensorFlow SavedModel (DEPRECATED).
+        pb (bool): Whether the model is a TensorFlow GraphDef (DEPRECATED).
         tflite (bool): Whether the model is a TensorFlow Lite model.
-        edgetpu (bool): Whether the model is a TensorFlow Edge TPU model.
-        tfjs (bool): Whether the model is a TensorFlow.js model.
+        edgetpu (bool): Whether the model is a TensorFlow Edge TPU model (DEPRECATED).
+        tfjs (bool): Whether the model is a TensorFlow.js model (DEPRECATED).
         paddle (bool): Whether the model is a PaddlePaddle model.
         mnn (bool): Whether the model is an MNN model.
         ncnn (bool): Whether the model is an NCNN model.
@@ -439,13 +436,40 @@ class AutoBackend(nn.Module):
             dynamic = model.get_spec().description.input[0].type.HasField("multiArrayType")
             metadata = dict(model.user_defined_metadata)
 
-        # TF SavedModel
+        # TF SavedModel (or TFLite-only directory from ai-edge-torch)
         elif saved_model:
-            LOGGER.info(f"Loading {w} for TensorFlow SavedModel inference...")
-            import tensorflow as tf
+            # Check if this is a TFLite-only directory (ai-edge-torch export) or traditional SavedModel
+            saved_model_dir = Path(w)
+            tflite_files = list(saved_model_dir.glob("*.tflite")) if saved_model_dir.is_dir() else []
+            has_saved_model_pb = (saved_model_dir / "saved_model.pb").exists() if saved_model_dir.is_dir() else False
 
-            model = tf.saved_model.load(w)
-            metadata = Path(w) / "metadata.yaml"
+            if tflite_files and not has_saved_model_pb:
+                # ai-edge-torch TFLite-only directory - redirect to TFLite inference
+                w = str(tflite_files[0])  # use first TFLite file (typically float32)
+                tflite = True
+                saved_model = False
+                LOGGER.info(f"Loading {w} for TensorFlow Lite inference...")
+                try:
+                    from tflite_runtime.interpreter import Interpreter
+                except ImportError:
+                    try:
+                        from ai_edge_litert import Interpreter
+                    except ImportError:
+                        import tensorflow as tf
+
+                        Interpreter = tf.lite.Interpreter
+                interpreter = Interpreter(model_path=w)
+                interpreter.allocate_tensors()
+                input_details = interpreter.get_input_details()
+                output_details = interpreter.get_output_details()
+                metadata = saved_model_dir / "metadata.yaml"
+            else:
+                # Traditional TensorFlow SavedModel
+                LOGGER.info(f"Loading {w} for TensorFlow SavedModel inference...")
+                import tensorflow as tf
+
+                model = tf.saved_model.load(w)
+                metadata = Path(w) / "metadata.yaml"
 
         # TF GraphDef
         elif pb:  # https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt

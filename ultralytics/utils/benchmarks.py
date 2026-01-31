@@ -15,11 +15,7 @@ ONNX                    | `onnx`                    | yolo26n.onnx
 OpenVINO                | `openvino`                | yolo26n_openvino_model/
 TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
-TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
-TensorFlow GraphDef     | `pb`                      | yolo26n.pb
 TensorFlow Lite         | `tflite`                  | yolo26n.tflite
-TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
-TensorFlow.js           | `tfjs`                    | yolo26n_web_model/
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -112,25 +108,35 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for name, format, suffix, cpu, gpu, _ in zip(*export_formats().values()):
+    # Custom order to avoid dependency conflicts:
+    # 1. Paddle first - must run before TFLite/CoreML which import TensorFlow/JAX (causes Paddle segfaults)
+    # 2. TFLite second - must run before MNN which downgrades protobuf from 6.x to 5.x (breaks ai-edge-torch)
+    # 3. MNN/NCNN after TFLite - MNN's aliyun-log-python-sdk requires protobuf<6.0.0
+    # 4. CoreML late - imports TensorFlow/JAX
+    export_items = list(zip(*export_formats().values()))
+    format_priority = {"paddle": -10, "tflite": -9, "mnn": -8, "ncnn": -7, "coreml": 50}
+    export_items.sort(key=lambda x: format_priority.get(x[1], 0))
+    for name, format, suffix, cpu, gpu, _ in export_items:
         emoji, filename = "❌", None  # export defaults
         try:
             if format_arg and format_arg != format:
                 continue
 
             # Checks
+            if format == "saved_model":
+                continue  # SavedModel export is deprecated, use tflite instead
             if format == "pb":
-                assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
-            elif format == "edgetpu":
-                assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
-            elif format in {"coreml", "tfjs"}:
-                assert MACOS or (LINUX and not ARM64), (
-                    "CoreML and TF.js export only supported on macOS and non-aarch64 Linux"
-                )
+                continue  # GraphDef export is deprecated
+            if format == "tfjs":
+                continue  # TF.js inference not supported in Python
+            if format == "edgetpu":
+                continue  # EdgeTPU export is deprecated, incompatible with ai-edge-torch
+            if format == "coreml":
+                assert MACOS or (LINUX and not ARM64), "CoreML export only supported on macOS and non-aarch64 Linux"
             if format == "coreml":
                 assert not IS_PYTHON_3_13, "CoreML not supported on Python 3.13"
-            if format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
-                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
+            if format == "tflite":
+                assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported yet"
                 # assert not IS_PYTHON_MINIMUM_3_12, "TFLite exports not supported on Python>=3.12 yet"
             if format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
@@ -170,9 +176,7 @@ def benchmark(
             emoji = "❎"  # indicates export succeeded
 
             # Predict
-            assert model.task != "pose" or format != "pb", "GraphDef Pose inference is not supported"
             assert model.task != "pose" or format != "executorch", "ExecuTorch Pose inference is not supported"
-            assert format not in {"edgetpu", "tfjs"}, "inference not supported"
             assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 

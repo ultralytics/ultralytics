@@ -129,7 +129,17 @@ def run_ray_tune(
     )
 
     # Define the callbacks for the hyperparameter search
-    tuner_callbacks = [WandbLoggerCallback(project="YOLOv8-tune")] if wandb else []
+    if wandb:
+        # Priority: 1) existing wandb.run settings, 2) train_args, 3) default
+        if wandb.run:
+            wandb_project = wandb.run.project
+            wandb_entity = wandb.run.entity or train_args.get("entity")
+        else:
+            wandb_project = train_args.get("project", "YOLOv8-tune")
+            wandb_entity = train_args.get("entity")
+        tuner_callbacks = [WandbLoggerCallback(project=wandb_project, entity=wandb_entity)]
+    else:
+        tuner_callbacks = []
 
     # Create the Ray Tune hyperparameter search tuner
     tune_dir = get_save_dir(

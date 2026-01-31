@@ -8,6 +8,7 @@ import random
 import subprocess
 import time
 import zipfile
+from collections.abc import Iterable
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
@@ -49,7 +50,7 @@ def img2label_paths(img_paths: list[str]) -> list[str]:
 
 
 def check_file_speeds(
-    files: list[str], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
+    files: list[str], threshold_ms: float = 0.3, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
 ):
     """Check dataset file access speed and provide performance feedback.
 
@@ -117,15 +118,17 @@ def check_file_speeds(
 
     if avg_ping < threshold_ms or avg_speed < threshold_mb:
         LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
+        return True
     else:
         LOGGER.warning(
             f"{prefix}Slow image access detected ({ping_msg}{speed_msg}{size_msg}). "
             f"Use local storage instead of remote/mounted storage for better performance. "
             f"See https://docs.ultralytics.com/guides/model-training-tips/"
         )
+        return False
 
 
-def get_hash(paths: list[str]) -> str:
+def get_hash(paths: list[str] | Iterable) -> str:
     """Return a single hash value of a list of paths (files or dirs)."""
     size = 0
     for p in paths:

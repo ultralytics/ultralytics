@@ -1,0 +1,91 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO26 object detection model with P3/8 - P5/32 outputs
+# Model docs: https://docs.ultralytics.com/models/yolo26
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+scales: # model compound scaling constants, i.e. 'model=yolo26n.yaml' will call yolo26.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.50, 0.25, 1024] # summary: 260 layers, 2,572,280 parameters, 2,572,280 gradients, 6.1 GFLOPs
+  s: [0.50, 0.50, 1024] # summary: 260 layers, 10,009,784 parameters, 10,009,784 gradients, 22.8 GFLOPs
+  m: [0.50, 1.00, 512] # summary: 280 layers, 21,896,248 parameters, 21,896,248 gradients, 75.4 GFLOPs
+  l: [1.00, 1.00, 512] # summary: 392 layers, 26,299,704 parameters, 26,299,704 gradients, 93.8 GFLOPs
+  x: [1.00, 1.50, 512] # summary: 392 layers, 58,993,368 parameters, 58,993,368 gradients, 209.5 GFLOPs
+
+# YOLO26n backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 2, C3k2, [256, False, 0.25]]
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, C3k2, [512, False, 0.25]]
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5, 3, True]] # 9
+  - [-1, 2, C2PSA, [1024]] # 10
+
+# YOLO26n head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 2, C3k2, [512, True]] # 13
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 2, C3k2, [256, True]] # 16 (P3/8-small)
+  - [-1, 1, nn.AvgPool2d, [2]]
+  - [-1, 1, nn.AvgPool2d, [2]]
+
+  - [-3, 1, Conv, [256, 3, 2]]
+  - [[-1, 13], 1, Concat, [1]] # cat head P4
+  - [-1, 2, C3k2, [512, True]] # 21 (P4/16-medium)
+  - [-1, 1, nn.AvgPool2d, [2]]
+  - [[17, 21], 1, PaddedAdd, [512, 1]]
+
+  - [-3, 1, Conv, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]] # cat head P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 26 (P5/32-large)
+  - [[18, 22, 26], 1, PaddedAdd, [512, 1]]
+
+  # - [[17, 21, 24], 1, Detect, [nc]] # Detect(P3, P4, P5)
+  - [[16, 23, 27], 1, Detect, [nc]] # Detect(P3, P4, P5)
+
+module:
+  init: |
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+
+    class PaddedAdd(nn.Module):
+        def __init__(self, dim=1):
+            super().__init__()
+            self.dim = dim
+        
+        def forward(self, tensors):
+            max_size = max(t.size(self.dim) for t in tensors)
+            
+            padded = []
+            for t in tensors:
+                pad_amount = max_size - t.size(self.dim)
+                if pad_amount > 0:
+                    # F.pad expects pad sizes in reverse order: (last_dim, ..., first_dim)
+                    # each dim gets (before, after) padding
+                    ndim = t.ndim
+                    pad = [0] * (2 * ndim)
+                    pad_idx = 2 * (ndim - 1 - self.dim)
+                    pad[pad_idx + 1] = pad_amount  # pad after
+                    t = F.pad(t, pad)
+                padded.append(t)
+            
+            return sum(padded)
+  parse: |
+    if m is PaddedAdd:
+      c2 = args[0]
+      args = args[1:]

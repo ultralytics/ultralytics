@@ -139,6 +139,6 @@ def test_solutions(solution: str) -> None:
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_convert() -> None:
+def test_convert(tmp_path: Path) -> None:
     """Test YOLO convert command for NDJSON dataset conversion."""
-    run(f"yolo convert data={ASSETS_URL}/coco8-ndjson.ndjson")
+    run(f"yolo convert data={ASSETS_URL}/coco8-ndjson.ndjson output={tmp_path}")

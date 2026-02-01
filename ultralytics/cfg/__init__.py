@@ -681,7 +681,7 @@ def handle_yolo_convert(args: list[str]) -> None:
 
     try:
         LOGGER.info(f"Converting dataset from {data}...")
-        result = asyncio.run(convert_ndjson_to_yolo(checks.check_file(data), overrides.get("output")))
+        result = asyncio.run(convert_ndjson_to_yolo(data, overrides.get("output")))
         LOGGER.info(f"Dataset successfully converted to: {result}")
     except Exception as e:
         LOGGER.error(f"Failed to convert dataset: {e}")

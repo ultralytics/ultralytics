@@ -35,6 +35,10 @@ def test_export_onnx(end2end):
 def test_export_openvino(end2end):
     """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(MODEL).export(format="openvino", imgsz=32, end2end=end2end)
+    if WINDOWS:
+        # Ensure a unique export path per test to prevent OpenVINO file writes
+        file = Path(file)
+        file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 

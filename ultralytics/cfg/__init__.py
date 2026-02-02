@@ -640,21 +640,16 @@ def handle_yolo_settings(args: list[str]) -> None:
 def handle_yolo_convert(args: list[str]) -> None:
     """Handle YOLO convert command-line interface (CLI) commands for dataset conversion.
 
-    This function processes YOLO convert CLI commands to convert datasets from NDJSON (Newline Delimited JSON) format to
+    This function processes YOLO convert CLI commands to convert datasets from NDJSON format to
     the standard YOLO dataset structure. It supports both local files and remote URLs.
 
     Args:
         args (list[str]): A list of command line arguments for dataset conversion.
 
     Examples:
-        Convert a local NDJSON file:
-        >>> handle_yolo_convert(["data=dataset.ndjson"])
-
-        Convert with custom output directory:
-        >>> handle_yolo_convert(["data=dataset.ndjson", "output=./my_datasets"])
-
-        Convert from a remote URL:
-        >>> handle_yolo_convert(["data=https://example.com/dataset.ndjson"])
+        >>> handle_yolo_convert(["data=dataset.ndjson"])  # Convert a local NDJSON file
+        >>> handle_yolo_convert(["data=dataset.ndjson", "output=./my_datasets"])  # Convert with custom output directory
+        >>> handle_yolo_convert(["data=ul://username/datasets/dataset-slug"])  # Convert from the Ultralytics Platform
 
     Notes:
         - If no arguments are provided, the function will display usage information.

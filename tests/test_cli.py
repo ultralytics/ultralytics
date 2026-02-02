@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -7,7 +8,7 @@ import pytest
 from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
-from ultralytics.utils import ARM64, ASSETS, ASSETS_URL, LINUX, ONLINE, WEIGHTS_DIR, checks
+from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11
 
 
@@ -138,7 +139,17 @@ def test_solutions(solution: str) -> None:
     run(f"yolo solutions {solution} verbose=False")
 
 
-@pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_convert(tmp_path: Path) -> None:
     """Test YOLO convert command for NDJSON dataset conversion."""
-    run(f"yolo convert data={ASSETS_URL}/coco8-ndjson.ndjson output={tmp_path}")
+    records = [
+        {"task": "detect", "class_names": {"0": "object"}},
+        {"file": "img1.jpg", "split": "train", "annotations": {"bboxes": [[0, 0.5, 0.5, 0.2, 0.2]]}},
+        {"file": "img2.jpg", "split": "val", "annotations": {"bboxes": [[0, 0.4, 0.4, 0.1, 0.1]]}},
+    ]
+    ndjson_path = tmp_path / "sample.ndjson"
+    ndjson_path.write_text("\n".join(json.dumps(record) for record in records) + "\n")
+
+    run(f"yolo convert data={ndjson_path} output={tmp_path}")
+
+    dataset_dir = tmp_path / ndjson_path.stem
+    assert (dataset_dir / "data.yaml").exists()

@@ -180,12 +180,13 @@ class DetectionValidator(BaseValidator):
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
 
+            stats = self._process_batch(predn, pbatch)
             # compute per-TP center offsets (normalized by image diagonal)
             if no_pred or cls.shape[0] == 0:
                 tp_center_offsets = np.zeros(0)
             else:
                 # TP-RMSE calculation (normalised by img diagonal)
-                tp = self._process_batch(predn, pbatch)["tp"]
+                tp = stats["tp"]
                 tp_preds = tp[:, 0]  # 0 index -> use the first IoU - usually 0.5
                 tp_idx = np.where(tp_preds)[0]
 
@@ -245,7 +246,7 @@ class DetectionValidator(BaseValidator):
 
             self.metrics.update_stats(
                 {
-                    **self._process_batch(predn, pbatch),
+                    **stats,
                     "target_cls": cls,
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),

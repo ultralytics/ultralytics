@@ -25,16 +25,6 @@ journey
       Deploy endpoint: 5: User
 ```
 
-<p align="center">
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/qE-dfbB5Sis"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> Getting Started with Ultralytics Platform
-</p>
-
 ## Get Started
 
 [Ultralytics Platform](https://platform.ultralytics.com) offers a variety of easy signup options. You can register and log in using your Google, Apple, or GitHub accounts, or simply with your email address.
@@ -47,15 +37,28 @@ During signup, you'll be asked to select your data region. This is an important 
 
 <!-- Screenshot: platform-onboarding-region.avif -->
 
-| Region | Location                 | Best For                        |
-| ------ | ------------------------ | ------------------------------- |
-| **US** | US Central (Iowa)        | Americas users                  |
-| **EU** | EU West (Belgium)        | European users, GDPR compliance |
-| **AP** | Asia Pacific (Hong Kong) | Asia-Pacific users              |
+| Region | Location             | Best For                                |
+| ------ | -------------------- | --------------------------------------- |
+| **US** | Iowa, USA            | Americas users, fastest for Americas    |
+| **EU** | Belgium, Europe      | European users, GDPR compliance         |
+| **AP** | Taiwan, Asia-Pacific | Asia-Pacific users, lowest APAC latency |
 
 !!! warning "Region is Permanent"
 
     Your region selection cannot be changed after account creation. Choose the region closest to you or your users for best performance.
+
+### Free Credits
+
+Every new account receives free credits for cloud GPU training:
+
+| Email Type             | Sign-up Credits | How to Qualify                         |
+| ---------------------- | --------------- | -------------------------------------- |
+| **Work/Company Email** | **$25.00**      | Use your company domain (@company.com) |
+| **Personal Email**     | **$5.00**       | Gmail, Yahoo, Outlook, etc.            |
+
+!!! tip "Maximize Your Credits"
+
+    Sign up with a work email to receive $25 in credits. If you signed up with a personal email, you can verify a work email later to unlock the additional $20 in credits.
 
 ### Complete Your Profile
 
@@ -73,13 +76,31 @@ After signing in, you will be directed to the Home page of [Ultralytics Platform
 
 <!-- Screenshot: platform-dashboard.avif -->
 
-The sidebar provides access to key sections:
+The sidebar provides access to all Platform sections:
 
-- **Home**: Dashboard with quick actions and recent items
-- **Datasets**: Your uploaded datasets
-- **Projects**: Your training projects and models
-- **Deployments**: Your model endpoints
-- **Explore**: Public content from the community
+**Top Section:**
+
+| Item        | Description                                      |
+| ----------- | ------------------------------------------------ |
+| **Search**  | Quick search across all your resources (Cmd+K)   |
+| **Home**    | Dashboard with quick actions and recent activity |
+| **Explore** | Discover public projects and datasets            |
+
+**My Workspace:**
+
+| Section      | Description                             |
+| ------------ | --------------------------------------- |
+| **Annotate** | Your datasets organized for annotation  |
+| **Train**    | Your projects containing trained models |
+| **Deploy**   | Your active deployments                 |
+
+**Bottom Section:**
+
+| Item         | Description                             |
+| ------------ | --------------------------------------- |
+| **Trash**    | Deleted items (recoverable for 30 days) |
+| **Settings** | Account, billing, and preferences       |
+| **Feedback** | Send feedback to Ultralytics            |
 
 ### Quick Actions
 

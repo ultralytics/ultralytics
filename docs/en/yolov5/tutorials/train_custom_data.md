@@ -21,7 +21,7 @@ pip install -r requirements.txt # Install dependencies
 ## Train On Custom Data
 
 <a href="https://platform.ultralytics.com" target="_blank">
-<img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-active-learning-loop.avif" alt="Ultralytics active learning loop diagram showing data collection, labeling, training, deployment, and edge case collection"></a>
+<img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-active-learning-loop.avif" alt="Ultralytics active learning loop diagram"></a>
 <br>
 <br>
 
@@ -105,7 +105,7 @@ The YOLO format `*.txt` file specifications are precise:
 
 The label file corresponding to the image above, containing two 'person' objects (class index `0`) and one 'tie' object (class index `27`), would look like this:
 
-<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="Example YOLO format label file content for the annotated image"></p>
+<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="YOLO format label file content example"></p>
 
 ### 1.3 Organize Directories
 
@@ -137,7 +137,7 @@ The recommended directory structure is:
             └── ...
 ```
 
-<p align="center"><img width="700" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-dataset-structure.avif" alt="Diagram showing the recommended YOLOv5 dataset directory structure"></p>
+<p align="center"><img width="700" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-dataset-structure.avif" alt="YOLOv5 recommended dataset directory structure"></p>
 
 ## 2. Select a Model
 
@@ -202,7 +202,7 @@ Dive deeper into the supported features in our [Comet Integration Guide](https:/
 ClearML automatically captures experiment details, model uploads, comparisons, uncommitted code changes, and installed packages, ensuring full reproducibility. You can easily schedule training tasks on remote agents and manage dataset versions using ClearML Data. Explore the [ClearML Integration Guide](https://docs.ultralytics.com/integrations/clearml/) for comprehensive details.
 
 <a href="https://clear.ml/">
-<img alt="ClearML Experiment Management UI showing charts and logs for a YOLOv5 training run" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-experiment-management-ui.avif" width="1280"></a>
+<img alt="ClearML experiment management UI for YOLOv5" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-experiment-management-ui.avif" width="1280"></a>
 
 ### Local Logging
 
@@ -214,7 +214,7 @@ Training results are automatically logged using [TensorBoard](https://docs.ultra
 - Key evaluation metrics such as [Precision](https://www.ultralytics.com/glossary/precision)-[Recall](https://www.ultralytics.com/glossary/recall) (PR) curves.
 - [Confusion matrices](https://www.ultralytics.com/glossary/confusion-matrix) for detailed class-wise performance analysis.
 
-<img alt="Example of local logging results including charts and image mosaics from YOLOv5 training" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/local-logging-results.avif" width="1280">
+<img alt="YOLOv5 local logging results with charts and mosaics" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/local-logging-results.avif" width="1280">
 
 The `results.csv` file is updated after every epoch and is plotted as `results.png` once training concludes. You can also plot any `results.csv` file manually using the provided utility function:
 
@@ -225,7 +225,7 @@ from utils.plots import plot_results
 plot_results("runs/train/exp/results.csv")  # This will generate 'results.png' in the same directory
 ```
 
-<p align="center"><img width="800" alt="Example results.png plot showing training metrics like mAP, precision, recall, and loss over epochs" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-training-results-plot.avif"></p>
+<p align="center"><img width="800" alt="YOLOv5 results.png training metrics plot" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-training-results-plot.avif"></p>
 
 ## 5. Next Steps
 

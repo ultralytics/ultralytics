@@ -108,6 +108,35 @@ Copy a public project:
 2. Click **Fork**
 3. Project copies with all models
 
+## Official Ultralytics Models
+
+Featured at the top of Explore, you'll find official Ultralytics models:
+
+| Project    | Description                 | Models                       |
+| ---------- | --------------------------- | ---------------------------- |
+| **YOLO26** | Latest January 2026 release | 27 models (all sizes, tasks) |
+| **YOLO11** | Current stable release      | 10+ models                   |
+| **YOLOv8** | Previous generation         | Various                      |
+| **YOLOv5** | Legacy, widely adopted      | Various                      |
+
+**Project Cards Show:**
+
+- Project icon and name
+- Public badge
+- Creator avatar and username
+- Short description
+- Model count and total size
+- Last updated
+- Model name tags
+
+**Dataset Cards Show:**
+
+- Dataset name
+- Task type badge
+- Creator info
+- Image count
+- Preview thumbnails
+
 ## User Profiles
 
 View public profiles:

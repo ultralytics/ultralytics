@@ -237,8 +237,7 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
         model = YOLO("yoloe-26l-seg.pt")  # or select yoloe-26s/m-seg.pt for different sizes
 
         # Set text prompt to detect person and bus. You only need to do this once after you load the model.
-        names = ["person", "bus"]
-        model.set_classes(names, model.get_text_pe(names))
+        model.set_classes(["person", "bus"])
 
         # Run detection on the given image
         results = model.predict("path/to/image.jpg")

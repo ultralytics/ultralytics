@@ -1400,7 +1400,7 @@ class Exporter:
         nms.confidenceThresholdInputFeatureName = "confidenceThreshold"
         nms.iouThreshold = self.args.iou
         nms.confidenceThreshold = self.args.conf
-        nms.pickTop.perClass = True
+        nms.pickTop.perClass = not self.args.agnostic_nms
         nms.stringClassLabels.vector.extend(names.values())
         nms_model = ct.models.MLModel(nms_spec)
 

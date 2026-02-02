@@ -16,10 +16,10 @@ YOLO26 = [
 
 YOLO26_RTDETR = [
     ("n", 1.7, 41.2),
-    ("ns", 2.3, 46.5),
-    # ("s", 2.7, 47.7),
+    # ("ns", 2.3, 46.5),
+    ("ns", 2.4, 47.4),
     ("s", 3.1, 49.5),
-    ("sm", 3.8, 50.8),
+    # ("sm", 3.8, 50.8),
     ("m", 5.6, 53.5),
     ("l", 7.0, 55.2),
     ("x", 11.6, 56.6),
@@ -52,8 +52,14 @@ RF_DETR = [
 # Free points without connecting lines: (label, latency_ms, mAP, color_index, marker, label_offset)
 FREE_POINTS = [
     # ("x", 2.3, 46.5, 3, "D", -14),  # palette(3), diamond, label below
-    ("y", 2.7, 47.7, 4, "^", 10),   # palette(4), triangle up, label above
-    ("z", 9.4, 56.0, 2, "v", 5),   # palette(4), triangle up, label above
+    # ("y", 2.7, 47.7, 4, "^", 10),   # palette(4), triangle up, label above
+    # ("z", 9.4, 56.0, 2, "v", 5),   # palette(4), triangle up, label above
+    # ("w", 2.4, 47.4, 3, "D", -12),  # palette(1), plus (filled), label below
+    # ("v", 3.0, 48.9, 3, "D", 8),    # palette(0), x (filled), label above
+    # ("c", 3.8, 50.8, 3, "D", 8),    # palette(0), x (filled), label above
+    # ("c", 3.1, 49.5, 3, "D", 8),    # palette(0), x (filled), label above
+    ("dinov3", 4.5, 50.3, 3, "D", 8),    # palette(0), x (filled), label above
+    ("dinov2", 5.8, 51.5, 3, "D", 8),    # palette(0), x (filled), label above
 ]
 
 
@@ -90,9 +96,9 @@ def build_plot(output_path: Path, show: bool) -> None:
     palette = plt.get_cmap("tab10")
     plot_series(ax, YOLO26, "YOLO26", palette(0), "o", 8)
     plot_series(ax, YOLO26_RTDETR, "YOLO26-RTDETR", palette(1), "s", -14)
-    plot_series(ax, RTDETR_V4, "RT-DETRv4", palette(2), "D", 10)
-    plot_series(ax, LW_DETR, "LW-DETR", palette(3), "^", 14)
-    plot_series(ax, RF_DETR, "RF-DETR", palette(4), "v", -12)
+    # plot_series(ax, RTDETR_V4, "RT-DETRv4", palette(2), "D", 10)
+    # plot_series(ax, LW_DETR, "LW-DETR", palette(3), "^", 14)
+    # plot_series(ax, RF_DETR, "RF-DETR", palette(4), "v", -12)
 
     # Add free points without connecting to a line
     for label, latency, mAP, color_idx, marker, label_offset in FREE_POINTS:

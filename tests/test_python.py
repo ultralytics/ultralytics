@@ -702,8 +702,7 @@ def test_yoloe(tmp_path):
     # Predict
     # text-prompts
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
-    names = ["person", "bus"]
-    model.set_classes(names, model.get_text_pe(names))
+    model.set_classes(["person", "bus"])
     model(SOURCE, conf=0.01)
 
     from ultralytics import YOLOE

@@ -640,8 +640,8 @@ def handle_yolo_settings(args: list[str]) -> None:
 def handle_yolo_convert(args: list[str]) -> None:
     """Handle YOLO convert command-line interface (CLI) commands for dataset conversion.
 
-    This function processes YOLO convert CLI commands to convert datasets from NDJSON format to
-    the standard YOLO dataset structure. It supports both local files and remote URLs.
+    This function processes YOLO convert CLI commands to convert datasets from NDJSON format to the standard YOLO
+    dataset structure. It supports both local files and remote URLs.
 
     Args:
         args (list[str]): A list of command line arguments for dataset conversion.

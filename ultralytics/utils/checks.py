@@ -507,6 +507,17 @@ def check_executorch_requirements():
     check_requirements("numpy<=2.3.5")
 
 
+def check_tensorrt(min_version: str = "7.0.0"):
+    """Check and install TensorRT requirements including platform-specific dependencies.
+
+    Args:
+        min_version (str): Minimum supported TensorRT version (default: "7.0.0").
+    """
+    if LINUX:
+        cuda_version = torch.version.cuda.split(".")[0]
+        check_requirements(f"tensorrt-cu{cuda_version}>={min_version},!=10.1.0")
+
+
 def check_torchvision():
     """Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
 

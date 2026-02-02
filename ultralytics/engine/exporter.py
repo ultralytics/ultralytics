@@ -102,6 +102,7 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
+    is_jetson,
 )
 from ultralytics.utils.checks import (
     IS_PYTHON_3_10,
@@ -110,6 +111,7 @@ from ultralytics.utils.checks import (
     check_executorch_requirements,
     check_imgsz,
     check_requirements,
+    check_tensorrt,
     check_version,
     is_intel,
     is_sudo_available,
@@ -1002,12 +1004,15 @@ class Exporter:
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
         f_onnx = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
+        # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
+        # https://github.com/ultralytics/ultralytics/issues/22873
+        if is_jetson(jetpack=7):
+            check_tensorrt("10.15")
+
         try:
             import tensorrt as trt
         except ImportError:
-            if LINUX:
-                cuda_version = torch.version.cuda.split(".")[0]
-                check_requirements(f"tensorrt-cu{cuda_version}>7.0.0,!=10.1.0")
+            check_tensorrt()
             import tensorrt as trt
         check_version(trt.__version__, ">=7.0.0", hard=True)
         check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")

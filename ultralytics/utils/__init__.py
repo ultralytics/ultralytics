@@ -762,7 +762,7 @@ def is_jetson(jetpack=None) -> bool:
     if jetson and jetpack:
         try:
             content = open("/etc/nv_tegra_release").read()
-            version_map = {4: "R32", 5: "R35", 6: "R36"}  # JetPack to L4T major version mapping
+            version_map = {4: "R32", 5: "R35", 6: "R36", 7: "R38"}  # JetPack to L4T major version mapping
             return jetpack in version_map and version_map[jetpack] in content
         except Exception:
             return False

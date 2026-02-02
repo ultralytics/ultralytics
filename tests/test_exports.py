@@ -37,7 +37,6 @@ def test_export_openvino(end2end):
     file = YOLO(MODEL).export(format="openvino", imgsz=32, end2end=end2end)
     if WINDOWS:
         # Ensure a unique export path per test to prevent OpenVINO file writes
-        # See https://github.com/ultralytics/ultralytics/actions/runs/21596675390/job/62230966755?pr=23525
         file = Path(file)
         file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference

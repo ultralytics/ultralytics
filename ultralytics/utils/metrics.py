@@ -1113,7 +1113,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
                 tp_offsets = tp_offsets.astype(float)
                 tp_mask = stats["tp"][:, 0].astype(bool)
                 tp_offsets_filtered = tp_offsets[tp_mask]
-                pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)                
+                pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)
                 self.center_rmse = float(np.sqrt(np.mean(tp_offsets_filtered**2)))
                 rmse_per_class = np.zeros(len(self.names), dtype=float)
                 for c in range(len(self.names)):

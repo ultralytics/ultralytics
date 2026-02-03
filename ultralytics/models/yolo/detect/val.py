@@ -190,21 +190,21 @@ class DetectionValidator(BaseValidator):
                 tp = stats["tp"]
                 tp_preds = tp[:, 0]
                 tp_idx = np.where(tp_preds)[0]
-                
+
                 # Inicializar con ceros para todas las predicciones
                 tp_center_offsets = np.zeros(len(predn["cls"]))
-                
+
                 if tp_idx.size > 0:
                     # TP-RMSE calculation (normalised by img diagonal)
                     gt_idx = stats["match_gt"][tp_idx]
                     valid = gt_idx >= 0
                     tp_idx_valid = tp_idx[valid]
                     gt_idx = gt_idx[valid]
-                    
+
                     if tp_idx_valid.size > 0:
                         gt_boxes = np.asarray(pbatch["bboxes"].cpu().numpy())
                         pred_boxes = np.asarray(predn["bboxes"].cpu().numpy())
-                        
+
                         # compute centers
                         if gt_boxes.shape[1] == 9:
                             gt_positions = gt_boxes[:, 1:]
@@ -212,27 +212,27 @@ class DetectionValidator(BaseValidator):
                             gt_centers = gt_positions.mean(axis=1)
                         else:
                             gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:4]) / 2.0
-                        
+
                         if pred_boxes.shape[1] == 9:
                             pred_positions = pred_boxes[:, 1:]
                             pred_positions = pred_positions.reshape(-1, 4, 2)
                             pred_centers = pred_positions.mean(axis=1)
                         else:
                             pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:4]) / 2.0
-                        
+
                         # keep only TP predictions
                         pred_centers_tp = pred_centers[tp_idx_valid]
-                        
+
                         # final distances
                         dists = np.linalg.norm(
                             pred_centers_tp - gt_centers[gt_idx],
                             axis=1,
                         )
-                        
+
                         # normalize by image diagonal
                         imgsz_arr = np.asarray(pbatch["imgsz"])
                         diag = np.sqrt((imgsz_arr**2).sum()) + 1e-7
-                        
+
                         # Asignar offsets solo a los TPs válidos
                         tp_center_offsets[tp_idx_valid] = dists / diag
 

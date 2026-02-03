@@ -16,7 +16,7 @@ The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to do <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> on Fashion MNIST Dataset using Ultralytics YOLO11
+  <strong>Watch:</strong> How to do <a href="https://www.ultralytics.com/glossary/image-classification">Image Classification</a> on Fashion MNIST Dataset using Ultralytics YOLO26
 </p>
 
 ## Key Features
@@ -66,7 +66,7 @@ To train a CNN model on the Fashion-MNIST dataset for 100 [epochs](https://www.u
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
+        model = YOLO("yolo26n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
         results = model.train(data="fashion-mnist", epochs=100, imgsz=28)
@@ -76,14 +76,14 @@ To train a CNN model on the Fashion-MNIST dataset for 100 [epochs](https://www.u
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo classify train data=fashion-mnist model=yolo11n-cls.pt epochs=100 imgsz=28
+        yolo classify train data=fashion-mnist model=yolo26n-cls.pt epochs=100 imgsz=28
         ```
 
 ## Sample Images and Annotations
 
 The Fashion-MNIST dataset contains grayscale images of Zalando's article images, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/fashion-mnist-sample.avif)
+![Fashion-MNIST clothing classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fashion-mnist-sample.avif)
 
 The example showcases the variety and complexity of the images in the Fashion-MNIST dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 
@@ -109,7 +109,7 @@ To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use bot
         from ultralytics import YOLO
 
         # Load a pretrained model
-        model = YOLO("yolo11n-cls.pt")
+        model = YOLO("yolo26n-cls.pt")
 
         # Train the model on Fashion-MNIST
         results = model.train(data="fashion-mnist", epochs=100, imgsz=28)
@@ -119,7 +119,7 @@ To train an Ultralytics YOLO model on the Fashion-MNIST dataset, you can use bot
     === "CLI"
 
         ```bash
-        yolo classify train data=fashion-mnist model=yolo11n-cls.pt epochs=100 imgsz=28
+        yolo classify train data=fashion-mnist model=yolo26n-cls.pt epochs=100 imgsz=28
         ```
 
 For more detailed training parameters, refer to the [Training page](../../modes/train.md).
@@ -130,7 +130,7 @@ The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is
 
 ### Can I use Ultralytics YOLO for image classification tasks like Fashion-MNIST?
 
-Yes, Ultralytics YOLO models can be used for image classification tasks, including those involving the Fashion-MNIST dataset. YOLO11, for example, supports various vision tasks such as detection, segmentation, and classification. To get started with image classification tasks, refer to the [Classification page](https://docs.ultralytics.com/tasks/classify/).
+Yes, Ultralytics YOLO models can be used for image classification tasks, including those involving the Fashion-MNIST dataset. YOLO26, for example, supports various vision tasks such as detection, segmentation, and classification. To get started with image classification tasks, refer to the [Classification page](https://docs.ultralytics.com/tasks/classify/).
 
 ### What are the key features and structure of the Fashion-MNIST dataset?
 

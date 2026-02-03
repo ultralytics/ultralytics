@@ -36,7 +36,8 @@ class DotProductScoring(torch.nn.Module):
         if self.clamp_logits:
             self.clamp_max_val = clamp_max_val
 
-    def mean_pool_text(self, prompt, prompt_mask):
+    @staticmethod
+    def mean_pool_text(prompt, prompt_mask):
         """Mean-pool the prompt embeddings over the valid tokens only."""
         # is_valid has shape (seq, bs, 1), where 1 is valid and 0 is padding
         is_valid = (~prompt_mask).to(prompt.dtype).permute(1, 0)[..., None]

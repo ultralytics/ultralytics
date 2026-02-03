@@ -16,8 +16,24 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML, is_jetson
-from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
+from ultralytics.utils import (
+    ARM64,
+    IS_JETSON,
+    LINUX,
+    LOGGER,
+    PYTHON_VERSION,
+    ROOT,
+    YAML,
+    is_jetson,
+)
+from ultralytics.utils.checks import (
+    check_executorch_requirements,
+    check_requirements,
+    check_suffix,
+    check_version,
+    check_yaml,
+    is_rockchip,
+)
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 from ultralytics.utils.nms import non_max_suppression
 
@@ -132,14 +148,14 @@ class AutoBackend(nn.Module):
         _model_type: Determine the model type from file path.
 
     Examples:
-        >>> model = AutoBackend(model="yolo11n.pt", device="cuda")
+        >>> model = AutoBackend(model="yolo26n.pt", device="cuda")
         >>> results = model(img)
     """
 
     @torch.no_grad()
     def __init__(
         self,
-        model: str | torch.nn.Module = "yolo11n.pt",
+        model: str | torch.nn.Module = "yolo26n.pt",
         device: torch.device = torch.device("cpu"),
         dnn: bool = False,
         data: str | Path | None = None,
@@ -221,6 +237,7 @@ class AutoBackend(nn.Module):
             for p in model.parameters():
                 p.requires_grad = False
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
+            end2end = getattr(model, "end2end", False)
 
         # TorchScript
         elif jit:
@@ -245,15 +262,20 @@ class AutoBackend(nn.Module):
             check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
             import onnxruntime
 
-            providers = ["CPUExecutionProvider"]
-            if cuda:
-                if "CUDAExecutionProvider" in onnxruntime.get_available_providers():
-                    providers.insert(0, ("CUDAExecutionProvider", {"device_id": device.index}))
-                else:  # Only log warning if CUDA was requested but unavailable
-                    LOGGER.warning("Failed to start ONNX Runtime with CUDA. Using CPU...")
-                    device = torch.device("cpu")
-                    cuda = False
-            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} {providers[0]}")
+            # Select execution provider: CUDA > CoreML (mps) > CPU
+            available = onnxruntime.get_available_providers()
+            if cuda and "CUDAExecutionProvider" in available:
+                providers = [("CUDAExecutionProvider", {"device_id": device.index}), "CPUExecutionProvider"]
+            elif device.type == "mps" and "CoreMLExecutionProvider" in available:
+                providers = ["CoreMLExecutionProvider", "CPUExecutionProvider"]
+            else:
+                providers = ["CPUExecutionProvider"]
+                if cuda:
+                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                    device, cuda = torch.device("cpu"), False
+            LOGGER.info(
+                f"Using ONNX Runtime {onnxruntime.__version__} with {providers[0] if isinstance(providers[0], str) else providers[0][0]}"
+            )
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
@@ -271,7 +293,10 @@ class AutoBackend(nn.Module):
             metadata = session.get_modelmeta().custom_metadata_map
             dynamic = isinstance(session.get_outputs()[0].shape[0], str)
             fp16 = "float16" in session.get_inputs()[0].type
-            if not dynamic:
+
+            # Setup IO binding for optimized inference (CUDA only, not supported for CoreML)
+            use_io_binding = not dynamic and cuda
+            if use_io_binding:
                 io = session.io_binding()
                 bindings = []
                 for output in session.get_outputs():
@@ -314,7 +339,7 @@ class AutoBackend(nn.Module):
                 batch = metadata["batch"]
                 dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
-            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 and dynamic else "LATENCY"
+            inference_mode = "CUMULATIVE_THROUGHPUT" if dynamic and batch > 1 else "LATENCY"
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name=device_name,
@@ -371,32 +396,33 @@ class AutoBackend(nn.Module):
             is_trt10 = not hasattr(model, "num_bindings")
             num = range(model.num_io_tensors) if is_trt10 else range(model.num_bindings)
             for i in num:
+                # Get tensor info using TRT10+ or legacy API
                 if is_trt10:
                     name = model.get_tensor_name(i)
                     dtype = trt.nptype(model.get_tensor_dtype(name))
                     is_input = model.get_tensor_mode(name) == trt.TensorIOMode.INPUT
-                    if is_input:
-                        if -1 in tuple(model.get_tensor_shape(name)):
-                            dynamic = True
-                            context.set_input_shape(name, tuple(model.get_tensor_profile_shape(name, 0)[2]))
-                        if dtype == np.float16:
-                            fp16 = True
-                    else:
-                        output_names.append(name)
-                    shape = tuple(context.get_tensor_shape(name))
-                else:  # TensorRT < 10.0
+                    shape = tuple(model.get_tensor_shape(name))
+                    profile_shape = tuple(model.get_tensor_profile_shape(name, 0)[2]) if is_input else None
+                else:
                     name = model.get_binding_name(i)
                     dtype = trt.nptype(model.get_binding_dtype(i))
                     is_input = model.binding_is_input(i)
-                    if model.binding_is_input(i):
-                        if -1 in tuple(model.get_binding_shape(i)):  # dynamic
-                            dynamic = True
-                            context.set_binding_shape(i, tuple(model.get_profile_shape(0, i)[1]))
-                        if dtype == np.float16:
-                            fp16 = True
-                    else:
-                        output_names.append(name)
-                    shape = tuple(context.get_binding_shape(i))
+                    shape = tuple(model.get_binding_shape(i))
+                    profile_shape = tuple(model.get_profile_shape(0, i)[1]) if is_input else None
+
+                # Process input/output tensors
+                if is_input:
+                    if -1 in shape:
+                        dynamic = True
+                        if is_trt10:
+                            context.set_input_shape(name, profile_shape)
+                        else:
+                            context.set_binding_shape(i, profile_shape)
+                    if dtype == np.float16:
+                        fp16 = True
+                else:
+                    output_names.append(name)
+                shape = tuple(context.get_tensor_shape(name)) if is_trt10 else tuple(context.get_binding_shape(i))
                 im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(device)
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
@@ -418,8 +444,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Loading {w} for TensorFlow SavedModel inference...")
             import tensorflow as tf
 
-            keras = False  # assume TF1 saved_model
-            model = tf.keras.models.load_model(w) if keras else tf.saved_model.load(w)
+            model = tf.saved_model.load(w)
             metadata = Path(w) / "metadata.yaml"
 
         # TF GraphDef
@@ -489,11 +514,11 @@ class AutoBackend(nn.Module):
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
             check_requirements(
-                "paddlepaddle-gpu"
+                "paddlepaddle-gpu>=3.0.0,!=3.3.0"  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
                 if torch.cuda.is_available()
                 else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
                 if ARM64
-                else "paddlepaddle>=3.0.0"
+                else "paddlepaddle>=3.0.0,!=3.3.0"  # exclude 3.3.0 https://github.com/PaddlePaddle/Paddle/issues/77340
             )
             import paddle.inference as pdi
 
@@ -537,11 +562,16 @@ class AutoBackend(nn.Module):
         # NCNN
         elif ncnn:
             LOGGER.info(f"Loading {w} for NCNN inference...")
-            check_requirements("git+https://github.com/Tencent/ncnn.git" if ARM64 else "ncnn", cmds="--no-deps")
+            check_requirements("ncnn", cmds="--no-deps")
             import ncnn as pyncnn
 
             net = pyncnn.Net()
-            net.opt.use_vulkan_compute = cuda
+            if isinstance(cuda, torch.device):
+                net.opt.use_vulkan_compute = cuda
+            elif isinstance(device, str) and device.startswith("vulkan"):
+                net.opt.use_vulkan_compute = True
+                net.set_vulkan_device(int(device.split(":")[1]))
+                device = torch.device("cpu")
             w = Path(w)
             if not w.is_file():  # if not *.param
                 w = next(w.glob("*.param"))  # get *.param file from *_ncnn_model dir
@@ -595,17 +625,16 @@ class AutoBackend(nn.Module):
             w = Path(w)
             if (found := next(w.rglob("*.axm"), None)) is None:
                 raise FileNotFoundError(f"No .axm file found in: {w}")
-            w = found
 
-            ax_model = op.load(str(w))
-            metadata = w.parent / "metadata.yaml"
+            ax_model = op.load(str(found))
+            metadata = found.parent / "metadata.yaml"
 
         # ExecuTorch
         elif pte:
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
-            # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
-            check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-            check_requirements(("executorch==1.0.1", "flatbuffers"))
+
+            check_executorch_requirements()
+
             from executorch.runtime import Runtime
 
             w = Path(w)
@@ -635,7 +664,7 @@ class AutoBackend(nn.Module):
             for k, v in metadata.items():
                 if k in {"stride", "batch", "channels"}:
                     metadata[k] = int(v)
-                elif k in {"imgsz", "names", "kpt_shape", "kpt_names", "args"} and isinstance(v, str):
+                elif k in {"imgsz", "names", "kpt_shape", "kpt_names", "args", "end2end"} and isinstance(v, str):
                     metadata[k] = ast.literal_eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
@@ -644,7 +673,7 @@ class AutoBackend(nn.Module):
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
             kpt_names = metadata.get("kpt_names")
-            end2end = metadata.get("args", {}).get("nms", False)
+            end2end = metadata.get("end2end", False) or metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):
@@ -699,10 +728,7 @@ class AutoBackend(nn.Module):
 
         # ONNX Runtime
         elif self.onnx or self.imx:
-            if self.dynamic:
-                im = im.cpu().numpy()  # torch to numpy
-                y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
-            else:
+            if self.use_io_binding:
                 if not self.cuda:
                     im = im.cpu()
                 self.io.bind_input(
@@ -715,6 +741,9 @@ class AutoBackend(nn.Module):
                 )
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
+            else:
+                im = im.cpu().numpy()  # torch to numpy
+                y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
             if self.imx:
                 if self.task == "detect":
                     # boxes, conf, cls
@@ -828,8 +857,7 @@ class AutoBackend(nn.Module):
 
         # Axelera
         elif self.axelera:
-            im = im.cpu()
-            y = self.ax_model(im)
+            y = self.ax_model(im.cpu())
 
         # ExecuTorch
         elif self.pte:
@@ -839,7 +867,7 @@ class AutoBackend(nn.Module):
         else:
             im = im.cpu().numpy()
             if self.saved_model:  # SavedModel
-                y = self.model(im, training=False) if self.keras else self.model.serving_default(im)
+                y = self.model.serving_default(im)
                 if not isinstance(y, list):
                     y = [y]
             elif self.pb:  # GraphDef
@@ -875,7 +903,7 @@ class AutoBackend(nn.Module):
                                 x[:, 6::3] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
-            if len(y) == 2:  # segment with (det, proto) output order reversed
+            if self.task == "segment":  # segment with (det, proto) output order reversed
                 if len(y[1].shape) != 4:
                     y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
                 if y[1].shape[-1] == 6:  # end-to-end model
@@ -884,8 +912,6 @@ class AutoBackend(nn.Module):
                     y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
 
-        # for x in y:
-        #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
         if isinstance(y, (list, tuple)):
             if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined
                 nc = y[0].shape[1] - y[1].shape[1] - 4  # y = (1, 32, 160, 160), (1, 116, 8400)

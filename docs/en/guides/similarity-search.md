@@ -23,7 +23,7 @@ This guide walks you through building a **semantic image search** engine using [
 
 ## Semantic Image Search Visual Preview
 
-![Flask webpage with semantic search results overview](https://github.com/ultralytics/docs/releases/download/0/flask-ui.avif)
+![Flask webpage with semantic search results overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/flask-ui.avif)
 
 ## How It Works
 
@@ -103,13 +103,13 @@ Building your own semantic image search system with CLIP and FAISS provides seve
 
 2. **Human-Like Understanding**: Unlike keyword-based search engines, CLIP understands semantic context. It can retrieve images based on abstract, emotional, or relational queries like "a happy child in nature" or "a futuristic city skyline at night".
 
-    ![OpenAI Clip image retrieval workflow](https://github.com/ultralytics/docs/releases/download/0/clip-image-retrieval.avif)
+    ![OpenAI Clip image retrieval workflow](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clip-image-retrieval.avif)
 
 3. **No Need for Labels or Metadata**: Traditional image search systems require carefully labeled data. This approach only needs raw images. CLIP generates embeddings without needing any manual annotation.
 
 4. **Flexible and Scalable Search**: FAISS enables fast nearest-neighbor search even with large-scale datasets. It's optimized for speed and memory, allowing real-time response even with thousands (or millions) of embeddings.
 
-    ![Meta FAISS embedding vectors building workflow](https://github.com/ultralytics/docs/releases/download/0/faiss-indexing-workflow.avif)
+    ![Meta FAISS embedding vectors building workflow](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/faiss-indexing-workflow.avif)
 
 5. **Cross-Domain Applications**: Whether you're building a personal photo archive, a creative inspiration tool, a product search engine, or even an art recommendation system, this stack adapts to diverse domains with minimal tweaking.
 

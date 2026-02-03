@@ -36,7 +36,7 @@ Before discussing the details of each step involved in a computer vision project
 - Finally, you'd deploy your model into the real world and update it based on new insights and feedback.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/five-stages-of-ml-development-lifecycle.avif" alt="Computer Vision Project Steps Overview">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/five-stages-of-ml-development-lifecycle.avif" alt="Computer Vision Project Steps Overview">
 </p>
 
 Now that we know what to expect, let's dive right into the steps and get your project moving forward.
@@ -65,7 +65,7 @@ Depending on the objective, you might choose to select the model first or after 
 Choosing between training from scratch or using [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) affects how you prepare your data. Training from scratch requires a diverse dataset to build the model's understanding from the ground up. Transfer learning, on the other hand, allows you to use a pretrained model and adapt it with a smaller, more specific dataset. Also, choosing a specific model to train will determine how you need to prepare your data, such as resizing images or adding annotations, according to the model's specific requirements.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/training-from-scratch-vs-transfer-learning.avif" alt="Training From Scratch Vs. Using Transfer Learning">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/training-from-scratch-vs-transfer-learning.avif" alt="Training From Scratch Vs. Using Transfer Learning">
 </p>
 
 Note: When choosing a model, consider its [deployment](./model-deployment-options.md) to ensure compatibility and performance. For example, lightweight models are ideal for [edge computing](https://www.ultralytics.com/glossary/edge-computing) due to their efficiency on resource-constrained devices. To learn more about the key points related to defining your project, read [our guide](./defining-project-goals.md) on defining your project's goals and selecting the right model.
@@ -91,7 +91,7 @@ However, if you choose to collect images or take your own pictures, you'll need 
 - **[Image Segmentation](https://www.ultralytics.com/glossary/image-segmentation):** You'll label each pixel in the image according to the object it belongs to, creating detailed object boundaries.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/different-types-of-image-annotation.avif" alt="Different Types of Image Annotation">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/different-types-of-image-annotation.avif" alt="Bounding box, polygon, and keypoint annotations">
 </p>
 
 [Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. Annotation tools can help make this process easier. Here are some useful open annotation tools: [LabeI Studio](https://github.com/HumanSignal/label-studio), [CVAT](https://github.com/cvat-ai/cvat), and [Labelme](https://github.com/wkentaro/labelme).
@@ -109,7 +109,7 @@ Here's how to split your data:
 After splitting your data, you can perform data augmentation by applying transformations like rotating, scaling, and flipping images to artificially increase the size of your dataset. Data augmentation makes your model more robust to variations and improves its performance on unseen images.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/examples-of-data-augmentations.avif" alt="Examples of Data Augmentations">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/examples-of-data-augmentations.avif" alt="Data augmentation examples">
 </p>
 
 Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), [Albumentations](../integrations/albumentations.md), and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) offer flexible augmentation functions that you can use. Additionally, some libraries, such as Ultralytics, have [built-in augmentation settings](../modes/train.md) directly within its model training function, simplifying the process.
@@ -117,7 +117,7 @@ Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), [Albumenta
 To understand your data better, you can use tools like [Matplotlib](https://matplotlib.org/) or [Seaborn](https://seaborn.pydata.org/) to visualize the images and analyze their distribution and characteristics. Visualizing your data helps identify patterns, anomalies, and the effectiveness of your augmentation techniques. You can also use [Ultralytics Explorer](../datasets/explorer/index.md), a tool for exploring computer vision datasets with semantic search, SQL queries, and vector similarity search.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/explorer-dashboard-screenshot-1.avif" alt="The Ultralytics Explorer Tool">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/explorer-dashboard-screenshot-1.avif" alt="The Ultralytics Explorer Tool">
 </p>
 
 By properly [understanding, splitting, and augmenting your data](./preprocessing_annotated_data.md), you can develop a well-trained, validated, and tested model that performs well in real-world applications.
@@ -160,7 +160,7 @@ Also, address common problems such as overfitting, [underfitting](https://www.ul
 Once your model has been thoroughly tested, it's time to deploy it. [Model deployment](https://www.ultralytics.com/glossary/model-deployment) involves making your model available for use in a production environment. Here are the steps to deploy a computer vision model:
 
 - **Setting Up the Environment:** Configure the necessary infrastructure for your chosen deployment option, whether it's cloud-based (AWS, Google Cloud, Azure) or edge-based (local devices, IoT).
-- **[Exporting the Model](../modes/export.md):** Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLO11) to ensure compatibility with your deployment platform.
+- **[Exporting the Model](../modes/export.md):** Export your model to the appropriate format (e.g., ONNX, TensorRT, CoreML for YOLO26) to ensure compatibility with your deployment platform.
 - **Deploying the Model:** Deploy the model by setting up APIs or endpoints and integrating it with your application.
 - **Ensuring Scalability:** Implement load balancers, auto-scaling groups, and monitoring tools to manage resources and handle increasing data and user requests.
 
@@ -173,7 +173,7 @@ Once your model is deployed, it's important to continuously monitor its performa
 Monitoring tools can help you track key performance indicators (KPIs) and detect anomalies or drops in accuracy. By monitoring the model, you can be aware of model drift, where the model's performance declines over time due to changes in the input data. Periodically retrain the model with updated data to maintain accuracy and relevance.
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/model-monitoring-maintenance-loop.avif" alt="Model Monitoring">
+  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/model-monitoring-maintenance-loop.avif" alt="Model monitoring and maintenance lifecycle">
 </p>
 
 In addition to monitoring and maintenance, documentation is also key. Thoroughly document the entire process, including model architecture, training procedures, hyperparameters, data preprocessing steps, and any changes made during deployment and maintenance. Good documentation ensures reproducibility and makes future updates or troubleshooting easier. By effectively [monitoring, maintaining, and documenting your model](./model-monitoring-and-maintenance.md), you can ensure it remains accurate, reliable, and easy to manage over its lifecycle.
@@ -184,12 +184,12 @@ Connecting with a community of computer vision enthusiasts can help you tackle a
 
 ### Community Resources
 
-- **GitHub Issues:** Check out the [YOLO11 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The active community and maintainers are there to help with specific issues.
+- **GitHub Issues:** Check out the [YOLO26 GitHub repository](https://github.com/ultralytics/ultralytics/issues) and use the Issues tab to ask questions, report bugs, and suggest new features. The active community and maintainers are there to help with specific issues.
 - **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to interact with other users and developers, get support, and share insights.
 
 ### Official Documentation
 
-- **Ultralytics YOLO11 Documentation:** Explore the [official YOLO11 documentation](./index.md) for detailed guides with helpful tips on different computer vision tasks and projects.
+- **Ultralytics YOLO26 Documentation:** Explore the [official YOLO26 documentation](./index.md) for detailed guides with helpful tips on different computer vision tasks and projects.
 
 Using these resources will help you overcome challenges and stay updated with the latest trends and best practices in the computer vision community.
 
@@ -225,7 +225,7 @@ After splitting, apply data augmentation techniques like rotation, scaling, and 
 
 ### How can I export my trained computer vision model for deployment?
 
-Exporting your model ensures compatibility with different deployment platforms. Ultralytics provides multiple formats, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), and [CoreML](../integrations/coreml.md). To export your YOLO11 model, follow this guide:
+Exporting your model ensures compatibility with different deployment platforms. Ultralytics provides multiple formats, including [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), and [CoreML](../integrations/coreml.md). To export your YOLO26 model, follow this guide:
 
 - Use the `export` function with the desired format parameter.
 - Ensure the exported model fits the specifications of your deployment environment (e.g., edge devices, cloud).

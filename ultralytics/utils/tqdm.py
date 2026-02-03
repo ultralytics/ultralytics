@@ -506,4 +506,3 @@ if __name__ == "__main__":
         time.sleep(0.1)
         pbar.update(1)
     pbar.close()
-

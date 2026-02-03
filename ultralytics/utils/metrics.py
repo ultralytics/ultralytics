@@ -1118,7 +1118,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
                 for c in range(len(self.names)):
                     cls_mask = pred_cls_tp == c
                     if cls_mask.any():
-                        offs = tp_offsets[cls_mask]
+                        offs = tp_offsets[tp_mask]
                         rmse_per_class[c] = float(np.sqrt(np.mean(offs**2)))
                     else:
                         rmse_per_class[c] = 0.0

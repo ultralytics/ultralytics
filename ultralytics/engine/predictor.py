@@ -125,6 +125,11 @@ class BasePredictor:
         self.save_dir = get_save_dir(self.args)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
+        if self.args.conf == 1.0:
+            LOGGER.warning(
+                "Confidence threshold conf=1.0 will filter all detections. "
+                "Use a value < 1.0 (e.g., conf=0.25) for visible results."
+            )  
         self.done_warmup = False
         if self.args.show:
             self.args.show = check_imshow(warn=True)

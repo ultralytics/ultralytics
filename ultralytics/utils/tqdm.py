@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import sys
 import time
 from functools import lru_cache
@@ -208,6 +209,15 @@ class TQDM:
             return False
         return (self.total is not None and self.n >= self.total) or (dt >= self.mininterval)
 
+    def _compose(self, desc: str, percent: float, n_str: str, t_str: str, rate_str: str, elapsed_str: str, remaining_str: str, bar_width: int) -> str:
+        """Compose progress string with given bar width."""
+        bar = self._generate_bar(bar_width)
+        if self.total:
+            if self.is_bytes and self.n >= self.total:
+                return f"{desc}: {percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
+            return f"{desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
+        return f"{desc}: {bar} {n_str} {rate_str} {elapsed_str}"
+
     def _display(self, final: bool = False) -> None:
         """Display progress bar."""
         if self.disable or (self.closed and not final):
@@ -261,19 +271,27 @@ class TQDM:
         elapsed_str = self._format_time(elapsed)
         rate_str = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
 
-        bar = self._generate_bar()
+        # Fit to terminal width
+        try:
+            term_width = shutil.get_terminal_size().columns - 1
+        except Exception:
+            term_width = 79
 
-        # Compose progress line via f-strings (two shapes: with/without total)
-        if self.total:
-            if self.is_bytes and self.n >= self.total:
-                # Completed bytes: show only final size
-                progress_str = f"{self.desc}: {percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
-            else:
-                progress_str = (
-                    f"{self.desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
-                )
-        else:
-            progress_str = f"{self.desc}: {bar} {n_str} {rate_str} {elapsed_str}"
+        desc = self.desc
+        progress_str = self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 12)
+
+        if len(progress_str) > term_width:
+            fixed_len = len(self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 0))
+            bar_width = max(4, term_width - fixed_len)
+            progress_str = self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, min(12, bar_width))
+
+            if len(progress_str) > term_width:
+                overflow = len(progress_str) - term_width
+                if len(desc) > overflow + 3:
+                    desc = desc[: len(desc) - overflow - 3] + "..."
+                    progress_str = self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 4)
+                else:
+                    progress_str = progress_str[: term_width - 1] + "…"
 
         # Write to output
         try:
@@ -441,3 +459,4 @@ if __name__ == "__main__":
         pbar.update(1)
         pbar.set_description(f"Processing {filename}")
     pbar.close()
+

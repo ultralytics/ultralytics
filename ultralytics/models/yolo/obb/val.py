@@ -126,8 +126,10 @@ class OBBValidator(DetectionValidator):
                     seen.add(g)
             matches = matches[keep]
             match_gt[matches[:, 1]] = matches[:, 0]
-        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy(),
-                "match_gt": match_gt.cpu().numpy(),}
+        return {
+            "tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy(),
+            "match_gt": match_gt.cpu().numpy(),
+        }
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Postprocess OBB predictions.

@@ -51,16 +51,16 @@ def safe_upload(
     last_error = None
     for attempt in range(retry + 1):
         try:
-            with open(file, "rb") as f:
-                if progress:
-                    pbar = TQDM(total=file_size, desc=desc, unit="B", unit_scale=True, unit_divisor=1024)
-                    data = (pbar.update(len(chunk)) or chunk for chunk in iter(lambda: f.read(65536), b""))
-                else:
-                    pbar, data = None, f
-
-                requests.put(url, data=data, headers=upload_headers, timeout=timeout).raise_for_status()
-                if pbar:
-                    pbar.close()
+            with (
+                open(file, "rb") as f,
+                TQDM(total=file_size, desc=desc, disable=not progress, unit="B", unit_scale=True, unit_divisor=1024) as pbar,
+            ):
+                requests.put(
+                    url,
+                    data=(pbar.update(len(chunk)) or chunk for chunk in iter(lambda: f.read(65536), b"")),
+                    headers=upload_headers,
+                    timeout=timeout,
+                ).raise_for_status()
 
             LOGGER.info(f"{desc} ({file_size / 1e6:.1f} MB) ✅")
             return True
@@ -68,7 +68,7 @@ def safe_upload(
         except requests.exceptions.HTTPError as e:
             status = e.response.status_code if e.response is not None else 0
             if 400 <= status < 500 and status not in {408, 429}:
-                LOGGER.warning(f"{desc} failed: {status} {e.response.reason}")
+                LOGGER.warning(f"{desc} failed: {status} {getattr(e.response, 'reason', '')}")
                 return False
             last_error = f"HTTP {status}"
         except Exception as e:

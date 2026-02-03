@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from time import time
 
-from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, colorstr
+from ultralytics.utils import ENVIRONMENT, GIT, LOGGER, PYTHON_VERSION, RANK, SETTINGS, TESTS_RUNNING, Retry, colorstr
 
 PREFIX = colorstr("Platform: ")
 
@@ -148,22 +148,30 @@ def _interp_plot(plot, n=101):
     return result
 
 
-def _send(event, data, project, name, model_id=None):
-    """Send event to Platform endpoint. Returns response JSON on success."""
-    try:
-        payload = {"event": event, "project": project, "name": name, "data": data}
-        if model_id:
-            payload["modelId"] = model_id
+def _send(event, data, project, name, model_id=None, retry=2):
+    """Send event to Platform endpoint with retry logic."""
+    payload = {"event": event, "project": project, "name": name, "data": data}
+    if model_id:
+        payload["modelId"] = model_id
+
+    @Retry(times=retry, delay=1)
+    def post():
         r = requests.post(
             f"{PLATFORM_API_URL}/training/metrics",
             json=payload,
             headers={"Authorization": f"Bearer {_api_key}"},
-            timeout=10,
+            timeout=30,
         )
+        if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
+            LOGGER.warning(f"{PREFIX}Failed to send {event}: {r.status_code} {r.reason}")
+            return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
         r.raise_for_status()
         return r.json()
+
+    try:
+        return post()
     except Exception as e:
-        LOGGER.debug(f"Platform: Failed to send {event}: {e}")
+        LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
         return None
 
 
@@ -172,39 +180,37 @@ def _send_async(event, data, project, name, model_id=None):
     _executor.submit(_send, event, data, project, name, model_id)
 
 
-def _upload_model(model_path, project, name):
+def _upload_model(model_path, project, name, progress=False, retry=1):
     """Upload model checkpoint to Platform via signed URL."""
-    try:
-        model_path = Path(model_path)
-        if not model_path.exists():
-            return None
+    from ultralytics.utils.uploads import safe_upload
 
-        # Get signed upload URL
-        response = requests.post(
+    model_path = Path(model_path)
+    if not model_path.exists():
+        LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
+        return None
+
+    # Get signed upload URL from Platform
+    @Retry(times=3, delay=2)
+    def get_signed_url():
+        r = requests.post(
             f"{PLATFORM_API_URL}/models/upload",
             json={"project": project, "name": name, "filename": model_path.name},
             headers={"Authorization": f"Bearer {_api_key}"},
-            timeout=10,
+            timeout=30,
         )
-        response.raise_for_status()
-        data = response.json()
+        r.raise_for_status()
+        return r.json()
 
-        # Upload to GCS
-        with open(model_path, "rb") as f:
-            requests.put(
-                data["uploadUrl"],
-                data=f,
-                headers={"Content-Type": "application/octet-stream"},
-                timeout=600,  # 10 min timeout for large models
-            ).raise_for_status()
-
-        # url = f"{PLATFORM_URL}/{project}/{name}"
-        # LOGGER.info(f"{PREFIX}Model uploaded to {url}")
-        return data.get("gcsPath")
-
+    try:
+        data = get_signed_url()
     except Exception as e:
-        LOGGER.debug(f"Platform: Failed to upload model: {e}")
+        LOGGER.warning(f"{PREFIX}Failed to get upload URL: {e}")
         return None
+
+    # Upload to GCS using safe_upload with retry logic and optional progress bar
+    if safe_upload(file=model_path, url=data["uploadUrl"], retry=retry, progress=progress):
+        return data.get("gcsPath")
+    return None
 
 
 def _upload_model_async(model_path, project, name):
@@ -306,7 +312,7 @@ def on_pretrain_routine_start(trainer):
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
     train_args = {k: str(v) for k, v in vars(trainer.args).items()}
 
-    # Send synchronously to get modelId for subsequent webhooks
+    # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
     response = _send(
         "training_started",
         {
@@ -317,9 +323,12 @@ def on_pretrain_routine_start(trainer):
         },
         project,
         name,
+        retry=4,
     )
     if response and response.get("modelId"):
         trainer._platform_model_id = response["modelId"]
+    else:
+        LOGGER.warning(f"{PREFIX}Failed to register training session - metrics may not sync to Platform")
 
 
 def on_fit_epoch_end(trainer):
@@ -404,12 +413,14 @@ def on_train_end(trainer):
         trainer._platform_console_logger.stop_capture()
         trainer._platform_console_logger = None
 
-    # Upload best model (blocking to ensure it completes)
-    model_path = None
+    # Upload best model (blocking with progress bar to ensure it completes)
+    gcs_path = None
     model_size = None
     if trainer.best and Path(trainer.best).exists():
         model_size = Path(trainer.best).stat().st_size
-        model_path = _upload_model(trainer.best, project, name)
+        gcs_path = _upload_model(trainer.best, project, name, progress=True, retry=3)
+        if not gcs_path:
+            LOGGER.warning(f"{PREFIX}Model will not be available for download on Platform (upload failed)")
 
     # Collect plots from trainer and validator, deduplicating by type
     plots_by_type = {}
@@ -432,7 +443,7 @@ def on_train_end(trainer):
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
                 "bestEpoch": getattr(trainer, "best_epoch", trainer.epoch),
                 "bestFitness": trainer.best_fitness,
-                "modelPath": model_path or (str(trainer.best) if trainer.best else None),
+                "modelPath": gcs_path,  # Only send GCS path, not local path
                 "modelSize": model_size,
             },
             "classNames": class_names,
@@ -441,6 +452,7 @@ def on_train_end(trainer):
         project,
         name,
         getattr(trainer, "_platform_model_id", None),
+        retry=4,  # Critical, more retries
     )
     url = f"{PLATFORM_URL}/{project}/{name}"
     LOGGER.info(f"{PREFIX}View results at {url}")

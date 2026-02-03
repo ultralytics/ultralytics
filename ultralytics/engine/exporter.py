@@ -102,7 +102,6 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
-    is_jetson,
 )
 from ultralytics.utils.checks import (
     IS_PYTHON_3_10,
@@ -115,6 +114,7 @@ from ultralytics.utils.checks import (
     check_version,
     is_intel,
     is_sudo_available,
+    IS_CUDA_13,
 )
 from ultralytics.utils.export import (
     keras2pb,
@@ -1006,7 +1006,7 @@ class Exporter:
 
         # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
         # https://github.com/ultralytics/ultralytics/issues/22873
-        if is_jetson(jetpack=7):
+        if ARM64 and IS_CUDA_13:
             check_tensorrt("10.15")
 
         try:

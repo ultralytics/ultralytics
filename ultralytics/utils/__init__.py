@@ -52,6 +52,7 @@ ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = str(torch.__version__)  # Normalize torch.__version__ (PyTorch>1.9 returns TorchVersion objects)
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
+CUDA_VERSION = torch.version.cuda or ""  # version is None on non-CUDA builds
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
 RKNN_CHIPS = frozenset(
     {
@@ -762,7 +763,7 @@ def is_jetson(jetpack=None) -> bool:
     if jetson and jetpack:
         try:
             content = open("/etc/nv_tegra_release").read()
-            version_map = {4: "R32", 5: "R35", 6: "R36", 7: "R38"}  # JetPack to L4T major version mapping
+            version_map = {4: "R32", 5: "R35", 6: "R36"}  # JetPack to L4T major version mapping
             return jetpack in version_map and version_map[jetpack] in content
         except Exception:
             return False

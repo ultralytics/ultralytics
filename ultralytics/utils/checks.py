@@ -52,6 +52,7 @@ from ultralytics.utils import (
     downloads,
     is_github_action_running,
     url2file,
+    CUDA_VERSION,
 )
 
 
@@ -1044,3 +1045,5 @@ IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)
+
+IS_CUDA_13 = CUDA_VERSION.startswith("13")

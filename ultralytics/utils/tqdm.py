@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import sys
 import time
 from functools import lru_cache
@@ -13,6 +14,14 @@ from typing import IO, Any
 def is_noninteractive_console() -> bool:
     """Check for known non-interactive console environments."""
     return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
+
+
+def get_terminal_width() -> int:
+    """Get terminal width, with fallback to 80 columns."""
+    try:
+        return shutil.get_terminal_size().columns
+    except Exception:
+        return 80
 
 
 class TQDM:
@@ -76,6 +85,8 @@ class TQDM:
     RATE_SMOOTHING_FACTOR = 0.3  # Factor for exponential smoothing of rates
     MAX_SMOOTHED_RATE = 1000000  # Maximum rate to apply smoothing to
     NONINTERACTIVE_MIN_INTERVAL = 60.0  # Minimum interval for non-interactive environments
+    MIN_BAR_WIDTH = 4  # Minimum bar width before we start truncating other elements
+    DEFAULT_BAR_WIDTH = 12  # Default bar width when space is plentiful
 
     def __init__(
         self,
@@ -208,6 +219,82 @@ class TQDM:
             return False
         return (self.total is not None and self.n >= self.total) or (dt >= self.mininterval)
 
+    def _build_progress_parts(self, rate: float, elapsed: float) -> dict:
+        """Build the components of the progress string separately for width calculation."""
+        remaining_str = ""
+        if self.total and 0 < self.n < self.total and elapsed > 0:
+            est_rate = rate or (self.n / elapsed)
+            remaining_str = f"<{self._format_time((self.total - self.n) / est_rate)}"
+
+        if self.total:
+            percent = (self.n / self.total) * 100
+            n_str = self._format_num(self.n)
+            t_str = self._format_num(self.total)
+            if self.is_bytes and len(n_str) > 1 and len(t_str) > 1 and n_str[-2] == t_str[-2]:
+                n_str = n_str.rstrip("KMGTPB")
+        else:
+            percent = 0.0
+            n_str, t_str = self._format_num(self.n), "?"
+
+        elapsed_str = self._format_time(elapsed)
+        rate_str = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
+
+        return {
+            "desc": self.desc,
+            "percent": percent,
+            "n_str": n_str,
+            "t_str": t_str,
+            "elapsed_str": elapsed_str,
+            "remaining_str": remaining_str,
+            "rate_str": rate_str,
+        }
+
+    def _compose_progress_str(self, parts: dict, bar_width: int) -> str:
+        """Compose the final progress string given parts and bar width."""
+        bar = self._generate_bar(bar_width)
+
+        if self.total:
+            if self.is_bytes and self.n >= self.total:
+                return f"{parts['desc']}: {parts['percent']:.0f}% {bar} {parts['t_str']} {parts['rate_str']} {parts['elapsed_str']}"
+            else:
+                return f"{parts['desc']}: {parts['percent']:.0f}% {bar} {parts['n_str']}/{parts['t_str']} {parts['rate_str']} {parts['elapsed_str']}{parts['remaining_str']}"
+        else:
+            return f"{parts['desc']}: {bar} {parts['n_str']} {parts['rate_str']} {parts['elapsed_str']}"
+
+    def _fit_to_terminal(self, parts: dict) -> str:
+        """Build progress string that fits within terminal width."""
+        term_width = get_terminal_width() - 1  # -1 for safety margin
+
+        # First try with default bar width
+        progress_str = self._compose_progress_str(parts, self.DEFAULT_BAR_WIDTH)
+        if len(progress_str) <= term_width:
+            return progress_str
+
+        # Calculate fixed part length (everything except the bar)
+        fixed_len = len(self._compose_progress_str(parts, 0))
+        available_for_bar = term_width - fixed_len
+
+        if available_for_bar >= self.MIN_BAR_WIDTH:
+            # Shrink bar to fit
+            return self._compose_progress_str(parts, available_for_bar)
+
+        # Bar at minimum, need to truncate description
+        bar_width = self.MIN_BAR_WIDTH
+        progress_str = self._compose_progress_str(parts, bar_width)
+
+        if len(progress_str) <= term_width:
+            return progress_str
+
+        # Truncate description to fit
+        overflow = len(progress_str) - term_width
+        desc = parts["desc"]
+        if len(desc) > overflow + 3:  # +3 for "..."
+            parts["desc"] = desc[: len(desc) - overflow - 3] + "..."
+            return self._compose_progress_str(parts, bar_width)
+
+        # Last resort: hard truncate the whole string
+        return progress_str[: term_width - 1] + "…"
+
     def _display(self, final: bool = False) -> None:
         """Display progress bar."""
         if self.disable or (self.closed and not final):
@@ -241,39 +328,9 @@ class TQDM:
         self.last_print_t = current_time
         elapsed = current_time - self.start_t
 
-        # Remaining time
-        remaining_str = ""
-        if self.total and 0 < self.n < self.total and elapsed > 0:
-            est_rate = rate or (self.n / elapsed)
-            remaining_str = f"<{self._format_time((self.total - self.n) / est_rate)}"
-
-        # Numbers and percent
-        if self.total:
-            percent = (self.n / self.total) * 100
-            n_str = self._format_num(self.n)
-            t_str = self._format_num(self.total)
-            if self.is_bytes and n_str[-2] == t_str[-2]:  # Collapse suffix only when identical (e.g. "5.4/5.4MB")
-                n_str = n_str.rstrip("KMGTPB")
-        else:
-            percent = 0.0
-            n_str, t_str = self._format_num(self.n), "?"
-
-        elapsed_str = self._format_time(elapsed)
-        rate_str = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
-
-        bar = self._generate_bar()
-
-        # Compose progress line via f-strings (two shapes: with/without total)
-        if self.total:
-            if self.is_bytes and self.n >= self.total:
-                # Completed bytes: show only final size
-                progress_str = f"{self.desc}: {percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
-            else:
-                progress_str = (
-                    f"{self.desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
-                )
-        else:
-            progress_str = f"{self.desc}: {bar} {n_str} {rate_str} {elapsed_str}"
+        # Build progress string with dynamic width
+        parts = self._build_progress_parts(rate, elapsed)
+        progress_str = self._fit_to_terminal(parts)
 
         # Write to output
         try:
@@ -441,3 +498,12 @@ if __name__ == "__main__":
         pbar.update(1)
         pbar.set_description(f"Processing {filename}")
     pbar.close()
+
+    print("\n7. Testing narrow terminal simulation:")
+    # This will show how the bar adapts - resize your terminal to see it in action
+    pbar = TQDM(total=50, desc="This is a very long description that might need truncation")
+    for i in range(50):
+        time.sleep(0.1)
+        pbar.update(1)
+    pbar.close()
+

@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Upload utilities for Ultralytics, mirroring downloads.py patterns."""
 
 from __future__ import annotations

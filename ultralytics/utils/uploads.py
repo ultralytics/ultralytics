@@ -84,7 +84,12 @@ def safe_upload(
 
             r = requests.put(url, data=reader, headers=upload_headers, timeout=timeout)
             r.raise_for_status()
-            LOGGER.info(f"{desc} ({file_size / 1e6:.1f} MB) ✅")
+            reader.close()
+            reader = None  # Prevent double-close in finally
+            if pbar:
+                pbar.close()
+                pbar = None
+            LOGGER.info(f"Uploaded {file.name} ✅")
             return True
 
         except requests.exceptions.HTTPError as e:

@@ -1111,14 +1111,15 @@ class DetMetrics(SimpleClass, DataExportMixin):
                 self.center_rmse = 0.0
             else:
                 tp_offsets = tp_offsets.astype(float)
-                tp_mask = stats["tp"][:, 0].astype(bool)  # iou 0.5 should be the first one
-                pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)
-                self.center_rmse = float(np.sqrt(np.mean(tp_offsets**2)))
+                tp_mask = stats["tp"][:, 0].astype(bool)
+                tp_offsets_filtered = tp_offsets[tp_mask]
+                pred_cls_tp = stats["pred_cls"][tp_mask].astype(int)                
+                self.center_rmse = float(np.sqrt(np.mean(tp_offsets_filtered**2)))
                 rmse_per_class = np.zeros(len(self.names), dtype=float)
                 for c in range(len(self.names)):
                     cls_mask = pred_cls_tp == c
                     if cls_mask.any():
-                        offs = tp_offsets[tp_mask]
+                        offs = tp_offsets_filtered[cls_mask]
                         rmse_per_class[c] = float(np.sqrt(np.mean(offs**2)))
                     else:
                         rmse_per_class[c] = 0.0

@@ -182,59 +182,59 @@ class DetectionValidator(BaseValidator):
 
             stats = self._process_batch(predn, pbatch)
             # compute per-TP center offsets (normalized by image diagonal)
+            # compute per-TP center offsets (normalized by image diagonal)
             if no_pred or cls.shape[0] == 0:
-                tp_center_offsets = np.zeros(0)
+                tp_center_offsets = np.zeros(len(predn["cls"]))  # mismo tamaño que predicciones
             else:
                 # TP-RMSE calculation (normalised by img diagonal)
                 tp = stats["tp"]
                 tp_preds = tp[:, 0]
                 tp_idx = np.where(tp_preds)[0]
-
-                if tp_idx.size == 0:
-                    tp_center_offsets = np.zeros(0)
-                else:
+                
+                # Inicializar con ceros para todas las predicciones
+                tp_center_offsets = np.zeros(len(predn["cls"]))
+                
+                if tp_idx.size > 0:
                     # TP-RMSE calculation (normalised by img diagonal)
                     gt_idx = stats["match_gt"][tp_idx]
                     valid = gt_idx >= 0
-                    tp_idx = tp_idx[valid]
+                    tp_idx_valid = tp_idx[valid]
                     gt_idx = gt_idx[valid]
-
-                    if tp_idx.size == 0:
-                        tp_center_offsets = np.zeros(0)
-                    else:
+                    
+                    if tp_idx_valid.size > 0:
                         gt_boxes = np.asarray(pbatch["bboxes"].cpu().numpy())
                         pred_boxes = np.asarray(predn["bboxes"].cpu().numpy())
-
+                        
                         # compute centers
-                        # YOLO-OBB model bboxes differ in output such as (class_index x1 y1 x2 y2 x3 y3 x4 y4)
-                        # instead of only (x1 y1 x2 y2)
                         if gt_boxes.shape[1] == 9:
                             gt_positions = gt_boxes[:, 1:]
                             gt_positions = gt_positions.reshape(-1, 4, 2)
                             gt_centers = gt_positions.mean(axis=1)
                         else:
                             gt_centers = (gt_boxes[:, :2] + gt_boxes[:, 2:4]) / 2.0
-
+                        
                         if pred_boxes.shape[1] == 9:
                             pred_positions = pred_boxes[:, 1:]
                             pred_positions = pred_positions.reshape(-1, 4, 2)
                             pred_centers = pred_positions.mean(axis=1)
                         else:
                             pred_centers = (pred_boxes[:, :2] + pred_boxes[:, 2:4]) / 2.0
-
+                        
                         # keep only TP predictions
-                        pred_centers_tp = pred_centers[tp_idx]
-
+                        pred_centers_tp = pred_centers[tp_idx_valid]
+                        
                         # final distances
                         dists = np.linalg.norm(
                             pred_centers_tp - gt_centers[gt_idx],
                             axis=1,
                         )
-
+                        
                         # normalize by image diagonal
                         imgsz_arr = np.asarray(pbatch["imgsz"])
                         diag = np.sqrt((imgsz_arr**2).sum()) + 1e-7
-                        tp_center_offsets = dists / diag
+                        
+                        # Asignar offsets solo a los TPs válidos
+                        tp_center_offsets[tp_idx_valid] = dists / diag
 
             self.metrics.update_stats(
                 {
@@ -243,7 +243,7 @@ class DetectionValidator(BaseValidator):
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
-                    "tp_center_offset": np.zeros(0) if no_pred else tp_center_offsets,
+                    "tp_center_offset": tp_center_offsets,  # sin el condicional
                 }
             )
             # Evaluate

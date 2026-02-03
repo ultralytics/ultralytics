@@ -27,6 +27,7 @@ from ultralytics.utils import (
     ASSETS,
     ASSETS_URL,
     AUTOINSTALL,
+    CUDA_VERSION,
     GIT,
     IS_COLAB,
     IS_DOCKER,
@@ -52,7 +53,6 @@ from ultralytics.utils import (
     downloads,
     is_github_action_running,
     url2file,
-    CUDA_VERSION,
 )
 
 

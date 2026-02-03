@@ -104,6 +104,7 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
+    IS_CUDA_13,
     IS_PYTHON_3_10,
     IS_PYTHON_MINIMUM_3_9,
     check_apt_requirements,
@@ -114,7 +115,6 @@ from ultralytics.utils.checks import (
     check_version,
     is_intel,
     is_sudo_available,
-    IS_CUDA_13,
 )
 from ultralytics.utils.export import (
     keras2pb,

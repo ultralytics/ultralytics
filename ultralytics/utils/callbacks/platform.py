@@ -148,13 +148,13 @@ def _interp_plot(plot, n=101):
     return result
 
 
-def _send(event, data, project, name, model_id=None):
+def _send(event, data, project, name, model_id=None, retry=2):
     """Send event to Platform endpoint with retry logic."""
     payload = {"event": event, "project": project, "name": name, "data": data}
     if model_id:
         payload["modelId"] = model_id
 
-    @Retry(times=3, delay=1)
+    @Retry(times=retry, delay=1)
     def post():
         r = requests.post(
             f"{PLATFORM_API_URL}/training/metrics",
@@ -165,7 +165,7 @@ def _send(event, data, project, name, model_id=None):
         if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
             LOGGER.warning(f"{PREFIX}Failed to send {event}: {r.status_code} {r.reason}")
             return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
-        r.raise_for_status()  # Raise for 5xx to trigger @Retry
+        r.raise_for_status()
         return r.json()
 
     try:
@@ -189,8 +189,8 @@ def _upload_model(model_path, project, name, progress=False, retry=1):
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
         return None
 
-    # Get signed upload URL from Platform with retry
-    @Retry(times=retry + 1, delay=2)
+    # Get signed upload URL from Platform
+    @Retry(times=3, delay=2)
     def get_signed_url():
         r = requests.post(
             f"{PLATFORM_API_URL}/models/upload",
@@ -312,7 +312,7 @@ def on_pretrain_routine_start(trainer):
     # Note: model_info is sent later in on_fit_epoch_end (epoch 0) when the model is actually loaded
     train_args = {k: str(v) for k, v in vars(trainer.args).items()}
 
-    # Send synchronously to get modelId for subsequent webhooks
+    # Send synchronously to get modelId for subsequent webhooks (critical, more retries)
     response = _send(
         "training_started",
         {
@@ -323,6 +323,7 @@ def on_pretrain_routine_start(trainer):
         },
         project,
         name,
+        retry=4,
     )
     if response and response.get("modelId"):
         trainer._platform_model_id = response["modelId"]
@@ -451,6 +452,7 @@ def on_train_end(trainer):
         project,
         name,
         getattr(trainer, "_platform_model_id", None),
+        retry=4,  # Critical, more retries
     )
     url = f"{PLATFORM_URL}/{project}/{name}"
     LOGGER.info(f"{PREFIX}View results at {url}")

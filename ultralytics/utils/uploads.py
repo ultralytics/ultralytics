@@ -3,10 +3,35 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from time import sleep
 
 from ultralytics.utils import LOGGER, TQDM
+
+
+class _ProgressReader:
+    """File wrapper that reports read progress for upload monitoring."""
+
+    def __init__(self, file_path, pbar):
+        self.file = open(file_path, "rb")
+        self.pbar = pbar
+        self._size = os.path.getsize(file_path)
+
+    def read(self, size=-1):
+        """Read data and update progress bar."""
+        data = self.file.read(size)
+        if data and self.pbar:
+            self.pbar.update(len(data))
+        return data
+
+    def __len__(self):
+        """Return file size for Content-Length header."""
+        return self._size
+
+    def close(self):
+        """Close the file."""
+        self.file.close()
 
 
 def safe_upload(
@@ -43,27 +68,22 @@ def safe_upload(
     file_size = file.stat().st_size
     desc = f"Uploading {file.name}"
 
-    # Prepare headers
-    upload_headers = {"Content-Type": "application/octet-stream", "Content-Length": str(file_size)}
+    # Prepare headers (Content-Length set automatically from file size)
+    upload_headers = {"Content-Type": "application/octet-stream"}
     if headers:
         upload_headers.update(headers)
 
     last_error = None
     for attempt in range(retry + 1):
+        pbar = None
+        reader = None
         try:
-            with (
-                open(file, "rb") as f,
-                TQDM(
-                    total=file_size, desc=desc, disable=not progress, unit="B", unit_scale=True, unit_divisor=1024
-                ) as pbar,
-            ):
-                requests.put(
-                    url,
-                    data=(pbar.update(len(chunk)) or chunk for chunk in iter(lambda: f.read(65536), b"")),
-                    headers=upload_headers,
-                    timeout=timeout,
-                ).raise_for_status()
+            if progress:
+                pbar = TQDM(total=file_size, desc=desc, unit="B", unit_scale=True, unit_divisor=1024)
+            reader = _ProgressReader(file, pbar)
 
+            r = requests.put(url, data=reader, headers=upload_headers, timeout=timeout)
+            r.raise_for_status()
             LOGGER.info(f"{desc} ({file_size / 1e6:.1f} MB) ✅")
             return True
 
@@ -75,6 +95,11 @@ def safe_upload(
             last_error = f"HTTP {status}"
         except Exception as e:
             last_error = str(e)
+        finally:
+            if reader:
+                reader.close()
+            if pbar:
+                pbar.close()
 
         if attempt < retry:
             wait_time = 2 ** (attempt + 1)

@@ -11,6 +11,10 @@ keywords: Ultralytics, upload utilities, file upload, retry logic, progress bar,
 
 <br>
 
+## ::: ultralytics.utils.uploads._ProgressReader
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.uploads.safe_upload
 
 <br><br>

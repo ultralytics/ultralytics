@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Explore the Ultralytics upload utilities with retry logic, progress bars, and signed URL support for cloud storage.
+keywords: Ultralytics, upload utilities, file upload, retry logic, progress bar, cloud storage, GCS, YOLO, machine learning
 ---
 
 # Reference for `ultralytics/utils/uploads.py`

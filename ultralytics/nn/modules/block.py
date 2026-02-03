@@ -2110,7 +2110,6 @@ class C3k2Simple(C2fSimple):
         shortcut: bool = True,
     ):
         super().__init__(c1, c2, n, shortcut, g, e)
-        # All paths now use SimpleBlock instead of Bottleneck
         if attn:
             self.m = nn.ModuleList(
                 nn.Sequential(
@@ -2120,7 +2119,6 @@ class C3k2Simple(C2fSimple):
                 for _ in range(n)
             )
         elif c3k:
-            # If you still need C3k, you'll need a C3kSimple variant too
             self.m = nn.ModuleList(
                 nn.Sequential(
                     SimpleBlock(self.c, self.c, shortcut, g),
@@ -2128,4 +2126,64 @@ class C3k2Simple(C2fSimple):
                 )
                 for _ in range(n)
             )
-        # else: already handled by parent __init__
+
+
+class RepBlock(nn.Module):
+    """RepConv with residual for use in C2f-style blocks."""
+
+    def __init__(self, c: int, shortcut: bool = True, g: int = 1):
+        super().__init__()
+        self.conv = RepConv(c, c, k=3, s=1, p=1, g=g, bn=shortcut)
+        self.add = shortcut
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.conv(x)
+
+
+class C2fRep(nn.Module):
+    """C2f with RepConv blocks instead of Bottleneck."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(RepConv(self.c, self.c, bn=shortcut) for _ in range(n))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class C3k2Rep(C2fRep):
+    """C3k2 replacement using RepConv."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        if attn:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    RepConv(self.c, self.c, bn=shortcut),
+                    PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+                )
+                for _ in range(n)
+            )
+        elif c3k:
+            self.m = nn.ModuleList(
+                nn.Sequential(
+                    RepConv(self.c, self.c, bn=shortcut),
+                    RepConv(self.c, self.c, bn=shortcut),
+                )
+                for _ in range(n)
+            )

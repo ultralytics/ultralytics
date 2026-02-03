@@ -824,6 +824,7 @@ nav:
           - tqdm: reference/utils/tqdm.md
           - triton: reference/utils/triton.md
           - tuner: reference/utils/tuner.md
+          - uploads: reference/utils/uploads.md
 
   - Help:
       - Help: help/index.md

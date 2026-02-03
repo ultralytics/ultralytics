@@ -87,7 +87,7 @@ To train a YOLO26n model on the signature detection dataset for 100 [epochs](htt
 
 The signature detection dataset comprises a wide variety of images showcasing different document types and annotated signatures. Below are examples of images from the dataset, each accompanied by its corresponding annotations.
 
-![Signature detection dataset sample image](https://github.com/ultralytics/docs/releases/download/0/signature-detection-mosaiced-sample.avif)
+![Signature detection dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/signature-detection-mosaiced-sample.avif)
 
 - **Mosaiced Image**: Here, we present a training batch consisting of mosaiced dataset images. Mosaicing, a training technique, combines multiple images into one, enriching batch diversity. This method helps enhance the model's ability to generalize across different signature sizes, aspect ratios, and contexts.
 
@@ -101,7 +101,7 @@ The dataset has been released available under the [AGPL-3.0 License](https://git
 
 ### What is the Signature Detection Dataset, and how can it be used?
 
-The Signature Detection Dataset is a collection of annotated images aimed at detecting human signatures within various document types. It can be applied in computer vision tasks such as [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking, primarily for document verification, fraud detection, and archival research. This dataset helps train models to recognize signatures in different contexts, making it valuable for both research and practical applications in [smart document analysis](https://www.ultralytics.com/blog/using-ultralytics-yolo26-for-smart-document-analysis).
+The Signature Detection Dataset is a collection of annotated images aimed at detecting human signatures within various document types. It can be applied in computer vision tasks such as [object detection](https://www.ultralytics.com/glossary/object-detection) and tracking, primarily for document verification, fraud detection, and archival research. This dataset helps train models to recognize signatures in different contexts, making it valuable for both research and practical applications in [smart document analysis](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-smart-document-analysis).
 
 ### How do I train a YOLO26n model on the Signature Detection Dataset?
 

@@ -197,7 +197,7 @@ Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive gu
 - **Visualization Tools**: Explore and visualize your dataset images and annotations.
 - **Dataset Analysis**: Get insights into your dataset distribution and characteristics.
 
-The platform streamlines the transition from dataset management to model training, making the entire process more efficient. Learn more about [Ultralytics Platform Datasets](https://docs.ultralytics.com/platform/datasets/).
+The platform streamlines the transition from dataset management to model training, making the entire process more efficient. Learn more about [Ultralytics Platform Datasets](https://docs.ultralytics.com/platform/data/).
 
 ### What are the unique features of Ultralytics YOLO models for computer vision?
 

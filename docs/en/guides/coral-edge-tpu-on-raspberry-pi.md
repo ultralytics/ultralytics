@@ -7,7 +7,7 @@ keywords: Coral Edge TPU, Raspberry Pi, YOLO26, Ultralytics, TensorFlow Lite, ML
 # Coral Edge TPU on a Raspberry Pi with Ultralytics YOLO26 🚀
 
 <p align="center">
-  <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/edge-tpu-usb-accelerator-and-pi.avif" alt="Raspberry Pi single board computer with USB Edge TPU accelerator">
+  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/edge-tpu-usb-accelerator-and-pi.avif" alt="Raspberry Pi with Edge TPU accelerator">
 </p>
 
 ## What is a Coral Edge TPU?

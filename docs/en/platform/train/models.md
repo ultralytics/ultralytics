@@ -31,7 +31,7 @@ Supported model formats:
 After upload, the Platform parses model metadata:
 
 - Task type (detect, segment, pose, OBB, classify)
-- Architecture (YOLO11n, YOLO11s, etc.)
+- Architecture (YOLO26n, YOLO26s, etc.)
 - Class names and count
 - Input size and parameters
 
@@ -120,27 +120,42 @@ Export your model to 17 deployment formats:
 
 <!-- Screenshot: platform-models-export.avif -->
 
-### Supported Formats
+### Supported Formats (17 total)
 
-| Format            | Description                  | Use Case                  |
-| ----------------- | ---------------------------- | ------------------------- |
-| **ONNX**          | Open Neural Network Exchange | Cross-platform deployment |
-| **TorchScript**   | Serialized PyTorch           | PyTorch deployment        |
-| **OpenVINO**      | Intel optimization           | Intel CPUs/GPUs           |
-| **TensorRT**      | NVIDIA optimization          | NVIDIA GPUs               |
-| **CoreML**        | Apple optimization           | iOS/macOS                 |
-| **TFLite**        | TensorFlow Lite              | Mobile/embedded           |
-| **TF SavedModel** | TensorFlow format            | TensorFlow ecosystem      |
-| **TF GraphDef**   | TensorFlow frozen            | Legacy TensorFlow         |
-| **PaddlePaddle**  | Baidu framework              | PaddlePaddle ecosystem    |
-| **NCNN**          | Mobile inference             | Android/embedded          |
-| **Edge TPU**      | Google Edge TPU              | Coral devices             |
-| **TF.js**         | TensorFlow.js                | Browser deployment        |
-| **MNN**           | Alibaba framework            | Mobile optimization       |
-| **RKNN**          | Rockchip NPU                 | Rockchip devices          |
-| **IMX**           | NXP i.MX                     | NXP platforms             |
-| **Axelera**       | Metis AI                     | Edge AI accelerators      |
-| **ExecuTorch**    | Meta framework               | Meta platforms            |
+| #   | Format            | File Extension   | Use Case                           |
+| --- | ----------------- | ---------------- | ---------------------------------- |
+| 1   | **ONNX**          | `.onnx`          | Cross-platform, web, most runtimes |
+| 2   | **TorchScript**   | `.torchscript`   | PyTorch deployment without Python  |
+| 3   | **OpenVINO**      | `.xml`, `.bin`   | Intel CPUs, GPUs, VPUs             |
+| 4   | **TensorRT**      | `.engine`        | NVIDIA GPUs (fastest inference)    |
+| 5   | **CoreML**        | `.mlpackage`     | Apple iOS, macOS, watchOS          |
+| 6   | **TF Lite**       | `.tflite`        | Mobile (Android, iOS), edge        |
+| 7   | **TF SavedModel** | `saved_model/`   | TensorFlow Serving                 |
+| 8   | **TF GraphDef**   | `.pb`            | TensorFlow 1.x                     |
+| 9   | **TF Edge TPU**   | `.tflite`        | Google Coral devices               |
+| 10  | **TF.js**         | `.json`, `.bin`  | Browser inference                  |
+| 11  | **PaddlePaddle**  | `.pdmodel`       | Baidu PaddlePaddle                 |
+| 12  | **NCNN**          | `.param`, `.bin` | Mobile (Android/iOS), optimized    |
+| 13  | **MNN**           | `.mnn`           | Alibaba mobile runtime             |
+| 14  | **RKNN**          | `.rknn`          | Rockchip NPUs                      |
+| 15  | **IMX500**        | `.imx`           | Sony IMX500 sensor                 |
+| 16  | **Axelera**       | `.axelera`       | Axelera AI accelerators            |
+
+### Format Selection Guide
+
+**For NVIDIA GPUs:** Use **TensorRT** for maximum speed
+
+**For Intel Hardware:** Use **OpenVINO** for Intel CPUs, GPUs, and VPUs
+
+**For Apple Devices:** Use **CoreML** for iOS, macOS, Apple Silicon
+
+**For Android:** Use **TF Lite** or **NCNN** for best performance
+
+**For Web Browsers:** Use **TF.js** or **ONNX** (with ONNX Runtime Web)
+
+**For Edge Devices:** Use **TF Edge TPU** for Coral, **RKNN** for Rockchip
+
+**For General Compatibility:** Use **ONNX** — works with most inference runtimes
 
 <!-- Screenshot: platform-models-export-progress.avif -->
 
@@ -192,8 +207,8 @@ Remove a model you no longer need:
 
 Ultralytics Platform supports all YOLO architectures:
 
+- **YOLO26**: n, s, m, l, x variants (recommended)
 - **YOLO11**: n, s, m, l, x variants
-- **YOLO26**: Latest generation (when available)
 - **YOLOv10**: Legacy support
 - **YOLOv8**: Legacy support
 - **YOLOv5**: Legacy support

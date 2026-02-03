@@ -12,7 +12,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
-from ultralytics.utils.checks import check_amp
+from ultralytics.utils.checks import check_amp, check_tensorrt
 from ultralytics.utils.torch_utils import TORCH_1_13
 
 # Try to find idle devices if CUDA is available
@@ -91,6 +91,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 )
 def test_export_engine_matrix(task, dynamic, int8, half, batch):
     """Test YOLO model export to TensorRT format for various configurations and run inference."""
+    check_tensorrt()
     import tensorrt as trt
 
     is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10
@@ -120,7 +121,7 @@ def test_train():
     device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
     # NVIDIA Jetson only has one GPU and therefore skipping checks
     if not IS_JETSON:
-        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15)
+        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, compile=True)
         results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"

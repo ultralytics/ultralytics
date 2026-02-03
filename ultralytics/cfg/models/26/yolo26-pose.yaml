@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Ultralytics YOLO26 object detection model with P3/8 - P5/32 outputs
+# Ultralytics YOLO26-pose keypoints/pose estimation model with P3/8 - P5/32 outputs
 # Model docs: https://docs.ultralytics.com/models/yolo26
 # Task docs: https://docs.ultralytics.com/tasks/pose
 
@@ -9,7 +9,7 @@ nc: 80 # number of classes
 end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
 kpt_shape: [17, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
-scales: # model compound scaling constants, i.e. 'model=YOLO26n.yaml' will call YOLO26.yaml with scale 'n'
+scales: # model compound scaling constants, i.e. 'model=yolo26n-pose.yaml' will call yolo26-pose.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024] # summary: 363 layers, 3,747,554 parameters, 3,747,554 gradients, 10.7 GFLOPs
   s: [0.50, 0.50, 1024] # summary: 363 layers, 11,870,498 parameters, 11,870,498 gradients, 29.6 GFLOPs

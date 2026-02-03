@@ -13,7 +13,7 @@ This guide will take you through the process of deploying YOLO26 [PyTorch](https
 ## Amazon SageMaker
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/amazon-sagemaker-overview.avif" alt="Amazon SageMaker Overview">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/amazon-sagemaker-overview.avif" alt="Amazon SageMaker ML platform architecture">
 </p>
 
 [Amazon SageMaker](https://aws.amazon.com/sagemaker/) is a machine learning service from Amazon Web Services (AWS) that simplifies the process of building, training, and deploying machine learning models. It provides a broad range of tools for handling various aspects of machine learning workflows. This includes automated features for tuning models, options for training models at scale, and straightforward methods for deploying models into production. SageMaker supports popular machine learning frameworks, offering the flexibility needed for diverse projects. Its features also cover data labeling, workflow management, and performance analysis.
@@ -23,7 +23,7 @@ This guide will take you through the process of deploying YOLO26 [PyTorch](https
 Deploying YOLO26 on Amazon SageMaker lets you use its managed environment for real-time inference and take advantage of features like autoscaling. Take a look at the AWS architecture below.
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/aws-architecture.avif" alt="AWS Architecture">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/aws-architecture.avif" alt="AWS SageMaker YOLO training architecture">
 </p>
 
 ### Step 1: Setup Your AWS Environment
@@ -147,7 +147,7 @@ Now that your YOLO26 model is deployed, it's important to test its performance a
 - Run the Test Notebook: Follow the instructions within the notebook to test the deployed SageMaker endpoint. This includes sending an image to the endpoint and running inferences. Then, you'll plot the output to visualize the model's performance and [accuracy](https://www.ultralytics.com/glossary/accuracy), as shown below.
 
 <p align="center">
-  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/testing-results-yolov8.avif" alt="Testing Results YOLO26">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/testing-results-yolov8.avif" alt="Testing Results YOLO26">
 </p>
 
 - Clean-Up Resources: The test notebook will also guide you through the process of cleaning up the endpoint and the hosted model. This is an important step to manage costs and resources effectively, especially if you do not plan to use the deployed model immediately.

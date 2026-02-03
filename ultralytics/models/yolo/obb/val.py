@@ -91,9 +91,43 @@ class OBBValidator(DetectionValidator):
             >>> correct_matrix = validator._process_batch(detections, gt_bboxes, gt_cls)
         """
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
-            return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
+            return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool), "match_gt": np.zeros(0)}
         iou = batch_probiou(batch["bboxes"], preds["bboxes"])
-        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+        iou_mask = iou * (batch["cls"][:, None] == preds["cls"])  # mask for GT-Preds of the same classes
+        thr = float(self.iouv[0])  # usually may be 0.5, but it is considered the first value of the real vector
+        x = torch.where(iou_mask > thr)  # composed by index [0 = GT, 1 = PRED]
+        match_gt = torch.full(
+            (preds["cls"].shape[0],),
+            -1,
+            device=preds["cls"].device,
+            dtype=torch.long,
+        )
+
+        if x[0].numel():  # if at least one candidate
+            matches = torch.stack(x, 1)  # [K, 2] -> (gt_i, det_i)
+            m_iou = iou_mask[x[0], x[1]]
+            order = m_iou.argsort(descending=True)
+            matches = matches[order]
+            # greedily (the first one is the highest) keep unique dets then unique gts
+            # unique detections
+            keep = torch.zeros(matches.shape[0], dtype=torch.bool, device=matches.device)
+            seen = set()
+            for i, d in enumerate(matches[:, 1].tolist()):
+                if d not in seen:
+                    keep[i] = True
+                    seen.add(d)
+            matches = matches[keep]
+            # unique GTs
+            keep = torch.zeros(matches.shape[0], dtype=torch.bool, device=matches.device)
+            seen = set()
+            for i, g in enumerate(matches[:, 0].tolist()):
+                if g not in seen:
+                    keep[i] = True
+                    seen.add(g)
+            matches = matches[keep]
+            match_gt[matches[:, 1]] = matches[:, 0]
+        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy(),
+                "match_gt": match_gt.cpu().numpy(),}
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Postprocess OBB predictions.

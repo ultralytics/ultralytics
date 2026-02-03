@@ -182,20 +182,17 @@ class DetectionValidator(BaseValidator):
 
             stats = self._process_batch(predn, pbatch)
             # compute per-TP center offsets (normalized by image diagonal)
-            # compute per-TP center offsets (normalized by image diagonal)
             if no_pred or cls.shape[0] == 0:
-                tp_center_offsets = np.zeros(len(predn["cls"]))  # mismo tamaño que predicciones
+                tp_center_offsets = np.zeros(len(predn["cls"]))  # same size as predictions
             else:
                 # TP-RMSE calculation (normalised by img diagonal)
                 tp = stats["tp"]
                 tp_preds = tp[:, 0]
                 tp_idx = np.where(tp_preds)[0]
 
-                # Inicializar con ceros para todas las predicciones
                 tp_center_offsets = np.zeros(len(predn["cls"]))
 
                 if tp_idx.size > 0:
-                    # TP-RMSE calculation (normalised by img diagonal)
                     gt_idx = stats["match_gt"][tp_idx]
                     valid = gt_idx >= 0
                     tp_idx_valid = tp_idx[valid]
@@ -222,18 +219,14 @@ class DetectionValidator(BaseValidator):
 
                         # keep only TP predictions
                         pred_centers_tp = pred_centers[tp_idx_valid]
-
                         # final distances
                         dists = np.linalg.norm(
                             pred_centers_tp - gt_centers[gt_idx],
                             axis=1,
                         )
-
                         # normalize by image diagonal
                         imgsz_arr = np.asarray(pbatch["imgsz"])
                         diag = np.sqrt((imgsz_arr**2).sum()) + 1e-7
-
-                        # Asignar offsets solo a los TPs válidos
                         tp_center_offsets[tp_idx_valid] = dists / diag
 
             self.metrics.update_stats(
@@ -243,7 +236,7 @@ class DetectionValidator(BaseValidator):
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
-                    "tp_center_offset": tp_center_offsets,  # sin el condicional
+                    "tp_center_offset": tp_center_offsets,
                 }
             )
             # Evaluate

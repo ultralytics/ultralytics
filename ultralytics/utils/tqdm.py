@@ -287,7 +287,7 @@ class TQDM:
         except Exception:
             term_width = 79
 
-        desc = self.desc
+        desc = self.desc or ""
         progress_str = self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 12)
 
         if len(progress_str) > term_width:

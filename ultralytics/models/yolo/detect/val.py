@@ -360,10 +360,22 @@ class DetectionValidator(BaseValidator):
             order = m_iou.argsort(descending=True)
             matches = matches[order]
             # greedily (the first one is the highest) keep unique dets then unique gts
-            _, u_det = torch.unique(matches[:, 1], return_index=True)
-            matches = matches[u_det]
-            _, u_gt = torch.unique(matches[:, 0], return_index=True)
-            matches = matches[u_gt]
+            # unique detections
+            keep = torch.zeros(matches.shape[0], dtype=torch.bool, device=matches.device)
+            seen = set()
+            for i, d in enumerate(matches[:, 1].tolist()):
+                if d not in seen:
+                    keep[i] = True
+                    seen.add(d)
+            matches = matches[keep]
+            # unique GTs
+            keep = torch.zeros(matches.shape[0], dtype=torch.bool, device=matches.device)
+            seen = set()
+            for i, g in enumerate(matches[:, 0].tolist()):
+                if g not in seen:
+                    keep[i] = True
+                    seen.add(g)
+            matches = matches[keep]
             match_gt[matches[:, 1]] = matches[:, 0]
 
         return {

@@ -189,7 +189,7 @@ class DetectionValidator(BaseValidator):
                 tp = stats["tp"]
                 tp_preds = tp[:, 0]
                 tp_idx = np.where(tp_preds)[0]
-                
+
                 if tp_idx.size == 0:
                     tp_center_offsets = np.zeros(0)
                 else:
@@ -344,17 +344,17 @@ class DetectionValidator(BaseValidator):
             return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = box_iou(batch["bboxes"], preds["bboxes"])
 
-        iou_mask = iou * (batch["cls"][:, None] == preds["cls"]) # mask for GT-Preds of the same classes
-        thr = float(self.iouv[0]) # usually may be 0.5, but it is considered the first value of the real vector
-        x = torch.where(iou_mask > thr) # composed by index [0 = GT, 1 = PRED]
+        iou_mask = iou * (batch["cls"][:, None] == preds["cls"])  # mask for GT-Preds of the same classes
+        thr = float(self.iouv[0])  # usually may be 0.5, but it is considered the first value of the real vector
+        x = torch.where(iou_mask > thr)  # composed by index [0 = GT, 1 = PRED]
         match_gt = torch.full(
             (preds["cls"].shape[0],),
             -1,
             device=preds["cls"].device,
             dtype=torch.long,
         )
-        
-        if x[0].numel(): # if at least one candidate
+
+        if x[0].numel():  # if at least one candidate
             matches = torch.stack(x, 1)  # [K, 2] -> (gt_i, det_i)
             m_iou = iou_mask[x[0], x[1]]
             order = m_iou.argsort(descending=True)
@@ -382,7 +382,7 @@ class DetectionValidator(BaseValidator):
             "tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy(),
             "match_gt": match_gt.cpu().numpy(),
         }
-       
+
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build YOLO Dataset.
 

@@ -53,7 +53,9 @@ def safe_upload(
         try:
             with (
                 open(file, "rb") as f,
-                TQDM(total=file_size, desc=desc, disable=not progress, unit="B", unit_scale=True, unit_divisor=1024) as pbar,
+                TQDM(
+                    total=file_size, desc=desc, disable=not progress, unit="B", unit_scale=True, unit_divisor=1024
+                ) as pbar,
             ):
                 requests.put(
                     url,

@@ -209,7 +209,17 @@ class TQDM:
             return False
         return (self.total is not None and self.n >= self.total) or (dt >= self.mininterval)
 
-    def _compose(self, desc: str, percent: float, n_str: str, t_str: str, rate_str: str, elapsed_str: str, remaining_str: str, bar_width: int) -> str:
+    def _compose(
+        self,
+        desc: str,
+        percent: float,
+        n_str: str,
+        t_str: str,
+        rate_str: str,
+        elapsed_str: str,
+        remaining_str: str,
+        bar_width: int,
+    ) -> str:
         """Compose progress string with given bar width."""
         bar = self._generate_bar(bar_width)
         if self.total:
@@ -283,7 +293,9 @@ class TQDM:
         if len(progress_str) > term_width:
             fixed_len = len(self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, 0))
             bar_width = max(4, term_width - fixed_len)
-            progress_str = self._compose(desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, min(12, bar_width))
+            progress_str = self._compose(
+                desc, percent, n_str, t_str, rate_str, elapsed_str, remaining_str, min(12, bar_width)
+            )
 
             if len(progress_str) > term_width:
                 overflow = len(progress_str) - term_width
@@ -459,4 +471,3 @@ if __name__ == "__main__":
         pbar.update(1)
         pbar.set_description(f"Processing {filename}")
     pbar.close()
-

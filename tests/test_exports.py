@@ -35,6 +35,10 @@ def test_export_onnx(end2end):
 def test_export_openvino(end2end):
     """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(MODEL).export(format="openvino", imgsz=32, end2end=end2end)
+    if WINDOWS:
+        # Ensure a unique export path per test to prevent OpenVINO file writes
+        file = Path(file)
+        file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
@@ -66,7 +70,6 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms, end2end):
     )
     if WINDOWS:
         # Use unique filenames due to Windows file permissions bug possibly due to latent threaded use
-        # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
         file = Path(file)
         file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference

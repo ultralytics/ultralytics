@@ -104,39 +104,6 @@ class RTDETRTrainer(DetectionTrainer):
             fraction=self.args.fraction if mode == "train" else 1.0,
         )
 
-    def preprocess_batch(self, batch: dict) -> dict:
-        """Preprocess a batch of images by scaling and converting to float.
-
-        Args:
-            batch (dict): Dictionary containing batch data with 'img' tensor.
-
-        Returns:
-            (dict): Preprocessed batch with normalized images.
-        """
-        for k, v in batch.items():
-            if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
-        batch["img"] = batch["img"].float() / 255
-        if self.args.multi_scale > 0.0:
-            imgs = batch["img"]
-            multi_scale_range_low = 1 - self.args.multi_scale
-            multi_scale_range_high = 1 + self.args.multi_scale
-            sz = (
-                random.randrange(
-                    int(self.args.imgsz * multi_scale_range_low),
-                    int(self.args.imgsz * multi_scale_range_high + self.stride))
-                // self.stride
-                * self.stride
-            )  # size
-            sf = sz / max(imgs.shape[2:])  # scale factor
-            if sf != 1:
-                ns = [
-                    math.ceil(x * sf / self.stride) * self.stride for x in imgs.shape[2:]
-                ]  # new shape (stretched to gs-multiple)
-                imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
-            batch["img"] = imgs
-        return batch
-
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """Construct an optimizer for the given model.
 

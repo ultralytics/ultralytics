@@ -187,16 +187,17 @@ class DetectionValidator(BaseValidator):
             else:
                 # TP-RMSE calculation (normalised by img diagonal)
                 tp = stats["tp"]
-                tp_preds = tp[:, 0]  # 0 index -> use the first IoU - usually 0.5
+                tp_preds = tp[:, 0]
                 tp_idx = np.where(tp_preds)[0]
-
+                
                 if tp_idx.size == 0:
                     tp_center_offsets = np.zeros(0)
                 else:
                     # TP-RMSE calculation (normalised by img diagonal)
-                    tp = self._process_batch(predn, pbatch)["tp"]
-                    tp_preds = tp[:, 0]  # 0 index -> use the first IoU - usually 0.5
-                    tp_idx = np.where(tp_preds)[0]
+                    gt_idx = stats["match_gt"][tp_idx]
+                    valid = gt_idx >= 0
+                    tp_idx = tp_idx[valid]
+                    gt_idx = gt_idx[valid]
 
                     if tp_idx.size == 0:
                         tp_center_offsets = np.zeros(0)
@@ -223,15 +224,6 @@ class DetectionValidator(BaseValidator):
 
                         # keep only TP predictions
                         pred_centers_tp = pred_centers[tp_idx]
-
-                        # distance matrix (GT x TP)
-                        dist_mat = np.linalg.norm(
-                            gt_centers[:, None, :] - pred_centers_tp[None, :, :],
-                            axis=2,
-                        )
-
-                        # assign closest GT to each TP prediction
-                        gt_idx = dist_mat.argmin(axis=0)
 
                         # final distances
                         dists = np.linalg.norm(
@@ -351,8 +343,34 @@ class DetectionValidator(BaseValidator):
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
             return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = box_iou(batch["bboxes"], preds["bboxes"])
-        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
+        iou_mask = iou * (batch["cls"][:, None] == preds["cls"]) # mask for GT-Preds of the same classes
+        thr = float(self.iouv[0]) # usually may be 0.5, but it is considered the first value of the real vector
+        x = torch.where(iou_mask > thr) # composed by index [0 = GT, 1 = PRED]
+        match_gt = torch.full(
+            (preds["cls"].shape[0],),
+            -1,
+            device=preds["cls"].device,
+            dtype=torch.long,
+        )
+        
+        if x[0].numel(): # if at least one candidate
+            matches = torch.stack(x, 1)  # [K, 2] -> (gt_i, det_i)
+            m_iou = iou_mask[x[0], x[1]]
+            order = m_iou.argsort(descending=True)
+            matches = matches[order]
+            # greedily (the first one is the highest) keep unique dets then unique gts
+            _, u_det = torch.unique(matches[:, 1], return_index=True)
+            matches = matches[u_det]
+            _, u_gt = torch.unique(matches[:, 0], return_index=True)
+            matches = matches[u_gt]
+            match_gt[matches[:, 1]] = matches[:, 0]
+
+        return {
+            "tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy(),
+            "match_gt": match_gt.cpu().numpy(),
+        }
+       
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build YOLO Dataset.
 

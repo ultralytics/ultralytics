@@ -4,8 +4,7 @@ from ultralytics.utils.metrics import DetMetrics, SegmentMetrics
 
 
 def test_det_metrics_center_rmse_single_tp():
-    """Deterministic unit test for center_rmse in DetMetrics. One TP with zero offset → RMSE must be 0.0.
-    """
+    """Deterministic unit test for center_rmse in DetMetrics. One TP with zero offset → RMSE must be 0.0."""
     met = DetMetrics({0: "a", 1: "b"})
     met.update_stats(
         {

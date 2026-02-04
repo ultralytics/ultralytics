@@ -69,24 +69,28 @@ def export_run(run, platform_project: str, url: str, headers: dict):
     print(f"   Completed!")
 
 
-def export_project(wandb_project: str, platform_project: str, api_key: str = None):
+def export_project(wandb_project: str, platform_project: str, api_key: str = None, limit: int = None):
     """
-    Export all runs from a wandb project to Ultralytics Platform.
+    Export runs from a wandb project to Ultralytics Platform.
 
     Args:
         wandb_project: wandb project path (entity/project)
         platform_project: Platform project name (e.g. "esat/my-project")
         api_key: Ultralytics API key (or set ULTRALYTICS_API_KEY env var)
+        limit: Max number of runs to export (latest first). None = all runs.
     """
     api_key = api_key or os.getenv("ULTRALYTICS_API_KEY")
     url = "https://platform.ultralytics.com/api/webhooks/training/metrics"
     headers = {"Authorization": f"Bearer {api_key}"}
 
-    # Get all runs from wandb project
+    # Get runs from wandb project (already sorted by latest first)
     api = wandb.Api()
-    runs = api.runs(wandb_project)
+    runs = list(api.runs(wandb_project))
 
-    print(f"Found {len(runs)} runs in {wandb_project}")
+    if limit:
+        runs = runs[-limit:]  # latest runs are at the end
+
+    print(f"Found {len(runs)} runs to export (limit={limit})")
     print(f"Exporting to Platform project: {platform_project}")
 
     for run in runs:
@@ -102,5 +106,6 @@ def export_project(wandb_project: str, platform_project: str, api_key: str = Non
 if __name__ == "__main__":
     export_project(
         wandb_project="esat/detr_trainings",  # entity/project
-        platform_project="detr_trainings_wandb_export2",  # your platform project
+        platform_project="detr_trainings",  # your platform project
+        limit=60,  # only latest 60 runs
     )

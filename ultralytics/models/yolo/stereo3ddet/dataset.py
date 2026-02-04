@@ -426,7 +426,7 @@ class Stereo3DDetDataset(BaseDataset):
             transforms.extend([
                 StereoHFlip(p=float(hyp.get("fliplr", 0.5))),
                 StereoScale(scale_range=(0.8, 1.2), p=float(hyp.get("scale", 0.5))),
-                StereoCrop(crop_h=0.9, crop_w=0.9, p=float(hyp.get("crop_fraction", 0.3))),
+                # StereoCrop(crop_h=0.9, crop_w=0.9, p=float(hyp.get("crop_fraction", 0.3))),
                 StereoHSV(
                     hgain=float(hyp.get("hsv_h", 0.015)),
                     sgain=float(hyp.get("hsv_s", 0.7)),
@@ -538,11 +538,7 @@ class Stereo3DDetDataset(BaseDataset):
             location_3d=location_3d,
             rotation_y=rotation_y,
         )
-        label["cls"] = cls
-        
-        # Store stereo_labels for backward compatibility with collate_fn and metrics
-        label["stereo_labels"] = label_list
-        
+        label["cls"] = cls        
         # Store additional metadata that's not part of Instances
         label["truncated"] = truncated
         label["occluded"] = occluded
@@ -970,6 +966,7 @@ class Stereo3DDetDataset(BaseDataset):
             "vertex_dist": [],
         }
         per_image_counts: list[int] = []
+        labels_list: list[list[dict[str, Any]]] = []
 
         # Reuse mean_dims and std_dims mapping from TargetGenerator for consistency.
         mean_dims = self.target_generator.mean_dims
@@ -985,7 +982,6 @@ class Stereo3DDetDataset(BaseDataset):
             location_3d_tensor = b.get("location_3d")  # torch.Tensor (N, 3)
             rotation_y_tensor = b.get("rotation_y")  # torch.Tensor (N,)
             occluded_tensor = b.get("occluded")  # torch.Tensor (N,) or None
-            stereo_labels = b.get("stereo_labels", [])  # For backward compatibility
 
             # Convert tensors to numpy for processing
             if bboxes_tensor is not None and len(bboxes_tensor) > 0:
@@ -1020,8 +1016,6 @@ class Stereo3DDetDataset(BaseDataset):
                     location_3d = location_3d[valid_mask]
                     rotation_y = rotation_y[valid_mask]
                     occluded = occluded[valid_mask]
-                    if len(stereo_labels) > 0:
-                        stereo_labels = [stereo_labels[j] for j in range(len(stereo_labels)) if valid_mask[j]]
                     n = valid_mask.sum()
 
                     # Log filtered objects for the first few batches
@@ -1032,6 +1026,27 @@ class Stereo3DDetDataset(BaseDataset):
                         )
             
             per_image_counts.append(n)
+
+            # Build this sample's list-of-dicts for batch["labels"] from tensors (single source of truth)
+            sample_labels = []
+            for j in range(n):
+                cx, cy, bw, bh = float(bboxes_xywh[j, 0]), float(bboxes_xywh[j, 1]), float(bboxes_xywh[j, 2]), float(bboxes_xywh[j, 3])
+                right_cx = float(right_bboxes[j, 0])
+                right_cy = float(right_bboxes[j, 1])
+                right_bw = float(right_bboxes[j, 2])
+                right_bh = float(right_bboxes[j, 3])
+                dims = dimensions_3d[j]
+                loc_3d = location_3d[j]
+                sample_labels.append({
+                    "class_id": int(cls_array[j]),
+                    "left_box": {"center_x": cx, "center_y": cy, "width": bw, "height": bh},
+                    "right_box": {"center_x": right_cx, "center_y": right_cy, "width": right_bw, "height": right_bh},
+                    "dimensions": {"length": float(dims[0]), "width": float(dims[1]), "height": float(dims[2])},
+                    "location_3d": {"x": float(loc_3d[0]), "y": float(loc_3d[1]), "z": float(loc_3d[2])},
+                    "rotation_y": float(rotation_y[j]),
+                })
+            labels_list.append(sample_labels)
+
             if n == 0:
                 # keep empty placeholders
                 continue
@@ -1060,13 +1075,16 @@ class Stereo3DDetDataset(BaseDataset):
                 # Stereo 2D aux targets (feature-map units)
                 # -------------------------
                 center_x_px = cx * input_w
-                right_cx, right_cy, right_bw, right_bh = right_bboxes[j]
-                right_center_x_px = float(right_cx) * input_w
+                right_cx = float(right_bboxes[j, 0])
+                right_cy = float(right_bboxes[j, 1])
+                right_bw = float(right_bboxes[j, 2])
+                right_bh = float(right_bboxes[j, 3])
+                right_center_x_px = right_cx * input_w
                 disparity_px = center_x_px - right_center_x_px
                 lr_feat = disparity_px / stride  # feature units
                 lr_list.append(torch.tensor([lr_feat], dtype=torch.float32))
 
-                right_w_px = float(right_bw) * input_w
+                right_w_px = right_bw * input_w
                 right_w_feat = right_w_px / stride
                 rw_list.append(torch.tensor([right_w_feat], dtype=torch.float32))
 
@@ -1088,19 +1106,15 @@ class Stereo3DDetDataset(BaseDataset):
                 # We reuse the same projection logic by calling into the target generator, then extracting computed values.
                 # NOTE: For YOLO-based detection, we use the generator but read values at center cell.
                 # This generates 3D targets for vertices while using YOLO TaskAlignedAssigner for bbox detection.
-                # Convert back to dict format for target_generator (backward compatibility)
-                if len(stereo_labels) > j:
-                    lab = stereo_labels[j]
-                else:
-                    # Reconstruct dict format if stereo_labels not available
-                    lab = {
-                        "class_id": cls_i,
-                        "left_box": {"center_x": cx, "center_y": cy, "width": bw, "height": bh},
-                        "right_box": {"center_x": right_cx, "center_y": right_cy, "width": right_bw, "height": right_bh},
-                        "dimensions": {"length": dims[0], "width": dims[1], "height": dims[2]},
-                        "location_3d": {"x": x_3d, "y": loc_3d[1], "z": z_3d},
-                        "rotation_y": rot_y,
-                    }
+                # Reconstruct dict format for target_generator from tensors (single source of truth)
+                lab = {
+                    "class_id": cls_i,
+                    "left_box": {"center_x": cx, "center_y": cy, "width": bw, "height": bh},
+                    "right_box": {"center_x": right_cx, "center_y": right_cy, "width": right_bw, "height": right_bh},
+                    "dimensions": {"length": float(dims[0]), "width": float(dims[1]), "height": float(dims[2])},
+                    "location_3d": {"x": x_3d, "y": float(loc_3d[1]), "z": z_3d},
+                    "rotation_y": rot_y,
+                }
                 
                 num_labels = 1
                 calib_list = [calib] * num_labels
@@ -1165,9 +1179,6 @@ class Stereo3DDetDataset(BaseDataset):
                 t = per_image_aux[k][bi]  # [n, c]
                 padded[bi, : t.shape[0]] = t
             aux_targets[k] = padded
-
-        # Use stereo_labels directly (already in dict format from dataset)
-        labels_list = [b.get("stereo_labels", []) for b in batch]
 
         return {
             "img": imgs,

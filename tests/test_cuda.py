@@ -123,7 +123,7 @@ def test_train():
     if not IS_JETSON:
         results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, compile=True)
         results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
-        results = YOLO(MODEL).train(data="coco8-grayscale.yaml", imgsz=64, epochs=1, device=DEVICES[0], batch=15, batch=-1)
+        results = YOLO(MODEL).train(data="coco8-grayscale.yaml", imgsz=64, epochs=1, device=DEVICES[0], batch=-1)
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
         # Note DDP training returns None, single-GPU returns metrics

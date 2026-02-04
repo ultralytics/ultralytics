@@ -3,9 +3,10 @@ import numpy as np
 from ultralytics.utils.metrics import DetMetrics, SegmentMetrics
 
 
-def test_det_metrics_tp_rmse():
-    """Test TP-RMSE (True Positive-RMSE) metric. Tests that center_rmse does not crash and is unique for (detect, OBB)
-    models (DetMetrics).
+def test_det_metrics_center_rmse_single_tp():
+    """
+    Deterministic unit test for center_rmse in DetMetrics.
+    One TP with zero offset → RMSE must be 0.0.
     """
     met = DetMetrics({0: "a", 1: "b"})
     met.update_stats(
@@ -15,21 +16,49 @@ def test_det_metrics_tp_rmse():
             "pred_cls": np.array([0]),
             "target_cls": np.array([0]),
             "target_img": np.array([0]),
-            "tp_center_offset": np.array([0.5]),
+            "tp_center_offset": np.array([0.0]),
         }
     )
 
-    keys = met.keys
-    assert "metrics/center_rmse(B)" in keys
-    assert keys.count("metrics/center_rmse(B)") == 1
+    met.process()
 
-    results = met.box.mean_results()
-    assert isinstance(results[-1], float)
-    assert results[-1] == 0.0
+    # Metric must be registered exactly once
+    assert met.keys.count("metrics/center_rmse(B)") == 1
+
+    # center_rmse is stored per class
+    assert len(met.box.center_rmse) == met.box.nc
+    assert isinstance(met.box.center_rmse[0], float)
+    assert met.box.center_rmse[0] == 0.0
 
 
-def test_segm_metrics_tp_rmse():
-    """Test TP-RMSE metric. Tests center_rmse does not exist when using SegmentMetrics."""
+def test_det_metrics_center_rmse_empty():
+    """
+    center_rmse should not crash with empty preds / empty labels.
+    """
+    met = DetMetrics({0: "a"})
+
+    met.update_stats(
+        {
+            "tp": np.zeros((0, 1)),
+            "conf": np.array([]),
+            "pred_cls": np.array([]),
+            "target_cls": np.array([]),
+            "target_img": np.array([]),
+            "tp_center_offset": np.array([]),
+        }
+    )
+
+    met.process()
+
+    # Metric still exists and is well-formed
+    assert "metrics/center_rmse(B)" in met.keys
+    assert len(met.box.center_rmse) == met.box.nc
+    assert isinstance(met.box.center_rmse[0], float)
+
+
+def test_segment_metrics_no_center_rmse():
+    """
+    SegmentMetrics must not expose center_rmse.
+    """
     met = SegmentMetrics({0: "a", 1: "b"})
-    keys = met.keys
-    assert "metrics/center_rmse(B)" not in keys
+    assert "metrics/center_rmse(B)" not in met.keys

@@ -1352,7 +1352,6 @@ class Exporter:
 
     def export_deepx(self, prefix=colorstr("DeepX")):
         """Export YOLO model to DeepX format."""
-
         LOGGER.info(f"\n{prefix} starting export with DeepX...")
         assert LINUX and not ARM64 and (IS_PYTHON_3_12 or IS_PYTHON_3_9), (
             "DeepX export is only supported on Linux x86_64 architectures and Python 3.9 or 3.12."

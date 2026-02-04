@@ -176,6 +176,7 @@ def export_formats():
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction"]],
+        ["Deepx", "deepx", "_deepx_model", False, False, ["batch", "int8", "fraction"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -360,6 +361,7 @@ class Exporter:
             rknn,
             executorch,
             axelera,
+            deepx,
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
@@ -382,6 +384,13 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = fmts_dict["Arguments"][flags.index(True) + 1]
         validate_args(fmt, self.args, fmt_keys)
+        if deepx:
+            if not self.args.int8:
+                LOGGER.warning("Setting int8=True for Axelera mixed-precision export.")
+                self.args.int8 = True
+            if not self.args.data:
+                self.args.data = "coco128.yaml"  # Axelera default to coco128.yaml
+            
         if axelera:
             if not IS_PYTHON_3_10:
                 raise SystemError("Axelera export only supported on Python 3.10.")
@@ -607,6 +616,8 @@ class Exporter:
             f[15] = self.export_executorch()
         if axelera:
             f[16] = self.export_axelera()
+        if deepx:
+            f[17] = self.export_deepx()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1336,6 +1347,46 @@ class Exporter:
             dataset=self.get_int8_calibration_dataloader(prefix),
             prefix=prefix,
         )
+        
+    def export_deepx(self, prefix=colorstr("Deepx")):
+        assert LINUX, "Export only supported on Linux."
+        assert not ARM64, "IMX export is not supported on ARM64 architectures."
+        
+        if not check_requirements("dx_com", install=False):
+            raise Exception("dx_com executable not found. DeepX CLI tools are required but not installed. Please install manually by visiting: https://docs.ultralytics.com/integrations/deepx")
+        
+        import dx_com
+
+        f = self.export_onnx()
+        export_path = Path(f"{Path(f).stem}_deepx_model")
+        export_path.mkdir(exist_ok=True)
+        config_path = export_path / "config.json"
+        data = self.get_int8_calibration_dataloader()
+        
+        config = { "inputs": {"images": [1, 3, data.dataset.imgsz, data.dataset.imgsz]},
+                    "default_loader": {
+                    "dataset_path": data.dataset.img_path,
+                    "file_extensions": ["jpeg", "jpg", "png", "JPEG"],
+                    "preprocessings": [
+                        {"resize": {"width": self.imgsz[0], "height": self.imgsz[1]}},
+                        {"convertColor": {"form": "BGR2RGB"}},
+                        {"div": {"x": 255.0}},
+                        {"transpose": {"axis": [2, 0, 1]}},
+                        {"expandDim": {"axis": 0}},
+                    ],
+                },
+                "calibration_num": data.dataset.ni,
+                "calibration_method": "minmax",
+            }
+        
+        with open(config_path, "w") as file:
+            json.dump(config, file)
+        
+        dx_com.compile(model=f, output_dir=str(export_path), config=str(config_path))
+        
+        YAML.save(export_path / "metadata.yaml", self.metadata)
+        return export_path
+        
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""

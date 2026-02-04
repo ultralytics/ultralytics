@@ -29,16 +29,6 @@ class DistillationModel(nn.Module):
             teacher_output = teacher_model(torch.zeros(1, 3, 256, 256).to(device), embed=feats_idx, direct_return=True)
             student_output = student_model(torch.zeros(1, 3, 256, 256).to(device), embed=feats_idx, direct_return=True)
             assert len(teacher_output) == len(student_output), "Feature dimensions must match in length."
-        self.projector = nn.ModuleList(
-            nn.Linear(student_dim, teacher_dim) if student_dim != teacher_dim else nn.Identity()
-            for student_out, teacher_out in zip(student_output, teacher_output)
-            for student_dim, teacher_dim in [
-                (
-                    self.decouple_outputs(student_out, shape_check=True).shape[1],
-                    self.decouple_outputs(teacher_out, shape_check=True).shape[1],
-                )
-            ]
-        )
         copy_attr(self, student_model)
         self.distill_box_loss = self.student_model.args.distill_box_loss
         self.distill_cls_loss = self.student_model.args.distill_cls_loss
@@ -46,6 +36,26 @@ class DistillationModel(nn.Module):
         self.distill_box = self.student_model.args.distill_box
         self.distill_cls = self.student_model.args.distill_cls
         self.distill_feature = self.student_model.args.distill_feature
+        if self.distill_feature_loss:
+            projectors = []
+            for student_out, teacher_out in zip(student_output, teacher_output):
+                student_dim = self.decouple_outputs(student_out, shape_check=True).shape[1]
+                teacher_dim = self.decouple_outputs(teacher_out, shape_check=True).shape[1]
+                projectors.append(nn.Linear(student_dim, teacher_dim) if student_dim != teacher_dim else nn.Identity())
+            self.projector = nn.ModuleList(projectors)
+        if self.distill_feature_loss == "mgd":
+            generations = []
+            for teacher_out in teacher_output:
+                if not isinstance(teacher_out, dict):
+                    teacher_dim = teacher_out.shape[1]
+                    generations.append(
+                        nn.Sequential(
+                            nn.Conv2d(teacher_dim, teacher_dim, kernel_size=3, padding=1),
+                            nn.SiLU(),
+                            nn.Conv2d(teacher_dim, teacher_dim, kernel_size=3, padding=1),
+                        )
+                    )
+            self.generation = nn.ModuleList(generations)
         self.distill_area = self.student_model.args.distill_area
         self.distill_branch = self.student_model.args.distill_branch
         self.distill_branch = self.student_model.args.distill_branch.split(",")
@@ -144,7 +154,7 @@ class DistillationModel(nn.Module):
                         if student_feat.ndim == 4
                         else student_feat
                     )
-                    loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat) * self.distill_feature
+                    loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat, feat_idx=i) * self.distill_feature
 
         loss_distill_detach = (loss_distill_cls + loss_distill_box + loss_distill_feature).detach()
         batch_size = batch["img"].shape[0]
@@ -163,13 +173,26 @@ class DistillationModel(nn.Module):
         loss = (1 - cos_sim).mean()
         return loss
 
+    def loss_mgd(self, student_feat, teacher_feat, lambda_mgd=0.65, feat_idx=0):
+        N, C, H, W = teacher_feat.shape
+
+        device = student_feat.device
+        mat = torch.rand((N, 1, H, W)).to(device)
+        mat = torch.where(mat > 1 - lambda_mgd, 0, 1).to(device)
+
+        masked_fea = torch.mul(student_feat, mat)
+        new_fea = self.generation[feat_idx](masked_fea)
+
+        dis_loss = F.mse_loss(new_fea, teacher_feat)
+        return dis_loss
+        
     def box_kd_loss(self, student_boxes, teacher_boxes):
         if self.distill_box_loss == "cos":
             return self.loss_cosine(student_boxes, teacher_boxes)
         elif self.distill_box_loss == "l1":
-            return F.l1_loss(student_boxes, teacher_boxes).mean()
+            return F.l1_loss(student_boxes, teacher_boxes)
         elif self.distill_box_loss == "l2":
-            return F.mse_loss(student_boxes, teacher_boxes).mean()
+            return F.mse_loss(student_boxes, teacher_boxes)
         else:
             raise ValueError(f"Unknown box distillation loss: {self.distill_box_loss}")
 
@@ -190,13 +213,15 @@ class DistillationModel(nn.Module):
             else:
                 raise ValueError(f"Unknown cls distillation loss: {self.distill_cls_loss}")
 
-    def feature_kd_loss(self, student_feat, teacher_feat):
+    def feature_kd_loss(self, student_feat, teacher_feat, feat_idx=0):
         if self.distill_feature_loss == "cos":
             return self.loss_cosine(student_feat, teacher_feat)
         elif self.distill_feature_loss == "l1":
-            return F.l1_loss(student_feat, teacher_feat).mean()
+            return F.l1_loss(student_feat, teacher_feat)
         elif self.distill_feature_loss == "l2":
-            return F.mse_loss(student_feat, teacher_feat).mean()
+            return F.mse_loss(student_feat, teacher_feat)
+        elif self.distill_feature_loss == "mgd":
+            return self.loss_mgd(student_feat, teacher_feat, feat_idx=feat_idx)
         else:
             raise ValueError(f"Unknown box distillation loss: {self.distill_feature_loss}")
 

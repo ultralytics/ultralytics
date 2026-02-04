@@ -128,11 +128,20 @@ def _log_plots(plots, step):
 def on_pretrain_routine_start(trainer):
     """Initialize and start wandb project if module is present."""
     if not wb.run:
-        wb.init(
-            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
-            name=str(trainer.args.name).replace("/", "-"),
-            config=vars(trainer.args),
-        )
+        if trainer.args.resume and hasattr(trainer.args, "wb_id"):
+            wb.init(
+                project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
+                name=str(trainer.args.name).replace("/", "-"),
+                id=str(trainer.args.wb_id),
+                resume="must",
+            )
+        else:
+            wb.init(
+                project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
+                name=str(trainer.args.name).replace("/", "-"),
+                config=vars(trainer.args),
+            )
+            trainer.args.wb_id = wb.run.id
 
 
 def on_fit_epoch_end(trainer):

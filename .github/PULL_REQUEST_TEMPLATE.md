@@ -4,9 +4,11 @@
 
 Fixes #(issue)
 
-## Before submitting
+## Testing
+<!-- How did you test your changes? -->
 
-- [ ] I have read the [Contributing Guide](https://docs.ultralytics.com/help/contributing/)
-- [ ] I have read the [CLA](https://docs.ultralytics.com/help/CLA/)
-- [ ] I have tested my changes locally
-- [ ] No code changes (documentation, typos, formatting, or comment-only)
+## Checklist
+- [ ] I have commented `I have read the CLA Document and I sign the CLA` to sign the CLA (required before merge)
+- [ ] CI passes
+- [ ] Tests added
+- [ ] Tests not applicable

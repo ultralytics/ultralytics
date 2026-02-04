@@ -213,6 +213,8 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
                 output_size=output_size,
                 mean_dims=mean_dims,
                 std_dims=std_dims,
+                # TODO: may be the name hyp makes much more sense?
+                hyp=self.args
             )
         # Otherwise, use the default detection dataset builder
         return super().build_dataset(img_path, mode=mode, batch=batch)

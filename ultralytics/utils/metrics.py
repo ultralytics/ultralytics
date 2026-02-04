@@ -522,10 +522,9 @@ class ConfusionMatrix(DataExportMixin):
             array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
             n = (self.nc + k - 1) // k  # number of retained classes
         nc = n if self.task == "classify" else n + 1  # adjust for background if needed
+        ticklabels = "auto"
         if 0 < nc < 99:
             ticklabels = names if self.task == "classify" else [*names, "background"]
-        else:
-            ticklabels = "auto"
         xy_ticks = np.arange(len(ticklabels)) if ticklabels != "auto" else np.arange(nc)
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)

@@ -4,9 +4,7 @@ from ultralytics.utils.metrics import DetMetrics, SegmentMetrics
 
 
 def test_det_metrics_center_rmse_single_tp():
-    """
-    Deterministic unit test for center_rmse in DetMetrics.
-    One TP with zero offset → RMSE must be 0.0.
+    """Deterministic unit test for center_rmse in DetMetrics. One TP with zero offset → RMSE must be 0.0.
     """
     met = DetMetrics({0: "a", 1: "b"})
     met.update_stats(
@@ -32,9 +30,7 @@ def test_det_metrics_center_rmse_single_tp():
 
 
 def test_det_metrics_center_rmse_empty():
-    """
-    center_rmse should not crash with empty preds / empty labels.
-    """
+    """Center_rmse should not crash with empty preds / empty labels."""
     met = DetMetrics({0: "a"})
 
     met.update_stats(
@@ -57,8 +53,6 @@ def test_det_metrics_center_rmse_empty():
 
 
 def test_segment_metrics_no_center_rmse():
-    """
-    SegmentMetrics must not expose center_rmse.
-    """
+    """SegmentMetrics must not expose center_rmse."""
     met = SegmentMetrics({0: "a", 1: "b"})
     assert "metrics/center_rmse(B)" not in met.keys

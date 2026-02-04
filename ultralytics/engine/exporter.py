@@ -54,7 +54,7 @@ Inference:
                          yolo11n_executorch_model   # ExecuTorch
                          yolo11n_axelera_model      # Axelera
                          yolo11n_deepx_model        # DeepX
-                         
+
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
     $ npm install

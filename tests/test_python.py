@@ -796,6 +796,10 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
 
     model = YOLO(model)
     model.train(data=grayscale_data, epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+    # remove npy files in train/val splits if exists, avoiding interference with other tests
+    for split in {"train", "val"}:
+        for npy_file in (Path(data["path"]) / data[split]).glob("*.npy"):
+            npy_file.unlink()
     model.val(data=grayscale_data)
     im = np.zeros((32, 32, 1), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)

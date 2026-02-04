@@ -105,7 +105,9 @@ from ultralytics.utils import (
     is_jetson,
 )
 from ultralytics.utils.checks import (
+    IS_PYTHON_3_9,
     IS_PYTHON_3_10,
+    IS_PYTHON_3_12,
     IS_PYTHON_MINIMUM_3_9,
     check_apt_requirements,
     check_executorch_requirements,
@@ -1348,9 +1350,9 @@ class Exporter:
             prefix=prefix,
         )
 
-    def export_deepx(self, prefix=colorstr("Deepx")):
-        assert LINUX, "Export only supported on Linux."
-        assert not ARM64, "IMX export is not supported on ARM64 architectures."
+    def export_deepx(self, prefix=colorstr("DeepX")):
+        LOGGER.info(f"\n{prefix} starting export with DeepX...")
+        assert LINUX and not ARM64 and (IS_PYTHON_3_12 or IS_PYTHON_3_9), "DeepX export is only supported on Linux x86_64 architectures and Python 3.9 or 3.12."
 
         if not check_requirements("dx_com", install=False):
             raise Exception(

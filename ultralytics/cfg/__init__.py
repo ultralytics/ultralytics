@@ -760,56 +760,46 @@ def handle_install_skills(args: list[str]) -> None:
     """
     import shutil
 
-    AGENTS = {
+    agents = {
         "claude": ("~/.claude/skills", ".claude/skills"),
         "copilot": ("~/.copilot/skills", ".github/skills"),
         "codex": ("~/.codex/skills", ".codex/skills"),
         "opencode": ("~/.config/opencode/skills", ".opencode/skills"),
     }
-
     is_global = "global" in args
     agent = next((a.split("=", 1)[1] for a in args if a.startswith("agent=")), None)
     custom = next((a.split("=", 1)[1] for a in args if a.startswith("dir=")), None)
-
     if custom:
-        skills_dir = Path(custom) / "skills"
-    elif agent and agent in AGENTS:
-        skills_dir = Path(AGENTS[agent][0 if is_global else 1]).expanduser()
+        skills_dir = Path(custom).expanduser() / "skills"
     elif agent:
-        return LOGGER.warning(f"Unknown agent '{agent}'. Available: {', '.join(AGENTS.keys())}")
+        if agent not in agents:
+            return LOGGER.warning(f"Unknown agent '{agent}'. Available: {', '.join(agents)}")
+        skills_dir = Path(agents[agent][0 if is_global else 1]).expanduser()
     else:
         skills_dir = Path("~/.agents/skills" if is_global else ".agents/skills").expanduser()
-
     if "uninstall" in args:
         if not skills_dir.exists():
             return LOGGER.info(f"No skills directory at {skills_dir}")
         count = sum(shutil.rmtree(d) or 1 for d in skills_dir.glob("ultralytics-*") if d.is_dir())
         return LOGGER.info(f"✅ Removed {count} skill(s)" if count else "No Ultralytics skills found")
-
     src = Path(__file__).parents[2] / "skills"
     if not src.exists():
         return LOGGER.error(f"Skills directory not found at {src}")
-
     skills_dir.mkdir(parents=True, exist_ok=True)
-    installed, updated, skipped = 0, 0, 0
-
-    for skill in (d for d in src.glob("ultralytics-*") if d.is_dir()):
-        sm = skill / "SKILL.md"
-        if not sm.exists():
-            continue
+    stats = [0, 0, 0]  # installed, updated, skipped
+    for skill in filter(lambda d: (skill := d).is_dir() and (skill / "SKILL.md").exists(), src.glob("ultralytics-*")):
         dest = skills_dir / skill.name
-        dm = dest / "SKILL.md"
+        sm, dm = skill / "SKILL.md", dest / "SKILL.md"
         if dest.exists() and dm.exists() and sm.stat().st_mtime <= dm.stat().st_mtime:
-            skipped += 1
+            stats[2] += 1
             continue
         if dest.exists():
             shutil.rmtree(dest)
-            updated += 1
+            stats[1] += 1
         else:
-            installed += 1
+            stats[0] += 1
         shutil.copytree(skill, dest)
-
-    LOGGER.info(f"✅ Skills: {installed} installed, {updated} updated, {skipped} skipped → {skills_dir}")
+    LOGGER.info(f"✅ Skills: {stats[0]} installed, {stats[1]} updated, {stats[2]} skipped → {skills_dir}")
 
 
 def parse_key_value_pair(pair: str = "key=value") -> tuple:

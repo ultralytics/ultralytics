@@ -8,7 +8,7 @@ keywords: Crack Segmentation Dataset, Ultralytics, transportation safety, public
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-crack-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Crack Segmentation Dataset In Colab"></a>
 
-The Crack Segmentation Dataset, available on Roboflow Universe, is an extensive resource designed for individuals involved in transportation and public safety studies. It is also beneficial for developing [self-driving car](https://www.ultralytics.com/blog/ai-in-self-driving-cars) models or exploring various [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. This dataset is part of the broader collection available on the Ultralytics [Datasets Hub](../../datasets/index.md).
+The Crack Segmentation Dataset is an extensive resource designed for individuals involved in transportation and public safety studies. It is also beneficial for developing [self-driving car](https://www.ultralytics.com/blog/ai-in-self-driving-cars) models or exploring various [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications. This dataset is part of the broader collection available on the Ultralytics [Datasets Hub](../../datasets/index.md).
 
 <p align="center">
   <br>
@@ -90,7 +90,7 @@ The Crack Segmentation dataset contains a diverse collection of images captured 
 
 ## Citations and Acknowledgments
 
-If you use the Crack Segmentation dataset in your research or development work, please cite the source appropriately. The dataset was made available via Roboflow:
+If you use the Crack Segmentation dataset in your research or development work, please cite the source appropriately:
 
 !!! quote ""
 
@@ -102,8 +102,6 @@ If you use the Crack Segmentation dataset in your research or development work, 
             type = { Open Source Dataset },
             author = { University },
             url = { https://universe.roboflow.com/university-bswxt/crack-bphdr },
-            journal = { Roboflow Universe },
-            publisher = { Roboflow },
             year = { 2022 },
             month = { dec },
             note = { visited on 2024-01-23 },

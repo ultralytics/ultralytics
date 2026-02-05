@@ -99,6 +99,10 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.__init__.is_dgx
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.__init__.is_online
 
 <br><br><hr><br>

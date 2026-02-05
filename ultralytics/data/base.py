@@ -280,7 +280,7 @@ class BaseDataset(Dataset):
         """Save an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
         if not f.exists():
-            np.save(f.as_posix(), imread(self.im_files[i]), allow_pickle=False)
+            np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
 
     def check_cache_disk(self, safety_margin: float = 0.5) -> bool:
         """Check if there's enough disk space for caching images.

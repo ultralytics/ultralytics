@@ -171,7 +171,7 @@ class BaseDataset(Dataset):
                         t = t.read().strip().splitlines()
                         # parent = str(p.parent) + os.sep
                         # f += [x.replace("./", parent) if x.startswith("./") else x for x in t]  # local to global path
-                        Path(parent).expanduser().resolve(strict=False)
+                        parent_abs = Path(p.parent).expanduser().resolve(strict=False)
                         f += [
                             str(px) if px.is_absolute() else str((parent_abs / px).resolve(strict=False))
                             for px in (Path(x).expanduser() for x in t)

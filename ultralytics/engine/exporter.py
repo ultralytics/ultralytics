@@ -102,8 +102,8 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
-    is_jetson,
     is_dgx,
+    is_jetson,
 )
 from ultralytics.utils.checks import (
     IS_PYTHON_3_10,

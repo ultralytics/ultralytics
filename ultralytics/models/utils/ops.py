@@ -14,8 +14,7 @@ from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
 
 
 class HungarianMatcher(nn.Module):
-    """
-    A module implementing the HungarianMatcher for optimal assignment between predictions and ground truth.
+    """A module implementing the HungarianMatcher for optimal assignment between predictions and ground truth.
 
     HungarianMatcher performs optimal bipartite assignment over predicted and ground truth bounding boxes using a cost
     function that considers classification scores, bounding box coordinates, and optionally mask predictions. This is
@@ -56,8 +55,7 @@ class HungarianMatcher(nn.Module):
         alpha: float = 0.25,
         gamma: float = 2.0,
     ):
-        """
-        Initialize HungarianMatcher for optimal assignment of predicted and ground truth bounding boxes.
+        """Initialize HungarianMatcher for optimal assignment of predicted and ground truth bounding boxes.
 
         Args:
             cost_gain (dict[str, float], optional): Dictionary of cost coefficients for different matching cost
@@ -88,8 +86,7 @@ class HungarianMatcher(nn.Module):
         masks: torch.Tensor | None = None,
         gt_mask: list[torch.Tensor] | None = None,
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
-        """
-        Compute optimal assignment between predictions and ground truth using Hungarian algorithm.
+        """Compute optimal assignment between predictions and ground truth using Hungarian algorithm.
 
         This method calculates matching costs based on classification scores, bounding box coordinates, and optionally
         mask predictions, then finds the optimal bipartite assignment between predictions and ground truth.
@@ -198,8 +195,7 @@ def get_cdn_group(
     box_noise_scale: float = 1.0,
     training: bool = False,
 ) -> tuple[torch.Tensor | None, torch.Tensor | None, torch.Tensor | None, dict[str, Any] | None]:
-    """
-    Generate contrastive denoising training group with positive and negative samples from ground truths.
+    """Generate contrastive denoising training group with positive and negative samples from ground truths.
 
     This function creates denoising queries for contrastive denoising training by adding noise to ground truth bounding
     boxes and class labels. It generates both positive and negative samples to improve model robustness.

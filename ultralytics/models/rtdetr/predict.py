@@ -9,8 +9,7 @@ from ultralytics.utils import ops
 
 
 class RTDETRPredictor(BasePredictor):
-    """
-    RT-DETR (Real-Time Detection Transformer) Predictor extending the BasePredictor class for making predictions.
+    """RT-DETR (Real-Time Detection Transformer) Predictor extending the BasePredictor class for making predictions.
 
     This class leverages Vision Transformers to provide real-time object detection while maintaining high accuracy. It
     supports key features like efficient hybrid encoding and IoU-aware query selection.
@@ -34,8 +33,7 @@ class RTDETRPredictor(BasePredictor):
     """
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
+        """Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
 
         The method filters detections based on confidence and class if specified in `self.args`. It converts model
         predictions to Results objects containing properly scaled bounding boxes.
@@ -75,8 +73,7 @@ class RTDETRPredictor(BasePredictor):
         return results
 
     def pre_transform(self, im):
-        """
-        Pre-transform input images before feeding them into the model for inference.
+        """Pre-transform input images before feeding them into the model for inference.
 
         The input images are letterboxed to ensure a square aspect ratio and scale-filled.
 

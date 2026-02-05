@@ -12,8 +12,7 @@ from ultralytics.utils.files import increment_path
 
 
 class SAHIInference:
-    """
-    Runs Ultralytics YOLO11 and SAHI for object detection on video with options to view, save, and track results.
+    """Runs Ultralytics YOLO11 and SAHI for object detection on video with options to view, save, and track results.
 
     This class integrates SAHI (Slicing Aided Hyper Inference) with YOLO11 models to perform efficient object detection
     on large images by slicing them into smaller pieces, running inference on each slice, and then merging the results.
@@ -37,8 +36,7 @@ class SAHIInference:
         self.detection_model = None
 
     def load_model(self, weights: str, device: str) -> None:
-        """
-        Load a YOLO11 model with specified weights for object detection using SAHI.
+        """Load a YOLO11 model with specified weights for object detection using SAHI.
 
         Args:
             weights (str): Path to the model weights file.
@@ -67,8 +65,7 @@ class SAHIInference:
         slice_width: int = 512,
         slice_height: int = 512,
     ) -> None:
-        """
-        Run object detection on a video using YOLO11 and SAHI.
+        """Run object detection on a video using YOLO11 and SAHI.
 
         The function processes each frame of the video, applies sliced inference using SAHI, and optionally displays
         and/or saves the results with bounding boxes and labels.
@@ -129,8 +126,7 @@ class SAHIInference:
 
     @staticmethod
     def parse_opt() -> argparse.Namespace:
-        """
-        Parse command line arguments for the inference process.
+        """Parse command line arguments for the inference process.
 
         Returns:
             (argparse.Namespace): Parsed command line arguments.

@@ -8,8 +8,7 @@ from ultralytics.utils.plotting import colors
 
 
 class SecurityAlarm(BaseSolution):
-    """
-    A class to manage security alarm functionalities for real-time monitoring.
+    """A class to manage security alarm functionalities for real-time monitoring.
 
     This class extends the BaseSolution class and provides features to monitor objects in a frame, send email
     notifications when specific thresholds are exceeded for total detections, and annotate the output frame for
@@ -35,8 +34,7 @@ class SecurityAlarm(BaseSolution):
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """
-        Initialize the SecurityAlarm class with parameters for real-time object monitoring.
+        """Initialize the SecurityAlarm class with parameters for real-time object monitoring.
 
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.
@@ -49,8 +47,7 @@ class SecurityAlarm(BaseSolution):
         self.from_email = ""
 
     def authenticate(self, from_email: str, password: str, to_email: str) -> None:
-        """
-        Authenticate the email server for sending alert notifications.
+        """Authenticate the email server for sending alert notifications.
 
         This method initializes a secure connection with the SMTP server and logs in using the provided credentials.
 
@@ -72,8 +69,7 @@ class SecurityAlarm(BaseSolution):
         self.from_email = from_email
 
     def send_email(self, im0, records: int = 5) -> None:
-        """
-        Send an email notification with an image attachment indicating the number of objects detected.
+        """Send an email notification with an image attachment indicating the number of objects detected.
 
         This method encodes the input image, composes the email message with details about the detection, and sends it
         to the specified recipient.
@@ -117,8 +113,7 @@ class SecurityAlarm(BaseSolution):
             LOGGER.error(f"Failed to send email: {e}")
 
     def process(self, im0) -> SolutionResults:
-        """
-        Monitor the frame, process object detections, and trigger alerts if thresholds are exceeded.
+        """Monitor the frame, process object detections, and trigger alerts if thresholds are exceeded.
 
         This method processes the input frame, extracts detections, annotates the frame with bounding boxes, and sends
         an email notification if the number of detected objects surpasses the specified threshold and an alert has not

@@ -14,8 +14,7 @@ from ultralytics.utils.checks import check_imshow
 
 
 class ParkingPtsSelection:
-    """
-    A class for selecting and managing parking zone points on images using a Tkinter-based UI.
+    """A class for selecting and managing parking zone points on images using a Tkinter-based UI.
 
     This class provides functionality to upload an image, select points to define parking zones, and save the selected
     points to a JSON file. It uses Tkinter for the graphical user interface.
@@ -178,8 +177,7 @@ class ParkingPtsSelection:
 
 
 class ParkingManagement(BaseSolution):
-    """
-    Manages parking occupancy and availability using YOLO model for real-time monitoring and visualization.
+    """Manages parking occupancy and availability using YOLO model for real-time monitoring and visualization.
 
     This class extends BaseSolution to provide functionality for parking lot management, including detection of occupied
     spaces, visualization of parking regions, and display of occupancy statistics.
@@ -221,8 +219,7 @@ class ParkingManagement(BaseSolution):
         self.dc = (255, 0, 189)  # Centroid color for each box
 
     def process(self, im0: np.ndarray) -> SolutionResults:
-        """
-        Process the input image for parking lot management and visualization.
+        """Process the input image for parking lot management and visualization.
 
         This function analyzes the input image, extracts tracks, and determines the occupancy status of parking regions
         defined in the JSON file. It annotates the image with occupied and available parking spots, and updates the

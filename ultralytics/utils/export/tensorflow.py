@@ -65,8 +65,7 @@ def onnx2saved_model(
     disable_group_convolution: bool = False,
     prefix="",
 ):
-    """
-    Convert a ONNX model to TensorFlow SavedModel format via ONNX.
+    """Convert a ONNX model to TensorFlow SavedModel format via ONNX.
 
     Args:
         onnx_file (str): ONNX file path.
@@ -135,8 +134,7 @@ def onnx2saved_model(
 
 
 def keras2pb(keras_model, file: Path, prefix=""):
-    """
-    Convert a Keras model to TensorFlow GraphDef (.pb) format.
+    """Convert a Keras model to TensorFlow GraphDef (.pb) format.
 
     Args:
         keras_model (keras.Model): Keras model to convert to frozen graph format.
@@ -158,8 +156,7 @@ def keras2pb(keras_model, file: Path, prefix=""):
 
 
 def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str = ""):
-    """
-    Convert a TensorFlow Lite model to Edge TPU format using the Edge TPU compiler.
+    """Convert a TensorFlow Lite model to Edge TPU format using the Edge TPU compiler.
 
     Args:
         tflite_file (str | Path): Path to the input TensorFlow Lite (.tflite) model file.
@@ -186,8 +183,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
 
 
 def pb2tfjs(pb_file: str, output_dir: str, half: bool = False, int8: bool = False, prefix: str = ""):
-    """
-    Convert a TensorFlow GraphDef (.pb) model to TensorFlow.js format.
+    """Convert a TensorFlow GraphDef (.pb) model to TensorFlow.js format.
 
     Args:
         pb_file (str): Path to the input TensorFlow GraphDef (.pb) model file.

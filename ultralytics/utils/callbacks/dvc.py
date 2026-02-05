@@ -27,8 +27,7 @@ except (ImportError, AssertionError, TypeError):
 
 
 def _log_images(path: Path, prefix: str = "") -> None:
-    """
-    Log images at specified path with an optional prefix using DVCLive.
+    """Log images at specified path with an optional prefix using DVCLive.
 
     This function logs images found at the given path to DVCLive, organizing them by batch to enable slider
     functionality in the UI. It processes image filenames to extract batch information and restructures the path
@@ -55,8 +54,7 @@ def _log_images(path: Path, prefix: str = "") -> None:
 
 
 def _log_plots(plots: dict, prefix: str = "") -> None:
-    """
-    Log plot images for training progress if they have not been previously processed.
+    """Log plot images for training progress if they have not been previously processed.
 
     Args:
         plots (dict): Dictionary containing plot information with timestamps.
@@ -70,8 +68,7 @@ def _log_plots(plots: dict, prefix: str = "") -> None:
 
 
 def _log_confusion_matrix(validator) -> None:
-    """
-    Log confusion matrix for a validator using DVCLive.
+    """Log confusion matrix for a validator using DVCLive.
 
     This function processes the confusion matrix from a validator object and logs it to DVCLive by converting the matrix
     into lists of target and prediction labels.
@@ -123,8 +120,7 @@ def on_train_epoch_start(trainer) -> None:
 
 
 def on_fit_epoch_end(trainer) -> None:
-    """
-    Log training metrics, model info, and advance to next step at the end of each fit epoch.
+    """Log training metrics, model info, and advance to next step at the end of each fit epoch.
 
     This function is called at the end of each fit epoch during training. It logs various metrics including training
     loss items, validation metrics, and learning rates. On the first epoch, it also logs model
@@ -157,8 +153,7 @@ def on_fit_epoch_end(trainer) -> None:
 
 
 def on_train_end(trainer) -> None:
-    """
-    Log best metrics, plots, and confusion matrix at the end of training.
+    """Log best metrics, plots, and confusion matrix at the end of training.
 
     This function is called at the conclusion of the training process to log final metrics, visualizations, and model
     artifacts if DVCLive logging is active. It captures the best model performance metrics, training plots, validation

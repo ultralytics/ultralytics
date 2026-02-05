@@ -335,6 +335,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
                 color=(0, 255, 255),  # yellow (BGR)
                 thickness=2,
                 font_scale=0.55,
+                calib=calib_i,
             )
             L2 = _add_title(L2, "2D (left)")
 

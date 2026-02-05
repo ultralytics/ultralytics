@@ -387,20 +387,24 @@ class KITTIToYOLO3D:
             width_r_norm = width_r / self.img_width
             height_r_norm = height_l_norm  # Same height due to epipolar constraint
 
-            # Clamp to valid range
-            center_x_r_norm = np.clip(center_x_r_norm, 0, 1)
-            center_y_r_norm = np.clip(center_y_r_norm, 0, 1)
-            width_r_norm = np.clip(width_r_norm, 0, 1)
-            height_r_norm = np.clip(height_r_norm, 0, 1)
+            # For truncated objects, store true projected box (no clip). Otherwise clamp to [0,1].
+            if truncated <= 1e-6:
+                center_x_r_norm = np.clip(center_x_r_norm, 0, 1)
+                center_y_r_norm = np.clip(center_y_r_norm, 0, 1)
+                width_r_norm = np.clip(width_r_norm, 0, 1)
+                height_r_norm = np.clip(height_r_norm, 0, 1)
 
             # ===== Bottom 4 Vertices (normalized) =====
             vertices_2d = self.compute_bottom_vertices(X, Y, Z, h, w, l, rotation_y, calib)
 
-            # Normalize vertices
+            # Normalize vertices; for truncated objects do not clip so true projection is stored
             vertices_norm = []
             for v in vertices_2d:
-                v_x = np.clip(v[0] / self.img_width, 0, 1)
-                v_y = np.clip(v[1] / self.img_height, 0, 1)
+                v_x = v[0] / self.img_width
+                v_y = v[1] / self.img_height
+                if truncated <= 1e-6:
+                    v_x = np.clip(v_x, 0, 1)
+                    v_y = np.clip(v_y, 0, 1)
                 vertices_norm.extend([v_x, v_y])
 
             # ===== Build YOLO label line =====

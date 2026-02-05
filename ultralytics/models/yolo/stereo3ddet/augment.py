@@ -4,8 +4,139 @@ from dataclasses import dataclass
 from typing import Dict, Tuple, Any, Optional
 import cv2
 import numpy as np
-from ultralytics.data.augment import Compose, Format
-from ultralytics.utils.instance import Instances
+from ultralytics.utils.instance import Bboxes, Instances
+
+
+# ============================================================================
+# 3D to 2D Projection Functions
+# ============================================================================
+
+
+def project_3d_box_to_2d(
+    location_3d: np.ndarray,
+    dimensions: np.ndarray,
+    rotation_y: float,
+    calibration: Dict[str, float],
+    camera: str = "left",
+    clip: bool = True,
+    image_size: Optional[Tuple[int, int]] = None,
+) -> np.ndarray:
+    """Project a 3D bounding box to 2D image coordinates.
+
+    Uses KITTI convention where location is at bottom-center of the object,
+    Y points down, and dimensions are (length, width, height) where length
+    is along Z (forward) and width is along X (right).
+
+    Args:
+        location_3d: (3,) array [X, Y, Z] in camera coordinates (meters).
+        dimensions: (3,) array [length, width, height] in meters.
+        rotation_y: Yaw angle in radians.
+        calibration: Dict with keys: fx, fy, cx, cy, baseline.
+        camera: "left" or "right" camera view.
+        clip: Whether to clip the box to image boundaries.
+        image_size: (width, height) in pixels for clipping. Required if clip=True.
+
+    Returns:
+        (4,) array [x1, y1, x2, y2] in pixels, or zeros if projection fails.
+    """
+    # Extract parameters
+    X, Y, Z = location_3d
+    length, width, height = dimensions
+    fx = calibration.get("fx", 721.5377)
+    fy = calibration.get("fy", 721.5377)
+    cx = calibration.get("cx", 609.5593)
+    cy = calibration.get("cy", 172.854)
+    baseline = calibration.get("baseline", 0.54)
+
+    # Build 8 corners in object frame (KITTI: bottom-center origin, Y down)
+    # Bottom 4 corners (Y=0), then top 4 corners (Y=-height)
+    corners_obj = np.array([
+        [-length / 2, 0, -width / 2],   # rear-left bottom
+        [length / 2, 0, -width / 2],    # front-left bottom
+        [length / 2, 0, width / 2],     # front-right bottom
+        [-length / 2, 0, width / 2],    # rear-right bottom
+        [-length / 2, -height, -width / 2],  # rear-left top
+        [length / 2, -height, -width / 2],   # front-left top
+        [length / 2, -height, width / 2],    # front-right top
+        [-length / 2, -height, width / 2],   # rear-right top
+    ])
+
+    # Rotation matrix around Y axis
+    cos_ry = np.cos(rotation_y)
+    sin_ry = np.sin(rotation_y)
+    R = np.array([[cos_ry, 0, sin_ry], [0, 1, 0], [-sin_ry, 0, cos_ry]])
+
+    # Rotate and translate to camera coordinates
+    corners_cam = corners_obj @ R.T + np.array([X, Y, Z])
+
+    # For right camera, shift X by baseline
+    if camera == "right":
+        corners_cam[:, 0] -= baseline
+
+    # Project to 2D (only corners in front of camera)
+    z_min = 0.1
+    valid_mask = corners_cam[:, 2] > z_min
+    if not valid_mask.any():
+        return np.zeros(4, dtype=np.float32)
+
+    corners_valid = corners_cam[valid_mask]
+    u_coords = fx * (corners_valid[:, 0] / corners_valid[:, 2]) + cx
+    v_coords = fy * (corners_valid[:, 1] / corners_valid[:, 2]) + cy
+
+    # Get bounding rectangle
+    x1, x2 = u_coords.min(), u_coords.max()
+    y1, y2 = v_coords.min(), v_coords.max()
+
+    # Clip to image boundaries if requested
+    if clip and image_size is not None:
+        img_w, img_h = image_size
+        x1 = np.clip(x1, 0, img_w)
+        x2 = np.clip(x2, 0, img_w)
+        y1 = np.clip(y1, 0, img_h)
+        y2 = np.clip(y2, 0, img_h)
+
+    return np.array([x1, y1, x2, y2], dtype=np.float32)
+
+
+def project_3d_boxes_to_2d(
+    instances: Instances,
+    calibration: Dict[str, float],
+    camera: str = "left",
+    clip: bool = True,
+    image_size: Optional[Tuple[int, int]] = None,
+) -> np.ndarray:
+    """Project multiple 3D bboxes to 2D for a batch of instances.
+
+    Args:
+        instances: Instances object with location_3d, dimensions_3d, rotation_y.
+        calibration: Dict with keys: fx, fy, cx, cy, baseline.
+        camera: "left" or "right" camera view.
+        clip: Whether to clip boxes to image boundaries.
+        image_size: (width, height) in pixels for clipping.
+
+    Returns:
+        (N, 4) array of [x1, y1, x2, y2] in pixels.
+    """
+    n = len(instances)
+    if n == 0:
+        return np.zeros((0, 4), dtype=np.float32)
+
+    # Check for required 3D attributes
+    if instances.location_3d is None or instances.dimensions_3d is None or instances.rotation_y is None:
+        return np.zeros((n, 4), dtype=np.float32)
+
+    boxes_2d = np.zeros((n, 4), dtype=np.float32)
+    for i in range(n):
+        boxes_2d[i] = project_3d_box_to_2d(
+            location_3d=instances.location_3d[i],
+            dimensions=instances.dimensions_3d[i],
+            rotation_y=instances.rotation_y[i],
+            calibration=calibration,
+            camera=camera,
+            clip=clip,
+            image_size=image_size,
+        )
+    return boxes_2d
 
 
 @dataclass
@@ -279,7 +410,70 @@ class StereoLabels:
         if self.has_instances() and self.instances.location_3d is not None:
             self.instances.location_3d[:, 0] = baseline - self.instances.location_3d[:, 0]
         return self
-    
+
+    def regenerate_2d_bboxes_from_3d(self, image_size: Tuple[int, int]) -> "StereoLabels":
+        """Regenerate 2D bboxes by projecting 3D boxes to both cameras.
+
+        This is useful after geometric transforms that modify 3D attributes
+        (location, rotation) to ensure 2D bboxes stay consistent.
+
+        Args:
+            image_size: (width, height) in pixels.
+
+        Returns:
+            Self for method chaining.
+        """
+        if not self.has_instances() or not self.has_calibration():
+            return self
+
+        instances = self.instances
+        has_3d = (
+            instances.location_3d is not None
+            and instances.dimensions_3d is not None
+            and instances.rotation_y is not None
+        )
+        if not has_3d or len(instances) == 0:
+            return self
+
+        w, h = image_size
+        calib = self.calibration
+
+        # Project to left camera (clip to image bounds)
+        left_boxes_px = project_3d_boxes_to_2d(
+            instances, calib, camera="left", clip=True, image_size=(w, h)
+        )
+        # Project to right camera (don't clip - preserve truncated info)
+        right_boxes_px = project_3d_boxes_to_2d(
+            instances, calib, camera="right", clip=False, image_size=(w, h)
+        )
+
+        # Convert to normalized xywh format if instances are normalized
+        is_normalized = getattr(instances, "normalized", True)
+        if is_normalized:
+            left_boxes_px[:, [0, 2]] /= w
+            left_boxes_px[:, [1, 3]] /= h
+            right_boxes_px[:, [0, 2]] /= w
+            right_boxes_px[:, [1, 3]] /= h
+
+        # Convert xyxy to xywh
+        left_xywh = np.zeros_like(left_boxes_px)
+        left_xywh[:, 0] = (left_boxes_px[:, 0] + left_boxes_px[:, 2]) / 2  # cx
+        left_xywh[:, 1] = (left_boxes_px[:, 1] + left_boxes_px[:, 3]) / 2  # cy
+        left_xywh[:, 2] = left_boxes_px[:, 2] - left_boxes_px[:, 0]        # w
+        left_xywh[:, 3] = left_boxes_px[:, 3] - left_boxes_px[:, 1]        # h
+
+        right_xywh = np.zeros_like(right_boxes_px)
+        right_xywh[:, 0] = (right_boxes_px[:, 0] + right_boxes_px[:, 2]) / 2
+        right_xywh[:, 1] = (right_boxes_px[:, 1] + right_boxes_px[:, 3]) / 2
+        right_xywh[:, 2] = right_boxes_px[:, 2] - right_boxes_px[:, 0]
+        right_xywh[:, 3] = right_boxes_px[:, 3] - right_boxes_px[:, 1]
+
+        # Update instances
+        instances._bboxes = Bboxes(left_xywh.astype(np.float32), format="xywh")
+        instances.right_bboxes = right_xywh.astype(np.float32)
+
+        return self
+
     def __repr__(self) -> str:
         return f"StereoLabels(instances={self.instances}, calibration={self.calibration})"
 
@@ -332,7 +526,6 @@ class StereoHSV:
 
         # Generate random gains (same for both views)
         r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1
-        hue, sat, val = cv2.split(cv2.cvtColor(left, cv2.COLOR_BGR2HSV))
         dtype = left.dtype
 
         x = np.arange(0, 256, dtype=r.dtype)
@@ -373,6 +566,12 @@ class StereoHFlip:
     def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """Apply horizontal flip to stereo image and instances.
 
+        Flips both images horizontally and swaps left/right views. For labels:
+        1. Flips rotation_y: yaw -> -yaw
+        2. Mirrors location_3d x-coordinate: X -> baseline - X
+        3. Regenerates BOTH 2D bboxes from 3D projection (handles truncation correctly)
+        4. Flips calibration principal point
+
         Args:
             labels: Dict with 'img' (6-channel), 'instances', 'calibration'.
 
@@ -396,32 +595,28 @@ class StereoHFlip:
         # Use StereoLabels to synchronize instance and calibration updates
         stereo = StereoLabels.from_labels(labels)
 
-        if stereo.has_instances():
+        if stereo.has_instances() and stereo.has_calibration():
             instances = stereo.instances
-            # Convert to xywh format for simpler flip logic
-            instances.convert_bbox(format="xywh")
-            flip_w = 1 if instances.normalized else w
+            baseline = stereo.calibration.get("baseline", 0.0)
 
-            # Flip center_x coordinates for both bboxes
-            instances.bboxes[:, 0] = flip_w - instances.bboxes[:, 0]
-            if instances.right_bboxes is not None:
-                instances.right_bboxes[:, 0] = flip_w - instances.right_bboxes[:, 0]
-
-            # Swap left and right bboxes
-            stereo.swap_left_right_bboxes()
-
-            # Flip rotation_y: yaw -> -yaw (normalized to [-pi, pi])
+            # 1. Flip rotation_y: yaw -> -yaw (normalized to [-pi, pi])
             if instances.rotation_y is not None:
                 rot = instances.rotation_y
                 instances.rotation_y = np.arctan2(np.sin(-rot), np.cos(-rot)).astype(rot.dtype)
 
-            # Mirror location_3d x coordinate
-            if instances.location_3d is not None and stereo.has_calibration():
-                baseline = stereo.calibration.get("baseline", 0.0)
-                stereo.mirror_location_3d(baseline)
+            # 2. Mirror location_3d x coordinate: X -> baseline - X
+            if instances.location_3d is not None:
+                instances.location_3d[:, 0] = baseline - instances.location_3d[:, 0]
 
-        # Flip calibration principal point (synchronized via StereoLabels)
-        if stereo.has_calibration():
+            # 3. Flip calibration principal point BEFORE projecting
+            stereo.calibration["cx"] = float((w - 1) - stereo.calibration.get("cx", w / 2))
+
+            # 4. Regenerate 2D bboxes from 3D projection
+            # This is the key fix: instead of flip+swap+clip, we project fresh from 3D
+            stereo.regenerate_2d_bboxes_from_3d((w, h))
+
+        elif stereo.has_calibration():
+            # No instances but still need to flip calibration
             stereo.calibration["cx"] = float((w - 1) - stereo.calibration.get("cx", w / 2))
 
         return stereo.to_labels(labels)
@@ -542,8 +737,7 @@ class StereoCrop:
                     rb = rb * np.array([w, h, w, h])
                 rb[:, [0, 2]] -= x0
                 rb[:, [1, 3]] -= y0
-                rb[:, [0, 2]] = np.clip(rb[:, [0, 2]], 0, cw)
-                rb[:, [1, 3]] = np.clip(rb[:, [1, 3]], 0, ch)
+                # Do not clip right_bboxes so truncated objects keep full projected box
                 rb = rb / np.array([cw, ch, cw, ch])
                 instances.right_bboxes = rb.astype(np.float32)
 

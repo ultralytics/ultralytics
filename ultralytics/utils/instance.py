@@ -497,24 +497,7 @@ class Instances:
             ] = 0.0
             self.keypoints[..., 0] = self.keypoints[..., 0].clip(0, w)
             self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)
-        # Handle right_bboxes for stereo 3D detection
-        if self.right_bboxes is not None and len(self.right_bboxes) > 0:
-            # Convert right_bboxes to xyxy for clipping
-            if ori_format == "xywh":
-                right_bboxes_xyxy = xywh2xyxy(self.right_bboxes)
-            elif ori_format == "ltwh":
-                right_bboxes_xyxy = ltwh2xyxy(self.right_bboxes)
-            else:
-                right_bboxes_xyxy = self.right_bboxes.copy()
-            right_bboxes_xyxy[:, [0, 2]] = right_bboxes_xyxy[:, [0, 2]].clip(0, w)
-            right_bboxes_xyxy[:, [1, 3]] = right_bboxes_xyxy[:, [1, 3]].clip(0, h)
-            # Convert back to original format
-            if ori_format == "xywh":
-                self.right_bboxes = xyxy2xywh(right_bboxes_xyxy)
-            elif ori_format == "ltwh":
-                self.right_bboxes = xyxy2ltwh(right_bboxes_xyxy)
-            else:
-                self.right_bboxes = right_bboxes_xyxy
+        # right_bboxes are not clipped so truncated objects keep full projected box (width can be > 1)
 
     def remove_zero_area_boxes(self) -> np.ndarray:
         """Remove zero-area boxes, i.e. after clipping some boxes may have zero width or height.

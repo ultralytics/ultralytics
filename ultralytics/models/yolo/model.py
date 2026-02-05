@@ -310,17 +310,17 @@ class YOLOE(Model):
             classes (list[str]): A list of categories i.e. ["person"].
             embeddings (torch.Tensor): Embeddings corresponding to the classes.
         """
-        assert isinstance(self.model, YOLOEModel)
-        if embeddings is None:
-            embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
-        self.model.set_classes(classes, embeddings)
         # Verify no background class is present
         assert " " not in classes
-        self.model.names = classes
+        assert isinstance(self.model, YOLOEModel)
+        if sorted(list(self.model.names.values())) != sorted(classes):
+            if embeddings is None:
+                embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
+            self.model.set_classes(classes, embeddings)
 
         # Reset method class names
         if self.predictor:
-            self.predictor.model.names = classes
+            self.predictor.model.names = self.model.names
 
     def val(
         self,

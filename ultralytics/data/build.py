@@ -299,7 +299,8 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
 ):
-    """Create and return an InfiniteDataLoader or DataLoader for training or validation.
+    """
+    Create and return an InfiniteDataLoader or DataLoader for training or validation.
 
     Args:
         dataset (Dataset): Dataset to load data from.
@@ -346,7 +347,8 @@ def build_dataloader(
 
 
 def check_source(source):
-    """Check the type of input source and return corresponding flag values.
+    """
+    Check the type of input source and return corresponding flag values.
 
     Args:
         source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The input source to check.
@@ -394,7 +396,8 @@ def check_source(source):
 
 
 def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buffer: bool = False, channels: int = 3):
-    """Load an inference source for object detection and apply necessary transformations.
+    """
+    Load an inference source for object detection and apply necessary transformations.
 
     Args:
         source (str | Path | list | tuple | torch.Tensor | PIL.Image | np.ndarray): The input source for inference.

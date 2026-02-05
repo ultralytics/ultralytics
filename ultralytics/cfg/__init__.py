@@ -766,41 +766,51 @@ def handle_install_skills(args: list[str]) -> None:
         "codex": ("~/.codex/skills", ".codex/skills"),
         "opencode": ("~/.config/opencode/skills", ".opencode/skills"),
     }
-    is_global = "global" in args
-    agent = next((a.split("=", 1)[1] for a in args if a.startswith("agent=")), None)
-    custom = next((a.split("=", 1)[1] for a in args if a.startswith("dir=")), None)
+    is_global, agent, custom = (
+        "global" in args,
+        next((a.split("=", 1)[1] for a in args if a.startswith("agent=")), None),
+        next((a.split("=", 1)[1] for a in args if a.startswith("dir=")), None),
+    )
+    if agent and agent not in agents:
+        return LOGGER.warning(f"Unknown agent '{agent}'. Available: {', '.join(agents)}")
     skills_dir = (
         Path(custom).expanduser() / "skills"
         if custom
         else Path(agents[agent][0 if is_global else 1]).expanduser()
-        if agent in agents
+        if agent
         else Path("~/.agents/skills" if is_global else ".agents/skills").expanduser()
     )
-    if agent and agent not in agents:
-        return LOGGER.warning(f"Unknown agent '{agent}'. Available: {', '.join(agents)}")
     if "uninstall" in args:
-        if not skills_dir.exists():
-            return LOGGER.info(f"No skills directory at {skills_dir}")
-        count = sum(shutil.rmtree(d) or 1 for d in skills_dir.glob("ultralytics-*") if d.is_dir())
-        return LOGGER.info(f"✅ Removed {count} skill(s)" if count else "No Ultralytics skills found")
-    src = Path(__file__).parents[2] / "skills"
-    if not src.exists():
+        return (
+            LOGGER.info(f"No skills directory at {skills_dir}")
+            if not skills_dir.exists()
+            else LOGGER.info(
+                f"✅ Removed {count} skill(s)"
+                if (count := sum(shutil.rmtree(d) or 1 for d in skills_dir.glob("ultralytics-*") if d.is_dir()))
+                else "No Ultralytics skills found"
+            )
+        )
+    if not (src := Path(__file__).parents[2] / "skills").exists():
         return LOGGER.error(f"Skills directory not found at {src}")
     skills_dir.mkdir(parents=True, exist_ok=True)
     installed = updated = skipped = 0
     for skill in src.glob("ultralytics-*"):
         if not (skill.is_dir() and (skill / "SKILL.md").exists()):
             continue
-        dest, sm, dm = skills_dir / skill.name, skill / "SKILL.md", (skills_dir / skill.name) / "SKILL.md"
-        if dest.exists() and dm.exists() and sm.stat().st_mtime <= dm.stat().st_mtime:
+        d = skills_dir / skill.name
+        if (
+            d.exists()
+            and (d / "SKILL.md").exists()
+            and (skill / "SKILL.md").stat().st_mtime <= (d / "SKILL.md").stat().st_mtime
+        ):
             skipped += 1
-            continue
-        if dest.exists():
-            shutil.rmtree(dest)
-            updated += 1
         else:
-            installed += 1
-        shutil.copytree(skill, dest)
+            if d.exists():
+                shutil.rmtree(d)
+                updated += 1
+            else:
+                installed += 1
+            shutil.copytree(skill, d)
     LOGGER.info(f"✅ Skills: {installed} installed, {updated} updated, {skipped} skipped → {skills_dir}")
 
 

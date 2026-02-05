@@ -426,7 +426,7 @@ class Stereo3DDetDataset(BaseDataset):
             transforms.extend([
                 StereoHFlip(p=float(hyp.get("fliplr", 0.5))),
                 StereoScale(scale_range=(0.8, 1.2), p=float(hyp.get("scale", 0.5))),
-                # StereoCrop(crop_h=0.9, crop_w=0.9, p=float(hyp.get("crop_fraction", 0.3))),
+                StereoCrop(crop_h=0.9, crop_w=0.9, p=float(hyp.get("crop_fraction", 0.3))),
                 StereoHSV(
                     hgain=float(hyp.get("hsv_h", 0.015)),
                     sgain=float(hyp.get("hsv_s", 0.7)),

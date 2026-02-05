@@ -36,27 +36,27 @@ CLI:
 
 Inference:
     $ yolo predict model=yolo26n.pt                 # PyTorch
-                         yolo11n.torchscript        # TorchScript
-                         yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                         yolo11n_openvino_model     # OpenVINO
-                         yolo11n.engine             # TensorRT
-                         yolo11n.mlpackage          # CoreML (macOS-only)
-                         yolo11n_saved_model        # TensorFlow SavedModel
-                         yolo11n.pb                 # TensorFlow GraphDef
-                         yolo11n.tflite             # TensorFlow Lite
-                         yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
-                         yolo11n_paddle_model       # PaddlePaddle
-                         yolo11n.mnn                # MNN
-                         yolo11n_ncnn_model         # NCNN
-                         yolo11n_imx_model          # IMX
-                         yolo11n_rknn_model         # RKNN
-                         yolo11n_executorch_model   # ExecuTorch
-                         yolo11n_axelera_model      # Axelera
+                         yolo26n.torchscript        # TorchScript
+                         yolo26n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                         yolo26n_openvino_model     # OpenVINO
+                         yolo26n.engine             # TensorRT
+                         yolo26n.mlpackage          # CoreML (macOS-only)
+                         yolo26n_saved_model        # TensorFlow SavedModel
+                         yolo26n.pb                 # TensorFlow GraphDef
+                         yolo26n.tflite             # TensorFlow Lite
+                         yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                         yolo26n_paddle_model       # PaddlePaddle
+                         yolo26n.mnn                # MNN
+                         yolo26n_ncnn_model         # NCNN
+                         yolo26n_imx_model          # IMX
+                         yolo26n_rknn_model         # RKNN
+                         yolo26n_executorch_model   # ExecuTorch
+                         yolo26n_axelera_model      # Axelera
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
     $ npm install
-    $ ln -s ../../yolo11n_web_model public/yolo11n_web_model
+    $ ln -s ../../yolo26n_web_model public/yolo26n_web_model
     $ npm start
 """
 

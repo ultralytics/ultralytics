@@ -374,6 +374,7 @@ class ProfileModels:
         imgsz (int): Image size used in the models.
         half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
         trt (bool): Flag to indicate whether to profile using TensorRT.
+        openvino (bool): Flag to indicate whether to profile using OpenVINO.
         device (torch.device): Device used for profiling.
 
     Methods:
@@ -382,6 +383,7 @@ class ProfileModels:
         get_onnx_model_info: Extract metadata from an ONNX model.
         iterative_sigma_clipping: Apply sigma clipping to remove outliers.
         profile_tensorrt_model: Profile a TensorRT model.
+        profile_openvino_model: Profile an OpenVINO model.
         profile_onnx_model: Profile an ONNX model.
         generate_table_row: Generate a table row with model metrics.
         generate_results_dict: Generate a dictionary of profiling results.
@@ -403,6 +405,7 @@ class ProfileModels:
         imgsz: int = 640,
         half: bool = True,
         trt: bool = True,
+        openvino: bool = True,
         device: torch.device | str | None = None,
     ):
         """Initialize the ProfileModels class for profiling models.
@@ -415,6 +418,7 @@ class ProfileModels:
             imgsz (int): Size of the image used during profiling.
             half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool): Flag to indicate whether to profile using TensorRT.
+            openvino (bool): Flag to indicate whether to profile using OpenVINO.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
 
         Notes:
@@ -427,10 +431,11 @@ class ProfileModels:
         self.imgsz = imgsz
         self.half = half
         self.trt = trt  # run TensorRT profiling
+        self.openvino = openvino  # run OpenVINO profiling
         self.device = device if isinstance(device, torch.device) else select_device(device)
 
     def run(self):
-        """Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
+        """Profile YOLO models for speed and accuracy across ONNX, OpenVINO, and TensorRT formats.
 
         Returns:
             (list[dict]): List of dictionaries containing profiling results for each model.
@@ -444,13 +449,14 @@ class ProfileModels:
         files = self.get_files()
 
         if not files:
-            LOGGER.warning("No matching *.pt or *.onnx files found.")
+            LOGGER.warning("No matching *.pt, *.onnx or *.xml files found.")
             return []
 
         table_rows = []
         output = []
         for file in files:
             engine_file = file.with_suffix(".engine")
+            openvino_file = None
             if file.suffix in {".pt", ".yaml", ".yml"}:
                 model = YOLO(str(file))
                 model.fuse()  # to report correct params and GFLOPs in model.info()
@@ -469,16 +475,29 @@ class ProfileModels:
                     device=self.device,
                     verbose=False,
                 )
+                if self.openvino:
+                    openvino_file = model.export(
+                        format="openvino",
+                        half=self.half,
+                        imgsz=self.imgsz,
+                        device=self.device,
+                        verbose=False,
+                    )
             elif file.suffix == ".onnx":
                 model_info = self.get_onnx_model_info(file)
                 onnx_file = file
+            elif file.suffix == ".xml":
+                model_info = (0.0, 0.0, 0.0, 0.0)
+                onnx_file = None
+                openvino_file = file
             else:
                 continue
 
             t_engine = self.profile_tensorrt_model(str(engine_file))
-            t_onnx = self.profile_onnx_model(str(onnx_file))
-            table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, model_info))
-            output.append(self.generate_results_dict(file.stem, t_onnx, t_engine, model_info))
+            t_onnx = self.profile_onnx_model(str(onnx_file)) if onnx_file else (0.0, 0.0)
+            t_openvino = self.profile_openvino_model(openvino_file) if self.openvino else (0.0, 0.0)
+            table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, t_openvino, model_info))
+            output.append(self.generate_results_dict(file.stem, t_onnx, t_engine, t_openvino, model_info))
 
         self.print_table(table_rows)
         return output
@@ -493,9 +512,11 @@ class ProfileModels:
         for path in self.paths:
             path = Path(path)
             if path.is_dir():
-                extensions = ["*.pt", "*.onnx", "*.yaml"]
+                extensions = ["*.pt", "*.onnx", "*.yaml", "*.xml"]
                 files.extend([file for ext in extensions for file in glob.glob(str(path / ext))])
             elif path.suffix in {".pt", ".yaml", ".yml"}:  # add non-existing
+                files.append(str(path))
+            elif path.suffix == ".xml":
                 files.append(str(path))
             else:
                 files.extend(glob.glob(str(path)))
@@ -571,6 +592,81 @@ class ProfileModels:
     def check_dynamic(tensor_shape):
         """Check whether the tensor shape in the ONNX model is dynamic."""
         return not all(isinstance(dim, int) and dim >= 0 for dim in tensor_shape)
+
+    def profile_openvino_model(self, openvino_file: str | Path | None, eps: float = 1e-3):
+        """Profile an OpenVINO model, measuring average inference time and standard deviation.
+
+        Args:
+            openvino_file (str | Path | None): Path to the OpenVINO export directory or .xml file.
+            eps (float): Small epsilon value to prevent division by zero.
+
+        Returns:
+            mean_time (float): Mean inference time in milliseconds.
+            std_time (float): Standard deviation of inference time in milliseconds.
+        """
+        if not openvino_file:
+            return 0.0, 0.0
+
+        openvino_file = Path(openvino_file)
+        if not openvino_file.exists():
+            return 0.0, 0.0
+
+        try:
+            check_requirements("openvino>=2024.0.0")
+            import openvino as ov
+        except Exception as e:  # pragma: no cover - dependency/installation specific
+            LOGGER.warning(f"OpenVINO profiling skipped: {e}")
+            return 0.0, 0.0
+
+        xml_path = openvino_file
+        if openvino_file.is_dir():
+            xml_candidates = sorted(openvino_file.glob("*.xml"))
+            if not xml_candidates:
+                return 0.0, 0.0
+            xml_path = xml_candidates[0]
+
+        core = ov.Core()
+        ov_model = core.read_model(model=str(xml_path), weights=xml_path.with_suffix(".bin"))
+        if ov_model.get_parameters()[0].get_layout().empty:
+            ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
+
+        compiled_model = core.compile_model(ov_model, device_name="AUTO", config={"PERFORMANCE_HINT": "LATENCY"})
+        input_port = compiled_model.input(0)
+
+        input_shape = []
+        for i, dim in enumerate(input_port.get_shape()):
+            try:
+                dynamic = hasattr(dim, "is_dynamic") and dim.is_dynamic
+                input_shape.append(self.imgsz if dynamic or int(dim) < 0 else int(dim))
+            except TypeError:
+                input_shape.append(self.imgsz if i in {2, 3} else 1)
+        if len(input_shape) == 3:
+            input_shape = [1, *input_shape]
+
+        input_dtype = (
+            input_port.get_element_type().to_dtype() if hasattr(input_port.get_element_type(), "to_dtype") else np.float32
+        )
+        input_data = np.random.rand(*input_shape).astype(input_dtype)
+
+        # Warmup runs
+        elapsed = 0.0
+        infer_request = compiled_model.create_infer_request()
+        for _ in range(3):
+            start_time = time.time()
+            for _ in range(self.num_warmup_runs):
+                infer_request.infer({input_port.get_any_name(): input_data})
+            elapsed = time.time() - start_time
+
+        num_runs = max(round(self.min_time / (elapsed + eps) * self.num_warmup_runs), self.num_timed_runs)
+
+        run_times = []
+        for _ in TQDM(range(num_runs), desc=str(xml_path)):
+            start_time = time.time()
+            infer_request.infer({input_port.get_any_name(): input_data})
+            run_times.append((time.time() - start_time) * 1000)
+
+        run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)
+        return np.mean(run_times), np.std(run_times)
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
         """Profile an ONNX model, measuring average inference time and standard deviation across multiple runs.
@@ -650,6 +746,7 @@ class ProfileModels:
         model_name: str,
         t_onnx: tuple[float, float],
         t_engine: tuple[float, float],
+        t_openvino: tuple[float, float],
         model_info: tuple[float, float, float, float],
     ):
         """Generate a table row string with model performance metrics.
@@ -665,8 +762,8 @@ class ProfileModels:
         """
         _layers, params, _gradients, flops = model_info
         return (
-            f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms | {t_engine[0]:.1f}±"
-            f"{t_engine[1]:.1f} ms | {params / 1e6:.1f} | {flops:.1f} |"
+            f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms | {t_openvino[0]:.1f}±"
+            f"{t_openvino[1]:.1f} ms | {t_engine[0]:.1f}±{t_engine[1]:.1f} ms | {params / 1e6:.1f} | {flops:.1f} |"
         )
 
     @staticmethod
@@ -674,6 +771,7 @@ class ProfileModels:
         model_name: str,
         t_onnx: tuple[float, float],
         t_engine: tuple[float, float],
+        t_openvino: tuple[float, float],
         model_info: tuple[float, float, float, float],
     ):
         """Generate a dictionary of profiling results.
@@ -693,6 +791,7 @@ class ProfileModels:
             "model/parameters": params,
             "model/GFLOPs": round(flops, 3),
             "model/speed_ONNX(ms)": round(t_onnx[0], 3),
+            "model/speed_OpenVINO(ms)": round(t_openvino[0], 3),
             "model/speed_TensorRT(ms)": round(t_engine[0], 3),
         }
 
@@ -709,6 +808,7 @@ class ProfileModels:
             "size<br><sup>(pixels)",
             "mAP<sup>val<br>50-95",
             f"Speed<br><sup>CPU ({get_cpu_info()}) ONNX<br>(ms)",
+            "Speed<br><sup>OpenVINO<br>(ms)",
             f"Speed<br><sup>{gpu} TensorRT<br>(ms)",
             "params<br><sup>(M)",
             "FLOPs<br><sup>(B)",

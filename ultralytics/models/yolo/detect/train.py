@@ -147,7 +147,25 @@ class DetectionTrainer(BaseTrainer):
         self.model.args = self.args  # attach hyperparameters to model
         if getattr(self.model, "end2end"):
             self.model.set_head_attr(max_det=self.args.max_det)
-        # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
+
+    def set_class_weights(self):
+        """Compute and set class weights for handling class imbalance.
+
+        Class weights are computed based on inverse class frequency in the training dataset.
+        This helps the model pay more attention to underrepresented classes during training.
+        """
+        cls_pw = getattr(self.args, "cls_pw", 0.0)
+        if cls_pw > 0:
+            from ultralytics.utils.ops import labels_to_class_weights
+
+            weights = labels_to_class_weights(self.train_loader.dataset.labels, self.data["nc"])
+            if cls_pw != 1.0:
+                weights = weights**cls_pw
+                weights = weights / weights.mean()  # renormalize
+            self.model.class_weights = weights.to(self.device) * self.data["nc"]
+            LOGGER.info(f"Class weights: {self.model.class_weights.cpu().numpy().round(3)}")
+        else:
+            self.model.class_weights = None
 
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """Return a YOLO detection model.

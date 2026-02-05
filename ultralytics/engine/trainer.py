@@ -333,6 +333,7 @@ class BaseTrainer:
         )
         self.validator = self.get_validator()
         self.ema = ModelEMA(self.model)
+        self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
@@ -747,6 +748,10 @@ class BaseTrainer:
     def set_model_attributes(self):
         """Set or update model parameters before training."""
         self.model.names = self.data["names"]
+
+    def set_class_weights(self):
+        """Compute and set class weights for handling class imbalance. Override in subclasses."""
+        pass
 
     def build_targets(self, preds, targets):
         """Build target tensors for training YOLO model."""

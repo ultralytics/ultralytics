@@ -8,7 +8,7 @@ keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-carparts-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Carparts Segmentation Dataset In Colab"></a>
 
-The Carparts Segmentation Dataset, available on Roboflow Universe, is a curated collection of images and videos designed for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, specifically focusing on [segmentation tasks](https://docs.ultralytics.com/tasks/segment/). Hosted on Roboflow Universe, this dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable [annotated](https://www.ultralytics.com/glossary/data-labeling) examples for training and testing segmentation models.
+The Carparts Segmentation Dataset is a curated collection of images and videos designed for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, specifically focusing on [segmentation tasks](https://docs.ultralytics.com/tasks/segment/). This dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable [annotated](https://www.ultralytics.com/glossary/data-labeling) examples for training and testing segmentation models.
 
 Whether you're working on [automotive research](https://www.ultralytics.com/solutions/ai-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like [Ultralytics YOLO](../../models/yolo26.md).
 
@@ -118,8 +118,6 @@ If you utilize the Carparts Segmentation dataset in your research or development
                 type = { Open Source Dataset },
                 author = { Gianmarco Russo },
                 url = { https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm },
-                journal = { Roboflow Universe },
-                publisher = { Roboflow },
                 year = { 2023 },
                 month = { nov },
                 note = { visited on 2024-01-24 },

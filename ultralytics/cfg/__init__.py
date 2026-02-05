@@ -769,14 +769,15 @@ def handle_install_skills(args: list[str]) -> None:
     is_global = "global" in args
     agent = next((a.split("=", 1)[1] for a in args if a.startswith("agent=")), None)
     custom = next((a.split("=", 1)[1] for a in args if a.startswith("dir=")), None)
-    if custom:
-        skills_dir = Path(custom).expanduser() / "skills"
-    elif agent:
-        if agent not in agents:
-            return LOGGER.warning(f"Unknown agent '{agent}'. Available: {', '.join(agents)}")
-        skills_dir = Path(agents[agent][0 if is_global else 1]).expanduser()
-    else:
-        skills_dir = Path("~/.agents/skills" if is_global else ".agents/skills").expanduser()
+    skills_dir = (
+        Path(custom).expanduser() / "skills"
+        if custom
+        else Path(agents[agent][0 if is_global else 1]).expanduser()
+        if agent in agents
+        else Path("~/.agents/skills" if is_global else ".agents/skills").expanduser()
+    )
+    if agent and agent not in agents:
+        return LOGGER.warning(f"Unknown agent '{agent}'. Available: {', '.join(agents)}")
     if "uninstall" in args:
         if not skills_dir.exists():
             return LOGGER.info(f"No skills directory at {skills_dir}")
@@ -786,20 +787,21 @@ def handle_install_skills(args: list[str]) -> None:
     if not src.exists():
         return LOGGER.error(f"Skills directory not found at {src}")
     skills_dir.mkdir(parents=True, exist_ok=True)
-    stats = [0, 0, 0]  # installed, updated, skipped
-    for skill in filter(lambda d: (skill := d).is_dir() and (skill / "SKILL.md").exists(), src.glob("ultralytics-*")):
-        dest = skills_dir / skill.name
-        sm, dm = skill / "SKILL.md", dest / "SKILL.md"
+    installed = updated = skipped = 0
+    for skill in src.glob("ultralytics-*"):
+        if not (skill.is_dir() and (skill / "SKILL.md").exists()):
+            continue
+        dest, sm, dm = skills_dir / skill.name, skill / "SKILL.md", (skills_dir / skill.name) / "SKILL.md"
         if dest.exists() and dm.exists() and sm.stat().st_mtime <= dm.stat().st_mtime:
-            stats[2] += 1
+            skipped += 1
             continue
         if dest.exists():
             shutil.rmtree(dest)
-            stats[1] += 1
+            updated += 1
         else:
-            stats[0] += 1
+            installed += 1
         shutil.copytree(skill, dest)
-    LOGGER.info(f"✅ Skills: {stats[0]} installed, {stats[1]} updated, {stats[2]} skipped → {skills_dir}")
+    LOGGER.info(f"✅ Skills: {installed} installed, {updated} updated, {skipped} skipped → {skills_dir}")
 
 
 def parse_key_value_pair(pair: str = "key=value") -> tuple:

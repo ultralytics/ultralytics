@@ -11,7 +11,7 @@ from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.plotting import plot_images
 from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_first
 
@@ -122,7 +122,8 @@ class ClassificationTrainer(BaseTrainer):
             (ClassificationDataset): Dataset for the specified mode.
         """
         return ClassificationDataset(
-            root=img_path, names=self.data["names"], args=self.args, augment=mode == "train", prefix=mode)
+            root=img_path, names=self.data["names"], args=self.args, augment=mode == "train", prefix=mode
+        )
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
         """Return PyTorch DataLoader with transforms to preprocess images.

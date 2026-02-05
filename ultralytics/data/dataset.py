@@ -733,7 +733,7 @@ class ClassificationDataset:
 
         # Filter out and align samples with instance class (prevents CUDA assertion errors)
         if names is None or not isinstance(names, dict) or len(names) == 0:
-            raise ValueError("ClassificationDataset must set names, but got {}.".format(names))
+            raise ValueError(f"ClassificationDataset must set names, but got {names}.")
         class_to_idx = {v: k for k, v in names.items()}
         for subbase in self.base:
             # Aligning torchvision ImageFolder attribute classes and class_to_idx to names
@@ -817,14 +817,18 @@ class ClassificationDataset:
         """Verify all images in dataset.
 
         Args:
-            prefix (str): File name of cache with prefix (train, val, test),
-              it will use self.root[0] of folder name for cache if prefix not set.
+            prefix (str): File name of cache with prefix (train, val, test), it will use self.root[0] of folder name for
+                cache if prefix not set.
 
         Returns:
             (list): List of valid samples after verification.
         """
-        desc = f"{self.prefix}Scanning {f'all ({len(self.root)}) subdataset' if len(self.root) > 1 else self.root[0]}..."
-        path = (Path(self.root[0]).parent / prefix if prefix else Path(self.root[0])).with_suffix(".cache")  # *.cache file path
+        desc = (
+            f"{self.prefix}Scanning {f'all ({len(self.root)}) subdataset' if len(self.root) > 1 else self.root[0]}..."
+        )
+        path = (Path(self.root[0]).parent / prefix if prefix else Path(self.root[0])).with_suffix(
+            ".cache"
+        )  # *.cache file path
 
         try:
             check_file_speeds([f for (f, _) in self.samples[0][:5]], prefix=self.prefix)  # check image read speeds
@@ -842,8 +846,9 @@ class ClassificationDataset:
             # Run scan if *.cache retrieval failed
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
             with ThreadPool(NUM_THREADS) as pool:
-                results = pool.imap(func=verify_image, iterable=zip(
-                    (x for s in self.samples for x in s), repeat(self.prefix)))
+                results = pool.imap(
+                    func=verify_image, iterable=zip((x for s in self.samples for x in s), repeat(self.prefix))
+                )
                 pbar = TQDM(results, desc=desc, total=sum(len(s) for s in self.samples))
                 for sample, nf_f, nc_f, msg in pbar:
                     if nf_f:

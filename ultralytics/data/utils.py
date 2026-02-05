@@ -496,8 +496,9 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict[int, str]): A dictionary of class names in the dataset.
     """
+
     def download_dataset(d: str | Path):
-        """download dataset by dataset name from ASSERTS_URL
+        """Download dataset by dataset name from ASSERTS_URL.
 
         Args:
             d (str | Path): The name of the dataset.
@@ -509,8 +510,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
             subprocess.run(["bash", str(ROOT / "data/scripts/get_imagenet.sh")], check=True)
         else:
             download(f"{ASSETS_URL}/{d}.zip", dir=data_dir.parent)
-        LOGGER.info(
-            f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n")
+        LOGGER.info(f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n")
 
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
@@ -526,7 +526,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         data = YAML.load(dataset, append_filename=True)
         path = data.get("path", "").replace("\\", "/")
         data_dir = Path(path).resolve()
-        if not data_dir.is_dir() and len(path) > 0 and '/' not in path:
+        if not data_dir.is_dir() and len(path) > 0 and "/" not in path:
             data_dir = (DATASETS_DIR / path).resolve()
             if not data_dir.is_dir():
                 download_dataset(path)
@@ -543,14 +543,15 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         test_set = data.get("test")  # data/val or data/test
         train_set, test_set, val_set = [
             [(data_dir / p).resolve() for p in ([ds] if isinstance(ds, str) else ds)] if ds else []
-            for ds in (train_set, test_set, val_set)]  # match each dataset
+            for ds in (train_set, test_set, val_set)
+        ]  # match each dataset
     else:
         data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
         if not data_dir.is_dir():
             if data_dir.suffix != "":
                 raise ValueError(
                     f'Classification datasets must be a directory (data="path/to/dir") not a file (data="{dataset}"), '
-                     "See https://docs.ultralytics.com/datasets/classify/"
+                    "See https://docs.ultralytics.com/datasets/classify/"
                 )
             download_dataset(dataset)
         train_set = data_dir / "train"
@@ -588,8 +589,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     #   will rename labels when loading a trained model, so training must use n0* origin style labels.
     if data.get("names") and data.get("path") not in ("imagenet", "imagenet10"):
         names = data["names"]  # Specify labels manually
-        assert isinstance(names, (list, dict)), \
-            f"Dataset (type(names)={type(names)}) only support list or dict."
+        assert isinstance(names, (list, dict)), f"Dataset (type(names)={type(names)}) only support list or dict."
     else:  # Specify all labels automatically
         names = sorted(list(set(n.name for sf in train_set if sf.is_dir() for n in sf.glob("*") if n.is_dir())))
     if isinstance(names, list):  # class names list
@@ -605,8 +605,11 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
             for subfolder in v:
                 sublabels = {l.name for l in subfolder.iterdir() if l.is_dir() and l.name in names.values()}
                 files = [
-                    path for l in subfolder.iterdir() if l.is_dir() and l.name in names.values()
-                    for path in l.glob("*") if path.suffix[1:].lower() in IMG_FORMATS
+                    path
+                    for l in subfolder.iterdir()
+                    if l.is_dir() and l.name in names.values()
+                    for path in l.glob("*")
+                    if path.suffix[1:].lower() in IMG_FORMATS
                 ]  # Filter out files that label in names and suffix in IMG_FORMATS
                 subnf = len(files)  # number of files in subfolder
                 subnd = len(sublabels)  # number of classes directories in subfolder

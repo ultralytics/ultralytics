@@ -676,8 +676,8 @@ def empty_like(x):
 def labels_to_class_weights(labels: list, nc: int) -> torch.Tensor:
     """Compute class weights from dataset labels based on inverse class frequency.
 
-    This function calculates weights for each class inversely proportional to their frequency
-    in the dataset, helping to address class imbalance during training.
+    This function calculates weights for each class inversely proportional to their frequency in the dataset, helping to
+    address class imbalance during training.
 
     Args:
         labels (list): List of label dictionaries, each containing a 'cls' key with class indices.

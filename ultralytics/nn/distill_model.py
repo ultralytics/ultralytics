@@ -41,7 +41,7 @@ class DistillationModel(nn.Module):
             for student_out, teacher_out in zip(student_output, teacher_output):
                 student_dim = self.decouple_outputs(student_out, shape_check=True).shape[1]
                 teacher_dim = self.decouple_outputs(teacher_out, shape_check=True).shape[1]
-                projectors.append(nn.Linear(student_dim, teacher_dim) if student_dim != teacher_dim else nn.Identity())
+                projectors.append(nn.Conv2d(student_dim, teacher_dim, kernel_size=1, stride=1, padding=0) if student_dim != teacher_dim else nn.Identity())
             self.projector = nn.ModuleList(projectors)
         if self.distill_feature_loss == "mgd":
             generations = []
@@ -56,6 +56,13 @@ class DistillationModel(nn.Module):
                         )
                     )
             self.generation = nn.ModuleList(generations)
+        if self.distill_feature_loss == "cwd":
+            norms = []
+            for teacher_out in teacher_output:
+                if not isinstance(teacher_out, dict):
+                    teacher_dim = teacher_out.shape[1]
+                    norms.append(nn.BatchNorm2d(teacher_dim, affine=False))
+            self.norm = nn.ModuleList(norms)
         self.distill_area = self.student_model.args.distill_area
         self.distill_branch = self.student_model.args.distill_branch
         self.distill_branch = self.student_model.args.distill_branch.split(",")
@@ -150,7 +157,7 @@ class DistillationModel(nn.Module):
             else:
                 if self.distill_feature_loss:
                     student_feat = (
-                        self.projector[i](student_feat.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+                        self.projector[i](student_feat)
                         if student_feat.ndim == 4
                         else student_feat
                     )
@@ -185,7 +192,21 @@ class DistillationModel(nn.Module):
 
         dis_loss = F.mse_loss(new_fea, teacher_feat)
         return dis_loss
-        
+
+    def loss_cwd(self, student_feat, teacher_feat, feat_idx=0, temperature: float = 1.0):
+        student_feat = self.norm[feat_idx](student_feat)
+        teacher_feat = self.norm[feat_idx](teacher_feat)
+
+        N, C, H, W = teacher_feat.shape
+        softmax_pred_T = F.softmax(teacher_feat.view(-1, W * H) / temperature, dim=1)  # [N*C, H*W]
+        logsoftmax = torch.nn.LogSoftmax(dim=1)
+        cost = torch.sum(
+            softmax_pred_T * logsoftmax(teacher_feat.view(-1, W * H) / temperature) -
+            softmax_pred_T * logsoftmax(student_feat.view(-1, W * H) / temperature)) * (temperature**2)
+
+        dis_loss = cost / (N * C)
+        return dis_loss
+
     def box_kd_loss(self, student_boxes, teacher_boxes):
         if self.distill_box_loss == "cos":
             return self.loss_cosine(student_boxes, teacher_boxes)
@@ -222,6 +243,8 @@ class DistillationModel(nn.Module):
             return F.mse_loss(student_feat, teacher_feat)
         elif self.distill_feature_loss == "mgd":
             return self.loss_mgd(student_feat, teacher_feat, feat_idx=feat_idx)
+        elif self.distill_feature_loss == "cwd":
+            return self.loss_cwd(student_feat, teacher_feat, feat_idx=feat_idx)
         else:
             raise ValueError(f"Unknown box distillation loss: {self.distill_feature_loss}")
 

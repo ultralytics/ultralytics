@@ -7,9 +7,11 @@ import matplotlib.pyplot as plt
 
 
 # =============================================================================
-# SELECT BENCHMARK HERE: "m5", "xeon", "t4", "agx_cpu", or "agx_gpu"
+# SELECT BENCHMARK HERE: "m5", "xeon", "t4", "jetson-agx-thor-gpu",
+# "jetson-agx-thor-cpu", "jetson-agx-orin-gpu", "jetson-agx-orin-cpu",
+# "jetson-orin-nano-super-gpu", or "jetson-orin-nano-super-cpu"
 # =============================================================================
-BENCHMARK = "agx_cpu"
+BENCHMARK = "t4"
 
 
 # =============================================================================
@@ -131,43 +133,123 @@ BENCHMARKS = {
             ],
         },
     },
-    "agx_cpu": {
-        "title": "Object Detection Models: Latency vs mAP (AGX CPU, ONNX)",
+    "jetson-agx-thor-gpu": {
+        "title": "Object Detection Models: Latency vs mAP (Jetson AGX Thor GPU, TensorRT)",
         "models": {
             "YOLO26": [
-                ("n", 14.467, 40.9),
-                ("s", 60.446, 48.6),
-                ("m", 225.891, 53.1),
-                ("l", 420.388, 55.0),
-                ("x", 876.965, 57.5),
+                ("n", 1.286, 40.9),
+                ("s", 1.607, 48.6),
+                ("m", 2.431, 53.1),
+                ("l", 3.132, 55.0),
+                ("x", 4.98, 57.5),
             ],
             "RF-DETR": [
-                ("n", 131.992, 48.4),
-                ("s", 243.598, 53.0),
-                ("m", 323.36, 54.7),
-                ("l", 521.355, 56.5),
-                ("x", 1145.11, 58.6),
-                ("xxl", 1624.242, 60.1),
+                ("n", 1.727, 48.4),
+                ("s", 2.285, 53.0),
+                ("m", 2.808, 54.7),
+                ("l", 3.717, 56.5),
+                ("x", 4.948, 58.6),
+                ("xxl", 7.634, 60.1),
             ],
         },
     },
-    "agx_gpu": {
-        "title": "Object Detection Models: Latency vs mAP (AGX GPU, TensorRT FP16)",
+    "jetson-agx-thor-cpu": {
+        "title": "Object Detection Models: Latency vs mAP (Jetson AGX Thor CPU, ONNX)",
         "models": {
             "YOLO26": [
-                ("n", 0.924, 40.9),
-                ("s", 1.302, 48.6),
-                ("m", 2.366, 53.1),
-                ("l", 3.771, 55.0),
-                ("x", 6.087, 57.5),
+                ("n", 33.89, 40.9),
+                ("s", 95.413, 48.6),
+                ("m", 273.25, 53.1),
+                ("l", 343.833, 55.0),
+                ("x", 733.873, 57.5),
             ],
             "RF-DETR": [
-                ("n", 1.646, 48.4),
-                ("s", 2.278, 53.0),
-                ("m", 2.837, 54.7),
-                ("l", 3.720, 56.5),
-                ("x", 4.931, 58.6),
-                ("xxl", 7.647, 60.1),
+                ("n", 131.548, 48.4),
+                ("s", 241.317, 53.0),
+                ("m", 323.0, 54.7),
+                ("l", 520.615, 56.5),
+                ("x", 1147.943, 58.6),
+                ("xxl", 1615.155, 60.1),
+            ],
+        },
+    },
+    "jetson-agx-orin-gpu": {
+        "title": "Object Detection Models: Latency vs mAP (Jetson AGX Orin GPU, TensorRT)",
+        "models": {
+            "YOLO26": [
+                ("n", 2.518, 40.9),
+                ("s", 3.629, 48.6),
+                ("m", 6.116, 53.1),
+                ("l", 7.814, 55.0),
+                ("x", 13.317, 57.5),
+            ],
+            "RF-DETR": [
+                ("n", 3.628, 48.4),
+                ("s", 5.765, 53.0),
+                ("m", 7.158, 54.7),
+                ("l", 9.662, 56.5),
+                ("x", 16.203, 58.6),
+                ("xxl", 22.234, 60.1),
+            ],
+        },
+    },
+    "jetson-agx-orin-cpu": {
+        "title": "Object Detection Models: Latency vs mAP (Jetson AGX Orin CPU, ONNX)",
+        "models": {
+            "YOLO26": [
+                ("n", 51.03, 40.9),
+                ("s", 134.092, 48.6),
+                ("m", 360.06, 53.1),
+                ("l", 455.814, 55.0),
+                ("x", 927.723, 57.5),
+            ],
+            "RF-DETR": [
+                ("n", 162.998, 48.4),
+                ("s", 300.142, 53.0),
+                ("m", 398.034, 54.7),
+                ("l", 629.981, 56.5),
+                ("x", 1413.559, 58.6),
+                ("xxl", 1988.597, 60.1),
+            ],
+        },
+    },
+    "jetson-orin-nano-super-gpu": {
+        "title": "Object Detection Models: Latency vs mAP (Jetson Orin Nano Super GPU, TensorRT)",
+        "models": {
+            "YOLO26": [
+                ("n", 4.385, 40.9),
+                ("s", 6.915, 48.6),
+                ("m", 13.399, 53.1),
+                ("l", 17.147, 55.0),
+                ("x", 32.072, 57.5),
+            ],
+            "RF-DETR": [
+                ("n", 7.223, 48.4),
+                ("s", 12.027, 53.0),
+                ("m", 15.543, 54.7),
+                ("l", 22.32, 56.5),
+                ("x", 42.316, 58.6),
+                ("xxl", 62.461, 60.1),
+            ],
+        },
+    },
+    "jetson-orin-nano-super-cpu": {
+        "title": "Object Detection Models: Latency vs mAP (Jetson Orin Nano Super CPU, ONNX)",
+        "models": {
+            "YOLO26": [
+                ("n", 183.055, 40.9),
+                ("s", 475.926, 48.6),
+                ("m", 1105.241, 53.1),
+                ("l", 1460.185, 55.0),
+                ("x", 2689.455, 57.5),
+            ],
+            "RF-DETR": [
+                ("n", 651.97, 48.4),
+                ("s", 1083.453, 53.0),
+                ("m", 1368.739, 54.7),
+                ("l", 1913.115, 56.5),
+                ("x", 3890.967, 58.6),
+                ("xxl", 4939.052, 60.1),
             ],
         },
     },

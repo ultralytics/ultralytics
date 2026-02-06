@@ -102,6 +102,7 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
+    is_dgx,
     is_jetson,
 )
 from ultralytics.utils.checks import (
@@ -1006,7 +1007,7 @@ class Exporter:
 
         # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
         # https://github.com/ultralytics/ultralytics/issues/22873
-        if is_jetson(jetpack=7):
+        if is_jetson(jetpack=7) or is_dgx():
             check_tensorrt("10.15")
 
         try:

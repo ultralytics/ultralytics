@@ -75,6 +75,13 @@ TASK2METRIC = {
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
 }
+AGENTS = {
+    "claude": (Path.home() / ".claude" / "skills", Path(".claude") / "skills"),
+    "copilot": (Path.home() / ".copilot" / "skills", Path(".github") / "skills"),
+    "cursor": (Path.home() / ".cursor" / "skills", Path(".cursor") / "skills"),
+    "codex": (Path.home() / ".codex" / "skills", Path(".codex") / "skills"),
+    "opencode": (Path.home() / ".config" / "opencode" / "skills", Path(".opencode") / "skills"),
+}
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 SOLUTIONS_HELP_MSG = f"""
@@ -760,24 +767,17 @@ def handle_install_skills(args: list[str]) -> None:
     """
     import shutil
 
-    agents = {
-        "claude": (Path.home() / ".claude" / "skills", Path(".claude") / "skills"),
-        "copilot": (Path.home() / ".copilot" / "skills", Path(".github") / "skills"),
-        "cursor": (Path.home() / ".cursor" / "skills", Path(".cursor") / "skills"),
-        "codex": (Path.home() / ".codex" / "skills", Path(".codex") / "skills"),
-        "opencode": (Path.home() / ".config" / "opencode" / "skills", Path(".opencode") / "skills"),
-    }
     is_global, agent, custom = (
         "global" in args,
         next((a.split("=", 1)[1] for a in args if a.startswith("agent=")), None),
         next((a.split("=", 1)[1] for a in args if a.startswith("dir=")), None),
     )
-    if agent and agent not in agents:
-        return LOGGER.warning(f"Unknown agent '{agent}'. Available: {', '.join(agents)}")
+    if agent and agent not in AGENTS:
+        return LOGGER.warning(f"Unknown agent '{agent}'. Available: {', '.join(AGENTS)}")
     skills_dir = (
         Path(custom).expanduser() / "skills"
         if custom
-        else agents[agent][0 if is_global else 1]
+        else AGENTS[agent][0 if is_global else 1]
         if agent
         else (Path.home() / ".agents" / "skills" if is_global else Path(".agents") / "skills")
     )

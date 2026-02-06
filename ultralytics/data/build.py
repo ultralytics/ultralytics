@@ -249,6 +249,9 @@ def build_yolo_dataset(
         classes=cfg.classes,
         data=data,
         fraction=cfg.fraction if mode == "train" else 1.0,
+        mode=mode,
+        train_ratio=data.get("train_ratio", None),
+        val_ratio=data.get("val_ratio", None),
     )
 
 

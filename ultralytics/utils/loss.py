@@ -109,11 +109,10 @@ class DFLoss(nn.Module):
 class BboxLoss(nn.Module):
     """Criterion class for computing training losses for bounding boxes."""
 
-    def __init__(self, reg_max: int = 16, log_regression: bool = False):
+    def __init__(self, reg_max: int = 16):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
-        self.log_regression = log_regression
 
     def forward(
         self,
@@ -136,21 +135,6 @@ class BboxLoss(nn.Module):
         if self.dfl_loss:
             target_ltrb = bbox2dist(anchor_points, target_bboxes, self.dfl_loss.reg_max - 1)
             loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
-            loss_dfl = loss_dfl.sum() / target_scores_sum
-        elif self.log_regression:
-            # Asinh-space regression - handles negative ltrb for small objects
-            target_ltrb = bbox2dist(anchor_points, target_bboxes, reg_max=None)  # No clamping
-
-            # Transform target to asinh-space
-            target_asinh = torch.asinh(target_ltrb)
-
-            # pred_dist is raw network output (will be decoded with sinh)
-            loss_dfl = (
-                F.smooth_l1_loss(pred_dist[fg_mask], target_asinh[fg_mask], beta=1.0, reduction="none").mean(
-                    -1, keepdim=True
-                )
-                * weight
-            )
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
@@ -375,7 +359,6 @@ class v8DetectionLoss:
         )
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
-        self.log_regression = getattr(m, "log_regression", False)
 
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
         """Preprocess targets by converting to tensor format and scaling coordinates."""
@@ -401,8 +384,6 @@ class v8DetectionLoss:
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
             # pred_dist = pred_dist.view(b, a, c // 4, 4).transpose(2,3).softmax(3).matmul(self.proj.type(pred_dist.dtype))
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
-        elif self.log_regression:
-            pred_dist = torch.sinh(pred_dist)
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
     def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:

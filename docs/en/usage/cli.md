@@ -343,7 +343,7 @@ The following skills are available to help AI coding agents work with Ultralytic
 - **ultralytics-train-model**: Training YOLO models on custom datasets
 - **ultralytics-troubleshooting**: Troubleshooting common issues with Ultralytics
 
-These skills provide structured guidance to AI assistants, improving their ability to help you with Ultralytics development tasks.
+These skills provide structured guidance to AI assistants, improving their ability to help you with Ultralytics development tasks. For complete information on skills, compatible AI agents, and usage tips, visit the [AI Coding Agents integration page](../integrations/ai-coding-agents.md).
 
 ## FAQ
 

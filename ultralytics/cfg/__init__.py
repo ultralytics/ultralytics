@@ -788,7 +788,7 @@ def handle_install_skills(args: list[str]) -> None:
             if (c := sum(shutil.rmtree(d) or 1 for d in skills_dir.glob("ultralytics-*") if d.is_dir()))
             else "No Ultralytics skills found"
         )
-    if not (src := Path(__file__).parents[2] / "skills").exists():
+    if not (src := Path(__file__).parents[2] / "docs" / "skills").exists():
         return LOGGER.error(f"Skills directory not found at {src}")
     skills_dir.mkdir(parents=True, exist_ok=True)
     i, u, s = 0, 0, 0

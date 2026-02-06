@@ -37,28 +37,28 @@ CLI:
 
 Inference:
     $ yolo predict model=yolo26n.pt                 # PyTorch
-                         yolo11n.torchscript        # TorchScript
-                         yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                         yolo11n_openvino_model     # OpenVINO
-                         yolo11n.engine             # TensorRT
-                         yolo11n.mlpackage          # CoreML (macOS-only)
-                         yolo11n_saved_model        # TensorFlow SavedModel
-                         yolo11n.pb                 # TensorFlow GraphDef
-                         yolo11n.tflite             # TensorFlow Lite
-                         yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
-                         yolo11n_paddle_model       # PaddlePaddle
-                         yolo11n.mnn                # MNN
-                         yolo11n_ncnn_model         # NCNN
-                         yolo11n_imx_model          # IMX
-                         yolo11n_rknn_model         # RKNN
-                         yolo11n_executorch_model   # ExecuTorch
-                         yolo11n_axelera_model      # Axelera
-                         yolo11n_litert_model       # LiteRT
+                         yolo26n.torchscript        # TorchScript
+                         yolo26n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                         yolo26n_openvino_model     # OpenVINO
+                         yolo26n.engine             # TensorRT
+                         yolo26n.mlpackage          # CoreML (macOS-only)
+                         yolo26n_saved_model        # TensorFlow SavedModel
+                         yolo26n.pb                 # TensorFlow GraphDef
+                         yolo26n.tflite             # TensorFlow Lite
+                         yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                         yolo26n_paddle_model       # PaddlePaddle
+                         yolo26n.mnn                # MNN
+                         yolo26n_ncnn_model         # NCNN
+                         yolo26n_imx_model          # IMX
+                         yolo26n_rknn_model         # RKNN
+                         yolo26n_executorch_model   # ExecuTorch
+                         yolo26n_axelera_model      # Axelera
+                         yolo26n_litert_model       # LiteRT
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
     $ npm install
-    $ ln -s ../../yolo11n_web_model public/yolo11n_web_model
+    $ ln -s ../../yolo26n_web_model public/yolo26n_web_model
     $ npm start
 """
 
@@ -89,7 +89,6 @@ from ultralytics.utils import (
     IS_COLAB,
     IS_DEBIAN_BOOKWORM,
     IS_DEBIAN_TRIXIE,
-    IS_DOCKER,
     IS_JETSON,
     IS_RASPBERRYPI,
     IS_UBUNTU,
@@ -105,14 +104,17 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
+    is_dgx,
+    is_jetson,
 )
 from ultralytics.utils.checks import (
     IS_PYTHON_3_10,
     IS_PYTHON_MINIMUM_3_9,
     check_apt_requirements,
+    check_executorch_requirements,
     check_imgsz,
     check_requirements,
-    check_uv,
+    check_tensorrt,
     check_version,
     is_intel,
     is_sudo_available,
@@ -1046,12 +1048,15 @@ class Exporter:
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
         f_onnx = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
+        # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
+        # https://github.com/ultralytics/ultralytics/issues/22873
+        if is_jetson(jetpack=7) or is_dgx():
+            check_tensorrt("10.15")
+
         try:
             import tensorrt as trt
         except ImportError:
-            if LINUX:
-                cuda_version = torch.version.cuda.split(".")[0]
-                check_requirements(f"tensorrt-cu{cuda_version}>7.0.0,!=10.1.0")
+            check_tensorrt()
             import tensorrt as trt
         check_version(trt.__version__, ">=7.0.0", hard=True)
         check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
@@ -1241,28 +1246,9 @@ class Exporter:
         following Ultralytics conventions.
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
-        assert TORCH_2_9, f"ExecuTorch export requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
 
-        # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
-        if LINUX and ARM64 and IS_DOCKER:
-            check_requirements("packaging>=22.0")
-
-        check_requirements("ruamel.yaml<0.19.0")
-
-        # Attempt stable first with the current torch version as forced guard for resolution
-        torch_version = TORCH_VERSION.split("+")[0]
-        if not check_requirements(
-            requirements=["executorch", "flatbuffers", "torchao"],
-            cmds=f"torch=={torch_version}",
-        ):
-            # Fallback to nightly if resolution fails
-            cmd_prerelease = "--prerelease=allow" if (not ARM64 and check_uv()) else "--pre"
-            check_requirements(
-                requirements=["executorch", "flatbuffers", "torchao"],
-                cmds=f"torch=={torch_version} --extra-index-url https://download.pytorch.org/whl/nightly {cmd_prerelease}",
-            )
-        # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
-        check_requirements("numpy<=2.3.5")
+        check_executorch_requirements()
 
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
         from executorch.exir import to_edge_transform_and_lower
@@ -1458,7 +1444,7 @@ class Exporter:
         nms.confidenceThresholdInputFeatureName = "confidenceThreshold"
         nms.iouThreshold = self.args.iou
         nms.confidenceThreshold = self.args.conf
-        nms.pickTop.perClass = True
+        nms.pickTop.perClass = not self.args.agnostic_nms
         nms.stringClassLabels.vector.extend(names.values())
         nms_model = ct.models.MLModel(nms_spec)
 

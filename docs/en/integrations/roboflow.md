@@ -6,7 +6,7 @@ keywords: Roboflow, Ultralytics YOLO, data labeling, computer vision, dataset ex
 
 # Roboflow
 
-[Roboflow](https://roboflow.com/?ref=ultralytics) provides tools for [data labeling](https://www.ultralytics.com/glossary/data-labeling) and dataset export in various formats, including YOLO. This guide covers labeling, exporting, and deploying data for [Ultralytics YOLO](../models/index.md) models.
+Roboflow provides tools for [data labeling](https://www.ultralytics.com/glossary/data-labeling) and dataset export in various formats, including YOLO. This guide covers labeling, exporting, and deploying data for [Ultralytics YOLO](../models/index.md) models.
 
 !!! question "Licensing"
 

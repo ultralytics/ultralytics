@@ -2619,7 +2619,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
-        names = []
+        names = self.model.names if self.model.names != "visual" else {}
         if len(curr_obj_ids) == 0:
             pred_masks, pred_boxes = None, torch.zeros((0, 7), device=self.device)
         else:
@@ -2638,6 +2638,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             pred_boxes = torch.cat(
                 [pred_boxes, pred_ids[keep][:, None], pred_scores[keep][..., None], pred_cls[keep][..., None]], dim=-1
             )
+            if pred_boxes.shape[0]:
+                names = names or dict(enumerate(str(i) for i in range(pred_boxes[:, 6].int().max() + 1)))
             if pred_masks.shape[0] > 1:
                 tracker_scores = torch.tensor(
                     [
@@ -2657,7 +2659,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                         background_value=0,
                     ).squeeze(1)
                 ) > 0
-                names = self.model.names or dict(enumerate(str(i) for i in range(pred_boxes[:, 6].int().max())))
 
         results = []
         for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):

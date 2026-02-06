@@ -47,6 +47,7 @@ The [validation](../modes/val.md) step computes [precision](https://www.ultralyt
 
 ```python
 import numpy as np
+
 from ultralytics import YOLO
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import LOGGER
@@ -71,7 +72,9 @@ class MetricsTrainer(DetectionTrainer):
             mean_f1 = np.mean(valid_f1) if len(valid_f1) > 0 else 0.0
 
             LOGGER.info(f"Mean F1 Score: {mean_f1:.4f}")
-            per_class_str = [f"{names[i]}: {f1_per_class[j]:.3f}" for j, i in enumerate(class_indices) if f1_per_class[j] > 0]
+            per_class_str = [
+                f"{names[i]}: {f1_per_class[j]:.3f}" for j, i in enumerate(class_indices) if f1_per_class[j] > 0
+            ]
             LOGGER.info(f"Per-class F1: {per_class_str}")
 
         return metrics, fitness
@@ -106,6 +109,7 @@ To customize the loss, subclass the loss classes, model, and trainer:
 ```python
 import torch
 from torch import nn
+
 from ultralytics import YOLO
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import DetectionModel
@@ -184,6 +188,7 @@ The trainer saves `best.pt` based on fitness, which uses `mAP@0.5:0.95`. To use 
 
 ```python
 import torch
+
 from ultralytics import YOLO
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import LOGGER
@@ -266,7 +271,6 @@ from ultralytics import YOLO
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import LOGGER
 
-
 FREEZE_EPOCHS = 5
 
 
@@ -308,6 +312,7 @@ Different parts of the network can benefit from different [learning rates](https
 
 ```python
 import torch
+
 from ultralytics import YOLO
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import LOGGER
@@ -378,16 +383,16 @@ The `YOLO` class handles trainer instantiation internally. See the [Advanced Cus
 
 Key methods available for customization:
 
-| Method | Purpose |
-|---|---|
-| `validate()` | Run validation and return metrics |
-| `build_optimizer()` | Construct the optimizer |
-| `save_model()` | Save training checkpoints |
-| `get_model()` | Return the model instance |
-| `get_validator()` | Return the validator instance |
-| `get_dataloader()` | Build the dataloader |
-| `preprocess_batch()` | Preprocess input batch |
-| `label_loss_items()` | Format loss items for logging |
+| Method               | Purpose                           |
+| -------------------- | --------------------------------- |
+| `validate()`         | Run validation and return metrics |
+| `build_optimizer()`  | Construct the optimizer           |
+| `save_model()`       | Save training checkpoints         |
+| `get_model()`        | Return the model instance         |
+| `get_validator()`    | Return the validator instance     |
+| `get_dataloader()`   | Build the dataloader              |
+| `preprocess_batch()` | Preprocess input batch            |
+| `label_loss_items()` | Format loss items for logging     |
 
 For the full API reference, see the [`BaseTrainer` documentation](../reference/engine/trainer.md).
 

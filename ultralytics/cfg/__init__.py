@@ -761,11 +761,11 @@ def handle_install_skills(args: list[str]) -> None:
     import shutil
 
     agents = {
-        "claude": ("~/.claude/skills", ".claude/skills"),
-        "copilot": ("~/.copilot/skills", ".github/skills"),
-        "cursor": ("~/.cursor/skills", ".cursor/skills"),
-        "codex": ("~/.codex/skills", ".codex/skills"),
-        "opencode": ("~/.config/opencode/skills", ".opencode/skills"),
+        "claude": (Path.home() / ".claude" / "skills", Path(".claude") / "skills"),
+        "copilot": (Path.home() / ".copilot" / "skills", Path(".github") / "skills"),
+        "cursor": (Path.home() / ".cursor" / "skills", Path(".cursor") / "skills"),
+        "codex": (Path.home() / ".codex" / "skills", Path(".codex") / "skills"),
+        "opencode": (Path.home() / ".config" / "opencode" / "skills", Path(".opencode") / "skills"),
     }
     is_global, agent, custom = (
         "global" in args,
@@ -777,9 +777,9 @@ def handle_install_skills(args: list[str]) -> None:
     skills_dir = (
         Path(custom).expanduser() / "skills"
         if custom
-        else Path(agents[agent][0 if is_global else 1]).expanduser()
+        else agents[agent][0 if is_global else 1]
         if agent
-        else Path("~/.agents/skills" if is_global else ".agents/skills").expanduser()
+        else (Path.home() / ".agents" / "skills" if is_global else Path(".agents") / "skills")
     )
     if "uninstall" in args:
         if not skills_dir.exists():

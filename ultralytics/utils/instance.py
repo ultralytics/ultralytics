@@ -374,6 +374,7 @@ class Instances:
             self.keypoints[..., 0] += padw
             self.keypoints[..., 1] += padh
         # Handle right_bboxes for stereo 3D detection
+        # right_bboxes follow the same format as main bboxes (converted together)
         if self.right_bboxes is not None and len(self.right_bboxes) > 0:
             self.right_bboxes[:, 0] += padw
             self.right_bboxes[:, 1] += padh

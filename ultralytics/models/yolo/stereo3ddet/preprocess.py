@@ -334,16 +334,6 @@ def decode_stereo3d_outputs(
             theta = alpha + ray_angle
             theta = math.atan2(math.sin(theta), math.cos(theta))
 
-            # Map bbox back to original image coords
-            x1 = (float(x1_l.item()) - pad_left) / letterbox_scale
-            y1 = (float(y1_l.item()) - pad_top) / letterbox_scale
-            x2 = (float(x2_l.item()) - pad_left) / letterbox_scale
-            y2 = (float(y2_l.item()) - pad_top) / letterbox_scale
-            if x1 > x2:
-                x1, x2 = x2, x1
-            if y1 > y2:
-                y1, y2 = y2, y1
-
             box3d = Box3D(
                 center_3d=(float(x_3d), float(y_3d), float(z_3d)),
                 dimensions=(float(length), float(width), float(height)),
@@ -351,7 +341,6 @@ def decode_stereo3d_outputs(
                 class_label=class_names.get(c, str(c)),
                 class_id=c,
                 confidence=confidence,
-                bbox_2d=(float(x1), float(y1), float(x2), float(y2)),
             )
             boxes3d.append(box3d)
 
@@ -615,11 +604,12 @@ def _apply_geometric_construction(
         # Convert Box3D to detection dicts for geometric solver
         detections = []
         for box in boxes:
-            if box.bbox_2d is None:
+            # Project 3D box to 2D to get center for geometric solver
+            bbox_2d = box.project_to_2d(sample_calib)
+            if bbox_2d[2] <= bbox_2d[0] or bbox_2d[3] <= bbox_2d[1]:
                 continue
-            x1, y1, x2, y2 = box.bbox_2d
-            u_left = (x1 + x2) / 2.0
-            v_left = (y1 + y2) / 2.0
+            u_left = (bbox_2d[0] + bbox_2d[2]) / 2.0
+            v_left = (bbox_2d[1] + bbox_2d[3]) / 2.0
 
             # Extract center_3d and compute disparity
             _, _, z_3d = box.center_3d
@@ -670,7 +660,6 @@ def _apply_geometric_construction(
                     class_label=box.class_label,
                     class_id=box.class_id,
                     confidence=box.confidence,
-                    bbox_2d=box.bbox_2d,
                     truncated=box.truncated,
                     occluded=box.occluded,
                 )
@@ -757,8 +746,9 @@ def _apply_dense_alignment(
                 try:
                     detections = []
                     for box in boxes:
+                        bbox_2d = box.project_to_2d(sample_calib)
                         det = {
-                            "bbox_2d": box.bbox_2d if box.bbox_2d else (0, 0, 100, 100),
+                            "bbox_2d": tuple(bbox_2d) if bbox_2d[2] > bbox_2d[0] else (0, 0, 100, 100),
                             "center_3d": box.center_3d,
                         }
                         detections.append(det)
@@ -808,7 +798,6 @@ def _apply_dense_alignment(
                         class_label=box.class_label,
                         class_id=box.class_id,
                         confidence=box.confidence,
-                        bbox_2d=box.bbox_2d,
                         truncated=box.truncated,
                         occluded=box.occluded,
                     )

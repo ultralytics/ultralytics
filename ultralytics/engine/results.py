@@ -600,27 +600,31 @@ class Results(SimpleClass, DataExportMixin):
                     ),
                 )
 
-        # Plot Boxes3D results
+        # Plot Boxes3D results (project 3D -> 2D on demand)
         if pred_boxes3d is not None and boxes3d:
+            # Get calibration for projection if available
+            _calib = getattr(self, "_calib", None)
+            img_h, img_w = self.orig_shape[:2]
             for i, d in enumerate(reversed(pred_boxes3d)):
                 c = int(d.class_id)
                 d_conf = float(d.confidence) if conf else None
                 name = names.get(c, f"Class_{c}")
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
-                if d.bbox_2d is not None:
-                    box_coords = np.array(d.bbox_2d)
-                    annotator.box_label(
-                        box_coords,
-                        label,
-                        color=colors(
-                            c
-                            if color_mode == "class"
-                            else i
-                            if color_mode == "instance"
-                            else None,
-                            True,
-                        ),
-                    )
+                if _calib is not None:
+                    box_coords = d.project_to_2d(_calib, image_size=(img_w, img_h))
+                    if box_coords[2] > box_coords[0] and box_coords[3] > box_coords[1]:
+                        annotator.box_label(
+                            box_coords.tolist(),
+                            label,
+                            color=colors(
+                                c
+                                if color_mode == "class"
+                                else i
+                                if color_mode == "instance"
+                                else None,
+                                True,
+                            ),
+                        )
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -1886,28 +1890,6 @@ class Boxes3D:
         if len(self.data) == 0:
             return np.empty((0,), dtype=np.float32)
         return np.array([box.confidence for box in self.data], dtype=np.float32)
-
-    @property
-    def bbox_2d(self) -> np.ndarray:
-        """Return 2D bounding boxes for all boxes.
-
-        Returns:
-            (np.ndarray): Array of shape (N, 4) containing (x_min, y_min, x_max, y_max) for each box,
-                or empty array if no boxes have bbox_2d defined, where N is the number of boxes.
-
-        Examples:
-            >>> boxes = Boxes3D([Box3D(...), Box3D(...)], orig_shape=(375, 1242))
-            >>> bboxes_2d = boxes.bbox_2d
-            >>> print(bboxes_2d.shape)
-            (2, 4)
-        """
-        if len(self.data) == 0:
-            return np.empty((0, 4), dtype=np.float32)
-        # Filter out None values and return array of available 2D boxes
-        bbox_list = [box.bbox_2d for box in self.data if box.bbox_2d is not None]
-        if not bbox_list:
-            return np.empty((0, 4), dtype=np.float32)
-        return np.array(bbox_list, dtype=np.float32)
 
     @property
     def truncated(self) -> np.ndarray:

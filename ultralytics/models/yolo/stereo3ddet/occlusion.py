@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 """
-Occlusion Classification Module (GAP-006)
+Occlusion Classification Module
 
 This module implements occlusion classification using the depth-line algorithm as described
 in the Stereo CenterNet paper. The algorithm determines which objects are occluded by
@@ -297,10 +297,11 @@ def classify_occlusion(
         else:
             # Assume it's a Box3D-like object with attributes
             norm_det = {}
-            if hasattr(det, "bbox_2d"):
-                norm_det["bbox_2d"] = det.bbox_2d
             if hasattr(det, "center_3d"):
                 norm_det["center_3d"] = det.center_3d
+            # bbox_2d may come from dict callers; Box3D no longer has this field
+            if hasattr(det, "bbox_2d"):
+                norm_det["bbox_2d"] = det.bbox_2d
             normalized_detections.append(norm_det)
     
     # First pass: Build depth line
@@ -393,10 +394,10 @@ def get_occlusion_stats(
             normalized_detections.append(det)
         else:
             norm_det = {}
-            if hasattr(det, "bbox_2d"):
-                norm_det["bbox_2d"] = det.bbox_2d
             if hasattr(det, "center_3d"):
                 norm_det["center_3d"] = det.center_3d
+            if hasattr(det, "bbox_2d"):
+                norm_det["bbox_2d"] = det.bbox_2d
             normalized_detections.append(norm_det)
     
     # Get depth line and classification

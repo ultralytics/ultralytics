@@ -116,144 +116,34 @@ def _labels_to_box3d_list(
     labels: list[dict[str, Any]],
     calib: dict[str, float] | None = None,
     names: dict[int, str] | None = None,
-    letterbox_scale: float | None = None,
-    pad_left: int | None = None,
-    pad_top: int | None = None,
-    in_h: int | None = None,
-    in_w: int | None = None,
+    **kwargs,
 ) -> list[Box3D]:
     """Convert label dictionaries to Box3D objects.
 
-    Uses provided names mapping, or falls back to paper classes (Car, Pedestrian, Cyclist) if not available.
+    Delegates to Box3D.from_label() for 3D reconstruction.
 
     Args:
         labels: List of label dictionaries from dataset.
-        calib: Calibration parameters (dict or CalibrationParameters object).
-        names: Optional class names mapping {class_id: class_name}.
-        letterbox_scale: Letterbox scale factor (original -> letterboxed).
-        pad_left: Left padding added by letterbox.
-        pad_top: Top padding added by letterbox.
-        in_h: Letterboxed input image height.
-        in_w: Letterboxed input image width.
+        calib: Calibration parameters dict.
+        names: Class names mapping {class_id: class_name}.
+        **kwargs: Ignored (kept for backward compatibility with callers passing letterbox params).
 
     Returns:
-        List of Box3D objects with filtered and remapped class IDs.
+        List of Box3D objects.
     """
-    boxes3d = []
-
-    # Validate required parameters - names must be provided
     if names is None:
         raise ValueError("class_names mapping must be provided")
-    class_names = names
 
-    for label in labels:
-        class_id = label["class_id"]
-        height = label["dimensions"]["height"]
-        width = label["dimensions"]["width"]
-        length = label["dimensions"]["length"]
+    # Convert calib to dict if CalibrationParameters
+    calib_dict = calib.to_dict() if hasattr(calib, "to_dict") else calib
 
-        # Prefer GT 3D location if present (more accurate for large/near objects).
-        loc = label.get("location_3d", None)
-        if isinstance(loc, dict) and all(k in loc for k in ("x", "y", "z")):
-            x_3d = float(loc["x"])
-            y_bottom = float(loc["y"])
-            z_3d = float(loc["z"])
-            y_3d = (
-                y_bottom - float(height) / 2.0
-            )  # bottom-center -> geometric center (Y points down)
-        else:
-            # Fallback: reconstruct 3D center from stereo disparity (matching prediction pipeline)
-            left_box = label["left_box"]
-            right_box = label["right_box"]
+    # Determine image_hw for disparity fallback
+    if calib is not None:
+        image_hw = (int(calib.get("image_height", 375)), int(calib.get("image_width", 1242)))
+    else:
+        image_hw = (375, 1242)
 
-            # Handle both dict and CalibrationParameters objects
-            if isinstance(calib, dict):
-                calib_obj = CalibrationParameters.from_dict(calib)
-            else:
-                calib_obj = calib
-            fx_val = calib_obj.fx
-            fy_val = calib_obj.fy
-            cx_val = calib_obj.cx
-            cy_val = calib_obj.cy
-            baseline_val = calib_obj.baseline
-
-            img_width = calib_obj.image_width
-            img_height = calib_obj.image_height
-            left_u = left_box["center_x"] * img_width
-            right_u = right_box["center_x"] * img_width
-            disparity = left_u - right_u
-            # Compute depth from disparity: Z = (f × baseline) / disparity
-            depth = (fx_val * baseline_val) / disparity
-
-            # Convert 2D center to 3D
-            center_x_2d = left_u
-            center_y_2d = left_box.get("center_y", 0.5) * img_height
-
-            x_3d = (center_x_2d - cx_val) * depth / fx_val
-            # y_3d is at geometric center (matching prediction decoder convention)
-            y_3d = (center_y_2d - cy_val) * depth / fy_val
-            z_3d = depth
-
-        rotation_y = label["rotation_y"]
-        truncated = label["truncated"]
-        occluded = label["occluded"]
-
-        bbox_2d_xywh = label["left_box"]
-
-        # Convert normalized (letterboxed) -> pixels (letterboxed) -> pixels (original)
-        if (
-            letterbox_scale is not None
-            and pad_left is not None
-            and pad_top is not None
-            and in_h is not None
-            and in_w is not None
-        ):
-            cx_lb_px = bbox_2d_xywh["center_x"] * in_w
-            cy_lb_px = bbox_2d_xywh["center_y"] * in_h
-            bw_lb_px = bbox_2d_xywh["width"] * in_w
-            bh_lb_px = bbox_2d_xywh["height"] * in_h
-
-            x1_lb = cx_lb_px - bw_lb_px / 2
-            y1_lb = cy_lb_px - bh_lb_px / 2
-            x2_lb = cx_lb_px + bw_lb_px / 2
-            y2_lb = cy_lb_px + bh_lb_px / 2
-
-            x1 = (x1_lb - pad_left) / letterbox_scale
-            y1 = (y1_lb - pad_top) / letterbox_scale
-            x2 = (x2_lb - pad_left) / letterbox_scale
-            y2 = (y2_lb - pad_top) / letterbox_scale
-        else:
-            # Fallback: assume labels are normalized to original image
-            if calib is not None:
-                if isinstance(calib, dict):
-                    calib_obj = CalibrationParameters.from_dict(calib)
-                else:
-                    calib_obj = calib
-                orig_w = calib_obj.image_width
-                orig_h = calib_obj.image_height
-            else:
-                orig_w, orig_h = 1242, 375
-
-            x1 = (bbox_2d_xywh["center_x"] - bbox_2d_xywh["width"] / 2) * orig_w
-            y1 = (bbox_2d_xywh["center_y"] - bbox_2d_xywh["height"] / 2) * orig_h
-            x2 = (bbox_2d_xywh["center_x"] + bbox_2d_xywh["width"] / 2) * orig_w
-            y2 = (bbox_2d_xywh["center_y"] + bbox_2d_xywh["height"] / 2) * orig_h
-
-        bbox_2d_x1y1x2y2 = (x1, y1, x2, y2)
-
-        box3d = Box3D(
-            center_3d=(float(x_3d), float(y_3d), float(z_3d)),
-            dimensions=(float(length), float(width), float(height)),
-            orientation=float(rotation_y),
-            class_label=class_names.get(class_id, f"class_{class_id}"),
-            class_id=class_id,
-            confidence=1.0,  # Ground truth has confidence 1.0
-            bbox_2d=bbox_2d_x1y1x2y2,
-            truncated=truncated,
-            occluded=occluded,
-        )
-        boxes3d.append(box3d)
-    return boxes3d
+    return [b for lab in labels if (b := Box3D.from_label(lab, calib_dict, class_names=names, image_hw=image_hw)) is not None]
 
 
 class Stereo3DDetValidator(BaseValidator):
@@ -550,15 +440,15 @@ class Stereo3DDetValidator(BaseValidator):
                 # 2D bbox metrics (original-image xyxy)
                 # ------------------------------------------------------------
                 try:
-                    # Pred boxes2d from decoded results (already in original coords)
+                    # Pred boxes2d from 3D projection (original coords)
                     pred_bboxes2d = []
                     pred_conf2d = []
                     pred_cls2d = []
                     for pb in pred_boxes:
-                        if pb.bbox_2d is None:
+                        bbox_2d = pb.project_to_2d(calib) if calib else None
+                        if bbox_2d is None or bbox_2d[2] <= bbox_2d[0] or bbox_2d[3] <= bbox_2d[1]:
                             continue
-                        x1, y1, x2, y2 = pb.bbox_2d
-                        pred_bboxes2d.append([x1, y1, x2, y2])
+                        pred_bboxes2d.append([float(bbox_2d[0]), float(bbox_2d[1]), float(bbox_2d[2]), float(bbox_2d[3])])
                         pred_conf2d.append(float(pb.confidence))
                         pred_cls2d.append(int(pb.class_id))
 

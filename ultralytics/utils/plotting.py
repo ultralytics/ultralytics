@@ -1371,15 +1371,17 @@ def plot_boxes3d(
 
 def plot_boxes2d(
     img: np.ndarray,
-    boxes2d: list["Box3D"] | None,
+    boxes3d: list["Box3D"] | None,
     config: VisualizationConfig | None = None,
+    calib: dict[str, float] | None = None,
 ) -> np.ndarray:
-    """Draw 2D bounding boxes onto an image.
+    """Draw 2D bounding boxes (projected from 3D) onto an image.
 
     Args:
-        img: Image to draw on
-        boxes2d: List of 2D bounding boxes
-        config: Visualization configuration (default: VisualizationConfig())
+        img: Image to draw on.
+        boxes3d: List of Box3D objects to project and draw.
+        config: Visualization configuration (default: VisualizationConfig()).
+        calib: Calibration dict for 3D-to-2D projection.
     """
     config = config or VisualizationConfig()
 
@@ -1390,20 +1392,17 @@ def plot_boxes2d(
 
     canvas = img.astype(np.uint8)
 
-    if not boxes2d:
+    if not boxes3d or calib is None:
         return canvas
 
     height, width = canvas.shape[:2]
     line_width = max(1, config.line_width)
 
-    for box in boxes2d:
-        # bbox 2d are in pixel format from 0 to image width/height
-        x_min, y_min, x_max, y_max = box.bbox_2d
-        x_min = max(0, int(x_min))
-        y_min = max(0, int(y_min))
-        x_max = min(width, int(x_max))
-        y_max = min(height, int(y_max))
-
+    for box in boxes3d:
+        bbox_2d = box.project_to_2d(calib, image_size=(width, height))
+        x_min, y_min, x_max, y_max = int(bbox_2d[0]), int(bbox_2d[1]), int(bbox_2d[2]), int(bbox_2d[3])
+        if x_max <= x_min or y_max <= y_min:
+            continue
         color = _select_color(0, config.pred_color_scheme)
         cv2.rectangle(canvas, (x_min, y_min), (x_max, y_max), color, line_width, cv2.LINE_AA)
     return canvas
@@ -1451,11 +1450,13 @@ def plot_stereo3d_boxes(
         letterbox_scale=letterbox_scale, letterbox_pad_left=letterbox_pad_left, letterbox_pad_top=letterbox_pad_top
     )
 
+    # Convert calib to dict if needed for project_to_2d
+    calib_dict = left_calib.to_dict() if hasattr(left_calib, "to_dict") else left_calib
     right_canvas = plot_boxes2d(
-        left_img, pred_boxes3d, config
+        left_img, pred_boxes3d, config, calib=calib_dict
     )
     right_canvas = plot_boxes2d(
-        right_canvas, gt_boxes3d, config
+        right_canvas, gt_boxes3d, config, calib=calib_dict
     )
 
     combined = combine_stereo_views(left_canvas, right_canvas)

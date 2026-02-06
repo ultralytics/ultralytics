@@ -30,7 +30,7 @@ from .model import Stereo3DDetModel
 from .train import Stereo3DDetTrainer
 from .val import Stereo3DDetValidator
 from .predict import Stereo3DDetPredictor
-from .visualize import plot_stereo_sample, plot_stereo_predictions
+from .visualize import plot_stereo_predictions
 from .metrics import Stereo3DDetMetrics
 
 
@@ -118,7 +118,6 @@ __all__ = [
     # -------------------------------------------------------------------------
     # Visualization
     # -------------------------------------------------------------------------
-    "plot_stereo_sample",
     "plot_stereo_predictions",
     # -------------------------------------------------------------------------
     # GAP-003: Heatmap NMS

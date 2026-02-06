@@ -17,11 +17,11 @@ from ultralytics.models import yolo
 from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
 from ultralytics.models.yolo.stereo3ddet.preprocess import preprocess_stereo_batch
-from ultralytics.models.yolo.stereo3ddet.visualize import labels_to_box3d, plot_stereo_sample
+from ultralytics.models.yolo.stereo3ddet.visualize import labels_to_box3d
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, ROOT, YAML
 from ultralytics.utils.checks import check_yaml
-from ultralytics.utils.plotting import VisualizationConfig, plot_labels, plot_stereo3d_boxes
+from ultralytics.utils.plotting import Annotator, VisualizationConfig, colors, plot_labels, plot_stereo3d_boxes
 from ultralytics.utils.torch_utils import intersect_dicts
 
 
@@ -325,19 +325,21 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
                 calib_i = calibs[i]
 
             # ------------------------------------------------------------------
-            # Left column: 2D boxes on LEFT image
+            # Left column: 2D boxes on LEFT image (using Annotator)
             # ------------------------------------------------------------------
-            L2, _ = plot_stereo_sample(
-                left_img,
-                left_img.copy(),  # dummy, not used (we intentionally avoid right-camera visualization)
-                labels,
-                class_names=self.data["names"],
-                color=(0, 255, 255),  # yellow (BGR)
-                thickness=2,
-                font_scale=0.55,
-                calib=calib_i,
-            )
-            L2 = _add_title(L2, "2D (left)")
+            H, W = left_img.shape[:2]
+            names = self.data["names"]
+            annotator = Annotator(left_img.copy(), line_width=2, font_size=12, example=str(names))
+            for lab in labels:
+                lb = lab["left_box"]
+                cls_id = int(lab["class_id"])
+                cx_px = float(lb["center_x"]) * W
+                cy_px = float(lb["center_y"]) * H
+                bw = float(lb["width"]) * W
+                bh = float(lb["height"]) * H
+                box = [cx_px - bw / 2, cy_px - bh / 2, cx_px + bw / 2, cy_px + bh / 2]
+                annotator.box_label(box, names.get(cls_id, str(cls_id)), color=colors(cls_id, True))
+            L2 = _add_title(annotator.result(), "2D (left)")
 
             # ------------------------------------------------------------------
             # Right column: 3D wireframes on a separate LEFT-image view (cleaner)

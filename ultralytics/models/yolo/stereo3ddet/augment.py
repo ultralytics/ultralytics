@@ -248,6 +248,23 @@ class StereoLabels:
             self.instances.scale(scale_w, scale_h, bbox_only=bbox_only)
 
         # Scale calibration
+        self.scale_calibration(scale_w, scale_h)
+
+        return self
+
+    def scale_calibration(self, scale_w: float, scale_h: float) -> "StereoLabels":
+        """Scale only calibration parameters (fx, fy, cx, cy), leaving instances unchanged.
+
+        Use this instead of scale() when instances are in normalized coordinates,
+        since uniform image scaling preserves normalized bbox values.
+
+        Args:
+            scale_w: Scale factor for width.
+            scale_h: Scale factor for height.
+
+        Returns:
+            Self for method chaining.
+        """
         if self.has_calibration():
             self.calibration["fx"] = self.calibration.get("fx", 1.0) * scale_w
             self.calibration["fy"] = self.calibration.get("fy", 1.0) * scale_h
@@ -664,10 +681,9 @@ class StereoScale:
         img_scaled = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
         labels["img"] = img_scaled
 
-        # Use StereoLabels to synchronize calibration updates
-        # Note: Normalized labels don't need instance scaling (relative coords preserved)
+        # Scale calibration only — normalized instance coords are preserved by uniform scaling.
         stereo = StereoLabels.from_labels(labels)
-        stereo.scale(s, s).update_size(new_w, new_h)
+        stereo.scale_calibration(s, s).update_size(new_w, new_h)
 
         return stereo.to_labels(labels)
 
@@ -721,25 +737,14 @@ class StereoCrop:
         stereo = StereoLabels.from_labels(labels)
 
         if stereo.has_instances():
-            is_normalized = getattr(stereo.instances, "normalized", True)
+            # Convert to xyxy before padding — Bboxes.add() is format-unaware
+            stereo.instances.convert_bbox(format="xyxy")
 
             # Denormalize to pixel coords, apply crop offset, clip, renormalize
             stereo.denormalize(w, h)
             stereo.add_padding(-x0, -y0)  # Negative offset = crop
             stereo.clip(cw, ch)
             stereo.normalize(cw, ch)
-
-            # Handle right_bboxes (not yet integrated into Instances.add_padding/clip)
-            instances = stereo.instances
-            if instances.right_bboxes is not None:
-                rb = instances.right_bboxes
-                if is_normalized:
-                    rb = rb * np.array([w, h, w, h])
-                rb[:, [0, 2]] -= x0
-                rb[:, [1, 3]] -= y0
-                # Do not clip right_bboxes so truncated objects keep full projected box
-                rb = rb / np.array([cw, ch, cw, ch])
-                instances.right_bboxes = rb.astype(np.float32)
 
         # Update calibration size (principal point already shifted by add_padding)
         stereo.update_size(cw, ch)
@@ -817,6 +822,12 @@ class StereoLetterBox:
 
         # Use StereoLabels to synchronize instance and calibration updates
         stereo = StereoLabels.from_labels(labels)
+
+        # Convert bboxes to xyxy before padding — Bboxes.add() is format-unaware,
+        # so adding padding in xywh format would incorrectly shift width/height.
+        # This matches the standard Ultralytics LetterBox pattern (augment.py:783).
+        if stereo.has_instances():
+            stereo.instances.convert_bbox(format="xyxy")
 
         # Apply letterbox transforms: denormalize -> scale -> pad -> normalize
         # This updates both instances AND calibration (fx, fy, cx, cy)

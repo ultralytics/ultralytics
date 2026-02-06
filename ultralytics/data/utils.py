@@ -606,9 +606,9 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
                 sublabels = {sf.name for sf in subfolder.iterdir() if sf.is_dir() and sf.name in names.values()}
                 files = [
                     path
-                    for l in subfolder.iterdir()
-                    if l.is_dir() and l.name in names.values()
-                    for path in l.glob("*")
+                    for sf in subfolder.iterdir()
+                    if sf.is_dir() and sf.name in names.values()
+                    for path in sf.glob("*")
                     if path.suffix[1:].lower() in IMG_FORMATS
                 ]  # Filter out files that label in names and suffix in IMG_FORMATS
                 subnf = len(files)  # number of files in subfolder

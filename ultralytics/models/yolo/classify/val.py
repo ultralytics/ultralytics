@@ -148,7 +148,9 @@ class ClassificationValidator(BaseValidator):
 
     def build_dataset(self, img_path: str) -> ClassificationDataset:
         """Create a ClassificationDataset instance for validation."""
-        return ClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
+        return ClassificationDataset(
+            root=img_path, names=self.data["names"], args=self.args, augment=False, prefix=self.args.split
+        )
 
     def get_dataloader(self, dataset_path: Path | str, batch_size: int) -> torch.utils.data.DataLoader:
         """Build and return a data loader for classification validation.

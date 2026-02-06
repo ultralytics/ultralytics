@@ -542,7 +542,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         )  # data/test or data/val
         test_set = data.get("test")  # data/val or data/test
         train_set, test_set, val_set = [
-            [(data_dir / p).resolve() for p in ([ds] if isinstance(ds, str) else ds)] if ds else []
+            [(data_dir / p).resolve() for p in ([ds] if isinstance(ds, str) else ds)] if ds else None
             for ds in (train_set, test_set, val_set)
         ]  # match each dataset
     else:
@@ -575,7 +575,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
             else None
         )  # data/test or data/val
         test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test
-        train_set, val_set, test_set = [[i] if i else [] for i in (train_set, val_set, test_set)]
+        train_set, val_set, test_set = [[i] if i else None for i in (train_set, val_set, test_set)]
 
     if split == "val" and not val_set:
         LOGGER.warning("Dataset 'split=val' not found, using 'split=test' instead.")
@@ -598,7 +598,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
 
     # Print to console
     for k, v in {"train": train_set, "val": val_set, "test": test_set}.items():
-        if len(v) == 0:
+        if v is None:
             LOGGER.info(f"{colorstr(f'{k}:')} None...")
         else:
             labels, nf = set(), 0  # all subfolder names, number of files in all subfolder
@@ -730,7 +730,14 @@ class HUBDatasetStats:
             # Check split
             if path is None:  # no split
                 continue
-            files = [f for f in Path(path).rglob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]  # image files in split
+
+            # TODO: Tasks such as detect, segment, pose, and obb may support `train_set`, `val_set`, and `test_set`
+            #   as lists in YAML in future versions.
+            # Currently, list types are only supported for classify tasks.
+            if self.task == "classify":  # image files in split with all subfolder
+                files = [f for p in path for f in Path(p).rglob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]
+            else:  # image files in split
+                files = [f for f in Path(path).rglob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]
             if not files:  # no images
                 continue
 
@@ -738,16 +745,21 @@ class HUBDatasetStats:
             if self.task == "classify":
                 from torchvision.datasets import ImageFolder  # scope for faster 'import ultralytics'
 
-                dataset = ImageFolder(self.data[split])
+                dataset = [ImageFolder(root=r) for r in path]
 
-                x = np.zeros(len(dataset.classes)).astype(int)
-                for im in dataset.imgs:
+                # Reference: https://github.com/ultralytics/ultralytics/pull/23566
+                # NOTE: As mentioned above, issues may arise when using multiple paths with class sets.
+                # However, under Ultralytics' dataset conventions, the class categories for classify
+                #   datasets in `train`, `val`, and `test` splits are always consistent.
+                # Therefore, no additional compatibility handling is required here;
+                x = np.zeros(len(set(c for d in dataset for c in d.classes))).astype(int)  # equal dataset[0].classes
+                for im in (im for d in dataset for im in d.imgs):
                     x[im[1]] += 1
 
                 self.stats[split] = {
-                    "instance_stats": {"total": len(dataset), "per_class": x.tolist()},
-                    "image_stats": {"total": len(dataset), "unlabelled": 0, "per_class": x.tolist()},
-                    "labels": [{Path(k).name: v} for k, v in dataset.imgs],
+                    "instance_stats": {"total": sum(len(d) for d in dataset), "per_class": x.tolist()},
+                    "image_stats": {"total": sum(len(d) for d in dataset), "unlabelled": 0, "per_class": x.tolist()},
+                    "labels": [{Path(k).name: v} for k, v in (im for d in dataset for im in d.imgs)],
                 }
             else:
                 from ultralytics.data import YOLODataset

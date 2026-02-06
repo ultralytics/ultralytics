@@ -108,10 +108,10 @@ class BaseDataset(Dataset):
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
             mode (str): Dataset mode, either 'train' or 'val'. Determines which ratio to apply.
-            train_ratio (list[float], optional): List of ratios (0.0-1.0) to apply for each training dataset path.
-                If None, uses 1.0 (100%) for all datasets. Must match length of img_path list or be shorter.
-            val_ratio (list[float], optional): List of ratios (0.0-1.0) to apply for each validation dataset path.
-                If None, uses 1.0 (100%) for all datasets.
+            train_ratio (list[float], optional): List of ratios (0.0-1.0) to apply for each training dataset path. If
+                None, uses 1.0 (100%) for all datasets. Must match length of img_path list or be shorter.
+            val_ratio (list[float], optional): List of ratios (0.0-1.0) to apply for each validation dataset path. If
+                None, uses 1.0 (100%) for all datasets.
         """
         super().__init__()
         self.img_path = img_path

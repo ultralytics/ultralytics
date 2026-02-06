@@ -763,6 +763,7 @@ def handle_install_skills(args: list[str]) -> None:
     agents = {
         "claude": ("~/.claude/skills", ".claude/skills"),
         "copilot": ("~/.copilot/skills", ".github/skills"),
+        "cursor": ("~/.cursor/skills", ".cursor/skills"),
         "codex": ("~/.codex/skills", ".codex/skills"),
         "opencode": ("~/.config/opencode/skills", ".opencode/skills"),
     }

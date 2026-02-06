@@ -772,8 +772,10 @@ def handle_install_skills(args: list[str]) -> None:
         next((a.split("=", 1)[1] for a in args if a.startswith("agent=")), None),
         next((a.split("=", 1)[1] for a in args if a.startswith("dir=")), None),
     )
+    # Validate agent if specified
     if agent and agent not in AGENTS:
         return LOGGER.warning(f"Unknown agent '{agent}'. Available: {', '.join(AGENTS)}")
+    # Determine skills directory based on arguments
     skills_dir = (
         Path(custom).expanduser() / "skills"
         if custom
@@ -781,6 +783,7 @@ def handle_install_skills(args: list[str]) -> None:
         if agent
         else (Path.home() / ".agents" / "skills" if is_global else Path(".agents") / "skills")
     )
+    # Uninstall Ultralytics skills, other skills not affected
     if "uninstall" in args:
         if not skills_dir.exists():
             return LOGGER.info(f"No skills directory at {skills_dir}")
@@ -789,8 +792,10 @@ def handle_install_skills(args: list[str]) -> None:
             if (c := sum(shutil.rmtree(d) or 1 for d in skills_dir.glob("ultralytics-*") if d.is_dir()))
             else "No Ultralytics skills found"
         )
+    # Verify source skills directory
     if not (src := Path(__file__).parents[2] / "docs" / "skills").exists():
         return LOGGER.error(f"Skills directory not found at {src}")
+    # Install/Update skills
     skills_dir.mkdir(parents=True, exist_ok=True)
     i, u, s = 0, 0, 0
     for skill in (x for x in src.glob("ultralytics-*") if x.is_dir() and (x / "SKILL.md").exists()):
@@ -803,6 +808,7 @@ def handle_install_skills(args: list[str]) -> None:
         (s := s + 1) if up_to_date else (
             (u := u + 1) if dest.exists() and not shutil.rmtree(dest) else (i := i + 1)
         ) and shutil.copytree(skill, dest)
+
     LOGGER.info(f"✅ Skills: {i} installed, {u} updated, {s} skipped → {skills_dir}")
 
 

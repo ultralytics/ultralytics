@@ -614,7 +614,7 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
-        return E2ELoss(self, PoseLoss26) if getattr(self, "end2end", False) else v8PoseLoss(self)
+        return E2ELoss(self, PoseLoss26) if getattr(self, "end2end", False) else PoseLoss26(self)
 
 
 class ClassificationModel(BaseModel):

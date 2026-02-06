@@ -181,6 +181,7 @@ class DistillationModel(nn.Module):
         return loss
 
     def loss_mgd(self, student_feat, teacher_feat, lambda_mgd=0.65, feat_idx=0):
+        loss_mse = nn.MSELoss(reduction='sum')
         N, C, H, W = teacher_feat.shape
 
         device = student_feat.device
@@ -190,7 +191,7 @@ class DistillationModel(nn.Module):
         masked_fea = torch.mul(student_feat, mat)
         new_fea = self.generation[feat_idx](masked_fea)
 
-        dis_loss = F.mse_loss(new_fea, teacher_feat)
+        dis_loss = loss_mse(new_fea, teacher_feat) / N
         return dis_loss
 
     def loss_cwd(self, student_feat, teacher_feat, feat_idx=0, temperature: float = 1.0):

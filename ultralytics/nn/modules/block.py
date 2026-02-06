@@ -2187,3 +2187,19 @@ class C3k2Rep(C2fRep):
                 )
                 for _ in range(n)
             )
+
+
+class SpatialSuppressionGate(nn.Module):
+    """Lightweight neighbor-aware gating on cls logits."""
+
+    def __init__(self, nc, k=7):
+        super().__init__()
+        self.dw = nn.Conv2d(nc, nc, kernel_size=k, padding=k // 2, groups=nc, bias=False)
+        self.pw = nn.Conv2d(nc, nc, kernel_size=1, bias=True)
+        nn.init.zeros_(self.pw.weight)
+        nn.init.zeros_(self.pw.bias)  # init as identity gate
+
+    def forward(self, cls_logits):
+        # cls_logits: (B, nc, H, W)def forward(self, cls_logits):
+        gate = self.pw(self.dw(cls_logits)).sigmoid()
+        return cls_logits * (gate * 0.9 + 0.1)

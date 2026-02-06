@@ -15,7 +15,18 @@ from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
-from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Proto26, RealNVP, Residual, SwiGLUFFN
+from .block import (
+    DFL,
+    SAVPE,
+    BNContrastiveHead,
+    ContrastiveHead,
+    Proto,
+    Proto26,
+    RealNVP,
+    Residual,
+    SwiGLUFFN,
+    SpatialSuppressionGate,
+)
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
@@ -74,6 +85,7 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
+    suppress = False
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -111,6 +123,8 @@ class Detect(nn.Module):
         if end2end:
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
+            if self.suppress:
+                self.o2o_suppress = nn.ModuleList(SpatialSuppressionGate(nc, k=5) for _ in range(self.nl))
 
     @property
     def one2many(self):
@@ -120,7 +134,10 @@ class Detect(nn.Module):
     @property
     def one2one(self):
         """Returns the one-to-one head components."""
-        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
+        if hasattr(self, "o2o_suppress"):
+            return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
+        else:
+            return dict(box_head=self.cv2, cls_head=self.cv3, suppress=self.o2o_suppress)
 
     @property
     def end2end(self):
@@ -128,14 +145,24 @@ class Detect(nn.Module):
         return hasattr(self, "one2one")
 
     def forward_head(
-        self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None
+        self,
+        x: list[torch.Tensor],
+        box_head: torch.nn.Module = None,
+        cls_head: torch.nn.Module = None,
+        suppress: torch.nn.Module = None,
     ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         if box_head is None or cls_head is None:  # for fused inference
             return dict()
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+        cls_feats = []
+        for i in range(self.nl):
+            c = cls_head[i](x[i])  # (B, nc, H, W)
+            if suppress is not None:
+                c = suppress[i](c)  # spatial gating
+            cls_feats.append(c.view(bs, self.nc, -1))
+        scores = torch.cat(cls_feats, dim=-1)
         return dict(boxes=boxes, scores=scores, feats=x)
 
     def forward(

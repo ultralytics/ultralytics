@@ -603,7 +603,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         else:
             labels, nf = set(), 0  # all subfolder names, number of files in all subfolder
             for subfolder in v:
-                sublabels = {l.name for l in subfolder.iterdir() if l.is_dir() and l.name in names.values()}
+                sublabels = {sf.name for sf in subfolder.iterdir() if sf.is_dir() and sf.name in names.values()}
                 files = [
                     path
                     for l in subfolder.iterdir()

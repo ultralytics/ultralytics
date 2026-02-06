@@ -1378,61 +1378,6 @@ class PSABlock(nn.Module):
         return x
 
 
-class PSA(nn.Module):
-    """PSA class for implementing Position-Sensitive Attention in neural networks.
-
-    This class encapsulates the functionality for applying position-sensitive attention and feed-forward networks to
-    input tensors, enhancing feature extraction and processing capabilities.
-
-    Attributes:
-        c (int): Number of hidden channels after applying the initial convolution.
-        cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
-        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
-        attn (Attention): Attention module for position-sensitive attention.
-        ffn (nn.Sequential): Feed-forward network for further processing.
-
-    Methods:
-        forward: Applies position-sensitive attention and feed-forward network to the input tensor.
-
-    Examples:
-        Create a PSA module and apply it to an input tensor
-        >>> psa = PSA(c1=128, c2=128, e=0.5)
-        >>> input_tensor = torch.randn(1, 128, 64, 64)
-        >>> output_tensor = psa.forward(input_tensor)
-    """
-
-    def __init__(self, c1: int, c2: int, e: float = 0.5):
-        """Initialize PSA module.
-
-        Args:
-            c1 (int): Input channels.
-            c2 (int): Output channels.
-            e (float): Expansion ratio.
-        """
-        super().__init__()
-        assert c1 == c2
-        self.c = int(c1 * e)
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv(2 * self.c, c1, 1)
-
-        self.attn = Attention(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1))
-        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Execute forward pass in PSA module.
-
-        Args:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            (torch.Tensor): Output tensor after attention and feed-forward processing.
-        """
-        a, b = self.cv1(x).split((self.c, self.c), dim=1)
-        b = b + self.attn(b)
-        b = b + self.ffn(b)
-        return self.cv2(torch.cat((a, b), 1))
-
-
 class C2PSA(nn.Module):
     """C2PSA module with attention mechanism for enhanced feature extraction and processing.
 
@@ -1485,6 +1430,61 @@ class C2PSA(nn.Module):
         """
         a, b = self.cv1(x).split((self.c, self.c), dim=1)
         b = self.m(b)
+        return self.cv2(torch.cat((a, b), 1))
+
+
+class PSA(nn.Module):
+    """PSA class for implementing Position-Sensitive Attention in neural networks.
+
+    This class encapsulates the functionality for applying position-sensitive attention and feed-forward networks to
+    input tensors, enhancing feature extraction and processing capabilities.
+
+    Attributes:
+        c (int): Number of hidden channels after applying the initial convolution.
+        cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
+        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
+        attn (Attention): Attention module for position-sensitive attention.
+        ffn (nn.Sequential): Feed-forward network for further processing.
+
+    Methods:
+        forward: Applies position-sensitive attention and feed-forward network to the input tensor.
+
+    Examples:
+        Create a PSA module and apply it to an input tensor
+        >>> psa = PSA(c1=128, c2=128, e=0.5)
+        >>> input_tensor = torch.randn(1, 128, 64, 64)
+        >>> output_tensor = psa.forward(input_tensor)
+    """
+
+    def __init__(self, c1: int, c2: int, e: float = 0.5):
+        """Initialize PSA module.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            e (float): Expansion ratio.
+        """
+        super().__init__()
+        assert c1 == c2
+        self.c = int(c1 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv(2 * self.c, c1, 1)
+
+        self.attn = Attention(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1))
+        self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Execute forward pass in PSA module.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor after attention and feed-forward processing.
+        """
+        a, b = self.cv1(x).split((self.c, self.c), dim=1)
+        b = b + self.attn(b)
+        b = b + self.ffn(b)
         return self.cv2(torch.cat((a, b), 1))
 
 
@@ -2188,6 +2188,110 @@ class C3k2Rep(C2fRep):
                 for _ in range(n)
             )
 
+
+class C3k2RepLK(C2fRep):
+    """C3k2Rep with additional large-kernel context branch."""
+
+    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, g=1, shortcut=True, lk=7):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        # Cheap context branch: depthwise large kernel on the concat output
+        self.context = nn.Sequential(
+            nn.Conv2d((2 + n) * self.c, (2 + n) * self.c, lk, 1, lk // 2, groups=(2 + n) * self.c, bias=False),
+            nn.BatchNorm2d((2 + n) * self.c),
+            nn.SiLU(),
+        )
+
+    def forward(self, x):
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        cat = torch.cat(y, 1)
+        return self.cv2(cat + self.context(cat))  # residual context
+
+
+class C2PSALite(nn.Module):
+    """C2PSA with linear attention and no FFN bottleneck."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, e: float = 0.5):
+        super().__init__()
+        assert c1 == c2
+        self.c = int(c1 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv(2 * self.c, c1, 1)
+        self.m = nn.Sequential(*(LinearPSABlock(self.c) for _ in range(n)))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        a, b = self.cv1(x).split((self.c, self.c), dim=1)
+        b = self.m(b)
+        return self.cv2(torch.cat((a, b), 1))
+
+
+class LinearPSABlock(nn.Module):
+    """PSABlock with linear attention (no quadratic matrix) and single-conv FFN."""
+
+    def __init__(self, c: int, num_heads: int = None):
+        super().__init__()
+        self.num_heads = num_heads or max(c // 64, 1)
+        self.head_dim = c // self.num_heads
+
+        # QKV projection
+        self.qkv = Conv(c, c * 3, 1, act=False)
+        self.proj = Conv(c, c, 1, act=False)
+        self.pe = Conv(c, c, 3, 1, g=c, act=False)  # depthwise positional encoding
+
+        # Single conv FFN instead of expand-squeeze bottleneck
+        self.ffn = Conv(c, c, 3, 1, g=1, act=True)  # or use depthwise-separable
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        B, C, H, W = x.shape
+
+        # Linear attention: O(N) instead of O(N²)
+        qkv = self.qkv(x)
+        q, k, v = qkv.chunk(3, dim=1)
+
+        # Feature map attention (ELU+1 kernel for non-negativity)
+        q = F.elu(q) + 1
+        k = F.elu(k) + 1
+
+        # Compute k^T @ v first: (C, N) @ (N, C) = (C, C) - constant size!
+        k_flat = k.view(B, C, -1)  # B, C, N
+        v_flat = v.view(B, C, -1)  # B, C, N
+        kv = k_flat @ v_flat.transpose(-1, -2)  # B, C, C
+
+        # Then q @ (k^T @ v): avoids N×N matrix entirely
+        q_flat = q.view(B, C, -1)  # B, C, N
+        k_sum = k_flat.sum(dim=-1, keepdim=True)  # B, C, 1 (for normalization)
+
+        out = (q_flat.transpose(-1, -2) @ kv).transpose(-1, -2)  # B, C, N
+        out = out / (q_flat.transpose(-1, -2) @ k_sum + 1e-6).transpose(-1, -2)  # normalize
+        out = out.view(B, C, H, W)
+
+        x = x + self.proj(out + self.pe(v.view(B, C, H, W)))
+        x = x + self.ffn(x)
+        return x
+
+class C2Context(nn.Module):
+    """C2PSA replacement using large-kernel depthwise for context."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, e: float = 0.5, k: int = 13):
+        super().__init__()
+        assert c1 == c2
+        self.c = int(c1 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv(2 * self.c, c1, 1)
+        # Stack of depthwise large-kernel convs
+        self.m = nn.Sequential(*(
+            nn.Sequential(
+                nn.Conv2d(self.c, self.c, k, 1, k // 2, groups=self.c, bias=False),
+                nn.BatchNorm2d(self.c),
+                nn.SiLU(),
+                Conv(self.c, self.c, 1, act=True),  # pointwise mixing
+            ) for _ in range(n)
+        ))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        a, b = self.cv1(x).split((self.c, self.c), dim=1)
+        b = self.m(b)
+        return self.cv2(torch.cat((a, b), 1))
 
 class SpatialSuppressionGate(nn.Module):
     """Lightweight neighbor-aware gating on cls logits."""

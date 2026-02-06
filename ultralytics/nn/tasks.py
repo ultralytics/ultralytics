@@ -15,7 +15,9 @@ from ultralytics.nn.modules import (
     AIFI,
     C1,
     C2,
+    C2Context,
     C2PSA,
+    C2PSALite,
     C3,
     C3TR,
     ELAN1,
@@ -38,6 +40,7 @@ from ultralytics.nn.modules import (
     C3k2,
     C3k2Simple,
     C3k2Rep,
+    C3k2RepLK,
     C3x,
     CBFuse,
     CBLinear,
@@ -1560,7 +1563,9 @@ def parse_model(d, ch, verbose=True):
             SPP,
             SPPF,
             C2fPSA,
+            C2Context,
             C2PSA,
+            C2PSALite,
             DWConv,
             Focus,
             BottleneckCSP,
@@ -1570,6 +1575,7 @@ def parse_model(d, ch, verbose=True):
             C3k2,
             C3k2Simple,
             C3k2Rep,
+            C3k2RepLK,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1598,6 +1604,7 @@ def parse_model(d, ch, verbose=True):
             C3k2,
             C3k2Simple,
             C3k2Rep,
+            C3k2RepLK,
             C2fAttn,
             C3,
             C3TR,
@@ -1606,7 +1613,9 @@ def parse_model(d, ch, verbose=True):
             RepC3,
             C2fPSA,
             C2fCIB,
+            C2Context,
             C2PSA,
+            C2PSALite,
             A2C2f,
         }
     )
@@ -1637,7 +1646,7 @@ def parse_model(d, ch, verbose=True):
             if m in repeat_modules:
                 args.insert(2, n)  # number of repeats
                 n = 1
-            if m in {C3k2, C3k2Simple, C3k2Rep}:  # for M/L/X sizes
+            if m in {C3k2, C3k2Simple, C3k2Rep, C3k2RepLK}:  # for M/L/X sizes
                 legacy = False
                 if scale in "mlx":
                     args[3] = True

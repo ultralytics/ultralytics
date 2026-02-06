@@ -850,7 +850,7 @@ class Exporter:
     @try_export
     def export_litert(self, prefix=colorstr("liteRT:")):
         """Export YOLO model to liteRT format using ai_edge_torch with optional FP16/INT8 quantization."""
-        check_requirements("ai-edge-torch-nightly")
+        check_requirements("ai-edge-torch")
         import ai_edge_torch
 
         LOGGER.info(f"\n{prefix} starting export with ai_edge_torch...")

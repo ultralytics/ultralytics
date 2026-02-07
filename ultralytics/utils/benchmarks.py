@@ -475,7 +475,7 @@ class ProfileModels:
                     device=self.device,
                     verbose=False,
                 )
-                if self.coreml and MACOS and not coreml_file.is_file():
+                if self.coreml and MACOS and not coreml_file.exists():
                     coreml_file = model.export(
                         format="coreml",
                         imgsz=self.imgsz,
@@ -670,7 +670,7 @@ class ProfileModels:
             mean_time (float): Mean inference time in milliseconds.
             std_time (float): Standard deviation of inference time in milliseconds.
         """
-        if not self.coreml or not MACOS or not Path(coreml_file).is_file():
+        if not self.coreml or not MACOS or not Path(coreml_file).exists():
             return 0.0, 0.0
 
         check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])

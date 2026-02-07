@@ -6,7 +6,7 @@ task: detect
 mode: train
 
 # Dataset
-data: Objects365v1.yaml  # COCO8 dataset (small subset for testing)
+data: working_dir/datasets/Objects365v1.yaml  # COCO8 dataset (small subset for testing)
 # datasets_dir: /Users/esat/datasets  # Base directory for datasets
 
 # Training hyperparameters

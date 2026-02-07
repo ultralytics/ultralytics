@@ -176,6 +176,7 @@ class BaseDataset(Dataset):
               then the subset is shuffled for randomness while maintaining reproducibility per dataset.
             - Ratios must be between 0.0 and 1.0. Invalid ratios default to 1.0 with a warning.
         """
+        _ratio = None
         if mode == "val" and self.val_ratio is not None:
             _ratio = self.val_ratio
         elif mode == "train" and self.train_ratio is not None:
@@ -194,9 +195,9 @@ class BaseDataset(Dataset):
                 if p.is_dir():  # dir
                     files = glob.glob(str(p / "**" / "*.*"), recursive=True)
                     files = sorted(x.replace("/", os.sep) for x in files if x.split(".")[-1].lower() in IMG_FORMATS)
-                    # Apply ratio then shuffle for reproducibility
-                    files = files[: int(len(files) * ratio)]
-                    random.shuffle(files)
+                    if ratio < 1.0:
+                        random.shuffle(files)
+                        files = files[: int(len(files) * ratio)]
                     f += files
                 elif p.is_file():  # file
                     with open(p, encoding="utf-8") as t:
@@ -206,9 +207,9 @@ class BaseDataset(Dataset):
                             x.replace("./", parent) if x.startswith("./") else x for x in t
                         ]  # local to global path
                         files = sorted(x.replace("/", os.sep) for x in files if x.split(".")[-1].lower() in IMG_FORMATS)
-                        # Apply ratio then shuffle for reproducibility
-                        files = files[: int(len(files) * ratio)]
-                        random.shuffle(files)
+                        if ratio < 1.0:
+                            random.shuffle(files)
+                            files = files[: int(len(files) * ratio)]
                         f += files
                 else:
                     raise FileNotFoundError(f"{self.prefix}{p} does not exist")

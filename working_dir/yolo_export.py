@@ -6,10 +6,16 @@ from ultralytics import RTDETR
 # ProfileModels(paths=["yolo26m.pt"]).run()
 # ProfileModels(paths=["yolo26l.pt"]).run()
 # ProfileModels(paths=["yolo26x.pt"]).run()
+# 
+# ProfileModels(paths=["working_dir/yolo26nms_weights/yolo26n_nms.onnx"]).run()
+# ProfileModels(paths=["working_dir/yolo26nms_weights/yolo26s_nms.onnx"]).run()
+# ProfileModels(paths=["working_dir/yolo26nms_weights/yolo26m_nms.onnx"]).run()
+# ProfileModels(paths=["working_dir/yolo26nms_weights/yolo26l_nms.onnx"]).run()
+# ProfileModels(paths=["working_dir/yolo26nms_weights/yolo26x_nms.onnx"]).run()
 
 # ProfileModels(paths=["yolo26n.onnx"]).run()
 # ProfileModels(paths=["yolo26s.onnx"]).run()
-ProfileModels(paths=["yolo26m.onnx"]).run()
+# ProfileModels(paths=["yolo26m.onnx"]).run()
 # ProfileModels(paths=["yolo26l.onnx"]).run()
 # ProfileModels(paths=["yolo26x.onnx"]).run()
 
@@ -18,7 +24,7 @@ ProfileModels(paths=["yolo26m.onnx"]).run()
 # ProfileModels(paths=["onnx_exports/rfdetr-medium/rfdetr-medium.onnx"], imgsz=576).run()
 # ProfileModels(paths=["onnx_exports/rfdetr-large/rfdetr-large.onnx"], imgsz=704).run()
 # ProfileModels(paths=["onnx_exports/rfdetr-xlarge/rfdetr-xlarge.onnx"], imgsz=700).run()
-# ProfileModels(paths=["onnx_exports/rfdetr-xxlarge/rfdetr-xxlarge.onnx"], imgsz=880).run()
+ProfileModels(paths=["onnx_exports/rfdetr-xxlarge/rfdetr-xxlarge.onnx"], imgsz=880).run()
 
 # ProfileModels(paths=["output/lwdetr_tiny_coco/lwdetr_tiny.onnx"], imgsz=640).run()
 # ProfileModels(paths=["output/lwdetr_small_coco/lwdetr_small.onnx"], imgsz=640).run()

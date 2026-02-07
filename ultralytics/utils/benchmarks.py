@@ -673,27 +673,16 @@ class ProfileModels:
         if not self.coreml or not MACOS or not Path(coreml_file).exists():
             return 0.0, 0.0
 
-        check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
-        import coremltools as ct
-
-        LOGGER.info(f"Loading {coreml_file} for CoreML profiling...")
-        model = ct.models.MLModel(coreml_file)
-        dynamic = model.get_spec().description.input[0].type.HasField("multiArrayType")
-
-        # Prepare input data matching AutoBackend CoreML inference format
-        if dynamic:
-            input_data = {"image": np.random.rand(1, 3, self.imgsz, self.imgsz).astype(np.float32)}
-        else:
-            from PIL import Image
-
-            input_data = {"image": Image.new("RGB", (self.imgsz, self.imgsz))}
+        # Model and input
+        model = YOLO(coreml_file)
+        input_data = np.zeros((self.imgsz, self.imgsz, 3), dtype=np.uint8)  # use uint8 for Classify
 
         # Warmup runs
         elapsed = 0.0
         for _ in range(3):
             start_time = time.time()
             for _ in range(self.num_warmup_runs):
-                model.predict(input_data)
+                model(input_data, imgsz=self.imgsz, verbose=False)
             elapsed = time.time() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
@@ -702,9 +691,8 @@ class ProfileModels:
         # Timed runs
         run_times = []
         for _ in TQDM(range(num_runs), desc=coreml_file):
-            start_time = time.time()
-            model.predict(input_data)
-            run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
+            results = model(input_data, imgsz=self.imgsz, verbose=False)
+            run_times.append(results[0].speed["inference"])  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
         return np.mean(run_times), np.std(run_times)

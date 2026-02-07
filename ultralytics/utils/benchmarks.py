@@ -362,7 +362,7 @@ class RF100Benchmark:
 
 
 class ProfileModels:
-    """ProfileModels class for profiling different models on ONNX and TensorRT.
+    """ProfileModels class for profiling different models on ONNX, TensorRT, and CoreML.
 
     This class profiles the performance of different models, returning results such as model speed and FLOPs.
 
@@ -374,6 +374,7 @@ class ProfileModels:
         imgsz (int): Image size used in the models.
         half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
         trt (bool): Flag to indicate whether to profile using TensorRT.
+        coreml (bool): Flag to indicate whether to profile using CoreML (macOS only).
         device (torch.device): Device used for profiling.
 
     Methods:
@@ -383,6 +384,7 @@ class ProfileModels:
         iterative_sigma_clipping: Apply sigma clipping to remove outliers.
         profile_tensorrt_model: Profile a TensorRT model.
         profile_onnx_model: Profile an ONNX model.
+        profile_coreml_model: Profile a CoreML model.
         generate_table_row: Generate a table row with model metrics.
         generate_results_dict: Generate a dictionary of profiling results.
         print_table: Print a formatted table of results.
@@ -403,6 +405,7 @@ class ProfileModels:
         imgsz: int = 640,
         half: bool = True,
         trt: bool = True,
+        coreml: bool = True,
         device: torch.device | str | None = None,
     ):
         """Initialize the ProfileModels class for profiling models.
@@ -415,6 +418,7 @@ class ProfileModels:
             imgsz (int): Size of the image used during profiling.
             half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool): Flag to indicate whether to profile using TensorRT.
+            coreml (bool): Flag to indicate whether to profile using CoreML (macOS only).
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
 
         Notes:
@@ -427,10 +431,11 @@ class ProfileModels:
         self.imgsz = imgsz
         self.half = half
         self.trt = trt  # run TensorRT profiling
+        self.coreml = coreml  # run CoreML profiling
         self.device = device if isinstance(device, torch.device) else select_device(device)
 
     def run(self):
-        """Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
+        """Profile YOLO models for speed and accuracy across various formats including ONNX, TensorRT, and CoreML.
 
         Returns:
             (list[dict]): List of dictionaries containing profiling results for each model.
@@ -451,6 +456,7 @@ class ProfileModels:
         output = []
         for file in files:
             engine_file = file.with_suffix(".engine")
+            coreml_file = file.with_suffix(".mlpackage")
             if file.suffix in {".pt", ".yaml", ".yml"}:
                 model = YOLO(str(file))
                 model.fuse()  # to report correct params and GFLOPs in model.info()
@@ -469,6 +475,13 @@ class ProfileModels:
                     device=self.device,
                     verbose=False,
                 )
+                if self.coreml and MACOS and not coreml_file.is_file():
+                    coreml_file = model.export(
+                        format="coreml",
+                        imgsz=self.imgsz,
+                        device=self.device,
+                        verbose=False,
+                    )
             elif file.suffix == ".onnx":
                 model_info = self.get_onnx_model_info(file)
                 onnx_file = file
@@ -477,8 +490,9 @@ class ProfileModels:
 
             t_engine = self.profile_tensorrt_model(str(engine_file))
             t_onnx = self.profile_onnx_model(str(onnx_file))
-            table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, model_info))
-            output.append(self.generate_results_dict(file.stem, t_onnx, t_engine, model_info))
+            t_coreml = self.profile_coreml_model(str(coreml_file))
+            table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, model_info, t_coreml))
+            output.append(self.generate_results_dict(file.stem, t_onnx, t_engine, model_info, t_coreml))
 
         self.print_table(table_rows)
         return output
@@ -645,12 +659,63 @@ class ProfileModels:
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
+    def profile_coreml_model(self, coreml_file: str, eps: float = 1e-3):
+        """Profile a CoreML model, measuring average inference time and standard deviation across multiple runs.
+
+        Args:
+            coreml_file (str): Path to the CoreML model file (.mlpackage).
+            eps (float): Small epsilon value to prevent division by zero.
+
+        Returns:
+            mean_time (float): Mean inference time in milliseconds.
+            std_time (float): Standard deviation of inference time in milliseconds.
+        """
+        if not self.coreml or not MACOS or not Path(coreml_file).is_file():
+            return 0.0, 0.0
+
+        check_requirements(["coremltools>=9.0", "numpy>=1.14.5,<=2.3.5"])
+        import coremltools as ct
+
+        LOGGER.info(f"Loading {coreml_file} for CoreML profiling...")
+        model = ct.models.MLModel(coreml_file)
+        dynamic = model.get_spec().description.input[0].type.HasField("multiArrayType")
+
+        # Prepare input data matching AutoBackend CoreML inference format
+        if dynamic:
+            input_data = {"image": np.random.rand(1, 3, self.imgsz, self.imgsz).astype(np.float32)}
+        else:
+            from PIL import Image
+
+            input_data = {"image": Image.new("RGB", (self.imgsz, self.imgsz))}
+
+        # Warmup runs
+        elapsed = 0.0
+        for _ in range(3):
+            start_time = time.time()
+            for _ in range(self.num_warmup_runs):
+                model.predict(input_data)
+            elapsed = time.time() - start_time
+
+        # Compute number of runs as higher of min_time or num_timed_runs
+        num_runs = max(round(self.min_time / (elapsed + eps) * self.num_warmup_runs), self.num_timed_runs)
+
+        # Timed runs
+        run_times = []
+        for _ in TQDM(range(num_runs), desc=coreml_file):
+            start_time = time.time()
+            model.predict(input_data)
+            run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
+
+        run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
+        return np.mean(run_times), np.std(run_times)
+
     def generate_table_row(
         self,
         model_name: str,
         t_onnx: tuple[float, float],
         t_engine: tuple[float, float],
         model_info: tuple[float, float, float, float],
+        t_coreml: tuple[float, float] = (0.0, 0.0),
     ):
         """Generate a table row string with model performance metrics.
 
@@ -659,14 +724,17 @@ class ProfileModels:
             t_onnx (tuple): ONNX model inference time statistics (mean, std).
             t_engine (tuple): TensorRT engine inference time statistics (mean, std).
             model_info (tuple): Model information (layers, params, gradients, flops).
+            t_coreml (tuple): CoreML model inference time statistics (mean, std).
 
         Returns:
             (str): Formatted table row string with model metrics.
         """
         _layers, params, _gradients, flops = model_info
         return (
-            f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms | {t_engine[0]:.1f}±"
-            f"{t_engine[1]:.1f} ms | {params / 1e6:.1f} | {flops:.1f} |"
+            f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms |"
+            f" {t_engine[0]:.1f}±{t_engine[1]:.1f} ms |"
+            f" {t_coreml[0]:.1f}±{t_coreml[1]:.1f} ms |"
+            f" {params / 1e6:.1f} | {flops:.1f} |"
         )
 
     @staticmethod
@@ -675,6 +743,7 @@ class ProfileModels:
         t_onnx: tuple[float, float],
         t_engine: tuple[float, float],
         model_info: tuple[float, float, float, float],
+        t_coreml: tuple[float, float] = (0.0, 0.0),
     ):
         """Generate a dictionary of profiling results.
 
@@ -683,6 +752,7 @@ class ProfileModels:
             t_onnx (tuple): ONNX model inference time statistics (mean, std).
             t_engine (tuple): TensorRT engine inference time statistics (mean, std).
             model_info (tuple): Model information (layers, params, gradients, flops).
+            t_coreml (tuple): CoreML model inference time statistics (mean, std).
 
         Returns:
             (dict): Dictionary containing profiling results.
@@ -694,6 +764,7 @@ class ProfileModels:
             "model/GFLOPs": round(flops, 3),
             "model/speed_ONNX(ms)": round(t_onnx[0], 3),
             "model/speed_TensorRT(ms)": round(t_engine[0], 3),
+            "model/speed_CoreML(ms)": round(t_coreml[0], 3),
         }
 
     @staticmethod
@@ -710,6 +781,7 @@ class ProfileModels:
             "mAP<sup>val<br>50-95",
             f"Speed<br><sup>CPU ({get_cpu_info()}) ONNX<br>(ms)",
             f"Speed<br><sup>{gpu} TensorRT<br>(ms)",
+            "Speed<br><sup>CoreML<br>(ms)",
             "params<br><sup>(M)",
             "FLOPs<br><sup>(B)",
         ]

@@ -1330,6 +1330,7 @@ class Stereo3DDetValidator(BaseValidator):
                 output_size=output_size,
                 mean_dims=mean_dims,
                 std_dims=std_dims,
+                augment=False,
             )
 
         # Fallback: if img_path is a string, try to use it directly
@@ -1350,6 +1351,7 @@ class Stereo3DDetValidator(BaseValidator):
                 output_size=None,  # Will use dataset default
                 mean_dims=self.data.get("mean_dims") if hasattr(self, "data") else None,
                 std_dims=self.data.get("std_dims") if hasattr(self, "data") else None,
+                augment=False,
             )
 
         # If we can't determine the dataset, raise an error

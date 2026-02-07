@@ -1266,6 +1266,7 @@ def project_box3d_corners(
         v = v_orig
 
     corners = np.stack((u, v), axis=-1).astype(np.float32)
+
     return corners
 
 
@@ -1453,7 +1454,7 @@ def plot_stereo3d_boxes(
     # Convert calib to dict if needed for project_to_2d
     calib_dict = left_calib.to_dict() if hasattr(left_calib, "to_dict") else left_calib
     right_canvas = plot_boxes2d(
-        left_img, pred_boxes3d, config, calib=calib_dict
+        right_img, pred_boxes3d, config, calib=calib_dict
     )
     right_canvas = plot_boxes2d(
         right_canvas, gt_boxes3d, config, calib=calib_dict

@@ -466,7 +466,21 @@ class Stereo3DDetDataset(BaseDataset):
         idx = self.im_files.index(im_file)
         cached_label = self.labels[idx]
         label_list = cached_label["labels"]  # List of dict objects
-        label["calibration"] = cached_label["calibration"]
+        # Copy calibration so we don't mutate the cached original.
+        calib = dict(cached_label["calibration"]) if cached_label["calibration"] else {}
+
+        # Scale calibration by the pre-resize ratio from load_image().
+        # load_image() resizes the image but does NOT update calibration,
+        # so we must apply the same scale here to keep them in sync.
+        # Without this, StereoLetterBox (and downstream reversal in decode/visualization)
+        # operates on calibration that doesn't match the actual image dimensions.
+        ratio_h, ratio_w = label.get("ratio_pad", (1.0, 1.0))
+        if calib and (ratio_w != 1.0 or ratio_h != 1.0):
+            calib["fx"] = calib.get("fx", 0.0) * ratio_w
+            calib["fy"] = calib.get("fy", 0.0) * ratio_h
+            calib["cx"] = calib.get("cx", 0.0) * ratio_w
+            calib["cy"] = calib.get("cy", 0.0) * ratio_h
+        label["calibration"] = calib
         
         # Convert to Instances format with 3D data included
         if len(label_list) == 0:

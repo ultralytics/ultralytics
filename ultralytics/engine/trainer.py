@@ -328,6 +328,11 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
+        # TODO: Refactor so the validator owns its own dataloader. Currently the trainer builds the val
+        # dataloader and hands it to the validator, duplicating the standalone val path. This causes bugs
+        # when task-specific trainers forget to pass augment=False for mode="val". The validator already
+        # knows how to build its own dataloader in standalone mode — the trainer should just call
+        # self.validator(model) and let the validator handle its own data pipeline.
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
             self.data.get("val") or self.data.get("test"),

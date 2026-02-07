@@ -165,7 +165,10 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         }
 
     def build_dataset(self, img_path, mode: str = "train", batch: int | None = None):
-        """Build Stereo3DDetDataset when given our descriptor; fallback to detection dataset otherwise."""
+        """Build Stereo3DDetDataset when given our descriptor; fallback to detection dataset otherwise.
+
+        TODO: Remove this method once the base trainer delegates val dataloader creation to the validator.
+        """
         # If img_path is a stereo descriptor dict created in get_dataset
         desc = img_path if isinstance(img_path, dict) else self.data.get(mode)
         if isinstance(desc, dict) and desc.get("type") == "kitti_stereo":
@@ -213,7 +216,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
                 output_size=output_size,
                 mean_dims=mean_dims,
                 std_dims=std_dims,
-                # TODO: may be the name hyp makes much more sense?
+                augment=(mode == "train"),
                 hyp=self.args
             )
         # Otherwise, use the default detection dataset builder

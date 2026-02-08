@@ -3,9 +3,9 @@ name: ultralytics-train-model
 description: Train a YOLO model on a custom dataset using Ultralytics. Use when the user needs to train object detection, segmentation, classification, pose estimation, or oriented bounding box (OBB) models. Covers dataset preparation, configuration, and training workflow.
 license: AGPL-3.0
 metadata:
-  author: Burhan-Q
-  version: "1.0"
-  ultralytics-version: ">=8.4.11"
+    author: Burhan-Q
+    version: "1.0"
+    ultralytics-version: ">=8.4.11"
 ---
 
 # Train YOLO Model
@@ -13,6 +13,7 @@ metadata:
 ## When to use this skill
 
 Use this skill when you need to:
+
 - Train a YOLO model on a custom dataset
 - Fine-tune a pretrained YOLO model
 - Train for object detection, instance segmentation, classification, pose estimation, or oriented bounding boxes (OBB)
@@ -73,17 +74,17 @@ Create `data.yaml`:
 
 ```yaml
 # Dataset paths (relative to this YAML file)
-path: /path/to/my-dataset  # dataset root dir
-train: images/train  # train images (relative to 'path')
-val: images/val  # val images (relative to 'path')
-test: images/test  # test images (optional)
+path: /path/to/my-dataset # dataset root dir
+train: images/train # train images (relative to 'path')
+val: images/val # val images (relative to 'path')
+test: images/test # test images (optional)
 
 # Classes
 names:
-  0: person
-  1: car
-  2: bicycle
-  # ... include ALL classes
+    0: person
+    1: car
+    2: bicycle
+    # ... include ALL classes
 ```
 
 ### 3. Train the Model
@@ -142,6 +143,7 @@ Replace `detect` with `segment`, `classify`, `pose`, or `obb` as needed.
 ### 4. Monitor Training
 
 Training metrics are saved to `runs/train/my-model/`:
+
 - `results.csv` - metrics per epoch
 - `results.png` - training plots
 - `weights/best.pt` - best model weights
@@ -158,33 +160,36 @@ model.train(resume=True)
 
 ## Key Training Parameters
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `data` | Path to dataset YAML | Required |
-| `epochs` | Number of training epochs | 100 |
-| `imgsz` | Input image size | 640 |
-| `batch` | Batch size (-1 for auto) | 16 |
-| `device` | GPU device or 'cpu' | 0 |
-| `optimizer` | Optimizer (SGD, Adam, AdamW, etc.) | auto |
-| `lr0` | Initial learning rate | 0.01 |
-| `patience` | Early stopping patience | 50 |
-| `save` | Save checkpoints | True |
-| `amp` | Automatic mixed precision | True |
+| Parameter   | Description                        | Default  |
+| ----------- | ---------------------------------- | -------- |
+| `data`      | Path to dataset YAML               | Required |
+| `epochs`    | Number of training epochs          | 100      |
+| `imgsz`     | Input image size                   | 640      |
+| `batch`     | Batch size (-1 for auto)           | 16       |
+| `device`    | GPU device or 'cpu'                | 0        |
+| `optimizer` | Optimizer (SGD, Adam, AdamW, etc.) | auto     |
+| `lr0`       | Initial learning rate              | 0.01     |
+| `patience`  | Early stopping patience            | 50       |
+| `save`      | Save checkpoints                   | True     |
+| `amp`       | Automatic mixed precision          | True     |
 
 ## Common Issues
 
 **Out of Memory:**
+
 - Reduce `batch` size
 - Reduce `imgsz`
 - Use a smaller model (n < s < m < l < x)
 
 **Poor Performance:**
+
 - Increase `epochs`
 - Increase dataset size
 - Use data augmentation
 - Try different `lr0` values
 
 **Slow Training:**
+
 - Use GPU (`device=0`)
 - Increase `batch` size
 - Increase `workers`
@@ -197,6 +202,7 @@ model.train(resume=True)
 ## Next Steps
 
 After training:
+
 1. Validate the model: see `ultralytics-run-inference` skill
 2. Export for deployment: see `ultralytics-export-model` skill
 3. Fine-tune hyperparameters if needed

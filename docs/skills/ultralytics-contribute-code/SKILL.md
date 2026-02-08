@@ -3,9 +3,9 @@ name: ultralytics-contribute-code
 description: Contribute code to the Ultralytics YOLO open-source project. Use when the user wants to submit bug fixes, features, or improvements following Ultralytics coding standards and contribution guidelines.
 license: AGPL-3.0
 metadata:
-  author: Burhan-Q
-  version: "1.0"
-  ultralytics-version: ">=8.0.0"
+    author: Burhan-Q
+    version: "1.0"
+    ultralytics-version: ">=8.0.0"
 ---
 
 # Contribute Code to Ultralytics
@@ -13,6 +13,7 @@ metadata:
 ## When to use this skill
 
 Use this skill when you need to:
+
 - Submit bug fixes to Ultralytics YOLO
 - Add new features or enhancements
 - Improve documentation or code quality
@@ -48,9 +49,9 @@ git checkout main
 git merge upstream/main
 
 # Create feature branch with descriptive name
-git checkout -b fix-issue-123  # for bug fixes
+git checkout -b fix-issue-123 # for bug fixes
 # or
-git checkout -b add-feature-xyz  # for features
+git checkout -b add-feature-xyz # for features
 ```
 
 ### 3. Set Up Development Environment
@@ -93,7 +94,7 @@ Follow these guidelines:
         - Reason: Added much more code than removed, assume compliance with all other guidelines
 - If a code pattern or design is changed, ensure consistency across all instances.
     - Good Example: All instances of `or` converted to `|` in all files
-        Reason: Pattern applied across all instances in entire codebase
+      Reason: Pattern applied across all instances in entire codebase
     - Bad Example: All instances of `or` converted to `|` in a single file
         - Reason: Pattern change applicable to entire codebase, change limited in scope
 - Always execute `ruff format` and `ruff check --fix` on all modified files before opening pull request.
@@ -102,6 +103,7 @@ Follow these guidelines:
 #### Code Style
 
 **PEP 8 Compliance:**
+
 - Use 4 spaces for indentation (not tabs)
 - Maximum line length: 120 characters
 - Use meaningful variable and function names
@@ -111,13 +113,12 @@ Follow these guidelines:
 
 ```python
 def process_image(img: np.ndarray, size: int = 640) -> torch.Tensor:
-    """
-    Process image for YOLO inference.
-    
+    """Process image for YOLO inference.
+
     Args:
         img: Input image as numpy array
         size: Target size for resizing
-        
+
     Returns:
         Preprocessed image tensor
     """
@@ -131,21 +132,20 @@ Use Google-style docstrings:
 
 ```python
 def train_model(data: str, epochs: int = 100, batch: int = 16) -> dict:
-    """
-    Train a YOLO model.
-    
+    """Train a YOLO model.
+
     Args:
         data (str): Path to dataset YAML configuration file.
         epochs (int): Number of training epochs. Default is 100.
         batch (int): Batch size for training. Default is 16.
-        
+
     Returns:
         (dict): Training metrics including mAP, loss, etc.
-        
+
     Raises:
         FileNotFoundError: If data file doesn't exist.
         ValueError: If epochs or batch are invalid.
-        
+
     Examples:
         >>> metrics = train_model("coco8.yaml", epochs=50, batch=32)
         >>> print(f"mAP: {metrics['mAP']}")
@@ -158,19 +158,10 @@ def train_model(data: str, epochs: int = 100, batch: int = 16) -> dict:
 
 ```python
 # Standard library imports
-import os
-import sys
-from pathlib import Path
 
 # Third-party imports
-import cv2
-import numpy as np
-import torch
-import torch.nn as nn
 
 # Local imports
-from ultralytics.utils import LOGGER
-from ultralytics.nn.modules import Conv, C2f
 ```
 
 #### Logging
@@ -223,6 +214,7 @@ ruff check . --fix
 ```python
 # tests/test_my_feature.py
 import pytest
+
 from ultralytics import YOLO
 
 
@@ -256,6 +248,7 @@ git commit -m "Update: Improve training documentation"
 ```
 
 **Commit Message Format:**
+
 - **Fix:** Bug fixes
 - **Add:** New features
 - **Update:** Documentation or minor improvements
@@ -270,30 +263,35 @@ git push origin fix-issue-123
 ```
 
 On GitHub:
+
 1. Navigate to your fork
 2. Click "Compare & pull request"
 3. Fill out the PR template with:
-   - Clear title describing the change
-   - Description of what was changed and why
-   - Link to related issue (if applicable)
-   - Screenshots (for UI changes)
-   - Checklist completion
+    - Clear title describing the change
+    - Description of what was changed and why
+    - Link to related issue (if applicable)
+    - Screenshots (for UI changes)
+    - Checklist completion
 
 **PR Template Example:**
 
 ```markdown
 ## Description
+
 Fixes memory leak in dataloader that occurred when using large batch sizes.
 
 ## Changes
+
 - Added proper cleanup in `__del__` method
 - Fixed shared memory handling
 - Added unit test to prevent regression
 
 ## Related Issue
+
 Closes #123
 
 ## Checklist
+
 - [x] I have read the [Contributing Guide](https://docs.ultralytics.com/help/contributing/)
 - [x] I have added tests that prove my fix is effective
 - [x] I have updated documentation if needed
@@ -342,7 +340,6 @@ except:
     pass
 
 # Good
-from pathlib import Path
 
 try:
     model.load(path)
@@ -357,16 +354,15 @@ except Exception as e:
 ### Type Hints
 
 ```python
-from typing import Optional, Union, List
+from typing import Optional, Union
+
 import numpy as np
 import torch
 
+
 def predict(
-    source: Union[str, Path, np.ndarray],
-    conf: float = 0.25,
-    iou: float = 0.7,
-    device: Optional[Union[int, str]] = None
-) -> List[torch.Tensor]:
+    source: Union[str, Path, np.ndarray], conf: float = 0.25, iou: float = 0.7, device: Optional[Union[int, str]] = None
+) -> list[torch.Tensor]:
     """Run prediction."""
     pass
 ```
@@ -374,56 +370,50 @@ def predict(
 ## Testing Requirements
 
 1. **Unit Tests:**
-   - Test individual functions/methods
-   - Use pytest fixtures
-   - Mock external dependencies
+    - Test individual functions/methods
+    - Use pytest fixtures
+    - Mock external dependencies
 
 2. **Integration Tests:**
-   - Test complete workflows
-   - Mark as `@pytest.mark.slow` if time-consuming
+    - Test complete workflows
+    - Mark as `@pytest.mark.slow` if time-consuming
 
 3. **Test Coverage:**
-   - Aim for >80% coverage on new code
-   - Run `pytest --cov=ultralytics` to check
+    - Aim for >80% coverage on new code
+    - Run `pytest --cov=ultralytics` to check
 
 ## Documentation Standards
 
 ### Code Documentation
 
 ```python
-def complex_function(
-    param1: str,
-    param2: int = 10,
-    param3: Optional[dict] = None
-) -> tuple:
-    """
-    Brief one-line description.
-    
-    More detailed description explaining what the function does,
-    its purpose, and any important implementation details.
-    
+def complex_function(param1: str, param2: int = 10, param3: Optional[dict] = None) -> tuple:
+    """Brief one-line description.
+
+    More detailed description explaining what the function does, its purpose, and any important implementation details.
+
     Args:
         param1 (str): Description of param1.
         param2 (int): Description of param2. Defaults to 10.
         param3 (dict, optional): Description of param3.
-        
+
     Returns:
         (tuple): Description of return value.
             - element1 (type): Description
             - element2 (type): Description
-            
+
+    Raises:
+        ValueError: If param1 is empty.
+        TypeError: If param2 is not an integer.
+
     Examples:
         >>> result = complex_function("test", param2=20)
         >>> print(result)
         (element1, element2)
-        
-    Raises:
-        ValueError: If param1 is empty.
-        TypeError: If param2 is not an integer.
-        
-    Note:
+
+    Notes:
         This function requires XYZ to be installed.
-        
+
     See Also:
         related_function(): Related functionality.
     """
@@ -451,11 +441,8 @@ You can now apply custom augmentation pipelines during training:
 from ultralytics import YOLO
 
 model = YOLO("yolo26n.pt")
-model.train(
-    data="coco8.yaml",
-    augment_pipeline="custom_aug.yaml",
-    epochs=50
-)
+model.train(data="coco8.yaml", augment_pipeline="custom_aug.yaml", epochs=50)
 ```
 
 See [Augmentation Guide](augmentation.md) for details.
+````

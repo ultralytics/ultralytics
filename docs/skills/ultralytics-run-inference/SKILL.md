@@ -3,9 +3,9 @@ name: ultralytics-run-inference
 description: Run YOLO model inference on images, videos, or streams using Ultralytics. Use when the user needs to make predictions, validate models, or run real-time detection. Covers prediction, validation, and result processing.
 license: AGPL-3.0
 metadata:
-  author: Burhan-Q
-  version: "1.0"
-  ultralytics-version: ">=8.4.11"
+    author: Burhan-Q
+    version: "1.0"
+    ultralytics-version: ">=8.4.11"
 ---
 
 # Run YOLO Inference
@@ -13,6 +13,7 @@ metadata:
 ## When to use this skill
 
 Use this skill when you need to:
+
 - Run predictions on images, videos, or webcam streams
 - Validate model performance on a test dataset
 - Process and visualize detection results
@@ -54,7 +55,7 @@ for result in results:
     keypoints = result.keypoints  # Keypoints object for pose outputs
     probs = result.probs  # Probs object for classification outputs
     obb = result.obb  # Oriented boxes object for OBB outputs
-    
+
     # Visualize
     result.show()  # display to screen
     result.save(filename="result.jpg")  # save to disk
@@ -144,22 +145,22 @@ yolo detect val model=yolo26n.pt data=data.yaml
 
 ## Inference Parameters
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `source` | Image/video/directory/stream path | Required |
-| `conf` | Confidence threshold (0-1) | 0.25 |
-| `iou` | NMS IoU threshold (0-1) | 0.7 |
-| `imgsz` | Input image size | 640 |
-| `device` | GPU device or 'cpu' | 0 |
-| `max_det` | Maximum detections per image | 300 |
-| `vid_stride` | Video frame stride | 1 |
-| `stream_buffer` | Buffer incoming frames for video streams | False |
-| `visualize` | Visualize features | False |
-| `augment` | Use test-time augmentation | False |
-| `agnostic_nms` | Class-agnostic NMS | False |
-| `classes` | Filter by class (list of IDs) | None |
-| `retina_masks` | Use high-res segmentation masks | False |
-| `embed` | Return feature vectors | None |
+| Parameter       | Description                              | Default  |
+| --------------- | ---------------------------------------- | -------- |
+| `source`        | Image/video/directory/stream path        | Required |
+| `conf`          | Confidence threshold (0-1)               | 0.25     |
+| `iou`           | NMS IoU threshold (0-1)                  | 0.7      |
+| `imgsz`         | Input image size                         | 640      |
+| `device`        | GPU device or 'cpu'                      | 0        |
+| `max_det`       | Maximum detections per image             | 300      |
+| `vid_stride`    | Video frame stride                       | 1        |
+| `stream_buffer` | Buffer incoming frames for video streams | False    |
+| `visualize`     | Visualize features                       | False    |
+| `augment`       | Use test-time augmentation               | False    |
+| `agnostic_nms`  | Class-agnostic NMS                       | False    |
+| `classes`       | Filter by class (list of IDs)            | None     |
+| `retina_masks`  | Use high-res segmentation masks          | False    |
+| `embed`         | Return feature vectors                   | None     |
 
 ## Processing Results
 
@@ -176,7 +177,7 @@ for result in results:
     boxes = result.boxes.xyxy  # box coordinates (x1, y1, x2, y2)
     confidences = result.boxes.conf  # confidence scores
     class_ids = result.boxes.cls  # class IDs
-    
+
     # Iterate over detections
     for box, conf, cls in zip(boxes, confidences, class_ids):
         x1, y1, x2, y2 = box
@@ -218,11 +219,7 @@ results = model("image.jpg")
 detections = []
 for result in results:
     for box, conf, cls in zip(result.boxes.xyxy, result.boxes.conf, result.boxes.cls):
-        detections.append({
-            "class": model.names[int(cls)],
-            "confidence": float(conf),
-            "bbox": [float(x) for x in box]
-        })
+        detections.append({"class": model.names[int(cls)], "confidence": float(conf), "bbox": [float(x) for x in box]})
 
 with open("detections.json", "w") as f:
     json.dump(detections, f, indent=2)
@@ -231,15 +228,18 @@ with open("detections.json", "w") as f:
 ## Common Issues
 
 **Low Detection Rate:**
+
 - Reduce `conf` threshold
 - Use test-time augmentation (`augment=True`)
 - Try different `imgsz` values
 
 **Too Many False Positives:**
+
 - Increase `conf` threshold
 - Reduce `iou` threshold for stricter NMS
 
 **Slow Inference:**
+
 - Use GPU (`device=0`)
 - Reduce `imgsz`
 - Use a smaller model (n < s < m < l < x)

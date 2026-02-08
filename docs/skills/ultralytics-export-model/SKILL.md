@@ -3,9 +3,9 @@ name: ultralytics-export-model
 description: Export YOLO models to various formats (ONNX, TensorRT, CoreML, TFLite, etc.) for deployment. Use when the user needs to deploy models to production environments, edge devices, or optimize for inference speed.
 license: AGPL-3.0
 metadata:
-  author: Burhan-Q
-  version: "1.0"
-  ultralytics-version: ">=8.4.11"
+    author: Burhan-Q
+    version: "1.0"
+    ultralytics-version: ">=8.4.11"
 ---
 
 # Export YOLO Model
@@ -13,6 +13,7 @@ metadata:
 ## When to use this skill
 
 Use this skill when you need to:
+
 - Deploy YOLO models to production environments
 - Optimize models for specific hardware (GPU, CPU, mobile, edge devices)
 - Convert models to framework-specific formats (ONNX, TensorRT, TFLite, CoreML, etc.)
@@ -29,21 +30,21 @@ Use this skill when you need to:
 
 ## Supported Export Formats
 
-| Format | Flag | Use Case | Requirements |
-|--------|------|----------|--------------|
-| PyTorch | `.pt` | Original format | PyTorch |
-| TorchScript | `torchscript` | C++ deployment | PyTorch |
-| ONNX | `onnx` | Framework-agnostic, wide compatibility | `onnx` |
-| OpenVINO | `openvino` | Intel hardware optimization | `openvino` |
-| TensorRT | `engine` | NVIDIA GPU optimization | `tensorrt` |
-| CoreML | `coreml` | iOS/macOS deployment | `coremltools` |
-| TF SavedModel | `saved_model` | TensorFlow serving | `tensorflow` |
-| TF GraphDef | `pb` | TensorFlow frozen graph | `tensorflow` |
-| TFLite | `tflite` | Mobile/edge devices | `tensorflow` |
-| TF Edge TPU | `edgetpu` | Google Coral devices | `tensorflow`, Edge TPU compiler |
-| TF.js | `tfjs` | Web browser deployment | `tensorflowjs` |
-| PaddlePaddle | `paddle` | Baidu PaddlePaddle framework | `paddle2onnx` |
-| NCNN | `ncnn` | Mobile CPU optimization | `ncnn` |
+| Format        | Flag          | Use Case                               | Requirements                    |
+| ------------- | ------------- | -------------------------------------- | ------------------------------- |
+| PyTorch       | `.pt`         | Original format                        | PyTorch                         |
+| TorchScript   | `torchscript` | C++ deployment                         | PyTorch                         |
+| ONNX          | `onnx`        | Framework-agnostic, wide compatibility | `onnx`                          |
+| OpenVINO      | `openvino`    | Intel hardware optimization            | `openvino`                      |
+| TensorRT      | `engine`      | NVIDIA GPU optimization                | `tensorrt`                      |
+| CoreML        | `coreml`      | iOS/macOS deployment                   | `coremltools`                   |
+| TF SavedModel | `saved_model` | TensorFlow serving                     | `tensorflow`                    |
+| TF GraphDef   | `pb`          | TensorFlow frozen graph                | `tensorflow`                    |
+| TFLite        | `tflite`      | Mobile/edge devices                    | `tensorflow`                    |
+| TF Edge TPU   | `edgetpu`     | Google Coral devices                   | `tensorflow`, Edge TPU compiler |
+| TF.js         | `tfjs`        | Web browser deployment                 | `tensorflowjs`                  |
+| PaddlePaddle  | `paddle`      | Baidu PaddlePaddle framework           | `paddle2onnx`                   |
+| NCNN          | `ncnn`        | Mobile CPU optimization                | `ncnn`                          |
 
 ## Export Workflow
 
@@ -155,19 +156,19 @@ model.export(
 
 ## Export Parameters
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `format` | Export format | `torchscript` |
-| `imgsz` | Input image size | 640 |
-| `keras` | Use Keras for TF exports | False |
-| `optimize` | TorchScript mobile optimization | False |
-| `half` | FP16 quantization | False |
-| `int8` | INT8 quantization | False |
-| `dynamic` | Dynamic input shapes | False |
-| `simplify` | Simplify ONNX model | False |
-| `opset` | ONNX opset version | None |
-| `workspace` | TensorRT workspace size (GB) | 4 |
-| `nms` | Add NMS to CoreML model | False |
+| Parameter   | Description                     | Default       |
+| ----------- | ------------------------------- | ------------- |
+| `format`    | Export format                   | `torchscript` |
+| `imgsz`     | Input image size                | 640           |
+| `keras`     | Use Keras for TF exports        | False         |
+| `optimize`  | TorchScript mobile optimization | False         |
+| `half`      | FP16 quantization               | False         |
+| `int8`      | INT8 quantization               | False         |
+| `dynamic`   | Dynamic input shapes            | False         |
+| `simplify`  | Simplify ONNX model             | False         |
+| `opset`     | ONNX opset version              | None          |
+| `workspace` | TensorRT workspace size (GB)    | 4             |
+| `nms`       | Add NMS to CoreML model         | False         |
 
 ## Running Exported Models
 
@@ -211,30 +212,33 @@ results = model("image.jpg")
 
 Typical export results for YOLO26n on COCO:
 
-| Format | Size | CPU Speed | GPU Speed |
-|--------|------|-----------|-----------|
-| PyTorch (.pt) | 9.4 MB | ~40ms | ~1.7ms |
-| ONNX | 9.3 MB | ~38ms | ~1.7ms |
-| TensorRT (FP16) | 4.7 MB | N/A | ~0.9ms |
-| CoreML | 9.4 MB | ~35ms | N/A |
-| TFLite (FP16) | 4.7 MB | ~45ms | N/A |
-| TFLite (INT8) | 2.4 MB | ~40ms | N/A |
+| Format          | Size   | CPU Speed | GPU Speed |
+| --------------- | ------ | --------- | --------- |
+| PyTorch (.pt)   | 9.4 MB | ~40ms     | ~1.7ms    |
+| ONNX            | 9.3 MB | ~38ms     | ~1.7ms    |
+| TensorRT (FP16) | 4.7 MB | N/A       | ~0.9ms    |
+| CoreML          | 9.4 MB | ~35ms     | N/A       |
+| TFLite (FP16)   | 4.7 MB | ~45ms     | N/A       |
+| TFLite (INT8)   | 2.4 MB | ~40ms     | N/A       |
 
-*Speeds measured on Amazon EC2 P4d instance for GPU, Intel Xeon for CPU*
+_Speeds measured on Amazon EC2 P4d instance for GPU, Intel Xeon for CPU_
 
 ## Common Issues
 
 **Export Fails:**
+
 - Install format-specific dependencies (`pip install onnx`, etc.)
 - Try `simplify=True` for ONNX exports
 - Reduce `opset` version if compatibility issues occur
 
 **Exported Model Accuracy Lower:**
+
 - Disable quantization (`half=False`, `int8=False`)
 - Validate exported model vs original
 - Try different export settings
 
 **Slow Exported Model:**
+
 - Enable `half=True` for FP16 precision (GPU only)
 - Use `int8=True` for mobile deployment
 - Try `simplify=True` for ONNX

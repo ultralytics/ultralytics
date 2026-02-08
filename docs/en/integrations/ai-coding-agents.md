@@ -95,7 +95,7 @@ To remove installed Ultralytics skills (other installed skills remain unaffected
         ```
 
         !!! info ""
-        
+
             Replace `agent=copilot` with the appropriate agent name.
 
     === "Global uninstall"
@@ -129,7 +129,7 @@ Ultralytics skills follow the [Agent Skills specification](https://agentskills.i
         ```bash
         yolo install-skills agent=copilot
         ```
-    
+
     === "VS Code Global Skills Install"
 
         ```bash
@@ -149,7 +149,7 @@ Ultralytics skills follow the [Agent Skills specification](https://agentskills.i
         ```bash
         yolo install-skills
         ```
-    
+
     === "Cursor Global Skills Install"
 
         ```bash
@@ -169,7 +169,7 @@ Ultralytics skills follow the [Agent Skills specification](https://agentskills.i
         ```bash
         yolo install-skills agent=claude
         ```
-    
+
     === "Claude Code Global Skills Install"
 
         ```bash
@@ -189,7 +189,7 @@ Ultralytics skills follow the [Agent Skills specification](https://agentskills.i
         ```bash
         yolo install-skills
         ```
-    
+
     === "OpenAI Codex Global Skills Install"
 
         ```bash
@@ -211,9 +211,9 @@ While skills provide background knowledge, being specific in your requests helps
 !!! info ""
 
     **Generic**: "How do I train a model?"
-    
+
     **Specific**: "I want to train a YOLO26n detection model on a custom dataset specified in 'my-dataset.yaml' for 100 epochs"
-    
+
     The specific prompt helps the AI agent leverage the `ultralytics-train-model` skill more effectively.
 
 ### Reference Skills Explicitly
@@ -256,7 +256,7 @@ As Ultralytics evolves, skills may be updated to reflect new features, best prac
         ```
 
     ??? note "Include Arguments when Upgrading"
-    
+
         The command will upgrade to the latest Ultralytics Python package and agent skills, and without arguments, installs to `.agents/skills` locally. Include `global`, `dir`, and/or `agent` arguments as appropriate for your system.
 
 !!! warning "Upgrading Overwrites Modified Ultralytics Skills"
@@ -267,12 +267,12 @@ As Ultralytics evolves, skills may be updated to reflect new features, best prac
 
 Ultralytics offers several tools to enhance developer productivity. Here's how skills compare to other options:
 
-| Tool | Purpose | Best For | Installation |
-|------|---------|----------|--------------|
-| **AI Coding Agent Skills** | Provide AI assistants with Ultralytics expertise | Enhancing AI agent capabilities across all development tasks | `yolo install-skills` |
-| **[VS Code Extension](vscode.md)** | Code snippets and examples within VS Code | Accelerating code writing with pre-built snippets | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Ultralytics.ultralytics-snippets) |
-| **[CLI](../usage/cli.md)** | Command-line interface for YOLO operations | Running training, inference, and export from terminal | Included with `ultralytics` package |
-| **[Python Package](../usage/python.md)** | Programmatic access to YOLO models | Building custom applications and scripts | `pip install ultralytics` |
+| Tool                                     | Purpose                                          | Best For                                                     | Installation                                                                                                |
+| ---------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| **AI Coding Agent Skills**               | Provide AI assistants with Ultralytics expertise | Enhancing AI agent capabilities across all development tasks | `yolo install-skills`                                                                                       |
+| **[VS Code Extension](vscode.md)**       | Code snippets and examples within VS Code        | Accelerating code writing with pre-built snippets            | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Ultralytics.ultralytics-snippets) |
+| **[CLI](../usage/cli.md)**               | Command-line interface for YOLO operations       | Running training, inference, and export from terminal        | Included with `ultralytics` package                                                                         |
+| **[Python Package](../usage/python.md)** | Programmatic access to YOLO models               | Building custom applications and scripts                     | `pip install ultralytics`                                                                                   |
 
 These tools are complementary, and you can use skills alongside the VS Code extension, CLI, and Python package to create a comprehensive development environment optimized for Ultralytics workflows.
 

@@ -809,9 +809,6 @@ class Stereo3DDetDataset(BaseDataset):
         # Also produce per-object stereo/3D targets, padded per image:
         # aux_targets[name]: [B, max_n, C] in feature-map units for P3 (stride=8).
         input_h, input_w = self.imgsz_tuple  # Use tuple format
-        stride = 8.0  # P3/8 for first iteration
-        out_h = int(round(input_h / stride))
-        out_w = int(round(input_w / stride))
 
         all_batch_idx: list[int] = []
         all_cls: list[int] = []
@@ -943,12 +940,10 @@ class Stereo3DDetDataset(BaseDataset):
                 right_bh = float(right_bboxes[j, 3])
                 right_center_x_px = right_cx * input_w
                 disparity_px = center_x_px - right_center_x_px
-                lr_feat = disparity_px / stride  # feature units
-                lr_list.append(torch.tensor([lr_feat], dtype=torch.float32))
+                lr_list.append(torch.tensor([disparity_px], dtype=torch.float32))
 
                 right_w_px = right_bw * input_w
-                right_w_feat = right_w_px / stride
-                rw_list.append(torch.tensor([right_w_feat], dtype=torch.float32))
+                rw_list.append(torch.tensor([right_w_px], dtype=torch.float32))
 
                 # -------------------------
                 # 3D aux targets (using shared utilities from target_improved)
@@ -988,12 +983,9 @@ class Stereo3DDetDataset(BaseDataset):
                     original_size=ori_shape_list,
                 )
                 # Find center cell and read out targets written there.
-                center_x_out = (cx * input_w) / stride
-                center_y_out = (cy * input_h) / stride
-                cx_i = int(center_x_out)
-                cy_i = int(center_y_out)
-                cx_i = max(0, min(cx_i, out_w - 1))
-                cy_i = max(0, min(cy_i, out_h - 1))
+                tgt_h, tgt_w = self.output_size
+                cx_i = max(0, min(int(cx * tgt_w), tgt_w - 1))
+                cy_i = max(0, min(int(cy * tgt_h), tgt_h - 1))
 
                 v_list.append(tmp["vertices"][:, cy_i, cx_i].float())
                 vo_list.append(tmp["vertex_offset"][:, cy_i, cx_i].float())

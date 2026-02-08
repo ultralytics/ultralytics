@@ -208,21 +208,6 @@ def decode_stereo3d_outputs(
         imgsz = (384, 384)
     input_h, input_w = (imgsz, imgsz) if isinstance(imgsz, int) else (int(imgsz[0]), int(imgsz[1]))
 
-    # Feature map size from any aux map (P3 grid)
-    sample_aux = None
-    for k in ("lr_distance", "dimensions", "orientation"):
-        if k in outputs and isinstance(outputs[k], torch.Tensor):
-            sample_aux = outputs[k]
-            break
-    if sample_aux is None:
-        raise KeyError("decode_stereo3d_outputs expected at least one aux map in outputs")
-    _, _, fh, fw = sample_aux.shape
-
-    # Infer stride in pixels
-    stride_w = input_w / fw
-    stride_h = input_h / fh
-    stride = (stride_w + stride_h) / 2.0
-
     # NMS on Detect inference output (BCN format)
     dets, keepi = non_max_suppression(
         det_inf,
@@ -283,26 +268,28 @@ def decode_stereo3d_outputs(
             c = int(cls_f.item())
             confidence = float(conf.item())
 
-            # Map kept index -> feature map location for sampling aux maps
-            if idx_b is None or j >= idx_b.numel():
+            # Map kept index -> flat index for sampling aux maps [B, C, HW_total]
+            hw_total = outputs["lr_distance"].shape[2] if "lr_distance" in outputs else 0
+            if idx_b is not None and j < idx_b.numel():
+                flat_idx = int(idx_b[j].item())
+                flat_idx = max(0, min(hw_total - 1, flat_idx))
+            else:
+                # Fallback: compute flat index from bbox center (approximate)
                 u_letterbox = float(((x1_l + x2_l) / 2.0).item())
                 v_letterbox = float(((y1_l + y2_l) / 2.0).item())
-                gx = int(max(0, min(fw - 1, u_letterbox / stride)))
-                gy = int(max(0, min(fh - 1, v_letterbox / stride)))
-            else:
-                flat = int(idx_b[j].item())
-                gy = flat // fw
-                gx = flat % fw
-                gy = max(0, min(fh - 1, gy))
-                gx = max(0, min(fw - 1, gx))
+                # Use P3 grid as approximation for flat index
+                gx = int(max(0, min(input_w // 8 - 1, u_letterbox / 8)))
+                gy = int(max(0, min(input_h // 8 - 1, v_letterbox / 8)))
+                flat_idx = gy * (input_w // 8) + gx
+                flat_idx = max(0, min(hw_total - 1, flat_idx))
 
-            # Sample aux predictions
-            lr_feat = float(outputs["lr_distance"][b, 0, gy, gx].item()) if "lr_distance" in outputs else 0.0
-            dim_off = outputs["dimensions"][b, :, gy, gx].float() if "dimensions" in outputs else torch.zeros(3)
-            ori_enc = outputs["orientation"][b, :, gy, gx].float() if "orientation" in outputs else torch.zeros(8)
+            # Sample aux predictions (3D: [B, C, HW_total])
+            lr_px = float(outputs["lr_distance"][b, 0, flat_idx].item()) if "lr_distance" in outputs else 0.0
+            dim_off = outputs["dimensions"][b, :, flat_idx].float() if "dimensions" in outputs else torch.zeros(3)
+            ori_enc = outputs["orientation"][b, :, flat_idx].float() if "orientation" in outputs else torch.zeros(8)
 
-            # Depth from disparity
-            disparity_letterbox = lr_feat * stride
+            # Depth from disparity (lr_distance is already in pixel units)
+            disparity_letterbox = lr_px
             disparity_orig = disparity_letterbox / letterbox_scale
             z_3d = (fx_orig * baseline) / max(disparity_orig, eps)
 

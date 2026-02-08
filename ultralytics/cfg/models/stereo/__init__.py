@@ -25,7 +25,7 @@ def load_stereo_config(cfg_path: str | Path) -> dict[str, Any]:
         ValueError: If required stereo parameters are missing or invalid.
 
     Examples:
-        >>> config = load_stereo_config("ultralytics/cfg/models/stereo/stereo-centernet-s.yaml")
+        >>> config = load_stereo_config("ultralytics/cfg/models/11/yolo11-stereo3ddet.yaml")
         >>> assert config["stereo"] is True
         >>> assert config["input_channels"] == 6
     """

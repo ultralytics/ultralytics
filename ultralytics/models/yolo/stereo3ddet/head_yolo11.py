@@ -8,6 +8,11 @@ import torch.nn as nn
 from ultralytics.nn.modules.head import Detect
 
 
+AUX_SPECS = {"dimensions": 3, "orientation": 8, "vertices": 8,
+             "vertex_offset": 8, "vertex_dist": 4,
+             "lr_distance": 1, "right_width": 1}
+
+
 def _branch(in_ch: int, out_ch: int, hidden: int = 256) -> nn.Sequential:
     """Simple conv branch for dense per-location prediction."""
     return nn.Sequential(
@@ -19,35 +24,43 @@ def _branch(in_ch: int, out_ch: int, hidden: int = 256) -> nn.Sequential:
 
 
 class Stereo3DDetHeadYOLO11(Detect):
-    """P3-only stereo3ddet head implemented as a Detect subclass.
+    """Multi-scale stereo 3D detection head (Pose-pattern).
+
+    Receives P3/P4/P5 feature maps from FPN+PAN neck.  Per-scale aux branches
+    predict stereo/3D quantities; outputs are flattened to [B, C, HW_total].
 
     Args:
         nc: Number of classes.
-        ch: P3 feature channels (for detection and all aux branches).
+        ch: Tuple of per-scale input channels, e.g. (256, 512, 1024).
     """
 
-    def __init__(self, nc: int, ch: int = 256):
-        super().__init__(nc=nc, ch=(ch,))  # P3-only Detect
+    def __init__(self, nc: int = 3, ch: tuple = ()):
+        super().__init__(nc=nc, ch=ch)  # multi-scale Detect
 
-        self.aux = nn.ModuleDict(
-            {
-                "dimensions": _branch(ch, 3),
-                "orientation": _branch(ch, 8),
-                "vertices": _branch(ch, 8),
-                "vertex_offset": _branch(ch, 8),
-                "vertex_dist": _branch(ch, 4),
-                "lr_distance": _branch(ch, 1),
-                "right_width": _branch(ch, 1),
-            }
-        )
+        # Hidden size scales with model width (same pattern as Pose.cv4)
+        hidden = max(ch[0] // 4, max(AUX_SPECS.values()))
 
-    def forward(self, x: List[torch.Tensor]) -> Dict[str, torch.Tensor]:
-        """Forward pass: detection + all aux branches from P3 features."""
-        if not isinstance(x, list):
-            x = [x]
+        # Per-scale aux branches (like Pose.cv4)
+        self.aux = nn.ModuleDict()
+        for name, out_c in AUX_SPECS.items():
+            self.aux[name] = nn.ModuleList(
+                _branch(x, out_c, hidden) for x in ch
+            )
 
-        feat = x[0]
-        out: Dict[str, torch.Tensor] = {"det": super().forward([feat])}
-        for k, m in self.aux.items():
-            out[k] = m(feat)
-        return out
+    def forward(self, x: List[torch.Tensor]) -> Dict[str, torch.Tensor] | tuple:
+        """Forward pass: process aux BEFORE Detect.forward (Detect modifies x in-place)."""
+        bs = x[0].shape[0]
+
+        # Aux branches — collect before Detect mutates x
+        aux_out: Dict[str, torch.Tensor] = {}
+        for name, branches in self.aux.items():
+            out_c = AUX_SPECS[name]
+            aux_out[name] = torch.cat(
+                [branches[i](x[i]).view(bs, out_c, -1) for i in range(self.nl)], -1
+            )  # [B, C, HW_total]
+
+        det = Detect.forward(self, x)  # standard multi-scale detect
+
+        if self.training:
+            return det, aux_out  # det is list of feat maps, aux_out is dict of [B,C,HW]
+        return {"det": det, **aux_out}

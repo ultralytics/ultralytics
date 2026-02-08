@@ -417,7 +417,10 @@ class DetectionModel(BaseModel):
                 # Some custom heads (e.g. stereo3ddet YOLO11-mapped) return dicts that contain Detect outputs under 'det'.
                 if isinstance(out, dict) and "det" in out:
                     return out["det"]
-                return out[0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else out
+                # Training returns (det_feats, aux) tuples for multi-output heads
+                if isinstance(out, tuple):
+                    return out[0]
+                return out
 
             self.model.eval()  # Avoid changing batch statistics until training begins
             m.training = True  # Setting it to True to properly return strides
@@ -1647,19 +1650,12 @@ def parse_model(d, ch, verbose=True):
             c2 = sum(ch[x] for x in f)
         elif m in frozenset(
             {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
-        ):
+        ) or (Stereo3DDetHeadYOLO11 is not None and m is Stereo3DDetHeadYOLO11):
             args.append([ch[x] for x in f])
             if m is Segment or m is YOLOESegment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
-        elif Stereo3DDetHeadYOLO11 is not None and m is Stereo3DDetHeadYOLO11:
-            # Stereo3DDetHeadYOLO11 takes (nc, ch) where ch is input channels
-            # Config format: [nc, 256] means [num_classes, in_channels]
-            # Use actual scaled channel from previous layer instead of YAML value
-            in_channels = ch[f[0]] if isinstance(f, list) else ch[f]
-            if len(args) >= 2:
-                args[1] = in_channels  # Override channel arg with actual scaled channel count
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:

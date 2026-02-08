@@ -12,7 +12,7 @@ class Stereo3DDetModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion."""
-        from ultralytics.models.yolo.stereo3ddet.loss_yolo11 import Stereo3DDetLossYOLO11P3
+        from ultralytics.models.yolo.stereo3ddet.loss_yolo11 import Stereo3DDetLossYOLO11
 
         aux_w = None
         if hasattr(self, "yaml") and self.yaml is not None:
@@ -20,4 +20,4 @@ class Stereo3DDetModel(DetectionModel):
             if training_config and "loss_weights" in training_config:
                 aux_w = training_config["loss_weights"]
 
-        return Stereo3DDetLossYOLO11P3(self, loss_weights=aux_w)
+        return Stereo3DDetLossYOLO11(self, loss_weights=aux_w)

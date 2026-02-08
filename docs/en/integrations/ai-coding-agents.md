@@ -43,101 +43,134 @@ Each skill contains detailed workflows, prerequisites, code examples in both Pyt
 
 Skills can be installed using the Ultralytics CLI with a single command. The installation process copies skill files to a location where your AI coding agent can access them.
 
-### Local Installation (Default)
+!!! info ""
 
-By default, skills are installed to the `.agents/skills/` directory in your current working directory:
+    === "Local/directory (default) install"
 
-```bash
-yolo install-skills
-```
+        By default, skills are installed to the `.agents/skills/` directory in your current working directory:
+        ```bash
+        yolo install-skills
+        ```
+        This creates a local skills directory that AI agents can reference for project-specific assistance. Local installation is ideal when working on a specific Ultralytics project and you want skills available only within that project context.
 
-This creates a local skills directory that AI agents can reference for project-specific assistance. Local installation is ideal when working on a specific Ultralytics project and you want skills available only within that project context.
+    === "Global (user) install"
 
-### Global Installation
+        For agents that support global skills (such as GitHub Copilot), you can install skills globally so they're available across all your projects:
+        ```bash
+        yolo install-skills global copilot
+        ```
+        Global installation places skills in the standard location for your AI agent, making them accessible system-wide. This is useful when you frequently work with Ultralytics across multiple projects and want consistent AI assistance everywhere.
+        The global installation will place the skills in the appropriate directory under the logged-in user's OS home directory. On MacOS or Linux, `~/` is used, for Windows `%USERPROFILE%` which is equivalent to `C:\Users\{USERNAME}\`.
 
-For agents that support global skills (such as GitHub Copilot), you can install skills globally so they're available across all your projects:
+    === "Custom Directory Installation"
 
-```bash
-yolo install-skills global copilot
-```
+        If you need to install skills to a _specific_ location, you can specify a custom directory (do not include `/skills`, this is automatically appended):
+        ```bash
+        yolo install-skills dir=/path/to/custom
+        ```
+        This is useful when working with AI agents that use non-standard skills directories or when you want to manage skills in a centralized location for multiple projects.
 
-Global installation places skills in the standard location for your AI agent, making them accessible system-wide. This is useful when you frequently work with Ultralytics across multiple projects and want consistent AI assistance everywhere.
+        ??? question "Why does using a Custom Directory ignore other arguments?"
 
-!!! note
-
-    Currently, global installation is supported for:
-    
-    - **GitHub Copilot**: Installs to `~/.github/copilot/skills/` on macOS/Linux or `%USERPROFILE%\.github\copilot\skills\` on Windows
-    
-    Support for additional agents will be added in future releases. If your preferred AI agent supports skills, you can also manually copy the skills from `.agents/skills/` to your agent's skills directory.
-
-### Custom Directory Installation
-
-If you need to install skills to a specific location, you can specify a custom directory:
-
-```bash
-yolo install-skills dir=/path/to/custom/skills
-```
-
-This is useful when working with AI agents that use non-standard skills directories or when you want to manage skills in a centralized location for multiple projects.
+            When including a custom directory, the `global` and `agent` arguments are **ignored**. This is because you are specifying _precisely_ where you want the `skills/` directory to reside. Unless you've configured your code Agent to search this directory, the Ultralytics Skills may not be automatically discovered.
 
 ### Uninstalling Skills
 
-To remove installed skills:
+To remove installed skills, other skills remain unaffected:
 
 ```bash
 yolo install-skills uninstall
 ```
 
-This removes skills from the default `.agents/skills/` directory. If you installed to a custom location, specify that directory:
+This removes skills from the default `.agents/skills/` directory. If you installed to a custom location, using the `dir=` argument, specify _that_ parent directory (without the ending `skills/`):
 
 ```bash
-yolo install-skills dir=/path/to/custom/skills uninstall
+yolo install-skills dir=/path/to/custom/ uninstall
 ```
 
 ## Compatible AI Coding Agents
 
 Ultralytics skills follow the [Agent Skills specification](https://agentskills.io), making them compatible with any AI coding agent that supports this standard. Here are some popular agents known to work well with Ultralytics skills:
 
-### GitHub Copilot
+### VS Code GitHub Copilot
 
-[GitHub Copilot](https://github.com/features/copilot) is an AI pair programmer that suggests code completions and entire functions in real-time within your editor. When configured with Ultralytics skills, Copilot can provide YOLO-specific code suggestions that align with best practices.
+[VS Code GitHub Copilot](https://code.visualstudio.com/docs/copilot/copilot-coding-agent) is an AI pair programmer that suggests code completions and entire functions in real-time within your editor. When configured with Ultralytics skills, Copilot can provide YOLO-specific code suggestions that align with best practices. See the VS Code documentation to learn more about [GitHub Copilot Agent Skills in VS Code](https://code.visualstudio.com/docs/copilot/customization/agent-skills).
 
 **Installation**: Use global installation for best results:
 
-```bash
-yolo install-skills global copilot
-```
+!!! example ""
+
+    === "VS Code Copilot Local Skills Install"
+
+        ```bash
+        yolo install-skills agent=copilot
+        ```
+    
+    === "VS Code Global Skills Install"
+
+        ```bash
+        yolo install-skills global agent=copilot
+        ```
 
 ### Cursor
 
-[Cursor](https://www.cursor.com/) is an AI-first code editor built on VS Code that provides intelligent code completion, chat-based assistance, and codebase understanding. Cursor automatically detects skills in the `.agents/skills/` directory.
+[Cursor](https://www.cursor.com/) is an AI-first code editor built on VS Code that provides intelligent code completion, chat-based assistance, and codebase understanding. Cursor automatically detects skills in the `.agents/skills/` directory, reference the [Cursor documentation on skills](https://cursor.com/docs/context/skills) for additional details on how skills are handled.
 
-**Installation**: Use local installation in your project directory:
+**Installation**: Cursor checks for skills in `.agents/skills`, supporting both local and global installations:
 
-```bash
-yolo install-skills
-```
+!!! example ""
+
+    === "Cursor Local Skills Install"
+
+        ```bash
+        yolo install-skills
+        ```
+    
+    === "Cursor Global Skills Install"
+
+        ```bash
+        yolo install-skills global
+        ```
 
 ### Claude Code (via Anthropic)
 
-[Claude](https://www.anthropic.com/claude) can assist with coding tasks through various interfaces including the Claude API, Claude in IDEs, and Claude Desktop app. Skills can be made available by placing them in accessible directories or referencing them in your prompts.
+[Claude Code](https://www.anthropic.com/claude) started as a terminal user interface (TUI), with a powerful agent focused harness for software development. Claude Code will automatically use skills found in a `.claude/skills` directory. Additional information can be found in the [Claude Code documentation on skills](https://code.claude.com/docs/en/skills) on how Claude Code uses skills.
 
-**Installation**: Use local installation and reference the skills directory when working with Claude:
+**Installation**: Claude Code checks for skills in `.claude/skills`, supporting both local and global installations:
 
-```bash
-yolo install-skills
-```
+!!! example ""
 
-### OpenAI Codex / GPT Models
+    === "Claude Code Local Skills Install"
 
-[OpenAI's Codex](https://openai.com/blog/openai-codex) and GPT models can be integrated into various development tools and IDEs. Skills can be provided as context when using these models through APIs or custom integrations.
+        ```bash
+        yolo install-skills agent=claude
+        ```
+    
+    === "Claude Code Global Skills Install"
 
-**Installation**: Use local installation and include skills as context in your development environment:
+        ```bash
+        yolo install-skills global agent=claude
+        ```
 
-```bash
-yolo install-skills
-```
+### OpenAI Codex
+
+[OpenAI's Codex](https://openai.com/blog/openai-codex) and GPT models can be integrated into various development tools and IDEs. [Codex can access skills](https://developers.openai.com/codex/skills) as context when using these models through APIs or custom integrations.
+
+**Installation**: Codex checks for skills in `.agent/skills`, supporting both local and global installations:
+
+!!! example ""
+
+    === "OpenAI Codex Local Skills Install"
+
+        ```bash
+        yolo install-skills
+        ```
+    
+    === "OpenAI Codex Global Skills Install"
+
+        ```bash
+        yolo install-skills global
+        ```
 
 ### Other Compatible Agents
 
@@ -151,11 +184,11 @@ Once installed, AI coding agents will automatically reference Ultralytics skills
 
 While skills provide background knowledge, being specific in your requests helps the AI agent select the most relevant skill and provide targeted assistance:
 
-!!! example
+!!! example ""
 
     **Generic**: "How do I train a model?"
     
-    **Specific**: "I want to train a YOLO26n detection model on a custom dataset with 5 classes for 100 epochs"
+    **Specific**: "I want to train a YOLO26n detection model on a custom dataset specified in 'my-dataset.yaml' for 100 epochs"
     
     The specific prompt helps the AI agent leverage the `ultralytics-train-model` skill more effectively.
 
@@ -163,7 +196,7 @@ While skills provide background knowledge, being specific in your requests helps
 
 Many AI agents allow you to explicitly reference skills in your prompts. This can be particularly useful when working on tasks that span multiple skills:
 
-!!! example
+!!! example ""
 
     "Using the ultralytics-export-model skill, show me how to export my trained model to TensorRT format with INT8 quantization"
 
@@ -178,9 +211,33 @@ Skills complement the official Ultralytics documentation rather than replacing i
 
 As Ultralytics evolves, skills may be updated to reflect new features, best practices, and recommended patterns. Periodically reinstalling skills ensures you have the latest guidance:
 
-```bash
-yolo install-skills  # Reinstalls/updates skills in .agents/skills/
-```
+!!! example "Upgrading Ultralytics Skills"
+
+    === "Using `uv`"
+
+        ```bash
+        uv pip install ultralytics --upgrade && yolo install-skills
+        ```
+
+    === "Using `uv` project"
+
+        ```bash
+        uv add ultralytics --upgrade && yolo install-skills
+        ```
+
+    === "Using `pip`"
+
+        ```bash
+        pip install ultralytics --upgrade && yolo install-skills
+        ```
+
+    ??? note "Include Arguments when Upgrading"
+    
+        Command will upgrade to latest Ultralytics Python package and agent skills, and without arguments, installs to `.agents/skills` locally. Include `global`, `dir`, and/or `agent` arguments as appropriate for your system.
+
+!!! caution "Upgrading Overwrites Modified Ultralytics Skills"
+
+    If you decide to modify the base Ultralytics agent skills, upgrading will be overwrite any custom changes you've made. You should change the name, or make a copy of any modified skills _before_ upgrading.
 
 ## Skills vs. Other Developer Tools
 

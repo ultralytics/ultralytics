@@ -445,8 +445,8 @@ class BaseTrainer:
                     # Backward
                     self.scaler.scale(self.loss).backward()
                 except torch.cuda.OutOfMemoryError:
-                    if epoch > self.start_epoch or self._oom_retries >= 3:
-                        raise  # only auto-reduce during the first epoch, max 3 retries
+                    if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
+                        raise  # only auto-reduce during first epoch on single GPU, max 3 retries
                     self._oom_retries += 1
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)

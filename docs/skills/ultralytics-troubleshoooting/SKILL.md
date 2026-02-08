@@ -117,7 +117,7 @@ Re-run Preflight after changes.
 - On older GPUs (SM < 7.5) newer cuDNN may be incompatible; use a PyTorch build matching older CUDA/cuDNN.
 - Minimal probe the agent can run (optional):
     ```bash
-    python - <<'PY'
+    python - << 'PY'
     import torch
     print('cuda_available', torch.cuda.is_available())
     if torch.cuda.is_available():
@@ -184,9 +184,11 @@ If failure persists:
 
 - Update ultralytics, onnx, onnxruntime.
 - Try Python API export:
+
     ```python
     from ultralytics import YOLO
-    YOLO('yolo26n.pt').export(format='onnx', imgsz=640)
+
+    YOLO("yolo26n.pt").export(format="onnx", imgsz=640)
     ```
 
 ### 9) Environment Modes

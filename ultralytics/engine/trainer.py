@@ -450,7 +450,7 @@ class BaseTrainer:
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
                     LOGGER.warning(
-                        f"WARNING ⚠️ CUDA out of memory with batch={old_batch}. "
+                        f"CUDA out of memory with batch={old_batch}. "
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
                     self._clear_memory()

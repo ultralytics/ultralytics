@@ -79,7 +79,7 @@ AGENTS = {
     "claude": (Path.home() / ".claude" / "skills", Path(".claude") / "skills"),
     "copilot": (Path.home() / ".copilot" / "skills", Path(".github") / "skills"),
     "cursor": (Path.home() / ".cursor" / "skills", Path(".cursor") / "skills"),
-    "codex": (Path.home() / ".agents" / "skills", Path(".codex") / "skills"),
+    "codex": (Path.home() / ".agents" / "skills", Path(".agents") / "skills"),
     "opencode": (Path.home() / ".config" / "opencode" / "skills", Path(".opencode") / "skills"),
 }
 

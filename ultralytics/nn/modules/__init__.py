@@ -103,8 +103,6 @@ from .transformer import (
     TransformerLayer,
 )
 
-# StereoConv is an alias for Conv (handles 6-channel stereo input)
-StereoConv = Conv
 
 __all__ = (
     "AIFI",
@@ -183,6 +181,5 @@ __all__ = (
     "YOLOEDetect",
     "YOLOESegment",
     "v10Detect",
-    "StereoConv",
-    "StereoCenterNetHead",
+    "Stereo3DDetHeadYOLO11",
 )

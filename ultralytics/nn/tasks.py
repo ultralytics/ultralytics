@@ -70,25 +70,8 @@ from ultralytics.nn.modules import (
     v10Detect,
 )
 
-# Import stereo-specific modules for parse_model() resolution
-# Use lazy import to avoid circular dependencies
-# VERIFIED (T003): Both StereoCenterNetHead and StereoConv are available in globals()
-# for parse_model() resolution. StereoConv is immediately available, while
-# StereoCenterNetHead uses lazy import triggered when parse_model() encounters it.
-StereoCenterNetHead = None
+# Lazy import stereo-specific module for parse_model() resolution
 Stereo3DDetHeadYOLO11 = None
-
-def _lazy_import_stereo_center_net_head():
-    """Lazy import of StereoCenterNetHead to avoid circular dependencies."""
-    global StereoCenterNetHead
-    if StereoCenterNetHead is None:
-        try:
-            from ultralytics.models.yolo.stereo3ddet.stereo_yolo_v11 import StereoCenterNetHead as SCH
-            StereoCenterNetHead = SCH
-        except ImportError:
-            pass
-    return StereoCenterNetHead
-
 
 def _lazy_import_stereo3ddet_head_yolo11():
     """Lazy import of Stereo3DDetHeadYOLO11 to avoid circular dependencies."""
@@ -101,9 +84,6 @@ def _lazy_import_stereo3ddet_head_yolo11():
             pass
     return Stereo3DDetHeadYOLO11
 
-# StereoConv is an alias for Conv (handles 6-channel stereo input)
-# It's functionally identical to Conv but named to indicate 6-channel stereo usage
-StereoConv = Conv
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
@@ -1614,9 +1594,7 @@ def parse_model(d, ch, verbose=True):
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
-        # Lazy imports for stereo heads to avoid circular dependencies
-        if m == "StereoCenterNetHead" and StereoCenterNetHead is None:
-            _lazy_import_stereo_center_net_head()
+        # Lazy import for stereo head to avoid circular dependencies
         if m == "Stereo3DDetHeadYOLO11" and Stereo3DDetHeadYOLO11 is None:
             _lazy_import_stereo3ddet_head_yolo11()
         m = (
@@ -1675,16 +1653,6 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
-        elif StereoCenterNetHead is not None and m is StereoCenterNetHead:
-            # StereoCenterNetHead takes (in_channels, num_classes) - no channel list needed
-            # Config format: [nc, 256] means [num_classes, in_channels]
-            # But constructor expects (in_channels, num_classes), so reverse the args
-            if len(args) == 2:
-                args = [args[1], args[0]]  # Swap: [nc, 256] -> [256, nc]
-            # Use first channel from f if it's a list, otherwise use f
-            in_channels = ch[f[0]] if isinstance(f, list) else ch[f]
-            if len(args) >= 1:
-                args[0] = in_channels  # Override with actual channel count
         elif Stereo3DDetHeadYOLO11 is not None and m is Stereo3DDetHeadYOLO11:
             # Stereo3DDetHeadYOLO11 takes (nc, ch) where ch is input channels
             # Config format: [nc, 256] means [num_classes, in_channels]

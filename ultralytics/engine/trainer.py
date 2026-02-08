@@ -437,9 +437,7 @@ class BaseTrainer:
                         if RANK != -1:
                             self.loss *= self.world_size
                         self.tloss = (
-                            self.loss_items
-                            if self.tloss is None
-                            else (self.tloss * i + self.loss_items) / (i + 1)
+                            self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
                         )
 
                     # Backward
@@ -457,11 +455,7 @@ class BaseTrainer:
                     self._clear_memory()
                     self._setup_train()  # rebuild dataloaders, optimizer, scheduler with new batch size
                     nb = len(self.train_loader)
-                    nw = (
-                        max(round(self.args.warmup_epochs * nb), 100)
-                        if self.args.warmup_epochs > 0
-                        else -1
-                    )
+                    nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1
                     last_opt_step = -1
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size

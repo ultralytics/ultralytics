@@ -382,6 +382,7 @@ class BaseTrainer:
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         epoch = self.start_epoch
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
+        self._oom_retries = 0  # OOM auto-reduce counter for first epoch
         while True:
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
@@ -423,21 +424,47 @@ class BaseTrainer:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
-                with autocast(self.amp):
-                    batch = self.preprocess_batch(batch)
-                    if self.args.compile:
-                        # Decouple inference and loss calculations for improved compile performance
-                        preds = self.model(batch["img"])
-                        loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
-                    else:
-                        loss, self.loss_items = self.model(batch)
-                    self.loss = loss.sum()
-                    if RANK != -1:
-                        self.loss *= self.world_size
-                    self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
+                try:
+                    with autocast(self.amp):
+                        batch = self.preprocess_batch(batch)
+                        if self.args.compile:
+                            # Decouple inference and loss calculations for improved compile performance
+                            preds = self.model(batch["img"])
+                            loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
+                        else:
+                            loss, self.loss_items = self.model(batch)
+                        self.loss = loss.sum()
+                        if RANK != -1:
+                            self.loss *= self.world_size
+                        self.tloss = (
+                            self.loss_items
+                            if self.tloss is None
+                            else (self.tloss * i + self.loss_items) / (i + 1)
+                        )
 
-                # Backward
-                self.scaler.scale(self.loss).backward()
+                    # Backward
+                    self.scaler.scale(self.loss).backward()
+                except torch.cuda.OutOfMemoryError:
+                    if epoch > self.start_epoch or self._oom_retries >= 3:
+                        raise  # only auto-reduce during the first epoch, max 3 retries
+                    self._oom_retries += 1
+                    old_batch = self.batch_size
+                    self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
+                    LOGGER.warning(
+                        f"WARNING ⚠️ CUDA out of memory with batch={old_batch}. "
+                        f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
+                    )
+                    self._clear_memory()
+                    self._setup_train()  # rebuild dataloaders, optimizer, scheduler with new batch size
+                    nb = len(self.train_loader)
+                    nw = (
+                        max(round(self.args.warmup_epochs * nb), 100)
+                        if self.args.warmup_epochs > 0
+                        else -1
+                    )
+                    last_opt_step = -1
+                    self.optimizer.zero_grad()
+                    break  # restart epoch loop with reduced batch size
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni
@@ -470,6 +497,12 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
+            else:
+                # for/else: this block runs only when the for loop completes without break (no OOM retry)
+                self._oom_retries = 0  # reset OOM counter after successful first epoch
+
+            if self._oom_retries:
+                continue  # OOM recovery broke the for loop, restart with reduced batch size
 
             if hasattr(unwrap_model(self.model).criterion, "update"):
                 unwrap_model(self.model).criterion.update()

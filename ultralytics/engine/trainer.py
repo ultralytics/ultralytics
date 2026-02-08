@@ -263,6 +263,32 @@ class BaseTrainer:
             world_size=self.world_size,
         )
 
+    def _build_train_pipeline(self):
+        """Build dataloaders, optimizer, and scheduler for current batch size."""
+        batch_size = self.batch_size // max(self.world_size, 1)
+        self.train_loader = self.get_dataloader(
+            self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
+        )
+        # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
+        self.test_loader = self.get_dataloader(
+            self.data.get("val") or self.data.get("test"),
+            batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
+            rank=LOCAL_RANK,
+            mode="val",
+        )
+        self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
+        weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
+        iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
+        self.optimizer = self.build_optimizer(
+            model=self.model,
+            name=self.args.optimizer,
+            lr=self.args.lr0,
+            momentum=self.args.momentum,
+            decay=weight_decay,
+            iterations=iterations,
+        )
+        self._setup_scheduler()
+
     def _setup_train(self):
         """Build dataloaders and optimizer on correct rank process."""
         ckpt = self.setup_model()
@@ -319,18 +345,7 @@ class BaseTrainer:
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
 
-        # Dataloaders
-        batch_size = self.batch_size // max(self.world_size, 1)
-        self.train_loader = self.get_dataloader(
-            self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
-        )
-        # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
-        self.test_loader = self.get_dataloader(
-            self.data.get("val") or self.data.get("test"),
-            batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
-            rank=LOCAL_RANK,
-            mode="val",
-        )
+        self._build_train_pipeline()
         self.validator = self.get_validator()
         self.ema = ModelEMA(self.model)
         if RANK in {-1, 0}:
@@ -339,20 +354,6 @@ class BaseTrainer:
             if self.args.plots:
                 self.plot_training_labels()
 
-        # Optimizer
-        self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
-        weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
-        iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
-        self.optimizer = self.build_optimizer(
-            model=self.model,
-            name=self.args.optimizer,
-            lr=self.args.lr0,
-            momentum=self.args.momentum,
-            decay=weight_decay,
-            iterations=iterations,
-        )
-        # Scheduler
-        self._setup_scheduler()
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
@@ -453,32 +454,7 @@ class BaseTrainer:
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
                     self._clear_memory()
-                    # Rebuild only dataloaders and optimizer with new batch size
-                    # (model, EMA, AMP are unchanged — skip to avoid deepcopy OOM)
-                    batch_size = self.batch_size // max(self.world_size, 1)
-                    self.train_loader = self.get_dataloader(
-                        self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
-                    )
-                    self.test_loader = self.get_dataloader(
-                        self.data.get("val") or self.data.get("test"),
-                        batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
-                        rank=LOCAL_RANK,
-                        mode="val",
-                    )
-                    self.accumulate = max(round(self.args.nbs / self.batch_size), 1)
-                    weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs
-                    iterations = math.ceil(
-                        len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)
-                    ) * self.epochs
-                    self.optimizer = self.build_optimizer(
-                        model=self.model,
-                        name=self.args.optimizer,
-                        lr=self.args.lr0,
-                        momentum=self.args.momentum,
-                        decay=weight_decay,
-                        iterations=iterations,
-                    )
-                    self._setup_scheduler()
+                    self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
                     self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)
                     nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1

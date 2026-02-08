@@ -467,9 +467,9 @@ class BaseTrainer:
                     )
                     self.accumulate = max(round(self.args.nbs / self.batch_size), 1)
                     weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs
-                    iterations = math.ceil(
-                        len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)
-                    ) * self.epochs
+                    iterations = (
+                        math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
+                    )
                     self.optimizer = self.build_optimizer(
                         model=self.model,
                         name=self.args.optimizer,

@@ -453,7 +453,33 @@ class BaseTrainer:
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
                     self._clear_memory()
-                    self._setup_train()  # rebuild dataloaders, optimizer, scheduler with new batch size
+                    # Rebuild only dataloaders and optimizer with new batch size
+                    # (model, EMA, AMP are unchanged — skip to avoid deepcopy OOM)
+                    batch_size = self.batch_size // max(self.world_size, 1)
+                    self.train_loader = self.get_dataloader(
+                        self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
+                    )
+                    self.test_loader = self.get_dataloader(
+                        self.data.get("val") or self.data.get("test"),
+                        batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
+                        rank=LOCAL_RANK,
+                        mode="val",
+                    )
+                    self.accumulate = max(round(self.args.nbs / self.batch_size), 1)
+                    weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs
+                    iterations = math.ceil(
+                        len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)
+                    ) * self.epochs
+                    self.optimizer = self.build_optimizer(
+                        model=self.model,
+                        name=self.args.optimizer,
+                        lr=self.args.lr0,
+                        momentum=self.args.momentum,
+                        decay=weight_decay,
+                        iterations=iterations,
+                    )
+                    self._setup_scheduler()
+                    self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)
                     nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1
                     last_opt_step = -1
@@ -495,7 +521,7 @@ class BaseTrainer:
                 # for/else: this block runs only when the for loop completes without break (no OOM retry)
                 self._oom_retries = 0  # reset OOM counter after successful first epoch
 
-            if self._oom_retries:
+            if self._oom_retries and not self.stop:
                 continue  # OOM recovery broke the for loop, restart with reduced batch size
 
             if hasattr(unwrap_model(self.model).criterion, "update"):

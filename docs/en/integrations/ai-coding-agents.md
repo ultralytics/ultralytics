@@ -57,7 +57,7 @@ Skills can be installed using the Ultralytics CLI with a single command. The ins
 
         For agents that support global skills (such as GitHub Copilot), you can install skills globally so they're available across all your projects:
         ```bash
-        yolo install-skills global copilot
+        yolo install-skills global agent=copilot
         ```
         Global installation places skills in the standard location for your AI agent, making them accessible system-wide. This is useful when you frequently work with Ultralytics across multiple projects and want consistent AI assistance everywhere.
         The global installation will place the skills in the appropriate directory under the logged-in user's OS home directory. On macOS or Linux, `~/` is used, and for Windows, `%USERPROFILE%` is used, which is equivalent to `C:\Users\{USERNAME}\`.
@@ -288,7 +288,7 @@ The command copies seven Markdown files (one for each skill) from the Ultralytic
 
 ### Do I need to install skills separately for each project?
 
-It depends on your preference and AI agent. Local installation (default `yolo install-skills`) places skills in the current project directory, making them project specific. Global installation (`yolo install-skills global copilot`) makes skills available system-wide for supported agents. If you work on multiple Ultralytics projects, global installation may be more convenient. However, local installation gives you control over which projects have access to skills.
+It depends on your preference and AI agent. Local installation (default `yolo install-skills`) places skills in the current project directory, making them project specific. Global installation (`yolo install-skills global agent=copilot`) makes skills available system-wide for supported agents. If you work on multiple Ultralytics projects, global installation may be more convenient. However, local installation gives you control over which projects have access to skills.
 
 ### Will skills slow down my AI coding agent?
 

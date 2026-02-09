@@ -135,9 +135,9 @@ class Detect(nn.Module):
     def one2one(self):
         """Returns the one-to-one head components."""
         if hasattr(self, "o2o_suppress"):
-            return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
+            return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, suppress=self.o2o_suppress)
         else:
-            return dict(box_head=self.cv2, cls_head=self.cv3, suppress=self.o2o_suppress)
+            return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
 
     @property
     def end2end(self):

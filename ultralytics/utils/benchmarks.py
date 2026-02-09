@@ -410,6 +410,7 @@ class ProfileModels:
         half: bool = True,
         trt: bool = True,
         device: torch.device | str | None = None,
+        save_dir: str | Path = ".",
     ):
         """Initialize the ProfileModels class for profiling models.
 
@@ -422,6 +423,7 @@ class ProfileModels:
             half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
+            save_dir (str | Path): Directory to save markdown output. Default is current directory.
 
         Notes:
             FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
@@ -434,6 +436,7 @@ class ProfileModels:
         self.half = half
         self.trt = trt  # run TensorRT profiling
         self.device = device if isinstance(device, torch.device) else select_device(device)
+        self.save_dir = Path(save_dir)
 
     def run(self):
         """Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
@@ -447,6 +450,8 @@ class ProfileModels:
             >>> profiler = ProfileModels(["yolo26n.yaml", "yolo11s.yaml"])
             >>> results = profiler.run()
         """
+        from ultralytics.cfg import TASK2METRIC
+
         files = self.get_files()
 
         if not files:
@@ -455,12 +460,44 @@ class ProfileModels:
 
         table_rows = []
         output = []
-        for file in files:
+        baseline_metrics = None
+
+        for idx, file in enumerate(files):
             engine_file = file.with_suffix(".engine")
+            model_name = file.stem
+            data_yaml = None
+            map_val = None
+
             if file.suffix in {".pt", ".yaml", ".yml"}:
                 model = YOLO(str(file))
-                model.fuse()  # to report correct params and GFLOPs in model.info()
+                model.fuse()
                 model_info = model.info(imgsz=self.imgsz)
+
+                # Extract model name and dataset from checkpoint
+                if file.suffix == ".pt" and hasattr(model, "ckpt") and model.ckpt:
+                    train_args = model.ckpt.get("train_args", {})
+                    model_name = train_args.get("name", file.stem)
+                    data_yaml = train_args.get("data")
+
+                # Validate to get mAP
+                if data_yaml:
+                    try:
+                        LOGGER.info(f"Validating {model_name} on {data_yaml}...")
+                        results = model.val(
+                            data=data_yaml,
+                            batch=1,
+                            imgsz=self.imgsz,
+                            device=self.device,
+                            verbose=False,
+                            plots=False,
+                            save=False,
+                        )
+                        metric_key = TASK2METRIC.get(model.task, "metrics/mAP50-95(B)")
+                        map_val = results.results_dict.get(metric_key, 0.0)
+                    except Exception as e:
+                        LOGGER.warning(f"Validation failed for {model_name}: {e}")
+                        map_val = None
+
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
                         format="engine",
@@ -483,17 +520,37 @@ class ProfileModels:
 
             t_engine = self.profile_tensorrt_model(str(engine_file))
             t_onnx = self.profile_onnx_model(str(onnx_file))
-            table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, model_info))
-            output.append(self.generate_results_dict(file.stem, t_onnx, t_engine, model_info))
 
-        self.print_table(table_rows)
+            # Store baseline metrics from first model
+            if idx == 0:
+                baseline_metrics = {
+                    "name": model_name,
+                    "t_onnx": t_onnx[0],
+                    "t_engine": t_engine[0],
+                    "map": map_val,
+                }
+
+            table_rows.append(
+                self.generate_table_row(model_name, t_onnx, t_engine, model_info, map_val, baseline_metrics, idx == 0)
+            )
+            output.append(self.generate_results_dict(model_name, t_onnx, t_engine, model_info))
+
+        # Print table and get markdown
+        markdown_table = self.print_table(table_rows, baseline_metrics)
+
+        # Save markdown to file
+        self.save_markdown(markdown_table, baseline_metrics)
+
         return output
 
     def get_files(self):
         """Return a list of paths for all relevant model files given by the user.
 
         Returns:
-            (list[Path]): List of Path objects for the model files.
+            (list[Path]): List of Path objects for the model files in original order.
+
+        Notes:
+            Order is preserved from input - first model becomes baseline for comparisons.
         """
         files = []
         for path in self.paths:
@@ -506,8 +563,8 @@ class ProfileModels:
             else:
                 files.extend(glob.glob(str(path)))
 
-        LOGGER.info(f"Profiling: {sorted(files)}")
-        return [Path(file) for file in sorted(files)]
+        LOGGER.info(f"Profiling: {files}")
+        return [Path(file) for file in files]  # Preserve original order for baseline comparison
 
     @staticmethod
     def get_onnx_model_info(onnx_file: str):
@@ -544,6 +601,7 @@ class ProfileModels:
 
         Returns:
             mean_time (float): Mean inference time in milliseconds.
+
             std_time (float): Standard deviation of inference time in milliseconds.
         """
         if not self.trt or not Path(engine_file).is_file():
@@ -657,22 +715,60 @@ class ProfileModels:
         t_onnx: tuple[float, float],
         t_engine: tuple[float, float],
         model_info: tuple[float, float, float, float],
+        map_val: float | None = None,
+        baseline_metrics: dict | None = None,
+        is_baseline: bool = False,
     ):
-        """Generate a table row string with model performance metrics.
+        """Generate a table row string with model performance metrics and baseline comparison.
 
         Args:
             model_name (str): Name of the model.
             t_onnx (tuple): ONNX model inference time statistics (mean, std).
             t_engine (tuple): TensorRT engine inference time statistics (mean, std).
             model_info (tuple): Model information (layers, params, gradients, flops).
+            map_val (float | None): Validation mAP value.
+            baseline_metrics (dict | None): Baseline model metrics for comparison.
+            is_baseline (bool): Whether this is the baseline model.
 
         Returns:
-            (str): Formatted table row string with model metrics.
+            (str): Formatted table row string with model metrics and comparisons.
         """
         _layers, params, _gradients, flops = model_info
+
+        # Format mAP
+        map_str = f"{map_val:.3f}" if map_val is not None else "-"
+
+        # Format comparison metrics
+        if is_baseline or baseline_metrics is None:
+            # Baseline row - no comparison
+            map_delta_str = "-"
+            onnx_speedup_str = "-"
+            trt_speedup_str = "-"
+        else:
+            # Calculate deltas vs baseline
+            if map_val is not None and baseline_metrics["map"] is not None:
+                map_delta = (map_val - baseline_metrics["map"]) * 100  # Convert to points
+                map_delta_str = f"{map_delta:+.1f}"
+            else:
+                map_delta_str = "-"
+
+            if t_onnx[0] > 0 and baseline_metrics["t_onnx"] > 0:
+                onnx_speedup = ((baseline_metrics["t_onnx"] / t_onnx[0]) - 1) * 100
+                onnx_speedup_str = f"{onnx_speedup:+.1f}%"
+            else:
+                onnx_speedup_str = "-"
+
+            if t_engine[0] > 0 and baseline_metrics["t_engine"] > 0:
+                trt_speedup = ((baseline_metrics["t_engine"] / t_engine[0]) - 1) * 100
+                trt_speedup_str = f"{trt_speedup:+.1f}%"
+            else:
+                trt_speedup_str = "-"
+
         return (
-            f"| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms | {t_engine[0]:.1f}±"
-            f"{t_engine[1]:.1f} ms | {params / 1e6:.1f} | {flops:.1f} |"
+            f"| {model_name:18s} | {self.imgsz} | {map_str:7s} | {map_delta_str:7s} | "
+            f"{t_onnx[0]:.1f}±{t_onnx[1]:.1f} ms | {onnx_speedup_str:8s} | "
+            f"{t_engine[0]:.1f}±{t_engine[1]:.1f} ms | {trt_speedup_str:8s} | "
+            f"{params / 1e6:.1f} | {flops:.1f} |"
         )
 
     @staticmethod
@@ -703,26 +799,96 @@ class ProfileModels:
         }
 
     @staticmethod
-    def print_table(table_rows: list[str]):
-        """Print a formatted table of model profiling results.
+    def print_table(table_rows: list[str], baseline_metrics: dict | None = None):
+        """Print a formatted table of model profiling results with baseline comparison.
 
         Args:
             table_rows (list[str]): List of formatted table row strings.
+            baseline_metrics (dict | None): Baseline model metrics for displaying in header.
+
+        Returns:
+            (str): Markdown formatted table string.
         """
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "GPU"
+        baseline_name = baseline_metrics["name"] if baseline_metrics else "baseline"
+
         headers = [
             "Model",
             "size<br><sup>(pixels)",
             "mAP<sup>val<br>50-95",
-            f"Speed<br><sup>CPU ({get_cpu_info()}) ONNX<br>(ms)",
+            f"Δ mAP<br><sup>(pts vs {baseline_name})",
+            f"Speed<br><sup>CPU ONNX<br>(ms)",
+            f"Δ Speed<br><sup>(% vs {baseline_name})",
             f"Speed<br><sup>{gpu} TensorRT<br>(ms)",
+            f"Δ Speed<br><sup>(% vs {baseline_name})",
             "params<br><sup>(M)",
             "FLOPs<br><sup>(B)",
         ]
         header = "|" + "|".join(f" {h} " for h in headers) + "|"
         separator = "|" + "|".join("-" * (len(h) + 2) for h in headers) + "|"
 
+        # Build markdown table
+        markdown_lines = [header, separator] + table_rows
+        markdown_table = "\n".join(markdown_lines)
+
+        # Print to logger
         LOGGER.info(f"\n\n{header}")
         LOGGER.info(separator)
         for row in table_rows:
             LOGGER.info(row)
+
+        return markdown_table
+
+    def save_markdown(self, markdown_table: str, baseline_metrics: dict | None = None):
+        """Save the markdown table to a file.
+
+        Args:
+            markdown_table (str): Markdown formatted table string.
+            baseline_metrics (dict | None): Baseline model metrics for context in the file.
+        """
+        import time
+
+        # Create save directory if it doesn't exist
+        self.save_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate filename with timestamp
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        filename = f"profile_results_{timestamp}.md"
+        filepath = self.save_dir / filename
+
+        # Build markdown content
+        gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "GPU"
+        baseline_name = baseline_metrics["name"] if baseline_metrics else "baseline"
+
+        content = f"""# Model Profiling Results
+
+**Generated:** {time.strftime("%Y-%m-%d %H:%M:%S")}
+**Image Size:** {self.imgsz}x{self.imgsz}
+**Device:** {self.device}
+**Baseline Model:** {baseline_name}
+**GPU:** {gpu}
+
+## Performance Comparison
+
+{markdown_table}
+
+## Legend
+
+- **Δ mAP**: Difference in mAP points compared to baseline (higher is better)
+- **Δ Speed**: Percentage speed change compared to baseline (positive = faster, negative = slower)
+- First model in the list is used as the baseline for comparison
+
+## Notes
+
+- Speed measurements include mean ± std deviation
+- ONNX profiled on CPU
+- TensorRT profiled on GPU
+- Validation performed using dataset from model checkpoint
+"""
+
+        # Write to file
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        LOGGER.info(f"Markdown results saved to: {filepath}")
+        return filepath

@@ -15,9 +15,10 @@ keywords: DRASHTI-HaOBB dataset, vehicle detection, aerial images, oriented boun
 - **Location:** India
 - **No. of Vehicle Classes:** 14
 - **Vehicle Classes:** ‘Auto3WCargo’, ‘AutoRicksaw’, ‘Bus’, ‘Container’, ‘Mixer’, ‘MotorCycle’, ‘PickUp’, ‘SUV’, ‘Sedan’, ‘Tanker’, ‘Tipper’, ‘Trailer’, ‘Truck’, ‘Van’
-- **No. of  total Images:** 27,577    
+- **No. of  total Images:** 27,577  (84.73% are real-world images and 15.27% are augmented images)    
 - **No. of  total (vehicle) Samples:** 1,308,989
 - **Dimension of each 4K image:** 3840 x 2160
+- **Pre-defined train/val/test split ratio:** The Dataset is organised into a predefined split ratio to preserve equal class distribution 
 
 ## Applications
 
@@ -27,8 +28,9 @@ DRASHTI-HaOBB provides a standardised [OBB dataset](https://docs.ultralytics.com
 
 DRASHTI-HaOBB is organised into a standard format compatible with [OBB object detection](https://docs.ultralytics.com/tasks/obb/) models:
 
-- **Images**: Collection of high-resolution UAV images of dense and heterogeneous road traffic.
-- **Text files**: A label file provides details of each vehicle in the image as OBB (_x1, y1, x2, y2, x3, y3, x4, y4_), vehicle class, difficulty level, and heading angle.
+- **Images:** Collection of high-resolution UAV images of dense and heterogeneous road traffic.
+- **Text files:** A label file provides details of each vehicle in the image as OBB (_x1, y1, x2, y2, x3, y3, x4, y4_), vehicle class, difficulty level, and heading angle.
+- **Train/Val/Test:** All vehicle classes distributed into 60:30:10 split ratio. 
 
 ## Dataset YAML
 
@@ -41,11 +43,11 @@ A dataset YAML (Yet Another Markup Language) file provides information about the
     ```
 ## Usage
 
-To train a model on the DRASHTI-HaOBB dataset, use the following code snippets. Always refer to your model's documentation for a thorough list of available arguments. For those looking to experiment with a smaller subset first, consider using the [DRASHTI-HaOBB dataset](https://docs.ultralytics.com/datasets/obb/DRASHTI-HaOBB/), which contains just 8 images for quick testing.
+To train a model on the DRASHTI-HaOBB dataset, use the following code snippets. Refer to the [list of arguments](https://docs.ultralytics.com/modes/train/) for training an OBB model. 
 
 !!! warning
 
-    Please note that all images and associated annotations in the DRASHTI-HaOBB dataset can be used for academic purposes, but commercial use is prohibited. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
+The [DRASHTI-HaOBB dataset](https://zenodo.org/records/18278989) is released under the [Creative Commons Attribution–NonCommercial–NoDerivatives 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) International license. Commercial use is strictly prohibited. Please credit the dataset creators in any academic or research work. Your understanding and respect for the dataset creators' wishes are greatly appreciated!
 
 !!! example "Train Example"
 
@@ -57,7 +59,7 @@ To train a model on the DRASHTI-HaOBB dataset, use the following code snippets. 
         # Create a new YOLO26n-OBB model from scratch
         model = YOLO("yolo26n-obb.yaml")
 
-        # Train the model on the DRASHTI-HaOBBv1 dataset
+        # Train the model on the DRASHTI-HaOBB dataset
         results = model.train(data="DRASHTI-HaOBB.yaml", epochs=30, imgsz=1024)
         ```
 
@@ -79,6 +81,8 @@ Having a glance at the dataset illustrates its depth:
 The dataset's richness offers invaluable insights into object detection challenges exclusive to aerial imagery. The [DRASHTI-HaOBB-v2.0 dataset](https://www.ultralytics.com/blog/exploring-the-best-computer-vision-datasets-in-2025) has become particularly popular for remote sensing and aerial surveillance projects due to its comprehensive annotations and diverse object categories.
 
 ## License
+
+The [DRASHTI-HaOBB dataset](https://zenodo.org/records/18278989) is released under the [Creative Commons Attribution–NonCommercial–NoDerivatives 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) International license. Commercial use is strictly prohibited. Please credit the dataset creators in any academic or research work.
 
 ## Citations and Acknowledgements
 

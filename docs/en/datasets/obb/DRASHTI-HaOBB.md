@@ -92,32 +92,39 @@ If you use DRASHTI-HaOBB in your work, please cite the relevant research papers:
     === "BibTeX"
 
         ```bibtex
-        @article{9560031,
-          author={Ding, Jian and Xue, Nan and Xia, Gui-Song and Bai, Xiang and Yang, Wen and Yang, Michael and Belongie, Serge and Luo, Jiebo and Datcu, Mihai and Pelillo, Marcello and Zhang, Liangpei},
-          journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
-          title={Object Detection in Aerial Images: A Large-Scale Benchmark and Challenges},
-          year={2021},
-          volume={},
-          number={},
-          pages={1-1},
-          doi={10.1109/TPAMI.2021.3117983}
-        }
+@dataset{bhavsar_2026_18278989,
+  author       = {Bhavsar, Yagnik and
+                  Zaveri, Mazad and
+                  Raval, Mehul and
+                  Zaveri, Shaheriar and
+                  Ahmedabad University},
+  title        = {DRASHTI-HaOBB: Drone nadiR-view Annotated imageS
+                   of veHicles dataseT for India - Heading-angle
+                   Oriented Bounding Box: Indian Vehicle Oriented-
+                   Object-Detection Dataset with 1.3 Million Samples
+                  },
+  month        = feb,
+  year         = 2026,
+  publisher    = {Zenodo},
+  version      = {1.0.0},
+  doi          = {10.5281/zenodo.18278989},
+  url          = {https://doi.org/10.5281/zenodo.18278989},
+}
         ```
 
-A special note of gratitude to the team behind the DRASHTI-HaOBB datasets for their commendable effort in curating this dataset. For an exhaustive understanding of the dataset and its nuances, please visit the [official DRASHTI-HaOBB website](https://captain-whu.github.io/DRASHTI-HaOBB/index.html).
+We acknowledge the team behind the DRASHTI-HaOBB dataset at Ahmedabad University for their dedicated effort in curating this resource. For a comprehensive description of the dataset and its characteristics, please visit the [official DRASHTI-HaOBB website](https://sites.google.com/ahduni.edu.in/yagnikmbhavsar/dataset).
 
 ## FAQ
 
-### can we use it for other countries?
-### possible applications of this dataset?
+### What is the DRASHTI-HaOBB dataset and how is it different from other aerial datasets?
 
-### What is the DRASHTI-HaOBB dataset and why is it important for object detection in aerial images?
+DRASHTI-HaOBB is a large-scale UAV-based oriented vehicle detection dataset designed for road traffic analysis under real-world Indian traffic conditions. It consists of 27,577 nadir-view aerial images with nearly 1.3 million vehicle annotations across 14 heterogeneous vehicle categories, each labelled with oriented bounding boxes, vehicle heading information, and UAV flight height. Unlike many existing aerial datasets that focus on axis-aligned boxes, structured traffic, or a limited number of classes, DRASHTI-HaOBB captures dense, heterogeneous traffic common in developing countries. Detailed vehicle classification and nadir-view UAV imagery of the DRASHTI-HaOBB dataset make it suitable for road traffic safety analysis. 
 
-The [DRASHTI-HaOBB dataset](https://captain-whu.github.io/DRASHTI-HaOBB/index.html) is a specialized dataset focused on object detection in aerial images. It features Oriented Bounding Boxes (OBB), providing annotated images from diverse aerial scenes. DRASHTI-HaOBB's diversity in object orientation, scale, and shape across its 1.7M annotations and 18 categories makes it ideal for developing and evaluating models tailored for aerial imagery analysis, such as those used in surveillance, environmental monitoring, and disaster management.
+### How is the class imbalance problem addressed?
 
-### How does the DRASHTI-HaOBB dataset handle different scales and orientations in images?
+### What are the possible applications of DRASHTI-HaOBB, and to what extent can it generalise to traffic scenarios in other countries?
 
-DRASHTI-HaOBB utilizes Oriented Bounding Boxes (OBB) for annotation, which are represented by rotated rectangles encapsulating objects regardless of their orientation. This method ensures that objects, whether small or at different angles, are accurately captured. The dataset's multiscale images, ranging from 800 × 800 to 20,000 × 20,000 pixels, further allow for the detection of both small and large objects effectively. This approach is particularly valuable for aerial imagery where objects appear at various angles and scales.
+DRASHTI-HaOBB dataset is well-suited for research on road traffic safety analysis, as discussed in section [applications](#applications). It spans over 14 different vehicle categories: ‘Auto3WCargo’, ‘AutoRicksaw’, ‘Bus’, ‘Container’, ‘Mixer’, ‘MotorCycle’, ‘PickUp’, ‘SUV’, ‘Sedan’, ‘Tanker’, ‘Tipper’, ‘Trailer’, ‘Truck’, ‘Van’. Since many of these vehicle classes are commonly observed across multiple countries and regions, particularly in Asia, the dataset can be effectively used to study traffic scenarios in countries with similar vehicle compositions.
 
 ### How can I train a model using the DRASHTI-HaOBB dataset?
 
@@ -133,52 +140,74 @@ To train a model on the DRASHTI-HaOBB dataset, you can use the following example
         # Create a new YOLO26n-OBB model from scratch
         model = YOLO("yolo26n-obb.yaml")
 
-        # Train the model on the DRASHTI-HaOBBv1 dataset
-        results = model.train(data="DRASHTI-HaOBBv1.yaml", epochs=100, imgsz=1024)
+        # Train the model on the DRASHTI-HaOBB dataset
+        results = model.train(data="DRASHTI-HaOBB.yaml", epochs=30, imgsz=1024)
         ```
 
     === "CLI"
 
         ```bash
-        # Train a new YOLO26n-OBB model on the DRASHTI-HaOBBv1 dataset
-        yolo obb train data=DRASHTI-HaOBBv1.yaml model=yolo26n-obb.pt epochs=100 imgsz=1024
+        # Train a new YOLO26n-OBB model on the DRASHTI-HaOBB dataset
+        yolo obb train data=DRASHTI-HaOBB.yaml model=yolo26n-obb.pt epochs=30 imgsz=1024
         ```
 
-For more details on how to split and preprocess the DRASHTI-HaOBB images, refer to the [split DRASHTI-HaOBB images section](#split-DRASHTI-HaOBB-images).
+### How can I improve model training accuracy on the DRASHTI-HaOBB dataset?
 
-### What are the differences between DRASHTI-HaOBB-v1.0, DRASHTI-HaOBB-v1.5, and DRASHTI-HaOBB-v2.0?
-
-- **DRASHTI-HaOBB-v1.0**: Includes 15 common categories across 2,806 images with 188,282 instances. The dataset is split into training, validation, and testing sets.
-- **DRASHTI-HaOBB-v1.5**: Builds upon DRASHTI-HaOBB-v1.0 by annotating very small instances (less than 10 pixels) and adding a new category, "container crane," totaling 403,318 instances.
-- **DRASHTI-HaOBB-v2.0**: Expands further with annotations from Google Earth and GF-2 Satellite, featuring 11,268 images and 1,793,658 instances. It includes new categories like "airport" and "helipad."
-
-For a detailed comparison and additional specifics, check the [dataset versions section](#dataset-versions).
-
-### How can I prepare high-resolution DRASHTI-HaOBB images for training?
-
-DRASHTI-HaOBB images, which can be very large, are split into smaller resolutions for manageable training. Here's a Python snippet to split images:
+- DRASHTI-HaOBB has only 15.27% augmented images (generated using copy-paste augmentation on real-world images). Therefore, different augmentations during model training help to improve model accuracy.  For detailed instructions, visit the [augmentation-settings-and-hyperparameters](https://docs.ultralytics.com/modes/train/#augmentation-settings-and-hyperparameters).
+- DRASHTI-HaOBB images are available in 4K resolution (3840 x 2160) and could be further split into smaller resolutions for better training. Here's a Python snippet to split images:
 
 !!! example
 
     === "Python"
 
         ```python
-        from ultralytics.data.split_DRASHTI-HaOBB import split_test, split_trainval
+        from ultralytics.data.split_dota import split_test, split_trainval
 
         # split train and val set, with labels.
         split_trainval(
-            data_root="path/to/DRASHTI-HaOBBv1.0/",
-            save_dir="path/to/DRASHTI-HaOBBv1.0-split/",
+            data_root="path/to/DRASHTI-HaOBB/",
+            save_dir="path/to/DRASHTI-HaOBB-split/",
             rates=[0.5, 1.0, 1.5],  # multiscale
             gap=500,
         )
         # split test set, without labels.
         split_test(
-            data_root="path/to/DRASHTI-HaOBBv1.0/",
-            save_dir="path/to/DRASHTI-HaOBBv1.0-split/",
+            data_root="path/to/DRASHTI-HaOBB/",
+            save_dir="path/to/DRASHTI-HaOBB-split/",
             rates=[0.5, 1.0, 1.5],  # multiscale
             gap=500,
         )
         ```
+        
+This process improves training efficiency. For detailed instructions, visit the [split DOTA images section](https://docs.ultralytics.com/datasets/obb/dota-v2/#split-dota-images).
 
-This process facilitates better training efficiency and model performance. For detailed instructions, visit the [split DRASHTI-HaOBB images section](#split-DRASHTI-HaOBB-images).
+### How can I cite the DRASHTI-HaOBB dataset if I use it in my research?
+If you use DRASHTI-HaOBB in your work, please cite the relevant research papers:
+
+!!! quote ""
+
+    === "BibTeX"
+
+        ```bibtex
+@dataset{bhavsar_2026_18278989,
+  author       = {Bhavsar, Yagnik and
+                  Zaveri, Mazad and
+                  Raval, Mehul and
+                  Zaveri, Shaheriar and
+                  Ahmedabad University},
+  title        = {DRASHTI-HaOBB: Drone nadiR-view Annotated imageS
+                   of veHicles dataseT for India - Heading-angle
+                   Oriented Bounding Box: Indian Vehicle Oriented-
+                   Object-Detection Dataset with 1.3 Million Samples
+                  },
+  month        = feb,
+  year         = 2026,
+  publisher    = {Zenodo},
+  version      = {1.0.0},
+  doi          = {10.5281/zenodo.18278989},
+  url          = {https://doi.org/10.5281/zenodo.18278989},
+}
+        ```
+### Can I modify, redistribute, or use the DRASHTI-HaOBB dataset for commercial purposes?
+
+No, because [DRASHTI-HaOBB dataset](https://zenodo.org/records/18278989) is released under the [Creative Commons Attribution–NonCommercial–NoDerivatives 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) International license. Please refer to section [License](#License).

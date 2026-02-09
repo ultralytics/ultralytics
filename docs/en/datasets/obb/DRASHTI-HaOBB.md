@@ -72,14 +72,13 @@ The [DRASHTI-HaOBB dataset](https://zenodo.org/records/18278989) is released und
 
 ## Sample Data and Annotations
 
-Having a glance at the dataset illustrates its depth:
+A sample of [DRASHTI-HaOBB](https://zenodo.org/records/18278989) dataset, showing dense and heterogeneous traffic conditions, and the need for OBB over an axis-aligned box.  
 
-![DRASHTI-HaOBB dataset  with oriented bounding box annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instances-DRASHTI-HaOBB.avif)
+DRASHTI-HaOBB dataset with oriented bounding box annotations
+![sample](https://github.com/user-attachments/assets/ede97912-6c83-4d7e-b3bb-a80e37225fd3)
 
-- **DRASHTI-HaOBB examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) annotations, capturing objects in their natural orientation.
-
-The dataset's richness offers invaluable insights into object detection challenges exclusive to aerial imagery. The [DRASHTI-HaOBB-v2.0 dataset](https://www.ultralytics.com/blog/exploring-the-best-computer-vision-datasets-in-2025) has become particularly popular for remote sensing and aerial surveillance projects due to its comprehensive annotations and diverse object categories.
-
+- **DRASHTI-HaOBB vehicle classes**: This snapshot highlights heterogeneity in Indian road traffic.
+  <img width="1018" height="313" alt="Samples" src="https://github.com/user-attachments/assets/d4765495-a405-4028-961a-a0ceddefc533" />
 ## License
 
 The [DRASHTI-HaOBB dataset](https://zenodo.org/records/18278989) is released under the [Creative Commons Attribution–NonCommercial–NoDerivatives 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) International license. Commercial use is strictly prohibited. Please credit the dataset creators in any academic or research work.

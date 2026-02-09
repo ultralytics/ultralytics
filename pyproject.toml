@@ -19,7 +19,7 @@
 # For comprehensive documentation and usage instructions, visit: https://docs.ultralytics.com
 
 [build-system]
-requires = ["setuptools>=70.0.0,<=81.0.0", "wheel"]
+requires = ["setuptools>=70.0.0,<=82.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # Project settings -----------------------------------------------------------------------------------------------------

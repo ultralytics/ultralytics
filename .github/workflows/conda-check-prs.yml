@@ -1,0 +1,75 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# This action checks the status of recent PRs in the conda-forge/ultralytics-feedstock repository.
+# It runs daily and can be triggered manually, updating a status badge for the Ultralytics Docs.
+
+name: Conda Builds
+
+on:
+  schedule:
+    - cron: "0 8 * * *" # runs at 08:00 UTC every day
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  check-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Check PR status
+        id: check-prs
+        shell: python
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_REPOSITORY: conda-forge/ultralytics-feedstock
+        run: |
+          import requests
+          import json
+          import os
+          from pathlib import Path
+
+          # Get target repository from environment variable
+          repo = os.environ.get("TARGET_REPOSITORY")
+          token = os.environ.get("GITHUB_TOKEN")
+          headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
+
+          # Get recent PRs
+          pr_url = f"https://api.github.com/repos/{repo}/pulls?state=open&sort=updated&direction=desc&per_page=3"
+          prs = requests.get(pr_url, headers=headers).json()
+
+          # Check for failures
+          failed_prs = []
+          for pr in prs:
+              checks_url = f"https://api.github.com/repos/{repo}/commits/{pr['head']['sha']}/check-runs"
+              checks = requests.get(checks_url, headers=headers).json()
+              failed_checks = [check["name"] for check in checks.get("check_runs", []) if check.get("conclusion") == "failure"]
+              if failed_checks:
+                  failed_prs.append({
+                      "number": pr["number"],
+                      "title": pr["title"],
+                      "author": pr["user"]["login"],
+                      "url": pr["html_url"],
+                      "failed_checks": failed_checks
+                  })
+
+          # Output for next step and GitHub summary
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              has_failures = "true" if failed_prs else "false"
+              f.write(f"has_failures={has_failures}\n")
+              f.write(f"failed_count={len(failed_prs)}\n")
+              # Serialize failed PRs as JSON for next step
+              if failed_prs:
+                  f.write(f"failed_prs={json.dumps(failed_prs)}\n")
+
+          # Print results to action log
+          print(f"Checked {len(prs)} PRs in {repo}")
+          if failed_prs:
+              print(f"Found {len(failed_prs)} PRs with failures")
+              for pr in failed_prs:
+                  print(f"PR #{pr['number']}: {pr['title']} by {pr['author']}")
+                  print(f"Failed checks: {', '.join(pr['failed_checks'])}")
+              # Only fail if we actually have PRs with failures
+              assert False, "Repository has PRs with test failures"
+          else:
+              print("No PR check failures found")

@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 
 
 # =============================================================================
-# SELECT BENCHMARK HERE: "m5", "xeon", "t4", "jetson-agx-thor-gpu",
+# SELECT BENCHMARK HERE: "m5", "m5_new", "m5_coreml", "xeon", "xeon_new", "t4", "t4_new", "jetson-agx-thor-gpu",
 # "jetson-agx-thor-cpu", "jetson-agx-orin-gpu", "jetson-agx-orin-cpu",
 # "jetson-orin-nano-super-gpu", or "jetson-orin-nano-super-cpu"
 # =============================================================================
-BENCHMARK = "t4"
+BENCHMARK = "m5_coreml"
 
 
 # =============================================================================
@@ -69,15 +69,69 @@ BENCHMARKS = {
             ],
         },
     },
+    "m5_new": {
+        "title": "Object Detection Models: Latency vs mAP (Apple M5 CPU, ONNX)",
+        "models": {
+            "YOLO26 (E2E)": [
+                ("n", 20.9, 40.1),
+                ("s", 61.2, 47.8),
+                ("m", 172.0, 52.5),
+                ("l", 219.4, 54.4),
+                ("x", 439.6, 56.9),
+            ],
+            "YOLO26 (NMS)": [
+                ("n", 21.2, 40.9),
+                ("s", 61.8, 48.6),
+                ("m", 172.8, 53.1),
+                ("l", 220.8, 55.0),
+                ("x", 441.5, 57.5),
+            ],
+            "RF-DETR (TopK)": [
+                ("n", 80.3, 48.4),
+                ("s", 146.8, 53.0),
+                ("m", 193.0, 54.7),
+                ("l", 307.2, 56.5),
+                ("x", 667.1, 58.6),
+                ("xxl", 927.3, 60.1),
+            ],
+        },
+    },
+    "m5_coreml": {
+        "title": "Object Detection Models: Latency vs mAP (Apple M5 CPU, CoreML)",
+        "models": {
+            "YOLO26 (E2E)": [
+                ("n", 6.0, 40.1),
+                ("s", 10.5, 47.8),
+                ("m", 18.1, 52.5),
+                ("l", 21.6, 54.4),
+                ("x", 37.1, 56.9),
+            ],
+            "YOLO26 (NMS)": [
+                ("n", 7.5, 40.9),
+                ("s", 11.7, 48.6),
+                ("m", 19.3, 53.1),
+                ("l", 22.9, 55.0),
+                ("x", 38.2, 57.5),
+            ],
+            "RF-DETR (TopK)": [
+                ("n", 69.5, 48.4),
+                ("s", 128.1, 53.0),
+                ("m", 172.8, 54.7),
+                ("l", 287.4, 56.5),
+                ("x", 491.7, 58.6),
+                ("xxl", 606.1, 60.1),
+            ],
+        },
+    },
     "xeon": {
         "title": "Object Detection Models: Latency vs mAP (Intel Xeon CPU @ 2.00GHz, ONNX)",
         "models": {
-            "YOLO26": [
-                ("n", 38.4, 40.9),
-                ("s", 84.6, 48.6),
-                ("m", 220.0, 53.1),
-                ("l", 284.2, 55.0),
-                ("x", 568.6, 57.5),
+            "YOLO26 (E2E)": [
+                ("n", 38.4, 40.1),
+                ("s", 84.6, 47.8),
+                ("m", 220.0, 52.5),
+                ("l", 284.2, 54.4),
+                ("x", 568.6, 56.9),
             ],
             "RF-DETR": [
                 ("n", 117.2, 48.4),
@@ -86,6 +140,33 @@ BENCHMARKS = {
                 ("l", 427.3, 56.5),
                 ("x", 977.2, 58.6),
                 ("xxl", 1334.4, 60.1),
+            ],
+        },
+    },
+    "xeon_new": {
+        "title": "Object Detection Models: Latency vs mAP (Intel Xeon CPU @ 2.00GHz, ONNX)",
+        "models": {
+            "YOLO26 (E2E)": [
+                ("n", 38.1, 40.1),
+                ("s", 84.8, 47.8),
+                ("m", 218.5, 52.5),
+                ("l", 279.5, 54.4),
+                ("x", 575.5, 56.9),
+            ],
+            "YOLO26 (NMS)": [
+                ("n", 41.0, 40.9),
+                ("s", 100.2, 48.6),
+                ("m", 261.6, 53.1),
+                ("l", 335.5, 55.0),
+                ("x", 623.0, 57.5),
+            ],
+            "RF-DETR (TopK)": [
+                ("n", 114.3, 48.4),
+                ("s", 203.3, 53.0),
+                ("m", 266.1, 54.7),
+                ("l", 410.5, 56.5),
+                ("x", 931.1, 58.6),
+                ("xxl", 1304.8, 60.1),
             ],
         },
     },
@@ -130,6 +211,33 @@ BENCHMARKS = {
                 ("l", 6.8, 56.5),
                 ("x", 11.5, 58.6),
                 ("xxl", 17.2, 60.1),
+            ],
+        },
+    },
+    "t4_new": {
+        "title": "Object Detection Models: Latency vs mAP (Tesla T4 GPU, TensorRT)",
+        "models": {
+            "YOLO26 (E2E)": [
+                ("n", 1.8, 40.1),
+                ("s", 2.7, 47.8),
+                ("m", 5.3, 52.5),
+                ("l", 7.0, 54.4),
+                ("x", 13.3, 56.9),
+            ],
+            "YOLO26 (NMS)": [
+                ("n", 1.9, 40.9),
+                ("s", 2.7, 48.6),
+                ("m", 5.1, 53.1),
+                ("l", 6.8, 55.0),
+                ("x", 13.3, 57.5),
+            ],
+            "RF-DETR (TopK)": [
+                ("n", 2.8, 48.4),
+                ("s", 4.4, 53.0),
+                ("m", 5.7, 54.7),
+                ("l", 8.7, 56.5),
+                ("x", 18.1, 58.6),
+                ("xxl", 29.1, 60.1),
             ],
         },
     },
@@ -258,9 +366,12 @@ BENCHMARKS = {
 # Marker and label offset config for each model
 MODEL_STYLES = {
     "YOLO26": ("o", 8),
+    "YOLO26 (E2E)": ("o", 8),
+    "YOLO26 (NMS)": ("o", -12),
     "YOLO26-reported": ("o", -12),
     "YOLO26_RTDETR": ("^", -12),
     "RF-DETR": ("s", -12),
+    "RF-DETR (TopK)": ("s", -12),
     "RF-DETR-reported": ("s", 8),
     "LW-DETR": ("^", 8),
     "DEIM D-FINE": ("D", -12),

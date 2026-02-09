@@ -596,7 +596,7 @@ class Results(SimpleClass, DataExportMixin):
         """
         self.plot(show=True, *args, **kwargs)
 
-    def save(self, filename: str | None = None, *args, **kwargs) -> str:
+    def save(self, filename: str | None = None, *args, create_dir: bool = True, **kwargs) -> str:
         """Save annotated inference results image to file.
 
         This method plots the detection results on the original image and saves the annotated image to a file. It
@@ -606,6 +606,7 @@ class Results(SimpleClass, DataExportMixin):
             filename (str | Path | None): The filename to save the annotated image. If None, a default filename is
                 generated based on the original image path.
             *args (Any): Variable length argument list to be passed to the `plot` method.
+            create_dir (bool): Whether to create the parent directory if it doesn't exist. Defaults to True.
             **kwargs (Any): Arbitrary keyword arguments to be passed to the `plot` method.
 
         Returns:
@@ -618,9 +619,14 @@ class Results(SimpleClass, DataExportMixin):
             >>> # Or with custom plot arguments
             >>> for result in results:
             >>>     result.save("annotated_image.jpg", conf=False, line_width=2)
+            >>> # Disable automatic directory creation
+            >>> result.save("annotated_image.jpg", create_dir=False)
         """
         if not filename:
             filename = f"results_{Path(self.path).name}"
+        filename = Path(filename).absolute()
+        if create_dir:
+            filename.parent.mkdir(parents=True, exist_ok=True)
         self.plot(save=True, filename=filename, *args, **kwargs)
         return filename
 

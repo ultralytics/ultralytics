@@ -162,49 +162,31 @@ class RTDETRValidator(DetectionValidator):
     def postprocess(
         self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
     ) -> list[dict[str, torch.Tensor]]:
-        """Apply Non-maximum suppression to prediction outputs.
+        """Apply post-processing to prediction outputs.
+
+        The top-k selection is already performed inside the decoder head. This method only converts
+        coordinates from normalized xywh to pixel xyxy format.
 
         Args:
-            preds (torch.Tensor | list | tuple): Raw predictions from the model. If tensor, should have shape
-                (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and
-                class scores.
+            preds (torch.Tensor | list | tuple): Predictions from the model with shape
+                (batch_size, num_queries, 6) where last dimension is [cx, cy, w, h, score, class].
 
         Returns:
             (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:
-                - 'bboxes': Tensor of shape (N, 4) with bounding box coordinates
+                - 'bboxes': Tensor of shape (N, 4) with bounding box coordinates in xyxy pixel format
                 - 'conf': Tensor of shape (N,) with confidence scores
                 - 'cls': Tensor of shape (N,) with class indices
         """
         if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
             preds = [preds, None]
 
-        bs, _, nd = preds[0].shape
-        bboxes, scores = preds[0].split((4, nd - 4), dim=-1)
-        bboxes *= self.args.imgsz
-        outputs = [torch.zeros((0, 6), device=bboxes.device)] * bs
-        # for i, bbox in enumerate(bboxes):  # (300, 4)
-        #     bbox = ops.xywh2xyxy(bbox)
-        #     score, cls = scores[i].max(-1)  # (300, )
-        #     pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
-        #     # Sort by confidence to correctly get internal metrics
-        #     pred = pred[score.argsort(descending=True)]
-        #     outputs[i] = pred[score > self.args.conf]
+        bboxes, scores, labels = preds[0].split((4, 1, 1), dim=-1)
+        bboxes = ops.xywh2xyxy(bboxes) * self.args.imgsz
 
-        for i, bbox in enumerate(bboxes):  # (300, 4)
-            bbox = ops.xywh2xyxy(bbox)
-            score = scores[i]
-            num_queries, num_classes = score.shape
-            topk = min(self.args.max_det, num_queries * num_classes)
-            topk_scores, topk_idx = score.flatten().topk(topk)
-            labels = topk_idx % num_classes
-            query_idx = topk_idx // num_classes
-            pred = torch.cat(
-                [bbox[query_idx], topk_scores[:, None], labels[:, None].float()],
-                dim=-1,
-            )
-            outputs[i] = pred
-
-        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
+        return [
+            {"bboxes": b, "conf": s.squeeze(-1), "cls": l.squeeze(-1)}
+            for b, s, l in zip(bboxes, scores, labels)
+        ]
 
     def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
         """Serialize YOLO predictions to COCO json format.

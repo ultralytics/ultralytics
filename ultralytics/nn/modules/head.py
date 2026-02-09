@@ -1659,7 +1659,29 @@ class RTDETRDecoder(nn.Module):
             return x
         # (bs, 300, 4+nc)
         y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
+        y = self.postprocess(y)
         return y if self.export else (y, x)
+
+    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
+        """Post-process predictions to select top-k detections.
+
+        Args:
+            preds (torch.Tensor): Raw predictions with shape (batch_size, num_queries, 4 + nc) with last dimension
+                format [cx, cy, w, h, class_probs].
+
+        Returns:
+            (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6) and last
+                dimension format [cx, cy, w, h, max_class_prob, class_index].
+        """
+        boxes, scores = preds.split([4, self.nc], dim=-1)
+        bs, nq, nc = scores.shape
+        k = nq
+        ori_index = scores.max(dim=-1)[0].topk(k)[1].unsqueeze(-1)  # (bs, k, 1)
+        scores = scores.gather(dim=1, index=ori_index.repeat(1, 1, nc))  # (bs, k, nc)
+        scores, index = scores.flatten(1).topk(k)  # (bs, k)
+        idx = ori_index[torch.arange(bs, device=scores.device)[..., None], index // nc]  # (bs, k, 1)
+        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))  # (bs, k, 4)
+        return torch.cat([boxes, scores[..., None], (index % nc)[..., None].float()], dim=-1)  # (bs, k, 6)
 
     def _extend_attn_mask_for_o2m(
         self,
@@ -2117,6 +2139,7 @@ class DFineDecoder(RTDETRDecoder):
             return x
         # (bs, 300, 4+nc)
         y = torch.cat((dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid()), -1)
+        y = self.postprocess(y)
         return y if self.export else (y, x)
 
     def _select_topk(self, outputs_logits: torch.Tensor, topk: int) -> torch.Tensor:

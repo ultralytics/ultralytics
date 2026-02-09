@@ -36,11 +36,11 @@ class RTDETRPredictor(BasePredictor):
         """Postprocess the raw predictions from the model to generate bounding boxes and confidence scores.
 
         The method filters detections based on confidence and class if specified in `self.args`. It converts model
-        predictions to Results objects containing properly scaled bounding boxes.
+        predictions (already top-k selected by the decoder head) to Results objects with properly scaled bounding boxes.
 
         Args:
-            preds (list | tuple): List of [predictions, extra] from the model, where predictions contain bounding boxes
-                and scores.
+            preds (list | tuple): List of [predictions, extra] from the model, where predictions have shape
+                (bs, num_queries, 6) with format [cx, cy, w, h, score, class].
             img (torch.Tensor): Processed input images with shape (N, 3, H, W).
             orig_imgs (list | torch.Tensor): Original, unprocessed images.
 
@@ -51,21 +51,20 @@ class RTDETRPredictor(BasePredictor):
         if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
             preds = [preds, None]
 
-        nd = preds[0].shape[-1]
-        bboxes, scores = preds[0].split((4, nd - 4), dim=-1)
+        bboxes, scores, labels = preds[0].split((4, 1, 1), dim=-1)
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         results = []
-        for bbox, score, orig_img, img_path in zip(bboxes, scores, orig_imgs, self.batch[0]):  # (300, 4)
+        for bbox, score, label, orig_img, img_path in zip(bboxes, scores, labels, orig_imgs, self.batch[0]):
             bbox = ops.xywh2xyxy(bbox)
-            max_score, cls = score.max(-1, keepdim=True)  # (300, 1)
-            idx = max_score.squeeze(-1) > self.args.conf  # (300, )
+            score = score.squeeze(-1)
+            label = label.squeeze(-1)
+            idx = score > self.args.conf
             if self.args.classes is not None:
-                idx = (cls == torch.tensor(self.args.classes, device=cls.device)).any(1) & idx
-            pred = torch.cat([bbox, max_score, cls], dim=-1)[idx]  # filter
-            pred = pred[pred[:, 4].argsort(descending=True)][: self.args.max_det]
+                idx = (label == torch.tensor(self.args.classes, device=label.device)).any(1) & idx
+            pred = torch.cat([bbox, score[..., None], label[..., None]], dim=-1)[idx]
             oh, ow = orig_img.shape[:2]
             pred[..., [0, 2]] *= ow  # scale x coordinates to original width
             pred[..., [1, 3]] *= oh  # scale y coordinates to original height

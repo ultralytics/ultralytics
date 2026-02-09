@@ -34,7 +34,7 @@ DRASHTI-HaOBB is organised into a standard format compatible with [OBB object de
 
 ## Dataset YAML
 
-A dataset YAML (Yet Another Markup Language) file provides information about the dataset configuration, vehicle classes, and other metadata. A DRASHTI-HaOBB.yaml file available at https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DRASHTI-HaOBB.yaml includes automatic download and annotation conversion (from DOTA to YOLO) functionalities:
+A dataset YAML (Yet Another Markup Language) file provides information about the dataset configuration, vehicle classes, and other metadata. A DRASHTI-HaOBB.yaml file available at https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DRASHTI-HaOBB.yaml includes automatic download and annotation conversion (from DRASHTI-HaOBB to YOLO) functionalities:
 
 !!! example "DRASHTI-HaOBB.yaml"
 

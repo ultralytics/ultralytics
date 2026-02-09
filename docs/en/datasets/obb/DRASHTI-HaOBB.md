@@ -43,7 +43,7 @@ A dataset YAML (Yet Another Markup Language) file provides information about the
     ```
 ## Usage
 
-To train a model on the DRASHTI-HaOBB dataset, use the following code snippets. Refer to the [list of arguments](https://docs.ultralytics.com/modes/train/) for training an OBB model. 
+To train a model on the DRASHTI-HaOBB dataset, use the following code snippets. Refer to the [list of arguments](https://docs.ultralytics.com/modes/train/#train-settings) for training an OBB model. 
 
 !!! warning
 

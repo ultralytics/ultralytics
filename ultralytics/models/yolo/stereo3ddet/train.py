@@ -12,7 +12,6 @@ import numpy as np
 import torch
 
 from ultralytics.data import build_dataloader
-from ultralytics.data.stereo.target_improved import TargetGenerator as TargetGeneratorImproved
 from ultralytics.models import yolo
 from ultralytics.models.yolo.stereo3ddet.dataset import Stereo3DDetDataset
 from ultralytics.models.yolo.stereo3ddet.model import Stereo3DDetModel
@@ -53,33 +52,8 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
         )
 
     def _determine_loss_names(self):
-        """Determine loss names dynamically from model's loss dictionary keys or loss_names attribute.
-        
-        Priority order:
-        1. Check if model has loss_names attribute
-        2. Check if model uses Stereo3DDetLossYOLO11P3
-        3. Check model.core.criterion for wrapper models
-        4. Infer from model forward output structure (check for "det" key)
-        5. Fallback to YOLO11 loss names
-        
-        Sets self.loss_names as tuple matching DetectionTrainer pattern.
-        """
-        # Loss names for YOLO11-style stereo 3D detection (10 branches)
-
-        default_loss_names = (
-            "box",
-            "cls",
-            "dfl",
-            "lr_dist",
-            "r_width",
-            "dims",
-            "orient",
-            "verts",
-            "v_off",
-            "v_dist",
-        )
-        # Fallback to default YOLO11 loss names
-        self.loss_names = default_loss_names
+        """Set loss names for stereo 3D detection (disparity + dimensions)."""
+        self.loss_names = ("box", "cls", "dfl", "lr_dist", "dims")
 
     def progress_string(self):
         """Return a formatted string showing training progress with dynamically determined loss branches.

@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 
-from ultralytics.utils import DataExportMixin, LOGGER, SimpleClass
+from ultralytics.utils import DataExportMixin, SimpleClass
 
 
 class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
@@ -61,96 +61,6 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         """
         self.stats.append(stat)
 
-    def _diagnostic_log_statistics_accumulation(self, stats_list: list[dict], batch_idx: int) -> None:
-        """Log statistics accumulation across batches for diagnostic purposes.
-
-        Args:
-            stats_list: List of batch statistics dictionaries.
-            batch_idx: Current batch index.
-        """
-        try:
-            LOGGER.info(f"[DIAG] Batch {batch_idx}: Statistics Accumulation")
-            LOGGER.info(f"  Total batches: {len(stats_list)}")
-            if len(stats_list) > 0:
-                first_batch = stats_list[0]
-                LOGGER.info(f"  Batch 0: tp shape={first_batch.get('tp', np.array([])).shape}, fp shape={first_batch.get('fp', np.array([])).shape}, conf len={len(first_batch.get('conf', []))}, pred_cls len={len(first_batch.get('pred_cls', []))}, target_cls len={len(first_batch.get('target_cls', []))}")
-                if len(stats_list) > 1:
-                    # Show concatenated shape if we have multiple batches
-                    try:
-                        tp_concat = np.concatenate([s["tp"] for s in stats_list], axis=0) if stats_list[0]["tp"].size > 0 else np.zeros((0, 2), dtype=bool)
-                        fp_concat = np.concatenate([s["fp"] for s in stats_list], axis=0) if stats_list[0]["fp"].size > 0 else np.zeros((0, 2), dtype=bool)
-                        conf_concat = np.concatenate([s["conf"] for s in stats_list], axis=0) if len(stats_list[0]["conf"]) > 0 else np.array([])
-                        LOGGER.info(f"  After concatenation: tp shape={tp_concat.shape}, fp shape={fp_concat.shape}, conf len={len(conf_concat)}")
-                    except Exception as e:
-                        LOGGER.warning(f"  Could not compute concatenated shapes: {e}")
-        except Exception as e:
-            LOGGER.warning(f"Diagnostic logging failed (_diagnostic_log_statistics_accumulation): {e}")
-
-    def _diagnostic_log_ground_truth_counting(
-        self, target_cls: np.ndarray, nt_per_class: np.ndarray, nc: int
-    ) -> None:
-        """Log ground truth counting results for diagnostic purposes.
-
-        Args:
-            target_cls: Target class IDs array of shape [Total_M].
-            nt_per_class: Count per class array of shape [nc].
-            nc: Number of classes.
-        """
-        try:
-            LOGGER.info("[DIAG] Ground Truth Counting")
-            LOGGER.info(f"  nc (num classes): {nc}")
-            unique_target_cls = np.unique(target_cls).tolist() if len(target_cls) > 0 else []
-            target_min = int(np.min(target_cls)) if len(target_cls) > 0 else 0
-            target_max = int(np.max(target_cls)) if len(target_cls) > 0 else 0
-            LOGGER.info(f"  target_cls: shape={target_cls.shape}, unique={unique_target_cls}, min={target_min}, max={target_max}")
-            LOGGER.info(f"  nt_per_class: {nt_per_class.tolist()}")
-            class_names = {0: "Car", 1: "Pedestrian", 2: "Cyclist"}
-            for i in range(min(nc, len(nt_per_class))):
-                class_name = class_names.get(i, f"class_{i}")
-                LOGGER.info(f"    Class {i} ({class_name}): {int(nt_per_class[i])}")
-        except Exception as e:
-            LOGGER.warning(f"Diagnostic logging failed (_diagnostic_log_ground_truth_counting): {e}")
-
-    def _diagnostic_log_ap3d_computation(
-        self, tp_class: np.ndarray, fp_class: np.ndarray, n_gt: int, class_id: int, iou_thresh: float
-    ) -> None:
-        """Log AP3D computation inputs and results for diagnostic purposes.
-
-        Args:
-            tp_class: TP array for this class and threshold.
-            fp_class: FP array for this class and threshold.
-            n_gt: Number of ground truth objects for this class.
-            class_id: Class ID being processed.
-            iou_thresh: IoU threshold (0.5 or 0.7).
-        """
-        try:
-            from ultralytics.utils.metrics import compute_ap
-
-            tp_count = int(np.sum(tp_class))
-            fp_count = int(np.sum(fp_class))
-            tp_sum = int(np.sum(tp_class))
-            fp_sum = int(np.sum(fp_class))
-
-            # Compute precision and recall for diagnostic output
-            tp_cumsum = tp_class.cumsum()
-            fp_cumsum = fp_class.cumsum()
-            precision = tp_cumsum / (tp_cumsum + fp_cumsum + 1e-16)
-            recall = tp_cumsum / (n_gt + 1e-16)
-
-            ap, _, _ = compute_ap(recall.tolist(), precision.tolist())
-
-            LOGGER.info(f"[DIAG] AP3D Computation: Class {class_id} @ IoU {iou_thresh}")
-            LOGGER.info(f"  n_gt: {n_gt}")
-            LOGGER.info(f"  TP: shape={tp_class.shape}, count={tp_count}, sum={tp_sum}")
-            LOGGER.info(f"  FP: shape={fp_class.shape}, count={fp_count}, sum={fp_sum}")
-            if len(precision) > 0:
-                LOGGER.info(f"  Precision array: len={len(precision)}, range=[{float(np.min(precision)):.4f}, {float(np.max(precision)):.4f}]")
-            if len(recall) > 0:
-                LOGGER.info(f"  Recall array: len={len(recall)}, range=[{float(np.min(recall)):.4f}, {float(np.max(recall)):.4f}]")
-            LOGGER.info(f"  AP result: {ap:.4f}")
-        except Exception as e:
-            LOGGER.warning(f"Diagnostic logging failed (_diagnostic_log_ap3d_computation): {e}")
-
     def process(
         self,
         save_dir: Path = Path("."),
@@ -170,13 +80,18 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         if not self.stats:
             return {}
 
-        # Concatenate all statistics
+        # Concatenate all statistics (filter to non-empty arrays to avoid first-element dependency)
+        tp_arrays = [s["tp"] for s in self.stats if s["tp"].size > 0]
+        fp_arrays = [s["fp"] for s in self.stats if s["fp"].size > 0]
+        conf_arrays = [s["conf"] for s in self.stats if len(s["conf"]) > 0]
+        pred_cls_arrays = [s["pred_cls"] for s in self.stats if len(s["pred_cls"]) > 0]
+        target_cls_arrays = [s["target_cls"] for s in self.stats if len(s["target_cls"]) > 0]
         stats = {
-            "tp": np.concatenate([s["tp"] for s in self.stats], axis=0) if self.stats[0]["tp"].size > 0 else np.zeros((0, 2), dtype=bool),
-            "fp": np.concatenate([s["fp"] for s in self.stats], axis=0) if self.stats[0]["fp"].size > 0 else np.zeros((0, 2), dtype=bool),
-            "conf": np.concatenate([s["conf"] for s in self.stats], axis=0) if len(self.stats[0]["conf"]) > 0 else np.array([]),
-            "pred_cls": np.concatenate([s["pred_cls"] for s in self.stats], axis=0) if len(self.stats[0]["pred_cls"]) > 0 else np.array([], dtype=int),
-            "target_cls": np.concatenate([s["target_cls"] for s in self.stats], axis=0) if len(self.stats[0]["target_cls"]) > 0 else np.array([], dtype=int),
+            "tp": np.concatenate(tp_arrays, axis=0) if tp_arrays else np.zeros((0, 2), dtype=bool),
+            "fp": np.concatenate(fp_arrays, axis=0) if fp_arrays else np.zeros((0, 2), dtype=bool),
+            "conf": np.concatenate(conf_arrays, axis=0) if conf_arrays else np.array([]),
+            "pred_cls": np.concatenate(pred_cls_arrays, axis=0) if pred_cls_arrays else np.array([], dtype=int),
+            "target_cls": np.concatenate(target_cls_arrays, axis=0) if target_cls_arrays else np.array([], dtype=int),
         }
 
         if len(stats["conf"]) == 0:
@@ -185,37 +100,19 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
         # Import compute_ap from utils.metrics
         from ultralytics.utils.metrics import compute_ap
 
-        # Handle case where there are no predictions but there are ground truth boxes
-        # In this case, we still want to compute metrics (they'll be 0, but structure should be there)
-        if len(stats["conf"]) == 0:
-            # No predictions, but may have ground truth - use target_cls to determine classes
-            unique_classes = np.unique(stats["target_cls"]) if len(stats["target_cls"]) > 0 else np.array([])
-            if len(unique_classes) == 0:
-                return {}
-            # Create empty arrays for predictions
-            tp = np.zeros((0, 2), dtype=bool)
-            fp = np.zeros((0, 2), dtype=bool)
-            conf = np.array([])
-            pred_cls = np.array([], dtype=int)
-        else:
-            # Sort by confidence (descending)
-            i = np.argsort(-stats["conf"])
-            tp = stats["tp"][i]
-            fp = stats["fp"][i]
-            conf = stats["conf"][i]
-            pred_cls = stats["pred_cls"][i]
-            # Find unique classes from both predictions and ground truth
-            unique_classes = np.unique(np.concatenate([stats["target_cls"], pred_cls])) if len(stats["target_cls"]) > 0 or len(pred_cls) > 0 else np.array([])
-        
+        # Sort by confidence (descending)
+        i = np.argsort(-stats["conf"])
+        tp = stats["tp"][i]
+        fp = stats["fp"][i]
+        conf = stats["conf"][i]
+        pred_cls = stats["pred_cls"][i]
+        unique_classes = np.unique(np.concatenate([stats["target_cls"], pred_cls])) if len(stats["target_cls"]) > 0 or len(pred_cls) > 0 else np.array([])
+
         if len(unique_classes) == 0:
             return {}
 
         nc = len(unique_classes)
         nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc) if len(stats["target_cls"]) > 0 else np.zeros(self.nc, dtype=int)
-
-        # DIAGNOSTIC START
-        # self._diagnostic_log_ground_truth_counting(stats["target_cls"], nt_per_class, self.nc)
-        # DIAGNOSTIC END
 
         # Compute AP3D for IoU 0.5 and 0.7
         iou_thresholds = [0.5, 0.7]
@@ -285,9 +182,6 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
                         class_name = self.names.get(c, f'class_{c}')
                         
 
-                # DIAGNOSTIC START
-                # self._diagnostic_log_ap3d_computation(tp_class, fp_class, n_gt, c, iou_thresh)
-                # DIAGNOSTIC END
 
                 # Store results
                 ap3d_results[iou_thresh][c] = float(ap)

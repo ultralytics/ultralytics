@@ -418,7 +418,93 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
                     file.write(line + "\n")
             LOGGER.info(f"Processed and stored at {output_path} imgsz = {img_height} x {img_width}")
 
+def convert_drashti_haobb_to_yolo_obb(drashti_haobb_root_path: str):
+    """Convert DRASHTI-HaOBB dataset annotations to YOLO OBB (Oriented Bounding Box) format.
 
+    The function processes images in the 'train' and 'val' folders of the DRASHTI-HaOBB dataset. For each image, it reads the
+    associated label from the original labels directory and writes new labels in YOLO OBB format to a new directory.
+
+    Args:
+        drashti_haobb_root_path (str): The root directory path of the DRASHTI-HaOBB dataset.
+
+    Examples:
+        >>> from ultralytics.data.converter import convert_drashti_haobb_to_yolo_obb
+        >>> convert_drashti_haobb_to_yolo_obb("path/to/DRASHTI-HaOBB")
+
+    Notes:
+        The directory structure assumed for the DRASHTI-HaOBB dataset:
+
+            - DRASHTI-HaOBB
+                ├─ images
+                │   ├─ train
+                │   └─ val
+                └─ labels
+                    ├─ train_original
+                    └─ val_original
+
+        After execution, the function will organize the labels into:
+
+            - DRASHTI-HaOBB
+                └─ labels
+                    ├─ train
+                    └─ val
+    """
+    drashti_haobb_root_path = Path(drashti_haobb_root_path)
+
+    # Class names to indices mapping
+    class_mapping = {
+        "Auto3WCargo": 0,
+        "AutoRicksaw": 1,
+        "Bus": 2,
+        "Container": 3,
+        "Mixer": 4,
+        "MotorCycle": 5,
+        "PickUp": 6,
+        "SUV": 7,
+        "Sedan": 8,
+        "Tanker": 9,
+        "Tipper": 10,
+        "Trailer": 11,
+        "Truck": 12,
+        "Van": 13,
+    }
+
+    def convert_label(image_name: str, image_width: int, image_height: int, orig_label_dir: Path, save_dir: Path):
+        """Convert a single image's DRASHTI-HaOBB annotation to YOLO OBB format and save it to a specified directory."""
+        orig_label_path = orig_label_dir / f"{image_name}.txt"
+        save_path = save_dir / f"{image_name}.txt"
+
+        with orig_label_path.open("r") as f, save_path.open("w") as g:
+            lines = f.readlines()
+            for line in lines:
+                parts = line.strip().split()
+                if len(parts) < 9:
+                    continue
+                class_name = parts[8]
+                class_idx = class_mapping[class_name]
+                coords = [float(p) for p in parts[:8]]
+                normalized_coords = [
+                    coords[i] / image_width if i % 2 == 0 else coords[i] / image_height for i in range(8)
+                ]
+                formatted_coords = [f"{coord:.6g}" for coord in normalized_coords]
+                g.write(f"{class_idx} {' '.join(formatted_coords)}\n")
+
+    for phase in {"train", "val"}:
+        image_dir = drashti_haobb_root_path / "images" / phase
+        orig_label_dir = drashti_haobb_root_path / "labels" / f"{phase}_original"
+        save_dir = drashti_haobb_root_path / "labels" / phase
+
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+        image_paths = list(image_dir.iterdir())
+        for image_path in TQDM(image_paths, desc=f"Processing {phase} images"):
+            if image_path.suffix != ".png":
+                continue
+            image_name_without_ext = image_path.stem
+            img = cv2.imread(str(image_path))
+            h, w = img.shape[:2]
+            convert_label(image_name_without_ext, w, h, orig_label_dir, save_dir)
+            
 def convert_dota_to_yolo_obb(dota_root_path: str):
     """Convert DOTA dataset annotations to YOLO OBB (Oriented Bounding Box) format.
 

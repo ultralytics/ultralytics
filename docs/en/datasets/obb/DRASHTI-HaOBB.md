@@ -22,7 +22,7 @@ keywords: DRASHTI-HaOBB dataset, vehicle detection, aerial images, oriented boun
 
 ## Applications
 
-DRASHTI-HaOBB provides a standardised [OBB dataset](https://docs.ultralytics.com/datasets/obb/) for training and evaluating UAV-based vehicle detection models under real-world traffic conditions. The annotations include oriented bounding boxes along with vehicle heading angle and drone flight height to support vehicle detection in dense and heterogeneous aerial traffic scenes. The dataset is well-suited for research on road traffic safety analysis, understanding driving patterns, traffic rules enforcement, and broader intelligent transportation system studies.
+DRASHTI-HaOBB provides a standardised [OBB dataset](https://docs.ultralytics.com/datasets/obb/) for training and evaluating UAV-based vehicle detection models under real-world traffic conditions. The annotations include oriented bounding boxes along with vehicle heading angle and drone flight height to support vehicle detection in dense and heterogeneous aerial traffic scenes. Models trained on the DRASHTI-HaOBB dataset efficiently detect vehicles (i.e., classify vehicles and localise OBBs), which could further support computer vision-based applications for road traffic safety analysis, understanding driving patterns, traffic rule enforcement, and broader intelligent transportation system studies.
 
 ## Dataset Structure
 
@@ -92,39 +92,33 @@ If you use DRASHTI-HaOBB in your work, please cite the relevant research papers:
     === "BibTeX"
 
         ```bibtex
-@dataset{bhavsar_2026_18278989,
-  author       = {Bhavsar, Yagnik and
-                  Zaveri, Mazad and
-                  Raval, Mehul and
-                  Zaveri, Shaheriar and
-                  Ahmedabad University},
-  title        = {DRASHTI-HaOBB: Drone nadiR-view Annotated imageS
-                   of veHicles dataseT for India - Heading-angle
-                   Oriented Bounding Box: Indian Vehicle Oriented-
-                   Object-Detection Dataset with 1.3 Million Samples
-                  },
-  month        = feb,
-  year         = 2026,
-  publisher    = {Zenodo},
-  version      = {1.0.0},
-  doi          = {10.5281/zenodo.18278989},
-  url          = {https://doi.org/10.5281/zenodo.18278989},
-}
+        @dataset{bhavsar_2026_18278989,
+            author= {Bhavsar, Yagnik and Zaveri, Mazad and Raval, Mehul and Zaveri, Shaheriar and Ahmedabad University},
+            title= {DRASHTI-HaOBB: Drone nadiR-view Annotated imageS of veHicles dataseT for India - Heading-angle Oriented Bounding Box: Indian Vehicle                             Oriented-Object-Detection Dataset with 1.3 Million Samples},
+            month        = feb,
+            year         = 2026,
+            publisher    = {Zenodo},
+            version      = {1.0.0},
+            doi          = {10.5281/zenodo.18278989},
+            url          = {https://doi.org/10.5281/zenodo.18278989},}
         ```
-
 We acknowledge the team behind the DRASHTI-HaOBB dataset at Ahmedabad University for their dedicated effort in curating this resource. For a comprehensive description of the dataset and its characteristics, please visit the [official DRASHTI-HaOBB website](https://sites.google.com/ahduni.edu.in/yagnikmbhavsar/dataset).
 
 ## FAQ
 
 ### What is the DRASHTI-HaOBB dataset and how is it different from other aerial datasets?
 
-DRASHTI-HaOBB is a large-scale UAV-based oriented vehicle detection dataset designed for road traffic analysis under real-world Indian traffic conditions. It consists of 27,577 nadir-view aerial images with nearly 1.3 million vehicle annotations across 14 heterogeneous vehicle categories, each labelled with oriented bounding boxes, vehicle heading information, and UAV flight height. Unlike many existing aerial datasets that focus on axis-aligned boxes, structured traffic, or a limited number of classes, DRASHTI-HaOBB captures dense, heterogeneous traffic common in developing countries. Detailed vehicle classification and nadir-view UAV imagery of the DRASHTI-HaOBB dataset make it suitable for road traffic safety analysis. 
+DRASHTI-HaOBB is a large-scale UAV-based oriented vehicle detection dataset designed for road traffic analysis under real-world Indian traffic conditions. It consists of 27,577 nadir-view aerial images with nearly 1.3 million vehicle annotations across 14 heterogeneous vehicle categories, each labelled with oriented bounding boxes, vehicle heading information, and UAV flight height. Unlike many existing aerial datasets that focus on axis-aligned boxes, structured traffic, or a limited number of classes, DRASHTI-HaOBB captures dense, heterogeneous traffic common in developing countries. Detailed vehicle classification and nadir-view UAV imagery of the DRASHTI-HaOBB dataset make it suitable for computer vision-based road traffic safety analysis. 
+
+Further, UAV flight height can help determine ground sample distance (a mapping from the image coordinate system (pixels) to the real-world coordinate system (meters)) and estimate the vehicle's size and speed. The vehicle's heading angle can help define the stopping distance and the blind spots around a vehicle.  
 
 ### How is the class imbalance problem addressed?
 
+In a real-world traffic scenario, vehicle samples across 14 classes are always imbalanced; therefore, to mitigate class imbalance, copy-paste augmentation was performed on real-world images to upsample minority classes. 
+
 ### What are the possible applications of DRASHTI-HaOBB, and to what extent can it generalise to traffic scenarios in other countries?
 
-DRASHTI-HaOBB dataset is well-suited for research on road traffic safety analysis, as discussed in section [applications](#applications). It spans over 14 different vehicle categories: ‘Auto3WCargo’, ‘AutoRicksaw’, ‘Bus’, ‘Container’, ‘Mixer’, ‘MotorCycle’, ‘PickUp’, ‘SUV’, ‘Sedan’, ‘Tanker’, ‘Tipper’, ‘Trailer’, ‘Truck’, ‘Van’. Since many of these vehicle classes are commonly observed across multiple countries and regions, particularly in Asia, the dataset can be effectively used to study traffic scenarios in countries with similar vehicle compositions.
+DRASHTI-HaOBB dataset is well-suited for research on computer vision-based road traffic safety analysis, as discussed in section [applications](#applications). It spans over 14 different vehicle categories: ‘Auto3WCargo’, ‘AutoRicksaw’, ‘Bus’, ‘Container’, ‘Mixer’, ‘MotorCycle’, ‘PickUp’, ‘SUV’, ‘Sedan’, ‘Tanker’, ‘Tipper’, ‘Trailer’, ‘Truck’, ‘Van’. Since many of these vehicle classes are commonly observed across the Indian subcontinent, the dataset can be effectively leveraged to study traffic scenarios in countries exhibiting similar vehicle compositions.
 
 ### How can I train a model using the DRASHTI-HaOBB dataset?
 
@@ -153,7 +147,7 @@ To train a model on the DRASHTI-HaOBB dataset, you can use the following example
 
 ### How can I improve model training accuracy on the DRASHTI-HaOBB dataset?
 
-- DRASHTI-HaOBB has only 15.27% augmented images (generated using copy-paste augmentation on real-world images). Therefore, different augmentations during model training help to improve model accuracy.  For detailed instructions, visit the [augmentation-settings-and-hyperparameters](https://docs.ultralytics.com/modes/train/#augmentation-settings-and-hyperparameters).
+- DRASHTI-HaOBB has only 15.27% augmented images (generated using copy-paste augmentation on real-world images). Therefore, different augmentation techniques during model training help to further improve model accuracy. For detailed instructions, visit the [augmentation-settings-and-hyperparameters](https://docs.ultralytics.com/modes/train/#augmentation-settings-and-hyperparameters).
 - DRASHTI-HaOBB images are available in 4K resolution (3840 x 2160) and could be further split into smaller resolutions for better training. Here's a Python snippet to split images:
 
 !!! example
@@ -189,24 +183,15 @@ If you use DRASHTI-HaOBB in your work, please cite the relevant research papers:
     === "BibTeX"
 
         ```bibtex
-@dataset{bhavsar_2026_18278989,
-  author       = {Bhavsar, Yagnik and
-                  Zaveri, Mazad and
-                  Raval, Mehul and
-                  Zaveri, Shaheriar and
-                  Ahmedabad University},
-  title        = {DRASHTI-HaOBB: Drone nadiR-view Annotated imageS
-                   of veHicles dataseT for India - Heading-angle
-                   Oriented Bounding Box: Indian Vehicle Oriented-
-                   Object-Detection Dataset with 1.3 Million Samples
-                  },
-  month        = feb,
-  year         = 2026,
-  publisher    = {Zenodo},
-  version      = {1.0.0},
-  doi          = {10.5281/zenodo.18278989},
-  url          = {https://doi.org/10.5281/zenodo.18278989},
-}
+        @dataset{bhavsar_2026_18278989,
+            author= {Bhavsar, Yagnik and Zaveri, Mazad and Raval, Mehul and Zaveri, Shaheriar and Ahmedabad University},
+            title= {DRASHTI-HaOBB: Drone nadiR-view Annotated imageS of veHicles dataseT for India - Heading-angle Oriented Bounding Box: Indian Vehicle                             Oriented-Object-Detection Dataset with 1.3 Million Samples},
+            month        = feb,
+            year         = 2026,
+            publisher    = {Zenodo},
+            version      = {1.0.0},
+            doi          = {10.5281/zenodo.18278989},
+            url          = {https://doi.org/10.5281/zenodo.18278989},}
         ```
 ### Can I modify, redistribute, or use the DRASHTI-HaOBB dataset for commercial purposes?
 

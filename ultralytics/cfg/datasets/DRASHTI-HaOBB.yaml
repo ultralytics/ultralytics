@@ -36,7 +36,7 @@ download: |
   import zipfile
   from pathlib import Path
   from ultralytics.utils.downloads import download
-  from ultralytics.data.converter import convert_dota_to_yolo_obb
+  from ultralytics.data.converter import convert_drashti_haobb_to_yolo_obb
   import shutil
   # Download (ignores test-challenge split)
   dir = Path(yaml["path"])  # dataset root dir
@@ -91,4 +91,4 @@ download: |
       # delete that directory
       tmpdir= dir / split
       shutil.rmtree(tmpdir)
-  convert_dota_to_yolo_obb(dir) #convert DOTA annotations to YOLO annotations
+  convert_drashti_haobb_to_yolo_obb(dir) #convert DRASHTI-HaOBB annotations to YOLO annotations

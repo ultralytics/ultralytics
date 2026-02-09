@@ -38,7 +38,7 @@ download: |
   from ultralytics.utils.downloads import download
   from ultralytics.data.converter import convert_drashti_haobb_to_yolo_obb
   import shutil
-  # Download (ignores test-challenge split)
+  
   dir = Path(yaml["path"])  # dataset root dir
   
   images_dir = dir / "images"

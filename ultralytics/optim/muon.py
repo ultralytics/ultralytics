@@ -2,6 +2,7 @@ from __future__ import annotations
 from torch import optim
 import torch
 import math
+import re
 
 
 def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
@@ -279,6 +280,7 @@ class MuSGD(optim.Optimizer):
             with torch.enable_grad():
                 loss = closure()
 
+        pattern = r'(?=.*23)(?=.*cv3)|projector|generation|norm'
         for group in self.param_groups:
             # Muon
             if group["use_muon"]:
@@ -287,8 +289,7 @@ class MuSGD(optim.Optimizer):
                     lr = (
                         group["lr"] * self.cls_w
                         if group["param_names"] is not None
-                        and "cv3" in group["param_names"][i]
-                        and "23" in group["param_names"][i]
+                        and bool(re.search(pattern, group["param_names"][i]))
                         # and ("2.weight" in group["param_names"][i] or "2.bias" in group["param_names"][i])
                         # and int(group["param_names"][i].split(".")[1]) in list(range(11, 24))
                         else group["lr"]
@@ -326,8 +327,7 @@ class MuSGD(optim.Optimizer):
                     lr = (
                         group["lr"] * self.cls_w
                         if group["param_names"] is not None
-                        and "cv3" in group["param_names"][i]
-                        and "23" in group["param_names"][i]
+                        and bool(re.search(pattern, group["param_names"][i]))
                         # and ("2.weight" in group["param_names"][i] or "2.bias" in group["param_names"][i])
                         # and int(group["param_names"][i].split(".")[1]) in list(range(11, 24))
                         else group["lr"]

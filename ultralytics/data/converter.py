@@ -498,7 +498,7 @@ def convert_drashti_haobb_to_yolo_obb(drashti_haobb_root_path: str):
 
         image_paths = list(image_dir.iterdir())
         for image_path in TQDM(image_paths, desc=f"Processing {phase} images"):
-            if image_path.suffix != ".png":
+            if image_path.suffix != ".jpg":
                 continue
             image_name_without_ext = image_path.stem
             img = cv2.imread(str(image_path))

@@ -344,7 +344,7 @@ def on_pretrain_routine_end(trainer):
 
 def on_fit_epoch_end(trainer):
     """Log training and system metrics at epoch end."""
-    if RANK not in {-1, 0} or not trainer.args.project:
+    if RANK not in {-1, 0} or not trainer.args.project or getattr(trainer, "_platform_cancelled", False):
         return
 
     project, name = _get_project_name(trainer)

@@ -253,7 +253,7 @@ class Tuner:
             with open(self.tune_csv, "w", encoding="utf-8") as f:
                 f.write(headers)
                 for result in all_results:
-                    fitness = result["fitness"]
+                    fitness = result["fitness"] or 0.0
                     hyp_values = [result["hyperparameters"].get(k, self.args.get(k)) for k in self.space.keys()]
                     log_row = [round(fitness, 5), *hyp_values]
                     f.write(",".join(map(str, log_row)) + "\n")
@@ -406,7 +406,7 @@ class Tuner:
                 LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")
 
             # Save results - MongoDB takes precedence
-            fitness = metrics.get("fitness", 0.0)
+            fitness = metrics.get("fitness") or 0.0
             if self.mongodb:
                 self._save_to_mongodb(fitness, mutated_hyp, metrics, i + 1)
                 self._sync_mongodb_to_csv()

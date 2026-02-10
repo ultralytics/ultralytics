@@ -104,6 +104,7 @@ from ultralytics.utils import (
     callbacks,
     colorstr,
     get_default_args,
+    is_dgx,
     is_jetson,
 )
 from ultralytics.utils.checks import (
@@ -295,17 +296,19 @@ class Exporter:
         export_tfjs: Export model to TensorFlow.js format.
         export_rknn: Export model to RKNN format.
         export_imx: Export model to IMX format.
+        export_executorch: Export model to ExecuTorch format.
+        export_axelera: Export model to Axelera format.
 
     Examples:
-        Export a YOLOv8 model to ONNX format
+        Export a YOLO26 model to ONNX format
         >>> from ultralytics.engine.exporter import Exporter
         >>> exporter = Exporter()
-        >>> exporter(model="yolov8n.pt")  # exports to yolov8n.onnx
+        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.onnx
 
         Export with specific arguments
         >>> args = {"format": "onnx", "dynamic": True, "half": True}
         >>> exporter = Exporter(overrides=args)
-        >>> exporter(model="yolov8n.pt")
+        >>> exporter(model="yolo26n.pt")
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -717,6 +720,7 @@ class Exporter:
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
+            self.args.simplify = True  # fix OBB runtime error related to topk
 
         with arange_patch(self.args):
             torch2onnx(
@@ -1021,7 +1025,7 @@ class Exporter:
 
         # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
         # https://github.com/ultralytics/ultralytics/issues/22873
-        if is_jetson(jetpack=7):
+        if is_jetson(jetpack=7) or is_dgx():
             check_tensorrt("10.15")
 
         try:

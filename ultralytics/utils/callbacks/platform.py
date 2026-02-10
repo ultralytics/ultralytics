@@ -189,7 +189,7 @@ def _upload_model(model_path, project, name, progress=False, retry=1):
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
         return None
 
-    # Get signed upload URL from Platform
+    # Get signed upload URL from Platform (server sanitizes filename for storage safety)
     @Retry(times=3, delay=2)
     def get_signed_url():
         r = requests.post(

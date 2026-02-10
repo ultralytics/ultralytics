@@ -63,6 +63,11 @@ class DistillationModel(nn.Module):
                     teacher_dim = teacher_out.shape[1]
                     norms.append(nn.BatchNorm2d(teacher_dim, affine=False))
             self.norm = nn.ModuleList(norms)
+        if self.distill_box or self.distill_cls or self.distill_feature_loss == "sl2":
+            if 23 not in self.feats_idx:
+                self.feats_idx = list(self.feats_idx)
+                self.feats_idx.append(23)
+                self.feats_idx = tuple(self.feats_idx)
         self.distill_area = self.student_model.args.distill_area
         self.distill_branch = self.student_model.args.distill_branch
         self.distill_branch = self.student_model.args.distill_branch.split(",")
@@ -109,6 +114,16 @@ class DistillationModel(nn.Module):
             batch (dict): Batch to compute loss on.
             preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
+        # 在验证时，跳过蒸馏损失计算
+        if not self.training:
+            preds, feats = self.student_model(batch["img"], return_feats=True)
+            regular_loss, regular_loss_detach, targets = self.student_model.loss(batch, preds, return_targets=True)
+            # 蒸馏损失设为0
+            loss_distill = torch.zeros(1, device=batch["img"].device)
+            loss_distill_detach = torch.zeros(1, device=batch["img"].device)
+            return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill_detach])
+
+        # 训练时计算蒸馏损失
         with torch.inference_mode():
             teacher_feats = self.teacher_model(batch["img"], embed=self.feats_idx, direct_return=True)
         preds, feats = self.student_model(batch["img"], return_feats=True)
@@ -118,6 +133,10 @@ class DistillationModel(nn.Module):
         loss_distill_cls = torch.zeros(1, device=batch["img"].device)
         loss_distill_box = torch.zeros(1, device=batch["img"].device)
         loss_distill_feature = torch.zeros(1, device=batch["img"].device)
+        if self.distill_feature_loss == "sl2":
+            teacher_scores = teacher_feats[-1]['one2one']['scores']
+            parts = torch.split(teacher_scores, [6400, 1600, 400], dim=-1)
+            teacher_scores = tuple(p.sigmoid().max(dim=1, keepdim=True).values for p in parts)
         for i, feat_idx in enumerate(self.feats_idx):
             # handle head ouput
             teacher_feat = self.decouple_outputs(teacher_feats[i])
@@ -161,7 +180,10 @@ class DistillationModel(nn.Module):
                         if student_feat.ndim == 4
                         else student_feat
                     )
-                    loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat, feat_idx=i) * self.distill_feature
+                    if self.distill_feature_loss == "sl2":
+                        loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat, feat_idx=i, teacher_scores=teacher_scores) * self.distill_feature
+                    else:
+                        loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat, feat_idx=i) * self.distill_feature
 
         loss_distill_detach = (loss_distill_cls + loss_distill_box + loss_distill_feature).detach()
         batch_size = batch["img"].shape[0]
@@ -208,6 +230,16 @@ class DistillationModel(nn.Module):
         dis_loss = cost / (N * C)
         return dis_loss
 
+    def loss_sl2(self, student_feat, teacher_feat, feat_idx=0, teacher_scores=None):
+        teacher_score = teacher_scores[feat_idx]
+        N, C, H, W = student_feat.shape
+        student_feat = student_feat.view(N, C, -1)
+        teacher_feat = teacher_feat.view(N, C, -1)
+        dis_loss = F.mse_loss(student_feat, teacher_feat, reduction='none')
+        dis_loss = dis_loss * teacher_score
+        dis_loss = dis_loss.sum() / (teacher_score.sum() * C + 1e-9)
+        return dis_loss
+
     def box_kd_loss(self, student_boxes, teacher_boxes):
         if self.distill_box_loss == "cos":
             return self.loss_cosine(student_boxes, teacher_boxes)
@@ -235,7 +267,7 @@ class DistillationModel(nn.Module):
             else:
                 raise ValueError(f"Unknown cls distillation loss: {self.distill_cls_loss}")
 
-    def feature_kd_loss(self, student_feat, teacher_feat, feat_idx=0):
+    def feature_kd_loss(self, student_feat, teacher_feat, feat_idx=0, teacher_scores=None):
         if self.distill_feature_loss == "cos":
             return self.loss_cosine(student_feat, teacher_feat)
         elif self.distill_feature_loss == "l1":
@@ -246,8 +278,10 @@ class DistillationModel(nn.Module):
             return self.loss_mgd(student_feat, teacher_feat, feat_idx=feat_idx)
         elif self.distill_feature_loss == "cwd":
             return self.loss_cwd(student_feat, teacher_feat, feat_idx=feat_idx)
+        elif self.distill_feature_loss == "sl2":
+            return self.loss_sl2(student_feat, teacher_feat, feat_idx=feat_idx, teacher_scores=teacher_scores)
         else:
-            raise ValueError(f"Unknown box distillation loss: {self.distill_feature_loss}")
+            raise ValueError(f"Unknown feature distillation loss: {self.distill_feature_loss}")
 
     @property
     def criterion(self):

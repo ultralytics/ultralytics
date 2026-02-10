@@ -853,17 +853,19 @@ class Exporter:
         return f
 
     @try_export
-    def export_litert(self, prefix=colorstr("liteRT:")):
-        """Export YOLO model to liteRT format using ai_edge_torch with optional FP16/INT8 quantization."""
-        check_requirements("ai-edge-torch")
-        import ai_edge_torch
+    def export_litert(self, prefix=colorstr("LiteRT:")):
+        """Export YOLO model to LiteRT format using litert_torch with optional FP16/INT8 quantization."""
+        assert LINUX and not MACOS and not WINDOWS and not ARM64, "LiteRT export only supported on Linux x86"
+        
+        check_requirements("litert-torch>=0.8.0")
+        import litert_torch
 
-        LOGGER.info(f"\n{prefix} starting export with ai_edge_torch...")
+        LOGGER.info(f"\n{prefix} starting export with litert_torch {litert_torch.__version__}...")
         f = Path(str(self.file).replace(self.file.suffix, "_litert_model"))
         f.mkdir(parents=True, exist_ok=True)
 
         sample_inputs = (self.im,)
-        edge_model = ai_edge_torch.convert(self.model, sample_inputs)
+        edge_model = litert_torch.convert(self.model, sample_inputs)
 
         if self.args.int8:
             tflite_file = f / f"{self.file.stem}_int8.tflite"  # fp32 in/out

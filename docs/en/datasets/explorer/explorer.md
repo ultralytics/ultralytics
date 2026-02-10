@@ -80,7 +80,7 @@ similar = exp.get_similar(idx=1, limit=10)
 similar.head()
 ```
 
-You can use the also plot the similar samples directly using the `plot_similar` util
+You can also plot the similar samples directly using the `plot_similar` util
 
 ![Similar images found by vector search](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-search-image-1.avif)
 
@@ -245,7 +245,7 @@ exp.plot_similarity_index(max_dist=0.2, top_k=0.01)
 
 ![Dataset similarity index analysis](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/similarity-index.avif)
 
-at the plot first
+Let's look at the plot first
 
 ```python
 exp.plot_similarity_index(max_dist=0.2, top_k=0.01)

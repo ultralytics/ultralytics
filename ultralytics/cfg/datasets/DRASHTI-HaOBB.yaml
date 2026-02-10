@@ -88,7 +88,7 @@ download: |
       # delete zip
       zip_path.unlink()
       
-      # delete that directory
+      # delete that split directory
       tmpdir= dir / split
       shutil.rmtree(tmpdir)
   convert_drashti_haobb_to_yolo_obb(dir) #convert DRASHTI-HaOBB annotations to YOLO annotations

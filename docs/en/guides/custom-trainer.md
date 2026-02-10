@@ -4,7 +4,7 @@ description: Learn how to customize the Ultralytics YOLO trainer with custom met
 keywords: Ultralytics, YOLO, Custom Trainer, DetectionTrainer, BaseTrainer, Custom Metrics, F1 Score, Class Weights, Backbone Freezing, Per-Layer Learning Rate, Fine-Tuning, Transfer Learning
 ---
 
-# Customizing the Ultralytics YOLO Trainer
+# Customizing the Trainer
 
 The Ultralytics training pipeline is built around `BaseTrainer` and task-specific trainers like `DetectionTrainer`. These classes handle the training loop, validation, checkpointing, and logging out of the box. When you need more control — tracking custom metrics, adjusting loss weighting, or implementing learning rate schedules — you can subclass the trainer and override specific methods.
 

@@ -313,8 +313,11 @@ class BaseTrainer:
                 feats_idx=self.args.distill_layer,
             ).to(self.device)
             self.freeze_layer_names += [f"teacher_model."]  # handle BN layers
+        if self.world_size > 1:
+            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
         # Check imgsz
-        gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
+        model_for_stride = unwrap_model(self.model)
+        gs = max(int(model_for_stride.stride.max() if hasattr(model_for_stride, "stride") else 32), 32)  # max stride
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
         self.stride = gs  # for multiscale training
 

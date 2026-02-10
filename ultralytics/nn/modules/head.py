@@ -129,6 +129,11 @@ class Detect(nn.Module):
         # NTOE: having this `_end2end` check for the possibility of non-end2end exporting
         return hasattr(self, "one2one") and getattr(self, "_end2end", True)
 
+    @end2end.setter
+    def end2end(self, value):
+        """Override the end-to-end detection mode."""
+        self._end2end = value
+
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None
     ) -> dict[str, torch.Tensor]:

@@ -259,6 +259,21 @@ class DistillationModel(nn.Module):
         """Set value for student criterion."""
         self.student_model.criterion = value
 
+    @property
+    def end2end(self):
+        """Expose student end-to-end mode for validator/predictor control."""
+        return getattr(self.student_model, "end2end", False)
+
+    @end2end.setter
+    def end2end(self, value):
+        """Forward end-to-end mode update to the student model."""
+        self.student_model.end2end = value
+
+    def set_head_attr(self, **kwargs):
+        """Forward head-attribute updates (e.g. max_det, agnostic_nms, end2end) to the student model."""
+        if hasattr(self.student_model, "set_head_attr"):
+            self.student_model.set_head_attr(**kwargs)
+
     def fuse(self, verbose: bool = True):
         """Fuse model layers for inference speedup."""
         self.student_model.fuse(verbose)

@@ -451,6 +451,24 @@ class DetectionModel(BaseModel):
     def end2end(self):
         return getattr(self.model[-1], "end2end", False)
 
+    @end2end.setter
+    def end2end(self, value):
+        self.set_head_attr(end2end=value)
+
+    def set_head_attr(self, **kwargs):
+        """
+        Set attributes of the model head (last layer).
+
+        Args:
+            **kwargs: Arbitrary keyword arguments representing attributes to set.
+        """
+        head = self.model[-1]
+        for k, v in kwargs.items():
+            if not hasattr(head, k):
+                LOGGER.warning(f"Head has no attribute '{k}'.")
+                continue
+            setattr(head, k, v)
+
     def update_detach(self, detach_o2o=True):
         """
         Update the Detect layer to detach one-to-one outputs if end-to-end detection is enabled.

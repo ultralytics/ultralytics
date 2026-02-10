@@ -149,6 +149,8 @@ Compared to other state-of-the-art detectors:
         [5]: https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov10l.pt
         [6]: https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov10x.pt
 
+_Params and FLOPs values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts._
+
 ## Usage Examples
 
 For predicting new images with YOLOv10:

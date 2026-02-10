@@ -411,6 +411,7 @@ class ProfileModels:
         trt: bool = True,
         device: torch.device | str | None = None,
         save_dir: str | Path = ".",
+        val: bool = True,
     ):
         """Initialize the ProfileModels class for profiling models.
 
@@ -424,6 +425,7 @@ class ProfileModels:
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
             save_dir (str | Path): Directory to save markdown output. Default is current directory.
+            val (bool): Run validation to get mAP metrics. Set False for speed-only profiling.
 
         Notes:
             FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
@@ -437,6 +439,7 @@ class ProfileModels:
         self.trt = trt  # run TensorRT profiling
         self.device = device if isinstance(device, torch.device) else select_device(device)
         self.save_dir = Path(save_dir)
+        self.val = val
 
     def run(self):
         """Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
@@ -480,7 +483,7 @@ class ProfileModels:
                     data_yaml = train_args.get("data")
 
                 # Validate to get mAP
-                if data_yaml:
+                if self.val and data_yaml:
                     try:
                         LOGGER.info(f"Validating {model_name} on {data_yaml}...")
                         results = model.val(

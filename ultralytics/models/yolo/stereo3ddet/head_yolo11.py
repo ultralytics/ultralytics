@@ -5,6 +5,7 @@ from typing import Dict, List
 import torch
 import torch.nn as nn
 
+from ultralytics.nn.modules.conv import Conv
 from ultralytics.nn.modules.head import Detect
 
 
@@ -18,6 +19,16 @@ def _branch(in_ch: int, out_ch: int, hidden: int = 256) -> nn.Sequential:
         nn.BatchNorm2d(hidden),
         nn.SiLU(inplace=True),
         nn.Conv2d(hidden, out_ch, 1, 1, 0),
+    )
+
+
+def _deep_branch(in_ch: int, out_ch: int, hidden: int = 64) -> nn.Sequential:
+    """Deeper conv branch for depth-critical predictions (lr_distance, depth)."""
+    return nn.Sequential(
+        Conv(in_ch, hidden, 3),
+        Conv(hidden, hidden, 3),
+        Conv(hidden, hidden, 3),
+        nn.Conv2d(hidden, out_ch, 1),
     )
 
 
@@ -37,13 +48,15 @@ class Stereo3DDetHeadYOLO11(Detect):
 
         # Hidden size scales with model width (same pattern as Pose.cv4)
         hidden = max(ch[0] // 4, max(AUX_SPECS.values()))
+        depth_hidden = max(ch[0] // 2, 64)  # wider hidden for depth-critical branches
 
         # Per-scale aux branches (like Pose.cv4)
         self.aux = nn.ModuleDict()
         for name, out_c in AUX_SPECS.items():
-            self.aux[name] = nn.ModuleList(
-                _branch(x, out_c, hidden) for x in ch
-            )
+            if name in ("lr_distance", "depth"):
+                self.aux[name] = nn.ModuleList(_deep_branch(x, out_c, depth_hidden) for x in ch)
+            else:
+                self.aux[name] = nn.ModuleList(_branch(x, out_c, hidden) for x in ch)
 
     def forward(self, x: List[torch.Tensor]) -> Dict[str, torch.Tensor] | tuple:
         """Forward pass: process aux BEFORE Detect.forward (Detect modifies x in-place)."""

@@ -53,7 +53,6 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
         aux_gt: torch.Tensor,
         gt_idx: torch.Tensor,
         fg_mask: torch.Tensor,
-        loss_type: str = "l1",
     ) -> torch.Tensor:
         """Compute auxiliary loss on positives using gathered GT via target_gt_idx.
 
@@ -62,7 +61,6 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
             aux_gt: [B, max_n, C] — padded per-image GT.
             gt_idx: [B, HW_total] — assignment indices from TAL.
             fg_mask: [B, HW_total] — boolean foreground mask.
-            loss_type: "l1" or "smooth_l1".
         """
         bs, c, n = pred_map.shape
         pred_flat = pred_map.permute(0, 2, 1)  # [B, HW_total, C]
@@ -80,11 +78,7 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
         if pred_pos.numel() == 0:
             return pred_map.sum() * 0.0
 
-        if loss_type == "l1":
-            return F.l1_loss(pred_pos, tgt_pos, reduction="mean")
-        if loss_type == "smooth_l1":
-            return F.smooth_l1_loss(pred_pos, tgt_pos, reduction="mean")
-        raise ValueError(f"Unknown aux loss_type={loss_type}")
+        return F.smooth_l1_loss(pred_pos, tgt_pos, reduction="mean")
 
     def _compute_aux_losses(
         self,
@@ -97,14 +91,14 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
         aux_losses: Dict[str, torch.Tensor] = {}
         aux_targets = batch.get("aux_targets", {})
 
-        if isinstance(aux_targets, dict) and aux_targets:
-            for k in ("lr_distance", "depth", "dimensions", "orientation"):
-                if k not in aux_preds or k not in aux_targets:
-                    continue
-                aux_gt = aux_targets[k].to(self.device)
-                aux_losses[k] = self._aux_loss(
-                    aux_preds[k], aux_gt, target_gt_idx, fg_mask, loss_type="smooth_l1"
-                )
+        if not isinstance(aux_targets, dict) or not aux_targets:
+            return aux_losses
+
+        for k in ("lr_distance", "depth", "dimensions", "orientation"):
+            if k not in aux_preds or k not in aux_targets:
+                continue
+            aux_gt = aux_targets[k].to(self.device)
+            aux_losses[k] = self._aux_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask)
 
         return aux_losses
 

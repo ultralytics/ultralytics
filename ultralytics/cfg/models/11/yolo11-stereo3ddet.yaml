@@ -13,6 +13,13 @@ scales: # model compound scaling constants, i.e. 'model=yolo11n-stereo3ddet.yaml
   s: [0.50, 0.50, 1024]
   m: [0.50, 1.00, 512]
 
+# Aux loss weights (lr_distance in log-space, targets ~-4.6 to -1.5)
+training:
+  loss_weights:
+    lr_distance: 2.0
+    dimensions: 1.0
+    orientation: 1.0
+
 # Mean dimensions per class [L, W, H] in meters
 mean_dims:
   Car: [3.88, 1.63, 1.53]

@@ -96,12 +96,13 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
         aux_targets = batch.get("aux_targets", {})
 
         if isinstance(aux_targets, dict) and aux_targets:
-            for k in ("lr_distance", "right_width", "dimensions", "orientation", "vertices", "vertex_offset", "vertex_dist"):
+            for k in ("lr_distance", "dimensions", "orientation"):
                 if k not in aux_preds or k not in aux_targets:
                     continue
                 aux_gt = aux_targets[k].to(self.device)
-                loss_type = "smooth_l1" if k in {"lr_distance", "right_width", "dimensions"} else "l1"
-                aux_losses[k] = self._aux_loss(aux_preds[k], aux_gt, target_gt_idx, fg_mask, loss_type=loss_type)
+                aux_losses[k] = self._aux_loss(
+                    aux_preds[k], aux_gt, target_gt_idx, fg_mask, loss_type="smooth_l1"
+                )
 
         return aux_losses
 
@@ -188,12 +189,8 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
             loss_cls,
             loss_dfl,
             aux_losses.get("lr_distance", torch.tensor(0.0, device=self.device)),
-            aux_losses.get("right_width", torch.tensor(0.0, device=self.device)),
             aux_losses.get("dimensions", torch.tensor(0.0, device=self.device)),
             aux_losses.get("orientation", torch.tensor(0.0, device=self.device)),
-            aux_losses.get("vertices", torch.tensor(0.0, device=self.device)),
-            aux_losses.get("vertex_offset", torch.tensor(0.0, device=self.device)),
-            aux_losses.get("vertex_dist", torch.tensor(0.0, device=self.device)),
         ]
         loss_items = torch.stack(items)
 

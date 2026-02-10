@@ -20,12 +20,7 @@ from ultralytics.models.yolo.stereo3ddet.augment import (
     StereoLetterBox,
 )
 from ultralytics.utils import DEFAULT_CFG, LOGGER
-from ultralytics.data.stereo.target_improved import (
-    TargetGenerator,
-    compute_alpha_from_rotation_y,
-    compute_dimension_offset,
-    encode_orientation,
-)
+from ultralytics.data.stereo.target_improved import TargetGenerator, compute_dimension_offset
 import math
 
 def _to_hw(imgsz: int | tuple[int, int] | list[int]) -> tuple[int, int]:
@@ -817,20 +812,15 @@ class Stereo3DDetDataset(BaseDataset):
         # Per-image lists (will be padded)
         per_image_aux: dict[str, list[torch.Tensor]] = {
             "lr_distance": [],
-            "right_width": [],
             "dimensions": [],
             "orientation": [],
-            "vertices": [],
-            "vertex_offset": [],
-            "vertex_dist": [],
         }
-        per_image_counts: list[int] = []
-        labels_list: list[list[dict[str, Any]]] = []
 
-        # Reuse mean_dims and std_dims mapping from TargetGenerator for consistency.
+        # Reuse mean_dims and std_dims mapping from TargetGenerator for dimension offset computation.
         mean_dims = self.target_generator.mean_dims
         std_dims = self.target_generator.std_dims
-        class_names_map = self.target_generator.class_names_map
+        per_image_counts: list[int] = []
+        labels_list: list[list[dict[str, Any]]] = []
 
         for i, (b, calib, ori_shape) in enumerate(zip(batch, calibs, ori_shapes)):
             # Extract from Format output tensors (instances was already popped by Format)
@@ -912,16 +902,12 @@ class Stereo3DDetDataset(BaseDataset):
 
             # Build per-object aux targets for this image
             lr_list = []
-            rw_list = []
             dim_list = []
             ori_list = []
-            v_list = []
-            vo_list = []
-            vd_list = []
 
             for j in range(n):
                 cls_i = int(cls_array[j])
-                
+
                 # Normalized xywh (letterboxed input space) for detection loss.
                 cx, cy, bw, bh = bboxes_xywh[j]
                 cx, cy, bw, bh = float(cx), float(cy), float(bw), float(bh)
@@ -930,74 +916,25 @@ class Stereo3DDetDataset(BaseDataset):
                 all_cls.append(cls_i)
                 all_bboxes.append([cx, cy, bw, bh])
 
-                # -------------------------
-                # Stereo 2D aux targets (feature-map units)
-                # -------------------------
-                center_x_px = cx * input_w
+                # Disparity in log-space (log of normalized disparity)
                 right_cx = float(right_bboxes[j, 0])
-                right_cy = float(right_bboxes[j, 1])
-                right_bw = float(right_bboxes[j, 2])
-                right_bh = float(right_bboxes[j, 3])
-                right_center_x_px = right_cx * input_w
-                disparity_px = center_x_px - right_center_x_px
-                lr_list.append(torch.tensor([disparity_px], dtype=torch.float32))
+                disparity_norm = cx - right_cx
+                lr_list.append(torch.tensor([math.log(max(disparity_norm, 1e-6))], dtype=torch.float32))
 
-                right_w_px = right_bw * input_w
-                rw_list.append(torch.tensor([right_w_px], dtype=torch.float32))
-
-                # -------------------------
-                # 3D aux targets (using shared utilities from target_improved)
-                # -------------------------
+                # Dimension offset: normalized (dim - mean) / std, shape [3]
                 dims = dimensions_3d[j]  # [length, width, height] in meters
                 dim_list.append(compute_dimension_offset(tuple(dims), cls_i, mean_dims, std_dims))
 
-                # Orientation encoding (8-d Multi-Bin format)
-                rot_y = float(rotation_y[j])
-                loc_3d = location_3d[j]
-                x_3d = float(loc_3d[0])
-                z_3d = float(loc_3d[2])
-                alpha = compute_alpha_from_rotation_y(rot_y, x_3d, z_3d)
-                ori_list.append(encode_orientation(alpha))
-
-                # Vertices targets as object-level offsets relative to object center (normalized by feature map size)
-                # We reuse the same projection logic by calling into the target generator, then extracting computed values.
-                # NOTE: For YOLO-based detection, we use the generator but read values at center cell.
-                # This generates 3D targets for vertices while using YOLO TaskAlignedAssigner for bbox detection.
-                # Reconstruct dict format for target_generator from tensors (single source of truth)
-                lab = {
-                    "class_id": cls_i,
-                    "left_box": {"center_x": cx, "center_y": cy, "width": bw, "height": bh},
-                    "right_box": {"center_x": right_cx, "center_y": right_cy, "width": right_bw, "height": right_bh},
-                    "dimensions": {"length": float(dims[0]), "width": float(dims[1]), "height": float(dims[2])},
-                    "location_3d": {"x": x_3d, "y": float(loc_3d[1]), "z": z_3d},
-                    "rotation_y": rot_y,
-                }
-                
-                num_labels = 1
-                calib_list = [calib] * num_labels
-                ori_shape_list = [ori_shape] * num_labels
-                tmp = self.target_generator.generate_targets(
-                    [lab],
-                    input_size=self.imgsz_tuple,  # Use tuple format
-                    calib=calib_list,
-                    original_size=ori_shape_list,
-                )
-                # Find center cell and read out targets written there.
-                tgt_h, tgt_w = self.output_size
-                cx_i = max(0, min(int(cx * tgt_w), tgt_w - 1))
-                cy_i = max(0, min(int(cy * tgt_h), tgt_h - 1))
-
-                v_list.append(tmp["vertices"][:, cy_i, cx_i].float())
-                vo_list.append(tmp["vertex_offset"][:, cy_i, cx_i].float())
-                vd_list.append(tmp["vertex_dist"][:, cy_i, cx_i].float())
+                # Orientation: encode alpha as [sin(alpha), cos(alpha)]
+                # alpha = rotation_y - ray_angle, where ray_angle = atan2(x_3d, z_3d)
+                loc = location_3d[j]  # [x, y, z] in camera frame
+                ray_angle = math.atan2(float(loc[0]), float(loc[2]))
+                alpha = float(rotation_y[j]) - ray_angle
+                ori_list.append(torch.tensor([math.sin(alpha), math.cos(alpha)], dtype=torch.float32))
 
             per_image_aux["lr_distance"].append(torch.stack(lr_list, 0))
-            per_image_aux["right_width"].append(torch.stack(rw_list, 0))
             per_image_aux["dimensions"].append(torch.stack(dim_list, 0))
             per_image_aux["orientation"].append(torch.stack(ori_list, 0))
-            per_image_aux["vertices"].append(torch.stack(v_list, 0))
-            per_image_aux["vertex_offset"].append(torch.stack(vo_list, 0))
-            per_image_aux["vertex_dist"].append(torch.stack(vd_list, 0))
 
         # Build detection tensors
         if all_bboxes:
@@ -1013,16 +950,7 @@ class Stereo3DDetDataset(BaseDataset):
         max_n = max(per_image_counts) if per_image_counts else 0
         aux_targets: dict[str, torch.Tensor] = {}
         for k in per_image_aux.keys():
-            # Determine channel count
-            c = {
-                "lr_distance": 1,
-                "right_width": 1,
-                "dimensions": 3,
-                "orientation": 8,
-                "vertices": 8,
-                "vertex_offset": 8,
-                "vertex_dist": 4,
-            }[k]
+            c = {"lr_distance": 1, "dimensions": 3, "orientation": 2}[k]
             padded = torch.zeros((len(batch), max_n, c), dtype=torch.float32)
             for bi in range(len(batch)):
                 if per_image_counts[bi] == 0:

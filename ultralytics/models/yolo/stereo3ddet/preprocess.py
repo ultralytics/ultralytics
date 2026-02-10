@@ -145,26 +145,6 @@ def compute_letterbox_params(
 # =============================================================================
 
 
-def _decode_orientation_multibin(alpha_bins: torch.Tensor) -> float:
-    """Decode Multi-Bin orientation encoding to alpha (observation angle) in radians.
-
-    alpha_bins: Tensor [8] with layout:
-      [conf0, conf1, sin0, cos0, sin1, cos1, pad, pad]
-    """
-    conf0 = float(alpha_bins[0].item())
-    conf1 = float(alpha_bins[1].item())
-    if conf0 >= conf1:
-        bin_center = -math.pi / 2
-        sin_v = float(alpha_bins[2].item())
-        cos_v = float(alpha_bins[3].item())
-    else:
-        bin_center = math.pi / 2
-        sin_v = float(alpha_bins[4].item())
-        cos_v = float(alpha_bins[5].item())
-    residual = math.atan2(sin_v, cos_v)
-    alpha = bin_center + residual
-    return math.atan2(math.sin(alpha), math.cos(alpha))
-
 
 def decode_stereo3d_outputs(
     outputs: dict[str, torch.Tensor],
@@ -284,12 +264,12 @@ def decode_stereo3d_outputs(
                 flat_idx = max(0, min(hw_total - 1, flat_idx))
 
             # Sample aux predictions (3D: [B, C, HW_total])
-            lr_px = float(outputs["lr_distance"][b, 0, flat_idx].item()) if "lr_distance" in outputs else 0.0
+            lr_log = float(outputs["lr_distance"][b, 0, flat_idx].item()) if "lr_distance" in outputs else -4.0
             dim_off = outputs["dimensions"][b, :, flat_idx].float() if "dimensions" in outputs else torch.zeros(3)
-            ori_enc = outputs["orientation"][b, :, flat_idx].float() if "orientation" in outputs else torch.zeros(8)
+            ori_pred = outputs["orientation"][b, :, flat_idx].float() if "orientation" in outputs else None
 
-            # Depth from disparity (lr_distance is already in pixel units)
-            disparity_letterbox = lr_px
+            # Depth from disparity (lr_distance is in log-space, exp() to get normalized disparity)
+            disparity_letterbox = math.exp(max(lr_log, -10.0)) * input_w
             disparity_orig = disparity_letterbox / letterbox_scale
             z_3d = (fx_orig * baseline) / max(disparity_orig, eps)
 
@@ -302,24 +282,21 @@ def decode_stereo3d_outputs(
             x_3d = (u_orig - cx_orig) * z_3d / fx_orig
             y_3d = (v_orig - cy_orig) * z_3d / fy_orig
 
-            # Dimensions decode (H, W, L) - de-normalize from offset to actual dimensions
+            # Dimensions decode: offset [ΔH, ΔW, ΔL] -> actual dims
+            # mean_dims/std_dims from validator are (H, W, L) format, dim_off is [ΔH, ΔW, ΔL]
             mean_h, mean_w, mean_l = mean_dims.get(c, mean_dims[0])
             std_h, std_w, std_l = std_dims.get(c, std_dims[0])
-
             height = mean_h + float(dim_off[0].item()) * std_h
             width = mean_w + float(dim_off[1].item()) * std_w
             length = mean_l + float(dim_off[2].item()) * std_l
 
-            # Clamp to reasonable bounds
-            height = np.clip(height, 0.5, 3.0)
-            width = np.clip(width, 0.3, 2.5)
-            length = np.clip(length, 0.5, 6.0)
-
-            # Orientation decode: alpha -> theta
-            alpha = _decode_orientation_multibin(ori_enc)
+            # Orientation: decode from predicted sin/cos or fallback to alpha=0
             ray_angle = math.atan2(x_3d, z_3d)
-            theta = alpha + ray_angle
-            theta = math.atan2(math.sin(theta), math.cos(theta))
+            if ori_pred is not None:
+                alpha = math.atan2(float(ori_pred[0].item()), float(ori_pred[1].item()))
+                theta = alpha + ray_angle
+            else:
+                theta = ray_angle  # fallback: alpha=0
 
             box3d = Box3D(
                 center_3d=(float(x_3d), float(y_3d), float(z_3d)),

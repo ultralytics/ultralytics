@@ -2,9 +2,7 @@
 
 """Tests for wandb project/entity precedence logic in Ray Tune integration."""
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from ultralytics.utils.tuner import WANDB_ONLY_KEYS
 
@@ -31,12 +29,8 @@ class TestWandbPrecedence:
         # Extract wandb-only keys (mimics run_ray_tune behavior)
         wandb_kwargs = {k: train_args.pop(k) for k in WANDB_ONLY_KEYS if k in train_args}
 
-        wandb_project = (
-            wandb_run.project if wandb_run else None
-        ) or train_args.get("project") or "YOLOv8-tune"
-        wandb_entity = (
-            wandb_run.entity if wandb_run else None
-        ) or wandb_kwargs.get("entity")
+        wandb_project = (wandb_run.project if wandb_run else None) or train_args.get("project") or "YOLOv8-tune"
+        wandb_entity = (wandb_run.entity if wandb_run else None) or wandb_kwargs.get("entity")
 
         cb_kwargs = {"project": wandb_project}
         if wandb_entity:
@@ -49,12 +43,12 @@ class TestWandbPrecedence:
         assert result == {"project": "YOLOv8-tune"}
 
     def test_train_args_project(self):
-        """train_args project used when no active wandb.run."""
+        """Train_args project used when no active wandb.run."""
         result = self._build_wandb_callback_kwargs(wandb_run=None, train_args={"project": "my-project"})
         assert result["project"] == "my-project"
 
     def test_train_args_entity(self):
-        """train_args entity used when no active wandb.run."""
+        """Train_args entity used when no active wandb.run."""
         result = self._build_wandb_callback_kwargs(
             wandb_run=None, train_args={"project": "my-project", "entity": "my-team"}
         )
@@ -74,14 +68,12 @@ class TestWandbPrecedence:
         assert result["entity"] == "run-entity"
 
     def test_wandb_run_partial_override(self):
-        """wandb.run with empty entity falls back to train_args entity."""
+        """Wandb.run with empty entity falls back to train_args entity."""
         mock_run = MagicMock()
         mock_run.project = "run-project"
         mock_run.entity = ""  # empty string is falsy
 
-        result = self._build_wandb_callback_kwargs(
-            wandb_run=mock_run, train_args={"entity": "arg-entity"}
-        )
+        result = self._build_wandb_callback_kwargs(wandb_run=mock_run, train_args={"entity": "arg-entity"})
         assert result["project"] == "run-project"
         assert result["entity"] == "arg-entity"
 

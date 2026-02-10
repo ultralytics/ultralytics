@@ -8,7 +8,7 @@ import torch.nn as nn
 from ultralytics.nn.modules.head import Detect
 
 
-AUX_SPECS = {"lr_distance": 1, "dimensions": 3, "orientation": 2}
+AUX_SPECS = {"lr_distance": 1, "dimensions": 3, "orientation": 2, "depth": 1}
 
 
 def _branch(in_ch: int, out_ch: int, hidden: int = 256) -> nn.Sequential:

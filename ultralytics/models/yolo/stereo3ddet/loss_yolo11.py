@@ -32,6 +32,7 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
         tal_topk: int = 10,
         reg_max: int | None = None,
         loss_weights: Dict[str, float] | None = None,
+        use_bbox_loss: bool = True,
     ):
         super().__init__(model, tal_topk=tal_topk)
 
@@ -44,6 +45,7 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
             self.proj = torch.arange(self.reg_max, dtype=torch.float, device=self.device)
 
         self.aux_w = loss_weights or {}
+        self.use_bbox_loss = use_bbox_loss
 
     def _aux_loss(
         self,
@@ -96,7 +98,7 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
         aux_targets = batch.get("aux_targets", {})
 
         if isinstance(aux_targets, dict) and aux_targets:
-            for k in ("lr_distance", "dimensions", "orientation"):
+            for k in ("lr_distance", "depth", "dimensions", "orientation"):
                 if k not in aux_preds or k not in aux_targets:
                     continue
                 aux_gt = aux_targets[k].to(self.device)
@@ -160,7 +162,7 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
         loss_dfl = torch.tensor(0.0, device=self.device)
         loss_cls = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum
 
-        if fg_mask.sum():
+        if self.use_bbox_loss and fg_mask.sum():
             loss_box, loss_dfl = self.bbox_loss(
                 pred_distri,
                 pred_bboxes,
@@ -170,10 +172,9 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
                 target_scores_sum,
                 fg_mask,
             )
-
-        loss_box *= self.hyp.box
+            loss_box *= self.hyp.box
+            loss_dfl *= self.hyp.dfl
         loss_cls *= self.hyp.cls
-        loss_dfl *= self.hyp.dfl
 
         # Aux losses
         aux_losses = self._compute_aux_losses(aux_preds, batch, target_gt_idx, fg_mask)
@@ -189,6 +190,7 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
             loss_cls,
             loss_dfl,
             aux_losses.get("lr_distance", torch.tensor(0.0, device=self.device)),
+            aux_losses.get("depth", torch.tensor(0.0, device=self.device)),
             aux_losses.get("dimensions", torch.tensor(0.0, device=self.device)),
             aux_losses.get("orientation", torch.tensor(0.0, device=self.device)),
         ]

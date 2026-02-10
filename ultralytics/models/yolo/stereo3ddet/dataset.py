@@ -812,6 +812,7 @@ class Stereo3DDetDataset(BaseDataset):
         # Per-image lists (will be padded)
         per_image_aux: dict[str, list[torch.Tensor]] = {
             "lr_distance": [],
+            "depth": [],
             "dimensions": [],
             "orientation": [],
         }
@@ -902,6 +903,7 @@ class Stereo3DDetDataset(BaseDataset):
 
             # Build per-object aux targets for this image
             lr_list = []
+            depth_list = []
             dim_list = []
             ori_list = []
 
@@ -921,6 +923,10 @@ class Stereo3DDetDataset(BaseDataset):
                 disparity_norm = cx - right_cx
                 lr_list.append(torch.tensor([math.log(max(disparity_norm, 1e-6))], dtype=torch.float32))
 
+                # Direct depth target in log-space
+                z_3d = float(location_3d[j][2])
+                depth_list.append(torch.tensor([math.log(max(z_3d, 1e-6))], dtype=torch.float32))
+
                 # Dimension offset: normalized (dim - mean) / std, shape [3]
                 dims = dimensions_3d[j]  # [length, width, height] in meters
                 dim_list.append(compute_dimension_offset(tuple(dims), cls_i, mean_dims, std_dims))
@@ -933,6 +939,7 @@ class Stereo3DDetDataset(BaseDataset):
                 ori_list.append(torch.tensor([math.sin(alpha), math.cos(alpha)], dtype=torch.float32))
 
             per_image_aux["lr_distance"].append(torch.stack(lr_list, 0))
+            per_image_aux["depth"].append(torch.stack(depth_list, 0))
             per_image_aux["dimensions"].append(torch.stack(dim_list, 0))
             per_image_aux["orientation"].append(torch.stack(ori_list, 0))
 
@@ -950,7 +957,7 @@ class Stereo3DDetDataset(BaseDataset):
         max_n = max(per_image_counts) if per_image_counts else 0
         aux_targets: dict[str, torch.Tensor] = {}
         for k in per_image_aux.keys():
-            c = {"lr_distance": 1, "dimensions": 3, "orientation": 2}[k]
+            c = {"lr_distance": 1, "depth": 1, "dimensions": 3, "orientation": 2}[k]
             padded = torch.zeros((len(batch), max_n, c), dtype=torch.float32)
             for bi in range(len(batch)):
                 if per_image_counts[bi] == 0:

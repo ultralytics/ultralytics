@@ -265,13 +265,21 @@ def decode_stereo3d_outputs(
 
             # Sample aux predictions (3D: [B, C, HW_total])
             lr_log = float(outputs["lr_distance"][b, 0, flat_idx].item()) if "lr_distance" in outputs else -4.0
+            depth_log = float(outputs["depth"][b, 0, flat_idx].item()) if "depth" in outputs else None
             dim_off = outputs["dimensions"][b, :, flat_idx].float() if "dimensions" in outputs else torch.zeros(3)
             ori_pred = outputs["orientation"][b, :, flat_idx].float() if "orientation" in outputs else None
 
             # Depth from disparity (lr_distance is in log-space, exp() to get normalized disparity)
             disparity_letterbox = math.exp(max(lr_log, -10.0)) * input_w
             disparity_orig = disparity_letterbox / letterbox_scale
-            z_3d = (fx_orig * baseline) / max(disparity_orig, eps)
+            z_from_disp = (fx_orig * baseline) / max(disparity_orig, eps)
+
+            # Combine disparity-derived depth with direct depth prediction (geometric mean)
+            if depth_log is not None:
+                z_from_direct = math.exp(max(depth_log, 0.0))  # clamp min ~1m
+                z_3d = math.sqrt(z_from_disp * z_from_direct)  # geometric mean
+            else:
+                z_3d = z_from_disp
 
             # Use bbox center as (u,v)
             u_letterbox = float(((x1_l + x2_l) / 2.0).item())

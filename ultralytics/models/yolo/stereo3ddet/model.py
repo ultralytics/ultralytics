@@ -15,9 +15,13 @@ class Stereo3DDetModel(DetectionModel):
         from ultralytics.models.yolo.stereo3ddet.loss_yolo11 import Stereo3DDetLossYOLO11
 
         aux_w = None
+        use_bbox_loss = True
         if hasattr(self, "yaml") and self.yaml is not None:
             training_config = self.yaml.get("training", {})
-            if training_config and "loss_weights" in training_config:
-                aux_w = training_config["loss_weights"]
+            if training_config:
+                if "loss_weights" in training_config:
+                    aux_w = training_config["loss_weights"]
+                if "use_bbox_loss" in training_config:
+                    use_bbox_loss = bool(training_config["use_bbox_loss"])
 
-        return Stereo3DDetLossYOLO11(self, loss_weights=aux_w)
+        return Stereo3DDetLossYOLO11(self, loss_weights=aux_w, use_bbox_loss=use_bbox_loss)

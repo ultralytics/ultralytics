@@ -14,9 +14,11 @@ scales: # model compound scaling constants, i.e. 'model=yolo11n-stereo3ddet.yaml
   m: [0.50, 1.00, 512]
 
 # Aux loss weights (lr_distance in log-space, targets ~-4.6 to -1.5)
+# Add use_bbox_loss: false under training to disable 2D box + DFL loss (cls + aux only).
 training:
   loss_weights:
     lr_distance: 2.0
+    depth: 1.0
     dimensions: 1.0
     orientation: 1.0
 

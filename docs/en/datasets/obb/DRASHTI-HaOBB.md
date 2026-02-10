@@ -10,15 +10,15 @@ keywords: DRASHTI-HaOBB dataset, vehicle detection, aerial images, oriented boun
 
 ## Key Features
 
-- **Annotations:** Oriented Bounding Box (OBB) and Heading-angle for Vehicles; Flight-height 
+- **Annotations:** Oriented Bounding Box (OBB) and Heading-angle for Vehicles; Flight-height
 - **View:** Drone-based Aerial-view (90° downward gimbal)
 - **Location:** India
 - **No. of Vehicle Classes:** 14
 - **Vehicle Classes:** ‘Auto3WCargo’, ‘AutoRicksaw’, ‘Bus’, ‘Container’, ‘Mixer’, ‘MotorCycle’, ‘PickUp’, ‘SUV’, ‘Sedan’, ‘Tanker’, ‘Tipper’, ‘Trailer’, ‘Truck’, ‘Van’
-- **No. of  total Images:** 27,577  (84.73% are real-world images and 15.27% are augmented images)    
-- **No. of  total (vehicle) Samples:** 1,308,989
+- **No. of total Images:** 27,577 (84.73% are real-world images and 15.27% are augmented images)
+- **No. of total (vehicle) Samples:** 1,308,989
 - **Dimension of each 4K image:** 3840 x 2160
-- **Pre-defined train/val/test split ratio:** The Dataset is organised into a predefined split ratio to preserve equal class distribution 
+- **Pre-defined train/val/test split ratio:** The Dataset is organised into a predefined split ratio to preserve equal class distribution
 
 ## Applications
 
@@ -30,7 +30,7 @@ DRASHTI-HaOBB is organised into a standard format compatible with [OBB object de
 
 - **Images:** Collection of high-resolution UAV images of dense and heterogeneous road traffic.
 - **Text files:** A label file provides details of each vehicle in the image as OBB (_x1, y1, x2, y2, x3, y3, x4, y4_), vehicle class, difficulty level, and heading angle.
-- **Train/Val/Test:** All vehicle classes distributed into 60:30:10 split ratio. 
+- **Train/Val/Test:** All vehicle classes distributed into 60:30:10 split ratio.
 
 ## Dataset YAML
 
@@ -41,9 +41,10 @@ A dataset YAML (Yet Another Markup Language) file provides information about the
     ```yaml
     --8<-- "ultralytics/cfg/datasets/DRASHTI-HaOBB.yaml"
     ```
+
 ## Usage
 
-To train a model on the DRASHTI-HaOBB dataset, use the following code snippets. Refer to the [list of arguments](https://docs.ultralytics.com/modes/train/#train-settings) for training an OBB model. 
+To train a model on the DRASHTI-HaOBB dataset, use the following code snippets. Refer to the [list of arguments](https://docs.ultralytics.com/modes/train/#train-settings) for training an OBB model.
 
 !!! warning
 
@@ -72,13 +73,14 @@ The [DRASHTI-HaOBB dataset](https://zenodo.org/records/18278989) is released und
 
 ## Sample Data and Annotations
 
-A sample of [DRASHTI-HaOBB](https://zenodo.org/records/18278989) dataset, showing dense and heterogeneous traffic conditions, and the need for OBB over an axis-aligned box.  
+A sample of [DRASHTI-HaOBB](https://zenodo.org/records/18278989) dataset, showing dense and heterogeneous traffic conditions, and the need for OBB over an axis-aligned box.
 
 DRASHTI-HaOBB dataset with oriented bounding box annotations
 ![sample](https://github.com/user-attachments/assets/ede97912-6c83-4d7e-b3bb-a80e37225fd3)
 
 - **DRASHTI-HaOBB vehicle classes**: This snapshot highlights heterogeneity in Indian road traffic.
   <img width="1018" height="313" alt="Samples" src="https://github.com/user-attachments/assets/d4765495-a405-4028-961a-a0ceddefc533" />
+
 ## License
 
 The [DRASHTI-HaOBB dataset](https://zenodo.org/records/18278989) is released under the [Creative Commons Attribution–NonCommercial–NoDerivatives 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) International license. Commercial use is strictly prohibited. Please credit the dataset creators in any academic or research work.
@@ -102,19 +104,20 @@ If you use DRASHTI-HaOBB in your work, please cite the relevant research papers:
             doi          = {10.5281/zenodo.18278989},
             url          = {https://doi.org/10.5281/zenodo.18278989},}
         ```
+
 We acknowledge the team behind the DRASHTI-HaOBB dataset at Ahmedabad University for their dedicated effort in curating this resource. For a comprehensive description of the dataset and its characteristics, please visit the [official DRASHTI-HaOBB website](https://sites.google.com/ahduni.edu.in/yagnikmbhavsar/dataset).
 
 ## FAQ
 
 ### What is the DRASHTI-HaOBB dataset and how is it different from other aerial datasets?
 
-DRASHTI-HaOBB is a large-scale UAV-based oriented vehicle detection dataset designed for road traffic analysis under real-world Indian traffic conditions. It consists of 27,577 nadir-view aerial images with nearly 1.3 million vehicle annotations across 14 heterogeneous vehicle categories, each labelled with oriented bounding boxes, vehicle heading information, and UAV flight height. Unlike many existing aerial datasets that focus on axis-aligned boxes, structured traffic, or a limited number of classes, DRASHTI-HaOBB captures dense, heterogeneous traffic common in developing countries. Detailed vehicle classification and nadir-view UAV imagery of the DRASHTI-HaOBB dataset make it suitable for computer vision-based road traffic safety analysis. 
+DRASHTI-HaOBB is a large-scale UAV-based oriented vehicle detection dataset designed for road traffic analysis under real-world Indian traffic conditions. It consists of 27,577 nadir-view aerial images with nearly 1.3 million vehicle annotations across 14 heterogeneous vehicle categories, each labelled with oriented bounding boxes, vehicle heading information, and UAV flight height. Unlike many existing aerial datasets that focus on axis-aligned boxes, structured traffic, or a limited number of classes, DRASHTI-HaOBB captures dense, heterogeneous traffic common in developing countries. Detailed vehicle classification and nadir-view UAV imagery of the DRASHTI-HaOBB dataset make it suitable for computer vision-based road traffic safety analysis.
 
-Further, UAV flight height can help determine ground sample distance (a mapping from the image coordinate system (pixels) to the real-world coordinate system (meters)) and estimate the vehicle's size and speed. The vehicle's heading angle can help define the stopping distance and the blind spots around a vehicle.  
+Further, UAV flight height can help determine ground sample distance (a mapping from the image coordinate system (pixels) to the real-world coordinate system (meters)) and estimate the vehicle's size and speed. The vehicle's heading angle can help define the stopping distance and the blind spots around a vehicle.
 
 ### How is the class imbalance problem addressed?
 
-In a real-world traffic scenario, vehicle samples across 14 classes are always imbalanced; therefore, to mitigate class imbalance, copy-paste augmentation was performed on real-world images to upsample minority classes. 
+In a real-world traffic scenario, vehicle samples across 14 classes are always imbalanced; therefore, to mitigate class imbalance, copy-paste augmentation was performed on real-world images to upsample minority classes.
 
 ### What are the possible applications of DRASHTI-HaOBB, and to what extent can it generalise to traffic scenarios in other countries?
 
@@ -172,10 +175,12 @@ To train a model on the DRASHTI-HaOBB dataset, you can use the following example
             gap=500,
         )
         ```
-        
+
+
 This process improves training efficiency. For detailed instructions, visit the [split DOTA images section](https://docs.ultralytics.com/datasets/obb/dota-v2/#split-dota-images).
 
 ### How can I cite the DRASHTI-HaOBB dataset if I use it in my research?
+
 If you use DRASHTI-HaOBB in your work, please cite the relevant research papers:
 
 !!! quote ""
@@ -193,6 +198,7 @@ If you use DRASHTI-HaOBB in your work, please cite the relevant research papers:
             doi          = {10.5281/zenodo.18278989},
             url          = {https://doi.org/10.5281/zenodo.18278989},}
         ```
+
 ### Can I modify, redistribute, or use the DRASHTI-HaOBB dataset for commercial purposes?
 
 No, because [DRASHTI-HaOBB dataset](https://zenodo.org/records/18278989) is released under the [Creative Commons Attribution–NonCommercial–NoDerivatives 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) International license. Please refer to section [License](#License).

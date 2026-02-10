@@ -418,11 +418,13 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
                     file.write(line + "\n")
             LOGGER.info(f"Processed and stored at {output_path} imgsz = {img_height} x {img_width}")
 
+
 def convert_drashti_haobb_to_yolo_obb(drashti_haobb_root_path: str):
     """Convert DRASHTI-HaOBB dataset annotations to YOLO OBB (Oriented Bounding Box) format.
 
-    The function processes images in the 'train' and 'val' folders of the DRASHTI-HaOBB dataset. For each image, it reads the
-    associated label from the original labels directory and writes new labels in YOLO OBB format to a new directory.
+    The function processes images in the 'train' and 'val' folders of the DRASHTI-HaOBB dataset. For each image, it
+    reads the associated label from the original labels directory and writes new labels in YOLO OBB format to a new
+    directory.
 
     Args:
         drashti_haobb_root_path (str): The root directory path of the DRASHTI-HaOBB dataset.
@@ -504,7 +506,8 @@ def convert_drashti_haobb_to_yolo_obb(drashti_haobb_root_path: str):
             img = cv2.imread(str(image_path))
             h, w = img.shape[:2]
             convert_label(image_name_without_ext, w, h, orig_label_dir, save_dir)
-            
+
+
 def convert_dota_to_yolo_obb(dota_root_path: str):
     """Convert DOTA dataset annotations to YOLO OBB (Oriented Bounding Box) format.
 

@@ -9,12 +9,12 @@
 # └── datasets
 #     └── DRASHTI-HaOBB ← downloads here (~12 GB)
 
-# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, 
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt,
 
-path: DRASHTI-HaOBB # Give Path of dataset directory 
-train: images/train # train images (relative to 'path') 
-val: images/val # val images (relative to 'path') 
-test: images/test # test images (optional) 
+path: DRASHTI-HaOBB # Give Path of dataset directory
+train: images/train # train images (relative to 'path')
+val: images/val # val images (relative to 'path')
+test: images/test # test images (optional)
 
 names:
   0: Auto3WCargo
@@ -38,9 +38,9 @@ download: |
   from ultralytics.utils.downloads import download
   from ultralytics.data.converter import convert_drashti_haobb_to_yolo_obb
   import shutil
-  
+
   dir = Path(yaml["path"])  # dataset root dir
-  
+
   images_dir = dir / "images"
   labels_dir = dir / "labels"
 

@@ -514,6 +514,7 @@ nav:
       - AzureML Quickstart: guides/azureml-quickstart.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
       - Conda Quickstart: guides/conda-quickstart.md
+      - Customizing Trainer: guides/custom-trainer.md
       - Data Collection and Annotation: guides/data-collection-and-annotation.md
       - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
       - Defining A Computer Vision Project's Goals: guides/defining-project-goals.md

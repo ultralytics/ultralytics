@@ -21,7 +21,7 @@ Both the Ultralytics YOLO command-line and Python interfaces are high-level abst
 
 !!! tip
 
-    For practical examples of common trainer customizations — custom metrics, class-weighted loss, model saving, backbone freezing, and per-layer learning rates — see the [Customizing the Trainer](../guides/custom-trainer.md) guide.
+    For practical examples of common trainer customizations — custom metrics, class-weighted loss, model saving, backbone freezing, and per-layer learning rates — see the [Customizing Trainer](../guides/custom-trainer.md) guide.
 
 ## BaseTrainer
 
@@ -101,7 +101,7 @@ Customize other components like `Validators` and `Predictors` similarly. For mor
 
 ## Using YOLO with Custom Trainers
 
-The `YOLO` model class provides a high-level wrapper for the Trainer classes. You can leverage this architecture for greater flexibility in your machine learning workflows:
+The `YOLO` model class provides a high-level wrapper for Trainer classes. You can leverage this architecture for greater flexibility in your machine learning workflows:
 
 ```python
 from ultralytics import YOLO

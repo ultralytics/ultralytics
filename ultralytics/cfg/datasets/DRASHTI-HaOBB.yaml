@@ -48,7 +48,7 @@ download: |
   labels_dir.mkdir(parents=True, exist_ok=True)
 
   BASE_URL = "https://zenodo.org/records/18278989/files"
-  jobs = [
+  zenodo_zips = [
       ("test.zip", images_dir, "test"),
       ("test_original.zip", labels_dir, "test_original"),
       ("val.zip", images_dir, "val"),
@@ -75,14 +75,14 @@ download: |
               with z.open(info) as src, open(out_file, "wb") as dst:
                   dst.write(src.read())
        	
-  for zip_name, base_dir, split in jobs:
+  for zip_name, base_dir, split in zenodo_zips:
       zip_path = dir / zip_name
       url = f"{BASE_URL}/{zip_name}"
 
       # download one zip
       download(url, dir=dir)
 
-      # extract + flatten immediately
+      # extract + flatten 
       extract_flat(zip_path, base_dir, split)
 
       # delete zip

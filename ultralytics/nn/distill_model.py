@@ -114,16 +114,13 @@ class DistillationModel(nn.Module):
             batch (dict): Batch to compute loss on.
             preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
-        # 在验证时，跳过蒸馏损失计算
         if not self.training:
-            preds, feats = self.student_model(batch["img"], return_feats=True)
-            regular_loss, regular_loss_detach, targets = self.student_model.loss(batch, preds, return_targets=True)
-            # 蒸馏损失设为0
+            preds = self.student_model(batch["img"])
+            regular_loss, regular_loss_detach = self.student_model.loss(batch, preds)
             loss_distill = torch.zeros(1, device=batch["img"].device)
             loss_distill_detach = torch.zeros(1, device=batch["img"].device)
             return torch.cat([regular_loss, loss_distill]), torch.cat([regular_loss_detach, loss_distill_detach])
 
-        # 训练时计算蒸馏损失
         with torch.inference_mode():
             teacher_feats = self.teacher_model(batch["img"], embed=self.feats_idx, direct_return=True)
         preds, feats = self.student_model(batch["img"], return_feats=True)

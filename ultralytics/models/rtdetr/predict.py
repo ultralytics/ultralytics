@@ -59,12 +59,10 @@ class RTDETRPredictor(BasePredictor):
         results = []
         for bbox, score, label, orig_img, img_path in zip(bboxes, scores, labels, orig_imgs, self.batch[0]):
             bbox = ops.xywh2xyxy(bbox)
-            score = score.squeeze(-1)
-            label = label.squeeze(-1)
-            idx = score > self.args.conf
+            idx = score.squeeze(-1) > self.args.conf
             if self.args.classes is not None:
-                idx = (label == torch.tensor(self.args.classes, device=label.device)).any(1) & idx
-            pred = torch.cat([bbox, score[..., None], label[..., None]], dim=-1)[idx]
+                idx = (label.squeeze(-1) == torch.tensor(self.args.classes, device=label.device)).any(1) & idx
+            pred = torch.cat([bbox, score, label], dim=-1)[idx]
             oh, ow = orig_img.shape[:2]
             pred[..., [0, 2]] *= ow  # scale x coordinates to original width
             pred[..., [1, 3]] *= oh  # scale y coordinates to original height

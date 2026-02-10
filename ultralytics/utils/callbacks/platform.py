@@ -327,8 +327,19 @@ def on_pretrain_routine_start(trainer):
     )
     if response and response.get("modelId"):
         trainer._platform_model_id = response["modelId"]
+        # Check for immediate cancellation (cancelled before training started)
+        # Note: trainer.stop is set in on_pretrain_routine_end (after _setup_train resets it)
+        if response.get("cancelled"):
+            trainer._platform_cancelled = True
     else:
         LOGGER.warning(f"{PREFIX}Failed to register training session - metrics may not sync to Platform")
+
+
+def on_pretrain_routine_end(trainer):
+    """Apply pre-start cancellation after _setup_train resets trainer.stop."""
+    if getattr(trainer, "_platform_cancelled", False):
+        LOGGER.info(f"{PREFIX}Training cancelled from Platform before starting ✅")
+        trainer.stop = True
 
 
 def on_fit_epoch_end(trainer):
@@ -374,13 +385,15 @@ def on_fit_epoch_end(trainer):
     if model_info:
         payload["modelInfo"] = model_info
 
-    _send_async(
-        "epoch_end",
-        payload,
-        project,
-        name,
-        getattr(trainer, "_platform_model_id", None),
-    )
+    def _send_and_check_cancel():
+        """Send epoch_end and check response for cancellation (runs in background thread)."""
+        response = _send("epoch_end", payload, project, name, getattr(trainer, "_platform_model_id", None), retry=1)
+        if response and response.get("cancelled"):
+            LOGGER.info(f"{PREFIX}Training cancelled from Platform ✅")
+            trainer.stop = True
+            trainer._platform_cancelled = True
+
+    _executor.submit(_send_and_check_cancel)
 
 
 def on_model_save(trainer):
@@ -407,6 +420,9 @@ def on_train_end(trainer):
         return
 
     project, name = _get_project_name(trainer)
+
+    if getattr(trainer, "_platform_cancelled", False):
+        LOGGER.info(f"{PREFIX}Uploading partial results for cancelled training")
 
     # Stop console capture
     if hasattr(trainer, "_platform_console_logger") and trainer._platform_console_logger:
@@ -461,6 +477,7 @@ def on_train_end(trainer):
 callbacks = (
     {
         "on_pretrain_routine_start": on_pretrain_routine_start,
+        "on_pretrain_routine_end": on_pretrain_routine_end,
         "on_fit_epoch_end": on_fit_epoch_end,
         "on_model_save": on_model_save,
         "on_train_end": on_train_end,

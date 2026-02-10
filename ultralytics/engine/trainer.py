@@ -493,6 +493,8 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
+                if self.stop:
+                    break  # allow external stop (e.g. platform cancellation) between batches
             else:
                 # for/else: this block runs only when the for loop completes without break (no OOM retry)
                 self._oom_retries = 0  # reset OOM counter after successful first epoch

@@ -856,7 +856,7 @@ class Exporter:
     def export_litert(self, prefix=colorstr("LiteRT:")):
         """Export YOLO model to LiteRT format using litert_torch with optional FP16/INT8 quantization."""
         assert LINUX and not MACOS and not WINDOWS and not ARM64, "LiteRT export only supported on Linux x86"
-        
+
         check_requirements("litert-torch>=0.8.0")
         import litert_torch
 

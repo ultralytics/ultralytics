@@ -1213,7 +1213,6 @@ class Exporter:
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
         from executorch.exir import to_edge_transform_and_lower
 
-
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch {executorch_version.__version__}...")
 
         file_directory = Path(str(self.file).replace(self.file.suffix, "_executorch_model"))

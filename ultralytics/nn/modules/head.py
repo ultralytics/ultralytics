@@ -219,7 +219,7 @@ class Detect(nn.Module):
         """
         boxes, scores = preds.split([4, self.nc], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
+        boxes = torch.cat([boxes.narrow(-1, i, 1).gather(1, idx) for i in range(4)], dim=-1)
         return torch.cat([boxes, scores, conf], dim=-1)
 
     def get_topk_index(self, scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -347,8 +347,8 @@ class Segment(Detect):
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.expand(-1, -1, self.nm))
+        boxes = torch.cat([boxes.narrow(-1, i, 1).gather(1, idx) for i in range(4)], dim=-1)
+        mask_coefficient = torch.cat([mask_coefficient.narrow(-1, i, 1).gather(1, idx) for i in range(self.nm)], dim=-1)
         return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
 
     def fuse(self) -> None:
@@ -502,8 +502,8 @@ class OBB(Detect):
         """
         boxes, scores, angle = preds.split([4, self.nc, self.ne], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        angle = angle.gather(dim=1, index=idx.expand(-1, -1, self.ne))
+        boxes = torch.cat([boxes.narrow(-1, i, 1).gather(1, idx) for i in range(4)], dim=-1)
+        angle = torch.cat([angle.narrow(-1, i, 1).gather(1, idx) for i in range(self.ne)], dim=-1)
         return torch.cat([boxes, scores, conf, angle], dim=-1)
 
     def fuse(self) -> None:
@@ -623,8 +623,8 @@ class Pose(Detect):
         """
         boxes, scores, kpts = preds.split([4, self.nc, self.nk], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        kpts = kpts.gather(dim=1, index=idx.expand(-1, -1, self.nk))
+        boxes = torch.cat([boxes.narrow(-1, i, 1).gather(1, idx) for i in range(4)], dim=-1)
+        kpts = torch.cat([kpts.narrow(-1, i, 1).gather(1, idx) for i in range(self.nk)], dim=-1)
         return torch.cat([boxes, scores, conf, kpts], dim=-1)
 
     def fuse(self) -> None:

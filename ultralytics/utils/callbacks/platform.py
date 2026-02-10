@@ -327,6 +327,11 @@ def on_pretrain_routine_start(trainer):
     )
     if response and response.get("modelId"):
         trainer._platform_model_id = response["modelId"]
+        # Check for immediate cancellation (cancelled before training started)
+        if response.get("cancelled"):
+            LOGGER.info(f"{PREFIX}Training cancelled from Platform before starting")
+            trainer.stop = True
+            trainer._platform_cancelled = True
     else:
         LOGGER.warning(f"{PREFIX}Failed to register training session - metrics may not sync to Platform")
 
@@ -374,13 +379,20 @@ def on_fit_epoch_end(trainer):
     if model_info:
         payload["modelInfo"] = model_info
 
-    _send_async(
+    response = _send(
         "epoch_end",
         payload,
         project,
         name,
         getattr(trainer, "_platform_model_id", None),
+        retry=1,
     )
+
+    # Check for cancellation signal from Platform
+    if response and response.get("cancelled"):
+        LOGGER.info(f"{PREFIX}Training cancelled from Platform ✅")
+        trainer.stop = True
+        trainer._platform_cancelled = True
 
 
 def on_model_save(trainer):
@@ -407,6 +419,9 @@ def on_train_end(trainer):
         return
 
     project, name = _get_project_name(trainer)
+
+    if getattr(trainer, "_platform_cancelled", False):
+        LOGGER.info(f"{PREFIX}Uploading partial results for cancelled training")
 
     # Stop console capture
     if hasattr(trainer, "_platform_console_logger") and trainer._platform_console_logger:

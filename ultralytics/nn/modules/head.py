@@ -1462,6 +1462,7 @@ class RTDETRDecoder(nn.Module):
     anchors = torch.empty(0)
     valid_mask = torch.empty(0)
     dynamic = False
+    disable_topk = False
 
     def __init__(
         self,
@@ -1673,6 +1674,9 @@ class RTDETRDecoder(nn.Module):
             (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6) and last
                 dimension format [cx, cy, w, h, max_class_prob, class_index].
         """
+        if self.disable_topk:
+            scores, class_idx = scores.max(dim=-1, keepdim=True)  # (bs, nq, 1), (bs, nq, 1)
+            return torch.cat([boxes, scores, class_idx.float()], dim=-1)  # (bs, nq, 6)
         scores, index = scores.flatten(1).topk(self.num_queries)  # (bs, nq)
         query_idx = index // self.nc  # (bs, nq)
         boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4))  # (bs, nq, 4)

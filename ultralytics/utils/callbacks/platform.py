@@ -328,7 +328,7 @@ def on_pretrain_routine_start(trainer):
     if response and response.get("modelId"):
         trainer._platform_model_id = response["modelId"]
         # Check for immediate cancellation (cancelled before training started)
-        if response.get("cancelled"):
+        if response and response.get("cancelled"):
             LOGGER.info(f"{PREFIX}Training cancelled from Platform before starting")
             trainer.stop = True
             trainer._platform_cancelled = True

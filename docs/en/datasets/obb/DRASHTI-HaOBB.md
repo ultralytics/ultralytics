@@ -176,7 +176,6 @@ To train a model on the DRASHTI-HaOBB dataset, you can use the following example
         )
         ```
 
-
 This process improves training efficiency. For detailed instructions, visit the [split DOTA images section](https://docs.ultralytics.com/datasets/obb/dota-v2/#split-dota-images).
 
 ### How can I cite the DRASHTI-HaOBB dataset if I use it in my research?

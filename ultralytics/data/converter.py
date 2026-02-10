@@ -475,7 +475,8 @@ def convert_drashti_haobb_to_yolo_obb(drashti_haobb_root_path: str):
         """Convert a single image's DRASHTI-HaOBB annotation to YOLO OBB format and save it to a specified directory."""
         orig_label_path = orig_label_dir / f"{image_name}.txt"
         save_path = save_dir / f"{image_name}.txt"
-
+        if not orig_label_path.exists():
+            return
         with orig_label_path.open("r") as f, save_path.open("w") as g:
             lines = f.readlines()
             for line in lines:
@@ -504,6 +505,8 @@ def convert_drashti_haobb_to_yolo_obb(drashti_haobb_root_path: str):
                 continue
             image_name_without_ext = image_path.stem
             img = cv2.imread(str(image_path))
+            if img is None:
+                continue
             h, w = img.shape[:2]
             convert_label(image_name_without_ext, w, h, orig_label_dir, save_dir)
 

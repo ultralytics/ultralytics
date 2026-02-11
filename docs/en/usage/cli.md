@@ -293,58 +293,6 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
 
 For more information on Ultralytics solutions, visit the [Solutions](../solutions/index.md) page.
 
-## AI Coding Agent Skills
-
-Ultralytics provides specialized skills for AI coding agents to assist with common development tasks. These skills are located in the `docs/skills/` directory and can be installed to your agent's workspace.
-
-!!! example
-
-    === "Install"
-
-        Install all available Ultralytics skills to the default `.agents/skills/` directory:
-
-        ```bash
-        yolo install-skills
-        ```
-
-    === "Install to Custom Location"
-
-        Install skills to a custom directory:
-
-        ```bash
-        yolo install-skills dir=/path/to/skills
-        ```
-
-    === "Install Globally"
-
-        Install skills globally for Copilot and other supported agents:
-
-        ```bash
-        yolo install-skills global copilot
-        ```
-
-    === "Uninstall"
-
-        Remove installed skills:
-
-        ```bash
-        yolo install-skills uninstall
-        ```
-
-### Available Skills
-
-The following skills are available to help AI coding agents work with Ultralytics:
-
-- **ultralytics-contribute-code**: Guidelines for contributing code to the Ultralytics repository
-- **ultralytics-create-custom-model**: Instructions for creating custom YOLO models
-- **ultralytics-export-model**: Steps for exporting models to different formats
-- **ultralytics-prepare-dataset**: Dataset preparation and formatting guidance
-- **ultralytics-run-inference**: Running inference with YOLO models
-- **ultralytics-train-model**: Training YOLO models on custom datasets
-- **ultralytics-troubleshooting**: Troubleshooting common issues with Ultralytics
-
-These skills provide structured guidance to AI assistants, improving their ability to help you with Ultralytics development tasks. For complete information on skills, compatible AI agents, and usage tips, visit the [AI Coding Agents integration page](../integrations/ai-coding-agents.md).
-
 ## FAQ
 
 ### How do I use the Ultralytics YOLO command line interface (CLI) for model training?

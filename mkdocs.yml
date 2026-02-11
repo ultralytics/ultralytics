@@ -574,7 +574,6 @@ nav:
               - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Integrations:
       - Integrations: integrations/index.md
-      - AI Coding Agents: integrations/ai-coding-agents.md
       - Albumentations: integrations/albumentations.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
       - Axelera: integrations/axelera.md

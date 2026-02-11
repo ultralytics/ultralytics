@@ -25,24 +25,14 @@ from ultralytics.utils.torch_utils import intersect_dicts
 
 
 class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
-    """Stereo 3D Detection trainer.
-
-    Initial scaffolding that reuses the standard DetectionTrainer while setting task to 'stereo3ddet'.
-    This enables `yolo train task=stereo3ddet` end-to-end, using default detection behaviors until
-    a dedicated stereo 3D head/loss and dataset pipe are added.
-    """
+    """Stereo 3D Detection trainer extending DetectionTrainer with stereo-specific dataset, loss, and validation."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
         if overrides is None:
             overrides = {}
         overrides["task"] = "stereo3ddet"
-        # Disable plots and validation for custom stereo pipeline until a dedicated validator is implemented
-        overrides.setdefault("plots", False)
-        overrides.setdefault("val", False)
         super().__init__(cfg, overrides, _callbacks)
-        # T204: Determine loss names after model is initialized (will be set in set_model_attributes or get_validator)
-        # Don't set here as model may not be available yet
-
+        
     def get_validator(self):
         """Return a Stereo3DDetValidator, currently extending DetectionValidator."""
         # T204: Determine loss names dynamically from model before creating validator

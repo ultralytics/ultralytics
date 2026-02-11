@@ -109,7 +109,7 @@ To remove installed Ultralytics skills (other installed skills remain unaffected
 
         If you installed to a custom location using the `dir=` argument, specify _that_ parent directory (without the ending `skills/`):
         ```bash
-        yolo install-skills dir=/path/to/custom/ uninstall
+        yolo install-skills dir=path/to/custom/ uninstall
         ```
 
 ## Compatible AI Coding Agents
@@ -300,7 +300,7 @@ Yes! After installation, skill files are standard Markdown documents in your ski
 
 ### My AI agent doesn't seem to use the skills. What should I try?
 
-First, verify skills are installed in the correct location for your agent. For local installation, check that `.agents/skills/` exists in your project directory. For global installation, check the agent specific directory (e.g., `~/.github/copilot/skills/` for GitHub Copilot). Next, try explicitly referencing a skill in your prompt, such as "Using the ultralytics-train-model skill, show me..." If issues persist, consult your AI agent's documentation for skills support, as not all agents may have enabled this feature yet.
+First, verify skills are installed in the correct location for your agent. For local installation, check that `.agents/skills/` exists in your project directory. For global installation, check the agent specific directory (e.g., `~/.copilot/skills/` for GitHub Copilot). Next, try explicitly referencing a skill in your prompt, such as "Using the ultralytics-train-model skill, show me..." If issues persist, consult your AI agent's documentation for skills support, as not all agents may have enabled this feature yet.
 
 ### How do Ultralytics skills compare to fine-tuning an AI model?
 

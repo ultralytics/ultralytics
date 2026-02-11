@@ -180,7 +180,7 @@ Ultralytics skills follow the [Agent Skills specification](https://agentskills.i
 
 [OpenAI's Codex](https://openai.com/blog/openai-codex) and GPT models can be integrated into various development tools and IDEs. [Codex can access skills](https://developers.openai.com/codex/skills) as context when using these models through APIs or custom integrations.
 
-**Installation**: Codex checks for skills in `.agent/skills`, supporting both local and global installations:
+**Installation**: Codex checks for skills in `.agents/skills`, supporting both local and global installations:
 
 !!! example ""
 
@@ -300,7 +300,7 @@ Yes! After installation, skill files are standard Markdown documents in your ski
 
 ### My AI agent doesn't seem to use the skills. What should I try?
 
-First, verify skills are installed in the correct location for your agent. For local installation, check that `.agents/skills/` exists in your project directory. For global installation, check the agent specific directory (e.g., `~/.github/copilot/skills/` for GitHub Copilot). Next, try explicitly referencing a skill in your prompt, such as "Using the ultralytics-train-model skill, show me..." If issues persist, consult your AI agent's documentation for skills support, as not all agents may have enabled this feature yet.
+First, verify skills are installed in the correct location for your agent. For local installation, check that `.agents/skills/` exists in your project directory. For global installation, check the agent specific directory (e.g., `~/.copilot/skills/` for GitHub Copilot). Next, try explicitly referencing a skill in your prompt, such as "Using the ultralytics-train-model skill, show me..." If issues persist, consult your AI agent's documentation for skills support, as not all agents may have enabled this feature yet.
 
 ### How do Ultralytics skills compare to fine-tuning an AI model?
 

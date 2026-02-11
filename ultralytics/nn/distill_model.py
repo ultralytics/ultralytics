@@ -247,6 +247,18 @@ class DistillationModel(nn.Module):
         else:
             raise ValueError(f"Unknown box distillation loss: {self.distill_box_loss}")
 
+    def loss_s_sigmoid(self, student_logits, teacher_logits):
+        nc = student_logits.shape[1]
+        distillation_loss = F.binary_cross_entropy_with_logits(
+            student_logits,
+            torch.sigmoid(teacher_logits),
+            reduction='none'
+        )
+        teacher_score = teacher_logits.sigmoid().max(dim=1, keepdim=True).values
+        distillation_loss = distillation_loss * teacher_score
+        distillation_loss = distillation_loss.sum() / (teacher_score.sum() * nc + 1e-9)
+        return distillation_loss
+
     def cls_kd_loss(self, student_logits, teacher_logits, temperature=5.0):
         from ultralytics.utils.torch_utils import autocast
         with autocast(enabled=False):
@@ -261,6 +273,8 @@ class DistillationModel(nn.Module):
                         reduction='mean'
                     ) * (temperature ** 2)
                 return distillation_loss
+            elif self.distill_cls_loss == "s_sigmoid":
+                return self.loss_s_sigmoid(student_logits, teacher_logits)
             else:
                 raise ValueError(f"Unknown cls distillation loss: {self.distill_cls_loss}")
 

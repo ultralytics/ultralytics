@@ -392,9 +392,7 @@ def test_action_recognition_process_method():
 
     # Mock the video classifier to avoid loading the real model during inference
     action.video_classifier = MagicMock()
-    action.video_classifier.preprocess = MagicMock(
-        return_value=__import__("torch").zeros(1, 3, 2, 224, 224)
-    )
+    action.video_classifier.preprocess = MagicMock(return_value=__import__("torch").zeros(1, 3, 2, 224, 224))
     action.video_classifier.return_value = (["jumping"], [0.85])
 
     frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)

@@ -169,10 +169,6 @@ YOLO26 is specifically designed to run on hardware-constrained devices such as t
 
     Benchmarked with Ultralytics 8.4.14.
 
-    !!! note
-
-        Inference time does not include pre/ post-processing.
-
 ## Raspberry Pi 5 YOLO26 Benchmarks
 
 YOLO26 benchmarks were run by the Ultralytics team on ten different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.

@@ -619,7 +619,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> for result in results:
             >>>     result.save("annotated_image.jpg", conf=False, line_width=2)
             >>> # Directory will be created automatically if it does not exist
-            >>> result.save("annotated_image.jpg")
+            >>> result.save("path/to/annotated_image.jpg")
         """
         if not filename:
             filename = f"results_{Path(self.path).name}"

@@ -95,7 +95,7 @@ This example illustrates the variety and complexity of images in the signature D
 
 ## Citations and Acknowledgments
 
-The dataset has been released available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+The dataset has been released under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
 ## FAQ
 

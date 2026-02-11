@@ -106,6 +106,7 @@ All models are pretrained on [Kinetics-400](https://www.deepmind.com/open-source
 | `crop_margin_percentage`     | `int` | `10`         | Margin percentage for person crop  |
 | `num_video_sequence_samples` | `int` | `8`          | Number of frames per sequence      |
 | `skip_frame`                 | `int` | `2`          | Frame skip interval                |
+| `video_cls_overlap_ratio`    | `float` | `0.25`     | Temporal overlap between inference windows |
 
 ## FAQ
 

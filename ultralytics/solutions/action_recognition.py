@@ -113,8 +113,8 @@ class ActionRecognition(BaseSolution):
     pretrained on Kinetics-400.
 
     Attributes:
-        video_classifier (TorchVisionVideoClassifier): The video classification model.
-        track_history (dict): Per-track frame history for classification.
+        video_classifier (TorchVisionVideoClassifier | None): The video classification model, loaded on first use.
+        crop_history (dict): Per-track frame crop history for classification.
         pred_labels (dict): Per-track predicted action labels.
         pred_confs (dict): Per-track predicted confidences.
 
@@ -144,10 +144,11 @@ class ActionRecognition(BaseSolution):
         self.skip_frame = max(1, int(self.CFG.get("skip_frame", 2)))
         self.video_cls_overlap_ratio = float(self.CFG.get("video_cls_overlap_ratio", 0.25))
 
-        video_classifier_model = self.CFG.get("video_classifier_model", "s3d")
-        self.video_classifier = TorchVisionVideoClassifier(video_classifier_model, device=self.CFG.get("device", ""))
+        self._video_classifier_model = self.CFG.get("video_classifier_model", "s3d")
+        self._video_classifier_device = self.CFG.get("device", "")
+        self.video_classifier = None
 
-        self.track_history = defaultdict(list)
+        self.crop_history = defaultdict(list)
         self.frame_counter = 0
         self.pred_labels = {}
         self.pred_confs = {}
@@ -162,6 +163,10 @@ class ActionRecognition(BaseSolution):
             SolutionResults: Contains plot_im, total_tracks, action_labels (dict mapping track_id to predicted action
                 label), and action_confs (dict mapping track_id to confidence).
         """
+        # Lazy-load the video classifier on first use
+        if self.video_classifier is None:
+            self.video_classifier = TorchVisionVideoClassifier(self._video_classifier_model, self._video_classifier_device)
+
         self.frame_counter += 1
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
         self.extract_tracks(im0)
@@ -169,18 +174,18 @@ class ActionRecognition(BaseSolution):
         tracks_to_infer, crops_to_infer = [], []
 
         if len(self.boxes):
-            for box, track_id in zip(self.boxes, self.track_ids):
+            for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
                 if self.frame_counter % self.skip_frame == 0:
-                    self.track_history[track_id].append(crop_and_pad(im0, box, self.crop_margin_percentage))
+                    self.crop_history[track_id].append(crop_and_pad(im0, box, self.crop_margin_percentage))
 
-                if len(self.track_history[track_id]) > self.num_video_sequence_samples:
-                    self.track_history[track_id].pop(0)
+                if len(self.crop_history[track_id]) > self.num_video_sequence_samples:
+                    self.crop_history[track_id].pop(0)
 
                 if (
-                    len(self.track_history[track_id]) == self.num_video_sequence_samples
+                    len(self.crop_history[track_id]) == self.num_video_sequence_samples
                     and self.frame_counter % self.skip_frame == 0
                 ):
-                    crops_to_infer.append(self.video_classifier.preprocess(self.track_history[track_id]))
+                    crops_to_infer.append(self.video_classifier.preprocess(self.crop_history[track_id]))
                     tracks_to_infer.append(track_id)
 
             if crops_to_infer:
@@ -188,24 +193,27 @@ class ActionRecognition(BaseSolution):
                 if not self.pred_labels or self.frame_counter % max(1, interval) == 0:
                     batch = torch.cat(crops_to_infer, dim=0)
                     labels, confs = self.video_classifier(batch)
-                    for tid, lbl, conf in zip(tracks_to_infer, labels, confs):
+                    for tid, lbl, c in zip(tracks_to_infer, labels, confs):
                         self.pred_labels[tid] = lbl
-                        self.pred_confs[tid] = conf
+                        self.pred_confs[tid] = c
 
-            for box, track_id in zip(self.boxes, self.track_ids):
+            for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
+                base_label = self.adjust_box_label(cls, conf, track_id)
                 if track_id in self.pred_labels:
-                    label = f"{self.pred_labels[track_id]} ({self.pred_confs[track_id]:.2f})"
+                    action = f"{self.pred_labels[track_id]} ({self.pred_confs[track_id]:.2f})"
+                    label = f"{base_label} | {action}" if base_label else action
                     annotator.box_label(box, label, color=(0, 255, 0))
                 else:
-                    annotator.box_label(box, "detecting...", color=(128, 128, 128))
+                    label = f"{base_label} | detecting..." if base_label else "detecting..."
+                    annotator.box_label(box, label, color=(128, 128, 128))
 
         plot_im = annotator.result()
         self.display_output(plot_im)
 
         # Clean up lost tracks
         current = set(self.track_ids) if self.track_ids is not None else set()
-        for tid in set(self.track_history.keys()) - current:
-            self.track_history.pop(tid, None)
+        for tid in set(self.crop_history.keys()) - current:
+            self.crop_history.pop(tid, None)
             self.pred_labels.pop(tid, None)
             self.pred_confs.pop(tid, None)
 

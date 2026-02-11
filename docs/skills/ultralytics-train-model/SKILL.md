@@ -47,7 +47,7 @@ my-dataset/
 
 **Label Formats:**
 
-All annotation geometry uses image-normalized coordinates $[0.0, 1.0]$.
+All annotation geometry uses image-normalized coordinates in the 0 to 1 range.
 
 - **Detection**: `class x_center y_center width height`
     - [class-index] [bounding-box]

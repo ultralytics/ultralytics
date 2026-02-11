@@ -61,18 +61,19 @@ class TorchVisionVideoClassifier:
         self.device = select_device(device)
         self.model = model_fn(weights=self.weights).to(self.device).eval()
 
-    def preprocess(self, crops: list) -> torch.Tensor:
-        """Preprocess video crops for classification."""
         from torchvision.transforms import v2
 
-        transform = v2.Compose(
+        self.transform = v2.Compose(
             [
                 v2.ToDtype(torch.float32, scale=True),
                 v2.Resize([224, 224], antialias=True),
                 v2.Normalize(mean=self.weights.transforms().mean, std=self.weights.transforms().std),
             ]
         )
-        frames = [transform(torch.from_numpy(c[..., ::-1].copy()).permute(2, 0, 1)) for c in crops]  # BGR to RGB
+
+    def preprocess(self, crops: list) -> torch.Tensor:
+        """Preprocess video crops for classification."""
+        frames = [self.transform(torch.from_numpy(c[..., ::-1].copy()).permute(2, 0, 1)) for c in crops]  # BGR to RGB
         return torch.stack(frames).unsqueeze(0).permute(0, 2, 1, 3, 4).to(self.device)
 
     def __call__(self, sequences: torch.Tensor) -> tuple:

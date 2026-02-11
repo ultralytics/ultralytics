@@ -78,7 +78,7 @@ Here are some other benefits of data augmentation:
 
 - **Creates a More Robust Dataset**: Data augmentation can make the model more robust to variations and distortions in the input data. This includes changes in lighting, orientation, and scale.
 - **Cost-Effective**: Data augmentation is a cost-effective way to increase the amount of [training data](https://www.ultralytics.com/glossary/training-data) without collecting and labeling new data.
-- **Better Use of Data**: Every available data point is used to its maximum potential by creating new variations
+- **Better Use of Data**: Every available data point is used to its maximum potential by creating new variations.
 
 #### Data Augmentation Methods
 

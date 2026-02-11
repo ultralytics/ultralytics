@@ -392,7 +392,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
             ],
         )
 
-        # Run inference on multiple image, using the provided visual prompts as guidance
+        # Run inference on multiple images, using the provided visual prompts as guidance
         results = model.predict(
             ["ultralytics/assets/bus.jpg", "ultralytics/assets/zidane.jpg"],
             visual_prompts=visual_prompts,
@@ -589,7 +589,7 @@ The export process is similar to other YOLO models, with the added flexibility o
 
     === "Visual Prompt"
 
-        Since only the `SAVPE` module needs to be updating during training.
+        Since only the `SAVPE` module needs to be updated during training.
         Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
         Note this step is optional, you can directly start from segmentation as well.
 
@@ -672,7 +672,7 @@ The export process is similar to other YOLO models, with the added flexibility o
 
     === "Prompt Free"
 
-        Similar to visual prompt training, for prompt-free model there's only the specialized prompt embedding needs to be updating during training.
+        Similar to visual prompt training, for prompt-free model there's only the specialized prompt embedding needs to be updated during training.
         Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
         Note this step is optional, you can directly start from segmentation as well.
 

@@ -1250,13 +1250,15 @@ class Exporter:
         """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
         following Ultralytics conventions.
         """
-        LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
         assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
 
         check_executorch_requirements()
 
+        from executorch import version as executorch_version
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
         from executorch.exir import to_edge_transform_and_lower
+
+        LOGGER.info(f"\n{prefix} starting export with ExecuTorch {executorch_version.__version__}...")
 
         file_directory = Path(str(self.file).replace(self.file.suffix, "_executorch_model"))
         file_directory.mkdir(parents=True, exist_ok=True)

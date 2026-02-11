@@ -16,8 +16,24 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML, is_jetson
-from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
+from ultralytics.utils import (
+    ARM64,
+    IS_JETSON,
+    LINUX,
+    LOGGER,
+    PYTHON_VERSION,
+    ROOT,
+    YAML,
+    is_jetson,
+)
+from ultralytics.utils.checks import (
+    check_executorch_requirements,
+    check_requirements,
+    check_suffix,
+    check_version,
+    check_yaml,
+    is_rockchip,
+)
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 from ultralytics.utils.nms import non_max_suppression
 
@@ -323,7 +339,7 @@ class AutoBackend(nn.Module):
                 batch = metadata["batch"]
                 dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
-            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 and dynamic else "LATENCY"
+            inference_mode = "CUMULATIVE_THROUGHPUT" if dynamic and batch > 1 else "LATENCY"
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name=device_name,
@@ -616,9 +632,9 @@ class AutoBackend(nn.Module):
         # ExecuTorch
         elif pte:
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
-            # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
-            check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-            check_requirements(("executorch==1.0.1", "flatbuffers"))
+
+            check_executorch_requirements()
+
             from executorch.runtime import Runtime
 
             w = Path(w)

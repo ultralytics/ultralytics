@@ -72,7 +72,7 @@ class BOTrack(STrack):
         self.curr_feat = None
         if feat is not None:
             self.update_features(feat)
-        self.features = deque([], maxlen=feat_history)
+        self.features = deque(maxlen=feat_history)
         self.alpha = 0.9
 
     def update_features(self, feat: np.ndarray) -> None:

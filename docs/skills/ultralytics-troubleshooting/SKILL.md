@@ -1,5 +1,5 @@
 ---
-name: ultralytics-troubleshoooting
+name: ultralytics-troubleshooting
 description: A concise, action-oriented troubleshooting playbook for code agents working with Ultralytics YOLO (install, runtime, training, prediction, export, environment). Optimized for automated diagnosis and repair.
 license: AGPL-3.0
 metadata:

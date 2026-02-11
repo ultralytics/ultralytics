@@ -137,7 +137,7 @@ The YOLO26n model in PyTorch format is converted to NCNN to run inference with t
 
 ## YOLO26 Performance Improvements over YOLO11
 
-YOLO26 is specifically designed to run on hardware-constrained devices such as the Raspberry Pi 5. Compared to YOLO11, YOLO26n achieves a ~15% increase in FPS (6.79 → 7.79) while also delivering better mAP at 640 input size with ONNX-exported models on the Raspberry Pi 5. The table and chart below showcase this comparison.
+YOLO26 is specifically designed to run on hardware-constrained devices such as the Raspberry Pi 5. Compared to YOLO11n, YOLO26n achieves a ~15% increase in FPS (6.79 → 7.79) while also delivering better mAP at 640 input size with ONNX-exported models on the Raspberry Pi 5. The table and chart below showcase this comparison.
 
 <figure style="text-align: center;">
     <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo26-vs-yolo11-rpi5-onnx-benchmarks.avif" alt="YOLO26 benchmarks on RPi 5">

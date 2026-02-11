@@ -158,7 +158,8 @@ class ActionRecognition(BaseSolution):
             im0 (np.ndarray): Input image.
 
         Returns:
-            SolutionResults: Contains plot_im and total_tracks.
+            SolutionResults: Contains plot_im, total_tracks, action_labels (dict mapping track_id to
+                predicted action label), and action_confs (dict mapping track_id to confidence).
         """
         self.frame_counter += 1
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
@@ -207,4 +208,9 @@ class ActionRecognition(BaseSolution):
             self.pred_labels.pop(tid, None)
             self.pred_confs.pop(tid, None)
 
-        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids) if self.track_ids else 0)
+        return SolutionResults(
+            plot_im=plot_im,
+            total_tracks=len(self.track_ids) if self.track_ids else 0,
+            action_labels=dict(self.pred_labels),
+            action_confs=dict(self.pred_confs),
+        )

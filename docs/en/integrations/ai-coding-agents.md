@@ -180,7 +180,7 @@ Ultralytics skills follow the [Agent Skills specification](https://agentskills.i
 
 [OpenAI's Codex](https://openai.com/blog/openai-codex) and GPT models can be integrated into various development tools and IDEs. [Codex can access skills](https://developers.openai.com/codex/skills) as context when using these models through APIs or custom integrations.
 
-**Installation**: Codex checks for skills in `.agent/skills`, supporting both local and global installations:
+**Installation**: Codex checks for skills in `.agents/skills`, supporting both local and global installations:
 
 !!! example ""
 

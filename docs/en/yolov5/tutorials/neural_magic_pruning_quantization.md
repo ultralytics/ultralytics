@@ -213,7 +213,7 @@ deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/base-non
 
 #### DeepSparse Sparse Performance
 
-When sparsity is applied to the model, DeepSparse's performance gains over ONNX Runtime is even stronger.
+When sparsity is applied to the model, DeepSparse's performance gains over ONNX Runtime are even stronger.
 
 At batch 32, DeepSparse achieves 241 images/sec with the pruned-quantized YOLOv5s, a **5.8x performance improvement over ORT**!
 

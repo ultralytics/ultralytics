@@ -312,7 +312,7 @@ Ultralytics provides specialized skills for AI coding agents to assist with comm
         Install skills to a custom directory:
 
         ```bash
-        yolo install-skills dir=/path/to/skills
+        yolo install-skills dir=path/to/custom  # adds skills under path/to/custom/skills
         ```
 
     === "Install Globally"
@@ -320,7 +320,7 @@ Ultralytics provides specialized skills for AI coding agents to assist with comm
         Install skills globally for Copilot and other supported agents:
 
         ```bash
-        yolo install-skills global copilot
+        yolo install-skills global agent=copilot
         ```
 
     === "Uninstall"

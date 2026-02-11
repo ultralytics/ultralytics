@@ -6,7 +6,7 @@ keywords: LVIS dataset, object detection, instance segmentation, Facebook AI Res
 
 # LVIS Dataset
 
-The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained vocabulary-level annotation dataset developed and released by Facebook AI Research (FAIR). It is primarily used as a research benchmark for object detection and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) with a large vocabulary of categories, aiming to drive further advancements in computer vision field.
+The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained vocabulary-level annotation dataset developed and released by Facebook AI Research (FAIR). It is primarily used as a research benchmark for object detection and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) with a large vocabulary of categories, aiming to drive further advancements in the computer vision field.
 
 <p align="center">
   <br>
@@ -33,7 +33,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained 
 
 ## Dataset Structure
 
-The LVIS dataset is split into three subsets:
+The LVIS dataset is split into four subsets:
 
 1. **Train**: This subset contains 100k images for training object detection, segmentation, and captioning models.
 2. **Val**: This subset has 20k images used for validation purposes during model training.

@@ -215,6 +215,7 @@ def test_export_coreml():
 
 
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
+@pytest.mark.skipif(not TORCH_1_13, reason="TFLite export requires torch>=1.13")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 def test_export_tflite():
     """Test YOLO export to TFLite format under specific OS and Python version conditions."""

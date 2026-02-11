@@ -165,7 +165,9 @@ class ActionRecognition(BaseSolution):
         """
         # Lazy-load the video classifier on first use
         if self.video_classifier is None:
-            self.video_classifier = TorchVisionVideoClassifier(self._video_classifier_model, self._video_classifier_device)
+            self.video_classifier = TorchVisionVideoClassifier(
+                self._video_classifier_model, self._video_classifier_device
+            )
 
         self.frame_counter += 1
         annotator = SolutionAnnotator(im0, line_width=self.line_width)

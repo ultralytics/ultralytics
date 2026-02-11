@@ -623,10 +623,9 @@ class Results(SimpleClass, DataExportMixin):
         """
         if not filename:
             filename = f"results_{Path(self.path).name}"
-        filename = Path(filename).absolute()
-        filename.parent.mkdir(parents=True, exist_ok=True)
-        self.plot(save=True, filename=str(filename), *args, **kwargs)
-        return str(filename)
+        Path(filename).absolute().parent.mkdir(parents=True, exist_ok=True)
+        self.plot(save=True, filename=filename, *args, **kwargs)
+        return filename
 
     def verbose(self) -> str:
         """Return a log string for each task in the results, detailing detection and classification outcomes.

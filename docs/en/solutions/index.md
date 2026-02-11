@@ -142,14 +142,14 @@ For more details, refer to the [`SolutionResults` class documentation](https://d
 
     Most of the Solutions can be used directly through the command-line interface, including:
 
-    `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`
+    `Action`, `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`
 
     **Syntax**
 
         yolo SOLUTIONS SOLUTION_NAME ARGS
 
     - **SOLUTIONS** is a required keyword.
-    - **SOLUTION_NAME** is one of: `['count', 'crop', 'blur', 'workout', 'heatmap', 'isegment', 'queue', 'speed', 'analytics', 'trackzone', 'inference', 'visioneye']`.
+    - **SOLUTION_NAME** is one of: `['action', 'count', 'crop', 'blur', 'workout', 'heatmap', 'isegment', 'queue', 'speed', 'analytics', 'trackzone', 'inference', 'visioneye']`.
     - **ARGS** (optional) are custom `arg=value` pairs, such as `show_in=True`, to override default settings.
 
 ```bash

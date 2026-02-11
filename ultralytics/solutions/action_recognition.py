@@ -8,6 +8,7 @@ import numpy as np
 import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
+from ultralytics.utils.plotting import colors
 from ultralytics.utils.torch_utils import select_device
 
 
@@ -66,7 +67,6 @@ class TorchVisionVideoClassifier:
         self.transform = v2.Compose(
             [
                 v2.ToDtype(torch.float32, scale=True),
-                v2.Resize([224, 224], antialias=True),
                 v2.Normalize(mean=self.weights.transforms().mean, std=self.weights.transforms().std),
             ]
         )
@@ -202,7 +202,7 @@ class ActionRecognition(BaseSolution):
                 if track_id in self.pred_labels:
                     action = f"{self.pred_labels[track_id]} ({self.pred_confs[track_id]:.2f})"
                     label = f"{base_label} | {action}" if base_label else action
-                    annotator.box_label(box, label, color=(0, 255, 0))
+                    annotator.box_label(box, label, color=colors(track_id, True))
                 else:
                     label = f"{base_label} | detecting..." if base_label else "detecting..."
                     annotator.box_label(box, label, color=(128, 128, 128))

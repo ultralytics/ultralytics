@@ -107,6 +107,7 @@ All models are pretrained on [Kinetics-400](https://www.deepmind.com/open-source
 | `num_video_sequence_samples` | `int` | `8`          | Number of frames per sequence      |
 | `skip_frame`                 | `int` | `2`          | Frame skip interval                |
 | `video_cls_overlap_ratio`    | `float` | `0.25`     | Temporal overlap between inference windows |
+| `device`                     | `str` | `""`         | Device for video classifier (`""`, `cpu`, `0`) |
 
 ## FAQ
 

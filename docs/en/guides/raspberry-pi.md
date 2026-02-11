@@ -164,7 +164,7 @@ YOLO26 is specifically designed to run on hardware-constrained devices such as t
         | YOLO11n 	| 39.5        	| 147.20                 	|
         | YOLO11s 	| 47.0        	| 366.83                 	|
         | YOLO11m 	| 51.5        	| 997.46                 	|
-        | YYOLO11l 	| 53.4        	| 1274.95                	|
+        | YOLO11l 	| 53.4        	| 1274.95                	|
         | YOLO11x 	| 54.7        	| 2646.76                	|
 
     Benchmarked with Ultralytics 8.4.14.

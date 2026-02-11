@@ -335,13 +335,13 @@ Ultralytics provides specialized skills for AI coding agents to assist with comm
 
 The following skills are available to help AI coding agents work with Ultralytics:
 
-- **ultralytics-contribute-code**: Guidelines for contributing code to the Ultralytics repository
-- **ultralytics-create-custom-model**: Instructions for creating custom YOLO models
-- **ultralytics-export-model**: Steps for exporting models to different formats
-- **ultralytics-prepare-dataset**: Dataset preparation and formatting guidance
-- **ultralytics-run-inference**: Running inference with YOLO models
 - **ultralytics-train-model**: Training YOLO models on custom datasets
+- **ultralytics-prepare-dataset**: Dataset preparation and formatting guidance
+- **ultralytics-contribute-code**: Guidelines for contributing code to the Ultralytics repository
 - **ultralytics-troubleshooting**: Troubleshooting common issues with Ultralytics
+- **ultralytics-run-inference**: _Coming soon_ - Running inference with YOLO models
+- **ultralytics-export-model**: _Coming soon_ - Steps for exporting models to different formats
+- **ultralytics-create-custom-model**: _Coming soon_ - Instructions for creating custom YOLO models
 
 These skills provide structured guidance to AI assistants, improving their ability to help you with Ultralytics development tasks. For complete information on skills, compatible AI agents, and usage tips, visit the [AI Coding Agents integration page](../integrations/ai-coding-agents.md).
 

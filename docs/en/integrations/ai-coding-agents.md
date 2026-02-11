@@ -27,15 +27,15 @@ Skills are particularly valuable for:
 
 ## Available Ultralytics Skills
 
-Ultralytics provides seven specialized skills covering the most common development tasks:
+Ultralytics provides specialized skills covering the most common development tasks:
 
 - **ultralytics-train-model**: Comprehensive guidance for [training](../modes/train.md) YOLO models, including [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning), dataset configuration, and monitoring training progress
-- **ultralytics-run-inference**: Instructions for running [inference](../modes/predict.md) with YOLO models on images, videos, streams, and other sources
-- **ultralytics-export-model**: Complete [export](../modes/export.md) workflows for converting models to [ONNX](onnx.md), [TensorRT](tensorrt.md), [CoreML](coreml.md), and other formats with optimization recommendations
 - **ultralytics-prepare-dataset**: Best practices for dataset organization, annotation formats, directory structures, and [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) strategies
-- **ultralytics-create-custom-model**: Step-by-step guidance for developing custom YOLO architectures and model configurations
 - **ultralytics-contribute-code**: Guidelines for contributing to the Ultralytics repository, including code standards, PR workflows, and testing requirements
 - **ultralytics-troubleshooting**: Common issues, error messages, and debugging strategies for Ultralytics development
+- **ultralytics-run-inference**: _Coming soon_ - Instructions for running [inference](../modes/predict.md) with YOLO models on images, videos, streams, and other sources
+- **ultralytics-export-model**: _Coming soon_ - Complete [export](../modes/export.md) workflows for converting models to [ONNX](onnx.md), [TensorRT](tensorrt.md), [CoreML](coreml.md), and other formats with optimization recommendations
+- **ultralytics-create-custom-model**: _Coming soon_ - Step-by-step guidance for developing custom YOLO architectures and model configurations
 
 Each skill contains detailed workflows, prerequisites, code examples in both Python and CLI formats, and references to relevant documentation pages.
 
@@ -284,7 +284,7 @@ Ultralytics AI coding agent skills bring expert-level YOLO knowledge directly in
 
 ### What exactly gets installed when I run `yolo install-skills`?
 
-The command copies seven Markdown files (one for each skill) from the Ultralytics package to the specified skills directory. Each file contains structured information about a specific development task, including workflows, code examples, best practices, and references. These files are read by AI coding agents to enhance their understanding of Ultralytics specific tasks. No executable code is installed; the skills are purely informational Markdown files for AI agents.
+The command copies Markdown files (one for each skill) from the Ultralytics package to the specified skills directory. Each file contains structured information about a specific development task, including workflows, code examples, best practices, and references. These files are read by AI coding agents to enhance their understanding of Ultralytics specific tasks. No executable code is installed; the skills are purely informational Markdown files for AI agents.
 
 ### Do I need to install skills separately for each project?
 

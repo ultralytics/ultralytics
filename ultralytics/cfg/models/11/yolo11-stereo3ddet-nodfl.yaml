@@ -1,13 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO11 Stereo 3D Object Detection model with P3/8 - P5/32 outputs
-# Usage: model=yolo11n-stereo3ddet.yaml (scale auto-detected from filename)
+# YOLO11 Stereo 3D Detection — no DFL variant (reg_max=1)
+# Usage: model=yolo11s-stereo3ddet-nodfl.yaml
 
 # Parameters
 nc: 3 # number of classes (Car, Pedestrian, Cyclist)
 stereo: true # stereo mode flag
 input_channels: 6 # 6-channel input (RGB left + RGB right)
-scales: # model compound scaling constants, i.e. 'model=yolo11n-stereo3ddet.yaml' will call this file with scale 'n'
+scales: # model compound scaling constants
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024]
   s: [0.50, 0.50, 1024]
@@ -16,7 +16,6 @@ scales: # model compound scaling constants, i.e. 'model=yolo11n-stereo3ddet.yaml
   x: [1.00, 1.50, 512]
 
 # Aux loss weights (lr_distance in log-space, targets ~-4.6 to -1.5)
-# Add use_bbox_loss: false under training to disable 2D box + DFL loss (cls + aux only).
 training:
   loss_weights:
     lr_distance: 2.0
@@ -63,5 +62,5 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 2, C3k2, [1024, True]] # 22 (P5/32)
 
-  # Multi-scale head
+  # Multi-scale head — reg_max=1 disables DFL
   - [[16, 19, 22], 1, Stereo3DDetHeadYOLO11, [nc, 1]]

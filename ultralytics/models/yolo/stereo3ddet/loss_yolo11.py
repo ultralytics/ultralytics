@@ -30,20 +30,10 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
         self,
         model,
         tal_topk: int = 10,
-        reg_max: int | None = None,
         loss_weights: Dict[str, float] | None = None,
         use_bbox_loss: bool = True,
     ):
-        super().__init__(model, tal_topk=tal_topk)
-
-        if reg_max is not None:
-            self.reg_max = reg_max
-            self.no = self.nc + self.reg_max * 4
-            self.use_dfl = self.reg_max > 1
-            from ultralytics.utils.loss import BboxLoss
-            self.bbox_loss = BboxLoss(self.reg_max).to(self.device)
-            self.proj = torch.arange(self.reg_max, dtype=torch.float, device=self.device)
-
+        super().__init__(model, tal_topk=tal_topk)  # picks up reg_max from head
         self.aux_w = loss_weights or {}
         self.use_bbox_loss = use_bbox_loss
 

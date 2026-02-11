@@ -43,8 +43,21 @@ class Stereo3DDetHeadYOLO11(Detect):
         ch: Tuple of per-scale input channels, e.g. (256, 512, 1024).
     """
 
-    def __init__(self, nc: int = 3, ch: tuple = ()):
-        super().__init__(nc=nc, ch=ch)  # multi-scale Detect
+    def __init__(self, nc: int = 3, reg_max: int = 16, ch: tuple = ()):
+        if isinstance(reg_max, (list, tuple)):  # YAML [nc] — ch landed in reg_max slot
+            ch, reg_max = reg_max, 16
+        super().__init__(nc=nc, ch=ch)  # multi-scale Detect (builds with reg_max=16)
+
+        # Override reg_max if requested (e.g. reg_max=1 disables DFL)
+        if reg_max != self.reg_max:
+            self.reg_max = reg_max
+            self.no = nc + reg_max * 4
+            c2 = max(16, ch[0] // 4, reg_max * 4)
+            self.cv2 = nn.ModuleList(
+                nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * reg_max, 1)) for x in ch
+            )
+            from ultralytics.nn.modules.block import DFL
+            self.dfl = DFL(reg_max) if reg_max > 1 else nn.Identity()
 
         # Hidden size scales with model width (same pattern as Pose.cv4)
         hidden = max(ch[0] // 4, max(AUX_SPECS.values()))

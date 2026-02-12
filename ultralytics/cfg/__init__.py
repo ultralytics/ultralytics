@@ -765,8 +765,6 @@ def handle_install_skills(args: list[str]) -> None:
         >>> handle_install_skills(["dir=/custom/path"])  # custom dir → /custom/path/skills
         >>> handle_install_skills(["uninstall", "agent=copilot"])  # uninstall agent skills
     """
-    import shutil
-
     is_global, agent, custom = (
         "global" in args,
         next((a.split("=", 1)[1] for a in args if a.startswith("agent=")), None),

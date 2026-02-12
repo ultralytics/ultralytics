@@ -19,14 +19,14 @@ backbone:
   - [-1, 6, HGBlock, [128, 512, 3]]
   - [-1, 6, HGBlock, [128, 512, 3, False, True]] # 4-stage 2
 
-  - [-1, 1, DWConv, [512, 3, 2, 1, False]] # 5-P3/16
+  - [-1, 1, DWConv, [512, 3, 2, 1, False]] # 5-P4/16
   - [-1, 6, HGBlock, [256, 1024, 5, True, False]] # cm, c2, k, light, shortcut
   - [-1, 6, HGBlock, [256, 1024, 5, True, True]]
   - [-1, 6, HGBlock, [256, 1024, 5, True, True]]
   - [-1, 6, HGBlock, [256, 1024, 5, True, True]]
   - [-1, 6, HGBlock, [256, 1024, 5, True, True]] # 10-stage 3
 
-  - [-1, 1, DWConv, [1024, 3, 2, 1, False]] # 11-P4/32
+  - [-1, 1, DWConv, [1024, 3, 2, 1, False]] # 11-P5/32
   - [-1, 6, HGBlock, [512, 2048, 5, True, False]]
   - [-1, 6, HGBlock, [512, 2048, 5, True, True]] # 13-stage 4
 

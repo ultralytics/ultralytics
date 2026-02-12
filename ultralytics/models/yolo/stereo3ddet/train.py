@@ -43,7 +43,7 @@ class Stereo3DDetTrainer(yolo.detect.DetectionTrainer):
 
     def _determine_loss_names(self):
         """Set loss names for stereo 3D detection (disparity + dimensions)."""
-        self.loss_names = ("box", "cls", "dfl", "lr_dist", "depth", "dims", "orient")
+        self.loss_names = ("box", "cls", "lr_dist", "depth", "dims", "orient")
 
     def progress_string(self):
         """Return a formatted string showing training progress with dynamically determined loss branches.

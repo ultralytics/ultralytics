@@ -63,5 +63,5 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 2, C3k2, [1024, True]] # 22 (P5/32)
 
-  # Multi-scale head
-  - [[16, 19, 22], 1, Stereo3DDetHeadYOLO11, [nc, 1]]
+  # Multi-scale head (DFL disabled — reg_max=1 hard-coded in head)
+  - [[16, 19, 22], 1, Stereo3DDetHeadYOLO11, [nc]]

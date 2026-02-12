@@ -450,9 +450,9 @@ class BaseTrainer:
                     if self.args.time:
                         self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)
                         if RANK != -1:  # if DDP training
-                            broadcast_list = [self.stop if RANK == 0 else None]
-                            dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
-                            self.stop = broadcast_list[0]
+                            flag = torch.tensor(int(self.stop), device=self.device)
+                            dist.broadcast(flag, src=0)
+                            self.stop = bool(flag.item())
                         if self.stop:  # training time exceeded
                             break
 
@@ -530,9 +530,9 @@ class BaseTrainer:
 
             # Early Stopping
             if RANK != -1:  # if DDP training
-                broadcast_list = [self.stop if RANK == 0 else None]
-                dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
-                self.stop = broadcast_list[0]
+                flag = torch.tensor(int(self.stop), device=self.device)
+                dist.broadcast(flag, src=0)
+                self.stop = bool(flag.item())
             if self.stop:
                 break  # must break all DDP ranks
             epoch += 1
@@ -882,9 +882,9 @@ class BaseTrainer:
         corrupted = RANK in {-1, 0} and loss_nan and (fitness_nan or fitness_collapse)
         reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
         if RANK != -1:  # DDP: broadcast to all ranks
-            broadcast_list = [corrupted if RANK == 0 else None]
-            dist.broadcast_object_list(broadcast_list, 0)
-            corrupted = broadcast_list[0]
+            flag = torch.tensor(int(corrupted), device=self.device)
+            dist.broadcast(flag, src=0)
+            corrupted = bool(flag.item())
         if not corrupted:
             return False
         if epoch == self.start_epoch or not self.last.exists():

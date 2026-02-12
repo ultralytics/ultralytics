@@ -251,12 +251,18 @@ class Stereo3DDetMetrics(SimpleClass, DataExportMixin):
             "precision": precision_scalar,
             "recall": recall_scalar,
             "f1": f1_scalar,
+            "fitness": self.fitness,
         }
 
     @property
     def keys(self) -> list[str]:
         """Return list of metric keys."""
-        return ["ap3d_50", "ap3d_70", "maps3d_50", "maps3d_70"]
+        return ["ap3d_50", "ap3d_70", "maps3d_50", "maps3d_70", "precision", "recall", "f1"]
+
+    @property
+    def fitness(self) -> float:
+        """Return model fitness as mean AP3D@0.5 for early stopping and best model selection."""
+        return self.maps3d_50
 
     @property
     def maps3d_50(self) -> float:

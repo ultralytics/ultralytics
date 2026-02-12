@@ -143,11 +143,10 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
         target_scores_sum = max(target_scores.sum(), 1)
 
         loss_box = torch.tensor(0.0, device=self.device)
-        loss_dfl = torch.tensor(0.0, device=self.device)
         loss_cls = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum
 
         if self.use_bbox_loss and fg_mask.sum():
-            loss_box, loss_dfl = self.bbox_loss(
+            loss_box, _ = self.bbox_loss(
                 pred_distri,
                 pred_bboxes,
                 anchor_points,
@@ -157,7 +156,6 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
                 fg_mask,
             )
             loss_box *= self.hyp.box
-            loss_dfl *= self.hyp.dfl
         loss_cls *= self.hyp.cls
 
         # Aux losses
@@ -167,12 +165,11 @@ class Stereo3DDetLossYOLO11(v8DetectionLoss):
         for k, v in aux_losses.items():
             aux_total = aux_total + float(self.aux_w.get(k, 1.0)) * v
 
-        total = loss_box + loss_cls + loss_dfl + aux_total
+        total = loss_box + loss_cls + aux_total
 
         items = [
             loss_box,
             loss_cls,
-            loss_dfl,
             aux_losses.get("lr_distance", torch.tensor(0.0, device=self.device)),
             aux_losses.get("depth", torch.tensor(0.0, device=self.device)),
             aux_losses.get("dimensions", torch.tensor(0.0, device=self.device)),

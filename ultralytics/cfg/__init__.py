@@ -141,6 +141,9 @@ CLI_HELP_MSG = f"""
         yolo cfg
         yolo solutions help
 
+    7. Batch-evaluate multiple models on a dataset:
+        yolo batcheval models="runs/detect/train*,models/exp2.pt" data=coco8.yaml split=val
+
     Docs: https://docs.ultralytics.com
     Solutions: https://docs.ultralytics.com/solutions/
     Community: https://community.ultralytics.com
@@ -745,6 +748,58 @@ def handle_yolo_solutions(args: list[str]) -> None:
             cap.release()
 
 
+def handle_yolo_batcheval(args: list[str]) -> None:
+    """Handle the `yolo batcheval` command for batch model evaluation.
+
+    This command evaluates multiple models on the same dataset split and writes summary CSV outputs.
+
+    Examples:
+        yolo batcheval models="runs/detect/train*,models/exp2.pt" data=coco8.yaml split=val
+    """
+    from ultralytics.analytics import run_cli as batcheval_run_cli
+
+    # Define a minimal schema for alignment and clear error messages.
+    full_args_dict: dict[str, Any] = {
+        "models": "",
+        "data": "",
+        "split": "val",
+        "sweep_conf": False,
+        "conf_min": 0.05,
+        "conf_max": 0.95,
+        "conf_step": 0.05,
+        "save_dir": None,
+    }
+
+    overrides: dict[str, Any] = {}
+    for arg in merge_equals_args(args):
+        arg = arg.lstrip("-").rstrip(",")
+        if "=" in arg:
+            try:
+                k, v = parse_key_value_pair(arg)
+                overrides[k] = v
+            except (NameError, SyntaxError, ValueError, AssertionError) as e:
+                check_dict_alignment(full_args_dict, {arg: ""}, e)
+        else:
+            # For now we do not support bare boolean flags; guide user via alignment error.
+            check_dict_alignment(full_args_dict, {arg: ""})
+
+    # Validate only known keys; allow additional overrides (e.g. imgsz, conf, save_json, plots)
+    # to pass through to YOLO().val(...) via batcheval without being rejected.
+    known_overrides = {k: v for k, v in overrides.items() if k in full_args_dict}
+    check_dict_alignment(full_args_dict, known_overrides)
+
+    # Required arguments.
+    missing = [k for k in ("models", "data") if k not in overrides or overrides[k] in {None, ""}]
+    if missing:
+        missing_str = ", ".join(missing)
+        raise SyntaxError(
+            f"Missing required batcheval argument(s): {missing_str}. "
+            "Example: yolo batcheval models='runs/detect/train*,models/exp2.pt' data=coco8.yaml split=val",
+        )
+
+    batcheval_run_cli(overrides)
+
+
 def parse_key_value_pair(pair: str = "key=value") -> tuple:
     """Parse a key-value pair string into separate key and value components.
 
@@ -861,6 +916,7 @@ def entrypoint(debug: str = "") -> None:
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "solutions": lambda: handle_yolo_solutions(args[1:]),
+        "batcheval": lambda: handle_yolo_batcheval(args[1:]),
         "help": lambda: LOGGER.info(CLI_HELP_MSG),  # help below hub for -h flag precedence
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}

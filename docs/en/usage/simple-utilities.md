@@ -696,6 +696,24 @@ print(VID_FORMATS)
 # {'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'}
 ```
 
+## Batch Evaluation
+
+### Compare Multiple Models on a Dataset
+
+Use `yolo batcheval` to evaluate multiple YOLO models on the same dataset split and export a unified metrics summary.
+
+```python
+from ultralytics.analytics import batcheval
+
+results = batcheval(
+    models=["runs/detect/train38", "models/exp2.pt"],
+    data="coco8.yaml",
+    split="val",
+)
+```
+
+See the [batcheval usage page](./batcheval.md) for CLI examples, output formats, and additional details.
+
 ### Make Divisible
 
 Calculate the nearest whole number to `x` that is evenly divisible by `y`.

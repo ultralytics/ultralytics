@@ -18,8 +18,8 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
     objects at arbitrary angles rather than just axis-aligned rectangles.
 
     Attributes:
-        loss_names (tuple): Names of the loss components used during training including box_loss, cls_loss, and
-            dfl_loss.
+        loss_names (tuple): Names of the loss components used during training including box_loss, cls_loss,
+            dfl_loss, and angle_loss.
 
     Methods:
         get_model: Return OBBModel initialized with specified config and weights.

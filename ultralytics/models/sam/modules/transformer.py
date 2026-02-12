@@ -316,8 +316,8 @@ class Attention(nn.Module):
 
         Args:
             q (torch.Tensor): Query tensor with shape (B, N_q, embedding_dim).
-            k (torch.Tensor): Key tensor with shape (B, N_k, embedding_dim).
-            v (torch.Tensor): Value tensor with shape (B, N_k, embedding_dim).
+            k (torch.Tensor): Key tensor with shape (B, N_k, kv_in_dim).
+            v (torch.Tensor): Value tensor with shape (B, N_k, kv_in_dim).
 
         Returns:
             (torch.Tensor): Output tensor after attention with shape (B, N_q, embedding_dim).

@@ -185,11 +185,11 @@ class SegmentationValidator(DetectionValidator):
             p["masks"] = torch.as_tensor(masks[: self.args.max_det], dtype=torch.uint8).cpu()
         super().plot_predictions(batch, preds, ni, max_det=self.args.max_det)  # plot bboxes
 
-    def save_one_txt(self, predn: torch.Tensor, save_conf: bool, shape: tuple[int, int], file: Path) -> None:
+    def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """Save YOLO detections to a txt file in normalized coordinates in a specific format.
 
         Args:
-            predn (torch.Tensor): Predictions in the format (x1, y1, x2, y2, conf, class).
+            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'masks' keys.
             save_conf (bool): Whether to save confidence scores.
             shape (tuple[int, int]): Shape of the original image.
             file (Path): File path to save the detections.

@@ -154,8 +154,8 @@ class STrack(BaseTrack):
 
         Examples:
             Update the state of a track with new detection information
-            >>> track = STrack([100, 200, 50, 80, 0.9, 1])
-            >>> new_track = STrack([105, 205, 55, 85, 0.95, 1])
+            >>> track = STrack([100, 200, 50, 80, 0], score=0.9, cls=0)
+            >>> new_track = STrack([105, 205, 55, 85, 0], score=0.95, cls=0)
             >>> track.update(new_track, 2)
         """
         self.frame_id = frame_id
@@ -229,7 +229,7 @@ class STrack(BaseTrack):
 
 
 class BYTETracker:
-    """BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
+    """BYTETracker: A tracking algorithm built on top of YOLO for object detection and tracking.
 
     This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects
     in a video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman

@@ -936,8 +936,7 @@ class REAttention(nn.Module):
     """Relative Position Attention module for efficient self-attention in transformer architectures.
 
     This class implements a multi-head attention mechanism with relative positional embeddings, designed for use in
-    vision transformer models. It supports optional query pooling and window partitioning for efficient processing of
-    large inputs.
+    vision transformer models.
 
     Attributes:
         num_heads (int): Number of attention heads.

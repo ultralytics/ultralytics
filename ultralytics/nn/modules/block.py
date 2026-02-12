@@ -805,7 +805,7 @@ class BNContrastiveHead(nn.Module):
 
     @staticmethod
     def forward_fuse(x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
-        """Passes input out unchanged."""
+        """Passes image features through unchanged after fusing."""
         return x
 
     def forward(self, x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
@@ -1039,10 +1039,10 @@ class CBFuse(nn.Module):
 
 
 class C3f(nn.Module):
-    """Faster Implementation of CSP Bottleneck with 2 convolutions."""
+    """Faster Implementation of CSP Bottleneck with 3 convolutions."""
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
-        """Initialize CSP bottleneck layer with two convolutions.
+        """Initialize CSP bottleneck layer with three convolutions.
 
         Args:
             c1 (int): Input channels.
@@ -1498,7 +1498,7 @@ class C2fPSA(C2f):
         c (int): Number of hidden channels.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
         cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c2.
-        m (nn.ModuleList): List of PSA blocks for feature extraction.
+        m (nn.ModuleList): List of PSABlock modules for feature extraction.
 
     Methods:
         forward: Performs a forward pass through the C2fPSA module.
@@ -2047,7 +2047,7 @@ class RealNVP(nn.Module):
                 nn.init.xavier_uniform_(m.weight, gain=0.01)
 
     def backward_p(self, x):
-        """Apply mapping form the data space to the latent space and calculate the log determinant of the Jacobian
+        """Apply mapping from the data space to the latent space and calculate the log determinant of the Jacobian
         matrix.
         """
         log_det_jacob, z = x.new_zeros(x.shape[0]), x

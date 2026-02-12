@@ -78,8 +78,7 @@ class RTDETRPredictor(BasePredictor):
         The input images are letterboxed to ensure a square aspect ratio and scale-filled.
 
         Args:
-            im (list[np.ndarray] | torch.Tensor): Input images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for
-                list.
+            im (list[np.ndarray]): Input images of shape [(H, W, 3) x N].
 
         Returns:
             (list): List of pre-transformed images ready for model inference.

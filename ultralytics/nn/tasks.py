@@ -897,7 +897,7 @@ class WorldModel(DetectionModel):
         self.model[-1].nc = len(text)
 
     def get_text_pe(self, text, batch=80, cache_clip_model=True):
-        """Get text positional embeddings for offline inference without CLIP model.
+        """Get text positional embeddings using the CLIP model.
 
         Args:
             text (list[str]): List of class names.
@@ -1019,7 +1019,7 @@ class YOLOEModel(DetectionModel):
 
     @smart_inference_mode()
     def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):
-        """Get text positional embeddings for offline inference without CLIP model.
+        """Get text positional embeddings using the CLIP model.
 
         Args:
             text (list[str]): List of class names.
@@ -1055,7 +1055,7 @@ class YOLOEModel(DetectionModel):
 
     @smart_inference_mode()
     def get_visual_pe(self, img, visual):
-        """Get visual embeddings.
+        """Get visual positional embeddings.
 
         Args:
             img (torch.Tensor): Input image tensor.
@@ -1141,8 +1141,8 @@ class YOLOEModel(DetectionModel):
         """Get class positional embeddings.
 
         Args:
-            tpe (torch.Tensor, optional): Text positional embeddings.
-            vpe (torch.Tensor, optional): Visual positional embeddings.
+            tpe (torch.Tensor | None): Text positional embeddings.
+            vpe (torch.Tensor | None): Visual positional embeddings.
 
         Returns:
             (torch.Tensor): Class positional embeddings.

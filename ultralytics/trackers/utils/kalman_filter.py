@@ -63,8 +63,7 @@ class KalmanFilterXYAH:
                 and height h.
 
         Returns:
-            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0
-                mean.
+            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0.
             covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
 
         Examples:
@@ -98,7 +97,7 @@ class KalmanFilterXYAH:
                 step.
 
         Returns:
-            mean (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
+            mean (np.ndarray): Mean vector of the predicted state.
             covariance (np.ndarray): Covariance matrix of the predicted state.
 
         Examples:
@@ -316,8 +315,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 height.
 
         Returns:
-            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0
-                mean.
+            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0.
             covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
 
         Examples:
@@ -362,7 +360,7 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
                 step.
 
         Returns:
-            mean (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
+            mean (np.ndarray): Mean vector of the predicted state.
             covariance (np.ndarray): Covariance matrix of the predicted state.
 
         Examples:

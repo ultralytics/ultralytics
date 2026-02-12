@@ -104,7 +104,7 @@ class PoseValidator(DetectionValidator):
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
-    def postprocess(self, preds: torch.Tensor) -> dict[str, torch.Tensor]:
+    def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
 
         This method extends the parent class postprocessing by extracting keypoints from the 'extra' field of
@@ -116,7 +116,7 @@ class PoseValidator(DetectionValidator):
                 scores, class predictions, and keypoint data.
 
         Returns:
-            (dict[torch.Tensor]): Dict of processed prediction dictionaries, each containing:
+            (list[dict[str, torch.Tensor]]): List of processed prediction dictionaries, each containing:
                 - 'bboxes': Bounding box coordinates
                 - 'conf': Confidence scores
                 - 'cls': Class predictions
@@ -189,7 +189,7 @@ class PoseValidator(DetectionValidator):
         """Save YOLO pose detections to a text file in normalized coordinates.
 
         Args:
-            predn (dict[str, torch.Tensor]): Prediction dict with keys 'bboxes', 'conf', 'cls' and 'keypoints.
+            predn (dict[str, torch.Tensor]): Prediction dict with keys 'bboxes', 'conf', 'cls', and 'keypoints'.
             save_conf (bool): Whether to save confidence scores.
             shape (tuple[int, int]): Shape of the original image (height, width).
             file (Path): Output file path to save detections.
@@ -215,7 +215,7 @@ class PoseValidator(DetectionValidator):
         format, and appends the results to the internal JSON dictionary (self.jdict).
 
         Args:
-            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'keypoints'
+            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'kpts'
                 tensors.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 

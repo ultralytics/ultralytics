@@ -38,7 +38,7 @@ class Detect(nn.Module):
         shape (tuple): Input shape.
         anchors (torch.Tensor): Anchor points.
         strides (torch.Tensor): Feature map strides.
-        legacy (bool): Backward compatibility for v3/v5/v8/v9 models.
+        legacy (bool): Backward compatibility for v3/v5/v8/v9/v11 models.
         xyxy (bool): Output format, xyxy or xywh.
         nc (int): Number of classes.
         nl (int): Number of detection layers.
@@ -210,11 +210,11 @@ class Detect(nn.Module):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
-                format [x, y, w, h, class_probs].
+                format [x1, y1, x2, y2, class_probs].
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
-                dimension format [x, y, w, h, max_class_prob, class_index].
+                dimension format [x1, y1, x2, y2, max_class_prob, class_index].
         """
         boxes, scores = preds.split([4, self.nc], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
@@ -338,11 +338,11 @@ class Segment(Detect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
-                format [x, y, w, h, class_probs, mask_coefficient].
+                format [x1, y1, x2, y2, class_probs, mask_coefficient].
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last
-                dimension format [x, y, w, h, max_class_prob, class_index, mask_coefficient].
+                dimension format [x1, y1, x2, y2, max_class_prob, class_index, mask_coefficient].
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
@@ -493,11 +493,11 @@ class OBB(Detect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + ne) with last dimension
-                format [x, y, w, h, class_probs, angle].
+                format [x1, y1, x2, y2, class_probs, angle].
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 7) and last
-                dimension format [x, y, w, h, max_class_prob, class_index, angle].
+                dimension format [x1, y1, x2, y2, max_class_prob, class_index, angle].
         """
         boxes, scores, angle = preds.split([4, self.nc, self.ne], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
@@ -614,11 +614,11 @@ class Pose(Detect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nk) with last dimension
-                format [x, y, w, h, class_probs, keypoints].
+                format [x1, y1, x2, y2, class_probs, keypoints].
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + self.nk) and
-                last dimension format [x, y, w, h, max_class_prob, class_index, keypoints].
+                last dimension format [x1, y1, x2, y2, max_class_prob, class_index, keypoints].
         """
         boxes, scores, kpts = preds.split([4, self.nc, self.nk], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
@@ -782,7 +782,7 @@ class Classify(nn.Module):
         linear (nn.Linear): Linear layer for final classification.
 
     Methods:
-        forward: Perform forward pass of the YOLO model on input image data.
+        forward: Perform forward pass on input feature maps.
 
     Examples:
         Create a classification head
@@ -799,10 +799,10 @@ class Classify(nn.Module):
         Args:
             c1 (int): Number of input channels.
             c2 (int): Number of output classes.
-            k (int, optional): Kernel size.
-            s (int, optional): Stride.
+            k (int): Kernel size.
+            s (int): Stride.
             p (int, optional): Padding.
-            g (int, optional): Groups.
+            g (int): Groups.
         """
         super().__init__()
         c_ = 1280  # efficientnet_b0 size
@@ -812,7 +812,7 @@ class Classify(nn.Module):
         self.linear = nn.Linear(c_, c2)  # to x(b,c2)
 
     def forward(self, x: list[torch.Tensor] | torch.Tensor) -> torch.Tensor | tuple:
-        """Perform forward pass of the YOLO model on input image data."""
+        """Perform forward pass on input feature maps."""
         if isinstance(x, list):
             x = torch.cat(x, 1)
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
@@ -1145,7 +1145,7 @@ class YOLOEDetect(Detect):
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, contrastive_head=self.one2one_cv4)
 
     def forward_head(self, x, box_head, cls_head, contrastive_head):
-        """Concatenates and returns predicted bounding boxes, class probabilities, and text embeddings."""
+        """Concatenates and returns predicted bounding boxes, class probabilities, and contrastive scores."""
         assert len(x) == 4, f"Expected 4 features including 3 feature maps and 1 text embeddings, but got {len(x)}."
         if box_head is None or cls_head is None:  # for fused inference
             return dict()
@@ -1319,11 +1319,11 @@ class YOLOESegment(YOLOEDetect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
-                format [x, y, w, h, class_probs, mask_coefficient].
+                format [x1, y1, x2, y2, class_probs, mask_coefficient].
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last
-                dimension format [x, y, w, h, max_class_prob, class_index, mask_coefficient].
+                dimension format [x1, y1, x2, y2, max_class_prob, class_index, mask_coefficient].
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)

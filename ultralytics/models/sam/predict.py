@@ -1341,7 +1341,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             (dict): A dictionary containing the output of the tracking step, including updated features and predictions.
 
         Raises:
-            AssertionError: If both `point_inputs` and `mask_inputs` are provided, or neither is provided.
+            AssertionError: If both `point_inputs` and `mask_inputs` are provided simultaneously.
 
         Notes:
             - The method assumes that `point_inputs` and `mask_inputs` are mutually exclusive.
@@ -1892,9 +1892,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         specified overrides
 
         Args:
-            cfg (dict[str, Any]): Configuration dictionary containing default settings.
+            cfg (Any): Configuration dictionary containing default settings.
             overrides (dict[str, Any] | None): Dictionary of values to override default configuration.
-            max_obj_num (int): Maximum number of objects to track. Default is 3. this is set to keep fix feature size
+            max_obj_num (int): Maximum number of objects to track. Default is 3. This is set to keep fixed feature size
                 for the model.
             _callbacks (dict[str, Any] | None): Dictionary of callback functions to customize behavior.
         """
@@ -2130,7 +2130,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             obj_id (int): The client-side object ID.
 
         Returns:
-            (int): The model-side object index, or None if not found.
+            (int | None): The model-side object index, or None if not found.
         """
         return self.obj_id_to_idx.get(obj_id, None)
 

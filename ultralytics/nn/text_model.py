@@ -53,6 +53,7 @@ class CLIP(TextModel):
 
     Attributes:
         model (clip.model.CLIP): The loaded CLIP model.
+        image_preprocess (callable): Preprocessing transform for images.
         device (torch.device): Device where the model is loaded.
 
     Methods:
@@ -131,14 +132,14 @@ class CLIP(TextModel):
 
     @smart_inference_mode()
     def encode_image(self, image: Image.Image | torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
-        """Encode preprocessed images into normalized feature vectors.
+        """Encode images into normalized feature vectors.
 
-        This method processes preprocessed image inputs through the CLIP model to generate feature vectors, which are
-        then normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
+        This method processes image inputs through the CLIP model to generate feature vectors, which are then
+        normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
 
         Args:
-            image (PIL.Image | torch.Tensor): Preprocessed image input. If a PIL Image is provided, it will be converted
-                to a tensor using the model's image preprocessing function.
+            image (PIL.Image | torch.Tensor): Image input as a PIL Image or preprocessed tensor. If a PIL Image is
+                provided, it will be converted to a tensor using the model's image preprocessing function.
             dtype (torch.dtype, optional): Data type for output features.
 
         Returns:

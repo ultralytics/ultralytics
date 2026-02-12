@@ -308,7 +308,7 @@ class YOLOE(Model):
 
         Args:
             classes (list[str]): A list of categories i.e. ["person"].
-            embeddings (torch.Tensor): Embeddings corresponding to the classes.
+            embeddings (torch.Tensor, optional): Embeddings corresponding to the classes.
         """
         # Verify no background class is present
         assert " " not in classes

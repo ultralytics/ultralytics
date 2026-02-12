@@ -208,6 +208,8 @@ def test_track_stream(model, tmp_path):
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
+    model.track(video_url, imgsz=160, tracker="ioutrack.yaml")
+    model.track(video_url, imgsz=160, tracker="centroidtrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
 
     # Test Global Motion Compensation (GMC) methods and ReID

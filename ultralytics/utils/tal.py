@@ -12,7 +12,8 @@ from .torch_utils import TORCH_1_11
 
 
 class TaskAlignedAssigner(nn.Module):
-    """A task-aligned assigner for object detection.
+    """
+    A task-aligned assigner for object detection.
 
     This class assigns ground-truth (gt) objects to anchors based on the task-aligned metric, which combines both
     classification and localization information.
@@ -28,6 +29,7 @@ class TaskAlignedAssigner(nn.Module):
         eps (float): A small value to prevent division by zero.
     """
 
+<<<<<<< HEAD
     def __init__(
         self,
         topk: int = 13,
@@ -39,6 +41,11 @@ class TaskAlignedAssigner(nn.Module):
         topk2=None,
     ):
         """Initialize a TaskAlignedAssigner object with customizable hyperparameters.
+=======
+    def __init__(self, topk: int = 13, num_classes: int = 80, alpha: float = 1.0, beta: float = 6.0, eps: float = 1e-9):
+        """
+        Initialize a TaskAlignedAssigner object with customizable hyperparameters.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
         Args:
             topk (int, optional): The number of top candidates to consider.
@@ -61,7 +68,8 @@ class TaskAlignedAssigner(nn.Module):
 
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
-        """Compute the task-aligned assignment.
+        """
+        Compute the task-aligned assignment.
 
         Args:
             pd_scores (torch.Tensor): Predicted classification scores with shape (bs, num_total_anchors, num_classes).
@@ -106,7 +114,8 @@ class TaskAlignedAssigner(nn.Module):
             raise
 
     def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
-        """Compute the task-aligned assignment.
+        """
+        Compute the task-aligned assignment.
 
         Args:
             pd_scores (torch.Tensor): Predicted classification scores with shape (bs, num_total_anchors, num_classes).
@@ -144,7 +153,8 @@ class TaskAlignedAssigner(nn.Module):
         return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
 
     def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt):
-        """Get positive mask for each ground truth box.
+        """
+        Get positive mask for each ground truth box.
 
         Args:
             pd_scores (torch.Tensor): Predicted classification scores with shape (bs, num_total_anchors, num_classes).
@@ -170,7 +180,8 @@ class TaskAlignedAssigner(nn.Module):
         return mask_pos, align_metric, overlaps
 
     def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
-        """Compute alignment metric given predicted and ground truth bounding boxes.
+        """
+        Compute alignment metric given predicted and ground truth bounding boxes.
 
         Args:
             pd_scores (torch.Tensor): Predicted classification scores with shape (bs, num_total_anchors, num_classes).
@@ -203,7 +214,8 @@ class TaskAlignedAssigner(nn.Module):
         return align_metric, overlaps
 
     def iou_calculation(self, gt_bboxes, pd_bboxes):
-        """Calculate IoU for horizontal bounding boxes.
+        """
+        Calculate IoU for horizontal bounding boxes.
 
         Args:
             gt_bboxes (torch.Tensor): Ground truth boxes.
@@ -215,7 +227,8 @@ class TaskAlignedAssigner(nn.Module):
         return bbox_iou(gt_bboxes, pd_bboxes, xywh=False, CIoU=True).squeeze(-1).clamp_(0)
 
     def select_topk_candidates(self, metrics, topk_mask=None):
-        """Select the top-k candidates based on the given metrics.
+        """
+        Select the top-k candidates based on the given metrics.
 
         Args:
             metrics (torch.Tensor): A tensor of shape (b, max_num_obj, h*w), where b is the batch size, max_num_obj is
@@ -246,7 +259,8 @@ class TaskAlignedAssigner(nn.Module):
         return count_tensor.to(metrics.dtype)
 
     def get_targets(self, gt_labels, gt_bboxes, target_gt_idx, fg_mask):
-        """Compute target labels, target bounding boxes, and target scores for the positive anchor points.
+        """
+        Compute target labels, target bounding boxes, and target scores for the positive anchor points.
 
         Args:
             gt_labels (torch.Tensor): Ground truth labels of shape (b, max_num_obj, 1), where b is the batch size and
@@ -286,8 +300,15 @@ class TaskAlignedAssigner(nn.Module):
 
         return target_labels, target_bboxes, target_scores
 
+<<<<<<< HEAD
     def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt, eps=1e-9):
         """Select positive anchor centers within ground truth bounding boxes.
+=======
+    @staticmethod
+    def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
+        """
+        Select positive anchor centers within ground truth bounding boxes.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates, shape (h*w, 2).
@@ -317,8 +338,15 @@ class TaskAlignedAssigner(nn.Module):
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
         return bbox_deltas.amin(3).gt_(eps)
 
+<<<<<<< HEAD
     def select_highest_overlaps(self, mask_pos, overlaps, n_max_boxes, align_metric):
         """Select anchor boxes with highest IoU when assigned to multiple ground truths.
+=======
+    @staticmethod
+    def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
+        """
+        Select anchor boxes with highest IoU when assigned to multiple ground truths.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
         Args:
             mask_pos (torch.Tensor): Positive mask, shape (b, n_max_boxes, h*w).
@@ -362,8 +390,15 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         """Calculate IoU for rotated bounding boxes."""
         return probiou(gt_bboxes, pd_bboxes).squeeze(-1).clamp_(0)
 
+<<<<<<< HEAD
     def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt):
         """Select the positive anchor center in gt for rotated bounding boxes.
+=======
+    @staticmethod
+    def select_candidates_in_gts(xy_centers, gt_bboxes):
+        """
+        Select the positive anchor center in gt for rotated bounding boxes.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
         Args:
             xy_centers (torch.Tensor): Anchor center coordinates with shape (h*w, 2).
@@ -434,7 +469,8 @@ def bbox2dist(anchor_points: torch.Tensor, bbox: torch.Tensor, reg_max: int | No
 
 
 def dist2rbox(pred_dist, pred_angle, anchor_points, dim=-1):
-    """Decode predicted rotated bounding box coordinates from anchor points and distribution.
+    """
+    Decode predicted rotated bounding box coordinates from anchor points and distribution.
 
     Args:
         pred_dist (torch.Tensor): Predicted rotated distance with shape (bs, h*w, 4).

@@ -35,7 +35,12 @@ from ultralytics.utils.torch_utils import TORCH_2_0
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
+<<<<<<< HEAD
     """DataLoader that reuses workers for infinite iteration.
+=======
+    """
+    Dataloader that reuses workers for infinite iteration.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
     This dataloader extends the PyTorch DataLoader to provide infinite recycling of workers, which improves efficiency
     for training loops that need to iterate through the dataset multiple times without recreating workers.
@@ -93,7 +98,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
 
 class _RepeatSampler:
-    """Sampler that repeats forever for infinite iteration.
+    """
+    Sampler that repeats forever for infinite iteration.
 
     This sampler wraps another sampler and yields its contents indefinitely, allowing for infinite iteration over a
     dataset without recreating the sampler.
@@ -113,7 +119,8 @@ class _RepeatSampler:
 
 
 class ContiguousDistributedSampler(torch.utils.data.Sampler):
-    """Distributed sampler that assigns contiguous batch-aligned chunks of the dataset to each GPU.
+    """
+    Distributed sampler that assigns contiguous batch-aligned chunks of the dataset to each GPU.
 
     Unlike PyTorch's DistributedSampler which distributes samples in a round-robin fashion (GPU 0 gets indices
     [0,2,4,...], GPU 1 gets [1,3,5,...]), this sampler gives each GPU contiguous batches of the dataset (GPU 0 gets
@@ -291,8 +298,9 @@ def build_dataloader(
     rank: int = -1,
     drop_last: bool = False,
     pin_memory: bool = True,
-) -> InfiniteDataLoader:
-    """Create and return an InfiniteDataLoader or DataLoader for training or validation.
+):
+    """
+    Create and return an InfiniteDataLoader or DataLoader for training or validation.
 
     Args:
         dataset (Dataset): Dataset to load data from.
@@ -338,10 +346,9 @@ def build_dataloader(
     )
 
 
-def check_source(
-    source: str | int | Path | list | tuple | np.ndarray | Image.Image | torch.Tensor,
-) -> tuple[Any, bool, bool, bool, bool, bool]:
-    """Check the type of input source and return corresponding flag values.
+def check_source(source):
+    """
+    Check the type of input source and return corresponding flag values.
 
     Args:
         source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The input source to check.
@@ -388,14 +395,9 @@ def check_source(
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(
-    source: str | int | Path | list | tuple | np.ndarray | Image.Image | torch.Tensor,
-    batch: int = 1,
-    vid_stride: int = 1,
-    buffer: bool = False,
-    channels: int = 3,
-):
-    """Load an inference source for object detection and apply necessary transformations.
+def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buffer: bool = False, channels: int = 3):
+    """
+    Load an inference source for object detection and apply necessary transformations.
 
     Args:
         source (str | Path | list | tuple | torch.Tensor | PIL.Image | np.ndarray): The input source for inference.

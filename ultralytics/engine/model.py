@@ -80,7 +80,7 @@ class Model(torch.nn.Module):
 
     def __init__(
         self,
-        model: str | Path | Model = "yolo26n.pt",
+        model: str | Path | bytes | Model = "yolo26n.pt",
         task: str | None = None,
         verbose: bool = False,
     ) -> None:
@@ -91,8 +91,9 @@ class Model(torch.nn.Module):
         important attributes of the model and prepares it for operations like training, prediction, or export.
 
         Args:
-            model (str | Path | Model): Path or name of the model to load or create. Can be a local file path, a model
-                name from Ultralytics HUB, a Triton Server model, or an already initialized Model instance.
+            model (str | Path | bytes | Model): Path or name of the model to load or create. Can be a local file path, a
+                model name from Ultralytics HUB, a Triton Server model, bytes/BytesIO object containing model data, or
+                an already initialized Model instance.
             task (str, optional): The specific task for the model. If None, it will be inferred from the config.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent operations.
 
@@ -101,6 +102,8 @@ class Model(torch.nn.Module):
             ValueError: If the model file or configuration is invalid or unsupported.
             ImportError: If required dependencies for specific model types (like HUB SDK) are not installed.
         """
+        import io
+
         if isinstance(model, Model):
             self.__dict__ = model.__dict__  # accepts an already initialized Model
             return
@@ -117,6 +120,13 @@ class Model(torch.nn.Module):
         self.session = None  # HUB session
         self.task = task  # task type
         self.model_name = None  # model name
+
+        # Handle bytes/BytesIO input directly
+        if isinstance(model, (bytes, io.BytesIO)):
+            self._load(model, task=task)
+            del self.training
+            return
+
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
@@ -263,7 +273,7 @@ class Model(torch.nn.Module):
         model, task, and related attributes based on the loaded weights.
 
         Args:
-            weights (str): Path to the model weights file to be loaded.
+            weights (str | bytes): Path to the model weights file to be loaded, or bytes/BytesIO object.
             task (str, optional): The task associated with the model. If None, it will be inferred from the model.
 
         Raises:
@@ -275,11 +285,19 @@ class Model(torch.nn.Module):
             >>> model._load("yolo26n.pt")
             >>> model._load("path/to/weights.pth", task="detect")
         """
-        if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://")):
-            weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
-        weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26 -> yolo26n.pt
+        import io
 
-        if str(weights).rpartition(".")[-1] == "pt":
+        is_bytes = isinstance(weights, (bytes, io.BytesIO))
+
+        # Skip URL and stem checks for bytes input
+        if not is_bytes:
+            if weights.lower().startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://")):
+                weights = checks.check_file(
+                    weights, download_dir=SETTINGS["weights_dir"]
+                )  # download and return local file
+            weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26 -> yolo26n.pt
+
+        if is_bytes or str(weights).rpartition(".")[-1] == "pt":
             self.model, self.ckpt = load_checkpoint(weights)
             self.task = self.model.task
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
@@ -289,9 +307,9 @@ class Model(torch.nn.Module):
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
-        self.overrides["model"] = weights
+        self.overrides["model"] = None if is_bytes else weights
         self.overrides["task"] = self.task
-        self.model_name = weights
+        self.model_name = None if is_bytes else weights
 
     def _check_is_pytorch_model(self) -> None:
         """Check if the model is a PyTorch model and raise TypeError if it's not.

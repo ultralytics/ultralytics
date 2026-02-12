@@ -570,6 +570,10 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
         suffix (str | tuple): Acceptable suffix or tuple of suffixes.
         msg (str): Additional message to display in case of error.
     """
+    import io
+
+    if isinstance(file, (bytes, io.BytesIO)):
+        return  # Skip suffix check for bytes/BytesIO
     if file and suffix:
         if isinstance(suffix, str):
             suffix = {suffix}

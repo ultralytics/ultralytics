@@ -111,7 +111,7 @@ def get_windows(
         im_size (tuple[int, int]): Original image size, (H, W).
         crop_sizes (tuple[int, ...], optional): Crop size of windows.
         gaps (tuple[int, ...], optional): Gap between crops.
-        im_rate_thr (float, optional): Threshold of windows areas divided by image areas.
+        im_rate_thr (float, optional): Threshold for the ratio of image area within a window to the total window area.
         eps (float, optional): Epsilon value for math operations.
 
     Returns:

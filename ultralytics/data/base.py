@@ -27,7 +27,7 @@ class BaseDataset(Dataset):
     object detection tasks.
 
     Attributes:
-        img_path (str): Path to the folder containing images.
+        img_path (str | list[str]): Path to the folder containing images.
         imgsz (int): Target image size for resizing.
         augment (bool): Whether to apply data augmentation.
         single_cls (bool): Whether to treat all objects as a single class.

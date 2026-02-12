@@ -114,7 +114,7 @@ class Detect(nn.Module):
 
     @property
     def one2many(self):
-        """Returns the one-to-many head components, here for v3/v5/v8/v9/11 backward compatibility."""
+        """Returns the one-to-many head components, here for v3/v5/v8/v9/v11 backward compatibility."""
         return dict(box_head=self.cv2, cls_head=self.cv3)
 
     @property
@@ -124,7 +124,7 @@ class Detect(nn.Module):
 
     @property
     def end2end(self):
-        """Checks if the model has one2one for v3/v5/v8/v9/11 backward compatibility."""
+        """Checks if the model has one2one for v3/v5/v8/v9/v11 backward compatibility."""
         return getattr(self, "_end2end", True) and hasattr(self, "one2one")
 
     @end2end.setter
@@ -493,11 +493,11 @@ class OBB(Detect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + ne) with last dimension
-                format [x1, y1, x2, y2, class_probs, angle].
+                format [x, y, w, h, class_probs, angle].
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 7) and last
-                dimension format [x1, y1, x2, y2, max_class_prob, class_index, angle].
+                dimension format [x, y, w, h, max_class_prob, class_index, angle].
         """
         boxes, scores, angle = preds.split([4, self.nc, self.ne], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
@@ -1136,7 +1136,7 @@ class YOLOEDetect(Detect):
 
     @property
     def one2many(self):
-        """Returns the one-to-many head components, here for v3/v5/v8/v9/11 backward compatibility."""
+        """Returns the one-to-many head components, here for v3/v5/v8/v9/v11 backward compatibility."""
         return dict(box_head=self.cv2, cls_head=self.cv3, contrastive_head=self.cv4)
 
     @property
@@ -1233,7 +1233,7 @@ class YOLOESegment(YOLOEDetect):
 
     @property
     def one2many(self):
-        """Returns the one-to-many head components, here for v3/v5/v8/v9/11 backward compatibility."""
+        """Returns the one-to-many head components, here for v3/v5/v8/v9/v11 backward compatibility."""
         return dict(box_head=self.cv2, cls_head=self.cv3, mask_head=self.cv5, contrastive_head=self.cv4)
 
     @property
@@ -1353,7 +1353,7 @@ class YOLOESegment26(YOLOESegment):
         npr (int): Number of prototype channels. Defaults to 256.
         embed (int): Embedding dimensionality. Defaults to 512.
         with_bn (bool): Whether to use Batch Normalization. Defaults to False.
-        reg_max (int): Maximum regression value for bounding boxes. Defaults to 16.
+        reg_max (int): Maximum number of DFL channels. Defaults to 16.
         end2end (bool): Whether to use end-to-end detection mode. Defaults to False.
         ch (tuple[int, ...]): Input channels for each scale.
 

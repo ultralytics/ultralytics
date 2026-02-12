@@ -106,14 +106,14 @@ class BaseModel(torch.nn.Module):
     display, and weight loading capabilities.
 
     Attributes:
-        model (torch.nn.Module): The neural network model.
+        model (torch.nn.Sequential): The neural network model.
         save (list): List of layer indices to save outputs from.
         stride (torch.Tensor): Model stride values.
 
     Methods:
         forward: Perform forward pass for training or inference.
         predict: Perform inference on input tensor.
-        fuse: Fuse Conv2d and BatchNorm2d layers for optimization.
+        fuse: Fuse Conv/BatchNorm layers and reparameterize for optimization.
         info: Print model information.
         load: Load weights into the model.
         loss: Compute loss for training.
@@ -222,8 +222,7 @@ class BaseModel(torch.nn.Module):
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
     def fuse(self, verbose=True):
-        """Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer for improved computation
-        efficiency.
+        """Fuse Conv/ConvTranspose and BatchNorm layers, and reparameterize RepConv/RepVGGDW for improved efficiency.
 
         Args:
             verbose (bool): Whether to print model information after fusion.
@@ -256,13 +255,13 @@ class BaseModel(torch.nn.Module):
         return self
 
     def is_fused(self, thresh=10):
-        """Check if the model has less than a certain threshold of BatchNorm layers.
+        """Check if the model has less than a certain threshold of normalization layers.
 
         Args:
-            thresh (int, optional): The threshold number of BatchNorm layers.
+            thresh (int, optional): The threshold number of normalization layers.
 
         Returns:
-            (bool): True if the number of BatchNorm layers in the model is less than the threshold, False otherwise.
+            (bool): True if the number of normalization layers in the model is less than the threshold, False otherwise.
         """
         bn = tuple(v for k, v in torch.nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
@@ -278,7 +277,7 @@ class BaseModel(torch.nn.Module):
         return model_info(self, detailed=detailed, verbose=verbose, imgsz=imgsz)
 
     def _apply(self, fn):
-        """Apply a function to all tensors in the model that are not parameters or registered buffers.
+        """Apply a function to all tensors in the model, including Detect head attributes like stride and anchors.
 
         Args:
             fn (function): The function to apply to the model.
@@ -747,7 +746,7 @@ class RTDETRDetectionModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def _apply(self, fn):
-        """Apply a function to all tensors in the model that are not parameters or registered buffers.
+        """Apply a function to all tensors in the model, including decoder anchors and valid mask.
 
         Args:
             fn (function): The function to apply to the model.
@@ -1100,7 +1099,7 @@ class YOLOEModel(DetectionModel):
         """Get fused vocabulary layer from the model.
 
         Args:
-            names (list): List of class names.
+            names (list[str]): List of class names.
 
         Returns:
             (nn.ModuleList): List of vocabulary modules.
@@ -1541,7 +1540,7 @@ def parse_model(d, ch, verbose=True):
 
     Returns:
         (torch.nn.Sequential): PyTorch model.
-        (list): Sorted list of output layers.
+        (list): Sorted list of layer indices whose outputs need to be saved.
     """
     import ast
 
@@ -1756,7 +1755,7 @@ def guess_model_scale(model_path):
         model_path (str | Path): The path to the YOLO model's YAML file.
 
     Returns:
-        (str): The size character of the model's scale (n, s, m, l, or x).
+        (str): The size character of the model's scale (n, s, m, l, or x), or empty string if not found.
     """
     try:
         return re.search(r"yolo(e-)?[v]?\d+([nslmx])", Path(model_path).stem).group(2)
@@ -1768,7 +1767,7 @@ def guess_model_task(model):
     """Guess the task of a PyTorch model from its architecture or configuration.
 
     Args:
-        model (torch.nn.Module | dict): PyTorch model or model configuration in YAML format.
+        model (torch.nn.Module | dict | str | Path): PyTorch model, model configuration dict, or model file path.
 
     Returns:
         (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb').

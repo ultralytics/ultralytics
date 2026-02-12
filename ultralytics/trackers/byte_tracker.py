@@ -99,7 +99,7 @@ class STrack(BaseTrack):
 
     @staticmethod
     def multi_gmc(stracks: list[STrack], H: np.ndarray = np.eye(2, 3)):
-        """Update state tracks positions and covariances using a homography matrix for multiple tracks."""
+        """Update multiple track positions and covariances using a homography matrix."""
         if stracks:
             multi_mean = np.asarray([st.mean.copy() for st in stracks])
             multi_covariance = np.asarray([st.covariance for st in stracks])
@@ -398,7 +398,7 @@ class BYTETracker:
         return KalmanFilterXYAH()
 
     def init_track(self, results, img: np.ndarray | None = None) -> list[STrack]:
-        """Initialize object tracking with given detections, scores, and class labels using the STrack algorithm."""
+        """Initialize object tracking with given detections, scores, and class labels as STrack instances."""
         if len(results) == 0:
             return []
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh

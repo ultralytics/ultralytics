@@ -368,7 +368,7 @@ class RepC3(nn.Module):
     """Rep C3."""
 
     def __init__(self, c1: int, c2: int, n: int = 3, e: float = 1.0):
-        """Initialize CSP Bottleneck with a single convolution.
+        """Initialize RepC3 module with RepConv blocks.
 
         Args:
             c1 (int): Input channels.
@@ -1989,7 +1989,7 @@ class Proto26(Proto):
         self.semseg = nn.Sequential(Conv(ch[0], c_, k=3), Conv(c_, c_, k=3), nn.Conv2d(c_, nc, 1))
 
     def forward(self, x: torch.Tensor, return_semseg: bool = True) -> torch.Tensor:
-        """Perform a forward pass through layers using an upsampled input image."""
+        """Perform a forward pass by fusing multi-scale feature maps and generating proto masks."""
         feat = x[0]
         for i, f in enumerate(self.feat_refine):
             up_feat = f(x[i + 1])

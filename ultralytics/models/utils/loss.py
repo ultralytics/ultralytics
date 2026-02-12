@@ -94,8 +94,8 @@ class DETRLoss(nn.Module):
 
         Notes:
             The function supports different classification loss types:
-            - Varifocal Loss (if self.vfl is True and num_gts > 0)
-            - Focal Loss (if self.fl is True)
+            - Varifocal Loss (if self.vfl is not None and num_gts > 0)
+            - Focal Loss (if self.fl is not None)
             - BCE Loss (default fallback)
         """
         # Logits: [b, query, num_classes], gt_class: list[[n, 1]]

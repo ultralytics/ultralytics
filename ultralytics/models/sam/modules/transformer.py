@@ -53,7 +53,7 @@ class TwoWayTransformer(nn.Module):
             embedding_dim (int): Channel dimension for input embeddings.
             num_heads (int): Number of heads for multihead attention. Must divide embedding_dim.
             mlp_dim (int): Internal channel dimension for the MLP block.
-            activation (Type[nn.Module], optional): Activation function to use in the MLP block.
+            activation (type[nn.Module], optional): Activation function to use in the MLP block.
             attention_downsample_rate (int, optional): Downsampling rate for attention mechanism.
         """
         super().__init__()
@@ -172,7 +172,7 @@ class TwoWayAttentionBlock(nn.Module):
             embedding_dim (int): Channel dimension of the embeddings.
             num_heads (int): Number of attention heads in the attention layers.
             mlp_dim (int, optional): Hidden dimension of the MLP block.
-            activation (Type[nn.Module], optional): Activation function for the MLP block.
+            activation (type[nn.Module], optional): Activation function for the MLP block.
             attention_downsample_rate (int, optional): Downsampling rate for the attention mechanism.
             skip_first_layer_pe (bool, optional): Whether to skip positional encoding in the first layer.
         """

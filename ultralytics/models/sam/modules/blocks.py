@@ -304,7 +304,7 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
             embedding_dim (int): The channel dimension of the embeddings.
             num_heads (int): The number of heads in the attention layers.
             mlp_dim (int): The hidden dimension of the MLP block.
-            activation (Type[nn.Module]): The activation function of the MLP block.
+            activation (type[nn.Module]): The activation function of the MLP block.
             attention_downsample_rate (int): The downsample rate for attention computations.
             skip_first_layer_pe (bool): Whether to skip the positional encoding in the first layer.
         """
@@ -359,7 +359,7 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
             embedding_dim (int): Channel dimension for the input embeddings.
             num_heads (int): Number of heads for multihead attention. Must divide embedding_dim.
             mlp_dim (int): Channel dimension internal to the MLP block.
-            activation (Type[nn.Module]): Activation function to use in the MLP block.
+            activation (type[nn.Module]): Activation function to use in the MLP block.
             attention_downsample_rate (int): Downsampling rate for attention computations.
         """
         super().__init__(depth, embedding_dim, num_heads, mlp_dim, activation, attention_downsample_rate)
@@ -891,8 +891,8 @@ class Block(nn.Module):
             num_heads (int): Number of attention heads in the self-attention layer.
             mlp_ratio (float): Ratio of mlp hidden dimension to embedding dimension.
             qkv_bias (bool): If True, adds a learnable bias to query, key, value projections.
-            norm_layer (Type[nn.Module]): Type of normalization layer to use.
-            act_layer (Type[nn.Module]): Type of activation function to use in the MLP block.
+            norm_layer (type[nn.Module]): Type of normalization layer to use.
+            act_layer (type[nn.Module]): Type of activation function to use in the MLP block.
             use_rel_pos (bool): If True, uses relative positional embeddings in attention.
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window. If 0, uses global attention.

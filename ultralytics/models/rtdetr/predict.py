@@ -45,8 +45,8 @@ class RTDETRPredictor(BasePredictor):
             orig_imgs (list | torch.Tensor): Original, unprocessed images.
 
         Returns:
-            results (list[Results]): A list of Results objects containing the post-processed bounding boxes, confidence
-                scores, and class labels.
+            (list[Results]): A list of Results objects containing the post-processed bounding boxes, confidence scores,
+                and class labels.
         """
         if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
             preds = [preds, None]

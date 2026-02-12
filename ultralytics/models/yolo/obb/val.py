@@ -52,7 +52,7 @@ class OBBValidator(DetectionValidator):
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (str | Path, optional): Directory to save results.
-            args (dict | SimpleNamespace, optional): Arguments containing validation parameters.
+            args (dict, optional): Arguments containing validation parameters.
             _callbacks (list, optional): List of callback functions to be called during validation.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
@@ -112,7 +112,7 @@ class OBBValidator(DetectionValidator):
         """Prepare batch data for OBB validation with proper scaling and formatting.
 
         Args:
-            si (int): Batch index to process.
+            si (int): Sample index within the batch.
             batch (dict[str, Any]): Dictionary containing batch data with keys:
                 - batch_idx: Tensor of batch indices
                 - cls: Tensor of class labels
@@ -214,7 +214,7 @@ class OBBValidator(DetectionValidator):
             >>> validator = OBBValidator()
             >>> predn = {"bboxes": torch.tensor([[100, 100, 50, 30, 45]]), "conf": torch.tensor([0.9]),
             ...          "cls": torch.tensor([0])}
-            >>> validator.save_one_txt(predn, True, (640, 480), "detection.txt")
+            >>> validator.save_one_txt(predn, True, (640, 480), Path("detection.txt"))
         """
         import numpy as np
 

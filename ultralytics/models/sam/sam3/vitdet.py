@@ -374,7 +374,6 @@ class ViT(nn.Module):
             rope_pt_size (int | None): Size of rope in previous stage of training, needed for interpolation or tiling.
             use_interp_rope (bool): Whether to interpolate (or extrapolate) rope to match target input size, expected
                 to specify source size as rope_pt_size.
-            use_act_checkpoint (bool): If True, use activation checkpointing.
             pretrain_img_size (int): Input image size for pretraining models.
             pretrain_use_cls_token (bool): If True, pretraining models use class token.
             retain_cls_token (bool): Whether cls_token should be retained.
@@ -385,6 +384,7 @@ class ViT(nn.Module):
             ln_post (bool): If True, apply layer norm after transformer blocks.
             bias_patch_embed (bool): If True, use bias in conv for patch embed.
             compile_mode (str | None): Mode to compile the forward, or None to disable.
+            use_act_checkpoint (bool): If True, use activation checkpointing.
         """
         super().__init__()
         self.pretrain_use_cls_token = pretrain_use_cls_token

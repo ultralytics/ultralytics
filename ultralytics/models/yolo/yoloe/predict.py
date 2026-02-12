@@ -9,9 +9,9 @@ from ultralytics.models.yolo.segment import SegmentationPredictor
 
 
 class YOLOEVPDetectPredictor(DetectionPredictor):
-    """A mixin class for YOLO-EVP (Enhanced Visual Prompting) predictors.
+    """A class extending DetectionPredictor for YOLO-EVP (Enhanced Visual Prompting) predictions.
 
-    This mixin provides common functionality for YOLO models that use visual prompting, including model setup, prompt
+    This class provides common functionality for YOLO models that use visual prompting, including model setup, prompt
     handling, and preprocessing transformations.
 
     Attributes:
@@ -53,10 +53,10 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         accordingly.
 
         Args:
-            im (list): List containing a single input image.
+            im (list): List of input images.
 
         Returns:
-            (list): Preprocessed image ready for model inference.
+            (list): Preprocessed images ready for model inference.
 
         Raises:
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.

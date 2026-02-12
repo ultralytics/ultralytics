@@ -136,7 +136,7 @@ class PoseValidator(DetectionValidator):
         """Prepare a batch for processing by converting keypoints to float and scaling to original dimensions.
 
         Args:
-            si (int): Batch index.
+            si (int): Sample index within the batch.
             batch (dict[str, Any]): Dictionary containing batch data with keys like 'keypoints', 'batch_idx', etc.
 
         Returns:
@@ -211,8 +211,8 @@ class PoseValidator(DetectionValidator):
     def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
         """Convert YOLO predictions to COCO JSON format.
 
-        This method takes prediction tensors and a filename, converts the bounding boxes from YOLO format to COCO
-        format, and appends the results to the internal JSON dictionary (self.jdict).
+        This method takes prediction tensors and batch data, converts the bounding boxes from YOLO format to COCO
+        format, and appends the results with keypoints to the internal JSON dictionary (self.jdict).
 
         Args:
             predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls', and 'kpts'

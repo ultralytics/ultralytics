@@ -187,7 +187,7 @@ class LoadStreams:
                 LOGGER.warning(f"Could not release VideoCapture object: {e}")
 
     def __iter__(self):
-        """Iterate through YOLO image feed and re-open unresponsive streams."""
+        """Return an iterator object and reset the frame counter."""
         self.count = -1
         return self
 
@@ -632,7 +632,7 @@ class LoadTensor:
 
 
 def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
-    """Merge a list of sources into a list of numpy arrays or PIL images for Ultralytics prediction."""
+    """Convert a list of sources into a list of numpy arrays or PIL images for Ultralytics prediction."""
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri

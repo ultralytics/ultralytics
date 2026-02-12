@@ -660,7 +660,7 @@ def create_synthetic_coco_dataset():
     """
 
     def create_synthetic_image(image_file: Path):
-        """Generate synthetic images with random sizes and colors for dataset augmentation or testing purposes."""
+        """Generate a synthetic image with random size and color for dataset augmentation or testing purposes."""
         if not image_file.exists():
             size = (random.randint(480, 640), random.randint(480, 640))
             Image.new(

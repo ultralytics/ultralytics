@@ -688,7 +688,7 @@ class SemanticDataset(BaseDataset):
 
 
 class ClassificationDataset:
-    """Dataset class for image classification tasks extending torchvision ImageFolder functionality.
+    """Dataset class for image classification tasks wrapping torchvision ImageFolder functionality.
 
     This class offers functionalities like image augmentation, caching, and verification. It's designed to efficiently
     handle large datasets for training deep learning models, with optional image transformations and caching mechanisms

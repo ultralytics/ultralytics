@@ -221,7 +221,7 @@ class Compose:
             index (int | list[int]): Index or list of indices of the transforms to retrieve.
 
         Returns:
-            (Compose): A new Compose object containing the selected transform(s).
+            (Compose | Any): A new Compose object if index is a list, or a single transform if index is an int.
 
         Raises:
             AssertionError: If the index is not of type int or list.
@@ -430,7 +430,7 @@ class BaseMixTransform:
             ...     "cls": torch.tensor([[0], [1]]),
             ...     "mix_labels": [{"texts": [["bird"], ["fish"]], "cls": torch.tensor([[0], [1]])}],
             ... }
-            >>> updated_labels = self._update_label_text(labels)
+            >>> updated_labels = BaseMixTransform._update_label_text(labels)
             >>> print(updated_labels["texts"])
             [['cat'], ['dog'], ['bird'], ['fish']]
             >>> print(updated_labels["cls"])
@@ -466,7 +466,7 @@ class Mosaic(BaseMixTransform):
         imgsz (int): Image size (height and width) after mosaic pipeline of a single image.
         p (float): Probability of applying the mosaic augmentation. Must be in the range 0-1.
         n (int): The grid size, either 4 (for 2x2) or 9 (for 3x3).
-        border (tuple[int, int]): Border size for width and height.
+        border (tuple[int, int]): Border size for height and width.
 
     Methods:
         get_indexes: Return a list of random indexes from the dataset.
@@ -508,7 +508,7 @@ class Mosaic(BaseMixTransform):
         """Return a list of random indexes from the dataset for mosaic augmentation.
 
         This method selects random image indexes either from a buffer or from the entire dataset, depending on the
-        'buffer' parameter. It is used to choose images for creating mosaic augmentations.
+        'buffer_enabled' attribute. It is used to choose images for creating mosaic augmentations.
 
         Returns:
             (list[int]): A list of random image indexes. The length of the list is n-1, where n is the number of images
@@ -1002,7 +1002,7 @@ class RandomPerspective:
         scale (float): Scaling factor range, e.g., scale=0.1 means 0.9-1.1.
         shear (float): Maximum shear angle in degrees.
         perspective (float): Perspective distortion factor.
-        border (tuple[int, int]): Mosaic border size as (x, y).
+        border (tuple[int, int]): Mosaic border size as (y, x).
         pre_transform (Callable | None): Optional transform to apply before the random perspective.
 
     Methods:
@@ -1043,7 +1043,7 @@ class RandomPerspective:
             scale (float): Scaling factor interval, e.g., a scale factor of 0.5 allows a resize between 50%-150%.
             shear (float): Shear intensity (angle in degrees).
             perspective (float): Perspective distortion factor.
-            border (tuple[int, int]): Tuple specifying mosaic border (top/bottom, left/right).
+            border (tuple[int, int]): Tuple specifying mosaic border (y, x).
             pre_transform (Callable | None): Function/transform to apply to the image before starting the random
                 transformation.
         """
@@ -1314,7 +1314,7 @@ class RandomPerspective:
         by the augmentation process.
 
         Args:
-            box1 (np.ndarray): Original boxes before augmentation, shape (4, N) where n is the number of boxes. Format
+            box1 (np.ndarray): Original boxes before augmentation, shape (4, N) where N is the number of boxes. Format
                 is [x1, y1, x2, y2] in absolute coordinates.
             box2 (np.ndarray): Augmented boxes after transformation, shape (4, N). Format is [x1, y1, x2, y2] in
                 absolute coordinates.
@@ -1326,7 +1326,7 @@ class RandomPerspective:
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            (np.ndarray): Boolean array of shape (n) indicating which boxes are candidates. True values correspond to
+            (np.ndarray): Boolean array of shape (N,) indicating which boxes are candidates. True values correspond to
                 boxes that meet all criteria.
 
         Examples:

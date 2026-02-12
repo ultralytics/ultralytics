@@ -807,3 +807,62 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+
+def test_visualize_multiformat_detection(tmp_path):
+    """Test visualization with YOLO detection format labels."""
+    from ultralytics.data.utils import visualize_image_annotations_multiformat
+
+    img = Image.new("RGB", (100, 100))
+    img_path = tmp_path / "img.jpg"
+    img.save(img_path)
+
+    label_path = tmp_path / "label.txt"
+    label_path.write_text("0 0.5 0.5 0.4 0.4\n")
+
+    result = visualize_image_annotations_multiformat(
+        img_path,
+        label_path,
+        label_map={0: "obj"},
+    )
+
+    assert result is not None
+
+
+def test_visualize_multiformat_segmentation(tmp_path):
+    """Test visualization with YOLO segmentation format labels."""
+    from ultralytics.data.utils import visualize_image_annotations_multiformat
+
+    img = Image.new("RGB", (100, 100))
+    img_path = tmp_path / "img.jpg"
+    img.save(img_path)
+
+    label_path = tmp_path / "label.txt"
+    label_path.write_text("0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9\n")
+
+    result = visualize_image_annotations_multiformat(
+        img_path,
+        label_path,
+        label_map={0: "obj"},
+    )
+
+    assert result is not None
+
+
+def test_visualize_multiformat_invalid_labels(tmp_path):
+    """Test graceful handling of invalid YOLO label formats."""
+    from ultralytics.data.utils import visualize_image_annotations_multiformat
+
+    img = Image.new("RGB", (100, 100))
+    img_path = tmp_path / "img.jpg"
+    img.save(img_path)
+
+    label_path = tmp_path / "label.txt"
+    label_path.write_text("\ninvalid data\n0 0.1 0.2 0.3\n0 0.1 0.2 0.3 0.4\n")
+
+    result = visualize_image_annotations_multiformat(
+        img_path,
+        label_path,
+    )
+
+    assert result is not None

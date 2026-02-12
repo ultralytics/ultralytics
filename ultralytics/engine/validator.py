@@ -122,6 +122,11 @@ class BaseValidator:
         (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         if self.args.conf is None:
             self.args.conf = 0.01 if self.args.task == "obb" else 0.001  # reduce OBB val memory usage
+        if self.args.conf == 1.0:
+            LOGGER.warning(
+                "Confidence threshold conf=1.0 will filter all detections. "
+                "Use a value < 1.0 (e.g., conf=0.25) for visible results."
+            )
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}

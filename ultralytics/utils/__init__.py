@@ -1167,9 +1167,12 @@ def set_sentry():
             (dict | None): The modified event or None if the event should not be sent to Sentry.
         """
         if "exc_info" in hint:
-            exc_type, exc_value, _ = hint["exc_info"]
-            if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
-                return None  # do not send event
+            _exc_type, _exc_value, _ = hint["exc_info"]
+            frame = event["exception"]["values"][0]["stacktrace"]["frames"][-1]
+            fname, line = frame["filename"].split("/"), frame["context_line"].strip()
+
+            if "ultralytics" in fname and ("raise" in line or "assert" in line):  # determine whether manually raised
+                event["exception"]["values"][0]["mechanism"]["handled"] = True  # mark as handled
 
         event["tags"] = {
             "sys_argv": ARGV[0],
@@ -1187,7 +1190,7 @@ def set_sentry():
         release=__version__,
         environment="runpod" if is_runpod() else "production",
         before_send=before_send,
-        ignore_errors=[KeyboardInterrupt, FileNotFoundError],
+        ignore_errors=[KeyboardInterrupt, FileNotFoundError, torch.OutOfMemoryError],
     )
     sentry_sdk.set_user({"id": SETTINGS["uuid"]})  # SHA-256 anonymized UUID hash
 

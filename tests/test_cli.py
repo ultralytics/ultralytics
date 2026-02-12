@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -136,3 +137,19 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
 def test_solutions(solution: str) -> None:
     """Test yolo solutions command-line modes."""
     run(f"yolo solutions {solution} verbose=False")
+
+
+def test_convert(tmp_path: Path) -> None:
+    """Test YOLO convert command for NDJSON dataset conversion."""
+    records = [
+        {"task": "detect", "class_names": {"0": "object"}},
+        {"file": "img1.jpg", "split": "train", "annotations": {"bboxes": [[0, 0.5, 0.5, 0.2, 0.2]]}},
+        {"file": "img2.jpg", "split": "val", "annotations": {"bboxes": [[0, 0.4, 0.4, 0.1, 0.1]]}},
+    ]
+    ndjson_path = tmp_path / "sample.ndjson"
+    ndjson_path.write_text("\n".join(json.dumps(record) for record in records) + "\n")
+
+    run(f"yolo convert data={ndjson_path} output={tmp_path}")
+
+    dataset_dir = tmp_path / ndjson_path.stem
+    assert (dataset_dir / "data.yaml").exists()

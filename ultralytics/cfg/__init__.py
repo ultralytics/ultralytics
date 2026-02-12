@@ -139,6 +139,7 @@ CLI_HELP_MSG = f"""
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo convert
         yolo solutions help
 
     Docs: https://docs.ultralytics.com
@@ -636,6 +637,53 @@ def handle_yolo_settings(args: list[str]) -> None:
         LOGGER.warning(f"settings error: '{e}'. Please see {url} for help.")
 
 
+def handle_yolo_convert(args: list[str]) -> None:
+    """Handle YOLO convert command-line interface (CLI) commands for dataset conversion.
+
+    This function processes YOLO convert CLI commands to convert datasets from NDJSON format to the standard YOLO
+    dataset structure. It supports both local files and remote URLs.
+
+    Args:
+        args (list[str]): A list of command line arguments for dataset conversion.
+
+    Examples:
+        >>> handle_yolo_convert(["data=dataset.ndjson"])  # Convert a local NDJSON file
+        >>> handle_yolo_convert(["data=dataset.ndjson", "output=./my_datasets"])  # Convert with custom output directory
+        >>> handle_yolo_convert(["data=ul://username/datasets/dataset-slug"])  # Convert from the Ultralytics Platform
+
+    Notes:
+        - If no arguments are provided, the function will display usage information.
+        - The 'data' argument is required and specifies the path to the NDJSON file or URL.
+        - The optional 'output' argument specifies the output directory for the converted dataset.
+        - For detection/segmentation/pose/obb tasks, creates images/ and labels/ directories.
+        - For classification tasks, creates ImageNet-style {split}/{class_name}/ folder structure.
+    """
+    import asyncio
+
+    from ultralytics.data.converter import convert_ndjson_to_yolo
+
+    overrides = dict(parse_key_value_pair(a) for a in args if "=" in a)
+    data = overrides.get("data")
+
+    if not data:
+        LOGGER.info(
+            "Usage: yolo convert data=<ndjson_file> [output=<output_dir>]\n\n"
+            "Arguments:\n"
+            "  data       Path to NDJSON file or ul:// dataset URL (required)\n"
+            "  output     Output directory for converted dataset (optional)"
+        )
+        return
+
+    try:
+        LOGGER.info(f"Converting dataset from {data}...")
+        result = asyncio.run(convert_ndjson_to_yolo(data, overrides.get("output")))
+        LOGGER.info(f"Dataset successfully converted to: {result}")
+        return result
+    except Exception as e:
+        LOGGER.error(f"Failed to convert dataset: {e}")
+        raise SystemExit(1) from e
+
+
 def handle_yolo_solutions(args: list[str]) -> None:
     """Process YOLO solutions arguments and run the specified computer vision solutions pipeline.
 
@@ -861,6 +909,7 @@ def entrypoint(debug: str = "") -> None:
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "solutions": lambda: handle_yolo_solutions(args[1:]),
+        "convert": lambda: handle_yolo_convert(args[1:]),
         "help": lambda: LOGGER.info(CLI_HELP_MSG),  # help below hub for -h flag precedence
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}

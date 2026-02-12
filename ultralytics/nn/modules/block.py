@@ -1387,7 +1387,7 @@ class PSA(nn.Module):
     Attributes:
         c (int): Number of hidden channels after applying the initial convolution.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
-        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
+        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c1.
         attn (Attention): Attention module for position-sensitive attention.
         ffn (nn.Sequential): Feed-forward network for further processing.
 
@@ -1442,7 +1442,7 @@ class C2PSA(nn.Module):
     Attributes:
         c (int): Number of hidden channels.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
-        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
+        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c1.
         m (nn.Sequential): Sequential container of PSABlock modules for attention and feed-forward operations.
 
     Methods:
@@ -1497,7 +1497,7 @@ class C2fPSA(C2f):
     Attributes:
         c (int): Number of hidden channels.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
-        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
+        cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c2.
         m (nn.ModuleList): List of PSA blocks for feature extraction.
 
     Methods:
@@ -1506,7 +1506,7 @@ class C2fPSA(C2f):
 
     Examples:
         >>> import torch
-        >>> from ultralytics.models.common import C2fPSA
+        >>> from ultralytics.nn.modules.block import C2fPSA
         >>> model = C2fPSA(c1=64, c2=64, n=3, e=0.5)
         >>> x = torch.randn(1, 64, 128, 128)
         >>> output = model(x)
@@ -1542,7 +1542,7 @@ class SCDown(nn.Module):
 
     Examples:
         >>> import torch
-        >>> from ultralytics import SCDown
+        >>> from ultralytics.nn.modules.block import SCDown
         >>> model = SCDown(c1=64, c2=128, k=3, s=2)
         >>> x = torch.randn(1, 64, 128, 128)
         >>> y = model(x)
@@ -1645,7 +1645,7 @@ class AAttn(nn.Module):
     making it particularly effective for object detection tasks.
 
     Attributes:
-        area (int): Number of areas the feature map is divided.
+        area (int): Number of areas the feature map is divided into.
         num_heads (int): Number of heads into which the attention mechanism is divided.
         head_dim (int): Dimension of each attention head.
         qkv (Conv): Convolution layer for computing query, key and value tensors.
@@ -1669,7 +1669,7 @@ class AAttn(nn.Module):
         Args:
             dim (int): Number of hidden channels.
             num_heads (int): Number of heads into which the attention mechanism is divided.
-            area (int): Number of areas the feature map is divided.
+            area (int): Number of areas the feature map is divided into.
         """
         super().__init__()
         self.area = area
@@ -1751,7 +1751,7 @@ class ABlock(nn.Module):
             dim (int): Number of input channels.
             num_heads (int): Number of heads into which the attention mechanism is divided.
             mlp_ratio (float): Expansion ratio for MLP hidden dimension.
-            area (int): Number of areas the feature map is divided.
+            area (int): Number of areas the feature map is divided into.
         """
         super().__init__()
 
@@ -1829,7 +1829,7 @@ class A2C2f(nn.Module):
             c2 (int): Number of output channels.
             n (int): Number of ABlock or C3k modules to stack.
             a2 (bool): Whether to use area attention blocks. If False, uses C3k blocks instead.
-            area (int): Number of areas the feature map is divided.
+            area (int): Number of areas the feature map is divided into.
             residual (bool): Whether to use residual connections with learnable gamma parameter.
             mlp_ratio (float): Expansion ratio for MLP hidden dimension.
             e (float): Channel expansion ratio for hidden channels.

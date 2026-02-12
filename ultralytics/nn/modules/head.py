@@ -53,7 +53,6 @@ class Detect(nn.Module):
 
     Methods:
         forward: Perform forward pass and return predictions.
-        forward_end2end: Perform forward pass for end-to-end detection.
         bias_init: Initialize detection head biases.
         decode_bboxes: Decode bounding boxes from predictions.
         postprocess: Post-process model predictions.
@@ -364,7 +363,7 @@ class Segment26(Segment):
     Attributes:
         nm (int): Number of masks.
         npr (int): Number of protos.
-        proto (Proto): Prototype generation module.
+        proto (Proto26): Prototype generation module.
         cv4 (nn.ModuleList): Convolution layers for mask coefficients.
 
     Methods:
@@ -1345,7 +1344,7 @@ class YOLOESegment(YOLOEDetect):
 class YOLOESegment26(YOLOESegment):
     """YOLOE-style segmentation head module using Proto26 for mask generation.
 
-    This class extends the YOLOEDetect functionality to include segmentation capabilities by integrating a prototype
+    This class extends the YOLOESegment functionality to include segmentation capabilities by integrating a Proto26
     generation module and convolutional layers to predict mask coefficients.
 
     Args:

@@ -149,7 +149,7 @@ class BaseModel(torch.nn.Module):
             profile (bool): Print the computation time of each layer if True.
             visualize (bool): Save the feature maps of the model if True.
             augment (bool): Augment image during prediction.
-            embed (list, optional): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of layer indices to return embeddings from.
 
         Returns:
             (torch.Tensor): The last output of the model.
@@ -165,7 +165,7 @@ class BaseModel(torch.nn.Module):
             x (torch.Tensor): The input tensor to the model.
             profile (bool): Print the computation time of each layer if True.
             visualize (bool): Save the feature maps of the model if True.
-            embed (list, optional): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of layer indices to return embeddings from.
 
         Returns:
             (torch.Tensor): The last output of the model.
@@ -224,6 +224,9 @@ class BaseModel(torch.nn.Module):
     def fuse(self, verbose=True):
         """Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer for improved computation
         efficiency.
+
+        Args:
+            verbose (bool): Whether to print model information after fusion.
 
         Returns:
             (torch.nn.Module): The fused model is returned.
@@ -450,7 +453,7 @@ class DetectionModel(BaseModel):
             x (torch.Tensor): Input image tensor.
 
         Returns:
-            (torch.Tensor): Augmented inference output.
+            (tuple[torch.Tensor, None]): Augmented inference output and None for train output.
         """
         if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
             LOGGER.warning("Model does not support 'augment=True', reverting to single-scale prediction.")
@@ -678,7 +681,7 @@ class ClassificationModel(BaseModel):
 
     @staticmethod
     def reshape_outputs(model, nc):
-        """Update a TorchVision classification model to class count 'n' if required.
+        """Update a TorchVision classification model to class count 'nc' if required.
 
         Args:
             model (torch.nn.Module): Model to update.
@@ -769,7 +772,7 @@ class RTDETRDetectionModel(DetectionModel):
 
         Args:
             batch (dict): Dictionary containing image and label data.
-            preds (torch.Tensor, optional): Precomputed model predictions.
+            preds (tuple, optional): Precomputed model predictions.
 
         Returns:
             (torch.Tensor): Total loss value.
@@ -819,7 +822,7 @@ class RTDETRDetectionModel(DetectionModel):
             visualize (bool): If True, save feature maps for visualization.
             batch (dict, optional): Ground truth data for evaluation.
             augment (bool): If True, perform data augmentation during inference.
-            embed (list, optional): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of layer indices to return embeddings from.
 
         Returns:
             (torch.Tensor): Model's output tensor.
@@ -925,7 +928,7 @@ class WorldModel(DetectionModel):
             visualize (bool): If True, save feature maps for visualization.
             txt_feats (torch.Tensor, optional): The text features, use it if it's given.
             augment (bool): If True, perform data augmentation during inference.
-            embed (list, optional): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of layer indices to return embeddings from.
 
         Returns:
             (torch.Tensor): Model's output tensor.
@@ -1166,7 +1169,7 @@ class YOLOEModel(DetectionModel):
             visualize (bool): If True, save feature maps for visualization.
             tpe (torch.Tensor, optional): Text positional embeddings.
             augment (bool): If True, perform data augmentation during inference.
-            embed (list, optional): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of layer indices to return embeddings from.
             vpe (torch.Tensor, optional): Visual positional embeddings.
             return_vpe (bool): If True, return visual positional embeddings.
 

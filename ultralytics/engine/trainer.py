@@ -217,7 +217,7 @@ class BaseTrainer:
             callback(self)
 
     def train(self):
-        """Allow device='', device=None on Multi-GPU systems to default to device=0."""
+        """Execute the training process, using DDP subprocess for multi-GPU or direct training for single-GPU."""
         # Run subprocess if DDP training, else train normally
         if self.ddp:
             # Argument checks
@@ -290,7 +290,7 @@ class BaseTrainer:
         self._setup_scheduler()
 
     def _setup_train(self):
-        """Build dataloaders and optimizer on correct rank process."""
+        """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
@@ -360,7 +360,7 @@ class BaseTrainer:
         self.run_callbacks("on_pretrain_routine_end")
 
     def _do_train(self):
-        """Train the model with the specified world size."""
+        """Perform the full training loop including setup, epoch iteration, validation, and final evaluation."""
         if self.world_size > 1:
             self._setup_ddp()
         self._setup_train()
@@ -768,10 +768,10 @@ class BaseTrainer:
         raise NotImplementedError("build_dataset function not implemented in trainer")
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """Return a loss dict with labeled training loss items tensor.
+        """Return a loss dict with labeled training loss items, or a list of loss names if loss_items is None.
 
         Notes:
-            This is not needed for classification but necessary for segmentation & detection
+            This is not needed for classification but necessary for segmentation & detection.
         """
         return {"loss": loss_items} if loss_items is not None else ["loss"]
 
@@ -927,7 +927,7 @@ class BaseTrainer:
         return True
 
     def resume_training(self, ckpt):
-        """Resume YOLO training from given epoch and best fitness."""
+        """Resume YOLO training from a given checkpoint."""
         if ckpt is None or not self.resume:
             return
         start_epoch = ckpt.get("epoch", -1) + 1

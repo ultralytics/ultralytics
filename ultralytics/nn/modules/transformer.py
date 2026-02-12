@@ -539,8 +539,8 @@ class MSDeformAttn(nn.Module):
 
         Args:
             query (torch.Tensor): Query tensor with shape [bs, query_length, C].
-            refer_bbox (torch.Tensor): Reference bounding boxes with shape [bs, query_length, n_levels, 2], range in [0,
-                1], top-left (0,0), bottom-right (1, 1), including padding area.
+            refer_bbox (torch.Tensor): Reference bounding boxes with shape [bs, query_length, n_levels, 2 or 4], range
+                in [0, 1], top-left (0,0), bottom-right (1, 1), including padding area.
             value (torch.Tensor): Value tensor with shape [bs, value_length, C].
             value_shapes (list): List with shape [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})].
             value_mask (torch.Tensor, optional): Mask tensor with shape [bs, value_length], True for non-padding

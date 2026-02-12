@@ -42,7 +42,7 @@ class Model(torch.nn.Module):
         cfg (str): The configuration of the model if loaded from a *.yaml file.
         ckpt_path (str): The path to the checkpoint file.
         overrides (dict): A dictionary of overrides for model configuration.
-        metrics (dict): The latest training/validation metrics.
+        metrics (ultralytics.utils.metrics.DetMetrics): The latest training/validation metrics.
         session (HUBTrainingSession): The Ultralytics HUB session, if applicable.
         task (str): The type of task the model is intended for.
         model_name (str): The name of the model.
@@ -57,7 +57,7 @@ class Model(torch.nn.Module):
         save: Save the current state of the model to a file.
         info: Log or return information about the model.
         fuse: Fuse Conv2d and BatchNorm2d layers for optimized inference.
-        predict: Perform object detection predictions.
+        predict: Perform predictions on given image sources.
         track: Perform object tracking.
         val: Validate the model on a dataset.
         benchmark: Benchmark the model on various export formats.
@@ -595,7 +595,9 @@ class Model(torch.nn.Module):
             **kwargs (Any): Arbitrary keyword arguments for customizing the validation process.
 
         Returns:
-            (ultralytics.utils.metrics.DetMetrics): Validation metrics obtained from the validation process.
+            (ultralytics.utils.metrics.DetMetrics): Validation metrics obtained from the validation process. The
+                specific metrics type depends on the task (e.g., DetMetrics, SegmentMetrics, PoseMetrics,
+                ClassifyMetrics).
 
         Raises:
             TypeError: If the model is not a PyTorch model.
@@ -739,7 +741,8 @@ class Model(torch.nn.Module):
                 - augmentations (list[Callable]): List of augmentation functions to apply during training.
 
         Returns:
-            (dict | None): Training metrics if available and training is successful; otherwise, None.
+            (ultralytics.utils.metrics.DetMetrics | None): Training metrics if available and training is successful;
+                otherwise, None. The specific metrics type depends on the task.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -829,7 +832,7 @@ class Model(torch.nn.Module):
             return Tuner(args=args, _callbacks=self.callbacks)(iterations=iterations)
 
     def _apply(self, fn) -> Model:
-        """Apply a function to model tensors that are not parameters or registered buffers.
+        """Apply a function to model parameters, buffers, and tensors.
 
         This method extends the functionality of the parent class's _apply method by additionally resetting the
         predictor and updating the device in the model's overrides. It's typically used for operations like moving the

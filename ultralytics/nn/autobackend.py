@@ -700,7 +700,7 @@ class AutoBackend(nn.Module):
             im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): Whether to perform data augmentation during inference.
             visualize (bool): Whether to visualize the output predictions.
-            embed (list, optional): A list of feature vectors/embeddings to return.
+            embed (list, optional): A list of layer indices to return embeddings from.
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:

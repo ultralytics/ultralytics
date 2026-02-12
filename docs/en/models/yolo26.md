@@ -105,6 +105,8 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
         --8<-- "docs/macros/yolo-obb-perf.md"
 
+_Params and FLOPs values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts._
+
 ---
 
 ## Usage Examples

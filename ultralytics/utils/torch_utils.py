@@ -72,7 +72,7 @@ def torch_distributed_zero_first(local_rank: int):
 
 
 def smart_inference_mode():
-    """Apply torch.inference_mode() decorator if torch>=1.10.0 else torch.no_grad() decorator."""
+    """Apply torch.inference_mode() decorator if torch>=1.10.0, else torch.no_grad() decorator."""
 
     def decorate(fn):
         """Apply appropriate torch decorator for inference mode based on torch version."""
@@ -104,7 +104,7 @@ def autocast(enabled: bool, device: str = "cuda"):
 
     Notes:
         - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
-        - For older versions, it uses `torch.cuda.autocast`.
+        - For older versions, it uses `torch.cuda.amp.autocast`.
     """
     if TORCH_1_13:
         return torch.amp.autocast(device, enabled=enabled)
@@ -140,8 +140,9 @@ def select_device(device="", newline=False, verbose=True):
     exception if the requested device(s) are not available.
 
     Args:
-        device (str | torch.device, optional): Device string or torch.device object. Options are 'None', 'cpu', or
-            'cuda', or '0' or '0,1,2,3'. Auto-selects the first available GPU, or CPU if no GPU is available.
+        device (str | torch.device, optional): Device string or torch.device object. Options include 'cpu', 'cuda',
+            '0', '0,1,2,3', 'mps', or '-1' for auto-select. Defaults to auto-selecting the first available GPU,
+            or CPU if no GPU is available.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
@@ -311,10 +312,11 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
         imgsz (int | list, optional): Input image size.
 
     Returns:
-        n_l (int): Number of layers.
-        n_p (int): Number of parameters.
-        n_g (int): Number of gradients.
-        flops (float): GFLOPs.
+        (tuple): Tuple containing:
+            - n_l (int): Number of layers.
+            - n_p (int): Number of parameters.
+            - n_g (int): Number of gradients.
+            - flops (float): GFLOPs.
     """
     if not verbose:
         return
@@ -389,7 +391,7 @@ def model_info_for_loggers(trainer):
 
 
 def get_flops(model, imgsz=640):
-    """Calculate FLOPs (floating point operations) for a model in billions.
+    """Calculate FLOPs (floating point operations) for a model in GFLOPs.
 
     Attempts two calculation methods: first with a stride-based tensor for efficiency, then falls back to full image
     size if needed (e.g., for RTDETR models). Returns 0.0 if thop library is unavailable or calculation fails.
@@ -399,7 +401,7 @@ def get_flops(model, imgsz=640):
         imgsz (int | list, optional): Input image size.
 
     Returns:
-        (float): The model FLOPs in billions.
+        (float): The model's GFLOPs (billions of floating point operations).
     """
     try:
         import thop
@@ -436,7 +438,7 @@ def get_flops_with_torch_profiler(model, imgsz=640):
         imgsz (int | list, optional): Input image size.
 
     Returns:
-        (float): The model's FLOPs in billions.
+        (float): The model's GFLOPs (billions of floating point operations).
     """
     if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
         return 0.0
@@ -462,7 +464,7 @@ def get_flops_with_torch_profiler(model, imgsz=640):
 
 
 def initialize_weights(model):
-    """Initialize model weights to random values."""
+    """Initialize model weights, biases, and module settings to default values."""
     for m in model.modules():
         t = type(m)
         if t is nn.Conv2d:
@@ -546,7 +548,7 @@ def unwrap_model(m: nn.Module) -> nn.Module:
             DataParallel/DistributedDataParallel (.module).
 
     Returns:
-        m (nn.Module): The unwrapped base model without compile or parallel wrappers.
+        (nn.Module): The unwrapped base model without compile or parallel wrappers.
     """
     while True:
         if hasattr(m, "_orig_mod") and isinstance(m._orig_mod, nn.Module):
@@ -657,10 +659,10 @@ class ModelEMA:
                     # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
 
     def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
-        """Update attributes and save stripped model with optimizer removed.
+        """Copy attributes from model to EMA, with options to include/exclude certain attributes.
 
         Args:
-            model (nn.Module): Model to update attributes from.
+            model (nn.Module): Model to copy attributes from.
             include (tuple, optional): Attributes to include.
             exclude (tuple, optional): Attributes to exclude.
         """
@@ -880,11 +882,11 @@ class EarlyStopping:
         """Check whether to stop training.
 
         Args:
-            epoch (int): Current epoch of training
-            fitness (float): Fitness value of current epoch
+            epoch (int): Current epoch of training.
+            fitness (float): Fitness value of current epoch.
 
         Returns:
-            (bool): True if training should stop, False otherwise
+            (bool): True if training should stop, False otherwise.
         """
         if fitness is None:  # check if fitness=None (happens when val=False)
             return False
@@ -916,9 +918,9 @@ def attempt_compile(
 ) -> torch.nn.Module:
     """Compile a model with torch.compile and optionally warm up the graph to reduce first-iteration latency.
 
-    This utility attempts to compile the provided model using the inductor backend with dynamic shapes enabled and an
-    autotuning mode. If compilation is unavailable or fails, the original model is returned unchanged. An optional
-    warmup performs a single forward pass on a dummy input to prime the compiled graph and measure compile/warmup time.
+    This utility attempts to compile the provided model using the inductor backend. If compilation is unavailable or
+    fails, the original model is returned unchanged. An optional warmup performs a single forward pass on a dummy input
+    to prime the compiled graph and measure compile/warmup time.
 
     Args:
         model (torch.nn.Module): Model to compile.
@@ -930,7 +932,7 @@ def attempt_compile(
             "default", "reduce-overhead", "max-autotune-no-cudagraphs".
 
     Returns:
-        model (torch.nn.Module): Compiled model if compilation succeeds, otherwise the original unmodified model.
+        (torch.nn.Module): Compiled model if compilation succeeds, otherwise the original unmodified model.
 
     Examples:
         >>> device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

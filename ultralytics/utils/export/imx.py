@@ -109,15 +109,15 @@ class FXModel(torch.nn.Module):
                     )
                 )
             if type(m) is Pose:
-                m.forward = types.MethodType(pose_forward, m)  # bind method to Detect
+                m.forward = types.MethodType(pose_forward, m)  # bind method to Pose
             if type(m) is Segment:
-                m.forward = types.MethodType(segment_forward, m)  # bind method to Detect
+                m.forward = types.MethodType(segment_forward, m)  # bind method to Segment
             x = m(x)  # run
             y.append(x)  # save output
         return x
 
 
-def _inference(self, x: dict[str, torch.Tensor]) -> tuple[torch.Tensor]:
+def _inference(self, x: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
     """Decode boxes and cls scores for imx object detection."""
     dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0)) * self.strides
     return dbox.transpose(1, 2), x["scores"].sigmoid().permute(0, 2, 1)
@@ -230,7 +230,7 @@ def torch2imx(
         prefix (str, optional): Logging prefix string. Defaults to "".
 
     Returns:
-        f (Path): Path to the exported IMX model directory
+        (Path): Path to the exported IMX model directory.
 
     Raises:
         ValueError: If the model is not a supported YOLOv8n or YOLO11n variant.

@@ -144,7 +144,7 @@ class Colors:
         )
 
     def __call__(self, i: int | torch.Tensor, bgr: bool = False) -> tuple:
-        """Convert hex color codes to RGB values.
+        """Return a color from the palette by index.
 
         Args:
             i (int | torch.Tensor): Color index.
@@ -172,10 +172,10 @@ class Annotator:
         im (Image.Image | np.ndarray): The image to annotate.
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
         font (ImageFont.truetype | ImageFont.load_default): Font used for text annotations.
-        lw (float): Line width for drawing.
+        lw (int): Line width for drawing.
         skeleton (list[list[int]]): Skeleton structure for keypoints.
-        limb_color (list[int]): Color palette for limbs.
-        kpt_color (list[int]): Color palette for keypoints.
+        limb_color (np.ndarray): Color palette for limbs.
+        kpt_color (np.ndarray): Color palette for keypoints.
         dark_colors (set): Set of colors considered dark for text contrast.
         light_colors (set): Set of colors considered light for text contrast.
 
@@ -280,8 +280,8 @@ class Annotator:
         """Assign text color based on background color.
 
         Args:
-            color (tuple, optional): The background color of the rectangle for text (B, G, R).
-            txt_color (tuple, optional): The color of the text (R, G, B).
+            color (tuple, optional): The background color of the rectangle for text.
+            txt_color (tuple, optional): The fallback color of the text.
 
         Returns:
             (tuple): Text color for label.
@@ -305,8 +305,8 @@ class Annotator:
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
             label (str, optional): The text label to be displayed.
-            color (tuple, optional): The background color of the rectangle (B, G, R).
-            txt_color (tuple, optional): The color of the text (R, G, B).
+            color (tuple, optional): The background color of the rectangle.
+            txt_color (tuple, optional): The color of the text.
 
         Examples:
             >>> from ultralytics.utils.plotting import Annotator
@@ -364,9 +364,9 @@ class Annotator:
         """Plot masks on image.
 
         Args:
-            masks (torch.Tensor | np.ndarray): Predicted masks with shape: [n, h, w]
-            colors (list[list[int]]): Colors for predicted masks, [[r, g, b] * n]
-            im_gpu (torch.Tensor | None): Image is in cuda, shape: [3, h, w], range: [0, 1]
+            masks (torch.Tensor | np.ndarray): Predicted masks with shape [n, h, w].
+            colors (list[list[int]]): Colors for predicted masks, [[r, g, b] * n].
+            im_gpu (torch.Tensor | None): Image on GPU with shape [3, h, w], range [0, 1].
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             retina_masks (bool, optional): Whether to use high resolution masks or not.
         """
@@ -427,7 +427,7 @@ class Annotator:
             radius (int, optional): Keypoint radius.
             kpt_line (bool, optional): Draw lines between keypoints.
             conf_thres (float, optional): Confidence threshold.
-            kpt_color (tuple, optional): Keypoint color (B, G, R).
+            kpt_color (tuple, optional): Keypoint color.
 
         Notes:
             - `kpt_line=True` currently only supports human pose plotting.
@@ -487,9 +487,9 @@ class Annotator:
         Args:
             xy (list[int]): Top-left coordinates for text placement.
             text (str): Text to be drawn.
-            txt_color (tuple, optional): Text color (R, G, B).
+            txt_color (tuple, optional): Text color.
             anchor (str, optional): Text anchor position ('top' or 'bottom').
-            box_color (tuple, optional): Box color (R, G, B, A) with optional alpha.
+            box_color (tuple, optional): Box background color with optional alpha.
         """
         if self.pil:
             w, h = self.font.getsize(text)
@@ -692,17 +692,17 @@ def plot_images(
         labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks',
             'keypoints', 'batch_idx', 'img'.
         images (torch.Tensor | np.ndarray): Batch of images to plot. Shape: (batch_size, channels, height, width).
-        paths (Optional[list[str]]): List of file paths for each image in the batch.
+        paths (list[str] | None): List of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
-        names (Optional[dict[int, str]]): Dictionary mapping class indices to class names.
-        on_plot (Optional[Callable]): Optional callback function to be called after saving the plot.
+        names (dict[int, str] | None): Dictionary mapping class indices to class names.
+        on_plot (Callable | None): Callback function to be called after saving the plot.
         max_size (int): Maximum size of the output image grid.
         max_subplots (int): Maximum number of subplots in the image grid.
         save (bool): Whether to save the plotted image grid to a file.
         conf_thres (float): Confidence threshold for displaying detections.
 
     Returns:
-        (np.ndarray): Plotted image grid as a numpy array if save is False, None otherwise.
+        (np.ndarray | None): Plotted image grid as a numpy array if save is False, None otherwise.
 
     Notes:
         This function supports both tensor and numpy array inputs. It will automatically

@@ -251,8 +251,7 @@ def xywhn2xyxy(x, w: int = 640, h: int = 640, padw: int = 0, padh: int = 0):
         padh (int): Padding height in pixels.
 
     Returns:
-        y (np.ndarray | torch.Tensor): The coordinates of the bounding box in the format [x1, y1, x2, y2] where x1,y1 is
-            the top-left corner, x2,y2 is the bottom-right corner of the bounding box.
+        (np.ndarray | torch.Tensor): Bounding box coordinates in (x1, y1, x2, y2) format.
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
@@ -266,7 +265,7 @@ def xywhn2xyxy(x, w: int = 640, h: int = 640, padw: int = 0, padh: int = 0):
 
 
 def xyxy2xywhn(x, w: int = 640, h: int = 640, clip: bool = False, eps: float = 0.0):
-    """Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height, normalized) format. x, y,
+    """Convert bounding box coordinates from (x1, y1, x2, y2) format to normalized (x, y, width, height) format. x, y,
     width and height are normalized to image dimensions.
 
     Args:
@@ -413,7 +412,7 @@ def ltwh2xyxy(x):
 
 
 def segments2boxes(segments):
-    """Convert segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh).
+    """Convert segment coordinates to bounding box labels in xywh format.
 
     Args:
         segments (list): List of segments where each segment is a list of points, each point is [x, y] coordinates.
@@ -456,7 +455,7 @@ def crop_mask(masks: torch.Tensor, boxes: torch.Tensor) -> torch.Tensor:
 
     Args:
         masks (torch.Tensor): Masks with shape (N, H, W).
-        boxes (torch.Tensor): Bounding box coordinates with shape (N, 4) in relative point form.
+        boxes (torch.Tensor): Bounding box coordinates with shape (N, 4) in xyxy pixel format.
 
     Returns:
         (torch.Tensor): Cropped masks.
@@ -596,7 +595,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
 
 
 def regularize_rboxes(rboxes):
-    """Regularize rotated bounding boxes to range [0, pi/2].
+    """Regularize rotated bounding boxes to range [0, pi/2).
 
     Args:
         rboxes (torch.Tensor): Input rotated boxes with shape (N, 5) in xywhr format.
@@ -617,7 +616,7 @@ def masks2segments(masks: np.ndarray | torch.Tensor, strategy: str = "all") -> l
     """Convert masks to segments using contour detection.
 
     Args:
-        masks (np.ndarray | torch.Tensor): Binary masks with shape (batch_size, 160, 160).
+        masks (np.ndarray | torch.Tensor): Binary masks with shape (N, H, W).
         strategy (str): Segmentation strategy, either 'all' or 'largest'.
 
     Returns:

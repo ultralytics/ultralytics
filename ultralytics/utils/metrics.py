@@ -174,7 +174,7 @@ def kpt_iou(
         kpt1 (torch.Tensor): A tensor of shape (N, 17, 3) representing ground truth keypoints.
         kpt2 (torch.Tensor): A tensor of shape (M, 17, 3) representing predicted keypoints.
         area (torch.Tensor): A tensor of shape (N,) representing areas from ground truth.
-        sigma (list): A list containing 17 values representing keypoint scales.
+        sigma (list[float]): A list containing 17 values representing keypoint scales.
         eps (float, optional): A small value to avoid division by zero.
 
     Returns:
@@ -312,8 +312,8 @@ class ConfusionMatrix(DataExportMixin):
         task (str): The type of task, either 'detect' or 'classify'.
         matrix (np.ndarray): The confusion matrix, with dimensions depending on the task.
         nc (int): The number of classes.
-        names (list[str]): The names of the classes, used as labels on the plot.
-        matches (dict): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
+        names (dict[int, str]): The names of the classes, used as labels on the plot.
+        matches (dict | None): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
     """
 
     def __init__(self, names: dict[int, str] = {}, task: str = "detect", save_matches: bool = False):
@@ -719,8 +719,8 @@ def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.n
     """Compute the average precision (AP) given the recall and precision curves.
 
     Args:
-        recall (list): The recall curve.
-        precision (list): The precision curve.
+        recall (list[float]): The recall curve.
+        precision (list[float]): The precision curve.
 
     Returns:
         ap (float): Average precision.
@@ -765,7 +765,7 @@ def ap_per_class(
         tp (np.ndarray): Binary array indicating whether the detection is correct (True) or not (False).
         conf (np.ndarray): Array of confidence scores of the detections.
         pred_cls (np.ndarray): Array of predicted classes of the detections.
-        target_cls (np.ndarray): Array of true classes of the detections.
+        target_cls (np.ndarray): Array of true classes of the targets.
         plot (bool, optional): Whether to plot PR curves or not.
         on_plot (callable, optional): A callback to pass plots path and data when they are rendered.
         save_dir (Path, optional): Directory to save the PR curves.
@@ -1000,7 +1000,7 @@ class Metric(SimpleClass):
 
     @property
     def curves_results(self) -> list[list]:
-        """Return a list of curves for accessing specific metrics curves."""
+        """Return a list of curves results for accessing specific metrics curves."""
         return [
             [self.px, self.prec_values, "Recall", "Precision"],
             [self.px, self.f1_curve, "Confidence", "F1"],
@@ -1056,7 +1056,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Update statistics by appending new values to existing stat collections.
 
         Args:
-            stat (dict[str, any]): Dictionary containing new statistical values to append. Keys should match existing
+            stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
                 keys in self.stats.
         """
         for k in self.stats.keys():
@@ -1197,7 +1197,7 @@ class SegmentMetrics(DetMetrics):
         keys: Return a list of keys for accessing metrics.
         mean_results: Return the mean metrics for bounding box and segmentation results.
         class_result: Return classification results for a specified class index.
-        maps: Return mAP scores for object detection and semantic segmentation models.
+        maps: Return mAP scores for object detection and segmentation models.
         fitness: Return the fitness score for both segmentation and bounding box models.
         curves: Return a list of curves for accessing specific metrics curves.
         curves_results: Provide a list of computed performance metrics and statistics.
@@ -1263,7 +1263,7 @@ class SegmentMetrics(DetMetrics):
 
     @property
     def maps(self) -> np.ndarray:
-        """Return mAP scores for object detection and semantic segmentation models."""
+        """Return mAP scores for object detection and segmentation models."""
         return DetMetrics.maps.fget(self) + self.seg.maps
 
     @property
@@ -1463,7 +1463,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
     Attributes:
         top1 (float): The top-1 accuracy.
         top5 (float): The top-5 accuracy.
-        speed (dict): A dictionary containing the time taken for each step in the pipeline.
+        speed (dict[str, float]): A dictionary containing the time taken for each step in the pipeline.
         task (str): The task type, set to 'classify'.
 
     Methods:
@@ -1517,7 +1517,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
 
     @property
     def curves_results(self) -> list:
-        """Return a list of curves for accessing specific metrics curves."""
+        """Return a list of curves results for accessing specific metrics curves."""
         return []
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, float]]:

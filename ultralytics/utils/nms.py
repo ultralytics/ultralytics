@@ -40,7 +40,7 @@ def non_max_suppression(
         classes (list[int], optional): List of class indices to consider. If None, all classes are considered.
         agnostic (bool): Whether to perform class-agnostic NMS.
         multi_label (bool): Whether each box can have multiple labels.
-        labels (list[list[Union[int, float, torch.Tensor]]]): A priori labels for each image.
+        labels (list[torch.Tensor]): A priori labels for each image.
         max_det (int): Maximum number of detections to keep per image.
         nc (int): Number of classes. Indices after this are considered masks.
         max_time_img (float): Maximum time in seconds for processing one image.
@@ -170,9 +170,10 @@ class TorchNMS:
     """Ultralytics custom NMS implementation optimized for YOLO.
 
     This class provides static methods for performing non-maximum suppression (NMS) operations on bounding boxes,
-    including both standard NMS and batched NMS for multi-class scenarios.
+    including standard NMS, fast NMS, and batched NMS for multi-class scenarios.
 
     Methods:
+        fast_nms: Fast-NMS using upper triangular matrix operations.
         nms: Optimized NMS with early termination that matches torchvision behavior exactly.
         batched_nms: Batched NMS for class-aware suppression.
 

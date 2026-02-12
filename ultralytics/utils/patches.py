@@ -191,7 +191,7 @@ def arange_patch(args):
         func = torch.arange
 
         def arange(*args, dtype=None, **kwargs):
-            """Return a 1-D tensor of size with values from the interval and common difference."""
+            """Wrap torch.arange to cast dtype after creation instead of passing it directly."""
             return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
 
         torch.arange = arange  # patch

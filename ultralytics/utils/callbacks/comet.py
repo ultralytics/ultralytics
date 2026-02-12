@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
@@ -18,9 +20,6 @@ try:
     import comet_ml
 
     assert hasattr(comet_ml, "__version__")  # verify package is not directory
-
-    import os
-    from pathlib import Path
 
     # Ensures certain logging functions only run for supported tasks
     COMET_SUPPORTED_TASKS = ["detect", "segment"]
@@ -54,6 +53,22 @@ def _get_comet_mode() -> str:
         return comet_mode
 
     return "online"
+
+
+def _get_comet_should_log_model() -> bool:
+    """Return whether the comet model should be logged from the environment variable or default to 'true'. Since this is
+    not a standard comet environment variable, the name has a 'COMET_ULTRALYTICS_' prefix, instead of just 'COMET_'.
+    """
+    should_log_model = os.getenv("COMET_ULTRALYTICS_SHOULD_LOG_MODEL", "true").lower()
+    if should_log_model == "true":
+        return True
+    elif should_log_model == "false":
+        return False
+    else:
+        LOGGER.warning(
+            f"Invalid value for COMET_ULTRALYTICS_SHOULD_LOG_MODEL: {os.getenv('COMET_ULTRALYTICS_SHOULD_LOG_MODEL')}. Defaulting to 'true'."
+        )
+        return True
 
 
 def _get_comet_model_name() -> str:
@@ -479,8 +494,9 @@ def _log_plots(experiment, trainer) -> None:
 
 def _log_model(experiment, trainer) -> None:
     """Log the best-trained model to Comet.ml."""
-    model_name = _get_comet_model_name()
-    experiment.log_model(model_name, file_or_folder=str(trainer.best), file_name="best.pt", overwrite=True)
+    if _get_comet_should_log_model():
+        model_name = _get_comet_model_name()
+        experiment.log_model(model_name, file_or_folder=str(trainer.best), file_name="best.pt", overwrite=True)
 
 
 def _log_image_batches(experiment, trainer, curr_step: int) -> None:

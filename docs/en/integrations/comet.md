@@ -182,6 +182,16 @@ import os
 os.environ["COMET_MODE"] = "offline"
 ```
 
+### Logging Model
+
+By default, the model is logged to Comet. This can be disabled via the following:
+
+```python
+import os
+
+os.environ["COMET_ULTRALYTICS_SHOULD_LOG_MODEL"] = "false"
+```
+
 ## Summary
 
 This guide has walked you through integrating Comet with Ultralytics' YOLO26. From installation to customization, you've learned to streamline experiment management, gain real-time insights, and adapt logging to your project's needs.

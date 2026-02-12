@@ -16,38 +16,46 @@ from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, MACOS_VERSION
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0, TORCH_2_1, TORCH_2_8, TORCH_2_9
 
 
-def test_export_torchscript():
+@pytest.mark.parametrize("end2end", [False, True])
+def test_export_torchscript(end2end):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
-    file = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32)
+    file = YOLO(MODEL).export(format="torchscript", optimize=False, imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-def test_export_onnx():
+@pytest.mark.parametrize("end2end", [False, True])
+def test_export_onnx(end2end):
     """Test YOLO model export to ONNX format with dynamic axes."""
-    file = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32)
+    file = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
-def test_export_openvino():
+@pytest.mark.parametrize("end2end", [False, True])
+def test_export_openvino(end2end):
     """Test YOLO export to OpenVINO format for model inference compatibility."""
-    file = YOLO(MODEL).export(format="openvino", imgsz=32)
+    file = YOLO(MODEL).export(format="openvino", imgsz=32, end2end=end2end)
+    if WINDOWS:
+        # Ensure a unique export path per test to prevent OpenVINO file writes
+        file = Path(file)
+        file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, nms",
+    "task, dynamic, int8, half, batch, nms, end2end",
     [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, nms)
-        for task, dynamic, int8, half, batch, nms in product(
-            TASKS, [True, False], [True, False], [True, False], [1, 2], [True, False]
+        (task, dynamic, int8, half, batch, nms, end2end)
+        for task, dynamic, int8, half, batch, nms, end2end in product(
+            TASKS, [True, False], [True, False], [True, False], [1, 2], [True, False], [True]
         )
-        if not ((int8 and half) or (task == "classify" and nms))
+        if not ((int8 and half) or (task == "classify" and nms) or (end2end and nms))
     ],
 )
-def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
+# disable end2end=False test for now due to github runner OOM during openvino tests
+def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms, end2end):
     """Test YOLO model export to OpenVINO under various configuration matrix conditions."""
     file = YOLO(TASK2MODEL[task]).export(
         format="openvino",
@@ -58,10 +66,10 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
         batch=batch,
         data=TASK2DATA[task],
         nms=nms,
+        end2end=end2end,
     )
     if WINDOWS:
         # Use unique filenames due to Windows file permissions bug possibly due to latent threaded use
-        # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
         file = Path(file)
         file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
@@ -70,19 +78,27 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, simplify, nms",
+    "task, dynamic, int8, half, batch, simplify, nms, end2end",
     [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, simplify, nms)
-        for task, dynamic, int8, half, batch, simplify, nms in product(
-            TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
+        (task, dynamic, int8, half, batch, simplify, nms, end2end)
+        for task, dynamic, int8, half, batch, simplify, nms, end2end in product(
+            TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms) or (nms and not TORCH_1_13))
+        if not ((int8 and half) or (task == "classify" and nms) or (nms and not TORCH_1_13) or (end2end and nms))
     ],
 )
-def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
+def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms, end2end):
     """Test YOLO export to ONNX format with various configurations and parameters."""
     file = YOLO(TASK2MODEL[task]).export(
-        format="onnx", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, simplify=simplify, nms=nms
+        format="onnx",
+        imgsz=32,
+        dynamic=dynamic,
+        int8=int8,
+        half=half,
+        batch=batch,
+        simplify=simplify,
+        nms=nms,
+        end2end=end2end,
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     Path(file).unlink()  # cleanup
@@ -90,19 +106,19 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, nms",
+    "task, dynamic, int8, half, batch, nms, end2end",
     [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, nms)
-        for task, dynamic, int8, half, batch, nms in product(
-            TASKS, [False, True], [False], [False, True], [1, 2], [True, False]
+        (task, dynamic, int8, half, batch, nms, end2end)
+        for task, dynamic, int8, half, batch, nms, end2end in product(
+            TASKS, [False, True], [False], [False, True], [1, 2], [True, False], [True, False]
         )
-        if not (task == "classify" and nms)
+        if not ((task == "classify" and nms) or (end2end and nms))
     ],
 )
-def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
+def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms, end2end):
     """Test YOLO model export to TorchScript format under varied configurations."""
     file = YOLO(TASK2MODEL[task]).export(
-        format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
+        format="torchscript", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     Path(file).unlink()  # cleanup
@@ -116,19 +132,20 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
     MACOS and MACOS_VERSION and MACOS_VERSION >= "15", reason="CoreML YOLO26 matrix test crashes on macOS 15+"
 )
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, nms, batch",
+    "task, dynamic, int8, half, nms, batch, end2end",
     [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, nms, batch)
-        for task, dynamic, int8, half, nms, batch in product(
-            TASKS, [True, False], [True, False], [True, False], [True, False], [1]
+        (task, dynamic, int8, half, nms, batch, end2end)
+        for task, dynamic, int8, half, nms, batch, end2end in product(
+            TASKS, [True, False], [True, False], [True, False], [True, False], [1], [True, False]
         )
         if not (int8 and half)
         and not (task != "detect" and nms)
         and not (dynamic and nms)
         and not (task == "classify" and dynamic)
+        and not (end2end and nms)
     ],
 )
-def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):
+def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch, end2end):
     """Test YOLO export to CoreML format with various parameter configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="coreml",
@@ -138,6 +155,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):
         half=half,
         batch=batch,
         nms=nms,
+        end2end=end2end,
     )
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     shutil.rmtree(file)  # cleanup
@@ -152,19 +170,25 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):
     reason="Test disabled as TF suffers from install conflicts on Windows, macOS and Raspberry Pi",
 )
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch, nms",
+    "task, dynamic, int8, half, batch, nms, end2end",
     [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch, nms)
-        for task, dynamic, int8, half, batch, nms in product(
-            TASKS, [False], [True, False], [True, False], [1], [True, False]
+        (task, dynamic, int8, half, batch, nms, end2end)
+        for task, dynamic, int8, half, batch, nms, end2end in product(
+            TASKS, [False], [True, False], [True, False], [1], [True, False], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms) or (ARM64 and nms) or (nms and not TORCH_1_13))
+        if not (
+            (int8 and half)
+            or (task == "classify" and nms)
+            or (ARM64 and nms)
+            or (nms and not TORCH_1_13)
+            or (end2end and nms)
+        )
     ],
 )
-def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
+def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms, end2end):
     """Test YOLO export to TFLite format considering various export configurations."""
     file = YOLO(TASK2MODEL[task]).export(
-        format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
+        format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms, end2end=end2end
     )
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
@@ -191,6 +215,7 @@ def test_export_coreml():
 
 
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
+@pytest.mark.skipif(not TORCH_1_13, reason="TFLite export requires torch>=1.13")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 def test_export_tflite():
     """Test YOLO export to TFLite format under specific OS and Python version conditions."""
@@ -225,16 +250,16 @@ def test_export_mnn():
 @pytest.mark.slow
 @pytest.mark.skipif(not TORCH_1_10, reason="MNN export requires torch>=1.10")
 @pytest.mark.parametrize(
-    "task, int8, half, batch",
+    "task, int8, half, batch, end2end",
     [  # generate all combinations except for exclusion cases
-        (task, int8, half, batch)
-        for task, int8, half, batch in product(TASKS, [True, False], [True, False], [1, 2])
+        (task, int8, half, batch, end2end)
+        for task, int8, half, batch, end2end in product(TASKS, [True, False], [True, False], [1, 2], [True, False])
         if not (int8 and half)
     ],
 )
-def test_export_mnn_matrix(task, int8, half, batch):
+def test_export_mnn_matrix(task, int8, half, batch, end2end):
     """Test YOLO export to MNN format considering various export configurations."""
-    file = YOLO(TASK2MODEL[task]).export(format="mnn", imgsz=32, int8=int8, half=half, batch=batch)
+    file = YOLO(TASK2MODEL[task]).export(format="mnn", imgsz=32, int8=int8, half=half, batch=batch, end2end=end2end)
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
 
@@ -259,8 +284,10 @@ def test_export_ncnn_matrix(task, half, batch):
 
 @pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
-@pytest.mark.skipif(WINDOWS or MACOS, reason="Skipping test on Windows and Macos")
-@pytest.mark.skipif(ARM64, reason="IMX export is not supported on ARM64 architectures.")
+@pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
+@pytest.mark.skipif(
+    IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
+)
 def test_export_imx():
     """Test YOLO export to IMX format."""
     model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11

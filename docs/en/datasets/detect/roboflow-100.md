@@ -6,7 +6,7 @@ keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, ma
 
 # Roboflow 100 Dataset
 
-Roboflow 100, sponsored by [Intel](https://www.intel.com/), is a groundbreaking [object detection](../../tasks/detect.md) benchmark dataset. It includes 100 diverse datasets sampled from over 90,000 public datasets available on Roboflow Universe. This benchmark is specifically designed to test the adaptability of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like [Ultralytics YOLO models](../../models/yolo26.md), to various domains, including healthcare, aerial imagery, and video games.
+Roboflow 100, sponsored by [Intel](https://www.intel.com/), is a groundbreaking [object detection](../../tasks/detect.md) benchmark dataset. It includes 100 diverse datasets. This benchmark is specifically designed to test the adaptability of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like [Ultralytics YOLO models](../../models/yolo26.md), to various domains, including healthcare, aerial imagery, and video games.
 
 !!! question "Licensing"
 
@@ -16,7 +16,7 @@ Roboflow 100, sponsored by [Intel](https://www.intel.com/), is a groundbreaking 
     - **Enterprise License**: Designed for commercial use, this license allows for the seamless integration of Ultralytics software and AI models into commercial products and services. If your scenario involves commercial applications, please reach out via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/roboflow-100-overview.avif" alt="Roboflow 100 Overview">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/roboflow-100-overview.avif" alt="Roboflow 100 diverse object detection benchmark">
 </p>
 
 ## Key Features
@@ -114,7 +114,7 @@ The Roboflow 100 dataset, including metadata and download links, is available on
 Roboflow 100 consists of datasets with diverse images captured from various angles and domains. Below are examples of annotated images included in the RF100 benchmark, showcasing the variety of objects and scenes. Techniques like [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) can further enhance the diversity during training.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sample-data-annotations.avif" alt="Sample Data and Annotations">
+  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sample-data-annotations.avif" alt="Roboflow 100 sample images with annotations">
 </p>
 
 The diversity seen in the Roboflow 100 benchmark represents a significant advancement from traditional benchmarks, which often focus on optimizing a single metric within a limited domain. This comprehensive approach aids in developing more robust and versatile [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models capable of performing well across a multitude of different scenarios.
@@ -145,7 +145,7 @@ If you are interested in exploring more datasets to enhance your object detectio
 
 ### What is the Roboflow 100 dataset, and why is it significant for object detection?
 
-The **Roboflow 100** dataset is a benchmark for [object detection](../../tasks/detect.md) models. It comprises 100 diverse datasets sourced from Roboflow Universe, covering domains like healthcare, aerial imagery, and video games. Its significance lies in providing a standardized way to test model adaptability and robustness across a wide range of real-world scenarios, moving beyond traditional, often domain-limited, benchmarks.
+The **Roboflow 100** dataset is a benchmark for [object detection](../../tasks/detect.md) models. It comprises 100 diverse datasets covering domains like healthcare, aerial imagery, and video games. Its significance lies in providing a standardized way to test model adaptability and robustness across a wide range of real-world scenarios, moving beyond traditional, often domain-limited, benchmarks.
 
 ### Which domains are covered by the Roboflow 100 dataset?
 

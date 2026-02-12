@@ -512,9 +512,19 @@ class v8SegmentationLoss(v8DetectionLoss):
             )
             if pred_semseg is not None:
                 sem_masks = batch["sem_masks"].to(self.device)  # NxHxW
-                mask_zero = sem_masks == 0  # NxHxW
                 sem_masks = F.one_hot(sem_masks.long(), num_classes=self.nc).permute(0, 3, 1, 2).float()  # NxCxHxW
-                sem_masks[mask_zero.unsqueeze(1).expand_as(sem_masks)] = 0
+
+                if self.overlap:
+                    mask_zero = masks == 0  # NxHxW
+                    sem_masks[mask_zero.unsqueeze(1).expand_as(sem_masks)] = 0
+                else:
+                    batch_idx = batch["batch_idx"].view(-1)  # [total_instances]
+                    for i in range(batch_size):
+                        instance_mask_i = masks[batch_idx == i]  # [num_instances_i, H, W]
+                        if len(instance_mask_i) == 0:
+                            continue
+                        sem_masks[i, :, instance_mask_i.sum(dim=0) == 0] = 0
+
                 loss[4] = self.bcedice_loss(pred_semseg, sem_masks)
                 loss[4] *= self.hyp.box  # seg gain
 
@@ -798,7 +808,7 @@ class PoseLoss26(v8PoseLoss):
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 
         batch_size = pred_kpts.shape[0]
-        imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=pred_kpts.dtype)  # image size (h,w)
+        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=pred_kpts.dtype) * self.stride[0]
 
         pred_kpts = pred_kpts.view(batch_size, -1, *self.kpt_shape)  # (b, h*w, 17, 3)
 
@@ -931,6 +941,7 @@ class PoseLoss26(v8PoseLoss):
 
             if self.rle_loss is not None and (pred_kpt.shape[-1] == 4 or pred_kpt.shape[-1] == 5):
                 rle_loss = self.calculate_rle_loss(pred_kpt, gt_kpt, kpt_mask)
+                rle_loss = rle_loss.clamp(min=0)
             if pred_kpt.shape[-1] == 3 or pred_kpt.shape[-1] == 5:
                 kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
 
@@ -992,7 +1003,7 @@ class v8OBBLoss(v8DetectionLoss):
         batch_size = pred_angle.shape[0]  # batch size, number of masks, mask height, mask width
 
         dtype = pred_scores.dtype
-        imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=dtype)  # image size (h,w)
+        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]
 
         # targets
         try:
@@ -1095,7 +1106,7 @@ class v8OBBLoss(v8DetectionLoss):
         pred_theta = pred_bboxes[..., 4]
         target_theta = target_bboxes[..., 4]
 
-        log_ar = torch.log(w_gt / h_gt)
+        log_ar = torch.log((w_gt + 1e-9) / (h_gt + 1e-9))
         scale_weight = torch.exp(-(log_ar**2) / (lambda_val**2))
 
         delta_theta = pred_theta - target_theta
@@ -1164,9 +1175,9 @@ class E2ELoss:
 class TVPDetectLoss:
     """Criterion class for computing training losses for text-visual prompt detection."""
 
-    def __init__(self, model, tal_topk=10):
+    def __init__(self, model, tal_topk=10, tal_topk2: int | None = None):
         """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
-        self.vp_criterion = v8DetectionLoss(model, tal_topk)
+        self.vp_criterion = v8DetectionLoss(model, tal_topk, tal_topk2)
         # NOTE: store following info as it's changeable in __call__
         self.hyp = self.vp_criterion.hyp
         self.ori_nc = self.vp_criterion.nc
@@ -1183,8 +1194,6 @@ class TVPDetectLoss:
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the loss for text-visual prompt detection."""
-        assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
-
         if self.ori_nc == preds["scores"].shape[1]:
             loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()
@@ -1196,8 +1205,7 @@ class TVPDetectLoss:
 
     def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""
-        # NOTE: remove empty placeholder
-        scores = preds["scores"][:, self.ori_nc :, :]
+        scores = preds["scores"]
         vnc = scores.shape[1]
 
         self.vp_criterion.nc = vnc
@@ -1221,8 +1229,6 @@ class TVPSegmentLoss(TVPDetectLoss):
 
     def loss(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the loss for text-visual prompt detection."""
-        assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
-
         if self.ori_nc == preds["scores"].shape[1]:
             loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()

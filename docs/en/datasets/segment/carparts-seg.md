@@ -8,13 +8,13 @@ keywords: Carparts Segmentation Dataset, computer vision, automotive AI, vehicle
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-carparts-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Carparts Segmentation Dataset In Colab"></a>
 
-The Carparts Segmentation Dataset, available on Roboflow Universe, is a curated collection of images and videos designed for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, specifically focusing on [segmentation tasks](https://docs.ultralytics.com/tasks/segment/). Hosted on Roboflow Universe, this dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable [annotated](https://www.ultralytics.com/glossary/data-labeling) examples for training and testing segmentation models.
+The Carparts Segmentation Dataset is a curated collection of images and videos designed for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications, specifically focusing on [segmentation tasks](https://docs.ultralytics.com/tasks/segment/). This dataset provides a diverse set of visuals captured from multiple perspectives, offering valuable [annotated](https://www.ultralytics.com/glossary/data-labeling) examples for training and testing segmentation models.
 
 Whether you're working on [automotive research](https://www.ultralytics.com/solutions/ai-in-automotive), developing AI solutions for vehicle maintenance, or exploring computer vision applications, the Carparts Segmentation Dataset serves as a valuable resource for enhancing the [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency of your projects using models like [Ultralytics YOLO](../../models/yolo26.md).
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/HATMPgLYAPU"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/7lZa3Yi2kbo"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -98,7 +98,7 @@ To train an [Ultralytics YOLO26](../../models/yolo26.md) model on the Carparts S
 
 The Carparts Segmentation dataset includes a diverse array of images and videos captured from various perspectives. Below are examples showcasing the data and its corresponding annotations:
 
-![Dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/carparts-seg-sample.avif)
+![Car parts segmentation dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/carparts-seg-sample.avif)
 
 - The image demonstrates [object segmentation](https://docs.ultralytics.com/tasks/segment/) within a car image sample. Annotated [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) with masks highlight the identified car parts (e.g., headlights, grille).
 - The dataset features a variety of images captured under different conditions (locations, lighting, object densities), providing a comprehensive resource for training robust car part segmentation models.
@@ -118,8 +118,6 @@ If you utilize the Carparts Segmentation dataset in your research or development
                 type = { Open Source Dataset },
                 author = { Gianmarco Russo },
                 url = { https://universe.roboflow.com/gianmarco-russo-vt9xr/car-seg-un1pm },
-                journal = { Roboflow Universe },
-                publisher = { Roboflow },
                 year = { 2023 },
                 month = { nov },
                 note = { visited on 2024-01-24 },

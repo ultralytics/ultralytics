@@ -762,11 +762,24 @@ def is_jetson(jetpack=None) -> bool:
     if jetson and jetpack:
         try:
             content = open("/etc/nv_tegra_release").read()
-            version_map = {4: "R32", 5: "R35", 6: "R36"}  # JetPack to L4T major version mapping
+            version_map = {4: "R32", 5: "R35", 6: "R36", 7: "R38"}  # JetPack to L4T major version mapping
             return jetpack in version_map and version_map[jetpack] in content
         except Exception:
             return False
     return jetson
+
+
+def is_dgx() -> bool:
+    """Check if the current script is running inside a DGX (NVIDIA Data Center GPU), DGX-Ready or DGX Spark system.
+
+    Returns:
+        (bool): True if running in a DGX or DGX-Ready or DGX Spark system, False otherwise.
+    """
+    try:
+        with open("/etc/dgx-release") as f:
+            return "DGX" in f.read()
+    except FileNotFoundError:
+        return False
 
 
 def is_online() -> bool:

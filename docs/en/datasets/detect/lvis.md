@@ -6,7 +6,7 @@ keywords: LVIS dataset, object detection, instance segmentation, Facebook AI Res
 
 # LVIS Dataset
 
-The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained vocabulary-level annotation dataset developed and released by Facebook AI Research (FAIR). It is primarily used as a research benchmark for object detection and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) with a large vocabulary of categories, aiming to drive further advancements in computer vision field.
+The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained vocabulary-level annotation dataset developed and released by Facebook AI Research (FAIR). It is primarily used as a research benchmark for object detection and [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) with a large vocabulary of categories, aiming to drive further advancements in the computer vision field.
 
 <p align="center">
   <br>
@@ -20,7 +20,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained 
 </p>
 
 <p align="center">
-    <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/lvis-dataset-example-images.avif" alt="LVIS Dataset example images">
+    <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/lvis-dataset-example-images.avif" alt="LVIS large vocabulary instance segmentation dataset">
 </p>
 
 ## Key Features
@@ -33,7 +33,7 @@ The [LVIS dataset](https://www.lvisdataset.org/) is a large-scale, fine-grained 
 
 ## Dataset Structure
 
-The LVIS dataset is split into three subsets:
+The LVIS dataset is split into four subsets:
 
 1. **Train**: This subset contains 100k images for training object detection, segmentation, and captioning models.
 2. **Val**: This subset has 20k images used for validation purposes during model training.
@@ -83,7 +83,7 @@ To train a YOLO26n model on the LVIS dataset for 100 [epochs](https://www.ultral
 
 The LVIS dataset contains a diverse set of images with various object categories and complex scenes. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![LVIS Dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/lvis-mosaiced-training-batch.avif)
+![LVIS large vocabulary instance segmentation dataset mosaic](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/lvis-mosaiced-training-batch.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
@@ -154,6 +154,6 @@ Ultralytics YOLO models, including the latest YOLO26, are optimized for real-tim
 
 Yes, the LVIS dataset includes a variety of images with diverse object categories and complex scenes. Here is an example of a sample image along with its annotations:
 
-![LVIS Dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/lvis-mosaiced-training-batch.avif)
+![LVIS large vocabulary instance segmentation dataset mosaic](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/lvis-mosaiced-training-batch.avif)
 
 This mosaiced image demonstrates a training batch composed of multiple dataset images combined into one. Mosaicing increases the variety of objects and scenes within each training batch, enhancing the model's ability to generalize across different contexts. For more details on the LVIS dataset, explore the [LVIS dataset documentation](#key-features).

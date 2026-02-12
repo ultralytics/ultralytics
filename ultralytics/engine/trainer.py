@@ -685,6 +685,7 @@ class BaseTrainer:
             elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",
+                "semseg",
                 "pose",
                 "obb",
             }:

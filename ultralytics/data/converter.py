@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import random
 import shutil
 from collections import defaultdict
@@ -895,3 +896,275 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         yaml_path = dataset_dir / "data.yaml"
         YAML.save(yaml_path, data_yaml)
         return yaml_path
+
+
+def split(image, mask, img_size, slide):
+    """Split image and color mask of CityEcapse for YOLO.
+
+    Args:
+        image: image of CityEcapse dataset
+        mask: mask of CityEcapse dataset
+        img_size: image size of dist CityEcapseYOLO dataset
+        slide: slide window size.
+
+    Returns:
+        imagepathes, maskpathes, left coordinate, up coordinates
+    """
+    left, up = 0, 0
+    w, h = image.shape[1], image.shape[0]
+    patches_img, patches_msk, lefts, ups = [], [], [], []
+    while left < w:
+        if left + img_size > w:
+            left = max(0, w - img_size)
+        up = 0
+        while up < h:
+            if up + img_size > h:
+                up = max(0, h - img_size)
+            right = min(left + img_size, w)
+            down = min(up + img_size, h)
+            patch_img = image[up:down, left:right, :]
+            patch_msk = mask[up:down, left:right, :] if mask is not None else None
+
+            patches_img.append(patch_img)
+            patches_msk.append(patch_msk) if patch_msk is not None else None
+            lefts.append(left)
+            ups.append(up)
+
+            if down >= h:
+                break
+            else:
+                up = up + slide
+        if right >= w:
+            break
+        else:
+            left = left + slide
+
+    return patches_img, patches_msk, lefts, ups
+
+
+def Cityscapse2YOLO(cityscapes_path, yolo_data_path, img_size=512, ratio=0.5):
+    """This function is designed for converting official CityEcapse dataset to YOLO CityEcapse dataset.
+
+    Args:
+        cityscapes_path (str): the root directory of official CityEcapse dataset
+        yolo_data_path (str): the root directory of yolo CityEcapse dataset
+        img_size (int): image size of CityEcapseYOLO dataset.
+        ratio (int): resized ratio for image
+
+    Returns:
+        None
+    """
+    train_dir = os.path.join(yolo_data_path, "train")
+    val_dir = os.path.join(yolo_data_path, "val")
+    test_dir = os.path.join(yolo_data_path, "test")
+
+    os.makedirs(os.path.join(train_dir, "image"), exist_ok=True)
+    os.makedirs(os.path.join(train_dir, "annotation"), exist_ok=True)
+
+    os.makedirs(os.path.join(val_dir, "image"), exist_ok=True)
+    os.makedirs(os.path.join(val_dir, "annotation"), exist_ok=True)
+
+    os.makedirs(os.path.join(test_dir, "image"), exist_ok=True)
+    os.makedirs(os.path.join(test_dir, "annotation"), exist_ok=True)
+
+    train_image_dir = os.path.join(cityscapes_path, "leftImg8bit_trainvaltest", "leftImg8bit", "train")
+    val_image_dir = os.path.join(cityscapes_path, "leftImg8bit_trainvaltest", "leftImg8bit", "val")
+    test_image_dir = os.path.join(cityscapes_path, "leftImg8bit_trainvaltest", "leftImg8bit", "test")
+
+    train_image_list, train_annotation_list = [], []
+    val_image_list, val_annotation_list = [], []
+    test_image_list = []
+    for root, dirs, files in os.walk(train_image_dir):
+        for file in files:
+            path = os.path.join(root, file)
+            train_image_list.append(path) if path.endswith(".png") else None
+
+    for root, dirs, files in os.walk(val_image_dir):
+        for file in files:
+            path = os.path.join(root, file)
+            val_image_list.append(path) if path.endswith(".png") else None
+
+    for root, dirs, files in os.walk(test_image_dir):
+        for file in files:
+            path = os.path.join(root, file)
+            test_image_list.append(path) if path.endswith(".png") else None
+
+    train_annotation_list = [
+        file.replace("leftImg8bit_trainvaltest", "gtFine_trainvaltest")
+        .replace("leftImg8bit.png", "gtFine_color.png")
+        .replace("leftImg8bit", "gtFine")
+        for file in train_image_list
+    ]
+
+    val_annotation_list = [
+        file.replace("leftImg8bit_trainvaltest", "gtFine_trainvaltest")
+        .replace("leftImg8bit.png", "gtFine_color.png")
+        .replace("leftImg8bit", "gtFine")
+        for file in val_image_list
+    ]
+
+    for image_path, annotation_path in zip(train_image_list, train_annotation_list):
+        img = cv2.imread(image_path)
+        msk = cv2.imread(annotation_path)
+        img = cv2.resize(img, None, fx=ratio, fy=ratio)
+        msk = cv2.resize(msk, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_NEAREST)
+        name = image_path.split(os.sep)[-1].split(".")[0]
+        slide = img_size
+        pathes_img, patches_annotation, lefts, ups = split(img, msk, img_size, slide)
+        for p_img, p_msk, left, up in zip(pathes_img, patches_annotation, lefts, ups):
+            splitname_img = os.path.join(train_dir, "image", f"{name}__{left}__{up}__{int(ratio * 10)}.png")
+            splitname_msk = os.path.join(train_dir, "annotation", f"{name}__{left}__{up}__{int(ratio * 10)}.png")
+            print(splitname_img + " done")
+            cv2.imwrite(splitname_img, p_img)
+            cv2.imwrite(splitname_msk, p_msk)
+
+    for image_path, annotation_path in zip(val_image_list, val_annotation_list):
+        img = cv2.imread(image_path)
+        msk = cv2.imread(annotation_path)
+        img = cv2.resize(img, None, fx=ratio, fy=ratio)
+        msk = cv2.resize(msk, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_NEAREST)
+        name = image_path.split(os.sep)[-1].split(".")[0]
+        slide = img_size
+        pathes_img, patches_annotation, lefts, ups = split(img, msk, img_size, slide)
+        for p_img, p_msk, left, up in zip(pathes_img, patches_annotation, lefts, ups):
+            splitname_img = os.path.join(val_dir, "image", f"{name}__{left}__{up}__{int(ratio * 10)}.png")
+            splitname_msk = os.path.join(val_dir, "annotation", f"{name}__{left}__{up}__{int(ratio * 10)}.png")
+            print(splitname_img + " done")
+            cv2.imwrite(splitname_img, p_img)
+            cv2.imwrite(splitname_msk, p_msk)
+
+    for image_path in test_image_list:
+        img = cv2.imread(image_path)
+        img = cv2.resize(img, None, fx=ratio, fy=ratio)
+        name = image_path.split(os.sep)[-1].split(".")[0]
+        slide = img_size
+        pathes_img, patches_annotation, lefts, ups = split(img, None, img_size, slide)
+        for p_img, left, up in zip(pathes_img, lefts, ups):
+            splitname_img = os.path.join(test_dir, "image", f"{name}__{left}__{up}__{int(ratio * 10)}.png")
+            cv2.imwrite(splitname_img, p_img)
+            print(splitname_img + " done")
+    print("all done")
+
+
+def YOLO2Cityscapse(
+    image_dir: str,
+    annotation_color_dir: str,
+    cityscapes_image_dir: str,
+    cityscapes_annotation_dir: str,
+    type="color",
+    overlap=0.5,
+):
+    """This function is designed for converting YOLO format to CityEcapse format, which can be upload to CityEcapse
+    evaluation server. The image and annotation file must have the same filename.
+
+    Args:
+        image_dir (str): image directory
+        annotation_color_dir (str): annotation color image
+        annotation_dir (str): annotation directory
+        cityscapes_image_dir (str): directory for saving cityecapse image
+        cityscapes_annotation_dir (str): directory for saving cityecapse annotation
+        type (str): convert type for cityEcapse, including color, classId
+        overlap (int): overlap when splitting images,
+
+    Returns:
+        None.
+    """
+    color_map = {
+        7: (128, 64, 128),
+        8: (244, 35, 232),
+        11: (70, 70, 70),
+        12: (102, 102, 156),
+        13: (190, 153, 153),
+        17: (153, 153, 153),
+        19: (250, 170, 30),
+        20: (220, 220, 0),
+        21: (107, 142, 35),
+        22: (152, 251, 152),
+        23: (70, 130, 180),
+        24: (220, 20, 60),
+        25: (255, 0, 0),
+        26: (0, 0, 142),
+        27: (0, 0, 70),
+        28: (0, 60, 100),
+        31: (0, 80, 100),
+        32: (0, 0, 230),
+        33: (119, 11, 32),
+    }
+
+    image_list, lefts, ups = [], [], []
+    for root, dirs, files in os.walk(image_dir):
+        for file in files:
+            path = os.path.join(root, file)
+            image_list.append(path) if path.endswith(".png") else None
+
+    while len(image_list) > 0:
+        image_file = image_list.pop()
+        main_name = image_file.split(os.sep)[-1].split("__")[0]
+        left = int(image_file.split(os.sep)[-1].split("__")[1])
+        up = int(image_file.split(os.sep)[-1].split("__")[2])
+        image_group, lefts, ups = [image_file], [left], [up]
+
+        k = 0
+        while k < len(image_list):
+            if main_name in image_list[k]:
+                lefts.append(int(image_list[k].split("__")[1]))
+                ups.append(int(image_list[k].split("__")[2]))
+                image_group.append(image_list.pop(k))
+            else:
+                k = k + 1
+
+        n_image = np.zeros((512, 1024, 3), dtype=np.uint8)
+
+        for file, left, up in zip(image_group, lefts, ups):
+            ratio = 10 / float(image_file.split("__")[3].split(".")[0])
+            patch = cv2.imread(file)
+            h, w = int(patch.shape[0] * ratio), int(patch.shape[1] * ratio)
+            left, up = int(left * ratio - left * overlap), int(up * ratio - up * overlap)
+            n_image[up : up + h, left : left + w, :] = cv2.resize(patch, (w, h))
+
+        n_image = cv2.resize(n_image, dsize=(2048, 1024))
+        cv2.imwrite(os.path.join(cityscapes_image_dir, main_name + ".png"), n_image)
+
+    annotation_list, lefts, ups = [], [], []
+    for root, dirs, files in os.walk(annotation_color_dir):
+        for file in files:
+            path = os.path.join(root, file)
+            annotation_list.append(path) if path.endswith(".png") else None
+
+    while len(annotation_list) > 0:
+        annotation_file = annotation_list.pop()
+        main_name = annotation_file.split(os.sep)[-1].split("__")[0].replace("_leftImg8bit", "")
+        left = int(annotation_file.split(os.sep)[-1].split("__")[1])
+        up = int(annotation_file.split(os.sep)[-1].split("__")[2])
+        image_group, lefts, ups = [annotation_file], [left], [up]
+
+        k = 0
+        while k < len(annotation_list):
+            if main_name in annotation_list[k]:
+                lefts.append(int(annotation_list[k].split("__")[1]))
+                ups.append(int(annotation_list[k].split("__")[2]))
+                image_group.append(annotation_list.pop(k))
+            else:
+                k = k + 1
+
+        n_image = np.zeros((512, 1024, 3), dtype=np.uint8)
+
+        for file, left, up in zip(image_group, lefts, ups):
+            ratio = 10 / float(annotation_file.split("__")[3].split(".")[0])
+            patch = cv2.imread(file)
+            h, w = int(patch.shape[0] * ratio), int(patch.shape[1] * ratio)
+            left, up = int(left * ratio - left * overlap), int(up * ratio - up * overlap)
+            n_image[up : up + h, left : left + w, :] = cv2.resize(patch, (w, h), interpolation=cv2.INTER_NEAREST)
+        n_image = cv2.resize(n_image, dsize=(2048, 1024), interpolation=cv2.INTER_NEAREST)
+        if type == "labelId":
+            # main_name = main_name + '_labelIds.png'
+            # n_image_label_id = np.ones((512, 1024), dtype=np.uint8) * 255
+            annotation_labelId = np.zeros((1024, 2048), dtype=np.uint8)
+            for cls in color_map.keys():
+                color = color_map[cls]
+                image_r, image_g, image_b = n_image[:, :, 2], n_image[:, :, 1], n_image[:, :, 0]
+                m = (image_r == color[0]) * (image_g == color[1]) * (image_b == color[2])
+                annotation_labelId[m] = cls
+            cv2.imwrite(os.path.join(cityscapes_annotation_dir, main_name + "_labelIds.png"), annotation_labelId)
+        else:
+            cv2.imwrite(os.path.join(cityscapes_annotation_dir, main_name + "_color.png"), n_image)

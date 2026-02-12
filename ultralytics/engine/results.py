@@ -510,7 +510,7 @@ class Results(SimpleClass, DataExportMixin):
         )
 
         # Plot Segment results
-        if pred_masks and show_masks:
+        if pred_masks and show_masks and pred_boxes:
             if im_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
                 im_gpu = (
@@ -528,6 +528,18 @@ class Results(SimpleClass, DataExportMixin):
                 else reversed(range(len(pred_masks)))
             )
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+
+        if pred_masks and show_masks and (not pred_boxes):
+            if im_gpu is None:
+                img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
+                im_gpu = (
+                    torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device)
+                    .permute(2, 0, 1)
+                    .flip(0)
+                    .contiguous()
+                    / 255
+                )
+            annotator.masks(pred_masks.data, colors=[(colors(i, True)) for i in range(len(names))], im_gpu=im_gpu)
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
@@ -741,6 +753,9 @@ class Results(SimpleClass, DataExportMixin):
         if self.obb is not None:
             LOGGER.warning("OBB task does not support `save_crop`.")
             return
+        if self.boxes is None:
+            LOGGER.warning("No boxes")
+            return
         for d in self.boxes:
             save_one_box(
                 d.xyxy,
@@ -790,6 +805,8 @@ class Results(SimpleClass, DataExportMixin):
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
         h, w = self.orig_shape if normalize else (1, 1)
+        if data is None:
+            return results
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls), round(row.conf.item(), decimals)
             box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()

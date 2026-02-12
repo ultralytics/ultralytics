@@ -210,6 +210,23 @@ Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples
 
 </details>
 
+<details><summary>Semantic Segment (CityScapes)</summary>
+
+Check the [Semseg Docs](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/docs/en/tasks/semseg.md) for usage examples. These models are trained on [Cityscapes](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/docs/en/datasets/semseg/cityscapes.md), including 19 classes.
+
+| Model                                                                                                                           | size<br><sup>(pixels) | IoU<sup>val<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ----------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+| [YOLO11n-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11n-semseg.pt) | 512                   | 72.9              | 20.9 ± 1.3                     | 0.8 ± 0.1                           | 9.3                | 4.62              |
+| [YOLO11s-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11s-semseg.pt) | 512                   | 74.1              | 71.4 ± 2.8                     | 2.3 ± 1.2                           | 17.3               | 18.2              |
+| [YOLO11m-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11m-semseg.pt) | 512                   | 76.1              | 170.1 ± 5.9                    | 4.4 ± 2.2                           | 81.5               | 61.3              |
+| [YOLO11l-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11l-semseg.pt) | 512                   | 76.2              | 184.7 ± 5.9                    | 4.9 ± 2.7                           | 92.2               | 80.3              |
+| [YOLO11x-semseg](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/pretrained/yolo11x-semseg.pt) | 512                   | 77.7              | 394.6 ± 10.7                   | 10.2 ± 5.1                          | 206.3              | 180.3             |
+
+- **IoU<sup>val</sup>** values are for single-model singlescale performance on the [Cityscapses val set](https://www.cityscapes-dataset.com/). <br>Reproduce by `yolo val semseg data=CityscapesYOLO.yaml device=0 split=val` and submit merged results to the [Cityscapes evaluation tools](https://github.com/mcordts/cityscapesScripts).
+- **Speed** metrics are averaged over Cityscapes val images using an NVIDIA RTX 4090. CPU speeds measured with [ONNX](https://onnx.ai/) export. GPU speeds measured with [TensorRT](https://developer.nvidia.com/tensorrt) export. <br>Reproduce by `yolo val semseg data=CityscapesYOLO.yaml batch=1 device=0|cpu`
+
+</details>
+
 ## 🧩 Integrations
 
 Our key integrations with leading AI platforms extend the functionality of Ultralytics' offerings, enhancing tasks like dataset labeling, training, visualization, and model management. Discover how Ultralytics, in collaboration with partners like [Weights & Biases](https://docs.ultralytics.com/integrations/weights-biases/), [Comet ML](https://docs.ultralytics.com/integrations/comet/), [Roboflow](https://docs.ultralytics.com/integrations/roboflow/), and [Intel OpenVINO](https://docs.ultralytics.com/integrations/openvino/), can optimize your AI workflow. Explore more at [Ultralytics Integrations](https://docs.ultralytics.com/integrations/).

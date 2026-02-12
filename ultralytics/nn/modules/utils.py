@@ -35,7 +35,7 @@ def _get_clones(module, n):
 def bias_init_with_prob(prior_prob=0.01):
     """Initialize conv/fc bias value according to a given probability value.
 
-    This function calculates the bias initialization value based on a prior probability using the inverse error
+    This function calculates the bias initialization value based on a prior probability using the inverse sigmoid (logit)
     function. It's commonly used in object detection models to initialize classification layers with a specific positive
     prediction probability.
 
@@ -57,18 +57,15 @@ def linear_init(module):
     """Initialize the weights and biases of a linear module.
 
     This function initializes the weights of a linear module using a uniform distribution within bounds calculated from
-    the input dimension. If the module has a bias, it is also initialized.
+    the output dimension. If the module has a bias, it is also initialized.
 
     Args:
         module (nn.Module): Linear module to initialize.
 
-    Returns:
-        (nn.Module): The initialized module.
-
     Examples:
         >>> import torch.nn as nn
         >>> linear = nn.Linear(10, 5)
-        >>> initialized_linear = linear_init(linear)
+        >>> linear_init(linear)
     """
     bound = 1 / math.sqrt(module.weight.shape[0])
     uniform_(module.weight, -bound, bound)
@@ -120,7 +117,7 @@ def multi_scale_deformable_attn_pytorch(
             num_points).
 
     Returns:
-        (torch.Tensor): The output tensor with shape (bs, num_queries, embed_dims).
+        (torch.Tensor): The output tensor with shape (bs, num_queries, num_heads * embed_dims).
 
     References:
         https://github.com/IDEA-Research/detrex/blob/main/detrex/layers/multi_scale_deform_attn.py

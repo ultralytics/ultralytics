@@ -450,7 +450,7 @@ class GhostBottleneck(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply skip connection and concatenation to input tensor."""
+        """Apply skip connection and addition to input tensor."""
         return self.conv(x) + self.shortcut(x)
 
 
@@ -506,7 +506,7 @@ class BottleneckCSP(nn.Module):
         self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, e=1.0) for _ in range(n)))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply CSP bottleneck with 3 convolutions."""
+        """Apply CSP bottleneck with 4 convolutions."""
         y1 = self.cv3(self.m(self.cv1(x)))
         y2 = self.cv2(x)
         return self.cv4(self.act(self.bn(torch.cat((y1, y2), 1))))
@@ -1128,7 +1128,7 @@ class C3k(C3):
 
 
 class RepVGGDW(torch.nn.Module):
-    """RepVGGDW is a class that represents a depth wise separable convolutional block in RepVGG architecture."""
+    """RepVGGDW is a class that represents a depth-wise convolutional block in RepVGG architecture."""
 
     def __init__(self, ed: int) -> None:
         """Initialize RepVGGDW module.
@@ -1149,18 +1149,18 @@ class RepVGGDW(torch.nn.Module):
             x (torch.Tensor): Input tensor.
 
         Returns:
-            (torch.Tensor): Output tensor after applying the depth wise separable convolution.
+            (torch.Tensor): Output tensor after applying the depth-wise convolution.
         """
         return self.act(self.conv(x) + self.conv1(x))
 
     def forward_fuse(self, x: torch.Tensor) -> torch.Tensor:
-        """Perform a forward pass of the RepVGGDW block without fusing the convolutions.
+        """Perform a forward pass of the fused RepVGGDW block.
 
         Args:
             x (torch.Tensor): Input tensor.
 
         Returns:
-            (torch.Tensor): Output tensor after applying the depth wise separable convolution.
+            (torch.Tensor): Output tensor after applying the depth-wise convolution.
         """
         return self.act(self.conv(x))
 
@@ -2016,12 +2016,12 @@ class RealNVP(nn.Module):
 
     @staticmethod
     def nets():
-        """Get the scale model in a single invertable mapping."""
+        """Get the scale model in a single invertible mapping."""
         return nn.Sequential(nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64), nn.SiLU(), nn.Linear(64, 2), nn.Tanh())
 
     @staticmethod
     def nett():
-        """Get the translation model in a single invertable mapping."""
+        """Get the translation model in a single invertible mapping."""
         return nn.Sequential(nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64), nn.SiLU(), nn.Linear(64, 2))
 
     @property
@@ -2041,7 +2041,7 @@ class RealNVP(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        """Initialization model weights."""
+        """Initialize model weights."""
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.xavier_uniform_(m.weight, gain=0.01)

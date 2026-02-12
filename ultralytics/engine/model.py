@@ -331,7 +331,7 @@ class Model(torch.nn.Module):
             (Model): The instance of the class with reset weights.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
             >>> model = Model("yolo26n.pt")
@@ -358,7 +358,7 @@ class Model(torch.nn.Module):
             (Model): The instance of the class with loaded weights.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
             >>> model = Model()
@@ -382,7 +382,7 @@ class Model(torch.nn.Module):
             filename (str | Path): The name of the file to save the model to.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
             >>> model = Model("yolo26n.pt")
@@ -407,21 +407,21 @@ class Model(torch.nn.Module):
         """Display model information.
 
         This method provides an overview or detailed information about the model, depending on the arguments
-        passed. It can control the verbosity of the output and return the information as a list.
+        passed. It can control the verbosity of the output.
 
         Args:
             detailed (bool): If True, shows detailed information about the model layers and parameters.
-            verbose (bool): If True, prints the information. If False, returns the information as a list.
+            verbose (bool): If True, prints the information and returns model summary. If False, returns None.
             imgsz (int | list[int, int]): Input image size used for FLOPs calculation.
 
         Returns:
-            (list[str]): A list of strings containing various types of information about the model, including model
-                summary, layer details, and parameter counts. Empty if verbose is True.
+            (tuple): A tuple containing the number of layers (int), number of parameters (int), number of gradients
+                (int), and GFLOPs (float). Returns None if verbose is False.
 
         Examples:
             >>> model = Model("yolo26n.pt")
-            >>> model.info()  # Prints model summary
-            >>> info_list = model.info(detailed=True, verbose=False)  # Returns detailed info as a list
+            >>> model.info()  # Prints model summary and returns tuple
+            >>> model.info(detailed=True)  # Prints detailed info and returns tuple
         """
         self._check_is_pytorch_model()
         return self.model.info(detailed=detailed, verbose=verbose, imgsz=imgsz)
@@ -458,7 +458,7 @@ class Model(torch.nn.Module):
 
         Args:
             source (str | Path | int | list | tuple | np.ndarray | torch.Tensor): The source of the image for generating
-                embeddings. Can be a file path, URL, PIL image, numpy array, etc.
+                embeddings. Can be a file path, URL, numpy array, etc.
             stream (bool): If True, predictions are streamed.
             **kwargs (Any): Additional keyword arguments for configuring the embedding process.
 
@@ -598,7 +598,7 @@ class Model(torch.nn.Module):
             (ultralytics.utils.metrics.DetMetrics): Validation metrics obtained from the validation process.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -622,9 +622,9 @@ class Model(torch.nn.Module):
         additional user-provided keyword arguments.
 
         Args:
-            data (str): Path to the dataset for benchmarking.
-            verbose (bool): Whether to print detailed benchmark information.
+            data (str | None): Path to the dataset for benchmarking. If None, uses default dataset for the task.
             format (str): Export format name for specific benchmarking.
+            verbose (bool): Whether to print detailed benchmark information.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
                 - imgsz (int | list[int]): Image size for benchmarking.
                 - half (bool): Whether to use half-precision (FP16) mode.
@@ -632,11 +632,11 @@ class Model(torch.nn.Module):
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
 
         Returns:
-            (dict): A dictionary containing the results of the benchmarking process, including metrics for different
-                export formats.
+            (polars.DataFrame): A Polars DataFrame with benchmark results for each format, including file size, metric,
+                and inference time.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -687,7 +687,7 @@ class Model(torch.nn.Module):
             (str): The path to the exported model file.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
             ValueError: If an unsupported export format is specified.
             RuntimeError: If the export process fails due to errors.
 
@@ -802,7 +802,8 @@ class Model(torch.nn.Module):
                 overrides and defaults to configure the tuning process.
 
         Returns:
-            (dict): Results of the hyperparameter search, including best parameters and performance metrics.
+            (ray.tune.ResultGrid | None): When use_ray=True, returns a ResultGrid with hyperparameter search results.
+                When use_ray=False, returns None and saves best hyperparameters to YAML.
 
         Raises:
             TypeError: If the model is not a PyTorch model.
@@ -842,7 +843,7 @@ class Model(torch.nn.Module):
             (Model): The model instance with the function applied and updated attributes.
 
         Raises:
-            AssertionError: If the model is not a PyTorch model.
+            TypeError: If the model is not a PyTorch model.
 
         Examples:
             >>> model = Model("yolo26n.pt")
@@ -892,10 +893,8 @@ class Model(torch.nn.Module):
         applicable only to models that are instances of torch.nn.Module.
 
         Returns:
-            (torch.device): The device (CPU/GPU) of the model.
-
-        Raises:
-            AttributeError: If the model is not a torch.nn.Module instance.
+            (torch.device | None): The device (CPU/GPU) of the model, or None if the model is not a torch.nn.Module
+                instance.
 
         Examples:
             >>> model = YOLO("yolo26n.pt")
@@ -1011,10 +1010,10 @@ class Model(torch.nn.Module):
         from a checkpoint, discarding any unnecessary or potentially conflicting settings.
 
         Args:
-            args (dict): A dictionary containing various model arguments and settings.
+            args (dict[str, Any]): A dictionary containing various model arguments and settings.
 
         Returns:
-            (dict): A new dictionary containing only the specified include keys from the input arguments.
+            (dict[str, Any]): A new dictionary containing only the specified include keys from the input arguments.
 
         Examples:
             >>> original_args = {"imgsz": 640, "data": "coco.yaml", "task": "detect", "batch": 16, "epochs": 100}

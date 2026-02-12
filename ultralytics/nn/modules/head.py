@@ -115,7 +115,7 @@ class Detect(nn.Module):
 
     @property
     def one2many(self):
-        """Returns the one-to-many head components, here for v5/v5/v8/v9/11 backward compatibility."""
+        """Returns the one-to-many head components, here for v3/v5/v8/v9/11 backward compatibility."""
         return dict(box_head=self.cv2, cls_head=self.cv3)
 
     @property
@@ -125,7 +125,7 @@ class Detect(nn.Module):
 
     @property
     def end2end(self):
-        """Checks if the model has one2one for v5/v5/v8/v9/11 backward compatibility."""
+        """Checks if the model has one2one for v3/v5/v8/v9/11 backward compatibility."""
         return getattr(self, "_end2end", True) and hasattr(self, "one2one")
 
     @end2end.setter
@@ -164,7 +164,7 @@ class Detect(nn.Module):
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
 
         Args:
-            x (dict[str, torch.Tensor]): List of feature maps from different detection layers.
+            x (dict[str, torch.Tensor]): Dictionary of predictions from detection layers.
 
         Returns:
             (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
@@ -326,7 +326,7 @@ class Segment(Detect):
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, mask_head: torch.nn.Module
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and mask coefficients."""
         preds = super().forward_head(x, box_head, cls_head)
         if mask_head is not None:
@@ -359,7 +359,7 @@ class Segment(Detect):
 class Segment26(Segment):
     """YOLO26 Segment head for segmentation models.
 
-    This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
+    This class extends the Segment head with Proto26 for mask prediction in instance segmentation tasks.
 
     Attributes:
         nm (int): Number of masks.
@@ -473,7 +473,7 @@ class OBB(Detect):
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, angle_head: torch.nn.Module
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and angles."""
         preds = super().forward_head(x, box_head, cls_head)
         if angle_head is not None:
@@ -528,12 +528,12 @@ class OBB26(OBB):
         Create an OBB26 detection head
         >>> obb26 = OBB26(nc=80, ne=1, ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
-        >>> outputs = obb26(x).
+        >>> outputs = obb26(x)
     """
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, angle_head: torch.nn.Module
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and raw angles."""
         preds = Detect.forward_head(self, x, box_head, cls_head)
         if angle_head is not None:
@@ -602,7 +602,7 @@ class Pose(Detect):
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, pose_head: torch.nn.Module
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and keypoints."""
         preds = super().forward_head(x, box_head, cls_head)
         if pose_head is not None:
@@ -656,7 +656,7 @@ class Pose(Detect):
 class Pose26(Pose):
     """YOLO26 Pose head for keypoints models.
 
-    This class extends the Detect head to include keypoint prediction capabilities for pose estimation tasks.
+    This class extends the Pose head with normalizing flow for keypoint prediction in pose estimation tasks.
 
     Attributes:
         kpt_shape (tuple): Number of keypoints and dimensions (2 for x,y or 3 for x,y,visible).
@@ -669,7 +669,7 @@ class Pose26(Pose):
 
     Examples:
         Create a pose detection head
-        >>> pose = Pose(nc=80, kpt_shape=(17, 3), ch=(256, 512, 1024))
+        >>> pose = Pose26(nc=80, kpt_shape=(17, 3), ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
         >>> outputs = pose(x)
     """
@@ -729,7 +729,7 @@ class Pose26(Pose):
         pose_head: torch.nn.Module,
         kpts_head: torch.nn.Module,
         kpts_sigma_head: torch.nn.Module,
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and keypoints."""
         preds = Detect.forward_head(self, x, box_head, cls_head)
         if pose_head is not None:
@@ -1137,7 +1137,7 @@ class YOLOEDetect(Detect):
 
     @property
     def one2many(self):
-        """Returns the one-to-many head components, here for v5/v5/v8/v9/11 backward compatibility."""
+        """Returns the one-to-many head components, here for v3/v5/v8/v9/11 backward compatibility."""
         return dict(box_head=self.cv2, cls_head=self.cv3, contrastive_head=self.cv4)
 
     @property
@@ -1234,7 +1234,7 @@ class YOLOESegment(YOLOEDetect):
 
     @property
     def one2many(self):
-        """Returns the one-to-many head components, here for v5/v5/v8/v9/11 backward compatibility."""
+        """Returns the one-to-many head components, here for v3/v5/v8/v9/11 backward compatibility."""
         return dict(box_head=self.cv2, cls_head=self.cv3, mask_head=self.cv5, contrastive_head=self.cv4)
 
     @property
@@ -1307,7 +1307,7 @@ class YOLOESegment(YOLOEDetect):
         cls_head: torch.nn.Module,
         mask_head: torch.nn.Module,
         contrastive_head: torch.nn.Module,
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and mask coefficients."""
         preds = super().forward_head(x, box_head, cls_head, contrastive_head)
         if mask_head is not None:

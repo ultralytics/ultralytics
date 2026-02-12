@@ -279,16 +279,6 @@ Path("labels/img001.txt").write_text(labels)
 
 ## Validate Dataset
 
-### Check Dataset Integrity
-
-```python
-from ultralytics.data.utils import check_dataset
-
-# Validate dataset YAML
-data = check_dataset("data.yaml")
-print(f"Dataset validated: {data}")
-```
-
 ### Visualize Annotations
 
 ```python

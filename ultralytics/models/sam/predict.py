@@ -2226,28 +2226,77 @@ class SAM3SemanticPredictor(SAM3Predictor):
     def pre_transform(self, im):
         """Perform initial transformations on the input image for preprocessing.
 
-        This method applies transformations such as resizing to prepare the image for further preprocessing. Currently,
-        batched inference is not supported; hence the list length should be 1.
+        This method applies transformations such as resizing to prepare the image for further preprocessing. Batched
+        inference is supported by accepting a list of images.
 
         Args:
-            im (list[np.ndarray]): List containing a single image in HWC numpy array format.
+            im (list[np.ndarray]): List of images in HWC numpy array format.
 
         Returns:
-            (list[np.ndarray]): List containing the transformed image.
-
-        Raises:
-            AssertionError: If the input list contains more than one image.
+            (list[np.ndarray]): List containing the transformed images.
 
         Examples:
             >>> predictor = Predictor()
-            >>> image = np.random.rand(480, 640, 3)  # Single HWC image
-            >>> transformed = predictor.pre_transform([image])
+            >>> image = np.random.rand(480, 640, 3)  # HWC image
+            >>> transformed = predictor.pre_transform([image, image])
             >>> print(len(transformed))
-            1
+            2
         """
-        assert len(im) == 1, "SAM model does not currently support batched inference"
         letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=True)  # hardcode here for sam3
         return [letterbox(image=x) for x in im]
+
+    @staticmethod
+    def _select_batch_item(value, idx):
+        """Select a single batch item from nested feature structures."""
+        if value is None:
+            return None
+        if torch.is_tensor(value):
+            return value[idx : idx + 1]
+        if isinstance(value, dict):
+            return {k: SAM3SemanticPredictor._select_batch_item(v, idx) for k, v in value.items()}
+        if isinstance(value, list):
+            return [SAM3SemanticPredictor._select_batch_item(v, idx) for v in value]
+        if isinstance(value, tuple):
+            return tuple(SAM3SemanticPredictor._select_batch_item(v, idx) for v in value)
+        return value
+
+    @staticmethod
+    def _expand_text_prompt(text, batch_size):
+        """Expand text prompts to match batch size."""
+        if batch_size == 1:
+            return [text]
+        if text is None:
+            return [None] * batch_size
+        if isinstance(text, (list, tuple)) and text and isinstance(text[0], (list, tuple)):
+            if len(text) != batch_size:
+                raise ValueError(f"Expected {batch_size} text prompt lists, got {len(text)}.")
+            return list(text)
+        return [text] * batch_size
+
+    def set_image(self, image):
+        """Preprocess and set one or more images for inference."""
+        if self.model is None:
+            self.setup_model()
+        self.setup_source(image)
+
+        features = []
+        paths, im0s, s = [], [], []
+        for batch in self.dataset:
+            batch_paths, batch_im0s, batch_s, *_ = batch
+            im = self.preprocess(batch_im0s)
+            feats = self.get_im_features(im)
+            if isinstance(feats, dict) and isinstance(im, torch.Tensor) and im.shape[0] > 1:
+                for i in range(im.shape[0]):
+                    features.append(self._select_batch_item(feats, i))
+            else:
+                features.append(feats)
+            paths.extend(batch_paths)
+            im0s.extend(batch_im0s)
+            s.extend(batch_s)
+
+        self.features = features[0] if len(features) == 1 else features
+        self.batch = (paths, im0s, s)
+        self._orig_shapes = [im.shape[:2] for im in im0s]
 
     def _prepare_geometric_prompts(self, src_shape, bboxes=None, labels=None):
         """Prepare prompts by normalizing bounding boxes and points to the destination shape."""
@@ -2290,29 +2339,34 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process the predictions to apply non-overlapping constraints if required."""
-        pred_boxes = preds["pred_boxes"]  # (nc, num_query, 4)
-        pred_logits = preds["pred_logits"]
-        pred_masks = preds["pred_masks"]
-        pred_scores = pred_logits.sigmoid()
-        presence_score = preds["presence_logit_dec"].sigmoid().unsqueeze(1)
-        pred_scores = (pred_scores * presence_score).squeeze(-1)
-        pred_cls = torch.tensor(
-            list(range(pred_scores.shape[0])),
-            dtype=pred_scores.dtype,
-            device=pred_scores.device,
-        )[:, None].expand_as(pred_scores)
-        pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
-
-        keep = pred_scores > self.args.conf
-        pred_masks = pred_masks[keep]
-        pred_boxes = pred_boxes[keep]
-        pred_boxes[:, :4] = ops.xywh2xyxy(pred_boxes[:, :4])
-
-        names = getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])])
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+        preds_list = preds if isinstance(preds, list) else [preds]
+        if len(preds_list) != len(orig_imgs):
+            raise ValueError(f"Got {len(preds_list)} predictions for {len(orig_imgs)} images.")
+        img_paths = self.batch[0] if self.batch is not None else [""] * len(orig_imgs)
         results = []
-        for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):
+        for pred, orig_img, img_path in zip(preds_list, orig_imgs, img_paths):
+            pred_boxes = pred["pred_boxes"]  # (nc, num_query, 4)
+            pred_logits = pred["pred_logits"]
+            pred_masks = pred["pred_masks"]
+            pred_scores = pred_logits.sigmoid()
+            presence_score = pred["presence_logit_dec"].sigmoid().unsqueeze(1)
+            pred_scores = (pred_scores * presence_score).squeeze(-1)
+            pred_cls = torch.tensor(
+                list(range(pred_scores.shape[0])),
+                dtype=pred_scores.dtype,
+                device=pred_scores.device,
+            )[:, None].expand_as(pred_scores)
+            pred_boxes = torch.cat([pred_boxes, pred_scores[..., None], pred_cls[..., None]], dim=-1)
+
+            keep = pred_scores > self.args.conf
+            pred_masks = pred_masks[keep]
+            pred_boxes = pred_boxes[keep]
+            pred_boxes[:, :4] = ops.xywh2xyxy(pred_boxes[:, :4])
+
+            names = pred.get("names", getattr(self.model, "names", [str(i) for i in range(pred_scores.shape[0])]))
+            masks, boxes = pred_masks, pred_boxes
             if masks.shape[0] == 0:
                 masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
@@ -2323,13 +2377,41 @@ class SAM3SemanticPredictor(SAM3Predictor):
         return results
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] | None = None, *args, **kwargs):
-        """Perform inference on a single image with optional prompts."""
+        """Perform inference on one or more images with optional prompts."""
         bboxes = self.prompts.pop("bboxes", bboxes)
         labels = self.prompts.pop("labels", labels)
         text = self.prompts.pop("text", text)
         features = self.get_im_features(im) if self.features is None else self.features
-        prompts = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
-        return self._inference_features(features, *prompts, text=text)
+        if isinstance(features, list):
+            features_list = features
+        elif isinstance(im, torch.Tensor) and im.shape[0] > 1:
+            features_list = [self._select_batch_item(features, i) for i in range(im.shape[0])]
+        else:
+            features_list = [features]
+
+        batch_size = len(features_list)
+        if batch_size > 1 and (bboxes is not None or labels is not None):
+            raise NotImplementedError(
+                "Batched geometric prompts are not supported yet; pass text only or run per image."
+            )
+        text_list = self._expand_text_prompt(text, batch_size)
+
+        preds = []
+        for i, feats in enumerate(features_list):
+            if self.batch is not None:
+                src_shape = self.batch[1][i].shape[:2]
+            elif getattr(self, "_orig_shapes", None):
+                src_shape = self._orig_shapes[i]
+            elif bboxes is not None or labels is not None:
+                raise RuntimeError("Call set_image() before using geometric prompts.")
+            else:
+                src_shape = im.shape[2:]
+            prompts = self._prepare_geometric_prompts(src_shape, bboxes, labels)
+            pred = self._inference_features(feats, *prompts, text=text_list[i])
+            if text_list[i] is not None:
+                pred["names"] = text_list[i]
+            preds.append(pred)
+        return preds[0] if batch_size == 1 else preds
 
     @smart_inference_mode()
     def inference_features(

@@ -112,6 +112,7 @@ class AutoBackend(nn.Module):
             | Triton Inference      | triton://model    |
             | ExecuTorch            | *.pte             |
             | Axelera               | *_axelera_model/  |
+            | DeepX                 | *_deepx_model/    |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -140,6 +141,7 @@ class AutoBackend(nn.Module):
         triton (bool): Whether the model is a Triton Inference Server model.
         pte (bool): Whether the model is a PyTorch ExecuTorch model.
         axelera (bool): Whether the model is an Axelera model.
+        deepx (bool): Whether the model is a DeepX model.
 
     Methods:
         forward: Run inference on an input image.
@@ -195,6 +197,7 @@ class AutoBackend(nn.Module):
             rknn,
             pte,
             axelera,
+            deepx,
             triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16

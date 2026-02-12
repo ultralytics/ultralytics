@@ -769,6 +769,19 @@ def is_jetson(jetpack=None) -> bool:
     return jetson
 
 
+def is_dgx() -> bool:
+    """Check if the current script is running inside a DGX (NVIDIA Data Center GPU), DGX-Ready or DGX Spark system.
+
+    Returns:
+        (bool): True if running in a DGX or DGX-Ready or DGX Spark system, False otherwise.
+    """
+    try:
+        with open("/etc/dgx-release") as f:
+            return "DGX" in f.read()
+    except FileNotFoundError:
+        return False
+
+
 def is_online() -> bool:
     """Fast online check using DNS (v4/v6) resolution (Cloudflare + Google).
 

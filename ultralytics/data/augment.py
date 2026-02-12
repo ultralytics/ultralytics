@@ -229,8 +229,8 @@ class Compose:
         Examples:
             >>> transforms = [RandomFlip(), RandomPerspective(10), RandomHSV(0.5, 0.5, 0.5)]
             >>> compose = Compose(transforms)
-            >>> single_transform = compose[1]  # Returns a Compose object with only RandomPerspective
-            >>> multiple_transforms = compose[0:2]  # Returns a Compose object with RandomFlip and RandomPerspective
+            >>> single_transform = compose[1]  # Returns the RandomPerspective transform directly
+            >>> multiple_transforms = compose[[0, 1]]  # Returns a Compose object with RandomFlip and RandomPerspective
         """
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         return Compose([self.transforms[i] for i in index]) if isinstance(index, list) else self.transforms[index]
@@ -248,7 +248,7 @@ class Compose:
         Examples:
             >>> compose = Compose([Transform1(), Transform2(), Transform3()])
             >>> compose[1] = NewTransform()  # Replace second transform
-            >>> compose[0:2] = [NewTransform1(), NewTransform2()]  # Replace first two transforms
+            >>> compose[[0, 1]] = [NewTransform1(), NewTransform2()]  # Replace first two transforms
         """
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         if isinstance(index, list):
@@ -2534,8 +2534,8 @@ def classify_augmentations(
         size (int): Target size for the image after transformations.
         mean (tuple[float, float, float]): Mean values for each RGB channel used in normalization.
         std (tuple[float, float, float]): Standard deviation values for each RGB channel used in normalization.
-        scale (tuple[float, float] | None): Range of size of the origin size cropped.
-        ratio (tuple[float, float] | None): Range of aspect ratio of the origin aspect ratio cropped.
+        scale (tuple[float, float] | None): Range of the proportion of the original image area to crop.
+        ratio (tuple[float, float] | None): Range of aspect ratio for the cropped area.
         hflip (float): Probability of horizontal flip.
         vflip (float): Probability of vertical flip.
         auto_augment (str | None): Auto augmentation policy. Can be 'randaugment', 'augmix', 'autoaugment' or None.
@@ -2724,8 +2724,7 @@ class CenterCrop:
     def __call__(self, im: Image.Image | np.ndarray) -> np.ndarray:
         """Apply center cropping to an input image.
 
-        This method resizes and crops the center of the image using a letterbox method. It maintains the aspect ratio of
-        the original image while fitting it into the specified dimensions.
+        This method crops the largest centered square from the image and resizes it to the specified dimensions.
 
         Args:
             im (np.ndarray | PIL.Image.Image): The input image as a numpy array of shape (H, W, C) or a PIL Image

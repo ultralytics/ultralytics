@@ -54,7 +54,7 @@ def check_file_speeds(
     """Check dataset file access speed and provide performance feedback.
 
     This function tests the access speed of dataset files by measuring ping (stat call) time and read speed. It samples
-    up to 5 files from the provided list and warns if access times exceed the threshold.
+    up to `max_files` files from the provided list and warns if access times exceed the threshold.
 
     Args:
         files (list[str]): List of file paths to check for access speed.

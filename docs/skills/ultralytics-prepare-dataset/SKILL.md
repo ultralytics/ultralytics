@@ -282,13 +282,39 @@ Path("labels/img001.txt").write_text(labels)
 ### Visualize Annotations
 
 ```python
+from pathlib import Path
+
+import numpy as np
+import yaml
 from ultralytics.utils.plotting import plot_labels
 
-# Load dataset
-data = "data.yaml"
+# Load dataset YAML
+with open("data.yaml") as f:
+    data = yaml.safe_load(f)
+
+# Collect boxes and class labels from label files
+boxes = []
+cls = []
+labels_dir = Path("path/to/labels/train")
+
+for label_file in labels_dir.glob("*.txt"):
+    with open(label_file) as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) >= 5:
+                class_id = int(parts[0])
+                x_center, y_center, width, height = map(float, parts[1:5])
+                boxes.append([x_center, y_center, width, height])
+                cls.append(class_id)
 
 # Plot labels distribution
-plot_labels("path/to/labels/", save_dir="plots/")
+if boxes and cls:
+    plot_labels(
+        boxes=np.array(boxes),
+        cls=np.array(cls),
+        names=data.get("names", {}),
+        save_dir=Path("plots/")
+    )
 ```
 
 ## Dataset Best Practices

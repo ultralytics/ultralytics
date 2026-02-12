@@ -719,6 +719,28 @@ def test_yoloe(tmp_path):
         predictor=YOLOEVPSegPredictor,
     )
 
+    # Test with tensor source and visual prompts
+    random_image = np.random.randint(0, 256, size=(480, 480, 3), dtype=np.uint8)
+    img_tensor = torch.from_numpy(random_image).float() / 255.0
+    img_tensor = img_tensor.unsqueeze(0).permute(0, 3, 1, 2)  # (1, 3, 480, 480)
+    tensor_visuals = dict(bboxes=np.array([[10, 10, 50, 50]]), cls=np.array([0]))
+    model.predict(
+        img_tensor,
+        visual_prompts=tensor_visuals,
+        predictor=YOLOEVPSegPredictor,
+        imgsz=640,
+    )
+
+    # Test with tensor refer_image + visual prompts
+    model.predict(
+        img_tensor,
+        refer_image=img_tensor,
+        visual_prompts=tensor_visuals,
+        predictor=YOLOEVPSegPredictor,
+        imgsz=640,
+    )
+    model.export(format="onnx", imgsz=32)
+
     # Val
     model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     # text prompts

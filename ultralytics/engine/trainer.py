@@ -263,6 +263,32 @@ class BaseTrainer:
             world_size=self.world_size,
         )
 
+    def _build_train_pipeline(self):
+        """Build dataloaders, optimizer, and scheduler for current batch size."""
+        batch_size = self.batch_size // max(self.world_size, 1)
+        self.train_loader = self.get_dataloader(
+            self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
+        )
+        # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
+        self.test_loader = self.get_dataloader(
+            self.data.get("val") or self.data.get("test"),
+            batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
+            rank=LOCAL_RANK,
+            mode="val",
+        )
+        self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
+        weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
+        iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
+        self.optimizer = self.build_optimizer(
+            model=self.model,
+            name=self.args.optimizer,
+            lr=self.args.lr0,
+            momentum=self.args.momentum,
+            decay=weight_decay,
+            iterations=iterations,
+        )
+        self._setup_scheduler()
+
     def _setup_train(self):
         """Build dataloaders and optimizer on correct rank process."""
         ckpt = self.setup_model()
@@ -319,18 +345,7 @@ class BaseTrainer:
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
 
-        # Dataloaders
-        batch_size = self.batch_size // max(self.world_size, 1)
-        self.train_loader = self.get_dataloader(
-            self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
-        )
-        # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
-        self.test_loader = self.get_dataloader(
-            self.data.get("val") or self.data.get("test"),
-            batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
-            rank=LOCAL_RANK,
-            mode="val",
-        )
+        self._build_train_pipeline()
         self.validator = self.get_validator()
         self.ema = ModelEMA(self.model)
         if RANK in {-1, 0}:
@@ -339,20 +354,6 @@ class BaseTrainer:
             if self.args.plots:
                 self.plot_training_labels()
 
-        # Optimizer
-        self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
-        weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
-        iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
-        self.optimizer = self.build_optimizer(
-            model=self.model,
-            name=self.args.optimizer,
-            lr=self.args.lr0,
-            momentum=self.args.momentum,
-            decay=weight_decay,
-            iterations=iterations,
-        )
-        # Scheduler
-        self._setup_scheduler()
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
@@ -382,6 +383,7 @@ class BaseTrainer:
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         epoch = self.start_epoch
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
+        self._oom_retries = 0  # OOM auto-reduce counter for first epoch
         while True:
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
@@ -423,21 +425,42 @@ class BaseTrainer:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
-                with autocast(self.amp):
-                    batch = self.preprocess_batch(batch)
-                    if self.args.compile:
-                        # Decouple inference and loss calculations for improved compile performance
-                        preds = self.model(batch["img"])
-                        loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
-                    else:
-                        loss, self.loss_items = self.model(batch)
-                    self.loss = loss.sum()
-                    if RANK != -1:
-                        self.loss *= self.world_size
-                    self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
+                try:
+                    with autocast(self.amp):
+                        batch = self.preprocess_batch(batch)
+                        if self.args.compile:
+                            # Decouple inference and loss calculations for improved compile performance
+                            preds = self.model(batch["img"])
+                            loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
+                        else:
+                            loss, self.loss_items = self.model(batch)
+                        self.loss = loss.sum()
+                        if RANK != -1:
+                            self.loss *= self.world_size
+                        self.tloss = (
+                            self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
+                        )
 
-                # Backward
-                self.scaler.scale(self.loss).backward()
+                    # Backward
+                    self.scaler.scale(self.loss).backward()
+                except torch.cuda.OutOfMemoryError:
+                    if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
+                        raise  # only auto-reduce during first epoch on single GPU, max 3 retries
+                    self._oom_retries += 1
+                    old_batch = self.batch_size
+                    self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
+                    LOGGER.warning(
+                        f"CUDA out of memory with batch={old_batch}. "
+                        f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
+                    )
+                    self._clear_memory()
+                    self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
+                    self.scheduler.last_epoch = self.start_epoch - 1
+                    nb = len(self.train_loader)
+                    nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1
+                    last_opt_step = -1
+                    self.optimizer.zero_grad()
+                    break  # restart epoch loop with reduced batch size
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni
@@ -470,6 +493,14 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
+                if self.stop:
+                    break  # allow external stop (e.g. platform cancellation) between batches
+            else:
+                # for/else: this block runs only when the for loop completes without break (no OOM retry)
+                self._oom_retries = 0  # reset OOM counter after successful first epoch
+
+            if self._oom_retries and not self.stop:
+                continue  # OOM recovery broke the for loop, restart with reduced batch size
 
             if hasattr(unwrap_model(self.model).criterion, "update"):
                 unwrap_model(self.model).criterion.update()

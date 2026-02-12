@@ -260,8 +260,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         model = YOLOE("yoloe-26l-seg.pt")  # or yoloe-26s/m-seg.pt for different sizes
 
         # Set text prompt to detect person and bus. You only need to do this once after you load the model.
-        names = ["person", "bus"]
-        model.set_classes(names, model.get_text_pe(names))
+        model.set_classes(["person", "bus"])
 
         # Run detection on the given image
         results = model.predict("path/to/image.jpg")
@@ -393,7 +392,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
             ],
         )
 
-        # Run inference on multiple image, using the provided visual prompts as guidance
+        # Run inference on multiple images, using the provided visual prompts as guidance
         results = model.predict(
             ["ultralytics/assets/bus.jpg", "ultralytics/assets/zidane.jpg"],
             visual_prompts=visual_prompts,
@@ -492,8 +491,7 @@ The export process is similar to other YOLO models, with the added flexibility o
     model = YOLOE("yoloe-26l-seg.pt")
 
     # Configure the set_classes() before exporting the model
-    names = ["person", "bus"]
-    model.set_classes(names, model.get_text_pe(names))
+    model.set_classes(["person", "bus"])
 
     export_model = model.export(format="onnx")
     model = YOLOE(export_model)
@@ -591,7 +589,7 @@ The export process is similar to other YOLO models, with the added flexibility o
 
     === "Visual Prompt"
 
-        Since only the `SAVPE` module needs to be updating during training.
+        Since only the `SAVPE` module needs to be updated during training.
         Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
         Note this step is optional, you can directly start from segmentation as well.
 
@@ -674,7 +672,7 @@ The export process is similar to other YOLO models, with the added flexibility o
 
     === "Prompt Free"
 
-        Similar to visual prompt training, for prompt-free model there's only the specialized prompt embedding needs to be updating during training.
+        Similar to visual prompt training, for prompt-free model there's only the specialized prompt embedding needs to be updated during training.
         Converting trained-well Text-prompt model to detection model and adopt detection pipeline with less training cost.
         Note this step is optional, you can directly start from segmentation as well.
 
@@ -924,8 +922,7 @@ Quickly set up YOLOE with Ultralytics by following these steps:
         from ultralytics import YOLO
 
         model = YOLO("yoloe-26s-seg.pt")
-        names = ["bowl", "apple"]
-        model.set_classes(names, model.get_text_pe(names))
+        model.set_classes(["bowl", "apple"])
         results = model.predict("kitchen.jpg")
         results[0].save()
         ```
@@ -999,8 +996,7 @@ from ultralytics import YOLO
 model = YOLO("yoloe-26s-seg.pt")
 
 # Define custom classes
-names = ["person", "bus"]
-model.set_classes(names, model.get_text_pe(names))
+model.set_classes(["person", "bus"])
 
 # Execute prediction on an image
 results = model.predict("path/to/image.jpg")

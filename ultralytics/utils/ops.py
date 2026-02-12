@@ -89,7 +89,7 @@ def segment2box(segment, width: int = 640, height: int = 640):
     if np.array([x.min() < 0, y.min() < 0, x.max() > width, y.max() > height]).sum() >= 3:
         x = x.clip(0, width)
         y = y.clip(0, height)
-    inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
+    inside = (x > 0) & (y > 0) & (x < width) & (y < height)
     x = x[inside]
     y = y[inside]
     return (

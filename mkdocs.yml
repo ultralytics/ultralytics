@@ -491,6 +491,7 @@ nav:
           - datasets/track/index.md
   - Solutions:
       - Solutions: solutions/index.md
+      - Action Recognition: guides/action-recognition.md
       - Analytics: guides/analytics.md
       - Distance Calculation: guides/distance-calculation.md
       - Heatmaps: guides/heatmaps.md
@@ -755,6 +756,7 @@ nav:
       - optim:
           - muon: reference/optim/muon.md
       - solutions:
+          - action_recognition: reference/solutions/action_recognition.md
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
           - config: reference/solutions/config.md

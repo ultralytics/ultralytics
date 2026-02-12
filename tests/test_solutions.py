@@ -12,7 +12,7 @@ import pytest
 
 from tests import MODEL
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, checks
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, TORCHVISION_VERSION, checks
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_2_4
 
@@ -369,3 +369,51 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
+@pytest.mark.skipif(
+    not checks.check_version(TORCHVISION_VERSION, ">=0.10.0"),
+    reason="TorchVision video models require torchvision>=0.10.0",
+)
+def test_action_recognition_process_method():
+    """Test ActionRecognition.process() with mocked detections to cover the full classification path."""
+    from unittest.mock import MagicMock
+
+    from ultralytics.solutions.solutions import SolutionResults
+
+    action = solutions.ActionRecognition(
+        model=MODEL,
+        video_classifier_model="s3d",
+        show=False,
+        num_video_sequence_samples=2,
+        skip_frame=1,
+    )
+
+    # Mock the video classifier to avoid loading the real model during inference
+    action.video_classifier = MagicMock()
+    action.video_classifier.preprocess = MagicMock(return_value=__import__("torch").zeros(1, 3, 2, 224, 224))
+    action.video_classifier.return_value = (["jumping"], [0.85])
+
+    frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+
+    # Simulate tracked person detections via patched extract_tracks
+    def fake_extract_tracks(im0):
+        action.boxes = [[100, 50, 250, 400]]
+        action.track_ids = [1]
+        action.clss = [0]
+        action.confs = [0.9]
+
+    with patch.object(action, "extract_tracks", side_effect=fake_extract_tracks), patch.object(
+        action, "display_output"
+    ):
+        # Process enough frames to fill the sequence buffer and trigger classification
+        for _ in range(4):
+            result = action.process(frame)
+
+    assert isinstance(result, SolutionResults)
+    assert result.plot_im is not None
+    assert result.plot_im.shape == frame.shape
+    assert result.total_tracks == 1
+    assert result.action_labels.get(1) == "jumping"
+    assert result.action_confs.get(1) == 0.85

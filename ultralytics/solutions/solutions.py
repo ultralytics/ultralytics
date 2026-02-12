@@ -785,6 +785,8 @@ class SolutionResults:
         speed_dict (dict[str, float]): A dictionary containing speed information for tracked objects.
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
         speed (dict[str, float]): Performance timing information for tracking and solution processing.
+        action_labels (dict[int, str]): Per-track predicted action labels from ActionRecognition.
+        action_confs (dict[int, float]): Per-track predicted action confidences from ActionRecognition.
     """
 
     def __init__(self, **kwargs):
@@ -810,6 +812,8 @@ class SolutionResults:
         self.speed_dict = {}  # for speed estimation
         self.total_crop_objects = 0
         self.speed = {}
+        self.action_labels = {}
+        self.action_confs = {}
 
         # Override with user-defined values
         self.__dict__.update(kwargs)

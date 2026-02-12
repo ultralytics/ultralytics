@@ -51,7 +51,7 @@ def resolve_platform_uri(uri, hard=True):
 
     Args:
         uri (str): Platform URI starting with "ul://".
-        hard (bool): Whether to raise an error if resolution fails (FileNotFoundError only).
+        hard (bool): Whether to raise an error if resolution fails.
 
     Returns:
         (str | None): Signed URL on success, None if not found and hard=False.
@@ -121,7 +121,7 @@ def resolve_platform_uri(uri, hard=True):
 
 
 def _interp_plot(plot, n=101):
-    """Interpolate plot curve data from 1000 to n points to reduce storage size."""
+    """Interpolate plot curve data to n points to reduce storage size."""
     import numpy as np
 
     if not plot.get("x") or not plot.get("y"):

@@ -127,8 +127,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         detection datasets and grounding datasets.
 
         Returns:
-            train_path (str): Train dataset path.
-            val_path (str): Validation dataset path.
+            (dict): Final processed data configuration containing train/val paths and metadata.
 
         Raises:
             AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.

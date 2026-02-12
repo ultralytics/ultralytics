@@ -402,7 +402,6 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         # Show results
         results[0].show()
         ```
-
     === "Prompt free"
 
         YOLOE also includes prompt-free variants that come with a built-in vocabulary. These models don't require any prompts and work like traditional YOLO models. Instead of relying on user-provided labels or visual examples, they detect objects from a [predefined list of 4,585 classes](https://github.com/xinyu1205/recognize-anything/blob/main/ram/data/ram_tag_list.txt) based on the tag set used by the [Recognize Anything Model Plus (RAM++)](https://arxiv.org/abs/2310.15200).
@@ -418,6 +417,62 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
 
         # Show results
         results[0].show()
+        ```
+
+### Memory Bank Predict Usage
+
+    === "Memory Bank and Multi-model Prompt"
+        when prompts are given, the prompt embeddings are extracted and stored in a memory bank, which is then used to update the model's class embeddings. when no prompts are given, the model do prediction based on the memory bank if exists.
+
+        By setting `class_mode` to "prototype" or "retrieval" when initializing the model, you can control how the class embeddings are constructed from the memory bank.
+        - "prototype" mode: the class embeddings are computed as the mean of all prompt embeddings for each class in the memory bank. Under this setting, vp_weight can be used to control the weight of visual prompt embeddings when combining with text embeddings.
+        - "retrieval" mode: each class can have multiple embeddings (single text embedding and multiple visual prompt embeddings). During inference, the similarity between each detected box and all embeddings for each class is computed, and the maximum similarity is used as the final similarity score for that class. Note that the computation cost is higher as the number of embeddings increases. Under this setting, vp_weight is not used since the text and visual prompt embeddings are not combined.
+
+        ```python
+        import numpy as np
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPDetectPredictor
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-11l-seg.pt", class_mode="prototype")  # set class_mode to "prototype" to enable memory bank
+
+        # Run inference on an image, using the provided visual prompts as guidance
+        results1 = model.predict_memory(
+            "ultralytics/assets/bus.jpg",
+            visual_prompts=dict(
+                bboxes=np.array(
+                    [
+                        [221.52, 405.8, 344.98, 857.54],  # Box enclosing glasses
+                    ]
+                ),
+                cls=[
+                    "person"
+                ],  # string cls to extract text embeddings and combine with visual prompt embeddings in memory bank
+            ),
+            vp_weight=0.5,  # weight for visual prompt embeddings when combining with text embeddings
+            predictor=YOLOEVPDetectPredictor,
+        )
+
+        # add another visual prompt on the same image
+        results2 = model.predict_memory(
+            "ultralytics/assets/bus.jpg",
+            visual_prompts=dict(
+                bboxes=np.array(
+                    [
+                        [120, 425, 160, 445],  # Box enclosing glasses
+                    ]
+                ),
+                cls=[0],  # int cls also can be used to add visual prompt embeddings to memory bank
+            ),
+            predictor=YOLOEVPDetectPredictor,
+        )
+
+        # predict without visual prompt, still using predict_memory to use the loaded text and visual prompts
+        results3 = model.predict_memory(
+            "ultralytics/assets/zidane.jpg",
+            conf=0.1,  # set lower confidence threshold can be helpful when doing cross-image prediction
+        )
         ```
 
 ### Val Usage

@@ -284,7 +284,8 @@ def test_export_ncnn_matrix(task, half, batch):
 
 @pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
-@pytest.mark.skipif(WINDOWS or MACOS, reason="Skipping test on Windows and Macos")
+@pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB")
 def test_export_imx():
     """Test YOLO export to IMX format."""
     model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11

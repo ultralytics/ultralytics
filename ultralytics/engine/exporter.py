@@ -248,7 +248,17 @@ def try_export(inner_func):
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{path}' ({mb:.1f} MB)")
             return f
         except Exception as e:
-            LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
+            import ultralytics.utils.checks as checks
+
+            msg = f"{prefix} export failure {dt.t:.1f}s: {e}"
+            if checks.PENDING_RESTART:
+                msg += (
+                    f"\n{colorstr('bold', 'red', 'requirements:')} AutoUpdate installed the missing dependencies, but the session wasn't restarted. "
+                    "Try restarting your Python session and rerunning the export command."
+                )
+
+            # Show message after exception for better visibility
+            e.args = (msg, *e.args[1:]) if len(e.args) > 1 else (msg,)
             raise e
 
     return outer_func

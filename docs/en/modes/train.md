@@ -30,7 +30,7 @@ Here are some compelling reasons to opt for YOLO26's Train mode:
 - **Efficiency:** Make the most out of your hardware, whether you're on a single-GPU setup or scaling across multiple GPUs.
 - **Versatility:** Train on custom datasets in addition to readily available ones like COCO, VOC, and ImageNet.
 - **User-Friendly:** Simple yet powerful CLI and Python interfaces for a straightforward training experience.
-- **Hyperparameter Flexibility:** A broad range of customizable hyperparameters to fine-tune model performance.
+- **Hyperparameter Flexibility:** A broad range of customizable hyperparameters to fine-tune model performance. For deeper control, you can [customize the trainer](../guides/custom-trainer.md) itself.
 
 ### Key Features of Train Mode
 

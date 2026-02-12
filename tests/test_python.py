@@ -132,7 +132,7 @@ def test_predict_img(model_name):
 
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
-    """Test model prediction methods with 'visualize=True' to generate and display prediction visualizations."""
+    """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
@@ -162,7 +162,7 @@ def test_predict_gray_and_4ch(tmp_path):
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_predict_all_image_formats():
-    """Test YOLO prediction all 12 image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP)."""
+    """Predict on all 12 image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP)."""
     # Download dataset if needed
     data = check_det_dataset("coco12-formats.yaml")
     dataset_path = Path(data["path"])
@@ -348,7 +348,7 @@ def test_labels_and_crops():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_utils(tmp_path):
-    """Test utility functions in ultralytics/data/utils.py, including dataset stats and auto-splitting."""
+    """Test data utility functions including dataset stats, auto-splitting, and zip archiving."""
     from ultralytics.data.split import autosplit
     from ultralytics.data.utils import HUBDatasetStats
     from ultralytics.utils.downloads import zip_directory
@@ -461,7 +461,7 @@ def test_utils_init():
 
 
 def test_utils_checks():
-    """Test various utility checks for filenames, git status, requirements, image sizes, and versions."""
+    """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
     checks.check_yolov5u_filename("yolov5n.pt")
     checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
@@ -698,7 +698,7 @@ def test_yolo_world():
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
 def test_yoloe(tmp_path):
-    """Test YOLOE models with MobileClip support."""
+    """Test YOLOE models with MobileCLIP support."""
     # Predict
     # text-prompts
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")

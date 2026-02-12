@@ -856,6 +856,8 @@ def check_amp(model):
     prefix = colorstr("AMP: ")
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
+    elif device.type == "npu":
+        return True  # NPU support AMP, directly return True
     else:
         # GPUs that have issues with AMP
         pattern = re.compile(

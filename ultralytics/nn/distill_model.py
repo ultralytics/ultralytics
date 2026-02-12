@@ -173,9 +173,8 @@ class DistillationModel(nn.Module):
                             student_boxes = student_boxes.permute(0, 2, 1).contiguous()
                             teacher_score_weight = None
                             if self.distill_box_loss == "siou":
-                                # teacher_scores = teacher_feat["scores"]
-                                teacher_scores = teacher_scores.sigmoid().amax(dim=1, keepdim=True)
-                                teacher_score_weight = teacher_scores.permute(0, 2, 1).contiguous()
+                                score_weight = teacher_scores.sigmoid().amax(dim=1, keepdim=True)
+                                teacher_score_weight = score_weight.permute(0, 2, 1).contiguous()
                             if self.distill_area == "main":
                                 fg_mask = targets[branch][0]
                                 teacher_boxes = teacher_boxes[fg_mask]  # (n, c)
@@ -292,6 +291,7 @@ class DistillationModel(nn.Module):
         ciou = bbox_iou(student_decoded, teacher_decoded, xywh=False, CIoU=True)
         base_loss = 1.0 - ciou
         teacher_scores = teacher_scores.to(base_loss.dtype)
+        teacher_scores = teacher_scores * (teacher_scores > 0.01).float()
         return (base_loss * teacher_scores).sum() / (teacher_scores.sum() + 1e-9)
 
     def box_kd_loss(self, student_boxes, teacher_boxes, anchor_points=None, teacher_scores=None):

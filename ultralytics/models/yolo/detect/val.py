@@ -129,7 +129,7 @@ class DetectionValidator(BaseValidator):
         """Prepare a batch of images and annotations for validation.
 
         Args:
-            si (int): Batch index.
+            si (int): Sample index within the batch.
             batch (dict[str, Any]): Batch data containing images and annotations.
 
         Returns:
@@ -434,7 +434,7 @@ class DetectionValidator(BaseValidator):
             batch (dict[str, Any]): Batch containing images and annotations.
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
-            max_det (Optional[int]): Maximum number of detections to plot.
+            max_det (int | None): Maximum number of detections to plot.
         """
         if not preds:
             return

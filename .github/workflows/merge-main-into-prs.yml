@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Automatically merges repository 'main' branch into all open PRs to keep them up-to-date
-# Action runs on updates to main branch so when one PR merges to main all others update
+# Action runs on manual workflow dispatch
 
 name: Merge main into PRs
 

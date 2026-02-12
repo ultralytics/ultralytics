@@ -68,16 +68,20 @@ class DFL(nn.Module):
             c1 (int): Number of input channels.
         """
         super().__init__()
-        self.conv = nn.Conv2d(c1, 1, 1, bias=False).requires_grad_(False)
-        x = torch.arange(c1, dtype=torch.float)
-        self.conv.weight.data[:] = nn.Parameter(x.view(1, c1, 1, 1))
+        self.register_buffer("proj", torch.arange(c1, dtype=torch.float32).view(1, 1, 1, -1))
         self.c1 = c1
+
+    def __setstate__(self, state):
+        """Migrate old pickled models that have conv but no proj."""
+        self.__dict__.update(state)
+        if "proj" not in self._buffers:
+            self._buffers["proj"] = self.conv.weight.data.view(1, 1, 1, -1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply the DFL module to input tensor and return transformed output."""
-        b, _, a = x.shape  # batch, channels, anchors
-        return self.conv(x.view(b, 4, self.c1, a).transpose(2, 1).softmax(1)).view(b, 4, a)
-        # return self.conv(x.view(b, self.c1, 4, a).softmax(1)).view(b, 4, a)
+        b, _, a = x.shape
+        x = x.view(b, 4, self.c1, a).softmax(2)
+        return (self.proj @ x).view(b, 4, a)
 
 
 class Proto(nn.Module):

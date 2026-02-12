@@ -670,3 +670,37 @@ def clean_str(s):
 def empty_like(x):
     """Create empty torch.Tensor or np.ndarray with same shape and dtype as input."""
     return torch.empty_like(x, dtype=x.dtype) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=x.dtype)
+
+
+def labels_to_class_weights(labels: list, nc: int) -> torch.Tensor:
+    """Compute class weights from dataset labels based on inverse class frequency.
+
+    This function calculates weights for each class inversely proportional to their frequency in the dataset, helping to
+    address class imbalance during training.
+
+    Args:
+        labels (list): List of label dictionaries, each containing a 'cls' key with class indices.
+        nc (int): Number of classes.
+
+    Returns:
+        (torch.Tensor): Class weights tensor of shape (nc,), normalized so the mean equals 1.0.
+
+    Examples:
+        >>> labels = [{"cls": np.array([[0], [1], [0]])}, {"cls": np.array([[2]])}]
+        >>> weights = labels_to_class_weights(labels, nc=3)
+        >>> print(weights)  # tensor with inverse frequency weights
+    """
+    if not labels:
+        return torch.ones(nc)
+
+    classes = np.concatenate([lb["cls"].flatten() for lb in labels], 0)
+    if len(classes) == 0:
+        return torch.ones(nc)
+
+    class_counts = np.bincount(classes.astype(int), minlength=nc).astype(float)
+    class_counts = np.where(class_counts == 0, 1e-6, class_counts)
+
+    weights = 1.0 / class_counts
+    weights = weights / weights.mean()  # normalize so mean equals 1.0
+
+    return torch.from_numpy(weights).float()

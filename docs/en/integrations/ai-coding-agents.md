@@ -124,11 +124,13 @@ Ultralytics skills follow the [Agent Skills specification](https://agentskills.i
 
 !!! example ""
 
-    === "VS Code Copilot Local Skills Install"
+    === "VS Code Copilot Install (GitHub Directory)"
 
         ```bash
         yolo install-skills agent=copilot
         ```
+
+        This installs skills to `.github/skills/` for GitHub Copilot's local workspace integration.
 
     === "VS Code Global Skills Install"
 
@@ -140,20 +142,20 @@ Ultralytics skills follow the [Agent Skills specification](https://agentskills.i
 
 [Cursor](https://www.cursor.com/) is an AI-first code editor built on VS Code that provides intelligent code completion, chat-based assistance, and codebase understanding. Cursor automatically detects skills in the `.agents/skills/` directory. Reference the [Cursor documentation on skills](https://cursor.com/docs/context/skills) for additional details on how skills are handled.
 
-**Installation**: Cursor checks for skills in `.agents/skills`, supporting both local and global installations:
+**Installation**: Cursor checks for skills in `.cursor/skills`, supporting both local and global installations:
 
 !!! example ""
 
     === "Cursor Local Skills Install"
 
         ```bash
-        yolo install-skills
+        yolo install-skills agent=cursor
         ```
 
     === "Cursor Global Skills Install"
 
         ```bash
-        yolo install-skills global
+        yolo install-skills global agent=cursor
         ```
 
 ### Claude Code (via Anthropic)

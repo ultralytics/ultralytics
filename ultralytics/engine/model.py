@@ -232,8 +232,8 @@ class Model(torch.nn.Module):
         Args:
             cfg (str): Path to the model configuration file in YAML format.
             task (str, optional): The specific task for the model. If None, it will be inferred from the config.
-            model (torch.nn.Module, optional): A custom model instance. If provided, it will be used instead of creating
-                a new one.
+            model (type[torch.nn.Module], optional): A custom model class. If provided, it will be used instead of the
+                default model class from the task map.
             verbose (bool): If True, displays model information during loading.
 
         Raises:
@@ -942,9 +942,6 @@ class Model(torch.nn.Module):
                 Ultralytics framework.
             func (Callable): The callback function to be registered. This function will be called when the specified
                 event occurs.
-
-        Raises:
-            ValueError: If the event name is not recognized or is invalid.
 
         Examples:
             >>> def on_train_start(trainer):

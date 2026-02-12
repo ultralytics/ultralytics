@@ -678,9 +678,9 @@ class Exporter:
         return f
 
     @try_export
-    def export_onnx(self, prefix=colorstr("ONNX:")):
+    def export_onnx(self, prefix=colorstr("ONNX:"), dynamo=True):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0,<2.0.0"]
+        requirements = ["onnx>=1.12.0,<2.0.0", "onnxscript>=0.2.5"]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
@@ -716,6 +716,7 @@ class Exporter:
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,
+                dynamo=dynamo,
             )
 
         # Checks
@@ -1094,7 +1095,7 @@ class Exporter:
             self.args.opset = self.args.opset or 19
             assert 16 <= self.args.opset <= 19, "RTDETR export requires opset>=16;<=19"
         self.args.simplify = True
-        f_onnx = self.export_onnx()  # ensure ONNX is available
+        f_onnx = self.export_onnx(dynamo=False)  # ensure ONNX is available
         keras_model = onnx2saved_model(
             f_onnx,
             f,
@@ -1509,6 +1510,7 @@ class NMSModel(torch.nn.Module):
         self.args = args
         self.obb = model.task == "obb"
         self.is_tf = self.args.format in frozenset({"saved_model", "tflite", "tfjs"})
+        self.eval()
 
     def forward(self, x):
         """Perform inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
@@ -1535,13 +1537,14 @@ class NMSModel(torch.nn.Module):
             pred = torch.cat((pred, pad))
         boxes, scores, extras = pred.split([4, len(self.model.names), extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
-        self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
+        if not self.dynamo():
+            self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = torch.zeros(pred.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extra_shape, **kwargs)
         for i in range(bs):
             box, cls, score, extra = boxes[i], classes[i], scores[i], extras[i]
             mask = score > self.args.conf
-            if self.is_tf or (self.args.format == "onnx" and self.obb):
+            if self.is_tf or (self.args.format == "onnx" and self.obb) or self.dynamo():
                 # TFLite GatherND error if mask is empty
                 score *= mask
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
@@ -1579,7 +1582,12 @@ class NMSModel(torch.nn.Module):
                 torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
                 score,
                 self.args.iou,
-            )[: self.args.max_det]
+            )
+            if self.dynamo():
+                keep = torch.nn.functional.pad(
+                    keep, (0, self.args.max_det), value=mask.shape[0] - 1
+                )  # repeat the final index as pad
+            keep = keep[: self.args.max_det]
             dets = torch.cat(
                 [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).to(out.dtype), extra[keep]], dim=-1
             )
@@ -1587,3 +1595,9 @@ class NMSModel(torch.nn.Module):
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)
         return (out[:bs], preds[1]) if self.model.task == "segment" else out[:bs]
+
+    def dynamo(self):
+        """Check if export is using dynamo."""
+        if hasattr(torch, "compiler") and hasattr(torch.compiler, "is_exporting"):
+            return torch.compiler.is_exporting()
+        return False

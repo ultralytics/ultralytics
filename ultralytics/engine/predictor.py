@@ -38,6 +38,7 @@ from __future__ import annotations
 import platform
 import re
 import threading
+import time
 from pathlib import Path
 from typing import Any
 
@@ -298,6 +299,9 @@ class BasePredictor:
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
+            # Reset FPS tracking for new source
+            self.last_frame_process_time = 0.0
+
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
@@ -495,6 +499,19 @@ class BasePredictor:
     def show(self, p: str = ""):
         """Display an image in a window."""
         im = self.plotted_img
+
+        # FPS calculation - only for video/stream sources
+        if getattr(self.args, "show_fps", False):
+            mode = getattr(self.dataset, "mode", None)
+            if mode in {"video", "stream"}:
+                current_frame_process_time = time.perf_counter()
+                if self.last_frame_process_time != 0:
+                    fps = 1 / max(current_frame_process_time - self.last_frame_process_time, 1e-6)
+                    cv2.putText(
+                        im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2, cv2.LINE_AA
+                    )
+                self.last_frame_process_time = current_frame_process_time
+
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)

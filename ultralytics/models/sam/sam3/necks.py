@@ -31,6 +31,8 @@ class Sam3DualViTDetNeck(nn.Module):
         :param trunk: the backbone
         :param position_encoding: the positional encoding to use
         :param d_model: the dimension of the model
+        :param scale_factors: tuple of scale factors for each FPN level
+        :param add_sam2_neck: whether to add a second neck for SAM2
         """
         super().__init__()
         self.trunk = trunk

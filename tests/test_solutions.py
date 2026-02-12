@@ -319,7 +319,7 @@ def test_similarity_search_app_init():
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search_complete(tmp_path):
-    """Test VisualAISearch end-to-end with sample image and query."""
+    """Test VisualAISearch end-to-end with sample images and query."""
     from PIL import Image
 
     image_dir = tmp_path / "images"

@@ -214,7 +214,7 @@ def validate_args(format, passed_args, valid_args):
 
     Args:
         format (str): The export format.
-        passed_args (Namespace): The arguments used during export.
+        passed_args (SimpleNamespace): The arguments used during export.
         valid_args (list): List of valid arguments for the format.
 
     Raises:
@@ -271,7 +271,7 @@ class Exporter:
         pretty_name (str): Formatted model name for display purposes.
         metadata (dict): Model metadata including description, author, version, etc.
         device (torch.device): Device on which the model is loaded.
-        imgsz (tuple): Input image size for the model.
+        imgsz (list): Input image size for the model.
 
     Methods:
         __call__: Main export method that handles the export process.
@@ -310,7 +310,7 @@ class Exporter:
         """Initialize the Exporter class.
 
         Args:
-            cfg (str, optional): Path to a configuration file.
+            cfg (str | Path | dict | SimpleNamespace, optional): Configuration file path or configuration object.
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
@@ -1135,7 +1135,7 @@ class Exporter:
 
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
-        """YOLO Axelera export."""
+        """Export YOLO model to Axelera format."""
         os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
         try:
             from axelera import compiler
@@ -1202,9 +1202,7 @@ class Exporter:
 
     @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):
-        """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
-        following Ultralytics conventions.
-        """
+        """Export YOLO model to ExecuTorch *.pte format."""
         assert TORCH_2_9, f"ExecuTorch requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
 
         check_executorch_requirements()
@@ -1471,7 +1469,7 @@ class IOSDetectModel(torch.nn.Module):
         Args:
             model (torch.nn.Module): The YOLO model to wrap.
             im (torch.Tensor): Example input tensor with shape (B, C, H, W).
-            mlprogram (bool): Whether exporting to MLProgram format to fix NMS bug.
+            mlprogram (bool): Whether exporting to MLProgram format.
         """
         super().__init__()
         _, _, h, w = im.shape  # batch, channel, height, width
@@ -1504,7 +1502,7 @@ class NMSModel(torch.nn.Module):
 
         Args:
             model (torch.nn.Module): The model to wrap with NMS postprocessing.
-            args (Namespace): The export arguments.
+            args (SimpleNamespace): The export arguments.
         """
         super().__init__()
         self.model = model
@@ -1516,11 +1514,11 @@ class NMSModel(torch.nn.Module):
         """Perform inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
 
         Args:
-            x (torch.Tensor): The preprocessed tensor with shape (N, 3, H, W).
+            x (torch.Tensor): The preprocessed tensor with shape (B, C, H, W).
 
         Returns:
-            (torch.Tensor): List of detections, each an (N, max_det, 4 + 2 + extra_shape) Tensor where N is the number
-                of detections after NMS.
+            (torch.Tensor | tuple): Tensor of shape (B, max_det, 4 + 2 + extra_shape) where B is the batch size, or a
+                tuple of (detections, proto) for segmentation models.
         """
         from functools import partial
 

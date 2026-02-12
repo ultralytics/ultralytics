@@ -164,6 +164,7 @@ def select_device(device="", newline=False, verbose=True):
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
     device = str(device).lower()
+    is_cuda_init = torch.cuda.is_initialized()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
 
@@ -187,10 +188,33 @@ def select_device(device="", newline=False, verbose=True):
         if device == "cuda":
             device = "0"
         if "," in device:
-            device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
+            device = [x for x in device.split(",") if x]  # remove sequential commas, i.e. "0,,1" -> "0,1"
+        else:
+            device = [device]
+
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
-        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
+        requested_devices = device  # save original request for logging
+
+        if is_cuda_init:
+            # CUDA already initialized - CUDA_VISIBLE_DEVICES won't work, must remap indices
+            if not visible:
+                visible = os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, range(torch.cuda.device_count())))
+            try:
+                if not ("MIG" in visible or "UUID" in visible):  # skip validation for MIG/UUID
+                    device = [visible.split(",").index(d) for d in device]  # get remapped indices
+            except ValueError:
+                raise ValueError(
+                    f"CUDA was already initialized with the following GPUs: {visible.split(',')}. "
+                    f"'device={requested_devices}' contains GPUs that are not available in this session. "
+                    "To change the available GPUs, a session restart is necessary."
+                )
+        else:
+            # CUDA not initialized - set CUDA_VISIBLE_DEVICES and remap
+            os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(device)  # set environment variable
+            device = list(range(len(device)))  # remapped indices
+
+        # Avoid using torch.cuda.is_available() here as it causes invalid GPU index to permanently taint the session
+        if not (0 < torch.cuda.device_count() >= len(device)):
             LOGGER.info(s)
             install = (
                 "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
@@ -199,21 +223,26 @@ def select_device(device="", newline=False, verbose=True):
                 else ""
             )
             raise ValueError(
-                f"Invalid CUDA 'device={device}' requested."
+                f"Invalid CUDA 'device={requested_devices}' requested."
                 f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
                 f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
-                f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
+                f"\ntorch.cuda.is_available(): {torch.cuda.device_count() != 0}"
                 f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
                 f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
                 f"{install}"
             )
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
-        devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
-        space = " " * len(s)
-        for i, d in enumerate(devices):
-            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
-        arg = "cuda:0"
+        space = " " * (len(s) + 1)
+        if not device:
+            device = [0]
+            requested_devices = ["0"]
+        for i, (req_idx, dev_idx) in enumerate(zip(requested_devices, device)):
+            s += f"{'' if i == 0 else space}CUDA:{req_idx} ({get_gpu_info(dev_idx)})\n"  # bytes to MB
+        arg = f"cuda:{device[0]}"
+        if is_cuda_init:
+            # if CUDA has initialized, setting CUDA_VISIBLE_DEVICES has no effect; GPU indices remain unchanged; return passed GPU index
+            torch.cuda.set_device(int(device[0]))
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

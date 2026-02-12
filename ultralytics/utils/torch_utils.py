@@ -132,6 +132,15 @@ def get_gpu_info(index):
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
+@functools.lru_cache
+def get_xpu_info(index: int = 0):
+    """Return a string with system XPU information, i.e. 'Intel(R) Graphics..., 15102MiB'."""
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        properties = torch.xpu.get_device_properties(index)
+        return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
+    return None
+
+
 def select_device(device="", newline=False, verbose=True):
     """Select the appropriate PyTorch device based on the provided arguments.
 
@@ -183,6 +192,18 @@ def select_device(device="", newline=False, verbose=True):
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
     if cpu or mps:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""  # force torch.cuda.is_available() = False
+    elif device.startswith("xpu"):  # Intel XPU
+        index_str = device.split(":", 1)[1] if ":" in device else "0"
+        if "," in index_str:
+            msg = f"Invalid XPU 'device={device}' requested. Use a single index 0-15."
+            LOGGER.warning(msg)
+            raise ValueError(msg)
+        index = int(index_str)
+        if verbose:
+            info = get_xpu_info(index)
+            s += f"XPU:{index} ({info})\n"
+            LOGGER.info(s if newline else s.rstrip())
+        return torch.device("xpu", index)
     elif device:  # non-cpu device requested
         if device == "cuda":
             device = "0"
@@ -231,6 +252,8 @@ def select_device(device="", newline=False, verbose=True):
 
 def time_sync():
     """Return PyTorch-accurate time."""
+    if hasattr(torch, "xpu") and torch.xpu.is_available():
+        torch.xpu.synchronize()
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     return time.time()

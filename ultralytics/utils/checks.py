@@ -781,10 +781,11 @@ def collect_system_info():
     import psutil  # scoped as slow import
 
     from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
-    from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
+    from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info, get_xpu_info
 
     gib = 1 << 30  # bytes per GiB
     cuda = torch.cuda.is_available()
+    xpu = hasattr(torch, "xpu") and torch.xpu.is_available()  # avoid situations where the backend is not compiled
     check_yolo()
     total, _, free = shutil.disk_usage("/")
 
@@ -799,7 +800,9 @@ def collect_system_info():
         "CPU": get_cpu_info(),
         "CPU count": os.cpu_count(),
         "GPU": get_gpu_info(index=0) if cuda else None,
+        "XPU": get_xpu_info(index=0) if xpu else None,
         "GPU count": torch.cuda.device_count() if cuda else None,
+        "XPU count": torch.xpu.device_count() if xpu else None,
         "CUDA": torch.version.cuda if cuda else None,
     }
     LOGGER.info("\n" + "\n".join(f"{k:<23}{v}" for k, v in info_dict.items()) + "\n")
@@ -854,6 +857,9 @@ def check_amp(model):
 
     device = next(model.parameters()).device  # get model device
     prefix = colorstr("AMP: ")
+    if hasattr(torch, "xpu") and torch.xpu.is_available() and device.type == "xpu":
+        LOGGER.warning(f"{prefix}Intel XPU detected. AMP is disabled (not supported on XPU).")
+        return False
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
     else:

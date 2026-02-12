@@ -51,9 +51,9 @@ def non_max_suppression(
         return_idxs (bool): Whether to return the indices of kept detections.
 
     Returns:
-        output (list[torch.Tensor]): List of detections per image with shape (num_boxes, 6 + num_masks) containing (x1,
-            y1, x2, y2, confidence, class, mask1, mask2, ...).
-        keepi (list[torch.Tensor]): Indices of kept detections if return_idxs=True.
+        (list[torch.Tensor] | tuple[list[torch.Tensor], list[torch.Tensor]]): List of detections per image with shape
+            (num_boxes, 6 + num_masks) containing (x1, y1, x2, y2, confidence, class, mask1, mask2, ...). If
+            return_idxs=True, returns a tuple of (output, keepi) where keepi contains indices of kept detections.
     """
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
@@ -209,7 +209,7 @@ class TorchNMS:
             Apply NMS to a set of boxes
             >>> boxes = torch.tensor([[0, 0, 10, 10], [5, 5, 15, 15]])
             >>> scores = torch.tensor([0.9, 0.8])
-            >>> keep = TorchNMS.nms(boxes, scores, 0.5)
+            >>> keep = TorchNMS.fast_nms(boxes, scores, 0.5)
         """
         if boxes.numel() == 0 and exit_early:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)

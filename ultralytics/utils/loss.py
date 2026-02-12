@@ -156,9 +156,9 @@ class BboxLoss(nn.Module):
 class RLELoss(nn.Module):
     """Residual Log-Likelihood Estimation Loss.
 
-    Args:
-        use_target_weight (bool): Option to use weighted loss.
+    Attributes:
         size_average (bool): Option to average the loss by the batch_size.
+        use_target_weight (bool): Option to use weighted loss.
         residual (bool): Option to add L1 loss and let the flow learn the residual error distribution.
 
     References:
@@ -1094,12 +1094,12 @@ class v8OBBLoss(v8DetectionLoss):
         """Calculate oriented angle loss.
 
         Args:
-            pred_bboxes: [N, 5] (x, y, w, h, theta).
-            target_bboxes: [N, 5] (x, y, w, h, theta).
-            fg_mask: Foreground mask indicating valid predictions.
-            weight: Loss weights for each prediction.
-            target_scores_sum: Sum of target scores for normalization.
-            lambda_val: control the sensitivity to aspect ratio.
+            pred_bboxes (torch.Tensor): Predicted bounding boxes with shape [N, 5] (x, y, w, h, theta).
+            target_bboxes (torch.Tensor): Target bounding boxes with shape [N, 5] (x, y, w, h, theta).
+            fg_mask (torch.Tensor): Foreground mask indicating valid predictions.
+            weight (torch.Tensor): Loss weights for each prediction.
+            target_scores_sum (torch.Tensor): Sum of target scores for normalization.
+            lambda_val (int): Control the sensitivity to aspect ratio.
         """
         w_gt = target_bboxes[..., 2]
         h_gt = target_bboxes[..., 3]

@@ -872,7 +872,7 @@ class Metric(SimpleClass):
     """
 
     def __init__(self) -> None:
-        """Initialize a Metric instance for computing evaluation metrics for the YOLOv8 model."""
+        """Initialize a Metric instance for computing evaluation metrics for the YOLO model."""
         self.p = []  # (nc, )
         self.r = []  # (nc, )
         self.f1 = []  # (nc, )
@@ -1039,7 +1039,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
     """
 
     def __init__(self, names: dict[int, str] = {}) -> None:
-        """Initialize a DetMetrics instance with a save directory, plot flag, and class names.
+        """Initialize a DetMetrics instance with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
@@ -1205,7 +1205,7 @@ class SegmentMetrics(DetMetrics):
     """
 
     def __init__(self, names: dict[int, str] = {}) -> None:
-        """Initialize a SegmentMetrics instance with a save directory, plot flag, and class names.
+        """Initialize a SegmentMetrics instance with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
@@ -1343,7 +1343,7 @@ class PoseMetrics(DetMetrics):
     """
 
     def __init__(self, names: dict[int, str] = {}) -> None:
-        """Initialize the PoseMetrics class with directory path, class names, and plotting options.
+        """Initialize the PoseMetrics class with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
@@ -1556,7 +1556,7 @@ class OBBMetrics(DetMetrics):
     """
 
     def __init__(self, names: dict[int, str] = {}) -> None:
-        """Initialize an OBBMetrics instance with directory, plotting, and class names.
+        """Initialize an OBBMetrics instance with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.

@@ -226,7 +226,7 @@ def override_configs(args, overrides: dict[str, Any] | None = None):
 
     Args:
         args (IterableSimpleNamespace): Original configuration arguments.
-        overrides (dict[str, Any]): Dictionary of overrides to apply.
+        overrides (dict[str, Any] | None): Dictionary of overrides to apply.
 
     Yields:
         (IterableSimpleNamespace): Configuration arguments with overrides applied.

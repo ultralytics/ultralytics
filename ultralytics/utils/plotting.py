@@ -861,7 +861,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
     Args:
         file (str, optional): Path to the CSV file containing the training results.
         dir (str, optional): Directory where the CSV file is located if 'file' is not provided.
-        on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
+        on_plot (Callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
 
     Examples:
         >>> from ultralytics.utils.plotting import plot_results

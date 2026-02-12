@@ -366,7 +366,7 @@ def check_apt_requirements(requirements):
     """Check if apt packages are installed and install missing ones.
 
     Args:
-        requirements: List of apt package names to check and install
+        requirements (list[str]): List of apt package names to check and install.
     """
     prefix = colorstr("red", "bold", "apt requirements:")
     # Check which packages are missing

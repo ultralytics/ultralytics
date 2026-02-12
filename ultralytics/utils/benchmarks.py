@@ -220,14 +220,14 @@ def benchmark(
 
 
 class RF100Benchmark:
-    """Benchmark YOLO model performance across various formats for speed and accuracy.
+    """Benchmark YOLO model performance on the RF100 dataset collection.
 
-    This class provides functionality to benchmark YOLO models on the RF100 dataset collection.
+    This class provides functionality to download, process, and evaluate YOLO models on the RF100 datasets.
 
     Attributes:
         ds_names (list[str]): Names of datasets used for benchmarking.
         ds_cfg_list (list[Path]): List of paths to dataset configuration files.
-        rf (Roboflow): Roboflow instance for accessing datasets.
+        rf (Roboflow | None): Roboflow instance for accessing datasets.
         val_metrics (list[str]): Metrics used for validation.
 
     Methods:

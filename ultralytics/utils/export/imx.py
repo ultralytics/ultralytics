@@ -67,6 +67,7 @@ class FXModel(torch.nn.Module):
 
     Attributes:
         model (nn.Module): The original model's layers.
+        imgsz (tuple[int, int]): The input image size (height, width).
     """
 
     def __init__(self, model, imgsz=(640, 640)):
@@ -166,7 +167,7 @@ class NMSWrapper(torch.nn.Module):
             score_threshold (float): Score threshold for non-maximum suppression.
             iou_threshold (float): Intersection over union threshold for non-maximum suppression.
             max_detections (int): The number of detections to return.
-            task (str): Task type, either 'detect' or 'pose'.
+            task (str): Task type, one of 'detect', 'pose', or 'segment'.
         """
         super().__init__()
         self.model = model
@@ -214,7 +215,7 @@ def torch2imx(
     """Export YOLO model to IMX format for deployment on Sony IMX500 devices.
 
     This function quantizes a YOLO model using Model Compression Toolkit (MCT) and exports it to IMX format compatible
-    with Sony IMX500 edge devices. It supports both YOLOv8n and YOLO11n models for detection and pose estimation tasks.
+    with Sony IMX500 edge devices. It supports both YOLOv8n and YOLO11n models for detection, segmentation, pose estimation, and classification tasks.
 
     Args:
         model (torch.nn.Module): The YOLO model to export. Must be YOLOv8n or YOLO11n.
@@ -241,7 +242,7 @@ def torch2imx(
 
     Notes:
         - Requires model_compression_toolkit, onnx, edgemdt_tpc, and edge-mdt-cl packages
-        - Only supports YOLOv8n and YOLO11n models (detection and pose tasks)
+        - Only supports YOLOv8n and YOLO11n models (detection, segmentation, pose, and classification tasks)
         - Output includes quantized ONNX model, IMX binary, and labels.txt file
     """
     import model_compression_toolkit as mct

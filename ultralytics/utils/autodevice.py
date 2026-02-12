@@ -149,7 +149,7 @@ class GPUInfo:
 
         Notes:
              Returns fewer than 'count' if not enough qualify or exist.
-             Returns basic CUDA indices if NVML fails. Empty list if no GPUs found.
+             Returns empty list if NVML stats are unavailable or no GPUs meet the criteria.
         """
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
         assert min_util_fraction <= 1.0, f"min_util_fraction must be <= 1.0, got {min_util_fraction}"

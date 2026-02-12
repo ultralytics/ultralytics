@@ -539,6 +539,47 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 
+### Output Format
+
+YOLO detection and segmentation models produce consistent output tensors across all runtimes, including Python, ONNX, TensorRT, and OpenVINO. Detection models return a single tensor with shape `[batch, 4 + num_classes, num_preds]`.
+
+Each prediction includes bounding box coordinates in `xywh` format, an objectness score, and class probabilities. The `num_preds` dimension represents the number of detected objects. YOLO detects up to 8400 objects per image. To obtain final detections, you can convert `xywh` to corner coordinates, multiply objectness by class probabilities, and apply non-maximum suppression.
+
+Segmentation models extend this format by adding mask coefficients to the first tensor and producing a second tensor containing prototype masks. The first tensor has shape `[batch, 4 + num_classes + mask_coeffs, num_preds]`, while the second is `[batch, mask_coeffs, mask_h, mask_w]`.
+
+You can reconstruct each instance mask by linearly combining the mask coefficients with the prototype masks, applying a sigmoid, and then cropping to the bounding box. This shared output structure ensures that raw predictions can be interpreted the same way across all deployment environments.
+
+!!! example "Decode YOLO Detection Output (raw tensor)"
+
+```python
+import numpy as np
+
+
+def decode_yolo_detection(pred, conf_thres=0.25):
+    # If the model output has a batch dimension, select the first image:
+    # pred = output[0]  # output shape: [batch, channels, num_preds]
+
+    # pred shape after selecting the batch: [4 + num_classes, num_preds]
+    boxes = pred[:4]  # xywh
+    scores = pred[4:]  # objectness + class scores
+
+    obj = scores[0:1]
+    cls = scores[1:]
+    cls_conf = cls * obj  # final class confidence
+
+    class_ids = cls_conf.argmax(axis=0)
+    conf = cls_conf[class_ids, np.arange(cls_conf.shape[1])]
+
+    keep = conf > conf_thres
+    x, y, w, h = boxes[:, keep]
+
+    # Convert xywh → xyxy
+    x1, y1 = x - w / 2, y - h / 2
+    x2, y2 = x + w / 2, y + h / 2
+
+    return np.vstack([x1, y1, x2, y2]).T, conf[keep], class_ids[keep]
+```
+
 ### Boxes
 
 `Boxes` object can be used to index, manipulate, and convert bounding boxes to different formats.

@@ -167,7 +167,10 @@ class YOLODataset(BaseDataset):
         try:
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
-            assert cache["hash"] == get_hash(self.label_files + self.im_files)  # identical hash
+            files = self.label_files + self.im_files
+            if not check_file_speeds(self.im_files, prefix=self.prefix):
+                files = TQDM(files, f"{self.prefix}Checking cache file integrity")
+            assert cache["hash"] == get_hash(files)  # identical hash
         except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
 
@@ -798,10 +801,12 @@ class ClassificationDataset:
         path = Path(self.root).with_suffix(".cache")  # *.cache file path
 
         try:
-            check_file_speeds([file for (file, _) in self.samples[:5]], prefix=self.prefix)  # check image read speeds
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
-            assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash
+            files = [x[0] for x in self.samples]
+            if not check_file_speeds([file for (file, _) in self.samples[:5]], prefix=self.prefix):
+                files = TQDM(files, f"{self.prefix}Checking cache file integrity")
+            assert cache["hash"] == get_hash(files)  # identical hash
             nf, nc, n, samples = cache.pop("results")  # found, missing, empty, corrupt, total
             if LOCAL_RANK in {-1, 0}:
                 d = f"{desc} {nf} images, {nc} corrupt"

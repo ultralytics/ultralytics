@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 from torch.utils.data import Dataset
 
-from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
+from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
 from ultralytics.utils.patches import imread
 
@@ -181,7 +181,6 @@ class BaseDataset(Dataset):
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
         if self.fraction < 1:
             im_files = im_files[: round(len(im_files) * self.fraction)]  # retain a fraction of the dataset
-        check_file_speeds(im_files, prefix=self.prefix)  # check image read speeds
         return im_files
 
     def update_labels(self, include_class: list[int] | None) -> None:

@@ -198,8 +198,8 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
 
     Returns:
         (dict | None): Formatted ground truth annotations with keys 'name' and 'data', where 'data' is a list of
-            annotation dicts each containing 'boxes', 'label', and 'score' keys. Returns None if no bounding
-            boxes are found for the image.
+            annotation dicts each containing 'boxes', 'label', and 'score' keys. Returns None if no bounding boxes are
+            found for the image.
     """
     indices = batch["batch_idx"] == img_idx
     bboxes = batch["bboxes"][indices]

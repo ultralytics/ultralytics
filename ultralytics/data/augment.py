@@ -1810,7 +1810,6 @@ class Albumentations:
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
             transforms (list | None): List of custom Albumentations transforms. If None, uses default transforms.
-
         """
         self.p = p
         self.transform = None

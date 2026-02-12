@@ -415,10 +415,10 @@ class SAM2Model(torch.nn.Module):
 
         Args:
             backbone_features (torch.Tensor): Image features with shape (B, C, H, W).
-            point_inputs (dict[str, torch.Tensor] | None): Dictionary containing point prompts with keys
-                'point_coords' (Tensor of shape (B, P, 2) with float32 dtype, containing absolute pixel-unit coordinates
-                in (x, y) format for P input points) and 'point_labels' (Tensor of shape (B, P) with int32 dtype, where
-                1 means positive clicks, 0 means negative clicks, and -1 means padding).
+            point_inputs (dict[str, torch.Tensor] | None): Dictionary containing point prompts with keys 'point_coords'
+                (Tensor of shape (B, P, 2) with float32 dtype, containing absolute pixel-unit coordinates in (x, y)
+                format for P input points) and 'point_labels' (Tensor of shape (B, P) with int32 dtype, where 1 means
+                positive clicks, 0 means negative clicks, and -1 means padding).
             mask_inputs (torch.Tensor | None): Mask of shape (B, 1, H*16, W*16), float or bool, with the same spatial
                 size as the image.
             high_res_features (list[torch.Tensor] | None): List of two feature maps with shapes (B, C, 4*H, 4*W) and (B,

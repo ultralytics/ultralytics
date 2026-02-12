@@ -212,8 +212,11 @@ class OBBValidator(DetectionValidator):
 
         Examples:
             >>> validator = OBBValidator()
-            >>> predn = {"bboxes": torch.tensor([[100, 100, 50, 30, 45]]), "conf": torch.tensor([0.9]),
-            ...          "cls": torch.tensor([0])}
+            >>> predn = {
+            ...     "bboxes": torch.tensor([[100, 100, 50, 30, 45]]),
+            ...     "conf": torch.tensor([0.9]),
+            ...     "cls": torch.tensor([0]),
+            ... }
             >>> validator.save_one_txt(predn, True, (640, 480), Path("detection.txt"))
         """
         import numpy as np

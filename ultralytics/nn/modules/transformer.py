@@ -543,8 +543,8 @@ class MSDeformAttn(nn.Module):
                 in [0, 1], top-left (0,0), bottom-right (1, 1), including padding area.
             value (torch.Tensor): Value tensor with shape [bs, value_length, C].
             value_shapes (list): List with shape [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})].
-            value_mask (torch.Tensor, optional): Mask tensor with shape [bs, value_length], True for padding
-                elements, False for non-padding elements.
+            value_mask (torch.Tensor, optional): Mask tensor with shape [bs, value_length], True for padding elements,
+                False for non-padding elements.
 
         Returns:
             (torch.Tensor): Output tensor with shape [bs, Length_{query}, C].

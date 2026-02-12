@@ -67,8 +67,8 @@ class Attention(nn.Module):
             cls_token (bool): Whether a cls_token is present.
             use_rope (bool): Whether to use rope 2d (independent of use_rel_pos, as it can be used together).
             rope_theta (float): Control frequencies of rope.
-            rope_pt_size (tuple[int, int] or None): Size of rope in previous stage of training, needed for
-                interpolation or tiling.
+            rope_pt_size (tuple[int, int] or None): Size of rope in previous stage of training, needed for interpolation
+                or tiling.
             rope_interp (bool): Whether to interpolate (or extrapolate) rope to match input size.
         """
         super().__init__()
@@ -251,8 +251,8 @@ class Block(nn.Module):
             input_size (tuple[int, int] | None): Input resolution for calculating the relative positional parameter
                 size.
             use_rope (bool): Whether to use rope 2d (independent of use_rel_pos, as it can be used together).
-            rope_pt_size (tuple[int, int] | None): Size of rope in previous stage of training, needed for
-                interpolation or tiling.
+            rope_pt_size (tuple[int, int] | None): Size of rope in previous stage of training, needed for interpolation
+                or tiling.
             rope_interp (bool): Whether to interpolate (or extrapolate) rope to match target input size, expected to
                 specify source size as rope_pt_size.
             cls_token (bool): Whether a cls_token is present.
@@ -372,8 +372,8 @@ class ViT(nn.Module):
                 attention).
             use_rope (bool): Whether to use rope 2d (independent of rel_pos_blocks, as it can be used together).
             rope_pt_size (int | None): Size of rope in previous stage of training, needed for interpolation or tiling.
-            use_interp_rope (bool): Whether to interpolate (or extrapolate) rope to match target input size, expected
-                to specify source size as rope_pt_size.
+            use_interp_rope (bool): Whether to interpolate (or extrapolate) rope to match target input size, expected to
+                specify source size as rope_pt_size.
             pretrain_img_size (int): Input image size for pretraining models.
             pretrain_use_cls_token (bool): If True, pretraining models use class token.
             retain_cls_token (bool): Whether cls_token should be retained.

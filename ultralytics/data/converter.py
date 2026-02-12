@@ -24,8 +24,8 @@ def coco91_to_coco80_class() -> list[int]:
     """Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (list[int | None]): A list of 91 elements where the index represents the 91-index class ID and the value is
-            the corresponding 80-index class ID, or None if there is no mapping.
+        (list[int | None]): A list of 91 elements where the index represents the 91-index class ID and the value is the
+            corresponding 80-index class ID, or None if there is no mapping.
     """
     return [
         0,
@@ -761,8 +761,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     Args:
         ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
-        output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If
-            None, uses the DATASETS_DIR directory. Defaults to None.
+        output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
+            uses the DATASETS_DIR directory. Defaults to None.
 
     Returns:
         (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).

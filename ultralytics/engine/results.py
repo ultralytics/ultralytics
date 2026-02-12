@@ -603,8 +603,8 @@ class Results(SimpleClass, DataExportMixin):
         utilizes the `plot` method to generate the annotated image and then saves it to the specified filename.
 
         Args:
-            filename (str | None): The filename to save the annotated image. If None, a default filename is
-                generated based on the original image path.
+            filename (str | None): The filename to save the annotated image. If None, a default filename is generated
+                based on the original image path.
             *args (Any): Variable length argument list to be passed to the `plot` method.
             **kwargs (Any): Arbitrary keyword arguments to be passed to the `plot` method.
 
@@ -961,7 +961,9 @@ class Boxes(BaseTensor):
                 bounding box and the shape of the returned tensor is (N, 4), where N is the number of boxes.
 
         Examples:
-            >>> boxes = Boxes(torch.tensor([[100, 50, 150, 100, 0.9, 0], [200, 150, 300, 250, 0.8, 1]]), orig_shape=(480, 640))
+            >>> boxes = Boxes(
+            ...     torch.tensor([[100, 50, 150, 100, 0.9, 0], [200, 150, 300, 250, 0.8, 1]]), orig_shape=(480, 640)
+            ... )
             >>> xywh = boxes.xywh
             >>> print(xywh)
             tensor([[125.0000,  75.0000,  50.0000,  50.0000],
@@ -1156,8 +1158,8 @@ class Keypoints(BaseTensor):
         """Return x, y coordinates of keypoints.
 
         Returns:
-            (torch.Tensor | np.ndarray): A tensor or array containing the x, y coordinates of keypoints with shape
-                (N, K, 2), where N is the number of detections and K is the number of keypoints per detection.
+            (torch.Tensor | np.ndarray): A tensor or array containing the x, y coordinates of keypoints with shape (N,
+                K, 2), where N is the number of detections and K is the number of keypoints per detection.
 
         Examples:
             >>> results = model("image.jpg")
@@ -1200,8 +1202,8 @@ class Keypoints(BaseTensor):
 
         Returns:
             (torch.Tensor | np.ndarray | None): A tensor or array containing confidence scores for each keypoint if
-                available, otherwise None. Shape is (num_detections, num_keypoints) for batched data or
-                (num_keypoints,) for single detection.
+                available, otherwise None. Shape is (num_detections, num_keypoints) for batched data or (num_keypoints,)
+                for single detection.
 
         Examples:
             >>> keypoints = Keypoints(torch.rand(1, 17, 3), orig_shape=(640, 640))  # 1 detection, 17 keypoints
@@ -1252,8 +1254,8 @@ class Probs(BaseTensor):
 
         Args:
             probs (torch.Tensor | np.ndarray): A 1D tensor or array of classification probabilities.
-            orig_shape (tuple[int, int] | None): The original image shape as (height, width). Not used in this class
-                but kept for consistency with other result classes.
+            orig_shape (tuple[int, int] | None): The original image shape as (height, width). Not used in this class but
+                kept for consistency with other result classes.
         """
         super().__init__(probs, orig_shape)
 

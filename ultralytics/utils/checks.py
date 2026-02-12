@@ -86,6 +86,15 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     return requirements
 
 
+def get_distribution_name(import_name: str) -> str:
+    """Get the pip distribution name for a given import name (e.g., 'cv2' -> 'opencv-python-headless')."""
+    for dist in metadata.distributions():
+        top_level = (dist.read_text("top_level.txt") or "").split()
+        if import_name in top_level:
+            return dist.metadata["Name"]
+    return import_name
+
+
 @functools.lru_cache
 def parse_version(version="0.0.0") -> tuple:
     """Convert a version string to a tuple of integers, ignoring any extra non-numeric string attached to the version.
@@ -796,7 +805,7 @@ def collect_system_info():
     LOGGER.info("\n" + "\n".join(f"{k:<23}{v}" for k, v in info_dict.items()) + "\n")
 
     package_info = {}
-    for r in parse_requirements(package=metadata.packages_distributions().get("ultralytics")[0]):
+    for r in parse_requirements(package=get_distribution_name("ultralytics")):
         try:
             current = metadata.version(r.name)
             is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "

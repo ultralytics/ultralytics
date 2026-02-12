@@ -534,6 +534,7 @@ class Annotator:
 
     def save(self, filename: str = "image.jpg"):
         """Save the annotated image to 'filename'."""
+        Path(filename).parent.mkdir(exist_ok=True, parents=True) # Create directory to prevent it from not existing.
         cv2.imwrite(filename, np.asarray(self.im))
 
     @staticmethod

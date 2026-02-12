@@ -72,7 +72,7 @@ def torch_distributed_zero_first(local_rank: int):
 
 
 def smart_inference_mode():
-    """Apply torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
+    """Apply torch.inference_mode() decorator if torch>=1.10.0 else torch.no_grad() decorator."""
 
     def decorate(fn):
         """Apply appropriate torch decorator for inference mode based on torch version."""
@@ -684,7 +684,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
         >>> from pathlib import Path
         >>> from ultralytics.utils.torch_utils import strip_optimizer
         >>> for f in Path("path/to/model/checkpoints").rglob("*.pt"):
-        >>>    strip_optimizer(f)
+        ...    strip_optimizer(f)
     """
     try:
         x = torch_load(f, map_location=torch.device("cpu"))

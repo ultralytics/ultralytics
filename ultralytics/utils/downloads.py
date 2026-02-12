@@ -48,7 +48,7 @@ def is_url(url: str | Path, check: bool = False) -> bool:
     """Validate if the given string is a URL and optionally check if the URL exists online.
 
     Args:
-        url (str): The string to be validated as a URL.
+        url (str | Path): The string to be validated as a URL.
         check (bool, optional): If True, performs an additional check to see if the URL exists online.
 
     Returns:
@@ -289,9 +289,9 @@ def safe_download(
     robust partial download detection using Content-Length validation.
 
     Args:
-        url (str): The URL of the file to be downloaded.
-        file (str, optional): The filename of the downloaded file. If not provided, the file will be saved with the same
-            name as the URL.
+        url (str | Path): The URL of the file to be downloaded.
+        file (str | Path, optional): The filename of the downloaded file. If not provided, the file will be saved with
+            the same name as the URL.
         dir (str | Path, optional): The directory to save the downloaded file. If not provided, the file will be saved
             in the current working directory.
         unzip (bool, optional): Whether to unzip the downloaded file.
@@ -493,7 +493,7 @@ def download(
     Supports concurrent downloads if multiple threads are specified.
 
     Args:
-        url (str | list[str]): The URL or list of URLs of the files to be downloaded.
+        url (str | list[str] | Path): The URL or list of URLs of the files to be downloaded.
         dir (Path, optional): The directory where the files will be saved.
         unzip (bool, optional): Flag to unzip the files after downloading.
         delete (bool, optional): Flag to delete the zip files after extraction.

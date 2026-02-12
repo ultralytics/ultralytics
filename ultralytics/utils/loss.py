@@ -858,8 +858,8 @@ class PoseLoss26(v8PoseLoss):
         """Calculate the RLE (Residual Log-likelihood Estimation) loss for keypoints.
 
         Args:
-            pred_kpt (torch.Tensor): Predicted keypoints with sigma, shape (N, kpts_dim) where kpts_dim >= 4.
-            gt_kpt (torch.Tensor): Ground truth keypoints, shape (N, kpts_dim).
+            pred_kpt (torch.Tensor): Predicted kpts with sigma, shape (N, num_keypoints, kpts_dim) where kpts_dim >= 4.
+            gt_kpt (torch.Tensor): Ground truth keypoints, shape (N, num_keypoints, kpts_dim).
             kpt_mask (torch.Tensor): Mask for valid keypoints, shape (N, num_keypoints).
 
         Returns:
@@ -1228,7 +1228,7 @@ class TVPSegmentLoss(TVPDetectLoss):
         return self.loss(self.parse_output(preds), batch)
 
     def loss(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
-        """Calculate the loss for text-visual prompt detection."""
+        """Calculate the loss for text-visual prompt segmentation."""
         if self.ori_nc == preds["scores"].shape[1]:
             loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()

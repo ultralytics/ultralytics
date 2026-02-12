@@ -358,7 +358,7 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
         image_paths (list[Path]): List of paths to images that will be logged.
-        curr_step (int): Current training step/iteration for tracking in the experiment timeline.
+        curr_step (int | None): Current training step/iteration for tracking in the experiment timeline.
         annotations (list[list[dict]], optional): Nested list of annotation dictionaries for each image. Each annotation
             contains visualization data like bounding boxes, labels, and confidence scores.
     """

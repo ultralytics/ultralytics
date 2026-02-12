@@ -77,7 +77,7 @@ def segment2box(segment, width: int = 640, height: int = 640):
     inside-image constraint and clips coordinates when necessary.
 
     Args:
-        segment (torch.Tensor): Segment coordinates in format (N, 2) where N is number of points.
+        segment (np.ndarray): Segment coordinates in format (N, 2) where N is number of points.
         width (int): Width of the image in pixels.
         height (int): Height of the image in pixels.
 
@@ -372,7 +372,7 @@ def xywhr2xyxyxyxy(x):
 
     Args:
         x (np.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format with shape (N, 5) or (B, N, 5). Rotation
-            values should be in radians from 0 to pi/2.
+            values should be in radians from [-pi/4, 3pi/4).
 
     Returns:
         (np.ndarray | torch.Tensor): Converted corner points with shape (N, 4, 2) or (B, N, 4, 2).
@@ -535,7 +535,7 @@ def scale_masks(
     Args:
         masks (torch.Tensor): Masks with shape (N, C, H, W).
         shape (tuple[int, int]): Target height and width as (height, width).
-        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
+        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)).
         padding (bool): Whether masks are based on YOLO-style augmented images with padding.
 
     Returns:
@@ -567,7 +567,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
         img1_shape (tuple): Source image shape as HWC or HW (supports both).
         coords (torch.Tensor): Coordinates to scale with shape (N, 2).
         img0_shape (tuple): Image 0 shape as HWC or HW (supports both).
-        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
+        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)).
         normalize (bool): Whether to normalize coordinates to range [0, 1].
         padding (bool): Whether coordinates are based on YOLO-style augmented images with padding.
 
@@ -669,5 +669,5 @@ def clean_str(s):
 
 
 def empty_like(x):
-    """Create empty torch.Tensor or np.ndarray with same shape as input and float32 dtype."""
+    """Create empty torch.Tensor or np.ndarray with same shape and dtype as input."""
     return torch.empty_like(x, dtype=x.dtype) if isinstance(x, torch.Tensor) else np.empty_like(x, dtype=x.dtype)

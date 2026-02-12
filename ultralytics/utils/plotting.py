@@ -691,7 +691,7 @@ def plot_images(
     Args:
         labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks',
             'keypoints', 'batch_idx', 'img'.
-        images (torch.Tensor | np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
+        images (torch.Tensor | np.ndarray): Batch of images to plot. Shape: (batch_size, channels, height, width).
         paths (Optional[list[str]]): List of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
         names (Optional[dict[int, str]]): Dictionary mapping class indices to class names.
@@ -865,7 +865,7 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
 
     Examples:
         >>> from ultralytics.utils.plotting import plot_results
-        >>> plot_results("path/to/results.csv", segment=True)
+        >>> plot_results("path/to/results.csv")
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
     import polars as pl

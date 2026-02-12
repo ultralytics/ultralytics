@@ -210,8 +210,8 @@ def onnx_export_patch():
         func = torch.onnx.export
 
         def torch_export(*args, **kwargs):
-            """Return a 1-D tensor of size with values from the interval and common difference."""
-            return func(*args, **kwargs, dynamo=False)  # cast to dtype instead of passing dtype
+            """Export model to ONNX format with Dynamo disabled for compatibility."""
+            return func(*args, **kwargs, dynamo=False)
 
         torch.onnx.export = torch_export  # patch
         yield

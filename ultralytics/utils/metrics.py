@@ -359,8 +359,8 @@ class ConfusionMatrix(DataExportMixin):
         """Update confusion matrix for classification task.
 
         Args:
-            preds (list[N, min(nc,5)]): Predicted class labels.
-            targets (list[N, 1]): Ground truth class labels.
+            preds (list[torch.Tensor]): Predicted class labels.
+            targets (list[torch.Tensor]): Ground truth class labels.
         """
         preds, targets = torch.cat(preds)[:, 0], torch.cat(targets)
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
@@ -1331,7 +1331,7 @@ class PoseMetrics(DetMetrics):
         nt_per_image: Number of targets per image.
 
     Methods:
-        process: Process the detection and pose metrics over the given set of predictions. R
+        process: Process the detection and pose metrics over the given set of predictions.
         keys: Return a list of keys for accessing metrics.
         mean_results: Return the mean results of box and pose.
         class_result: Return the class-wise detection results for a specific class i.

@@ -842,7 +842,7 @@ def check_amp(model):
         model (torch.nn.Module): A YOLO model instance.
 
     Returns:
-        (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.
+        (bool): Returns True if the AMP functionality works correctly with YOLO model, else False.
 
     Examples:
         >>> from ultralytics import YOLO

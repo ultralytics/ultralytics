@@ -1,4 +1,6 @@
 from ultralytics.utils.torch_utils import copy_attr
+from ultralytics.utils.metrics import bbox_iou
+from ultralytics.utils.tal import dist2bbox
 from .tasks import load_checkpoint
 import torch.nn.functional as F
 from torch import nn
@@ -134,6 +136,8 @@ class DistillationModel(nn.Module):
             teacher_scores = teacher_feats[-1]['one2one']['scores']
             parts = torch.split(teacher_scores, [6400, 1600, 400], dim=-1)
             teacher_scores = tuple(p.sigmoid().max(dim=1, keepdim=True).values for p in parts)
+        if self.distill_box_loss == "siou":
+            teacher_scores = teacher_feats[-1]['one2one']['scores']
         for i, feat_idx in enumerate(self.feats_idx):
             # handle head ouput
             teacher_feat = self.decouple_outputs(teacher_feats[i])
@@ -163,13 +167,31 @@ class DistillationModel(nn.Module):
                     if self.distill_box_loss:
                         teacher_boxes = teacher_feat["boxes"]
                         student_boxes = student_feat["boxes"]
-                        if self.distill_area == "main":
+                        if self.distill_box_loss in {"iou", "siou"}:
+                            anchor_points = targets[branch][3]
                             teacher_boxes = teacher_boxes.permute(0, 2, 1).contiguous()  # (bs, c, anchors) -> (bs, anchors, c)
                             student_boxes = student_boxes.permute(0, 2, 1).contiguous()
-                            fg_mask = targets[branch][0]
-                            teacher_boxes = teacher_boxes[fg_mask]  # (n, c)
-                            student_boxes = student_boxes[fg_mask]
-                        loss_distill_box += self.box_kd_loss(student_boxes, teacher_boxes) * self.distill_box
+                            teacher_score_weight = None
+                            if self.distill_box_loss == "siou":
+                                # teacher_scores = teacher_feat["scores"]
+                                teacher_scores = teacher_scores.sigmoid().amax(dim=1, keepdim=True)
+                                teacher_score_weight = teacher_scores.permute(0, 2, 1).contiguous()
+                            if self.distill_area == "main":
+                                fg_mask = targets[branch][0]
+                                teacher_boxes = teacher_boxes[fg_mask]  # (n, c)
+                                student_boxes = student_boxes[fg_mask]
+                                anchor_points = anchor_points.unsqueeze(0).expand(fg_mask.shape[0], -1, -1)[fg_mask]
+                                if teacher_score_weight is not None:
+                                    teacher_score_weight = teacher_score_weight[fg_mask]
+                            loss_distill_box += self.box_kd_loss(student_boxes, teacher_boxes, anchor_points, teacher_score_weight) * self.distill_box
+                        else:
+                            if self.distill_area == "main":
+                                teacher_boxes = teacher_boxes.permute(0, 2, 1).contiguous()  # (bs, c, anchors) -> (bs, anchors, c)
+                                student_boxes = student_boxes.permute(0, 2, 1).contiguous()
+                                fg_mask = targets[branch][0]
+                                teacher_boxes = teacher_boxes[fg_mask]  # (n, c)
+                                student_boxes = student_boxes[fg_mask]
+                            loss_distill_box += self.box_kd_loss(student_boxes, teacher_boxes) * self.distill_box
             else:
                 if self.distill_feature_loss:
                     student_feat = (
@@ -237,13 +259,56 @@ class DistillationModel(nn.Module):
         dis_loss = dis_loss.sum() / (teacher_score.sum() * C + 1e-9)
         return dis_loss
 
-    def box_kd_loss(self, student_boxes, teacher_boxes):
+    def bbox_decode(self, anchor_points, pred_dist):
+        c = pred_dist.shape[-1]
+        if c % 4 != 0:
+            raise ValueError(f"Expected box channels divisible by 4, but got {c}")
+        if c > 4:
+            reg_max = c // 4
+            proj = torch.arange(reg_max, dtype=pred_dist.dtype, device=pred_dist.device)
+            pred_dist = pred_dist.view(*pred_dist.shape[:-1], 4, reg_max).softmax(-1).matmul(proj)
+        return dist2bbox(pred_dist, anchor_points, xywh=False)
+
+    def loss_iou(self, student_boxes, teacher_boxes, anchor_points):
+        if student_boxes.numel() == 0:
+            return student_boxes.sum() * 0.0
+        student_decoded = self.bbox_decode(anchor_points, student_boxes)
+        teacher_decoded = self.bbox_decode(anchor_points, teacher_boxes)
+        iou = bbox_iou(student_decoded, teacher_decoded, xywh=False, CIoU=True)
+        return (1.0 - iou).mean()
+
+    def loss_siou(self, student_boxes, teacher_boxes, anchor_points, teacher_scores):
+        if student_boxes.numel() == 0:
+            return student_boxes.sum() * 0.0
+        if teacher_scores is None:
+            raise ValueError("teacher_score_weight is required when distill_box_loss is 'siou'.")
+        if teacher_scores.shape[:-1] != student_boxes.shape[:-1] or teacher_scores.shape[-1] != 1:
+            raise ValueError(
+                f"teacher_score_weight shape {tuple(teacher_scores.shape)} does not match boxes shape {tuple(student_boxes.shape)}."
+            )
+
+        student_decoded = self.bbox_decode(anchor_points, student_boxes)
+        teacher_decoded = self.bbox_decode(anchor_points, teacher_boxes)
+        ciou = bbox_iou(student_decoded, teacher_decoded, xywh=False, CIoU=True)
+        base_loss = 1.0 - ciou
+        teacher_scores = teacher_scores.to(base_loss.dtype)
+        return (base_loss * teacher_scores).sum() / (teacher_scores.sum() + 1e-9)
+
+    def box_kd_loss(self, student_boxes, teacher_boxes, anchor_points=None, teacher_scores=None):
         if self.distill_box_loss == "cos":
             return self.loss_cosine(student_boxes, teacher_boxes)
         elif self.distill_box_loss == "l1":
             return F.l1_loss(student_boxes, teacher_boxes)
         elif self.distill_box_loss == "l2":
             return F.mse_loss(student_boxes, teacher_boxes)
+        elif self.distill_box_loss == "iou":
+            if anchor_points is None:
+                raise ValueError("anchor_points is required when distill_box_loss is 'iou'.")
+            return self.loss_iou(student_boxes, teacher_boxes, anchor_points)
+        elif self.distill_box_loss == "siou":
+            if anchor_points is None:
+                raise ValueError("anchor_points is required when distill_box_loss is 'siou'.")
+            return self.loss_siou(student_boxes, teacher_boxes, anchor_points, teacher_scores)
         else:
             raise ValueError(f"Unknown box distillation loss: {self.distill_box_loss}")
 

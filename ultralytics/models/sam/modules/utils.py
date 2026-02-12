@@ -397,15 +397,15 @@ def get_abs_pos(
     original embeddings.
 
     Args:
-        abs_pos (Tensor): absolute positional embeddings with (1, num_position, C).
+        abs_pos (torch.Tensor): Absolute positional embeddings with shape (1, num_position, C).
         has_cls_token (bool): If true, has 1 embedding in abs_pos for cls token.
-        hw (Tuple): size of input image tokens.
-        retain_cls_token: whether to retain the cls_token
-        tiling: whether to tile the embeddings, *instead* of interpolation (a la abs_win)
+        hw (tuple[int, int]): Size of input image tokens.
+        retain_cls_token (bool): Whether to retain the cls_token.
+        tiling (bool): Whether to tile the embeddings, *instead* of interpolation (a la abs_win).
 
     Returns:
-        Absolute positional embeddings after processing with shape (1, H, W, C),: if retain_cls_token is False,
-            otherwise (1, 1+H*W, C).
+        (torch.Tensor): Absolute positional embeddings after processing with shape (1, H, W, C) if retain_cls_token is
+            False, otherwise (1, 1+H*W, C).
     """
     if retain_cls_token:
         assert has_cls_token
@@ -464,18 +464,18 @@ def concat_rel_pos(
     """Concatenate rel pos coeffs to the q & k tensors, so that qk^T is now effectively including rel pos biases.
 
     Args:
-        q (torch.Tensor): q tensor with shape (B, L_q, C).
-        k (torch.Tensor): k tensor with shape (B, L_k, C).
-        q_hw: These are spatial size of q tensors.
-        k_hw: These are spatial size of k tensors.
-        rel_pos_h: These are relative pos embeddings/params of height.
-        rel_pos_w: These are relative pos embeddings/params of width.
-        rescale (bool): whether to rescale. e.g. for use when using sdpa, pytorch will scale by the wrong factor due to
-            the concat.
-        relative_coords (torch.Tensor, optional): Precomputed relative coords index tensor.
+        q (torch.Tensor): Query tensor with shape (B, L_q, C).
+        k (torch.Tensor): Key tensor with shape (B, L_k, C).
+        q_hw (tuple[int, int]): Spatial size of query tensors as (height, width).
+        k_hw (tuple[int, int]): Spatial size of key tensors as (height, width).
+        rel_pos_h (torch.Tensor): Relative positional embeddings for the height axis.
+        rel_pos_w (torch.Tensor): Relative positional embeddings for the width axis.
+        rescale (bool): Whether to rescale for use with SDPA, which would scale by the wrong factor due to the concat.
+        relative_coords (torch.Tensor | None): Precomputed relative coords index tensor.
 
     Returns:
-        q, k: But, padded so that qk^T accounts for rel pos biases.
+        q (torch.Tensor): Query tensor padded so that qk^T accounts for relative position biases.
+        k (torch.Tensor): Key tensor padded so that qk^T accounts for relative position biases.
     """
     q_h, q_w = q_hw
     k_h, k_w = k_hw

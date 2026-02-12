@@ -60,17 +60,16 @@ class Attention(nn.Module):
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads.
             qkv_bias (bool): If True, add a learnable bias to query, key, value.
-            rel_pos (bool): If True, add relative positional embeddings to the attention map.
+            use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            input_size (int or None): Input resolution for calculating the relative positional parameter size or rope
-                size.
-            attn_type: Type of attention operation, e.g. "vanilla", "vanilla-xformer".
-            cls_token: whether a cls_token is present.
-            use_rope: whether to use rope 2d (indep of use_rel_pos, as it can be used together)
-            use_rel_pos: whether to use relative positional embeddings
-            rope_theta: control frequencies of rope
-            rope_pt_size: size of rope in previous stage of training, needed for interpolation or tiling
-            rope_interp: whether to interpolate (or extrapolate) rope to match input size.
+            input_size (tuple[int, int] or None): Input resolution for calculating the relative positional parameter
+                size or rope size.
+            cls_token (bool): Whether a cls_token is present.
+            use_rope (bool): Whether to use rope 2d (independent of use_rel_pos, as it can be used together).
+            rope_theta (float): Control frequencies of rope.
+            rope_pt_size (tuple[int, int] or None): Size of rope in previous stage of training, needed for interpolation
+                or tiling.
+            rope_interp (bool): Whether to interpolate (or extrapolate) rope to match input size.
         """
         super().__init__()
         self.num_heads = num_heads
@@ -244,19 +243,21 @@ class Block(nn.Module):
             mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
             qkv_bias (bool): If True, add a learnable bias to query, key, value.
             drop_path (float): Stochastic depth rate.
-            norm_layer (nn.Module): Normalization layer.
-            act_layer (nn.Module): Activation layer.
+            norm_layer (Callable): Normalization layer constructor.
+            act_layer (Callable): Activation layer constructor.
             use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
             window_size (int): Window size for window attention blocks. If it equals 0, then not use window attention.
-            input_size (int or None): Input resolution for calculating the relative positional parameter size.
+            input_size (tuple[int, int] | None): Input resolution for calculating the relative positional parameter
+                size.
+            use_rope (bool): Whether to use rope 2d (independent of use_rel_pos, as it can be used together).
+            rope_pt_size (tuple[int, int] | None): Size of rope in previous stage of training, needed for interpolation
+                or tiling.
+            rope_interp (bool): Whether to interpolate (or extrapolate) rope to match target input size, expected to
+                specify source size as rope_pt_size.
+            cls_token (bool): Whether a cls_token is present.
             dropout (float): Dropout rate.
-            cls_token: whether a cls_token is present.
-            use_rope: whether to use rope 2d (indep of use_rel_pos, as it can be used together)
-            rope_pt_size: size of rope in previous stage of training, needed for interpolation or tiling
-            rope_interp: whether to interpolate (or extrapolate) rope to match target input size, expected to specify
-                source size as rope_pt_size.
-            init_values: layer scale init, None for no layer scale.
+            init_values (float | None): Layer scale init, None for no layer scale.
         """
         super().__init__()
 
@@ -360,29 +361,30 @@ class ViT(nn.Module):
             mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
             qkv_bias (bool): If True, add a learnable bias to query, key, value.
             drop_path_rate (float): Stochastic depth rate.
-            norm_layer (nn.Module): Normalization layer.
-            act_layer (nn.Module): Activation layer.
+            norm_layer (Callable or str): Normalization layer constructor or name.
+            act_layer (Callable): Activation layer constructor.
             use_abs_pos (bool): If True, use absolute positional embeddings.
             tile_abs_pos (bool): If True, tile absolute positional embeddings instead of interpolation.
-            rel_pos_blocks (list): Blocks which have rel pos embeddings.
+            rel_pos_blocks (tuple[int, ...] | bool): Blocks which have rel pos embeddings.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
             window_size (int): Window size for window attention blocks.
-            global_att_blocks (list): Indexes for blocks using global attention (other blocks use window attention).
-            use_rope (bool): whether to use rope 2d (indep of rel_pos_blocks, as it can be used together).
-            rope_pt_size (int): size of rope in previous stage of training, needed for interpolation or tiling.
-            use_interp_rope: whether to interpolate (or extrapolate) rope to match target input size, expected to
+            global_att_blocks (tuple[int, ...]): Indexes for blocks using global attention (other blocks use window
+                attention).
+            use_rope (bool): Whether to use rope 2d (independent of rel_pos_blocks, as it can be used together).
+            rope_pt_size (int | None): Size of rope in previous stage of training, needed for interpolation or tiling.
+            use_interp_rope (bool): Whether to interpolate (or extrapolate) rope to match target input size, expected to
                 specify source size as rope_pt_size.
-            use_act_checkpoint (bool): If True, use activation checkpointing.
-            pretrain_img_size (int): input image size for pretraining models.
+            pretrain_img_size (int): Input image size for pretraining models.
             pretrain_use_cls_token (bool): If True, pretraining models use class token.
-            retain_cls_token: whether cls_token should be retained.
+            retain_cls_token (bool): Whether cls_token should be retained.
             dropout (float): Dropout rate. Applied in residual blocks of attn, mlp and inside the mlp.
             return_interm_layers (bool): Whether to return intermediate layers (all global attention blocks).
-            init_values: layer scale init, None for no layer scale.
+            init_values (float | None): Layer scale init, None for no layer scale.
             ln_pre (bool): If True, apply layer norm before transformer blocks.
             ln_post (bool): If True, apply layer norm after transformer blocks.
-            bias_patch_embed (bool): bias in conv for patch embed?
-            compile_mode (str): mode to compile the forward.
+            bias_patch_embed (bool): If True, use bias in conv for patch embed.
+            compile_mode (str | None): Mode to compile the forward, or None to disable.
+            use_act_checkpoint (bool): If True, use activation checkpointing.
         """
         super().__init__()
         self.pretrain_use_cls_token = pretrain_use_cls_token

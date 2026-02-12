@@ -204,7 +204,7 @@ class DetectionTrainer(BaseTrainer):
 
         Args:
             batch (dict[str, Any]): Dictionary containing batch data.
-            ni (int): Number of iterations.
+            ni (int): Batch index used for naming the output file.
         """
         plot_images(
             labels=batch,

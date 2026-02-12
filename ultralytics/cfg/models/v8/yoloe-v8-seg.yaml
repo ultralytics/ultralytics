@@ -45,4 +45,4 @@ head:
   - [[-1, 9], 1, Concat, [1]] # cat head P5
   - [-1, 3, C2f, [1024]] # 21 (P5/32-large)
 
-  - [[15, 18, 21], 1, YOLOESegment, [nc, 32, 256, 512, True]] # Segment(P3, P4, P5)
+  - [[15, 18, 21], 1, YOLOESegment, [nc, 32, 256, 512, True]] # YOLOESegment(P3, P4, P5)

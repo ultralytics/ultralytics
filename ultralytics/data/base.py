@@ -85,6 +85,9 @@ class BaseDataset(Dataset):
         classes: list[int] | None = None,
         fraction: float = 1.0,
         channels: int = 3,
+        mode="train",
+        train_ratio=None,
+        val_ratio=None,
     ):
         """Initialize BaseDataset with given configuration and options.
 
@@ -104,6 +107,11 @@ class BaseDataset(Dataset):
             fraction (float): Fraction of dataset to utilize.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
+            mode (str): Dataset mode, either 'train' or 'val'. Determines which ratio to apply.
+            train_ratio (list[float], optional): List of ratios (0.0-1.0) to apply for each training dataset path. If
+                None, uses 1.0 (100%) for all datasets. Must match length of img_path list or be shorter.
+            val_ratio (list[float], optional): List of ratios (0.0-1.0) to apply for each validation dataset path. If
+                None, uses 1.0 (100%) for all datasets.
         """
         super().__init__()
         self.img_path = img_path
@@ -114,7 +122,10 @@ class BaseDataset(Dataset):
         self.fraction = fraction
         self.channels = channels
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
-        self.im_files = self.get_img_files(self.img_path)
+        self.mode = mode  # 'train' or 'val'
+        self.train_ratio = train_ratio  # ratio for each dataset in img_path
+        self.val_ratio = val_ratio
+        self.im_files = self.get_img_files(self.img_path, self.mode)
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
         self.ni = len(self.labels)  # number of images
@@ -147,35 +158,63 @@ class BaseDataset(Dataset):
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
 
-    def get_img_files(self, img_path: str | list[str]) -> list[str]:
-        """Read image files from the specified path.
+    def get_img_files(self, img_path: str | list[str], mode: str) -> list[str]:
+        """Read image files from the specified path with optional ratio filtering per dataset.
 
         Args:
             img_path (str | list[str]): Path or list of paths to image directories or files.
+            mode (str): Dataset mode ('train' or 'val') to determine which ratio list to use.
 
         Returns:
-            (list[str]): List of image file paths.
+            (list[str]): List of image file paths after applying ratios and shuffling.
 
         Raises:
             FileNotFoundError: If no images are found or the path doesn't exist.
+
+        Notes:
+            - For each dataset path, files are sorted, then a ratio is applied to select a subset,
+              then the subset is shuffled for randomness while maintaining reproducibility per dataset.
+            - Ratios must be between 0.0 and 1.0. Invalid ratios default to 1.0 with a warning.
         """
+        _ratio = None
+        if mode == "val" and self.val_ratio is not None:
+            _ratio = self.val_ratio
+        elif mode == "train" and self.train_ratio is not None:
+            _ratio = self.train_ratio
         try:
             f = []  # image files
-            for p in img_path if isinstance(img_path, list) else [img_path]:
+            for i, p in enumerate(img_path if isinstance(img_path, list) else [img_path]):
                 p = Path(p)  # os-agnostic
+                ratio = _ratio[i] if _ratio and i < len(_ratio) else 1.0  # default to 1.0 if not provided
+
+                # Validate ratio
+                if ratio < 0 or ratio > 1:
+                    LOGGER.warning(f"{self.prefix}Invalid ratio {ratio} for {p}, using 1.0")
+                    ratio = 1.0
+
                 if p.is_dir():  # dir
-                    f += glob.glob(str(p / "**" / "*.*"), recursive=True)
-                    # F = list(p.rglob('*.*'))  # pathlib
+                    files = glob.glob(str(p / "**" / "*.*"), recursive=True)
+                    files = sorted(x.replace("/", os.sep) for x in files if x.split(".")[-1].lower() in IMG_FORMATS)
+                    if ratio < 1.0:
+                        random.shuffle(files)
+                        files = files[: int(len(files) * ratio)]
+                    f += files
                 elif p.is_file():  # file
                     with open(p, encoding="utf-8") as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
-                        f += [x.replace("./", parent) if x.startswith("./") else x for x in t]  # local to global path
-                        # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
+                        files = [
+                            x.replace("./", parent) if x.startswith("./") else x for x in t
+                        ]  # local to global path
+                        files = sorted(x.replace("/", os.sep) for x in files if x.split(".")[-1].lower() in IMG_FORMATS)
+                        if ratio < 1.0:
+                            random.shuffle(files)
+                            files = files[: int(len(files) * ratio)]
+                        f += files
                 else:
                     raise FileNotFoundError(f"{self.prefix}{p} does not exist")
-            im_files = sorted(x.replace("/", os.sep) for x in f if x.rpartition(".")[-1].lower() in IMG_FORMATS)
-            # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
+            # Already filtered and formatted, no need for additional processing
+            im_files = f
             assert im_files, f"{self.prefix}No images found in {img_path}. {FORMATS_HELP_MSG}"
         except Exception as e:
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e

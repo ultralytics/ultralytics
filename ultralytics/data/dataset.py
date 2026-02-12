@@ -186,7 +186,10 @@ class YOLODataset(BaseDataset):
             raise RuntimeError(
                 f"No valid images found in {cache_path}. Images with incorrectly formatted labels are ignored. {HELP_URL}"
             )
-        self.im_files = [lb["im_file"] for lb in labels]  # update im_files
+        # self.im_files = [lb["im_file"] for lb in labels]  # update im_files
+        im_files_set = set(self.im_files)  # im_files từ BaseDataset.get_img_files() đã apply ratio
+        labels = [lb for lb in labels if lb["im_file"] in im_files_set]
+        self.im_files = [lb["im_file"] for lb in labels]
 
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)

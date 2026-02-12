@@ -473,6 +473,10 @@ class Exporter:
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
+        if is_tf_format:
+            assert not WINDOWS, (
+                f"Exporting to format='{fmt}' is not supported on Windows. Alternatively, you can try exporting using Google Colab."
+            )
         if tfjs and (ARM64 and LINUX):
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
         # Recommend OpenVINO if export and Intel CPU

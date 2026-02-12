@@ -215,6 +215,7 @@ def test_export_coreml():
 
 
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
+@pytest.mark.skipif(not TORCH_1_13, reason="TFLite export requires torch>=1.13")
 @pytest.mark.skipif(not LINUX, reason="Test disabled as TF suffers from install conflicts on Windows and macOS")
 def test_export_tflite():
     """Test YOLO export to TFLite format under specific OS and Python version conditions."""
@@ -283,8 +284,10 @@ def test_export_ncnn_matrix(task, half, batch):
 
 @pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="Requires Python>=3.9")
-@pytest.mark.skipif(WINDOWS or MACOS, reason="Skipping test on Windows and Macos")
-@pytest.mark.skipif(ARM64, reason="IMX export is not supported on ARM64 architectures.")
+@pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
+@pytest.mark.skipif(
+    IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
+)
 def test_export_imx():
     """Test YOLO export to IMX format."""
     model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11

@@ -962,6 +962,7 @@ class PoseLoss26(v8PoseLoss):
 
             if self.rle_loss is not None and (pred_kpt.shape[-1] == 4 or pred_kpt.shape[-1] == 5):
                 rle_loss = self.calculate_rle_loss(pred_kpt, gt_kpt, kpt_mask)
+                rle_loss = rle_loss.clamp(min=0)
             if pred_kpt.shape[-1] == 3 or pred_kpt.shape[-1] == 5:
                 kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
 

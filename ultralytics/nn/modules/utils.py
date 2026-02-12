@@ -311,3 +311,25 @@ def freeze_batch_norm2d(module: nn.Module) -> nn.Module:
             if _child is not child:
                 setattr(module, name, _child)
     return module
+
+
+def freeze_norm_layers(module: nn.Module) -> nn.Module:
+    """Freeze all normalization layers (BatchNorm2d, LayerNorm, GroupNorm) in a module.
+
+    BatchNorm2d layers are replaced with FrozenBatchNorm2d (frozen running stats + params).
+    LayerNorm/GroupNorm layers have their affine parameters frozen via requires_grad_(False).
+    """
+    if isinstance(module, nn.BatchNorm2d):
+        frozen = FrozenBatchNorm2d(module.num_features, eps=module.eps)
+        frozen.load_state_dict(module.state_dict(), strict=True)
+        return frozen
+
+    if isinstance(module, (nn.LayerNorm, nn.GroupNorm)):
+        module.requires_grad_(False)
+        return module
+
+    for name, child in module.named_children():
+        _child = freeze_norm_layers(child)
+        if _child is not child:
+            setattr(module, name, _child)
+    return module

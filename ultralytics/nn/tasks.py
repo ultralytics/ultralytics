@@ -78,6 +78,7 @@ from ultralytics.nn.modules import (
     v10Detect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
+from ultralytics.utils.class_map import is_default_numeric_names, names_to_list, remap_class_row_state_dict
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2ELoss,
@@ -746,6 +747,51 @@ class RTDETRDetectionModel(DetectionModel):
             verbose (bool): Print additional information during initialization.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    @staticmethod
+    def _is_default_numeric_names(names) -> bool:
+        """Return True if names look like default numeric placeholders: {0:'0', 1:'1', ...}."""
+        return is_default_numeric_names(names)
+
+    def load(self, weights, verbose=True, src_names=None, dst_names=None):
+        """Load weights with optional RT-DETR class-row remapping for cross-dataset transfer."""
+        model = weights["model"] if isinstance(weights, dict) else weights
+        csd = model.float().state_dict()
+        state_dict = self.state_dict()
+
+        # Source names: checkpoint names if available.
+        if src_names is None:
+            src_names = getattr(model, "names", None)
+
+        # Destination names: explicit > current model names.
+        if dst_names is None:
+            dst_names = getattr(self, "names", None)
+
+        # Discard denoising_class_embed when class count changes (following DEIM approach).
+        # A partially-remapped embedding is worse than fresh random initialization.
+        # Must run BEFORE class remapping, which would resize the tensor and mask the mismatch.
+        dn_discard = [k for k in csd if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape]
+        for k in dn_discard:
+            del csd[k]
+            if verbose:
+                LOGGER.info(f"Discarded '{k}' due to class-count mismatch (will be randomly initialized)")
+
+        src_is_default = is_default_numeric_names(src_names)
+        dst_is_default = is_default_numeric_names(dst_names)
+        src_name_list = names_to_list(src_names)
+        dst_name_list = names_to_list(dst_names)
+        names_match = bool(src_name_list) and src_name_list == dst_name_list
+        if src_names is not None and dst_names is not None and not src_is_default and not dst_is_default and not names_match:
+            csd, remapped, missing = remap_class_row_state_dict(csd, state_dict, src_names=src_names, dst_names=dst_names)
+            if verbose and remapped:
+                LOGGER.info(f"Remapped {len(remapped)} class tensors using source->target class-name map")
+            if verbose and missing:
+                LOGGER.info(f"{len(missing)} target classes were not mapped and kept target initialization")
+
+        updated_csd = intersect_dicts(csd, state_dict)
+        self.load_state_dict(updated_csd, strict=False)
+        if verbose:
+            LOGGER.info(f"Transferred {len(updated_csd)}/{len(self.model.state_dict())} items from pretrained weights")
 
     def one_to_many_targets(self, targets, k):
         """Repeat ground truth targets for one-to-many matching.

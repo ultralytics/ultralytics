@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 from copy import copy
-import random
-import math
 
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import LOGGER, RANK, colorstr
+from ultralytics.utils.class_map import resolve_names
 from torch import nn, optim
-from ultralytics.utils import LOGGER
 from ultralytics.optim.muon import MuSGD
 import torch
 
@@ -60,10 +58,14 @@ class RTDETRTrainer(DetectionTrainer):
         """
         model = RTDETRDetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         if weights:
-            model.load(weights)
+            src_args = getattr(weights, "args", None)
+            src_data_yaml = src_args.get("data") if isinstance(src_args, dict) else getattr(src_args, "data", None)
+            src_names = resolve_names(getattr(weights, "names", None), src_data_yaml)
+            dst_names = resolve_names(self.data.get("names"), getattr(self.args, "data", None))
+            model.load(weights, verbose=verbose and RANK == -1, src_names=src_names, dst_names=dst_names)
         freeze_bn = str(getattr(self.args, "freeze_bn", "none")).lower().replace("+", "_")
         if freeze_bn in {"backbone", "backbone_neck"}:
-            from ultralytics.nn.modules.utils import freeze_batch_norm2d
+            from ultralytics.nn.modules.utils import freeze_norm_layers
 
             nb = len(model.yaml["backbone"])
             freeze_to = nb
@@ -73,7 +75,7 @@ class RTDETRTrainer(DetectionTrainer):
                 freeze_to = nb + head_cut
 
             for i, m in enumerate(model.model[:freeze_to]):
-                frozen = freeze_batch_norm2d(m)
+                frozen = freeze_norm_layers(m)
                 if frozen is not m:
                     model.model[i] = frozen
         return model

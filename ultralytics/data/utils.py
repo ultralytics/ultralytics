@@ -337,7 +337,7 @@ def polygons2masks(
 def polygons2masks_overlap(
     imgsz: tuple[int, int], segments: list[np.ndarray], downsample_ratio: int = 1
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return a (640, 640) overlap mask."""
+    """Return a downsampled overlap mask and sorted area indices."""
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
         dtype=np.int32 if len(segments) > 255 else np.uint8,

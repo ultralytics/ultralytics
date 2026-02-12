@@ -62,7 +62,7 @@ class YOLODataset(BaseDataset):
         cache_labels: Cache dataset labels, check images and read shapes.
         get_labels: Return dictionary of labels for YOLO training.
         build_transforms: Build and append transforms to the list.
-        close_mosaic: Set mosaic, copy_paste and mixup options to 0.0 and build transformations.
+        close_mosaic: Disable mosaic, copy_paste, mixup and cutmix augmentations and build transformations.
         update_labels_info: Update label format for different tasks.
         collate_fn: Collate data samples into batches.
 
@@ -379,7 +379,7 @@ class YOLOMultiModalDataset(YOLODataset):
         """Return category names for the dataset.
 
         Returns:
-            (set[str]): List of class names.
+            (set[str]): Set of class names.
         """
         names = self.data["names"].values()
         return {n.strip() for name in names for n in name.split("/")}  # category names
@@ -667,7 +667,7 @@ class YOLOConcatDataset(ConcatDataset):
         return YOLODataset.collate_fn(batch)
 
     def close_mosaic(self, hyp: dict) -> None:
-        """Set mosaic, copy_paste and mixup options to 0.0 and build transformations.
+        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.
@@ -792,7 +792,7 @@ class ClassificationDataset:
         """Verify all images in dataset.
 
         Returns:
-            (list): List of valid samples after verification.
+            (list[tuple]): List of valid samples after verification.
         """
         desc = f"{self.prefix}Scanning {self.root}..."
         path = Path(self.root).with_suffix(".cache")  # *.cache file path

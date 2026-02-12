@@ -24,8 +24,8 @@ def coco91_to_coco80_class() -> list[int]:
     """Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (list[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
-            corresponding 91-index class ID.
+        (list[int]): A list of 91 elements where the index represents the 91-index class ID and the value is the
+            corresponding 80-index class ID, or None if there is no mapping.
     """
     return [
         0,
@@ -519,8 +519,8 @@ def min_index(arr1: np.ndarray, arr2: np.ndarray):
         arr2 (np.ndarray): A NumPy array of shape (M, 2) representing M 2D points.
 
     Returns:
-        idx1 (int): Index of the point in arr1 with the shortest distance.
-        idx2 (int): Index of the point in arr2 with the shortest distance.
+        (tuple[int, int]): A tuple (idx1, idx2) where idx1 is the index in arr1 and idx2 is the index in arr2 of the
+            pair with the shortest distance.
     """
     dis = ((arr1[:, None, :] - arr2[None, :, :]) ** 2).sum(-1)
     return np.unravel_index(np.argmin(dis, axis=None), dis.shape)
@@ -759,9 +759,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     - Subsequent lines: Individual image records with annotations and optional URLs
 
     Args:
-        ndjson_path (Union[str, Path]): Path to the input NDJSON file containing dataset information.
-        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset will be saved. If
-            None, uses the parent directory of the NDJSON file. Defaults to None.
+        ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
+        output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If
+            None, uses the DATASETS_DIR directory. Defaults to None.
 
     Returns:
         (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).

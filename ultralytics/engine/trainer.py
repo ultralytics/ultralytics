@@ -94,7 +94,7 @@ class BaseTrainer:
         best_fitness (float): The best fitness value achieved.
         fitness (float): Current fitness value.
         loss (torch.Tensor): Current loss value.
-        tloss (torch.Tensor): Total loss value.
+        tloss (torch.Tensor): Running mean of loss items.
         loss_names (list): List of loss names.
         csv (Path): Path to results CSV file.
         metrics (dict): Dictionary of metrics.
@@ -736,8 +736,9 @@ class BaseTrainer:
         """Run validation on val set using self.validator.
 
         Returns:
-            metrics (dict): Dictionary of validation metrics.
-            fitness (float): Fitness score for the validation.
+            (tuple): A tuple containing:
+                - metrics (dict | None): Dictionary of validation metrics, or None if validation was skipped.
+                - fitness (float | None): Fitness score for the validation, or None if validation was skipped.
         """
         if self.ema and self.world_size > 1:
             # Sync EMA buffers from rank 0 to all ranks

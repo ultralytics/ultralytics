@@ -250,8 +250,8 @@ class LoadScreenshots:
 
     Examples:
         >>> loader = LoadScreenshots("0 100 100 640 480")  # screen 0, top-left (100,100), 640x480
-        >>> for source, im, im0s, vid_cap, s in loader:
-        ...     print(f"Captured frame: {im.shape}")
+        >>> for sources, imgs, info in loader:
+        ...     print(f"Captured frame: {imgs[0].shape}")
     """
 
     def __init__(self, source: str, channels: int = 3):
@@ -288,7 +288,7 @@ class LoadScreenshots:
         self.monitor = {"left": self.left, "top": self.top, "width": self.width, "height": self.height}
 
     def __iter__(self):
-        """Yield the next screenshot image from the specified screen or region for processing."""
+        """Return an iterator object for the screenshot capture."""
         return self
 
     def __next__(self) -> tuple[list[str], list[np.ndarray], list[str]]:
@@ -478,7 +478,7 @@ class LoadImagesAndVideos:
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
 
     def __len__(self) -> int:
-        """Return the number of files (images and videos) in the dataset."""
+        """Return the number of batches in the dataset."""
         return math.ceil(self.nf / self.bs)  # number of batches
 
 

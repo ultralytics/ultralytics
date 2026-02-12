@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
-Ultralytics Results, Boxes and Masks classes for handling inference results.
+Ultralytics Results, Boxes, Masks, Keypoints, Probs, and OBB classes for handling inference results.
 
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
@@ -316,7 +316,7 @@ class Results(SimpleClass, DataExportMixin):
                 scores. The format is (x1, y1, x2, y2, conf, class).
             masks (torch.Tensor | None): A tensor of shape (N, H, W) containing segmentation masks.
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
-            obb (torch.Tensor | None): A tensor of shape (N, 5) containing oriented bounding box coordinates.
+            obb (torch.Tensor | None): A tensor of shape (N, 7) or (N, 8) containing oriented bounding box coordinates.
             keypoints (torch.Tensor | None): A tensor of shape (N, 17, 3) containing keypoints.
 
         Examples:
@@ -677,7 +677,7 @@ class Results(SimpleClass, DataExportMixin):
 
         Notes:
             - The file will contain one line per detection or classification with the following structure:
-              - For detections: `class confidence x_center y_center width height`
+              - For detections: `class x_center y_center width height [confidence] [track_id]`
               - For classifications: `confidence class_name`
               - For masks and keypoints, the specific formats will vary accordingly.
             - The function will create the output directory if it does not exist.

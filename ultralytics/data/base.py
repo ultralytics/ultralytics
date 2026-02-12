@@ -400,7 +400,7 @@ class BaseDataset(Dataset):
         return len(self.labels)
 
     def update_labels_info(self, label: dict[str, Any]) -> dict[str, Any]:
-        """Custom your label format here."""
+        """Customize your label format here."""
         return label
 
     def build_transforms(self, hyp: dict[str, Any] | None = None):

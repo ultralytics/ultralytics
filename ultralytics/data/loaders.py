@@ -230,7 +230,6 @@ class LoadScreenshots:
     predict source=screen`.
 
     Attributes:
-        source (str): The source input indicating which screen to capture.
         screen (int): The screen number to capture.
         left (int): The left coordinate for screen capture area.
         top (int): The top coordinate for screen capture area.

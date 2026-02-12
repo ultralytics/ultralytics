@@ -1930,10 +1930,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Args:
             im (torch.Tensor | np.ndarray): The input image tensor or numpy array.
             bboxes (list[list[float]] | None): Optional list of bounding boxes to update the memory.
-            masks (list[torch.Tensor | np.ndarray] | None): Optional masks to update the memory.
+            masks (torch.Tensor | np.ndarray | None): Optional masks to update the memory.
             points (list[list[float]] | None): Optional list of points to update the memory, each point is [x, y].
-            labels (list[int] | None): Optional list of object IDs corresponding to the points (>0 for positive, 0 for
-                negative).
+            labels (list[int] | None): Optional list of labels for point prompts (>0 for positive, 0 for negative).
             obj_ids (list[int] | None): Optional list of object IDs corresponding to the prompts.
             update_memory (bool): Flag to indicate whether to update the memory with new objects.
 

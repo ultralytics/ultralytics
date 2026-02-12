@@ -22,11 +22,11 @@ def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.n
 
     Args:
         polygon1 (np.ndarray): Polygon coordinates with shape (N, 8).
-        bbox2 (np.ndarray): Bounding boxes with shape (N, 4).
+        bbox2 (np.ndarray): Bounding boxes with shape (M, 4).
         eps (float, optional): Small value to prevent division by zero.
 
     Returns:
-        (np.ndarray): IoF scores with shape (N, 1) or (N, M) if bbox2 is (M, 4).
+        (np.ndarray): IoF scores with shape (N, M).
 
     Notes:
         Polygon format: [x1, y1, x2, y2, x3, y3, x4, y4].

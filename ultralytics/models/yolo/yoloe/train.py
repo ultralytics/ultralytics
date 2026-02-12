@@ -262,7 +262,8 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
             batch (int, optional): Size of batches, used for rectangular training/validation.
 
         Returns:
-            (Dataset): YOLO dataset configured for training or validation, with visual prompts for training mode.
+            (YOLOConcatDataset | Dataset): YOLO dataset configured for training or validation, with visual prompts
+                for training mode.
         """
         dataset = super().build_dataset(img_path, mode, batch)
         if isinstance(dataset, YOLOConcatDataset):

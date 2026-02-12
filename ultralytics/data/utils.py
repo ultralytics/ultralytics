@@ -578,7 +578,7 @@ class HUBDatasetStats:
 
     Args:
         path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip).
-        task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'.
+        task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify', 'obb'.
         autodownload (bool): Attempt to download dataset if not found locally.
 
     Attributes:

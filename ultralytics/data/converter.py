@@ -24,8 +24,8 @@ def coco91_to_coco80_class() -> list[int]:
     """Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (list[int]): A list of 91 elements where the index represents the 91-index class ID and the value is the
-            corresponding 80-index class ID, or None if there is no mapping.
+        (list[int | None]): A list of 91 elements where the index represents the 91-index class ID and the value is
+            the corresponding 80-index class ID, or None if there is no mapping.
     """
     return [
         0,
@@ -537,7 +537,7 @@ def merge_multi_segment(segments: list[list]):
             [segmentation1, segmentation2,...].
 
     Returns:
-        s (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
+        (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
     """
     s = []
     segments = [np.array(i).reshape(-1, 2) for i in segments]
@@ -578,8 +578,9 @@ def merge_multi_segment(segments: list[list]):
 
 
 def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device=None):
-    """Convert existing object detection dataset (bounding boxes) to segmentation dataset or oriented bounding box (OBB)
-    in YOLO format. Generate segmentation data using SAM auto-annotator as needed.
+    """Convert existing object detection dataset (bounding boxes) to segmentation dataset in YOLO format.
+
+    Generates segmentation data using SAM auto-annotator as needed.
 
     Args:
         im_dir (str | Path): Path to image directory to convert.
@@ -768,11 +769,11 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     Examples:
         Convert a local NDJSON file:
-        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson")
+        >>> yaml_path = await convert_ndjson_to_yolo("dataset.ndjson")
         >>> print(f"Dataset converted to: {yaml_path}")
 
         Convert with custom output directory:
-        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
+        >>> yaml_path = await convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
 
         Use with YOLO training
         >>> from ultralytics import YOLO

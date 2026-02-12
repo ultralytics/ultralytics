@@ -60,7 +60,7 @@ class YOLODataset(BaseDataset):
 
     Methods:
         cache_labels: Cache dataset labels, check images and read shapes.
-        get_labels: Return dictionary of labels for YOLO training.
+        get_labels: Return list of label dictionaries for YOLO training.
         build_transforms: Build and append transforms to the list.
         close_mosaic: Disable mosaic, copy_paste, mixup and cutmix augmentations and build transformations.
         update_labels_info: Update label format for different tasks.
@@ -155,7 +155,7 @@ class YOLODataset(BaseDataset):
         return x
 
     def get_labels(self) -> list[dict]:
-        """Return dictionary of labels for YOLO training.
+        """Return list of label dictionaries for YOLO training.
 
         This method loads labels from disk or cache, verifies their integrity, and prepares them for training.
 
@@ -697,14 +697,14 @@ class ClassificationDataset:
     Attributes:
         cache_ram (bool): Indicates if caching in RAM is enabled.
         cache_disk (bool): Indicates if caching on disk is enabled.
-        samples (list): A list of tuples, each containing the path to an image, its class index, path to its .npy cache
+        samples (list): A list of lists, each containing the path to an image, its class index, path to its .npy cache
             file (if caching on disk), and optionally the loaded image array (if caching in RAM).
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
         prefix (str): Prefix for logging and cache filenames.
 
     Methods:
-        __getitem__: Return subset of data and targets corresponding to given indices.
+        __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
     """
@@ -761,7 +761,7 @@ class ClassificationDataset:
         )
 
     def __getitem__(self, i: int) -> dict:
-        """Return subset of data and targets corresponding to given indices.
+        """Return transformed image and class index for the given sample index.
 
         Args:
             i (int): Index of the sample to retrieve.

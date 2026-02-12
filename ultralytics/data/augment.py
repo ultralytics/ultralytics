@@ -470,7 +470,7 @@ class Mosaic(BaseMixTransform):
 
     Methods:
         get_indexes: Return a list of random indexes from the dataset.
-        _mix_transform: Apply mixup transformation to the input image and labels.
+        _mix_transform: Apply mosaic transformation to the input image and labels.
         _mosaic3: Create a 1x3 image mosaic.
         _mosaic4: Create a 2x2 image mosaic.
         _mosaic9: Create a 3x3 image mosaic.
@@ -1194,12 +1194,12 @@ class RandomPerspective:
         boundaries after transformation.
 
         Args:
-            keypoints (np.ndarray): Array of keypoints with shape (N, 17, 3), where N is the number of instances, 17 is
+            keypoints (np.ndarray): Array of keypoints with shape (N, K, 3), where N is the number of instances, K is
                 the number of keypoints per instance, and 3 represents (x, y, visibility).
             M (np.ndarray): 3x3 affine transformation matrix.
 
         Returns:
-            (np.ndarray): Transformed keypoints array with the same shape as input (N, 17, 3).
+            (np.ndarray): Transformed keypoints array with the same shape as input (N, K, 3).
 
         Examples:
             >>> random_perspective = RandomPerspective()
@@ -1806,11 +1806,8 @@ class Albumentations:
 
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
-            transforms (list, optional): List of custom Albumentations transforms. If None, uses default transforms.
+            transforms (list | None): List of custom Albumentations transforms. If None, uses default transforms.
 
-        Raises:
-            ImportError: If the Albumentations package is not installed.
-            Exception: For any other errors during initialization.
         """
         self.p = p
         self.transform = None
@@ -2111,7 +2108,7 @@ class Format:
         This function performs the following operations:
         1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
         2. Transposes the image from HWC to CHW format.
-        3. Optionally flips the color channels from RGB to BGR.
+        3. Optionally reverses the color channels (e.g., BGR to RGB) based on the bgr probability.
         4. Converts the image to a contiguous array.
         5. Converts the Numpy array to a PyTorch tensor.
 
@@ -2276,7 +2273,7 @@ class RandomLoadText:
         neg_samples (tuple[int, int]): Range for randomly sampling negative texts.
         max_samples (int): Maximum number of different text samples in one image.
         padding (bool): Whether to pad texts to max_samples.
-        padding_value (str): The text used for padding when padding is True.
+        padding_value (list[str]): The text used for padding when padding is True.
 
     Methods:
         __call__: Process the input labels and return updated classes and texts.
@@ -2310,7 +2307,7 @@ class RandomLoadText:
             max_samples (int): The maximum number of different text samples in one image.
             padding (bool): Whether to pad texts to max_samples. If True, the number of texts will always be equal to
                 max_samples.
-            padding_value (str): The padding text to use when padding is True.
+            padding_value (list[str]): The padding text to use when padding is True.
         """
         self.prompt_format = prompt_format
         self.neg_samples = neg_samples
@@ -2393,7 +2390,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
     Args:
         dataset (Dataset): The dataset object containing image data and annotations.
         imgsz (int): The target image size for resizing.
-        hyp (IterableSimpleNamespace): A dictionary of hyperparameters controlling various aspects of the
+        hyp (IterableSimpleNamespace): A namespace of hyperparameters controlling various aspects of the
             transformations.
         stretch (bool): If True, applies stretching to the image. If False, uses LetterBox resizing.
 
@@ -2473,12 +2470,12 @@ def classify_transforms(
     normalization.
 
     Args:
-        size (int | tuple): The target size for the transformed image. If an int, it defines the shortest edge. If a
-            tuple, it defines (height, width).
+        size (tuple[int, int] | int): The target size for the transformed image. If an int, it defines the shortest
+            edge. If a tuple, it defines (height, width).
         mean (tuple[float, float, float]): Mean values for each RGB channel used in normalization.
         std (tuple[float, float, float]): Standard deviation values for each RGB channel used in normalization.
         interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
-        crop_fraction (float): Deprecated, will be removed in a future version.
+        crop_fraction (float | None): Deprecated, will be removed in a future version.
 
     Returns:
         (torchvision.transforms.Compose): A composition of torchvision transforms.
@@ -2717,9 +2714,6 @@ class CenterCrop:
         Args:
             size (int | tuple[int, int]): The desired output size of the crop. If size is an int, a square crop (size,
                 size) is made. If size is a sequence like (h, w), it is used as the output size.
-
-        Returns:
-            (None): This method initializes the object and does not return anything.
         """
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
@@ -2772,7 +2766,7 @@ class ToTensor:
 
     Notes:
         The input image is expected to be in BGR format with shape (H, W, C).
-        The output tensor will be in RGB format with shape (C, H, W), normalized to [0, 1].
+        The output tensor will be in BGR format with shape (C, H, W), normalized to [0, 1].
     """
 
     def __init__(self, half: bool = False):
@@ -2796,11 +2790,11 @@ class ToTensor:
         from BGR to RGB.
 
         Args:
-            im (np.ndarray): Input image as a numpy array with shape (H, W, C) in RGB order.
+            im (np.ndarray): Input image as a numpy array with shape (H, W, C) in BGR order.
 
         Returns:
             (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized to [0, 1] with
-                shape (C, H, W) in RGB order.
+                shape (C, H, W) in BGR order.
 
         Examples:
             >>> transform = ToTensor(half=True)

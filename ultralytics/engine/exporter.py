@@ -22,6 +22,7 @@ IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera                 | `axelera`                 | yolo26n_axelera_model/
+LiteRT                  | `litert`                  | yolo26n_litert_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -52,6 +53,7 @@ Inference:
                          yolo26n_rknn_model         # RKNN
                          yolo26n_executorch_model   # ExecuTorch
                          yolo26n_axelera_model      # Axelera
+                         yolo26n_litert_model       # LiteRT
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -177,6 +179,7 @@ def export_formats():
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
         ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "int8", "fraction"]],
+        ["liteRT", "litert", "_litert_model", True, False, ["batch", "half", "int8"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -363,6 +366,7 @@ class Exporter:
             rknn,
             executorch,
             axelera,
+            litert,
         ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
@@ -608,8 +612,10 @@ class Exporter:
             f[14] = self.export_rknn()
         if executorch:
             f[15] = self.export_executorch()
+        if litert:
+            f[16] = self.export_litert()
         if axelera:
-            f[16] = self.export_axelera()
+            f[17] = self.export_axelera()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -844,6 +850,45 @@ class Exporter:
 
         pytorch2paddle(module=self.model, save_dir=f, jit_type="trace", input_examples=[self.im])  # export
         YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
+        return f
+
+    @try_export
+    def export_litert(self, prefix=colorstr("LiteRT:")):
+        """Export YOLO model to LiteRT format using litert_torch with optional FP16/INT8 quantization."""
+        assert LINUX and not MACOS and not WINDOWS and not ARM64, "LiteRT export only supported on Linux x86"
+
+        check_requirements("litert-torch>=0.8.0")
+        import litert_torch
+
+        LOGGER.info(f"\n{prefix} starting export with litert_torch {litert_torch.__version__}...")
+        f = Path(str(self.file).replace(self.file.suffix, "_litert_model"))
+        f.mkdir(parents=True, exist_ok=True)
+
+        sample_inputs = (self.im,)
+        edge_model = litert_torch.convert(self.model, sample_inputs)
+
+        if self.args.int8:
+            tflite_file = f / f"{self.file.stem}_int8.tflite"  # fp32 in/out
+        elif self.args.half:
+            tflite_file = f / f"{self.file.stem}_float16.tflite"  # fp32 in/out
+        else:
+            tflite_file = f / f"{self.file.stem}_float32.tflite"
+        edge_model.export(tflite_file)
+
+        # Apply quantization using ai-edge-quantizer-nightly
+        if self.args.int8 or self.args.half:
+            check_requirements("ai-edge-quantizer-nightly")
+            from ai_edge_quantizer import quantizer, recipe
+
+            LOGGER.info(f"{prefix} applying {'INT8' if self.args.int8 else 'FP16'} quantization...")
+            qt = quantizer.Quantizer(str(tflite_file))
+            if self.args.int8:
+                qt.load_quantization_recipe(recipe.dynamic_wi8_afp32())
+            else:  # half (FP16) - use weight-only int8 for size reduction while keeping float compute
+                qt.load_quantization_recipe(recipe.weight_only_wi8_afp32())
+            qt.quantize().export_model(str(tflite_file), overwrite=True)
+
+        YAML.save(f / "metadata.yaml", self.metadata)
         return f
 
     @try_export

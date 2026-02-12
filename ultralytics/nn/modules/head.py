@@ -752,8 +752,13 @@ class Pose26(Pose):
         bs = kpts.shape[0]
         if self.export:
             y = kpts.view(bs, *self.kpt_shape, -1)
+            anchors, strides = self.anchors, self.strides
+            if self.format == "executorch":
+                # XNNPACK requires explicit dim matching for broadcasting, expand 2D tensors to 4D
+                anchors = anchors.unsqueeze(0).unsqueeze(0)
+                strides = strides.unsqueeze(0).unsqueeze(0)
             # NCNN fix
-            a = (y[:, :, :2] + self.anchors) * self.strides
+            a = (y[:, :, :2] + anchors) * strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
             return a.view(bs, self.nk, -1)

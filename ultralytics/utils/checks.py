@@ -796,7 +796,7 @@ def collect_system_info():
     LOGGER.info("\n" + "\n".join(f"{k:<23}{v}" for k, v in info_dict.items()) + "\n")
 
     package_info = {}
-    for r in parse_requirements(package="ultralytics"):
+    for r in parse_requirements(package=metadata.packages_distributions().get("ultralytics")[0]):
         try:
             current = metadata.version(r.name)
             is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "

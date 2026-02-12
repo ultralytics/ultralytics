@@ -148,6 +148,7 @@ class BaseTrainer:
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
+        self.val_period = 1 if getattr(self.args, "val_period", None) is None else int(getattr(self.args, "val_period"))
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs or 100  # in case users accidentally pass epochs=None with timed training
@@ -513,7 +514,14 @@ class BaseTrainer:
 
             # Validation
             final_epoch = epoch + 1 >= self.epochs
-            if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
+            # Run validation if: val=True AND (val_period matches OR final epoch OR early stopping)
+            should_val = self.args.val and (
+                (self.val_period > 0 and (epoch + 1) % self.val_period == 0)
+                or final_epoch
+                or self.stopper.possible_stop
+                or self.stop
+            )
+            if should_val:
                 self._clear_memory(threshold=0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
 

@@ -286,6 +286,7 @@ from pathlib import Path
 
 import numpy as np
 import yaml
+
 from ultralytics.utils.plotting import plot_labels
 
 # Load dataset YAML
@@ -309,12 +310,7 @@ for label_file in labels_dir.glob("*.txt"):
 
 # Plot labels distribution
 if boxes and cls:
-    plot_labels(
-        boxes=np.array(boxes),
-        cls=np.array(cls),
-        names=data.get("names", {}),
-        save_dir=Path("plots/")
-    )
+    plot_labels(boxes=np.array(boxes), cls=np.array(cls), names=data.get("names", {}), save_dir=Path("plots/"))
 ```
 
 ## Dataset Best Practices

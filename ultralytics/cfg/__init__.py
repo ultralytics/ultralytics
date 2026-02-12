@@ -75,6 +75,13 @@ TASK2METRIC = {
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
 }
+AGENTS = {
+    "claude": (Path.home() / ".claude" / "skills", Path(".claude") / "skills"),
+    "copilot": (Path.home() / ".copilot" / "skills", Path(".github") / "skills"),
+    "cursor": (Path.home() / ".cursor" / "skills", Path(".cursor") / "skills"),
+    "codex": (Path.home() / ".agents" / "skills", Path(".agents") / "skills"),
+    "opencode": (Path.home() / ".config" / "opencode" / "skills", Path(".opencode") / "skills"),
+}
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 SOLUTIONS_HELP_MSG = f"""
@@ -140,6 +147,7 @@ CLI_HELP_MSG = f"""
         yolo copy-cfg
         yolo cfg
         yolo solutions help
+        yolo install-skills
 
     Docs: https://docs.ultralytics.com
     Solutions: https://docs.ultralytics.com/solutions/
@@ -745,6 +753,65 @@ def handle_yolo_solutions(args: list[str]) -> None:
             cap.release()
 
 
+def handle_install_skills(args: list[str]) -> None:
+    """Handle Ultralytics skills CLI commands for coding agent discovery.
+
+    Args:
+        args (list[str]): Command line arguments. Supports 'uninstall', 'global', 'agent=name', and 'dir=path'.
+
+    Examples:
+        >>> handle_install_skills([])  # local install → .agents/skills
+        >>> handle_install_skills(["global", "agent=copilot"])  # global agent → ~/.copilot/skills
+        >>> handle_install_skills(["dir=/custom/path"])  # custom dir → /custom/path/skills
+        >>> handle_install_skills(["uninstall", "agent=copilot"])  # uninstall agent skills
+    """
+    import shutil
+
+    is_global, agent, custom = (
+        "global" in args,
+        next((a.split("=", 1)[1] for a in args if a.startswith("agent=")), None),
+        next((a.split("=", 1)[1] for a in args if a.startswith("dir=")), None),
+    )
+    # Validate agent if specified
+    if agent and agent not in AGENTS:
+        return LOGGER.warning(f"Unknown agent '{agent}'. Available: {', '.join(AGENTS)}")
+    # Determine skills directory based on arguments
+    skills_dir = (
+        Path(custom).expanduser() / "skills"
+        if custom
+        else AGENTS[agent][0 if is_global else 1]
+        if agent
+        else (Path.home() / ".agents" / "skills" if is_global else Path(".agents") / "skills")
+    )
+    # Uninstall Ultralytics skills, other skills not affected
+    if "uninstall" in args:
+        if not skills_dir.exists():
+            return LOGGER.info(f"No skills directory at {skills_dir}")
+        return LOGGER.info(
+            f"✅ Removed {c} skill(s)"
+            if (c := sum(shutil.rmtree(d) or 1 for d in skills_dir.glob("ultralytics-*") if d.is_dir()))
+            else "No Ultralytics skills found"
+        )
+    # Verify source skills directory
+    if not (src := Path(__file__).parents[2] / "docs" / "skills").exists():
+        return LOGGER.error(f"Skills directory not found at {src}")
+    # Install/Update skills
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    i, u, s = 0, 0, 0
+    for skill in (x for x in src.glob("ultralytics-*") if x.is_dir() and (x / "SKILL.md").exists()):
+        dest, up_to_date = (
+            skills_dir / skill.name,
+            (d := skills_dir / skill.name).exists()
+            and (d / "SKILL.md").exists()
+            and (skill / "SKILL.md").stat().st_mtime <= (d / "SKILL.md").stat().st_mtime,
+        )
+        (s := s + 1) if up_to_date else (
+            (u := u + 1) if dest.exists() and not shutil.rmtree(dest) else (i := i + 1)
+        ) and shutil.copytree(skill, dest)
+
+    LOGGER.info(f"✅ Skills: {i} installed, {u} updated, {s} skipped → {skills_dir}")
+
+
 def parse_key_value_pair(pair: str = "key=value") -> tuple:
     """Parse a key-value pair string into separate key and value components.
 
@@ -861,6 +928,7 @@ def entrypoint(debug: str = "") -> None:
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "solutions": lambda: handle_yolo_solutions(args[1:]),
+        "install-skills": lambda: handle_install_skills(args[1:]),
         "help": lambda: LOGGER.info(CLI_HELP_MSG),  # help below hub for -h flag precedence
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}

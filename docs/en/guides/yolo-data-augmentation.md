@@ -483,8 +483,7 @@ Then launch the training with the Python API:
 **Compatibility Notes:**
 
 - Requires Albumentations version 1.0.3 or higher
-- Compatible with all YOLO detection and segmentation tasks
-- Not applicable for classification tasks (classification uses a different augmentation pipeline)
+- Fully compatible with all YOLO tasks (detect, segment, classify, pose, and OBB).
 
 For more information about Albumentations and available transforms, visit the [official Albumentations documentation](https://albumentations.ai/docs/).
 

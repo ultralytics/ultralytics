@@ -753,8 +753,13 @@ class Model(torch.nn.Module):
 
         checks.check_pip_update_available()
 
-        if isinstance(kwargs.get("pretrained", None), (str, Path)):
-            self.load(kwargs["pretrained"])  # load pretrained weights if provided
+        pretrained = kwargs.get("pretrained")
+        pretrained_is_path = isinstance(pretrained, (str, Path))
+        model_is_pt = str(self.overrides.get("model", "")).endswith(".pt")
+        # For cfg/yaml training, let Trainer.setup_model() handle pretrained loading once.
+        # Keep legacy override behavior when the base model is already a .pt checkpoint.
+        if pretrained_is_path and model_is_pt:
+            self.load(pretrained)
         overrides = YAML.load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {
             # NOTE: handle the case when 'cfg' includes 'data'.
@@ -767,7 +772,10 @@ class Model(torch.nn.Module):
             args["resume"] = self.ckpt_path
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
-        if not args.get("resume"):  # manually set model only if not resuming
+        # Skip building here when a pretrained path targets a YAML model (no .pt checkpoint loaded);
+        # trainer.setup_model() will handle both model creation and weight loading in one step.
+        should_build_now = not args.get("resume") and (not pretrained_is_path or bool(self.ckpt))
+        if should_build_now:  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
 

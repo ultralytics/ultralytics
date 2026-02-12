@@ -249,7 +249,9 @@ def decode_stereo3d_outputs(
             confidence = float(conf.item())
 
             # Map kept index -> flat index for sampling aux maps [B, C, HW_total]
-            hw_total = outputs["lr_distance"].shape[2] if "lr_distance" in outputs else 0
+            # Find hw_total from any available aux key
+            _aux_keys = [k for k in outputs if k != "det"]
+            hw_total = outputs[_aux_keys[0]].shape[2] if _aux_keys else 0
             if idx_b is not None and j < idx_b.numel():
                 flat_idx = int(idx_b[j].item())
                 flat_idx = max(0, min(hw_total - 1, flat_idx))
@@ -264,22 +266,33 @@ def decode_stereo3d_outputs(
                 flat_idx = max(0, min(hw_total - 1, flat_idx))
 
             # Sample aux predictions (3D: [B, C, HW_total])
-            lr_log = float(outputs["lr_distance"][b, 0, flat_idx].item()) if "lr_distance" in outputs else -4.0
-            depth_log = float(outputs["depth"][b, 0, flat_idx].item()) if "depth" in outputs else None
+            has_lr = "lr_distance" in outputs
+            has_depth = "depth" in outputs
+            lr_log = float(outputs["lr_distance"][b, 0, flat_idx].item()) if has_lr else None
+            depth_log = float(outputs["depth"][b, 0, flat_idx].item()) if has_depth else None
             dim_off = outputs["dimensions"][b, :, flat_idx].float() if "dimensions" in outputs else torch.zeros(3)
             ori_pred = outputs["orientation"][b, :, flat_idx].float() if "orientation" in outputs else None
 
             # Depth from disparity (lr_distance is in log-space, exp() to get normalized disparity)
-            disparity_letterbox = math.exp(max(lr_log, -10.0)) * input_w
-            disparity_orig = disparity_letterbox / letterbox_scale
-            z_from_disp = (fx_orig * baseline) / max(disparity_orig, eps)
+            z_from_disp = None
+            if lr_log is not None:
+                disparity_letterbox = math.exp(max(lr_log, -10.0)) * input_w
+                disparity_orig = disparity_letterbox / letterbox_scale
+                z_from_disp = (fx_orig * baseline) / max(disparity_orig, eps)
 
-            # Combine disparity-derived depth with direct depth prediction (geometric mean)
+            z_from_direct = None
             if depth_log is not None:
                 z_from_direct = math.exp(max(depth_log, 0.0))  # clamp min ~1m
+
+            # Combine depth sources
+            if z_from_disp is not None and z_from_direct is not None:
                 z_3d = math.sqrt(z_from_disp * z_from_direct)  # geometric mean
-            else:
+            elif z_from_disp is not None:
                 z_3d = z_from_disp
+            elif z_from_direct is not None:
+                z_3d = z_from_direct
+            else:
+                z_3d = 30.0  # fallback (shouldn't happen with valid config)
 
             # Use bbox center as (u,v)
             u_letterbox = float(((x1_l + x2_l) / 2.0).item())
@@ -294,9 +307,9 @@ def decode_stereo3d_outputs(
             # mean_dims/std_dims from validator are (H, W, L) format, dim_off is [ΔH, ΔW, ΔL]
             mean_h, mean_w, mean_l = mean_dims.get(c, mean_dims[0])
             std_h, std_w, std_l = std_dims.get(c, std_dims[0])
-            height = mean_h + float(dim_off[0].item()) * std_h
-            width = mean_w + float(dim_off[1].item()) * std_w
-            length = mean_l + float(dim_off[2].item()) * std_l
+            height = max(mean_h + float(dim_off[0].item()) * std_h, 0.01)
+            width = max(mean_w + float(dim_off[1].item()) * std_w, 0.01)
+            length = max(mean_l + float(dim_off[2].item()) * std_l, 0.01)
 
             # Orientation: decode from predicted sin/cos or fallback to alpha=0
             ray_angle = math.atan2(x_3d, z_3d)

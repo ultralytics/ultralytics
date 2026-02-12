@@ -10,6 +10,15 @@ class Stereo3DDetModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
         self.task = "stereo3ddet"
 
+        # Apply depth_mode from YAML (prune unused aux branches)
+        depth_mode = (self.yaml or {}).get("training", {}).get("depth_mode", "both")
+        if depth_mode != "both":
+            from ultralytics.models.yolo.stereo3ddet.head_yolo11 import Stereo3DDetHeadYOLO11
+
+            head = self.model[-1]
+            if isinstance(head, Stereo3DDetHeadYOLO11):
+                head.set_depth_mode(depth_mode)
+
     def init_criterion(self):
         """Initialize the loss criterion."""
         from ultralytics.models.yolo.stereo3ddet.loss_yolo11 import Stereo3DDetLossYOLO11

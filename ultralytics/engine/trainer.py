@@ -80,6 +80,7 @@ class BaseTrainer:
         last (Path): Path to the last checkpoint.
         best (Path): Path to the best checkpoint.
         save_period (int): Save checkpoint every x epochs (disabled if < 1).
+        save_after (int): Delay periodic checkpoint saving until this 1-based epoch (default 0 = no delay).
         batch_size (int): Batch size for training.
         epochs (int): Number of epochs to train for.
         start_epoch (int): Starting epoch for training.
@@ -148,6 +149,7 @@ class BaseTrainer:
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
+        self.save_after = int(getattr(self.args, "save_after", 0))
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs or 100  # in case users accidentally pass epochs=None with timed training
@@ -622,7 +624,18 @@ class BaseTrainer:
                 m.eval()
 
     def save_model(self):
-        """Save model training checkpoints with additional metadata."""
+        """Save training checkpoints with metadata.
+
+        Adds `save_after` so that periodic checkpoints (epochXX.pt) are only saved
+        after a specified starting epoch. This reduces early, often-useless checkpoints.
+        `last.pt` and `best.pt` behaviors remain unchanged.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         import io
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
@@ -659,8 +672,19 @@ class BaseTrainer:
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
-        if (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
+
+        # Periodic checkpoints (keep legacy cadence + 0-based naming)
+        try:
+            save_after = max(0, int(getattr(self, "save_after", 0) or 0))
+        except Exception:
+            save_after = 0
+
+        save_period = int(getattr(self, "save_period", 0) or 0)
+        periodic = save_period > 0 and (self.epoch % save_period == 0)
+        after_ok = (save_after <= 0) or (self.epoch + 1 >= save_after)  # save_after is 1-based
+
+        if periodic and after_ok:
+            (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)
 
     def get_dataset(self):
         """Get train and validation datasets from data dictionary.
@@ -856,6 +880,7 @@ class BaseTrainer:
                     "close_mosaic",
                     "augmentations",
                     "save_period",
+                    "save_after",
                     "workers",
                     "cache",
                     "patience",

@@ -11,6 +11,10 @@ keywords: Ultralytics, distributed training, DDP, multi-node training, network p
 
 <br>
 
+## ::: ultralytics.utils.dist._slurm_node_rank
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.dist.find_free_network_port
 
 <br><br><hr><br>

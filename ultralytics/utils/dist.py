@@ -15,6 +15,17 @@ if TYPE_CHECKING:
     from ultralytics.engine.trainer import BaseTrainer
 
 
+def _slurm_node_rank():
+    """Resolve the node rank from SLURM if available."""
+    node_rank = os.environ.get("SLURM_NODEID")
+    if node_rank is None:
+        return None
+    try:
+        return str(int(node_rank))
+    except ValueError:
+        return None
+
+
 def find_free_network_port() -> int:
     """Find a free port on localhost.
 
@@ -93,21 +104,48 @@ def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
     """
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/pytorch-lightning/issues/15218
 
+    nnodes = trainer.nnodes
+
     if not trainer.resume:
-        shutil.rmtree(trainer.save_dir)  # remove the save_dir
+        try:
+            shutil.rmtree(trainer.save_dir)  # remove the save_dir
+        except FileNotFoundError:
+            pass
     file = generate_ddp_file(trainer)
     dist_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
-    port = find_free_network_port()
+
+    master_port = os.environ.get("MASTER_PORT")
+    if nnodes > 1:
+        master_addr = os.environ.get("MASTER_ADDR")
+        node_rank = os.environ.get("NODE_RANK")
+        if node_rank is None:
+            node_rank = _slurm_node_rank()
+        if master_addr is None or node_rank is None:
+            raise ValueError(
+                "MASTER_ADDR must be set for multi-node DDP and NODE_RANK must be set "
+                "(NODE_RANK may be available via SLURM_NODEID)."
+            )
+        if master_port is None:
+            master_port = "29500"
+    else:
+        master_addr = None
+        node_rank = None
+        if master_port is None:
+            master_port = str(find_free_network_port())
+
+    local_world_size = trainer.local_world_size
     cmd = [
         sys.executable,
         "-m",
         dist_cmd,
+        "--nnodes",
+        f"{nnodes}",
         "--nproc_per_node",
-        f"{trainer.world_size}",
-        "--master_port",
-        f"{port}",
-        file,
+        f"{local_world_size}",
     ]
+    if nnodes > 1:
+        cmd.extend(["--node_rank", f"{node_rank}", "--master_addr", f"{master_addr}"])
+    cmd.extend(["--master_port", f"{master_port}", file])
     return cmd, file
 
 

@@ -125,6 +125,7 @@ class BaseTrainer:
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
+        self.nnodes = int(getattr(self.args, "nnodes", 1))
         self.device = select_device(self.args.device)
         # Update "-1" devices so post-training val does not repeat search
         self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
@@ -159,25 +160,27 @@ class BaseTrainer:
         if self.device.type in {"cpu", "mps"}:
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
-        # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
+        # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
         if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
-            world_size = len(self.args.device.split(","))
+            local_world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
-            world_size = len(self.args.device)
+            local_world_size = len(self.args.device)
         elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
-            world_size = 0
+            local_world_size = 0
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
-            world_size = 1  # default to device 0
+            local_world_size = 1  # default to device 0
         else:  # i.e. device=None or device=''
-            world_size = 0
+            local_world_size = 0
 
-        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
-        self.world_size = world_size
-        # Run on_pretrain_routine_start before get_dataset() to capture original args.data (e.g., ul:// URIs)
+        self.local_world_size = local_world_size
+        self.world_size = local_world_size * self.nnodes
+        self.ddp = self.world_size > 1 and "LOCAL_RANK" not in os.environ
+        # Run subprocess if DDP training, else train normally
         if RANK in {-1, 0} and not self.ddp:
             callbacks.add_integration_callbacks(self)
+            # Start console logging immediately at trainer initialization
             self.run_callbacks("on_pretrain_routine_start")
 
         # Model and Dataset
@@ -253,8 +256,8 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
+        torch.cuda.set_device(LOCAL_RANK)
+        self.device = torch.device("cuda", LOCAL_RANK)
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
             backend="nccl" if dist.is_nccl_available() else "gloo",
@@ -334,7 +337,9 @@ class BaseTrainer:
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
         if self.world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model, device_ids=[LOCAL_RANK], find_unused_parameters=True
+            )
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)

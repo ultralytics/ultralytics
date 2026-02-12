@@ -398,15 +398,15 @@ class BaseMixTransform:
         raise NotImplementedError
 
     def get_indexes(self):
-        """Get a list of shuffled indexes for mosaic augmentation.
+        """Get a random index for mosaic augmentation.
 
         Returns:
-            (list[int]): A list of shuffled indexes from the dataset.
+            (int): A random index from the dataset.
 
         Examples:
             >>> transform = BaseMixTransform(dataset)
-            >>> indexes = transform.get_indexes()
-            >>> print(indexes)  # [3, 18, 7, 2]
+            >>> index = transform.get_indexes()
+            >>> print(index)  # 7
         """
         return random.randint(0, len(self.dataset) - 1)
 
@@ -1362,8 +1362,8 @@ class RandomHSV:
         >>> augmenter = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
         >>> image = np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
         >>> labels = {"img": image}
-        >>> augmenter(labels)
-        >>> augmented_image = augmented_labels["img"]
+        >>> labels = augmenter(labels)
+        >>> augmented_image = labels["img"]
     """
 
     def __init__(self, hgain: float = 0.5, sgain: float = 0.5, vgain: float = 0.5) -> None:
@@ -1391,7 +1391,7 @@ class RandomHSV:
                 image as a numpy array.
 
         Returns:
-            (dict[str, Any]): A dictionary containing the mixed image and adjusted labels.
+            (dict[str, Any]): The labels dictionary with the HSV-augmented image.
 
         Examples:
             >>> hsv_augmenter = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
@@ -2038,7 +2038,7 @@ class Format:
         Returns:
             (dict[str, Any]): A dictionary with formatted data, including:
                 - 'img': Formatted image tensor.
-                - 'cls': Class label's tensor.
+                - 'cls': Class labels tensor.
                 - 'bboxes': Bounding boxes tensor in the specified format.
                 - 'masks': Instance masks tensor (if return_mask is True).
                 - 'keypoints': Keypoints tensor (if return_keypoint is True).

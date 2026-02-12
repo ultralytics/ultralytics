@@ -1471,7 +1471,7 @@ class IOSDetectModel(torch.nn.Module):
         Args:
             model (torch.nn.Module): The YOLO model to wrap.
             im (torch.Tensor): Example input tensor with shape (B, C, H, W).
-            mlprogram (bool): Whether exporting to MLProgram format to fix NMS bug.
+            mlprogram (bool): Whether exporting to MLProgram format.
         """
         super().__init__()
         _, _, h, w = im.shape  # batch, channel, height, width
@@ -1516,7 +1516,7 @@ class NMSModel(torch.nn.Module):
         """Perform inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
 
         Args:
-            x (torch.Tensor): The preprocessed tensor with shape (B, 3, H, W).
+            x (torch.Tensor): The preprocessed tensor with shape (B, C, H, W).
 
         Returns:
             (torch.Tensor | tuple): Tensor of shape (B, max_det, 4 + 2 + extra_shape) where B is the batch size,

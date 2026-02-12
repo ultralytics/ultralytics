@@ -11,7 +11,7 @@ from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.plotting import plot_images
 from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_first
 
@@ -121,7 +121,9 @@ class ClassificationTrainer(BaseTrainer):
         Returns:
             (ClassificationDataset): Dataset for the specified mode.
         """
-        return ClassificationDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
+        return ClassificationDataset(
+            root=img_path, names=self.data["names"], args=self.args, augment=mode == "train", prefix=mode
+        )
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
         """Return PyTorch DataLoader with transforms to preprocess images.
@@ -137,19 +139,6 @@ class ClassificationTrainer(BaseTrainer):
         """
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
-
-        # Filter out samples with class indices >= nc (prevents CUDA assertion errors)
-        nc = self.data.get("nc", 0)
-        dataset_nc = len(dataset.base.classes)
-        if nc and dataset_nc > nc:
-            extra_classes = dataset.base.classes[nc:]
-            original_count = len(dataset.samples)
-            dataset.samples = [s for s in dataset.samples if s[1] < nc]
-            skipped = original_count - len(dataset.samples)
-            LOGGER.warning(
-                f"{mode} split has {dataset_nc} classes but model expects {nc}. "
-                f"Skipping {skipped} samples from extra classes: {extra_classes}"
-            )
 
         loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile)
         # Attach inference transforms

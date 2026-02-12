@@ -1,0 +1,43 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# ImageNet-10 dataset-full https://www.image-net.org/index.php by Stanford University
+# Simplified class names from https://github.com/anishathalye/imagenet-simple-labels
+# Documentation: https://docs.ultralytics.com/datasets/classify/imagenet10
+# Applications: The ImageNet10 dataset is useful for quickly testing and debugging computer vision models and pipelines
+# Example usage: yolo train task=classify data=imagenet10
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── imagenet10 ← downloads here (68 KB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) list: [path/to/imgs1, path/to/imgs2, ..]
+path: imagenet10 # dataset root dir or dataset name
+train: train # train images (relative to 'path') 10 images
+val: val # val images (relative to 'path') 10 images
+test: # test images (optional)
+
+# Classes
+names:
+  0: tench
+  1: goldfish
+  2: great white shark
+  3: tiger shark
+  4: hammerhead shark
+  5: electric ray
+  6: stingray
+  7: cock
+  8: hen
+  9: ostrich
+
+# Imagenet class codes to human-readable names
+map:
+  n01440764: tench
+  n01443537: goldfish
+  n01484850: great_white_shark
+  n01491361: tiger_shark
+  n01494475: hammerhead
+  n01496331: electric_ray
+  n01498041: stingray
+  n01514668: cock
+  n01514859: hen
+  n01518878: ostrich

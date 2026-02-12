@@ -496,6 +496,22 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict[int, str]): A dictionary of class names in the dataset.
     """
+
+    def download_dataset(d: str | Path):
+        """Download dataset by dataset name from ASSERTS_URL.
+
+        Args:
+            d (str | Path): The name of the dataset.
+        """
+        LOGGER.info("")
+        LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")
+        t = time.time()
+        if str(d) == "imagenet":
+            subprocess.run(["bash", str(ROOT / "data/scripts/get_imagenet.sh")], check=True)
+        else:
+            download(f"{ASSETS_URL}/{d}.zip", dir=data_dir.parent)
+        LOGGER.info(f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n")
+
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
@@ -503,43 +519,64 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         file = check_file(dataset)
         dataset = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
 
-    dataset = Path(dataset)
-    data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
-    if not data_dir.is_dir():
-        if data_dir.suffix != "":
-            raise ValueError(
-                f'Classification datasets must be a directory (data="path/to/dir") not a file (data="{dataset}"), '
-                "See https://docs.ultralytics.com/datasets/classify/"
-            )
-        LOGGER.info("")
-        LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")
-        t = time.time()
-        if str(dataset) == "imagenet":
-            subprocess.run(["bash", str(ROOT / "data/scripts/get_imagenet.sh")], check=True)
-        else:
-            download(f"{ASSETS_URL}/{dataset}.zip", dir=data_dir.parent)
-        LOGGER.info(f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n")
-    train_set = data_dir / "train"
-    if not train_set.is_dir():
-        LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")
-        if image_files := list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png")):
-            from ultralytics.data.split import split_classify_dataset
+    # Loading train_set, val_set, test_set paths
+    dataset, data = Path(dataset), dict()
+    if dataset.suffix in (".yaml", ".yml"):
+        dataset = check_file(str(dataset))
+        data = YAML.load(dataset, append_filename=True)
+        path = data.get("path", "").replace("\\", "/")
+        data_dir = Path(path).resolve()
+        if not data_dir.is_dir() and len(path) > 0 and "/" not in path:
+            data_dir = (DATASETS_DIR / path).resolve()
+            if not data_dir.is_dir():
+                download_dataset(path)
+        train_set = data.get("train")
+        val_set = (
+            data.get("val")
+            if data.get("val")
+            else data.get("validation")
+            if data.get("validation")
+            else data.get("valid")
+            if data.get("valid")
+            else None
+        )  # data/test or data/val
+        test_set = data.get("test")  # data/val or data/test
+        train_set, test_set, val_set = [
+            [(data_dir / p).resolve() for p in ([ds] if isinstance(ds, str) else ds)] if ds else None
+            for ds in (train_set, test_set, val_set)
+        ]  # match each dataset
+    else:
+        data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
+        if not data_dir.is_dir():
+            if data_dir.suffix != "":
+                raise ValueError(
+                    f'Classification datasets must be a directory (data="path/to/dir") not a file (data="{dataset}"), '
+                    "See https://docs.ultralytics.com/datasets/classify/"
+                )
+            download_dataset(dataset)
+        train_set = data_dir / "train"
+        if not train_set.is_dir():
+            LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")
+            if image_files := list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png")):
+                from ultralytics.data.split import split_classify_dataset
 
-            LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")
-            data_dir = split_classify_dataset(data_dir, train_ratio=0.8)
-            train_set = data_dir / "train"
-        else:
-            LOGGER.error(f"No images found in {data_dir} or its subdirectories.")
-    val_set = (
-        data_dir / "val"
-        if (data_dir / "val").exists()
-        else data_dir / "validation"
-        if (data_dir / "validation").exists()
-        else data_dir / "valid"
-        if (data_dir / "valid").exists()
-        else None
-    )  # data/test or data/val
-    test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test
+                LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")
+                data_dir = split_classify_dataset(data_dir, train_ratio=0.8)
+                train_set = data_dir / "train"
+            else:
+                LOGGER.error(f"No images found in {data_dir} or its subdirectories.")
+        val_set = (
+            data_dir / "val"
+            if (data_dir / "val").exists()
+            else data_dir / "validation"
+            if (data_dir / "validation").exists()
+            else data_dir / "valid"
+            if (data_dir / "valid").exists()
+            else None
+        )  # data/test or data/val
+        test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test
+        train_set, val_set, test_set = [[i] if i else None for i in (train_set, val_set, test_set)]
+
     if split == "val" and not val_set:
         LOGGER.warning("Dataset 'split=val' not found, using 'split=test' instead.")
         val_set = test_set
@@ -547,24 +584,44 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         LOGGER.warning("Dataset 'split=test' not found, using 'split=val' instead.")
         test_set = val_set
 
-    nc = len([x for x in (data_dir / "train").glob("*") if x.is_dir()])  # number of classes
-    names = [x.name for x in (data_dir / "train").iterdir() if x.is_dir()]  # class names list
-    names = dict(enumerate(sorted(names)))
+    # When dataset format is imagenet or imagenet10, force class names to be loaded from subfolder names.
+    # This is required because ultralytics/nn/autobackend.py (__init__)
+    #   will rename labels when loading a trained model, so training must use n0* origin style labels.
+    if data.get("names") and data.get("path") not in ("imagenet", "imagenet10"):
+        names = data["names"]  # Specify labels manually
+        assert isinstance(names, (list, dict)), f"Dataset (type(names)={type(names)}) only support list or dict."
+    else:  # Specify all labels automatically
+        names = sorted(list(set(n.name for sf in train_set if sf.is_dir() for n in sf.glob("*") if n.is_dir())))
+    if isinstance(names, list):  # class names list
+        names = dict(enumerate(names))
+    nc = len(names)  # number of classes
 
     # Print to console
     for k, v in {"train": train_set, "val": val_set, "test": test_set}.items():
-        prefix = f"{colorstr(f'{k}:')} {v}..."
         if v is None:
-            LOGGER.info(prefix)
+            LOGGER.info(f"{colorstr(f'{k}:')} None...")
         else:
-            files = [path for path in v.rglob("*.*") if path.suffix[1:].lower() in IMG_FORMATS]
-            nf = len(files)  # number of files
-            nd = len({file.parent for file in files})  # number of directories
-            if nf == 0:
-                if k == "train":
-                    raise FileNotFoundError(f"{dataset} '{k}:' no training images found")
-                else:
-                    LOGGER.warning(f"{prefix} found {nf} images in {nd} classes (no images found)")
+            labels, nf = set(), 0  # all subfolder names, number of files in all subfolder
+            for subfolder in v:
+                sublabels = {sf.name for sf in subfolder.iterdir() if sf.is_dir() and sf.name in names.values()}
+                files = [
+                    path
+                    for sf in subfolder.iterdir()
+                    if sf.is_dir() and sf.name in names.values()
+                    for path in sf.glob("*")
+                    if path.suffix[1:].lower() in IMG_FORMATS
+                ]  # Filter out files that label in names and suffix in IMG_FORMATS
+                subnf = len(files)  # number of files in subfolder
+                subnd = len(sublabels)  # number of classes directories in subfolder
+                nf += subnf
+                labels |= sublabels
+                if subnf == 0:
+                    prefix = f"{colorstr(f'{k}:')} {subfolder}..."
+                    LOGGER.warning(f"{prefix} found {subnf} images in {subnd} classes (no images found)")
+            nd = len(labels)  # number of classes directories in all subfolder
+            prefix = f"{colorstr(f'{k}:')} {f'all ({len(v)}) subfolder' if len(v) > 1 else v[0]}..."
+            if nf == 0 and k == "train":
+                raise FileNotFoundError(f"{dataset} '{k}:' no training images found")
             elif nd != nc:
                 LOGGER.error(f"{prefix} found {nf} images in {nd} classes (requires {nc} classes, not {nd})")
             else:
@@ -673,7 +730,14 @@ class HUBDatasetStats:
             # Check split
             if path is None:  # no split
                 continue
-            files = [f for f in Path(path).rglob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]  # image files in split
+
+            # TODO: Tasks such as detect, segment, pose, and obb may support `train_set`, `val_set`, and `test_set`
+            #   as lists in YAML in future versions.
+            # Currently, list types are only supported for classify tasks.
+            if self.task == "classify":  # image files in split with all subfolder
+                files = [f for p in path for f in Path(p).rglob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]
+            else:  # image files in split
+                files = [f for f in Path(path).rglob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]
             if not files:  # no images
                 continue
 
@@ -681,16 +745,21 @@ class HUBDatasetStats:
             if self.task == "classify":
                 from torchvision.datasets import ImageFolder  # scope for faster 'import ultralytics'
 
-                dataset = ImageFolder(self.data[split])
+                dataset = [ImageFolder(root=r) for r in path]
 
-                x = np.zeros(len(dataset.classes)).astype(int)
-                for im in dataset.imgs:
+                # Reference: https://github.com/ultralytics/ultralytics/pull/23566
+                # NOTE: As mentioned above, issues may arise when using multiple paths with class sets.
+                # However, under Ultralytics' dataset conventions, the class categories for classify
+                #   datasets in `train`, `val`, and `test` splits are always consistent.
+                # Therefore, no additional compatibility handling is required here;
+                x = np.zeros(len(set(c for d in dataset for c in d.classes))).astype(int)  # equal dataset[0].classes
+                for im in (im for d in dataset for im in d.imgs):
                     x[im[1]] += 1
 
                 self.stats[split] = {
-                    "instance_stats": {"total": len(dataset), "per_class": x.tolist()},
-                    "image_stats": {"total": len(dataset), "unlabelled": 0, "per_class": x.tolist()},
-                    "labels": [{Path(k).name: v} for k, v in dataset.imgs],
+                    "instance_stats": {"total": sum(len(d) for d in dataset), "per_class": x.tolist()},
+                    "image_stats": {"total": sum(len(d) for d in dataset), "unlabelled": 0, "per_class": x.tolist()},
+                    "labels": [{Path(k).name: v} for k, v in (im for d in dataset for im in d.imgs)],
                 }
             else:
                 from ultralytics.data import YOLODataset

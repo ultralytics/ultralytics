@@ -20,6 +20,7 @@ __all__ = (
     "DWConvTranspose2d",
     "Focus",
     "GhostConv",
+    "GhostConvV2",
     "Index",
     "LightConv",
     "RepConv",
@@ -348,6 +349,43 @@ class GhostConv(nn.Module):
         """
         y = self.cv1(x)
         return torch.cat((y, self.cv2(y)), 1)
+
+
+class GhostConvV2(nn.Module):
+    """Ghost Convolution module with configurable cheap operation kernel size."""
+
+    def __init__(self, c1, c2, k=1, s=1, g=1, act=True, dw_k=3):
+        """Initialize Ghost Convolution module with given parameters.
+
+        Args:
+            c1 (int): Number of input channels.
+            c2 (int): Number of output channels.
+            k (int): Kernel size.
+            s (int): Stride.
+            g (int): Groups.
+            act (bool | nn.Module): Activation function.
+            dw_k (int): Depthwise kernel size for cheap operation.
+        """
+        super().__init__()
+        self.c2 = c2
+        self.c_ = (c2 + 1) // 2  # hidden channels
+        self.cv1 = Conv(c1, self.c_, k, s, None, g, act=act)
+        self.cv2 = Conv(self.c_, self.c_, dw_k, 1, None, self.c_, act=act)
+
+    def forward(self, x):
+        """Apply Ghost Convolution to input tensor.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor with concatenated features.
+        """
+        y = self.cv1(x)
+        y2 = self.cv2(y)
+        if y.shape[1] + y2.shape[1] != self.c2:
+            y2 = y2[:, : self.c2 - y.shape[1], ...]
+        return torch.cat((y, y2), 1)
 
 
 class RepConv(nn.Module):

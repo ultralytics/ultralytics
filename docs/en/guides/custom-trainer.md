@@ -402,7 +402,7 @@ Yes, for simpler customizations, [callbacks](../usage/callbacks.md) are often su
 
 ### How do I customize the loss function without subclassing the model?
 
-If your change is simpler (such as adjusting loss gains), you can modify the [hyperparameters](https://www.ultralytics.com/glossary/hyperparameters) directly:
+If your change is simpler (such as adjusting loss gains), you can modify the [hyperparameters](https://www.ultralytics.com/glossary/hyperparameter-tuning) directly:
 
 ```python
 model.train(data="coco8.yaml", box=10.0, cls=1.5, dfl=2.0)

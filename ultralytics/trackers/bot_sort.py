@@ -119,7 +119,7 @@ class BOTrack(STrack):
     @staticmethod
     def multi_predict(stracks: list[BOTrack]) -> None:
         """Predict the mean and covariance for multiple object tracks using a shared Kalman filter."""
-        if len(stracks) <= 0:
+        if not stracks:
             return
         multi_mean = np.asarray([st.mean.copy() for st in stracks])
         multi_covariance = np.asarray([st.covariance for st in stracks])
@@ -198,7 +198,7 @@ class BOTSORT(BYTETracker):
 
     def init_track(self, results, img: np.ndarray | None = None) -> list[BOTrack]:
         """Initialize object tracks using detection bounding boxes, scores, class labels, and optional ReID features."""
-        if len(results) == 0:
+        if not results:
             return []
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)

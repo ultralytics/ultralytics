@@ -381,7 +381,7 @@ class Annotator:
             self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
         else:
             assert isinstance(masks, torch.Tensor), "'masks' must be a torch.Tensor if 'im_gpu' is provided."
-            if len(masks) == 0:
+            if masks.numel() == 0:
                 self.im[:] = im_gpu.permute(1, 2, 0).contiguous().cpu().numpy() * 255
                 return
             if im_gpu.device != masks.device:

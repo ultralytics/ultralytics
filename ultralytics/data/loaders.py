@@ -15,7 +15,7 @@ from typing import Any
 import cv2
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageOps
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
@@ -637,7 +637,9 @@ def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
-            files.append(Image.open(urllib.request.urlopen(im) if str(im).startswith("http") else im))
+            files.append(
+                ImageOps.exif_transpose(Image.open(urllib.request.urlopen(im) if str(im).startswith("http") else im))
+            )
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:

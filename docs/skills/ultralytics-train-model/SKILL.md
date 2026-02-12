@@ -114,7 +114,7 @@ results = model.train(
     batch=16,  # batch size (-1 for auto batch)
     device=0,  # GPU device (0, 1, 2, ...) or 'cpu'
     workers=8,  # number of dataloader workers
-    patience=50,  # early stopping patience
+    patience=100,  # early stopping patience
     save=True,  # save checkpoints
     project="runs/train",  # project directory
     name="my-model",  # experiment name
@@ -169,7 +169,7 @@ model.train(resume=True)
 | `device`    | GPU device or 'cpu'                | 0        |
 | `optimizer` | Optimizer (SGD, Adam, AdamW, etc.) | auto     |
 | `lr0`       | Initial learning rate              | 0.01     |
-| `patience`  | Early stopping patience            | 50       |
+| `patience`  | Early stopping patience            | 100      |
 | `save`      | Save checkpoints                   | True     |
 | `amp`       | Automatic mixed precision          | True     |
 

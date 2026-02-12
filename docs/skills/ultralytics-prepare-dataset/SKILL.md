@@ -191,16 +191,13 @@ train: images/train # train images (relative to 'path')
 val: images/val # val images (relative to 'path')
 test: images/test # (optional) test images
 
-# Number of classes
-nc: 80
-
 # Class names
 names:
     0: person
     1: bicycle
     2: car
     3: motorcycle
-    # ... up to nc-1
+    # ... include ALL classes
 ```
 
 **For Classification:**

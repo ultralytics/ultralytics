@@ -72,7 +72,7 @@ class BOTrack(STrack):
         self.curr_feat = None
         if feat is not None:
             self.update_features(feat)
-        self.features = deque([], maxlen=feat_history)
+        self.features = deque(maxlen=feat_history)
         self.alpha = 0.9
 
     def update_features(self, feat: np.ndarray) -> None:
@@ -156,15 +156,15 @@ class BOTSORT(BYTETracker):
 
     Methods:
         get_kalmanfilter: Return an instance of KalmanFilterXYWH for object tracking.
-        init_track: Initialize track with detections, scores, and classes.
+        init_track: Initialize track with detection results and optional image for ReID.
         get_dists: Get distances between tracks and detections using IoU and (optionally) ReID.
-        multi_predict: Predict and track multiple objects with a YOLO model.
+        multi_predict: Predict the mean and covariance of multiple object tracks using a shared Kalman filter.
         reset: Reset the BOTSORT tracker to its initial state.
 
     Examples:
         Initialize BOTSORT and process detections
         >>> bot_sort = BOTSORT(args, frame_rate=30)
-        >>> bot_sort.init_track(dets, scores, cls, img)
+        >>> bot_sort.init_track(results, img)
         >>> bot_sort.multi_predict(tracks)
 
     Notes:

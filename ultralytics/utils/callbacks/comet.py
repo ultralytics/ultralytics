@@ -197,11 +197,9 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
         class_name_map (dict, optional): Mapping from class indices to class names.
 
     Returns:
-        (dict | None): Formatted ground truth annotations with the following structure:
-            - 'boxes': List of box coordinates [x, y, width, height]
-            - 'label': Label string with format "gt_{class_name}"
-            - 'score': Confidence score (always 1.0, scaled by _scale_confidence_score)
-            Returns None if no bounding boxes are found for the image.
+        (dict | None): Formatted ground truth annotations with keys 'name' and 'data', where 'data' is a list of
+            annotation dicts each containing 'boxes', 'label', and 'score' keys. Returns None if no bounding boxes are
+            found for the image.
     """
     indices = batch["batch_idx"] == img_idx
     bboxes = batch["bboxes"][indices]
@@ -358,7 +356,7 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
         image_paths (list[Path]): List of paths to images that will be logged.
-        curr_step (int): Current training step/iteration for tracking in the experiment timeline.
+        curr_step (int | None): Current training step/iteration for tracking in the experiment timeline.
         annotations (list[list[dict]], optional): Nested list of annotation dictionaries for each image. Each annotation
             contains visualization data like bounding boxes, labels, and confidence scores.
     """
@@ -372,11 +370,10 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
 
 
 def _log_image_predictions(experiment, validator, curr_step) -> None:
-    """Log predicted boxes for a single image during training.
+    """Log image predictions to a Comet ML experiment during model validation.
 
-    This function logs image predictions to a Comet ML experiment during model validation. It processes validation data
-    and formats both ground truth and prediction annotations for visualization in the Comet
-    dashboard. The function respects configured limits on the number of images to log.
+    This function processes validation data and formats both ground truth and prediction annotations for visualization
+    in the Comet dashboard. The function respects configured limits on the number of images to log.
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log to.
@@ -487,7 +484,7 @@ def _log_model(experiment, trainer) -> None:
 
 
 def _log_image_batches(experiment, trainer, curr_step: int) -> None:
-    """Log samples of image batches for train, validation, and test."""
+    """Log samples of image batches for train and validation."""
     _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
     _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
 

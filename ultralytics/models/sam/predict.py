@@ -1341,7 +1341,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             (dict): A dictionary containing the output of the tracking step, including updated features and predictions.
 
         Raises:
-            AssertionError: If both `point_inputs` and `mask_inputs` are provided, or neither is provided.
+            AssertionError: If both `point_inputs` and `mask_inputs` are provided simultaneously.
 
         Notes:
             - The method assumes that `point_inputs` and `mask_inputs` are mutually exclusive.
@@ -1892,9 +1892,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         specified overrides
 
         Args:
-            cfg (dict[str, Any]): Configuration dictionary containing default settings.
+            cfg (Any): Configuration dictionary containing default settings.
             overrides (dict[str, Any] | None): Dictionary of values to override default configuration.
-            max_obj_num (int): Maximum number of objects to track. Default is 3. this is set to keep fix feature size
+            max_obj_num (int): Maximum number of objects to track. Default is 3. This is set to keep fixed feature size
                 for the model.
             _callbacks (dict[str, Any] | None): Dictionary of callback functions to customize behavior.
         """
@@ -1930,10 +1930,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Args:
             im (torch.Tensor | np.ndarray): The input image tensor or numpy array.
             bboxes (list[list[float]] | None): Optional list of bounding boxes to update the memory.
-            masks (list[torch.Tensor | np.ndarray] | None): Optional masks to update the memory.
+            masks (torch.Tensor | np.ndarray | None): Optional masks to update the memory.
             points (list[list[float]] | None): Optional list of points to update the memory, each point is [x, y].
-            labels (list[int] | None): Optional list of object IDs corresponding to the points (>0 for positive, 0 for
-                negative).
+            labels (list[int] | None): Optional list of labels for point prompts (>0 for positive, 0 for negative).
             obj_ids (list[int] | None): Optional list of object IDs corresponding to the prompts.
             update_memory (bool): Flag to indicate whether to update the memory with new objects.
 
@@ -2130,7 +2129,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             obj_id (int): The client-side object ID.
 
         Returns:
-            (int): The model-side object index, or None if not found.
+            (int | None): The model-side object index, or None if not found.
         """
         return self.obj_id_to_idx.get(obj_id, None)
 
@@ -2619,7 +2618,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
-        names = []
+        names = self.model.names if self.model.names != "visual" else {}
         if len(curr_obj_ids) == 0:
             pred_masks, pred_boxes = None, torch.zeros((0, 7), device=self.device)
         else:
@@ -2638,6 +2637,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             pred_boxes = torch.cat(
                 [pred_boxes, pred_ids[keep][:, None], pred_scores[keep][..., None], pred_cls[keep][..., None]], dim=-1
             )
+            if pred_boxes.shape[0]:
+                names = names or dict(enumerate(str(i) for i in range(pred_boxes[:, 6].int().max() + 1)))
             if pred_masks.shape[0] > 1:
                 tracker_scores = torch.tensor(
                     [
@@ -2657,7 +2658,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
                         background_value=0,
                     ).squeeze(1)
                 ) > 0
-                names = self.model.names or dict(enumerate(str(i) for i in range(pred_boxes[:, 6].int().max())))
 
         results = []
         for masks, boxes, orig_img, img_path in zip([pred_masks], [pred_boxes], orig_imgs, self.batch[0]):

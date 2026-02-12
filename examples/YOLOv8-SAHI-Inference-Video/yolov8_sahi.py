@@ -77,7 +77,7 @@ class SAHIInference:
             save_img (bool): Whether to save results to a video file.
             exist_ok (bool): Whether to overwrite existing output files.
             device (str, optional): CUDA device, i.e., '0' or '0,1,2,3' or 'cpu'.
-            hide_conf (bool, optional): Flag to show or hide confidences in the output.
+            hide_conf (bool, optional): Whether to hide confidence scores in the output.
             slice_width (int, optional): Slice width for inference.
             slice_height (int, optional): Slice height for inference.
         """

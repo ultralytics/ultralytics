@@ -142,8 +142,8 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
             if format == "imx":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
-                assert model.task in {"detect", "classify", "pose"}, (
-                    "IMX export is only supported for detection, classification and pose estimation tasks"
+                assert model.task in {"detect", "classify", "pose", "segment"}, (
+                    "IMX export is only supported for detection, classification, pose estimation and segmentation tasks"
                 )
                 assert "C2f" in model.__str__(), "IMX only supported for YOLOv8n and YOLO11n"
             if format == "rknn":
@@ -220,14 +220,14 @@ def benchmark(
 
 
 class RF100Benchmark:
-    """Benchmark YOLO model performance across various formats for speed and accuracy.
+    """Benchmark YOLO model performance on the RF100 dataset collection.
 
-    This class provides functionality to benchmark YOLO models on the RF100 dataset collection.
+    This class provides functionality to download, process, and evaluate YOLO models on the RF100 datasets.
 
     Attributes:
         ds_names (list[str]): Names of datasets used for benchmarking.
         ds_cfg_list (list[Path]): List of paths to dataset configuration files.
-        rf (Roboflow): Roboflow instance for accessing datasets.
+        rf (Roboflow | None): Roboflow instance for accessing datasets.
         val_metrics (list[str]): Metrics used for validation.
 
     Methods:
@@ -238,7 +238,7 @@ class RF100Benchmark:
     """
 
     def __init__(self):
-        """Initialize the RF100Benchmark class for benchmarking YOLO model performance across various formats."""
+        """Initialize the RF100Benchmark class for benchmarking YOLO model performance on RF100 datasets."""
         self.ds_names = []
         self.ds_cfg_list = []
         self.rf = None
@@ -267,8 +267,7 @@ class RF100Benchmark:
             ds_link_txt (str): Path to the file containing dataset links.
 
         Returns:
-            ds_names (list[str]): List of dataset names.
-            ds_cfg_list (list[Path]): List of paths to dataset configuration files.
+            (tuple[list[str], list[Path]]): List of dataset names and list of paths to dataset configuration files.
 
         Examples:
             >>> benchmark = RF100Benchmark()
@@ -505,7 +504,7 @@ class ProfileModels:
 
     @staticmethod
     def get_onnx_model_info(onnx_file: str):
-        """Extract metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
+        """Extract metadata from an ONNX model file including layers, parameters, gradients, and FLOPs."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
@@ -537,8 +536,7 @@ class ProfileModels:
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            mean_time (float): Mean inference time in milliseconds.
-            std_time (float): Standard deviation of inference time in milliseconds.
+            (tuple[float, float]): Mean and standard deviation of inference time in milliseconds.
         """
         if not self.trt or not Path(engine_file).is_file():
             return 0.0, 0.0
@@ -580,8 +578,7 @@ class ProfileModels:
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            mean_time (float): Mean inference time in milliseconds.
-            std_time (float): Standard deviation of inference time in milliseconds.
+            (tuple[float, float]): Mean and standard deviation of inference time in milliseconds.
         """
         check_requirements([("onnxruntime", "onnxruntime-gpu")])  # either package meets requirements
         import onnxruntime as ort

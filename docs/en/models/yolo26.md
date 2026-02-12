@@ -105,6 +105,8 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
         --8<-- "docs/macros/yolo-obb-perf.md"
 
+_Params and FLOPs values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts._
+
 ---
 
 ## Usage Examples
@@ -237,8 +239,7 @@ YOLOE-26 supports both text-based and visual prompting. Using prompts is straigh
         model = YOLO("yoloe-26l-seg.pt")  # or select yoloe-26s/m-seg.pt for different sizes
 
         # Set text prompt to detect person and bus. You only need to do this once after you load the model.
-        names = ["person", "bus"]
-        model.set_classes(names, model.get_text_pe(names))
+        model.set_classes(["person", "bus"])
 
         # Run detection on the given image
         results = model.predict("path/to/image.jpg")

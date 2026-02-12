@@ -59,7 +59,7 @@ class BaseValidator:
         stats (dict): Statistics collected during validation.
         confusion_matrix: Confusion matrix for classification evaluation.
         nc (int): Number of classes.
-        iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
+        iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in steps of 0.05.
         jdict (list): List to store JSON validation results.
         speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective batch
             processing times in milliseconds.
@@ -156,8 +156,11 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
-            if hasattr(model, "end2end") and self.args.end2end is not None:
-                model.end2end = self.args.end2end
+            if hasattr(model, "end2end"):
+                if self.args.end2end is not None:
+                    model.end2end = self.args.end2end
+                if model.end2end:
+                    model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
             model = AutoBackend(
                 model=model or self.args.model,
                 device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
@@ -287,12 +290,11 @@ class BaseValidator:
         iou = iou.cpu().numpy()
         for i, threshold in enumerate(self.iouv.cpu().tolist()):
             if use_scipy:
-                # WARNING: known issue that reduces mAP in https://github.com/ultralytics/ultralytics/pull/4708
                 import scipy  # scope import to avoid importing for all commands
 
                 cost_matrix = iou * (iou >= threshold)
                 if cost_matrix.any():
-                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix)
+                    labels_idx, detections_idx = scipy.optimize.linear_sum_assignment(cost_matrix, maximize=True)
                     valid = cost_matrix[labels_idx, detections_idx] > 0
                     if valid.any():
                         correct[detections_idx[valid], i] = True

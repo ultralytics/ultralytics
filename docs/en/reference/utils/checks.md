@@ -15,6 +15,10 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.checks.get_distribution_name
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.checks.parse_version
 
 <br><br><hr><br>
@@ -56,6 +60,14 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.checks.check_requirements
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.checks.check_executorch_requirements
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.checks.check_tensorrt
 
 <br><br><hr><br>
 

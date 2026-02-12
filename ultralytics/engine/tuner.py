@@ -26,7 +26,7 @@ from datetime import datetime
 import numpy as np
 import torch
 
-from ultralytics.cfg import get_cfg, get_save_dir
+from ultralytics.cfg import CFG_INT_KEYS, get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.patches import torch_load
@@ -44,8 +44,8 @@ class Tuner:
         space (dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
-        args (dict): Configuration arguments for the tuning process.
-        callbacks (list): Callback functions to be executed during tuning.
+        args (SimpleNamespace): Configuration arguments for the tuning process.
+        callbacks (dict): Callback functions to be executed during tuning.
         prefix (str): Prefix string for logging messages.
         mongodb (MongoClient): Optional MongoDB client for distributed tuning.
         collection (Collection): MongoDB collection for storing tuning results.
@@ -86,7 +86,7 @@ class Tuner:
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
-            _callbacks (list | None, optional): Callback functions to be executed during tuning.
+            _callbacks (dict | None, optional): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
@@ -253,7 +253,7 @@ class Tuner:
             with open(self.tune_csv, "w", encoding="utf-8") as f:
                 f.write(headers)
                 for result in all_results:
-                    fitness = result["fitness"]
+                    fitness = result["fitness"] or 0.0
                     hyp_values = [result["hyperparameters"].get(k, self.args.get(k)) for k in self.space.keys()]
                     log_row = [round(fitness, 5), *hyp_values]
                     f.write(",".join(map(str, log_row)) + "\n")
@@ -406,7 +406,7 @@ class Tuner:
                 LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")
 
             # Save results - MongoDB takes precedence
-            fitness = metrics.get("fitness", 0.0)
+            fitness = metrics.get("fitness") or 0.0
             if self.mongodb:
                 self._save_to_mongodb(fitness, mutated_hyp, metrics, i + 1)
                 self._sync_mongodb_to_csv()
@@ -448,7 +448,7 @@ class Tuner:
                 f"{self.prefix}Best fitness model is {best_save_dir}"
             )
             LOGGER.info("\n" + header)
-            data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
+            data = {k: int(v) if k in CFG_INT_KEYS else float(v) for k, v in zip(self.space.keys(), x[best_idx, 1:])}
             YAML.save(
                 self.tune_dir / "best_hyperparameters.yaml",
                 data=data,

@@ -29,6 +29,7 @@ from ultralytics.utils import (
     AUTOINSTALL,
     GIT,
     IS_COLAB,
+    IS_DOCKER,
     IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
@@ -83,6 +84,15 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
                 requirements.append(SimpleNamespace(name=match[1], specifier=match[2].strip() if match[2] else ""))
 
     return requirements
+
+
+def get_distribution_name(import_name: str) -> str:
+    """Get the pip distribution name for a given import name (e.g., 'cv2' -> 'opencv-python-headless')."""
+    for dist in metadata.distributions():
+        top_level = (dist.read_text("top_level.txt") or "").split()
+        if import_name in top_level:
+            return dist.metadata["Name"]
+    return import_name
 
 
 @functools.lru_cache
@@ -191,7 +201,7 @@ def check_version(
         current (str): Current version or package name to get version from.
         required (str): Required version or range (in pip-style format).
         name (str): Name to be used in warning message.
-        hard (bool): If True, raise an AssertionError if the requirement is not met.
+        hard (bool): If True, raise a ModuleNotFoundError if the requirement is not met.
         verbose (bool): If True, print warning message if requirement is not met.
         msg (str): Extra message to display if verbose.
 
@@ -271,7 +281,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
         package_name (str): The name of the package to find the latest version for.
 
     Returns:
-        (str): The latest version of the package.
+        (str | None): The latest version of the package, or None if unavailable.
     """
     import requests  # scoped as slow import
 
@@ -315,7 +325,7 @@ def check_font(font="Arial.ttf"):
         font (str): Path or name of font.
 
     Returns:
-        (Path): Resolved font file path.
+        (Path | str): Resolved font file path.
     """
     from matplotlib import font_manager  # scope for faster 'import ultralytics'
 
@@ -342,7 +352,7 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 
     Args:
         minimum (str): Required minimum version of python.
-        hard (bool): If True, raise an AssertionError if the requirement is not met.
+        hard (bool): If True, raise a ModuleNotFoundError if the requirement is not met.
         verbose (bool): If True, print warning message if requirement is not met.
 
     Returns:
@@ -356,7 +366,7 @@ def check_apt_requirements(requirements):
     """Check if apt packages are installed and install missing ones.
 
     Args:
-        requirements: List of apt package names to check and install
+        requirements (list[str]): List of apt package names to check and install.
     """
     prefix = colorstr("red", "bold", "apt requirements:")
     # Check which packages are missing
@@ -495,6 +505,28 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     return True
 
 
+def check_executorch_requirements():
+    """Check and install ExecuTorch requirements including platform-specific dependencies."""
+    # BUG executorch build on arm64 Docker requires packaging>=22.0 https://github.com/pypa/setuptools/issues/4483
+    if LINUX and ARM64 and IS_DOCKER:
+        check_requirements("packaging>=22.0")
+
+    check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
+    # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
+    check_requirements("numpy<=2.3.5")
+
+
+def check_tensorrt(min_version: str = "7.0.0"):
+    """Check and install TensorRT requirements including platform-specific dependencies.
+
+    Args:
+        min_version (str): Minimum supported TensorRT version (default: "7.0.0").
+    """
+    if LINUX:
+        cuda_version = torch.version.cuda.split(".")[0]
+        check_requirements(f"tensorrt-cu{cuda_version}>={min_version},!=10.1.0")
+
+
 def check_torchvision():
     """Check the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
@@ -546,7 +578,7 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
                 assert f".{s}" in suffix, f"{msg}{f} acceptable suffix is {suffix}, not .{s}"
 
 
-def check_yolov5u_filename(file: str, verbose: bool = True):
+def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
     """Replace legacy YOLOv5 filenames with updated YOLOv5u filenames.
 
     Args:
@@ -573,7 +605,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     return file
 
 
-def check_model_file_from_stem(model="yolo11n"):
+def check_model_file_from_stem(model: str = "yolo11n") -> str | Path:
     """Return a model filename from a valid model stem.
 
     Args:
@@ -599,7 +631,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         hard (bool): Whether to raise an error if the file is not found.
 
     Returns:
-        (str): Path to the file.
+        (str | list): Path to the file, or an empty list if not found.
     """
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
@@ -619,6 +651,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         # Use URI path for unique directory structure: ul://user/project/model -> user/project/model/filename.pt
         uri_path = file[5:]  # Remove "ul://"
         local_file = Path(download_dir) / uri_path / url2file(url)
+        # Always re-download NDJSON datasets (cheap, ensures fresh data after updates)
+        if local_file.suffix == ".ndjson":
+            local_file.unlink(missing_ok=True)
         if local_file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
         else:
@@ -660,7 +695,7 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
     return check_file(file, suffix, hard=hard)
 
 
-def check_is_path_safe(basedir, path):
+def check_is_path_safe(basedir: Path | str, path: Path | str) -> bool:
     """Check if the resolved path is under the intended directory to prevent path traversal.
 
     Args:
@@ -702,7 +737,7 @@ def check_imshow(warn=False):
 
 
 def check_yolo(verbose=True, device=""):
-    """Return a human-readable YOLO software and hardware summary.
+    """Print a human-readable YOLO software and hardware summary.
 
     Args:
         verbose (bool): Whether to print verbose information.
@@ -751,7 +786,7 @@ def collect_system_info():
     gib = 1 << 30  # bytes per GiB
     cuda = torch.cuda.is_available()
     check_yolo()
-    total, _used, free = shutil.disk_usage("/")
+    total, _, free = shutil.disk_usage("/")
 
     info_dict = {
         "OS": platform.platform(),
@@ -770,7 +805,7 @@ def collect_system_info():
     LOGGER.info("\n" + "\n".join(f"{k:<23}{v}" for k, v in info_dict.items()) + "\n")
 
     package_info = {}
-    for r in parse_requirements(package="ultralytics"):
+    for r in parse_requirements(package=get_distribution_name("ultralytics")):
         try:
             current = metadata.version(r.name)
             is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "
@@ -807,7 +842,7 @@ def check_amp(model):
         model (torch.nn.Module): A YOLO model instance.
 
     Returns:
-        (bool): Returns True if the AMP functionality works correctly with YOLO11 model, else False.
+        (bool): Returns True if the AMP functionality works correctly with YOLO model, else False.
 
     Examples:
         >>> from ultralytics import YOLO

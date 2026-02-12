@@ -20,7 +20,7 @@ The ImageWoof dataset structure is based on the dog breed classes, with each bre
 
 ## Applications
 
-The ImageWoof dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in image classification tasks, especially when it comes to more complex and similar classes. The dataset's challenge lies in the subtle differences between the dog breeds, pushing the limits of model's performance and generalization. It's particularly valuable for:
+The ImageWoof dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in image classification tasks, especially when it comes to more complex and similar classes. The dataset's challenge lies in the subtle differences between the dog breeds, pushing the limits of model performance and generalization. It's particularly valuable for:
 
 - Benchmarking classification model performance on fine-grained categories
 - Testing model robustness against similar-looking classes

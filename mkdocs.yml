@@ -6,7 +6,7 @@
 
 # Site metadata
 site_name: Ultralytics YOLO Docs
-site_description: Explore Ultralytics YOLO, a cutting-edge real-time object detection and image segmentation model for various applications and hardware platforms.
+site_description: Explore Ultralytics YOLO, a cutting-edge real-time model for object detection, segmentation, classification, pose estimation, and tracking across various applications and hardware platforms.
 site_url: https://docs.ultralytics.com
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
@@ -15,7 +15,7 @@ repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
 docs_dir: "docs/en/" # where to find the markdown files
 site_dir: "site/" # where to publish to
-use_directory_urls: true # don't display 'index.html' in slugs
+use_directory_urls: true # use directory-style URLs instead of file-based paths
 
 # Theme customization
 theme:
@@ -63,8 +63,8 @@ theme:
     - navigation.instant
     - navigation.instant.progress
     - navigation.indexes
-    - navigation.sections # navigation.expand or navigation.sections
-    - content.tabs.link # all code tabs change simultaneously
+    - navigation.sections # groups top-level sections instead of expanding all
+    - content.tabs.link # all content tabs with the same label change simultaneously
     # - search.highlight
     # - search.share
     # - search.suggest
@@ -515,6 +515,7 @@ nav:
       - AzureML Quickstart: guides/azureml-quickstart.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
       - Conda Quickstart: guides/conda-quickstart.md
+      - Customizing Trainer: guides/custom-trainer.md
       - Data Collection and Annotation: guides/data-collection-and-annotation.md
       - DeepStream on NVIDIA Jetson: guides/deepstream-nvidia-jetson.md
       - Defining A Computer Vision Project's Goals: guides/defining-project-goals.md
@@ -826,6 +827,7 @@ nav:
           - tqdm: reference/utils/tqdm.md
           - triton: reference/utils/triton.md
           - tuner: reference/utils/tuner.md
+          - uploads: reference/utils/uploads.md
 
   - Help:
       - Help: help/index.md

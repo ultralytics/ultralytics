@@ -132,7 +132,7 @@ def test_predict_img(model_name):
 
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
-    """Test model prediction methods with 'visualize=True' to generate and display prediction visualizations."""
+    """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
@@ -698,7 +698,7 @@ def test_yolo_world():
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
 def test_yoloe(tmp_path):
-    """Test YOLOE models with MobileClip support."""
+    """Test YOLOE models with MobileCLIP support."""
     # Predict
     # text-prompts
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")

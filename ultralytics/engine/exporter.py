@@ -1517,8 +1517,8 @@ class NMSModel(torch.nn.Module):
             x (torch.Tensor): The preprocessed tensor with shape (B, C, H, W).
 
         Returns:
-            (torch.Tensor | tuple): Tensor of shape (B, max_det, 4 + 2 + extra_shape) where B is the batch size,
-                or a tuple of (detections, proto) for segmentation models.
+            (torch.Tensor | tuple): Tensor of shape (B, max_det, 4 + 2 + extra_shape) where B is the batch size, or a
+                tuple of (detections, proto) for segmentation models.
         """
         from functools import partial
 

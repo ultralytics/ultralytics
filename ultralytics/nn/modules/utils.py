@@ -35,7 +35,8 @@ def _get_clones(module, n):
 def bias_init_with_prob(prior_prob=0.01):
     """Initialize conv/fc bias value according to a given probability value.
 
-    This function calculates the bias initialization value based on a prior probability using the inverse sigmoid (logit)
+    This function calculates the bias initialization value based on a prior probability using the inverse sigmoid
+    (logit)
     function. It's commonly used in object detection models to initialize classification layers with a specific positive
     prediction probability.
 

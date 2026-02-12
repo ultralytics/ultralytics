@@ -398,7 +398,8 @@ def load_inference_source(
     """Load an inference source for object detection and apply necessary transformations.
 
     Args:
-        source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The input source for inference.
+        source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The input source for
+            inference.
         batch (int, optional): Batch size for dataloaders.
         vid_stride (int, optional): The frame interval for video sources.
         buffer (bool, optional): Whether stream frames will be buffered.

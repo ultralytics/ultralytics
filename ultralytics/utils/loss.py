@@ -800,7 +800,9 @@ class PoseLoss26(v8PoseLoss):
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the total loss and detach it for pose estimation."""
         pred_kpts = preds["kpts"].permute(0, 2, 1).contiguous()
-        loss = torch.zeros(6 if self.rle_loss else 5, device=self.device)  # box, kpt_location, kpt_visibility, cls, dfl[, rle]
+        loss = torch.zeros(
+            6 if self.rle_loss else 5, device=self.device
+        )  # box, kpt_location, kpt_visibility, cls, dfl[, rle]
         (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
             self.get_assigned_targets_and_loss(preds, batch)
         )

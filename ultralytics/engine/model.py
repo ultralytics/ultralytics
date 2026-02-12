@@ -596,8 +596,8 @@ class Model(torch.nn.Module):
 
         Returns:
             (ultralytics.utils.metrics.DetMetrics): Validation metrics obtained from the validation process. The
-                specific metrics type depends on the task (e.g., DetMetrics, SegmentMetrics, PoseMetrics,
-                ClassifyMetrics).
+                specific metrics type depends on the task (e.g., DetMetrics, SegmentMetrics,
+                PoseMetrics, ClassifyMetrics).
 
         Raises:
             TypeError: If the model is not a PyTorch model.

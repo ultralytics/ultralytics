@@ -404,8 +404,8 @@ def get_abs_pos(
         tiling (bool): Whether to tile the embeddings, *instead* of interpolation (a la abs_win).
 
     Returns:
-        (torch.Tensor): Absolute positional embeddings after processing with shape (1, H, W, C) if
-            retain_cls_token is False, otherwise (1, 1+H*W, C).
+        (torch.Tensor): Absolute positional embeddings after processing with shape (1, H, W, C) if retain_cls_token is
+            False, otherwise (1, 1+H*W, C).
     """
     if retain_cls_token:
         assert has_cls_token

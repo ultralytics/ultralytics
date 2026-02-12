@@ -30,7 +30,8 @@ class SolutionConfig:
         down_angle (int): Lower angle threshold used in pose-based workouts monitoring.
         kpts (list[int]): Keypoint indices to monitor, e.g., for pose analytics.
         analytics_type (str): Type of analytics to perform ("line", "area", "bar", "pie", etc.).
-        figsize (tuple[float, float], optional): Size of the matplotlib figure used for analytical plots (width, height).
+        figsize (tuple[float, float], optional): Size of the matplotlib figure used for analytical plots (width,
+            height).
         blur_ratio (float): Ratio used to blur objects in the video frames (0.0 to 1.0).
         vision_point (tuple[int, int]): Reference point for directional tracking or perspective drawing.
         crop_dir (str): Directory path to save cropped detection images.

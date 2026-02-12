@@ -140,9 +140,9 @@ def select_device(device="", newline=False, verbose=True):
     exception if the requested device(s) are not available.
 
     Args:
-        device (str | torch.device, optional): Device string or torch.device object. Options include 'cpu', 'cuda',
-            '0', '0,1,2,3', 'mps', or '-1' for auto-select. Defaults to auto-selecting the first available GPU,
-            or CPU if no GPU is available.
+        device (str | torch.device, optional): Device string or torch.device object. Options include 'cpu', 'cuda', '0',
+            '0,1,2,3', 'mps', or '-1' for auto-select. Defaults to auto-selecting the first available GPU, or CPU if no
+            GPU is available.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
@@ -686,7 +686,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
         >>> from pathlib import Path
         >>> from ultralytics.utils.torch_utils import strip_optimizer
         >>> for f in Path("path/to/model/checkpoints").rglob("*.pt"):
-        ...    strip_optimizer(f)
+        ...     strip_optimizer(f)
     """
     try:
         x = torch_load(f, map_location=torch.device("cpu"))

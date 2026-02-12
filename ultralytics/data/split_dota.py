@@ -204,10 +204,17 @@ def crop_and_save(
         if len(label) or allow_background_images:
             cv2.imwrite(str(Path(im_dir) / f"{new_name}.jpg"), patch_im)
         if len(label):
+            # Shift into the window coordinate system
             label[:, 1::2] -= x_start
             label[:, 2::2] -= y_start
+
+            # Normalize by patch size
             label[:, 1::2] /= pw
             label[:, 2::2] /= ph
+
+            # Clamp normalized coordinates into [0, 1]
+            label[:, 1::2] = np.clip(label[:, 1::2], 0.0, 1.0)
+            label[:, 2::2] = np.clip(label[:, 2::2], 0.0, 1.0)
 
             with open(Path(lb_dir) / f"{new_name}.txt", "w", encoding="utf-8") as f:
                 for lb in label:

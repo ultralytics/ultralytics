@@ -400,6 +400,7 @@ class YOLOE(Model):
                         "device": kwargs.get("device", None),
                         "half": kwargs.get("half", False),
                         "imgsz": kwargs.get("imgsz", self.overrides.get("imgsz", 640)),
+                        "end2end": kwargs.get("end2end", False),
                     },
                     _callbacks=self.callbacks,
                 )

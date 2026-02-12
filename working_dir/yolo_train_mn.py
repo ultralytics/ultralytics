@@ -31,20 +31,13 @@ def parse_args():
     parser.add_argument(
         '--name',
         type=str,
-        default='rtdetr_res50_pretrained',
+        default='rtdetr_res50_train',
         help='Name for the training run'
     )
 
     parser.add_argument(
-        '--pretrained',
-        type=str,
-        default=None,
-        help='Path to pretrained weights file'
-    )
-
-    parser.add_argument(
         '--train', nargs='*', default=[], 
-        help='Additional Ultralytics train args, e.g. freeze=10 imgsz=1024')
+        help='Additional Ultralytics train args, e.g. freeze=10 imgsz=1024 pretrained=/path/to/weights.pt')
 
     return parser.parse_args()
 
@@ -85,8 +78,6 @@ def main():
 
     # Load RT-DETR model
     model = RTDETR(args.model)
-    if args.pretrained:
-        model.load(args.pretrained)
 
     for name, param in model.model.named_parameters():
         if not param.requires_grad:

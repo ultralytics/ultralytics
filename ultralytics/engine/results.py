@@ -217,7 +217,7 @@ class Results(SimpleClass, DataExportMixin):
         >>> boxes = result.boxes  # Get the boxes for the first result
         >>> masks = result.masks  # Get the masks for the first result
         >>> for result in results:
-        >>>     result.plot()  # Plot detection results
+        ...     result.plot()  # Plot detection results
     """
 
     def __init__(
@@ -308,8 +308,8 @@ class Results(SimpleClass, DataExportMixin):
     ):
         """Update the Results object with new detection data.
 
-        This method allows updating the boxes, masks, probabilities, and oriented bounding boxes (OBB) of the Results
-        object. It ensures that boxes are clipped to the original image shape.
+        This method allows updating the boxes, masks, keypoints, probabilities, and oriented bounding boxes (OBB) of
+        the Results object. It ensures that boxes are clipped to the original image shape.
 
         Args:
             boxes (torch.Tensor | None): A tensor of shape (N, 6) containing bounding box coordinates and confidence
@@ -317,7 +317,7 @@ class Results(SimpleClass, DataExportMixin):
             masks (torch.Tensor | None): A tensor of shape (N, H, W) containing segmentation masks.
             probs (torch.Tensor | None): A tensor of shape (num_classes,) containing class probabilities.
             obb (torch.Tensor | None): A tensor of shape (N, 7) or (N, 8) containing oriented bounding box coordinates.
-            keypoints (torch.Tensor | None): A tensor of shape (N, 17, 3) containing keypoints.
+            keypoints (torch.Tensor | None): A tensor of shape (N, K, 3) containing keypoints, were K=17 for persons.
 
         Examples:
             >>> results = model("image.jpg")
@@ -488,8 +488,8 @@ class Results(SimpleClass, DataExportMixin):
         Examples:
             >>> results = model("image.jpg")
             >>> for result in results:
-            >>>     im = result.plot()
-            >>>     im.show()
+            ...     im = result.plot()
+            ...     im.show()
         """
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
@@ -592,7 +592,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> results = model("path/to/image.jpg")
             >>> results[0].show()  # Display the first result
             >>> for result in results:
-            >>>     result.show()  # Display all results
+            ...     result.show()  # Display all results
         """
         self.plot(show=True, *args, **kwargs)
 
@@ -614,10 +614,10 @@ class Results(SimpleClass, DataExportMixin):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            >>>     result.save("annotated_image.jpg")
+            ...     result.save("annotated_image.jpg")
             >>> # Or with custom plot arguments
             >>> for result in results:
-            >>>     result.save("annotated_image.jpg", conf=False, line_width=2)
+            ...     result.save("annotated_image.jpg", conf=False, line_width=2)
             >>> # Directory will be created automatically if it does not exist
             >>> result.save("path/to/annotated_image.jpg")
         """
@@ -640,7 +640,7 @@ class Results(SimpleClass, DataExportMixin):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            >>>     print(result.verbose())
+            ...     print(result.verbose())
             2 persons, 1 car, 3 traffic lights,
             dog 0.92, cat 0.78, horse 0.64,
 
@@ -673,7 +673,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> model = YOLO("yolo26n.pt")
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            >>>     result.save_txt("output.txt")
+            ...     result.save_txt("output.txt")
 
         Notes:
             - The file will contain one line per detection or classification with the following structure:
@@ -727,7 +727,7 @@ class Results(SimpleClass, DataExportMixin):
         Examples:
             >>> results = model("path/to/image.jpg")
             >>> for result in results:
-            >>>     result.save_crop(save_dir="path/to/crops", file_name="detection")
+            ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
 
         Notes:
             - This method does not support Classify or Oriented Bounding Box (OBB) tasks.
@@ -769,8 +769,8 @@ class Results(SimpleClass, DataExportMixin):
         Examples:
             >>> results = model("image.jpg")
             >>> for result in results:
-            >>>     summary = result.summary()
-            >>>     print(summary)
+            ...     summary = result.summary()
+            ...     print(summary)
         """
         # Create list of detection dictionaries
         results = []
@@ -1115,7 +1115,7 @@ class Keypoints(BaseTensor):
         has_visible (bool): Indicates whether visibility information is available for keypoints.
         xy (torch.Tensor): Keypoint coordinates in [x, y] format.
         xyn (torch.Tensor): Normalized keypoint coordinates in [x, y] format, relative to orig_shape.
-        conf (torch.Tensor): Confidence values for each keypoint, if available.
+        conf (torch.Tensor | None): Confidence values for each keypoint, if available.
 
     Methods:
         cpu: Return a copy of the keypoints tensor on CPU memory.

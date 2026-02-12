@@ -316,7 +316,7 @@ class ConfusionMatrix(DataExportMixin):
         matches (dict | None): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
     """
 
-    def __init__(self, names: dict[int, str] = {}, task: str = "detect", save_matches: bool = False):
+    def __init__(self, names: dict[int, str] = [], task: str = "detect", save_matches: bool = False):
         """Initialize a ConfusionMatrix instance.
 
         Args:
@@ -728,8 +728,12 @@ def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.n
         mrec (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
     """
     # Append sentinel values to beginning and end
-    mrec = np.concatenate(([0.0], recall, [1.0]))
-    mpre = np.concatenate(([1.0], precision, [0.0]))
+    if len(recall) > 0:
+        mrec = np.concatenate(([0.0], recall, [recall[-1]], [1.0]))
+        mpre = np.concatenate(([1.0], precision, [0.0], [0.0]))
+    else:
+        mrec = np.concatenate(([0.0], recall, [1.0]))
+        mpre = np.concatenate(([1.0], precision, [0.0]))
 
     # Compute the precision envelope
     mpre = np.flip(np.maximum.accumulate(np.flip(mpre)))

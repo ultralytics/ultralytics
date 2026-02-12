@@ -79,7 +79,7 @@ from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder
+from ultralytics.nn.modules import Classify, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
@@ -523,9 +523,6 @@ class Exporter:
                 m.shape = None  # reset cached shape for new export input size
                 if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))
-            elif isinstance(m, C2f) and not is_tf_format:
-                # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
-                m.forward = m.forward_split
 
         y = None
         for _ in range(2):  # dry runs

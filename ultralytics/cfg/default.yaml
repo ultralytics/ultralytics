@@ -56,7 +56,7 @@ max_det: 300 # (int) maximum number of detections per image
 half: False # (bool) use half precision (FP16) if supported
 dnn: False # (bool) use OpenCV DNN for ONNX inference
 plots: True # (bool) save plots and images during train/val
-end2end: # (bool, optional) whether to use end2end head(YOLO26, YOLOv10) for predict/val/export
+end2end: # (bool, optional) whether to use end2end head (YOLO26, YOLOv10) for predict/val/export
 
 # Predict settings -----------------------------------------------------------------------------------------------------
 source: # (str, optional) path/dir/URL/stream for images or videos; e.g. 'ultralytics/assets' or '0' for webcam
@@ -84,8 +84,8 @@ line_width: # (int, optional) line width of boxes; auto-scales with image size i
 format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|saved_model|pb|tflite|edgetpu|tfjs|paddle|mnn|ncnn|imx|rknn|executorch|axelera
 keras: False # (bool) TF SavedModel only (format=saved_model); enable Keras layers during export
 optimize: False # (bool) TorchScript only; apply mobile optimizations to the scripted model
-int8: False # (bool) INT8/PTQ where supported (openvino, tflite, tfjs, engine, imx); needs calibration data/fraction
-dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine; enable variable image sizes
+int8: False # (bool) INT8/PTQ where supported (openvino, engine, coreml, tflite, tfjs, mnn, imx, axelera); needs calibration data/fraction
+dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine, coreml; enable variable image sizes
 simplify: True # (bool) ONNX/engine only; run graph simplifier for cleaner ONNX before runtime conversion
 opset: # (int, optional) ONNX/engine only; opset version for export; leave unset to use a tested default
 workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.g. 4
@@ -124,7 +124,7 @@ cutmix: 0.0 # (float) CutMix augmentation probability
 copy_paste: 0.0 # (float) segmentation copy-paste probability
 copy_paste_mode: flip # (str) copy-paste strategy for segmentation: flip or mixup
 auto_augment: randaugment # (str) classification auto augmentation policy: randaugment, autoaugment, augmix
-erasing: 0.4 # (float) random erasing probability for classification (0–0.9), <1.0
+erasing: 0.4 # (float) random erasing probability for classification (0.0–1.0)
 
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg: # (str, optional) path to a config.yaml that overrides defaults

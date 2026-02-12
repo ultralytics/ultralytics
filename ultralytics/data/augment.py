@@ -1075,7 +1075,8 @@ class RandomPerspective:
             >>> import numpy as np
             >>> img = np.random.rand(100, 100, 3)
             >>> border = (10, 10)
-            >>> transformed_img, matrix, scale = affine_transform(img, border)
+            >>> rp = RandomPerspective()
+            >>> transformed_img, matrix, scale = rp.affine_transform(img, border)
         """
         # Center
         C = np.eye(3, dtype=np.float32)
@@ -1133,9 +1134,10 @@ class RandomPerspective:
             (np.ndarray): Transformed bounding boxes in xyxy format with shape (N, 4).
 
         Examples:
-            >>> bboxes = torch.tensor([[10, 10, 20, 20], [30, 30, 40, 40]])
-            >>> M = torch.eye(3)
-            >>> transformed_bboxes = apply_bboxes(bboxes, M)
+            >>> rp = RandomPerspective()
+            >>> bboxes = np.array([[10, 10, 20, 20], [30, 30, 40, 40]], dtype=np.float32)
+            >>> M = np.eye(3, dtype=np.float32)
+            >>> transformed_bboxes = rp.apply_bboxes(bboxes, M)
         """
         n = len(bboxes)
         if n == 0:
@@ -1167,9 +1169,10 @@ class RandomPerspective:
             segments (np.ndarray): Transformed and clipped segments with shape (N, M, 2).
 
         Examples:
+            >>> rp = RandomPerspective()
             >>> segments = np.random.rand(10, 500, 2)  # 10 segments with 500 points each
             >>> M = np.eye(3)  # Identity transformation matrix
-            >>> new_bboxes, new_segments = apply_segments(segments, M)
+            >>> new_bboxes, new_segments = rp.apply_segments(segments, M)
         """
         n, num = segments.shape[:2]
         if n == 0:
@@ -2786,8 +2789,7 @@ class ToTensor:
         """Transform an image from a numpy array to a PyTorch tensor.
 
         This method converts the input image from a numpy array to a PyTorch tensor, applying optional half-precision
-        conversion and normalization. The image is transposed from HWC to CHW format and the color channels are reversed
-        from BGR to RGB.
+        conversion and normalization. The image is transposed from HWC to CHW format.
 
         Args:
             im (np.ndarray): Input image as a numpy array with shape (H, W, C) in BGR order.

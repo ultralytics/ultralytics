@@ -262,7 +262,7 @@ class ConvLayer(nn.Module):
         depth (int): Number of MBConv layers in the block.
         use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
         blocks (nn.ModuleList): List of MBConv layers.
-        downsample (Optional[nn.Module]): Function for downsampling the output.
+        downsample (nn.Module | None): Function for downsampling the output.
 
     Examples:
         >>> input_tensor = torch.randn(1, 64, 56, 56)
@@ -295,9 +295,9 @@ class ConvLayer(nn.Module):
             depth (int): The number of MBConv layers in the block.
             activation (nn.Module): Activation function applied after each convolution.
             drop_path (float | list[float], optional): Drop path rate. Single float or a list of floats for each MBConv.
-            downsample (Optional[nn.Module], optional): Function for downsampling the output. None to skip downsampling.
+            downsample (nn.Module | None, optional): Function for downsampling the output. None to skip downsampling.
             use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
-            out_dim (Optional[int], optional): Output dimensions. None means it will be the same as `dim`.
+            out_dim (int | None, optional): Output dimensions. None means it will be the same as `dim`.
             conv_expand_ratio (float, optional): Expansion ratio for the MBConv layers.
         """
         super().__init__()
@@ -369,8 +369,8 @@ class MLP(nn.Module):
 
         Args:
             in_features (int): Number of input features.
-            hidden_features (Optional[int], optional): Number of hidden features.
-            out_features (Optional[int], optional): Number of output features.
+            hidden_features (int | None, optional): Number of hidden features.
+            out_features (int | None, optional): Number of output features.
             activation (nn.Module): Activation function applied after the first fully-connected layer.
             drop (float, optional): Dropout probability.
         """

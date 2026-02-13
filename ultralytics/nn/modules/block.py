@@ -51,6 +51,7 @@ __all__ = (
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",
+    "SpatialPriorModulev2",
     "PResNet",
     "TorchVision",
     "Timm",
@@ -1650,6 +1651,50 @@ class TorchVision(nn.Module):
         else:
             y = self.m(x)
         return y
+
+
+class SpatialPriorModulev2(nn.Module):
+    """Lightweight spatial-prior module that extracts detail features at P3/P4/P5 scales from an image."""
+
+    def __init__(self, inplanes: int = 16):
+        """Initialize SpatialPriorModulev2.
+
+        Args:
+            inplanes (int): Base channel width used to build output pyramid channels [2*inplanes, 4*inplanes, 4*inplanes].
+        """
+        super().__init__()
+        # 1/4
+        self.stem = nn.Sequential(
+            nn.Conv2d(3, inplanes, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(inplanes),
+            nn.GELU(),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+        )
+        # 1/8 (P3)
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(inplanes, 2 * inplanes, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(2 * inplanes),
+        )
+        # 1/16 (P4)
+        self.conv3 = nn.Sequential(
+            nn.GELU(),
+            nn.Conv2d(2 * inplanes, 4 * inplanes, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(4 * inplanes),
+        )
+        # 1/32 (P5)
+        self.conv4 = nn.Sequential(
+            nn.GELU(),
+            nn.Conv2d(4 * inplanes, 4 * inplanes, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(4 * inplanes),
+        )
+
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+        """Return detail pyramid features [P3, P4, P5]."""
+        c1 = self.stem(x)
+        c2 = self.conv2(c1)
+        c3 = self.conv3(c2)
+        c4 = self.conv4(c3)
+        return [c2, c3, c4]
 
 
 class Timm(nn.Module):

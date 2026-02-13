@@ -67,6 +67,7 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     SCDown,
+    SpatialPriorModulev2,
     Segment,
     Segment26,
     TorchVision,

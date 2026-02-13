@@ -59,6 +59,7 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
+    SpatialPriorModulev2,
     TorchVision,
     Timm,
 )
@@ -179,6 +180,7 @@ __all__ = (
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",
+    "SpatialPriorModulev2",
     "Segment",
     "Segment26",
     "SpatialAttention",

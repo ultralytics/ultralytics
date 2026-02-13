@@ -78,6 +78,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo install-skills
         ```
 
 Where:

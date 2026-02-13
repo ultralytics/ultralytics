@@ -532,7 +532,7 @@ There are two methods to set up a Raspberry Pi Camera for YOLO26 inference:
 
 For detailed setup instructions, visit the [Inference with Camera](#inference-with-camera) section.
 
-## Raspberry Pi AI Kit (Hailo-8L) 
+## Raspberry Pi AI Kit (Hailo-8L)
 
 The Raspberry Pi AI Kit integrates a 13 TOPS Hailo-8L neural network accelerator. This setup allows for high-performance, real-time inference with YOLO26 while offloading the primary CPU.
 
@@ -546,7 +546,7 @@ Before using the YOLO26-Hailo repository, you must install the HailoRT software 
 2.  **Activate Environment**: After installation, activate the HailoRT virtual environment.
 
     ```bash
-    source <path_to_hailort_venv>/bin/activate
+    source < path_to_hailort_venv > /bin/activate
     ```
 
 ### Quick Start (Recommended)
@@ -570,7 +570,7 @@ You do **not** need to export or compile models yourself to get started. We prov
     ```bash
     # Download YOLO26n only
     bash scripts/download_hef.sh n
-    
+
     # Or download all variants (n, s, m, l)
     bash scripts/download_hef.sh
     ```
@@ -597,14 +597,14 @@ You do **not** need to export or compile models yourself to get started. We prov
 
 YOLO26 models on Hailo-8L achieve significant speedups compared to CPU execution, with minimal accuracy loss due to quantization.
 
-| Model | CPU mAP (FP32) | CPU FPS | Hailo mAP (INT8) | Hailo FPS | Speedup | Accuracy Retention |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **YOLO26n** | 0.402 | 6.50 | 0.371 | 86.5 | 13.3x | 92.3% |
-| **YOLO26s** | 0.477 | 2.62 | 0.424 | 37.5 | 14.3x | 88.9% |
-| **YOLO26m** | 0.525 | 0.88 | 0.441 | 23.4 | 26.6x | 84.0% |
-| **YOLO26l** | 0.541 | 0.74 | 0.473 | 17.9 | 24.2x | 87.4% |
+| Model       | CPU mAP (FP32) | CPU FPS | Hailo mAP (INT8) | Hailo FPS | Speedup | Accuracy Retention |
+| :---------- | :------------: | :-----: | :--------------: | :-------: | :-----: | :----------------: |
+| **YOLO26n** |     0.402      |  6.50   |      0.371       |   86.5    |  13.3x  |       92.3%        |
+| **YOLO26s** |     0.477      |  2.62   |      0.424       |   37.5    |  14.3x  |       88.9%        |
+| **YOLO26m** |     0.525      |  0.88   |      0.441       |   23.4    |  26.6x  |       84.0%        |
+| **YOLO26l** |     0.541      |  0.74   |      0.473       |   17.9    |  24.2x  |       87.4%        |
 
-*Benchmarks tested on COCO val2017. Quantization is calibrated using random images from the COCO train2017 dataset.*
+_Benchmarks tested on COCO val2017. Quantization is calibrated using random images from the COCO train2017 dataset._
 
 ### Advanced: Manual Model Export
 
@@ -614,9 +614,9 @@ If you prefer to manually export the model instead of using our automated reposi
 
 Ensure you are using the following software versions to reproduce our results:
 
--   **Ultralytics**: `8.4.7`
--   **Hailo Dataflow Compiler (DFC)**: `v3.33.0`
--   **HailoRT**: `4.23.0`
+- **Ultralytics**: `8.4.7`
+- **Hailo Dataflow Compiler (DFC)**: `v3.33.0`
+- **HailoRT**: `4.23.0`
 
 #### 2. Export to ONNX
 
@@ -632,9 +632,9 @@ Convert the ONNX model to the Hailo Archive (HAR) format. You must specify the e
 
 ```bash
 hailo parser onnx yolo26n.onnx \
-    --hw-arch hailo8l \
-    --start-node-names images \
-    --end-node-names /model.23/one2one_cv3.0/one2one_cv3.0.2/Conv /model.23/one2one_cv3.1/one2one_cv3.1.2/Conv /model.23/one2one_cv3.2/one2one_cv3.2.2/Conv /model.23/one2one_cv2.0/one2one_cv2.0.2/Conv /model.23/one2one_cv2.1/one2one_cv2.1.2/Conv /model.23/one2one_cv2.2/one2one_cv2.2.2/Conv
+  --hw-arch hailo8l \
+  --start-node-names images \
+  --end-node-names /model.23/one2one_cv3.0/one2one_cv3.0.2/Conv /model.23/one2one_cv3.1/one2one_cv3.1.2/Conv /model.23/one2one_cv3.2/one2one_cv3.2.2/Conv /model.23/one2one_cv2.0/one2one_cv2.0.2/Conv /model.23/one2one_cv2.1/one2one_cv2.1.2/Conv /model.23/one2one_cv2.2/one2one_cv2.2.2/Conv
 ```
 
 Select 'n' when prompted "Would you like to add nms postprocess command to the model script? (y/n)".
@@ -646,41 +646,44 @@ The Hailo optimization process requires calibration data in `.npy` format. You w
 You can use the following Python script to prepare your calibration data:
 
 ```python
+from pathlib import Path
+
 import cv2
 import numpy as np
-import os
-from pathlib import Path
+
 
 def preprocess(src_dir, dst_dir, target_size=640):
     src_path = Path(src_dir)
     dst_path = Path(dst_dir)
     dst_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Iterate over images
     for img_path in src_path.glob("*.jpg"):
         img = cv2.imread(str(img_path))
-        if img is None: continue
-            
+        if img is None:
+            continue
+
         # 1. Resize with Letterbox
         h, w = img.shape[:2]
         scale = min(target_size / h, target_size / w)
         new_w, new_h = int(w * scale), int(h * scale)
         resized = cv2.resize(img, (new_w, new_h))
-        
+
         # 2. Pad to target_size (centered) and fill with gray (114)
         padded = np.full((target_size, target_size, 3), 114, dtype=np.uint8)
         pad_w = (target_size - new_w) // 2
         pad_h = (target_size - new_h) // 2
-        padded[pad_h:pad_h + new_h, pad_w:pad_w + new_w] = resized
-        
+        padded[pad_h : pad_h + new_h, pad_w : pad_w + new_w] = resized
+
         # 3. Convert BGR to RGB
         padded = cv2.cvtColor(padded, cv2.COLOR_BGR2RGB)
-        
+
         # 4. Save as .npy
         np.save(dst_path / f"{img_path.stem}.npy", padded)
 
+
 # Usage
-preprocess('data/images', 'data/images_npy')
+preprocess("data/images", "data/images_npy")
 ```
 
 #### 5. Optimize and Quantize
@@ -708,14 +711,12 @@ pre_quantization_optimization(activation_clipping, layers={*}, mode=percentile, 
 pre_quantization_optimization(weights_clipping, layers={*}, mode=percentile, clipping_values=[0.01, 99.99])
 ```
 
-
-
 Then, run the optimization command (ensure you have a directory `data/images_npy/` with calibration images, typically 1024 random images from COCO train)
 
 ```bash
 hailo optimize yolo26n.har \
-    --calib-set-path data/images_npy/ \
-    --model-script yolo26n.alls
+  --calib-set-path data/images_npy/ \
+  --model-script yolo26n.alls
 ```
 
 #### 6. Compile to HEF
@@ -728,7 +729,7 @@ hailo compiler yolo26n_quantized.har
 
 #### 7. Inference Details
 
--   **Input**: The compiled model expects **640x640 RGB** images. The normalization layer in the `.alls` script (`div 255`) handles the conversion from `[0, 255]` to `[0, 1]`.
--   **Output**: The model outputs raw feature maps which must be post-processed on the host CPU.
+- **Input**: The compiled model expects **640x640 RGB** images. The normalization layer in the `.alls` script (`div 255`) handles the conversion from `[0, 255]` to `[0, 1]`.
+- **Output**: The model outputs raw feature maps which must be post-processed on the host CPU.
 
 For full implementation details, including the post-processing code, please refer to the [YOLO26-Hailo repository](https://github.com/DanielDubinsky/yolo26_hailo).

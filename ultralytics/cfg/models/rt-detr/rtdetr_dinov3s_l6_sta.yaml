@@ -1,0 +1,67 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics RT-DETR (DINOv3-s) with STA dual-path fusion and YOLO-style neck/head
+# Model docs: https://docs.ultralytics.com/models/rtdetr
+# Task docs: https://docs.ultralytics.com/tasks/detect
+
+# Parameters
+nc: 80 # number of classes
+
+backbone:
+  # [from, repeats, module, args]
+  # Keep raw image as a stable anchor so both semantic and detail paths can read it.
+  - [-1, 1, nn.Identity, []] # 0 image
+
+  # Semantic path (DINOv3 features from timm)
+  # Timm args: [model_name, pretrained, out_indices, split]
+  - [0, 1, Timm, [None, vit_small_patch16_dinov3.lvd1689m, True, [5, 8, 11], True]] # 1
+  - [1, 1, Index, [384, 1]] # 2 sem (early)
+  - [1, 1, Index, [384, 2]] # 3 sem (mid)
+  - [1, 1, Index, [384, 3]] # 4 sem (late)
+
+  # Bilinear semantic scale alignment (DEIMv2-style interpolation before fusion).
+  - [2, 1, nn.Upsample, [None, 2, "bilinear", False]] # 5 sem -> P3 scale
+  - [4, 1, nn.Upsample, [None, 0.5, "bilinear", False]] # 6 sem -> P5 scale
+
+  # Detail path (STA)
+  - [0, 1, SpatialPriorModulev2, [16]] # 7
+  - [7, 1, Index, [32, 0]] # 8 detail P3
+  - [7, 1, Index, [64, 1]] # 9 detail P4
+  - [7, 1, Index, [64, 2]] # 10 detail P5
+
+  # Fusion + projection back to 384 channels per scale
+  - [[5, 8], 1, Concat, [1]] # 11 fused P3
+  - [-1, 1, Conv, [384, 1, 1]] # 12 fused P3 proj
+  - [[3, 9], 1, Concat, [1]] # 13 fused P4
+  - [-1, 1, Conv, [384, 1, 1]] # 14 fused P4 proj
+  - [[6, 10], 1, Concat, [1]] # 15 fused P5
+  - [-1, 1, Conv, [384, 1, 1]] # 16 fused P5 proj
+
+head:
+  # YOLO26 neck pattern (top-down + bottom-up) on fused STA+semantic features.
+  - [16, 1, nn.Upsample, [None, 2, "nearest"]] # 17
+  - [[-1, 14], 1, Concat, [1]] # 18 cat fused P4
+  - [-1, 2, C3k2, [512, True]] # 19
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 20
+  - [[-1, 12], 1, Concat, [1]] # 21 cat fused P3
+  - [-1, 2, C3k2, [256, True]] # 22 (P3/8-small)
+
+  - [-1, 1, Conv, [256, 3, 2]] # 23
+  - [[-1, 19], 1, Concat, [1]] # 24 cat head P4
+  - [-1, 2, C3k2, [512, True]] # 25 (P4/16-medium)
+
+  - [-1, 1, Conv, [512, 3, 2]] # 26
+  - [[-1, 16], 1, Concat, [1]] # 27 cat fused P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 28 (P5/32-large)
+
+  # RTDETRDecoder - ALL positional arguments must match __init__ signature
+  # [nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale, learnt_init_query]
+  - [[22, 25, 28], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 3, 1024, 0.0, "relu", -1, 100, 0.5, 1.0, False, False]]
+
+loss:
+  gamma: 2.0
+  alpha: 0.75
+  loss_gain: {class: 1, bbox: 5, giou: 2}
+  matcher:
+    cost_gain: {class: 2, bbox: 5, giou: 2}

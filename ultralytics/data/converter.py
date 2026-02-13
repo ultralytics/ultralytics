@@ -24,8 +24,8 @@ def coco91_to_coco80_class() -> list[int]:
     """Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (list[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
-            corresponding 91-index class ID.
+        (list[int | None]): A list of 91 elements where the index represents the 91-index class ID and the value is the
+            corresponding 80-index class ID, or None if there is no mapping.
     """
     return [
         0,
@@ -519,8 +519,8 @@ def min_index(arr1: np.ndarray, arr2: np.ndarray):
         arr2 (np.ndarray): A NumPy array of shape (M, 2) representing M 2D points.
 
     Returns:
-        idx1 (int): Index of the point in arr1 with the shortest distance.
-        idx2 (int): Index of the point in arr2 with the shortest distance.
+        (tuple[int, int]): A tuple (idx1, idx2) where idx1 is the index in arr1 and idx2 is the index in arr2 of the
+            pair with the shortest distance.
     """
     dis = ((arr1[:, None, :] - arr2[None, :, :]) ** 2).sum(-1)
     return np.unravel_index(np.argmin(dis, axis=None), dis.shape)
@@ -537,7 +537,7 @@ def merge_multi_segment(segments: list[list]):
             [segmentation1, segmentation2,...].
 
     Returns:
-        s (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
+        (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
     """
     s = []
     segments = [np.array(i).reshape(-1, 2) for i in segments]
@@ -578,8 +578,9 @@ def merge_multi_segment(segments: list[list]):
 
 
 def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device=None):
-    """Convert existing object detection dataset (bounding boxes) to segmentation dataset or oriented bounding box (OBB)
-    in YOLO format. Generate segmentation data using SAM auto-annotator as needed.
+    """Convert existing object detection dataset (bounding boxes) to segmentation dataset in YOLO format.
+
+    Generates segmentation data using SAM auto-annotator as needed.
 
     Args:
         im_dir (str | Path): Path to image directory to convert.
@@ -659,7 +660,7 @@ def create_synthetic_coco_dataset():
     """
 
     def create_synthetic_image(image_file: Path):
-        """Generate synthetic images with random sizes and colors for dataset augmentation or testing purposes."""
+        """Generate a synthetic image with random size and color for dataset augmentation or testing purposes."""
         if not image_file.exists():
             size = (random.randint(480, 640), random.randint(480, 640))
             Image.new(
@@ -759,20 +760,20 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     - Subsequent lines: Individual image records with annotations and optional URLs
 
     Args:
-        ndjson_path (Union[str, Path]): Path to the input NDJSON file containing dataset information.
-        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset will be saved. If
-            None, uses the parent directory of the NDJSON file. Defaults to None.
+        ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
+        output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
+            uses the DATASETS_DIR directory. Defaults to None.
 
     Returns:
         (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).
 
     Examples:
         Convert a local NDJSON file:
-        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson")
+        >>> yaml_path = await convert_ndjson_to_yolo("dataset.ndjson")
         >>> print(f"Dataset converted to: {yaml_path}")
 
         Convert with custom output directory:
-        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
+        >>> yaml_path = await convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
 
         Use with YOLO training
         >>> from ultralytics import YOLO

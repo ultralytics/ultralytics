@@ -54,7 +54,7 @@ def check_file_speeds(
     """Check dataset file access speed and provide performance feedback.
 
     This function tests the access speed of dataset files by measuring ping (stat call) time and read speed. It samples
-    up to 5 files from the provided list and warns if access times exceed the threshold.
+    up to `max_files` files from the provided list and warns if access times exceed the threshold.
 
     Args:
         files (list[str]): List of file paths to check for access speed.
@@ -299,8 +299,8 @@ def polygon2mask(
 
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where N is the
-            number of polygons, and M is the number of points such that M % 2 = 0.
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is a 1D array of coordinates with length M, where
+            M % 2 = 0 (alternating x, y values).
         color (int, optional): The color value to fill in the polygons on the mask.
         downsample_ratio (int, optional): Factor by which to downsample the mask.
 
@@ -323,8 +323,8 @@ def polygons2masks(
 
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where N is the
-            number of polygons, and M is the number of points such that M % 2 = 0.
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array of coordinates that can be reshaped to
+            (-1, 2) as (x, y) point pairs.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask.
 
@@ -337,7 +337,7 @@ def polygons2masks(
 def polygons2masks_overlap(
     imgsz: tuple[int, int], segments: list[np.ndarray], downsample_ratio: int = 1
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return a (640, 640) overlap mask."""
+    """Return a downsampled overlap mask and sorted area indices."""
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
         dtype=np.int32 if len(segments) > 255 else np.uint8,
@@ -578,7 +578,7 @@ class HUBDatasetStats:
 
     Args:
         path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip).
-        task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify'.
+        task (str): Dataset task. Options are 'detect', 'segment', 'pose', 'classify', 'obb'.
         autodownload (bool): Attempt to download dataset if not found locally.
 
     Attributes:

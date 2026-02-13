@@ -105,7 +105,7 @@ def autosplit(
 
     Args:
         path (Path): Path to images directory.
-        weights (tuple): Train, validation, and test split fractions.
+        weights (tuple[float, float, float]): Train, validation, and test split fractions.
         annotated_only (bool): If True, only images with an associated txt file are used.
 
     Examples:

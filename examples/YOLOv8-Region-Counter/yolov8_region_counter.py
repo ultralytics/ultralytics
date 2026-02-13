@@ -104,7 +104,7 @@ def run(
 
     Args:
         weights (str): Path to the YOLO model weights file.
-        source (str): Path to the input video file.
+        source (str | None): Path to the input video file.
         device (str): Processing device specification ('cpu', '0', '1', etc.).
         view_img (bool): Display results in a live window.
         save_img (bool): Save processed video to file.

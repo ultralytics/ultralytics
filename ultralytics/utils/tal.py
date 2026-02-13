@@ -461,7 +461,7 @@ def rbox2dist(
     dim: int = -1,
     reg_max: int | None = None,
 ):
-    """Decode rotated bounding box (xywh) to distance(ltrb). This is the inverse of dist2rbox.
+    """Transform rotated bounding box (xywh) to distance (ltrb). This is the inverse of dist2rbox.
 
     Args:
         target_bboxes (torch.Tensor): Target rotated bounding boxes with shape (bs, h*w, 4), format [x, y, w, h].
@@ -471,7 +471,7 @@ def rbox2dist(
         reg_max (int, optional): Maximum regression value for clamping.
 
     Returns:
-        (torch.Tensor): Predicted rotated distance with shape (bs, h*w, 4), format [l, t, r, b].
+        (torch.Tensor): Rotated distance with shape (bs, h*w, 4), format [l, t, r, b].
     """
     xy, wh = target_bboxes.split(2, dim=dim)
     offset = xy - anchor_points  # (bs, h*w, 2)

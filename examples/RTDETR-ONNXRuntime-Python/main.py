@@ -18,6 +18,9 @@ def download_file(url: str, local_path: str) -> str:
     Args:
         url (str): URL of the file to download.
         local_path (str): Local path where the file will be saved.
+
+    Returns:
+        (str): Local path where the file was saved.
     """
     # Check if the local path already exists
     if os.path.exists(local_path):

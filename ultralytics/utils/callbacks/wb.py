@@ -16,7 +16,7 @@ except (ImportError, AssertionError):
 
 
 def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall", y_title="Precision"):
-    """Create and log a custom metric visualization to wandb.plot.pr_curve.
+    """Create and log a custom metric visualization table.
 
     This function crafts a custom metric visualization that mimics the behavior of the default wandb precision-recall
     curve while allowing for enhanced customization. The visual metric is useful for monitoring model performance across

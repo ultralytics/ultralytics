@@ -59,11 +59,11 @@ See also: docs reference links at the end for deeper guidance.
     - Yes → Use Docker image and commands; skip to Step 3 for GPU checks.
     - No → Proceed to Step 2.
 2. Is Python virtual environment in use?
-    - No → See [ENVIRONMENT_SETUP.md](references/ENVIRONMENT_SETUP.md) for environment setup.
+    - No → Advise user to create and activate a virtual environment.
     - Yes → Ensure virtual environment is active and package is installed.
 3. Can `yolo version` or `python -c "import ultralytics as u; print(u.__version__)"` run?
-    - No → See [ENVIRONMENT_SETUP.md](references/ENVIRONMENT_SETUP.md) for installation guidance.
-4. Expect GPU? Run `yolo checks` or try `python -c import torch;torch.cuda.is_available()`.
+    - No → Ask user to activate the correct environment or install package in current environment.
+4. Expect GPU? Run `yolo checks` or try `python -c "import torch; print(torch.cuda.is_available())"`.
     - If False but GPU expected → align PyTorch ↔ CUDA; consider conda bundle.
 5. Sanity test on tiny dataset (COCO8) succeeds?
     - No → inspect dataset path/format, permissions, args.
@@ -78,44 +78,32 @@ See also: docs reference links at the end for deeper guidance.
 
 ### 1) Preflight Checks
 
-**If ultralytics is already installed:**
+**Basic first step, check installation and system information:**
 
-Run built-in diagnostics:
-
-```sh
-yolo checks
-```
-
-If this succeeds, proceed to the environment diagnostic below.
-
-**If `yolo checks` fails or ultralytics is not installed:**
-
-The system environment may not be properly configured. See [ENVIRONMENT_SETUP.md](references/ENVIRONMENT_SETUP.md) for detailed guidance on:
-- Checking Python installation and version
-- Creating and activating virtual environments
-- Installing ultralytics with various package managers
-- Troubleshooting installation issues
-
-After completing environment setup from the reference guide, return here to continue.
-
-**Environment diagnostic:**
-
-Once installation is verified, run the `ultralytics` utility checks command:
+Run built-in diagnostics, first time call will take time to process, reports package installation information and system details:
 
 ```sh
 yolo checks
 ```
+
+If this succeeds, then ask for additional clarification regarding the user's issue(s) that they need help troubleshooting.
+
+**If `yolo checks` fails or `ultralytics` is not installed:**
+
+The system environment may not be properly configured. Advise user on proper environment setup:
+- Python installation, Python 3.8+ required (preferably 3.11+)
+- Virtual environment (uv, venv, conda, etc.) mandatory for isolation unless user understands risks of global install.
+- GPU users: ensure compatible CUDA + PyTorch versions.
+
+After completing environment setup with user, attempt to run `yolo checks` again to verify installation before proceeding.
 
 Interpretation:
 
-- If command fails/not-found → see [ENVIRONMENT_SETUP.md](references/ENVIRONMENT_SETUP.md).
 - If no GPU found, but GPU expected → go to GPU Fix (Step 3).
 - If packages are outdated or show problem (denoted with ❌) → go to Install/Repair (Step 2).
-- Keep outputs in the final report.
+- Repeated failures → suggest user visit Ultralytics [Discord][UltraDiscord], [Forums][UltraForums], [Reddit][UltraReddit], or [GitHub][UltraGitHub] for community support.
 
 ### 2) Install / Repair
-
-For detailed installation guidance including environment setup, package manager selection, and troubleshooting, see [ENVIRONMENT_SETUP.md](references/ENVIRONMENT_SETUP.md).
 
 **Quick reference for common installation methods:**
 
@@ -183,7 +171,7 @@ Validate outputs under `runs/train/*` and include summary metrics in the report.
     ```sh
     yolo val model=yolo26n.pt data=path/to/data.yaml imgsz=640 batch=1
     ```
-- For custom training, try pretrained weights first to isolate data vs. optimization issues.
+- For custom training, try pre-trained weights first to isolate data vs. optimization issues.
 
 ### 6) Training Issues
 
@@ -203,13 +191,33 @@ yolo train model=yolo26n.pt data=... epochs=50 imgsz=640 batch=-1 lr0=0.005 devi
 ### 7) Prediction Issues
 
 - Ensure task ↔ weights match (e.g., `yolo26n-seg.pt` for segmentation).
-- Use `classes`, `conf`, `imgsz` for filtering/quality:
+    - NOTE: replace `<SIZE>` with the model size (n/s/m/l/x) as appropriate.
+    - `yolo26<SIZE>.pt` is detection-only, will not work for segmentation or pose tasks.
+    - `yolo26<SIZE>-seg.pt` is segmentation-capable, can be used for detection or segmentation.
+    - `yolo26<SIZE>-pose.pt` is pose-capable, can be used for detection or pose, but not segmentation.
+    - `yolo26<SIZE>-cls.pt` is classification-capable, can only be used for classification.
+    - `yolo26<SIZE>-obb.pt` is oriented bounding box-capable, can only be used for OBB detection.
+    - Custom training models may not include task indicator in filename, default filename for custom models are usually `best.pt`, but may be modified by users, so observe output of `yolo predict model=<MODEL>.pt` (replace `<MODEL>` with the appropriate model filename).
+- Use args `classes`, `conf`, `imgsz` for filtering/quality:
+    - `classes` limits prediction outputs to specific class IDs
+    - `conf` changes confidence threshold for predictions, default is 0.25, lower for more results, higher for fewer.
+    - `imgsz` can affect detection quality, default is 640
+    - `source` can be a local file, folder, URL, or video stream (use `source=0` for webcam if available); verify path and format, if not given inference run on two packaged images.
+        - WARNING: Large videos may consume significant system resources; start with an image first, then short video or small directory of images.
+    - `show` will display results in a window, disable by default or if issues with displaying image(s).
+    - `save` will save results to `runs/detect/predict` by default, verify output files for results.
 
+- Minimum command expected to work with packaged images:
 ```sh
-yolo predict model=yolo26n.pt source=path/or/url imgsz=640 conf=0.25 classes=0,2 show=False save=True
+yolo predict
 ```
 
-- If blank outputs: lower `conf`, verify source path and image channels, try a canonical test image.
+- Attempt with user specified model, image `source`, and other args as needed:
+```sh
+yolo predict model=yolo26n.pt imgsz=640 conf=0.25 classes=0,2 show=False save=True
+```
+
+- If blank outputs: lower `conf`, verify source path (if any), ask about objects to detect vs model classes, try without `source` argument for basic image.
 
 ### 8) Export Issues
 
@@ -219,7 +227,7 @@ Start with ONNX; reduce complexity if needed, avoid adjusting `opset` unless nec
 yolo export model=yolo26n.pt format=onnx imgsz=640 dynamic=False
 ```
 
-If failure persists:
+The `ultralytics` package should install necessary dependencies on demand for exports, if failure persists:
 
 - Update `ultralytics`, `onnx`, `onnxruntime`.
 - Try Python API export:
@@ -230,44 +238,77 @@ If failure persists:
     YOLO("yolo26n.pt").export(format="onnx", imgsz=640)
     ```
 
-### 9) Environment Modes
+### 9) Environment
 
-- macOS: CPU by default; use Metal/Accelerate or external GPU not supported by CUDA.
-- Linux servers: prefer headless build and/or Docker for reproducibility.
-- Docker quick start (GPU):
-    ```sh
-    t=ultralytics/ultralytics:latest
-    sudo docker pull $t
-    sudo docker run -it --ipc=host --runtime=nvidia --name ultralytics --gpus all $t
-    sudo docker exec -it ultralytics yolo checks
-    ```
+- macOS: Uses Metal GPU acceleration (ARM64) or CPU-only. External GPUs not supported by CUDA.
+- Linux: potential system packages missing, advise `sudo apt-get update && sudo apt-get install -y <missing-packages>`. Some systems attempting to use CUDA may require additional setup (drivers, toolkit, etc.).
+- If available, Docker can be extremely useful to help isolate system variables (when GPU is available):
+```sh
+t=ultralytics/ultralytics:latest
+sudo docker pull $t
+sudo docker run -it --ipc=host --runtime=nvidia --name ultralytics --gpus all $t
+sudo docker exec -it ultralytics yolo checks
+```
 
 ---
 
 ## Minimal Python Sanity (Optional)
 
+- Prediction
+```python
+from ultralytics import ASSETS, YOLO
+
+model = YOLO("yolo26n.pt")
+res = model.predict(ASSETS / "bus.jpg")
+print(res[0].summary())
+# Inspect output
+```
+- Training & Validation
 ```python
 from ultralytics import YOLO
 
 model = YOLO("yolo26n.pt")
 model.train(data="coco8.yaml", epochs=1, imgsz=320)
-res = model("https://ultralytics.com/images/bus.jpg")
-print(res[0].summary())
+# Inspect output
 ```
 
 ## What To Return To The User
 
-- Environment summary (py/ultralytics/torch versions, cuda availability, `yolo checks`).
-- The working command(s) used and where results are stored (runs/\*).
+- Environment summary from `yolo checks`, including any issues with installation/dependencies.
+- The working command(s) used and where results are stored (e.g. path/to/runs/, using OS appropriate `/`, `\`).
 - Any constraints or remaining gaps (e.g., GPU not present, export format limitations).
 
 ## References (Docs)
 
-- Install & CLI basics: docs/en/quickstart.md
-- Common issues guide: docs/en/guides/yolo-common-issues.md
-- CLI usage & args: docs/en/usage/cli.md
-- Python usage: docs/en/usage/python.md
-- Docker quickstart: docs/en/guides/docker-quickstart.md
-- Conda quickstart: docs/en/guides/conda-quickstart.md
-- Datasets overview: docs/en/datasets/index.md
-- Training tips: docs/en/guides/model-training-tips.md
+- Install & CLI basics:
+    - Cloned repo: docs/en/quickstart.md
+    - Web: https://docs.ultralytics.com/quickstart
+- Common issues guide:
+    - Cloned repo: docs/en/guides/yolo-common-issues.md
+    - Web: https://docs.ultralytics.com/guides/yolo-common-issues
+- CLI usage & args:
+    - Cloned repo: docs/en/usage/cli.md
+    - Web: https://docs.ultralytics.com/usage/cli
+- Python usage:
+    - Cloned repo: docs/en/usage/python.md
+    - Web: https://docs.ultralytics.com/usage/python
+- Docker quickstart:
+    - Cloned repo: docs/en/guides/docker-quickstart.md
+    - Web: https://docs.ultralytics.com/guides/docker-quickstart
+- Conda quickstart:
+    - Cloned repo: docs/en/guides/conda-quickstart.md
+    - Web: https://docs.ultralytics.com/guides/conda-quickstart
+- Datasets overview:
+    - Cloned repo: docs/en/datasets/index.md
+    - Web: https://docs.ultralytics.com/datasets/index
+- Training tips:
+    - Cloned repo: docs/en/guides/model-training-tips.md
+    - Web: https://docs.ultralytics.com/guides/model-training-tips
+- Minimum Reproducible Example:
+    - Cloned repo: docs/en/help/minimum-reproducible-example.md
+    - Web: https://docs.ultralytics.com/help/minimum-reproducible-example
+
+[UltraDiscord]: https://ultralytics.com/discord
+[UltraForums]: https://community.ultralytics.com
+[UltraReddit]: https://www.reddit.com/r/ultralytics/
+[UltraGitHub]: https://github.com/ultralytics/ultralytics

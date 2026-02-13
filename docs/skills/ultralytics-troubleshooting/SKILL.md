@@ -66,6 +66,7 @@ If this succeeds, then ask for additional clarification regarding the user's iss
 **If `yolo checks` fails or `ultralytics` is not installed:**
 
 The system environment may not be properly configured. Advise user on proper environment setup:
+
 - Python installation, Python 3.8+ required (preferably 3.11+)
 - Virtual environment (uv, venv, conda, etc.) mandatory for isolation unless user understands risks of global install.
 - GPU users: ensure compatible CUDA + PyTorch versions.
@@ -85,27 +86,31 @@ Interpretation:
 If `uv` is not installed, use `pip` instead by removing preceding `uv` from the commands below.
 
 - Install latest stable release:
-  ```sh
-  uv pip install ultralytics --upgrade
-  ```
+
+    ```sh
+    uv pip install ultralytics --upgrade
+    ```
 
 - **Latest development version:**
-  ```sh
-  uv pip install "git+https://github.com/ultralytics/ultralytics.git@main"
-  ```
+
+    ```sh
+    uv pip install "git+https://github.com/ultralytics/ultralytics.git@main"
+    ```
 
 - **Editable install** (for `ultralytics` development):
-  ```sh
-  uv pip install -e ".[dev]"
-  ```
+
+    ```sh
+    uv pip install -e ".[dev]"
+    ```
 
 - **Headless** (servers without display, uncommon):
-  ```sh
-  uv pip install ultralytics-opencv-headless
-  ```
+
+    ```sh
+    uv pip install ultralytics-opencv-headless
+    ```
 
 - **Conda** (GPU bundle, ONLY when `conda` explicitly preferred by user):
-    **IMPORTANT**: PyTorch>2.5.1 is NOT available using `conda`
+  **IMPORTANT**: PyTorch>2.5.1 is NOT available using `conda`
     ```sh
     conda install pytorch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 pytorch-cuda=12.4 -c pytorch -c nvidia
     ```
@@ -170,11 +175,13 @@ yolo train model=yolo26n.pt data=... epochs=50 imgsz=640 batch=-1 lr0=0.005 devi
     - WARNING: large videos consume significant resources; start with a single image.
 
 - Minimum command (uses packaged images, good for sanity check):
+
 ```sh
 yolo predict
 ```
 
 - With user-specified args:
+
 ```sh
 yolo predict model=yolo26n.pt source=path/to/image.jpg imgsz=640 conf=0.25 save=True
 ```
@@ -227,6 +234,7 @@ Shows default directories (`datasets_dir`, `weights_dir`, `runs_dir`) and other 
 ## Minimal Python Sanity (Optional)
 
 - Prediction
+
 ```python
 from ultralytics import ASSETS, YOLO
 
@@ -235,7 +243,9 @@ res = model.predict(ASSETS / "bus.jpg")
 print(res[0].summary())
 # Inspect output
 ```
+
 - Training & Validation
+
 ```python
 from ultralytics import YOLO
 

@@ -1,6 +1,6 @@
 ---
 name: ultralytics-troubleshooting
-description: A concise, action-oriented troubleshooting playbook for code agents working with Ultralytics YOLO (install, runtime, training, prediction, export, environment). Optimized for automated diagnosis and repair.
+description: Diagnose and resolve common Ultralytics YOLO issues. Use when users have problems with installation (imports fail, CLI not found, CUDA issues), training (slow/NaN loss, CPU-only, bad metrics, dataset errors), prediction (no/empty results, wrong classes), or export (ONNX/TensorRT/OpenVINO failures). Covers environment setup, GPU alignment, and basic workflow validation.
 license: AGPL-3.0
 metadata:
     author: Burhan-Q
@@ -10,45 +10,20 @@ metadata:
 
 # Ultralytics Troubleshooting – Agent Skill
 
-Purpose: enable a code agent to quickly diagnose and resolve common Ultralytics YOLO issues across install, runtime, training, prediction, export, and environment setup.
-
-See also: docs reference links at the end for deeper guidance.
-
-## When To Use
-
-- New or broken setup: imports fail, CLI not found, CUDA issues.
-- Training problems: slow/NaN loss, CPU-only, bad metrics, dataset errors.
-- Prediction problems: no/empty results, wrong classes, plotting errors.
-- Export problems: ONNX/TensorRT/OpenVINO conversion failures.
+Quickly diagnose and resolve common Ultralytics YOLO issues across install, runtime, training, prediction, export, and environment setup. See [References](#references-docs) at the end for deeper guidance.
 
 ## Preconditions
 
-- Python 3.8+ available.
-- Docker installed (optional but helpful for environment isolation).
+- Python 3.8+ available (preferably 3.11+).
 - Internet access for package install/update (unless using local editable install).
-- Python virtual environment (highly preferred)
+- Python virtual environment (mandatory, unless user acknowledges acceptance of risks when using global install).
 - If GPU expected: correct CUDA + PyTorch build alignment.
-
-## Inputs (Agent)
-
-- User intent: task (install, train, predict, export), target device (cpu/gpu), environment (uv/pip/conda/docker/headless).
-- Paths: dataset YAML or folder, model weights/config, source media.
-- Constraints: offline mode, limited permissions, containerized, macOS/Linux/Windows.
-
-## Outputs (Agent)
-
-- A minimal, reproducible command that works (CLI or Python).
-- Environment summary and resolution notes, or all attempted commands.
-- Pinned versions if needed, and links to generated artifacts (runs/, exported models).
 
 ## Safety / Side Effects
 
-- Check with user before taking action, never assume intent.
-- Verify with user before modifying files or installing packages.
-- Avoid unnecessary package updates or environment changes.
+- Verify with user before modifying files, installing packages, or changing environment.
 - Prefer non-destructive diagnostics (e.g., `yolo checks`) before reinstalling or changing configs.
 - Installing/upgrading packages may change environment behavior.
-- Prefer editable install only when developing inside this repo.
 - Avoid deleting user data; create new files under runs/ or temp dirs.
 
 ---
@@ -101,7 +76,7 @@ Interpretation:
 
 - If no GPU found, but GPU expected → go to GPU Fix (Step 3).
 - If packages are outdated or show problem (denoted with ❌) → go to Install/Repair (Step 2).
-- Repeated failures → suggest user visit Ultralytics [Discord][UltraDiscord], [Forums][UltraForums], [Reddit][UltraReddit], or [GitHub][UltraGitHub] for community support.
+- Repeated failures → direct user to Ultralytics community support ([Discord][UltraDiscord], [Forums][UltraForums], [Reddit][UltraReddit], or [GitHub][UltraGitHub]). Guide the user to create a [Minimum Reproducible Example][MRE] before posting — this significantly improves response quality from the community.
 
 ### 2) Install / Repair
 
@@ -144,13 +119,7 @@ If `uv` is not installed, use `pip` instead by removing preceding `uv` from the 
 - On older GPUs (SM < 7.5) newer cuDNN may be incompatible; use a PyTorch build matching older CUDA/cuDNN.
 - Minimal probe the agent can run (optional):
     ```sh
-    python - << 'PY'
-    import torch
-    print('cuda_available', torch.cuda.is_available())
-    if torch.cuda.is_available():
-    		print('device_cap', torch.cuda.get_device_capability(0))
-    		print('cudnn_version', torch.backends.cudnn.version())
-    PY
+    python -c "import torch; print('cuda:', torch.cuda.is_available()); print('cap:', torch.cuda.get_device_capability(0) if torch.cuda.is_available() else 'N/A'); print('cudnn:', torch.backends.cudnn.version() if torch.cuda.is_available() else 'N/A')"
     ```
 
 ### 4) Sanity Test (Tiny Train/Val)
@@ -190,34 +159,27 @@ yolo train model=yolo26n.pt data=... epochs=50 imgsz=640 batch=-1 lr0=0.005 devi
 
 ### 7) Prediction Issues
 
-- Ensure task ↔ weights match (e.g., `yolo26n-seg.pt` for segmentation).
-    - NOTE: replace `<SIZE>` with the model size (n/s/m/l/x) as appropriate.
-    - `yolo26<SIZE>.pt` is detection-only, will not work for segmentation or pose tasks.
-    - `yolo26<SIZE>-seg.pt` is segmentation-capable, can be used for detection or segmentation.
-    - `yolo26<SIZE>-pose.pt` is pose-capable, can be used for detection or pose, but not segmentation.
-    - `yolo26<SIZE>-cls.pt` is classification-capable, can only be used for classification.
-    - `yolo26<SIZE>-obb.pt` is oriented bounding box-capable, can only be used for OBB detection.
-    - Custom training models may not include task indicator in filename, default filename for custom models are usually `best.pt`, but may be modified by users, so observe output of `yolo predict model=<MODEL>.pt` (replace `<MODEL>` with the appropriate model filename).
-- Use args `classes`, `conf`, `imgsz` for filtering/quality:
-    - `classes` limits prediction outputs to specific class IDs
-    - `conf` changes confidence threshold for predictions, default is 0.25, lower for more results, higher for fewer.
-    - `imgsz` can affect detection quality, default is 640
-    - `source` can be a local file, folder, URL, or video stream (use `source=0` for webcam if available); verify path and format, if not given inference run on two packaged images.
-        - WARNING: Large videos may consume significant system resources; start with an image first, then short video or small directory of images.
-    - `show` will display results in a window, disable by default or if issues with displaying image(s).
-    - `save` will save results to `runs/detect/predict` by default, verify output files for results.
+- Ensure task ↔ weights match. Model naming: `yolo26<SIZE>[-TASK].pt` where SIZE is `n/s/m/l/x`:
+    - No suffix (`.pt`) → detection only | `-seg` → segmentation | `-pose` → pose | `-cls` → classification | `-obb` → oriented bbox
+    - Custom trained models default to `best.pt` — check model output to confirm task.
+- Key prediction args (see [CLI docs][CLIDocs] for full reference):
+    - `conf` — confidence threshold (default 0.25); lower for more results
+    - `source` — file, folder, URL, or `0` for webcam; omit to use packaged test images
+    - `classes` — filter to specific class IDs | `imgsz` — input size (default 640)
+    - `save=True` — save results to `runs/detect/predict`
+    - WARNING: large videos consume significant resources; start with a single image.
 
-- Minimum command expected to work with packaged images:
+- Minimum command (uses packaged images, good for sanity check):
 ```sh
 yolo predict
 ```
 
-- Attempt with user specified model, image `source`, and other args as needed:
+- With user-specified args:
 ```sh
-yolo predict model=yolo26n.pt imgsz=640 conf=0.25 classes=0,2 show=False save=True
+yolo predict model=yolo26n.pt source=path/to/image.jpg imgsz=640 conf=0.25 save=True
 ```
 
-- If blank outputs: lower `conf`, verify source path (if any), ask about objects to detect vs model classes, try without `source` argument for basic image.
+- If blank outputs: lower `conf`, verify source path, check if target objects match model classes, try without `source` for packaged images.
 
 ### 8) Export Issues
 
@@ -238,17 +200,27 @@ The `ultralytics` package should install necessary dependencies on demand for ex
     YOLO("yolo26n.pt").export(format="onnx", imgsz=640)
     ```
 
-### 9) Environment
+### 9) Platform Notes
 
-- macOS: Uses Metal GPU acceleration (ARM64) or CPU-only. External GPUs not supported by CUDA.
-- Linux: potential system packages missing, advise `sudo apt-get update && sudo apt-get install -y <missing-packages>`. Some systems attempting to use CUDA may require additional setup (drivers, toolkit, etc.).
-- If available, Docker can be extremely useful to help isolate system variables (when GPU is available):
+- macOS: Uses Metal GPU acceleration (ARM64) or CPU-only. No CUDA support.
+- Linux: may need system packages (`libgl1`, `libglib2.0-0`, etc.). CUDA requires matching drivers + toolkit.
+- Docker (useful for isolating environment issues, especially with GPU):
+    ```sh
+    t=ultralytics/ultralytics:latest
+    sudo docker pull $t
+    sudo docker run -it --ipc=host --runtime=nvidia --name ultralytics --gpus all $t
+    sudo docker exec -it ultralytics yolo checks
+    ```
+
+### 10) Settings
+
+View current Ultralytics configuration:
+
 ```sh
-t=ultralytics/ultralytics:latest
-sudo docker pull $t
-sudo docker run -it --ipc=host --runtime=nvidia --name ultralytics --gpus all $t
-sudo docker exec -it ultralytics yolo checks
+yolo settings
 ```
+
+Shows default directories (`datasets_dir`, `weights_dir`, `runs_dir`) and other configuration. Useful when models or datasets download to unexpected locations. Usually not the source of user issues, but can help diagnose path-related problems.
 
 ---
 
@@ -312,3 +284,5 @@ model.train(data="coco8.yaml", epochs=1, imgsz=320)
 [UltraForums]: https://community.ultralytics.com
 [UltraReddit]: https://www.reddit.com/r/ultralytics/
 [UltraGitHub]: https://github.com/ultralytics/ultralytics
+[MRE]: https://docs.ultralytics.com/help/minimum-reproducible-example
+[CLIDocs]: https://docs.ultralytics.com/usage/cli

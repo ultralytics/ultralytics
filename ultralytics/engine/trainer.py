@@ -390,6 +390,9 @@ class BaseTrainer:
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
         while True:
             self.epoch = epoch
+            model_ref = unwrap_model(self.model)
+            if isinstance(model_ref, DistillationModel):
+                model_ref._set_epoch_progress(self.epoch, self.epochs)
             self.run_callbacks("on_train_epoch_start")
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'

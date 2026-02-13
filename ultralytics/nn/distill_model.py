@@ -1,3 +1,4 @@
+import math
 from ultralytics.utils.torch_utils import copy_attr
 from ultralytics.utils.metrics import bbox_iou
 from ultralytics.utils.tal import dist2bbox
@@ -38,6 +39,8 @@ class DistillationModel(nn.Module):
         self.distill_box = self.student_model.args.distill_box
         self.distill_cls = self.student_model.args.distill_cls
         self.distill_feature = self.student_model.args.distill_feature
+        self.cur_epoch = 0
+        self.total_epochs = max(int(getattr(self.student_model.args, "epochs", 1) or 1), 1)
         if self.distill_feature_loss:
             projectors = []
             for student_out, teacher_out in zip(student_output, teacher_output):
@@ -75,6 +78,17 @@ class DistillationModel(nn.Module):
         self.distill_branch = self.student_model.args.distill_branch.split(",")
         for branch in self.distill_branch:
             assert branch in {"one2one", "one2many"}
+
+    def _set_epoch_progress(self, cur_epoch: int, total_epochs: int):
+        """Update cached epoch progress for distillation scheduling."""
+        self.cur_epoch = int(cur_epoch)
+        self.total_epochs = max(int(total_epochs), 1)
+
+    def _distill_feature_weight(self) -> float:
+        """Compute dynamic feature distillation weight from current epoch progress."""
+        epoch = max(int(self.total_epochs), 1)
+        cur_epoch = min(max(int(self.cur_epoch), 0), epoch)
+        return ((1 - math.cos(cur_epoch * math.pi / epoch)) / 2) * (0.1 - 1) + 1
 
     def loss_kl(self, student_logits, teacher_logits, temperature: float = 5.0):
         """The KL divergence loss for knowledge distillation."""
@@ -143,6 +157,7 @@ class DistillationModel(nn.Module):
         if feature_main_masking:
             feature_fg_masks = torch.split(targets["one2one"][0], [6400, 1600, 400], dim=-1)
         feature_level_idx = 0
+        feature_weight = self.distill_feature * self._distill_feature_weight()
         for i, feat_idx in enumerate(self.feats_idx):
             # handle head ouput
             teacher_feat = self.decouple_outputs(teacher_feats[i])
@@ -213,9 +228,9 @@ class DistillationModel(nn.Module):
                         else:
                             continue
                     if self.distill_feature_loss == "sl2":
-                        loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat, feat_idx=i, teacher_scores=teacher_scores) * self.distill_feature
+                        loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat, feat_idx=i, teacher_scores=teacher_scores) * feature_weight
                     else:
-                        loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat, feat_idx=i) * self.distill_feature
+                        loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat, feat_idx=i) * feature_weight
 
         loss_distill_detach = (loss_distill_cls + loss_distill_box + loss_distill_feature).detach()
         batch_size = batch["img"].shape[0]

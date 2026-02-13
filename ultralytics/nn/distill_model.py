@@ -138,6 +138,11 @@ class DistillationModel(nn.Module):
             teacher_scores = tuple(p.sigmoid().max(dim=1, keepdim=True).values for p in parts)
         if self.distill_box_loss == "siou":
             teacher_scores = teacher_feats[-1]['one2one']['scores']
+        feature_main_masking = self.distill_area == "main" and self.distill_feature_loss in {"l1", "l2"}
+        feature_fg_masks = None
+        if feature_main_masking:
+            feature_fg_masks = torch.split(targets["one2one"][0], [6400, 1600, 400], dim=-1)
+        feature_level_idx = 0
         for i, feat_idx in enumerate(self.feats_idx):
             # handle head ouput
             teacher_feat = self.decouple_outputs(teacher_feats[i])
@@ -198,6 +203,15 @@ class DistillationModel(nn.Module):
                         if student_feat.ndim == 4
                         else student_feat
                     )
+                    if feature_main_masking:
+                        fg_mask = feature_fg_masks[feature_level_idx]
+                        feature_level_idx += 1
+                        _, _, h, w = student_feat.shape
+                        if fg_mask.any():
+                            student_feat = student_feat.permute(0, 2, 3, 1).reshape(student_feat.shape[0], h * w, -1)[fg_mask]
+                            teacher_feat = teacher_feat.permute(0, 2, 3, 1).reshape(teacher_feat.shape[0], h * w, -1)[fg_mask]
+                        else:
+                            continue
                     if self.distill_feature_loss == "sl2":
                         loss_distill_feature += self.feature_kd_loss(student_feat, teacher_feat, feat_idx=i, teacher_scores=teacher_scores) * self.distill_feature
                     else:
@@ -290,8 +304,8 @@ class DistillationModel(nn.Module):
         teacher_decoded = self.bbox_decode(anchor_points, teacher_boxes)
         ciou = bbox_iou(student_decoded, teacher_decoded, xywh=False, CIoU=True)
         base_loss = 1.0 - ciou
-        teacher_scores = teacher_scores.to(base_loss.dtype)
-        teacher_scores = teacher_scores * (teacher_scores > 0.01).float()
+        # teacher_scores = teacher_scores.to(base_loss.dtype)
+        # teacher_scores = teacher_scores * (teacher_scores > 0.01).float()
         return (base_loss * teacher_scores).sum() / (teacher_scores.sum() + 1e-9)
 
     def box_kd_loss(self, student_boxes, teacher_boxes, anchor_points=None, teacher_scores=None):

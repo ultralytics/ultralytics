@@ -78,6 +78,7 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
         yolo settings
         yolo copy-cfg
         yolo cfg
+        yolo install-skills
         ```
 
 Where:
@@ -291,6 +292,58 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
         ```
 
 For more information on Ultralytics solutions, visit the [Solutions](../solutions/index.md) page.
+
+## AI Coding Agent Skills
+
+Ultralytics provides specialized skills for AI coding agents to assist with common development tasks. These skills are located in the `docs/skills/` directory and can be installed to your agent's workspace.
+
+!!! example
+
+    === "Install"
+
+        Install all available Ultralytics skills to the default `.agents/skills/` directory:
+
+        ```bash
+        yolo install-skills
+        ```
+
+    === "Install to Custom Location"
+
+        Install skills to a custom directory:
+
+        ```bash
+        yolo install-skills dir=path/to/custom/ # adds skills under path/to/custom/skills
+        ```
+
+    === "Install Globally"
+
+        Install skills globally for Copilot and other supported agents:
+
+        ```bash
+        yolo install-skills global agent=copilot
+        ```
+
+    === "Uninstall"
+
+        Remove installed skills:
+
+        ```bash
+        yolo install-skills uninstall
+        ```
+
+### Available Skills
+
+The following skills are available to help AI coding agents work with Ultralytics:
+
+- **ultralytics-train-model**: Training YOLO models on custom datasets
+- **ultralytics-prepare-dataset**: Dataset preparation and formatting guidance
+- **ultralytics-contribute-code**: Guidelines for contributing code to the Ultralytics repository
+- **ultralytics-troubleshooting**: Troubleshooting common issues with Ultralytics
+- **ultralytics-run-inference**: _Coming soon_ - Running inference with YOLO models
+- **ultralytics-export-model**: _Coming soon_ - Steps for exporting models to different formats
+- **ultralytics-create-custom-model**: _Coming soon_ - Instructions for creating custom YOLO models
+
+These skills provide structured guidance to AI assistants, improving their ability to help you with Ultralytics development tasks. For complete information on skills, compatible AI agents, and usage tips, visit the [AI Coding Agents integration page](../integrations/ai-coding-agents.md).
 
 ## FAQ
 

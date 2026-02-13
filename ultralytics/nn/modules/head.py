@@ -38,7 +38,7 @@ class Detect(nn.Module):
         shape (tuple): Input shape.
         anchors (torch.Tensor): Anchor points.
         strides (torch.Tensor): Feature map strides.
-        legacy (bool): Backward compatibility for v3/v5/v8/v9 models.
+        legacy (bool): Backward compatibility for v3/v5/v8/v9/v11 models.
         xyxy (bool): Output format, xyxy or xywh.
         nc (int): Number of classes.
         nl (int): Number of detection layers.
@@ -53,7 +53,6 @@ class Detect(nn.Module):
 
     Methods:
         forward: Perform forward pass and return predictions.
-        forward_end2end: Perform forward pass for end-to-end detection.
         bias_init: Initialize detection head biases.
         decode_bboxes: Decode bounding boxes from predictions.
         postprocess: Post-process model predictions.
@@ -115,7 +114,7 @@ class Detect(nn.Module):
 
     @property
     def one2many(self):
-        """Returns the one-to-many head components, here for v5/v5/v8/v9/11 backward compatibility."""
+        """Returns the one-to-many head components, here for v3/v5/v8/v9/v11 backward compatibility."""
         return dict(box_head=self.cv2, cls_head=self.cv3)
 
     @property
@@ -125,7 +124,7 @@ class Detect(nn.Module):
 
     @property
     def end2end(self):
-        """Checks if the model has one2one for v5/v5/v8/v9/11 backward compatibility."""
+        """Checks if the model has one2one for v3/v5/v8/v9/v11 backward compatibility."""
         return getattr(self, "_end2end", True) and hasattr(self, "one2one")
 
     @end2end.setter
@@ -164,7 +163,7 @@ class Detect(nn.Module):
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
 
         Args:
-            x (dict[str, torch.Tensor]): List of feature maps from different detection layers.
+            x (dict[str, torch.Tensor]): Dictionary of predictions from detection layers.
 
         Returns:
             (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
@@ -211,11 +210,11 @@ class Detect(nn.Module):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
-                format [x, y, w, h, class_probs].
+                format [x1, y1, x2, y2, class_probs].
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
-                dimension format [x, y, w, h, max_class_prob, class_index].
+                dimension format [x1, y1, x2, y2, max_class_prob, class_index].
         """
         boxes, scores = preds.split([4, self.nc], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
@@ -326,7 +325,7 @@ class Segment(Detect):
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, mask_head: torch.nn.Module
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and mask coefficients."""
         preds = super().forward_head(x, box_head, cls_head)
         if mask_head is not None:
@@ -339,11 +338,11 @@ class Segment(Detect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
-                format [x, y, w, h, class_probs, mask_coefficient].
+                format [x1, y1, x2, y2, class_probs, mask_coefficient].
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last
-                dimension format [x, y, w, h, max_class_prob, class_index, mask_coefficient].
+                dimension format [x1, y1, x2, y2, max_class_prob, class_index, mask_coefficient].
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
@@ -359,12 +358,12 @@ class Segment(Detect):
 class Segment26(Segment):
     """YOLO26 Segment head for segmentation models.
 
-    This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
+    This class extends the Segment head with Proto26 for mask prediction in instance segmentation tasks.
 
     Attributes:
         nm (int): Number of masks.
         npr (int): Number of protos.
-        proto (Proto): Prototype generation module.
+        proto (Proto26): Prototype generation module.
         cv4 (nn.ModuleList): Convolution layers for mask coefficients.
 
     Methods:
@@ -473,7 +472,7 @@ class OBB(Detect):
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, angle_head: torch.nn.Module
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and angles."""
         preds = super().forward_head(x, box_head, cls_head)
         if angle_head is not None:
@@ -528,12 +527,12 @@ class OBB26(OBB):
         Create an OBB26 detection head
         >>> obb26 = OBB26(nc=80, ne=1, ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
-        >>> outputs = obb26(x).
+        >>> outputs = obb26(x)
     """
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, angle_head: torch.nn.Module
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and raw angles."""
         preds = Detect.forward_head(self, x, box_head, cls_head)
         if angle_head is not None:
@@ -602,7 +601,7 @@ class Pose(Detect):
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, pose_head: torch.nn.Module
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and keypoints."""
         preds = super().forward_head(x, box_head, cls_head)
         if pose_head is not None:
@@ -615,11 +614,11 @@ class Pose(Detect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nk) with last dimension
-                format [x, y, w, h, class_probs, keypoints].
+                format [x1, y1, x2, y2, class_probs, keypoints].
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + self.nk) and
-                last dimension format [x, y, w, h, max_class_prob, class_index, keypoints].
+                last dimension format [x1, y1, x2, y2, max_class_prob, class_index, keypoints].
         """
         boxes, scores, kpts = preds.split([4, self.nc, self.nk], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
@@ -656,7 +655,7 @@ class Pose(Detect):
 class Pose26(Pose):
     """YOLO26 Pose head for keypoints models.
 
-    This class extends the Detect head to include keypoint prediction capabilities for pose estimation tasks.
+    This class extends the Pose head with normalizing flow for keypoint prediction in pose estimation tasks.
 
     Attributes:
         kpt_shape (tuple): Number of keypoints and dimensions (2 for x,y or 3 for x,y,visible).
@@ -669,7 +668,7 @@ class Pose26(Pose):
 
     Examples:
         Create a pose detection head
-        >>> pose = Pose(nc=80, kpt_shape=(17, 3), ch=(256, 512, 1024))
+        >>> pose = Pose26(nc=80, kpt_shape=(17, 3), ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
         >>> outputs = pose(x)
     """
@@ -729,7 +728,7 @@ class Pose26(Pose):
         pose_head: torch.nn.Module,
         kpts_head: torch.nn.Module,
         kpts_sigma_head: torch.nn.Module,
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and keypoints."""
         preds = Detect.forward_head(self, x, box_head, cls_head)
         if pose_head is not None:
@@ -783,7 +782,7 @@ class Classify(nn.Module):
         linear (nn.Linear): Linear layer for final classification.
 
     Methods:
-        forward: Perform forward pass of the YOLO model on input image data.
+        forward: Perform forward pass on input feature maps.
 
     Examples:
         Create a classification head
@@ -800,10 +799,10 @@ class Classify(nn.Module):
         Args:
             c1 (int): Number of input channels.
             c2 (int): Number of output classes.
-            k (int, optional): Kernel size.
-            s (int, optional): Stride.
+            k (int): Kernel size.
+            s (int): Stride.
             p (int, optional): Padding.
-            g (int, optional): Groups.
+            g (int): Groups.
         """
         super().__init__()
         c_ = 1280  # efficientnet_b0 size
@@ -813,7 +812,7 @@ class Classify(nn.Module):
         self.linear = nn.Linear(c_, c2)  # to x(b,c2)
 
     def forward(self, x: list[torch.Tensor] | torch.Tensor) -> torch.Tensor | tuple:
-        """Perform forward pass of the YOLO model on input image data."""
+        """Perform forward pass on input feature maps."""
         if isinstance(x, list):
             x = torch.cat(x, 1)
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
@@ -1137,7 +1136,7 @@ class YOLOEDetect(Detect):
 
     @property
     def one2many(self):
-        """Returns the one-to-many head components, here for v5/v5/v8/v9/11 backward compatibility."""
+        """Returns the one-to-many head components, here for v3/v5/v8/v9/v11 backward compatibility."""
         return dict(box_head=self.cv2, cls_head=self.cv3, contrastive_head=self.cv4)
 
     @property
@@ -1146,7 +1145,7 @@ class YOLOEDetect(Detect):
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, contrastive_head=self.one2one_cv4)
 
     def forward_head(self, x, box_head, cls_head, contrastive_head):
-        """Concatenates and returns predicted bounding boxes, class probabilities, and text embeddings."""
+        """Concatenates and returns predicted bounding boxes, class probabilities, and contrastive scores."""
         assert len(x) == 4, f"Expected 4 features including 3 feature maps and 1 text embeddings, but got {len(x)}."
         if box_head is None or cls_head is None:  # for fused inference
             return dict()
@@ -1234,7 +1233,7 @@ class YOLOESegment(YOLOEDetect):
 
     @property
     def one2many(self):
-        """Returns the one-to-many head components, here for v5/v5/v8/v9/11 backward compatibility."""
+        """Returns the one-to-many head components, here for v3/v5/v8/v9/v11 backward compatibility."""
         return dict(box_head=self.cv2, cls_head=self.cv3, mask_head=self.cv5, contrastive_head=self.cv4)
 
     @property
@@ -1307,7 +1306,7 @@ class YOLOESegment(YOLOEDetect):
         cls_head: torch.nn.Module,
         mask_head: torch.nn.Module,
         contrastive_head: torch.nn.Module,
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes, class probabilities, and mask coefficients."""
         preds = super().forward_head(x, box_head, cls_head, contrastive_head)
         if mask_head is not None:
@@ -1320,11 +1319,11 @@ class YOLOESegment(YOLOEDetect):
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
-                format [x, y, w, h, class_probs, mask_coefficient].
+                format [x1, y1, x2, y2, class_probs, mask_coefficient].
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last
-                dimension format [x, y, w, h, max_class_prob, class_index, mask_coefficient].
+                dimension format [x1, y1, x2, y2, max_class_prob, class_index, mask_coefficient].
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
@@ -1345,7 +1344,7 @@ class YOLOESegment(YOLOEDetect):
 class YOLOESegment26(YOLOESegment):
     """YOLOE-style segmentation head module using Proto26 for mask generation.
 
-    This class extends the YOLOEDetect functionality to include segmentation capabilities by integrating a prototype
+    This class extends the YOLOESegment functionality to include segmentation capabilities by integrating a Proto26
     generation module and convolutional layers to predict mask coefficients.
 
     Args:
@@ -1354,7 +1353,7 @@ class YOLOESegment26(YOLOESegment):
         npr (int): Number of prototype channels. Defaults to 256.
         embed (int): Embedding dimensionality. Defaults to 512.
         with_bn (bool): Whether to use Batch Normalization. Defaults to False.
-        reg_max (int): Maximum regression value for bounding boxes. Defaults to 16.
+        reg_max (int): Maximum number of DFL channels. Defaults to 16.
         end2end (bool): Whether to use end-to-end detection mode. Defaults to False.
         ch (tuple[int, ...]): Input channels for each scale.
 

@@ -5,6 +5,7 @@ from .analytics import Analytics
 from .distance_calculation import DistanceCalculation
 from .heatmap import Heatmap
 from .instance_segmentation import InstanceSegmentation
+from .region_selector import RegionSelector, select_region
 from .object_blurrer import ObjectBlurrer
 from .object_counter import ObjectCounter
 from .object_cropper import ObjectCropper
@@ -25,6 +26,8 @@ __all__ = (
     "Heatmap",
     "Inference",
     "InstanceSegmentation",
+    "RegionSelector",
+    "select_region",
     "ObjectBlurrer",
     "ObjectCounter",
     "ObjectCropper",

@@ -11,18 +11,307 @@ keywords: Ultralytics, matching utils, linear assignment, IoU distance, embeddin
 
 <br>
 
-## ::: ultralytics.trackers.utils.matching.linear_assignment
+!!! abstract "Summary"
+
+    === "<span class="doc-kind doc-kind-function">Functions</span>"
+
+        - [`linear_assignment`](#ultralytics.trackers.utils.matching.linear_assignment)
+        - [`iou_distance`](#ultralytics.trackers.utils.matching.iou_distance)
+        - [`embedding_distance`](#ultralytics.trackers.utils.matching.embedding_distance)
+        - [`fuse_score`](#ultralytics.trackers.utils.matching.fuse_score)
+
+
+## Function `ultralytics.trackers.utils.matching.linear_assignment` {#ultralytics.trackers.utils.matching.linear\_assignment}
+
+```python
+def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = True)
+```
+
+Perform linear assignment using either the scipy or lap.lapjv method.
+
+**Args**
+
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `cost_matrix` | `np.ndarray` | The matrix containing cost values for assignments, with shape (N, M). | *required* |
+| `thresh` | `float` | Threshold for considering an assignment valid. | *required* |
+| `use_lap` | `bool` | Use lap.lapjv for the assignment. If False, scipy.optimize.linear_sum_assignment is used. | `True` |
+
+**Returns**
+
+| Type | Description |
+| --- | --- |
+| `matched_indices (list[list[int]] | np.ndarray)` | Matched indices of shape (K, 2), where K is the number of |
+| `unmatched_a (tuple | list | np.ndarray)` | Unmatched indices from the first set. |
+| `unmatched_b (tuple | list | np.ndarray)` | Unmatched indices from the second set. |
+
+**Examples**
+
+```python
+>>> cost_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+>>> thresh = 5.0
+>>> matched_indices, unmatched_a, unmatched_b = linear_assignment(cost_matrix, thresh, use_lap=True)
+```
+
+<details>
+<summary>Source code in <code>ultralytics/trackers/utils/matching.py</code></summary>
+
+<a href="https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py#L20-L61"><i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>View on GitHub</a>
+```python
+def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = True):
+    """Perform linear assignment using either the scipy or lap.lapjv method.
+
+    Args:
+        cost_matrix (np.ndarray): The matrix containing cost values for assignments, with shape (N, M).
+        thresh (float): Threshold for considering an assignment valid.
+        use_lap (bool): Use lap.lapjv for the assignment. If False, scipy.optimize.linear_sum_assignment is used.
+
+    Returns:
+        matched_indices (list[list[int]] | np.ndarray): Matched indices of shape (K, 2), where K is the number of
+            matches.
+        unmatched_a (tuple | list | np.ndarray): Unmatched indices from the first set.
+        unmatched_b (tuple | list | np.ndarray): Unmatched indices from the second set.
+
+    Examples:
+        >>> cost_matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        >>> thresh = 5.0
+        >>> matched_indices, unmatched_a, unmatched_b = linear_assignment(cost_matrix, thresh, use_lap=True)
+    """
+    if cost_matrix.size == 0:
+        return np.empty((0, 2), dtype=int), tuple(range(cost_matrix.shape[0])), tuple(range(cost_matrix.shape[1]))
+
+    if use_lap:
+        # Use lap.lapjv
+        # https://github.com/gatagat/lap
+        _, x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh)
+        matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0]
+        unmatched_a = np.where(x < 0)[0]
+        unmatched_b = np.where(y < 0)[0]
+    else:
+        # Use scipy.optimize.linear_sum_assignment
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html
+        x, y = scipy.optimize.linear_sum_assignment(cost_matrix)  # row x, col y
+        matches = np.asarray([[x[i], y[i]] for i in range(len(x)) if cost_matrix[x[i], y[i]] <= thresh])
+        if len(matches) == 0:
+            unmatched_a = list(np.arange(cost_matrix.shape[0]))
+            unmatched_b = list(np.arange(cost_matrix.shape[1]))
+        else:
+            unmatched_a = list(frozenset(np.arange(cost_matrix.shape[0])) - frozenset(matches[:, 0]))
+            unmatched_b = list(frozenset(np.arange(cost_matrix.shape[1])) - frozenset(matches[:, 1]))
+
+    return matches, unmatched_a, unmatched_b
+```
+</details>
+
 
 <br><br><hr><br>
 
-## ::: ultralytics.trackers.utils.matching.iou_distance
+## Function `ultralytics.trackers.utils.matching.iou_distance` {#ultralytics.trackers.utils.matching.iou\_distance}
+
+```python
+def iou_distance(atracks: list, btracks: list) -> np.ndarray
+```
+
+Compute cost based on Intersection over Union (IoU) between tracks.
+
+**Args**
+
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `atracks` | `list[STrack] | list[np.ndarray]` | List of tracks 'a' or bounding boxes. | *required* |
+| `btracks` | `list[STrack] | list[np.ndarray]` | List of tracks 'b' or bounding boxes. | *required* |
+
+**Returns**
+
+| Type | Description |
+| --- | --- |
+| `np.ndarray` | Cost matrix computed based on IoU with shape (len(atracks), len(btracks)). |
+
+**Examples**
+
+```python
+Compute IoU distance between two sets of tracks
+>>> atracks = [np.array([0, 0, 10, 10]), np.array([20, 20, 30, 30])]
+>>> btracks = [np.array([5, 5, 15, 15]), np.array([25, 25, 35, 35])]
+>>> cost_matrix = iou_distance(atracks, btracks)
+```
+
+<details>
+<summary>Source code in <code>ultralytics/trackers/utils/matching.py</code></summary>
+
+<a href="https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py#L64-L100"><i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>View on GitHub</a>
+```python
+def iou_distance(atracks: list, btracks: list) -> np.ndarray:
+    """Compute cost based on Intersection over Union (IoU) between tracks.
+
+    Args:
+        atracks (list[STrack] | list[np.ndarray]): List of tracks 'a' or bounding boxes.
+        btracks (list[STrack] | list[np.ndarray]): List of tracks 'b' or bounding boxes.
+
+    Returns:
+        (np.ndarray): Cost matrix computed based on IoU with shape (len(atracks), len(btracks)).
+
+    Examples:
+        Compute IoU distance between two sets of tracks
+        >>> atracks = [np.array([0, 0, 10, 10]), np.array([20, 20, 30, 30])]
+        >>> btracks = [np.array([5, 5, 15, 15]), np.array([25, 25, 35, 35])]
+        >>> cost_matrix = iou_distance(atracks, btracks)
+    """
+    if (atracks and isinstance(atracks[0], np.ndarray)) or (btracks and isinstance(btracks[0], np.ndarray)):
+        atlbrs = atracks
+        btlbrs = btracks
+    else:
+        atlbrs = [track.xywha if track.angle is not None else track.xyxy for track in atracks]
+        btlbrs = [track.xywha if track.angle is not None else track.xyxy for track in btracks]
+
+    ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
+    if len(atlbrs) and len(btlbrs):
+        if len(atlbrs[0]) == 5 and len(btlbrs[0]) == 5:
+            ious = batch_probiou(
+                np.ascontiguousarray(atlbrs, dtype=np.float32),
+                np.ascontiguousarray(btlbrs, dtype=np.float32),
+            ).numpy()
+        else:
+            ious = bbox_ioa(
+                np.ascontiguousarray(atlbrs, dtype=np.float32),
+                np.ascontiguousarray(btlbrs, dtype=np.float32),
+                iou=True,
+            )
+    return 1 - ious  # cost matrix
+```
+</details>
+
 
 <br><br><hr><br>
 
-## ::: ultralytics.trackers.utils.matching.embedding_distance
+## Function `ultralytics.trackers.utils.matching.embedding_distance` {#ultralytics.trackers.utils.matching.embedding\_distance}
+
+```python
+def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -> np.ndarray
+```
+
+Compute distance between tracks and detections based on embeddings.
+
+**Args**
+
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `tracks` | `list[BOTrack]` | List of tracks, where each track contains embedding features. | *required* |
+| `detections` | `list[BOTrack]` | List of detections, where each detection contains embedding features. | *required* |
+| `metric` | `str` | Metric for distance computation. Supported metrics include 'cosine', 'euclidean', etc. | `"cosine"` |
+
+**Returns**
+
+| Type | Description |
+| --- | --- |
+| `np.ndarray` | Cost matrix computed based on embeddings with shape (N, M), where N is the number of tracks and M |
+
+**Examples**
+
+```python
+Compute the embedding distance between tracks and detections using cosine metric
+>>> tracks = [BOTrack(...), BOTrack(...)]  # List of track objects with embedding features
+>>> detections = [BOTrack(...), BOTrack(...)]  # List of detection objects with embedding features
+>>> cost_matrix = embedding_distance(tracks, detections, metric="cosine")
+```
+
+<details>
+<summary>Source code in <code>ultralytics/trackers/utils/matching.py</code></summary>
+
+<a href="https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py#L103-L129"><i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>View on GitHub</a>
+```python
+def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -> np.ndarray:
+    """Compute distance between tracks and detections based on embeddings.
+
+    Args:
+        tracks (list[BOTrack]): List of tracks, where each track contains embedding features.
+        detections (list[BOTrack]): List of detections, where each detection contains embedding features.
+        metric (str): Metric for distance computation. Supported metrics include 'cosine', 'euclidean', etc.
+
+    Returns:
+        (np.ndarray): Cost matrix computed based on embeddings with shape (N, M), where N is the number of tracks and M
+            is the number of detections.
+
+    Examples:
+        Compute the embedding distance between tracks and detections using cosine metric
+        >>> tracks = [BOTrack(...), BOTrack(...)]  # List of track objects with embedding features
+        >>> detections = [BOTrack(...), BOTrack(...)]  # List of detection objects with embedding features
+        >>> cost_matrix = embedding_distance(tracks, detections, metric="cosine")
+    """
+    cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
+    if cost_matrix.size == 0:
+        return cost_matrix
+    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float32)
+    # for i, track in enumerate(tracks):
+    # cost_matrix[i, :] = np.maximum(0.0, cdist(track.smooth_feat.reshape(1,-1), det_features, metric))
+    track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float32)
+    cost_matrix = np.maximum(0.0, cdist(track_features, det_features, metric))  # Normalized features
+    return cost_matrix
+```
+</details>
+
 
 <br><br><hr><br>
 
-## ::: ultralytics.trackers.utils.matching.fuse_score
+## Function `ultralytics.trackers.utils.matching.fuse_score` {#ultralytics.trackers.utils.matching.fuse\_score}
+
+```python
+def fuse_score(cost_matrix: np.ndarray, detections: list) -> np.ndarray
+```
+
+Fuse cost matrix with detection scores to produce a single cost matrix.
+
+**Args**
+
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `cost_matrix` | `np.ndarray` | The matrix containing cost values for assignments, with shape (N, M). | *required* |
+| `detections` | `list[BaseTrack]` | List of detections, each containing a score attribute. | *required* |
+
+**Returns**
+
+| Type | Description |
+| --- | --- |
+| `np.ndarray` | Fused cost matrix with shape (N, M). |
+
+**Examples**
+
+```python
+Fuse a cost matrix with detection scores
+>>> cost_matrix = np.random.rand(5, 10)  # 5 tracks and 10 detections
+>>> detections = [BaseTrack(score=np.random.rand()) for _ in range(10)]
+>>> fused_matrix = fuse_score(cost_matrix, detections)
+```
+
+<details>
+<summary>Source code in <code>ultralytics/trackers/utils/matching.py</code></summary>
+
+<a href="https://github.com/ultralytics/ultralytics/blob/main/ultralytics/trackers/utils/matching.py#L132-L154"><i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>View on GitHub</a>
+```python
+def fuse_score(cost_matrix: np.ndarray, detections: list) -> np.ndarray:
+    """Fuse cost matrix with detection scores to produce a single cost matrix.
+
+    Args:
+        cost_matrix (np.ndarray): The matrix containing cost values for assignments, with shape (N, M).
+        detections (list[BaseTrack]): List of detections, each containing a score attribute.
+
+    Returns:
+        (np.ndarray): Fused cost matrix with shape (N, M).
+
+    Examples:
+        Fuse a cost matrix with detection scores
+        >>> cost_matrix = np.random.rand(5, 10)  # 5 tracks and 10 detections
+        >>> detections = [BaseTrack(score=np.random.rand()) for _ in range(10)]
+        >>> fused_matrix = fuse_score(cost_matrix, detections)
+    """
+    if cost_matrix.size == 0:
+        return cost_matrix
+    iou_sim = 1 - cost_matrix
+    det_scores = np.array([det.score for det in detections])
+    det_scores = det_scores[None].repeat(cost_matrix.shape[0], axis=0)
+    fuse_sim = iou_sim * det_scores
+    return 1 - fuse_sim  # fuse_cost
+```
+</details>
 
 <br><br>

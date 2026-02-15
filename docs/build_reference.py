@@ -48,8 +48,6 @@ INCLUDE_SPECIAL_METHODS = {
     "__getattr__",
 }
 PROPERTY_DECORATORS = {"property", "cached_property"}
-CLASS_DEF_RE = re.compile(r"(?:^|\n)class\s(\w+)(?:\(|:)")
-FUNC_DEF_RE = re.compile(r"(?:^|\n)(?:async\s+)?def\s(\w+)\(")
 SECTION_ENTRY_RE = re.compile(r"([\w*]+)\s*(?:\(([^)]+)\))?:\s*(.*)")
 RETURNS_RE = re.compile(r"([^:]+):\s*(.*)")
 
@@ -113,55 +111,6 @@ class DocumentedModule:
     module_path: str
     classes: list[DocItem]
     functions: list[DocItem]
-
-
-# --------------------------------------------------------------------------------------------- #
-# Placeholder (legacy) generation for mkdocstrings-style stubs
-# --------------------------------------------------------------------------------------------- #
-
-
-def extract_classes_and_functions(filepath: Path) -> tuple[list[str], list[str]]:
-    """Extract top-level class and (a)sync function names from a Python file."""
-    content = filepath.read_text()
-    classes = CLASS_DEF_RE.findall(content)
-    functions = FUNC_DEF_RE.findall(content)
-    return classes, functions
-
-
-def create_placeholder_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:
-    """Create a minimal Markdown stub used by mkdocstrings."""
-    md_filepath = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
-    exists = md_filepath.exists()
-
-    header_content = ""
-    if exists:
-        current = md_filepath.read_text()
-        if current.startswith("---"):
-            parts = current.split("---", 2)
-            if len(parts) > 2:
-                header_content = f"---{parts[1]}---\n\n"
-    if not header_content:
-        header_content = "---\ndescription: TODO ADD DESCRIPTION\nkeywords: TODO ADD KEYWORDS\n---\n\n"
-
-    module_path_dots = module_path
-    module_path_fs = module_path.replace(".", "/")
-    url = f"https://github.com/{GITHUB_REPO}/blob/main/{module_path_fs}.py"
-    pretty = url.replace("__init__.py", "\\_\\_init\\_\\_.py")
-
-    title_content = f"# Reference for `{module_path_fs}.py`\n\n" + contribution_admonition(
-        pretty, url, kind="success", title="Improvements"
-    )
-
-    md_content = ["<br>\n\n"]
-    md_content.extend(f"## ::: {module_path_dots}.{cls}\n\n<br><br><hr><br>\n\n" for cls in classes)
-    md_content.extend(f"## ::: {module_path_dots}.{func}\n\n<br><br><hr><br>\n\n" for func in functions)
-    if md_content[-1:]:
-        md_content[-1] = md_content[-1].replace("<hr><br>\n\n", "")
-
-    md_filepath.parent.mkdir(parents=True, exist_ok=True)
-    md_filepath.write_text(header_content + title_content + "".join(md_content) + "\n")
-
-    return _relative_to_workspace(md_filepath)
 
 
 def _get_source(src: str, node: ast.AST) -> str:
@@ -1112,53 +1061,17 @@ def update_mkdocs_file(reference_yaml: str) -> None:
         print("Could not find a suitable location to add Reference section")
 
 
-def _finalize_reference(nav_items: list[str], update_nav: bool, created: int, created_label: str) -> list[str]:
-    """Optionally sync navigation and print creation summary."""
-    if update_nav:
-        update_mkdocs_file(create_nav_menu_yaml(nav_items))
-    if created:
-        print(f"Created {created} new {created_label}")
-    return nav_items
-
-
-def build_reference(update_nav: bool = True) -> list[str]:
-    """Create placeholder reference files (legacy mkdocstrings flow)."""
-    return build_reference_placeholders(update_nav=update_nav)
-
-
-def build_reference_placeholders(update_nav: bool = True) -> list[str]:
-    """Create minimal placeholder reference files (mkdocstrings-style) and optionally update nav."""
-    nav_items: list[str] = []
-    created = 0
-
-    for py_filepath in TQDM(list(PACKAGE_DIR.rglob("*.py")), desc="Building reference stubs", unit="file"):
-        classes, functions = extract_classes_and_functions(py_filepath)
-        if not classes and not functions:
-            continue
-        module_path = (
-            f"{PACKAGE_DIR.name}.{py_filepath.relative_to(PACKAGE_DIR).with_suffix('').as_posix().replace('/', '.')}"
-        )
-        exists = (REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")).exists()
-        md_rel = create_placeholder_markdown(py_filepath, module_path, classes, functions)
-        nav_items.append(str(md_rel))
-        if not exists:
-            created += 1
-    if update_nav:
-        update_mkdocs_file(create_nav_menu_yaml(nav_items))
-    if created:
-        print(f"Created {created} new reference stub files")
-    return nav_items
-
-
 def build_reference_docs(update_nav: bool = False) -> list[str]:
     """Render full docstring-based reference content."""
     nav_items: list[str] = []
     created = 0
+    orphans = set(REFERENCE_DIR.rglob("*.md"))
 
     desc = f"Docstrings {GITHUB_REPO or PACKAGE_DIR.name}"
     for py_filepath in TQDM(list(PACKAGE_DIR.rglob("*.py")), desc=desc, unit="file"):
         md_target = REFERENCE_DIR / py_filepath.relative_to(PACKAGE_DIR).with_suffix(".md")
         exists_before = md_target.exists()
+        orphans.discard(md_target)
         module = parse_module(py_filepath)
         if not module or (not module.classes and not module.functions):
             continue
@@ -1167,6 +1080,8 @@ def build_reference_docs(update_nav: bool = False) -> list[str]:
             created += 1
         nav_items.append(str(md_rel_filepath))
 
+    for orphan in orphans:
+        orphan.unlink()
     if update_nav:
         update_mkdocs_file(create_nav_menu_yaml(nav_items))
     if created:
@@ -1189,7 +1104,7 @@ def build_reference_for(
 
 def main():
     """CLI entrypoint."""
-    build_reference(update_nav=True)
+    build_reference_docs(update_nav=True)
 
 
 if __name__ == "__main__":

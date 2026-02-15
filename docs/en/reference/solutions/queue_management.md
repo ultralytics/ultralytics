@@ -11,6 +11,191 @@ keywords: Ultralytics, queue management, object tracking, real-time video, Pytho
 
 <br>
 
-## ::: ultralytics.solutions.queue_management.QueueManager
+!!! abstract "Summary"
+
+    === "<span class="doc-kind doc-kind-class">Classes</span>"
+
+        - [`QueueManager`](#ultralytics.solutions.queue_management.QueueManager)
+
+    === "<span class="doc-kind doc-kind-method">Methods</span>"
+
+        - [`QueueManager.process`](#ultralytics.solutions.queue_management.QueueManager.process)
+
+
+## Class `ultralytics.solutions.queue_management.QueueManager` {#ultralytics.solutions.queue\_management.QueueManager}
+
+```python
+QueueManager(self, **kwargs: Any) -> None
+```
+
+**Bases:** `BaseSolution`
+
+Manages queue counting in real-time video streams based on object tracks.
+
+This class extends BaseSolution to provide functionality for tracking and counting objects within a specified region in video frames.
+
+**Args**
+
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `**kwargs` | `Any` |  | *required* |
+
+**Attributes**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `counts` | `int` | The current count of objects in the queue. |
+| `rect_color` | `tuple[int, int, int]` | BGR color tuple for drawing the queue region rectangle. |
+| `region_length` | `int` | The number of points defining the queue region. |
+| `track_line` | `list[tuple[int, int]]` | List of track line coordinates. |
+| `track_history` | `dict[int, list[tuple[int, int]]]` | Dictionary storing tracking history for each object. |
+
+**Methods**
+
+| Name | Description |
+| --- | --- |
+| [`process`](#ultralytics.solutions.queue_management.QueueManager.process) | Process queue management for a single frame of video. |
+
+**Examples**
+
+```python
+>>> cap = cv2.VideoCapture("path/to/video.mp4")
+>>> queue_manager = QueueManager(region=[100, 100, 200, 200, 300, 300])
+>>> while cap.isOpened():
+...     success, im0 = cap.read()
+...     if not success:
+...         break
+...     results = queue_manager.process(im0)
+```
+
+<details>
+<summary>Source code in <code>ultralytics/solutions/queue_management.py</code></summary>
+
+<a href="https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/queue_management.py#L9-L93"><i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>View on GitHub</a>
+```python
+class QueueManager(BaseSolution):
+    """Manages queue counting in real-time video streams based on object tracks.
+
+    This class extends BaseSolution to provide functionality for tracking and counting objects within a specified region
+    in video frames.
+
+    Attributes:
+        counts (int): The current count of objects in the queue.
+        rect_color (tuple[int, int, int]): BGR color tuple for drawing the queue region rectangle.
+        region_length (int): The number of points defining the queue region.
+        track_line (list[tuple[int, int]]): List of track line coordinates.
+        track_history (dict[int, list[tuple[int, int]]]): Dictionary storing tracking history for each object.
+
+    Methods:
+        initialize_region: Initialize the queue region.
+        process: Process a single frame for queue management.
+        extract_tracks: Extract object tracks from the current frame.
+        store_tracking_history: Store the tracking history for an object.
+        display_output: Display the processed output.
+
+    Examples:
+        >>> cap = cv2.VideoCapture("path/to/video.mp4")
+        >>> queue_manager = QueueManager(region=[100, 100, 200, 200, 300, 300])
+        >>> while cap.isOpened():
+        ...     success, im0 = cap.read()
+        ...     if not success:
+        ...         break
+        ...     results = queue_manager.process(im0)
+    """
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the QueueManager with parameters for tracking and counting objects in a video stream."""
+        super().__init__(**kwargs)
+        self.initialize_region()
+        self.counts = 0  # Queue counts information
+        self.rect_color = (255, 255, 255)  # Rectangle color for visualization
+        self.region_length = len(self.region)  # Store region length for further usage
+```
+</details>
+
+<br>
+
+### Method `ultralytics.solutions.queue_management.QueueManager.process` {#ultralytics.solutions.queue\_management.QueueManager.process}
+
+```python
+def process(self, im0) -> SolutionResults
+```
+
+Process queue management for a single frame of video.
+
+**Args**
+
+| Name | Type | Description | Default |
+| --- | --- | --- | --- |
+| `im0` | `np.ndarray` | Input image for processing, typically a frame from a video stream. | *required* |
+
+**Returns**
+
+| Type | Description |
+| --- | --- |
+| `SolutionResults` | Contains processed image `im0`, 'queue_count' (int, number of objects in the queue) and |
+
+**Examples**
+
+```python
+>>> queue_manager = QueueManager()
+>>> frame = cv2.imread("frame.jpg")
+>>> results = queue_manager.process(frame)
+```
+
+<details>
+<summary>Source code in <code>ultralytics/solutions/queue_management.py</code></summary>
+
+<a href="https://github.com/ultralytics/ultralytics/blob/main/ultralytics/solutions/queue_management.py#L47-L93"><i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>View on GitHub</a>
+```python
+def process(self, im0) -> SolutionResults:
+    """Process queue management for a single frame of video.
+
+    Args:
+        im0 (np.ndarray): Input image for processing, typically a frame from a video stream.
+
+    Returns:
+        (SolutionResults): Contains processed image `im0`, 'queue_count' (int, number of objects in the queue) and
+            'total_tracks' (int, total number of tracked objects).
+
+    Examples:
+        >>> queue_manager = QueueManager()
+        >>> frame = cv2.imread("frame.jpg")
+        >>> results = queue_manager.process(frame)
+    """
+    self.counts = 0  # Reset counts every frame
+    self.extract_tracks(im0)  # Extract tracks from the current frame
+    annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
+    annotator.draw_region(reg_pts=self.region, color=self.rect_color, thickness=self.line_width * 2)  # Draw region
+
+    for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
+        # Draw bounding box and counting region
+        annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))
+        self.store_tracking_history(track_id, box)  # Store track history
+
+        # Cache frequently accessed attributes
+        track_history = self.track_history.get(track_id, [])
+
+        # Store previous position of track and check if the object is inside the counting region
+        prev_position = None
+        if len(track_history) > 1:
+            prev_position = track_history[-2]
+        if self.region_length >= 3 and prev_position and self.r_s.contains(self.Point(self.track_line[-1])):
+            self.counts += 1
+
+    # Display queue counts
+    annotator.queue_counts_display(
+        f"Queue Counts : {self.counts}",
+        points=self.region,
+        region_color=self.rect_color,
+        txt_color=(104, 31, 17),
+    )
+    plot_im = annotator.result()
+    self.display_output(plot_im)  # Display output with base class function
+
+    # Return a SolutionResults object with processed data
+    return SolutionResults(plot_im=plot_im, queue_count=self.counts, total_tracks=len(self.track_ids))
+```
+</details>
 
 <br><br>

@@ -3,6 +3,255 @@ description: Lightweight zero-dependency progress bar for Ultralytics with rich-
 keywords: TQDM, progress bar, Ultralytics, GitHub Actions, zero dependencies, rich style, download progress, training progress, Unicode blocks
 ---
 
+--- |
+| [`__del__`](#ultralytics.utils.tqdm.TQDM.__del__) | Destructor to ensure cleanup. |
+| [`__enter__`](#ultralytics.utils.tqdm.TQDM.__enter__) | Enter context manager. |
+| [`__exit__`](#ultralytics.utils.tqdm.TQDM.__exit__) | Exit context manager and close progress bar. |
+| [`__iter__`](#ultralytics.utils.tqdm.TQDM.__iter__) | Iterate over the wrapped iterable with progress updates. |
+| [`_display`](#ultralytics.utils.tqdm.TQDM._display) | Display progress bar. |
+| [`_format_num`](#ultralytics.utils.tqdm.TQDM._format_num) | Format number with optional unit scaling. |
+| [`_format_rate`](#ultralytics.utils.tqdm.TQDM._format_rate) | Format rate with units, switching between it/s and s/it for readability. |
+| [`_format_time`](#ultralytics.utils.tqdm.TQDM._format_time) | Format time duration. |
+| [`_generate_bar`](#ultralytics.utils.tqdm.TQDM._generate_bar) | Generate progress bar. |
+| [`_should_update`](#ultralytics.utils.tqdm.TQDM._should_update) | Check if display should update. |
+| [`clear`](#ultralytics.utils.tqdm.TQDM.clear) | Clear progress bar. |
+| [`close`](#ultralytics.utils.tqdm.TQDM.close) | Close progress bar. |
+| [`refresh`](#ultralytics.utils.tqdm.TQDM.refresh) | Refresh display. |
+| [`set_description`](#ultralytics.utils.tqdm.TQDM.set_description) | Set description. |
+| [`set_postfix`](#ultralytics.utils.tqdm.TQDM.set_postfix) | Set postfix (appends to description). |
+| [`update`](#ultralytics.utils.tqdm.TQDM.update) | Update progress by n steps. |
+| [`write`](#ultralytics.utils.tqdm.TQDM.write) | Static method to write without breaking progress bar. |
+
+**Examples**
+
+```python
+Basic usage with iterator:
+>>> for i in TQDM(range(100)):
+...     time.sleep(0.01)
+
+With custom description:
+>>> pbar = TQDM(range(100), desc="Processing")
+>>> for i in pbar:
+...     pbar.set_description(f"Processing item {i}")
+
+Context manager usage:
+>>> with TQDM(total=100, unit="B", unit_scale=True) as pbar:
+...     for i in range(100):
+...         pbar.update(1)
+
+Manual updates:
+>>> pbar = TQDM(total=100, desc="Training")
+>>> for epoch in range(100):
+...     # Do work
+...     pbar.update(1)
+>>> pbar.close()
+```
+
+<details>
+<summary>Source code in <code>ultralytics/utils/tqdm.py</code></summary>
+
+<a href="https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tqdm.py#L18-L385"><i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>View on GitHub</a>
+```python
+class TQDM:
+    """Lightweight zero-dependency progress bar for Ultralytics.
+
+    Provides clean, rich-style progress bars suitable for various environments including Weights & Biases, console
+    outputs, and other logging systems. Features zero external dependencies, clean single-line output, rich-style
+    progress bars with Unicode block characters, context manager support, iterator protocol support, and dynamic
+    description updates.
+
+    Attributes:
+        iterable (Any): Iterable to wrap with progress bar.
+        desc (str): Prefix description for the progress bar.
+        total (int | None): Expected number of iterations.
+        disable (bool): Whether to disable the progress bar.
+        unit (str): String for units of iteration.
+        unit_scale (bool): Auto-scale units flag.
+        unit_divisor (int): Divisor for unit scaling.
+        leave (bool): Whether to leave the progress bar after completion.
+        mininterval (float): Minimum time interval between updates.
+        initial (int): Initial counter value.
+        n (int): Current iteration count.
+        closed (bool): Whether the progress bar is closed.
+        bar_format (str | None): Custom bar format string.
+        file (IO[str]): Output file stream.
+
+    Methods:
+        update: Update progress by n steps.
+        set_description: Set or update the description.
+        set_postfix: Set postfix for the progress bar.
+        close: Close the progress bar and clean up.
+        refresh: Refresh the progress bar display.
+        clear: Clear the progress bar from display.
+        write: Write a message without breaking the progress bar.
+
+    Examples:
+        Basic usage with iterator:
+        >>> for i in TQDM(range(100)):
+        ...     time.sleep(0.01)
+
+        With custom description:
+        >>> pbar = TQDM(range(100), desc="Processing")
+        >>> for i in pbar:
+        ...     pbar.set_description(f"Processing item {i}")
+
+        Context manager usage:
+        >>> with TQDM(total=100, unit="B", unit_scale=True) as pbar:
+        ...     for i in range(100):
+        ...         pbar.update(1)
+
+        Manual updates:
+        >>> pbar = TQDM(total=100, desc="Training")
+        >>> for epoch in range(100):
+        ...     # Do work
+        ...     pbar.update(1)
+        >>> pbar.close()
+    """
+
+    # Constants
+    MIN_RATE_CALC_INTERVAL = 0.01  # Minimum time interval for rate calculation
+    RATE_SMOOTHING_FACTOR = 0.3  # Factor for exponential smoothing of rates
+    MAX_SMOOTHED_RATE = 1000000  # Maximum rate to apply smoothing to
+    NONINTERACTIVE_MIN_INTERVAL = 60.0  # Minimum interval for non-interactive environments
+
+    def __init__(
+        self,
+        iterable: Any = None,
+        desc: str | None = None,
+        total: int | None = None,
+        leave: bool = True,
+        file: IO[str] | None = None,
+        mininterval: float = 0.1,
+        disable: bool | None = None,
+        unit: str = "it",
+        unit_scale: bool = True,
+        unit_divisor: int = 1000,
+        bar_format: str | None = None,  # kept for API compatibility; not used for formatting
+        initial: int = 0,
+        **kwargs,
+    ) -> None:
+        """Initialize the TQDM progress bar with specified configuration options.
+
+        Args:
+            iterable (Any, optional): Iterable to wrap with progress bar.
+            desc (str, optional): Prefix description for the progress bar.
+            total (int, optional): Expected number of iterations.
+            leave (bool, optional): Whether to leave the progress bar after completion.
+            file (IO[str], optional): Output file stream for progress display.
+            mininterval (float, optional): Minimum time interval between updates (default 0.1s, 60s in GitHub Actions).
+            disable (bool, optional): Whether to disable the progress bar. Auto-detected if None.
+            unit (str, optional): String for units of iteration (default "it" for items).
+            unit_scale (bool, optional): Auto-scale units for bytes/data units.
+            unit_divisor (int, optional): Divisor for unit scaling (default 1000).
+            bar_format (str, optional): Custom bar format string.
+            initial (int, optional): Initial counter value.
+            **kwargs (Any): Additional keyword arguments for compatibility (ignored).
+        """
+        # Disable if not verbose
+        if disable is None:
+            try:
+                from ultralytics.utils import LOGGER, VERBOSE
+
+                disable = not VERBOSE or LOGGER.getEffectiveLevel() > 20
+            except ImportError:
+                disable = False
+
+        self.iterable = iterable
+        self.desc = desc or ""
+        self.total = total or (len(iterable) if hasattr(iterable, "__len__") else None) or None  # prevent total=0
+        self.disable = disable
+        self.unit = unit
+        self.unit_scale = unit_scale
+        self.unit_divisor = unit_divisor
+        self.leave = leave
+        self.noninteractive = is_noninteractive_console()
+        self.mininterval = max(mininterval, self.NONINTERACTIVE_MIN_INTERVAL) if self.noninteractive else mininterval
+        self.initial = initial
+
+        # Kept for API compatibility (unused for f-string formatting)
+        self.bar_format = bar_format
+
+        self.file = file or sys.stdout
+
+        # Internal state
+        self.n = self.initial
+        self.last_print_n = self.initial
+        self.last_print_t = time.time()
+        self.start_t = time.time()
+        self.last_rate = 0.0
+        self.closed = False
+        self.is_bytes = unit_scale and unit in {"B", "bytes"}
+        self.scales = (
+            [(1073741824, "GB/s"), (1048576, "MB/s"), (1024, "KB/s")]
+            if self.is_bytes
+            else [(1e9, f"G{self.unit}/s"), (1e6, f"M{self.unit}/s"), (1e3, f"K{self.unit}/s")]
+        )
+
+        if not self.disable and self.total and not self.noninteractive:
+            self._display()
+```
+</details>
+
+<br>
+
+### Method `ultralytics.utils.tqdm.TQDM.__del__` {#ultralytics.utils.tqdm.TQDM.\_\_del\_\_}
+
+```python
+def __del__(self) -> None
+```
+
+Destructor to ensure cleanup.
+
+<details>
+<summary>Source code in <code>ultralytics/utils/tqdm.py</code></summary>
+
+<a href="https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tqdm.py#L356-L361"><i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>View on GitHub</a>
+```python
+def __del__(self) -> None:
+    """Destructor to ensure cleanup."""
+    try:
+        self.close()
+    except Exception:
+        pass
+```
+</details>
+
+<br>
+
+### Method `ultralytics.utils.tqdm.TQDM.__enter__` {#ultralytics.utils.tqdm.TQDM.\_\_enter\_\_}
+
+```python
+def __enter__(self) -> TQDM
+```
+
+Enter context manager.
+
+<details>
+<summary>Source code in <code>ultralytics/utils/tqdm.py</code></summary>
+
+<a href="https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/tqdm.py#L336-L338"><i class="fa-brands fa-github" aria-hidden="true" style="margin-right:6px;"></i>View on GitHub</a>
+```python
+def __enter__(self) -> TQDM:
+    """Enter context manager."""
+    return self
+```
+</details>
+
+<br>
+
+### Method `ultralytics.utils.tqdm.TQDM.__exit__` {#ultralytics.utils.tqdm.TQDM.\_\_exit\_\_}
+
+```python
+def __exit__(self, *args: Any) -> None
+```
+
+Exit context manager and close progress bar.
+
+**Args**
+
+| Name | Type | Description | Default |
+| ---
+
 # Reference for `ultralytics/utils/tqdm.py`
 
 !!! success "Improvements"

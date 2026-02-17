@@ -143,8 +143,8 @@ def select_device(device="", newline=False, verbose=True):
 
     Args:
         device (str | torch.device, optional): Device string or torch.device object. Options include 'cpu', 'cuda', '0',
-            '0,1,2,3', 'mps', 'npu', 'npu:0', or '-1' for auto-select. Defaults to auto-selecting the first available
-            GPU, or CPU if no GPU is available.
+            '0,1,2,3', 'mps', 'npu', 'npu:0', 'xpu', 'xpu:0', or '-1' for auto-select. Defaults to auto-selecting
+            the first available GPU (CUDA, NPU, or XPU), or CPU if no GPU is available.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
@@ -197,6 +197,31 @@ def select_device(device="", newline=False, verbose=True):
             LOGGER.info(f"{s}NPU:{idx} ({torch.npu.get_device_name(idx)})\n")
         return torch.device(f"npu:{idx}")
 
+    # Intel XPU (Arc / Data Center GPU) support
+    xpu = device.startswith("xpu")
+    if xpu:
+        if not hasattr(torch, "xpu") or not torch.xpu.is_available():
+            raise ValueError(
+                f"Invalid XPU 'device={device}' requested. "
+                f"torch.xpu is not available. Install Intel Extension for PyTorch (IPEX) "
+                f"or use a PyTorch build with XPU support.\n"
+                f"\ntorch.xpu available: {hasattr(torch, 'xpu')}"
+                f"\ntorch.xpu.is_available(): {getattr(torch.xpu, 'is_available', lambda: False)()}"
+            )
+        # Parse "xpu", "xpu:0", "xpu:1" etc.
+        idx = 0
+        if ":" in device:
+            idx = int(device.split(":")[1])
+        if idx >= torch.xpu.device_count():
+            raise ValueError(
+                f"Invalid XPU 'device={device}' requested. Only {torch.xpu.device_count()} XPU device(s) available."
+            )
+        s += f"XPU:{idx} ({torch.xpu.get_device_name(idx)})\n"
+        arg = f"xpu:{idx}"
+        if verbose:
+            LOGGER.info(s if newline else s.rstrip())
+        return torch.device(arg)
+
     # Auto-select GPUs
     if "-1" in device:
         from ultralytics.utils.autodevice import GPUInfo
@@ -244,6 +269,10 @@ def select_device(device="", newline=False, verbose=True):
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
         arg = "cuda:0"
+    elif not cpu and not mps and hasattr(torch, "xpu") and torch.xpu.is_available():
+        # Auto-detect XPU when no specific device is requested
+        s += f"XPU:0 ({torch.xpu.get_device_name(0)})\n"
+        arg = "xpu:0"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

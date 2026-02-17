@@ -855,27 +855,31 @@ def check_amp(model):
     device = next(model.parameters()).device  # get model device
     prefix = colorstr("AMP: ")
     if device.type in {"cpu", "mps"}:
-        return False  # AMP only used on CUDA devices
+        return False  # AMP only used on CUDA/XPU devices
     else:
-        # GPUs that have issues with AMP
-        pattern = re.compile(
-            r"(nvidia|geforce|quadro|tesla).*?(1660|1650|1630|t400|t550|t600|t1000|t1200|t2000|k40m)", re.IGNORECASE
-        )
-
-        gpu = torch.cuda.get_device_name(device)
-        if bool(pattern.search(gpu)):
-            LOGGER.warning(
-                f"{prefix}checks failed ❌. AMP training on {gpu} GPU may cause "
-                f"NaN losses or zero-mAP results, so AMP will be disabled during training."
+        if device.type == "xpu":
+            # Intel XPU (Arc / Data Center GPU) — no known AMP-incompatible models
+            gpu = torch.xpu.get_device_name(device)
+        else:
+            # GPUs that have issues with AMP
+            pattern = re.compile(
+                r"(nvidia|geforce|quadro|tesla).*?(1660|1650|1630|t400|t550|t600|t1000|t1200|t2000|k40m)", re.IGNORECASE
             )
-            return False
+
+            gpu = torch.cuda.get_device_name(device)
+            if bool(pattern.search(gpu)):
+                LOGGER.warning(
+                    f"{prefix}checks failed ❌. AMP training on {gpu} GPU may cause "
+                    f"NaN losses or zero-mAP results, so AMP will be disabled during training."
+                )
+                return False
 
     def amp_allclose(m, im):
         """All close FP32 vs AMP results."""
         batch = [im] * 8
         imgsz = max(256, int(model.stride.max() * 4))  # max stride P5-32 and P6-64
         a = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # FP32 inference
-        with autocast(enabled=True):
+        with autocast(enabled=True, device=device.type):
             b = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # AMP inference
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance

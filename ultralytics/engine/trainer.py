@@ -331,7 +331,9 @@ class BaseTrainer:
             dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
         self.amp = bool(self.amp)  # as boolean
         self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
+            torch.amp.GradScaler(self.device.type, enabled=self.amp)
+            if TORCH_2_4
+            else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
         if self.world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
@@ -426,7 +428,7 @@ class BaseTrainer:
 
                 # Forward
                 try:
-                    with autocast(self.amp):
+                    with autocast(self.amp, device=self.device.type):
                         batch = self.preprocess_batch(batch)
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
@@ -443,14 +445,21 @@ class BaseTrainer:
 
                     # Backward
                     self.scaler.scale(self.loss).backward()
-                except torch.cuda.OutOfMemoryError:
+                except (
+                    torch.cuda.OutOfMemoryError,
+                    *(
+                        (torch.xpu.OutOfMemoryError,)
+                        if hasattr(torch, "xpu") and hasattr(torch.xpu, "OutOfMemoryError")
+                        else ()
+                    ),
+                ):
                     if epoch > self.start_epoch or self._oom_retries >= 3 or RANK != -1:
                         raise  # only auto-reduce during first epoch on single GPU, max 3 retries
                     self._oom_retries += 1
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
                     LOGGER.warning(
-                        f"CUDA out of memory with batch={old_batch}. "
+                        f"{self.device.type.upper()} out of memory with batch={old_batch}. "
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
                     self._clear_memory()
@@ -584,6 +593,10 @@ class BaseTrainer:
             memory = torch.mps.driver_allocated_memory()
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
+        elif self.device.type == "xpu":
+            memory = torch.xpu.memory_reserved()
+            if fraction:
+                total = torch.xpu.get_device_properties(self.device).total_memory
         elif self.device.type != "cpu":
             memory = torch.cuda.memory_reserved()
             if fraction:
@@ -599,6 +612,8 @@ class BaseTrainer:
         gc.collect()
         if self.device.type == "mps":
             torch.mps.empty_cache()
+        elif self.device.type == "xpu":
+            torch.xpu.empty_cache()
         elif self.device.type == "cpu":
             return
         else:

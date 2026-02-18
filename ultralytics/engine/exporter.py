@@ -1049,16 +1049,19 @@ class Exporter:
         try:
             import tensorflow as tf
         except ImportError:
-            check_requirements("tensorflow>=2.0.0,<=2.19.0")
+            check_requirements("tensorflow>=2.0.0")
             import tensorflow as tf
         check_requirements(
+            "onnx2tf>=1.26.3",
+            cmds="--no-deps",  # to avoid dependency conflicts
+        )
+        check_requirements(
             (
-                "tf_keras<=2.19.0",  # required by 'onnx2tf' package
+                "tf_keras",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
                 "onnx>=1.12.0,<2.0.0",
-                "onnx2tf>=1.26.3,<1.29.0",  # pin to avoid h5py build issues on aarch64
                 "onnxslim>=0.1.71",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",

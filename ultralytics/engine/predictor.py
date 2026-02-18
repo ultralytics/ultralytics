@@ -78,10 +78,10 @@ class BasePredictor:
         save_dir (Path): Directory to save results.
         done_warmup (bool): Whether the predictor has finished setup.
         model (torch.nn.Module): Model used for prediction.
-        data (dict): Data configuration.
+        data (str): Data configuration.
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
-        vid_writer (dict[str, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
+        vid_writer (dict[Path, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
         plotted_img (np.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
@@ -117,7 +117,7 @@ class BasePredictor:
         """Initialize the BasePredictor class.
 
         Args:
-            cfg (str | dict): Path to a configuration file or a configuration dictionary.
+            cfg (str | Path | dict | SimpleNamespace): Path to a configuration file or a configuration dictionary.
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
@@ -275,7 +275,7 @@ class BasePredictor:
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
-        """Stream real-time inference on camera feed and save results to file.
+        """Stream inference on input source and save results to file.
 
         Args:
             source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor, optional):
@@ -384,7 +384,7 @@ class BasePredictor:
         """Initialize YOLO model with given parameters and set it to evaluation mode.
 
         Args:
-            model (str | Path | torch.nn.Module, optional): Model to load or use.
+            model (str | Path | torch.nn.Module): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
         if hasattr(model, "end2end"):
@@ -460,7 +460,7 @@ class BasePredictor:
         return string
 
     def save_predicted_images(self, save_path: Path, frame: int = 0):
-        """Save video predictions as mp4 or images as jpg at specified path.
+        """Save video predictions as mp4/avi or images as jpg at specified path.
 
         Args:
             save_path (Path): Path to save the results.

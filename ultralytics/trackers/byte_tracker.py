@@ -99,7 +99,7 @@ class STrack(BaseTrack):
 
     @staticmethod
     def multi_gmc(stracks: list[STrack], H: np.ndarray = np.eye(2, 3)):
-        """Update state tracks positions and covariances using a homography matrix for multiple tracks."""
+        """Update multiple track positions and covariances using a homography matrix."""
         if stracks:
             multi_mean = np.asarray([st.mean.copy() for st in stracks])
             multi_covariance = np.asarray([st.covariance for st in stracks])
@@ -154,8 +154,8 @@ class STrack(BaseTrack):
 
         Examples:
             Update the state of a track with new detection information
-            >>> track = STrack([100, 200, 50, 80, 0.9, 1])
-            >>> new_track = STrack([105, 205, 55, 85, 0.95, 1])
+            >>> track = STrack([100, 200, 50, 80, 0], score=0.9, cls=0)
+            >>> new_track = STrack([105, 205, 55, 85, 0], score=0.95, cls=0)
             >>> track.update(new_track, 2)
         """
         self.frame_id = frame_id
@@ -229,7 +229,7 @@ class STrack(BaseTrack):
 
 
 class BYTETracker:
-    """BYTETracker: A tracking algorithm built on top of YOLOv8 for object detection and tracking.
+    """BYTETracker: A tracking algorithm built on top of YOLO for object detection and tracking.
 
     This class encapsulates the functionality for initializing, updating, and managing the tracks for detected objects
     in a video sequence. It maintains the state of tracked, lost, and removed tracks over frames, utilizes Kalman
@@ -398,7 +398,7 @@ class BYTETracker:
         return KalmanFilterXYAH()
 
     def init_track(self, results, img: np.ndarray | None = None) -> list[STrack]:
-        """Initialize object tracking with given detections, scores, and class labels using the STrack algorithm."""
+        """Initialize object tracking with given detections, scores, and class labels as STrack instances."""
         if len(results) == 0:
             return []
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh

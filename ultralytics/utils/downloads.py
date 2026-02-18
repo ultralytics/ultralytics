@@ -48,7 +48,7 @@ def is_url(url: str | Path, check: bool = False) -> bool:
     """Validate if the given string is a URL and optionally check if the URL exists online.
 
     Args:
-        url (str): The string to be validated as a URL.
+        url (str | Path): The string to be validated as a URL.
         check (bool, optional): If True, performs an additional check to see if the URL exists online.
 
     Returns:
@@ -76,7 +76,7 @@ def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_St
 
     Args:
         path (str | Path): The directory path where the files should be deleted.
-        files_to_delete (tuple): The files to be deleted.
+        files_to_delete (tuple[str, ...]): The files to be deleted.
 
     Examples:
         >>> from ultralytics.utils.downloads import delete_dsstore
@@ -106,7 +106,7 @@ def zip_directory(
     Args:
         directory (str | Path): The path to the directory to be zipped.
         compress (bool): Whether to compress the files while zipping.
-        exclude (tuple, optional): A tuple of filename strings to be excluded.
+        exclude (tuple[str, ...], optional): A tuple of filename strings to be excluded.
         progress (bool, optional): Whether to display a progress bar.
 
     Returns:
@@ -150,7 +150,7 @@ def unzip_file(
     Args:
         file (str | Path): The path to the zipfile to be extracted.
         path (str | Path, optional): The path to extract the zipfile to.
-        exclude (tuple, optional): A tuple of filename strings to be excluded.
+        exclude (tuple[str, ...], optional): A tuple of filename strings to be excluded.
         exist_ok (bool, optional): Whether to overwrite existing contents if they exist.
         progress (bool, optional): Whether to display a progress bar.
 
@@ -289,9 +289,9 @@ def safe_download(
     robust partial download detection using Content-Length validation.
 
     Args:
-        url (str): The URL of the file to be downloaded.
-        file (str, optional): The filename of the downloaded file. If not provided, the file will be saved with the same
-            name as the URL.
+        url (str | Path): The URL of the file to be downloaded.
+        file (str | Path, optional): The filename of the downloaded file. If not provided, the file will be saved with
+            the same name as the URL.
         dir (str | Path, optional): The directory to save the downloaded file. If not provided, the file will be saved
             in the current working directory.
         unzip (bool, optional): Whether to unzip the downloaded file.
@@ -493,7 +493,7 @@ def download(
     Supports concurrent downloads if multiple threads are specified.
 
     Args:
-        url (str | list[str]): The URL or list of URLs of the files to be downloaded.
+        url (str | list[str] | Path): The URL or list of URLs of the files to be downloaded.
         dir (Path, optional): The directory where the files will be saved.
         unzip (bool, optional): Flag to unzip the files after downloading.
         delete (bool, optional): Flag to delete the zip files after extraction.

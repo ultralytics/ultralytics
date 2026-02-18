@@ -350,7 +350,7 @@ def plt_settings(rcparams=None, backend="Agg"):
 
     Examples:
         >>> @plt_settings({"font.size": 12})
-        >>> def plot_function():
+        ... def plot_function():
         ...     plt.figure()
         ...     plt.plot([1, 2, 3])
         ...     plt.show()
@@ -482,7 +482,7 @@ class ThreadingLocked:
     Examples:
         >>> from ultralytics.utils import ThreadingLocked
         >>> @ThreadingLocked()
-        >>> def my_function():
+        ... def my_function():
         ...    # Your code here
     """
 
@@ -640,10 +640,10 @@ DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def read_device_model() -> str:
-    """Read the device model information from the system and cache it for quick access.
+    """Read the device model information from the system.
 
     Returns:
-        (str): Kernel release information.
+        (str): Platform release string in lowercase, used to identify device models like Jetson or Raspberry Pi.
     """
     return platform.release().lower()
 
@@ -953,7 +953,7 @@ def colorstr(*input):
 
     Examples:
         >>> colorstr("blue", "bold", "hello world")
-        >>> "\033[34m\033[1mhello world\033[0m"
+        "\033[34m\033[1mhello world\033[0m"
 
     Notes:
         Supported Colors and Styles:
@@ -1001,7 +1001,7 @@ def remove_colorstr(input_string):
 
     Examples:
         >>> remove_colorstr(colorstr("blue", "bold", "hello world"))
-        >>> "hello world"
+        "hello world"
     """
     ansi_escape = re.compile(r"\x1B\[[0-9;]*[A-Za-z]")
     return ansi_escape.sub("", input_string)
@@ -1020,14 +1020,14 @@ class TryExcept(contextlib.ContextDecorator):
     Examples:
         As a decorator:
         >>> @TryExcept(msg="Error occurred in func", verbose=True)
-        >>> def func():
-        >>> # Function logic here
-        >>>     pass
+        ... def func():
+        ...     # Function logic here
+        ...     pass
 
         As a context manager:
         >>> with TryExcept(msg="Error occurred in block", verbose=True):
-        >>> # Code block here
-        >>>     pass
+        ...     # Code block here
+        ...     pass
     """
 
     def __init__(self, msg="", verbose=True):
@@ -1060,9 +1060,9 @@ class Retry(contextlib.ContextDecorator):
     Examples:
         Example usage as a decorator:
         >>> @Retry(times=3, delay=2)
-        >>> def test_func():
-        >>> # Replace with function logic that may raise exceptions
-        >>>     return True
+        ... def test_func():
+        ...     # Replace with function logic that may raise exceptions
+        ...     return True
     """
 
     def __init__(self, times=3, delay=2):

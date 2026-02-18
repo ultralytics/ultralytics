@@ -50,4 +50,4 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
 
-  - [[16, 19, 22], 1, Pose26, [nc, kpt_shape]] # Detect(P3, P4, P5)
+  - [[16, 19, 22], 1, Pose26, [nc, kpt_shape]] # Pose26(P3, P4, P5)

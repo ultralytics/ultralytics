@@ -59,7 +59,7 @@ class BaseValidator:
         stats (dict): Statistics collected during validation.
         confusion_matrix: Confusion matrix for classification evaluation.
         nc (int): Number of classes.
-        iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in spaces of 0.05.
+        iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in steps of 0.05.
         jdict (list): List to store JSON validation results.
         speed (dict): Dictionary with keys 'preprocess', 'inference', 'loss', 'postprocess' and their respective batch
             processing times in milliseconds.

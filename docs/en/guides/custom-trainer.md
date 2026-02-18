@@ -184,67 +184,24 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
 
 ## Saving the Best Model by Custom Metric
 
-The trainer saves `best.pt` based on fitness, which uses `mAP@0.5:0.95`. To use a different metric (like `mAP@0.5` or recall), override `save_model()`:
+The trainer saves `best.pt` based on fitness, which defaults to `0.9 × mAP@0.5:0.95 + 0.1 × mAP@0.5`. To use a different metric (like `mAP@0.5` or recall), override `validate()` and return your chosen metric as the fitness value. The built-in `save_model()` will then use it automatically:
 
 ```python
-import torch
-
 from ultralytics import YOLO
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.utils import LOGGER
 
 
 class CustomSaveTrainer(DetectionTrainer):
     """Trainer that saves the best model based on mAP@0.5 instead of default fitness."""
 
-    def __init__(self, *args, **kwargs):
-        """Initialize with custom best metric tracking."""
-        super().__init__(*args, **kwargs)
-        self.best_map50 = 0.0
-
-    def save_model(self):
-        """Save best model based on mAP@0.5 instead of default fitness (mAP@0.5:0.95)."""
-        import io
-        from copy import deepcopy
-        from datetime import datetime
-
-        from ultralytics import __version__
-        from ultralytics.utils.torch_utils import convert_optimizer_state_dict_to_fp16, unwrap_model
-
-        current_map50 = self.metrics.get("metrics/mAP50(B)", 0.0)
-
-        buffer = io.BytesIO()
-        torch.save(
-            {
-                "epoch": self.epoch,
-                "best_fitness": self.best_fitness,
-                "model": None,
-                "ema": deepcopy(unwrap_model(self.ema.ema)).half(),
-                "updates": self.ema.updates,
-                "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
-                "scaler": self.scaler.state_dict(),
-                "train_args": vars(self.args),
-                "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
-                "train_results": self.read_results_csv(),
-                "date": datetime.now().isoformat(),
-                "version": __version__,
-                "license": "AGPL-3.0 (https://ultralytics.com/license)",
-                "docs": "https://docs.ultralytics.com",
-            },
-            buffer,
-        )
-        serialized_ckpt = buffer.getvalue()
-
-        self.wdir.mkdir(parents=True, exist_ok=True)
-        self.last.write_bytes(serialized_ckpt)
-
-        if current_map50 > self.best_map50:
-            self.best_map50 = current_map50
-            self.best.write_bytes(serialized_ckpt)
-            LOGGER.info(f"New best mAP@0.5: {current_map50:.4f} - saving best.pt")
-
-        if (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)
+    def validate(self):
+        """Override fitness to use mAP@0.5 for best model selection."""
+        metrics, fitness = super().validate()
+        if metrics:
+            fitness = metrics.get("metrics/mAP50(B)", fitness)
+            if self.best_fitness is None or fitness > self.best_fitness:
+                self.best_fitness = fitness
+        return metrics, fitness
 
 
 model = YOLO("yolo26n.pt")

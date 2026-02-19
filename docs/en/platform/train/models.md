@@ -73,11 +73,11 @@ Each model page has the following tabs:
 
 | Tab          | Content                                       |
 | ------------ | --------------------------------------------- |
-| **Overview** | Model metadata, key metrics, dataset link      |
-| **Train**    | Training charts, console output, system stats  |
-| **Predict**  | Interactive browser inference                  |
-| **Export**   | Format conversion with GPU selection           |
-| **Deploy**   | Endpoint creation and management               |
+| **Overview** | Model metadata, key metrics, dataset link     |
+| **Train**    | Training charts, console output, system stats |
+| **Predict**  | Interactive browser inference                 |
+| **Export**   | Format conversion with GPU selection          |
+| **Deploy**   | Endpoint creation and management              |
 
 ### Overview Tab
 
@@ -100,12 +100,12 @@ The Train tab has three subtabs:
 
 Interactive training metric charts showing loss curves and performance metrics over epochs:
 
-| Chart Group      | Metrics                                          |
-| ---------------- | ------------------------------------------------ |
-| **Metrics**      | mAP50, mAP50-95, precision, recall               |
-| **Train Loss**   | train/box_loss, train/cls_loss, train/dfl_loss    |
-| **Val Loss**     | val/box_loss, val/cls_loss, val/dfl_loss          |
-| **Learning Rate**| lr/pg0, lr/pg1, lr/pg2                            |
+| Chart Group       | Metrics                                        |
+| ----------------- | ---------------------------------------------- |
+| **Metrics**       | mAP50, mAP50-95, precision, recall             |
+| **Train Loss**    | train/box_loss, train/cls_loss, train/dfl_loss |
+| **Val Loss**      | val/box_loss, val/cls_loss, val/dfl_loss       |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                         |
 
 <!-- Screenshot: platform-model-train-charts-subtab.avif -->
 
@@ -124,14 +124,14 @@ Live console output from the training process:
 
 GPU and system metrics during training:
 
-| Metric            | Description                |
-| ----------------- | -------------------------- |
-| **GPU Util**      | GPU utilization percentage |
-| **GPU Memory**    | GPU memory usage           |
-| **GPU Temp**      | GPU temperature            |
-| **CPU Usage**     | CPU utilization            |
-| **RAM**           | System memory usage        |
-| **Disk**          | Disk usage                 |
+| Metric         | Description                |
+| -------------- | -------------------------- |
+| **GPU Util**   | GPU utilization percentage |
+| **GPU Memory** | GPU memory usage           |
+| **GPU Temp**   | GPU temperature            |
+| **CPU Usage**  | CPU utilization            |
+| **RAM**        | System memory usage        |
+| **Disk**       | Disk usage                 |
 
 <!-- Screenshot: platform-model-train-system-subtab.avif -->
 

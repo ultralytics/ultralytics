@@ -35,12 +35,12 @@ Navigate to your Trash:
 
 The Trash shows all soft-deleted resources with filter options:
 
-| Filter       | Shows                            |
-| ------------ | -------------------------------- |
-| **All**      | All trashed items                |
-| **Projects** | Trashed projects                 |
-| **Datasets** | Trashed datasets                 |
-| **Models**   | Trashed models                   |
+| Filter       | Shows             |
+| ------------ | ----------------- |
+| **All**      | All trashed items |
+| **Projects** | Trashed projects  |
+| **Datasets** | Trashed datasets  |
+| **Models**   | Trashed models    |
 
 ### Viewing Trash Items
 

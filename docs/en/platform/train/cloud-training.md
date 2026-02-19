@@ -34,10 +34,10 @@ Start training from the Platform UI by clicking **New Model** on any project pag
 
 Choose from official YOLO26 models or your own trained models:
 
-| Category          | Description                                         |
-| ----------------- | --------------------------------------------------- |
-| **Official**      | All 25 YOLO26 models (5 sizes x 5 tasks)           |
-| **Your Models**   | Your completed models for fine-tuning               |
+| Category        | Description                              |
+| --------------- | ---------------------------------------- |
+| **Official**    | All 25 YOLO26 models (5 sizes x 5 tasks) |
+| **Your Models** | Your completed models for fine-tuning    |
 
 Official models are organized by task type (Detect, Segment, Pose, OBB, Classify) with sizes from nano to xlarge.
 
@@ -45,10 +45,10 @@ Official models are organized by task type (Detect, Segment, Pose, OBB, Classify
 
 Choose a dataset to train on:
 
-| Option              | Description                           |
-| ------------------- | ------------------------------------- |
-| **Official**        | Curated datasets from Ultralytics     |
-| **Your Datasets**   | Datasets you've uploaded              |
+| Option            | Description                       |
+| ----------------- | --------------------------------- |
+| **Official**      | Curated datasets from Ultralytics |
+| **Your Datasets** | Datasets you've uploaded          |
 
 !!! note "Dataset Requirements"
 
@@ -62,28 +62,28 @@ Choose a dataset to train on:
 
 Set core training parameters:
 
-| Parameter      | Description                             | Default |
-| -------------- | --------------------------------------- | ------- |
-| **Epochs**     | Number of training iterations           | 100     |
-| **Batch Size** | Samples per iteration                   | 16      |
-| **Image Size** | Input resolution (320-1280)             | 640     |
-| **Run Name**   | Optional name for the training run      | auto    |
+| Parameter      | Description                        | Default |
+| -------------- | ---------------------------------- | ------- |
+| **Epochs**     | Number of training iterations      | 100     |
+| **Batch Size** | Samples per iteration              | 16      |
+| **Image Size** | Input resolution (320-1280)        | 640     |
+| **Run Name**   | Optional name for the training run | auto    |
 
 ### Step 4: Advanced Settings (Optional)
 
 Expand **Advanced Settings** to access the full YAML-based parameter editor with 50+ training parameters organized by group:
 
-| Group                    | Parameters                                              |
-| ------------------------ | ------------------------------------------------------- |
-| **Learning Rate**        | lr0, lrf, momentum, weight_decay, warmup epochs         |
-| **Optimizer**            | SGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax         |
-| **Loss Weights**         | box, cls, dfl, pose, kobj, label_smoothing              |
-| **Color Augmentation**   | hsv_h, hsv_s, hsv_v                                     |
-| **Geometric Augment.**   | degrees, translate, scale, shear, perspective            |
-| **Flip & Mix Augment.**  | flipud, fliplr, mosaic, mixup, copy_paste                |
-| **Training Control**     | patience, time, seed, deterministic, amp, cos_lr         |
-| **Dataset**              | fraction, freeze, single_cls, rect, multi_scale          |
-| **Device & Inference**   | device, cache, workers, dropout, iou, max_det            |
+| Group                   | Parameters                                       |
+| ----------------------- | ------------------------------------------------ |
+| **Learning Rate**       | lr0, lrf, momentum, weight_decay, warmup epochs  |
+| **Optimizer**           | SGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax  |
+| **Loss Weights**        | box, cls, dfl, pose, kobj, label_smoothing       |
+| **Color Augmentation**  | hsv_h, hsv_s, hsv_v                              |
+| **Geometric Augment.**  | degrees, translate, scale, shear, perspective    |
+| **Flip & Mix Augment.** | flipud, fliplr, mosaic, mixup, copy_paste        |
+| **Training Control**    | patience, time, seed, deterministic, amp, cos_lr |
+| **Dataset**             | fraction, freeze, single_cls, rect, multi_scale  |
+| **Device & Inference**  | device, cache, workers, dropout, iou, max_det    |
 
 Parameters are task-aware (e.g., `copy_paste` only shows for segment tasks, `pose`/`kobj` only for pose tasks). A **Modified** badge appears when values differ from defaults, and you can reset all to defaults with the reset button.
 
@@ -106,30 +106,30 @@ Choose your GPU from Ultralytics Cloud:
 
 <!-- Screenshot: platform-training-dialog-gpu-selector-and-cost.avif -->
 
-| Tier       | GPU            | VRAM   | Cost/Hour |
-| ---------- | -------------- | ------ | --------- |
-| Budget     | RTX 2000 Ada   | 16 GB  | $0.24     |
-| Budget     | RTX A4500      | 20 GB  | $0.24     |
-| Budget     | RTX A5000      | 24 GB  | $0.26     |
-| Budget     | RTX 4000 Ada   | 20 GB  | $0.38     |
-| Budget     | L4             | 24 GB  | $0.39     |
-| Budget     | A40            | 48 GB  | $0.40     |
-| Budget     | RTX 3090       | 24 GB  | $0.46     |
-| Budget     | RTX A6000      | 48 GB  | $0.49     |
-| Mid        | RTX 4090       | 24 GB  | $0.59     |
-| Mid        | RTX 6000 Ada   | 48 GB  | $0.77     |
-| Mid        | L40S           | 48 GB  | $0.86     |
-| Mid        | RTX 5090       | 32 GB  | $0.89     |
-| Mid        | L40            | 48 GB  | $0.99     |
-| Pro        | A100 PCIe      | 80 GB  | $1.39     |
-| Pro        | A100 SXM       | 80 GB  | $1.49     |
-| Pro        | RTX PRO 6000   | 96 GB  | $1.89     |
-| Enterprise | H100 PCIe      | 80 GB  | $2.39     |
-| Enterprise | H100 SXM       | 80 GB  | $2.69     |
-| Enterprise | H100 NVL       | 94 GB  | $3.07     |
-| Enterprise | H200 NVL       | 143 GB | $3.39     |
-| Enterprise | H200 SXM       | 141 GB | $3.59     |
-| Enterprise | B200           | 180 GB | $4.99     |
+| Tier       | GPU          | VRAM   | Cost/Hour |
+| ---------- | ------------ | ------ | --------- |
+| Budget     | RTX 2000 Ada | 16 GB  | $0.24     |
+| Budget     | RTX A4500    | 20 GB  | $0.24     |
+| Budget     | RTX A5000    | 24 GB  | $0.26     |
+| Budget     | RTX 4000 Ada | 20 GB  | $0.38     |
+| Budget     | L4           | 24 GB  | $0.39     |
+| Budget     | A40          | 48 GB  | $0.40     |
+| Budget     | RTX 3090     | 24 GB  | $0.46     |
+| Budget     | RTX A6000    | 48 GB  | $0.49     |
+| Mid        | RTX 4090     | 24 GB  | $0.59     |
+| Mid        | RTX 6000 Ada | 48 GB  | $0.77     |
+| Mid        | L40S         | 48 GB  | $0.86     |
+| Mid        | RTX 5090     | 32 GB  | $0.89     |
+| Mid        | L40          | 48 GB  | $0.99     |
+| Pro        | A100 PCIe    | 80 GB  | $1.39     |
+| Pro        | A100 SXM     | 80 GB  | $1.49     |
+| Pro        | RTX PRO 6000 | 96 GB  | $1.89     |
+| Enterprise | H100 PCIe    | 80 GB  | $2.39     |
+| Enterprise | H100 SXM     | 80 GB  | $2.69     |
+| Enterprise | H100 NVL     | 94 GB  | $3.07     |
+| Enterprise | H200 NVL     | 143 GB | $3.39     |
+| Enterprise | H200 SXM     | 141 GB | $3.59     |
+| Enterprise | B200         | 180 GB | $4.99     |
 
 !!! tip "GPU Selection"
 
@@ -307,11 +307,11 @@ Estimated Cost = Base Time × Model Multiplier × Dataset Multiplier × GPU Spee
 
 ### Cost Examples
 
-| Scenario                          | GPU       | Time     | Cost    |
-| --------------------------------- | --------- | -------- | ------- |
-| 1000 images, YOLO26n, 100 epochs  | RTX 4090  | ~1 hour  | ~$0.59  |
-| 5000 images, YOLO26m, 100 epochs  | A100 SXM  | ~4 hours | ~$5.96  |
-| 10000 images, YOLO26x, 200 epochs | H100 SXM  | ~8 hours | ~$21.52 |
+| Scenario                          | GPU      | Time     | Cost    |
+| --------------------------------- | -------- | -------- | ------- |
+| 1000 images, YOLO26n, 100 epochs  | RTX 4090 | ~1 hour  | ~$0.59  |
+| 5000 images, YOLO26m, 100 epochs  | A100 SXM | ~4 hours | ~$5.96  |
+| 10000 images, YOLO26x, 200 epochs | H100 SXM | ~8 hours | ~$21.52 |
 
 ### Hold/Settle System
 
@@ -384,12 +384,12 @@ After training, view detailed costs in the **Billing** tab:
 
 ### Troubleshooting
 
-| Issue                | Solution                            |
-| -------------------- | ----------------------------------- |
-| Training stuck at 0% | Check dataset format, retry         |
-| Out of memory        | Reduce batch size or use larger GPU |
-| Poor accuracy        | Increase epochs, check data quality |
-| Training slow        | Consider faster GPU                 |
+| Issue                | Solution                             |
+| -------------------- | ------------------------------------ |
+| Training stuck at 0% | Check dataset format, retry          |
+| Out of memory        | Reduce batch size or use larger GPU  |
+| Poor accuracy        | Increase epochs, check data quality  |
+| Training slow        | Consider faster GPU                  |
 | Task mismatch error  | Ensure model and dataset tasks match |
 
 ## FAQ
@@ -431,25 +431,25 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
 
 ### Core Parameters
 
-| Parameter  | Type | Default | Range     | Description               |
-| ---------- | ---- | ------- | --------- | ------------------------- |
-| `epochs`   | int  | 100     | 1+        | Number of training epochs |
-| `batch`    | int  | 16      | 1-512     | Batch size                |
-| `imgsz`    | int  | 640     | 32+       | Input image size          |
-| `patience` | int  | 100     | 0+        | Early stopping patience   |
-| `workers`  | int  | 8       | 0+        | Dataloader workers        |
-| `cache`    | str  | false   | ram/disk  | Cache images              |
+| Parameter  | Type | Default | Range    | Description               |
+| ---------- | ---- | ------- | -------- | ------------------------- |
+| `epochs`   | int  | 100     | 1+       | Number of training epochs |
+| `batch`    | int  | 16      | 1-512    | Batch size                |
+| `imgsz`    | int  | 640     | 32+      | Input image size          |
+| `patience` | int  | 100     | 0+       | Early stopping patience   |
+| `workers`  | int  | 8       | 0+       | Dataloader workers        |
+| `cache`    | str  | false   | ram/disk | Cache images              |
 
 ### Learning Rate Parameters
 
-| Parameter       | Type  | Default | Range   | Description           |
-| --------------- | ----- | ------- | ------- | --------------------- |
-| `lr0`           | float | 0.01    | 0.0-0.1 | Initial learning rate |
-| `lrf`           | float | 0.01    | 0.0-1.0 | Final LR factor       |
-| `momentum`      | float | 0.937   | 0.6-0.98| SGD momentum          |
-| `weight_decay`  | float | 0.0005  | 0.0-0.001| L2 regularization    |
-| `warmup_epochs` | float | 3.0     | 0+      | Warmup epochs         |
-| `cos_lr`        | bool  | False   | -       | Cosine LR scheduler   |
+| Parameter       | Type  | Default | Range     | Description           |
+| --------------- | ----- | ------- | --------- | --------------------- |
+| `lr0`           | float | 0.01    | 0.0-0.1   | Initial learning rate |
+| `lrf`           | float | 0.01    | 0.0-1.0   | Final LR factor       |
+| `momentum`      | float | 0.937   | 0.6-0.98  | SGD momentum          |
+| `weight_decay`  | float | 0.0005  | 0.0-0.001 | L2 regularization     |
+| `warmup_epochs` | float | 3.0     | 0+        | Warmup epochs         |
+| `cos_lr`        | bool  | False   | -         | Cosine LR scheduler   |
 
 ### Augmentation Parameters
 
@@ -469,16 +469,16 @@ Yes, the **Train** button on dataset pages opens the training dialog with the da
 
 ### Optimizer Selection
 
-| Value    | Description                   |
-| -------- | ----------------------------- |
-| `auto`   | Automatic selection (default) |
-| `SGD`    | Stochastic Gradient Descent   |
-| `Adam`   | Adam optimizer                |
-| `AdamW`  | Adam with weight decay        |
-| `NAdam`  | NAdam optimizer               |
-| `RAdam`  | RAdam optimizer               |
-| `RMSProp`| RMSProp optimizer             |
-| `Adamax` | Adamax optimizer              |
+| Value     | Description                   |
+| --------- | ----------------------------- |
+| `auto`    | Automatic selection (default) |
+| `SGD`     | Stochastic Gradient Descent   |
+| `Adam`    | Adam optimizer                |
+| `AdamW`   | Adam with weight decay        |
+| `NAdam`   | NAdam optimizer               |
+| `RAdam`   | RAdam optimizer               |
+| `RMSProp` | RMSProp optimizer             |
+| `Adamax`  | Adamax optimizer              |
 
 !!! tip "Task-Specific Parameters"
 

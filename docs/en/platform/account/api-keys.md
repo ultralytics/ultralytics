@@ -132,12 +132,12 @@ yolo train model=yolo26n.pt data=coco.yaml project=username/project name=exp1
 
 All keys are listed in `Settings > Profile` under the API Keys section:
 
-| Column       | Description                  |
-| ------------ | ---------------------------- |
-| **Name**     | Key identifier               |
-| **Prefix**   | First characters of the key  |
-| **Created**  | Creation date                |
-| **Uses**     | Total usage count            |
+| Column      | Description                 |
+| ----------- | --------------------------- |
+| **Name**    | Key identifier              |
+| **Prefix**  | First characters of the key |
+| **Created** | Creation date               |
+| **Uses**    | Total usage count           |
 
 ### Revoke Key
 

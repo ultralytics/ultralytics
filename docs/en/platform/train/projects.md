@@ -50,10 +50,10 @@ Click **Create** to finalize. Your new project appears in the Projects list and 
 
 The project page has two main areas:
 
-| Area               | Description                                              |
-| ------------------ | -------------------------------------------------------- |
+| Area               | Description                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | **Models Sidebar** | Resizable list of all models in the project with search, status filters, sort options, and checkboxes for selection |
-| **Main Panel**     | Charts dashboard or comparison table (toggle between views) |
+| **Main Panel**     | Charts dashboard or comparison table (toggle between views)                                                         |
 
 <!-- Screenshot: platform-project-page-sidebar-and-charts.avif -->
 
@@ -70,14 +70,14 @@ The header displays:
 
 Action buttons in the header:
 
-| Button           | Description                                      |
-| ---------------- | ------------------------------------------------ |
-| **New Model**    | Opens the training dialog                        |
-| **Clone**        | Clone project and all models (public projects)   |
-| **Star**         | Star/unstar the project                          |
-| **Share**        | Social sharing for public projects               |
-| **Refresh**      | Refresh project data                             |
-| **Delete**       | Move project to trash                            |
+| Button        | Description                                    |
+| ------------- | ---------------------------------------------- |
+| **New Model** | Opens the training dialog                      |
+| **Clone**     | Clone project and all models (public projects) |
+| **Star**      | Star/unstar the project                        |
+| **Share**     | Social sharing for public projects             |
+| **Refresh**   | Refresh project data                           |
+| **Delete**    | Move project to trash                          |
 
 ### View Modes
 
@@ -151,12 +151,12 @@ Compare model performance using the charts dashboard:
 
 Available chart groups:
 
-| Group            | Charts                                           |
-| ---------------- | ------------------------------------------------ |
-| **Metrics**      | mAP50, mAP50-95, precision, recall               |
-| **Train Loss**   | train/box_loss, train/cls_loss, train/dfl_loss    |
-| **Val Loss**     | val/box_loss, val/cls_loss, val/dfl_loss          |
-| **Learning Rate**| lr/pg0, lr/pg1, lr/pg2                            |
+| Group             | Charts                                         |
+| ----------------- | ---------------------------------------------- |
+| **Metrics**       | mAP50, mAP50-95, precision, recall             |
+| **Train Loss**    | train/box_loss, train/cls_loss, train/dfl_loss |
+| **Val Loss**      | val/box_loss, val/cls_loss, val/dfl_loss       |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                         |
 
 !!! tip "Interactive Charts"
 

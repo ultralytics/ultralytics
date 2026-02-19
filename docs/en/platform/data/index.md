@@ -38,7 +38,7 @@ graph LR
 | **Upload**   | Import images, videos, or archives with automatic processing            |
 | **Annotate** | Label data with bounding boxes, polygons, keypoints, or classifications |
 | **Analyze**  | View class distributions, spatial heatmaps, and dimension statistics    |
-| **Export**    | Download in NDJSON format for offline use                               |
+| **Export**   | Download in NDJSON format for offline use                               |
 
 ## Supported Tasks
 
@@ -89,13 +89,13 @@ This allows training on Platform datasets from any machine with your API key con
 
 Every dataset page provides five tabs:
 
-| Tab        | Description                                                        |
-| ---------- | ------------------------------------------------------------------ |
-| **Images** | Browse images in grid, compact, or table view with annotation overlays |
-| **Classes** | View and edit class names, colors, and label counts per class       |
-| **Charts** | Automatic statistics: split distribution, class counts, heatmaps    |
-| **Models** | Models trained on this dataset with metrics and status              |
-| **Errors** | Images that failed processing with error details and fix guidance   |
+| Tab         | Description                                                            |
+| ----------- | ---------------------------------------------------------------------- |
+| **Images**  | Browse images in grid, compact, or table view with annotation overlays |
+| **Classes** | View and edit class names, colors, and label counts per class          |
+| **Charts**  | Automatic statistics: split distribution, class counts, heatmaps       |
+| **Models**  | Models trained on this dataset with metrics and status                 |
+| **Errors**  | Images that failed processing with error details and fix guidance      |
 
 ### Statistics and Visualization
 

@@ -108,15 +108,15 @@ The sidebar provides access to all Platform sections:
 
 The welcome card shows your profile, plan badge, and workspace statistics at a glance:
 
-| Stat             | Description                      |
-| ---------------- | -------------------------------- |
-| **Datasets**     | Number of datasets               |
-| **Images**       | Total images across all datasets |
-| **Annotations**  | Total annotation count           |
-| **Projects**     | Number of projects               |
-| **Models**       | Total trained models             |
-| **Exports**      | Number of model exports          |
-| **Deployments**  | Active deployment count          |
+| Stat            | Description                      |
+| --------------- | -------------------------------- |
+| **Datasets**    | Number of datasets               |
+| **Images**      | Total images across all datasets |
+| **Annotations** | Total annotation count           |
+| **Projects**    | Number of projects               |
+| **Models**      | Total trained models             |
+| **Exports**     | Number of model exports          |
+| **Deployments** | Active deployment count          |
 
 ### Quick Actions
 
